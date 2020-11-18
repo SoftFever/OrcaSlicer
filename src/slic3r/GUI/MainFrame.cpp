@@ -162,8 +162,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #endif // ENABLE_GCODE_VIEWER
         m_statusbar->embed(this);
     m_statusbar->set_status_text(_L("Version") + " " +
-        SLIC3R_VERSION +
-        _L(" - Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
+        SLIC3R_VERSION + " - " +
+        _L("Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -1582,7 +1582,7 @@ void MainFrame::quick_slice(const int qs)
     m_progress_dialog->Destroy();
     m_progress_dialog = nullptr;
 
-    auto message = input_file_basename + _L(" was successfully sliced.");
+    auto message = format(_L("%1% was successfully sliced."), input_file_basename);
 //     wxTheApp->notify(message);
     wxMessageDialog(this, message, _L("Slicing Done!"), wxOK | wxICON_INFORMATION).ShowModal();
 //     };

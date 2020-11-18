@@ -794,7 +794,7 @@ bool GUI_App::on_init_inner()
 #ifndef __linux__
         wxYield();
 #endif
-        scrn->SetText(_L("Loading configuration..."));
+        scrn->SetText(_L("Loading configuration")+ dots);
     }
 
     preset_bundle = new PresetBundle();
@@ -852,7 +852,7 @@ bool GUI_App::on_init_inner()
 
     // application frame
     if (scrn && is_editor())
-        scrn->SetText(_L("Preparing settings tabs..."));
+        scrn->SetText(_L("Preparing settings tabs") + dots);
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
