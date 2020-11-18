@@ -129,7 +129,7 @@ public:
 #endif /* __WXGTK__ */
 
     wxWindow* ctrl_parent() const {
-    	return this->stb ? (this->custom_ctrl && m_use_custom_ctrl_as_parent ? (wxWindow*)this->custom_ctrl : (wxWindow*)this->stb) : this->parent();
+    	return this->custom_ctrl && m_use_custom_ctrl_as_parent ? (wxWindow*)this->custom_ctrl : (this->stb ? (wxWindow*)this->stb : this->parent());
     }
 
 	void		append_line(const Line& line);
@@ -173,10 +173,6 @@ public:
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 	void			set_grid_vgap(int gap) { m_grid_sizer->SetVGap(gap); }
 
-	void            set_show_modified_btns_val(bool show) {
-		                m_show_modified_btns = show;
-    }
-
     void            clear_fields_except_of(const std::vector<std::string> left_fields);
 
     void            hide_labels() { label_width = 0; }
@@ -187,6 +183,7 @@ public:
 
     wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }
 	const std::vector<Line>& get_lines() { return m_lines; }
+	bool				is_legend_line();
 
 protected:
 	std::map<t_config_option_key, Option>	m_options;
@@ -203,7 +200,7 @@ protected:
     bool					m_disabled {false};
     wxGridSizer*			m_grid_sizer {nullptr};
 	// "true" if option is created in preset tabs
-	bool					m_show_modified_btns{ false };
+	bool					m_use_custom_ctrl{ false };
 
 	// "true" if control should be created on custom_ctrl
 	bool					m_use_custom_ctrl_as_parent { false };

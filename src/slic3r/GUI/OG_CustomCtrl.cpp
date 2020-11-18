@@ -90,7 +90,7 @@ void OG_CustomCtrl::init_ctrl_lines()
             height = m_bmp_blinking_sz.GetHeight() + m_v_gap;
             ctrl_lines.emplace_back(CtrlLine(height, this, line, true));
         }
-        else if (opt_group->label_width != 0 && !line.label.IsEmpty())
+        else if (opt_group->label_width != 0 && (!line.label.IsEmpty() || option_set.front().opt.gui_type == "legend") )
         {
             wxSize label_sz = GetTextExtent(line.label);
             height = label_sz.y * (label_sz.GetWidth() > int(opt_group->label_width * m_em_unit) ? 2 : 1) + m_v_gap;
@@ -135,7 +135,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             }
 
             wxString label = line.label;
-            if (opt_group->label_width != 0 && !label.IsEmpty())
+            if (opt_group->label_width != 0)
                 h_pos += opt_group->label_width * m_em_unit + m_h_gap;
 
             int blinking_button_width = m_bmp_blinking_sz.GetWidth() + m_h_gap;
@@ -177,10 +177,13 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                     GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
                     h_pos += label_w + 1 + m_h_gap;
                 }                
-                h_pos += 3 * blinking_button_width;
+                h_pos += (opt.opt.gui_type == "legend" ? 1 : 3) * blinking_button_width;
                 
                 if (field == field_in)
-                    break;    
+                    break;
+                if (opt.opt.gui_type == "legend")
+                    h_pos += 2 * blinking_button_width;
+
                 h_pos += field->getWindow()->GetSize().x;
 
                 if (option_set.size() == 1 && option_set.front().opt.full_width)
@@ -556,7 +559,8 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_mode_bmp(wxDC& dc, wxCoord v_pos)
     wxBitmap bmp = create_scaled_bitmap(bmp_name, ctrl, wxOSX ? 10 : 12);
     wxCoord y_draw = v_pos + lround((height - get_bitmap_size(bmp).GetHeight()) / 2);
 
-    dc.DrawBitmap(bmp, 0, y_draw);
+    if (og_line.get_options().front().opt.gui_type != "legend")
+        dc.DrawBitmap(bmp, 0, y_draw);
 
     return get_bitmap_size(bmp).GetWidth() + ctrl->m_h_gap;
 }
