@@ -657,7 +657,8 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     // Detect and set manipulation mode for double slider
     update_layers_slider_mode();
 
-    CustomGCode::Info& ticks_info_from_model = wxGetApp().plater()->model().custom_gcode_per_print_z;
+    Plater* plater = wxGetApp().plater();
+    CustomGCode::Info& ticks_info_from_model = plater->model().custom_gcode_per_print_z;
     check_layers_slider_values(ticks_info_from_model.gcodes, layers_z);
 
     m_layers_slider->SetSliderValues(layers_z);
@@ -680,12 +681,15 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     }
     m_layers_slider->SetSelectionSpan(idx_low, idx_high);
     m_layers_slider->SetTicksValues(ticks_info_from_model);
-    m_layers_slider->SetLayersTimes(m_gcode_result->time_statistics.modes[0].layers_times);
 
-    bool sla_print_technology = wxGetApp().plater()->printer_technology() == ptSLA;
+    bool sla_print_technology = plater->printer_technology() == ptSLA;
     bool sequential_print = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("complete_objects");
     m_layers_slider->SetDrawMode(sla_print_technology, sequential_print);
-    m_layers_slider->SetExtruderColors(wxGetApp().plater()->get_extruder_colors_from_plater_config());
+    m_layers_slider->SetExtruderColors(plater->get_extruder_colors_from_plater_config());
+    if (sla_print_technology)
+        m_layers_slider->SetLayersTimes(plater->sla_print().print_statistics().layers_times);
+    else
+        m_layers_slider->SetLayersTimes(m_gcode_result->time_statistics.modes[0].layers_times);
 
     m_layers_slider_sizer->Show((size_t)0);
     Layout();

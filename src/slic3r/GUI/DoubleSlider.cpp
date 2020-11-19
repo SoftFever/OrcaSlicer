@@ -382,8 +382,19 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
 
 void Control::SetLayersTimes(const std::vector<float>& layers_times)
 { 
+    m_layers_times.clear();
+    if (layers_times.empty())
+        return;
+    m_layers_times.resize(layers_times.size(), 0.0);
+    m_layers_times[0] = layers_times[0];
+    for (size_t i = 1; i < layers_times.size(); i++)
+        m_layers_times[i] = m_layers_times[i - 1] + layers_times[i];
+}
+
+void Control::SetLayersTimes(const std::vector<double>& layers_times)
+{ 
     m_layers_times = layers_times;
-    for (int i = 1; i < m_layers_times.size(); i++)
+    for (size_t i = 1; i < m_layers_times.size(); i++)
         m_layers_times[i] += m_layers_times[i - 1];
 }
 
@@ -579,7 +590,7 @@ void Control::draw_tick_on_mouse_position(wxDC& dc)
     }
 
     tick = get_value_from_position(m_moving_pos);
-    if (tick >= m_max_value || tick <= m_min_value || tick == m_higher_value || tick == m_lower_value)
+    if (tick > m_max_value || tick < m_min_value || tick == m_higher_value || tick == m_lower_value)
         return;
 
     wxCoord new_pos = get_position_from_value(tick);
@@ -595,6 +606,47 @@ void Control::draw_tick_on_mouse_position(wxDC& dc)
         draw_tick_text(dc, pos, tick, ltEstimatedTime, false);
         dc.SetTextForeground(old_clr);
     }
+}
+
+static std::string short_and_splitted_time(const std::string& time)
+{
+    // Parse the dhms time format.
+    int days = 0;
+    int hours = 0;
+    int minutes = 0;
+    int seconds = 0;
+    if (time.find('d') != std::string::npos)
+        ::sscanf(time.c_str(), "%dd %dh %dm %ds", &days, &hours, &minutes, &seconds);
+    else if (time.find('h') != std::string::npos)
+        ::sscanf(time.c_str(), "%dh %dm %ds", &hours, &minutes, &seconds);
+    else if (time.find('m') != std::string::npos)
+        ::sscanf(time.c_str(), "%dm %ds", &minutes, &seconds);
+    else if (time.find('s') != std::string::npos)
+        ::sscanf(time.c_str(), "%ds", &seconds);
+
+    // Format the dhm time.
+    char buffer[64];
+    if (days > 0)
+        ::sprintf(buffer, "%dd%dh\n%dm", days, hours, minutes);
+    else if (hours > 0) {
+        if (hours < 10 && minutes < 10 && seconds < 10)
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
+        else if (hours > 10 && minutes > 10 && seconds > 10)
+            ::sprintf(buffer, "%dh\n%dm\n%ds", hours, minutes, seconds);
+        else if (minutes < 10 && seconds > 10 || minutes > 10 && seconds < 10)
+            ::sprintf(buffer, "%dh\n%dm%ds", hours, minutes, seconds);
+        else
+            ::sprintf(buffer, "%dh%dm\n%ds", hours, minutes, seconds);
+    }
+    else if (minutes > 0) {
+        if (minutes > 10 && seconds > 10)
+            ::sprintf(buffer, "%dm\n%ds", minutes, seconds);
+        else
+            ::sprintf(buffer, "%dm%ds", minutes, seconds);
+    }
+    else
+        ::sprintf(buffer, "%ds", seconds);
+    return buffer;
 }
 
 wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer*/) const
@@ -613,7 +665,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         if (label_type == ltEstimatedTime) {
             if (m_values.size() != m_layers_times.size())
                 return "time";
-            return Slic3r::short_time(get_time_dhms(m_layers_times[value]));
+            return short_and_splitted_time(get_time_dhms(m_layers_times[value]));
         }
         wxString str = m_values.empty() ?
             wxString::Format("%.*f", 2, m_label_koef * value) :
@@ -664,7 +716,10 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, LabelType l
             text_pos = wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
     }
 
-    dc.DrawText(label, text_pos);
+    if (label_type == ltEstimatedTime)
+        dc.DrawLabel(label, wxRect(text_pos, wxSize(text_width, text_height)), wxALIGN_RIGHT);
+    else
+        dc.DrawText(label, text_pos);
 }
 
 void Control::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
