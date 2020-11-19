@@ -11,9 +11,7 @@
 
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/BoundingBox.hpp"
-#if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCode/GCodeProcessor.hpp"
-#endif // ENABLE_GCODE_VIEWER
 #include "Jobs/Job.hpp"
 #include "Search.hpp"
 
@@ -144,11 +142,9 @@ public:
     void add_model(bool imperial_units = false);
     void import_sl1_archive();
     void extract_config_from_project();
-#if ENABLE_GCODE_VIEWER
     void load_gcode();
     void load_gcode(const wxString& filename);
     void refresh_print();
-#endif // ENABLE_GCODE_VIEWER
 
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
     // To be called when providing a list of files to the GUI slic3r on command line.
@@ -223,9 +219,7 @@ public:
     bool search_string_getter(int idx, const char** label, const char** tooltip);
     // For the memory statistics. 
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
-#if ENABLE_GCODE_VIEWER
     void clear_undo_redo_stack_main();
-#endif // ENABLE_GCODE_VIEWER
     // Enter / leave the Gizmos specific Undo / Redo stack. To be used by the SLA support point editing gizmo.
     void enter_gizmos_stack();
     void leave_gizmos_stack();
@@ -236,13 +230,8 @@ public:
     void force_print_bed_update();
     // On activating the parent window.
     void on_activate();
-#if ENABLE_GCODE_VIEWER
     std::vector<std::string> get_extruder_colors_from_plater_config(const GCodeProcessor::Result* const result = nullptr) const;
     std::vector<std::string> get_colors_for_color_print(const GCodeProcessor::Result* const result = nullptr) const;
-#else
-    std::vector<std::string> get_extruder_colors_from_plater_config() const;
-    std::vector<std::string> get_colors_for_color_print() const;
-#endif // ENABLE_GCODE_VIEWER
 
     void update_object_menu();
     void show_action_buttons(const bool is_ready_to_slice) const;
@@ -268,11 +257,7 @@ public:
 
     PrinterTechnology   printer_technology() const;
     const DynamicPrintConfig * config() const;
-#if ENABLE_GCODE_VIEWER
     bool                set_printer_technology(PrinterTechnology printer_technology);
-#else
-    void                set_printer_technology(PrinterTechnology printer_technology);
-#endif // ENABLE_GCODE_VIEWER
 
     void copy_selection_to_clipboard();
     void paste_from_clipboard();
@@ -298,13 +283,9 @@ public:
     void sys_color_changed();
 
     bool init_view_toolbar();
-#if ENABLE_GCODE_VIEWER
     void enable_view_toolbar(bool enable);
-#endif // ENABLE_GCODE_VIEWER
     bool init_collapse_toolbar();
-#if ENABLE_GCODE_VIEWER
     void enable_collapse_toolbar(bool enable);
-#endif // ENABLE_GCODE_VIEWER
 
     const Camera& get_camera() const;
     Camera& get_camera();
@@ -323,23 +304,19 @@ public:
     const GLToolbar& get_collapse_toolbar() const;
     GLToolbar& get_collapse_toolbar();
 
-#if ENABLE_GCODE_VIEWER
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
     void enable_preview_moves_slider(bool enable);
 
     void reset_gcode_toolpaths();
     void reset_last_loaded_gcode() { m_last_loaded_gcode = ""; }
-#endif // ENABLE_GCODE_VIEWER
 
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
 
 	void set_bed_shape() const;
-#if ENABLE_GCODE_VIEWER
     void set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false) const;
-#endif // ENABLE_GCODE_VIEWER
-    
+
 	const NotificationManager* get_notification_manager() const;
 	NotificationManager* get_notification_manager();
 
@@ -394,9 +371,7 @@ private:
     bool 	 m_tracking_popup_menu = false;
     wxString m_tracking_popup_menu_error_message;
 
-#if ENABLE_GCODE_VIEWER
     wxString m_last_loaded_gcode;
-#endif // ENABLE_GCODE_VIEWER
 
     void suppress_snapshots();
     void allow_snapshots();
