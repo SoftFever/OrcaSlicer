@@ -324,6 +324,7 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
         printf("Unable to create bed grid lines\n");
 }
 
+
 std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Pointfs& shape) const
 {
     auto bundle = wxGetApp().preset_bundle;
