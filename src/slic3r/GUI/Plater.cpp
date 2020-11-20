@@ -2044,6 +2044,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 	    this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this, q](RemovableDriveEjectEvent &evt) {
 		    if (evt.data.second) {
 			    this->show_action_buttons(this->ready_to_slice);
+                notification_manager->close_notification_of_type(NotificationType::ExportFinished);
 			    notification_manager->push_notification(format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
 				                                        NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
 		    } else {
