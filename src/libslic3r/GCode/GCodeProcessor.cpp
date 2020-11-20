@@ -817,6 +817,10 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
 
     update_estimated_times_stats();
 
+    // ensure at least one (default) color is defined
+    if (m_result.extruder_colors.empty())
+        m_result.extruder_colors.push_back("#FF8000");
+
     // post-process to add M73 lines into the gcode
     if (apply_postprocess)
         m_time_processor.post_process(filename);
