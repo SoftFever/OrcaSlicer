@@ -350,6 +350,7 @@ struct SLAPrintStatistics
     size_t                          fast_layers_count;
     double                          total_cost;
     double                          total_weight;
+    std::vector<double>             layers_times;
 
     // Config with the filled in print statistics.
     DynamicConfig           config() const;
@@ -366,6 +367,7 @@ struct SLAPrintStatistics
         fast_layers_count = 0;
         total_cost = 0.;
         total_weight = 0.;
+        layers_times.clear();
     }
 };
 

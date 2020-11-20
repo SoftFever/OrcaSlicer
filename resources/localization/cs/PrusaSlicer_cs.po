@@ -5,20 +5,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: Poedit 2.4.2\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
-"Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
+"Last-Translator: \n"
 "Language-Team: \n"
-
-#: src/slic3r/GUI/MainFrame.cpp:166
-msgid " - Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"
-msgstr "- Nezapomeňte zkontrolovat aktualizace na https://github.com/prusa3d/PrusaSlicer/releases"
-
-#: src/slic3r/GUI/MainFrame.cpp:1573
-msgid " was successfully sliced."
-msgstr " byl úspěšně slicován."
 
 #: src/slic3r/GUI/Tab.cpp:4124
 msgid ""
@@ -49,6 +41,10 @@ msgstr "%1% Přednastavení"
 #: src/slic3r/GUI/Plater.cpp:4423
 msgid "%1% printer was active at the time the target Undo / Redo snapshot was taken. Switching to %1% printer requires reloading of %1% presets."
 msgstr "%1% tiskárna byla aktivní v době, kdy byly pořízeny kroky Zpět / Vpřed. Přepnutí na tiskárnu %1% vyžaduje opětovné načtení předvoleb %1%."
+
+#: src/slic3r/GUI/MainFrame.cpp:1585
+msgid "%1% was successfully sliced."
+msgstr "%1% byl úspěšně naslicován."
 
 #: src/libslic3r/Print.cpp:1400
 msgid "%1%=%2% mm is too low to be printable at a layer height %3% mm"
@@ -97,6 +93,11 @@ msgstr "%s &Webová stránka"
 #, c-format
 msgid "%s - BREAKING CHANGE"
 msgstr "%s - ZLOMOVÁ ZMĚNA"
+
+#: src/slic3r/GUI/Plater.cpp:1410
+#, c-format
+msgid "%s - Drop project file"
+msgstr "%s - Otevírání projektu"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:211
 #, c-format
@@ -395,7 +396,7 @@ msgstr "Obecným pravidlem je 60 °C pro PLA a 110 °C pro ABS. Zadejte nula, po
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:634
 msgid "A toolpath outside the print area was detected."
-msgstr "Byla detekována cesta mimo tiskovou oblast"
+msgstr "Byla detekována cesta mimo tiskovou oblast."
 
 #: src/slic3r/GUI/AboutDialog.cpp:212 src/slic3r/GUI/AboutDialog.cpp:215
 #, c-format
@@ -427,6 +428,10 @@ msgstr "Přesnost"
 #: src/slic3r/GUI/Jobs/SLAImportJob.cpp:59
 msgid "Accurate"
 msgstr "Přesné"
+
+#: src/slic3r/GUI/Plater.cpp:1423
+msgid "Action"
+msgstr "Akce"
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:78
 msgid "Activate"
@@ -728,10 +733,6 @@ msgstr "Všechna gizma: Rotace - levé talčítko myši; Posun - pravé tlačít
 msgid "All installed printers are compatible with the selected filament."
 msgstr "Všechny instalované tiskárny jsou kompatibilní s vybraným filamentem."
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:737
-msgid "All modified options will be reverted."
-msgstr "Všechny upravené možnosti budou vráceny."
-
 #: src/libslic3r/Print.cpp:1245
 msgid "All objects are outside of the print volume."
 msgstr "Všechny objekty jsou mimo tiskový prostor."
@@ -739,6 +740,10 @@ msgstr "Všechny objekty jsou mimo tiskový prostor."
 #: src/slic3r/GUI/Plater.cpp:4774
 msgid "All objects will be removed, continue?"
 msgstr "Všechny objekty budou odebrány, pokračovat?"
+
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:737
+msgid "All settings changes will be discarded."
+msgstr "Všechny změny v nastavení budou zahozeny."
 
 #: src/slic3r/GUI/ConfigWizard.cpp:307
 msgid "All standard"
@@ -986,6 +991,10 @@ msgstr "Automatické aktualizace"
 #: src/slic3r/GUI/MainFrame.cpp:1137
 msgid "Automatically repair an STL file"
 msgstr "Automaticky opravit STL soubor"
+
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:129
+msgid "Autoset by angle"
+msgstr "Automaticky podle úhlu"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:233
 msgid "Autoset custom supports"
@@ -1749,7 +1758,9 @@ msgstr "Kopírování dočasného G-codu do výstupního G-codu selhalo"
 msgid ""
 "Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\n"
 "Error message: %1%"
-msgstr "Kopírování dočasného G-codu do výstupního G-codu se nezdařilo. Není SD karta chráněná proti zápisu?"
+msgstr ""
+"Kopírování dočasného G-codu do výstupního G-codu se nezdařilo. Není SD karta chráněná proti zápisu?\n"
+"Chybová hláška: %1%"
 
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:147
 msgid "Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."
@@ -2394,6 +2405,10 @@ msgstr "Neuspořádávat"
 msgid "Don't notify about new releases any more"
 msgstr "Neupozorňovat na nové verze"
 
+#: src/slic3r/GUI/Plater.cpp:1431
+msgid "Don't show again"
+msgstr "Znovu nezobrazovat"
+
 #: src/libslic3r/PrintConfig.cpp:403
 msgid "Don't support bridges"
 msgstr "Nevytvářet podpěry pod mosty"
@@ -2534,6 +2549,10 @@ msgstr "Nadzvednutí objektu je příliš malé. Pomocí funkce „Podložka oko
 msgid "Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute intervals into the G-code to let the firmware show accurate remaining time. As of now only the Prusa i3 MK3 firmware recognizes M73. Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode."
 msgstr "Vkládání M73 P[počet vytištěných procent] R[zbývající čas v minutách] v 1 minutových intervalech do G-codu, aby firmware ukázal přesný zbývající čas. M73 nyní rozpoznává pouze firmware tiskárny Prusa i3 MK3. Firmware i3 MK3 také podporuje M73 Qxx Sxx pro tichý režim."
 
+#: src/libslic3r/PrintConfig.cpp:1217
+msgid "Emit to G-code"
+msgstr "Emitivat do G-codu"
+
 #: src/libslic3r/GCode.cpp:622
 msgid "Empty layers detected, the output would not be printable."
 msgstr "Byly detekovány prázdné vrstvy, model by nebylo možné vytisknout."
@@ -2565,7 +2584,7 @@ msgstr "Zapnout ironing"
 
 #: src/libslic3r/PrintConfig.cpp:1125
 msgid "Enable ironing of the top layers with the hot print head for smooth surface"
-msgstr "Pro hladké vrchní vrstvy povolte ironing pomocí ohřáté tiskové hlavy."
+msgstr "Pro hladké vrchní vrstvy povolte ironing pomocí ohřáté tiskové hlavy"
 
 #: src/libslic3r/PrintConfig.cpp:2009
 msgid "Enable support material generation."
@@ -2975,10 +2994,6 @@ msgstr "Exportovat vybrané objekty jako STL soubor"
 msgid "Export to SD card / Flash drive"
 msgstr "Export na SD kartu / Flash disk"
 
-#: src/slic3r/GUI/Plater.cpp:755
-msgid "Export to SD card / Flash drive "
-msgstr "Export na SD kartu / Flash disk"
-
 #: src/slic3r/GUI/MainFrame.cpp:1090 src/slic3r/GUI/MainFrame.cpp:1395
 msgid "Export toolpaths as OBJ"
 msgstr "Exportovat trasy extruderu jako OBJ"
@@ -3188,7 +3203,7 @@ msgstr "Typ"
 #: src/slic3r/GUI/GUI_Preview.cpp:293 src/slic3r/GUI/GUI_Preview.cpp:295
 #: src/slic3r/GUI/GUI_Preview.cpp:316
 msgid "Feature types"
-msgstr "Typy extruzí"
+msgstr "Typy extrudování"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1926
 msgid "FFF Technology Printers"
@@ -3983,7 +3998,7 @@ msgstr "Pokud je tato volba povolena, bude 3D scéna vykreslena v rozlišení Re
 
 #: src/slic3r/GUI/Preferences.cpp:215
 msgid "If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene"
-msgstr "Pokud je povoleno, bude v pravém horním rohu 3D scény zobrazeno tlačítko pro ovládání bočního panelu."
+msgstr "Pokud je povoleno, bude v pravém horním rohu 3D scény zobrazeno tlačítko pro ovládání bočního panelu"
 
 #: src/libslic3r/PrintConfig.cpp:3698
 msgid "If enabled, the command line arguments are sent to an existing instance of GUI PrusaSlicer, or an existing PrusaSlicer window is activated. Overrides the \"single_instance\" configuration value from application preferences."
@@ -4073,6 +4088,10 @@ msgstr "Pokud firmware nezpracovává umístění extruderu správně, potřebuj
 msgid "If your firmware requires relative E values, check this, otherwise leave it unchecked. Most firmwares use absolute values."
 msgstr "Pokud váš firmware vyžaduje relativní hodnoty E, zaškrtněte toto, jinak nechte nezaškrtnuté. Většina firmwarů používá absolutní hodnoty."
 
+#: src/libslic3r/PrintConfig.cpp:1219
+msgid "Ignore"
+msgstr "Ignorovat"
+
 #: src/libslic3r/PrintConfig.cpp:3684
 msgid "Ignore non-existent config files"
 msgstr "Ignorovat neexistující konfigurační soubory"
@@ -4098,9 +4117,17 @@ msgstr "Načíst konfiguraci z &projektu"
 msgid "Import Config from ini/amf/3mf/gcode"
 msgstr "Načíst konfiguraci ze souboru ini/amf/3mf/gcode"
 
+#: src/slic3r/GUI/Plater.cpp:1419
+msgid "Import config only"
+msgstr "Importovat pouze konfiguraci"
+
 #: src/slic3r/GUI/Jobs/SLAImportJob.cpp:39
-msgid "Import file: "
-msgstr "Importovat soubor:"
+msgid "Import file"
+msgstr "Importovat soubor"
+
+#: src/slic3r/GUI/Plater.cpp:1418
+msgid "Import geometry only"
+msgstr "Importovat pouze modely"
 
 #: src/slic3r/GUI/Jobs/SLAImportJob.cpp:46
 msgid "Import model and profile"
@@ -4566,10 +4593,6 @@ msgstr "Vrchních"
 msgid "Layout Options"
 msgstr "Možnosti rozložení"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoRotate.cpp:233
-msgid "Least supports"
-msgstr "Nejméně podpěr"
-
 #: src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp:48
 msgid "Leaving Paint-on supports"
 msgstr "Opuštění Malování podpěr"
@@ -4670,14 +4693,6 @@ msgstr "Načíst konfiguraci ze zadaného souboru. Může být použito vícekr�
 msgid "Load exported configuration file"
 msgstr "Načíst exportovaný konfigurační soubor"
 
-#: src/slic3r/GUI/Plater.cpp:1436
-msgid "Load File"
-msgstr "Načtení souboru"
-
-#: src/slic3r/GUI/Plater.cpp:1440
-msgid "Load Files"
-msgstr "Naštení souborů"
-
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2038
 msgid "Load Part"
 msgstr "Přidání části"
@@ -4710,9 +4725,9 @@ msgstr "Načteno"
 msgid "Loading"
 msgstr "Načítání"
 
-#: src/slic3r/GUI/GUI_App.cpp:759
-msgid "Loading configuration..."
-msgstr "Načítání konfigurace ..."
+#: src/slic3r/GUI/GUI_App.cpp:797
+msgid "Loading configuration"
+msgstr "Načítání konfigurace"
 
 #: src/slic3r/GUI/Plater.cpp:2226
 msgid "Loading file"
@@ -5690,7 +5705,7 @@ msgstr "Teplota trysky"
 
 #: src/libslic3r/PrintConfig.cpp:2198
 msgid "Nozzle temperature for layers after the first one. Set this to zero to disable temperature control commands in the output G-code."
-msgstr "Teplota trysky pro od druhé vrstvy dále. Nastavte tuto hodnotu na nulu, abyste zakázali příkazy pro řízení teploty ve výstupním G-codu."
+msgstr "Teplota trysky od druhé vrstvy dále. Nastavte tuto hodnotu na nulu, abyste zakázali příkazy pro řízení teploty ve výstupním G-codu."
 
 #: src/libslic3r/PrintConfig.cpp:961
 msgid "Nozzle temperature for the first layer. If you want to control temperature manually during print, set this to zero to disable temperature control commands in the output G-code."
@@ -5881,6 +5896,10 @@ msgstr "Otevře novou instanci PrusaSliceru"
 #: src/slic3r/GUI/MainFrame.cpp:989
 msgid "Open a project file"
 msgstr "Otevřít soubor s projektem"
+
+#: src/slic3r/GUI/Plater.cpp:1417
+msgid "Open as project"
+msgstr "Otevřít jako projekt"
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:330
 msgid "Open CA certificate file"
@@ -6338,9 +6357,9 @@ msgstr "Preferovaný směr švu - rozkmit"
 msgid "Preparing infill"
 msgstr "Příprava výplně"
 
-#: src/slic3r/GUI/GUI_App.cpp:895
-msgid "Preparing settings tabs..."
-msgstr "Příprava karet s nastavením..."
+#: src/slic3r/GUI/GUI_App.cpp:855
+msgid "Preparing settings tabs"
+msgstr "Příprava karet s nastavením"
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:1009
 msgid "Preset \"%1%\" has the following unsaved changes:"
@@ -6662,10 +6681,6 @@ msgstr "Kvalita (pomalejší slicing)"
 msgid "Quality / Speed"
 msgstr "Kvalita / Rychlost"
 
-#: src/slic3r/GUI/Jobs/SLAImportJob.cpp:56
-msgid "Quality: "
-msgstr "Kvalita:"
-
 #: src/slic3r/GUI/Jobs/SLAImportJob.cpp:61
 msgid "Quick"
 msgstr "Rychlé"
@@ -6693,7 +6708,7 @@ msgstr "Ukončit %s"
 
 #: src/slic3r/GUI/GUI_App.cpp:396
 msgid "Quit, I will move my data now"
-msgstr "Zavřít aplikaci, přesunu si svá data."
+msgstr "Zavřít aplikaci, přesunu si svá data"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:280 src/libslic3r/PrintConfig.cpp:547
 msgid "Radius"
@@ -6879,6 +6894,10 @@ msgstr "Zapamatovat moji volbu"
 #: src/slic3r/GUI/Preferences.cpp:52
 msgid "Remember output directory"
 msgstr "Pamatovat si výstupní složku"
+
+#: src/slic3r/GUI/MainFrame.cpp:166
+msgid "Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"
+msgstr "Nezapomeňte zkontrolovat aktualizace na https://github.com/prusa3d/PrusaSlicer/releases"
 
 #: src/slic3r/GUI/Tab.cpp:3386
 msgid "remove"
@@ -7345,7 +7364,7 @@ msgstr "Uložit SL1 soubor jako:"
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:744
 msgid "Save the selected options to preset \"%1%\"."
-msgstr "Uložte vybraná nastaneví do přednastavení \"%1%\"."
+msgstr "Uloží vybraná nastaneví do přednastavení \"%1%\"."
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:740
 msgid "Save the selected options."
@@ -7469,6 +7488,10 @@ msgstr "Vybrat všechny body"
 #: src/slic3r/GUI/ConfigWizard.cpp:2487
 msgid "Select all standard printers"
 msgstr "Vybrat všechny standardní tiskárny"
+
+#: src/slic3r/GUI/Plater.cpp:1422
+msgid "Select an action to apply to the file"
+msgstr "Vyberte jak chcete na soubor otevřít"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:1215
 msgid "Select by rectangle"
@@ -7614,10 +7637,6 @@ msgstr "Odeslat k tisku stávající plochu jako G-code"
 
 #: src/slic3r/GUI/Plater.cpp:753 src/slic3r/GUI/Plater.cpp:5707
 msgid "Send to printer"
-msgstr "Odeslat do tiskárny"
-
-#: src/slic3r/GUI/Plater.cpp:753
-msgid "Send to printer "
 msgstr "Odeslat do tiskárny"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:1312
@@ -7860,6 +7879,10 @@ msgstr "Zobrazit okno o Slic3ru"
 #: src/slic3r/GUI/WipeTowerDialog.cpp:377
 msgid "Show advanced settings"
 msgstr "Zobrazit rozšířená nastavení"
+
+#: src/slic3r/GUI/Preferences.cpp:120
+msgid "Show drop project dialog"
+msgstr "Zobrazit dialogové okno při přetažení projektu"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:157
 msgid "Show error message"
@@ -8522,10 +8545,6 @@ msgstr "Úspěch!"
 msgid "Successfully unmounted. The device %s(%s) can now be safely removed from the computer."
 msgstr "Odpojení proběhlo úspěšné. Zařízení %s(%s) lze nyní bezpečně odebrat z počítače."
 
-#: src/slic3r/GUI/Gizmos/GLGizmoRotate.cpp:234
-msgid "Suface quality"
-msgstr "Kvalita povrchu"
-
 #: src/slic3r/GUI/PresetHints.cpp:202
 msgid "support"
 msgstr "podpěry"
@@ -9159,9 +9178,9 @@ msgstr "Čistící věž je podporována pouze v případě, že všechny extrud
 msgid "The Wipe tower is only supported if all objects have the same variable layer height"
 msgstr "Čistící věž je podporována pouze v případě, že všechny objekty mají stejnou variabilní výšku vrstvy"
 
-#: src/slic3r/GUI/Plater.cpp:3543
-msgid "There are active warnings concerning sliced models:\n"
-msgstr "Varování týkající se slicovaných modelů:\n"
+#: src/slic3r/GUI/Plater.cpp:3563
+msgid "There are active warnings concerning sliced models:"
+msgstr "Varování týkající se slicovaných modelů:"
 
 #: src/libslic3r/SLAPrintSteps.cpp:619
 msgid "There are unprintable objects. Try to adjust support settings to make the objects printable."
@@ -9246,7 +9265,7 @@ msgstr "Toto experimentální nastavení používá příkazy G10 a G11, aby si 
 
 #: src/libslic3r/PrintConfig.cpp:2319
 msgid "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. If your firmware doesn't already know filament diameter(s), you can put commands like 'M200 D[filament_diameter_0] T0' in your start G-code in order to turn volumetric mode on and use the filament diameter associated to the filament selected in Slic3r. This is only supported in recent Marlin."
-msgstr "Toto experimentální nastavení používá výstupní hodnoty E v kubických milimetrech místo lineárních milimetrů. Pokud firmware dosud nezná průměr (průměry) filamentu, můžete v počátečním G-code zadat příkazy jako “M200 D [filament_diameter_0] T0”, pro zapnutí volumetrického režimu a použití průměru filamentu přidruženého k vybranému filamentu ve Slic3ru. Toto je podporováno pouze v posledních verzích firmwaru Marlin.\n"
+msgstr "Toto experimentální nastavení používá výstupní hodnoty E v kubických milimetrech místo lineárních milimetrů. Pokud firmware dosud nezná průměr (průměry) filamentu, můžete v počátečním G-code zadat příkazy jako “M200 D [filament_diameter_0] T0”, pro zapnutí volumetrického režimu a použití průměru filamentu přidruženého k vybranému filamentu ve Slic3ru. Toto je podporováno pouze v posledních verzích firmwaru Marlin."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:4459
 msgid "This extruder will be set for selected items"
@@ -9324,7 +9343,7 @@ msgstr "Toto nastavení přemístí trysku při retrakci, aby se minimalizovalo 
 
 #: src/libslic3r/PrintConfig.cpp:1961
 msgid "This G-code will be used as a code for the color change"
-msgstr "Tento G-code bude použit jako kód pro změnu barvy."
+msgstr "Tento G-code bude použit jako kód pro změnu barvy"
 
 #: src/libslic3r/PrintConfig.cpp:1970
 msgid "This G-code will be used as a code for the pause print"
@@ -9888,6 +9907,10 @@ msgstr "Použít retrakce z firmwaru"
 msgid "Use for search"
 msgstr "Použit pro vyhledávání"
 
+#: src/libslic3r/PrintConfig.cpp:1218
+msgid "Use for time estimate"
+msgstr "Použít pro odhad času"
+
 #: src/slic3r/GUI/PrintHostDialogs.cpp:42
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr "Pokud je to nutné, použijte pro oddělení složek lomítko ( / )."
@@ -10132,6 +10155,10 @@ msgstr "Co chcete udělat s přednastavením „% 1%“ po uložení?"
 #: src/slic3r/GUI/Preferences.cpp:114
 msgid "When checked, the print and filament presets are shown in the preset editor even if they are marked as incompatible with the active printer"
 msgstr "Pokud je zaškrtnuto, přednastavení tisku a filamentu se zobrazují v editoru přednastavení, i když jsou označeny jako nekompatibilní s aktivní tiskárnou"
+
+#: src/slic3r/GUI/Preferences.cpp:122
+msgid "When checked, whenever dragging and dropping a project file on the application, shows a dialog asking to select the action to take on the file to load."
+msgstr "Je-li zaškrtnuto, při každém přetažení souboru s projektem do aplikace se zobrazí dialogové okno s výzvou k výběru akce, kterou se má soubor načíst."
 
 #: src/slic3r/GUI/Preferences.cpp:156
 msgid "When closing the application, always ask for unsaved changes"

@@ -2373,13 +2373,11 @@ PageShp TabPrinter::build_kinematics_page()
     if (m_use_silent_mode) {
         // Legend for OptionsGroups
         auto optgroup = page->new_optgroup("");
-        optgroup->set_show_modified_btns_val(false);
-        optgroup->label_width = 23;// 230;
         auto line = Line{ "", "" };
 
         ConfigOptionDef def;
         def.type = coString;
-        def.width = 15;
+        def.width = Field::def_width();
         def.gui_type = "legend";
         def.mode = comAdvanced;
         def.tooltip = L("Values in this column are for Normal mode");
@@ -3784,7 +3782,7 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
     for (auto group : m_optgroups) {
         if (!group->activate(throw_if_canceled))
             continue;
-        m_vsizer->Add(group->sizer, 0, wxEXPAND | wxALL, 10);
+        m_vsizer->Add(group->sizer, 0, wxEXPAND | (group->is_legend_line() ? (wxLEFT|wxTOP) : wxALL), 10);
         group->update_visibility(mode);
         group->reload_config();
         throw_if_canceled();

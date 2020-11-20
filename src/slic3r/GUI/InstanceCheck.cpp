@@ -251,11 +251,24 @@ namespace instance_check_internal
 
 bool instance_check(int argc, char** argv, bool app_config_single_instance)
 {
+#ifndef _WIN32
+	boost::system::error_code ec;
+#endif
 	std::size_t hashed_path = 
 #ifdef _WIN32
 		std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
 #else
-		std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0])).string());
+		std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]), ec).string());
+		if(ec.value() > 0) { // canonical was not able to find execitable (can happen with appimage on some systems)
+			ec.clear();
+			// Compose path with boost canonical of folder and filename
+			hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]).parent_path(), ec).string() + "/" + boost::filesystem::system_complete(argv[0]).filename().string());
+			if(ec.value() > 0) {
+				// Still not valid, process without canonical
+				hashed_path = std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
+				
+			}
+		}
 #endif // win32
 
 	std::string lock_name 	= std::to_string(hashed_path);

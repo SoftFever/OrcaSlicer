@@ -393,7 +393,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     auto is_temporary_decoration = [](const std::string& gcode_line) {
         // remove trailing '\n'
         std::string line = gcode_line.substr(0, gcode_line.length() - 1);
-        if (line == "; " + Layer_Change_Tag)
+        if (line == ";" + Layer_Change_Tag)
             return true;
         else
             return false;
@@ -816,6 +816,10 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
     }
 
     update_estimated_times_stats();
+
+    // ensure at least one (default) color is defined
+    if (m_result.extruder_colors.empty())
+        m_result.extruder_colors.push_back("#FF8000");
 
     // post-process to add M73 lines into the gcode
     if (apply_postprocess)

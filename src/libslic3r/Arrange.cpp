@@ -7,6 +7,7 @@
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
 #include <libnest2d/placers/nfpplacer.hpp>
 #include <libnest2d/selections/firstfit.hpp>
+#include <libnest2d/utils/rotcalipers.hpp>
 
 #include <numeric>
 #include <ClipperUtils.hpp>
@@ -83,7 +84,7 @@ const double BIG_ITEM_TRESHOLD = 0.02;
 // Fill in the placer algorithm configuration with values carefully chosen for
 // Slic3r.
 template<class PConf>
-void fill_config(PConf& pcfg) {
+void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
     // Align the arranged pile into the center of the bin
     pcfg.alignment = PConf::Alignment::CENTER;
@@ -93,14 +94,17 @@ void fill_config(PConf& pcfg) {
 
     // TODO cannot use rotations until multiple objects of same geometry can
     // handle different rotations.
-    pcfg.rotations = { 0.0 };
+    if (params.allow_rotations)
+        pcfg.rotations = {0., PI / 2., PI, 3. * PI / 2. };
+    else
+        pcfg.rotations = {0.};
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 0.65f;
+    pcfg.accuracy = params.accuracy;
     
     // Allow parallel execution.
-    pcfg.parallel = true;
+    pcfg.parallel = params.parallel;
 }
 
 // Apply penalty to object function result. This is used only when alignment
@@ -277,10 +281,10 @@ protected:
             if (result.empty())
                 score = 0.50 * dist + 0.50 * density;
             else
-                score = R * 0.60 * dist +
-                        (1.0 - R) * 0.20 * density +
-                        0.20 * alignment_score;
-            
+                // Let the density matter more when fewer objects remain
+                score = 0.50 * dist + (1.0 - R) * 0.20 * density +
+                        0.30 * alignment_score;
+
             break;
         }
         case LAST_BIG_ITEM: {
@@ -304,15 +308,15 @@ protected:
     
 public:
     AutoArranger(const TBin &                  bin,
-                 Distance                      dist,
+                 const ArrangeParams           &params,
                  std::function<void(unsigned)> progressind,
                  std::function<bool(void)>     stopcond)
-        : m_pck(bin, dist)
+        : m_pck(bin, params.min_obj_distance)
         , m_bin(bin)
         , m_bin_area(sl::area(bin))
         , m_norm(std::sqrt(m_bin_area))
     {
-        fill_config(m_pconf);
+        fill_config(m_pconf, params);
 
         // Set up a callback that is called just before arranging starts
         // This functionality is provided by the Nester class (m_pack).
@@ -349,12 +353,6 @@ public:
         
         m_pck.configure(m_pconf);
     }
-    
-    AutoArranger(const TBin &                  bin,
-                 std::function<void(unsigned)> progressind,
-                 std::function<bool(void)>     stopcond)
-        : AutoArranger{bin, 0 /* no min distance */, progressind, stopcond}
-    {}
      
     template<class It> inline void operator()(It from, It to) {
         m_rtree.clear();
@@ -452,12 +450,18 @@ template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
             ++it : it = items.erase(it);
 }
 
+template<class S> Radians min_area_boundingbox_rotation(const S &sh)
+{
+    return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
+        .angleToX();
+}
+
 template<class BinT> // Arrange for arbitrary bin type
 void _arrange(
         std::vector<Item> &           shapes,
         std::vector<Item> &           excludes,
         const BinT &                  bin,
-        const ArrangeParams &         params,
+        const ArrangeParams           &params,
         std::function<void(unsigned)> progressfn,
         std::function<bool()>         stopfn)
 {
@@ -467,11 +471,10 @@ void _arrange(
     
     auto corrected_bin = bin;
     sl::offset(corrected_bin, md);
-    
-    AutoArranger<BinT> arranger{corrected_bin, progressfn, stopfn};
-    
-    arranger.config().accuracy = params.accuracy;
-    arranger.config().parallel = params.parallel;
+    ArrangeParams mod_params = params;
+    mod_params.min_obj_distance = 0;
+
+    AutoArranger<BinT> arranger{corrected_bin, mod_params, progressfn, stopfn};
     
     auto infl = coord_t(std::ceil(params.min_obj_distance / 2.0));
     for (Item& itm : shapes) itm.inflate(infl);
@@ -487,6 +490,13 @@ void _arrange(
     for (auto &itm : shapes  ) inp.emplace_back(itm);
     for (auto &itm : excludes) inp.emplace_back(itm);
     
+    // Use the minimum bounding box rotation as a starting point.
+    // TODO: This only works for convex hull. If we ever switch to concave
+    // polygon nesting, a convex hull needs to be calculated.
+    if (params.allow_rotations)
+        for (auto &itm : shapes)
+            itm.rotation(min_area_boundingbox_rotation(itm.rawShape()));
+
     arranger(inp.begin(), inp.end());
     for (Item &itm : inp) itm.inflate(-infl);
 }
@@ -556,28 +566,35 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     outp.back().priority(arrpoly.priority);
 }
 
+template<class Fn> auto call_with_bed(const Points &bed, Fn &&fn)
+{
+    if (bed.empty())
+        return fn(InfiniteBed{});
+    else if (bed.size() == 1)
+        return fn(InfiniteBed{bed.front()});
+    else {
+        auto      bb    = BoundingBox(bed);
+        CircleBed circ  = to_circle(bb.center(), bed);
+        auto      parea = poly_area(bed);
+
+        if ((1.0 - parea / area(bb)) < 1e-3)
+            return fn(bb);
+        else if (!std::isnan(circ.radius()))
+            return fn(circ);
+        else
+            return fn(Polygon(bed));
+    }
+}
+
 template<>
 void arrange(ArrangePolygons &      items,
              const ArrangePolygons &excludes,
              const Points &         bed,
              const ArrangeParams &  params)
 {
-    if (bed.empty())
-        arrange(items, excludes, InfiniteBed{}, params);
-    else if (bed.size() == 1)
-        arrange(items, excludes, InfiniteBed{bed.front()}, params);
-    else {
-        auto      bb    = BoundingBox(bed);
-        CircleBed circ  = to_circle(bb.center(), bed);
-        auto      parea = poly_area(bed);
-        
-        if ((1.0 - parea / area(bb)) < 1e-3)
-            arrange(items, excludes, bb, params);
-        else if (!std::isnan(circ.radius()))
-            arrange(items, excludes, circ, params);
-        else
-            arrange(items, excludes, Polygon(bed), params);   
-    }
+    call_with_bed(bed, [&](const auto &bin) {
+        arrange(items, excludes, bin, params);
+    });
 }
 
 template<class BedT>

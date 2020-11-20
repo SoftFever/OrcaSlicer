@@ -1197,6 +1197,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             prev_up = up;
             prev_length = length;
     };
+
     auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
         size_t& buffer_vertices_size, unsigned int index_buffer_id, IndexBuffer& buffer_indices, size_t move_id) {
             static Vec3f prev_dir;
@@ -1339,6 +1340,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // the data are deleted as soon as they are sent to the gpu.
     std::vector<std::vector<float>> vertices(m_buffers.size());
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
+#if ENABLE_SHOW_OPTION_POINT_LAYERS
+    std::vector<float> options_zs;
+#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
 
     // toolpaths data -> extract vertices from result
     for (size_t i = 0; i < m_moves_count; ++i) {
@@ -1363,22 +1367,29 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         switch (buffer.render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point:
-        {
+        case TBuffer::ERenderPrimitiveType::Point: {
             add_vertices_as_point(curr, buffer_vertices);
             break;
         }
-        case TBuffer::ERenderPrimitiveType::Line:
-        {
+        case TBuffer::ERenderPrimitiveType::Line: {
             add_vertices_as_line(prev, curr, buffer, buffer_vertices);
             break;
         }
-        case TBuffer::ERenderPrimitiveType::Triangle:
-        {
+        case TBuffer::ERenderPrimitiveType::Triangle: {
             add_vertices_as_solid(prev, curr, buffer, buffer_vertices, i);
             break;
         }
         }
+
+#if ENABLE_SHOW_OPTION_POINT_LAYERS
+        EMoveType type = buffer_type(id);
+        if (type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) {
+            const float* const last_z = options_zs.empty() ? nullptr : &options_zs.back();
+            float z = static_cast<double>(curr.position[2]);
+            if (last_z == nullptr || z < *last_z - EPSILON || *last_z + EPSILON < z)
+                options_zs.emplace_back(curr.position[2]);
+        }
+#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
     }
 
     log_memory_usage("Loaded G-code generated vertex buffers, ", vertices, indices);
@@ -1464,18 +1475,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         switch (buffer.render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point:
-        {
+        case TBuffer::ERenderPrimitiveType::Point: {
             add_indices_as_point(curr, buffer, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
             break;
         }
-        case TBuffer::ERenderPrimitiveType::Line:
-        {
+        case TBuffer::ERenderPrimitiveType::Line: {
             add_indices_as_line(prev, curr, buffer, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
             break;
         }
-        case TBuffer::ERenderPrimitiveType::Triangle:
-        {
+        case TBuffer::ERenderPrimitiveType::Triangle: {
             add_indices_as_solid(prev, curr, buffer, curr_buffer_vertices_size, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
             break;
         }
@@ -1558,9 +1566,20 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
 
     // set layers z range
-    if (!m_layers.empty()) {
+    if (!m_layers.empty())
         m_layers_z_range = { 0, static_cast<unsigned int>(m_layers.size() - 1) };
+
+#if ENABLE_SHOW_OPTION_POINT_LAYERS
+    // change color of paths whose layer contains option points
+    if (!options_zs.empty()) {
+        TBuffer& extrude_buffer = m_buffers[buffer_id(EMoveType::Extrude)];
+        for (Path& path : extrude_buffer.paths) {
+            float z = path.first.position[2];
+            if (std::find_if(options_zs.begin(), options_zs.end(), [z](float f) { return f - EPSILON <= z && z <= f + EPSILON; }) != options_zs.end())
+                path.cp_color_id = 255 - path.cp_color_id;
+        }
     }
+#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
 
     // roles -> remove duplicates
     std::sort(m_roles.begin(), m_roles.end());
@@ -1657,9 +1676,25 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
+#if ENABLE_SHOW_OPTION_POINT_LAYERS
+        case EViewType::ColorPrint:     {
+            if (path.cp_color_id >= static_cast<unsigned char>(m_tool_colors.size())) {
+                color = { 0.5f, 0.5f, 0.5f };
+//                // complementary color
+//                color = m_tool_colors[255 - path.cp_color_id];
+//                color = { 1.0f - color[0], 1.0f - color[1], 1.0f - color[2] };
+            }
+            else
+                color = m_tool_colors[path.cp_color_id];
+
+            break;
+        }
+#else
         case EViewType::ColorPrint:     { color = m_tool_colors[path.cp_color_id]; break; }
+#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
         default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
         }
+
         return color;
     };
 
