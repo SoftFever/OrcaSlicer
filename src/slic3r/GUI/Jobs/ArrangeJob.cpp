@@ -46,7 +46,7 @@ public:
     }
 };
 
-static WipeTower get_wipe_tower(Plater &plater)
+static WipeTower get_wipe_tower(const Plater &plater)
 {
     return WipeTower{plater.canvas3D()->get_wipe_tower_info()};
 }
@@ -68,18 +68,13 @@ void ArrangeJob::clear_input()
     m_unprintable.reserve(cunprint /* for optional wti */);
 }
 
-double ArrangeJob::bed_stride() const {
-    double bedwidth = m_plater->bed_shape_bb().size().x();
-    return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
-}
-
 void ArrangeJob::prepare_all() {
     clear_input();
     
     for (ModelObject *obj: m_plater->model().objects)
         for (ModelInstance *mi : obj->instances) {
             ArrangePolygons & cont = mi->printable ? m_selected : m_unprintable;
-            cont.emplace_back(get_arrange_poly(mi));
+            cont.emplace_back(get_arrange_poly(mi, m_plater));
         }
 
     if (auto wti = get_wipe_tower(*m_plater))
@@ -90,7 +85,7 @@ void ArrangeJob::prepare_selected() {
     clear_input();
     
     Model &model = m_plater->model();
-    double stride = bed_stride();
+    double stride = bed_stride(m_plater);
     
     std::vector<const Selection::InstanceIdxsList *>
             obj_sel(model.objects.size(), nullptr);
@@ -111,7 +106,7 @@ void ArrangeJob::prepare_selected() {
                 inst_sel[size_t(inst_id)] = true;
         
         for (size_t i = 0; i < inst_sel.size(); ++i) {
-            ArrangePolygon &&ap = get_arrange_poly(mo->instances[i]);
+            ArrangePolygon &&ap = get_arrange_poly(mo->instances[i], m_plater);
             
             ArrangePolygons &cont = mo->instances[i]->printable ?
                         (inst_sel[i] ? m_selected :
@@ -123,7 +118,7 @@ void ArrangeJob::prepare_selected() {
     }
     
     if (auto wti = get_wipe_tower(*m_plater)) {
-        ArrangePolygon &&ap = get_arrange_poly(&wti);
+        ArrangePolygon &&ap = get_arrange_poly(&wti, m_plater);
         
         m_plater->get_selection().is_wipe_tower() ?
                     m_selected.emplace_back(std::move(ap)) :
@@ -213,14 +208,25 @@ void ArrangeJob::finalize() {
     Job::finalize();
 }
 
-arrangement::ArrangePolygon get_wipe_tower_arrangepoly(Plater &plater)
+std::optional<arrangement::ArrangePolygon>
+get_wipe_tower_arrangepoly(const Plater &plater)
 {
-    return WipeTower{plater.canvas3D()->get_wipe_tower_info()}.get_arrange_polygon();
+    if (auto wti = get_wipe_tower(plater))
+        return wti.get_arrange_polygon();
+
+    return {};
 }
 
-void apply_wipe_tower_arrangepoly(Plater &plater, const arrangement::ArrangePolygon &ap)
+void apply_wipe_tower_arrangepoly(Plater &                           plater,
+                                  const arrangement::ArrangePolygon &ap)
 {
-    WipeTower{plater.canvas3D()->get_wipe_tower_info()}.apply_arrange_result(ap.translation.cast<double>(), ap.rotation);
+    WipeTower{plater.canvas3D()->get_wipe_tower_info()}
+        .apply_arrange_result(ap.translation.cast<double>(), ap.rotation);
+}
+
+double bed_stride(const Plater *plater) {
+    double bedwidth = plater->bed_shape_bb().size().x();
+    return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
 }
 
 }} // namespace Slic3r::GUI

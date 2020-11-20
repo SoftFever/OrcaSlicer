@@ -566,28 +566,35 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     outp.back().priority(arrpoly.priority);
 }
 
+template<class Fn> auto call_with_bed(const Points &bed, Fn &&fn)
+{
+    if (bed.empty())
+        return fn(InfiniteBed{});
+    else if (bed.size() == 1)
+        return fn(InfiniteBed{bed.front()});
+    else {
+        auto      bb    = BoundingBox(bed);
+        CircleBed circ  = to_circle(bb.center(), bed);
+        auto      parea = poly_area(bed);
+
+        if ((1.0 - parea / area(bb)) < 1e-3)
+            return fn(bb);
+        else if (!std::isnan(circ.radius()))
+            return fn(circ);
+        else
+            return fn(Polygon(bed));
+    }
+}
+
 template<>
 void arrange(ArrangePolygons &      items,
              const ArrangePolygons &excludes,
              const Points &         bed,
              const ArrangeParams &  params)
 {
-    if (bed.empty())
-        arrange(items, excludes, InfiniteBed{}, params);
-    else if (bed.size() == 1)
-        arrange(items, excludes, InfiniteBed{bed.front()}, params);
-    else {
-        auto      bb    = BoundingBox(bed);
-        CircleBed circ  = to_circle(bb.center(), bed);
-        auto      parea = poly_area(bed);
-        
-        if ((1.0 - parea / area(bb)) < 1e-3)
-            arrange(items, excludes, bb, params);
-        else if (!std::isnan(circ.radius()))
-            arrange(items, excludes, circ, params);
-        else
-            arrange(items, excludes, Polygon(bed), params);   
-    }
+    call_with_bed(bed, [&](const auto &bin) {
+        arrange(items, excludes, bin, params);
+    });
 }
 
 template<class BedT>
