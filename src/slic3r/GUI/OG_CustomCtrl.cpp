@@ -174,7 +174,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                     label += ":";
 
                     wxCoord label_w, label_h;
+#ifdef __WXMSW__
+                    // when we use 2 monitors with different DPIs, GetTextExtent() return value for the primary display
+                    // so, use dc.GetMultiLineTextExtent on Windows 
+                    wxPaintDC dc(this);
+                    dc.SetFont(m_font);
+                    dc.GetMultiLineTextExtent(label, &label_w, &label_h);
+#else
                     GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
+#endif //__WXMSW__
                     h_pos += label_w + 1 + m_h_gap;
                 }                
                 h_pos += (opt.opt.gui_type == "legend" ? 1 : 3) * blinking_button_width;
