@@ -1332,7 +1332,7 @@ void Filler::_fill_surface_single(
     }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
-    if (params.dont_connect || all_polylines_with_hooks.size() <= 1)
+    if (params.dont_connect() || all_polylines_with_hooks.size() <= 1)
         append(polylines_out, chain_polylines(std::move(all_polylines_with_hooks)));
     else
         connect_infill(std::move(all_polylines_with_hooks), expolygon, polylines_out, this->spacing, params);

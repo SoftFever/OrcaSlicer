@@ -46,7 +46,7 @@ void FillPlanePath::_fill_surface_single(
 //      intersection(polylines_src, offset((Polygons)expolygon, scale_(0.02)), &polylines);
         polylines = intersection_pl(std::move(polylines), to_polygons(expolygon));
         Polylines chained;
-        if (params.dont_connect || params.density > 0.5 || polylines.size() <= 1)
+        if (params.dont_connect() || params.density > 0.5 || polylines.size() <= 1)
             chained = chain_polylines(std::move(polylines));
         else
             connect_infill(std::move(polylines), expolygon, chained, this->spacing, params);

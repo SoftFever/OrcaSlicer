@@ -1109,7 +1109,7 @@ static void connect_segment_intersections_by_contours(
 	            }
             }
 
-			if (params.dont_connect) {
+			if (params.dont_connect()) {
 				if (itsct.prev_on_contour_quality == SegmentIntersection::LinkQuality::Valid)
 					itsct.prev_on_contour_quality = SegmentIntersection::LinkQuality::TooLong;
 				if (itsct.next_on_contour_quality == SegmentIntersection::LinkQuality::Valid)
@@ -2820,7 +2820,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
             }
     }
 
-    if (params.dont_connect || fill_lines.size() <= 1) {
+    if (params.dont_connect() || fill_lines.size() <= 1) {
         if (fill_lines.size() > 1)
             fill_lines = chain_polylines(std::move(fill_lines));
         append(polylines_out, std::move(fill_lines));

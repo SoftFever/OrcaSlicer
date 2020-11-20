@@ -165,7 +165,7 @@ void Fill3DHoneycomb::_fill_surface_single(
     polylines = intersection_pl(polylines, to_polygons(expolygon));
 
     // connect lines if needed
-    if (params.dont_connect || polylines.size() <= 1)
+    if (params.dont_connect() || polylines.size() <= 1)
         append(polylines_out, chain_polylines(std::move(polylines)));
     else
         this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);

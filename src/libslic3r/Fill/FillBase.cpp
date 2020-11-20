@@ -1067,6 +1067,7 @@ void Fill::connect_infill(Polylines &&infill_ordered, const Polygons &boundary_s
 void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary_src, const BoundingBox &bbox, Polylines &polylines_out, const double spacing, const FillParams &params)
 {
 	assert(! infill_ordered.empty());
+    assert(params.anchor_length >= 0.01f);
     const auto anchor_length = float(scale_(params.anchor_length));
 
 #if 0
@@ -1239,7 +1240,6 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
         return std::numeric_limits<size_t>::max();
     };
 
-    const float take_max_length = anchor_length > 0.f ? anchor_length : std::numeric_limits<float>::max();
     const float line_half_width = 0.5f * scale_(spacing);
 
 #if 0
@@ -1276,7 +1276,7 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
         idx_first = get_and_update_merged_with(idx_first);
         assert(idx_first < idx_second);
         assert(idx_second == merged_with[idx_second]);
-        if (could_connect && (anchor_length == 0.f || length < anchor_length * 2.5)) {
+        if (could_connect && length < anchor_length * 2.5) {
             // Take the complete contour.
             // Connect the two polygons using the boundary contour.
             take(infill_ordered[idx_first], infill_ordered[idx_second], boundary[cp1->contour_idx], cp1, cp2, connection_cost.reversed);
@@ -1285,8 +1285,8 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
             infill_ordered[idx_second].points.clear();
         } else {
             // Try to connect cp1 resp. cp2 with a piece of perimeter line.
-            take_limited(infill_ordered[idx_first],  boundary[cp1->contour_idx], boundary_params[cp1->contour_idx], cp1, cp2, connection_cost.reversed, take_max_length, line_half_width);
-            take_limited(infill_ordered[idx_second], boundary[cp1->contour_idx], boundary_params[cp1->contour_idx], cp2, cp1, ! connection_cost.reversed, take_max_length, line_half_width);
+            take_limited(infill_ordered[idx_first],  boundary[cp1->contour_idx], boundary_params[cp1->contour_idx], cp1, cp2, connection_cost.reversed, anchor_length, line_half_width);
+            take_limited(infill_ordered[idx_second], boundary[cp1->contour_idx], boundary_params[cp1->contour_idx], cp2, cp1, ! connection_cost.reversed, anchor_length, line_half_width);
         }
 	}
 #endif
@@ -1314,7 +1314,7 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
             if (polyline_idx1 != polyline_idx2) {
                 Polyline &polyline1 = infill_ordered[polyline_idx1];
                 Polyline &polyline2 = infill_ordered[polyline_idx2];
-                if (anchor_length == 0.f || arc.arc_length < anchor_length * 2.5) {
+                if (arc.arc_length < anchor_length * 2.5) {
                     // Not closing a loop, connecting the lines.
                     assert(contour[cp1->point_idx] == polyline1.points.front() || contour[cp1->point_idx] == polyline1.points.back());
                     if (contour[cp1->point_idx] == polyline1.points.front())
@@ -1359,7 +1359,7 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
             assert(contour[contour_point.point_idx] == polyline.points.front() || contour[contour_point.point_idx] == polyline.points.back());
             bool connected = false;
             for (float l : { std::min(lprev, lnext), std::max(lprev, lnext) }) {
-                if (l == std::numeric_limits<float>::max() || (anchor_length > 0.f && l > anchor_length * 2.5))
+                if (l == std::numeric_limits<float>::max() || l > anchor_length * 2.5)
                     break;
                 // Take the complete contour.
                 bool      reversed      = l == lprev;
@@ -1400,9 +1400,9 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
                 float l = std::max(contour_point.contour_not_taken_length_prev, contour_point.contour_not_taken_length_next);
                 if (l > SCALED_EPSILON) {
                     if (contour_point.contour_not_taken_length_prev > contour_point.contour_not_taken_length_next)
-                        take_limited(polyline, contour, contour_params, &contour_point, contour_point.prev_on_contour, true, take_max_length, line_half_width);
+                        take_limited(polyline, contour, contour_params, &contour_point, contour_point.prev_on_contour, true, anchor_length, line_half_width);
                     else
-                        take_limited(polyline, contour, contour_params, &contour_point, contour_point.next_on_contour, false, take_max_length, line_half_width);
+                        take_limited(polyline, contour, contour_params, &contour_point, contour_point.next_on_contour, false, anchor_length, line_half_width);
                 }
             }
         }

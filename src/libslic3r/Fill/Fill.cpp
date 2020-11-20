@@ -33,12 +33,11 @@ struct SurfaceFillParams
 
     // FillParams
     float       	density = 0.f;
-    // Don't connect the fill lines around the inner perimeter.
-    bool        	dont_connect = false;
     // Don't adjust spacing to fill the space evenly.
     bool        	dont_adjust = false;
     // Length of the infill anchor along the perimeter line.
-    float 			anchor_length = std::numeric_limits<float>::max();
+    // 1000mm is roughly the maximum length line that fits into a 32bit coord_t.
+    float 			anchor_length = 1000.f;
 
     // width, height of extrusion, nozzle diameter, is bridge
     // For the output, for fill generator.
@@ -67,7 +66,6 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(overlap);
 		RETURN_COMPARE_NON_EQUAL(angle);
 		RETURN_COMPARE_NON_EQUAL(density);
-		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_connect);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(flow.width);
@@ -86,7 +84,6 @@ struct SurfaceFillParams
 				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
 				this->density   		== rhs.density   		&&
-				this->dont_connect  	== rhs.dont_connect 	&&
 				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length		== rhs.anchor_length    &&
 				this->flow 				== rhs.flow 			&&
@@ -154,7 +151,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        );
 		        
 		        // Calculate flow spacing for infill pattern generation.
-		        if (! surface.is_solid() && ! is_bridge) {
+		        if (surface.is_solid() || is_bridge) {
+		            params.spacing = params.flow.spacing();
+		            // Don't limit anchor length for solid or bridging infill.
+		            params.anchor_length = 1000.f;
+		        } else {
 		            // it's internal infill, so we can calculate a generic flow spacing 
 		            // for all layers, for avoiding the ugly effect of
 		            // misaligned infill on first layer because of different extrusion width and
@@ -167,12 +168,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 			                -1,     // auto width
 			                *layer.object()
 			            ).spacing();
-		        } else
-		            params.spacing = params.flow.spacing();
-
-		        params.anchor_length = float(region_config.infill_anchor);
-		        if (region_config.infill_anchor.percent)
-		        	params.anchor_length *= 0.01 * params.spacing;
+		            // Anchor a sparse infill to inner perimeters with the following anchor length:
+			        params.anchor_length = float(region_config.infill_anchor);
+			        if (region_config.infill_anchor.percent)
+			        	params.anchor_length *= 0.01 * params.spacing;
+		        }
 
 		        auto it_params = set_surface_params.find(params);
 		        if (it_params == set_surface_params.end())
@@ -543,8 +543,6 @@ void Layer::make_ironing()
     fill.z 					 = this->print_z;
     fill.overlap 			 = 0;
     fill_params.density 	 = 1.;
-//    fill_params.dont_connect = true;
-    fill_params.dont_connect = false;
     fill_params.monotonic    = true;
 
 	for (size_t i = 0; i < by_extruder.size(); ++ i) {
