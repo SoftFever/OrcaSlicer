@@ -170,7 +170,7 @@ void GLCanvas3D::LayersEditing::init()
 }
 
 void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
-{ 
+{
     m_config = config;
     delete m_slicing_parameters;
     m_slicing_parameters = nullptr;
@@ -1091,6 +1091,25 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 
+GLCanvas3D::ArrangeSettings load_arrange_settings()
+{
+    GLCanvas3D::ArrangeSettings settings;
+
+    std::string dist_str =
+        wxGetApp().app_config->get("arrange", "min_object_distance");
+
+    std::string en_rot_str =
+        wxGetApp().app_config->get("arrange", "enable_rotation");
+
+    if (!dist_str.empty())
+        settings.distance = std::stof(dist_str);
+
+    if (!en_rot_str.empty())
+        settings.enable_rotation = (en_rot_str == "1" || en_rot_str == "yes");
+
+    return settings;
+}
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
@@ -1132,6 +1151,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
         m_retina_helper.reset(new RetinaHelper(canvas));
 #endif // ENABLE_RETINA_GL
     }
+
+    m_arrange_settings = load_arrange_settings();
 
     m_selection.set_volumes(&m_volumes.volumes);
 }
@@ -3847,6 +3868,31 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     return action_taken;
 }
 
+void GLCanvas3D:: _render_arrange_popup()
+{
+    ImGuiWrapper *imgui = wxGetApp().imgui();
+
+    float x = 0.5f * (float)get_canvas_size().get_width();
+    imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+
+    imgui->begin(_(L("Arrange options")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    ArrangeSettings settings = m_arrange_settings;
+
+    auto &appcfg = wxGetApp().app_config;
+
+    if (imgui->slider_float(_(L("Gap size")), &settings.distance, 0.f, 100.f)) {
+        m_arrange_settings.distance = settings.distance;
+        appcfg->set("arrange", "min_object_distance", std::to_string(settings.distance));
+    }
+
+    if (imgui->checkbox(_(L("Enable rotations")), settings.enable_rotation)) {
+        m_arrange_settings.enable_rotation = settings.enable_rotation;
+        appcfg->set("arrange", "enable_rotation", "1");
+    }
+
+    imgui->end();
+}
+
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
@@ -4263,8 +4309,18 @@ bool GLCanvas3D::_init_main_toolbar()
     item.sprite_id = 3;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
+    item.right.toggable = true;
+    item.right.render_callback = [this](float left, float right, float, float) {
+        if (m_canvas != nullptr)
+        {
+            _render_arrange_popup();
+        }
+    };
     if (!m_main_toolbar.add_item(item))
         return false;
+
+    item.right.toggable = false;
+    item.right.render_callback = GLToolbarItem::Default_Render_Callback;
 
     if (!m_main_toolbar.add_separator())
         return false;

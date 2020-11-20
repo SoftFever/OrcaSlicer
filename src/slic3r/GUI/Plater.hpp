@@ -181,6 +181,7 @@ public:
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);
     void set_number_of_copies(/*size_t num*/);
+    void fill_bed_with_instances();
     bool is_selection_empty() const;
     void scale_selection_to_fit_print_volume();
     void convert_unit(bool from_imperial_unit);
@@ -245,6 +246,7 @@ public:
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
+    const GLCanvas3D * canvas3D() const;
     GLCanvas3D* get_current_canvas3D();
     BoundingBoxf bed_shape_bb() const;
     

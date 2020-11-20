@@ -63,6 +63,7 @@
 #include "Mouse3DController.hpp"
 #include "Tab.hpp"
 #include "Jobs/ArrangeJob.hpp"
+#include "Jobs/FillBedJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
 #include "Jobs/SLAImportJob.hpp"
 #include "BackgroundSlicingProcess.hpp"
@@ -1573,7 +1574,7 @@ struct Plater::priv
     class Jobs: public ExclusiveJobGroup
     {
         priv *m;
-        size_t m_arrange_id, m_rotoptimize_id, m_sla_import_id;
+        size_t m_arrange_id, m_fill_bed_id, m_rotoptimize_id, m_sla_import_id;
         
         void before_start() override { m->background_process.stop(); }
         
@@ -1581,6 +1582,7 @@ struct Plater::priv
         Jobs(priv *_m) : m(_m)
         {
             m_arrange_id = add_job(std::make_unique<ArrangeJob>(m->statusbar(), m->q));
+            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m->statusbar(), m->q));
             m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m->statusbar(), m->q));
             m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m->statusbar(), m->q));
         }
@@ -1589,6 +1591,12 @@ struct Plater::priv
         {
             m->take_snapshot(_(L("Arrange")));
             start(m_arrange_id);
+        }
+
+        void fill_bed()
+        {
+            m->take_snapshot(_(L("Fill bed")));
+            start(m_fill_bed_id);
         }
         
         void optimize_rotation()
@@ -2731,8 +2739,8 @@ void Plater::find_new_position(const ModelInstancePtrs &instances,
                 movable.emplace_back(std::move(arrpoly));
         }
     
-    if (p->view3D->get_canvas3d()->get_wipe_tower_info())
-        fixed.emplace_back(get_wipe_tower_arrangepoly(*this));
+    if (auto wt = get_wipe_tower_arrangepoly(*this))
+        fixed.emplace_back(*wt);
     
     arrangement::arrange(movable, fixed, get_bed_shape(*config()),
                          arrangement::ArrangeParams{min_d});
@@ -3860,6 +3868,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { q->decrease_instances();      }, "remove_copies",     nullptr, [this]() { return can_decrease_instances(); }, q);
         wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _L("Set number of instances") + dots, _L("Change the number of instances of the selected object"),
             [this](wxCommandEvent&) { q->set_number_of_copies();    }, "number_of_copies",  nullptr, [this]() { return can_increase_instances(); }, q);
+        append_menu_item(menu, wxID_ANY, _L("Fill bed with instances") + dots, _L("Fill the remaining area of bed with instances of the selected object"),
+            [this](wxCommandEvent&) { q->fill_bed_with_instances();    }, "",  nullptr, [this]() { return can_increase_instances(); }, q);
 
 
         items_increase.push_back(item_increase);
@@ -4864,6 +4874,11 @@ void Plater::set_number_of_copies(/*size_t num*/)
         decrease_instances(-diff);
 }
 
+void Plater::fill_bed_with_instances()
+{
+    p->m_ui_jobs.fill_bed();
+}
+
 bool Plater::is_selection_empty() const
 {
     return p->get_selection().is_empty() || p->get_selection().is_wipe_tower();
@@ -5644,6 +5659,11 @@ bool Plater::is_single_full_object_selection() const
 }
 
 GLCanvas3D* Plater::canvas3D()
+{
+    return p->view3D->get_canvas3d();
+}
+
+const GLCanvas3D* Plater::canvas3D() const
 {
     return p->view3D->get_canvas3d();
 }

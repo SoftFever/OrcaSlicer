@@ -78,6 +78,8 @@ struct ArrangeParams {
     
     /// Allow parallel execution.
     bool parallel = true;
+
+    bool allow_rotations = false;
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
