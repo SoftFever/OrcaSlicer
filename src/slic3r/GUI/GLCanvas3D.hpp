@@ -728,7 +728,7 @@ private:
     void _render_selection_sidebar_hints() const;
     bool _render_undo_redo_stack(const bool is_undo, float pos_x) const;
     bool _render_search_list(float pos_x) const;
-    void _render_arrange_popup();
+    bool _render_arrange_menu(float pos_x);
     void _render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
     // render thumbnail using an off-screen framebuffer
     void _render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
@@ -780,6 +780,7 @@ private:
     bool _deactivate_search_toolbar_item();
     bool _activate_search_toolbar_item();
     bool _deactivate_collapse_toolbar_items();
+    bool _deactivate_arrange_menu();
 
     float get_overlay_window_width() { return LayersEditing::get_overlay_window_width(); }
 
