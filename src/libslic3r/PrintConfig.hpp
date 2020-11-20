@@ -683,6 +683,7 @@ public:
     ConfigOptionStrings             filament_type;
     ConfigOptionBools               filament_soluble;
     ConfigOptionFloats              filament_cost;
+    ConfigOptionFloats              filament_spool_weight;
     ConfigOptionFloats              filament_max_volumetric_speed;
     ConfigOptionFloats              filament_loading_speed;
     ConfigOptionFloats              filament_loading_speed_start;
@@ -759,6 +760,7 @@ protected:
         OPT_PTR(filament_type);
         OPT_PTR(filament_soluble);
         OPT_PTR(filament_cost);
+        OPT_PTR(filament_spool_weight);
         OPT_PTR(filament_max_volumetric_speed);
         OPT_PTR(filament_loading_speed);
         OPT_PTR(filament_loading_speed_start);

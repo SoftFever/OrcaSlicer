@@ -806,6 +806,13 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
+    def = this->add("filament_spool_weight", coFloats);
+    def->label = L("Spool weight");
+    def->tooltip = L("Enter weight of the spool without filament. This is only for statistical information.");
+    def->sidetext = L("g");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
     def = this->add("filament_settings_id", coStrings);
     def->set_default_value(new ConfigOptionStrings { "" });
     def->cli = ConfigOptionDef::nocli;
