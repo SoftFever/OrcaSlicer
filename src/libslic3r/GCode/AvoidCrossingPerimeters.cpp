@@ -297,7 +297,7 @@ static size_t avoid_perimeters_inner(const Polygons           &boundaries,
 
         // Append the first intersection into the path
         size_t left_idx  = intersection_first.line_idx;
-        size_t right_idx = (intersection_first.line_idx >= (boundaries[intersection_first.border_idx].points.size() - 1)) ? 0 : (intersection_first.line_idx + 1);
+        size_t right_idx = intersection_first.line_idx + 1 == boundaries[intersection_first.border_idx].points.size() ? 0 : intersection_first.line_idx + 1;
         // Offset of the polygon's point using get_middle_point_offset is used to simplify the calculation of intersection between the
         // boundary and the travel. The appended point is translated in the direction of inward normal. This translation ensures that the
         // appended point will be inside the polygon and not on the polygon border.
@@ -306,7 +306,7 @@ static size_t avoid_perimeters_inner(const Polygons           &boundaries,
         // Check if intersection line also exit the boundary polygon
         if (it_second_r != it_last_item) {
             // Transform reverse iterator to forward
-            auto it_second = (it_second_r.base() - 1);
+            auto it_second = it_second_r.base() - 1;
             // The exit point from the boundary polygon
             const Intersection &intersection_second = *it_second;
             Lines               border_lines        = boundaries[intersection_first.border_idx].lines();
@@ -315,12 +315,12 @@ static size_t avoid_perimeters_inner(const Polygons           &boundaries,
             // Append the path around the border into the path
             if (shortest_direction == Direction::Forward)
                 for (int line_idx = int(intersection_first.line_idx); line_idx != int(intersection_second.line_idx);
-                    line_idx      = (((line_idx + 1) < int(border_lines.size())) ? (line_idx + 1) : 0))
+                    line_idx      = line_idx + 1 < int(border_lines.size()) ? line_idx + 1 : 0)
                     result.push_back({get_polygon_vertex_offset(boundaries[intersection_first.border_idx],
                                                                 (line_idx + 1 == int(boundaries[intersection_first.border_idx].points.size())) ? 0 : (line_idx + 1), coord_t(SCALED_EPSILON)), int(intersection_first.border_idx)});
             else
                 for (int line_idx = int(intersection_first.line_idx); line_idx != int(intersection_second.line_idx);
-                    line_idx      = (((line_idx - 1) >= 0) ? (line_idx - 1) : (int(border_lines.size()) - 1)))
+                    line_idx      = line_idx - 1 >= 0 ? line_idx - 1 : int(border_lines.size()) - 1)
                     result.push_back({get_polygon_vertex_offset(boundaries[intersection_second.border_idx], line_idx + 0, coord_t(SCALED_EPSILON)), int(intersection_first.border_idx)});
 
             // Append the farthest intersection into the path
@@ -523,6 +523,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     // Trim the travel line by the bounding box.
     if (Geometry::liang_barsky_line_clipping(startf, endf, use_external ? m_bbox_external : m_bbox)) {
         // Travel line is completely or partially inside the bounding box.
+        //FIXME initialize m_boundaries / m_boundaries_external on demand?
         travel_intersection_count = use_external ? 
             avoid_perimeters(m_boundaries_external, m_grid_external, startf.cast<coord_t>(), endf.cast<coord_t>(), result_pl) :
             avoid_perimeters(m_boundaries,          m_grid,          startf.cast<coord_t>(), endf.cast<coord_t>(), result_pl);
@@ -705,12 +706,12 @@ static ExPolygons get_boundary_external(const Layer &layer)
     auto [contours, holes] = split_expolygon(boundary);
     // Polygons in which is possible traveling without crossing perimeters of another object.
     // A convex hull allows removing unnecessary detour caused by following the boundary of the object.
-    ExPolygons result_boundary = union_ex(
+    ExPolygons result_boundary =
         //FIXME flip order of offset and convex_hull
-        diff(static_cast<Polygons>(Geometry::convex_hull(offset(contours, 2.f * perimeter_spacing))),
-             offset(contours,  perimeter_spacing + perimeter_offset)));
+        diff_ex(static_cast<Polygons>(Geometry::convex_hull(offset(contours, 2.f * perimeter_spacing))),
+             offset(contours,  perimeter_spacing + perimeter_offset));
     // All holes are extended for forcing travel around the outer perimeter of a hole when a hole is crossed.
-    append(result_boundary, union_ex(diff(offset(holes, perimeter_spacing), offset(holes, perimeter_offset))));
+    append(result_boundary, diff_ex(offset(holes, perimeter_spacing), offset(holes, perimeter_offset)));
     return union_ex(result_boundary);
 }
 
