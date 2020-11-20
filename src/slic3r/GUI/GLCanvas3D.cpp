@@ -2392,7 +2392,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
-    if (keyCode == WXK_ESCAPE && (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item()))
+    if (keyCode == WXK_ESCAPE && (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item() || _deactivate_arrange_menu()))
         return;
 
     if (m_gizmos.on_char(evt))
@@ -3083,7 +3083,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_dirty = true;
     }
     else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown()) {
-        if (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item())
+        if (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item() || _deactivate_arrange_menu())
             return;
 
         // If user pressed left or right button we first check whether this happened
@@ -3868,11 +3868,12 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     return action_taken;
 }
 
-void GLCanvas3D:: _render_arrange_popup()
+bool GLCanvas3D::_render_arrange_menu(float pos_x)
 {
     ImGuiWrapper *imgui = wxGetApp().imgui();
 
-    float x = 0.5f * (float)get_canvas_size().get_width();
+    auto canvas_w = float(get_canvas_size().get_width());
+    const float x = pos_x * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
 
     imgui->begin(_(L("Arrange options")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
@@ -3880,17 +3881,39 @@ void GLCanvas3D:: _render_arrange_popup()
 
     auto &appcfg = wxGetApp().app_config;
 
+    bool settings_changed = false;
+
     if (imgui->slider_float(_(L("Gap size")), &settings.distance, 0.f, 100.f)) {
         m_arrange_settings.distance = settings.distance;
-        appcfg->set("arrange", "min_object_distance", std::to_string(settings.distance));
+        settings_changed = true;
     }
 
     if (imgui->checkbox(_(L("Enable rotations")), settings.enable_rotation)) {
         m_arrange_settings.enable_rotation = settings.enable_rotation;
-        appcfg->set("arrange", "enable_rotation", "1");
+        settings_changed = true;
+    }
+
+    ImGui::Separator();
+
+    if (imgui->button(_(L("Reset")))) {
+        m_arrange_settings = ArrangeSettings{};
+        settings_changed = true;
+    }
+
+    if (settings_changed) {
+        appcfg->set("arrange", "min_object_distance", std::to_string(m_arrange_settings.distance));
+        appcfg->set("arrange", "enable_rotation", m_arrange_settings.enable_rotation? "1" : "0");
+    }
+
+    ImGui::SameLine();
+
+    if (imgui->button(_(L("Arrange")))) {
+        wxGetApp().plater()->arrange();
     }
 
     imgui->end();
+
+    return settings_changed;
 }
 
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
@@ -4305,7 +4328,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "arrange";
     item.icon_filename = "arrange.svg";
-    item.tooltip = _utf8(L("Arrange")) + " [A]\n" + _utf8(L("Arrange selection")) + " [Shift+A]";
+    item.tooltip = _utf8(L("Arrange")) + " [A]\n" + _utf8(L("Arrange selection")) + " [Shift+A]\n" + _utf8(L("Click right mouse button to show arrangement options"));
     item.sprite_id = 3;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
@@ -4313,7 +4336,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.right.render_callback = [this](float left, float right, float, float) {
         if (m_canvas != nullptr)
         {
-            _render_arrange_popup();
+            _render_arrange_menu(0.5f * (left + right));
         }
     };
     if (!m_main_toolbar.add_item(item))
@@ -6244,6 +6267,16 @@ bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
 bool GLCanvas3D::is_search_pressed() const
 {
     return m_main_toolbar.is_item_pressed("search");
+}
+
+bool GLCanvas3D::_deactivate_arrange_menu()
+{
+    if (m_main_toolbar.is_item_pressed("arrange")) {
+        m_main_toolbar.force_right_action(m_main_toolbar.get_item_id("arrange"), *this);
+        return true;
+    }
+
+    return false;
 }
 
 bool GLCanvas3D::_deactivate_search_toolbar_item()
