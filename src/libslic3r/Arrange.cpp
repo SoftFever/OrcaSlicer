@@ -7,6 +7,7 @@
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
 #include <libnest2d/placers/nfpplacer.hpp>
 #include <libnest2d/selections/firstfit.hpp>
+#include <libnest2d/utils/rotcalipers.hpp>
 
 #include <numeric>
 #include <ClipperUtils.hpp>
@@ -449,6 +450,12 @@ template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
             ++it : it = items.erase(it);
 }
 
+template<class S> Radians min_area_boundingbox_rotation(const S &sh)
+{
+    return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
+        .angleToX();
+}
+
 template<class BinT> // Arrange for arbitrary bin type
 void _arrange(
         std::vector<Item> &           shapes,
@@ -483,6 +490,13 @@ void _arrange(
     for (auto &itm : shapes  ) inp.emplace_back(itm);
     for (auto &itm : excludes) inp.emplace_back(itm);
     
+    // Use the minimum bounding box rotation as a starting point.
+    // TODO: This only works for convex hull. If we ever switch to concave
+    // polygon nesting, a convex hull needs to be calculated.
+    if (params.allow_rotations)
+        for (auto &itm : shapes)
+            itm.rotation(min_area_boundingbox_rotation(itm.rawShape()));
+
     arranger(inp.begin(), inp.end());
     for (Item &itm : inp) itm.inflate(-infl);
 }
