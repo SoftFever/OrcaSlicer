@@ -841,7 +841,7 @@ void mark_boundary_segments_touching_infill(
 
 	EdgeGrid::Grid grid;
     // Make sure that the the grid is big enough for queries against the thick segment.
-	grid.set_bbox(boundary_bbox.inflated(distance_colliding + SCALED_EPSILON));
+	grid.set_bbox(boundary_bbox.inflated(distance_colliding * 1.43));
 	// Inflate the bounding box by a thick line width.
 	grid.create(boundary, std::max(clip_distance, distance_colliding) + scale_(10.));
 
@@ -961,9 +961,6 @@ void mark_boundary_segments_touching_infill(
 #endif // INFILL_DEBUG_OUTPUT
 	} visitor(grid, boundary, boundary_parameters, boundary_intersections, distance_colliding);
 
-	BoundingBoxf bboxf(boundary_bbox.min.cast<double>(), boundary_bbox.max.cast<double>());
-	bboxf.offset(- SCALED_EPSILON);
-
 	for (const Polyline &polyline : infill) {
 #ifdef INFILL_DEBUG_OUTPUT
         ++ iStep;
@@ -1019,12 +1016,14 @@ void mark_boundary_segments_touching_infill(
 				Vec2d vperp = perp(v);
 				Vec2d a = pt1 - v - vperp;
 				Vec2d b = pt2 + v - vperp;
-				if (Geometry::liang_barsky_line_clipping(a, b, bboxf))
-					grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
+                assert(grid.bbox().contains(a.cast<coord_t>()));
+                assert(grid.bbox().contains(b.cast<coord_t>()));
+				grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
 				a = pt1 - v + vperp;
 				b = pt2 + v + vperp;
-				if (Geometry::liang_barsky_line_clipping(a, b, bboxf))
-					grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
+                assert(grid.bbox().contains(a.cast<coord_t>()));
+                assert(grid.bbox().contains(b.cast<coord_t>()));
+                grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
 #endif
 #ifdef INFILL_DEBUG_OUTPUT
 //                export_infill_to_svg(boundary, boundary_parameters, boundary_intersections, infill, distance_colliding * 2, debug_out_path("%s-%03d-%03d-%03d.svg", "FillBase-mark_boundary_segments_touching_infill-step", iRun, iStep, int(point_idx)), { polyline });
