@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <numeric>
 
 #include "../ClipperUtils.hpp"
 #include "../EdgeGrid.hpp"
