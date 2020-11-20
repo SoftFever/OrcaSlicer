@@ -280,7 +280,7 @@ bool Preview::init(wxWindow* parent, Model* model)
     wxBoxSizer* right_sizer = new wxBoxSizer(wxVERTICAL);
     right_sizer->Add(m_layers_slider_sizer, 1, wxEXPAND, 0);
 
-    m_moves_slider = new DoubleSlider::Control(m_bottom_toolbar_panel, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxSize(-1, 3 * GetTextExtent("m").y), wxSL_HORIZONTAL);
+    m_moves_slider = new DoubleSlider::Control(m_bottom_toolbar_panel, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
     m_moves_slider->SetDrawMode(DoubleSlider::dmSequentialGCodeView);
 
     wxBoxSizer* bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
