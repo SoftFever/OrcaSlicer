@@ -235,6 +235,14 @@ void PreferencesDialog::build()
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
 
+	def.label = L("Suppress to open hyperlink in browser");
+	def.type = coBool;
+	def.tooltip = L("If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. "
+					"If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks.");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("suppress_hyperlinks") == "1" });
+	option = Option(def, "suppress_hyperlinks");
+	m_optgroup_gui->append_single_option_line(option);
+
 	m_optgroup_gui->activate();
 
 	if (is_editor) {
