@@ -277,10 +277,10 @@ protected:
             if (result.empty())
                 score = 0.50 * dist + 0.50 * density;
             else
-                score = R * 0.60 * dist +
-                        (1.0 - R) * 0.20 * density +
-                        0.20 * alignment_score;
-            
+                // Let the density matter more when fewer objects remain
+                score = 0.50 * dist + (1.0 - R) * 0.20 * density +
+                        0.30 * alignment_score;
+
             break;
         }
         case LAST_BIG_ITEM: {
