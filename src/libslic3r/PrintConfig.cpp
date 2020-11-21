@@ -808,7 +808,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_spool_weight", coFloats);
     def->label = L("Spool weight");
-    def->tooltip = L("Enter weight of the spool without filament. This is only for statistical information.");
+    def->tooltip = L("Enter weight of the empty filament spool. "
+                     "One may weigh a partially consumed filament spool before printing and one may compare the measured weight "
+                     "with the calculated weight of the filament with the spool to find out whether the amount "
+                     "of filament on the spool is sufficient to finish the print.");
     def->sidetext = L("g");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 0. });
