@@ -12,6 +12,8 @@
 #include "I18N.hpp"
 #include "ExtruderSequenceDialog.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/AppConfig.hpp"
+#include "GUI_Utils.hpp"
 
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -45,14 +47,10 @@ static std::string gcode(Type type)
 {
     const PrintConfig& config = GUI::wxGetApp().plater()->fff_print().config();
     switch (type) {
-    case ColorChange:
-        return config.color_change_gcode;
-    case PausePrint:
-        return config.pause_print_gcode;
-    case Template:
-        return config.template_custom_gcode;
-    default:
-        return "";
+    case ColorChange: return config.color_change_gcode;
+    case PausePrint:  return config.pause_print_gcode;
+    case Template:    return config.template_custom_gcode;
+    default:          return "";
     }
 }
 
@@ -72,7 +70,8 @@ Control::Control( wxWindow *parent,
     m_higher_value (higherValue), 
     m_min_value(minValue), 
     m_max_value(maxValue),
-    m_style(style == wxSL_HORIZONTAL || style == wxSL_VERTICAL ? style: wxSL_HORIZONTAL)
+    m_style(style == wxSL_HORIZONTAL || style == wxSL_VERTICAL ? style: wxSL_HORIZONTAL),
+    m_extra_style(style == wxSL_VERTICAL ? wxSL_AUTOTICKS | wxSL_VALUE_LABEL : 0)
 {
 #ifdef __WXOSX__ 
     is_osx = true;
@@ -138,14 +137,13 @@ Control::Control( wxWindow *parent,
     m_line_pens = { &DARK_GREY_PEN, &GREY_PEN, &LIGHT_GREY_PEN };
     m_segm_pens = { &DARK_ORANGE_PEN, &ORANGE_PEN, &LIGHT_ORANGE_PEN };
 
-    const wxFont& font = GetFont();
-    m_font = is_osx ? font.Smaller().Smaller() : font.Smaller();
+    m_font = GetFont();
+    this->SetMinSize(get_min_size());
 }
 
 void Control::msw_rescale()
 {
-    const wxFont& font = GUI::wxGetApp().normal_font();
-    m_font = is_osx ? font.Smaller().Smaller() : font.Smaller();
+    m_font = GUI::wxGetApp().normal_font();
 
     m_bmp_thumb_higher.msw_rescale();
     m_bmp_thumb_lower .msw_rescale();
@@ -183,8 +181,7 @@ int Control::GetActiveValue() const
 
 wxSize Control::get_min_size() const
 {
-    const int min_side = GUI::wxGetApp().em_unit() * ( is_horizontal() ? (is_osx ? 8 : 6) : 10 );
-
+    const int min_side = GUI::wxGetApp().em_unit() * ( is_horizontal() ? 5 : 11 );
     return wxSize(min_side, min_side);
 }
 
@@ -244,6 +241,12 @@ void Control::SetMaxValue(const int max_value)
     Update();
 }
 
+void Control::SetSliderValues(const std::vector<double>& values)
+{
+    m_values = values;
+    m_ruler.count = std::count(m_values.begin(), m_values.end(), m_values.front());
+}
+
 void Control::draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos)
 {
     int width;
@@ -297,6 +300,8 @@ wxSize Control::get_size() const
 void Control::get_size(int* w, int* h) const
 {
     GetSize(w, h);
+    if (m_draw_mode == dmSequentialGCodeView)
+        return; // we have no more icons for drawing
     is_horizontal() ? *w -= m_lock_icon_dim : *h -= m_lock_icon_dim;
 }
 
@@ -373,6 +378,24 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
     Update();
 }
 
+void Control::SetLayersTimes(const std::vector<float>& layers_times)
+{ 
+    m_layers_times.clear();
+    if (layers_times.empty())
+        return;
+    m_layers_times.resize(layers_times.size(), 0.0);
+    m_layers_times[0] = layers_times[0];
+    for (size_t i = 1; i < layers_times.size(); i++)
+        m_layers_times[i] = m_layers_times[i - 1] + layers_times[i];
+}
+
+void Control::SetLayersTimes(const std::vector<double>& layers_times)
+{ 
+    m_layers_times = layers_times;
+    for (size_t i = 1; i < m_layers_times.size(); i++)
+        m_layers_times[i] += m_layers_times[i - 1];
+}
+
 void Control::SetDrawMode(bool is_sla_print, bool is_sequential_print)
 { 
     m_draw_mode = is_sla_print          ? dmSlaPrint            : 
@@ -445,6 +468,9 @@ void Control::render()
     // and only in a case of no-empty m_values
     draw_colored_band(dc);
 
+    if (m_extra_style & wxSL_AUTOTICKS)
+        draw_ruler(dc);
+
     if (!m_render_as_disabled) {
         // draw line
         draw_scroll_line(dc, lower_pos, higher_pos);
@@ -473,8 +499,10 @@ void Control::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
+#if ENABLE_GCODE_VIEWER
     if (!m_enable_action_icon)
         return;
+#endif // ENABLE_GCODE_VIEWER
 
     // suppress add tick on first layer
     if (tick == 0)
@@ -560,7 +588,7 @@ void Control::draw_tick_on_mouse_position(wxDC& dc)
     }
 
     tick = get_value_from_position(m_moving_pos);
-    if (tick >= m_max_value || tick <= m_min_value || tick == m_higher_value || tick == m_lower_value)
+    if (tick > m_max_value || tick < m_min_value || tick == m_higher_value || tick == m_lower_value)
         return;
 
     wxCoord new_pos = get_position_from_value(tick);
@@ -569,9 +597,57 @@ void Control::draw_tick_on_mouse_position(wxDC& dc)
     //draw info line
     dc.SetPen(LIGHT_GREY_PEN);
     draw_ticks(dc, pos);
+
+    if (m_extra_style & wxSL_VALUE_LABEL) {
+        wxColour old_clr = dc.GetTextForeground();
+        dc.SetTextForeground(LIGHT_GREY_PEN.GetColour());
+        draw_tick_text(dc, pos, tick, ltEstimatedTime, false);
+        dc.SetTextForeground(old_clr);
+    }
 }
 
-wxString Control::get_label(int tick) const
+static std::string short_and_splitted_time(const std::string& time)
+{
+    // Parse the dhms time format.
+    int days = 0;
+    int hours = 0;
+    int minutes = 0;
+    int seconds = 0;
+    if (time.find('d') != std::string::npos)
+        ::sscanf(time.c_str(), "%dd %dh %dm %ds", &days, &hours, &minutes, &seconds);
+    else if (time.find('h') != std::string::npos)
+        ::sscanf(time.c_str(), "%dh %dm %ds", &hours, &minutes, &seconds);
+    else if (time.find('m') != std::string::npos)
+        ::sscanf(time.c_str(), "%dm %ds", &minutes, &seconds);
+    else if (time.find('s') != std::string::npos)
+        ::sscanf(time.c_str(), "%ds", &seconds);
+
+    // Format the dhm time.
+    char buffer[64];
+    if (days > 0)
+        ::sprintf(buffer, "%dd%dh\n%dm", days, hours, minutes);
+    else if (hours > 0) {
+        if (hours < 10 && minutes < 10 && seconds < 10)
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
+        else if (hours > 10 && minutes > 10 && seconds > 10)
+            ::sprintf(buffer, "%dh\n%dm\n%ds", hours, minutes, seconds);
+        else if (minutes < 10 && seconds > 10 || minutes > 10 && seconds < 10)
+            ::sprintf(buffer, "%dh\n%dm%ds", hours, minutes, seconds);
+        else
+            ::sprintf(buffer, "%dh%dm\n%ds", hours, minutes, seconds);
+    }
+    else if (minutes > 0) {
+        if (minutes > 10 && seconds > 10)
+            ::sprintf(buffer, "%dm\n%ds", minutes, seconds);
+        else
+            ::sprintf(buffer, "%dm%ds", minutes, seconds);
+    }
+    else
+        ::sprintf(buffer, "%ds", seconds);
+    return buffer;
+}
+
+wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer*/) const
 {
     const int value = tick;
 
@@ -584,23 +660,35 @@ wxString Control::get_label(int tick) const
     if (m_draw_mode == dmSequentialGCodeView)
         return wxString::Format("%d", static_cast<unsigned int>(m_values[value]));
     else {
-        const wxString str = m_values.empty() ?
+        if (label_type == ltEstimatedTime) {
+            if (m_values.size() != m_layers_times.size())
+                return "time";
+            return short_and_splitted_time(get_time_dhms(m_layers_times[value]));
+        }
+        wxString str = m_values.empty() ?
             wxString::Format("%.*f", 2, m_label_koef * value) :
             wxString::Format("%.*f", 2, m_values[value]);
-        return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
+        if (label_type == ltHeight)
+            return str;
+        if (label_type == ltHeightWithLayer)
+            return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
     }
 #else
         const wxString str = m_values.empty() ?
             wxNumberFormatter::ToString(m_label_koef * value, 2, wxNumberFormatter::Style_None) :
             wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
-        return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
+        if (label_type == ltHeight)
+            return str;
+        if (label_type == ltHeightWithLayer)
+            return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
 #endif // ENABLE_GCODE_VIEWER
+    return wxEmptyString;
 }
 
-void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side/*=true*/) const
+void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, LabelType label_type/* = ltHeight*/, bool right_side/*=true*/) const
 {
     wxCoord text_width, text_height;
-    const wxString label = get_label(tick);
+    const wxString label = get_label(tick, label_type);
     dc.GetMultiLineTextExtent(label, &text_width, &text_height);
     wxPoint text_pos;
     if (right_side) {
@@ -615,9 +703,6 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_
         }
         else
             text_pos = wxPoint(pos.x + m_thumb_size.x + 1, pos.y - 0.5 * text_height - 1);
-
-        // update text rectangle
-        m_rect_lower_thumb_text = wxRect(text_pos, wxSize(text_width, text_height));
     }
     else {
         if (is_horizontal()) {
@@ -626,18 +711,18 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_
             text_pos = wxPoint(xx, pos.y - m_thumb_size.x / 2 - text_height - 1);
         }
         else
-            text_pos = wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
-
-        // update text rectangle
-        m_rect_higher_thumb_text = wxRect(text_pos, wxSize(text_width, text_height));
+            text_pos = wxPoint(std::max(2, pos.x - text_width - 1 - m_thumb_size.x), pos.y - 0.5 * text_height + 1);
     }
 
-    dc.DrawText(label, text_pos);
+    if (label_type == ltEstimatedTime)
+        dc.DrawLabel(label, wxRect(text_pos, wxSize(text_width, text_height)), wxALIGN_RIGHT);
+    else
+        dc.DrawText(label, text_pos);
 }
 
 void Control::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
 {
-    draw_tick_text(dc, pos, selection == ssLower ? m_lower_value : m_higher_value, selection == ssLower);
+    draw_tick_text(dc, pos, selection == ssLower ? m_lower_value : m_higher_value, ltHeightWithLayer, selection == ssLower);
 }
 
 void Control::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection)
@@ -715,6 +800,15 @@ void Control::draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& hig
     draw_thumb_text(dc, pos_l, ssLower);
 }
 
+void Control::draw_ticks_pair(wxDC& dc, wxCoord pos, wxCoord mid, int tick_len)
+{
+    int mid_space = 9;
+    is_horizontal() ? dc.DrawLine(pos, mid - (mid_space + tick_len), pos, mid - mid_space) :
+        dc.DrawLine(mid - (mid_space + tick_len), pos, mid - mid_space, pos);
+    is_horizontal() ? dc.DrawLine(pos, mid + (mid_space + tick_len), pos, mid + mid_space) :
+        dc.DrawLine(mid + (mid_space + tick_len), pos, mid + mid_space, pos);
+};
+
 void Control::draw_ticks(wxDC& dc)
 {
     if (m_draw_mode == dmSlaPrint)
@@ -726,11 +820,7 @@ void Control::draw_ticks(wxDC& dc)
     const wxCoord mid = is_horizontal() ? 0.5*height : 0.5*width;
     for (auto tick : m_ticks.ticks) {
         const wxCoord pos = get_position_from_value(tick.tick);
-
-        is_horizontal() ?   dc.DrawLine(pos, mid-14, pos, mid-9) :
-                            dc.DrawLine(mid - 14, pos/* - 1*/, mid - 9, pos/* - 1*/);
-        is_horizontal() ?   dc.DrawLine(pos, mid+14, pos, mid+9) :
-                            dc.DrawLine(mid + 14, pos/* - 1*/, mid + 9, pos/* - 1*/);
+        draw_ticks_pair(dc, pos, mid, 7);
 
         // if current tick if focused, we should to use a specific "focused" icon 
         bool focused_tick = m_moving_pos != wxDefaultPosition && tick.tick == get_tick_near_point(m_moving_pos);
@@ -866,6 +956,118 @@ void Control::draw_colored_band(wxDC& dc)
     }
 }
 
+void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, double scroll_step)
+{
+    int DPI = GUI::get_dpi_for_window(win);
+    int pixels_per_sm = lround((double)(DPI) * 5.0/25.4);
+
+    int pow = -2;
+    int step = 0;
+    auto end_it = count == 1 ? values.end() : values.begin() + lround(values.size() / count);
+
+    while (pow < 3) {
+        int tick = 0;
+        for (int istep : {1, 2, 5}) {
+            double val = (double)istep * std::pow(10,pow);
+            auto val_it = std::lower_bound(values.begin(), end_it, val - epsilon());
+
+            if (val_it == values.end())
+                break;
+            int tick = val_it - values.begin();
+
+            if (lround(tick * scroll_step) > pixels_per_sm) {
+                step = istep;
+
+                // find next tick with istep
+                val *= 2;
+                val_it = std::lower_bound(values.begin(), end_it, val - epsilon());
+                // count of short ticks between ticks
+                int short_ticks_cnt = val_it == values.end() ? tick : val_it - values.begin() - tick;
+                // there couldn't be more then 10 short ticks between thicks
+                short_step = 0.1 * short_ticks_cnt;
+                break;
+            }
+        }
+        if (step > 0)
+            break;
+        pow++;
+    }
+
+    long_step = step == 0 ? -1.0 : (double)step* std::pow(10, pow);
+}
+
+void Control::draw_ruler(wxDC& dc)
+{
+    m_ruler.update(this->GetParent(), m_values, get_scroll_step());
+    if (!m_ruler.is_ok())
+        return;
+
+    int height, width;
+    get_size(&width, &height);
+    const wxCoord mid = is_horizontal() ? 0.5 * height : 0.5 * width;    
+
+    auto draw_short_ticks = [this, mid](wxDC& dc, double& current_tick, int max_tick) {
+        while (current_tick < max_tick) {
+            wxCoord pos = get_position_from_value(lround(current_tick));
+            draw_ticks_pair(dc, pos, mid, 2);
+            current_tick += m_ruler.short_step;
+            if (current_tick > m_max_value)
+                break;
+        }
+    };   
+
+    dc.SetPen(LIGHT_GREY_PEN);
+    wxColour old_clr = dc.GetTextForeground();
+    dc.SetTextForeground(LIGHT_GREY_PEN.GetColour());
+
+    double short_tick;
+    int tick = 0;
+    double value = 0.0;
+    int sequence = 0;
+
+    while (tick <= m_max_value) {
+        value += m_ruler.long_step;
+        if (value > m_values.back() && sequence < m_ruler.count) {
+            value = m_ruler.long_step;
+            for (tick; tick < m_values.size(); tick++)
+                if (m_values[tick] < value)
+                    break;
+            // short ticks from the last tick to the end of current sequence
+            draw_short_ticks(dc, short_tick, tick);
+            sequence++;
+        }
+        short_tick = tick;
+
+        for (tick; tick < m_values.size(); tick++) {
+            if (m_values[tick] == value)
+                break;
+            if (m_values[tick] > value) {
+                if (tick > 0)
+                    tick--;
+                break;
+            }
+        }
+        if (tick > m_max_value)
+            break;
+
+        wxCoord pos = get_position_from_value(tick);
+        draw_ticks_pair(dc, pos, mid, 5);
+        draw_tick_text(dc, wxPoint(mid, pos), tick);
+
+        draw_short_ticks(dc, short_tick, tick);
+
+        if (value == m_values.back() && sequence < m_ruler.count) {
+            value = 0.0;
+            sequence++;
+            tick++;
+        }
+    }
+    // short ticks from the last tick to the end 
+    draw_short_ticks(dc, short_tick, m_max_value);
+
+    dc.SetTextForeground(old_clr);
+}
+
 void Control::draw_one_layer_icon(wxDC& dc)
 {
 #if ENABLE_GCODE_VIEWER
@@ -910,6 +1112,10 @@ void Control::draw_revert_icon(wxDC& dc)
 
 void Control::draw_cog_icon(wxDC& dc)
 {
+#if ENABLE_GCODE_VIEWER
+    if (m_draw_mode == dmSequentialGCodeView)
+        return;
+#endif // ENABLE_GCODE_VIEWER
     int width, height;
     get_size(&width, &height);
 
@@ -956,10 +1162,17 @@ int Control::get_value_from_position(const wxCoord x, const wxCoord y)
     return int(m_min_value + double(height - SLIDER_MARGIN - y) / step + 0.5);
 }
 
+bool Control::is_lower_thumb_editable()
+{
+    if (m_draw_mode == dmSequentialGCodeView)
+        return Slic3r::GUI::get_app_config()->get("seq_top_layer_only") == "0";
+    return true;
+}
+
 bool Control::detect_selected_slider(const wxPoint& pt)
 {
     if (is_point_in_rect(pt, m_rect_lower_thumb))
-        m_selection = m_lower_editable ? ssLower : ssUndef;
+        m_selection = is_lower_thumb_editable() ? ssLower : ssUndef;
     else if(is_point_in_rect(pt, m_rect_higher_thumb))
         m_selection = ssHigher;
     else
@@ -1072,9 +1285,9 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         else
 #endif // ENABLE_GCODE_VIEWER
             return m_mode == MultiAsSingle ?
-               GUI::from_u8((boost::format(_u8L("Jump to height %s or "
-                   "Set extruder sequence for the entire print")) % " (Shift + G)\n").str()) :
-        _L("Jump to height") + " (Shift + G)";
+            GUI::from_u8((boost::format(_u8L("Jump to height %s Set ruler mode\n or "
+                "Set extruder sequence for the entire print")) % " (Shift + G)\n").str()) :
+            GUI::from_u8((boost::format(_u8L("Jump to height %s or Set ruler mode")) % " (Shift + G)\n").str());
 #if ENABLE_GCODE_VIEWER
     }
 #endif // ENABLE_GCODE_VIEWER
@@ -1328,14 +1541,7 @@ void Control::OnLeftUp(wxMouseEvent& event)
         add_current_tick();
         break;
     case maCogIconClick :
-        if (m_mode == MultiAsSingle && m_draw_mode == dmRegular)
-            show_cog_icon_context_menu();
-        else
-#if ENABLE_GCODE_VIEWER
-            jump_to_value();
-#else
-            jump_to_print_z();
-#endif // ENABLE_GCODE_VIEWER
+        show_cog_icon_context_menu();
         break;
     case maOneLayerIconClick:
         switch_one_layer_mode();
@@ -1415,7 +1621,7 @@ void Control::OnWheel(wxMouseEvent& event)
                           ssLower : ssHigher;
     }
 
-    if (m_selection == ssLower && !m_lower_editable)
+    if (m_selection == ssLower && !is_lower_thumb_editable())
         m_selection = ssUndef;
 
 #if ENABLE_GCODE_VIEWER
@@ -1468,7 +1674,7 @@ void Control::OnKeyDown(wxKeyEvent &event)
             else if (key == WXK_UP || key == WXK_DOWN) {
                 if (key == WXK_UP)
                     m_selection = ssHigher;
-                else if (key == WXK_DOWN && m_lower_editable)
+                else if (key == WXK_DOWN && is_lower_thumb_editable())
                     m_selection = ssLower;
                 Refresh();
             }
@@ -1483,7 +1689,7 @@ void Control::OnKeyDown(wxKeyEvent &event)
             if (key == WXK_LEFT || key == WXK_RIGHT) {
                 if (key == WXK_LEFT)
                     m_selection = ssHigher;
-                else if (key == WXK_RIGHT && m_lower_editable)
+                else if (key == WXK_RIGHT && is_lower_thumb_editable())
                     m_selection = ssLower;
                 Refresh();
             }
@@ -1725,8 +1931,27 @@ void Control::show_cog_icon_context_menu()
                      [this](wxCommandEvent&) { jump_to_print_z(); }, "", &menu);
 #endif // ENABLE_GCODE_VIEWER
 
-    append_menu_item(&menu, wxID_ANY, _L("Set extruder sequence for the entire print"), "",
-        [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
+    wxMenu* ruler_mode_menu = new wxMenu();
+    if (ruler_mode_menu) {
+        append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("None"), _L("Supprese show the ruler"), 
+            [this](wxCommandEvent&) { if (m_extra_style != 0) m_extra_style = 0; }, ruler_mode_menu, 
+            []() { return true; }, [this]() { return m_extra_style == 0; }, GUI::wxGetApp().plater());
+
+        append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("Show object height"), _L("Show object height on the ruler"),
+            [this](wxCommandEvent&) { m_extra_style & wxSL_AUTOTICKS ? m_extra_style &= wxSL_AUTOTICKS : m_extra_style |= wxSL_AUTOTICKS; }, ruler_mode_menu,
+            []() { return true; }, [this]() { return m_extra_style & wxSL_AUTOTICKS; }, GUI::wxGetApp().plater());
+
+        append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("Show estimated print time"), _L("Show estimated print time on the ruler"),
+            [this](wxCommandEvent&) { m_extra_style & wxSL_VALUE_LABEL ? m_extra_style &= wxSL_VALUE_LABEL : m_extra_style |= wxSL_VALUE_LABEL; }, ruler_mode_menu,
+            []() { return true; }, [this]() { return m_extra_style & wxSL_VALUE_LABEL; }, GUI::wxGetApp().plater());
+
+        append_submenu(&menu, ruler_mode_menu, wxID_ANY, _L("Ruler mode"), _L("Set ruler mode"), "",
+            [this]() { return true; }, this);
+    }
+
+    if (m_mode == MultiAsSingle && m_draw_mode == dmRegular)
+        append_menu_item(&menu, wxID_ANY, _L("Set extruder sequence for the entire print"), "",
+            [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
 
     GUI::wxGetApp().plater()->PopupMenu(&menu);
 }

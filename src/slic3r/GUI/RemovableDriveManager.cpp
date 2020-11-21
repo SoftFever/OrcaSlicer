@@ -81,7 +81,7 @@ void RemovableDriveManager::eject_drive()
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 	this->update();
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
-
+	BOOST_LOG_TRIVIAL(info) << "Ejecting started"; 
 	tbb::mutex::scoped_lock lock(m_drives_mutex);
 	auto it_drive_data = this->find_last_save_path_drive_data();
 	if (it_drive_data != m_current_drives.end()) {
@@ -90,7 +90,7 @@ void RemovableDriveManager::eject_drive()
 		mpath = mpath.substr(0, mpath.size() - 1);
 		HANDLE handle = CreateFileW(boost::nowide::widen(mpath).c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 		if (handle == INVALID_HANDLE_VALUE) {
-			std::cerr << "Ejecting " << mpath << " failed " << GetLastError() << " \n";
+			BOOST_LOG_TRIVIAL(error) << "Ejecting " << mpath << " failed (handle == INVALID_HANDLE_VALUE): " << GetLastError();
 			assert(m_callback_evt_handler);
 			if (m_callback_evt_handler)
 				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(*it_drive_data, false)));
@@ -99,19 +99,22 @@ void RemovableDriveManager::eject_drive()
 		DWORD deviceControlRetVal(0);
 		//these 3 commands should eject device safely but they dont, the device does disappear from file explorer but the "device was safely remove" notification doesnt trigger.
 		//sd cards does  trigger WM_DEVICECHANGE messege, usb drives dont
-		DeviceIoControl(handle, FSCTL_LOCK_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
-		DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
+		BOOL e1 = DeviceIoControl(handle, FSCTL_LOCK_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
+		BOOST_LOG_TRIVIAL(debug) << "FSCTL_LOCK_VOLUME " << e1 << " ; " << deviceControlRetVal << " ; " << GetLastError();
+		BOOL e2 = DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
+		BOOST_LOG_TRIVIAL(debug) << "FSCTL_DISMOUNT_VOLUME " << e2 << " ; " << deviceControlRetVal << " ; " << GetLastError();
 		// some implemenatations also calls IOCTL_STORAGE_MEDIA_REMOVAL here but it returns error to me
 		BOOL error = DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
 		if (error == 0) {
 			CloseHandle(handle);
-			BOOST_LOG_TRIVIAL(error) << "Ejecting " << mpath << " failed " << deviceControlRetVal << " " << GetLastError() << " \n";
+			BOOST_LOG_TRIVIAL(error) << "Ejecting " << mpath << " failed (IOCTL_STORAGE_EJECT_MEDIA)" << deviceControlRetVal << " " << GetLastError();
 			assert(m_callback_evt_handler);
 			if (m_callback_evt_handler)
 				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(*it_drive_data, false)));
 			return;
 		}
 		CloseHandle(handle);
+		BOOST_LOG_TRIVIAL(info) << "Ejecting finished";
 		assert(m_callback_evt_handler);
 		if (m_callback_evt_handler) 
 			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair< DriveData, bool >(std::move(*it_drive_data), true)));
@@ -256,6 +259,7 @@ void RemovableDriveManager::eject_drive()
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 	this->update();
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
+	BOOST_LOG_TRIVIAL(info) << "Ejecting started";
 
 	tbb::mutex::scoped_lock lock(m_drives_mutex);
 	auto it_drive_data = this->find_last_save_path_drive_data();
@@ -290,7 +294,7 @@ void RemovableDriveManager::eject_drive()
 		child.wait();
     	int err = child.exit_code();
     	if (err) {
-    		BOOST_LOG_TRIVIAL(error) << "Ejecting failed";
+    		BOOST_LOG_TRIVIAL(error) << "Ejecting failed. Exit code: " << err;
 			assert(m_callback_evt_handler);
 			if (m_callback_evt_handler)
 				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(*it_drive_data, false)));
@@ -391,7 +395,6 @@ bool RemovableDriveManager::set_and_verify_last_save_path(const std::string &pat
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 	this->update();
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
-
 	m_last_save_path = this->get_removable_drive_from_path(path);
 	m_exporting_finished = false;
 	return ! m_last_save_path.empty();

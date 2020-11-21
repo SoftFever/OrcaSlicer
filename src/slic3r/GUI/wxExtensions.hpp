@@ -298,6 +298,9 @@ public:
 
     void SetMode(const /*ConfigOptionMode*/int mode);
 
+    void set_items_flag(int flag);
+    void set_items_border(int border);
+
     void msw_rescale();
 
 private:
@@ -347,6 +350,8 @@ public:
     void    invalidate();
     void    activate();
     void    blink();
+
+    const wxBitmap& get_bmp() const { return bmp.bmp(); }
 
 private:
     ScalableBitmap  bmp;

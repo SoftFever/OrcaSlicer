@@ -38,9 +38,7 @@ void AppConfig::reset()
 // Override missing or keys with their defaults.
 void AppConfig::set_defaults()
 {
-#if ENABLE_GCODE_VIEWER
     if (m_mode == EAppMode::Editor) {
-#endif // ENABLE_GCODE_VIEWER
         // Reset the empty fields to defaults.
         if (get("autocenter").empty())
             set("autocenter", "0");
@@ -56,6 +54,11 @@ void AppConfig::set_defaults()
             set("no_defaults", "1");
         if (get("show_incompatible_presets").empty())
             set("show_incompatible_presets", "0");
+
+        if (get("show_drop_project_dialog").empty())
+            set("show_drop_project_dialog", "1");
+        if (get("drop_project_action").empty())
+            set("drop_project_action", "1");
 
         if (get("version_check").empty())
             set("version_check", "1");
@@ -98,14 +101,6 @@ void AppConfig::set_defaults()
         if (get("auto_toolbar_size").empty())
             set("auto_toolbar_size", "100");
 
-#if !ENABLE_GCODE_VIEWER
-        if (get("use_perspective_camera").empty())
-            set("use_perspective_camera", "1");
-
-        if (get("use_free_camera").empty())
-            set("use_free_camera", "0");
-#endif // !ENABLE_GCODE_VIEWER
-
 #if ENABLE_ENVIRONMENT_MAP
         if (get("use_environment_map").empty())
             set("use_environment_map", "0");
@@ -113,7 +108,6 @@ void AppConfig::set_defaults()
 
         if (get("use_inches").empty())
             set("use_inches", "0");
-#if ENABLE_GCODE_VIEWER
     }
 
     if (get("seq_top_layer_only").empty())
@@ -124,7 +118,9 @@ void AppConfig::set_defaults()
 
     if (get("use_free_camera").empty())
         set("use_free_camera", "0");
-#endif // ENABLE_GCODE_VIEWER
+
+    if (get("reverse_mouse_wheel_zoom").empty())
+        set("reverse_mouse_wheel_zoom", "0");
 
     if (get("show_splash_screen").empty())
         set("show_splash_screen", "1");
@@ -205,6 +201,20 @@ std::string AppConfig::load()
         m_legacy_datadir = ini_ver < Semver(1, 40, 0);
     }
 
+    // Legacy conversion
+    if (m_mode == EAppMode::Editor) {
+        // Convert [extras] "physical_printer" to [presets] "physical_printer",
+        // remove the [extras] section if it becomes empty.
+        if (auto it_section = m_storage.find("extras"); it_section != m_storage.end()) {
+            if (auto it_physical_printer = it_section->second.find("physical_printer"); it_physical_printer != it_section->second.end()) {
+                m_storage["presets"]["physical_printer"] = it_physical_printer->second;
+                it_section->second.erase(it_physical_printer);
+            }
+            if (it_section->second.empty())
+                m_storage.erase(it_section);
+        }
+    }
+
     // Override missing or keys with their defaults.
     this->set_defaults();
     m_dirty = false;
@@ -213,11 +223,12 @@ std::string AppConfig::load()
 
 void AppConfig::save()
 {
-#ifndef __APPLE__
-    // Apple does not implement thread_getname_np() correctly.
-    if (get_current_thread_name() != "slic3r_main")
-        throw CriticalException("Calling AppConfig::save() from a worker thread!");
-#endif
+    {
+        // Returns "undefined" if the thread naming functionality is not supported by the operating system.
+        std::optional<std::string> current_thread_name = get_current_thread_name();
+        if (current_thread_name && *current_thread_name != "slic3r_main")
+            throw CriticalException("Calling AppConfig::save() from a worker thread!");
+    }
 
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
@@ -226,14 +237,10 @@ void AppConfig::save()
 
     boost::nowide::ofstream c;
     c.open(path_pid, std::ios::out | std::ios::trunc);
-#if ENABLE_GCODE_VIEWER
     if (m_mode == EAppMode::Editor)
         c << "# " << Slic3r::header_slic3r_generated() << std::endl;
     else
         c << "# " << Slic3r::header_gcodeviewer_generated() << std::endl;
-#else
-    c << "# " << Slic3r::header_slic3r_generated() << std::endl;
-#endif // ENABLE_GCODE_VIEWER
     // Make sure the "no" category is written first.
     for (const std::pair<std::string, std::string> &kvp : m_storage[""])
         c << kvp.first << " = " << kvp.second << std::endl;
@@ -427,21 +434,18 @@ void AppConfig::reset_selections()
         it->second.erase("sla_print");
         it->second.erase("sla_material");
         it->second.erase("printer");
+        it->second.erase("physical_printer");
         m_dirty = true;
     }
 }
 
 std::string AppConfig::config_path()
 {
-#if ENABLE_GCODE_VIEWER
     std::string path = (m_mode == EAppMode::Editor) ?
         (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".ini")).make_preferred().string() :
         (boost::filesystem::path(Slic3r::data_dir()) / (GCODEVIEWER_APP_KEY ".ini")).make_preferred().string();
 
     return path;
-#else
-    return (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".ini")).make_preferred().string();
-#endif // ENABLE_GCODE_VIEWER
 }
 
 std::string AppConfig::version_check_url() const
@@ -452,11 +456,7 @@ std::string AppConfig::version_check_url() const
 
 bool AppConfig::exists()
 {
-#if ENABLE_GCODE_VIEWER
     return boost::filesystem::exists(config_path());
-#else
-    return boost::filesystem::exists(AppConfig::config_path());
-#endif // ENABLE_GCODE_VIEWER
 }
 
 }; // namespace Slic3r

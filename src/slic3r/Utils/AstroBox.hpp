@@ -28,7 +28,7 @@ public:
     bool can_test() const override { return true; }
     bool can_start_print() const override { return true; }
     std::string get_host() const override { return host; }
-
+    
 protected:
     bool validate_version_text(const boost::optional<std::string> &version_text) const;
 

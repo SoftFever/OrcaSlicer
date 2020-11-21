@@ -111,6 +111,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Field.hpp
     GUI/OptionsGroup.cpp
     GUI/OptionsGroup.hpp
+    GUI/OG_CustomCtrl.cpp
+    GUI/OG_CustomCtrl.hpp
     GUI/BedShapeDialog.cpp
     GUI/BedShapeDialog.hpp
     GUI/2DBed.cpp
@@ -160,6 +162,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/ArrangeJob.cpp
     GUI/Jobs/RotoptimizeJob.hpp
     GUI/Jobs/RotoptimizeJob.cpp
+    GUI/Jobs/FillBedJob.hpp
+    GUI/Jobs/FillBedJob.cpp
     GUI/Jobs/SLAImportJob.hpp
     GUI/Jobs/SLAImportJob.cpp
     GUI/Jobs/ProgressIndicator.hpp
@@ -193,6 +197,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/FlashAir.hpp
     Utils/AstroBox.cpp
     Utils/AstroBox.hpp
+    Utils/Repetier.cpp
+    Utils/Repetier.hpp
     Utils/PrintHost.cpp
     Utils/PrintHost.hpp
     Utils/Bonjour.cpp

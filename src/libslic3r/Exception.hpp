@@ -19,6 +19,8 @@ SLIC3R_DERIVE_EXCEPTION(InvalidArgument,    LogicError);
 SLIC3R_DERIVE_EXCEPTION(OutOfRange,         LogicError);
 SLIC3R_DERIVE_EXCEPTION(IOError,            CriticalException);
 SLIC3R_DERIVE_EXCEPTION(FileIOError,        IOError);
+SLIC3R_DERIVE_EXCEPTION(HostNetworkError,   IOError);
+SLIC3R_DERIVE_EXCEPTION(ExportError,      CriticalException);
 // Runtime exception produced by Slicer. Such exception cancels the slicing process and it shall be shown in notifications.
 SLIC3R_DERIVE_EXCEPTION(SlicingError,       Exception);
 #undef SLIC3R_DERIVE_EXCEPTION

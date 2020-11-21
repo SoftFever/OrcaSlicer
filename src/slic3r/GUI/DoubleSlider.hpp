@@ -84,6 +84,13 @@ enum DrawMode
 #endif // ENABLE_GCODE_VIEWER
 };
 
+enum LabelType
+{
+    ltHeightWithLayer,
+    ltHeight,
+    ltEstimatedTime,
+};
+
 struct TickCode
 {
     bool operator<(const TickCode& other) const { return other.tick > this->tick; }
@@ -212,11 +219,13 @@ public:
 
     void    SetMaxValue(const int max_value);
     void    SetKoefForLabels(const double koef)                { m_label_koef = koef; }
-    void    SetSliderValues(const std::vector<double>& values) { m_values = values; }
+    void    SetSliderValues(const std::vector<double>& values);
     void    ChangeOneLayerLock();
 
-    Info   GetTicksValues() const;
-    void   SetTicksValues(const Info &custom_gcode_per_print_z);
+    Info    GetTicksValues() const;
+    void    SetTicksValues(const Info &custom_gcode_per_print_z);
+    void    SetLayersTimes(const std::vector<float>& layers_times);
+    void    SetLayersTimes(const std::vector<double>& layers_times);
 
     void    SetDrawMode(bool is_sla_print, bool is_sequential_print);
 #if ENABLE_GCODE_VIEWER
@@ -228,7 +237,6 @@ public:
     void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
     void    SetExtruderColors(const std::vector<std::string>& extruder_colors);
 
-    void set_lower_editable(bool editable) { m_lower_editable = editable; }
     void set_render_as_disabled(bool value) { m_render_as_disabled = value; }
     bool is_rendering_as_disabled() const { return m_render_as_disabled; }
 
@@ -282,18 +290,21 @@ protected:
     void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
     void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
     void    draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& higher_pos);
+    void    draw_ticks_pair(wxDC& dc, wxCoord pos, wxCoord mid, int tick_len);
     void    draw_ticks(wxDC& dc);
     void    draw_colored_band(wxDC& dc);
+    void    draw_ruler(wxDC& dc);
     void    draw_one_layer_icon(wxDC& dc);
     void    draw_revert_icon(wxDC& dc);
     void    draw_cog_icon(wxDC &dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
     void    draw_tick_on_mouse_position(wxDC &dc);
-    void    draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side = true) const;
+    void    draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, LabelType label_type = ltHeight, bool right_side = true) const;
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
 
     void    update_thumb_rect(const wxCoord begin_x, const wxCoord begin_y, const SelectedSlider& selection);
+    bool    is_lower_thumb_editable();
     bool    detect_selected_slider(const wxPoint& pt);
     void    correct_lower_value();
     void    correct_higher_value();
@@ -306,7 +317,7 @@ private:
     int     get_tick_near_point(const wxPoint& pt);
 
     double      get_scroll_step();
-    wxString    get_label(int tick) const;
+    wxString    get_label(int tick, LabelType label_type = ltHeightWithLayer) const;
     void        get_lower_and_higher_position(int& lower_pos, int& higher_pos);
     int         get_value_from_position(const wxCoord x, const wxCoord y);
     int         get_value_from_position(const wxPoint pos) { return get_value_from_position(pos.x, pos.y); }
@@ -340,7 +351,6 @@ private:
     int         m_lower_value;
     int         m_higher_value;
 
-    bool        m_lower_editable{ true };
     bool        m_render_as_disabled{ false };
 
     ScalableBitmap    m_bmp_thumb_higher;
@@ -388,10 +398,12 @@ private:
     int         m_revert_icon_dim;
     int         m_cog_icon_dim;
     long        m_style;
+    long        m_extra_style;
     float       m_label_koef = 1.0;
 
     std::vector<double> m_values;
     TickCodeInfo        m_ticks;
+    std::vector<double> m_layers_times;
 
     std::vector<std::string>    m_extruder_colors;
 
@@ -408,6 +420,15 @@ private:
 
     std::vector<wxPen*> m_line_pens;
     std::vector<wxPen*> m_segm_pens;
+
+    struct Ruler {
+        double long_step;
+        double short_step;
+        int count { 1 }; // > 1 for sequential print
+
+        void update(wxWindow* win, const std::vector<double>& values, double scroll_step);
+        bool is_ok() { return long_step > 0 && short_step > 0; }
+    } m_ruler;
 };
 
 } // DoubleSlider;

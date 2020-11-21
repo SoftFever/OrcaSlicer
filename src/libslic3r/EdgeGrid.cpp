@@ -55,6 +55,24 @@ void EdgeGrid::Grid::create(const Polygons &polygons, coord_t resolution)
 	create_from_m_contours(resolution);
 }
 
+void EdgeGrid::Grid::create(const std::vector<const Polygon*> &polygons, coord_t resolution)
+{
+	// Count the contours.
+	size_t ncontours = 0;
+	for (size_t j = 0; j < polygons.size(); ++ j)
+		if (! polygons[j]->points.empty())
+			++ ncontours;
+
+	// Collect the contours.
+	m_contours.assign(ncontours, nullptr);
+	ncontours = 0;
+	for (size_t j = 0; j < polygons.size(); ++ j)
+		if (! polygons[j]->points.empty())
+			m_contours[ncontours ++] = &polygons[j]->points;
+
+	create_from_m_contours(resolution);	
+}
+
 void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolution)
 {
 	// Count the contours.
@@ -1150,7 +1168,7 @@ EdgeGrid::Grid::ClosestPointResult EdgeGrid::Grid::closest_point(const Point &pt
     if (result.contour_idx != size_t(-1) && d_min <= double(search_radius)) {
 		result.distance = d_min * sign_min;
 		result.t /= l2_seg_min;
-		assert(result.t >= 0. && result.t < 1.);
+		assert(result.t >= 0. && result.t <= 1.);
 #ifndef NDEBUG
 		{
 			const Slic3r::Points &pts = *m_contours[result.contour_idx];

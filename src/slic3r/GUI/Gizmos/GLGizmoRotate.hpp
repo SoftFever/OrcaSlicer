@@ -136,37 +136,6 @@ protected:
     }
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
-
-private:
-
-    class RotoptimzeWindow {
-        ImGuiWrapper *m_imgui = nullptr;
-
-    public:
-
-        struct State {
-            enum Metods { mMinSupportPoints, mLegacy };
-
-            float        accuracy = 1.f;
-            int          method   = mMinSupportPoints;
-            ModelObject *mobj     = nullptr;
-        };
-
-        struct Alignment { float x, y, bottom_limit; };
-
-        RotoptimzeWindow(ImGuiWrapper *   imgui,
-                         State &          state,
-                         const Alignment &bottom_limit);
-
-        ~RotoptimzeWindow();
-
-        RotoptimzeWindow(const RotoptimzeWindow&) = delete;
-        RotoptimzeWindow(RotoptimzeWindow &&) = delete;
-        RotoptimzeWindow& operator=(const RotoptimzeWindow &) = delete;
-        RotoptimzeWindow& operator=(RotoptimzeWindow &&) = delete;
-    };
-
-    RotoptimzeWindow::State m_rotoptimizewin_state = {};
 };
 
 } // namespace GUI

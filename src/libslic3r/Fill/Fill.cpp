@@ -10,7 +10,7 @@
 #include "../Surface.hpp"
 
 #include "FillBase.hpp"
-#include "FillRectilinear2.hpp"
+#include "FillRectilinear.hpp"
 
 namespace Slic3r {
 
@@ -33,10 +33,11 @@ struct SurfaceFillParams
 
     // FillParams
     float       	density = 0.f;
-    // Don't connect the fill lines around the inner perimeter.
-    bool        	dont_connect = false;
     // Don't adjust spacing to fill the space evenly.
     bool        	dont_adjust = false;
+    // Length of the infill anchor along the perimeter line.
+    // 1000mm is roughly the maximum length line that fits into a 32bit coord_t.
+    float 			anchor_length = 1000.f;
 
     // width, height of extrusion, nozzle diameter, is bridge
     // For the output, for fill generator.
@@ -65,8 +66,8 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(overlap);
 		RETURN_COMPARE_NON_EQUAL(angle);
 		RETURN_COMPARE_NON_EQUAL(density);
-		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_connect);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
+		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(flow.width);
 		RETURN_COMPARE_NON_EQUAL(flow.height);
 		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter);
@@ -83,8 +84,8 @@ struct SurfaceFillParams
 				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
 				this->density   		== rhs.density   		&&
-				this->dont_connect  	== rhs.dont_connect 	&&
 				this->dont_adjust   	== rhs.dont_adjust 		&&
+				this->anchor_length		== rhs.anchor_length    &&
 				this->flow 				== rhs.flow 			&&
 				this->extrusion_role	== rhs.extrusion_role;
 	}
@@ -115,16 +116,17 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        if (surface.surface_type == stInternalVoid)
 	        	has_internal_voids = true;
 	        else {
+		        const PrintRegionConfig &region_config = layerm.region()->config();
 		        FlowRole extrusion_role = surface.is_top() ? frTopSolidInfill : (surface.is_solid() ? frSolidInfill : frInfill);
 		        bool     is_bridge 	    = layer.id() > 0 && surface.is_bridge();
 		        params.extruder 	 = layerm.region()->extruder(extrusion_role);
-		        params.pattern 		 = layerm.region()->config().fill_pattern.value;
-		        params.density       = float(layerm.region()->config().fill_density);
+		        params.pattern 		 = region_config.fill_pattern.value;
+		        params.density       = float(region_config.fill_density);
 
 		        if (surface.is_solid()) {
 		            params.density = 100.f;
 		            params.pattern = (surface.is_external() && ! is_bridge) ? 
-						(surface.is_top() ? layerm.region()->config().top_fill_pattern.value : layerm.region()->config().bottom_fill_pattern.value) :
+						(surface.is_top() ? region_config.top_fill_pattern.value : region_config.bottom_fill_pattern.value) :
 		                ipRectilinear;
 		        } else if (params.density <= 0)
 		            continue;
@@ -136,7 +138,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		                    (surface.is_top() ? erTopSolidInfill : erSolidInfill) :
 		                    erInternalInfill);
 		        params.bridge_angle = float(surface.bridge_angle);
-		        params.angle 		= float(Geometry::deg2rad(layerm.region()->config().fill_angle.value));
+		        params.angle 		= float(Geometry::deg2rad(region_config.fill_angle.value));
 		        
 		        // calculate the actual flow we'll be using for this infill
 		        params.flow = layerm.region()->flow(
@@ -149,7 +151,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        );
 		        
 		        // Calculate flow spacing for infill pattern generation.
-		        if (! surface.is_solid() && ! is_bridge) {
+		        if (surface.is_solid() || is_bridge) {
+		            params.spacing = params.flow.spacing();
+		            // Don't limit anchor length for solid or bridging infill.
+		            params.anchor_length = 1000.f;
+		        } else {
 		            // it's internal infill, so we can calculate a generic flow spacing 
 		            // for all layers, for avoiding the ugly effect of
 		            // misaligned infill on first layer because of different extrusion width and
@@ -162,8 +168,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 			                -1,     // auto width
 			                *layer.object()
 			            ).spacing();
-		        } else
-		            params.spacing = params.flow.spacing();
+		            // Anchor a sparse infill to inner perimeters with the following anchor length:
+			        params.anchor_length = float(region_config.infill_anchor);
+			        if (region_config.infill_anchor.percent)
+			        	params.anchor_length *= 0.01 * params.spacing;
+		        }
 
 		        auto it_params = set_surface_params.find(params);
 		        if (it_params == set_surface_params.end())
@@ -367,8 +376,9 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
-        params.density 		= float(0.01 * surface_fill.params.density);
-        params.dont_adjust 	= surface_fill.params.dont_adjust; // false
+        params.density 		 = float(0.01 * surface_fill.params.density);
+        params.dont_adjust 	 = surface_fill.params.dont_adjust; // false
+        params.anchor_length = surface_fill.params.anchor_length;
 
         for (ExPolygon &expoly : surface_fill.expolygons) {
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
@@ -526,15 +536,13 @@ void Layer::make_ironing()
 		}
 	std::sort(by_extruder.begin(), by_extruder.end());
 
-    FillRectilinear2 	fill;
+    FillRectilinear 	fill;
     FillParams 			fill_params;
 	fill.set_bounding_box(this->object()->bounding_box());
 	fill.layer_id 			 = this->id();
     fill.z 					 = this->print_z;
     fill.overlap 			 = 0;
     fill_params.density 	 = 1.;
-//    fill_params.dont_connect = true;
-    fill_params.dont_connect = false;
     fill_params.monotonic    = true;
 
 	for (size_t i = 0; i < by_extruder.size(); ++ i) {

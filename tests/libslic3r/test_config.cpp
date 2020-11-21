@@ -98,21 +98,21 @@ SCENARIO("Config accessor functions perform as expected.", "[Config]") {
             }
         }
         WHEN("A string option is set through the string interface") {
-            config.set("printhost_apikey", "100");
+            config.set("end_gcode", "100");
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionString>("printhost_apikey")->value == "100");
+                REQUIRE(config.opt<ConfigOptionString>("end_gcode")->value == "100");
             }
         }
         WHEN("A string option is set through the integer interface") {
-            config.set("printhost_apikey", 100);
+            config.set("end_gcode", 100);
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionString>("printhost_apikey")->value == "100");
+                REQUIRE(config.opt<ConfigOptionString>("end_gcode")->value == "100");
             }
         }
         WHEN("A string option is set through the double interface") {
-            config.set("printhost_apikey", 100.5);
+            config.set("end_gcode", 100.5);
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionString>("printhost_apikey")->value == std::to_string(100.5));
+                REQUIRE(config.opt<ConfigOptionString>("end_gcode")->value == std::to_string(100.5));
             }
         }
         WHEN("A float or percent is set as a percent through the string interface.") {

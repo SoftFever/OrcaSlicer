@@ -29,19 +29,20 @@ struct Camera
     bool requires_zoom_to_bed;
 
 private:
-    EType m_type;
-    Vec3d m_target;
-    float m_zenit;
-    double m_zoom;
+    EType m_type{ Perspective };
+    bool m_update_config_on_type_change_enabled{ false };
+    Vec3d m_target{ Vec3d::Zero() };
+    float m_zenit{ 45.0f };
+    double m_zoom{ 1.0 };
     // Distance between camera position and camera target measured along the camera Z axis
-    mutable double m_distance;
-    mutable double m_gui_scale;
+    mutable double m_distance{ DefaultDistance };
+    mutable double m_gui_scale{ 1.0 };
 
     mutable std::array<int, 4> m_viewport;
-    mutable Transform3d m_view_matrix;
+    mutable Transform3d m_view_matrix{ Transform3d::Identity() };
     // We are calculating the rotation part of the m_view_matrix from m_view_rotation.
-    mutable Eigen::Quaterniond m_view_rotation;
-    mutable Transform3d m_projection_matrix;
+    mutable Eigen::Quaterniond m_view_rotation{ 1.0, 0.0, 0.0, 0.0 };
+    mutable Transform3d m_projection_matrix{ Transform3d::Identity() };
     mutable std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
@@ -55,6 +56,8 @@ public:
     // valid values for type: "0" -> ortho, "1" -> perspective
     void set_type(const std::string& type);
     void select_next_type();
+
+    void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
 
     const Vec3d& get_target() const { return m_target; }
     void set_target(const Vec3d& target);
@@ -124,7 +127,7 @@ public:
 
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
 
-    double max_zoom() const { return 100.0; }
+    double max_zoom() const { return 250.0; }
     double min_zoom() const;
 
 private:

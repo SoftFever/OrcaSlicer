@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <functional>
 #include <string>
+#include <string_view>
 #include "PrintConfig.hpp"
 
 namespace Slic3r {
@@ -17,13 +18,13 @@ public:
         GCodeLine() { reset(); }
         void reset() { m_mask = 0; memset(m_axis, 0, sizeof(m_axis)); m_raw.clear(); }
 
-        const std::string&  raw() const { return m_raw; }
-        const std::string   cmd() const { 
+        const std::string&      raw() const { return m_raw; }
+        const std::string_view  cmd() const { 
             const char *cmd = GCodeReader::skip_whitespaces(m_raw.c_str());
-            return std::string(cmd, GCodeReader::skip_word(cmd));
+            return std::string_view(cmd, GCodeReader::skip_word(cmd) - cmd);
         }
-        const std::string   comment() const
-            { size_t pos = m_raw.find(';'); return (pos == std::string::npos) ? "" : m_raw.substr(pos + 1); }
+        const std::string_view  comment() const
+            { size_t pos = m_raw.find(';'); return (pos == std::string::npos) ? std::string_view() : std::string_view(m_raw).substr(pos + 1); }
 
         bool  has(Axis axis) const { return (m_mask & (1 << int(axis))) != 0; }
         float value(Axis axis) const { return m_axis[axis]; }
@@ -107,9 +108,7 @@ public:
         { GCodeLine gline; this->parse_line(line.c_str(), gline, callback); }
 
     void parse_file(const std::string &file, callback_t callback);
-#if ENABLE_GCODE_VIEWER
     void quit_parsing_file() { m_parsing_file = false; }
-#endif // ENABLE_GCODE_VIEWER
 
     float& x()       { return m_position[X]; }
     float  x() const { return m_position[X]; }
@@ -148,9 +147,7 @@ private:
     char        m_extrusion_axis;
     float       m_position[NUM_AXES];
     bool        m_verbose;
-#if ENABLE_GCODE_VIEWER
     bool        m_parsing_file{ false };
-#endif // ENABLE_GCODE_VIEWER
 };
 
 } /* namespace Slic3r */

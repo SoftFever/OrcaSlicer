@@ -1,7 +1,6 @@
 #ifndef slic3r_GCodeProcessor_hpp_
 #define slic3r_GCodeProcessor_hpp_
 
-#if ENABLE_GCODE_VIEWER
 #include "libslic3r/GCodeReader.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
@@ -11,6 +10,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <string_view>
 
 namespace Slic3r {
 
@@ -145,6 +145,7 @@ namespace Slic3r {
 
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
+            unsigned int g1_line_id{ 0 };
             unsigned int layer_id{ 0 };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
@@ -182,6 +183,12 @@ namespace Slic3r {
                 void reset();
             };
 
+            struct G1LinesCacheItem
+            {
+                unsigned int id;
+                float elapsed_time;
+            };
+
             bool enabled;
             float acceleration; // mm/s^2
             // hard limit for the acceleration, to which the firmware will clamp.
@@ -193,7 +200,7 @@ namespace Slic3r {
             State prev;
             CustomGCodeTime gcode_time;
             std::vector<TimeBlock> blocks;
-            std::vector<float> g1_times_cache;
+            std::vector<G1LinesCacheItem> g1_times_cache;
             std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
             std::array<float, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
             std::vector<float> layers_time;
@@ -258,10 +265,24 @@ namespace Slic3r {
 
         struct Result
         {
+            struct SettingsIds
+            {
+                std::string print;
+                std::vector<std::string> filament;
+                std::string printer;
+
+                void reset()
+                {
+                    print = "";
+                    filament = std::vector<std::string>();
+                    printer = "";
+                }
+            };
             unsigned int id;
             std::vector<MoveVertex> moves;
             Pointfs bed_shape;
-            std::string printer_settings_id;
+            SettingsIds settings_ids;
+            size_t extruders_count;
             std::vector<std::string> extruder_colors;
             PrintEstimatedTimeStatistics time_statistics;
 
@@ -273,6 +294,8 @@ namespace Slic3r {
                 moves = std::vector<MoveVertex>();
                 bed_shape = Pointfs();
                 extruder_colors = std::vector<std::string>();
+                extruders_count = 0;
+                settings_ids.reset();
             }
 #else
             void reset()
@@ -280,6 +303,8 @@ namespace Slic3r {
                 moves = std::vector<MoveVertex>();
                 bed_shape = Pointfs();
                 extruder_colors = std::vector<std::string>();
+                extruders_count = 0;
+                settings_ids.reset();
             }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         };
@@ -376,6 +401,7 @@ namespace Slic3r {
         ExtruderColors m_extruder_colors;
         std::vector<float> m_filament_diameters;
         float m_extruded_last_z;
+        unsigned int m_g1_line_id;
         unsigned int m_layer_id;
         CpColor m_cp_color;
 
@@ -383,6 +409,8 @@ namespace Slic3r {
         {
             Unknown,
             PrusaSlicer,
+            Slic3rPE,
+            Slic3r,
             Cura,
             Simplify3D,
             CraftWare,
@@ -422,7 +450,7 @@ namespace Slic3r {
 
         // Process the gcode contained in the file with the given filename
         // throws CanceledException through print->throw_if_canceled() (sent by the caller as callback).
-        void process_file(const std::string& filename, std::function<void()> cancel_callback = nullptr);
+        void process_file(const std::string& filename, bool apply_postprocess, std::function<void()> cancel_callback = nullptr);
 
         float get_time(PrintEstimatedTimeStatistics::ETimeMode mode) const;
         std::string get_time_dhm(PrintEstimatedTimeStatistics::ETimeMode mode) const;
@@ -436,15 +464,15 @@ namespace Slic3r {
         void process_gcode_line(const GCodeReader::GCodeLine& line);
 
         // Process tags embedded into comments
-        void process_tags(const std::string& comment);
-        bool process_producers_tags(const std::string& comment);
-        bool process_prusaslicer_tags(const std::string& comment);
-        bool process_cura_tags(const std::string& comment);
-        bool process_simplify3d_tags(const std::string& comment);
-        bool process_craftware_tags(const std::string& comment);
-        bool process_ideamaker_tags(const std::string& comment);
+        void process_tags(const std::string_view comment);
+        bool process_producers_tags(const std::string_view comment);
+        bool process_prusaslicer_tags(const std::string_view comment);
+        bool process_cura_tags(const std::string_view comment);
+        bool process_simplify3d_tags(const std::string_view comment);
+        bool process_craftware_tags(const std::string_view comment);
+        bool process_ideamaker_tags(const std::string_view comment);
 
-        bool detect_producer(const std::string& comment);
+        bool detect_producer(const std::string_view comment);
 
         // Move
         void process_G0(const GCodeReader::GCodeLine& line);
@@ -530,7 +558,7 @@ namespace Slic3r {
 
         // Processes T line (Select Tool)
         void process_T(const GCodeReader::GCodeLine& line);
-        void process_T(const std::string& command);
+        void process_T(const std::string_view command);
 
         void store_move_vertex(EMoveType type);
 
@@ -554,8 +582,6 @@ namespace Slic3r {
    };
 
 } /* namespace Slic3r */
-
-#endif // ENABLE_GCODE_VIEWER
 
 #endif /* slic3r_GCodeProcessor_hpp_ */
 

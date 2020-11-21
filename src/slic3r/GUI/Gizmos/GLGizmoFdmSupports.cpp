@@ -30,7 +30,7 @@ void GLGizmoFdmSupports::on_shutdown()
 
 std::string GLGizmoFdmSupports::on_get_name() const
 {
-    return (_(L("FDM Support Editing")) + " [L]").ToUTF8().data();
+    return (_L("Paint-on supports") + " [L]").ToUTF8().data();
 }
 
 
@@ -41,11 +41,11 @@ bool GLGizmoFdmSupports::on_init()
 
     m_desc["clipping_of_view"] = _L("Clipping of view") + ": ";
     m_desc["reset_direction"]  = _L("Reset direction");
-    m_desc["cursor_size"]      = _L("Cursor size") + ": ";
-    m_desc["cursor_type"]      = _L("Cursor type") + ": ";
+    m_desc["cursor_size"]      = _L("Brush size") + ": ";
+    m_desc["cursor_type"]      = _L("Brush shape") + ": ";
     m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
     m_desc["enforce"]          = _L("Enforce supports");
-    m_desc["block_caption"]    = _L("Right mouse button") + " ";
+    m_desc["block_caption"]    = _L("Right mouse button") + ": ";
     m_desc["block"]            = _L("Block supports");
     m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
     m_desc["remove"]           = _L("Remove selection");
@@ -126,7 +126,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
         m_imgui->text("");
 
-        if (m_imgui->button("Autoset by angle...")) {
+        if (m_imgui->button(_L("Autoset by angle") + "...")) {
             m_setting_angle = true;
         }
 
@@ -232,9 +232,12 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     else {
         m_imgui->begin(_L("Autoset custom supports"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
         ImGui::AlignTextToFramePadding();
-        m_imgui->text(_L("Threshold:") + " " + _L("deg"));
+        m_imgui->text(_L("Threshold:"));
+        std::string format_str = std::string("%.f") + I18N::translate_utf8("°",
+            "Degree sign to use in the respective slider in FDM supports gizmo,"
+            "placed after the number with no whitespace in between.");
         ImGui::SameLine();
-        if (m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, "%.f"))
+        if (m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, format_str.data()))
             m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
         if (m_imgui->button(_L("Enforce")))
             select_facets_by_angle(m_angle_threshold_deg, false);

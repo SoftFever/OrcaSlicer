@@ -1,6 +1,5 @@
 #ifdef _WIN32
 	#include <windows.h>
-	#include <processthreadsapi.h>
 	#include <boost/nowide/convert.hpp>
 #else
 	// any posix system
@@ -13,81 +12,113 @@
 #include <tbb/tbb_thread.h>
 #include <tbb/task_scheduler_init.h>
 
-#define SLIC3R_THREAD_NAME_WIN32_MODERN
 
 #include "Thread.hpp"
 
 namespace Slic3r {
 
 #ifdef _WIN32
-#ifdef SLIC3R_THREAD_NAME_WIN32_MODERN
+// The new API is better than the old SEH style thread naming since the names also show up in crash dumpsand ETW traces.
+// Because the new API is only available on newer Windows 10, look it up dynamically.
 
-	static void WindowsSetThreadName(HANDLE hThread, const char *thread_name)
-	{
-		size_t len = strlen(thread_name);
-		if (len < 1024) {
-			// Allocate the temp string on stack.
-			wchar_t buf[1024];
-			::SetThreadDescription(hThread, boost::nowide::widen(buf, 1024, thread_name));
-		} else {
-			// Allocate dynamically.
-			::SetThreadDescription(hThread, boost::nowide::widen(thread_name).c_str());
+typedef HRESULT(__stdcall* SetThreadDescriptionType)(HANDLE, PCWSTR);
+typedef HRESULT(__stdcall* GetThreadDescriptionType)(HANDLE, PWSTR*);
+
+static bool 					s_SetGetThreadDescriptionInitialized = false;
+static HMODULE					s_hKernel32 = nullptr;
+static SetThreadDescriptionType s_fnSetThreadDescription = nullptr;
+static GetThreadDescriptionType	s_fnGetThreadDescription = nullptr;
+
+static bool WindowsGetSetThreadNameAPIInitialize()
+{
+	if (! s_SetGetThreadDescriptionInitialized) {
+		// Not thread safe! It is therefore a good idea to name the main thread before spawning worker threads
+		// to initialize 
+		s_hKernel32 = LoadLibraryW(L"Kernel32.dll");
+		if (s_hKernel32) {
+			s_fnSetThreadDescription = (SetThreadDescriptionType)::GetProcAddress(s_hKernel32, "SetThreadDescription");
+			s_fnGetThreadDescription = (GetThreadDescriptionType)::GetProcAddress(s_hKernel32, "GetThreadDescription");
 		}
+		s_SetGetThreadDescriptionInitialized = true;
 	}
+	return s_fnSetThreadDescription && s_fnGetThreadDescription;
+}
 
-#else // SLIC3R_THREAD_NAME_WIN32_MODERN
-	// use the old way by throwing an exception
+#ifndef NDEBUG
+	// Use the old way by throwing an exception, so at least in Debug mode the thread names are shown by the debugger.
+	static constexpr DWORD MSVC_SEH_EXCEPTION_NAME_THREAD = 0x406D1388;
 
-	const DWORD MS_VC_EXCEPTION=0x406D1388;
-
-	#pragma pack(push,8)
+#pragma pack(push,8)
 	typedef struct tagTHREADNAME_INFO
 	{
-	   DWORD dwType; // Must be 0x1000.
-	   LPCSTR szName; // Pointer to name (in user addr space).
-	   DWORD dwThreadID; // Thread ID (-1=caller thread).
-	   DWORD dwFlags; // Reserved for future use, must be zero.
+		DWORD  dwType; 		// Must be 0x1000.
+		LPCSTR szName; 		// Pointer to name (in user addr space).
+		DWORD  dwThreadID; 	// Thread ID (-1=caller thread).
+		DWORD  dwFlags; 	// Reserved for future use, must be zero.
 	} THREADNAME_INFO;
-	#pragma pack(pop)
-	static void WindowsSetThreadName(HANDLE hThread, const char *thread_name)
-	{
-	   THREADNAME_INFO info;
-	   info.dwType = 0x1000;
-	   info.szName = threadName;
-	   info.dwThreadID = ::GetThreadId(hThread);
-	   info.dwFlags = 0;
+#pragma pack(pop)
 
-	   __try
-	   {
-	      RaiseException(MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info);
-	   }
-	   __except(EXCEPTION_EXECUTE_HANDLER)
-	   {
-	   }
+	static void WindowsSetThreadNameSEH(HANDLE hThread, const char* thread_name)
+	{
+		THREADNAME_INFO info;
+		info.dwType 	= 0x1000;
+		info.szName 	= thread_name;
+		info.dwThreadID = ::GetThreadId(hThread);
+		info.dwFlags 	= 0;
+		__try {
+			RaiseException(MSVC_SEH_EXCEPTION_NAME_THREAD, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+		}
+	}
+#endif // NDEBUG
+
+static bool WindowsSetThreadName(HANDLE hThread, const char *thread_name)
+{
+	if (! WindowsGetSetThreadNameAPIInitialize()) {
+#ifdef NDEBUG
+		return false;
+#else // NDEBUG
+		// Running on Windows 7 or old Windows 7 in debug mode,
+		// inform the debugger about the thread name by throwing an SEH.
+		WindowsSetThreadNameSEH(hThread, thread_name);
+		return true;
+#endif // NDEBUG
 	}
 
-#endif // SLIC3R_THREAD_NAME_WIN32_MODERN
-
-// posix
-void set_thread_name(std::thread &thread, const char *thread_name)
-{
-   	WindowsSetThreadName(static_cast<HANDLE>(thread.native_handle()), thread_name);
+	size_t len = strlen(thread_name);
+	if (len < 1024) {
+		// Allocate the temp string on stack.
+		wchar_t buf[1024];
+		s_fnSetThreadDescription(hThread, boost::nowide::widen(buf, 1024, thread_name));
+	} else {
+		// Allocate dynamically.
+		s_fnSetThreadDescription(hThread, boost::nowide::widen(thread_name).c_str());
+	}
+	return true;
 }
 
-void set_thread_name(boost::thread &thread, const char *thread_name)
+bool set_thread_name(std::thread &thread, const char *thread_name)
 {
-   	WindowsSetThreadName(static_cast<HANDLE>(thread.native_handle()), thread_name);
+   	return WindowsSetThreadName(static_cast<HANDLE>(thread.native_handle()), thread_name);
 }
 
-void set_current_thread_name(const char *thread_name)
+bool set_thread_name(boost::thread &thread, const char *thread_name)
 {
-    WindowsSetThreadName(::GetCurrentThread(), thread_name);
+   	return WindowsSetThreadName(static_cast<HANDLE>(thread.native_handle()), thread_name);
 }
 
-std::string get_current_thread_name() 
+bool set_current_thread_name(const char *thread_name)
 {
+    return WindowsSetThreadName(::GetCurrentThread(), thread_name);
+}
+
+std::optional<std::string> get_current_thread_name()
+{
+	if (! WindowsGetSetThreadNameAPIInitialize())
+		return std::nullopt;
+
 	wchar_t *ptr = nullptr;
-	::GetThreadDescription(::GetCurrentThread(), &ptr);
+	s_fnGetThreadDescription(::GetCurrentThread(), &ptr);
 	return (ptr == nullptr) ? std::string() : boost::nowide::narrow(ptr);
 }
 
@@ -96,52 +127,56 @@ std::string get_current_thread_name()
 #ifdef __APPLE__
 
 // Appe screwed the Posix norm.
-void set_thread_name(std::thread &thread, const char *thread_name)
+bool set_thread_name(std::thread &thread, const char *thread_name)
 {
 // not supported
 //   	pthread_setname_np(thread.native_handle(), thread_name);
-	throw CriticalException("Not supported");
+	return false;
 }
 
-void set_thread_name(boost::thread &thread, const char *thread_name)
+bool set_thread_name(boost::thread &thread, const char *thread_name)
 {
 // not supported	
 //   	pthread_setname_np(thread.native_handle(), thread_name);
-	throw CriticalException("Not supported");
+	return false;
 }
 
-void set_current_thread_name(const char *thread_name)
+bool set_current_thread_name(const char *thread_name)
 {
 	pthread_setname_np(thread_name);
+	return true;
 }
 
-std::string get_current_thread_name()
+std::optional<std::string> get_current_thread_name()
 {
 // not supported	
 //	char buf[16];
 //	return std::string(thread_getname_np(buf, 16) == 0 ? buf : "");
-	throw CriticalException("Not supported");
+	return std::nullopt;
 }
 
 #else
 
 // posix
-void set_thread_name(std::thread &thread, const char *thread_name)
+bool set_thread_name(std::thread &thread, const char *thread_name)
 {
    	pthread_setname_np(thread.native_handle(), thread_name);
+	return true;
 }
 
-void set_thread_name(boost::thread &thread, const char *thread_name)
+bool set_thread_name(boost::thread &thread, const char *thread_name)
 {
    	pthread_setname_np(thread.native_handle(), thread_name);
+	return true;
 }
 
-void set_current_thread_name(const char *thread_name)
+bool set_current_thread_name(const char *thread_name)
 {
 	pthread_setname_np(pthread_self(), thread_name);
+	return true;
 }
 
-std::string get_current_thread_name()
+std::optional<std::string> get_current_thread_name()
 {
 	char buf[16];
 	return std::string(pthread_getname_np(pthread_self(), buf, 16) == 0 ? buf : "");
@@ -168,7 +203,7 @@ void name_tbb_thread_pool_threads()
 #endif
 
 	if (nthreads != nthreads_hw) 
-		new tbb::task_scheduler_init(nthreads);
+		new tbb::task_scheduler_init(int(nthreads));
 
 	std::atomic<size_t>		nthreads_running(0);
 	std::condition_variable cv;

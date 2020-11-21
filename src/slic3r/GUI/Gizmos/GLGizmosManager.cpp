@@ -104,7 +104,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoCut(m_parent, "cut.svg", 4));
     m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5));
     m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
-    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "sla_supports.svg", 7));
+    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "fdm_supports.svg", 7));
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "seam.svg", 8));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));

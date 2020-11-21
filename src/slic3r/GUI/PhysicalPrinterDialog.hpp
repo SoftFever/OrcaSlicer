@@ -73,6 +73,7 @@ class PhysicalPrinterDialog : public DPIDialog
     ScalableButton*     m_printhost_browse_btn          {nullptr};
     ScalableButton*     m_printhost_test_btn            {nullptr};
     ScalableButton*     m_printhost_cafile_browse_btn   {nullptr};
+    ScalableButton*     m_printhost_port_browse_btn     {nullptr};
 
     wxBoxSizer*         m_presets_sizer                 {nullptr};
 
@@ -81,10 +82,12 @@ class PhysicalPrinterDialog : public DPIDialog
     void AddPreset(wxEvent& event);
 
 public:
-    PhysicalPrinterDialog(wxString printer_name);
+    PhysicalPrinterDialog(wxWindow* parent, wxString printer_name);
     ~PhysicalPrinterDialog();
 
     void        update();
+    void        update_printhost_buttons();
+    void        update_printers();
     wxString    get_printer_name();
     void        update_full_printer_names();
     PhysicalPrinter*    get_printer() {return &m_printer; }

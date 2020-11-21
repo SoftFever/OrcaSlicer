@@ -253,14 +253,14 @@ void PresetComboBox::edit_physical_printer()
     if (!m_preset_bundle->physical_printers.has_selection())
         return;
 
-    PhysicalPrinterDialog dlg(this->GetString(this->GetSelection()));
+    PhysicalPrinterDialog dlg(this->GetParent(),this->GetString(this->GetSelection()));
     if (dlg.ShowModal() == wxID_OK)
         update();
 }
 
 void PresetComboBox::add_physical_printer()
 {
-    if (PhysicalPrinterDialog(wxEmptyString).ShowModal() == wxID_OK)
+    if (PhysicalPrinterDialog(this->GetParent(), wxEmptyString).ShowModal() == wxID_OK)
         update();
 }
 
@@ -349,6 +349,8 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 
     bitmap_key += is_system ? ",syst" : ",nsyst";
     bitmap_key += ",h" + std::to_string(icon_height);
+    if (wxGetApp().dark_mode())
+        bitmap_key += ",dark";
 
     wxBitmap* bmp = bitmap_cache().find(bitmap_key);
     if (bmp == nullptr) {
@@ -393,6 +395,8 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, const std::string& m
     bitmap_key += is_compatible ? ",cmpt" : ",ncmpt";
     bitmap_key += is_system ? ",syst" : ",nsyst";
     bitmap_key += ",h" + std::to_string(icon_height);
+    if (wxGetApp().dark_mode())
+        bitmap_key += ",dark";
 
     wxBitmap* bmp = bitmap_cache().find(bitmap_key);
     if (bmp == nullptr) {
@@ -671,7 +675,7 @@ void PlaterPresetComboBox::show_add_menu()
 
     append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
         [this](wxCommandEvent&) {
-            PhysicalPrinterDialog dlg(wxEmptyString);
+            PhysicalPrinterDialog dlg(this->GetParent(), wxEmptyString);
             if (dlg.ShowModal() == wxID_OK)
                 update();
         }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());

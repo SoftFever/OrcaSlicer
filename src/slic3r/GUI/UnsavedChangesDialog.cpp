@@ -522,7 +522,7 @@ void UnsavedChangesModel::Rescale()
 //------------------------------------------
 
 UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
-    : DPIDialog(nullptr, wxID_ANY, _L("Closing PrusaSlicer: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog((wxWindow*)wxGetApp().mainframe , wxID_ANY, _L("PrusaSlicer is closing: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_close_application";
 
@@ -539,7 +539,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
-    : DPIDialog(nullptr, wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_select_preset";
 
@@ -734,10 +734,10 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
         if (action == Action::Undef)
             text = _L("Some fields are too long to fit. Right mouse click reveals the full text.");
         else if (action == Action::Discard)
-            text = _L("All modified options will be reverted.");
+            text = _L("All settings changes will be discarded.");
         else {
             if (preset_name.empty())
-                text = action == Action::Save ? _L("Save the selected options.") : _L("Transfer the selected options to the newly selected presets.");
+                text = action == Action::Save ? _L("Save the selected options.") : _L("Transfer the selected settings to the newly selected preset.");
             else
                 text = format_wxstr(
                     action == Action::Save ?
@@ -781,7 +781,7 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
 
         // for system/default/external presets we should take an edited name
         if (preset.is_system || preset.is_default || preset.is_external) {
-            SavePresetDialog save_dlg(preset.type);
+            SavePresetDialog save_dlg(this, preset.type);
             if (save_dlg.ShowModal() != wxID_OK) {
                 m_exit_action = Action::Discard;
                 return false;
@@ -809,7 +809,7 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
 
 
         if (!types_for_save.empty()) {
-            SavePresetDialog save_dlg(types_for_save);
+            SavePresetDialog save_dlg(this, types_for_save);
             if (save_dlg.ShowModal() != wxID_OK) {
                 m_exit_action = Action::Discard;
                 return false;

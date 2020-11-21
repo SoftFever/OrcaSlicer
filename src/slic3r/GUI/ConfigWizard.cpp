@@ -27,6 +27,7 @@
 #include <wx/debug.h>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Config.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
@@ -191,23 +192,23 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
 
         wxBitmap bitmap;
         int bitmap_width = 0;
-        const wxString bitmap_file = GUI::from_u8(Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png");
-        if (wxFileExists(bitmap_file)) {
-            bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
-            bitmap_width = bitmap.GetWidth();
-        } else {
-            BOOST_LOG_TRIVIAL(warning) << boost::format("Can't find bitmap file `%1%` for vendor `%2%`, printer `%3%`, using placeholder icon instead")
-                % bitmap_file
-                % vendor.id
-                % model.id;
-
-            const wxString placeholder_file = GUI::from_u8(Slic3r::var(PRINTER_PLACEHOLDER));
-            if (wxFileExists(placeholder_file)) {
-                bitmap.LoadFile(placeholder_file, wxBITMAP_TYPE_PNG);
+        auto load_bitmap = [](const wxString& bitmap_file, wxBitmap& bitmap, int& bitmap_width)->bool {
+            if (wxFileExists(bitmap_file)) {
+                bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
                 bitmap_width = bitmap.GetWidth();
+                return true;
+            }
+            return false;
+        };
+        if (!load_bitmap(GUI::from_u8(Slic3r::data_dir() + "/vendor/" + vendor.id + "/" + model.id + "_thumbnail.png"), bitmap, bitmap_width)) {
+            if (!load_bitmap(GUI::from_u8(Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png"), bitmap, bitmap_width)) {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Can't find bitmap file `%1%` for vendor `%2%`, printer `%3%`, using placeholder icon instead")
+                    % (Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png")
+                    % vendor.id
+                    % model.id;
+                load_bitmap(Slic3r::var(PRINTER_PLACEHOLDER), bitmap, bitmap_width);
             }
         }
-
         auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
         title->SetFont(font_name);
         const int wrap_width = std::max((int)MODEL_MIN_WRAP, bitmap_width);
@@ -270,24 +271,21 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
         const size_t odd_items = titles.size() % cols;
 
         for (size_t i = 0; i < titles.size() - odd_items; i += cols) {
-            for (size_t j = i; j < i + cols; j++) { printer_grid->Add(titles[j], 0, wxBOTTOM, 3); }
             for (size_t j = i; j < i + cols; j++) { printer_grid->Add(bitmaps[j], 0, wxBOTTOM, 20); }
+            for (size_t j = i; j < i + cols; j++) { printer_grid->Add(titles[j], 0, wxBOTTOM, 3); }
             for (size_t j = i; j < i + cols; j++) { printer_grid->Add(variants_panels[j]); }
 
-            // Add separator space
-            if (i > 0) {
-                for (size_t j = i; j < i + cols; j++) { printer_grid->Add(1, 100); }
+            // Add separator space to multiliners
+            if (titles.size() > cols) {
+                for (size_t j = i; j < i + cols; j++) { printer_grid->Add(1, 30); }
             }
         }
-
         if (odd_items > 0) {
-            for (size_t i = 0; i < cols; i++) { printer_grid->Add(1, 100); }
-
             const size_t rem = titles.size() - odd_items;
 
-            for (size_t i = rem; i < titles.size(); i++) { printer_grid->Add(titles[i], 0, wxBOTTOM, 3); }
-            for (size_t i = 0; i < cols - odd_items; i++) { printer_grid->AddSpacer(1); }
             for (size_t i = rem; i < titles.size(); i++) { printer_grid->Add(bitmaps[i], 0, wxBOTTOM, 20); }
+            for (size_t i = 0; i < cols - odd_items; i++) { printer_grid->AddSpacer(1); }
+            for (size_t i = rem; i < titles.size(); i++) { printer_grid->Add(titles[i], 0, wxBOTTOM, 3); }
             for (size_t i = 0; i < cols - odd_items; i++) { printer_grid->AddSpacer(1); }
             for (size_t i = rem; i < titles.size(); i++) { printer_grid->Add(variants_panels[i]); }
         }
@@ -1389,7 +1387,7 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
 }
 
 PageTemperatures::PageTemperatures(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Extruder and Bed Temperatures")), _(L("Temperatures")), 1)
+    : ConfigWizardPage(parent, _(L("Nozzle and Bed Temperatures")), _(L("Temperatures")), 1)
     , spin_extr(new wxSpinCtrlDouble(this, wxID_ANY))
     , spin_bed(new wxSpinCtrlDouble(this, wxID_ANY))
 {

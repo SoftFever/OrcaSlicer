@@ -9,17 +9,27 @@
 namespace Slic3r {
 
 // Set / get thread name.
+// Returns false if the API is not supported.
+//
+// It is a good idea to name the main thread before spawning children threads, because dynamic linking is used on Windows 10
+// to initialize Get/SetThreadDescription functions, which is not thread safe.
+//
 // pthread_setname_np supports maximum 15 character thread names! (16th character is the null terminator)
+// 
 // Methods taking the thread as an argument are not supported by OSX.
-void set_thread_name(std::thread &thread, const char *thread_name);
-inline void set_thread_name(std::thread &thread, const std::string &thread_name) { set_thread_name(thread, thread_name.c_str()); }
-void set_thread_name(boost::thread &thread, const char *thread_name);
-inline void set_thread_name(boost::thread &thread, const std::string &thread_name) { set_thread_name(thread, thread_name.c_str()); }
-void set_current_thread_name(const char *thread_name);
-inline void set_current_thread_name(const std::string &thread_name) { set_current_thread_name(thread_name.c_str()); }
+// Naming threads is only supported on newer Windows 10.
 
+bool set_thread_name(std::thread &thread, const char *thread_name);
+inline bool set_thread_name(std::thread &thread, const std::string &thread_name) { return set_thread_name(thread, thread_name.c_str()); }
+bool set_thread_name(boost::thread &thread, const char *thread_name);
+inline bool set_thread_name(boost::thread &thread, const std::string &thread_name) { return set_thread_name(thread, thread_name.c_str()); }
+bool set_current_thread_name(const char *thread_name);
+inline bool set_current_thread_name(const std::string &thread_name) { return set_current_thread_name(thread_name.c_str()); }
+
+// Returns nullopt if not supported.
 // Not supported by OSX.
-std::string get_current_thread_name();
+// Naming threads is only supported on newer Windows 10.
+std::optional<std::string> get_current_thread_name();
 
 // To be called somewhere before the TBB threads are spinned for the first time, to
 // give them names recognizible in the debugger.

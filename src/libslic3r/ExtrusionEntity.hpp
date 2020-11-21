@@ -6,6 +6,7 @@
 #include "Polyline.hpp"
 
 #include <assert.h>
+#include <string_view>
 
 namespace Slic3r {
 
@@ -106,7 +107,7 @@ public:
     virtual double total_volume() const = 0;
 
     static std::string role_to_string(ExtrusionRole role);
-    static ExtrusionRole string_to_role(const std::string& role);
+    static ExtrusionRole string_to_role(const std::string_view role);
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;

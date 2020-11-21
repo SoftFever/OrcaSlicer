@@ -115,10 +115,15 @@ void ObjectDataViewModelNode::set_action_and_extruder_icons()
                          m_type & (itVolume | itLayer)  ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(m_action_icon_name);    // FIXME: pass window ptr
 
+    // set extruder bitmap
+    set_extruder_icon();
+}
+
+void ObjectDataViewModelNode::set_extruder_icon()
+{
     if (m_type & itInstance)
         return; // don't set colored bitmap for Instance
 
-    // set extruder bitmap
     int extruder_idx = atoi(m_extruder.c_str());
     if (extruder_idx > 0) --extruder_idx;
     m_extruder_bmp = get_extruder_color_icon(extruder_idx);
@@ -180,6 +185,8 @@ void ObjectDataViewModelNode::msw_rescale()
 
     if (!m_opt_categories.empty())
         update_settings_digest_bitmaps();
+
+    set_extruder_icon();
 }
 
 bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)

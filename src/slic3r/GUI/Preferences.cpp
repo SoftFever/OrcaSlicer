@@ -40,25 +40,17 @@ void PreferencesDialog::build()
 //        readonly = > !wxTheApp->have_version_check,
 //    ));
 
-#if ENABLE_GCODE_VIEWER
 	bool is_editor = wxGetApp().is_editor();
-#endif // ENABLE_GCODE_VIEWER
 
 	ConfigOptionDef def;
-#if ENABLE_GCODE_VIEWER
 	Option option(def, "");
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		def.label = L("Remember output directory");
 		def.type = coBool;
 		def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
 			"instead of the one containing the input files.");
 		def.set_default_value(new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path") == "1" : true });
-#if ENABLE_GCODE_VIEWER
 		option = Option(def, "remember_output_path");
-#else
-		Option option(def, "remember_output_path");
-#endif // ENABLE_GCODE_VIEWER
 		m_optgroup_general->append_single_option_line(option);
 
 		def.label = L("Auto-center parts");
@@ -117,19 +109,24 @@ void PreferencesDialog::build()
 		option = Option(def, "show_incompatible_presets");
 		m_optgroup_general->append_single_option_line(option);
 
-		def.label = L("Single Instance");
+		def.label = L("Show drop project dialog");
+		def.type = coBool;
+		def.tooltip = L("When checked, whenever dragging and dropping a project file on the application, shows a dialog asking to select the action to take on the file to load.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("show_drop_project_dialog") == "1" });
+		option = Option(def, "show_drop_project_dialog");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Single instance mode");
 		def.type = coBool;
 #if __APPLE__
 		def.tooltip = L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance.");
 #else
-		def.tooltip = L("If this is enabled, when staring PrusaSlicer and another instance of same PrusaSlicer is running, that instance will be reactivated instead.");
+		def.tooltip = L("If this is enabled, when starting PrusaSlicer and another instance of the same PrusaSlicer is already running, that instance will be reactivated instead.");
 #endif
 		def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
 		option = Option(def, "single_instance");
 		m_optgroup_general->append_single_option_line(option);
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
@@ -153,7 +150,7 @@ void PreferencesDialog::build()
 
 	def.label = L("Ask for unsaved changes when closing application");
 	def.type = coBool;
-	def.tooltip = L("Always ask for unsaved changes when closing application");
+	def.tooltip = L("When closing the application, always ask for unsaved changes");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_close_application") == "none" });
 	option = Option(def, "default_action_on_close_application");
 	m_optgroup_general->append_single_option_line(option);
@@ -195,6 +192,13 @@ void PreferencesDialog::build()
 	option = Option(def, "use_free_camera");
 	m_optgroup_camera->append_single_option_line(option);
 
+	def.label = L("Reverse direction of zoom with mouse wheel");
+	def.type = coBool;
+	def.tooltip = L("If enabled, reverses the direction of zoom with mouse wheel");
+	def.set_default_value(new ConfigOptionBool(app_config->get("reverse_mouse_wheel_zoom") == "1"));
+	option = Option(def, "reverse_mouse_wheel_zoom");
+	m_optgroup_camera->append_single_option_line(option);
+
 	m_optgroup_camera->activate();
 
 	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
@@ -207,9 +211,7 @@ void PreferencesDialog::build()
 		}
 	};
 
-#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		def.label = L("Show sidebar collapse/expand button");
 		def.type = coBool;
 		def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
@@ -223,34 +225,34 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
 		option = Option(def, "use_custom_toolbar_size");
 		m_optgroup_gui->append_single_option_line(option);
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
 	def.label = L("Sequential slider applied only to top layer");
 	def.type = coBool;
-	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer, "
-					"if disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
+	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer. "
+					"If disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
 
+	def.label = L("Suppress to open hyperlink in browser");
+	def.type = coBool;
+	def.tooltip = L("If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. "
+					"If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks.");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("suppress_hyperlinks") == "1" });
+	option = Option(def, "suppress_hyperlinks");
+	m_optgroup_gui->append_single_option_line(option);
+
 	m_optgroup_gui->activate();
 
-#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		create_icon_size_slider();
 		m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
 
 		create_settings_mode_widget();
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 #if ENABLE_ENVIRONMENT_MAP
 		m_optgroup_render = std::make_shared<ConfigOptionsGroup>(this, _L("Render"));
 		m_optgroup_render->label_width = 40;
@@ -267,18 +269,14 @@ void PreferencesDialog::build()
 
 		m_optgroup_render->activate();
 #endif // ENABLE_ENVIRONMENT_MAP
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_camera->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_gui->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #if ENABLE_ENVIRONMENT_MAP
-#if ENABLE_GCODE_VIEWER
 	if (m_optgroup_render != nullptr)
-#endif // ENABLE_GCODE_VIEWER
 		sizer->Add(m_optgroup_render->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #endif // ENABLE_ENVIRONMENT_MAP
 
@@ -420,8 +418,8 @@ void PreferencesDialog::create_icon_size_slider()
 void PreferencesDialog::create_settings_mode_widget()
 {
 	wxString choices[] = {	_L("Old regular layout with the tab bar"),
-							_L("New layout without the tab bar on the plater"),
-							_L("Settings will be shown in the non-modal dialog")		};
+							_L("New layout, access via settings button in the top menu"),
+							_L("Settings in non-modal window")		};
 
 	auto app_config = get_app_config();
 	int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
@@ -430,7 +428,7 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	wxWindow* parent = m_optgroup_gui->ctrl_parent();
 
-	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Settings layout mode"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
+	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Layout Options"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
 		3, wxRA_SPECIFY_ROWS);
 	m_layout_mode_box->SetFont(wxGetApp().normal_font());
 	m_layout_mode_box->SetSelection(selection);

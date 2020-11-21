@@ -144,7 +144,7 @@ TEST_CASE("Voronoi missing edges - Alessandro gapfill 12707", "[Voronoi]")
 
     Polygon poly;
     std::mt19937 gen;
-    std::uniform_int_distribution<size_t> dist(-100, 100);
+    std::uniform_int_distribution<coord_t> dist(-100, 100);
     for (size_t i = 0; i < lines.size(); ++ i) {
       Line &l1 = lines[i];
       Line &l2 = lines[(i + 1) % lines.size()];

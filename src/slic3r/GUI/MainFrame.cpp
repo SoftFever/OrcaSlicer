@@ -31,6 +31,7 @@
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"
 #include "../Utils/Process.hpp"
+#include "format.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"
@@ -116,7 +117,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
     {
-#if ENABLE_GCODE_VIEWER
         wxString src_path;
         wxFileName::SplitPath(wxStandardPaths::Get().GetExecutablePath(), &src_path, nullptr, nullptr, wxPATH_NATIVE);
         switch (wxGetApp().get_app_mode()) {
@@ -127,22 +127,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         wxIconLocation icon_location;
         icon_location.SetFileName(src_path);
         SetIcon(icon_location);
-#else
-        TCHAR szExeFileName[MAX_PATH];
-        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
-        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
-#endif // ENABLE_GCODE_VIEWER
     }
 #else
-#if ENABLE_GCODE_VIEWER
     switch (wxGetApp().get_app_mode())
     {
     default:
     case GUI_App::EAppMode::Editor:
     {
-#endif // ENABLE_GCODE_VIEWER
         SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
-#if ENABLE_GCODE_VIEWER
         break;
     }
     case GUI_App::EAppMode::GCodeViewer:
@@ -151,23 +143,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         break;
     }
     }
-#endif // ENABLE_GCODE_VIEWER
 #endif // _WIN32
 
 	// initialize status bar
     m_statusbar = std::make_shared<ProgressStatusBar>(this);
     m_statusbar->set_font(GUI::wxGetApp().normal_font());
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_editor())
-#endif // ENABLE_GCODE_VIEWER
         m_statusbar->embed(this);
     m_statusbar->set_status_text(_L("Version") + " " +
-        SLIC3R_VERSION +
-        _L(" - Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
+        SLIC3R_VERSION + " - " +
+        _L("Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
 
     // initialize tabpanel and menubar
     init_tabpanel();
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_gcode_viewer())
         init_menubar_as_gcodeviewer();
     else
@@ -185,9 +173,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     wxAcceleratorTable accel(6, entries);
     SetAcceleratorTable(accel);
 #endif // _WIN32
-#else
-    init_menubar();
-#endif // ENABLE_GCODE_VIEWER
 
     // set default tooltip timer in msec
     // SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
@@ -238,15 +223,24 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         event.Skip();
     });
 
+// OSX specific issue:
+// When we move application between Retina and non-Retina displays, The legend on a canvas doesn't redraw
+// So, redraw explicitly canvas, when application is moved
+#if ENABLE_RETINA_GL
+    Bind(wxEVT_MOVE, [this](wxMoveEvent& event) {
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+        event.Skip();
+    });
+#endif
+
     wxGetApp().persist_window_geometry(this, true);
     wxGetApp().persist_window_geometry(&m_settings_dialog, true);
 
     update_ui_from_settings();    // FIXME (?)
 
     if (m_plater != nullptr) {
-#if ENABLE_GCODE_VIEWER
         m_plater->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
-#endif // ENABLE_GCODE_VIEWER
         m_plater->show_action_buttons(true);
     }
 }
@@ -289,16 +283,10 @@ void MainFrame::update_layout()
         Layout();
     };
 
-#if ENABLE_GCODE_VIEWER
     ESettingsLayout layout = wxGetApp().is_gcode_viewer() ? ESettingsLayout::GCodeViewer :
         (wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
             wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ESettingsLayout::New :
             wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old);
-#else
-    ESettingsLayout layout = wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
-        wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ESettingsLayout::New :
-        wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old;
-#endif // ENABLE_GCODE_VIEWER
 
     if (m_layout == layout)
         return;
@@ -362,7 +350,6 @@ void MainFrame::update_layout()
         m_plater->Show();
         break;
     }
-#if ENABLE_GCODE_VIEWER
     case ESettingsLayout::GCodeViewer:
     {
         m_main_sizer->Add(m_plater, 1, wxEXPAND);
@@ -372,7 +359,6 @@ void MainFrame::update_layout()
         m_plater->Show();
         break;
     }
-#endif // ENABLE_GCODE_VIEWER
     }
 
 #ifdef __WXMSW__
@@ -418,6 +404,10 @@ void MainFrame::update_layout()
 //        m_tabpanel->SetMinSize(size);
 //    }
 //#endif
+
+#ifdef __APPLE__
+    m_plater->sidebar().change_top_border_for_mode_sizer(m_layout != ESettingsLayout::Old);
+#endif
     
     Layout();
     Thaw();
@@ -437,7 +427,6 @@ void MainFrame::shutdown()
  	}
 #endif // _WIN32
 
-#if ENABLE_GCODE_VIEWER
     if (m_plater != nullptr) {
         m_plater->stop_jobs();
 
@@ -450,19 +439,6 @@ void MainFrame::shutdown()
         // see: https://github.com/prusa3d/PrusaSlicer/issues/3964
         m_plater->reset_canvas_volumes();
     }
-#else
-    if (m_plater)
-    	m_plater->stop_jobs();
-
-    // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,
-    // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
-    // causing a crash
-    if (m_plater) m_plater->unbind_canvas_event_handlers();
-
-    // Cleanup of canvases' volumes needs to be done here or a crash may happen on some Linux Debian flavours
-    // see: https://github.com/prusa3d/PrusaSlicer/issues/3964
-    if (m_plater) m_plater->reset_canvas_volumes();
-#endif // ENABLE_GCODE_VIEWER
 
     // Weird things happen as the Paint messages are floating around the windows being destructed.
     // Avoid the Paint messages by hiding the main window.
@@ -510,11 +486,7 @@ void MainFrame::update_title()
             title += (project + " - ");
     }
 
-#if ENABLE_GCODE_VIEWER
     std::string build_id = wxGetApp().is_editor() ? SLIC3R_BUILD_ID : GCODEVIEWER_BUILD_ID;
-#else
-    std::string build_id = SLIC3R_BUILD_ID;
-#endif // ENABLE_GCODE_VIEWER
     size_t 		idx_plus = build_id.find('+');
     if (idx_plus != build_id.npos) {
     	// Parse what is behind the '+'. If there is a number, then it is a build number after the label, and full build ID is shown.
@@ -529,13 +501,10 @@ void MainFrame::update_title()
 #endif
     	}
     }
-#if ENABLE_GCODE_VIEWER
+
     title += wxString(build_id);
     if (wxGetApp().is_editor())
         title += (" " + _L("based on Slic3r"));
-#else
-    title += (wxString(build_id) + " " + _L("based on Slic3r"));
-#endif // ENABLE_GCODE_VIEWER
 
     SetTitle(title);
 }
@@ -584,9 +553,7 @@ void MainFrame::init_tabpanel()
     // or when the preset's "modified" status changes.
     Bind(EVT_TAB_PRESETS_CHANGED, &MainFrame::on_presets_changed, this); // #ys_FIXME_to_delete
 
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_editor())
-#endif // ENABLE_GCODE_VIEWER
         create_preset_tabs();
 
     if (m_plater) {
@@ -750,14 +717,11 @@ bool MainFrame::can_export_gcode() const
 
 bool MainFrame::can_send_gcode() const
 {
-    if (m_plater == nullptr)
-        return false;
-
-    if (m_plater->model().objects.empty())
-        return false;
-
-    const auto print_host_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("print_host");
-    return print_host_opt != nullptr && !print_host_opt->value.empty();
+    if (m_plater && ! m_plater->model().objects.empty())
+        if (const DynamicPrintConfig *cfg = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config(); cfg)
+            if (const auto *print_host_opt = cfg->option<ConfigOptionString>("print_host"); print_host_opt)
+                return ! print_host_opt->value.empty();
+    return false;
 }
 
 bool MainFrame::can_export_gcode_sd() const
@@ -798,9 +762,7 @@ bool MainFrame::can_change_view() const
         int page_id = m_tabpanel->GetSelection();
         return page_id != wxNOT_FOUND && dynamic_cast<const Slic3r::GUI::Plater*>(m_tabpanel->GetPage((size_t)page_id)) != nullptr;
     }
-#if ENABLE_GCODE_VIEWER
     case ESettingsLayout::GCodeViewer: { return true; }
-#endif // ENABLE_GCODE_VIEWER
     }
 }
 
@@ -892,7 +854,6 @@ void MainFrame::on_sys_color_changed()
         msw_rescale_menu(menu_bar->GetMenu(id));
 }
 
-#if ENABLE_GCODE_VIEWER
 #ifdef _MSC_VER
     // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
     // as the simple numeric accelerators spoil all numeric data entry.
@@ -927,17 +888,13 @@ static wxMenu* generate_help_menu()
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
     append_menu_item(helpMenu, wxID_ANY, _L("Report an I&ssue"), wxString::Format(_L("Report an issue on %s"), SLIC3R_APP_NAME),
         [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/prusa3d/slic3r/issues/new"); });
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_editor())
-#endif // ENABLE_GCODE_VIEWER
         append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("&About %s"), SLIC3R_APP_NAME), _L("Show about dialog"),
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
-#if ENABLE_GCODE_VIEWER
     else
         append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("&About %s"), GCODEVIEWER_APP_NAME), _L("Show about dialog"),
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
-#endif // ENABLE_GCODE_VIEWER
-        helpMenu->AppendSeparator();
+    helpMenu->AppendSeparator();
     append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
         [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
@@ -972,9 +929,6 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
 }
 
 void MainFrame::init_menubar_as_editor()
-#else
-void MainFrame::init_menubar()
-#endif // ENABLE_GCODE_VIEWER
 {
 #ifdef __APPLE__
     wxMenuBar::SetAutoWindowMenu(false);
@@ -1047,7 +1001,7 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(true); }, "import_plater", nullptr,
             [this](){return m_plater != nullptr; }, this);
         
-        append_menu_item(import_menu, wxID_ANY, _L("Import SL1 archive") + dots, _L("Load an SL1 output archive"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import SL1 archive") + dots, _L("Load an SL1 archive"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->import_sl1_archive(); }, "import_plater", nullptr,
             [this](){return m_plater != nullptr; }, this);    
     
@@ -1145,18 +1099,6 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { Close(false); }, "exit");
     }
 
-#if !ENABLE_GCODE_VIEWER
-#ifdef _MSC_VER
-    // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
-    // as the simple numeric accelerators spoil all numeric data entry.
-    wxString sep = "\t\xA0";
-    wxString sep_space = "\xA0";
-#else
-    wxString sep = " - ";
-    wxString sep_space = "";
-#endif
-#endif // !ENABLE_GCODE_VIEWER
-
     // Edit menu
     wxMenu* editMenu = nullptr;
     if (m_plater != nullptr)
@@ -1205,7 +1147,7 @@ void MainFrame::init_menubar()
 
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _L("Searc&h") + "\tCtrl+F",
-            _L("Find option"), [this](wxCommandEvent&) { m_plater->search(/*m_tabpanel->GetCurrentPage() == */m_plater->IsShown()); },
+            _L("Search in settings"), [this](wxCommandEvent&) { m_plater->search(/*m_tabpanel->GetCurrentPage() == */m_plater->IsShown()); },
             "search", nullptr, []() {return true; }, this);
     }
 
@@ -1239,21 +1181,6 @@ void MainFrame::init_menubar()
                 [this](){return can_change_view(); }, this);
         }
 
-#if !ENABLE_GCODE_VIEWER
-#if _WIN32
-        // This is needed on Windows to fake the CTRL+# of the window menu when using the numpad
-        wxAcceleratorEntry entries[6];
-        entries[0].Set(wxACCEL_CTRL, WXK_NUMPAD1, wxID_HIGHEST + 1);
-        entries[1].Set(wxACCEL_CTRL, WXK_NUMPAD2, wxID_HIGHEST + 2);
-        entries[2].Set(wxACCEL_CTRL, WXK_NUMPAD3, wxID_HIGHEST + 3);
-        entries[3].Set(wxACCEL_CTRL, WXK_NUMPAD4, wxID_HIGHEST + 4);
-        entries[4].Set(wxACCEL_CTRL, WXK_NUMPAD5, wxID_HIGHEST + 5);
-        entries[5].Set(wxACCEL_CTRL, WXK_NUMPAD6, wxID_HIGHEST + 6);
-        wxAcceleratorTable accel(6, entries);
-        SetAcceleratorTable(accel);
-#endif // _WIN32
-#endif // !ENABLE_GCODE_VIEWER
-
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _L("Print &Host Upload Queue") + "\tCtrl+J", _L("Display the Print Host Upload Queue window"),
             [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
@@ -1268,81 +1195,22 @@ void MainFrame::init_menubar()
     wxMenu* viewMenu = nullptr;
     if (m_plater) {
         viewMenu = new wxMenu();
-#if ENABLE_GCODE_VIEWER
         add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
-#else
-        // The camera control accelerators are captured by GLCanvas3D::on_char().
-        append_menu_item(viewMenu, wxID_ANY, _L("Iso") + sep + "&0", _L("Iso View"), [this](wxCommandEvent&) { select_view("iso"); }, 
-            "", nullptr, [this](){return can_change_view(); }, this);
-        viewMenu->AppendSeparator();
-        //TRN To be shown in the main menu View->Top 
-        append_menu_item(viewMenu, wxID_ANY, _L("Top") + sep + "&1", _L("Top View"), [this](wxCommandEvent&) { select_view("top"); },
-            "", nullptr, [this](){return can_change_view(); }, this);
-		//TRN To be shown in the main menu View->Bottom 
-        append_menu_item(viewMenu, wxID_ANY, _L("Bottom") + sep + "&2", _L("Bottom View"), [this](wxCommandEvent&) { select_view("bottom"); },
-            "", nullptr, [this](){return can_change_view(); }, this);
-        append_menu_item(viewMenu, wxID_ANY, _L("Front") + sep + "&3", _L("Front View"), [this](wxCommandEvent&) { select_view("front"); },
-            "", nullptr, [this](){return can_change_view(); }, this);
-        append_menu_item(viewMenu, wxID_ANY, _L("Rear") + sep + "&4", _L("Rear View"), [this](wxCommandEvent&) { select_view("rear"); },
-            "", nullptr, [this](){return can_change_view(); }, this);
-        append_menu_item(viewMenu, wxID_ANY, _L("Left") + sep + "&5", _L("Left View"), [this](wxCommandEvent&) { select_view("left"); },
-            "", nullptr, [this](){return can_change_view(); }, this);
-        append_menu_item(viewMenu, wxID_ANY, _L("Right") + sep + "&6", _L("Right View"), [this](wxCommandEvent&) { select_view("right"); },
-            "", nullptr, [this](){return can_change_view(); }, this);
-#endif // ENABLE_GCODE_VIEWER
         viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &labels") + sep + "E", _L("Show object/instance labels in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
-        append_menu_check_item(viewMenu, wxID_ANY, _L("&Collapse sidebar"), _L("Collapse sidebar"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("&Collapse sidebar") + sep + "Shift+" + sep_space + "Tab", _L("Collapse sidebar"),
             [this](wxCommandEvent&) { m_plater->collapse_sidebar(!m_plater->is_sidebar_collapsed()); }, this,
             []() { return true; }, [this]() { return m_plater->is_sidebar_collapsed(); }, this);
     }
 
     // Help menu
-#if ENABLE_GCODE_VIEWER
     auto helpMenu = generate_help_menu();
-#else
-    auto helpMenu = new wxMenu();
-    {
-        append_menu_item(helpMenu, wxID_ANY, _L("Prusa 3D &Drivers"), _L("Open the Prusa3D drivers download page in your browser"), 
-            [this](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/downloads"); }); 
-        append_menu_item(helpMenu, wxID_ANY, _L("Software &Releases"), _L("Open the software releases page in your browser"), 
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases"); });
-//#        my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", "Check for new Slic3r versions", sub{
-//#            wxTheApp->check_version(1);
-//#        });
-//#        $versioncheck->Enable(wxTheApp->have_version_check);
-        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("%s &Website"), SLIC3R_APP_NAME), 
-                                             wxString::Format(_L("Open the %s website in your browser"), SLIC3R_APP_NAME),
-            [this](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/slicerweb"); });
-//        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("%s &Manual"), SLIC3R_APP_NAME),
-//                                             wxString::Format(_L("Open the %s manual in your browser"), SLIC3R_APP_NAME),
-//            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });
-        helpMenu->AppendSeparator();
-        append_menu_item(helpMenu, wxID_ANY, _L("System &Info"), _L("Show system information"), 
-            [this](wxCommandEvent&) { wxGetApp().system_info(); });
-        append_menu_item(helpMenu, wxID_ANY, _L("Show &Configuration Folder"), _L("Show user configuration folder (datadir)"),
-            [this](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
-        append_menu_item(helpMenu, wxID_ANY, _L("Report an I&ssue"), wxString::Format(_L("Report an issue on %s"), SLIC3R_APP_NAME), 
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/prusa3d/slic3r/issues/new"); });
-        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("&About %s"), SLIC3R_APP_NAME), _L("Show about dialog"),
-            [this](wxCommandEvent&) { Slic3r::GUI::about(); });
-        helpMenu->AppendSeparator();
-        append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
-            [this](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
-#if ENABLE_THUMBNAIL_GENERATOR_DEBUG
-        helpMenu->AppendSeparator();
-        append_menu_item(helpMenu, wxID_ANY, "DEBUG gcode thumbnails", "DEBUG ONLY - read the selected gcode file and generates png for the contained thumbnails",
-            [this](wxCommandEvent&) { wxGetApp().gcode_thumbnails_debug(); });
-#endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
-    }
-#endif // ENABLE_GCODE_VIEWER
 
     // menubar
     // assign menubar to frame after appending items, otherwise special items
     // will not be handled correctly
-#if ENABLE_GCODE_VIEWER
     m_menubar = new wxMenuBar();
     m_menubar->Append(fileMenu, _L("&File"));
     if (editMenu) m_menubar->Append(editMenu, _L("&Edit"));
@@ -1352,26 +1220,11 @@ void MainFrame::init_menubar()
     wxGetApp().add_config_menu(m_menubar);
     m_menubar->Append(helpMenu, _L("&Help"));
     SetMenuBar(m_menubar);
-#else
-    auto menubar = new wxMenuBar();
-    menubar->Append(fileMenu, _L("&File"));
-    if (editMenu) menubar->Append(editMenu, _L("&Edit"));
-    menubar->Append(windowMenu, _L("&Window"));
-    if (viewMenu) menubar->Append(viewMenu, _L("&View"));
-    // Add additional menus from C++
-    wxGetApp().add_config_menu(menubar);
-    menubar->Append(helpMenu, _L("&Help"));
-    SetMenuBar(menubar);
-#endif // ENABLE_GCODE_VIEWER
 
 #ifdef __APPLE__
     // This fixes a bug on Mac OS where the quit command doesn't emit window close events
     // wx bug: https://trac.wxwidgets.org/ticket/18328
-#if ENABLE_GCODE_VIEWER
     wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
-#else
-    wxMenu *apple_menu = menubar->OSXGetAppleMenu();
-#endif // ENABLE_GCODE_VIEWER
     if (apple_menu != nullptr) {
         apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) {
             Close();
@@ -1383,7 +1236,6 @@ void MainFrame::init_menubar()
         update_menubar();
 }
 
-#if ENABLE_GCODE_VIEWER
 void MainFrame::init_menubar_as_gcodeviewer()
 {
     wxMenu* fileMenu = new wxMenu;
@@ -1416,10 +1268,8 @@ void MainFrame::init_menubar_as_gcodeviewer()
     m_menubar = new wxMenuBar();
     m_menubar->Append(fileMenu, _L("&File"));
     if (viewMenu != nullptr) m_menubar->Append(viewMenu, _L("&View"));
-#if ENABLE_GCODE_VIEWER
     // Add additional menus from C++
     wxGetApp().add_config_menu(m_menubar);
-#endif // ENABLE_GCODE_VIEWER
     m_menubar->Append(helpMenu, _L("&Help"));
     SetMenuBar(m_menubar);
 
@@ -1434,14 +1284,11 @@ void MainFrame::init_menubar_as_gcodeviewer()
     }
 #endif // __APPLE__
 }
-#endif // ENABLE_GCODE_VIEWER
 
 void MainFrame::update_menubar()
 {
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_gcode_viewer())
         return;
-#endif // ENABLE_GCODE_VIEWER
 
     const bool is_fff = plater()->printer_technology() == ptFFF;
 
@@ -1570,7 +1417,7 @@ void MainFrame::quick_slice(const int qs)
     m_progress_dialog->Destroy();
     m_progress_dialog = nullptr;
 
-    auto message = input_file_basename + _L(" was successfully sliced.");
+    auto message = format(_L("%1% was successfully sliced."), input_file_basename);
 //     wxTheApp->notify(message);
     wxMessageDialog(this, message, _L("Slicing Done!"), wxOK | wxICON_INFORMATION).ShowModal();
 //     };
@@ -1970,10 +1817,8 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX, "settings_dialog"),
     m_main_frame(mainframe)
 {
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_gcode_viewer())
         return;
-#endif // ENABLE_GCODE_VIEWER
 
 #if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && defined(__WXMSW__)
     // ys_FIXME! temporary workaround for correct font scaling
@@ -2046,10 +1891,8 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
 
 void SettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_gcode_viewer())
         return;
-#endif // ENABLE_GCODE_VIEWER
 
     const int& em = em_unit();
     const wxSize& size = wxSize(85 * em, 50 * em);

@@ -15,7 +15,6 @@ namespace Slic3r {
 class AppConfig
 {
 public:
-#if ENABLE_GCODE_VIEWER
 	enum class EAppMode : unsigned char
 	{
 		Editor,
@@ -23,14 +22,9 @@ public:
 	};
 
 	explicit AppConfig(EAppMode mode) :
-#else
-	AppConfig() :
-#endif // ENABLE_GCODE_VIEWER
 		m_dirty(false),
 		m_orig_version(Semver::invalid()),
-#if ENABLE_GCODE_VIEWER
 		m_mode(mode),
-#endif // ENABLE_GCODE_VIEWER
 		m_legacy_datadir(false)
 	{
 		this->reset();
@@ -135,30 +129,22 @@ public:
     void                reset_selections();
 
 	// Get the default config path from Slic3r::data_dir().
-#if ENABLE_GCODE_VIEWER
 	std::string			config_path();
-#else
-	static std::string  config_path();
-#endif // ENABLE_GCODE_VIEWER
 
 	// Returns true if the user's data directory comes from before Slic3r 1.40.0 (no updating)
-	bool legacy_datadir() const { return m_legacy_datadir; }
-	void set_legacy_datadir(bool value) { m_legacy_datadir = value; }
+	bool 				legacy_datadir() const { return m_legacy_datadir; }
+	void 				set_legacy_datadir(bool value) { m_legacy_datadir = value; }
 
 	// Get the Slic3r version check url.
 	// This returns a hardcoded string unless it is overriden by "version_check_url" in the ini file.
-	std::string version_check_url() const;
+	std::string 		version_check_url() const;
 
 	// Returns the original Slic3r version found in the ini file before it was overwritten
 	// by the current version
-	Semver orig_version() const { return m_orig_version; }
+	Semver 				orig_version() const { return m_orig_version; }
 
 	// Does the config file exist?
-#if ENABLE_GCODE_VIEWER
-	bool 		exists();
-#else
-	static bool 		exists();
-#endif // ENABLE_GCODE_VIEWER
+	bool 				exists();
 
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
@@ -196,10 +182,8 @@ private:
 	    return true;
 	}
 
-#if ENABLE_GCODE_VIEWER
+	// Type of application: Editor or GCodeViewer
 	EAppMode													m_mode { EAppMode::Editor };
-#endif // ENABLE_GCODE_VIEWER
-
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;
 	// Map of enabled vendors / models / variants

@@ -71,9 +71,7 @@ class MainFrame : public DPIFrame
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
-#if ENABLE_GCODE_VIEWER
     wxMenuBar*  m_menubar{ nullptr };
-#endif // ENABLE_GCODE_VIEWER
 
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
@@ -128,9 +126,7 @@ class MainFrame : public DPIFrame
         Old,
         New,
         Dlg,
-#if ENABLE_GCODE_VIEWER
         GCodeViewer
-#endif // ENABLE_GCODE_VIEWER
     };
     
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
@@ -159,12 +155,8 @@ public:
     // Register Win32 RawInput callbacks (3DConnexion) and removable media insert / remove callbacks.
     // Called from wxEVT_ACTIVATE, as wxEVT_CREATE was not reliable (bug in wxWidgets?).
     void        register_win32_callbacks();
-#if ENABLE_GCODE_VIEWER
     void        init_menubar_as_editor();
     void        init_menubar_as_gcodeviewer();
-#else
-    void        init_menubar();
-#endif // ENABLE_GCODE_VIEWER
     void        update_menubar();
 
     void        update_ui_from_settings(bool apply_free_camera_correction = true);

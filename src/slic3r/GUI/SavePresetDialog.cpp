@@ -130,15 +130,16 @@ void SavePresetDialog::Item::update()
 
     if (m_valid_type == Valid && existing && m_preset_name != m_presets->get_selected_preset_name())
     {
-        info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str());
-        if (!existing->is_compatible)
-            info_line += "\n" + _L("And selected preset is imcopatible with selected printer.");
+        if (existing->is_compatible)
+            info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str());
+        else
+            info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists and is imcopatible with selected printer.")) % m_preset_name).str());
         info_line += "\n" + _L("Note: This preset will be replaced after saving");
         m_valid_type = Warning;
     }
 
     if (m_valid_type == Valid && m_preset_name.empty()) {
-        info_line = _L("The empty name is not available.");
+        info_line = _L("The name cannot be empty.");
         m_valid_type = NoValid;
     }
 
@@ -171,14 +172,14 @@ void SavePresetDialog::Item::accept()
 //          SavePresetDialog
 //-----------------------------------------------
 
-SavePresetDialog::SavePresetDialog(Preset::Type type, std::string suffix)
-    : DPIDialog(nullptr, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
+SavePresetDialog::SavePresetDialog(wxWindow* parent, Preset::Type type, std::string suffix)
+    : DPIDialog(parent, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
 {
     build(std::vector<Preset::Type>{type}, suffix);
 }
 
-SavePresetDialog::SavePresetDialog(std::vector<Preset::Type> types, std::string suffix)
-    : DPIDialog(nullptr, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
+SavePresetDialog::SavePresetDialog(wxWindow* parent, std::vector<Preset::Type> types, std::string suffix)
+    : DPIDialog(parent, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), 5 * wxGetApp().em_unit()), wxDEFAULT_DIALOG_STYLE | wxICON_WARNING | wxRESIZE_BORDER)
 {
     build(types, suffix);
 }

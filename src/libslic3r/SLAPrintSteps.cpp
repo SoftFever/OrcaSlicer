@@ -671,6 +671,8 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
     double models_volume(0.0);
     
     double estim_time(0.0);
+    std::vector<double> layers_times;
+    layers_times.reserve(printer_input.size());
     
     size_t slow_layers = 0;
     size_t fast_layers = 0;
@@ -688,7 +690,7 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
             
             // write vars
             &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers,
-            &fast_layers, &fade_layer_time](size_t sliced_layer_cnt)
+            &fast_layers, &fade_layer_time, &layers_times](size_t sliced_layer_cnt)
     {
         PrintLayer &layer = m_print->m_printer_input[sliced_layer_cnt];
 
@@ -775,20 +777,21 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
             else
                 slow_layers++;
             
-            
             // Calculation of the printing time
-            
+
+            double layer_times = 0.0;
             if (sliced_layer_cnt < 3)
-                estim_time += init_exp_time;
-            else if (fade_layer_time > exp_time)
-            {
+                layer_times += init_exp_time;
+            else if (fade_layer_time > exp_time) {
                 fade_layer_time -= delta_fade_time;
-                estim_time += fade_layer_time;
+                layer_times += fade_layer_time;
             }
             else
-                estim_time += exp_time;
-            
-            estim_time += tilt_time;
+                layer_times += exp_time;
+            layer_times += tilt_time;
+
+            layers_times.push_back(layer_times);
+            estim_time += layer_times;
         }
     };
     
@@ -804,8 +807,10 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
     // A layers count o the highest object
     if (printer_input.size() == 0)
         print_statistics.estimated_print_time = std::nan("");
-    else
+    else {
         print_statistics.estimated_print_time = estim_time;
+        print_statistics.layers_times = layers_times;
+    }
     
     print_statistics.fast_layers_count = fast_layers;
     print_statistics.slow_layers_count = slow_layers;

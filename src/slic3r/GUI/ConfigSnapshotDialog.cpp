@@ -48,9 +48,17 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     text += "</b></font><br>";
     // End of row header.
     text += _(L("PrusaSlicer version")) + ": " + snapshot.slic3r_version_captured.to_string() + "<br>";
-    text += _(L("print")) + ": " + snapshot.print + "<br>";
-    text += _(L("filaments")) + ": " + snapshot.filaments.front() + "<br>";
-    text += _(L("printer")) + ": " + snapshot.printer + "<br>";
+    bool has_fff = ! snapshot.print.empty() || ! snapshot.filaments.empty();
+    bool has_sla = ! snapshot.sla_print.empty() || ! snapshot.sla_material.empty();
+    if (has_fff || ! has_sla) {
+        text += _(L("print")) + ": " + snapshot.print + "<br>";
+        text += _(L("filaments")) + ": " + snapshot.filaments.front() + "<br>";
+    }
+    if (has_sla) {
+        text += _(L("SLA print")) + ": " + snapshot.sla_print + "<br>";
+        text += _(L("SLA material")) + ": " + snapshot.sla_material + "<br>";
+    }
+    text += _(L("printer")) + ": " + (snapshot.physical_printer.empty() ? snapshot.printer : snapshot.physical_printer) + "<br>";
 
     bool compatible = true;
     for (const Config::Snapshot::VendorConfig &vc : snapshot.vendor_configs) {
@@ -101,7 +109,7 @@ static wxString generate_html_page(const Config::SnapshotDB &snapshot_db, const 
 }
 
 ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const wxString &on_snapshot)
-    : DPIDialog(NULL, wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition, 
+    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition,
                wxSize(45 * wxGetApp().em_unit(), 40 * wxGetApp().em_unit()), 
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX)
 {
