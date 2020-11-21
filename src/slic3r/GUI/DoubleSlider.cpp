@@ -1,11 +1,6 @@
 #include "libslic3r/libslic3r.h"
-#if ENABLE_GCODE_VIEWER
 #include "DoubleSlider.hpp"
 #include "libslic3r/GCode.hpp"
-#else
-#include "wxExtensions.hpp"
-#include "libslic3r/GCode/PreviewData.hpp"
-#endif // ENABLE_GCODE_VIEWER
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
