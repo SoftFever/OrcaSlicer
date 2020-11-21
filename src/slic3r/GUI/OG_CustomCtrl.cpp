@@ -8,6 +8,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
+#include "format.hpp"
 
 namespace Slic3r { namespace GUI {
 
