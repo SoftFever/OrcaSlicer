@@ -1091,7 +1091,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 
-GLCanvas3D::ArrangeSettings load_arrange_settings()
+static GLCanvas3D::ArrangeSettings load_arrange_settings()
 {
     GLCanvas3D::ArrangeSettings settings;
 

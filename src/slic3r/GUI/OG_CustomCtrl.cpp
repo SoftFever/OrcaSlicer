@@ -8,6 +8,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
+#include "format.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -243,8 +244,10 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
 
     for (CtrlLine& line : ctrl_lines) {
         line.is_focused = is_point_in_rect(pos, line.rect_label);
-        if (line.is_focused && !suppress_hyperlinks) {
-            tooltip = get_url(line.og_line.label_path);
+        if (line.is_focused) {
+            if (!suppress_hyperlinks && !line.og_line.label_path.empty())
+                tooltip = get_url(line.og_line.label_path) +"\n\n";
+            tooltip += line.og_line.label_tooltip;
             break;
         }
 
@@ -609,7 +612,7 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
         dc.GetMultiLineTextExtent(out_text, &text_width, &text_height);
 
         pos.y = pos.y + lround((height - text_height) / 2);
-        if (width > 0 && is_url)
+        if (width > 0)
             rect_label = wxRect(pos, wxSize(text_width, text_height));
 
         wxColour old_clr = dc.GetTextForeground();

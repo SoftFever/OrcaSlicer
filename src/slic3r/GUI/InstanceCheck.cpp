@@ -259,16 +259,15 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 		std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
 #else
 		std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]), ec).string());
-		if(ec.value() > 0) { // canonical was not able to find execitable (can happen with appimage on some systems)
-			ec.clear();
-			// Compose path with boost canonical of folder and filename
-			hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]).parent_path(), ec).string() + "/" + boost::filesystem::system_complete(argv[0]).filename().string());
-			if(ec.value() > 0) {
-				// Still not valid, process without canonical
-				hashed_path = std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
-				
-			}
+	if (ec.value() > 0) { // canonical was not able to find the executable (can happen with appimage on some systems. Does it fail on Fuse file systems?)
+		ec.clear();
+		// Compose path with boost canonical of folder and filename
+		hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]).parent_path(), ec).string() + "/" + boost::filesystem::system_complete(argv[0]).filename().string());
+		if (ec.value() > 0) {
+			// Still not valid, process without canonical
+			hashed_path = std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
 		}
+	}
 #endif // win32
 
 	std::string lock_name 	= std::to_string(hashed_path);
