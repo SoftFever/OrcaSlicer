@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <sstream>
 #include <map>
+#include <random>
 #ifdef _MSC_VER
     #include <stdlib.h>  // provides **_environ
 #else
@@ -495,9 +496,22 @@ namespace client
         static void leq      (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '>', true ); }
         static void geq      (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '<', true ); }
 
+        // Random number generators
+        static int random_int(int min, int max) {
+            thread_local static std::mt19937 engine(std::random_device{}());
+            thread_local static std::uniform_int_distribution<int> dist;
+            return dist(engine, decltype(dist)::param_type{ min, max });
+        }
+        static double random_double(double min, double max) {
+            thread_local static std::mt19937 engine(std::random_device{}());
+            thread_local static std::uniform_real_distribution<double> dist;
+            return dist(engine, decltype(dist)::param_type{ min, max });
+        }
+
         enum Function2ParamsType {
             FUNCTION_MIN,
             FUNCTION_MAX,
+            FUNCTION_RANDOM,
         };
         // Store the result into param1.
         static void function_2params(expr &param1, expr &param2, Function2ParamsType fun)
@@ -510,6 +524,7 @@ namespace client
                 switch (fun) {
                     case FUNCTION_MIN:  d = std::min(param1.as_d(), param2.as_d()); break;
                     case FUNCTION_MAX:  d = std::max(param1.as_d(), param2.as_d()); break;
+                    case FUNCTION_RANDOM: d = random_double(param1.as_d(), param2.as_d()); break;
                     default: param1.throw_exception("Internal error: invalid function");
                 }
                 param1.data.d = d;
@@ -519,6 +534,7 @@ namespace client
                 switch (fun) {
                     case FUNCTION_MIN:  i = std::min(param1.as_i(), param2.as_i()); break;
                     case FUNCTION_MAX:  i = std::max(param1.as_i(), param2.as_i()); break;
+                    case FUNCTION_RANDOM: i = random_int(param1.as_i(), param2.as_i()); break;
                     default: param1.throw_exception("Internal error: invalid function");
                 }
                 param1.data.i = i;
@@ -528,6 +544,7 @@ namespace client
         // Store the result into param1.
         static void min(expr &param1, expr &param2) { function_2params(param1, param2, FUNCTION_MIN); }
         static void max(expr &param1, expr &param2) { function_2params(param1, param2, FUNCTION_MAX); }
+        static void random(expr &param1, expr &param2) { function_2params(param1, param2, FUNCTION_RANDOM); }
 
         static void regex_op(expr &lhs, boost::iterator_range<Iterator> &rhs, char op)
         {
@@ -1173,6 +1190,8 @@ namespace client
                                                                     [ px::bind(&expr<Iterator>::min, _val, _2) ]
                 |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
                                                                     [ px::bind(&expr<Iterator>::max, _val, _2) ]
+                |   (kw["random"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
+                                                                    [ px::bind(&expr<Iterator>::random, _val, _2) ]
                 |   (kw["int"] > '(' > unary_expression(_r1) > ')') [ px::bind(&FactorActions::to_int,  _1,     _val) ]
                 |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
@@ -1209,6 +1228,7 @@ namespace client
                 ("false")
                 ("min")
                 ("max")
+                ("random")
                 ("not")
                 ("or")
                 ("true");
