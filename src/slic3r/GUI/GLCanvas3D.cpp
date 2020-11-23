@@ -3313,9 +3313,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             const float factor = m_retina_helper->get_scale_factor();
             logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
 #endif // ENABLE_RETINA_GL
-            if (!m_mouse.dragging)
+            if (!m_mouse.dragging) {
                 // do not post the event if the user is panning the scene
-                post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, { logical_pos, m_hover_volume_idxs.empty() }));
+                // or if right click was done over the wipe tower
+                bool post_right_click_event = m_hover_volume_idxs.empty() || !m_volumes.volumes[get_first_hover_volume_idx()]->is_wipe_tower;
+                if (post_right_click_event)
+                    post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, { logical_pos, m_hover_volume_idxs.empty() }));
+            }
         }
 
         mouse_up_cleanup();
