@@ -373,6 +373,10 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         // update tool colors
         m_tool_colors = decode_colors(str_tool_colors);
 
+    // ensure at least one (default) color is defined
+    if (m_tool_colors.empty())
+        m_tool_colors.push_back(decode_color("#FF8000"));
+
     // update ranges for coloring / legend
     m_extrusions.reset_ranges();
     for (size_t i = 0; i < m_moves_count; ++i) {

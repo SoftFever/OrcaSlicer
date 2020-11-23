@@ -598,9 +598,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    // ensure at least one (default) color is defined
-    std::string default_color = "#FF8000";
-    m_result.extruder_colors = std::vector<std::string>(1, default_color);
     const ConfigOptionStrings* extruder_colour = config.option<ConfigOptionStrings>("extruder_colour");
     if (extruder_colour != nullptr) {
         // takes colors from config
@@ -615,7 +612,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
+
     // replace missing values with default
+    std::string default_color = "#FF8000";
     for (size_t i = 0; i < m_result.extruder_colors.size(); ++i) {
         if (m_result.extruder_colors[i].empty())
             m_result.extruder_colors[i] = default_color;
@@ -836,10 +835,6 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
     }
 
     update_estimated_times_stats();
-
-    // ensure at least one (default) color is defined
-    if (m_result.extruder_colors.empty())
-        m_result.extruder_colors.push_back("#FF8000");
 
     // post-process to add M73 lines into the gcode
     if (apply_postprocess)
