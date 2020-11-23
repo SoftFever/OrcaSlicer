@@ -1,11 +1,6 @@
 #include "libslic3r/libslic3r.h"
-#if ENABLE_GCODE_VIEWER
 #include "DoubleSlider.hpp"
 #include "libslic3r/GCode.hpp"
-#else
-#include "wxExtensions.hpp"
-#include "libslic3r/GCode/PreviewData.hpp"
-#endif // ENABLE_GCODE_VIEWER
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
@@ -137,14 +132,13 @@ Control::Control( wxWindow *parent,
     m_line_pens = { &DARK_GREY_PEN, &GREY_PEN, &LIGHT_GREY_PEN };
     m_segm_pens = { &DARK_ORANGE_PEN, &ORANGE_PEN, &LIGHT_ORANGE_PEN };
 
-    const wxFont& font = GetFont();
-    m_font = is_osx ? font.Smaller().Smaller() : font.Smaller();
+    m_font = GetFont();
+    this->SetMinSize(get_min_size());
 }
 
 void Control::msw_rescale()
 {
-    const wxFont& font = GUI::wxGetApp().normal_font();
-    m_font = is_osx ? font.Smaller().Smaller() : font.Smaller();
+    m_font = GUI::wxGetApp().normal_font();
 
     m_bmp_thumb_higher.msw_rescale();
     m_bmp_thumb_lower .msw_rescale();
@@ -182,8 +176,7 @@ int Control::GetActiveValue() const
 
 wxSize Control::get_min_size() const
 {
-    const int min_side = GUI::wxGetApp().em_unit() * ( is_horizontal() ? (is_osx ? 8 : 6) : 10 );
-
+    const int min_side = GUI::wxGetApp().em_unit() * ( is_horizontal() ? 5 : 11 );
     return wxSize(min_side, min_side);
 }
 
@@ -713,7 +706,7 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, LabelType l
             text_pos = wxPoint(xx, pos.y - m_thumb_size.x / 2 - text_height - 1);
         }
         else
-            text_pos = wxPoint(pos.x - text_width - 1 - m_thumb_size.x, pos.y - 0.5 * text_height + 1);
+            text_pos = wxPoint(std::max(2, pos.x - text_width - 1 - m_thumb_size.x), pos.y - 0.5 * text_height + 1);
     }
 
     if (label_type == ltEstimatedTime)

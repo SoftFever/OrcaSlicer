@@ -1785,6 +1785,19 @@ void TabFilament::build()
         optgroup->append_single_option_line("extrusion_multiplier");
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
+        optgroup->append_single_option_line("filament_spool_weight");
+
+        optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
+        {
+            update_dirty();
+            if (opt_key == "filament_spool_weight") {
+                // Change of this option influences for an update of "Sliced Info"
+                wxGetApp().sidebar().update_sliced_info_sizer();
+                wxGetApp().sidebar().Layout();
+            }
+            else
+                on_value_change(opt_key, value);
+        };
 
 //        optgroup = page->new_optgroup(_(L("Temperature")) + wxString(" °C", wxConvUTF8));
         optgroup = page->new_optgroup(L("Temperature"));

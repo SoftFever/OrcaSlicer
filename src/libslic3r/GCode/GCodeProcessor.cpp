@@ -399,13 +399,11 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     };
 
     // check for temporary lines
-    auto is_temporary_decoration = [](const std::string& gcode_line) {
+    auto is_temporary_decoration = [](const std::string_view gcode_line) {
         // remove trailing '\n'
-        std::string line = gcode_line.substr(0, gcode_line.length() - 1);
-        if (line == ";" + Layer_Change_Tag)
-            return true;
-        else
-            return false;
+        assert(! gcode_line.empty());
+        assert(gcode_line.back() == '\n');
+        return gcode_line.substr(0, gcode_line.length() - 1) == ";" + Layer_Change_Tag;
     };
 
     // Iterators for the normal and silent cached time estimate entry recently processed, used by process_line_G1.

@@ -460,12 +460,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("monotonic");
+    def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Monotonic"));
+    def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
@@ -483,7 +485,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values = def_top_fill_pattern->enum_values;
     def->enum_labels = def_top_fill_pattern->enum_labels;
     def->aliases = def_top_fill_pattern->aliases;
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
 
     def = this->add("external_perimeter_extrusion_width", coFloatOrPercent);
     def->label = L("External perimeters");
@@ -806,6 +808,16 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
+    def = this->add("filament_spool_weight", coFloats);
+    def->label = L("Spool weight");
+    def->tooltip = L("Enter weight of the empty filament spool. "
+                     "One may weigh a partially consumed filament spool before printing and one may compare the measured weight "
+                     "with the calculated weight of the filament with the spool to find out whether the amount "
+                     "of filament on the spool is sufficient to finish the print.");
+    def->sidetext = L("g");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
     def = this->add("filament_settings_id", coStrings);
     def->set_default_value(new ConfigOptionStrings { "" });
     def->cli = ConfigOptionDef::nocli;
@@ -871,6 +883,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Fill pattern for general low-density infill.");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
+    def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("grid");
     def->enum_values.push_back("triangles");
     def->enum_values.push_back("stars");
@@ -886,6 +899,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("adaptivecubic");
     def->enum_values.push_back("supportcubic");
     def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Triangles"));
     def->enum_labels.push_back(L("Stars"));
@@ -1541,8 +1555,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("perimeter_acceleration", coFloat);
     def->label = L("Perimeters");
     def->tooltip = L("This is the acceleration your printer will use for perimeters. "
-                   "A high value like 9000 usually gives good results if your hardware is up to the job. "
-                   "Set zero to disable acceleration control for perimeters.");
+                     "Set zero to disable acceleration control for perimeters.");
     def->sidetext = L("mm/s²");
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0));

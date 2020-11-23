@@ -2743,7 +2743,9 @@ void GCodeViewer::render_legend() const
         }
         if (!m_settings_ids.filament.empty()) {
             for (unsigned char i : m_extruder_ids) {
-                imgui.text(_u8L("Filament") + " " + std::to_string(i + 1) + ":");
+                std::string txt = _u8L("Filament");
+                txt += (m_extruder_ids.size() == 1) ? ":" : " " + std::to_string(i + 1);
+                imgui.text(txt);
                 ImGui::SameLine(offset);
                 imgui.text(m_settings_ids.filament[i]);
             }

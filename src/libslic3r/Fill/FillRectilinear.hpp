@@ -29,6 +29,17 @@ protected:
     bool fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out);
 };
 
+class FillAlignedRectilinear : public FillRectilinear
+{
+public:
+    Fill* clone() const override { return new FillAlignedRectilinear(*this); };
+    ~FillAlignedRectilinear() override = default;
+
+protected:
+    // Always generate infill at the same angle.
+    virtual float _layer_angle(size_t idx) const { return 0.f; }
+};
+
 class FillMonotonic : public FillRectilinear
 {
 public:

@@ -2,6 +2,7 @@
 #include "Line.hpp"
 #include "MultiPoint.hpp"
 #include "Int128.hpp"
+#include "BoundingBox.hpp"
 #include <algorithm>
 
 namespace Slic3r {

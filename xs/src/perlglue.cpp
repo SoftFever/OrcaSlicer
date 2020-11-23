@@ -8,15 +8,12 @@ REGISTER_CLASS(ExPolygonCollection, "ExPolygon::Collection");
 REGISTER_CLASS(ExtrusionMultiPath, "ExtrusionMultiPath");
 REGISTER_CLASS(ExtrusionPath, "ExtrusionPath");
 REGISTER_CLASS(ExtrusionLoop, "ExtrusionLoop");
-// there is no ExtrusionLoop::Collection or ExtrusionEntity::Collection
 REGISTER_CLASS(ExtrusionEntityCollection, "ExtrusionPath::Collection");
 REGISTER_CLASS(ExtrusionSimulator, "ExtrusionSimulator");
 REGISTER_CLASS(Filler, "Filler");
 REGISTER_CLASS(Flow, "Flow");
 REGISTER_CLASS(CoolingBuffer, "GCode::CoolingBuffer");
 REGISTER_CLASS(GCode, "GCode");
-//REGISTER_CLASS(GCodePreviewData, "GCode::PreviewData");
-// REGISTER_CLASS(GCodeSender, "GCode::Sender");
 REGISTER_CLASS(Layer, "Layer");
 REGISTER_CLASS(SupportLayer, "Layer::Support");
 REGISTER_CLASS(LayerRegion, "Layer::Region");
