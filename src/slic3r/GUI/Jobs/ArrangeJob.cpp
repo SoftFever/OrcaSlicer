@@ -41,7 +41,8 @@ public:
         ret.poly.contour = std::move(ap);
         ret.translation  = scaled(m_pos);
         ret.rotation     = m_rotation;
-        ret.priority++;
+        ++ret.priority;
+
         return ret;
     }
 };
@@ -74,11 +75,11 @@ void ArrangeJob::prepare_all() {
     for (ModelObject *obj: m_plater->model().objects)
         for (ModelInstance *mi : obj->instances) {
             ArrangePolygons & cont = mi->printable ? m_selected : m_unprintable;
-            cont.emplace_back(get_arrange_poly(mi, m_plater));
+            cont.emplace_back(get_arrange_poly(PtrWrapper{mi}, m_plater));
         }
 
-    if (auto wti = get_wipe_tower(*m_plater))
-        m_selected.emplace_back(wti.get_arrange_polygon());
+    if (auto wti = get_wipe_tower_arrangepoly(*m_plater))
+        m_selected.emplace_back(std::move(*wti));
 }
 
 void ArrangeJob::prepare_selected() {
@@ -106,8 +107,9 @@ void ArrangeJob::prepare_selected() {
                 inst_sel[size_t(inst_id)] = true;
         
         for (size_t i = 0; i < inst_sel.size(); ++i) {
-            ArrangePolygon &&ap = get_arrange_poly(mo->instances[i], m_plater);
-            
+            ArrangePolygon &&ap =
+                get_arrange_poly(PtrWrapper{mo->instances[i]}, m_plater);
+
             ArrangePolygons &cont = mo->instances[i]->printable ?
                         (inst_sel[i] ? m_selected :
                                        m_unselected) :
@@ -118,11 +120,11 @@ void ArrangeJob::prepare_selected() {
     }
     
     if (auto wti = get_wipe_tower(*m_plater)) {
-        ArrangePolygon &&ap = get_arrange_poly(&wti, m_plater);
-        
-        m_plater->get_selection().is_wipe_tower() ?
-                    m_selected.emplace_back(std::move(ap)) :
-                    m_unselected.emplace_back(std::move(ap));
+        ArrangePolygon &&ap = get_arrange_poly(wti, m_plater);
+
+        auto &cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
+                                                                 m_unselected;
+        cont.emplace_back(std::move(ap));
     }
     
     // If the selection was empty arrange everything
@@ -212,16 +214,9 @@ std::optional<arrangement::ArrangePolygon>
 get_wipe_tower_arrangepoly(const Plater &plater)
 {
     if (auto wti = get_wipe_tower(plater))
-        return wti.get_arrange_polygon();
+        return get_arrange_poly(wti, &plater);
 
     return {};
-}
-
-void apply_wipe_tower_arrangepoly(Plater &                           plater,
-                                  const arrangement::ArrangePolygon &ap)
-{
-    WipeTower{plater.canvas3D()->get_wipe_tower_info()}
-        .apply_arrange_result(ap.translation.cast<double>(), ap.rotation);
 }
 
 double bed_stride(const Plater *plater) {
