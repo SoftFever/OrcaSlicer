@@ -1,7 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "GCodeViewer.hpp"
 
-#if ENABLE_GCODE_VIEWER
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
@@ -2934,4 +2933,3 @@ void GCodeViewer::log_memory_used(const std::string& label, long long additional
 } // namespace GUI
 } // namespace Slic3r
 
-#endif // ENABLE_GCODE_VIEWER

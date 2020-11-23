@@ -1,7 +1,6 @@
 #ifndef slic3r_GCodeViewer_hpp_
 #define slic3r_GCodeViewer_hpp_
 
-#if ENABLE_GCODE_VIEWER
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GLModel.hpp"
@@ -521,8 +520,6 @@ private:
 
 } // namespace GUI
 } // namespace Slic3r
-
-#endif // ENABLE_GCODE_VIEWER
 
 #endif // slic3r_GCodeViewer_hpp_
 
