@@ -1555,8 +1555,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("perimeter_acceleration", coFloat);
     def->label = L("Perimeters");
     def->tooltip = L("This is the acceleration your printer will use for perimeters. "
-                   "A high value like 9000 usually gives good results if your hardware is up to the job. "
-                   "Set zero to disable acceleration control for perimeters.");
+                     "Set zero to disable acceleration control for perimeters.");
     def->sidetext = L("mm/s²");
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0));
