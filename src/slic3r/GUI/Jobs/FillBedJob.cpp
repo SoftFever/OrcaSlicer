@@ -28,7 +28,7 @@ void FillBedJob::prepare()
     m_selected.reserve(model_object->instances.size());
     for (ModelInstance *inst : model_object->instances)
         if (inst->printable) {
-            ArrangePolygon ap = get_arrange_poly(inst, m_plater);
+            ArrangePolygon ap = get_arrange_poly(PtrWrapper{inst}, m_plater);
             ++ap.priority; // need to be included in the result
             m_selected.emplace_back(ap);
         }
@@ -40,8 +40,8 @@ void FillBedJob::prepare()
     auto &objects = m_plater->model().objects;
     for (size_t idx = 0; idx < objects.size(); ++idx)
         if (int(idx) != m_object_idx)
-            for (const ModelInstance *mi : objects[idx]->instances) {
-                m_unselected.emplace_back(mi->get_arrange_polygon());
+            for (ModelInstance *mi : objects[idx]->instances) {
+                m_unselected.emplace_back(get_arrange_poly(PtrWrapper{mi}, m_plater));
                 m_unselected.back().bed_idx = 0;
             }
 
