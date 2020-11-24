@@ -2783,7 +2783,7 @@ void GCodeViewer::render_legend() const
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(time_mode.time)));
 
-        auto show_mode_button = [this, &imgui](const std::string& label, PrintEstimatedTimeStatistics::ETimeMode mode) {
+        auto show_mode_button = [this, &imgui](const wxString& label, PrintEstimatedTimeStatistics::ETimeMode mode) {
             bool show = false;
             for (size_t i = 0; i < m_time_statistics.modes.size(); ++i) {
                 if (i != static_cast<size_t>(mode) &&
@@ -2803,11 +2803,11 @@ void GCodeViewer::render_legend() const
 
         switch (m_time_estimate_mode) {
         case PrintEstimatedTimeStatistics::ETimeMode::Normal: {
-            show_mode_button(_u8L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
+            show_mode_button(_L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
             break;
         }
         case PrintEstimatedTimeStatistics::ETimeMode::Stealth: {
-            show_mode_button(_u8L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
+            show_mode_button(_L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
             break;
         }
         }
