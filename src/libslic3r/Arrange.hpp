@@ -74,7 +74,7 @@ struct ArrangeParams {
     
     /// The accuracy of optimization.
     /// Goes from 0.0 to 1.0 and scales performance as well
-    float accuracy = 0.65f;
+    float accuracy = 1.f;
     
     /// Allow parallel execution.
     bool parallel = true;
