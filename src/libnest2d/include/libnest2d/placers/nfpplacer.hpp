@@ -581,20 +581,6 @@ private:
 
     using Shapes = TMultiShape<RawShape>;
 
-    template<nfp::NfpLevel lvl>
-    static Shapes calcnfp(const Shapes &pile, const RawShape &orb)
-    {
-        Shapes ret; ret.reserve(2 * pile.size());
-
-        for (auto &stat : pile) {
-            Shapes subnfp = nfp::noFitPolygon<lvl>(stat, orb);
-            for (auto &nfp : subnfp)
-                ret.emplace_back(subnfp);
-        }
-
-        return nfp::merge(ret);
-    }
-
     Shapes calcnfp(const Item &trsh, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
     {
         using namespace nfp;
@@ -927,11 +913,11 @@ private:
 
             item.translation(final_tr);
             item.rotation(final_rot);
-            merged_pile_ = nfp::merge(merged_pile, item.transformedShape());
         }
 
         if(can_pack) {
             ret = PackResult(item);
+            merged_pile_ = nfp::merge(merged_pile_, item.transformedShape());
         } else {
             ret = PackResult(best_overfit);
         }
