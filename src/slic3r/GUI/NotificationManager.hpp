@@ -150,7 +150,9 @@ private:
 		const int                duration;
 		const std::string        text1;
 		const std::string        hypertext;
-		// Callback for hypertext - returns if notif shall close.
+		// Callback for hypertext - returns true if notification should close after triggering
+		// Usually sends event to UI thread thru wxEvtHandler.
+		// Examples in basic_notifications.
 		std::function<bool(wxEvtHandler*)> callback { nullptr };
 		const std::string        text2;
 	};
@@ -227,7 +229,8 @@ private:
 		void         render_left_sign(ImGuiWrapper& imgui);
 		virtual void render_minimize_button(ImGuiWrapper& imgui,
 			                                const float win_pos_x, const float win_pos_y);
-		// Hypertext action, returns if close notification
+		// Hypertext action, returns true if notification should close.
+		// Action is stored in NotificationData::callback as std::function<bool(wxEvtHandler*)>
 		virtual bool on_text_click();
 
 		const NotificationData m_data;

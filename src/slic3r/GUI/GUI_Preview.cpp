@@ -262,6 +262,9 @@ bool Preview::init(wxWindow* parent, Model* model)
     m_combochecklist_options->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Options"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
     std::string options_items = GUI::into_u8(
         get_option_type_string(OptionType::Travel) + "|0|" +
+#if ENABLE_SHOW_WIPE_MOVES
+        get_option_type_string(OptionType::Wipe) + "|0|" +
+#endif // ENABLE_SHOW_WIPE_MOVES
         get_option_type_string(OptionType::Retractions) + "|0|" +
         get_option_type_string(OptionType::Unretractions) + "|0|" +
         get_option_type_string(OptionType::ToolChanges) + "|0|" +
@@ -689,7 +692,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     if (sla_print_technology)
         m_layers_slider->SetLayersTimes(plater->sla_print().print_statistics().layers_times);
     else
-        m_layers_slider->SetLayersTimes(m_gcode_result->time_statistics.modes[0].layers_times);
+        m_layers_slider->SetLayersTimes(m_gcode_result->time_statistics.modes.front().layers_times);
 
     m_layers_slider_sizer->Show((size_t)0);
     Layout();
@@ -971,6 +974,9 @@ wxString Preview::get_option_type_string(OptionType type) const
     switch (type)
     {
     case OptionType::Travel:        { return _L("Travel"); }
+#if ENABLE_SHOW_WIPE_MOVES
+    case OptionType::Wipe:          { return _L("Wipe"); }
+#endif // ENABLE_SHOW_WIPE_MOVES
     case OptionType::Retractions:   { return _L("Retractions"); }
     case OptionType::Unretractions: { return _L("Deretractions"); }
     case OptionType::ToolChanges:   { return _L("Tool changes"); }

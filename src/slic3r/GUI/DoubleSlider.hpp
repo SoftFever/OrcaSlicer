@@ -4,9 +4,6 @@
 #include "libslic3r/CustomGCode.hpp"
 #include "wxExtensions.hpp"
 
-#if !ENABLE_GCODE_VIEWER
-#include <wx/wx.h>
-#endif // !ENABLE_GCODE_VIEWER
 #include <wx/window.h>
 #include <wx/control.h>
 #include <wx/dc.h>
@@ -79,9 +76,7 @@ enum DrawMode
     dmRegular,
     dmSlaPrint,
     dmSequentialFffPrint,
-#if ENABLE_GCODE_VIEWER
     dmSequentialGCodeView,
-#endif // ENABLE_GCODE_VIEWER
 };
 
 enum LabelType
@@ -228,9 +223,7 @@ public:
     void    SetLayersTimes(const std::vector<double>& layers_times);
 
     void    SetDrawMode(bool is_sla_print, bool is_sequential_print);
-#if ENABLE_GCODE_VIEWER
     void    SetDrawMode(DrawMode mode) { m_draw_mode = mode; }
-#endif // ENABLE_GCODE_VIEWER
 
     void    SetManipulationMode(Mode mode)  { m_mode = mode; }
     Mode    GetManipulationMode() const     { return m_mode; }
@@ -270,12 +263,8 @@ public:
     void discard_all_thicks();
     void move_current_thumb_to_pos(wxPoint pos);
     void edit_extruder_sequence();
-#if ENABLE_GCODE_VIEWER
     void jump_to_value();
     void enable_action_icon(bool enable) { m_enable_action_icon = enable; }
-#else
-    void jump_to_print_z();
-#endif // ENABLE_GCODE_VIEWER
     void show_add_context_menu();
     void show_edit_context_menu();
     void show_cog_icon_context_menu();
@@ -371,9 +360,7 @@ private:
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
     bool        m_force_mode_apply = true;
-#if ENABLE_GCODE_VIEWER
     bool        m_enable_action_icon = true;
-#endif // ENABLE_GCODE_VIEWER
 
     DrawMode    m_draw_mode = dmRegular;
 

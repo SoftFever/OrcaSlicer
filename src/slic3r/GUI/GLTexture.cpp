@@ -75,11 +75,9 @@ void GLTexture::Compressor::send_compressed_data_to_gpu()
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_texture.m_id));
 	// Querying the atomic m_num_levels_compressed value synchronizes processor caches, so that the dat of m_levels modified by the worker thread are accessible to the calling thread.
 	int num_compressed = (int)m_num_levels_compressed;
-    for (int i = 0; i < num_compressed; ++ i)
-    {
+    for (int i = 0; i < num_compressed; ++ i) {
         Level& level = m_levels[i];
-        if (! level.sent_to_gpu && ! level.compressed_data.empty())
-        {
+        if (! level.sent_to_gpu && ! level.compressed_data.empty()) {
             glsafe(::glCompressedTexSubImage2D(GL_TEXTURE_2D, (GLint)i, 0, 0, (GLsizei)level.w, (GLsizei)level.h, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)level.compressed_data.size(), (const GLvoid*)level.compressed_data.data()));
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i));
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (i > 0) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR));
@@ -102,14 +100,13 @@ void GLTexture::Compressor::compress()
     assert(m_num_levels_compressed == 0);
     assert(m_abort_compressing == false);
 
-    for (Level& level : m_levels)
-    {
+    for (Level& level : m_levels) {
         if (m_abort_compressing)
             break;
 
         // stb_dxt library, despite claiming that the needed size of the destination buffer is equal to (source buffer size)/4,
-        // crashes if doing so, requiring a minimum of 16 bytes and up to a third of the source buffer size, so we set the destination buffer initial size to be half the source buffer size
-        level.compressed_data = std::vector<unsigned char>(std::max((unsigned int)16, level.w * level.h * 2), 0);
+        // crashes if doing so, requiring a minimum of 64 bytes and up to a third of the source buffer size, so we set the destination buffer initial size to be half the source buffer size
+        level.compressed_data = std::vector<unsigned char>(std::max((unsigned int)64, (unsigned int)level.src_data.size() / 2), 0);
         int compressed_size = 0;
         rygCompress(level.compressed_data.data(), level.src_data.data(), level.w, level.h, 1, compressed_size);
         level.compressed_data.resize(compressed_size);
@@ -166,7 +163,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 {
     reset();
 
-    if (filenames.empty() || states.empty() || (sprite_size_px == 0))
+    if (filenames.empty() || states.empty() || sprite_size_px == 0)
         return false;
 
     // every tile needs to have a 1px border around it to avoid artifacts when linear sampling on its edges
@@ -180,8 +177,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     int sprite_stride = sprite_size_px_ex * 4;
     int sprite_bytes = sprite_n_pixels * 4;
 
-    if (n_pixels <= 0)
-    {
+    if (n_pixels <= 0) {
         reset();
         return false;
     }
@@ -193,15 +189,13 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     std::vector<unsigned char> output_data(sprite_bytes, 0);
 
     NSVGrasterizer* rast = nsvgCreateRasterizer();
-    if (rast == nullptr)
-    {
+    if (rast == nullptr) {
         reset();
         return false;
     }
 
     int sprite_id = -1;
-    for (const std::string& filename : filenames)
-    {
+    for (const std::string& filename : filenames) {
         ++sprite_id;
 
         if (!boost::filesystem::exists(filename))
@@ -221,8 +215,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
         // makes white only copy of the sprite
         ::memcpy((void*)sprite_white_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
-        for (int i = 0; i < sprite_n_pixels; ++i)
-        {
+        for (int i = 0; i < sprite_n_pixels; ++i) {
             int offset = i * 4;
             if (sprite_white_only_data.data()[offset] != 0)
                 ::memset((void*)&sprite_white_only_data.data()[offset], 255, 3);
@@ -230,8 +223,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
         // makes gray only copy of the sprite
         ::memcpy((void*)sprite_gray_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
-        for (int i = 0; i < sprite_n_pixels; ++i)
-        {
+        for (int i = 0; i < sprite_n_pixels; ++i) {
             int offset = i * 4;
             if (sprite_gray_only_data.data()[offset] != 0)
                 ::memset((void*)&sprite_gray_only_data.data()[offset], 128, 3);
@@ -239,30 +231,26 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
         int sprite_offset_px = sprite_id * (int)sprite_size_px_ex * m_width;
         int state_id = -1;
-        for (const std::pair<int, bool>& state : states)
-        {
+        for (const std::pair<int, bool>& state : states) {
             ++state_id;
 
             // select the sprite variant
             std::vector<unsigned char>* src = nullptr;
             switch (state.first)
             {
-            case 1: { src = &sprite_white_only_data; break; }
-            case 2: { src = &sprite_gray_only_data; break; }
+            case 1:  { src = &sprite_white_only_data; break; }
+            case 2:  { src = &sprite_gray_only_data; break; }
             default: { src = &sprite_data; break; }
             }
 
             ::memcpy((void*)output_data.data(), (const void*)src->data(), sprite_bytes);
             // applies background, if needed
-            if (state.second)
-            {
+            if (state.second) {
                 float inv_255 = 1.0f / 255.0f;
                 // offset by 1 to leave the first pixel empty (both in x and y)
-                for (unsigned int r = 1; r <= sprite_size_px; ++r)
-                {
+                for (unsigned int r = 1; r <= sprite_size_px; ++r) {
                     unsigned int offset_r = r * sprite_size_px_ex;
-                    for (unsigned int c = 1; c <= sprite_size_px; ++c)
-                    {
+                    for (unsigned int c = 1; c <= sprite_size_px; ++c) {
                         unsigned int offset = (offset_r + c) * 4;
                         float alpha = (float)output_data.data()[offset + 3] * inv_255;
                         output_data.data()[offset + 0] = (unsigned char)(output_data.data()[offset + 0] * alpha);
@@ -274,8 +262,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
             }
 
             int state_offset_px = sprite_offset_px + state_id * sprite_size_px_ex;
-            for (int j = 0; j < (int)sprite_size_px_ex; ++j)
-            {
+            for (int j = 0; j < (int)sprite_size_px_ex; ++j) {
                 ::memcpy((void*)&data.data()[(state_offset_px + j * m_width) * 4], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
             }
         }
@@ -309,11 +296,9 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     wxImage output(m_width, m_height);
     output.InitAlpha();
 
-    for (int h = 0; h < m_height; ++h)
-    {
+    for (int h = 0; h < m_height; ++h) {
         int px_h = h * m_width;
-        for (int w = 0; w < m_width; ++w)
-        {
+        for (int w = 0; w < m_width; ++w) {
             int offset = (px_h + w) * 4;
             output.SetRGB(w, h, data.data()[offset + 0], data.data()[offset + 1], data.data()[offset + 2]);
             output.SetAlpha(w, h, data.data()[offset + 3]);
@@ -373,8 +358,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
 
     // Load a PNG with an alpha channel.
     wxImage image;
-    if (!image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG))
-    {
+    if (!image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG)) {
         reset();
         return false;
     }
@@ -384,20 +368,17 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
 
     bool requires_rescale = false;
 
-    if (compression_enabled && (compression_type == MultiThreaded))
-    {
+    if (compression_enabled && compression_type == MultiThreaded) {
         // the stb_dxt compression library seems to like only texture sizes which are a multiple of 4
         int width_rem = m_width % 4;
         int height_rem = m_height % 4;
 
-        if (width_rem != 0)
-        {
+        if (width_rem != 0) {
             m_width += (4 - width_rem);
             requires_rescale = true;
         }
 
-        if (height_rem != 0)
-        {
+        if (height_rem != 0) {
             m_height += (4 - height_rem);
             requires_rescale = true;
         }
@@ -407,16 +388,14 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
         image = image.ResampleBicubic(m_width, m_height);
 
     int n_pixels = m_width * m_height;
-    if (n_pixels <= 0)
-    {
+    if (n_pixels <= 0) {
         reset();
         return false;
     }
 
     // Get RGB & alpha raw data from wxImage, pack them into an array.
     unsigned char* img_rgb = image.GetData();
-    if (img_rgb == nullptr)
-    {
+    if (img_rgb == nullptr) {
         reset();
         return false;
     }
@@ -424,8 +403,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
     unsigned char* img_alpha = image.GetAlpha();
 
     std::vector<unsigned char> data(n_pixels * 4, 0);
-    for (int i = 0; i < n_pixels; ++i)
-    {
+    for (int i = 0; i < n_pixels; ++i) {
         int data_id = i * 4;
         int img_id = i * 3;
         data[data_id + 0] = img_rgb[img_id + 0];
@@ -439,19 +417,16 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
 
-    if (apply_anisotropy)
-    {
+    if (apply_anisotropy) {
         GLfloat max_anisotropy = OpenGLManager::get_gl_info().get_max_anisotropy();
         if (max_anisotropy > 1.0f)
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
     }
 
-    if (compression_enabled)
-    {
+    if (compression_enabled) {
         if (compression_type == SingleThreaded)
             glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-        else
-        {
+        else {
             // initializes the texture on GPU 
             glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
             // and send the uncompressed data to the compressor
@@ -461,14 +436,12 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
 
-    if (use_mipmaps)
-    {
+    if (use_mipmaps) {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
         int lod_w = m_width;
         int lod_h = m_height;
         GLint level = 0;
-        while ((lod_w > 1) || (lod_h > 1))
-        {
+        while (lod_w > 1 || lod_h > 1) {
             ++level;
 
             lod_w = std::max(lod_w / 2, 1);
@@ -482,8 +455,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
             img_rgb = image.GetData();
             img_alpha = image.GetAlpha();
 
-            for (int i = 0; i < n_pixels; ++i)
-            {
+            for (int i = 0; i < n_pixels; ++i) {
                 int data_id = i * 4;
                 int img_id = i * 3;
                 data[data_id + 0] = img_rgb[img_id + 0];
@@ -492,12 +464,10 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
                 data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
             }
 
-            if (compression_enabled)
-            {
+            if (compression_enabled) {
                 if (compression_type == SingleThreaded)
                     glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-                else
-                {
+                else {
                     // initializes the texture on GPU 
                     glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
                     // and send the uncompressed data to the compressor
@@ -508,14 +478,12 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
                 glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
         }
 
-        if (!compression_enabled)
-        {
+        if (!compression_enabled) {
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level));
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
         }
     }
-    else
-    {
+    else {
         glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
         glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
     }
@@ -526,7 +494,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
 
     m_source = filename;
 
-    if (compression_enabled && (compression_type == MultiThreaded))
+    if (compression_enabled && compression_type == MultiThreaded)
         // start asynchronous compression
         m_compressor.start_compressing();
 
@@ -538,8 +506,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
     bool compression_enabled = compress && GLEW_EXT_texture_compression_s3tc;
 
     NSVGimage* image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
-    if (image == nullptr)
-    {
+    if (image == nullptr) {
         reset();
         return false;
     }
@@ -549,8 +516,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
     m_width = (int)(scale * image->width);
     m_height = (int)(scale * image->height);
 
-    if (compression_enabled)
-    {
+    if (compression_enabled) {
         // the stb_dxt compression library seems to like only texture sizes which are a multiple of 4
         int width_rem = m_width % 4;
         int height_rem = m_height % 4;
@@ -564,16 +530,14 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
 
     int n_pixels = m_width * m_height;
 
-    if (n_pixels <= 0)
-    {
+    if (n_pixels <= 0) {
         reset();
         nsvgDelete(image);
         return false;
     }
 
     NSVGrasterizer* rast = nsvgCreateRasterizer();
-    if (rast == nullptr)
-    {
+    if (rast == nullptr) {
         nsvgDelete(image);
         reset();
         return false;
@@ -588,15 +552,13 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
 
-    if (apply_anisotropy)
-    {
+    if (apply_anisotropy) {
         GLfloat max_anisotropy = OpenGLManager::get_gl_info().get_max_anisotropy();
         if (max_anisotropy > 1.0f)
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
     }
 
-    if (compression_enabled)
-    {
+    if (compression_enabled) {
         // initializes the texture on GPU 
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
         // and send the uncompressed data to the compressor
@@ -605,14 +567,12 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
 
-    if (use_mipmaps)
-    {
+    if (use_mipmaps) {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
         int lod_w = m_width;
         int lod_h = m_height;
         GLint level = 0;
-        while ((lod_w > 1) || (lod_h > 1))
-        {
+        while (lod_w > 1 || lod_h > 1) {
             ++level;
 
             lod_w = std::max(lod_w / 2, 1);
@@ -622,8 +582,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
             data.resize(lod_w * lod_h * 4);
 
             nsvgRasterize(rast, image, 0, 0, scale, data.data(), lod_w, lod_h, lod_w * 4);
-            if (compression_enabled)
-            {
+            if (compression_enabled) {
                 // initializes the texture on GPU 
                 glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
                 // and send the uncompressed data to the compressor
@@ -633,14 +592,12 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
                 glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
         }
 
-        if (!compression_enabled)
-        {
+        if (!compression_enabled) {
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level));
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
         }
     }
-    else
-    {
+    else {
         glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
         glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
     }
