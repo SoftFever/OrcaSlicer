@@ -264,7 +264,7 @@ Point MotionPlannerEnv::nearest_env_point(const Point &from, const Point &to) co
     for (const ExPolygon &ex : m_env.expolygons) {
         for (const Polygon &hole : ex.holes)
             if (hole.contains(from))
-                pp = hole;
+                pp = hole.points;
         if (! pp.empty())
             break;
     }
