@@ -95,6 +95,20 @@ public:
 
 };
 
+//-----------------------------------------------
+//          RememberChoiceDialog
+//-----------------------------------------------
+
+class RememberChoiceDialog : public wxDialog
+{
+    wxCheckBox* m_remember_choice;
+public:
+    RememberChoiceDialog(wxWindow* parent, const wxString& msg_text, const wxString& caption);
+    ~RememberChoiceDialog() {}
+
+    bool remember_choice() const { return m_remember_choice->GetValue(); }
+};
+
 }}
 
 #endif /* slic3r_OG_CustomCtrl_hpp_ */

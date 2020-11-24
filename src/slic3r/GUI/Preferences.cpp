@@ -204,7 +204,11 @@ void PreferencesDialog::build()
 	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
 	m_optgroup_gui->label_width = 40;
 	m_optgroup_gui->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+        if (opt_key == "suppress_hyperlinks")
+            m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "";
+        else
+            m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+
 		if (opt_key == "use_custom_toolbar_size") {
 			m_icon_size_sizer->ShowItems(boost::any_cast<bool>(value));
 			this->layout();

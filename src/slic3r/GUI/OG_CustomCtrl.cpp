@@ -674,21 +674,67 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
 
 bool OG_CustomCtrl::CtrlLine::launch_browser() const
 {
+    if (!is_focused || og_line.label_path.IsEmpty())
+        return false;
+
+    bool launch = true;
+
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        wxString preferences_item = _L("Suppress to open hyperlink in browser");
-        wxString msg =
-            _L("PrusaSlicer will remember your action.") + "\n" +
-            _L("You will not be asked about it again on label hovering.") + "\n\n" +
-            format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choise."), preferences_item) + "\n\n" +
-            _L("Should we suppress to use hyperlinks in PrusaSlicer?");
+        RememberChoiceDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"));
+        int answer = dialog.ShowModal();
+        launch = answer == wxID_YES;
 
-        wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxYES | wxNO | wxICON_INFORMATION);
-        get_app_config()->set("suppress_hyperlinks", dialog.ShowModal() == wxID_YES ? "1" : "0");
+        get_app_config()->set("suppress_hyperlinks", dialog.remember_choice() ? (answer == wxID_NO ? "1" : "0") : "");
     }
+    if (launch)
+        launch = get_app_config()->get("suppress_hyperlinks") != "1";
 
-    return get_app_config()->get("suppress_hyperlinks") == "0" && is_focused && !og_line.label_path.IsEmpty() && wxLaunchDefaultBrowser(get_url(og_line.label_path));
+    return  launch && wxLaunchDefaultBrowser(get_url(og_line.label_path));
 }
 
+
+RememberChoiceDialog::RememberChoiceDialog(wxWindow* parent, const wxString& msg_text, const wxString& caption)
+    : wxDialog(parent, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxICON_INFORMATION)
+{
+    this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    this->SetEscapeId(wxID_CLOSE);
+
+    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+
+    m_remember_choice = new wxCheckBox(this, wxID_ANY, _L("Remember my choice"));
+    m_remember_choice->SetValue(false);
+    m_remember_choice->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& evt)
+        {
+            if (!evt.IsChecked())
+                return;
+            wxString preferences_item = _L("Suppress to open hyperlink in browser");
+            wxString msg =
+                _L("PrusaSlicer will remember your choice.") + "\n\n" +
+                _L("You will not be asked about it again on label hovering.") + "\n\n" +
+                format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
+
+            wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            if (dialog.ShowModal() == wxID_CANCEL)
+                m_remember_choice->SetValue(false);
+        });
+
+
+    // Add dialog's buttons
+    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxYES | wxNO);
+    wxButton* btnYES = static_cast<wxButton*>(this->FindWindowById(wxID_YES, this));
+    wxButton* btnNO = static_cast<wxButton*>(this->FindWindowById(wxID_NO, this));
+    btnYES->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->EndModal(wxID_YES); });
+    btnNO->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->EndModal(wxID_NO); });
+
+    topSizer->Add(new wxStaticText(this, wxID_ANY, msg_text), 0, wxEXPAND | wxALL, 10);
+    topSizer->Add(m_remember_choice, 0, wxEXPAND | wxALL, 10);
+    topSizer->Add(btns, 0, wxEXPAND | wxALL, 10);
+
+    this->SetSizer(topSizer);
+    topSizer->SetSizeHints(this);
+
+    this->CenterOnScreen();
+}
 
 } // GUI
 } // Slic3r
