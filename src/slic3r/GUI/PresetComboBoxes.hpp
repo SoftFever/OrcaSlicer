@@ -86,6 +86,7 @@ protected:
 
     int m_last_selected;
     int m_em_unit;
+    bool m_suppress_change { true };
 
     // parameters for an icon's drawing
     int icon_height;
@@ -98,6 +99,7 @@ protected:
 
     PrinterTechnology printer_technology {ptAny};
 
+    bool check_event_for_suppress_change(wxCommandEvent& evt);
     void invalidate_selection();
     void validate_selection(bool predicate = false);
     void update_selection();
