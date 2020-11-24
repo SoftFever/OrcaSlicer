@@ -630,7 +630,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     else {
         if (label_type == ltEstimatedTime) {
             if (m_values.size() != m_layers_times.size())
-                return "time";
+                return wxEmptyString;
             return short_and_splitted_time(get_time_dhms(m_layers_times[value]));
         }
         wxString str = m_values.empty() ?
