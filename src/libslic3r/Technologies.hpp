@@ -74,4 +74,11 @@
 #define ENABLE_SHOW_OPTION_POINT_LAYERS (1 && ENABLE_GCODE_VIEWER && ENABLE_2_3_0_ALPHA4)
 
 
+//===================
+// 2.3.0.beta1 techs
+//===================
+#define ENABLE_2_3_0_BETA1 1
+
+#define ENABLE_DRAG_AND_DROP_FIX (1 && ENABLE_2_3_0_BETA1)
+
 #endif // _prusaslicer_technologies_h_

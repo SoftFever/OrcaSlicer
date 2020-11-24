@@ -542,7 +542,6 @@ static void register_win32_device_notification_event()
     });
 
 	wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
-
 		COPYDATASTRUCT* copy_data_structure = { 0 };
 		copy_data_structure = (COPYDATASTRUCT*)lParam;
 		if (copy_data_structure->dwData == 1) {
