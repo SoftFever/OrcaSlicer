@@ -309,7 +309,7 @@ protected:
 public:
     AutoArranger(const TBin &                  bin,
                  const ArrangeParams           &params,
-                 std::function<void(unsigned)> progressind,
+                 std::function<void(unsigned, unsigned /*bins*/)> progressind,
                  std::function<bool(void)>     stopcond)
         : m_pck(bin, params.min_obj_distance)
         , m_bin(bin)
@@ -348,7 +348,9 @@ public:
         
         m_pconf.object_function = get_objfn();
         
-        if (progressind) m_pck.progressIndicator(progressind);
+        if (progressind) m_pck.progressIndicator([this, &progressind](unsigned rem) {
+            progressind(rem, m_pck.lastResult().size() - 1);
+        });
         if (stopcond) m_pck.stopCondition(stopcond);
         
         m_pck.configure(m_pconf);
@@ -462,7 +464,7 @@ void _arrange(
         std::vector<Item> &           excludes,
         const BinT &                  bin,
         const ArrangeParams           &params,
-        std::function<void(unsigned)> progressfn,
+        std::function<void(unsigned, unsigned)> progressfn,
         std::function<bool()>         stopfn)
 {
     // Integer ceiling the min distance from the bed perimeters

@@ -3892,7 +3892,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
         settings_changed = true;
     }
 
-    if (imgui->checkbox(_(L("Enable rotations")), settings.enable_rotation)) {
+    if (imgui->checkbox(_(L("Enable rotations (slow)")), settings.enable_rotation)) {
         m_arrange_settings.enable_rotation = settings.enable_rotation;
         settings_changed = true;
     }
