@@ -862,7 +862,19 @@ void Choice::BUILD() {
 #endif
 
 // 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
- 	temp->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
+    temp->Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_is_dropped = true;  });
+    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_is_dropped = false; });
+
+    temp->Bind(wxEVT_COMBOBOX, ([this, temp](wxCommandEvent evt) {
+        if (m_suppress_scroll) {
+            if (!m_is_dropped) {
+                temp->SetSelection(m_last_selected);
+                return;
+            }
+            m_last_selected = evt.GetSelection();
+        }
+        on_change_field();
+    }), temp->GetId());
 
     if (m_is_editable) {
         temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) {
@@ -876,8 +888,7 @@ void Choice::BUILD() {
             if (is_defined_input_value<choice_ctrl>(window, m_opt.type)) {
                 if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
                     return;
-                else
-                    on_change_field();
+                on_change_field();
             }
             else
                 on_kill_focus();
@@ -885,6 +896,13 @@ void Choice::BUILD() {
     }
 
 	temp->SetToolTip(get_tooltip_text(temp->GetValue()));
+}
+
+void Choice::suppress_scroll()
+{
+    m_suppress_scroll = true;
+    choice_ctrl* ctrl = dynamic_cast<choice_ctrl*>(window);
+    m_last_selected = ctrl->GetSelection();
 }
 
 void Choice::set_selection()
@@ -901,6 +919,7 @@ void Choice::set_selection()
 	case coEnum:{
 		int id_value = m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()->value; //!!
         field->SetSelection(id_value);
+        if (m_suppress_scroll) m_last_selected = id_value;
 		break;
 	}
 	case coFloat:
@@ -934,6 +953,8 @@ void Choice::set_selection()
 			++idx;
 		}
 		idx == m_opt.enum_values.size() ? field->SetValue(text_value) : field->SetSelection(idx);
+
+        if (m_suppress_scroll && idx < m_opt.enum_values.size()) m_last_selected = idx;
 	}
 }
 
@@ -953,6 +974,7 @@ void Choice::set_value(const std::string& value, bool change_event)  //! Redunda
 	idx == m_opt.enum_values.size() ? 
 		field->SetValue(value) :
 		field->SetSelection(idx);
+	if (m_suppress_scroll && idx < m_opt.enum_values.size()) m_last_selected = idx;
 	
 	m_disable_change_event = false;
 }
@@ -990,6 +1012,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
         }
         else
 			field->SetSelection(idx);
+		if (m_suppress_scroll && idx < m_opt.enum_values.size()) m_last_selected = idx;
 		break;
 	}
 	case coEnum: {
@@ -1020,6 +1043,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 				val = 0;
 		}
 		field->SetSelection(val);
+		if (m_suppress_scroll) m_last_selected = val;
 		break;
 	}
 	default:
@@ -1179,6 +1203,7 @@ void Choice::msw_rescale()
     idx == m_opt.enum_values.size() ?
         field->SetValue(selection) :
         field->SetSelection(idx);
+    if (m_suppress_scroll && idx < m_opt.enum_values.size()) m_last_selected = idx;
 #else
     auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height * m_em_unit);
