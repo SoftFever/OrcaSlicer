@@ -862,11 +862,11 @@ void Choice::BUILD() {
 #endif
 
     temp->Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_is_dropped = true;  });
-    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent& evt) {
+    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this, temp](wxCommandEvent&) {
 		// EVT_COMBOBOX_CLOSEUP is called after EVT_COMBOBOX on Windows
 		// so, always set m_suppress_change to "true"
 #ifndef __WXMSW__ 
-		if (m_last_selected == evt.GetSelection())
+		if (m_last_selected == temp->GetSelection())
 #endif //__WXMSW__
             m_is_dropped = false;
     });

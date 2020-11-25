@@ -103,12 +103,12 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
 
     // parameters for an icon's drawing
     fill_width_height();
-    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent& evt) { m_suppress_change = false; });
-    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent& evt) {
+    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_suppress_change = false; });
+    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) {
         // EVT_COMBOBOX_CLOSEUP is called after EVT_COMBOBOX on Windows
         // so, always set m_suppress_change to "true"
 #ifndef __WXMSW__ 
-        if (m_last_selected == evt.GetSelection())
+        if (m_last_selected == this->GetSelection())
 #endif //__WXMSW__
             m_suppress_change = true;
     });
