@@ -13,6 +13,7 @@ namespace Slic3r {
 class PrintObject;
 class ExtrusionLoop;
 class Print;
+class Layer;
 namespace EdgeGrid { class Grid; }
 
 
@@ -40,7 +41,7 @@ class SeamPlacer {
 public:
     void init(const Print& print);
 
-    Point get_seam(const size_t layer_idx, const SeamPosition seam_position,
+    Point get_seam(const Layer& layer, const SeamPosition seam_position,
                    const ExtrusionLoop& loop, Point last_pos,
                    coordf_t nozzle_diameter, const PrintObject* po,
                    bool was_clockwise, const EdgeGrid::Grid* lower_layer_edge_grid);
@@ -54,6 +55,11 @@ private:
         Polygons polys;
         TreeType tree;
     };
+
+    // Just a cache to save some lookups.
+    const Layer* m_last_layer_po = nullptr;
+    coordf_t m_last_print_z = -1.;
+    const PrintObject* m_last_po = nullptr;
 
 
     std::vector<std::vector<CustomTrianglesPerLayer>> m_enforcers;

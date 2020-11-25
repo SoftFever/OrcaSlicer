@@ -6,6 +6,7 @@
 #include "libslic3r/EdgeGrid.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/SVG.hpp"
+#include "libslic3r/Layer.hpp"
 
 namespace Slic3r {
 
@@ -282,7 +283,7 @@ void SeamPlacer::init(const Print& print)
 
 
 
-Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_position,
+Point SeamPlacer::get_seam(const Layer& layer, const SeamPosition seam_position,
                const ExtrusionLoop& loop, Point last_pos, coordf_t nozzle_dmr,
                const PrintObject* po, bool was_clockwise, const EdgeGrid::Grid* lower_layer_edge_grid)
 {
@@ -291,6 +292,25 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
     const coord_t  nozzle_r   = coord_t(scale_(0.5 * nozzle_dmr) + 0.5);
 
     size_t po_idx = std::find(m_po_list.begin(), m_po_list.end(), po) - m_po_list.begin();
+
+    // Find current layer in respective PrintObject. Cache the result so the
+    // lookup is only done once per layer, not for each loop.
+    const Layer* layer_po = nullptr;
+    if (po == m_last_po && layer.print_z == m_last_print_z)
+        layer_po = m_last_layer_po;
+    else {
+        layer_po = po->get_layer_at_printz(layer.print_z);
+        m_last_po = po;
+        m_last_print_z = layer.print_z;
+        m_last_layer_po = layer_po;
+    }
+    if (! layer_po)
+        return last_pos;
+
+    // Index of this layer in the respective PrintObject.
+    size_t layer_idx = layer_po->id() - po->layers().front()->id(); // raft layers
+
+    assert(layer_idx < po->layer_count());
 
     if (this->is_custom_seam_on_layer(layer_idx, po_idx)) {
         // Seam enf/blockers can begin and end in between the original vertices.
