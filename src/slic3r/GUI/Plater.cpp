@@ -439,6 +439,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
 
     m_og->activate();
 
+    Choice* choice = dynamic_cast<Choice*>(m_og->get_field("support"));
+    choice->suppress_scroll();
+
     // Frequently changed parameters for SLA_technology
     m_og_sla = std::make_shared<ConfigOptionsGroup>(parent, "");
     m_og_sla->hide_labels();

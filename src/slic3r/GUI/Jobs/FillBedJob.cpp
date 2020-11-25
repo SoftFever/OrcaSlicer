@@ -90,9 +90,13 @@ void FillBedJob::process()
     params.min_obj_distance = scaled(settings.distance);
     params.allow_rotations  = settings.enable_rotation;
 
-    params.stopcondition = [this]() { return was_canceled(); };
+    unsigned curr_bed = 0;
+    params.stopcondition = [this, &curr_bed]() {
+        return was_canceled() || curr_bed > 0;
+    };
 
-    params.progressind = [this](unsigned st) {
+    params.progressind = [this, &curr_bed](unsigned st, unsigned bed) {
+        curr_bed = bed;
         if (st > 0)
             update_status(int(m_status_range - st), _(L("Filling bed")));
     };

@@ -49,7 +49,7 @@ Slic3r::arrangement::ArrangePolygon get_arrange_poly(const Model &model)
             std::copy(pts.begin(), pts.end(), std::back_inserter(apts));
         }
     
-    apts = Geometry::convex_hull(apts);
+    apts = std::move(Geometry::convex_hull(apts).points);
     return ap;
 }
 

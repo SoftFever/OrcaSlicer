@@ -532,6 +532,7 @@ public:
     ConfigOptionEnum<InfillPattern> fill_pattern;
     ConfigOptionFloat               gap_fill_speed;
     ConfigOptionFloatOrPercent      infill_anchor;
+    ConfigOptionFloatOrPercent      infill_anchor_max;
     ConfigOptionInt                 infill_extruder;
     ConfigOptionFloatOrPercent      infill_extrusion_width;
     ConfigOptionInt                 infill_every_layers;
@@ -584,6 +585,7 @@ protected:
         OPT_PTR(fill_pattern);
         OPT_PTR(gap_fill_speed);
         OPT_PTR(infill_anchor);
+        OPT_PTR(infill_anchor_max);
         OPT_PTR(infill_extruder);
         OPT_PTR(infill_extrusion_width);
         OPT_PTR(infill_every_layers);

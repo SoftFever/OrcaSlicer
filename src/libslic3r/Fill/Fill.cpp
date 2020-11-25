@@ -37,7 +37,8 @@ struct SurfaceFillParams
     bool        	dont_adjust = false;
     // Length of the infill anchor along the perimeter line.
     // 1000mm is roughly the maximum length line that fits into a 32bit coord_t.
-    float 			anchor_length = 1000.f;
+    float 			anchor_length     = 1000.f;
+    float 			anchor_length_max = 1000.f;
 
     // width, height of extrusion, nozzle diameter, is bridge
     // For the output, for fill generator.
@@ -68,6 +69,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(density);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
+		RETURN_COMPARE_NON_EQUAL(anchor_length_max);
 		RETURN_COMPARE_NON_EQUAL(flow.width);
 		RETURN_COMPARE_NON_EQUAL(flow.height);
 		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter);
@@ -85,7 +87,8 @@ struct SurfaceFillParams
 				this->angle   			== rhs.angle   			&&
 				this->density   		== rhs.density   		&&
 				this->dont_adjust   	== rhs.dont_adjust 		&&
-				this->anchor_length		== rhs.anchor_length    &&
+				this->anchor_length  	== rhs.anchor_length    &&
+				this->anchor_length_max == rhs.anchor_length_max &&
 				this->flow 				== rhs.flow 			&&
 				this->extrusion_role	== rhs.extrusion_role;
 	}
@@ -171,8 +174,12 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            // Anchor a sparse infill to inner perimeters with the following anchor length:
 			        params.anchor_length = float(region_config.infill_anchor);
 			        if (region_config.infill_anchor.percent)
-			        	params.anchor_length *= 0.01 * params.spacing;
+			        	params.anchor_length = float(params.anchor_length * 0.01 * params.spacing);
+			        params.anchor_length_max = float(region_config.infill_anchor_max);
+			        if (region_config.infill_anchor_max.percent)
+			        	params.anchor_length_max = float(params.anchor_length_max * 0.01 * params.spacing);
 		        }
+		        params.anchor_length = std::min(params.anchor_length, params.anchor_length_max);
 
 		        auto it_params = set_surface_params.find(params);
 		        if (it_params == set_surface_params.end())
@@ -376,9 +383,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
-        params.density 		 = float(0.01 * surface_fill.params.density);
-        params.dont_adjust 	 = surface_fill.params.dont_adjust; // false
-        params.anchor_length = surface_fill.params.anchor_length;
+        params.density 		     = float(0.01 * surface_fill.params.density);
+        params.dont_adjust 	     = surface_fill.params.dont_adjust; // false
+        params.anchor_length     = surface_fill.params.anchor_length;
+		params.anchor_length_max = surface_fill.params.anchor_length_max;
 
         for (ExPolygon &expoly : surface_fill.expolygons) {
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.

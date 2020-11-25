@@ -200,7 +200,7 @@ BoundingBox get_extents(const Polylines &polylines)
     if (! polylines.empty()) {
         bb = polylines.front().bounding_box();
         for (size_t i = 1; i < polylines.size(); ++ i)
-            bb.merge(polylines[i]);
+            bb.merge(polylines[i].points);
     }
     return bb;
 }

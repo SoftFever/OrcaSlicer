@@ -256,8 +256,8 @@ void PreferencesDialog::build()
 		create_settings_mode_widget();
 	}
 
-	if (is_editor) {
 #if ENABLE_ENVIRONMENT_MAP
+	if (is_editor) {
 		m_optgroup_render = std::make_shared<ConfigOptionsGroup>(this, _L("Render"));
 		m_optgroup_render->label_width = 40;
 		m_optgroup_render->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
@@ -272,8 +272,8 @@ void PreferencesDialog::build()
 		m_optgroup_render->append_single_option_line(option);
 
 		m_optgroup_render->activate();
-#endif // ENABLE_ENVIRONMENT_MAP
 	}
+#endif // ENABLE_ENVIRONMENT_MAP
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
@@ -293,13 +293,13 @@ void PreferencesDialog::build()
 
 	SetSizer(sizer);
 	sizer->SetSizeHints(this);
+	this->CenterOnParent();
 }
 
 void PreferencesDialog::accept()
 {
-    if (m_values.find("no_defaults") != m_values.end()) {
+    if (m_values.find("no_defaults") != m_values.end())
         warning_catcher(this, wxString::Format(_L("You need to restart %s to make the changes effective."), SLIC3R_APP_NAME));
-	}
 
     auto app_config = get_app_config();
 
@@ -308,9 +308,9 @@ void PreferencesDialog::accept()
 		m_seq_top_layer_only_changed = app_config->get("seq_top_layer_only") != it->second;
 
 	m_settings_layout_changed = false;
-	for (const std::string& key : {"old_settings_layout_mode",
-								   "new_settings_layout_mode",
-								   "dlg_settings_layout_mode" })
+	for (const std::string& key : { "old_settings_layout_mode",
+								    "new_settings_layout_mode",
+								    "dlg_settings_layout_mode" })
 	{
 	    auto it = m_values.find(key);
 	    if (it != m_values.end() && app_config->get(key) != it->second) {
@@ -319,8 +319,7 @@ void PreferencesDialog::accept()
 	    }
 	}
 
-	for (const std::string& key : {"default_action_on_close_application", "default_action_on_select_preset"})
-	{
+	for (const std::string& key : {"default_action_on_close_application", "default_action_on_select_preset"}) {
 	    auto it = m_values.find(key);
 		if (it != m_values.end() && it->second != "none" && app_config->get(key) != "none")
 			m_values.erase(it); // we shouldn't change value, if some of those parameters was selected, and then deselected
@@ -421,9 +420,9 @@ void PreferencesDialog::create_icon_size_slider()
 
 void PreferencesDialog::create_settings_mode_widget()
 {
-	wxString choices[] = {	_L("Old regular layout with the tab bar"),
-							_L("New layout, access via settings button in the top menu"),
-							_L("Settings in non-modal window")		};
+	wxString choices[] = { _L("Old regular layout with the tab bar"),
+						   _L("New layout, access via settings button in the top menu"),
+						   _L("Settings in non-modal window") };
 
 	auto app_config = get_app_config();
 	int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
@@ -432,14 +431,13 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	wxWindow* parent = m_optgroup_gui->ctrl_parent();
 
-	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Layout Options"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
-		3, wxRA_SPECIFY_ROWS);
+	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Layout Options"), wxDefaultPosition, wxDefaultSize,
+		WXSIZEOF(choices), choices, 3, wxRA_SPECIFY_ROWS);
 	m_layout_mode_box->SetFont(wxGetApp().normal_font());
 	m_layout_mode_box->SetSelection(selection);
 
 	m_layout_mode_box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
 		int selection = e.GetSelection();
-
 		m_values["old_settings_layout_mode"] = boost::any_cast<bool>(selection == 0) ? "1" : "0";
 		m_values["new_settings_layout_mode"] = boost::any_cast<bool>(selection == 1) ? "1" : "0";
 		m_values["dlg_settings_layout_mode"] = boost::any_cast<bool>(selection == 2) ? "1" : "0";
@@ -447,7 +445,6 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_layout_mode_box, 1, wxALIGN_CENTER_VERTICAL);
-
 	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND);
 }
 

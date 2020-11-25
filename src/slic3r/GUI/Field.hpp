@@ -385,7 +385,10 @@ public:
     /* Under OSX: wxBitmapComboBox->GetWindowStyle() returns some weard value, 
      * so let use a flag, which has TRUE value for a control without wxCB_READONLY style
      */
-    bool            m_is_editable { false };
+    bool            m_is_editable     { false };
+    bool            m_is_dropped      { false };
+    bool            m_suppress_scroll { false };
+    int             m_last_selected   { wxNOT_FOUND };
 
 	void			set_selection();
 	void			set_value(const std::string& value, bool change_event = false);
@@ -399,6 +402,8 @@ public:
 	void			enable() override ;//{ dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };
 	void			disable() override;//{ dynamic_cast<wxBitmapComboBox*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
+
+    void            suppress_scroll();
 };
 
 class ColourPicker : public Field {

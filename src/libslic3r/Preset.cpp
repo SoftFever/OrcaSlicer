@@ -427,7 +427,7 @@ const std::vector<std::string>& Preset::print_options()
         "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder",
         "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "first_layer_extrusion_width",
         "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width",
-        "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "infill_anchor", "bridge_flow_ratio", "clip_multipart_objects",
+        "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "infill_anchor", "infill_anchor_max", "bridge_flow_ratio", "clip_multipart_objects",
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
         "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging", "single_extruder_multi_material_priming",
         "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits"
