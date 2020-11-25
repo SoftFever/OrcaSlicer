@@ -182,12 +182,14 @@ void FillGyroid::_fill_surface_single(
 
 	polylines = intersection_pl(polylines, to_polygons(expolygon));
 
-    if (! polylines.empty())
-		// remove too small bits (larger than longer)
+    if (! polylines.empty()) {
+		// Remove very small bits, but be careful to not remove infill lines connecting thin walls!
+        // The infill perimeter lines should be separated by around a single infill line width.
+        const double minlength = scale_(0.8 * this->spacing);
 		polylines.erase(
-			//FIXME what is the small size? Removing tiny extrusions disconnects walls!
-			std::remove_if(polylines.begin(), polylines.end(), [this](const Polyline &pl) { return pl.length() < scale_(this->spacing * 3); }),
+			std::remove_if(polylines.begin(), polylines.end(), [minlength](const Polyline &pl) { return pl.length() < minlength; }),
 			polylines.end());
+    }
 
 	if (! polylines.empty()) {
 		// connect lines
