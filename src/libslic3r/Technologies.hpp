@@ -79,6 +79,7 @@
 #define ENABLE_2_3_0_BETA1 1
 
 #define ENABLE_SHOW_WIPE_MOVES (1 && ENABLE_2_3_0_BETA1)
+#define ENABLE_DRAG_AND_DROP_FIX (1 && ENABLE_2_3_0_BETA1)
 
 
 #endif // _prusaslicer_technologies_h_

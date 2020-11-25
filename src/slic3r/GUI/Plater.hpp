@@ -149,6 +149,10 @@ public:
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
     // To be called when providing a list of files to the GUI slic3r on command line.
     std::vector<size_t> load_files(const std::vector<std::string>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
+#if ENABLE_DRAG_AND_DROP_FIX
+    // to be called on drag and drop
+    bool load_files(const wxArrayString& filenames);
+#endif // ENABLE_DRAG_AND_DROP_FIX
 
     void update();
     void stop_jobs();
