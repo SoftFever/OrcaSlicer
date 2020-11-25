@@ -104,7 +104,14 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     // parameters for an icon's drawing
     fill_width_height();
     Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent& evt) { m_suppress_change = false; });
-    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent& evt) { m_suppress_change = true ; });
+    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent& evt) {
+        // EVT_COMBOBOX_CLOSEUP is called after EVT_COMBOBOX on Windows
+        // so, always set m_suppress_change to "true"
+#ifndef __WXMSW__ 
+        if (m_last_selected == evt.GetSelection())
+#endif //__WXMSW__
+            m_suppress_change = true;
+    });
 
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         // see https://github.com/prusa3d/PrusaSlicer/issues/3889
@@ -572,6 +579,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
         } else {
             evt.StopPropagation();
         }
+        m_suppress_change = true;
     });
 
     if (m_type == Preset::TYPE_FILAMENT)
@@ -911,6 +919,7 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type)
         }
 
         evt.StopPropagation();
+        m_suppress_change = true;
     });
 }
 
