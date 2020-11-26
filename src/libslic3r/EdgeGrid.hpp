@@ -309,10 +309,8 @@ protected:
 	std::vector<float>							m_signed_distance_field;
 };
 
-#if 0
 // Debugging utility. Save the signed distance field.
-extern void save_png(const Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path);
-#endif /* SLIC3R_GUI */
+extern void save_png(const Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path, size_t scale = 1);
 
 } // namespace EdgeGrid
 

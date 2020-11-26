@@ -65,6 +65,18 @@ template<class Img> bool decode_png(const ReadBuf &in_buf, Img &out_img)
 
 // TODO: std::istream of FILE* could be similarly adapted in case its needed...
 
+
+
+// Down to earth function to store a packed RGB image to file. Mostly useful for debugging purposes.
+bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb);
+bool write_rgb_to_file(const std::string &file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb);
+bool write_rgb_to_file(const std::string &file_name_utf8, size_t width, size_t height, const std::vector<uint8_t> &data_rgb);
+// Scaled variants are mostly useful for debugging purposes, for example to export images of low resolution distance fileds.
+// Scaling is done by multiplying rows and columns without any smoothing to emphasise the original pixels.
+bool write_rgb_to_file_scaled(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb, size_t scale);
+bool write_rgb_to_file_scaled(const std::string &file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb, size_t scale);
+bool write_rgb_to_file_scaled(const std::string &file_name_utf8, size_t width, size_t height, const std::vector<uint8_t> &data_rgb, size_t scale);
+
 }}     // namespace Slic3r::png
 
 #endif // PNGREAD_HPP
