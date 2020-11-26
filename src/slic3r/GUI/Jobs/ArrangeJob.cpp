@@ -158,14 +158,14 @@ void ArrangeJob::process()
     params.stopcondition = [this]() { return was_canceled(); };
     
     try {
-        params.progressind = [this, count](unsigned st, unsigned) {
+        params.progressind = [this, count](unsigned st) {
             st += m_unprintable.size();
             if (st > 0) update_status(int(count - st), arrangestr);
         };
         
         arrangement::arrange(m_selected, m_unselected, bedpts, params);
         
-        params.progressind = [this, count](unsigned st, unsigned) {
+        params.progressind = [this, count](unsigned st) {
             if (st > 0) update_status(int(count - st), arrangestr);
         };
         

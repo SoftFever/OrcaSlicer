@@ -741,6 +741,10 @@ public:
         return impl_.getResult();
     }
 
+    inline int lastPackedBinId() const {
+        return impl_.lastPackedBinId();
+    }
+
     void clear() { impl_.clear(); }
 };
 
@@ -861,6 +865,10 @@ public:
     inline const PackGroup& lastResult() const
     {
         return selector_.getResult();
+    }
+
+    inline int lastPackedBinId() const {
+        return selector_.lastPackedBinId();
     }
 };
 

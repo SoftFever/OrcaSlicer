@@ -83,8 +83,9 @@ struct ArrangeParams {
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
-    /// Second is the current bed idx being filled.
-    std::function<void(unsigned, unsigned /*bed_idx*/)> progressind;
+    std::function<void(unsigned)> progressind;
+
+    std::function<void(const ArrangePolygon &)> on_packed;
     
     /// A predicate returning true if abort is needed.
     std::function<bool(void)>     stopcondition;

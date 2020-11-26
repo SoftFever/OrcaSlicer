@@ -90,15 +90,18 @@ void FillBedJob::process()
     params.min_obj_distance = scaled(settings.distance);
     params.allow_rotations  = settings.enable_rotation;
 
-    unsigned curr_bed = 0;
-    params.stopcondition = [this, &curr_bed]() {
-        return was_canceled() || curr_bed > 0;
+    bool do_stop = false;
+    params.stopcondition = [this, &do_stop]() {
+        return was_canceled() || do_stop;
     };
 
-    params.progressind = [this, &curr_bed](unsigned st, unsigned bed) {
-        curr_bed = bed;
+    params.progressind = [this](unsigned st) {
         if (st > 0)
             update_status(int(m_status_range - st), _(L("Filling bed")));
+    };
+
+    params.on_packed = [&do_stop] (const ArrangePolygon &ap) {
+        do_stop = ap.bed_idx > 0 && ap.priority == 0;
     };
 
     arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
@@ -119,7 +122,7 @@ void FillBedJob::finalize()
     size_t inst_cnt = model_object->instances.size();
 
     for (ArrangePolygon &ap : m_selected) {
-        if (ap.priority != 0 || !(ap.bed_idx == arrangement::UNARRANGED || ap.bed_idx > 0))
+        if (ap.bed_idx != arrangement::UNARRANGED && (ap.priority != 0 || ap.bed_idx == 0))
             ap.apply();
     }
 

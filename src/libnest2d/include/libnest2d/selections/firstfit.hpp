@@ -71,8 +71,9 @@ public:
         std::sort(store_.begin(), store_.end(), sortfunc);
 
         auto total = last-first;
-        auto makeProgress = [this, &total](Placer& placer, size_t idx) {
-            packed_bins_[idx] = placer.getItems();
+        auto makeProgress = [this, &total](Placer& placer, size_t bin_idx) {
+            packed_bins_[bin_idx] = placer.getItems();
+            this->last_packed_bin_id_ = int(bin_idx);
             this->progress_(static_cast<unsigned>(--total));
         };
 
