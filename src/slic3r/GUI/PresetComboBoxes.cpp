@@ -519,7 +519,7 @@ void PresetComboBox::OnDrawItem(wxDC& dc,
     int item,
     int flags) const
 {
-    const wxBitmap& bmp = *(wxBitmap*)m_bitmaps[item];
+    const wxBitmap& bmp = *(static_cast<wxBitmap*>(m_bitmaps[item]));
     if (bmp.IsOk())
     {
         // we should use scaled! size values of bitmap

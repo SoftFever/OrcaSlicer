@@ -115,22 +115,9 @@ public:
     /// Returns a copy of the pointer of the parent wxWindow.
     /// Accessor function is because users are not allowed to change the parent
     /// but defining it as const means a lot of const_casts to deal with wx functions.
-    inline wxWindow* parent() const { 
-#if 0//#ifdef __WXGTK__
-		return m_panel;
-#else
-		return m_parent;
-#endif /* __WXGTK__ */
-    }
-#if 0//#ifdef __WXGTK__
-    wxWindow* get_parent() const {
-        return m_parent;
-    }
-#endif /* __WXGTK__ */
+    inline wxWindow* parent() const { return m_parent; }
 
-    wxWindow* ctrl_parent() const {
-    	return this->custom_ctrl && m_use_custom_ctrl_as_parent ? (wxWindow*)this->custom_ctrl : (this->stb ? (wxWindow*)this->stb : this->parent());
-    }
+    wxWindow*   ctrl_parent() const;
 
 	void		append_line(const Line& line);
 	// create controls for the option group

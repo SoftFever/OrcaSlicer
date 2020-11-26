@@ -131,8 +131,8 @@ protected:
      * For this purpose control drawing methods and
      * control size calculation methods (virtual) are overridden.
      **/
-    virtual bool OnAddBitmap(const wxBitmap& bitmap) override;
-    virtual void OnDrawItem(wxDC& dc, const wxRect& rect, int item, int flags) const override;
+    bool OnAddBitmap(const wxBitmap& bitmap) override;
+    void OnDrawItem(wxDC& dc, const wxRect& rect, int item, int flags) const override;
 #endif
 
 private:

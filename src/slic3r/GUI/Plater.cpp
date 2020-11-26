@@ -1396,7 +1396,7 @@ protected:
 };
 
 ProjectDropDialog::ProjectDropDialog(const std::string& filename)
-    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY,
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY,
         from_u8((boost::format(_utf8(L("%s - Drop project file"))) % SLIC3R_APP_NAME).str()), wxDefaultPosition,
         wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
@@ -1463,7 +1463,7 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         }
 
         if (paths.size() > 1) {
-            wxMessageDialog((wxWindow*)m_plater, _L("You can open only one .gcode file at a time."),
+            wxMessageDialog(static_cast<wxWindow*>(m_plater), _L("You can open only one .gcode file at a time."),
                 wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
             return false;
         }
@@ -2070,7 +2070,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
     q->Layout();
 
-    set_current_panel(wxGetApp().is_editor() ? (wxPanel*)view3D : (wxPanel*)preview);
+    set_current_panel(wxGetApp().is_editor() ? static_cast<wxPanel*>(view3D) : static_cast<wxPanel*>(preview));
     if (wxGetApp().is_gcode_viewer())
         preview->hide_layers_slider();
 
@@ -4836,7 +4836,7 @@ protected:
 };
 
 ProjectDropDialog::ProjectDropDialog(const std::string& filename)
-    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY,
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY,
         from_u8((boost::format(_utf8(L("%s - Drop project file"))) % SLIC3R_APP_NAME).str()), wxDefaultPosition,
         wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
@@ -4895,7 +4895,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
 
         if (paths.size() > 1) {
-            wxMessageDialog((wxWindow*)this, _L("You can open only one .gcode file at a time."),
+            wxMessageDialog(static_cast<wxWindow*>(this), _L("You can open only one .gcode file at a time."),
                 wxString(SLIC3R_APP_NAME) + " - " + _L("Drag and drop G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
             return false;
         }
@@ -5021,7 +5021,7 @@ void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset() { p->reset(); }
 void Plater::reset_with_confirm()
 {
-    if (wxMessageDialog((wxWindow*)this, _L("All objects will be removed, continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Delete all"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
+    if (wxMessageDialog(static_cast<wxWindow*>(this), _L("All objects will be removed, continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Delete all"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
         reset();
 }
 

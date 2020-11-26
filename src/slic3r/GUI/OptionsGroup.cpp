@@ -111,6 +111,11 @@ OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
 {
 }
 
+wxWindow* OptionsGroup::ctrl_parent() const
+{
+	return this->custom_ctrl && m_use_custom_ctrl_as_parent ? static_cast<wxWindow*>(this->custom_ctrl) : (this->stb ? static_cast<wxWindow*>(this->stb) : this->parent());
+}
+
 bool OptionsGroup::is_legend_line()
 {
 	if (m_lines.size() == 1) {
@@ -209,7 +214,7 @@ void OptionsGroup::activate_line(Line& line)
 	bool is_legend_line = option_set.front().opt.gui_type == "legend";
 
     if (!custom_ctrl && m_use_custom_ctrl) {
-        custom_ctrl = new OG_CustomCtrl(is_legend_line ? this->parent() : (wxWindow*)this->stb, this);
+        custom_ctrl = new OG_CustomCtrl(is_legend_line ? this->parent() : static_cast<wxWindow*>(this->stb), this);
 		if (is_legend_line)
 			sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, wxOSX ? 0 : 10);
 		else

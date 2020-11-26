@@ -4,7 +4,7 @@
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
-
+#include "MainFrame.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -37,7 +37,7 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
 // CopyrightsDialog
 // -----------------------------------------
 CopyrightsDialog::CopyrightsDialog()
-    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, from_u8((boost::format("%1% - %2%")
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, from_u8((boost::format("%1% - %2%")
         % (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME)
         % _utf8(L("Portions copyright"))).str()),
         wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -201,7 +201,7 @@ void CopyrightsDialog::onCloseDialog(wxEvent &)
 }
 
 AboutDialog::AboutDialog()
-    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, from_u8((boost::format(_utf8(L("About %s"))) % (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME)).str()), wxDefaultPosition,
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, from_u8((boost::format(_utf8(L("About %s"))) % (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME)).str()), wxDefaultPosition,
         wxDefaultSize, /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetFont(wxGetApp().normal_font());
