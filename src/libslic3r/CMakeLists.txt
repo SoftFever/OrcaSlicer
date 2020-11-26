@@ -159,8 +159,8 @@ add_library(libslic3r STATIC
     PrintConfig.hpp
     PrintObject.cpp
     PrintRegion.cpp
-    PNGRead.hpp
-    PNGRead.cpp
+    PNGReadWrite.hpp
+    PNGReadWrite.cpp
     Semver.cpp
     ShortestPath.cpp
     ShortestPath.hpp

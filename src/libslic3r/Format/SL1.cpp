@@ -18,7 +18,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLA/RasterBase.hpp"
 #include "libslic3r/miniz_extension.hpp"
-#include "libslic3r/PNGRead.hpp"
+#include "libslic3r/PNGReadWrite.hpp"
 
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/filesystem/path.hpp>
