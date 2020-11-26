@@ -501,7 +501,8 @@ const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProces
     { EProducer::Cura,        "Cura_SteamEngine" },
     { EProducer::Simplify3D,  "Simplify3D" },
     { EProducer::CraftWare,   "CraftWare" },
-    { EProducer::ideaMaker,   "ideaMaker" }
+    { EProducer::ideaMaker,   "ideaMaker" },
+    { EProducer::KissSlicer,  "KISSlicer" }
 };
 
 unsigned int GCodeProcessor::s_result_id = 0;
@@ -1143,11 +1144,14 @@ bool GCodeProcessor::process_producers_tags(const std::string_view comment)
 {
     switch (m_producer)
     {
+    case EProducer::Slic3rPE:
+    case EProducer::Slic3r: 
     case EProducer::PrusaSlicer: { return process_prusaslicer_tags(comment); }
     case EProducer::Cura:        { return process_cura_tags(comment); }
     case EProducer::Simplify3D:  { return process_simplify3d_tags(comment); }
     case EProducer::CraftWare:   { return process_craftware_tags(comment); }
     case EProducer::ideaMaker:   { return process_ideamaker_tags(comment); }
+    case EProducer::KissSlicer:  { return process_kissslicer_tags(comment); }
     default:                     { return false; }
     }
 }
@@ -1449,6 +1453,113 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string_view comment)
 
     // layer
     pos = comment.find("LAYER:");
+    if (pos == 0) {
+        ++m_layer_id;
+        return true;
+    }
+
+    return false;
+}
+
+bool GCodeProcessor::process_kissslicer_tags(const std::string_view comment)
+{
+    // extrusion roles
+
+    // ; 'Raft Path'
+    size_t pos = comment.find(" 'Raft Path'");
+    if (pos == 0) {
+        m_extrusion_role = erSkirt;
+        return true;
+    }
+
+    // ; 'Support Interface Path'
+    pos = comment.find(" 'Support Interface Path'");
+    if (pos == 0) {
+        m_extrusion_role = erSupportMaterialInterface;
+        return true;
+    }
+
+    // ; 'Travel/Ironing Path'
+    pos = comment.find(" 'Travel/Ironing Path'");
+    if (pos == 0) {
+        m_extrusion_role = erIroning;
+        return true;
+    }
+
+    // ; 'Support (may Stack) Path'
+    pos = comment.find(" 'Support (may Stack) Path'");
+    if (pos == 0) {
+        m_extrusion_role = erSupportMaterial;
+        return true;
+    }
+
+    // ; 'Perimeter Path'
+    pos = comment.find(" 'Perimeter Path'");
+    if (pos == 0) {
+        m_extrusion_role = erExternalPerimeter;
+        return true;
+    }
+
+    // ; 'Pillar Path'
+    pos = comment.find(" 'Pillar Path'");
+    if (pos == 0) {
+        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        return true;
+    }
+
+    // ; 'Destring/Wipe/Jump Path'
+    pos = comment.find(" 'Destring/Wipe/Jump Path'");
+    if (pos == 0) {
+        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        return true;
+    }
+
+    // ; 'Prime Pillar Path'
+    pos = comment.find(" 'Prime Pillar Path'");
+    if (pos == 0) {
+        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        return true;
+    }
+
+    // ; 'Loop Path'
+    pos = comment.find(" 'Loop Path'");
+    if (pos == 0) {
+        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        return true;
+    }
+
+    // ; 'Crown Path'
+    pos = comment.find(" 'Crown Path'");
+    if (pos == 0) {
+        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        return true;
+    }
+
+    // ; 'Solid Path'
+    pos = comment.find(" 'Solid Path'");
+    if (pos == 0) {
+        m_extrusion_role = erNone;
+        return true;
+    }
+
+    // ; 'Stacked Sparse Infill Path'
+    pos = comment.find(" 'Stacked Sparse Infill Path'");
+    if (pos == 0) {
+        m_extrusion_role = erInternalInfill;
+        return true;
+    }
+
+    // ; 'Sparse Infill Path'
+    pos = comment.find(" 'Sparse Infill Path'");
+    if (pos == 0) {
+        m_extrusion_role = erSolidInfill;
+        return true;
+    }
+
+    // geometry
+
+    // layer
+    pos = comment.find(" BEGIN_LAYER_");
     if (pos == 0) {
         ++m_layer_id;
         return true;

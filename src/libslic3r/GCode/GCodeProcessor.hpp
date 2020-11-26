@@ -429,7 +429,8 @@ namespace Slic3r {
             Cura,
             Simplify3D,
             CraftWare,
-            ideaMaker
+            ideaMaker,
+            KissSlicer
         };
 
         static const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> Producers;
@@ -486,6 +487,7 @@ namespace Slic3r {
         bool process_simplify3d_tags(const std::string_view comment);
         bool process_craftware_tags(const std::string_view comment);
         bool process_ideamaker_tags(const std::string_view comment);
+        bool process_kissslicer_tags(const std::string_view comment);
 
         bool detect_producer(const std::string_view comment);
 
