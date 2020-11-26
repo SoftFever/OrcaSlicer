@@ -85,6 +85,25 @@ void PreferencesDialog::build()
 		option = Option(def, "export_sources_full_pathnames");
 		m_optgroup_general->append_single_option_line(option);
 
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+		// Please keep in sync with ConfigWizard
+		def.label = L("Associate .3mf files to PrusaSlicer");
+		def.type = coBool;
+		def.tooltip = L("If enabled, sets PrusaSlicer as default application to open .3mf files.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_3mf") == "1"));
+		option = Option(def, "associate_3mf");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Associate .stl files to PrusaSlicer");
+		def.type = coBool;
+		def.tooltip = L("If enabled, sets PrusaSlicer as default application to open .stl files.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_stl") == "1"));
+		option = Option(def, "associate_stl");
+		m_optgroup_general->append_single_option_line(option);
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+
 		// Please keep in sync with ConfigWizard
 		def.label = L("Update built-in Presets automatically");
 		def.type = coBool;
@@ -126,7 +145,44 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
 		option = Option(def, "single_instance");
 		m_optgroup_general->append_single_option_line(option);
+
+		/*  // ysFIXME THis part is temporary commented
+			// The using of inches is implemented just for object's size and position
+
+			def.label = L("Use inches instead of millimeters");
+			def.type = coBool;
+			def.tooltip = L("Use inches instead of millimeters for the object's size");
+			def.set_default_value(new ConfigOptionBool{ app_config->get("use_inches") == "1" });
+			option = Option(def, "use_inches");
+			m_optgroup_general->append_single_option_line(option);
+		*/
+
+		def.label = L("Ask for unsaved changes when closing application");
+		def.type = coBool;
+		def.tooltip = L("When closing the application, always ask for unsaved changes");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_close_application") == "none" });
+		option = Option(def, "default_action_on_close_application");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Ask for unsaved changes when selecting new preset");
+		def.type = coBool;
+		def.tooltip = L("Always ask for unsaved changes when selecting new preset");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_select_preset") == "none" });
+		option = Option(def, "default_action_on_select_preset");
+		m_optgroup_general->append_single_option_line(option);
 	}
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+	else {
+		def.label = L("Associate .gcode files to PrusaSlicer G-code Viewer");
+		def.type = coBool;
+		def.tooltip = L("If enabled, sets PrusaSlicer G-code Viewer as default application to open .gcode files.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_gcode") == "1"));
+		option = Option(def, "associate_gcode");
+		m_optgroup_general->append_single_option_line(option);
+	}
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
@@ -137,30 +193,6 @@ void PreferencesDialog::build()
 	option = Option (def, "use_retina_opengl");
 	m_optgroup_general->append_single_option_line(option);
 #endif
-/*  // ysFIXME THis part is temporary commented
-    // The using of inches is implemented just for object's size and position
-    
-	def.label = L("Use inches instead of millimeters");
-	def.type = coBool;
-	def.tooltip = L("Use inches instead of millimeters for the object's size");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("use_inches") == "1" });
-	option = Option(def, "use_inches");
-	m_optgroup_general->append_single_option_line(option);
-*/
-
-	def.label = L("Ask for unsaved changes when closing application");
-	def.type = coBool;
-	def.tooltip = L("When closing the application, always ask for unsaved changes");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_close_application") == "none" });
-	option = Option(def, "default_action_on_close_application");
-	m_optgroup_general->append_single_option_line(option);
-
-	def.label = L("Ask for unsaved changes when selecting new preset");
-	def.type = coBool;
-	def.tooltip = L("Always ask for unsaved changes when selecting new preset");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_select_preset") == "none" });
-	option = Option(def, "default_action_on_select_preset");
-	m_optgroup_general->append_single_option_line(option);
 
     // Show/Hide splash screen
 	def.label = L("Show splash screen");
@@ -229,6 +261,14 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
 		option = Option(def, "use_custom_toolbar_size");
 		m_optgroup_gui->append_single_option_line(option);
+
+		def.label = L("Suppress to open hyperlink in browser");
+		def.type = coBool;
+		def.tooltip = L("If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. "
+			"If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("suppress_hyperlinks") == "1" });
+		option = Option(def, "suppress_hyperlinks");
+		m_optgroup_gui->append_single_option_line(option);
 	}
 
 	def.label = L("Sequential slider applied only to top layer");
@@ -237,14 +277,6 @@ void PreferencesDialog::build()
 					"If disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
 	option = Option(def, "seq_top_layer_only");
-	m_optgroup_gui->append_single_option_line(option);
-
-	def.label = L("Suppress to open hyperlink in browser");
-	def.type = coBool;
-	def.tooltip = L("If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. "
-					"If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("suppress_hyperlinks") == "1" });
-	option = Option(def, "suppress_hyperlinks");
 	m_optgroup_gui->append_single_option_line(option);
 
 	m_optgroup_gui->activate();

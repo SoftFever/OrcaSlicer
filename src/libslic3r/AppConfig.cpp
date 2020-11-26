@@ -68,6 +68,15 @@ void AppConfig::set_defaults()
         if (get("export_sources_full_pathnames").empty())
             set("export_sources_full_pathnames", "0");
 
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+        if (get("associate_3mf").empty())
+            set("associate_3mf", "0");
+        if (get("associate_stl").empty())
+            set("associate_stl", "0");
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+
         // remove old 'use_legacy_opengl' parameter from this config, if present
         if (!get("use_legacy_opengl").empty())
             erase("", "use_legacy_opengl");
@@ -109,6 +118,14 @@ void AppConfig::set_defaults()
         if (get("use_inches").empty())
             set("use_inches", "0");
     }
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+    else {
+#ifdef _WIN32
+        if (get("associate_gcode").empty())
+            set("associate_gcode", "0");
+#endif // _WIN32
+    }
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
     if (get("seq_top_layer_only").empty())
         set("seq_top_layer_only", "1");
