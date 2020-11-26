@@ -910,12 +910,16 @@ void mark_boundary_segments_touching_infill(
                     const std::vector<float> &contour_parameters = boundary_parameters[it_contour_and_segment->first];
                     const float contour_length = contour_parameters.back();
 					const float param_seg_pt1  = contour_parameters[it_contour_and_segment->second];
+                    const float param_seg_pt2  = contour_parameters[it_contour_and_segment->second + 1];
 #ifdef INFILL_DEBUG_OUTPUT
                     this->perimeter_overlaps.push_back({ Point((seg_pt1 + (seg_pt2 - seg_pt1).normalized() * interval.first).cast<coord_t>()),
                                                          Point((seg_pt1 + (seg_pt2 - seg_pt1).normalized() * interval.second).cast<coord_t>()) });
 #endif // INFILL_DEBUG_OUTPUT
-                    const float param_overlap1 = param_seg_pt1 + interval.first;
-                    const float param_overlap2 = param_seg_pt1 + interval.second;
+                    assert(interval.first >= 0.);
+                    assert(interval.second >= 0.);
+                    assert(interval.first <= interval.second);
+                    const auto param_overlap1 = std::min(param_seg_pt2, float(param_seg_pt1 + interval.first));
+                    const auto param_overlap2 = std::min(param_seg_pt2, float(param_seg_pt1 + interval.second));
                     // 2) Find the ContourIntersectionPoints before param_overlap1 and after param_overlap2.
                     // Find the span of ContourIntersectionPoints, that is trimmed by the interval (param_overlap1, param_overlap2).
                     ContourIntersectionPoint *ip_low, *ip_high;

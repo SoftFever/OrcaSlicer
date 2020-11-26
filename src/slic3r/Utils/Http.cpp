@@ -448,6 +448,15 @@ Http& Http::auth_digest(const std::string &user, const std::string &password)
 	return *this;
 }
 
+Http& Http::auth_basic(const std::string &user, const std::string &password)
+{
+    curl_easy_setopt(p->curl, CURLOPT_USERNAME, user.c_str());
+    curl_easy_setopt(p->curl, CURLOPT_PASSWORD, password.c_str());
+    curl_easy_setopt(p->curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+
+    return *this;
+}
+
 Http& Http::ca_file(const std::string &name)
 {
 	if (p && priv::ca_file_supported(p->curl)) {

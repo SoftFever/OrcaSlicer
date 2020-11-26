@@ -513,6 +513,10 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     m_og_sla->append_line(line);
 
     m_og_sla->activate();
+    choice = dynamic_cast<Choice*>(m_og_sla->get_field("support"));
+    choice->suppress_scroll();
+    choice = dynamic_cast<Choice*>(m_og_sla->get_field("pad"));
+    choice->suppress_scroll();
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_og->sizer, 0, wxEXPAND);

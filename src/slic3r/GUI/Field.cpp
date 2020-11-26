@@ -861,9 +861,15 @@ void Choice::BUILD() {
     temp->SetItemBitmap(0, empty_bmp);
 #endif
 
-// 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
     temp->Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_is_dropped = true;  });
-    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_is_dropped = false; });
+    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this, temp](wxCommandEvent&) {
+		// EVT_COMBOBOX_CLOSEUP is called after EVT_COMBOBOX on Windows
+		// so, always set m_suppress_change to "true"
+#ifndef __WXMSW__ 
+		if (m_last_selected == temp->GetSelection())
+#endif //__WXMSW__
+            m_is_dropped = false;
+    });
 
     temp->Bind(wxEVT_COMBOBOX, ([this, temp](wxCommandEvent evt) {
         if (m_suppress_scroll) {
@@ -874,6 +880,7 @@ void Choice::BUILD() {
             m_last_selected = evt.GetSelection();
         }
         on_change_field();
+        m_is_dropped = false;
     }), temp->GetId());
 
     if (m_is_editable) {
@@ -998,13 +1005,14 @@ void Choice::set_value(const boost::any& value, bool change_event)
 		else
 			text_value = boost::any_cast<wxString>(value);
         size_t idx = 0;
-		for (auto el : m_opt.enum_values)
+        const std::vector<std::string>& enums = m_opt.enum_values.empty() ? m_opt.enum_labels : m_opt.enum_values;
+		for (auto el : enums)
 		{
 			if (el == text_value)
 				break;
 			++idx;
 		}
-        if (idx == m_opt.enum_values.size()) {
+        if (idx == enums.size()) {
             // For editable Combobox under OSX is needed to set selection to -1 explicitly,
             // otherwise selection doesn't be changed
             field->SetSelection(-1);
@@ -1012,7 +1020,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
         }
         else
 			field->SetSelection(idx);
-		if (m_suppress_scroll && idx < m_opt.enum_values.size()) m_last_selected = idx;
+		if (m_suppress_scroll && idx < enums.size()) m_last_selected = idx;
 		break;
 	}
 	case coEnum: {

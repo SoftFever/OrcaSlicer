@@ -189,10 +189,10 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_
     }
     else
     {
+        m_printer = *printer;
         const std::set<std::string>& preset_names = printer->get_preset_names();
         for (const std::string& preset_name : preset_names)
             m_presets.emplace_back(new PresetForPrinter(this, preset_name));
-        m_printer = *printer;
     }
 
     if (m_presets.size() == 1)
