@@ -104,21 +104,26 @@ bool decode_png(IStream &in_buf, ImageGreyscale &out_img)
 // Based on https://www.lemoda.net/c/write-png/
 bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb)
 {
-    bool result = false;
+    bool         result       = false;
 
-    FILE *fp = boost::nowide::fopen(file_name_utf8, "wb");
+    // Forward declaration due to the gotos.
+    png_structp  png_ptr      = nullptr;
+    png_infop    info_ptr     = nullptr;
+    png_byte   **row_pointers = nullptr;
+ 
+    FILE        *fp = boost::nowide::fopen(file_name_utf8, "wb");
     if (! fp) {
         BOOST_LOG_TRIVIAL(error) << "write_png_file: File could not be opened for writing: " << file_name_utf8;
         goto fopen_failed;
     }
 
-    png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (! png_ptr) {
         BOOST_LOG_TRIVIAL(error) << "write_png_file: png_create_write_struct() failed";
         goto png_create_write_struct_failed;
     }
 
-    png_infop info_ptr = png_create_info_struct(png_ptr);
+    info_ptr = png_create_info_struct(png_ptr);
     if (! info_ptr) {
         BOOST_LOG_TRIVIAL(error) << "write_png_file: png_create_info_struct() failed";
         goto png_create_info_struct_failed;
@@ -142,7 +147,7 @@ bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, 
         PNG_FILTER_TYPE_DEFAULT);
 
     // Initialize rows of PNG.
-    auto row_pointers = reinterpret_cast<png_byte**>(::png_malloc(png_ptr, height * sizeof(png_byte*)));
+    row_pointers = reinterpret_cast<png_byte**>(::png_malloc(png_ptr, height * sizeof(png_byte*)));
     for (size_t y = 0; y < height; ++ y) {
         auto row = reinterpret_cast<png_byte*>(::png_malloc(png_ptr, sizeof(uint8_t) * width * 3));
         row_pointers[y] = row;
@@ -157,6 +162,7 @@ bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, 
     for (size_t y = 0; y < height; ++ y)
         png_free(png_ptr, row_pointers[y]);
     png_free(png_ptr, row_pointers);
+
     result = true;
 
 png_failure:
