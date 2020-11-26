@@ -629,9 +629,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         return wxString::Format("%d", static_cast<unsigned int>(m_values[value]));
     else {
         if (label_type == ltEstimatedTime) {
-            if (value > m_layers_times.size() - 1)
-                return wxEmptyString;
-            return short_and_splitted_time(get_time_dhms(m_layers_times[value]));
+            return (value < m_layers_times.size()) ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
         }
         wxString str = m_values.empty() ?
             wxString::Format("%.*f", 2, m_label_koef * value) :
