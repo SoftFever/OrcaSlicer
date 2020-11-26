@@ -171,7 +171,11 @@ void KBShortcutsDialog::fill_shortcuts()
             { "Tab", L("Switch between Editor/Preview") },
             { "Shift+Tab", L("Collapse/Expand the sidebar") },
 #if ENABLE_CTRL_M_ON_WINDOWS
+#ifdef _WIN32
+            { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog, if enabled") },
+#else
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#endif // _WIN32
 #else
 #if defined(__linux__) || defined(__APPLE__)
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },

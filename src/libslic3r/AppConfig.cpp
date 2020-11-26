@@ -117,6 +117,12 @@ void AppConfig::set_defaults()
 
         if (get("use_inches").empty())
             set("use_inches", "0");
+
+        if (get("default_action_on_close_application").empty())
+            set("default_action_on_close_application", "none"); // , "discard" or "save" 
+
+        if (get("default_action_on_select_preset").empty())
+            set("default_action_on_select_preset", "none");     // , "transfer", "discard" or "save" 
     }
 #if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
     else {
@@ -142,11 +148,12 @@ void AppConfig::set_defaults()
     if (get("show_splash_screen").empty())
         set("show_splash_screen", "1");
 
-    if (get("default_action_on_close_application").empty())
-        set("default_action_on_close_application", "none"); // , "discard" or "save" 
-
-    if (get("default_action_on_select_preset").empty())
-        set("default_action_on_select_preset", "none");     // , "transfer", "discard" or "save" 
+#if ENABLE_CTRL_M_ON_WINDOWS
+#ifdef _WIN32
+    if (get("use_legacy_3DConnexion").empty())
+        set("use_legacy_3DConnexion", "0");
+#endif // _WIN32
+#endif // ENABLE_CTRL_M_ON_WINDOWS
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");

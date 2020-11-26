@@ -2434,9 +2434,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #if ENABLE_CTRL_M_ON_WINDOWS
         case WXK_CONTROL_M:
         {
-            Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-            controller.show_settings_dialog(!controller.is_settings_dialog_shown());
-            m_dirty = true;
+#ifdef _WIN32
+            if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "1") {
+#endif //_WIN32
+                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+                m_dirty = true;
+#ifdef _WIN32
+            }
+#endif //_WIN32
             break;
         }
 #else
@@ -3880,26 +3886,26 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     const float x = pos_x * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
 
-    imgui->begin(_(L("Arrange options")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    imgui->begin(_L("Arrange options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
     ArrangeSettings settings = m_arrange_settings;
 
     auto &appcfg = wxGetApp().app_config;
 
     bool settings_changed = false;
 
-    if (imgui->slider_float(_(L("Gap size")), &settings.distance, 0.f, 100.f)) {
+    if (imgui->slider_float(_L("Gap size"), &settings.distance, 0.f, 100.f)) {
         m_arrange_settings.distance = settings.distance;
         settings_changed = true;
     }
 
-    if (imgui->checkbox(_(L("Enable rotations (slow)")), settings.enable_rotation)) {
+    if (imgui->checkbox(_L("Enable rotations (slow)"), settings.enable_rotation)) {
         m_arrange_settings.enable_rotation = settings.enable_rotation;
         settings_changed = true;
     }
 
     ImGui::Separator();
 
-    if (imgui->button(_(L("Reset")))) {
+    if (imgui->button(_L("Reset"))) {
         m_arrange_settings = ArrangeSettings{};
         settings_changed = true;
     }
@@ -3911,7 +3917,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
 
     ImGui::SameLine();
 
-    if (imgui->button(_(L("Arrange")))) {
+    if (imgui->button(_L("Arrange"))) {
         wxGetApp().plater()->arrange();
     }
 

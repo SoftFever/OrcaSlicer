@@ -202,6 +202,17 @@ void PreferencesDialog::build()
 	option = Option(def, "show_splash_screen");
 	m_optgroup_general->append_single_option_line(option);
 
+#if ENABLE_CTRL_M_ON_WINDOWS
+#ifdef _WIN32
+	def.label = L("Enable support for legacy 3DConnexion devices");
+	def.type = coBool;
+	def.tooltip = L("If enabled, the legacy 3DConnexion devices settings dialog is available by pressing CTRL+M");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("use_legacy_3DConnexion") == "1" });
+	option = Option(def, "use_legacy_3DConnexion");
+	m_optgroup_general->append_single_option_line(option);
+#endif // _WIN32
+#endif // ENABLE_CTRL_M_ON_WINDOWS
+
 	m_optgroup_general->activate();
 
 	m_optgroup_camera = std::make_shared<ConfigOptionsGroup>(this, _L("Camera"));
