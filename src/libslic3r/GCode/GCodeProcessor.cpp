@@ -403,7 +403,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         // remove trailing '\n'
         assert(! gcode_line.empty());
         assert(gcode_line.back() == '\n');
-        return gcode_line.substr(0, gcode_line.length() - 1) == ";" + Layer_Change_Tag;
+
+        // return true for decorations which are used in processing the gcode but that should not be exported into the final gcode
+        // i.e.:
+        // bool ret = gcode_line.substr(0, gcode_line.length() - 1) == ";" + Layer_Change_Tag;
+        // ...
+        // return ret;
+        return false;
     };
 
     // Iterators for the normal and silent cached time estimate entry recently processed, used by process_line_G1.
@@ -1211,6 +1217,14 @@ bool GCodeProcessor::process_cura_tags(const std::string_view comment)
         return true;
     }
 
+    // layer
+    tag = "LAYER:";
+    pos = comment.find(tag);
+    if (pos != comment.npos) {
+        ++m_layer_id;
+        return true;
+    }
+
     return false;
 }
 
@@ -1295,9 +1309,8 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
         return true;
     }
 
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // geometry
-
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // ; tool
     std::string tag = " tool";
     pos = comment.find(tag);
@@ -1321,6 +1334,19 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
         return true;
     }
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+    // ; layer
+    std::string tag = " layer";
+    pos = comment.find(tag);
+    if (pos == 0) {
+        // skip lines "; layer end"
+        const std::string_view data = comment.substr(pos + tag.length());
+        size_t end_start = data.find("end");
+        if (end_start == data.npos)
+            ++m_layer_id;
+
+        return true;
+    }
 
     return false;
 }
@@ -1362,6 +1388,13 @@ bool GCodeProcessor::process_craftware_tags(const std::string_view comment)
         return true;
     }
 
+    // layer
+    pos = comment.find(" Layer #");
+    if (pos == 0) {
+        ++m_layer_id;
+        return true;
+    }
+
     return false;
 }
 
@@ -1393,9 +1426,8 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string_view comment)
         return true;
     }
 
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // geometry
-
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // width
     tag = "WIDTH:";
     pos = comment.find(tag);
@@ -1414,6 +1446,13 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string_view comment)
         return true;
     }
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+    // layer
+    pos = comment.find("LAYER:");
+    if (pos == 0) {
+        ++m_layer_id;
+        return true;
+    }
 
     return false;
 }
