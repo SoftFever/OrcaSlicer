@@ -61,6 +61,7 @@ private:
     coordf_t m_last_print_z = -1.;
     const PrintObject* m_last_po = nullptr;
 
+    bool m_last_loop_was_external = true;
 
     std::vector<std::vector<CustomTrianglesPerLayer>> m_enforcers;
     std::vector<std::vector<CustomTrianglesPerLayer>> m_blockers;

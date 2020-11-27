@@ -458,22 +458,38 @@ Point SeamPlacer::get_seam(const Layer& layer, const SeamPosition seam_position,
         return polygon.points[idx_min];
 
     } else { // spRandom
-        if (loop.loop_role() == elrContourInternalPerimeter && loop.role() != erExternalPerimeter) {
-            // This loop does not contain any other loop. Set a random position.
-            // The other loops will get a seam close to the random point chosen
-            // on the innermost contour.
-            //FIXME This works correctly for inner contours first only.
-            last_pos = this->get_random_seam(layer_idx, polygon, po_idx);
-        }
-        if (loop.role() == erExternalPerimeter && is_custom_seam_on_layer(layer_idx, po_idx)) {
-            // There is a possibility that the loop will be influenced by custom
-            // seam enforcer/blocker. In this case do not inherit the seam
-            // from internal loops (which may conflict with the custom selection
-            // and generate another random one.
-            bool saw_custom = false;
-            Point candidate = this->get_random_seam(layer_idx, polygon, po_idx, &saw_custom);
-            if (saw_custom)
-                last_pos = candidate;
+        if (po->print()->default_region_config().external_perimeters_first) {
+            if (loop.role() == erExternalPerimeter)
+                last_pos = this->get_random_seam(layer_idx, polygon, po_idx);
+            else {
+                // Internal perimeters will just use last_pos.
+            }
+        } else {
+            if (loop.loop_role() == elrContourInternalPerimeter && loop.role() != erExternalPerimeter) {
+                // This loop does not contain any other loop. Set a random position.
+                // The other loops will get a seam close to the random point chosen
+                // on the innermost contour.
+                last_pos = this->get_random_seam(layer_idx, polygon, po_idx);
+                m_last_loop_was_external = false;
+            }
+            if (loop.role() == erExternalPerimeter) {
+                if (m_last_loop_was_external) {
+                    // There was no internal perimeter before this one.
+                    last_pos = this->get_random_seam(layer_idx, polygon, po_idx);
+                } else {
+                    if (is_custom_seam_on_layer(layer_idx, po_idx)) {
+                        // There is a possibility that the loop will be influenced by custom
+                        // seam enforcer/blocker. In this case do not inherit the seam
+                        // from internal loops (which may conflict with the custom selection
+                        // and generate another random one.
+                        bool saw_custom = false;
+                        Point candidate = this->get_random_seam(layer_idx, polygon, po_idx, &saw_custom);
+                        if (saw_custom)
+                            last_pos = candidate;
+                    }
+                }
+                m_last_loop_was_external = true;
+            }
         }
         return last_pos;
     }
