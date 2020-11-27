@@ -103,15 +103,15 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
 
     // parameters for an icon's drawing
     fill_width_height();
-    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_suppress_change = false; });
-    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) {
-        // EVT_COMBOBOX_CLOSEUP is called after EVT_COMBOBOX on Windows
-        // so, always set m_suppress_change to "true"
-#ifndef __WXMSW__ 
-        if (m_last_selected == this->GetSelection())
-#endif //__WXMSW__
-            m_suppress_change = true;
+
+    Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& e) {
+        if (m_suppress_change)
+            e.StopPropagation();
+        else
+            e.Skip();
     });
+    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_suppress_change = false; });
+    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_suppress_change = true;  });
 
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         // see https://github.com/prusa3d/PrusaSlicer/issues/3889
@@ -154,15 +154,6 @@ bool PresetComboBox::set_printer_technology(PrinterTechnology pt)
         return true;
     }
     return false;
-}
-
-bool PresetComboBox::check_event_for_suppress_change(wxCommandEvent& evt)
-{
-    if (m_suppress_change) {
-        evt.StopPropagation();
-        SetSelection(m_last_selected);
-    }
-    return m_suppress_change;
 }
 
 void PresetComboBox::invalidate_selection()
@@ -552,8 +543,6 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     PresetComboBox(parent, preset_type, wxSize(15 * wxGetApp().em_unit(), -1))
 {
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
-        if (check_event_for_suppress_change(evt))
-            return;
         auto selected_item = evt.GetSelection();
 
         auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
@@ -579,7 +568,6 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
         } else {
             evt.StopPropagation();
         }
-        m_suppress_change = true;
     });
 
     if (m_type == Preset::TYPE_FILAMENT)
@@ -892,8 +880,6 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type)
     PresetComboBox(parent, preset_type, wxSize(35 * wxGetApp().em_unit(), -1))
 {
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
-        if (check_event_for_suppress_change(evt))
-            return;
         // see https://github.com/prusa3d/PrusaSlicer/issues/3889
         // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
         // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
@@ -919,7 +905,6 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type)
         }
 
         evt.StopPropagation();
-        m_suppress_change = true;
     });
 }
 

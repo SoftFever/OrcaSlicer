@@ -99,7 +99,6 @@ protected:
 
     PrinterTechnology printer_technology {ptAny};
 
-    bool check_event_for_suppress_change(wxCommandEvent& evt);
     void invalidate_selection();
     void validate_selection(bool predicate = false);
     void update_selection();
