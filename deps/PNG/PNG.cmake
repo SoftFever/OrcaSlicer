@@ -8,7 +8,8 @@ prusaslicer_add_cmake_project(PNG
         -DPNG_STATIC=ON
         -DPNG_PREFIX=prusaslicer_
         -DPNG_TESTS=OFF
-        -DDISABLE_DEPENDENCY_TRACKING
+        -DDISABLE_DEPENDENCY_TRACKING=OFF
+        -DPNG_ARM_NEON=off
 )
 
 if (MSVC)
