@@ -19,15 +19,18 @@ if (MSVC)
 else ()
     set(_gmp_ccflags "-O2 -DNDEBUG -fPIC -DPIC -Wall -Wmissing-prototypes -Wpointer-arith -pedantic -fomit-frame-pointer -fno-common")
     set(_gmp_build_tgt "${CMAKE_SYSTEM_PROCESSOR}")
-    if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
-        set(_gmp_ccflags "${_gmp_ccflags} -march=armv7-a") # Works on RPi-4
-        set(_gmp_build_tgt armv7)
-    endif()
 
     if (APPLE)
+        if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+            set(_gmp_build_tgt aarch64)
+        endif()
         set(_gmp_ccflags "${_gmp_ccflags} -mmacosx-version-min=${DEP_OSX_TARGET}")
         set(_gmp_build_tgt "--build=${_gmp_build_tgt}-apple-darwin")
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+            set(_gmp_ccflags "${_gmp_ccflags} -march=armv7-a") # Works on RPi-4
+            set(_gmp_build_tgt armv7)
+        endif()
         set(_gmp_build_tgt "--build=${_gmp_build_tgt}-pc-linux-gnu")
     else ()
         set(_gmp_build_tgt "") # let it guess
