@@ -2132,7 +2132,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 #if ENABLE_DRAG_AND_DROP_FIX
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
-        BOOST_LOG_TRIVIAL(error) << "received load from other instance event (1)";
+        BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
         wxArrayString input_files;
         for (size_t i = 0; i < evt.data.size(); ++i) {
             input_files.push_back(from_u8(evt.data[i].string()));
@@ -2142,7 +2142,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     });
 #else
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent &evt) {
-		BOOST_LOG_TRIVIAL(error) << "received load from other instance event (2)";
+		BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
         this->load_files(evt.data, true, true);
     });
 #endif // ENABLE_DRAG_AND_DROP_FIX
