@@ -1279,7 +1279,9 @@ void Tab::update_preset_description_line()
     } else if (parent == nullptr) {
         description_line = _(L("Current preset is inherited from the default preset."));
     } else {
-        description_line = _(L("Current preset is inherited from")) + ":\n\t" + parent->name;
+        std::string name = parent->name;
+        boost::replace_all(name, "&", "&&");
+        description_line = _(L("Current preset is inherited from")) + ":\n\t" + from_u8(name);
     }
 
     if (preset.is_default || preset.is_system)
