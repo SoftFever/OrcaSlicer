@@ -122,10 +122,6 @@ static Point find_first_different_vertex(const Polygon &polygon, const size_t po
     return polygon.points[line_idx];
 }
 
-//FIXME will be in Point.h in the master
-template<typename T, int Options>
-inline Eigen::Matrix<T, 2, 1, Eigen::DontAlign> perp(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>>& v) { return Eigen::Matrix<T, 2, 1, Eigen::DontAlign>(-v.y(), v.x()); }
-
 static Vec2d three_points_inward_normal(const Point &left, const Point &middle, const Point &right)
 {
     assert(left != middle);
@@ -223,11 +219,11 @@ static Direction get_shortest_direction(const AvoidCrossingPerimeters::Boundary 
     float total_length_backward = dist_first + contour_length - dist_second;
     if (reversed) std::swap(total_length_forward, total_length_backward);
 
-    total_length_forward  -= (intersection_first.point - poly[intersection_first.line_idx]).cast<double>().norm();
-    total_length_backward -= (poly[(intersection_first.line_idx + 1) % poly.size()] - intersection_first.point).cast<double>().norm();
+    total_length_forward  -= (intersection_first.point - poly[intersection_first.line_idx]).cast<float>().norm();
+    total_length_backward -= (poly[(intersection_first.line_idx + 1) % poly.size()] - intersection_first.point).cast<float>().norm();
 
-    total_length_forward  -= (poly[(intersection_second.line_idx + 1) % poly.size()] - intersection_second.point).cast<double>().norm();
-    total_length_backward -= (intersection_second.point - poly[intersection_second.line_idx]).cast<double>().norm();
+    total_length_forward  -= (poly[(intersection_second.line_idx + 1) % poly.size()] - intersection_second.point).cast<float>().norm();
+    total_length_backward -= (intersection_second.point - poly[intersection_second.line_idx]).cast<float>().norm();
 
     if (total_length_forward < total_length_backward) return Direction::Forward;
     return Direction::Backward;
