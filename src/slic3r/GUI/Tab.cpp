@@ -27,6 +27,7 @@
 #include <wx/filedlg.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include "wxExtensions.hpp"
 #include "PresetComboBoxes.hpp"
 #include <wx/wupdlock.h>
@@ -1279,7 +1280,9 @@ void Tab::update_preset_description_line()
     } else if (parent == nullptr) {
         description_line = _(L("Current preset is inherited from the default preset."));
     } else {
-        description_line = _(L("Current preset is inherited from")) + ":\n\t" + parent->name;
+        std::string name = parent->name;
+        boost::replace_all(name, "&", "&&");
+        description_line = _(L("Current preset is inherited from")) + ":\n\t" + from_u8(name);
     }
 
     if (preset.is_default || preset.is_system)
@@ -1423,6 +1426,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Infill"));
         optgroup->append_single_option_line("fill_density", category_path + "fill-density");
         optgroup->append_single_option_line("fill_pattern", category_path + "fill-pattern");
+        optgroup->append_single_option_line("infill_anchor", category_path + "fill-pattern");
+        optgroup->append_single_option_line("infill_anchor_max", category_path + "fill-pattern");
         optgroup->append_single_option_line("top_fill_pattern", category_path + "top-fill-pattern");
         optgroup->append_single_option_line("bottom_fill_pattern", category_path + "bottom-fill-pattern");
 
@@ -1785,6 +1790,19 @@ void TabFilament::build()
         optgroup->append_single_option_line("extrusion_multiplier");
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
+        optgroup->append_single_option_line("filament_spool_weight");
+
+        optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
+        {
+            update_dirty();
+            if (opt_key == "filament_spool_weight") {
+                // Change of this option influences for an update of "Sliced Info"
+                wxGetApp().sidebar().update_sliced_info_sizer();
+                wxGetApp().sidebar().Layout();
+            }
+            else
+                on_value_change(opt_key, value);
+        };
 
 //        optgroup = page->new_optgroup(_(L("Temperature")) + wxString(" °C", wxConvUTF8));
         optgroup = page->new_optgroup(L("Temperature"));
@@ -2373,13 +2391,11 @@ PageShp TabPrinter::build_kinematics_page()
     if (m_use_silent_mode) {
         // Legend for OptionsGroups
         auto optgroup = page->new_optgroup("");
-        optgroup->set_show_modified_btns_val(false);
-        optgroup->label_width = 23;// 230;
         auto line = Line{ "", "" };
 
         ConfigOptionDef def;
         def.type = coString;
-        def.width = 15;
+        def.width = Field::def_width();
         def.gui_type = "legend";
         def.mode = comAdvanced;
         def.tooltip = L("Values in this column are for Normal mode");
@@ -3784,7 +3800,7 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
     for (auto group : m_optgroups) {
         if (!group->activate(throw_if_canceled))
             continue;
-        m_vsizer->Add(group->sizer, 0, wxEXPAND | wxALL, 10);
+        m_vsizer->Add(group->sizer, 0, wxEXPAND | (group->is_legend_line() ? (wxLEFT|wxTOP) : wxALL), 10);
         group->update_visibility(mode);
         group->reload_config();
         throw_if_canceled();

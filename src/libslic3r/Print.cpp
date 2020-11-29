@@ -99,6 +99,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "filament_density",
         "filament_notes",
         "filament_cost",
+        "filament_spool_weight",
         "first_layer_acceleration",
         "first_layer_bed_temperature",
         "first_layer_speed",
@@ -1220,9 +1221,9 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
 	        // instance.shift is a position of a centered object, while model object may not be centered.
 	        // Conver the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
 	        convex_hull.translate(instance.shift - print_object->center_offset());
-	        if (! intersection(convex_hulls_other, convex_hull).empty())
+	        if (! intersection(convex_hulls_other, (Polygons)convex_hull).empty())
 	            return false;
-	        polygons_append(convex_hulls_other, convex_hull);
+	        convex_hulls_other.emplace_back(std::move(convex_hull));
 	    }
 	}
 	return true;

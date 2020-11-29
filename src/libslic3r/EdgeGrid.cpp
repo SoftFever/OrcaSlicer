@@ -3,16 +3,16 @@
 #include <float.h>
 #include <unordered_map>
 
-#if 0
-// #ifdef SLIC3R_GUI
-#include <wx/image.h>
-#endif /* SLIC3R_GUI */
+#include <png.h>
 
 #include "libslic3r.h"
 #include "ClipperUtils.hpp"
 #include "EdgeGrid.hpp"
 #include "Geometry.hpp"
 #include "SVG.hpp"
+#include "PNGReadWrite.hpp"
+
+// #define EDGE_GRID_DEBUG_OUTPUT
 
 #if 0
 // Enable debugging and assert in this file.
@@ -53,6 +53,24 @@ void EdgeGrid::Grid::create(const Polygons &polygons, coord_t resolution)
 			m_contours[ncontours ++] = &polygons[j].points;
 
 	create_from_m_contours(resolution);
+}
+
+void EdgeGrid::Grid::create(const std::vector<const Polygon*> &polygons, coord_t resolution)
+{
+	// Count the contours.
+	size_t ncontours = 0;
+	for (size_t j = 0; j < polygons.size(); ++ j)
+		if (! polygons[j]->points.empty())
+			++ ncontours;
+
+	// Collect the contours.
+	m_contours.assign(ncontours, nullptr);
+	ncontours = 0;
+	for (size_t j = 0; j < polygons.size(); ++ j)
+		if (! polygons[j]->points.empty())
+			m_contours[ncontours ++] = &polygons[j]->points;
+
+	create_from_m_contours(resolution);	
 }
 
 void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolution)
@@ -659,6 +677,11 @@ struct PropagateDanielssonSingleVStep3 {
 
 void EdgeGrid::Grid::calculate_sdf()
 {
+#ifdef EDGE_GRID_DEBUG_OUTPUT
+	static int iRun = 0;
+	++ iRun;
+#endif
+
 	// 1) Initialize a signum and an unsigned vector to a zero iso surface.
 	size_t nrows = m_rows + 1;
 	size_t ncols = m_cols + 1;
@@ -756,19 +779,12 @@ void EdgeGrid::Grid::calculate_sdf()
 		}
 	}
 
-#if 0
-	static int iRun = 0;
-	++ iRun;
-    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
-        wxImage::AddHandler(new wxPNGHandler);
-//#ifdef SLIC3R_GUI
+#ifdef EDGE_GRID_DEBUG_OUTPUT
 	{ 
-		wxImage img(ncols, nrows);
-		unsigned char *data = img.GetData();
-		memset(data, 0, ncols * nrows * 3);
-		for (coord_t r = 0; r < nrows; ++r) {
-			for (coord_t c = 0; c < ncols; ++c) {
-				unsigned char *pxl = data + (((nrows - r - 1) * ncols) + c) * 3;
+		std::vector<uint8_t> pixels(ncols * nrows * 3, 0);
+		for (coord_t r = 0; r < nrows; ++ r) {
+			for (coord_t c = 0; c < ncols; ++ c) {
+				uint8_t *pxl = pixels.data() + (((nrows - r - 1) * ncols) + c) * 3;
 				float d = m_signed_distance_field[r * ncols + c];
 				if (d != search_radius) {
 					float s = 255 * d / search_radius;
@@ -784,15 +800,13 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("unsigned_df-%d.png", iRun), wxBITMAP_TYPE_PNG);
+		png::write_rgb_to_file_scaled(debug_out_path("unsigned_df-%d.png", iRun), ncols, nrows, pixels, 10);
 	}
 	{
-		wxImage img(ncols, nrows);
-		unsigned char *data = img.GetData();
-		memset(data, 0, ncols * nrows * 3);
-		for (coord_t r = 0; r < nrows; ++r) {
-			for (coord_t c = 0; c < ncols; ++c) {
-				unsigned char *pxl = data + (((nrows - r - 1) * ncols) + c) * 3;
+		std::vector<uint8_t> pixels(ncols * nrows * 3, 0);
+		for (coord_t r = 0; r < nrows; ++ r) {
+			for (coord_t c = 0; c < ncols; ++ c) {
+				unsigned char *pxl = pixels.data() + (((nrows - r - 1) * ncols) + c) * 3;
 				float d = m_signed_distance_field[r * ncols + c];
 				if (d != search_radius) {
 					float s = 255 * d / search_radius;
@@ -817,9 +831,9 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df-%d.png", iRun), wxBITMAP_TYPE_PNG);
+		png::write_rgb_to_file_scaled(debug_out_path("signed_df-%d.png", iRun), ncols, nrows, pixels, 10);
 	}
-#endif /* SLIC3R_GUI */
+#endif // EDGE_GRID_DEBUG_OUTPUT
 
 	// 2) Propagate the signum.
 	#define PROPAGATE_SIGNUM_SINGLE_STEP(DELTA) do { \
@@ -891,17 +905,14 @@ void EdgeGrid::Grid::calculate_sdf()
 		}
 	}
 
-#if 0
-//#ifdef SLIC3R_GUI
+#ifdef EDGE_GRID_DEBUG_OUTPUT
 	{
-		wxImage img(ncols, nrows);
-		unsigned char *data = img.GetData();
-		memset(data, 0, ncols * nrows * 3);
+		std::vector<uint8_t> pixels(ncols * nrows * 3, 0);
 		float search_radius = float(m_resolution * 5);
 		for (coord_t r = 0; r < nrows; ++r) {
 			for (coord_t c = 0; c < ncols; ++c) {
-				unsigned char *pxl = data + (((nrows - r - 1) * ncols) + c) * 3;
-				unsigned char sign = signs[r * ncols + c];
+				uint8_t *pxl = pixels.data() + (((nrows - r - 1) * ncols) + c) * 3;
+				uint8_t sign = signs[r * ncols + c];
 				switch (sign) {
 				case 0:
 					// Positive, outside of a narrow band.
@@ -942,20 +953,17 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df-signs-%d.png", iRun), wxBITMAP_TYPE_PNG);
+		png::write_rgb_to_file_scaled(debug_out_path("signed_df-signs-%d.png", iRun), ncols, nrows, pixels, 10);
 	}
-#endif /* SLIC3R_GUI */
+#endif // EDGE_GRID_DEBUG_OUTPUT
 
-#if 0
-//#ifdef SLIC3R_GUI
+#ifdef EDGE_GRID_DEBUG_OUTPUT
 	{
-		wxImage img(ncols, nrows);
-		unsigned char *data = img.GetData();
-		memset(data, 0, ncols * nrows * 3);
+		std::vector<uint8_t> pixels(ncols * nrows * 3, 0);
 		float search_radius = float(m_resolution * 5);
 		for (coord_t r = 0; r < nrows; ++r) {
 			for (coord_t c = 0; c < ncols; ++c) {
-				unsigned char *pxl = data + (((nrows - r - 1) * ncols) + c) * 3;
+				uint8_t *pxl = pixels.data() + (((nrows - r - 1) * ncols) + c) * 3;
 				float d = m_signed_distance_field[r * ncols + c];
 				float s = 255.f * fabs(d) / search_radius;
 				int is = std::max(0, std::min(255, int(floor(s + 0.5f))));
@@ -971,9 +979,9 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df2-%d.png", iRun), wxBITMAP_TYPE_PNG);
+		png::write_rgb_to_file_scaled(debug_out_path("signed_df2-%d.png", iRun), ncols, nrows, pixels, 10);
 	}
-#endif /* SLIC3R_GUI */
+#endif // EDGE_GRID_DEBUG_OUTPUT
 }
 
 float EdgeGrid::Grid::signed_distance_bilinear(const Point &pt) const
@@ -1150,7 +1158,7 @@ EdgeGrid::Grid::ClosestPointResult EdgeGrid::Grid::closest_point(const Point &pt
     if (result.contour_idx != size_t(-1) && d_min <= double(search_radius)) {
 		result.distance = d_min * sign_min;
 		result.t /= l2_seg_min;
-		assert(result.t >= 0. && result.t < 1.);
+		assert(result.t >= 0. && result.t <= 1.);
 #ifndef NDEBUG
 		{
 			const Slic3r::Points &pts = *m_contours[result.contour_idx];
@@ -1473,26 +1481,18 @@ bool EdgeGrid::Grid::has_intersecting_edges() const
 	return false;
 }
 
-#if 0
-void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path)
+void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path, size_t scale)
 {
-    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
-        wxImage::AddHandler(new wxPNGHandler);
-
 	unsigned int w = (bbox.max(0) - bbox.min(0) + resolution - 1) / resolution;
 	unsigned int h = (bbox.max(1) - bbox.min(1) + resolution - 1) / resolution;
-	wxImage img(w, h);
-    unsigned char *data = img.GetData();
-    memset(data, 0, w * h * 3);
 
-	static int iRun = 0;
-	++iRun;
-    
+	std::vector<uint8_t> pixels(w * h * 3, 0);
+
     const coord_t search_radius = grid.resolution() * 2;
 	const coord_t display_blend_radius = grid.resolution() * 2;
 	for (coord_t r = 0; r < h; ++r) {
     	for (coord_t c = 0; c < w; ++ c) {
-			unsigned char *pxl = data + (((h - r - 1) * w) + c) * 3;
+			unsigned char *pxl = pixels.data() + (((h - r - 1) * w) + c) * 3;
 			Point pt(c * resolution + bbox.min(0), r * resolution + bbox.min(1));
 			coordf_t min_dist;
 			bool on_segment = true;
@@ -1566,9 +1566,8 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
 		}
     }
 
-    img.SaveFile(path, wxBITMAP_TYPE_PNG);
+	png::write_rgb_to_file_scaled(path, w, h, pixels, scale);
 }
-#endif /* SLIC3R_GUI */
 
 // Find all pairs of intersectiong edges from the set of polygons.
 std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>> intersecting_edges(const Polygons &polygons)

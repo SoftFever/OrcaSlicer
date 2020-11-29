@@ -17,8 +17,6 @@ class MultiPoint
 public:
     Points points;
     
-    operator Points() const { return this->points; }
-
     MultiPoint() {}
     MultiPoint(const MultiPoint &other) : points(other.points) {}
     MultiPoint(MultiPoint &&other) : points(std::move(other.points)) {}

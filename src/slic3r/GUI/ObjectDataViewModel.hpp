@@ -300,15 +300,15 @@ public:
 
     // helper methods to change the model
 
-    virtual unsigned int    GetColumnCount() const override { return 3;}
-    virtual wxString        GetColumnType(unsigned int col) const override{ return wxT("string"); }
+    unsigned int    GetColumnCount() const override { return 3;}
+    wxString        GetColumnType(unsigned int col) const override{ return wxT("string"); }
 
-    virtual void GetValue(  wxVariant &variant,
-                            const wxDataViewItem &item,
-                            unsigned int col) const override;
-    virtual bool SetValue(  const wxVariant &variant,
-                            const wxDataViewItem &item,
-                            unsigned int col) override;
+    void GetValue(  wxVariant &variant,
+                    const wxDataViewItem &item,
+                    unsigned int col) const override;
+    bool SetValue(  const wxVariant &variant,
+                    const wxDataViewItem &item,
+                    unsigned int col) override;
     bool SetValue(  const wxVariant &variant,
                     const int item_idx,
                     unsigned int col);
@@ -322,18 +322,17 @@ public:
                                         const wxDataViewItem &parent);
     wxDataViewItem  ReorganizeObjects( int current_id, int new_id);
 
-    virtual bool    IsEnabled(const wxDataViewItem &item, unsigned int col) const override;
+    bool    IsEnabled(const wxDataViewItem &item, unsigned int col) const override;
 
-    virtual wxDataViewItem  GetParent(const wxDataViewItem &item) const override;
+    wxDataViewItem  GetParent(const wxDataViewItem &item) const override;
     // get object item
     wxDataViewItem          GetTopParent(const wxDataViewItem &item) const;
-    virtual bool            IsContainer(const wxDataViewItem &item) const override;
-    virtual unsigned int    GetChildren(const wxDataViewItem &parent,
-                                        wxDataViewItemArray &array) const override;
+    bool            IsContainer(const wxDataViewItem &item) const override;
+    unsigned int    GetChildren(const wxDataViewItem &parent, wxDataViewItemArray &array) const override;
     void GetAllChildren(const wxDataViewItem &parent,wxDataViewItemArray &array) const;
     // Is the container just a header or an item with all columns
     // In our case it is an item with all columns
-    virtual bool    HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
+    bool    HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
 
     ItemType        GetItemType(const wxDataViewItem &item) const ;
     wxDataViewItem  GetItemByType(  const wxDataViewItem &parent_item,

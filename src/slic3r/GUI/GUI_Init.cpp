@@ -22,7 +22,6 @@ namespace GUI {
 int GUI_Run(GUI_InitParams &params)
 {
     try {
-#if ENABLE_GCODE_VIEWER
         GUI::GUI_App* gui = new GUI::GUI_App(params.start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
         if (gui->get_app_mode() != GUI::GUI_App::EAppMode::GCodeViewer) {
             // G-code viewer is currently not performing instance check, a new G-code viewer is started every time.
@@ -32,29 +31,20 @@ int GUI_Run(GUI_InitParams &params)
                 return -1;
             }
         }
-#else
-        GUI::GUI_App *gui = new GUI::GUI_App();
-#endif // ENABLE_GCODE_VIEWER
 
 //      gui->autosave = m_config.opt_string("autosave");
         GUI::GUI_App::SetInstance(gui);
         gui->init_params = &params;
 /*
-#if ENABLE_GCODE_VIEWER
         gui->CallAfter([gui, this, &load_configs, params.start_as_gcodeviewer] {
-#else
-        gui->CallAfter([gui, this, &load_configs] {
-#endif // ENABLE_GCODE_VIEWER
             if (!gui->initialized()) {
                 return;
             }
 
-#if ENABLE_GCODE_VIEWER
             if (params.start_as_gcodeviewer) {
                 if (!m_input_files.empty())
                     gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0].c_str()));
             } else {
-#endif // ENABLE_GCODE_VIEWER_AS
 #if 0
                 // Load the cummulative config over the currently active profiles.
                 //FIXME if multiple configs are loaded, only the last one will have an effect.
@@ -73,9 +63,7 @@ int GUI_Run(GUI_InitParams &params)
                     gui->plater()->load_files(m_input_files, true, true);
                 if (!m_extra_config.empty())
                     gui->mainframe->load_config(m_extra_config);
-#if ENABLE_GCODE_VIEWER
             }
-#endif // ENABLE_GCODE_VIEWER
         });
 */
         int result = wxEntry(params.argc, params.argv);

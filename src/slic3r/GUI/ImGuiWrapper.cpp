@@ -23,7 +23,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
-#include "3DScene.hpp"+
+#include "3DScene.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "Search.hpp"

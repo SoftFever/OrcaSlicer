@@ -3,7 +3,7 @@
 
 #include <numeric>
 
-#include "libslic3r/PNGRead.hpp"
+#include "libslic3r/PNGReadWrite.hpp"
 #include "libslic3r/SLA/AGGRaster.hpp"
 #include "libslic3r/BoundingBox.hpp"
 

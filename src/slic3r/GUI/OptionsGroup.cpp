@@ -106,9 +106,23 @@ OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
                             bool is_tab_opt /* = false */,
                             column_t extra_clmn /* = nullptr */) :
                 m_parent(_parent), title(title),
-                m_show_modified_btns(is_tab_opt),
+                m_use_custom_ctrl(is_tab_opt),
                 staticbox(title!=""), extra_column(extra_clmn)
 {
+}
+
+wxWindow* OptionsGroup::ctrl_parent() const
+{
+	return this->custom_ctrl && m_use_custom_ctrl_as_parent ? static_cast<wxWindow*>(this->custom_ctrl) : (this->stb ? static_cast<wxWindow*>(this->stb) : this->parent());
+}
+
+bool OptionsGroup::is_legend_line()
+{
+	if (m_lines.size() == 1) {
+		const std::vector<Option>& option_set = m_lines.front().get_options();
+		return !option_set.empty() && option_set.front().opt.gui_type == "legend";
+	}
+	return false;
 }
 
 void OptionsGroup::show_field(const t_config_option_key& opt_key, bool show/* = true*/)
@@ -196,16 +210,20 @@ void OptionsGroup::activate_line(Line& line)
 		}
     }
 
-    if (!custom_ctrl && m_show_modified_btns) {
-        custom_ctrl = new OG_CustomCtrl((wxWindow*)this->stb, this);
-        sizer->Add(custom_ctrl, 0, wxEXPAND | wxALL, wxOSX || !staticbox ? 0 : 5);
-    }
-
 	auto option_set = line.get_options();
+	bool is_legend_line = option_set.front().opt.gui_type == "legend";
+
+    if (!custom_ctrl && m_use_custom_ctrl) {
+        custom_ctrl = new OG_CustomCtrl(is_legend_line ? this->parent() : static_cast<wxWindow*>(this->stb), this);
+		if (is_legend_line)
+			sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, wxOSX ? 0 : 10);
+		else
+            sizer->Add(custom_ctrl, 0, wxEXPAND | wxALL, wxOSX || !staticbox ? 0 : 5);
+    }
 
 	// Set sidetext width for a better alignment of options in line
 	// "m_show_modified_btns==true" means that options groups are in tabs
-	if (option_set.size() > 1 && m_show_modified_btns) {
+	if (option_set.size() > 1 && m_use_custom_ctrl) {
 		sidetext_width = Field::def_width_thinner();
 	}
 
@@ -231,7 +249,7 @@ void OptionsGroup::activate_line(Line& line)
         m_use_custom_ctrl_as_parent = true;
 
 	// if we have an extra column, build it
-	if (extra_column && !m_show_modified_btns)
+	if (extra_column)
 	{
 		m_extra_column_item_ptrs.push_back(extra_column(this->ctrl_parent(), line));
 		grid_sizer->Add(m_extra_column_item_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
@@ -511,7 +529,7 @@ Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index 
 	std::pair<std::string, int> pair(opt_key, opt_index);
 	m_opt_map.emplace(opt_id, pair);
 
-	if (m_show_modified_btns) // fill group and category values just fro options from Settings Tab 
+	if (m_use_custom_ctrl) // fill group and category values just for options from Settings Tab 
 	    wxGetApp().sidebar().get_searcher().add_key(opt_id, title, this->config_category());
 
 	return Option(*m_config->def()->get(opt_key), opt_id);

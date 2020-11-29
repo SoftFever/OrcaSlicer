@@ -40,25 +40,17 @@ void PreferencesDialog::build()
 //        readonly = > !wxTheApp->have_version_check,
 //    ));
 
-#if ENABLE_GCODE_VIEWER
 	bool is_editor = wxGetApp().is_editor();
-#endif // ENABLE_GCODE_VIEWER
 
 	ConfigOptionDef def;
-#if ENABLE_GCODE_VIEWER
 	Option option(def, "");
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		def.label = L("Remember output directory");
 		def.type = coBool;
 		def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
 			"instead of the one containing the input files.");
 		def.set_default_value(new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path") == "1" : true });
-#if ENABLE_GCODE_VIEWER
 		option = Option(def, "remember_output_path");
-#else
-		Option option(def, "remember_output_path");
-#endif // ENABLE_GCODE_VIEWER
 		m_optgroup_general->append_single_option_line(option);
 
 		def.label = L("Auto-center parts");
@@ -92,6 +84,25 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool(app_config->get("export_sources_full_pathnames") == "1"));
 		option = Option(def, "export_sources_full_pathnames");
 		m_optgroup_general->append_single_option_line(option);
+
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+		// Please keep in sync with ConfigWizard
+		def.label = L("Associate .3mf files to PrusaSlicer");
+		def.type = coBool;
+		def.tooltip = L("If enabled, sets PrusaSlicer as default application to open .3mf files.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_3mf") == "1"));
+		option = Option(def, "associate_3mf");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Associate .stl files to PrusaSlicer");
+		def.type = coBool;
+		def.tooltip = L("If enabled, sets PrusaSlicer as default application to open .stl files.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_stl") == "1"));
+		option = Option(def, "associate_stl");
+		m_optgroup_general->append_single_option_line(option);
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
 		// Please keep in sync with ConfigWizard
 		def.label = L("Update built-in Presets automatically");
@@ -134,9 +145,44 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->has("single_instance") ? app_config->get("single_instance") == "1" : false });
 		option = Option(def, "single_instance");
 		m_optgroup_general->append_single_option_line(option);
-#if ENABLE_GCODE_VIEWER
+
+		/*  // ysFIXME THis part is temporary commented
+			// The using of inches is implemented just for object's size and position
+
+			def.label = L("Use inches instead of millimeters");
+			def.type = coBool;
+			def.tooltip = L("Use inches instead of millimeters for the object's size");
+			def.set_default_value(new ConfigOptionBool{ app_config->get("use_inches") == "1" });
+			option = Option(def, "use_inches");
+			m_optgroup_general->append_single_option_line(option);
+		*/
+
+		def.label = L("Ask for unsaved changes when closing application");
+		def.type = coBool;
+		def.tooltip = L("When closing the application, always ask for unsaved changes");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_close_application") == "none" });
+		option = Option(def, "default_action_on_close_application");
+		m_optgroup_general->append_single_option_line(option);
+
+		def.label = L("Ask for unsaved changes when selecting new preset");
+		def.type = coBool;
+		def.tooltip = L("Always ask for unsaved changes when selecting new preset");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_select_preset") == "none" });
+		option = Option(def, "default_action_on_select_preset");
+		m_optgroup_general->append_single_option_line(option);
 	}
-#endif // ENABLE_GCODE_VIEWER
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+	else {
+		def.label = L("Associate .gcode files to PrusaSlicer G-code Viewer");
+		def.type = coBool;
+		def.tooltip = L("If enabled, sets PrusaSlicer G-code Viewer as default application to open .gcode files.");
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_gcode") == "1"));
+		option = Option(def, "associate_gcode");
+		m_optgroup_general->append_single_option_line(option);
+	}
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
@@ -147,30 +193,6 @@ void PreferencesDialog::build()
 	option = Option (def, "use_retina_opengl");
 	m_optgroup_general->append_single_option_line(option);
 #endif
-/*  // ysFIXME THis part is temporary commented
-    // The using of inches is implemented just for object's size and position
-    
-	def.label = L("Use inches instead of millimeters");
-	def.type = coBool;
-	def.tooltip = L("Use inches instead of millimeters for the object's size");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("use_inches") == "1" });
-	option = Option(def, "use_inches");
-	m_optgroup_general->append_single_option_line(option);
-*/
-
-	def.label = L("Ask for unsaved changes when closing application");
-	def.type = coBool;
-	def.tooltip = L("When closing the application, always ask for unsaved changes");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_close_application") == "none" });
-	option = Option(def, "default_action_on_close_application");
-	m_optgroup_general->append_single_option_line(option);
-
-	def.label = L("Ask for unsaved changes when selecting new preset");
-	def.type = coBool;
-	def.tooltip = L("Always ask for unsaved changes when selecting new preset");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("default_action_on_select_preset") == "none" });
-	option = Option(def, "default_action_on_select_preset");
-	m_optgroup_general->append_single_option_line(option);
 
     // Show/Hide splash screen
 	def.label = L("Show splash screen");
@@ -179,6 +201,17 @@ void PreferencesDialog::build()
 	def.set_default_value(new ConfigOptionBool{ app_config->get("show_splash_screen") == "1" });
 	option = Option(def, "show_splash_screen");
 	m_optgroup_general->append_single_option_line(option);
+
+#if ENABLE_CTRL_M_ON_WINDOWS
+#ifdef _WIN32
+	def.label = L("Enable support for legacy 3DConnexion devices");
+	def.type = coBool;
+	def.tooltip = L("If enabled, the legacy 3DConnexion devices settings dialog is available by pressing CTRL+M");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("use_legacy_3DConnexion") == "1" });
+	option = Option(def, "use_legacy_3DConnexion");
+	m_optgroup_general->append_single_option_line(option);
+#endif // _WIN32
+#endif // ENABLE_CTRL_M_ON_WINDOWS
 
 	m_optgroup_general->activate();
 
@@ -214,16 +247,18 @@ void PreferencesDialog::build()
 	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
 	m_optgroup_gui->label_width = 40;
 	m_optgroup_gui->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+        if (opt_key == "suppress_hyperlinks")
+            m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "";
+        else
+            m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+
 		if (opt_key == "use_custom_toolbar_size") {
 			m_icon_size_sizer->ShowItems(boost::any_cast<bool>(value));
 			this->layout();
 		}
 	};
 
-#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		def.label = L("Show sidebar collapse/expand button");
 		def.type = coBool;
 		def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
@@ -237,7 +272,14 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
 		option = Option(def, "use_custom_toolbar_size");
 		m_optgroup_gui->append_single_option_line(option);
-#if ENABLE_GCODE_VIEWER
+
+		def.label = L("Suppress to open hyperlink in browser");
+		def.type = coBool;
+		def.tooltip = L("If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. "
+			"If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("suppress_hyperlinks") == "1" });
+		option = Option(def, "suppress_hyperlinks");
+		m_optgroup_gui->append_single_option_line(option);
 	}
 
 	def.label = L("Sequential slider applied only to top layer");
@@ -247,25 +289,18 @@ void PreferencesDialog::build()
 	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
-#endif // ENABLE_GCODE_VIEWER
 
 	m_optgroup_gui->activate();
 
-#if ENABLE_GCODE_VIEWER
 	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 		create_icon_size_slider();
 		m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
 
 		create_settings_mode_widget();
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
-	if (is_editor) {
-#endif // ENABLE_GCODE_VIEWER
 #if ENABLE_ENVIRONMENT_MAP
+	if (is_editor) {
 		m_optgroup_render = std::make_shared<ConfigOptionsGroup>(this, _L("Render"));
 		m_optgroup_render->label_width = 40;
 		m_optgroup_render->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
@@ -280,19 +315,15 @@ void PreferencesDialog::build()
 		m_optgroup_render->append_single_option_line(option);
 
 		m_optgroup_render->activate();
-#endif // ENABLE_ENVIRONMENT_MAP
-#if ENABLE_GCODE_VIEWER
 	}
-#endif // ENABLE_GCODE_VIEWER
+#endif // ENABLE_ENVIRONMENT_MAP
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_camera->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 	sizer->Add(m_optgroup_gui->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #if ENABLE_ENVIRONMENT_MAP
-#if ENABLE_GCODE_VIEWER
 	if (m_optgroup_render != nullptr)
-#endif // ENABLE_GCODE_VIEWER
 		sizer->Add(m_optgroup_render->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 #endif // ENABLE_ENVIRONMENT_MAP
 
@@ -305,13 +336,13 @@ void PreferencesDialog::build()
 
 	SetSizer(sizer);
 	sizer->SetSizeHints(this);
+	this->CenterOnParent();
 }
 
 void PreferencesDialog::accept()
 {
-    if (m_values.find("no_defaults") != m_values.end()) {
+    if (m_values.find("no_defaults") != m_values.end())
         warning_catcher(this, wxString::Format(_L("You need to restart %s to make the changes effective."), SLIC3R_APP_NAME));
-	}
 
     auto app_config = get_app_config();
 
@@ -320,9 +351,9 @@ void PreferencesDialog::accept()
 		m_seq_top_layer_only_changed = app_config->get("seq_top_layer_only") != it->second;
 
 	m_settings_layout_changed = false;
-	for (const std::string& key : {"old_settings_layout_mode",
-								   "new_settings_layout_mode",
-								   "dlg_settings_layout_mode" })
+	for (const std::string& key : { "old_settings_layout_mode",
+								    "new_settings_layout_mode",
+								    "dlg_settings_layout_mode" })
 	{
 	    auto it = m_values.find(key);
 	    if (it != m_values.end() && app_config->get(key) != it->second) {
@@ -331,8 +362,7 @@ void PreferencesDialog::accept()
 	    }
 	}
 
-	for (const std::string& key : {"default_action_on_close_application", "default_action_on_select_preset"})
-	{
+	for (const std::string& key : {"default_action_on_close_application", "default_action_on_select_preset"}) {
 	    auto it = m_values.find(key);
 		if (it != m_values.end() && it->second != "none" && app_config->get(key) != "none")
 			m_values.erase(it); // we shouldn't change value, if some of those parameters was selected, and then deselected
@@ -433,9 +463,9 @@ void PreferencesDialog::create_icon_size_slider()
 
 void PreferencesDialog::create_settings_mode_widget()
 {
-	wxString choices[] = {	_L("Old regular layout with the tab bar"),
-							_L("New layout, access via settings button in the top menu"),
-							_L("Settings in non-modal window")		};
+	wxString choices[] = { _L("Old regular layout with the tab bar"),
+						   _L("New layout, access via settings button in the top menu"),
+						   _L("Settings in non-modal window") };
 
 	auto app_config = get_app_config();
 	int selection = app_config->get("old_settings_layout_mode") == "1" ? 0 :
@@ -444,14 +474,13 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	wxWindow* parent = m_optgroup_gui->ctrl_parent();
 
-	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Layout Options"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices,
-		3, wxRA_SPECIFY_ROWS);
+	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Layout Options"), wxDefaultPosition, wxDefaultSize,
+		WXSIZEOF(choices), choices, 3, wxRA_SPECIFY_ROWS);
 	m_layout_mode_box->SetFont(wxGetApp().normal_font());
 	m_layout_mode_box->SetSelection(selection);
 
 	m_layout_mode_box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
 		int selection = e.GetSelection();
-
 		m_values["old_settings_layout_mode"] = boost::any_cast<bool>(selection == 0) ? "1" : "0";
 		m_values["new_settings_layout_mode"] = boost::any_cast<bool>(selection == 1) ? "1" : "0";
 		m_values["dlg_settings_layout_mode"] = boost::any_cast<bool>(selection == 2) ? "1" : "0";
@@ -459,7 +488,6 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_layout_mode_box, 1, wxALIGN_CENTER_VERTICAL);
-
 	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND);
 }
 

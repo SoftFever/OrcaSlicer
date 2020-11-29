@@ -115,22 +115,9 @@ public:
     /// Returns a copy of the pointer of the parent wxWindow.
     /// Accessor function is because users are not allowed to change the parent
     /// but defining it as const means a lot of const_casts to deal with wx functions.
-    inline wxWindow* parent() const { 
-#if 0//#ifdef __WXGTK__
-		return m_panel;
-#else
-		return m_parent;
-#endif /* __WXGTK__ */
-    }
-#if 0//#ifdef __WXGTK__
-    wxWindow* get_parent() const {
-        return m_parent;
-    }
-#endif /* __WXGTK__ */
+    inline wxWindow* parent() const { return m_parent; }
 
-    wxWindow* ctrl_parent() const {
-    	return this->stb ? (this->custom_ctrl && m_use_custom_ctrl_as_parent ? (wxWindow*)this->custom_ctrl : (wxWindow*)this->stb) : this->parent();
-    }
+    wxWindow*   ctrl_parent() const;
 
 	void		append_line(const Line& line);
 	// create controls for the option group
@@ -173,10 +160,6 @@ public:
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 	void			set_grid_vgap(int gap) { m_grid_sizer->SetVGap(gap); }
 
-	void            set_show_modified_btns_val(bool show) {
-		                m_show_modified_btns = show;
-    }
-
     void            clear_fields_except_of(const std::vector<std::string> left_fields);
 
     void            hide_labels() { label_width = 0; }
@@ -187,6 +170,7 @@ public:
 
     wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }
 	const std::vector<Line>& get_lines() { return m_lines; }
+	bool				is_legend_line();
 
 protected:
 	std::map<t_config_option_key, Option>	m_options;
@@ -203,7 +187,7 @@ protected:
     bool					m_disabled {false};
     wxGridSizer*			m_grid_sizer {nullptr};
 	// "true" if option is created in preset tabs
-	bool					m_show_modified_btns{ false };
+	bool					m_use_custom_ctrl{ false };
 
 	// "true" if control should be created on custom_ctrl
 	bool					m_use_custom_ctrl_as_parent { false };

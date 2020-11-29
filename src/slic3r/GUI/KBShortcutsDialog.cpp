@@ -7,9 +7,7 @@
 #include <wx/display.h>
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
-#if ENABLE_GCODE_VIEWER
 #include "MainFrame.hpp"
-#endif // ENABLE_GCODE_VIEWER
 
 #define NOTEBOOK_TOP 1
 #define NOTEBOOK_LEFT 2
@@ -33,11 +31,7 @@ namespace Slic3r {
 namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
-#if ENABLE_GCODE_VIEWER
-    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
-#else
-    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
-#endif // ENABLE_GCODE_VIEWER
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -97,9 +91,7 @@ void KBShortcutsDialog::fill_shortcuts()
     const std::string& ctrl = GUI::shortkey_ctrl_prefix();
     const std::string& alt = GUI::shortkey_alt_prefix();
 
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         Shortcuts commands_shortcuts = {
             // File
             { ctrl + "N", L("New project, clear plater") },
@@ -179,7 +171,11 @@ void KBShortcutsDialog::fill_shortcuts()
             { "Tab", L("Switch between Editor/Preview") },
             { "Shift+Tab", L("Collapse/Expand the sidebar") },
 #if ENABLE_CTRL_M_ON_WINDOWS
+#ifdef _WIN32
+            { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog, if enabled") },
+#else
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#endif // _WIN32
 #else
 #if defined(__linux__) || defined(__APPLE__)
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
@@ -204,9 +200,7 @@ void KBShortcutsDialog::fill_shortcuts()
         };
 
         m_full_shortcuts.push_back(std::make_pair(_L("Gizmos"), gizmos_shortcuts));
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 
     Shortcuts preview_shortcuts = {
         { L("Arrow Up"), L("Upper Layer") },
@@ -231,7 +225,6 @@ void KBShortcutsDialog::fill_shortcuts()
 
     m_full_shortcuts.push_back(std::make_pair(_L("Layers Slider"), layers_slider_shortcuts));
 
-#if ENABLE_GCODE_VIEWER
     Shortcuts sequential_slider_shortcuts = {
         { L("Arrow Left"), L("Move current slider thumb Left") },
         { L("Arrow Right"), L("Move current slider thumb Right") },
@@ -240,7 +233,6 @@ void KBShortcutsDialog::fill_shortcuts()
     };
 
     m_full_shortcuts.push_back(std::make_pair(_L("Sequential Slider"), sequential_slider_shortcuts));
-#endif // ENABLE_GCODE_VIEWER
 }
 
 wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_font)
@@ -258,11 +250,7 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
     sizer->AddStretchSpacer();
 
     // logo
-#if ENABLE_GCODE_VIEWER
     m_logo_bmp = ScalableBitmap(this, wxGetApp().is_editor() ? "PrusaSlicer_32px.png" : "PrusaSlicer-gcodeviewer_32px.png", 32);
-#else
-    m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_32px.png", 32);
-#endif // ENABLE_GCODE_VIEWER
     m_header_bitmap = new wxStaticBitmap(panel, wxID_ANY, m_logo_bmp.bmp());
     sizer->Add(m_header_bitmap, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
 

@@ -5,24 +5,18 @@
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/BoundingBox.hpp"
-#if ENABLE_GCODE_VIEWER
 #include "libslic3r/Geometry.hpp"
-#endif // ENABLE_GCODE_VIEWER
 
 #include "GUI_App.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "GLCanvas3D.hpp"
-#if ENABLE_GCODE_VIEWER
 #include "3DScene.hpp"
-#endif // ENABLE_GCODE_VIEWER
 
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
-#if ENABLE_GCODE_VIEWER
 #include <boost/log/trivial.hpp>
-#endif // ENABLE_GCODE_VIEWER
 
 static const float GROUND_Z = -0.02f;
 
@@ -121,43 +115,19 @@ const float* GeometryBuffer::get_vertices_data() const
     return (m_vertices.size() > 0) ? (const float*)m_vertices.data() : nullptr;
 }
 
-#if ENABLE_GCODE_VIEWER
 const float Bed3D::Axes::DefaultStemRadius = 0.5f;
 const float Bed3D::Axes::DefaultStemLength = 25.0f;
 const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadius;
 const float Bed3D::Axes::DefaultTipLength = 5.0f;
-#else
-const double Bed3D::Axes::Radius = 0.5;
-const double Bed3D::Axes::ArrowBaseRadius = 2.5 * Bed3D::Axes::Radius;
-const double Bed3D::Axes::ArrowLength = 5.0;
-#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
 void Bed3D::Axes::set_stem_length(float length)
 {
     m_stem_length = length;
     m_arrow.reset();
 }
-#else
-Bed3D::Axes::Axes()
-: origin(Vec3d::Zero())
-, length(25.0 * Vec3d::Ones())
-{
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
-}
-
-Bed3D::Axes::~Axes()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
-}
-#endif // ENABLE_GCODE_VIEWER
 
 void Bed3D::Axes::render() const
 {
-#if ENABLE_GCODE_VIEWER
     auto render_axis = [this](const Transform3f& transform) {
         glsafe(::glPushMatrix());
         glsafe(::glMultMatrixf(transform.data()));
@@ -193,55 +163,7 @@ void Bed3D::Axes::render() const
     shader->stop_using();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
-#else
-    if (m_quadric == nullptr)
-        return;
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    glsafe(::glEnable(GL_LIGHTING));
-
-    // x axis
-    glsafe(::glColor3fv(AXES_COLOR[0]));
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(origin(0), origin(1), origin(2)));
-    glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-    render_axis(length(0));
-    glsafe(::glPopMatrix());
-
-    // y axis
-    glsafe(::glColor3fv(AXES_COLOR[1]));
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(origin(0), origin(1), origin(2)));
-    glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-    render_axis(length(1));
-    glsafe(::glPopMatrix());
-
-    // z axis
-    glsafe(::glColor3fv(AXES_COLOR[2]));
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(origin(0), origin(1), origin(2)));
-    render_axis(length(2));
-    glsafe(::glPopMatrix());
-
-    glsafe(::glDisable(GL_LIGHTING));
-    glsafe(::glDisable(GL_DEPTH_TEST));
-#endif // !ENABLE_GCODE_VIEWER
 }
-
-#if !ENABLE_GCODE_VIEWER
-void Bed3D::Axes::render_axis(double length) const
-{
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, Radius, Radius, length, 32, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, Radius, 32, 1);
-    glsafe(::glTranslated(0.0, 0.0, length));
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, ArrowBaseRadius, 0.0, ArrowLength, 32, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, ArrowBaseRadius, 32, 1);
-}
-#endif // !ENABLE_GCODE_VIEWER
 
 Bed3D::Bed3D()
     : m_type(Custom)
@@ -308,13 +230,8 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     m_model.reset();
 
     // Set the origin and size for rendering the coordinate system axes.
-#if ENABLE_GCODE_VIEWER
     m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
     m_axes.set_stem_length(0.1f * static_cast<float>(m_bounding_box.max_size()));
-#else
-    m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
-    m_axes.length = 0.1 * m_bounding_box.max_size() * Vec3d::Ones();
-#endif // ENABLE_GCODE_VIEWER
 
     // Let the calee to update the UI.
     return true;
@@ -360,7 +277,6 @@ void Bed3D::calc_bounding_boxes() const
     m_extended_bounding_box = m_bounding_box;
 
     // extend to contain axes
-#if ENABLE_GCODE_VIEWER
     m_extended_bounding_box.merge(m_axes.get_origin() + m_axes.get_total_length() * Vec3d::Ones());
     m_extended_bounding_box.merge(m_extended_bounding_box.min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, m_extended_bounding_box.max(2)));
 
@@ -370,12 +286,6 @@ void Bed3D::calc_bounding_boxes() const
         model_bb.translate(m_model_offset);
         m_extended_bounding_box.merge(model_bb);
     }
-#else
-    m_extended_bounding_box.merge(m_axes.length + Axes::ArrowLength * Vec3d::Ones());
-    // extend to contain model, if any
-    if (!m_model.get_filename().empty())
-        m_extended_bounding_box.merge(m_model.get_transformed_bounding_box());
-#endif // ENABLE_GCODE_VIEWER
 }
 
 void Bed3D::calc_triangles(const ExPolygon& poly)
@@ -414,25 +324,6 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
         printf("Unable to create bed grid lines\n");
 }
 
-#if !ENABLE_GCODE_VIEWER
-static std::string system_print_bed_model(const Preset &preset)
-{
-	std::string out;
-	const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(preset);
-	if (pm != nullptr && ! pm->bed_model.empty())
-		out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
-	return out;
-}
-
-static std::string system_print_bed_texture(const Preset &preset)
-{
-	std::string out;
-	const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(preset);
-	if (pm != nullptr && ! pm->bed_texture.empty())
-		out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_texture;
-	return out;
-}
-#endif // !ENABLE_GCODE_VIEWER
 
 std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Pointfs& shape) const
 {
@@ -442,13 +333,8 @@ std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Poin
         while (curr != nullptr) {
             if (curr->config.has("bed_shape")) {
                 if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values) {
-#if ENABLE_GCODE_VIEWER
                     std::string model_filename = PresetUtils::system_printer_bed_model(*curr);
                     std::string texture_filename = PresetUtils::system_printer_bed_texture(*curr);
-#else
-                    std::string model_filename = system_print_bed_model(*curr);
-                    std::string texture_filename = system_print_bed_texture(*curr);
-#endif // ENABLE_GCODE_VIEWER
                     if (!model_filename.empty() && !texture_filename.empty())
                         return { System, model_filename, texture_filename };
                 }
@@ -614,11 +500,7 @@ void Bed3D::render_model() const
         // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
         Vec3d shift = m_bounding_box.center();
         shift(2) = -0.03;
-#if ENABLE_GCODE_VIEWER
         m_model_offset = shift;
-#else
-        m_model.set_offset(shift);
-#endif // ENABLE_GCODE_VIEWER
 
         // update extended bounding box
         calc_bounding_boxes();
@@ -628,15 +510,11 @@ void Bed3D::render_model() const
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-#if ENABLE_GCODE_VIEWER
             shader->set_uniform("uniform_color", m_model_color);
             ::glPushMatrix();
             ::glTranslated(m_model_offset(0), m_model_offset(1), m_model_offset(2));
-#endif // ENABLE_GCODE_VIEWER
             m_model.render();
-#if ENABLE_GCODE_VIEWER
             ::glPopMatrix();
-#endif // ENABLE_GCODE_VIEWER
             shader->stop_using();
         }
     }
@@ -673,11 +551,7 @@ void Bed3D::render_default(bool bottom) const
         if (!has_model && !bottom) {
             // draw background
             glsafe(::glDepthMask(GL_FALSE));
-#if ENABLE_GCODE_VIEWER
             glsafe(::glColor4fv(m_model_color.data()));
-#else
-            glsafe(::glColor4f(0.35f, 0.35f, 0.35f, 0.4f));
-#endif // ENABLE_GCODE_VIEWER
             glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
             glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
             glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));

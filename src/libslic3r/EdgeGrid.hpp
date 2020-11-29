@@ -21,6 +21,7 @@ public:
 	void set_bbox(const BoundingBox &bbox) { m_bbox = bbox; }
 
 	void create(const Polygons &polygons, coord_t resolution);
+	void create(const std::vector<const Polygon*> &polygons, coord_t resolution);
 	void create(const std::vector<Points> &polygons, coord_t resolution);
 	void create(const ExPolygon &expoly, coord_t resolution);
 	void create(const ExPolygons &expolygons, coord_t resolution);
@@ -83,10 +84,14 @@ public:
 	template<typename VISITOR> void visit_cells_intersecting_line(Slic3r::Point p1, Slic3r::Point p2, VISITOR &visitor) const
 	{
 		// End points of the line segment.
-		p1(0) -= m_bbox.min(0);
-		p1(1) -= m_bbox.min(1);
-		p2(0) -= m_bbox.min(0);
-		p2(1) -= m_bbox.min(1);
+		assert(m_bbox.contains(p1));
+		assert(m_bbox.contains(p2));
+		p1 -= m_bbox.min;
+		p2 -= m_bbox.min;
+		assert(p1.x() >= 0 && p1.x() < m_cols * m_resolution);
+		assert(p1.y() >= 0 && p1.y() < m_rows * m_resolution);
+		assert(p2.x() >= 0 && p2.x() < m_cols * m_resolution);
+		assert(p2.y() >= 0 && p2.y() < m_rows * m_resolution);
 		// Get the cells of the end points.
 		coord_t ix = p1(0) / m_resolution;
 		coord_t iy = p1(1) / m_resolution;
@@ -114,18 +119,22 @@ public:
 						ey -= ex;
 						ex = int64_t(dy) * m_resolution;
 						ix += 1;
+						assert(ix <= ixb);
 					}
 					else if (ex == ey) {
 						ex = int64_t(dy) * m_resolution;
 						ey = int64_t(dx) * m_resolution;
 						ix += 1;
 						iy += 1;
+						assert(ix <= ixb);
+						assert(iy <= iyb);
 					}
 					else {
 						assert(ex > ey);
 						ex -= ey;
 						ey = int64_t(dx) * m_resolution;
 						iy += 1;
+						assert(iy <= iyb);
 					}
 					if (! visitor(iy, ix))
 						return;
@@ -140,11 +149,13 @@ public:
 						ey -= ex;
 						ex = int64_t(dy) * m_resolution;
 						ix += 1;
+						assert(ix <= ixb);
 					}
 					else {
 						ex -= ey;
 						ey = int64_t(dx) * m_resolution;
 						iy -= 1;
+						assert(iy >= iyb);
 					}
 					if (! visitor(iy, ix))
 						return;
@@ -162,12 +173,14 @@ public:
 						ey -= ex;
 						ex = int64_t(dy) * m_resolution;
 						ix -= 1;
+						assert(ix >= ixb);
 					}
 					else {
 						assert(ex >= ey);
 						ex -= ey;
 						ey = int64_t(dx) * m_resolution;
 						iy += 1;
+						assert(iy <= iyb);
 					}
 					if (! visitor(iy, ix))
 						return;
@@ -182,6 +195,7 @@ public:
 						ey -= ex;
 						ex = int64_t(dy) * m_resolution;
 						ix -= 1;
+						assert(ix >= ixb);
 					}
 					else if (ex == ey) {
 						// The lower edge of a grid cell belongs to the cell.
@@ -190,10 +204,12 @@ public:
 						if (dx > 0) {
 							ex = int64_t(dy) * m_resolution;
 							ix -= 1;
+							assert(ix >= ixb);
 						}
 						if (dy > 0) {
 							ey = int64_t(dx) * m_resolution;
 							iy -= 1;
+							assert(iy >= iyb);
 						}
 					}
 					else {
@@ -201,6 +217,7 @@ public:
 						ex -= ey;
 						ey = int64_t(dx) * m_resolution;
 						iy -= 1;
+						assert(iy >= iyb);
 					}
 					if (! visitor(iy, ix))
 						return;
@@ -230,6 +247,10 @@ public:
 
 	std::pair<std::vector<std::pair<size_t, size_t>>::const_iterator, std::vector<std::pair<size_t, size_t>>::const_iterator> cell_data_range(coord_t row, coord_t col) const
 	{
+		assert(row >= 0);
+		assert(row < m_rows);
+		assert(col >= 0);
+		assert(col < m_cols);
 		const EdgeGrid::Grid::Cell &cell = m_cells[row * m_cols + col];
 		return std::make_pair(m_cell_data.begin() + cell.begin, m_cell_data.begin() + cell.end);
 	}
@@ -295,10 +316,8 @@ protected:
 	std::vector<float>							m_signed_distance_field;
 };
 
-#if 0
 // Debugging utility. Save the signed distance field.
-extern void save_png(const Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path);
-#endif /* SLIC3R_GUI */
+extern void save_png(const Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path, size_t scale = 1);
 
 } // namespace EdgeGrid
 

@@ -1,7 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "GCodeViewer.hpp"
 
-#if ENABLE_GCODE_VIEWER
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
@@ -272,6 +271,10 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
     { 0.505f, 0.064f, 0.028f }  // Retract
 }};
 
+#if ENABLE_SHOW_WIPE_MOVES
+const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f };
+#endif // ENABLE_SHOW_WIPE_MOVES
+
 const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
     { 0.043f, 0.173f, 0.478f }, // bluish
     { 0.075f, 0.349f, 0.522f },
@@ -370,6 +373,10 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         // update tool colors
         m_tool_colors = decode_colors(str_tool_colors);
 
+    // ensure at least one (default) color is defined
+    if (m_tool_colors.empty())
+        m_tool_colors.push_back(decode_color("#FF8000"));
+
     // update ranges for coloring / legend
     m_extrusions.reset_ranges();
     for (size_t i = 0; i < m_moves_count; ++i) {
@@ -456,6 +463,9 @@ void GCodeViewer::render() const
                 buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
                 break;
             }
+#if ENABLE_SHOW_WIPE_MOVES
+            case EMoveType::Wipe:
+#endif // ENABLE_SHOW_WIPE_MOVES
             case EMoveType::Extrude: {
                 buffer.shader = "gouraud_light";
                 break;
@@ -569,6 +579,9 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
 
     unsigned int flags = 0;
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Travel), is_toolpath_move_type_visible(EMoveType::Travel));
+#if ENABLE_SHOW_WIPE_MOVES
+    flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Wipe), is_toolpath_move_type_visible(EMoveType::Wipe));
+#endif // ENABLE_SHOW_WIPE_MOVES
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Retractions), is_toolpath_move_type_visible(EMoveType::Retract));
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Unretractions), is_toolpath_move_type_visible(EMoveType::Unretract));
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolChanges), is_toolpath_move_type_visible(EMoveType::Tool_change));
@@ -588,6 +601,9 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     };
 
     set_toolpath_move_type_visible(EMoveType::Travel, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Travel)));
+#if ENABLE_SHOW_WIPE_MOVES
+    set_toolpath_move_type_visible(EMoveType::Wipe, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Wipe)));
+#endif // ENABLE_SHOW_WIPE_MOVES
     set_toolpath_move_type_visible(EMoveType::Retract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Retractions)));
     set_toolpath_move_type_visible(EMoveType::Unretract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Unretractions)));
     set_toolpath_move_type_visible(EMoveType::Tool_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolChanges)));
@@ -925,6 +941,9 @@ void GCodeViewer::init()
             buffer.vertices.format = VBuffer::EFormat::Position;
             break;
         }
+#if ENABLE_SHOW_WIPE_MOVES
+        case EMoveType::Wipe:
+#endif // ENABLE_SHOW_WIPE_MOVES
         case EMoveType::Extrude:
         {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
@@ -1197,6 +1216,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             prev_up = up;
             prev_length = length;
     };
+
     auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
         size_t& buffer_vertices_size, unsigned int index_buffer_id, IndexBuffer& buffer_indices, size_t move_id) {
             static Vec3f prev_dir;
@@ -1339,6 +1359,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // the data are deleted as soon as they are sent to the gpu.
     std::vector<std::vector<float>> vertices(m_buffers.size());
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
+#if ENABLE_SHOW_OPTION_POINT_LAYERS
+    std::vector<float> options_zs;
+#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
 
     // toolpaths data -> extract vertices from result
     for (size_t i = 0; i < m_moves_count; ++i) {
@@ -1363,23 +1386,38 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         switch (buffer.render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point:
-        {
+        case TBuffer::ERenderPrimitiveType::Point: {
             add_vertices_as_point(curr, buffer_vertices);
             break;
         }
-        case TBuffer::ERenderPrimitiveType::Line:
-        {
+        case TBuffer::ERenderPrimitiveType::Line: {
             add_vertices_as_line(prev, curr, buffer, buffer_vertices);
             break;
         }
-        case TBuffer::ERenderPrimitiveType::Triangle:
-        {
+        case TBuffer::ERenderPrimitiveType::Triangle: {
             add_vertices_as_solid(prev, curr, buffer, buffer_vertices, i);
             break;
         }
         }
+
+#if ENABLE_SHOW_OPTION_POINT_LAYERS
+        EMoveType type = buffer_type(id);
+        if (type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) {
+            const float* const last_z = options_zs.empty() ? nullptr : &options_zs.back();
+            float z = static_cast<double>(curr.position[2]);
+            if (last_z == nullptr || z < *last_z - EPSILON || *last_z + EPSILON < z)
+                options_zs.emplace_back(curr.position[2]);
+        }
+#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
     }
+
+#if ENABLE_SHOW_WIPE_MOVES
+    // move the wipe toolpaths half height up to render them on proper position
+    std::vector<float>& wipe_vertices = vertices[buffer_id(EMoveType::Wipe)];
+    for (size_t i = 2; i < wipe_vertices.size(); i += 3) {
+        wipe_vertices[i] += 0.5f * GCodeProcessor::Wipe_Height;
+    }
+#endif // ENABLE_SHOW_WIPE_MOVES
 
     log_memory_usage("Loaded G-code generated vertex buffers, ", vertices, indices);
 
@@ -1414,7 +1452,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         buffer.paths.clear();
     }
     // variable used to keep track of the current size (in vertices) of the vertex buffer
+#if ENABLE_SHOW_WIPE_MOVES
+    std::vector<size_t> curr_buffer_vertices_size(m_buffers.size(), 0);
+#else
     size_t curr_buffer_vertices_size = 0;
+#endif // ENABLE_SHOW_WIPE_MOVES
     for (size_t i = 0; i < m_moves_count; ++i) {
         // skip first vertex
         if (i == 0)
@@ -1442,7 +1484,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         // create another index buffer, and move the current path indices into it
         if (buffer_indices.back().size() >= THRESHOLD - static_cast<size_t>(buffer.indices_per_segment())) {
             buffer_indices.push_back(IndexBuffer());
+#if ENABLE_SHOW_WIPE_MOVES
+            if (buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point) {
+#else
             if (curr.type == EMoveType::Extrude || curr.type == EMoveType::Travel) {
+#endif // ENABLE_SHOW_WIPE_MOVES
                 if (!(prev.type != curr.type || !buffer.paths.back().matches(curr))) {
                     Path& last_path = buffer.paths.back();
                     size_t delta_id = last_path.last.i_id - last_path.first.i_id;
@@ -1464,19 +1510,20 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         switch (buffer.render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point:
-        {
+        case TBuffer::ERenderPrimitiveType::Point: {
             add_indices_as_point(curr, buffer, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
             break;
         }
-        case TBuffer::ERenderPrimitiveType::Line:
-        {
+        case TBuffer::ERenderPrimitiveType::Line: {
             add_indices_as_line(prev, curr, buffer, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
             break;
         }
-        case TBuffer::ERenderPrimitiveType::Triangle:
-        {
+        case TBuffer::ERenderPrimitiveType::Triangle: {
+#if ENABLE_SHOW_WIPE_MOVES
+            add_indices_as_solid(prev, curr, buffer, curr_buffer_vertices_size[id], static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
+#else
             add_indices_as_solid(prev, curr, buffer, curr_buffer_vertices_size, static_cast<unsigned int>(buffer_indices.size()) - 1, buffer_indices.back(), i);
+#endif // ENABLE_SHOW_WIPE_MOVES
             break;
         }
         }
@@ -1521,6 +1568,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (size_t i = 0; i < travel_buffer_indices.size(); ++i) {
         m_statistics.travel_segments_count = travel_buffer_indices[i].size() / m_buffers[travel_buffer_id].indices_per_segment();
     }
+#if ENABLE_SHOW_WIPE_MOVES
+    unsigned int wipe_buffer_id = buffer_id(EMoveType::Wipe);
+    const MultiIndexBuffer& wipe_buffer_indices = indices[wipe_buffer_id];
+    for (size_t i = 0; i < wipe_buffer_indices.size(); ++i) {
+        m_statistics.wipe_segments_count = wipe_buffer_indices[i].size() / m_buffers[wipe_buffer_id].indices_per_segment();
+    }
+#endif // ENABLE_SHOW_WIPE_MOVES
     unsigned int extrude_buffer_id = buffer_id(EMoveType::Extrude);
     const MultiIndexBuffer& extrude_buffer_indices = indices[extrude_buffer_id];
     for (size_t i = 0; i < extrude_buffer_indices.size(); ++i) {
@@ -1558,9 +1612,20 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
 
     // set layers z range
-    if (!m_layers.empty()) {
+    if (!m_layers.empty())
         m_layers_z_range = { 0, static_cast<unsigned int>(m_layers.size() - 1) };
+
+#if ENABLE_SHOW_OPTION_POINT_LAYERS
+    // change color of paths whose layer contains option points
+    if (!options_zs.empty()) {
+        TBuffer& extrude_buffer = m_buffers[buffer_id(EMoveType::Extrude)];
+        for (Path& path : extrude_buffer.paths) {
+            float z = path.first.position[2];
+            if (std::find_if(options_zs.begin(), options_zs.end(), [z](float f) { return f - EPSILON <= z && z <= f + EPSILON; }) != options_zs.end())
+                path.cp_color_id = 255 - path.cp_color_id;
+        }
     }
+#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
 
     // roles -> remove duplicates
     std::sort(m_roles.begin(), m_roles.end());
@@ -1657,9 +1722,25 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
+#if ENABLE_SHOW_OPTION_POINT_LAYERS
+        case EViewType::ColorPrint:     {
+            if (path.cp_color_id >= static_cast<unsigned char>(m_tool_colors.size())) {
+                color = { 0.5f, 0.5f, 0.5f };
+//                // complementary color
+//                color = m_tool_colors[255 - path.cp_color_id];
+//                color = { 1.0f - color[0], 1.0f - color[1], 1.0f - color[2] };
+            }
+            else
+                color = m_tool_colors[path.cp_color_id];
+
+            break;
+        }
+#else
         case EViewType::ColorPrint:     { color = m_tool_colors[path.cp_color_id]; break; }
+#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
         default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
         }
+
         return color;
     };
 
@@ -1830,6 +1911,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
             break;
         }
+#if ENABLE_SHOW_WIPE_MOVES
+        case EMoveType::Wipe: { color = Wipe_Color; break; }
+#endif // ENABLE_SHOW_WIPE_MOVES
         default: { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
@@ -2562,6 +2646,28 @@ void GCodeViewer::render_legend() const
         }
     }
 
+#if ENABLE_SHOW_WIPE_MOVES
+    // wipe paths section
+    if (m_buffers[buffer_id(EMoveType::Wipe)].visible) {
+        switch (m_view_type)
+        {
+        case EViewType::Feedrate:
+        case EViewType::Tool:
+        case EViewType::ColorPrint: { break; }
+        default: {
+            // title
+            ImGui::Spacing();
+            imgui.title(_u8L("Wipe"));
+
+            // items
+            append_item(EItemType::Line, Wipe_Color, _u8L("Wipe"));
+
+            break;
+        }
+        }
+    }
+#endif // ENABLE_SHOW_WIPE_MOVES
+
     auto any_option_available = [this]() {
         auto available = [this](EMoveType type) {
             const TBuffer& buffer = m_buffers[buffer_id(type)];
@@ -2640,7 +2746,9 @@ void GCodeViewer::render_legend() const
         }
         if (!m_settings_ids.filament.empty()) {
             for (unsigned char i : m_extruder_ids) {
-                imgui.text(_u8L("Filament") + " " + std::to_string(i + 1) + ":");
+                std::string txt = _u8L("Filament");
+                txt += (m_extruder_ids.size() == 1) ? ":" : " " + std::to_string(i + 1);
+                imgui.text(txt);
                 ImGui::SameLine(offset);
                 imgui.text(m_settings_ids.filament[i]);
             }
@@ -2675,7 +2783,7 @@ void GCodeViewer::render_legend() const
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(time_mode.time)));
 
-        auto show_mode_button = [this, &imgui](const std::string& label, PrintEstimatedTimeStatistics::ETimeMode mode) {
+        auto show_mode_button = [this, &imgui](const wxString& label, PrintEstimatedTimeStatistics::ETimeMode mode) {
             bool show = false;
             for (size_t i = 0; i < m_time_statistics.modes.size(); ++i) {
                 if (i != static_cast<size_t>(mode) &&
@@ -2695,11 +2803,11 @@ void GCodeViewer::render_legend() const
 
         switch (m_time_estimate_mode) {
         case PrintEstimatedTimeStatistics::ETimeMode::Normal: {
-            show_mode_button(_u8L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
+            show_mode_button(_L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
             break;
         }
         case PrintEstimatedTimeStatistics::ETimeMode::Stealth: {
-            show_mode_button(_u8L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
+            show_mode_button(_L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
             break;
         }
         }
@@ -2790,6 +2898,9 @@ void GCodeViewer::render_statistics() const
 
     if (ImGui::CollapsingHeader("Other")) {
         add_counter(std::string("Travel segments count:"), m_statistics.travel_segments_count);
+#if ENABLE_SHOW_WIPE_MOVES
+        add_counter(std::string("Wipe segments count:"), m_statistics.wipe_segments_count);
+#endif // ENABLE_SHOW_WIPE_MOVES
         add_counter(std::string("Extrude segments count:"), m_statistics.extrude_segments_count);
         add_counter(std::string("Max vertices in vertex buffer:"), m_statistics.max_vertices_in_vertex_buffer);
         add_counter(std::string("Max indices in index buffer:"), m_statistics.max_indices_in_index_buffer);
@@ -2826,4 +2937,3 @@ void GCodeViewer::log_memory_used(const std::string& label, long long additional
 } // namespace GUI
 } // namespace Slic3r
 
-#endif // ENABLE_GCODE_VIEWER

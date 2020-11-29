@@ -28,7 +28,7 @@ bool GLGizmoSeam::on_init()
     m_desc["cursor_type"]      = _L("Brush shape") + ": ";
     m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
     m_desc["enforce"]          = _L("Enforce seam");
-    m_desc["block_caption"]    = _L("Right mouse button") + " ";
+    m_desc["block_caption"]    = _L("Right mouse button") + ": ";
     m_desc["block"]            = _L("Block seam");
     m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
     m_desc["remove"]           = _L("Remove selection");

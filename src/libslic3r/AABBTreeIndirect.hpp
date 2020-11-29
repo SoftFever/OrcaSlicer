@@ -726,6 +726,36 @@ inline bool is_any_triangle_in_radius(
     return hit_point.allFinite();
 }
 
+
+// Traverse the tree and return the index of an entity whose bounding box
+// contains a given point. Returns size_t(-1) when the point is outside.
+template<typename TreeType, typename VectorType>
+size_t get_candidate_idx(const TreeType& tree, const VectorType& v)
+{
+    if (tree.empty() || ! tree.node(0).bbox.contains(v))
+        return size_t(-1);
+
+    size_t node_idx = 0;
+    while (true) {
+        decltype(tree.node(node_idx)) node = tree.node(node_idx);
+        static_assert(std::is_reference<decltype(node)>::value,
+                      "Nodes shall be addressed by reference.");
+        assert(node.is_valid());
+        assert(node.bbox.contains(v));
+
+        if (! node.is_leaf()) {
+            if (tree.left_child(node_idx).bbox.contains(v))
+                node_idx = tree.left_child_idx(node_idx);
+            else if (tree.right_child(node_idx).bbox.contains(v))
+                node_idx = tree.right_child_idx(node_idx);
+            else
+                return size_t(-1);
+        } else
+            return node.idx;
+    }
+}
+
+
 } // namespace AABBTreeIndirect
 } // namespace Slic3r
 

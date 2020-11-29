@@ -131,38 +131,6 @@ public:
 };
 
 
-class SearchComboPopup : public wxListBox, public wxComboPopup
-{
-public:
-    // Initialize member variables
-    void Init();
-
-    // Create popup control
-    virtual bool Create(wxWindow* parent);
-    // Return pointer to the created control
-    virtual wxWindow* GetControl() { return this; }
-
-    // Translate string into a list selection
-    virtual void SetStringValue(const wxString& s);
-    // Get list selection as a string
-    virtual wxString GetStringValue() const {
-        // we shouldn't change a combo control's string
-        return m_input_string;
-    }
-
-    void ProcessSelection(int selection);
-
-    // Do mouse hot-tracking (which is typical in list popups)
-    void OnMouseMove(wxMouseEvent& event);
-    // On mouse left up, set the value and close the popup
-    void OnMouseClick(wxMouseEvent& WXUNUSED(event));
-    // process Up/Down arrows and Enter press
-    void OnKeyDown(wxKeyEvent& event);
-
-protected:
-    wxString m_input_string;
-};
-
 //------------------------------------------
 //          SearchDialog
 //------------------------------------------
@@ -204,7 +172,7 @@ public:
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
-    virtual void on_sys_color_changed() override;
+    void on_sys_color_changed() override;
 };
 
 
@@ -234,11 +202,11 @@ public:
 
     // implementation of base class virtuals to define model
 
-    virtual unsigned int GetColumnCount() const override { return colMax; }
-    virtual wxString GetColumnType(unsigned int col) const override;
-    virtual void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override;
-    virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override { return true; }
-    virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override { return false; }
+    unsigned int GetColumnCount() const override { return colMax; }
+    wxString GetColumnType(unsigned int col) const override;
+    void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override;
+    bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override { return true; }
+    bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override { return false; }
 };
 
 

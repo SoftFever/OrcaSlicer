@@ -327,7 +327,7 @@ static void update_parents(ModelNode* node)
 void UnsavedChangesModel::UpdateItemEnabling(wxDataViewItem item)
 {
     assert(item.IsOk());
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     node->UpdateEnabling();
 
     update_children(node);
@@ -337,7 +337,7 @@ void UnsavedChangesModel::UpdateItemEnabling(wxDataViewItem item)
 bool UnsavedChangesModel::IsEnabledItem(const wxDataViewItem& item)
 {
     assert(item.IsOk());
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     return node->IsToggled();
 }
 
@@ -345,7 +345,7 @@ void UnsavedChangesModel::GetValue(wxVariant& variant, const wxDataViewItem& ite
 {
     assert(item.IsOk());
 
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     switch (col)
     {
     case colToggle:
@@ -382,7 +382,7 @@ bool UnsavedChangesModel::SetValue(const wxVariant& variant, const wxDataViewIte
 {
     assert(item.IsOk());
 
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     switch (col)
     {
     case colToggle:
@@ -440,7 +440,7 @@ bool UnsavedChangesModel::IsEnabled(const wxDataViewItem& item, unsigned int col
         return true;
 
     // disable unchecked nodes
-    return ((ModelNode*)item.GetID())->IsToggled();
+    return (static_cast<ModelNode*>(item.GetID()))->IsToggled();
 }
 
 wxDataViewItem UnsavedChangesModel::GetParent(const wxDataViewItem& item) const
@@ -449,7 +449,7 @@ wxDataViewItem UnsavedChangesModel::GetParent(const wxDataViewItem& item) const
     if (!item.IsOk())
         return wxDataViewItem(nullptr);
 
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
 
     // "MyMusic" also has no parent
     if (node->IsRoot())
@@ -464,7 +464,7 @@ bool UnsavedChangesModel::IsContainer(const wxDataViewItem& item) const
     if (!item.IsOk())
         return true;
 
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     return node->IsContainer();
 }
 
@@ -522,7 +522,7 @@ void UnsavedChangesModel::Rescale()
 //------------------------------------------
 
 UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
-    : DPIDialog((wxWindow*)wxGetApp().mainframe , wxID_ANY, _L("PrusaSlicer is closing: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("PrusaSlicer is closing: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_close_application";
 
@@ -539,7 +539,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
-    : DPIDialog((wxWindow*)wxGetApp().mainframe, wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_select_preset";
 

@@ -169,6 +169,10 @@ namespace Slic3r {
 
             // subdivide the retraction in segments
             if (!wipe_path.empty()) {
+#if ENABLE_SHOW_WIPE_MOVES
+                // add tag for processor
+                gcode += ";" + GCodeProcessor::Wipe_Start_Tag + "\n";
+#endif // ENABLE_SHOW_WIPE_MOVES
                 for (const Line& line : wipe_path.lines()) {
                     double segment_length = line.length();
                     /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
@@ -183,6 +187,10 @@ namespace Slic3r {
                         "wipe and retract"
                     );
                 }
+#if ENABLE_SHOW_WIPE_MOVES
+                // add tag for processor
+                gcode += ";" + GCodeProcessor::Wipe_End_Tag + "\n";
+#endif // ENABLE_SHOW_WIPE_MOVES
                 gcodegen.set_last_pos(wipe_path.points.back());
             }
 
@@ -1764,7 +1772,7 @@ void GCode::process_layer(
     std::string gcode;
 
     // add tag for processor
-    gcode += "; " + GCodeProcessor::Layer_Change_Tag + "\n";
+    gcode += ";" + GCodeProcessor::Layer_Change_Tag + "\n";
     // export layer z
     char buf[64];
     sprintf(buf, ";Z:%g\n", print_z);
@@ -2240,7 +2248,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         const EdgeGrid::Grid* edge_grid_ptr = (lower_layer_edge_grid && *lower_layer_edge_grid)
                                                 ? lower_layer_edge_grid->get()
                                                 : nullptr;
-        Point seam = m_seam_placer.get_seam(m_layer->id(), seam_position, loop,
+        Point seam = m_seam_placer.get_seam(*m_layer, seam_position, loop,
                          last_pos, EXTRUDER_CONFIG(nozzle_diameter),
                          (m_layer == NULL ? nullptr : m_layer->object()),
                          was_clockwise, edge_grid_ptr);

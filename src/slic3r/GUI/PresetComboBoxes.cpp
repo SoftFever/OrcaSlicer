@@ -104,6 +104,15 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     // parameters for an icon's drawing
     fill_width_height();
 
+    Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& e) {
+        if (m_suppress_change)
+            e.StopPropagation();
+        else
+            e.Skip();
+    });
+    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_suppress_change = false; });
+    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_suppress_change = true;  });
+
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         // see https://github.com/prusa3d/PrusaSlicer/issues/3889
         // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
@@ -501,7 +510,7 @@ void PresetComboBox::OnDrawItem(wxDC& dc,
     int item,
     int flags) const
 {
-    const wxBitmap& bmp = *(wxBitmap*)m_bitmaps[item];
+    const wxBitmap& bmp = *(static_cast<wxBitmap*>(m_bitmaps[item]));
     if (bmp.IsOk())
     {
         // we should use scaled! size values of bitmap

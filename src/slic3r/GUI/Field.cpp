@@ -262,6 +262,11 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             double val = 0.;
 			// Replace the first occurence of comma in decimal number.
 			str.Replace(",", ".", false);
+
+            // remove space and "mm" substring, if any exists
+            str.Replace(" ", "", true);
+            str.Replace("m", "", true);
+
             if (!str.ToCDouble(&val))
             {
                 if (!check_value) {
@@ -280,13 +285,15 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     break;
                 }
 
+                bool infill_anchors = m_opt.opt_key == "infill_anchor" || m_opt.opt_key == "infill_anchor_max";
+
                 const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
                 const wxString stVal = double_to_string(val, 2);
                 const wxString msg_text = from_u8((boost::format(_utf8(L("Do you mean %s%% instead of %s %s?\n"
                     "Select YES if you want to change this value to %s%%, \n"
                     "or NO if you are sure that %s %s is a correct value."))) % stVal % stVal % sidetext % stVal % stVal % sidetext).str());
                 wxMessageDialog dialog(m_parent, msg_text, _(L("Parameter validation")) + ": " + m_opt_id , wxICON_WARNING | wxYES | wxNO);
-                if (dialog.ShowModal() == wxID_YES) {
+                if ((!infill_anchors || val > 100) && dialog.ShowModal() == wxID_YES) {
                     set_value(from_u8((boost::format("%s%%") % stVal).str()), false/*true*/);
                     str += "%%";
                 }
@@ -861,8 +868,16 @@ void Choice::BUILD() {
     temp->SetItemBitmap(0, empty_bmp);
 #endif
 
-// 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
- 	temp->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
+    temp->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& e) {
+        if (m_suppress_scroll && !m_is_dropped)
+            e.StopPropagation();
+        else
+            e.Skip();
+        });
+    temp->Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_is_dropped = true; });
+    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_is_dropped = false; });
+
+    temp->Bind(wxEVT_COMBOBOX,          [this](wxCommandEvent&) { on_change_field(); }, temp->GetId());
 
     if (m_is_editable) {
         temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) {
@@ -872,12 +887,18 @@ void Choice::BUILD() {
                 return;
             }
 
-            double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
             if (is_defined_input_value<choice_ctrl>(window, m_opt.type)) {
-                if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
-                    return;
-                else
-                    on_change_field();
+                if (m_opt.type == coFloatOrPercent) {
+                    std::string old_val = !m_value.empty() ? boost::any_cast<std::string>(m_value) : "";
+                    if (old_val == boost::any_cast<std::string>(get_value()))
+                        return;
+                }
+                else {
+                    double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
+                    if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
+                        return;
+                }
+                on_change_field();
             }
             else
                 on_kill_focus();
@@ -885,6 +906,11 @@ void Choice::BUILD() {
     }
 
 	temp->SetToolTip(get_tooltip_text(temp->GetValue()));
+}
+
+void Choice::suppress_scroll()
+{
+    m_suppress_scroll = true;
 }
 
 void Choice::set_selection()
@@ -898,59 +924,42 @@ void Choice::set_selection()
 
     choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
 	switch (m_opt.type) {
-	case coFloat:
-	case coPercent:	{
-		double val = m_opt.default_value->getFloat();
-		text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 1);
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
-			if (el == text_value)
-				break;
-			++idx;
-		}
-//		if (m_opt.type == coPercent) text_value += "%";
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
-		break;
-	}
 	case coEnum:{
 		int id_value = m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()->value; //!!
         field->SetSelection(id_value);
 		break;
 	}
+	case coFloat:
+	case coPercent:	{
+		double val = m_opt.default_value->getFloat();
+		text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 1);
+		break;
+	}
 	case coInt:{
-		int val = m_opt.default_value->getInt(); //!!
-		text_value = wxString::Format(_T("%i"), int(val));
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
-			if (el == text_value)
-				break;
-			++idx;
-		}
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
+		text_value = wxString::Format(_T("%i"), int(m_opt.default_value->getInt()));
 		break;
 	}
 	case coStrings:{
 		text_value = m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx);
+		break;
+	}
+	case coFloatOrPercent: {
+		text_value = double_to_string(m_opt.default_value->getFloat());
+		if (m_opt.get_default_value<ConfigOptionFloatOrPercent>()->percent)
+			text_value += "%";
+		break;
+	}
+    default: break;
+	}
 
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
+	if (!text_value.IsEmpty()) {
+		int idx = 0;
+		for (auto el : m_opt.enum_values) {
 			if (el == text_value)
 				break;
 			++idx;
 		}
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
-		break;
-	}
-    default: break;
+		idx == m_opt.enum_values.size() ? field->SetValue(text_value) : field->SetSelection(idx);
 	}
 }
 
@@ -984,6 +993,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 	case coInt:
 	case coFloat:
 	case coPercent:
+	case coFloatOrPercent:
 	case coString:
 	case coStrings: {
 		wxString text_value;
@@ -992,13 +1002,14 @@ void Choice::set_value(const boost::any& value, bool change_event)
 		else
 			text_value = boost::any_cast<wxString>(value);
         size_t idx = 0;
-		for (auto el : m_opt.enum_values)
+        const std::vector<std::string>& enums = m_opt.enum_values.empty() ? m_opt.enum_labels : m_opt.enum_values;
+		for (auto el : enums)
 		{
 			if (el == text_value)
 				break;
 			++idx;
 		}
-        if (idx == m_opt.enum_values.size()) {
+        if (idx == enums.size()) {
             // For editable Combobox under OSX is needed to set selection to -1 explicitly,
             // otherwise selection doesn't be changed
             field->SetSelection(-1);
@@ -1137,7 +1148,9 @@ boost::any& Choice::get_value()
             (ret_str != m_opt.enum_values[ret_enum] && ret_str != _(m_opt.enum_labels[ret_enum])))
 			// modifies ret_string!
             get_value_by_opt_type(ret_str);
-        else 
+        else if (m_opt.type == coFloatOrPercent)
+            m_value = m_opt.enum_values[ret_enum];
+        else
             m_value = atof(m_opt.enum_values[ret_enum].c_str());
     }
 	else	

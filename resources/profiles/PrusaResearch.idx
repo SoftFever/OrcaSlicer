@@ -1,4 +1,10 @@
+min_slic3r_version = 2.3.0-beta0
+1.2.0-beta0 Adjusted infill anchor limits. Added filament spool weights. 
+min_slic3r_version = 2.3.0-alpha4
+1.2.0-alpha1 Renamed MK3S and MINI printer profiles. Updated end g-code (MINI). Added new SLA materials and filament profiles.
+1.2.0-alpha0 Added filament spool weights
 min_slic3r_version = 2.2.0-alpha3
+1.1.11 Renamed MK3S and MINI printer profiles. Updated end g-code (MINI). Added new SLA materials and filament profiles.
 1.1.10 Updated firmware version.
 1.1.9 Updated K values in filament profiles (linear advance). Added new filament profiles and SLA materials.
 1.1.8 Updated start/end g-code scripts for MK3 family printer profiles (reduced extruder motor current for some print profiles). Added new filament and SLA material profiles.

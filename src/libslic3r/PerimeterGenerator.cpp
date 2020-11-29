@@ -158,7 +158,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // get non-overhang paths by intersecting this loop with the grown lower slices
             extrusion_paths_append(
                 paths,
-                intersection_pl(loop.polygon, perimeter_generator.lower_slices_polygons()),
+                intersection_pl((Polygons)loop.polygon, perimeter_generator.lower_slices_polygons()),
                 role,
                 is_external ? perimeter_generator.ext_mm3_per_mm()          : perimeter_generator.mm3_per_mm(),
                 is_external ? perimeter_generator.ext_perimeter_flow.width  : perimeter_generator.perimeter_flow.width,
@@ -169,7 +169,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // the loop centerline and original lower slices is >= half nozzle diameter
             extrusion_paths_append(
                 paths,
-                diff_pl(loop.polygon, perimeter_generator.lower_slices_polygons()),
+                diff_pl((Polygons)loop.polygon, perimeter_generator.lower_slices_polygons()),
                 erOverhangPerimeter,
                 perimeter_generator.mm3_per_mm_overhang(),
                 perimeter_generator.overhang_flow.width,

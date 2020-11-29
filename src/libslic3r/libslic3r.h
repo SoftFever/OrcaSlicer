@@ -103,12 +103,6 @@ enum Axis {
 	NUM_AXES_WITH_UNKNOWN,
 };
 
-template <class T>
-inline void append_to(std::vector<T> &dst, const std::vector<T> &src)
-{
-    dst.insert(dst.end(), src.begin(), src.end());
-}
-
 template <typename T>
 inline void append(std::vector<T>& dest, const std::vector<T>& src)
 {
@@ -126,6 +120,30 @@ inline void append(std::vector<T>& dest, std::vector<T>&& src)
     else {
         dest.reserve(dest.size() + src.size());
         std::move(std::begin(src), std::end(src), std::back_inserter(dest));
+    }
+    src.clear();
+    src.shrink_to_fit();
+}
+
+// Append the source in reverse.
+template <typename T>
+inline void append_reversed(std::vector<T>& dest, const std::vector<T>& src)
+{
+    if (dest.empty())
+        dest = src;
+    else
+        dest.insert(dest.end(), src.rbegin(), src.rend());
+}
+
+// Append the source in reverse.
+template <typename T>
+inline void append_reversed(std::vector<T>& dest, std::vector<T>&& src)
+{
+    if (dest.empty())
+        dest = std::move(src);
+    else {
+        dest.reserve(dest.size() + src.size());
+        std::move(std::rbegin(src), std::rend(src), std::back_inserter(dest));
     }
     src.clear();
     src.shrink_to_fit();

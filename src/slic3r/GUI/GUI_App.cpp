@@ -86,7 +86,7 @@ class SplashScreen : public wxSplashScreen
 {
 public:
     SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxPoint pos = wxDefaultPosition)
-        : wxSplashScreen(bitmap, splashStyle, milliseconds, (wxWindow*)wxGetApp().mainframe, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, wxDefaultPosition, wxDefaultSize,
 #ifdef __APPLE__
             wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP
 #else
@@ -177,11 +177,7 @@ public:
         // load bitmap for logo
         BitmapCache bmp_cache;
         int logo_size = lround(width * 0.25);
-#if ENABLE_GCODE_VIEWER
         wxBitmap logo_bmp = *bmp_cache.load_svg(wxGetApp().is_editor() ? "prusa_slicer_logo" : "add_gcode", logo_size, logo_size);
-#else
-        wxBitmap logo_bmp = *bmp_cache.load_svg("prusa_slicer_logo", logo_size, logo_size);
-#endif // ENABLE_GCODE_VIEWER
 
         wxCoord margin = int(m_scale * 20);
 
@@ -229,11 +225,7 @@ private:
         void init(wxFont init_font)
         {
             // title
-#if ENABLE_GCODE_VIEWER
             title = wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME;
-#else
-            title = SLIC3R_APP_NAME;
-#endif // ENABLE_GCODE_VIEWER
 
             // dynamically get the version to display
             version = _L("Version") + " " + std::string(SLIC3R_VERSION);
@@ -550,7 +542,6 @@ static void register_win32_device_notification_event()
     });
 
 	wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
-
 		COPYDATASTRUCT* copy_data_structure = { 0 };
 		copy_data_structure = (COPYDATASTRUCT*)lParam;
 		if (copy_data_structure->dwData == 1) {
@@ -601,13 +592,11 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
-#if ENABLE_GCODE_VIEWER
     if (this->init_params->start_as_gcodeviewer) {
         if (! this->init_params->input_files.empty())
             this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
     }
     else {
-#endif // ENABLE_GCODE_VIEWER_AS
 #if 0
         // Load the cummulative config over the currently active profiles.
         //FIXME if multiple configs are loaded, only the last one will have an effect.
@@ -626,22 +615,14 @@ void GUI_App::post_init()
             this->plater()->load_files(this->init_params->input_files, true, true);
         if (! this->init_params->extra_config.empty())
             this->mainframe->load_config(this->init_params->extra_config);
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 }
 
 IMPLEMENT_APP(GUI_App)
 
-#if ENABLE_GCODE_VIEWER
 GUI_App::GUI_App(EAppMode mode)
-#else
-GUI_App::GUI_App()
-#endif // ENABLE_GCODE_VIEWER
     : wxApp()
-#if ENABLE_GCODE_VIEWER
     , m_app_mode(mode)
-#endif // ENABLE_GCODE_VIEWER
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
     , m_wizard(nullptr)
@@ -682,8 +663,8 @@ bool GUI_App::init_opengl()
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
-	SetAppName(SLIC3R_APP_KEY);
-	SetAppName(SLIC3R_APP_KEY "-alpha");
+//	SetAppName(SLIC3R_APP_KEY);
+	SetAppName(SLIC3R_APP_KEY "-beta");
 //	SetAppDisplayName(SLIC3R_APP_NAME);
 
 	// Set the Slic3r data directory at the Slic3r XS module.
@@ -705,11 +686,7 @@ void GUI_App::init_app_config()
     }
 
 	if (!app_config)
-#if ENABLE_GCODE_VIEWER
         app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
-#else
-        app_config = new AppConfig();
-#endif // ENABLE_GCODE_VIEWER
 
 	// load settings
 	m_app_conf_exists = app_config->exists();
@@ -717,7 +694,6 @@ void GUI_App::init_app_config()
         std::string error = app_config->load();
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-#if ENABLE_GCODE_VIEWER
             if (is_editor()) {
                 throw Slic3r::RuntimeError(
                     _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
@@ -725,14 +701,11 @@ void GUI_App::init_app_config()
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
             else {
-#endif // ENABLE_GCODE_VIEWER
                 throw Slic3r::RuntimeError(
                     _u8L("Error parsing PrusaGCodeViewer config file, it is probably corrupted. "
                         "Try to manually delete the file to recover from the error.") +
                     "\n\n" + app_config->config_path() + "\n\n" + error);
-#if ENABLE_GCODE_VIEWER
             }
-#endif // ENABLE_GCODE_VIEWER
         }
     }
 }
@@ -775,9 +748,7 @@ bool GUI_App::on_init_inner()
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 
-#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         std::string msg = Http::tls_global_init();
         std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
         bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
@@ -795,9 +766,7 @@ bool GUI_App::on_init_inner()
             app_config->set("tls_accepted_cert_store_location",
                 dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
         }
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
@@ -807,11 +776,7 @@ bool GUI_App::on_init_inner()
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1") {
         // make a bitmap with dark grey banner on the left side
-#if ENABLE_GCODE_VIEWER
         wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var(is_editor() ? "splashscreen.jpg" : "splashscreen-gcodepreview.jpg")), wxBITMAP_TYPE_JPEG));
-#else
-        wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG));
-#endif // ENABLE_GCODE_VIEWER
 
         // Detect position (display) to show the splash screen
         // Now this position is equal to the mainframe position
@@ -825,8 +790,10 @@ bool GUI_App::on_init_inner()
         // create splash screen with updated bmp
         scrn = new SplashScreen(bmp.IsOk() ? bmp : create_scaled_bitmap("prusa_slicer_logo", nullptr, 400), 
                                 wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, splashscreen_pos);
+#ifndef __linux__
         wxYield();
-        scrn->SetText(_L("Loading configuration..."));
+#endif
+        scrn->SetText(_L("Loading configuration")+ dots);
     }
 
     preset_bundle = new PresetBundle();
@@ -835,11 +802,16 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
-#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
 #ifdef __WXMSW__ 
-        associate_3mf_files();
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+        if (app_config->get("associate_3mf") == "1")
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+            associate_3mf_files();
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+        if (app_config->get("associate_stl") == "1")
+            associate_stl_files();
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 #endif // __WXMSW__
 
         preset_updater = new PresetUpdater();
@@ -852,14 +824,15 @@ bool GUI_App::on_init_inner()
                 }
             }
             });
-#if ENABLE_GCODE_VIEWER
     }
     else {
 #ifdef __WXMSW__ 
-        associate_gcode_files();
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+        if (app_config->get("associate_gcode") == "1")
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+            associate_gcode_files();
 #endif // __WXMSW__
     }
-#endif // ENABLE_GCODE_VIEWER
 
     // initialize label colors and fonts
     init_label_colours();
@@ -887,18 +860,12 @@ bool GUI_App::on_init_inner()
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
     // application frame
-#if ENABLE_GCODE_VIEWER
     if (scrn && is_editor())
-#else
-    if (scrn)
-#endif // ENABLE_GCODE_VIEWER
-        scrn->SetText(_L("Preparing settings tabs..."));
+        scrn->SetText(_L("Preparing settings tabs") + dots);
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
-#if ENABLE_GCODE_VIEWER
     if (is_editor())
-#endif // ENABLE_GCODE_VIEWER
         mainframe->select_tab(size_t(0));
 
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
@@ -939,9 +906,7 @@ bool GUI_App::on_init_inner()
         if (once) {
             once = false;
 
-#if ENABLE_GCODE_VIEWER
             if (preset_updater != nullptr) {
-#endif // ENABLE_GCODE_VIEWER
                 check_updates(false);
 
                 CallAfter([this] {
@@ -949,9 +914,7 @@ bool GUI_App::on_init_inner()
                     preset_updater->slic3r_update_notify();
                     preset_updater->sync(preset_bundle);
                     });
-#if ENABLE_GCODE_VIEWER
             }
-#endif // ENABLE_GCODE_VIEWER
 
 #ifdef _WIN32
 			//sets window property to mainframe so other instances can indentify it
@@ -960,7 +923,6 @@ bool GUI_App::on_init_inner()
         }
     });
 
-#if ENABLE_GCODE_VIEWER
     if (is_gcode_viewer()) {
         mainframe->update_layout();
         if (plater_ != nullptr)
@@ -968,7 +930,6 @@ bool GUI_App::on_init_inner()
             plater_->set_printer_technology(ptFFF);
     }
     else
-#endif // ENABLE_GCODE_VIEWER
         load_current_presets();
     mainframe->Show(true);
 
@@ -1161,9 +1122,7 @@ void GUI_App::check_printer_presets()
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
 {
-#if ENABLE_GCODE_VIEWER
     m_is_recreating_gui = true;
-#endif // ENABLE_GCODE_VIEWER
 
     mainframe->shutdown();
 
@@ -1173,9 +1132,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
-#if ENABLE_GCODE_VIEWER
     if (is_editor())
-#endif // ENABLE_GCODE_VIEWER
         // hide settings tabs after first Layout
         mainframe->select_tab(size_t(0));
     // Propagate model objects to object list.
@@ -1208,9 +1165,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //         config_wizard_startup(true);
 //     });
 
-#if ENABLE_GCODE_VIEWER
     m_is_recreating_gui = false;
-#endif // ENABLE_GCODE_VIEWER
 }
 
 void GUI_App::system_info()
@@ -1295,7 +1250,6 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
         dialog.GetPaths(input_files);
 }
 
-#if ENABLE_GCODE_VIEWER
 void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 {
     input_file.Clear();
@@ -1307,7 +1261,6 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
     if (dialog.ShowModal() == wxID_OK)
         input_file = dialog.GetPath();
 }
-#endif // ENABLE_GCODE_VIEWER
 
 bool GUI_App::switch_language()
 {
@@ -1543,17 +1496,13 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     const auto config_wizard_name = _(ConfigWizard::name(true));
     const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     // Cmd+, is standard on OS X - what about other operating systems?
-#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
         local_menu->Append(config_id_base + ConfigMenuSnapshots, _L("&Configuration Snapshots") + dots, _L("Inspect / activate configuration snapshots"));
         local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _L("Take Configuration &Snapshot"), _L("Capture a configuration snapshot"));
         local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for updates"), _L("Check for configuration updates"));
         local_menu->AppendSeparator();
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
     local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +
 #ifdef __APPLE__
         "\tCtrl+,",
@@ -1561,16 +1510,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         "\tCtrl+P",
 #endif
         _L("Application preferences"));
-#if ENABLE_GCODE_VIEWER
     wxMenu* mode_menu = nullptr;
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         local_menu->AppendSeparator();
-#if ENABLE_GCODE_VIEWER
         mode_menu = new wxMenu();
-#else
-        auto mode_menu = new wxMenu();
-#endif // ENABLE_GCODE_VIEWER
         mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple View Mode"));
 //    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced View Mode"));
         mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _CTX(L_CONTEXT("Advanced", "Mode"), "Mode"), _L("Advanced View Mode"));
@@ -1580,21 +1523,15 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comExpert) evt.Check(true); }, config_id_base + ConfigMenuModeExpert);
 
         local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s View Mode"), SLIC3R_APP_NAME));
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
-#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         local_menu->AppendSeparator();
         local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash printer &firmware"), _L("Upload a firmware image into an Arduino based printer"));
         // TODO: for when we're able to flash dictionaries
         // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash language file"),    _L("Upload a language dictionary file into a Prusa printer"));
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
@@ -1648,10 +1585,22 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
                 app_layout_changed = dlg.settings_layout_changed();
-#if ENABLE_GCODE_VIEWER
                 if (dlg.seq_top_layer_only_changed())
                     this->plater_->refresh_print();
-#endif // ENABLE_GCODE_VIEWER
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+                if (is_editor()) {
+                    if (app_config->get("associate_3mf") == "1")
+                        associate_3mf_files();
+                    if (app_config->get("associate_stl") == "1")
+                        associate_stl_files();
+                }
+                else {
+                    if (app_config->get("associate_gcode") == "1")
+                        associate_gcode_files();
+                }
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
             }
             if (app_layout_changed) {
                 // hide full main_sizer for mainFrame
@@ -1670,19 +1619,13 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 // the dialog needs to be destroyed before the call to switch_language()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
-#if ENABLE_GCODE_VIEWER
                 wxString title = is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
                 title += " - " + _L("Language selection");
-#endif // ENABLE_GCODE_VIEWER
                 wxMessageDialog dialog(nullptr,
                     _L("Switching the language will trigger application restart.\n"
                         "You will lose content of the plater.") + "\n\n" +
                     _L("Do you want to proceed?"),
-#if ENABLE_GCODE_VIEWER
                     title,
-#else
-                    wxString(SLIC3R_APP_NAME) + " - " + _L("Language selection"),
-#endif // ENABLE_GCODE_VIEWER
                     wxICON_QUESTION | wxOK | wxCANCEL);
                 if (dialog.ShowModal() == wxID_CANCEL)
                     return;
@@ -1701,16 +1644,12 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     
     using std::placeholders::_1;
 
-#if ENABLE_GCODE_VIEWER
     if (mode_menu != nullptr) {
-#endif // ENABLE_GCODE_VIEWER
         auto modfn = [this](int mode, wxCommandEvent&) { if (get_mode() != mode) save_mode(mode); };
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comSimple, _1), config_id_base + ConfigMenuModeSimple);
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comExpert, _1), config_id_base + ConfigMenuModeExpert);
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 
     menu->Append(local_menu, _L("&Configuration"));
 }
@@ -1832,8 +1771,17 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
         if (!non_gcode_files.empty()) 
             start_new_slicer(non_gcode_files, true);
     } else {
-        if (! files.empty())
+        if (! files.empty()) {
+#if ENABLE_DRAG_AND_DROP_FIX
+            wxArrayString input_files;
+            for (size_t i = 0; i < non_gcode_files.size(); ++i) {
+                input_files.push_back(non_gcode_files[i]);
+            }
+            this->plater()->load_files(input_files);
+#else
             this->plater()->load_files(files, true, true);
+#endif     
+        }
         for (const wxString &filename : gcode_files)
             start_new_gcodeviewer(&filename);
     }
@@ -2196,6 +2144,32 @@ void GUI_App::associate_3mf_files()
         // notify Windows only when any of the values gets changed
         ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
+
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+void GUI_App::associate_stl_files()
+{
+    wchar_t app_path[MAX_PATH];
+    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
+
+    std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
+    std::wstring prog_id = L"Prusa.Slicer.1";
+    std::wstring prog_desc = L"PrusaSlicer";
+    std::wstring prog_command = prog_path + L" \"%1\"";
+    std::wstring reg_base = L"Software\\Classes";
+    std::wstring reg_extension = reg_base + L"\\.stl";
+    std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
+    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
+
+    bool is_new = false;
+    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
+    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+
+    if (is_new)
+        // notify Windows only when any of the values gets changed
+        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+}
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
 void GUI_App::associate_gcode_files()
 {

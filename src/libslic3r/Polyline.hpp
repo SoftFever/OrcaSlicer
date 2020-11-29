@@ -60,8 +60,8 @@ public:
         }
     }
 
-    operator Polylines() const;
-    operator Line() const;
+    explicit operator Polylines() const;
+    explicit operator Line() const;
     const Point& last_point() const override { return this->points.back(); }
 
     const Point& leftmost_point() const;
