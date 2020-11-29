@@ -124,7 +124,7 @@ inline void append(std::vector<T>& dest, std::vector<T>&& src)
     if (dest.empty())
         dest = std::move(src);
     else {
-        dest.resize(dest.size() + src.size());
+        dest.reserve(dest.size() + src.size());
         std::move(std::begin(src), std::end(src), std::back_inserter(dest));
     }
     src.clear();

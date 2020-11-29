@@ -32,6 +32,17 @@ public:
 
     Polyline    travel_to(const GCode& gcodegen, const Point& point, bool* could_be_wipe_disabled);
 
+    struct Boundary {
+        // Collection of boundaries used for detection of crossing perimeters for travels
+        Polygons boundaries;
+        // Bounding box of boundaries
+        BoundingBoxf bbox;
+        // Precomputed distances of all points in boundaries
+        std::vector<std::vector<float>> boundaries_params;
+        // Used for detection of intersection between line and any polygon from boundaries
+        EdgeGrid::Grid grid;
+    };
+
 private:
     bool           m_use_external_mp { false };
     // just for the next travel move
@@ -40,18 +51,14 @@ private:
     // we enable it by default for the first travel move in print
     bool           m_disabled_once { true };
 
-    // Slice of layer with elephant foot compensation
-    ExPolygons     m_slice;
-    // Collection of boundaries used for detection of crossing perimetrs for travels inside object
-    Polygons       m_boundaries;
-    // Collection of boundaries used for detection of crossing perimetrs for travels outside object
-    Polygons       m_boundaries_external;
-    // Bounding box of m_boundaries
-    BoundingBoxf   m_bbox;
-    // Bounding box of m_boundaries_external
-    BoundingBoxf   m_bbox_external;
-    EdgeGrid::Grid m_grid;
-    EdgeGrid::Grid m_grid_external;
+    // Used for detection of line or polyline is inside of any polygon.
+    EdgeGrid::Grid m_grid_lslice;
+    // Store all needed data for travels inside object
+    Boundary m_internal;
+#if 0
+    // Store all needed data for travels outside object
+    Boundary m_external;
+#endif
 };
 
 } // namespace Slic3r
