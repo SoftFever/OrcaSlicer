@@ -491,7 +491,7 @@ static inline float get_default_perimeter_spacing(const PrintObject &print_objec
     assert(!printing_extruders.empty());
     float avg_extruder = 0;
     for(unsigned int extruder_id : printing_extruders)
-        avg_extruder += scale_(print_object.print()->config().nozzle_diameter.get_at(extruder_id));
+        avg_extruder += float(scale_(print_object.print()->config().nozzle_diameter.get_at(extruder_id)));
     avg_extruder /= printing_extruders.size();
     return avg_extruder;
 }
@@ -817,7 +817,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     Vec2d startf = start.cast<double>();
     Vec2d endf   = end  .cast<double>();
 
-    if (!use_external && !any_expolygon_contains(gcodegen.layer()->lslices, gcodegen.layer()->lslices_bboxes, m_grid_lslice, travel)) {
+    if (!use_external && !gcodegen.layer()->lslices.empty() && !any_expolygon_contains(gcodegen.layer()->lslices, gcodegen.layer()->lslices_bboxes, m_grid_lslice, travel)) {
         // Initialize m_internal only when it is necessary.
         if (m_internal.boundaries.empty()) {
             m_internal.boundaries_params.clear();
