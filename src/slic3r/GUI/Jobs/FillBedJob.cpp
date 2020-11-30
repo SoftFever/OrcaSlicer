@@ -114,6 +114,9 @@ void FillBedJob::process()
 
 void FillBedJob::finalize()
 {
+    // Ignore the arrange result if aborted.
+    if (was_canceled()) return;
+
     if (m_object_idx == -1) return;
 
     ModelObject *model_object = m_plater->model().objects[m_object_idx];
