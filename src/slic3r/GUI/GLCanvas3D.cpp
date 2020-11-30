@@ -3893,10 +3893,13 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
 
     bool settings_changed = false;
 
-    if (imgui->slider_float(_L("Gap size"), &settings.distance, 0.f, 100.f)) {
+    if (ImGui::DragFloat(_L("Gal size").ToUTF8().data(), &settings.distance, .01f, 0.0f, 100.0f, "%5.2f")) {
         m_arrange_settings.distance = settings.distance;
         settings_changed = true;
     }
+
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", _L("Use CTRL+Left mouse button to enter text edit mode.\nUse SHIFT key to increase stepping.").ToUTF8().data());
 
     if (imgui->checkbox(_L("Enable rotations (slow)"), settings.enable_rotation)) {
         m_arrange_settings.enable_rotation = settings.enable_rotation;
