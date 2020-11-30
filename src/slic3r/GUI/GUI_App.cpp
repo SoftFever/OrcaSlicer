@@ -1278,6 +1278,11 @@ bool GUI_App::select_language()
 	wxArrayString translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo*> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
+#ifdef __linux__
+    // wxWidgets consider the default English locale to be en_GB, which is often missing on Linux.
+    // Thus we offer en_US on Linux as well.
+    language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US));
+#endif // __linux__
     for (size_t i = 0; i < translations.GetCount(); ++ i) {
 	    const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
         if (langinfo != nullptr)
@@ -1306,6 +1311,13 @@ bool GUI_App::select_language()
         if (language_infos[i]->CanonicalName.BeforeFirst('_') == "en")
         	// This will be the default selection if the active language does not match any dictionary.
         	init_selection_default = i;
+#ifdef __linux__
+        // wxWidgets consider the default English locale to be en_GB, which is often missing on Linux.
+        // Thus we make the distintion between "en_US" and "en_GB" clear.
+        if (language_infos[i]->CanonicalName == "en_GB" && language_infos[i]->Description == "English")
+            names.Add("English (U.K.)");
+        else
+#endif // __linux__
         names.Add(language_infos[i]->Description);
     }
     if (init_selection == -1)
