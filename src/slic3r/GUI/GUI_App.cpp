@@ -820,7 +820,7 @@ bool GUI_App::on_init_inner()
             app_config->save();
             if (this->plater_ != nullptr) {
                 if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable, *(this->plater_->get_current_canvas3D()));
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
                 }
             }
             });

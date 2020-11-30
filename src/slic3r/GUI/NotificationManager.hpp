@@ -87,16 +87,16 @@ public:
 	NotificationManager(wxEvtHandler* evt_handler);
 	
 	// Push a prefabricated notification from basic_notifications (see the table at the end of this file).
-	void push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp = 0);
+	void push_notification(const NotificationType type, int timestamp = 0);
 	// Push a NotificationType::CustomNotification with NotificationLevel::RegularNotification and 10s fade out interval.
-	void push_notification(const std::string& text, GLCanvas3D& canvas, int timestamp = 0);
+	void push_notification(const std::string& text, int timestamp = 0);
 	// Push a NotificationType::CustomNotification with provided notification level and 10s for RegularNotification.
 	// ErrorNotification and ImportantNotification are never faded out.
-	void push_notification(const std::string& text, NotificationLevel level, GLCanvas3D& canvas, int timestamp = 0);
+	void push_notification(const std::string& text, NotificationLevel level, int timestamp = 0);
 	// Creates Slicing Error notification with a custom text and no fade out.
-	void push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas);
+	void push_slicing_error_notification(const std::string& text);
 	// Creates Slicing Warning notification with a custom text and no fade out.
-	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, ObjectID oid, int warning_step);
+	void push_slicing_warning_notification(const std::string& text, bool gray, ObjectID oid, int warning_step);
 	// marks slicing errors as gray
 	void set_all_slicing_errors_gray(bool g);
 	// marks slicing warings as gray
@@ -108,32 +108,32 @@ public:
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
 	// Object partially outside of the printer working space, cannot print. No fade out.
-	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
+	void push_plater_error_notification(const std::string& text);
 	// Object fully out of the printer working space and such. No fade out.
-	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
+	void push_plater_warning_notification(const std::string& text);
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
 	// Creates special notification slicing complete.
 	// If large = true (Plater side bar is closed), then printing time and export button is shown
 	// at the notification and fade-out is disabled. Otherwise the fade out time is set to 10s.
-	void push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large);
+	void push_slicing_complete_notification(int timestamp, bool large);
 	// Add a print time estimate to an existing SlicingComplete notification.
 	void set_slicing_complete_print_time(const std::string &info);
 	// Called when the side bar changes its visibility, as the "slicing complete" notification supplements
 	// the "slicing info" normally shown at the side bar.
 	void set_slicing_complete_large(bool large);
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
-	void push_exporting_finished_notification(GLCanvas3D& canvas, std::string path, std::string dir_path, bool on_removable);
+	void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 	// notification with progress bar
-	void  push_progress_bar_notification(const std::string& text, GLCanvas3D& canvas, float percentage = 0);
-	void set_progress_bar_percentage(const std::string& text, float percentage, GLCanvas3D& canvas);
+	void push_progress_bar_notification(const std::string& text, float percentage = 0);
+	void set_progress_bar_percentage(const std::string& text, float percentage);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
 	// finds ExportFinished notification and closes it if it was to removable device
 	void device_ejected();
 	// renders notifications in queue and deletes expired ones
-	void render_notifications(GLCanvas3D& canvas, float overlay_width);
+	void render_notifications(float overlay_width);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
 	// Which view is active? Plater or G-code preview? Hide warnings in G-code preview.
@@ -366,8 +366,8 @@ private:
 
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
-	bool push_notification_data(const NotificationData& notification_data, GLCanvas3D& canvas, int timestamp);
-	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp);
+	bool push_notification_data(const NotificationData& notification_data, int timestamp);
+	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, int timestamp);
 	//finds older notification of same type and moves it to the end of queue. returns true if found
 	bool activate_existing(const NotificationManager::PopNotification* notification);
 	// Put the more important notifications to the bottom of the list.

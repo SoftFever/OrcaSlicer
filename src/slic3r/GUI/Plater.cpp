@@ -2106,12 +2106,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 		    if (evt.data.second) {
 			    this->show_action_buttons(this->ready_to_slice);
                 notification_manager->close_notification_of_type(NotificationType::ExportFinished);
-			    notification_manager->push_notification(format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
-				                                        NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
-		    } else {
-			    notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
-				                                        NotificationManager::NotificationLevel::ErrorNotification, *q->get_current_canvas3D());
-		    }
+                notification_manager->push_notification(format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."), evt.data.first.name, evt.data.first.path),
+                    NotificationManager::NotificationLevel::RegularNotification);
+            } else {
+                notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
+                    NotificationManager::NotificationLevel::ErrorNotification);
+            }
 	    });
         this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
 		    this->show_action_buttons(this->ready_to_slice); 
@@ -2938,7 +2938,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         } else {
 			// The print is not valid.
 			// Show error as notification.
-			notification_manager->push_slicing_error_notification(err, *q->get_current_canvas3D());
+            notification_manager->push_slicing_error_notification(err);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
     } else if (! this->delayed_error_message.empty()) {
@@ -3499,7 +3499,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
         this->statusbar()->set_progress(evt.status.percent);
         this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
-        //notification_manager->set_progress_bar_percentage("Slicing progress", (float)evt.status.percent / 100.0f, *q->get_current_canvas3D());
+        //notification_manager->set_progress_bar_percentage("Slicing progress", (float)evt.status.percent / 100.0f);
     }
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE | PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
@@ -3541,8 +3541,8 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Now process state.warnings.
 		for (auto const& warning : state.warnings) {
 			if (warning.current) {
-				notification_manager->push_slicing_warning_notification(warning.message, false, *q->get_current_canvas3D(), object_id, warning_step);
-				add_warning(warning, object_id.id);
+                notification_manager->push_slicing_warning_notification(warning.message, false, object_id, warning_step);
+                add_warning(warning, object_id.id);
 			}
 		}
     }
@@ -3550,7 +3550,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
-	notification_manager->push_slicing_complete_notification(*q->get_current_canvas3D(), evt.GetInt(), is_sidebar_collapsed());
+    notification_manager->push_slicing_complete_notification(evt.GetInt(), is_sidebar_collapsed());
     switch (this->printer_technology) {
     case ptFFF:
         this->update_fff_scene();
@@ -3644,7 +3644,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             else
                 show_error(q, message);
         } else
-		  notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
+            notification_manager->push_slicing_error_notification(message);
         this->statusbar()->set_status_text(from_u8(message));
         if (evt.invalidate_plater())
         {
@@ -3690,10 +3690,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         // If writing to removable drive was scheduled, show notification with eject button
         if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !this->process_completed_with_error) {
             show_action_buttons(false);
-            notification_manager->push_exporting_finished_notification(*q->get_current_canvas3D(), last_output_path, last_output_dir_path, true);
+            notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, true);
             wxGetApp().removable_drive_manager()->set_exporting_finished(true);
         }else if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !this->process_completed_with_error)
-            notification_manager->push_exporting_finished_notification(*q->get_current_canvas3D(), last_output_path, last_output_dir_path, false);
+            notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
     }
     exporting_status = ExportingStatus::NOT_EXPORTING;
 }

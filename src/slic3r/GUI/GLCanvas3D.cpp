@@ -636,9 +636,9 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     auto &notification_manager = *wxGetApp().plater()->get_notification_manager();
     if (state) {
         if(error)
-            notification_manager.push_plater_error_notification(text,*(wxGetApp().plater()->get_current_canvas3D()));
+            notification_manager.push_plater_error_notification(text);
         else
-            notification_manager.push_plater_warning_notification(text, *(wxGetApp().plater()->get_current_canvas3D()));
+            notification_manager.push_plater_warning_notification(text);
     } else {
         if (error)
             notification_manager.close_plater_error_notification(text);
@@ -1699,8 +1699,7 @@ void GLCanvas3D::render()
         m_tooltip.render(m_mouse.position, *this);
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
-	
-	wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width());
+	wxGetApp().plater()->get_notification_manager()->render_notifications(get_overlay_window_width());
 
     wxGetApp().imgui()->render();
 
