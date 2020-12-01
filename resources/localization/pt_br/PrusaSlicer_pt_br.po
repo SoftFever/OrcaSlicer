@@ -4902,7 +4902,7 @@ msgstr "%s encontrou um erro"
 
 #: src/slic3r/GUI/NotificationManager.hpp:317
 msgid "Exporting finished."
-msgstr "Falha na exportação."
+msgstr "Exportação concluída."
 
 #: src/slic3r/GUI/NotificationManager.hpp:317
 msgid "Eject drive."
