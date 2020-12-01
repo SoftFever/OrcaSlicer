@@ -203,22 +203,48 @@ void KBShortcutsDialog::fill_shortcuts()
     }
 
     Shortcuts preview_shortcuts = {
-        { L("Arrow Up"), L("Upper Layer") },
-        { L("Arrow Down"), L("Lower Layer") },
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+        { L("Arrow Up"), L("Move vertical slider current thumb Up") },
+        { L("Arrow Down"), L("Move vertical slider current thumb Down") },
+        { L("Arrow Left"), L("Move horizontal slider current thumb Left") },
+        { L("Arrow Right"), L("Move horizontal slider current thumb Right") },
+        { "W", L("Move vertical slider current thumb Up") },
+        { "S", L("Move vertical slider current thumb Down") },
+        { "A", L("Move horizontal slider current thumb Left") },
+        { "D", L("Move horizontal slider current thumb Right") },
+        { "O", L("Toggle vertical slider one layer mode ON/OFF") },
+        { "L", L("Show/Hide Legend and Estimated printing time") },
+#else
+        { L("Arrow Up"), L("Upper layer") },
+        { L("Arrow Down"), L("Lower layer") },
         { "U", L("Upper Layer") },
         { "D", L("Lower Layer") },
         { "L", L("Show/Hide Legend & Estimated printing time") },
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
     };
 
     m_full_shortcuts.push_back(std::make_pair(_L("Preview"), preview_shortcuts));
 
     Shortcuts layers_slider_shortcuts = {
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+        { L("Arrow Up"), L("Vertical slider - Move current thumb Up") },
+        { L("Arrow Down"), L("Vertical slider - Move current thumb Down") },
+        { L("Arrow Left"), L("Vertical slider - Set upper thumb to current thumb") },
+        { L("Arrow Right"), L("Vertical slider - Set lower thumb to current thumb") },
+        { "+", L("Vertical slider - Add color change marker for current layer") },
+        { "-", L("Vertical slider - Delete color change marker for current layer") },
+        { L("Arrow Up"), L("Horizontal slider - Set left thumb to current thumb") },
+        { L("Arrow Down"), L("Horizontal slider - Set right thumb to current thumb") },
+        { L("Arrow Left"), L("Horizontal slider - Move current thumb Left") },
+        { L("Arrow Right"), L("Horizontal slider - Move current thumb Right") },
+#else
         { L("Arrow Up"), L("Move current slider thumb Up") },
         { L("Arrow Down"), L("Move current slider thumb Down") },
         { L("Arrow Left"), L("Set upper thumb to current slider thumb") },
         { L("Arrow Right"), L("Set lower thumb to current slider thumb") },
         { "+", L("Add color change marker for current layer") },
         { "-", L("Delete color change marker for current layer") },
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
         { "Shift+", L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
         { ctrl, L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
     };
