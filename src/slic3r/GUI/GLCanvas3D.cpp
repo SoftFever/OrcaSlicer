@@ -2413,10 +2413,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
     };
 
+    auto action_question_mark = [this]() {
+        post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK));
+    };
+
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
 //#endif /* __APPLE__ */
     if ((evt.GetModifiers() & ctrlMask) != 0) {
+        // CTRL is pressed
         switch (keyCode) {
 #ifdef __APPLE__
         case 'a':
@@ -2504,7 +2509,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 		default:            evt.Skip();
         }
     }
-    else  if ((evt.GetModifiers() & shiftMask) != 0) {
+    else if ((evt.GetModifiers() & shiftMask) != 0) {
+        // SHIFT is pressed
         switch (keyCode) {
         case '+': { action_plus(evt); break; }
         case 'A':
@@ -2515,6 +2521,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
             break;
         }
+        case '?': { action_question_mark(); break; }
         default:
             evt.Skip();
         }
@@ -2543,7 +2550,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     else
                         post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
                     break; }
-        case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
+        case '?': { action_question_mark(); break; }
         case 'A':
         case 'a': { action_a(); break; }
         case 'B':
