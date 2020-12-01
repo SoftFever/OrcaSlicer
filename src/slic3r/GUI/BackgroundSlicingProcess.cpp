@@ -180,7 +180,6 @@ void BackgroundSlicingProcess::process_fff()
 				BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
 				break;
 			}
-			BOOST_LOG_TRIVIAL(error) << "copy_ret_val is ok";
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());

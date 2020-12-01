@@ -436,7 +436,7 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 	ec.clear();
 	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
 	if (ec) {
-		error_message = ec.message()/*decode_path(ec.message().c_str())*/;
+		error_message = ec.message();
 		return FAIL_COPY_FILE;
 	}
 	ec.clear();
