@@ -212,7 +212,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { "S", L("Move vertical slider current thumb Down") },
         { "A", L("Move horizontal slider current thumb Left") },
         { "D", L("Move horizontal slider current thumb Right") },
-        { "O", L("Toggle vertical slider one layer mode ON/OFF") },
+        { "X", L("Toggle vertical slider one layer mode ON/OFF") },
         { "L", L("Show/Hide Legend and Estimated printing time") },
 #else
         { L("Arrow Up"), L("Upper layer") },
