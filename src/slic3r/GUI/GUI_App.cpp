@@ -1872,6 +1872,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "pl", 	"pl_PL", },
 		{ "uk", 	"uk_UA", },
 		{ "zh", 	"zh_CN", },
+		{ "ru", 	"ru_RU", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);

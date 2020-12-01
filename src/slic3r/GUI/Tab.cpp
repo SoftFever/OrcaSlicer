@@ -432,6 +432,17 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
     return page;
 }
 
+// Names of categories is save in English always. We translate them only for UI.
+// But category "Extruder n" can't be translated regularly (using _()), so
+// just for this category we should splite the title and translate "Extruder" word separately
+wxString Tab::translate_category(const wxString& title, Preset::Type preset_type)
+{
+    if (preset_type == Preset::TYPE_PRINTER && title.Contains("Extruder ")) {
+        return _("Extruder") + title.SubString(8, title.Last());
+    }
+    return _(title);
+}
+
 void Tab::OnActivate()
 {
     wxWindowUpdateLocker noUpdates(this);
@@ -509,7 +520,7 @@ void Tab::update_labels_colour()
         auto title = m_treectrl->GetItemText(cur_item);
         for (auto page : m_pages)
         {
-            if (_(page->title()) != title)
+            if (translate_category(page->title(), m_type) != title)
                 continue;
 
             const wxColor *clr = !page->m_is_nonsys_values ? &m_sys_label_clr :
@@ -736,7 +747,7 @@ void Tab::update_changed_tree_ui()
         auto title = m_treectrl->GetItemText(cur_item);
         for (auto page : m_pages)
         {
-            if (_(page->title()) != title)
+            if (translate_category(page->title(), m_type) != title)
                 continue;
             bool sys_page = true;
             bool modified_page = false;
@@ -1132,7 +1143,7 @@ void Tab::update_wiping_button_visibility() {
 
 void Tab::activate_option(const std::string& opt_key, const wxString& category)
 {
-    wxString page_title = _(category);
+    wxString page_title = translate_category(category, m_type);
 
     auto cur_item = m_treectrl->GetFirstVisibleItem();
     if (!cur_item || !m_treectrl->IsVisible(cur_item))
@@ -1803,7 +1814,6 @@ void TabFilament::build()
                 on_value_change(opt_key, value);
         };
 
-//        optgroup = page->new_optgroup(_(L("Temperature")) + wxString(" °C", wxConvUTF8));
         optgroup = page->new_optgroup(L("Temperature"));
         Line line = { L("Nozzle"), "" };
         line.append_option(optgroup->get_option("first_layer_temperature"));
@@ -2515,7 +2525,7 @@ void TabPrinter::build_unregular_pages()
     // Build missed extruder pages
     for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
         //# build page
-        const wxString& page_name = wxString::Format(L("Extruder %d"), int(extruder_idx + 1));
+        const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
         auto page = add_options_page(page_name, "funnel", true);
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
@@ -2947,7 +2957,7 @@ void Tab::rebuild_page_tree()
     {
         if (!p->get_show())
             continue;
-        auto itemId = m_treectrl->AppendItem(rootItem, _(p->title()), p->iconID());
+        auto itemId = m_treectrl->AppendItem(rootItem, translate_category(p->title(), m_type), p->iconID());
         m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
         if (p->title() == selected)
             item = itemId;
@@ -3286,7 +3296,7 @@ bool Tab::tree_sel_change_delayed()
     const auto sel_item = m_treectrl->GetSelection();
     const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
     for (auto p : m_pages)
-        if (_(p->title()) == selection)
+        if (translate_category(p->title(), m_type) == selection)
         {
             page = p.get();
             m_is_nonsys_values = page->m_is_nonsys_values;

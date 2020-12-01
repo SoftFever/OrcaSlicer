@@ -83,7 +83,7 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
             options.emplace_back(Option{ boost::nowide::widen(opt_key), type,
                                         (label + suffix).ToStdWstring(), (_(label) + suffix_local).ToStdWstring(),
                                         gc.group.ToStdWstring(), _(gc.group).ToStdWstring(),
-                                        gc.category.ToStdWstring(), _(gc.category).ToStdWstring() });
+                                        gc.category.ToStdWstring(), GUI::Tab::translate_category(gc.category, type).ToStdWstring() });
     };
 
     for (std::string opt_key : config->keys())
