@@ -387,9 +387,10 @@ public:
 
     struct ArrangeSettings
     {
-        float distance         = 6.;
-        float accuracy         = 0.65f;
-        bool  enable_rotation  = false;
+        float distance           = 6.;
+        float distance_seq_print = 6.;    // Used when sequential print is ON
+        float accuracy           = 0.65f; // Unused currently
+        bool  enable_rotation    = false;
     };
 
 private:

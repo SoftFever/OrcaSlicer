@@ -87,8 +87,10 @@ void FillBedJob::process()
         m_plater->canvas3D()->get_arrange_settings();
 
     arrangement::ArrangeParams params;
-    params.min_obj_distance = scaled(settings.distance);
     params.allow_rotations  = settings.enable_rotation;
+    params.min_obj_distance = m_plater->config()->opt_bool("complete_objects") ?
+                                  scaled(settings.distance_seq_print) :
+                                  scaled(settings.distance);
 
     bool do_stop = false;
     params.stopcondition = [this, &do_stop]() {

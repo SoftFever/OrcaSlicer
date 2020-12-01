@@ -1102,11 +1102,17 @@ static GLCanvas3D::ArrangeSettings load_arrange_settings()
     std::string dist_str =
         wxGetApp().app_config->get("arrange", "min_object_distance");
 
+    std::string dist_seq_print_str =
+        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print");
+
     std::string en_rot_str =
         wxGetApp().app_config->get("arrange", "enable_rotation");
 
     if (!dist_str.empty())
         settings.distance = std::stof(dist_str);
+
+    if (!dist_seq_print_str.empty())
+        settings.distance_seq_print = std::stof(dist_seq_print_str);
 
     if (!en_rot_str.empty())
         settings.enable_rotation = (en_rot_str == "1" || en_rot_str == "yes");
@@ -3907,14 +3913,20 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     auto &appcfg = wxGetApp().app_config;
 
     bool settings_changed = false;
+    bool is_seq_print     = m_config->opt_bool("complete_objects");
 
-    if (ImGui::DragFloat(_L("Gal size").ToUTF8().data(), &settings.distance, .01f, 0.0f, 100.0f, "%5.2f")) {
-        m_arrange_settings.distance = settings.distance;
+    imgui->text(_L("Use CTRL+left mouse key to enter text edit mode:"));
+
+    float &dist_val = is_seq_print ? settings.distance_seq_print : settings.distance;
+    float dist_min = is_seq_print ? float(min_object_distance(*m_config)) : 0.f;
+    dist_val = std::max(dist_min, dist_val);
+
+    if (imgui->slider_float(_L("Clearance size"), &dist_val, dist_min, 100.0f, "%5.2f")) {
+        is_seq_print ? m_arrange_settings.distance_seq_print = dist_val :
+                       m_arrange_settings.distance           = dist_val;
+
         settings_changed = true;
     }
-
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", _L("Use CTRL+Left mouse button to enter text edit mode.\nUse SHIFT key to increase stepping.").ToUTF8().data());
 
     if (imgui->checkbox(_L("Enable rotations (slow)"), settings.enable_rotation)) {
         m_arrange_settings.enable_rotation = settings.enable_rotation;
@@ -3930,6 +3942,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
 
     if (settings_changed) {
         appcfg->set("arrange", "min_object_distance", std::to_string(m_arrange_settings.distance));
+        appcfg->set("arrange", "min_object_distance_seq_print", std::to_string(m_arrange_settings.distance_seq_print));
         appcfg->set("arrange", "enable_rotation", m_arrange_settings.enable_rotation? "1" : "0");
     }
 
