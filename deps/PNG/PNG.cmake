@@ -1,3 +1,9 @@
+if (APPLE)
+    # Only disable NEON extension for Apple ARM builds, leave it enabled for Raspberry PI.
+    set(_disable_neon_extension "-DPNG_ARM_NEON=off")
+else ()
+    set(_disable_neon_extension "")
+endif ()
 
 prusaslicer_add_cmake_project(PNG 
     GIT_REPOSITORY https://github.com/glennrp/libpng.git 
@@ -9,7 +15,7 @@ prusaslicer_add_cmake_project(PNG
         -DPNG_PREFIX=prusaslicer_
         -DPNG_TESTS=OFF
         -DDISABLE_DEPENDENCY_TRACKING=OFF
-        -DPNG_ARM_NEON=off
+        ${_disable_neon_extension}
 )
 
 if (MSVC)
