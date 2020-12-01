@@ -436,7 +436,7 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 	ec.clear();
 	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
 	if (ec) {
-		error_message = ec.message();
+		error_message = ec.message()/*decode_path(ec.message().c_str())*/;
 		return FAIL_COPY_FILE;
 	}
 	ec.clear();
@@ -552,6 +552,7 @@ std::string encode_path(const char *src)
 }
 
 // Encode an 8-bit string from a local code page to UTF-8.
+// Multibyte to utf8
 std::string decode_path(const char *src)
 {  
 #ifdef WIN32
