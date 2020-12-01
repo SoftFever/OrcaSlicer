@@ -157,6 +157,9 @@ public:
     void update_bottom_toolbar();
     void update_moves_slider();
     void enable_moves_slider(bool enable);
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+    void move_moves_slider(wxKeyEvent& evt);
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
     void hide_layers_slider();
 
 private:

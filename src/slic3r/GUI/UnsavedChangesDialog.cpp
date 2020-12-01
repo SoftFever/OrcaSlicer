@@ -24,6 +24,12 @@
 
 using boost::optional;
 
+#ifdef __Linux__
+#define wxLinux true
+#else
+#define wxLinux false
+#endif
+
 namespace Slic3r {
 
 namespace GUI {
@@ -586,7 +592,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     m_tree->AssociateModel(m_tree_model);
     m_tree_model->SetAssociatedControl(m_tree);
 
-    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, 6 * em);//2610,11,12 //2714
+    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, (wxLinux ? 8 : 6) * em);
 
     auto append_bmp_text_column = [this](const wxString& label, unsigned model_column, int width, bool set_expander = false) 
     {

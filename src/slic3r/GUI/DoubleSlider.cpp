@@ -1519,6 +1519,10 @@ void Control::move_current_thumb(const bool condition)
     if (accelerator > 0)
         delta *= accelerator;
 
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+    if (m_selection == ssUndef) m_selection = ssHigher;
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
+
     if (m_selection == ssLower) {
         m_lower_value -= delta;
         correct_lower_value();
@@ -1579,13 +1583,26 @@ void Control::OnKeyDown(wxKeyEvent &event)
             if (key == WXK_LEFT || key == WXK_RIGHT)
                 move_current_thumb(key == WXK_LEFT);
             else if (key == WXK_UP || key == WXK_DOWN) {
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+                if (key == WXK_DOWN)
+                    m_selection = ssHigher;
+                else if (key == WXK_UP && is_lower_thumb_editable())
+                    m_selection = ssLower;
+#else
                 if (key == WXK_UP)
                     m_selection = ssHigher;
                 else if (key == WXK_DOWN && is_lower_thumb_editable())
                     m_selection = ssLower;
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
                 Refresh();
             }
         }
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+        else {
+            if (key == WXK_LEFT || key == WXK_RIGHT)
+                move_current_thumb(key == WXK_LEFT);
+        }
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
     }
     else {
         if (m_is_focused) {
@@ -1599,6 +1616,12 @@ void Control::OnKeyDown(wxKeyEvent &event)
             else if (key == WXK_UP || key == WXK_DOWN)
                 move_current_thumb(key == WXK_UP);
         }
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+        else {
+            if (key == WXK_UP || key == WXK_DOWN)
+                move_current_thumb(key == WXK_UP);
+        }
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
     }
 
     event.Skip(); // !Needed to have EVT_CHAR generated as well

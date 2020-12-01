@@ -460,6 +460,13 @@ void Preview::unbind_event_handlers()
     m_moves_slider->Unbind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
 }
 
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+void Preview::move_moves_slider(wxKeyEvent& evt)
+{
+    if (m_moves_slider != nullptr) m_moves_slider->OnKeyDown(evt);
+}
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
+
 void Preview::hide_layers_slider()
 {
     m_layers_slider_sizer->Hide((size_t)0);
@@ -765,12 +772,26 @@ void Preview::update_layers_slider_from_canvas(wxKeyEvent& event)
 
     const auto key = event.GetKeyCode();
 
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+    if (key == 'S' || key == 'W') {
+        const int new_pos = key == 'W' ? m_layers_slider->GetHigherValue() + 1 : m_layers_slider->GetHigherValue() - 1;
+#else
     if (key == 'U' || key == 'D') {
         const int new_pos = key == 'U' ? m_layers_slider->GetHigherValue() + 1 : m_layers_slider->GetHigherValue() - 1;
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
         m_layers_slider->SetHigherValue(new_pos);
         if (event.ShiftDown() || m_layers_slider->is_one_layer()) m_layers_slider->SetLowerValue(m_layers_slider->GetHigherValue());
     }
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+    else if (key == 'A' || key == 'D') {
+        const int new_pos = key == 'D' ? m_moves_slider->GetHigherValue() + 1 : m_moves_slider->GetHigherValue() - 1;
+        m_moves_slider->SetHigherValue(new_pos);
+        if (event.ShiftDown() || m_moves_slider->is_one_layer()) m_moves_slider->SetLowerValue(m_moves_slider->GetHigherValue());
+    }
+    else if (key == 'X')
+#else
     else if (key == 'S')
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
         m_layers_slider->ChangeOneLayerLock();
     else if (key == WXK_SHIFT)
         m_layers_slider->UseDefaultColors(false);
