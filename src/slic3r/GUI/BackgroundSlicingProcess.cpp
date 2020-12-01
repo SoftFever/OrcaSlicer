@@ -149,30 +149,37 @@ void BackgroundSlicingProcess::process_fff()
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 			std::string error_message;
-			int copy_ret_val = copy_file(m_temp_output_path, export_path, error_message, m_export_path_on_removable_media);
+			int copy_ret_val = CopyFileResult::SUCCESS;
+			try
+			{
+				copy_ret_val = copy_file(m_temp_output_path, export_path, error_message, m_export_path_on_removable_media);
+			}
+			catch (...)
+			{
+				throw Slic3r::ExportError(_utf8(L("Unknown error occured during exporting G-code.")));
+			}
 			switch (copy_ret_val) {
-			case SUCCESS: break; // no error
-			case FAIL_COPY_FILE:
+			case CopyFileResult::SUCCESS: break; // no error
+			case CopyFileResult::FAIL_COPY_FILE:
 				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"))) % error_message).str());
 				break;
-			case FAIL_FILES_DIFFERENT: 
+			case CopyFileResult::FAIL_FILES_DIFFERENT:
 				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
 				break;
-			case FAIL_RENAMING: 
+			case CopyFileResult::FAIL_RENAMING:
 				throw Slic3r::ExportError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str());
 				break;
-			case FAIL_CHECK_ORIGIN_NOT_OPENED: 
+			case CopyFileResult::FAIL_CHECK_ORIGIN_NOT_OPENED:
 				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
 				break;
-			case FAIL_CHECK_TARGET_NOT_OPENED: 
+			case CopyFileResult::FAIL_CHECK_TARGET_NOT_OPENED:
 				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str());
 				break;
 			default:
-				throw Slic3r::RuntimeError(_utf8(L("Unknown error occured during exporting G-code.")));
+				throw Slic3r::ExportError(_utf8(L("Unknown error occured during exporting G-code.")));
 				BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
 				break;
 			}
-			
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());

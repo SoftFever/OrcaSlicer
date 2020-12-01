@@ -103,7 +103,11 @@ wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_SLIDERS, wxKeyEvent);
+#else
 wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, wxKeyEvent);
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
 wxDECLARE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_JUMP_TO, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
@@ -383,9 +387,10 @@ public:
 
     struct ArrangeSettings
     {
-        float distance         = 6.;
-        float accuracy         = 0.65f;
-        bool  enable_rotation  = false;
+        float distance           = 6.;
+        float distance_seq_print = 6.;    // Used when sequential print is ON
+        float accuracy           = 0.65f; // Unused currently
+        bool  enable_rotation    = false;
     };
 
 private:

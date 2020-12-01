@@ -1078,7 +1078,11 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_SLIDERS, wxKeyEvent);
+#else
 wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, wxKeyEvent);
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
 wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_JUMP_TO, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
@@ -1098,11 +1102,17 @@ static GLCanvas3D::ArrangeSettings load_arrange_settings()
     std::string dist_str =
         wxGetApp().app_config->get("arrange", "min_object_distance");
 
+    std::string dist_seq_print_str =
+        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print");
+
     std::string en_rot_str =
         wxGetApp().app_config->get("arrange", "enable_rotation");
 
     if (!dist_str.empty())
         settings.distance = std::stof(dist_str);
+
+    if (!dist_seq_print_str.empty())
+        settings.distance_seq_print = std::stof(dist_seq_print_str);
 
     if (!en_rot_str.empty())
         settings.enable_rotation = (en_rot_str == "1" || en_rot_str == "yes");
@@ -2409,10 +2419,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
     };
 
+    auto action_question_mark = [this]() {
+        post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK));
+    };
+
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
 //#endif /* __APPLE__ */
     if ((evt.GetModifiers() & ctrlMask) != 0) {
+        // CTRL is pressed
         switch (keyCode) {
 #ifdef __APPLE__
         case 'a':
@@ -2500,7 +2515,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 		default:            evt.Skip();
         }
     }
-    else  if ((evt.GetModifiers() & shiftMask) != 0) {
+    else if ((evt.GetModifiers() & shiftMask) != 0) {
+        // SHIFT is pressed
         switch (keyCode) {
         case '+': { action_plus(evt); break; }
         case 'A':
@@ -2511,6 +2527,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
             break;
         }
+        case '?': { action_question_mark(); break; }
         default:
             evt.Skip();
         }
@@ -2539,7 +2556,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     else
                         post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
                     break; }
-        case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
+        case '?': { action_question_mark(); break; }
         case 'A':
         case 'a': { action_a(); break; }
         case 'B':
@@ -2818,7 +2835,11 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         keyCode == WXK_UP ||
                         keyCode == WXK_DOWN) {
                         if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+                            post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_SLIDERS, evt));
+#else
                             post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, evt));
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
                     }
                 }
             }
@@ -3892,9 +3913,18 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     auto &appcfg = wxGetApp().app_config;
 
     bool settings_changed = false;
+    bool is_seq_print     = m_config->opt_bool("complete_objects");
 
-    if (imgui->slider_float(_L("Gap size"), &settings.distance, 0.f, 100.f)) {
-        m_arrange_settings.distance = settings.distance;
+    imgui->text(_L("Use CTRL+left mouse key to enter text edit mode:"));
+
+    float &dist_val = is_seq_print ? settings.distance_seq_print : settings.distance;
+    float dist_min = is_seq_print ? float(min_object_distance(*m_config)) : 0.f;
+    dist_val = std::max(dist_min, dist_val);
+
+    if (imgui->slider_float(_L("Clearance size"), &dist_val, dist_min, 100.0f, "%5.2f")) {
+        is_seq_print ? m_arrange_settings.distance_seq_print = dist_val :
+                       m_arrange_settings.distance           = dist_val;
+
         settings_changed = true;
     }
 
@@ -3912,6 +3942,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
 
     if (settings_changed) {
         appcfg->set("arrange", "min_object_distance", std::to_string(m_arrange_settings.distance));
+        appcfg->set("arrange", "min_object_distance_seq_print", std::to_string(m_arrange_settings.distance_seq_print));
         appcfg->set("arrange", "enable_rotation", m_arrange_settings.enable_rotation? "1" : "0");
     }
 

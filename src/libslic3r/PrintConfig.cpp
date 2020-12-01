@@ -159,8 +159,8 @@ void PrintConfigDef::init_common_params()
     def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
     def->enum_values.push_back("key");
     def->enum_values.push_back("user");
-    def->enum_labels.push_back("KeyPassword");
-    def->enum_labels.push_back("UserPassword");
+    def->enum_labels.push_back("API key");
+    def->enum_labels.push_back("HTTP digest");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
 }

@@ -128,8 +128,8 @@ void Field::PostInitialize()
 }
 
 // Values of width to alignments of fields
-int Field::def_width()			{ return wxOSX ? 8 : 7; }
-int Field::def_width_wider()	{ return 14; }
+int Field::def_width()			{ return 8; }
+int Field::def_width_wider()	{ return 16; }
 int Field::def_width_thinner()	{ return 4; }
 
 void Field::on_kill_focus()
@@ -1085,7 +1085,7 @@ void Choice::set_values(const wxArrayString &values)
 
 	// 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
 	// 	# but we want to preserve it
-	auto ww = dynamic_cast<wxBitmapComboBox*>(window);
+	auto ww = dynamic_cast<choice_ctrl*>(window);
 	auto value = ww->GetValue();
 	ww->Clear();
 	ww->Append("");

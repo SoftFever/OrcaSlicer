@@ -2055,7 +2055,14 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_JUMP_TO, [this](wxKeyEvent& evt) { preview->jump_layers_slider(evt); });
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_SLIDERS, [this](wxKeyEvent& evt) {
+        preview->move_layers_slider(evt);
+        preview->move_moves_slider(evt);
+        });
+#else
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, [this](wxKeyEvent& evt) { preview->move_layers_slider(evt); });
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_layers_slider(evt); });
 
     if (wxGetApp().is_editor()) {
@@ -3633,7 +3640,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 
     // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
     this->background_process.reset_export();
-
+    // This bool stops showing export finished notification even when process_completed_with_error is false
+    bool has_error = false;
     if (evt.error()) {
         std::string message = evt.format_error_message();
         if (evt.critical_error()) {
@@ -3653,7 +3661,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
                 sidebar->set_btn_label(btn, invalid_str);
             process_completed_with_error = true;
         }
-		
+        has_error = true;
     }
     if (evt.cancelled())
         this->statusbar()->set_status_text(_L("Cancelled"));
@@ -3688,11 +3696,11 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             show_action_buttons(false);
         }
         // If writing to removable drive was scheduled, show notification with eject button
-        if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !this->process_completed_with_error) {
+        if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !has_error) {
             show_action_buttons(false);
             notification_manager->push_exporting_finished_notification(*q->get_current_canvas3D(), last_output_path, last_output_dir_path, true);
             wxGetApp().removable_drive_manager()->set_exporting_finished(true);
-        }else if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !this->process_completed_with_error)
+        }else if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(*q->get_current_canvas3D(), last_output_path, last_output_dir_path, false);
     }
     exporting_status = ExportingStatus::NOT_EXPORTING;

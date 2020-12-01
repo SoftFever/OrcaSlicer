@@ -266,8 +266,9 @@ inline bool liang_barsky_line_clipping(
         // Clipped successfully.
         x1  = x0 + interval.second * v;
         x0 += interval.first * v;
+        return true;
     }
-    return true;
+    return false;
 }
 
 // Based on Liang-Barsky function by Daniel White @ http://www.skytopia.com/project/articles/compsci/clipping.html
