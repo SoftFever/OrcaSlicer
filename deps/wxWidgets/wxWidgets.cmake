@@ -1,4 +1,11 @@
-set(_wx_git_tag v3.1.3-patched)
+if (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+    # The new OSX 11 (Big Sur) is not compatible with wxWidgets 3.1.3.
+    # Let's use patched wxWidgets 3.1.4, even though it is not quite tested.
+    set(_wx_git_tag v3.1.4-patched)
+else ()
+    # Use the tested patched wxWidgets 3.1.3 everywhere else.
+    set(_wx_git_tag v3.1.3-patched)
+endif ()
 
 # set(_patch_command "")
 set(_wx_toolkit "")
