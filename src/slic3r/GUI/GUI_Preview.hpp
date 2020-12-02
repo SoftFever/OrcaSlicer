@@ -76,17 +76,17 @@ private:
 
 class Preview : public wxPanel
 {
-    wxGLCanvas* m_canvas_widget;
-    GLCanvas3D* m_canvas;
-    wxBoxSizer* m_left_sizer;
-    wxBoxSizer* m_layers_slider_sizer;
-    wxPanel* m_bottom_toolbar_panel;
-    wxStaticText* m_label_view_type;
-    wxChoice* m_choice_view_type;
-    wxStaticText* m_label_show;
-    wxComboCtrl* m_combochecklist_features;
-    size_t m_combochecklist_features_pos;
-    wxComboCtrl* m_combochecklist_options;
+    wxGLCanvas* m_canvas_widget { nullptr };
+    GLCanvas3D* m_canvas { nullptr };
+    wxBoxSizer* m_left_sizer { nullptr };
+    wxBoxSizer* m_layers_slider_sizer { nullptr };
+    wxPanel* m_bottom_toolbar_panel { nullptr };
+    wxStaticText* m_label_view_type { nullptr };
+    wxChoice* m_choice_view_type { nullptr };
+    wxStaticText* m_label_show { nullptr };
+    wxComboCtrl* m_combochecklist_features { nullptr };
+    size_t m_combochecklist_features_pos { 0 };
+    wxComboCtrl* m_combochecklist_options { nullptr };
 
     DynamicPrintConfig* m_config;
     BackgroundSlicingProcess* m_process;
@@ -95,16 +95,16 @@ class Preview : public wxPanel
 #ifdef __linux__
     // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
     // So we are applying a workaround here.
-    bool m_volumes_cleanup_required;
+    bool m_volumes_cleanup_required { false };
 #endif /* __linux__ */
 
     // Calling this function object forces Plater::schedule_background_process.
     std::function<void()> m_schedule_background_process;
 
-    unsigned int m_number_extruders;
+    unsigned int m_number_extruders { 1 };
     std::string m_preferred_color_mode;
 
-    bool m_loaded;
+    bool m_loaded { false };
 
     DoubleSlider::Control* m_layers_slider{ nullptr };
     DoubleSlider::Control* m_moves_slider{ nullptr };
