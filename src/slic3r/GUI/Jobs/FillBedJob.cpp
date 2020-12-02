@@ -29,7 +29,9 @@ void FillBedJob::prepare()
     for (ModelInstance *inst : model_object->instances)
         if (inst->printable) {
             ArrangePolygon ap = get_arrange_poly(PtrWrapper{inst}, m_plater);
-            ++ap.priority; // need to be included in the result
+            // Existing objects need to be included in the result. Only
+            // the needed amount of object will be added, no more.
+            ++ap.priority;
             m_selected.emplace_back(ap);
         }
 
@@ -38,11 +40,18 @@ void FillBedJob::prepare()
     m_bedpts = get_bed_shape(*m_plater->config());
 
     auto &objects = m_plater->model().objects;
+    BoundingBox bedbb = get_extents(m_bedpts);
+
     for (size_t idx = 0; idx < objects.size(); ++idx)
         if (int(idx) != m_object_idx)
             for (ModelInstance *mi : objects[idx]->instances) {
-                m_unselected.emplace_back(get_arrange_poly(PtrWrapper{mi}, m_plater));
-                m_unselected.back().bed_idx = 0;
+                ArrangePolygon ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
+                auto ap_bb = ap.transformed_poly().contour.bounding_box();
+
+                if (ap.bed_idx == 0 && !bedbb.contains(ap_bb))
+                    ap.bed_idx = arrangement::UNARRANGED;
+
+                m_unselected.emplace_back(ap);
             }
 
     if (auto wt = get_wipe_tower_arrangepoly(*m_plater))
@@ -55,18 +64,17 @@ void FillBedJob::prepare()
     double unsel_area = std::accumulate(m_unselected.begin(),
                                         m_unselected.end(), 0.,
                                         [](double s, const auto &ap) {
-                                            return s + ap.poly.area();
+                                            return s + (ap.bed_idx == 0) * ap.poly.area();
                                         }) / sc;
 
     double fixed_area = unsel_area + m_selected.size() * poly_area;
+    double bed_area   = Polygon{m_bedpts}.area() / sc;
 
-    // This is the maximum range, the real number will always be close but less.
-    double bed_area = Polygon{m_bedpts}.area() / sc;
-
-    m_status_range = (bed_area - fixed_area) / poly_area;
+    // This is the maximum number of items, the real number will always be close but less.
+    int needed_items = (bed_area - fixed_area) / poly_area;
 
     ModelInstance *mi = model_object->instances[0];
-    for (int i = 0; i < m_status_range; ++i) {
+    for (int i = 0; i < needed_items; ++i) {
         ArrangePolygon ap;
         ap.poly = m_selected.front().poly;
         ap.bed_idx = arrangement::UNARRANGED;
@@ -77,6 +85,14 @@ void FillBedJob::prepare()
         };
         m_selected.emplace_back(ap);
     }
+
+    m_status_range = m_selected.size();
+
+    // The strides have to be removed from the fixed items. For the
+    // arrangeable (selected) items bed_idx is ignored and the
+    // translation is irrelevant.
+    double stride = bed_stride(m_plater);
+    for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
 }
 
 void FillBedJob::process()

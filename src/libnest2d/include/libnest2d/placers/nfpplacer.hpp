@@ -167,6 +167,8 @@ struct NfpPConfig {
                        const ItemGroup&              // remaining items
                        )> before_packing;
 
+    std::function<void(const ItemGroup &, NfpPConfig &config)> on_preload;
+
     NfpPConfig(): rotations({0.0, Pi/2.0, Pi, 3*Pi/2}),
         alignment(Alignment::CENTER), starting_point(Alignment::CENTER) {}
 };
@@ -575,6 +577,12 @@ public:
     inline void clearItems() {
         finalAlign(bin_);
         Base::clearItems();
+    }
+
+    void preload(const ItemGroup& packeditems) {
+        Base::preload(packeditems);
+        if (config_.on_preload)
+            config_.on_preload(packeditems, config_);
     }
 
 private:
