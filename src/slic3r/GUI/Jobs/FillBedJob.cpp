@@ -92,7 +92,9 @@ void FillBedJob::prepare()
     // arrangeable (selected) items bed_idx is ignored and the
     // translation is irrelevant.
     double stride = bed_stride(m_plater);
-    for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
+    for (auto &p : m_unselected)
+        if (p.bed_idx > 0)
+            p.translation(X) -= p.bed_idx * stride;
 }
 
 void FillBedJob::process()
