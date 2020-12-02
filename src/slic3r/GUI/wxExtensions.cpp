@@ -16,6 +16,12 @@
 #include "Plater.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
+#ifdef __Linux__
+#define wxLinux true
+#else
+#define wxLinux false
+#endif
+
 #ifndef __WXGTK__// msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
 #ifdef __WXMSW__
@@ -653,7 +659,7 @@ void ModeButton::focus_button(const bool focus)
                              Slic3r::GUI::wxGetApp().normal_font();
 
     SetFont(new_font);
-    SetForegroundColour(wxSystemSettings::GetColour(focus ? wxSYS_COLOUR_BTNTEXT : wxSYS_COLOUR_BTNSHADOW));
+    SetForegroundColour(wxSystemSettings::GetColour(focus ? wxSYS_COLOUR_BTNTEXT : wxLinux ? wxSYS_COLOUR_GRAYTEXT : wxSYS_COLOUR_BTNSHADOW));
 
     Refresh();
     Update();
