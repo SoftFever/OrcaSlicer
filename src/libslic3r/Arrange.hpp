@@ -62,6 +62,15 @@ struct ArrangePolygon {
 
     /// Test if arrange() was called previously and gave a successful result.
     bool is_arranged() const { return bed_idx != UNARRANGED; }
+
+    inline ExPolygon transformed_poly() const
+    {
+        ExPolygon ret = poly;
+        ret.rotate(rotation);
+        ret.translate(translation.x(), translation.y());
+
+        return ret;
+    }
 };
 
 using ArrangePolygons = std::vector<ArrangePolygon>;
