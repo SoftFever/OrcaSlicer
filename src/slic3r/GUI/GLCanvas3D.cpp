@@ -1095,35 +1095,48 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 
-static GLCanvas3D::ArrangeSettings load_arrange_settings()
+void GLCanvas3D::load_arrange_settings()
 {
-    GLCanvas3D::ArrangeSettings settings;
+    std::string dist_fff_str =
+        wxGetApp().app_config->get("arrange", "min_object_distance_fff");
 
-    std::string dist_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance");
-
-    std::string dist_seq_print_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print");
+    std::string dist_fff_seq_print_str =
+        wxGetApp().app_config->get("arrange", "min_object_distance_fff_seq_print");
 
     std::string dist_sla_str =
         wxGetApp().app_config->get("arrange", "min_object_distance_sla");
 
-    std::string en_rot_str =
-        wxGetApp().app_config->get("arrange", "enable_rotation");
+    std::string en_rot_fff_str =
+        wxGetApp().app_config->get("arrange", "enable_rotation_fff");
 
-    if (!dist_str.empty())
-        settings.distance = std::stof(dist_str);
+    std::string en_rot_fff_seqp_str =
+        wxGetApp().app_config->get("arrange", "enable_rotation_fff_seq_print");
 
-    if (!dist_seq_print_str.empty())
-        settings.distance_seq_print = std::stof(dist_seq_print_str);
+    std::string en_rot_sla_str =
+        wxGetApp().app_config->get("arrange", "enable_rotation_sla");
+
+    if (!dist_fff_str.empty())
+        m_arrange_settings_fff.distance = std::stof(dist_fff_str);
+
+    if (!dist_fff_seq_print_str.empty())
+        m_arrange_settings_fff_seq_print.distance = std::stof(dist_fff_seq_print_str);
 
     if (!dist_sla_str.empty())
-        settings.distance_sla = std::stof(dist_sla_str);
+        m_arrange_settings_sla.distance = std::stof(dist_sla_str);
 
-    if (!en_rot_str.empty())
-        settings.enable_rotation = (en_rot_str == "1" || en_rot_str == "yes");
+    if (!en_rot_fff_str.empty())
+        m_arrange_settings_fff.enable_rotation = (en_rot_fff_str == "1" || en_rot_fff_str == "yes");
 
-    return settings;
+    if (!en_rot_fff_seqp_str.empty())
+        m_arrange_settings_fff_seq_print.enable_rotation = (en_rot_fff_seqp_str == "1" || en_rot_fff_seqp_str == "yes");
+
+    if (!en_rot_sla_str.empty())
+        m_arrange_settings_sla.enable_rotation = (en_rot_sla_str == "1" || en_rot_sla_str == "yes");
+}
+
+PrinterTechnology GLCanvas3D::current_printer_technology() const
+{
+    return m_process->current_printer_technology();
 }
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
@@ -1168,7 +1181,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 #endif // ENABLE_RETINA_GL
     }
 
-    m_arrange_settings = load_arrange_settings();
+    load_arrange_settings();
 
     m_selection.set_volumes(&m_volumes.volumes);
 }
@@ -3914,59 +3927,57 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
 
     imgui->begin(_L("Arrange options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
-    ArrangeSettings settings = m_arrange_settings;
+
+    ArrangeSettings settings = get_arrange_settings();
+    ArrangeSettings &settings_out = get_arrange_settings();
 
     auto &appcfg = wxGetApp().app_config;
     PrinterTechnology ptech = m_process->current_printer_technology();
 
     bool settings_changed = false;
-    float *dist_val = nullptr;
-    float *dist_val_out = nullptr;
     float dist_min = 0.f;
-    std::string dist_key;
+    std::string dist_key = "min_object_distance", rot_key = "enable_rotation";
+    std::string postfix;
 
     if (ptech == ptSLA) {
-        dist_val     = &settings.distance_sla;
-        dist_val_out = &m_arrange_settings.distance_sla;
         dist_min     = 0.f;
-        dist_key     = "min_object_distance_sla";
+        postfix      = "_sla";
     } else if (ptech == ptFFF) {
         auto co_opt = m_config->option<ConfigOptionBool>("complete_objects");
         if (co_opt && co_opt->value) {
-            dist_val     = &settings.distance_seq_print;
-            dist_val_out = &m_arrange_settings.distance_seq_print;
             dist_min     = float(min_object_distance(*m_config));
-            dist_key     = "min_object_distance_seq_print";
+            postfix      = "_fff_seq_print";
         } else {
-            dist_val     = &settings.distance;
-            dist_val_out = &m_arrange_settings.distance;
             dist_min     = 0.f;
-            dist_key     = "min_object_distance";
+            postfix     = "_fff";
         }
     }
 
+    dist_key += postfix;
+    rot_key  += postfix;
+
     imgui->text(_L("Use CTRL+left mouse key to enter text edit mode:"));
 
-    *dist_val = std::max(dist_min, *dist_val);
-
-    if (imgui->slider_float(_L("Clearance size"), dist_val, dist_min, 100.0f, "%5.2f")) {
-        *dist_val_out = *dist_val;
-        appcfg->set("arrange", dist_key.c_str(), std::to_string(*dist_val_out));
+    if (imgui->slider_float(_L("Clearance size"), &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance) {
+        settings.distance = std::max(dist_min, settings.distance);
+        settings_out.distance = settings.distance;
+        appcfg->set("arrange", dist_key.c_str(), std::to_string(settings_out.distance));
         settings_changed = true;
     }
 
     if (imgui->checkbox(_L("Enable rotations (slow)"), settings.enable_rotation)) {
-        m_arrange_settings.enable_rotation = settings.enable_rotation;
-        appcfg->set("arrange", "enable_rotation", m_arrange_settings.enable_rotation? "1" : "0");
+        settings_out.enable_rotation = settings.enable_rotation;
+        appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
         settings_changed = true;
     }
 
     ImGui::Separator();
 
     if (imgui->button(_L("Reset"))) {
-        m_arrange_settings = ArrangeSettings{};
-        appcfg->set("arrange", dist_key.c_str(), std::to_string(*dist_val_out));
-        appcfg->set("arrange", "enable_rotation", m_arrange_settings.enable_rotation? "1" : "0");
+        settings_out = ArrangeSettings{};
+        settings_out.distance = std::max(dist_min, settings_out.distance);
+        appcfg->set("arrange", dist_key.c_str(), std::to_string(settings_out.distance));
+        appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
         settings_changed = true;
     }
 
