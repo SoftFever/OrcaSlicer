@@ -1846,7 +1846,7 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 
 arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 {
-    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
+//    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
     
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
@@ -1860,11 +1860,11 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 
     // this may happen for malformed models, see:
     // https://github.com/prusa3d/PrusaSlicer/issues/2209
-    if (!p.points.empty()) {
-        Polygons pp{p};
-        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
-        if (!pp.empty()) p = pp.front();
-    }
+//    if (!p.points.empty()) {
+//        Polygons pp{p};
+//        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
+//        if (!pp.empty()) p = pp.front();
+//    }
    
     arrangement::ArrangePolygon ret;
     ret.poly.contour = std::move(p);
