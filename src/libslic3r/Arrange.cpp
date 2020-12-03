@@ -572,10 +572,13 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
 
     clppr::Polygon clpath(Slic3rMultiPoint_to_ClipperPath(p));
 
-    if (!clpath.Contour.empty()) {
-        auto firstp = clpath.Contour.front();
-        clpath.Contour.emplace_back(firstp);
-    }
+    // This fixes:
+    // https://github.com/prusa3d/PrusaSlicer/issues/2209
+    if (clpath.Contour.size() < 3)
+        return;
+
+    auto firstp = clpath.Contour.front();
+    clpath.Contour.emplace_back(firstp);
 
     outp.emplace_back(std::move(clpath));
     outp.back().rotation(rotation);

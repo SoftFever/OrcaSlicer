@@ -1273,6 +1273,10 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     ModelVolume* volume = this->volumes.front();
     TriangleMeshPtrs meshptrs = volume->mesh().split();
     for (TriangleMesh *mesh : meshptrs) {
+
+        // FIXME: crashes if not satisfied
+        if (mesh->facets_count() < 3) continue;
+
         mesh->repair();
         
         // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
@@ -1858,8 +1862,6 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 
     assert(!p.points.empty());
 
-    // this may happen for malformed models, see:
-    // https://github.com/prusa3d/PrusaSlicer/issues/2209
 //    if (!p.points.empty()) {
 //        Polygons pp{p};
 //        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
