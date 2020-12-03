@@ -395,9 +395,7 @@ public:
     PConfig& config() { return m_pconf; }
     const PConfig& config() const { return m_pconf; }
     
-    inline void preload(std::vector<Item>& fixeditems) {
-        // Build the rtree for queries to work
-        
+    inline void preload(std::vector<Item>& fixeditems) {        
         for(unsigned idx = 0; idx < fixeditems.size(); ++idx) {
             Item& itm = fixeditems[idx];
             itm.markAsFixedInBin(itm.binId());
@@ -416,13 +414,10 @@ template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
         
         double score = std::get<0>(result);
         auto& fullbb = std::get<1>(result);
-        
-        auto bin = m_bin;
-        sl::offset(bin, -EPSILON * (m_bin.width() + m_bin.height()));
 
-        double miss = Placer::overfit(fullbb, bin);
+        double miss = Placer::overfit(fullbb, m_bin);
         miss = miss > 0? miss : 0;
-        score += miss*miss;
+        score += miss * miss;
         
         return score;
     };
@@ -490,7 +485,7 @@ void _arrange(
 {
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = params.min_obj_distance;
-    md = (md % 2) ? md / 2 + 1 : md / 2;
+    md = md / 2;
     
     auto corrected_bin = bin;
     sl::offset(corrected_bin, md);

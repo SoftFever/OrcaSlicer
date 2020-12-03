@@ -4972,7 +4972,7 @@ void GLCanvas3D::_render_objects() const
 
         if (m_config != nullptr) {
             const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
-            m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
+            m_volumes.set_print_box((float)bed_bb.min(0) - BedEpsilon, (float)bed_bb.min(1) - BedEpsilon, 0.0f, (float)bed_bb.max(0) + BedEpsilon, (float)bed_bb.max(1) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
             m_volumes.check_outside_state(m_config, nullptr);
         }
     }
