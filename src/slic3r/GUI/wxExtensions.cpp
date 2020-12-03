@@ -16,13 +16,11 @@
 #include "Plater.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
-#ifdef __Linux__
+#ifdef __linux__
 #define wxLinux true
 #else
 #define wxLinux false
-#endif
-
-#ifndef __WXGTK__// msw_menuitem_bitmaps is used for MSW and OSX
+// msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
 #ifdef __WXMSW__
 void msw_rescale_menu(wxMenu* menu)

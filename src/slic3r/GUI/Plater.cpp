@@ -387,7 +387,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
 
     option = m_og->get_option("fill_density");
     option.opt.label = L("Infill");
-    option.opt.width = 7/*6*/;
+    option.opt.width = 8;
     option.opt.sidetext = "   ";
     line.append_option(option);
 
@@ -2365,7 +2365,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
                         if (printer_technology == ptFFF)
                             CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &wxGetApp().preset_bundle->project_config);
-                        wxGetApp().load_current_presets();
+                        // For exporting from the amf/3mf we shouldn't check printer_presets for the containing information about "Print Host upload"
+                        wxGetApp().load_current_presets(false);
                         is_project_file = true;
                     }
                     wxGetApp().app_config->update_config_dir(path.parent_path().string());
@@ -3645,17 +3646,17 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     // This bool stops showing export finished notification even when process_completed_with_error is false
     bool has_error = false;
     if (evt.error()) {
-        std::string message = evt.format_error_message();
+        std::pair<std::string, bool> message = evt.format_error_message();
         if (evt.critical_error()) {
             if (q->m_tracking_popup_menu)
                 // We don't want to pop-up a message box when tracking a pop-up menu.
                 // We postpone the error message instead.
-                q->m_tracking_popup_menu_error_message = message;
+                q->m_tracking_popup_menu_error_message = message.first;
             else
-                show_error(q, message);
+                show_error(q, message.first, message.second);
         } else
-		  notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
-        this->statusbar()->set_status_text(from_u8(message));
+		    notification_manager->push_slicing_error_notification(message.first, *q->get_current_canvas3D());
+        this->statusbar()->set_status_text(from_u8(message.first));
         if (evt.invalidate_plater())
         {
             const wxString invalid_str = _L("Invalid data");
@@ -5225,9 +5226,12 @@ void Plater::export_gcode(bool prefer_removable)
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
         default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
-    }
-    catch (const std::exception &ex) {
-        show_error(this, ex.what());
+    } catch (const Slic3r::PlaceholderParserError &ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    } catch (const std::exception &ex) {
+        show_error(this, ex.what(), false);
         return;
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
@@ -5585,9 +5589,12 @@ void Plater::send_gcode()
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
         default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
-    }
-    catch (const std::exception &ex) {
-        show_error(this, ex.what());
+    } catch (const Slic3r::PlaceholderParserError& ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    } catch (const std::exception& ex) {
+        show_error(this, ex.what(), false);
         return;
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));

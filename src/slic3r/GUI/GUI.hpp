@@ -39,9 +39,11 @@ extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
-void show_error(wxWindow* parent, const wxString& message);
-void show_error(wxWindow* parent, const char* message);
-inline void show_error(wxWindow* parent, const std::string& message) { show_error(parent, message.c_str()); }
+// If monospaced_font is true, the error message is displayed using html <code><pre></pre></code> tags,
+// so that the code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
+void show_error(wxWindow* parent, const wxString& message, bool monospaced_font = false);
+void show_error(wxWindow* parent, const char* message, bool monospaced_font = false);
+inline void show_error(wxWindow* parent, const std::string& message, bool monospaced_font = false) { show_error(parent, message.c_str(), monospaced_font); }
 void show_error_id(int id, const std::string& message);   // For Perl
 void show_info(wxWindow* parent, const wxString& message, const wxString& title = wxString());
 void show_info(wxWindow* parent, const char* message, const char* title = nullptr);
