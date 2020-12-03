@@ -1273,6 +1273,10 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     ModelVolume* volume = this->volumes.front();
     TriangleMeshPtrs meshptrs = volume->mesh().split();
     for (TriangleMesh *mesh : meshptrs) {
+
+        // FIXME: crashes if not satisfied
+        if (mesh->facets_count() < 3) continue;
+
         mesh->repair();
         
         // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
