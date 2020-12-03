@@ -1007,7 +1007,7 @@ ManipulationEditor::ManipulationEditor(ObjectManipulation* parent,
                                        const std::string& opt_key,
                                        int axis) :
     wxTextCtrl(parent->parent(), wxID_ANY, wxEmptyString, wxDefaultPosition,
-        wxSize(6*int(wxGetApp().em_unit()), wxDefaultCoord), wxTE_PROCESS_ENTER),
+        wxSize((wxOSX ? 5 : 6)*int(wxGetApp().em_unit()), wxDefaultCoord), wxTE_PROCESS_ENTER),
     m_opt_key(opt_key),
     m_axis(axis)
 {
