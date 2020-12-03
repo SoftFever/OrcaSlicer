@@ -3652,7 +3652,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             else
                 show_error(q, message);
         } else
-		  notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
+		    notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
         this->statusbar()->set_status_text(from_u8(message));
         if (evt.invalidate_plater())
         {
@@ -5216,9 +5216,12 @@ void Plater::export_gcode(bool prefer_removable)
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
         default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
-    }
-    catch (const std::exception &ex) {
-        show_error(this, ex.what());
+    } catch (const Slic3r::PlaceholderParserError &ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    } catch (const std::exception &ex) {
+        show_error(this, ex.what(), false);
         return;
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
@@ -5576,9 +5579,12 @@ void Plater::send_gcode()
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
         default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
-    }
-    catch (const std::exception &ex) {
-        show_error(this, ex.what());
+    } catch (const Slic3r::PlaceholderParserError& ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    } catch (const std::exception& ex) {
+        show_error(this, ex.what(), false);
         return;
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));

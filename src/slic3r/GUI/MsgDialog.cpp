@@ -64,12 +64,9 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	SetSizerAndFit(topsizer);
 }
 
-MsgDialog::~MsgDialog() {}
-
-
 // ErrorDialog
 
-ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
+ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_font)
     : MsgDialog(parent, wxString::Format(_(L("%s error")), SLIC3R_APP_NAME), 
                         wxString::Format(_(L("%s has encountered an error")), SLIC3R_APP_NAME),
 		wxID_NONE)
@@ -80,17 +77,21 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
     {
         html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
         wxFont 	  	font 			= wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+		wxFont      monospace       = wxSystemSettings::GetFont(wxSYS_ANSI_FIXED_FONT);
 		wxColour  	text_clr  		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
         wxColour  	bgr_clr 		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 		auto      	text_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
 		auto      	bgr_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
 		const int 	font_size       = font.GetPointSize()-1;
         int 		size[] 			= {font_size, font_size, font_size, font_size, font_size, font_size, font_size};
-        html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
+        html->SetFonts(font.GetFaceName(), monospace.GetFaceName(), size);
         html->SetBorders(2);
 		std::string msg_escaped = xml_escape(msg.ToUTF8().data());
 		boost::replace_all(msg_escaped, "\r\n", "<br>");
         boost::replace_all(msg_escaped, "\n", "<br>");
+		if (monospaced_font)
+			// Code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
+			msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
 		html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
 		content_sizer->Add(html, 1, wxEXPAND);
     }
@@ -104,10 +105,6 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 	Fit();
 }
-
-ErrorDialog::~ErrorDialog() {}
-
-
 
 }
 }

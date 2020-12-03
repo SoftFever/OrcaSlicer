@@ -1304,7 +1304,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
 	if (!context.error_message.empty()) {
         if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
             context.error_message += '\n';
-        throw Slic3r::RuntimeError(context.error_message);
+        throw Slic3r::PlaceholderParserError(context.error_message);
     }
     return output;
 }

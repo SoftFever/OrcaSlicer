@@ -756,7 +756,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
         msg += "        !!!!! Failed to process the custom G-code template ...\n";
         msg += "and\n";
         msg += "        !!!!! End of an error report for the custom G-code template ...\n";
-        throw Slic3r::RuntimeError(msg);
+        throw Slic3r::PlaceholderParserError(msg);
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
