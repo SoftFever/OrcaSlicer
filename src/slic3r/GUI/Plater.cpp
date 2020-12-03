@@ -2363,7 +2363,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
                         if (printer_technology == ptFFF)
                             CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &wxGetApp().preset_bundle->project_config);
-                        wxGetApp().load_current_presets();
+                        // For exporting from the amf/3mf we shouldn't check printer_presets for the containing information about "Print Host upload"
+                        wxGetApp().load_current_presets(false);
                         is_project_file = true;
                     }
                     wxGetApp().app_config->update_config_dir(path.parent_path().string());
