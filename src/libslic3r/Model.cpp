@@ -1858,8 +1858,6 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 
     assert(!p.points.empty());
 
-    // this may happen for malformed models, see:
-    // https://github.com/prusa3d/PrusaSlicer/issues/2209
 //    if (!p.points.empty()) {
 //        Polygons pp{p};
 //        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
