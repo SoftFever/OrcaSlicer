@@ -34,6 +34,8 @@
 #include "format.hpp"
 
 #include <fstream>
+#include <string_view>
+
 #include "GUI_App.hpp"
 
 #ifdef _WIN32
@@ -84,6 +86,31 @@ public:
 };
 #endif // __APPLE__
 
+// Load the icon either from the exe, or from the ico file.
+static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
+{
+#if _WIN32
+    std::wstring path(size_t(MAX_PATH), wchar_t(0));
+    int len = int(::GetModuleFileName(nullptr, path.data(), MAX_PATH));
+    if (len > 0 && len < MAX_PATH) {
+        path.erase(path.begin() + len, path.end());
+        if (app_mode == GUI_App::EAppMode::GCodeViewer) {
+            // Only in case the slicer was started with --gcodeviewer parameter try to load the icon from prusa-gcodeviewer.exe
+            // Otherwise load it from the exe.
+            for (const std::wstring_view exe_name : { std::wstring_view(L"prusa-slicer.exe"), std::wstring_view(L"prusa-slicer-console.exe") })
+                if (boost::iends_with(path, exe_name)) {
+                    path.erase(path.end() - exe_name.size(), path.end());
+                    path += L"prusa-gcodeviewer.exe";
+                    break;
+                }
+        }
+    }
+    return wxIcon(path, wxBITMAP_TYPE_ICO);
+#else // _WIN32
+    return wxIcon(Slic3r::var(app_mode == GUI_App::EAppMode::Editor ? "PrusaSlicer_128px.png" : "PrusaSlicer-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG);
+#endif // _WIN32
+}
+
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
@@ -115,35 +142,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #endif // __APPLE__
 
     // Load the icon either from the exe, or from the ico file.
-#if _WIN32
-    {
-        wxString src_path;
-        wxFileName::SplitPath(wxStandardPaths::Get().GetExecutablePath(), &src_path, nullptr, nullptr, wxPATH_NATIVE);
-        switch (wxGetApp().get_app_mode()) {
-        default:
-        case GUI_App::EAppMode::Editor:      { src_path += "\\prusa-slicer.exe"; break; }
-        case GUI_App::EAppMode::GCodeViewer: { src_path += "\\prusa-gcodeviewer.exe"; break; }
-        }
-        wxIconLocation icon_location;
-        icon_location.SetFileName(src_path);
-        SetIcon(icon_location);
-    }
-#else
-    switch (wxGetApp().get_app_mode())
-    {
-    default:
-    case GUI_App::EAppMode::Editor:
-    {
-        SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
-        break;
-    }
-    case GUI_App::EAppMode::GCodeViewer:
-    {
-        SetIcon(wxIcon(Slic3r::var("PrusaSlicer-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG));
-        break;
-    }
-    }
-#endif // _WIN32
+    SetIcon(main_frame_icon(wxGetApp().get_app_mode()));
 
 	// initialize status bar
     m_statusbar = std::make_shared<ProgressStatusBar>(this);
