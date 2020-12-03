@@ -804,6 +804,10 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     BoundingBoxf3 print_volume(Vec3d(unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config->opt_float("max_print_height")));
     // Allow the objects to protrude below the print bed
     print_volume.min(2) = -1e10;
+    print_volume.min(0) -= BedEpsilon;
+    print_volume.min(1) -= BedEpsilon;
+    print_volume.max(0) += BedEpsilon;
+    print_volume.max(1) += BedEpsilon;
 
     ModelInstanceEPrintVolumeState state = ModelInstancePVS_Inside;
 

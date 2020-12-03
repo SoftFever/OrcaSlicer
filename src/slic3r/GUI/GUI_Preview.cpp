@@ -169,27 +169,11 @@ void View3D::render()
 Preview::Preview(
     wxWindow* parent, Model* model, DynamicPrintConfig* config,
     BackgroundSlicingProcess* process, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
-    : m_canvas_widget(nullptr)
-    , m_canvas(nullptr)
-    , m_left_sizer(nullptr)
-    , m_layers_slider_sizer(nullptr)
-    , m_bottom_toolbar_panel(nullptr)
-    , m_label_view_type(nullptr)
-    , m_choice_view_type(nullptr)
-    , m_label_show(nullptr)
-    , m_combochecklist_features(nullptr)
-    , m_combochecklist_features_pos(0)
-    , m_combochecklist_options(nullptr)
-    , m_config(config)
+    : m_config(config)
     , m_process(process)
     , m_gcode_result(gcode_result)
-    , m_number_extruders(1)
     , m_preferred_color_mode("feature")
-    , m_loaded(false)
     , m_schedule_background_process(schedule_background_process_func)
-#ifdef __linux__
-    , m_volumes_cleanup_required(false)
-#endif // __linux__
 {
     if (init(parent, model))
         load_print();

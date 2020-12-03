@@ -552,6 +552,7 @@ std::string encode_path(const char *src)
 }
 
 // Encode an 8-bit string from a local code page to UTF-8.
+// Multibyte to utf8
 std::string decode_path(const char *src)
 {  
 #ifdef WIN32

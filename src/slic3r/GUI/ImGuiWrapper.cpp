@@ -624,7 +624,7 @@ static bool selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     }
 
     // mark a label with a ImGui::ColorMarkerHovered, if item is hovered
-    char* marked_label = new char[255];
+    char* marked_label = new char[512]; //255 symbols is not enough for translated string (e.t. to Russian)
     if (hovered)
         sprintf(marked_label, "%c%s", ImGui::ColorMarkerHovered, label);
     else

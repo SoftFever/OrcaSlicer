@@ -109,6 +109,7 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
 // Apply penalty to object function result. This is used only when alignment
 // after arrange is explicitly disabled (PConfig::Alignment::DONT_ALIGN)
+// Also, this will only work well for Box shaped beds.
 static double fixed_overfit(const std::tuple<double, Box>& result, const Box &binbb)
 {
     double score = std::get<0>(result);
@@ -348,6 +349,17 @@ public:
         
         m_pconf.object_function = get_objfn();
 
+        m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
+            if (items.empty()) return;
+
+            cfg.alignment = PConfig::Alignment::DONT_ALIGN;
+            auto bb = sl::boundingBox(m_bin);
+            auto bbcenter = bb.center();
+            cfg.object_function = [this, bb, bbcenter](const Item &item) {
+                return fixed_overfit(objfunc(item, bbcenter), bb);
+            };
+        };
+
         auto on_packed = params.on_packed;
         
         if (progressind || on_packed)
@@ -383,22 +395,12 @@ public:
     PConfig& config() { return m_pconf; }
     const PConfig& config() const { return m_pconf; }
     
-    inline void preload(std::vector<Item>& fixeditems) {
-        m_pconf.alignment = PConfig::Alignment::DONT_ALIGN;
-        auto bb = sl::boundingBox(m_bin);
-        auto bbcenter = bb.center();
-        m_pconf.object_function = [this, bb, bbcenter](const Item &item) {
-            return fixed_overfit(objfunc(item, bbcenter), bb);
-        };
-
-        // Build the rtree for queries to work
-        
+    inline void preload(std::vector<Item>& fixeditems) {        
         for(unsigned idx = 0; idx < fixeditems.size(); ++idx) {
             Item& itm = fixeditems[idx];
             itm.markAsFixedInBin(itm.binId());
         }
 
-        m_pck.configure(m_pconf);
         m_item_count += fixeditems.size();
     }
 };
@@ -412,13 +414,10 @@ template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
         
         double score = std::get<0>(result);
         auto& fullbb = std::get<1>(result);
-        
-        auto bin = m_bin;
-        sl::offset(bin, -EPSILON * (m_bin.width() + m_bin.height()));
 
-        double miss = Placer::overfit(fullbb, bin);
+        double miss = Placer::overfit(fullbb, m_bin);
         miss = miss > 0? miss : 0;
-        score += miss*miss;
+        score += miss * miss;
         
         return score;
     };
@@ -486,7 +485,7 @@ void _arrange(
 {
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = params.min_obj_distance;
-    md = (md % 2) ? md / 2 + 1 : md / 2;
+    md = md / 2;
     
     auto corrected_bin = bin;
     sl::offset(corrected_bin, md);
@@ -573,10 +572,13 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
 
     clppr::Polygon clpath(Slic3rMultiPoint_to_ClipperPath(p));
 
-    if (!clpath.Contour.empty()) {
-        auto firstp = clpath.Contour.front();
-        clpath.Contour.emplace_back(firstp);
-    }
+    // This fixes:
+    // https://github.com/prusa3d/PrusaSlicer/issues/2209
+    if (clpath.Contour.size() < 3)
+        return;
+
+    auto firstp = clpath.Contour.front();
+    clpath.Contour.emplace_back(firstp);
 
     outp.emplace_back(std::move(clpath));
     outp.back().rotation(rotation);

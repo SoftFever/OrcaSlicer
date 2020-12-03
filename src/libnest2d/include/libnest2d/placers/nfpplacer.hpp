@@ -167,6 +167,8 @@ struct NfpPConfig {
                        const ItemGroup&              // remaining items
                        )> before_packing;
 
+    std::function<void(const ItemGroup &, NfpPConfig &config)> on_preload;
+
     NfpPConfig(): rotations({0.0, Pi/2.0, Pi, 3*Pi/2}),
         alignment(Alignment::CENTER), starting_point(Alignment::CENTER) {}
 };
@@ -577,6 +579,12 @@ public:
         Base::clearItems();
     }
 
+    void preload(const ItemGroup& packeditems) {
+        Base::preload(packeditems);
+        if (config_.on_preload)
+            config_.on_preload(packeditems, config_);
+    }
+
 private:
 
     using Shapes = TMultiShape<RawShape>;
@@ -663,61 +671,78 @@ private:
             remlist.insert(remlist.end(), remaining.from, remaining.to);
         }
 
+        double global_score = std::numeric_limits<double>::max();
+
+        auto initial_tr = item.translation();
+        auto initial_rot = item.rotation();
+        Vertex final_tr = {0, 0};
+        Radians final_rot = initial_rot;
+        Shapes nfps;
+
+        auto& bin = bin_;
+        double norm = norm_;
+        auto pbb = sl::boundingBox(merged_pile_);
+        auto binbb = sl::boundingBox(bin);
+
+        // This is the kernel part of the object function that is
+        // customizable by the library client
+        std::function<double(const Item&)> _objfunc;
+        if(config_.object_function) _objfunc = config_.object_function;
+        else {
+
+            // Inside check has to be strict if no alignment was enabled
+            std::function<double(const Box&)> ins_check;
+            if(config_.alignment == Config::Alignment::DONT_ALIGN)
+                ins_check = [&binbb, norm](const Box& fullbb) {
+                    double ret = 0;
+                    if(!sl::isInside(fullbb, binbb))
+                        ret += norm;
+                    return ret;
+                };
+            else
+                ins_check = [&bin](const Box& fullbb) {
+                    double miss = overfit(fullbb, bin);
+                    miss = miss > 0? miss : 0;
+                    return std::pow(miss, 2);
+                };
+
+            _objfunc = [norm, binbb, pbb, ins_check](const Item& item)
+            {
+                auto ibb = item.boundingBox();
+                auto fullbb = sl::boundingBox(pbb, ibb);
+
+                double score = pl::distance(ibb.center(),
+                                            binbb.center());
+                score /= norm;
+
+                score += ins_check(fullbb);
+
+                return score;
+            };
+        }
+
         if(items_.empty()) {
             setInitialPosition(item);
+            auto best_tr = item.translation();
+            auto best_rot = item.rotation();
             best_overfit = overfit(item.transformedShape(), bin_);
-            can_pack = best_overfit <= 0;
-        } else {
 
-            double global_score = std::numeric_limits<double>::max();
-
-            auto initial_tr = item.translation();
-            auto initial_rot = item.rotation();
-            Vertex final_tr = {0, 0};
-            Radians final_rot = initial_rot;
-            Shapes nfps;
-
-            auto& bin = bin_;
-            double norm = norm_;
-            auto pbb = sl::boundingBox(merged_pile_);
-            auto binbb = sl::boundingBox(bin);
-
-            // This is the kernel part of the object function that is
-            // customizable by the library client
-            std::function<double(const Item&)> _objfunc;
-            if(config_.object_function) _objfunc = config_.object_function;
-            else {
-
-                // Inside check has to be strict if no alignment was enabled
-                std::function<double(const Box&)> ins_check;
-                if(config_.alignment == Config::Alignment::DONT_ALIGN)
-                    ins_check = [&binbb, norm](const Box& fullbb) {
-                        double ret = 0;
-                        if(!sl::isInside(fullbb, binbb))
-                            ret += norm;
-                        return ret;
-                    };
-                else
-                    ins_check = [&bin](const Box& fullbb) {
-                        double miss = overfit(fullbb, bin);
-                        miss = miss > 0? miss : 0;
-                        return std::pow(miss, 2);
-                    };
-
-                _objfunc = [norm, binbb, pbb, ins_check](const Item& item)
-                {
-                    auto ibb = item.boundingBox();
-                    auto fullbb = sl::boundingBox(pbb, ibb);
-
-                    double score = pl::distance(ibb.center(),
-                                                binbb.center());
-                    score /= norm;
-
-                    score += ins_check(fullbb);
-
-                    return score;
-                };
+            for(auto rot : config_.rotations) {
+                item.translation(initial_tr);
+                item.rotation(initial_rot + rot);
+                setInitialPosition(item);
+                double of = 0.;
+                if ((of = overfit(item.transformedShape(), bin_)) < best_overfit) {
+                    best_overfit = of;
+                    best_tr = item.translation();
+                    best_rot = item.rotation();
+                }
             }
+
+            can_pack = best_overfit <= 0;
+            item.rotation(best_rot);
+            item.translation(best_tr);
+        } else {
 
             Pile merged_pile = merged_pile_;
 
@@ -948,10 +973,9 @@ private:
         if(items_.empty() ||
                 config_.alignment == Config::Alignment::DONT_ALIGN) return;
 
-        nfp::Shapes<RawShape> m;
-        m.reserve(items_.size());
-        for(Item& item : items_) m.emplace_back(item.transformedShape());
-        auto&& bb = sl::boundingBox(m);
+        Box bb = items_.front().get().boundingBox();
+        for(Item& item : items_)
+            bb = sl::boundingBox(item.boundingBox(), bb);
 
         Vertex ci, cb;
 
@@ -988,7 +1012,7 @@ private:
         for(Item& item : items_) item.translate(d);
     }
 
-    void setInitialPosition(Item& item) {        
+    void setInitialPosition(Item& item) {
         Box bb = item.boundingBox();
         
         Vertex ci, cb;

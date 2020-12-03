@@ -57,7 +57,8 @@ public:
 	// Only valid if error()
 	void 		rethrow_exception() const { assert(this->error()); assert(m_exception); std::rethrow_exception(m_exception); }
 	// Produce a human readable message to be displayed by a notification or a message box.
-	std::string format_error_message() const;
+	// 2nd parameter defines whether the output should be displayed with a monospace font.
+	std::pair<std::string, bool> format_error_message() const;
 
 private:
 	StatusType 			m_status;

@@ -53,6 +53,9 @@ public:
         return point(0) >= this->min(0) && point(0) <= this->max(0)
             && point(1) >= this->min(1) && point(1) <= this->max(1);
     }
+    bool contains(const BoundingBoxBase<PointClass> &other) const {
+        return contains(other.min) && contains(other.max);
+    }
     bool overlap(const BoundingBoxBase<PointClass> &other) const {
         return ! (this->max(0) < other.min(0) || this->min(0) > other.max(0) ||
                   this->max(1) < other.min(1) || this->min(1) > other.max(1));

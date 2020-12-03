@@ -144,6 +144,7 @@ public:
     void extract_config_from_project();
     void load_gcode();
     void load_gcode(const wxString& filename);
+    void reload_gcode_from_disk();
     void refresh_print();
 
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
@@ -153,6 +154,8 @@ public:
     // to be called on drag and drop
     bool load_files(const wxArrayString& filenames);
 #endif // ENABLE_DRAG_AND_DROP_FIX
+
+    const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
     void update();
     void stop_jobs();
