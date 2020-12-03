@@ -388,7 +388,8 @@ public:
     struct ArrangeSettings
     {
         float distance           = 6.;
-        float distance_seq_print = 6.;    // Used when sequential print is ON
+//        float distance_seq_print = 6.;    // Used when sequential print is ON
+//        float distance_sla       = 6.;
         float accuracy           = 0.65f; // Unused currently
         bool  enable_rotation    = false;
     };
@@ -464,7 +465,35 @@ private:
     mutable bool m_tooltip_enabled{ true };
     Slope m_slope;
 
-    ArrangeSettings m_arrange_settings;
+    ArrangeSettings m_arrange_settings_fff, m_arrange_settings_sla,
+        m_arrange_settings_fff_seq_print;
+
+    PrinterTechnology current_printer_technology() const;
+
+    template<class Self>
+    static auto & get_arrange_settings(Self *self)
+    {
+        PrinterTechnology ptech = self->current_printer_technology();
+
+        auto *ptr = &self->m_arrange_settings_fff;
+
+        if (ptech == ptSLA) {
+            ptr = &self->m_arrange_settings_sla;
+        } else if (ptech == ptFFF) {
+            auto co_opt = self->m_config->template option<ConfigOptionBool>("complete_objects");
+            if (co_opt && co_opt->value) {
+                ptr = &self->m_arrange_settings_fff_seq_print;
+            } else {
+                ptr = &self->m_arrange_settings_fff;
+            }
+        }
+
+        return *ptr;
+    }
+
+    ArrangeSettings &get_arrange_settings() { return get_arrange_settings(this); }
+
+    void load_arrange_settings();
 
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas);
@@ -685,7 +714,17 @@ public:
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }
 
-    const ArrangeSettings& get_arrange_settings() const { return m_arrange_settings; }
+    ArrangeSettings get_arrange_settings() const
+    {
+        const ArrangeSettings &settings = get_arrange_settings(this);
+        ArrangeSettings ret = settings;
+        if (&settings == &m_arrange_settings_fff_seq_print) {
+            ret.distance = std::max(ret.distance,
+                                    float(min_object_distance(*m_config)));
+        }
+
+        return ret;
+    }
 
 private:
     bool _is_shown_on_screen() const;

@@ -145,14 +145,12 @@ void ArrangeJob::process()
 {
     static const auto arrangestr = _(L("Arranging"));
 
-    GLCanvas3D::ArrangeSettings settings =
-        m_plater->canvas3D()->get_arrange_settings();
+    const GLCanvas3D::ArrangeSettings &settings =
+        static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
 
     arrangement::ArrangeParams params;
     params.allow_rotations  = settings.enable_rotation;
-    params.min_obj_distance = m_plater->config()->opt_bool("complete_objects") ?
-                                  scaled(settings.distance_seq_print) :
-                                  scaled(settings.distance);
+    params.min_obj_distance = scaled(settings.distance);
 
     
     auto count = unsigned(m_selected.size() + m_unprintable.size());

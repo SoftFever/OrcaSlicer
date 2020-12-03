@@ -20,6 +20,7 @@
 #include <glob.h>
 #include <pwd.h>
 #include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/process.hpp>
 #endif
@@ -187,8 +188,9 @@ namespace search_for_drives_internal
 		//if not same file system - could be removable drive
 		if (! compare_filesystem_id(path, parent_path)) {
 			//free space
-			boost::filesystem::space_info si = boost::filesystem::space(path);
-			if (si.available != 0) {
+			boost::system::error_code ec;
+			boost::filesystem::space_info si = boost::filesystem::space(path, ec);
+			if (!ec && si.available != 0) {
 				//user id
 				struct stat buf;
 				stat(path.c_str(), &buf);
