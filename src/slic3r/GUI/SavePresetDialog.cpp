@@ -133,7 +133,7 @@ void SavePresetDialog::Item::update()
         if (existing->is_compatible)
             info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str());
         else
-            info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists and is imcopatible with selected printer.")) % m_preset_name).str());
+            info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists and is incopatible with selected printer.")) % m_preset_name).str());
         info_line += "\n" + _L("Note: This preset will be replaced after saving");
         m_valid_type = Warning;
     }
