@@ -163,13 +163,7 @@ Http::priv::priv(const std::string &url)
 	}
 
 	set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);
-  	char *url_encoded = curl_easy_escape(curl, url.c_str(), url.size());
-  	if (url_encoded) {
-		// libcurl makes an internal copy.
-		::curl_easy_setopt(curl, CURLOPT_URL, url_encoded);
-	    ::curl_free(url_encoded);
-	} else
-		throw Slic3r::RuntimeError(std::string("Curl failed to encode URL: ") + url);
+	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_APP_NAME "/" SLIC3R_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
 }
