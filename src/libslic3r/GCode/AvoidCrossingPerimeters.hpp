@@ -41,6 +41,12 @@ public:
         std::vector<std::vector<float>> boundaries_params;
         // Used for detection of intersection between line and any polygon from boundaries
         EdgeGrid::Grid grid;
+
+        void clear()
+        {
+            boundaries.clear();
+            boundaries_params.clear();
+        }
     };
 
 private:
@@ -55,10 +61,8 @@ private:
     EdgeGrid::Grid m_grid_lslice;
     // Store all needed data for travels inside object
     Boundary m_internal;
-#if 0
     // Store all needed data for travels outside object
     Boundary m_external;
-#endif
 };
 
 } // namespace Slic3r

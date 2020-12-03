@@ -511,6 +511,27 @@ static float get_perimeter_spacing(const Layer &layer)
     return perimeter_spacing;
 }
 
+// called by get_boundary_external()
+static float get_perimeter_spacing_external(const Layer &layer)
+{
+    size_t regions_count     = 0;
+    float  perimeter_spacing = 0.f;
+    for (const PrintObject *object : layer.object()->print()->objects())
+        if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
+            for (const LayerRegion *layer_region : l->regions())
+                if (layer_region != nullptr && !layer_region->slices.empty()) {
+                    perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
+                    ++ regions_count;
+                }
+
+    assert(perimeter_spacing >= 0.f);
+    if (regions_count != 0)
+        perimeter_spacing /= float(regions_count);
+    else
+        perimeter_spacing = get_default_perimeter_spacing(*layer.object());
+    return perimeter_spacing;
+}
+
 // Adds points around all vertices so that the offset affects only small sections around these vertices.
 static void resample_polygon(Polygon &polygon, double dist_from_vertex)
 {
@@ -765,13 +786,9 @@ static ExPolygons get_boundary(const Layer &layer)
 {
     const float perimeter_spacing = get_perimeter_spacing(layer);
     const float perimeter_offset  = perimeter_spacing / 2.f;
-    size_t      polygons_count    = 0;
-    for (const LayerRegion *layer_region : layer.regions())
-        polygons_count += layer_region->slices.surfaces.size();
-
-    ExPolygons boundary = union_ex(inner_offset(layer.lslices, perimeter_offset));
+    ExPolygons  boundary          = union_ex(inner_offset(layer.lslices, perimeter_offset));
     // Collect all top layers that will not be crossed.
-    polygons_count = 0;
+    size_t      polygons_count    = 0;
     for (const LayerRegion *layer_region : layer.regions())
         for (const Surface &surface : layer_region->fill_surfaces.surfaces)
             if (surface.is_top()) ++polygons_count;
@@ -790,11 +807,54 @@ static ExPolygons get_boundary(const Layer &layer)
     return boundary;
 }
 
+// called by AvoidCrossingPerimeters::travel_to()
+static Polygons get_boundary_external(const Layer &layer)
+{
+    const float perimeter_spacing = get_perimeter_spacing(layer);
+    const float perimeter_offset  = perimeter_spacing / 2.f;
+    Polygons    boundary;
+    // Collect all holes for all printed objects and their instances, which will be printed at the same time as passed "layer".
+    for (const PrintObject *object : layer.object()->print()->objects()) {
+        Polygons polygons_per_obj;
+        if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
+            for (const ExPolygon &island : l->lslices) append(polygons_per_obj, island.holes);
+
+        for (const PrintInstance &instance : object->instances()) {
+            size_t boundary_idx = boundary.size();
+            append(boundary, polygons_per_obj);
+            for (; boundary_idx < boundary.size(); ++boundary_idx)
+                boundary[boundary_idx].translate(instance.shift);
+        }
+    }
+
+    // Used offset_ex for cases when another object will be in the hole of another polygon
+    boundary = to_polygons(offset_ex(boundary, perimeter_offset));
+    // Reverse all polygons for making normals point from the polygon out.
+    for (Polygon &poly : boundary)
+        poly.reverse();
+
+    return boundary;
+}
+
 static void init_boundary_distances(AvoidCrossingPerimeters::Boundary *boundary)
 {
     boundary->boundaries_params.assign(boundary->boundaries.size(), std::vector<float>());
     for (size_t poly_idx = 0; poly_idx < boundary->boundaries.size(); ++poly_idx)
         precompute_polygon_distances(boundary->boundaries[poly_idx], boundary->boundaries_params[poly_idx]);
+}
+
+static void init_boundary(AvoidCrossingPerimeters::Boundary *boundary, Polygons &&boundary_polygons)
+{
+    boundary->clear();
+    boundary->boundaries = std::move(boundary_polygons);
+
+    BoundingBox bbox(get_extents(boundary->boundaries));
+    bbox.offset(SCALED_EPSILON);
+    boundary->bbox = BoundingBoxf(bbox.min.cast<double>(), bbox.max.cast<double>());
+    boundary->grid.set_bbox(bbox);
+    // FIXME 1mm grid?
+    boundary->grid.create(boundary->boundaries, coord_t(scale_(1.)));
+    init_boundary_distances(boundary);
 }
 
 // Plan travel, which avoids perimeter crossings by following the boundaries of the layer.
@@ -815,30 +875,29 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 
     if (!use_external && !gcodegen.layer()->lslices.empty() && !any_expolygon_contains(gcodegen.layer()->lslices, gcodegen.layer()->lslices_bboxes, m_grid_lslice, travel)) {
         // Initialize m_internal only when it is necessary.
-        if (m_internal.boundaries.empty()) {
-            m_internal.boundaries_params.clear();
-            m_internal.boundaries = to_polygons(get_boundary(*gcodegen.layer()));
-
-            BoundingBox bbox(get_extents(m_internal.boundaries));
-            bbox.offset(SCALED_EPSILON);
-            m_internal.bbox = BoundingBoxf(bbox.min.cast<double>(), bbox.max.cast<double>());
-            m_internal.grid.set_bbox(bbox);
-            // FIXME 1mm grid?
-            m_internal.grid.create(m_internal.boundaries, coord_t(scale_(1.)));
-            init_boundary_distances(&m_internal);
-        }
+        if (m_internal.boundaries.empty())
+            init_boundary(&m_internal, to_polygons(get_boundary(*gcodegen.layer())));
 
         // Trim the travel line by the bounding box.
         if (Geometry::liang_barsky_line_clipping(startf, endf, m_internal.bbox)) {
             travel_intersection_count = avoid_perimeters(gcodegen, m_internal, startf.cast<coord_t>(), endf.cast<coord_t>(), result_pl);
             result_pl.points.front()  = start;
             result_pl.points.back()   = end;
-        } else {
-            // Travel line is completely outside the bounding box.
-            result_pl                 = {start, end};
-            travel_intersection_count = 0;
         }
-    } else {
+    } else if(use_external) {
+        // Initialize m_external only when exist any external travel for the current layer.
+        if (m_external.boundaries.empty())
+            init_boundary(&m_external, get_boundary_external(*gcodegen.layer()));
+
+        // Trim the travel line by the bounding box.
+        if (!m_external.boundaries.empty() && Geometry::liang_barsky_line_clipping(startf, endf, m_external.bbox)) {
+            travel_intersection_count = avoid_perimeters(gcodegen, m_external, startf.cast<coord_t>(), endf.cast<coord_t>(), result_pl);
+            result_pl.points.front()  = start;
+            result_pl.points.back()   = end;
+        }
+    }
+
+    if(result_pl.empty()) {
         // Travel line is completely outside the bounding box.
         result_pl                 = {start, end};
         travel_intersection_count = 0;
@@ -861,8 +920,9 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 
 void AvoidCrossingPerimeters::init_layer(const Layer &layer)
 {
-    m_internal.boundaries.clear();
-    m_internal.boundaries_params.clear();
+    m_internal.clear();
+    m_external.clear();
+
     BoundingBox bbox_slice(get_extents(layer.lslices));
     bbox_slice.offset(SCALED_EPSILON);
 
@@ -1118,29 +1178,6 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         *could_be_wipe_disabled = !need_wipe(gcodegen, m_grid_lslice, travel, result_pl, travel_intersection_count);
 
     return result_pl;
-}
-
-// called by get_boundary_external()
-static float get_perimeter_spacing_external(const Layer &layer)
-{
-    size_t regions_count     = 0;
-    float  perimeter_spacing = 0.f;
-    for (const PrintObject *object : layer.object()->print()->objects())
-        //FIXME with different layering, layers on other objects will not be found at this object's print_z.
-        // Search an overlap of layers?
-        if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
-            for (const LayerRegion *layer_region : l->regions())
-                if (layer_region != nullptr && !layer_region->slices.empty()) {
-                    perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
-                    ++ regions_count;
-                }
-
-    assert(perimeter_spacing >= 0.f);
-    if (regions_count != 0)
-        perimeter_spacing /= float(regions_count);
-    else
-        perimeter_spacing = get_default_perimeter_spacing(*layer.object());
-    return perimeter_spacing;
 }
 
 // called by AvoidCrossingPerimeters::init_layer()->get_boundary()/get_boundary_external()
