@@ -19,6 +19,7 @@
 #include "GCode/ThumbnailData.hpp"
 
 #include <memory>
+#include <map>
 #include <string>
 
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -323,7 +324,7 @@ private:
     GCodeWriter                         m_writer;
     PlaceholderParser                   m_placeholder_parser;
     // Collection of templates, on which the placeholder substitution failed.
-    std::set<std::string>               m_placeholder_parser_failed_templates;
+    std::map<std::string, std::string>  m_placeholder_parser_failed_templates;
     OozePrevention                      m_ooze_prevention;
     Wipe                                m_wipe;
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;

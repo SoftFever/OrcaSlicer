@@ -748,14 +748,16 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
 
     if (! m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
+        //FIXME localize!
         std::string msg = std::string("G-code export to ") + path + " failed due to invalid custom G-code sections:\n\n";
-        for (const std::string &name : m_placeholder_parser_failed_templates)
-            msg += std::string("\t") + name + "\n";
+        for (const auto &name_and_error : m_placeholder_parser_failed_templates)
+            msg += name_and_error.first + "\n" + name_and_error.second + "\n";
         msg += "\nPlease inspect the file ";
         msg += path_tmp + " for error messages enclosed between\n";
         msg += "        !!!!! Failed to process the custom G-code template ...\n";
         msg += "and\n";
         msg += "        !!!!! End of an error report for the custom G-code template ...\n";
+        msg += "for all macro processing errors.";
         throw Slic3r::PlaceholderParserError(msg);
     }
 
@@ -1434,7 +1436,11 @@ std::string GCode::placeholder_parser_process(const std::string &name, const std
         return m_placeholder_parser.process(templ, current_extruder_id, config_override);
     } catch (std::runtime_error &err) {
         // Collect the names of failed template substitutions for error reporting.
-        m_placeholder_parser_failed_templates.insert(name);
+        auto it = m_placeholder_parser_failed_templates.find(name);
+        if (it == m_placeholder_parser_failed_templates.end())
+            // Only if there was no error reported for this template, store the first error message into the map to be reported.
+            // We don't want to collect error message for each and every occurence of a single custom G-code section.
+            m_placeholder_parser_failed_templates.insert(it, std::make_pair(name, std::string(err.what())));
         // Insert the macro error message into the G-code.
         return
             std::string("\n!!!!! Failed to process the custom G-code template ") + name + "\n" +

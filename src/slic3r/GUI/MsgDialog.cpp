@@ -75,7 +75,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
     // Text shown as HTML, so that mouse selection and Ctrl-V to copy will work.
     wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     {
-        html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
+        html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), monospaced_font ? 30 * wxGetApp().em_unit() : -1));
         wxFont 	  	font 			= wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 		wxFont      monospace       = wxSystemSettings::GetFont(wxSYS_ANSI_FIXED_FONT);
 		wxColour  	text_clr  		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
@@ -100,7 +100,8 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
 	btn_ok->SetFocus();
 	btn_sizer->Add(btn_ok, 0, wxRIGHT, HORIZ_SPACING);
 
-	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
+	// Use a small bitmap with monospaced font, as the error text will not be wrapped.
+	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : 192));
 
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 	Fit();
