@@ -9,6 +9,7 @@
 #include <wx/intl.h> 
 
 #include "GUI.hpp"
+#include "format.hpp"
 #include "I18N.hpp"
 
 namespace Slic3r {
