@@ -209,9 +209,13 @@ void SeamPlacer::init(const Print& print)
         po->project_and_append_custom_facets(true, EnforcerBlockerType::BLOCKER, temp_blk);
 
         // Offset the triangles out slightly.
-        for (auto* custom_per_object : {&temp_enf, &temp_blk})
-            for (ExPolygons& explgs : *custom_per_object)
-                explgs = Slic3r::offset_ex(explgs, scale_(max_nozzle_dmr));
+        for (auto* custom_per_object : {&temp_enf, &temp_blk}) {
+            float offset = max_nozzle_dmr + po->config().elefant_foot_compensation;
+            for (ExPolygons& explgs : *custom_per_object) {
+                explgs = Slic3r::offset_ex(explgs, scale_(offset));
+                offset = max_nozzle_dmr;
+            }
+        }
 
 //     FIXME: Offsetting should be done somehow cheaper, but following does not work
 //        for (auto* custom_per_object : {&temp_enf, &temp_blk}) {
