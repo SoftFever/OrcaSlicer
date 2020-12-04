@@ -385,6 +385,7 @@ public:
     void update_selections();
     void update_selections_on_canvas();
     void select_item(const wxDataViewItem& item);
+    void select_item(std::function<wxDataViewItem()> get_item);
     void select_items(const wxDataViewItemArray& sels);
     void select_all();
     void select_item_all_children();
