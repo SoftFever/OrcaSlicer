@@ -5,6 +5,9 @@
 #include "I18N.hpp"
 
 #include <libslic3r/ObjectID.hpp>
+#include <libslic3r/Technologies.hpp>
+
+#include <wx/time.h>
 
 #include <string>
 #include <vector>
