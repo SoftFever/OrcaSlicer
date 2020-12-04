@@ -569,11 +569,13 @@ void SeamPlacer::get_enforcers_and_blockers(size_t layer_id,
     auto is_inside = [](const Point& pt,
                         const CustomTrianglesPerLayer& custom_data) -> bool {
         assert(! custom_data.polys.empty());
-        // Now ask the AABB tree which polygon we should check and check it.
-        size_t candidate = AABBTreeIndirect::get_candidate_idx(custom_data.tree, pt);
-        if (candidate != size_t(-1)
-         && custom_data.polys[candidate].contains(pt))
-            return true;
+        // Now ask the AABB tree which polygons we should check and check them.
+        std::vector<size_t> candidates;
+        AABBTreeIndirect::get_candidate_idxs(custom_data.tree, pt, candidates);
+        if (! candidates.empty())
+            for (size_t idx : candidates)
+                if (custom_data.polys[idx].contains(pt))
+                    return true;
         return false;
     };
 
