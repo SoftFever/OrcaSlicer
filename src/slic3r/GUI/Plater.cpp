@@ -4933,7 +4933,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         else if (std::regex_match(path.string(), pattern_gcode_drop))
             start_new_gcodeviewer(&filename);
         else
-            return false;
+            continue;
     }
     if (paths.empty())
         // Likely all paths processed were gcodes, for which a G-code viewer instance has hopefully been started.
