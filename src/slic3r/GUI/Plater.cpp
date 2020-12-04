@@ -5529,8 +5529,12 @@ void Plater::reslice()
     if (clean_gcode_toolpaths)
         reset_gcode_toolpaths();
 
+#if ENABLE_PREVIEW_TYPE_CHANGE
+    p->preview->reload_print(!clean_gcode_toolpaths);
+#else
     // update type of preview
     p->preview->update_view_type(!clean_gcode_toolpaths);
+#endif // ENABLE_PREVIEW_TYPE_CHANGE
 }
 
 void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages)
@@ -5769,7 +5773,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if(opt_key == "extruder_colour") {
             update_scheduled = true;
+#if !ENABLE_PREVIEW_TYPE_CHANGE
             p->preview->set_number_extruders(p->config->option<ConfigOptionStrings>(opt_key)->values.size());
+#endif // !ENABLE_PREVIEW_TYPE_CHANGE
             p->sidebar->obj_list()->update_extruder_colors();
         } else if(opt_key == "max_print_height") {
             update_scheduled = true;
