@@ -602,7 +602,7 @@ void Mouse3DController::disconnected()
         m_params_by_device[m_device_str] = m_params_ui;
 	    m_device_str.clear();
 	    m_connected = false;
-		wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::Mouse3dDisconnected, *(wxGetApp().plater()->get_current_canvas3D()));
+		wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::Mouse3dDisconnected);
 
         wxGetApp().plater()->CallAfter([]() {
         	Plater *plater = wxGetApp().plater();

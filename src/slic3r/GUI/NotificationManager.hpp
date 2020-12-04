@@ -87,16 +87,16 @@ public:
 	NotificationManager(wxEvtHandler* evt_handler);
 	
 	// Push a prefabricated notification from basic_notifications (see the table at the end of this file).
-	void push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp = 0);
+	void push_notification(const NotificationType type, int timestamp = 0);
 	// Push a NotificationType::CustomNotification with NotificationLevel::RegularNotification and 10s fade out interval.
-	void push_notification(const std::string& text, GLCanvas3D& canvas, int timestamp = 0);
+	void push_notification(const std::string& text, int timestamp = 0);
 	// Push a NotificationType::CustomNotification with provided notification level and 10s for RegularNotification.
 	// ErrorNotification and ImportantNotification are never faded out.
-	void push_notification(const std::string& text, NotificationLevel level, GLCanvas3D& canvas, int timestamp = 0);
+	void push_notification(const std::string& text, NotificationLevel level, int timestamp = 0);
 	// Creates Slicing Error notification with a custom text and no fade out.
-	void push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas);
+	void push_slicing_error_notification(const std::string& text);
 	// Creates Slicing Warning notification with a custom text and no fade out.
-	void push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, ObjectID oid, int warning_step);
+	void push_slicing_warning_notification(const std::string& text, bool gray, ObjectID oid, int warning_step);
 	// marks slicing errors as gray
 	void set_all_slicing_errors_gray(bool g);
 	// marks slicing warings as gray
@@ -108,39 +108,45 @@ public:
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
 	// Object partially outside of the printer working space, cannot print. No fade out.
-	void push_plater_error_notification(const std::string& text, GLCanvas3D& canvas);
+	void push_plater_error_notification(const std::string& text);
 	// Object fully out of the printer working space and such. No fade out.
-	void push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas);
+	void push_plater_warning_notification(const std::string& text);
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
 	// Creates special notification slicing complete.
 	// If large = true (Plater side bar is closed), then printing time and export button is shown
 	// at the notification and fade-out is disabled. Otherwise the fade out time is set to 10s.
-	void push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large);
+	void push_slicing_complete_notification(int timestamp, bool large);
 	// Add a print time estimate to an existing SlicingComplete notification.
 	void set_slicing_complete_print_time(const std::string &info);
 	// Called when the side bar changes its visibility, as the "slicing complete" notification supplements
 	// the "slicing info" normally shown at the side bar.
 	void set_slicing_complete_large(bool large);
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
-	void push_exporting_finished_notification(GLCanvas3D& canvas, std::string path, std::string dir_path, bool on_removable);
+	void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 	// notification with progress bar
-	void  push_progress_bar_notification(const std::string& text, GLCanvas3D& canvas, float percentage = 0);
-	void set_progress_bar_percentage(const std::string& text, float percentage, GLCanvas3D& canvas);
+	void push_progress_bar_notification(const std::string& text, float percentage = 0);
+	void set_progress_bar_percentage(const std::string& text, float percentage);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
 	// finds ExportFinished notification and closes it if it was to removable device
 	void device_ejected();
 	// renders notifications in queue and deletes expired ones
-	void render_notifications(GLCanvas3D& canvas, float overlay_width);
+	void render_notifications(float overlay_width);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
 	// Which view is active? Plater or G-code preview? Hide warnings in G-code preview.
     void set_in_preview(bool preview);
 	// Move to left to avoid colision with variable layer height gizmo.
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
-	
+
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+	void update_notifications();
+	bool requires_update() const { return m_requires_update; }
+	bool requires_render() const { return m_requires_render; }
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+
 private:
 	// duration 0 means not disapearing
 	struct NotificationData {
@@ -175,6 +181,17 @@ private:
 	class PopNotification
 	{
 	public:
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		enum class EState
+		{
+			Unknown,
+			Static,
+			Countdown,
+			FadingOut,
+			ClosePending,
+			Finished
+		};
+#else
 		enum class RenderResult
 		{
 			Finished,
@@ -183,27 +200,41 @@ private:
 			Countdown,
 			Hovered
 		};
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler);
 		virtual ~PopNotification() { if (m_id) m_id_provider.release_id(m_id); }
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		void                   render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width);
+#else
 		RenderResult           render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width);
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		// close will dissapear notification on next render
 		void                   close() { m_close_pending = true; }
 		// data from newer notification of same type
 		void                   update(const NotificationData& n);
-		bool                   get_finished() const { return m_finished || m_close_pending; }
+		bool                   is_finished() const { return m_finished || m_close_pending; }
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		bool                   is_hovered() const { return m_hovered; }
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		// returns top after movement
 		float                  get_top() const { return m_top_y; }
 		//returns top in actual frame
 		float                  get_current_top() const { return m_top_y; }
 		const NotificationType get_type() const { return m_data.type; }
-		const NotificationData get_data() const { return m_data;  }
-		const bool             get_is_gray() const { return m_is_gray; }
+		const NotificationData get_data() const { return m_data; }
+		const bool             is_gray() const { return m_is_gray; }
 		// Call equals one second down
 		void                   substract_remaining_time() { m_remaining_time--; }
 		void                   set_gray(bool g) { m_is_gray = g; }
 		void                   set_paused(bool p) { m_paused = p; }
 		bool                   compare_text(const std::string& text);
         void                   hide(bool h) { m_hidden = h; }
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		void                   update_state();
+		bool				   requires_render() const { return m_fading_out || m_close_pending || m_finished; }
+		bool				   requires_update() const { return m_state != EState::Static; }
+		EState                 get_state() const { return m_state; }
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 	protected:
 		// Call after every size change
@@ -218,9 +249,11 @@ private:
 		virtual void render_close_button(ImGuiWrapper& imgui,
 			                             const float win_size_x, const float win_size_y,
 			                             const float win_pos_x , const float win_pos_y);
+#if !ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		void         render_countdown(ImGuiWrapper& imgui,
 			                          const float win_size_x, const float win_size_y,
 			                          const float win_pos_x , const float win_pos_y);
+#endif // !ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		virtual void render_hypertext(ImGuiWrapper& imgui,
 			                          const float text_x, const float text_y,
 		                              const std::string text,
@@ -237,7 +270,10 @@ private:
 
 		// For reusing ImGUI windows.
 		NotificationIDProvider &m_id_provider;
-		int              m_id { 0 };
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		EState           m_state                { EState::Unknown };
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		int              m_id                   { 0 };
 		bool			 m_initialized          { false };
 		// Main text
 		std::string      m_text1;
@@ -252,15 +288,22 @@ private:
 		bool             m_paused               { false };
 		int              m_countdown_frame      { 0 };
 		bool             m_fading_out           { false };
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		wxMilliClock_t   m_fading_start         { 0LL };
+#else
 		// total time left when fading beggins
-		float            m_fading_time          { 0.0f }; 
-		float            m_current_fade_opacity { 1.f };
+		float            m_fading_time{ 0.0f };
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		float            m_current_fade_opacity { 1.0f };
 		// If hidden the notif is alive but not visible to user
 		bool             m_hidden               { false };
 		//  m_finished = true - does not render, marked to delete
 		bool             m_finished             { false }; 
 		// Will go to m_finished next render
 		bool             m_close_pending        { false }; 
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		bool             m_hovered              { false };
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		// variables to count positions correctly
 		// all space without text
 		float            m_window_width_offset;
@@ -366,8 +409,8 @@ private:
 
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
-	bool push_notification_data(const NotificationData& notification_data, GLCanvas3D& canvas, int timestamp);
-	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp);
+	bool push_notification_data(const NotificationData& notification_data, int timestamp);
+	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, int timestamp);
 	//finds older notification of same type and moves it to the end of queue. returns true if found
 	bool activate_existing(const NotificationManager::PopNotification* notification);
 	// Put the more important notifications to the bottom of the list.
@@ -390,6 +433,10 @@ private:
 	bool                         m_in_preview { false };
 	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
 	bool                         m_move_from_overlay { false };
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+	bool						 m_requires_update{ false };
+	bool						 m_requires_render{ false };
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
