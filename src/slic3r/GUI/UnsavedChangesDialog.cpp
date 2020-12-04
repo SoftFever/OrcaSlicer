@@ -24,7 +24,7 @@
 
 using boost::optional;
 
-#ifdef __Linux__
+#ifdef __linux__
 #define wxLinux true
 #else
 #define wxLinux false
@@ -1059,7 +1059,6 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         // Collect dirty options.
         const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
         auto dirty_options = presets->current_dirty_options(deep_compare);
-        auto dirty_options_ = presets->current_dirty_options();
 
         // process changes of extruders count
         if (type == Preset::TYPE_PRINTER && old_pt == ptFFF &&
@@ -1075,6 +1074,12 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
 
         for (const std::string& opt_key : dirty_options) {
             const Search::Option& option = searcher.get_option(opt_key);
+            if (option.opt_key != boost::nowide::widen(opt_key)) {
+                // When founded option isn't the correct one.
+                // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
+                // because of they don't exist in searcher
+                continue;
+            }
 
             ItemData item_data = { opt_key, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config), type };
 
