@@ -419,7 +419,7 @@ Point SeamPlacer::get_seam(const Layer& layer, const SeamPosition seam_position,
             float penalty_aligned  = penalties[last_pos_proj_idx];
             float penalty_min      = penalties[idx_min];
             float penalty_diff_abs = std::abs(penalty_min - penalty_aligned);
-            float penalty_max      = std::max(penalty_min, penalty_aligned);
+            float penalty_max      = std::max(std::abs(penalty_min), std::abs(penalty_aligned));
             float penalty_diff_rel = (penalty_max == 0.f) ? 0.f : penalty_diff_abs / penalty_max;
             // printf("Align seams, penalty aligned: %f, min: %f, diff abs: %f, diff rel: %f\n", penalty_aligned, penalty_min, penalty_diff_abs, penalty_diff_rel);
             if (std::abs(penalty_diff_rel) < 0.05) {
@@ -697,12 +697,14 @@ void SeamPlacer::apply_custom_seam(const Polygon& polygon, size_t po_idx,
 ////////////////////////
 //    std::ostringstream os;
 //    os << std::setw(3) << std::setfill('0') << layer_id;
-//    int a = scale_(20.);
+//    int a = scale_(30.);
 //    SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
-//    /*if (! m_enforcers.empty())
-//        svg.draw(m_enforcers[layer_id], "blue");
-//    if (! m_blockers.empty())
-//        svg.draw(m_blockers[layer_id], "red");*/
+//    //if (! m_enforcers[po_idx].empty())
+//    //    svg.draw(m_enforcers[po_idx][layer_id].polys, "blue");
+//    //if (! m_blockers[po_idx].empty())
+//    //    svg.draw(m_blockers[po_idx][layer_id].polys, "red");
+
+
 
 //    size_t min_idx = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
@@ -713,13 +715,8 @@ void SeamPlacer::apply_custom_seam(const Polygon& polygon, size_t po_idx,
 //        if (min_idx == i) {
 //            fill = "yellow";
 //            size = 5e5;
-//        } else {
+//        } else
 //            fill = (std::find(enforcers_idxs.begin(), enforcers_idxs.end(), i) != enforcers_idxs.end() ? "green" : "black");
-//            if (std::find(enf_centers.begin(), enf_centers.end(), i) != enf_centers.end()) {
-//                size = 5e5;
-//                fill = "blue";
-//            }
-//        }
 //        if (i != 0)
 //            svg.draw(polygon.points[i], fill, size);
 //        else
