@@ -70,7 +70,7 @@ public:
 
     // Load user configuration and store it into the user profiles.
     // This method is called by the configuration wizard.
-    void                        load_config(const std::string &name, DynamicPrintConfig config)
+    void                        load_config_from_wizard(const std::string &name, DynamicPrintConfig config)
         { this->load_config_file_config(name, false, std::move(config)); }
 
     // Load configuration that comes from a model file containing configuration, such as 3MF et al.

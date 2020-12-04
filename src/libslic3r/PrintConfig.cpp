@@ -1680,6 +1680,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString(""));
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("physical_printer_settings_id", coString);
+    def->set_default_value(new ConfigOptionString(""));
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("raft_layers", coInt);
     def->label = L("Raft layers");
     def->category = L("Support material");
