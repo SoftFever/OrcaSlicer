@@ -1847,6 +1847,7 @@ void TabFilament::build()
 
         optgroup->append_single_option_line("bridge_fan_speed", category_path + "fan-settings");
         optgroup->append_single_option_line("disable_fan_first_layers", category_path + "fan-settings");
+        optgroup->append_single_option_line("full_fan_speed_layer", category_path + "fan-settings");
 
         optgroup = page->new_optgroup(L("Cooling thresholds"), 25);
         optgroup->append_single_option_line("fan_below_layer_time", category_path + "cooling-thresholds");
@@ -1999,7 +2000,7 @@ void TabFilament::toggle_options()
         for (auto el : { "max_fan_speed", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed" })
             toggle_option(el, cooling);
 
-        for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
+        for (auto el : { "min_fan_speed", "disable_fan_first_layers", "full_fan_speed_layer" })
             toggle_option(el, fan_always_on);
     }
 

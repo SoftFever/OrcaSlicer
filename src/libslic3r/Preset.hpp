@@ -287,7 +287,18 @@ public:
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true);
     Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true);
 
-    Preset&         load_external_preset(
+    // Returns a loaded preset, returns true if an existing preset was selected AND modified from config.
+    // In that case the successive filament loaded for a multi material printer should not be modified, but
+    // an external preset should be created instead.
+    enum class LoadAndSelect {
+        // Never select
+        Never,
+        // Always select
+        Always,
+        // Select a profile only if it was modified.
+        OnlyIfModified,
+    };
+    std::pair<Preset*, bool> load_external_preset(
         // Path to the profile source file (a G-code, an AMF or 3MF file, a config file)
         const std::string           &path,
         // Name of the profile, derived from the source file name.
@@ -297,7 +308,7 @@ public:
         // Config to initialize the preset from.
         const DynamicPrintConfig    &config,
         // Select the preset after loading?
-        bool                         select = true);
+        LoadAndSelect                select = LoadAndSelect::Always);
 
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.

@@ -18,6 +18,9 @@
 
 static constexpr float GAP_WIDTH = 10.0f;
 static constexpr float SPACE_RIGHT_PANEL = 10.0f;
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+static constexpr float FADING_OUT_DURATION = 2.0f;
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 namespace Slic3r {
 namespace GUI {
@@ -134,6 +137,96 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 {
 	//init();
 }
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width)
+{
+	if (m_hidden) {
+		m_top_y = initial_y - GAP_WIDTH;
+		return;
+	}
+
+	Size cnv_size = canvas.get_canvas_size();
+	ImGuiWrapper& imgui = *wxGetApp().imgui();
+	ImVec2 mouse_pos = ImGui::GetMousePos();
+	float right_gap = SPACE_RIGHT_PANEL + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
+
+	if (m_line_height != ImGui::CalcTextSize("A").y)
+		init();
+
+	set_next_window_size(imgui);
+
+	// top y of window
+	m_top_y = initial_y + m_window_height;
+
+	ImVec2 win_pos(1.0f * (float)cnv_size.get_width() - right_gap, 1.0f * (float)cnv_size.get_height() - m_top_y);
+	imgui.set_next_window_pos(win_pos.x, win_pos.y, ImGuiCond_Always, 1.0f, 0.0f);
+	imgui.set_next_window_size(m_window_width, m_window_height, ImGuiCond_Always);
+
+	// find if hovered
+	m_hovered = false;
+	if (mouse_pos.x < win_pos.x && mouse_pos.x > win_pos.x - m_window_width && mouse_pos.y > win_pos.y && mouse_pos.y < win_pos.y + m_window_height) {
+		ImGui::SetNextWindowFocus();
+		m_hovered = true;
+	}
+
+	// color change based on fading out
+	bool fading_pop = false;
+	if (m_fading_out) {
+		Notifications_Internal::push_style_color(ImGuiCol_WindowBg, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg), m_fading_out, m_current_fade_opacity);
+		Notifications_Internal::push_style_color(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text), m_fading_out, m_current_fade_opacity);
+		fading_pop = true;
+	}
+
+	// background color
+	if (m_is_gray) {
+		ImVec4 backcolor(0.7f, 0.7f, 0.7f, 0.5f);
+		Notifications_Internal::push_style_color(ImGuiCol_WindowBg, backcolor, m_fading_out, m_current_fade_opacity);
+	}
+	else if (m_data.level == NotificationLevel::ErrorNotification) {
+		ImVec4 backcolor = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+		backcolor.x += 0.3f;
+		Notifications_Internal::push_style_color(ImGuiCol_WindowBg, backcolor, m_fading_out, m_current_fade_opacity);
+	}
+	else if (m_data.level == NotificationLevel::WarningNotification) {
+		ImVec4 backcolor = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+		backcolor.x += 0.3f;
+		backcolor.y += 0.15f;
+		Notifications_Internal::push_style_color(ImGuiCol_WindowBg, backcolor, m_fading_out, m_current_fade_opacity);
+	}
+
+	// name of window - probably indentifies window and is shown so last_end add whitespaces according to id
+	if (m_id == 0)
+		m_id = m_id_provider.allocate_id();
+	std::string name = "!!Ntfctn" + std::to_string(m_id);
+	if (imgui.begin(name, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar)) {
+		ImVec2 win_size = ImGui::GetWindowSize();
+
+		//FIXME: dont forget to us this for texts
+		//GUI::format(_utf8(L()));
+
+		/*
+		//countdown numbers
+		ImGui::SetCursorPosX(15);
+		ImGui::SetCursorPosY(15);
+		imgui.text(std::to_string(m_remaining_time).c_str());
+		*/
+
+		render_left_sign(imgui);
+		render_text(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
+		render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
+		m_minimize_b_visible = false;
+		if (m_multiline && m_lines_count > 3)
+			render_minimize_button(imgui, win_pos.x, win_pos.y);
+	}
+	imgui.end();
+
+	if (m_is_gray || m_data.level == NotificationLevel::ErrorNotification || m_data.level == NotificationLevel::WarningNotification)
+		ImGui::PopStyleColor();
+
+	if (fading_pop)
+		ImGui::PopStyleColor(2);
+}
+#else
 NotificationManager::PopNotification::RenderResult NotificationManager::PopNotification::render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width)
 {
 	if (!m_initialized) {
@@ -268,6 +361,7 @@ NotificationManager::PopNotification::RenderResult NotificationManager::PopNotif
 		ImGui::PopStyleColor();
 	return ret_val;
 }
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 void NotificationManager::PopNotification::count_spaces()
 {
 	//determine line width 
@@ -528,6 +622,7 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 	ImGui::PopStyleColor();
 	ImGui::PopStyleColor();
 }
+#if !ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 void NotificationManager::PopNotification::render_countdown(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
 	/*
@@ -575,6 +670,7 @@ void NotificationManager::PopNotification::render_countdown(ImGuiWrapper& imgui,
 		m_countdown_frame++;
 		*/
 }
+#endif // !ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)
 {
 	if (m_data.level == NotificationLevel::ErrorNotification || m_data.level == NotificationLevel::WarningNotification) {
@@ -642,6 +738,52 @@ bool NotificationManager::PopNotification::compare_text(const std::string& text)
 		return true;
 	return false;
 }
+
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+void NotificationManager::PopNotification::update_state()
+{
+	if (!m_initialized)
+		init();
+
+	if (m_hidden) {
+		m_state = EState::Static;
+		return;
+	}
+
+	if (m_hovered) {
+		// reset fading
+		m_fading_out = false;
+		m_current_fade_opacity = 1.0f;
+		m_remaining_time = m_data.duration;
+	}
+
+	if (m_counting_down) {
+		if (m_fading_out && m_current_fade_opacity <= 0.0f)
+			m_finished = true;
+		else if (!m_fading_out && m_remaining_time == 0) {
+			m_fading_out = true;
+			m_fading_start = wxGetLocalTimeMillis();
+		}
+	}
+
+	if (m_finished) {
+		m_state = EState::Finished;
+		return;
+	}
+	if (m_close_pending) {
+		m_finished = true;
+		m_state = EState::ClosePending;
+		return;
+	}
+	if (m_fading_out) {
+		if (!m_paused) {
+			wxMilliClock_t curr_time = wxGetLocalTimeMillis() - m_fading_start;
+			m_current_fade_opacity = std::clamp(1.0f - 0.001f * static_cast<float>(curr_time.GetValue()) / FADING_OUT_DURATION, 0.0f, 1.0f);
+		}
+		m_state = EState::FadingOut;
+	}
+}
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 NotificationManager::SlicingCompleteLargeNotification::SlicingCompleteLargeNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, bool large) :
 	  NotificationManager::PopNotification(n, id_provider, evt_handler)
@@ -849,19 +991,19 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 	m_evt_handler(evt_handler)
 {
 }
-void NotificationManager::push_notification(const NotificationType type, GLCanvas3D& canvas, int timestamp)
+void NotificationManager::push_notification(const NotificationType type, int timestamp)
 {
 	auto it = std::find_if(basic_notifications.begin(), basic_notifications.end(),
 		boost::bind(&NotificationData::type, boost::placeholders::_1) == type);
 	assert(it != basic_notifications.end());
 	if (it != basic_notifications.end())
-		push_notification_data( *it, canvas, timestamp);
+		push_notification_data(*it, timestamp);
 }
-void NotificationManager::push_notification(const std::string& text, GLCanvas3D& canvas, int timestamp)
+void NotificationManager::push_notification(const std::string& text, int timestamp)
 {
-	push_notification_data({ NotificationType::CustomNotification, NotificationLevel::RegularNotification, 10, text }, canvas, timestamp );
+	push_notification_data({ NotificationType::CustomNotification, NotificationLevel::RegularNotification, 10, text }, timestamp);
 }
-void NotificationManager::push_notification(const std::string& text, NotificationManager::NotificationLevel level, GLCanvas3D& canvas, int timestamp)
+void NotificationManager::push_notification(const std::string& text, NotificationManager::NotificationLevel level, int timestamp)
 {
 	int duration = 0;
 	switch (level) {
@@ -872,32 +1014,32 @@ void NotificationManager::push_notification(const std::string& text, Notificatio
 		assert(false);
 		return;
 	}
-	push_notification_data({ NotificationType::CustomNotification, level, duration, text }, canvas, timestamp);
+	push_notification_data({ NotificationType::CustomNotification, level, duration, text }, timestamp);
 }
-void NotificationManager::push_slicing_error_notification(const std::string& text, GLCanvas3D& canvas)
+void NotificationManager::push_slicing_error_notification(const std::string& text)
 {
 	set_all_slicing_errors_gray(false);
-	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotification, 0,  _u8L("ERROR:") + "\n" + text }, canvas, 0);
+	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotification, 0,  _u8L("ERROR:") + "\n" + text }, 0);
 	close_notification_of_type(NotificationType::SlicingComplete);
 }
-void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, GLCanvas3D& canvas, ObjectID oid, int warning_step)
+void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ObjectID oid, int warning_step)
 {
 	NotificationData data { NotificationType::SlicingWarning, NotificationLevel::WarningNotification, 0,  _u8L("WARNING:") + "\n" + text };
 
 	auto notification = std::make_unique<NotificationManager::SlicingWarningNotification>(data, m_id_provider, m_evt_handler);
 	notification->object_id = oid;
 	notification->warning_step = warning_step;
-	if (push_notification_data(std::move(notification), canvas, 0)) {
+	if (push_notification_data(std::move(notification), 0)) {
 		m_pop_notifications.back()->set_gray(gray);
 	}
 }
-void NotificationManager::push_plater_error_notification(const std::string& text, GLCanvas3D& canvas)
+void NotificationManager::push_plater_error_notification(const std::string& text)
 {
-	push_notification_data({ NotificationType::PlaterError, NotificationLevel::ErrorNotification, 0,  _u8L("ERROR:") + "\n" + text }, canvas, 0);
+	push_notification_data({ NotificationType::PlaterError, NotificationLevel::ErrorNotification, 0,  _u8L("ERROR:") + "\n" + text }, 0);
 }
-void NotificationManager::push_plater_warning_notification(const std::string& text, GLCanvas3D& canvas)
+void NotificationManager::push_plater_warning_notification(const std::string& text)
 {
-	push_notification_data({ NotificationType::PlaterWarning, NotificationLevel::WarningNotification, 0,  _u8L("WARNING:") + "\n" + text }, canvas, 0);
+	push_notification_data({ NotificationType::PlaterWarning, NotificationLevel::WarningNotification, 0,  _u8L("WARNING:") + "\n" + text }, 0);
 	// dissaper if in preview
 	set_in_preview(m_in_preview);
 }
@@ -951,7 +1093,7 @@ void NotificationManager::close_slicing_errors_and_warnings()
 		}
 	}
 }
-void NotificationManager::push_slicing_complete_notification(GLCanvas3D& canvas, int timestamp, bool large)
+void NotificationManager::push_slicing_complete_notification(int timestamp, bool large)
 {
 	std::string hypertext;
 	int         time = 10;
@@ -963,8 +1105,7 @@ void NotificationManager::push_slicing_complete_notification(GLCanvas3D& canvas,
 	}
 	NotificationData data{ NotificationType::SlicingComplete, NotificationLevel::RegularNotification, time,  _u8L("Slicing finished."), hypertext, [](wxEvtHandler* evnthndlr){
 		if (evnthndlr != nullptr) wxPostEvent(evnthndlr, ExportGcodeNotificationClickedEvent(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED)); return true; } };
-	push_notification_data(std::make_unique<NotificationManager::SlicingCompleteLargeNotification>(data, m_id_provider, m_evt_handler, large),
-		canvas, timestamp);
+	push_notification_data(std::make_unique<NotificationManager::SlicingCompleteLargeNotification>(data, m_id_provider, m_evt_handler, large), timestamp);
 }
 void NotificationManager::set_slicing_complete_print_time(const std::string &info)
 {
@@ -1001,38 +1142,41 @@ void NotificationManager::remove_slicing_warnings_of_released_objects(const std:
 				notification->close();
 		}
 }
-void NotificationManager::push_exporting_finished_notification(GLCanvas3D& canvas, std::string path, std::string dir_path, bool on_removable)
+void NotificationManager::push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
 	close_notification_of_type(NotificationType::ExportFinished);
-	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotification, 0,  _u8L("Exporting finished.") +"\n"+ path };
-	push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path),
-		canvas, 0);
+	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotification, 0,  _u8L("Exporting finished.") + "\n" + path };
+	push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path), 0);
 }
-void  NotificationManager::push_progress_bar_notification(const std::string& text, GLCanvas3D& canvas, float percentage)
+void  NotificationManager::push_progress_bar_notification(const std::string& text, float percentage)
 {
 	NotificationData data{ NotificationType::ProgressBar, NotificationLevel::ProgressBarNotification, 0, text };
-	push_notification_data(std::make_unique<NotificationManager::ProgressBarNotification>(data, m_id_provider, m_evt_handler, 0),canvas, 0);
+	push_notification_data(std::make_unique<NotificationManager::ProgressBarNotification>(data, m_id_provider, m_evt_handler, 0), 0);
 }
-void NotificationManager::set_progress_bar_percentage(const std::string& text, float percentage, GLCanvas3D& canvas)
+void NotificationManager::set_progress_bar_percentage(const std::string& text, float percentage)
 {
 	bool found = false;
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::ProgressBar && notification->compare_text(text)) {
 			dynamic_cast<ProgressBarNotification*>(notification.get())->set_percentage(percentage);
-			canvas.request_extra_frame();
+			wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
 			found = true;
 		}
 	}
 	if (!found) {
-		push_progress_bar_notification(text, canvas, percentage);
+		push_progress_bar_notification(text, percentage);
 	}
 }
-bool NotificationManager::push_notification_data(const NotificationData &notification_data,  GLCanvas3D& canvas, int timestamp)
+bool NotificationManager::push_notification_data(const NotificationData& notification_data, int timestamp)
 {
-	return push_notification_data(std::make_unique<PopNotification>(notification_data, m_id_provider, m_evt_handler), canvas, timestamp);
+	return push_notification_data(std::make_unique<PopNotification>(notification_data, m_id_provider, m_evt_handler), timestamp);
 }
-bool NotificationManager::push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, GLCanvas3D& canvas, int timestamp)
+bool NotificationManager::push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, int timestamp)
 {
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+	m_requires_update = true;
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+
 	// if timestamped notif, push only new one
 	if (timestamp != 0) {
 		if (m_used_timestamps.find(timestamp) == m_used_timestamps.end()) {
@@ -1041,6 +1185,9 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 			return false;
 		}
 	}
+
+	GLCanvas3D& canvas = *wxGetApp().plater()->get_current_canvas3D();
+
 	if (this->activate_existing(notification.get())) {
 		m_pop_notifications.back()->update(notification->get_data());
 		canvas.request_extra_frame();
@@ -1051,7 +1198,22 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 		return true;
 	}
 }
-void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width)
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+void NotificationManager::render_notifications(float overlay_width)
+{
+	sort_notifications();
+
+	GLCanvas3D& canvas = *wxGetApp().plater()->get_current_canvas3D();
+	float last_y = 0.0f;
+
+	for (const auto& notification : m_pop_notifications) {
+		notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width);
+		if (notification->get_state() != PopNotification::EState::Finished)
+			last_y = notification->get_top() + GAP_WIDTH;
+	}
+}
+#else
+void NotificationManager::render_notifications(float overlay_width)
 {
 	float    last_x = 0.0f;
 	float    current_height = 0.0f;
@@ -1059,9 +1221,12 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 	bool     render_main = false;
 	bool     hovered = false;
 	sort_notifications();
-	// iterate thru notifications and render them / erease them
+
+	GLCanvas3D& canvas = *wxGetApp().plater()->get_current_canvas3D();
+
+	// iterate thru notifications and render them / erase them
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) { 
-		if ((*it)->get_finished()) {
+		if ((*it)->is_finished()) {
 			it = m_pop_notifications.erase(it);
 		} else {
 			(*it)->set_paused(m_hovered);
@@ -1111,6 +1276,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 		// If any of the notifications is fading out, 100% of the CPU/GPU is consumed.
 		canvas.request_extra_frame();
 }
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 void NotificationManager::sort_notifications()
 {
@@ -1118,7 +1284,7 @@ void NotificationManager::sort_notifications()
 	std::stable_sort(m_pop_notifications.begin(), m_pop_notifications.end(), [](const std::unique_ptr<PopNotification> &n1, const std::unique_ptr<PopNotification> &n2) {
 		int n1l = (int)n1->get_data().level;
 		int n2l = (int)n2->get_data().level;
-		if (n1l == n2l && n1->get_is_gray() && !n2->get_is_gray())
+		if (n1l == n2l && n1->is_gray() && !n2->is_gray())
 			return true;
 		return (n1l < n2l);
 		});
@@ -1129,7 +1295,7 @@ bool NotificationManager::activate_existing(const NotificationManager::PopNotifi
 	NotificationType   new_type = notification->get_type();
 	const std::string &new_text = notification->get_data().text1;
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end(); ++it) {
-		if ((*it)->get_type() == new_type && !(*it)->get_finished()) {
+		if ((*it)->get_type() == new_type && !(*it)->is_finished()) {
 			if (new_type == NotificationType::CustomNotification || new_type == NotificationType::PlaterWarning) {
 				if (!(*it)->compare_text(new_text))
 					continue;
@@ -1161,6 +1327,78 @@ void NotificationManager::set_in_preview(bool preview)
             notification->hide(preview);     
     }
 }
+
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+void NotificationManager::update_notifications()
+{
+	static size_t last_size = 0;
+
+	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
+		std::unique_ptr<PopNotification>& notification = *it;
+		if (notification->get_state() == PopNotification::EState::Finished)
+			it = m_pop_notifications.erase(it);
+		else {
+			notification->set_paused(m_hovered);
+			notification->update_state();
+			++it;
+		}
+	}
+
+	m_requires_update = false;
+	for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->requires_update()) {
+			m_requires_update = true;
+			break;
+		}
+	}
+
+	// update hovering state
+	m_hovered = false;
+	for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->is_hovered()) {
+			m_hovered = true;
+			break;
+		}
+	}
+
+	size_t curr_size = m_pop_notifications.size();
+	m_requires_render = m_hovered || (last_size != curr_size);
+	last_size = curr_size;
+
+	if (!m_requires_render) {
+		for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+			if (notification->requires_render()) {
+				m_requires_render = true;
+				break;
+			}
+		}
+	}
+
+	// actualizate timers
+	wxWindow* p = dynamic_cast<wxWindow*>(wxGetApp().plater());
+	while (p->GetParent() != nullptr)
+		p = p->GetParent();
+	wxTopLevelWindow* top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
+	if (!top_level_wnd->IsActive())
+		return;
+
+	{
+		// Control the fade-out.
+		// time in seconds
+		long now = wxGetLocalTime();
+		// Pausing fade-out when the mouse is over some notification.
+		if (!m_hovered && m_last_time < now) {
+			if (now - m_last_time >= 1) {
+				for (auto& notification : m_pop_notifications) {
+					if (notification->get_state() != PopNotification::EState::Static)
+						notification->substract_remaining_time();
+				}
+			}
+			m_last_time = now;
+		}
+	}
+}
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 bool NotificationManager::has_slicing_error_notification()
 {

@@ -827,7 +827,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			}
 		} else {
 			p->set_waiting_updates(updates);
-			GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateAvailable, *(GUI::wxGetApp().plater()->get_current_canvas3D()));
+			GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateAvailable);
 		}
 		
 		// MsgUpdateConfig will show after the notificaation is clicked
