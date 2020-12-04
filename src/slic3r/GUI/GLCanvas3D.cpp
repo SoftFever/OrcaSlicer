@@ -1675,21 +1675,29 @@ void GLCanvas3D::render()
     _render_overlays();
 
 #if ENABLE_RENDER_STATISTICS
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-    imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    imgui.text("Last frame: ");
-    ImGui::SameLine();
-    imgui.text(std::to_string(m_render_stats.last_frame));
-    ImGui::SameLine();
-    imgui.text("  ms");
-    ImGui::Separator();
-    imgui.text("Compressed textures: ");
-    ImGui::SameLine();
-    imgui.text(OpenGLManager::are_compressed_textures_supported() ? "supported" : "not supported");
-    imgui.text("Max texture size: ");
-    ImGui::SameLine();
-    imgui.text(std::to_string(OpenGLManager::get_gl_info().get_max_tex_size()));
-    imgui.end();
+    if (wxGetApp().plater()->is_render_statistic_dialog_visible()) {
+        ImGuiWrapper& imgui = *wxGetApp().imgui();
+        imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+        imgui.text("Last frame: ");
+        ImGui::SameLine();
+        imgui.text(std::to_string(m_render_stats.last_frame));
+        ImGui::SameLine();
+        imgui.text("  ms");
+        imgui.text("FPS: ");
+        ImGui::SameLine();
+        imgui.text(std::to_string(static_cast<int>(1000.0f / static_cast<float>(m_render_stats.last_frame))));
+//    imgui.text("Imgui FPS: ");
+//    ImGui::SameLine();
+//    imgui.text(std::to_string(static_cast<int>(ImGui::GetIO().Framerate)));
+        ImGui::Separator();
+        imgui.text("Compressed textures: ");
+        ImGui::SameLine();
+        imgui.text(OpenGLManager::are_compressed_textures_supported() ? "supported" : "not supported");
+        imgui.text("Max texture size: ");
+        ImGui::SameLine();
+        imgui.text(std::to_string(OpenGLManager::get_gl_info().get_max_tex_size()));
+        imgui.end();
+    }
 #endif // ENABLE_RENDER_STATISTICS
 
 #if ENABLE_CAMERA_STATISTICS
@@ -2461,9 +2469,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK));
     };
 
-//#ifdef __APPLE__
-//    ctrlMask |= wxMOD_RAW_CONTROL;
-//#endif /* __APPLE__ */
     if ((evt.GetModifiers() & ctrlMask) != 0) {
         // CTRL is pressed
         switch (keyCode) {
@@ -2779,7 +2784,15 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
     {
         if (!m_gizmos.on_key(evt)) {
             if (evt.GetEventType() == wxEVT_KEY_UP) {
+#if ENABLE_RENDER_STATISTICS
+                if (evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_SPACE) {
+                    wxGetApp().plater()->toggle_render_statistic_dialog();
+                    m_dirty = true;
+                }
                 if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
+#else
+                if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
+#endif // ENABLE_RENDER_STATISTICS
                     // Enable switching between 3D and Preview with Tab
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
                     post_event(SimpleEvent(EVT_GLCANVAS_TAB));
