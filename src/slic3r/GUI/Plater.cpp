@@ -387,7 +387,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
 
     option = m_og->get_option("fill_density");
     option.opt.label = L("Infill");
-    option.opt.width = 7/*6*/;
+    option.opt.width = 8;
     option.opt.sidetext = "   ";
     line.append_option(option);
 
@@ -2002,9 +2002,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
     }
 
-     wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
+    wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
 
-     if (wxGetApp().is_editor()) {
+    if (wxGetApp().is_editor()) {
         // 3DScene events:
         view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
         view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
@@ -2046,8 +2046,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
-     }
-     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
+    }
+    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
@@ -2064,6 +2064,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_LAYERS_SLIDER, [this](wxKeyEvent& evt) { preview->move_layers_slider(evt); });
 #endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_layers_slider(evt); });
+    if (wxGetApp().is_gcode_viewer())
+        preview->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { this->q->reload_gcode_from_disk(); });
 
     if (wxGetApp().is_editor()) {
         q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
@@ -2113,12 +2115,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 		    if (evt.data.second) {
 			    this->show_action_buttons(this->ready_to_slice);
                 notification_manager->close_notification_of_type(NotificationType::ExportFinished);
-			    notification_manager->push_notification(format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."),evt.data.first.name, evt.data.first.path),
-				                                        NotificationManager::NotificationLevel::RegularNotification, *q->get_current_canvas3D());
-		    } else {
-			    notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
-				                                        NotificationManager::NotificationLevel::ErrorNotification, *q->get_current_canvas3D());
-		    }
+                notification_manager->push_notification(format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."), evt.data.first.name, evt.data.first.path),
+                    NotificationManager::NotificationLevel::RegularNotification);
+            } else {
+                notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
+                    NotificationManager::NotificationLevel::ErrorNotification);
+            }
 	    });
         this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
 		    this->show_action_buttons(this->ready_to_slice); 
@@ -2363,7 +2365,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
                         if (printer_technology == ptFFF)
                             CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &wxGetApp().preset_bundle->project_config);
-                        wxGetApp().load_current_presets();
+                        // For exporting from the amf/3mf we shouldn't check printer_presets for the containing information about "Print Host upload"
+                        wxGetApp().load_current_presets(false);
                         is_project_file = true;
                     }
                     wxGetApp().app_config->update_config_dir(path.parent_path().string());
@@ -2945,7 +2948,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         } else {
 			// The print is not valid.
 			// Show error as notification.
-			notification_manager->push_slicing_error_notification(err, *q->get_current_canvas3D());
+            notification_manager->push_slicing_error_notification(err);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
     } else if (! this->delayed_error_message.empty()) {
@@ -3506,7 +3509,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
         this->statusbar()->set_progress(evt.status.percent);
         this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
-        //notification_manager->set_progress_bar_percentage("Slicing progress", (float)evt.status.percent / 100.0f, *q->get_current_canvas3D());
+        //notification_manager->set_progress_bar_percentage("Slicing progress", (float)evt.status.percent / 100.0f);
     }
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE | PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
@@ -3548,8 +3551,8 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Now process state.warnings.
 		for (auto const& warning : state.warnings) {
 			if (warning.current) {
-				notification_manager->push_slicing_warning_notification(warning.message, false, *q->get_current_canvas3D(), object_id, warning_step);
-				add_warning(warning, object_id.id);
+                notification_manager->push_slicing_warning_notification(warning.message, false, object_id, warning_step);
+                add_warning(warning, object_id.id);
 			}
 		}
     }
@@ -3557,7 +3560,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
-	notification_manager->push_slicing_complete_notification(*q->get_current_canvas3D(), evt.GetInt(), is_sidebar_collapsed());
+    notification_manager->push_slicing_complete_notification(evt.GetInt(), is_sidebar_collapsed());
     switch (this->printer_technology) {
     case ptFFF:
         this->update_fff_scene();
@@ -3643,17 +3646,17 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     // This bool stops showing export finished notification even when process_completed_with_error is false
     bool has_error = false;
     if (evt.error()) {
-        std::string message = evt.format_error_message();
+        std::pair<std::string, bool> message = evt.format_error_message();
         if (evt.critical_error()) {
             if (q->m_tracking_popup_menu)
                 // We don't want to pop-up a message box when tracking a pop-up menu.
                 // We postpone the error message instead.
-                q->m_tracking_popup_menu_error_message = message;
+                q->m_tracking_popup_menu_error_message = message.first;
             else
-                show_error(q, message);
+                show_error(q, message.first, message.second);
         } else
-		  notification_manager->push_slicing_error_notification(message, *q->get_current_canvas3D());
-        this->statusbar()->set_status_text(from_u8(message));
+            notification_manager->push_slicing_error_notification(message.first);
+        this->statusbar()->set_status_text(from_u8(message.first));
         if (evt.invalidate_plater())
         {
             const wxString invalid_str = _L("Invalid data");
@@ -3698,10 +3701,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         // If writing to removable drive was scheduled, show notification with eject button
         if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !has_error) {
             show_action_buttons(false);
-            notification_manager->push_exporting_finished_notification(*q->get_current_canvas3D(), last_output_path, last_output_dir_path, true);
+            notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, true);
             wxGetApp().removable_drive_manager()->set_exporting_finished(true);
         }else if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
-            notification_manager->push_exporting_finished_notification(*q->get_current_canvas3D(), last_output_path, last_output_dir_path, false);
+            notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
     }
     exporting_status = ExportingStatus::NOT_EXPORTING;
 }
@@ -4806,6 +4809,13 @@ void Plater::load_gcode(const wxString& filename)
         set_project_filename(filename);
 }
 
+void Plater::reload_gcode_from_disk()
+{
+    wxString filename(m_last_loaded_gcode);
+    m_last_loaded_gcode.clear();
+    load_gcode(filename);
+}
+
 void Plater::refresh_print()
 {
     p->preview->refresh_print();
@@ -4923,7 +4933,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         else if (std::regex_match(path.string(), pattern_gcode_drop))
             start_new_gcodeviewer(&filename);
         else
-            return false;
+            continue;
     }
     if (paths.empty())
         // Likely all paths processed were gcodes, for which a G-code viewer instance has hopefully been started.
@@ -5216,9 +5226,12 @@ void Plater::export_gcode(bool prefer_removable)
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
         default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
-    }
-    catch (const std::exception &ex) {
-        show_error(this, ex.what());
+    } catch (const Slic3r::PlaceholderParserError &ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    } catch (const std::exception &ex) {
+        show_error(this, ex.what(), false);
         return;
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
@@ -5576,9 +5589,12 @@ void Plater::send_gcode()
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
         default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
-    }
-    catch (const std::exception &ex) {
-        show_error(this, ex.what());
+    } catch (const Slic3r::PlaceholderParserError& ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    } catch (const std::exception& ex) {
+        show_error(this, ex.what(), false);
         return;
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));

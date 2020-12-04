@@ -68,9 +68,10 @@ bool SlicingProcessCompletedEvent::invalidate_plater() const
 	return false;
 }
 
-std::string SlicingProcessCompletedEvent::format_error_message() const
+std::pair<std::string, bool> SlicingProcessCompletedEvent::format_error_message() const
 {
 	std::string error;
+	bool        monospace = false;
 	try {
 		this->rethrow_exception();
     } catch (const std::bad_alloc& ex) {
@@ -78,12 +79,15 @@ std::string SlicingProcessCompletedEvent::format_error_message() const
                               "If you are sure you have enough RAM on your system, this may also be a bug and we would "
                               "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
         error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
+    } catch (PlaceholderParserError &ex) {
+		error = ex.what();
+		monospace = true;
     } catch (std::exception &ex) {
 		error = ex.what();
 	} catch (...) {
 		error = "Unknown C++ exception.";
 	}
-	return error;
+	return std::make_pair(std::move(error), monospace);
 }
 
 BackgroundSlicingProcess::BackgroundSlicingProcess()

@@ -206,7 +206,7 @@ public:
     void            add_config_menu(wxMenuBar *menu);
     bool            check_unsaved_changes(const wxString &header = wxString());
     bool            checked_tab(Tab* tab);
-    void            load_current_presets();
+    void            load_current_presets(bool check_printer_presets = true);
 
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".

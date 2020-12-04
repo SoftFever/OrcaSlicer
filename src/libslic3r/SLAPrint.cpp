@@ -193,9 +193,10 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
 #endif /* _DEBUG */
 
     // Normalize the config.
-    config.option("sla_print_settings_id",    true);
-    config.option("sla_material_settings_id", true);
-    config.option("printer_settings_id",      true);
+    config.option("sla_print_settings_id",        true);
+    config.option("sla_material_settings_id",     true);
+    config.option("printer_settings_id",          true);
+    config.option("physical_printer_settings_id", true);
     // Collect changes to print config.
     t_config_option_keys print_diff    = m_print_config.diff(config);
     t_config_option_keys printer_diff  = m_printer_config.diff(config);
@@ -228,9 +229,10 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
         // update_apply_status(this->invalidate_step(slapsRasterize));
         m_placeholder_parser.apply_config(config);
         // Set the profile aliases for the PrintBase::output_filename()
-        m_placeholder_parser.set("print_preset",    config.option("sla_print_settings_id")->clone());
-        m_placeholder_parser.set("material_preset", config.option("sla_material_settings_id")->clone());
-        m_placeholder_parser.set("printer_preset",  config.option("printer_settings_id")->clone());
+        m_placeholder_parser.set("print_preset",            config.option("sla_print_settings_id")->clone());
+        m_placeholder_parser.set("material_preset",         config.option("sla_material_settings_id")->clone());
+        m_placeholder_parser.set("printer_preset",          config.option("printer_settings_id")->clone());
+        m_placeholder_parser.set("physical_printer_preset", config.option("physical_printer_settings_id")->clone());
     }
 
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.

@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <sstream>
 #include <map>
+#include <boost/nowide/convert.hpp>
 #ifdef _MSC_VER
     #include <stdlib.h>  // provides **_environ
 #else
@@ -870,7 +871,9 @@ namespace client
                 }
             }
             msg += '\n';
-            msg += error_line;
+            // This hack removes all non-UTF8 characters from the source line, so that the upstream wxWidgets conversions
+            // from UTF8 to UTF16 don't bail out.
+            msg += boost::nowide::narrow(boost::nowide::widen(error_line));
             msg += '\n';
             for (size_t i = 0; i < error_pos; ++ i)
                 msg += ' ';
@@ -1304,7 +1307,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
 	if (!context.error_message.empty()) {
         if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
             context.error_message += '\n';
-        throw Slic3r::RuntimeError(context.error_message);
+        throw Slic3r::PlaceholderParserError(context.error_message);
     }
     return output;
 }

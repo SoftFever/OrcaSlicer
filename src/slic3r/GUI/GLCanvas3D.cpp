@@ -636,9 +636,9 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     auto &notification_manager = *wxGetApp().plater()->get_notification_manager();
     if (state) {
         if(error)
-            notification_manager.push_plater_error_notification(text,*(wxGetApp().plater()->get_current_canvas3D()));
+            notification_manager.push_plater_error_notification(text);
         else
-            notification_manager.push_plater_warning_notification(text, *(wxGetApp().plater()->get_current_canvas3D()));
+            notification_manager.push_plater_warning_notification(text);
     } else {
         if (error)
             notification_manager.close_plater_error_notification(text);
@@ -1728,8 +1728,7 @@ void GLCanvas3D::render()
         m_tooltip.render(m_mouse.position, *this);
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
-	
-	wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width());
+    wxGetApp().plater()->get_notification_manager()->render_notifications(get_overlay_window_width());
 
     wxGetApp().imgui()->render();
 
@@ -2384,6 +2383,14 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     if (!m_initialized)
         return;
 
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+    NotificationManager* notification_mgr = wxGetApp().plater()->get_notification_manager();
+    if (notification_mgr->requires_update())
+        notification_mgr->update_notifications();
+
+    m_dirty |= notification_mgr->requires_render();
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+
     m_dirty |= m_main_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
@@ -2391,12 +2398,24 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(wxGetApp().plater()->get_camera());
     m_dirty |= mouse3d_controller_applied;
 
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+    if (!m_dirty) {
+        if (notification_mgr->requires_update())
+            evt.RequestMore();
+        return;
+    }
+#else
     if (!m_dirty)
         return;
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
     _refresh_if_shown_on_screen();
 
+#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+    if (m_extra_frame_requested || mouse3d_controller_applied || notification_mgr->requires_update()) {
+#else
     if (m_extra_frame_requested || mouse3d_controller_applied) {
+#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
         m_dirty = true;
         m_extra_frame_requested = false;
         evt.RequestMore();
@@ -2531,7 +2550,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_BACK:
         case WXK_DELETE:
              post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
-		default:            evt.Skip();
+        default:            evt.Skip();
         }
     }
     else if ((evt.GetModifiers() & shiftMask) != 0) {
@@ -2560,7 +2579,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                   post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
                   break;
         case WXK_ESCAPE: { deselect_all(); break; }
-        case WXK_F5: { post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK)); break; }
+        case WXK_F5:
+        {
+            if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
+                (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
+                post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
+            break;
+        }
         case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
@@ -4972,7 +4997,7 @@ void GLCanvas3D::_render_objects() const
 
         if (m_config != nullptr) {
             const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
-            m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
+            m_volumes.set_print_box((float)bed_bb.min(0) - BedEpsilon, (float)bed_bb.min(1) - BedEpsilon, 0.0f, (float)bed_bb.max(0) + BedEpsilon, (float)bed_bb.max(1) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
             m_volumes.check_outside_state(m_config, nullptr);
         }
     }
