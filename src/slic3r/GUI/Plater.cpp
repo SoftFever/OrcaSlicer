@@ -1192,7 +1192,7 @@ void Sidebar::update_sliced_info_sizer()
 
                         double spool_weight = filament_preset->config.opt_float("filament_spool_weight", 0);
                         if (spool_weight != 0.0) {
-                            new_label += "\n      " + _L("(weight with spool)");
+                            new_label += "\n      " + _L("(including spool)");
                             info_text += wxString::Format(" (%.2f)\n", filament_weight + spool_weight);
                         }
                     }
