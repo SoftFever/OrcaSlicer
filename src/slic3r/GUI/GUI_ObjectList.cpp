@@ -2189,8 +2189,8 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
-    select_item(m_objects_model->AddVolumeChild(object_item, name, type, 
-        new_volume->get_mesh_errors_count()>0));
+    select_item([this, object_item, name, type, new_volume]() { return m_objects_model->AddVolumeChild(object_item, name, type,
+        new_volume->get_mesh_errors_count() > 0); });
 //#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 //#endif //no __WXOSX__ //__WXMSW__
@@ -2292,19 +2292,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     if (type & itVolume && (*m_objects)[obj_idx]->get_mesh_errors_count() == 0)
         m_objects_model->DeleteWarningIcon(m_objects_model->GetParent(item));
 
-    // If last two Instances of object is selected, show the message about impossible action
-    bool show_msg = false;
-    if (type & itInstance) { 
-        wxDataViewItemArray instances;
-        m_objects_model->GetChildren(m_objects_model->GetParent(item), instances);
-        if (instances.Count() == 2 && IsSelected(instances[0]) && IsSelected(instances[1]))
-            show_msg = true;
-    }
-
     m_objects_model->Delete(item);
-
-    if (show_msg)
-        Slic3r::GUI::show_error(nullptr, _(L("Last instance of an object cannot be deleted.")));
 }
 
 void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
@@ -3055,24 +3043,24 @@ void ObjectList::delete_object_from_list()
     if (!item) 
         return;
     if (m_objects_model->GetParent(item) == wxDataViewItem(nullptr))
-        select_item(m_objects_model->Delete(item));
+        select_item([this, item]() { return m_objects_model->Delete(item); });
     else
-        select_item(m_objects_model->Delete(m_objects_model->GetParent(item)));
+        select_item([this, item]() { return m_objects_model->Delete(m_objects_model->GetParent(item)); });
 }
 
 void ObjectList::delete_object_from_list(const size_t obj_idx)
 {
-    select_item(m_objects_model->Delete(m_objects_model->GetItemById(obj_idx)));
+    select_item([this, obj_idx]() { return m_objects_model->Delete(m_objects_model->GetItemById(obj_idx)); });
 }
 
 void ObjectList::delete_volume_from_list(const size_t obj_idx, const size_t vol_idx)
 {
-    select_item(m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)));
+    select_item([this, obj_idx, vol_idx]() { return m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)); });
 }
 
 void ObjectList::delete_instance_from_list(const size_t obj_idx, const size_t inst_idx)
 {
-    select_item(m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)));
+    select_item([this, obj_idx, inst_idx]() { return m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)); });
 }
 
 void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx)
@@ -3099,6 +3087,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
     if (items_for_delete.empty())
         return;
 
+    m_prevent_list_events = true;
     for (std::vector<ItemForDelete>::const_reverse_iterator item = items_for_delete.rbegin(); item != items_for_delete.rend(); ++item)
     {
         if (!(item->type&(itObject | itVolume | itInstance)))
@@ -3125,6 +3114,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
                 m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item->obj_idx, item->sub_obj_idx));
         }
     }
+    m_prevent_list_events = true;
     part_selection_changed();
 }
 
@@ -3139,13 +3129,13 @@ void ObjectList::delete_all_objects_from_list()
 
 void ObjectList::increase_object_instances(const size_t obj_idx, const size_t num)
 {
-    select_item(m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), num));
+    select_item([this, obj_idx, num]() { return m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), num); });
     selection_changed();
 }
 
 void ObjectList::decrease_object_instances(const size_t obj_idx, const size_t num)
 {
-    select_item(m_objects_model->DeleteLastInstance(m_objects_model->GetItemById(obj_idx), num));
+    select_item([this, obj_idx, num]() { return m_objects_model->DeleteLastInstance(m_objects_model->GetItemById(obj_idx), num); });
 }
 
 void ObjectList::unselect_objects()
@@ -3183,6 +3173,50 @@ void ObjectList::select_current_volume(int idx, int vol_idx)
     m_prevent_list_events = false;
 }
 
+static void update_selection(wxDataViewItemArray& sels, ObjectList::SELECTION_MODE mode, ObjectDataViewModel* model)
+{
+    if (mode == ObjectList::smInstance)
+    {
+        for (auto& item : sels)
+        {
+            ItemType type = model->GetItemType(item);
+            if (type == itObject)
+                continue;
+            if (type == itInstanceRoot) {
+                wxDataViewItem obj_item = model->GetParent(item);
+                sels.Remove(item);
+                sels.Add(obj_item);
+                update_selection(sels, mode, model);
+                return;
+            }
+            if (type == itInstance)
+            {
+                wxDataViewItemArray instances;
+                model->GetChildren(model->GetParent(item), instances);
+                assert(instances.Count() > 0);
+                size_t selected_instances_cnt = 0;
+                for (auto& inst : instances) {
+                    if (sels.Index(inst) == wxNOT_FOUND)
+                        break;
+                    selected_instances_cnt++;
+                }
+
+                if (selected_instances_cnt == instances.Count()) 
+                {
+                    wxDataViewItem obj_item = model->GetTopParent(item);
+                    for (auto& inst : instances)
+                        sels.Remove(inst);
+                    sels.Add(obj_item);
+                    update_selection(sels, mode, model);
+                    return;
+                }
+            }
+            else
+                return;
+        }
+    }
+}
+
 void ObjectList::remove()
 {
     if (GetSelectedItemsCount() == 0)
@@ -3218,6 +3252,10 @@ void ObjectList::remove()
         parent = delete_item(GetSelection());
     else
     {
+        SELECTION_MODE sels_mode = m_selection_mode;
+        UnselectAll();
+        update_selection(sels, sels_mode, m_objects_model);
+
         Plater::TakeSnapshot snapshot = Plater::TakeSnapshot(wxGetApp().plater(), _(L("Delete Selected")));
 
         for (auto& item : sels)
@@ -3780,6 +3818,23 @@ void ObjectList::select_item(const wxDataViewItem& item)
     m_prevent_list_events = false;
 }
 
+void ObjectList::select_item(std::function<wxDataViewItem()> get_item)
+{
+    if (!get_item) 
+        return;
+
+    m_prevent_list_events = true;
+
+    wxDataViewItem item = get_item();
+    if (item.IsOk()) {
+        UnselectAll();
+        Select(item);
+        part_selection_changed();
+    }
+
+    m_prevent_list_events = false;
+}
+
 void ObjectList::select_items(const wxDataViewItemArray& sels)
 {
     m_prevent_list_events = true;
@@ -4060,7 +4115,7 @@ void ObjectList::update_and_show_object_settings_item()
     if (!item) return;
 
     const wxDataViewItem& obj_item = m_objects_model->IsSettingsItem(item) ? m_objects_model->GetParent(item) : item;
-    select_item(add_settings_item(obj_item, &get_item_config(obj_item).get()));
+    select_item([this, obj_item](){ return add_settings_item(obj_item, &get_item_config(obj_item).get()); });
 }
 
 // Update settings item for item had it

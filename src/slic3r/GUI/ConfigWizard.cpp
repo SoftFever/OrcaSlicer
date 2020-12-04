@@ -2457,7 +2457,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         page_temps->apply_custom_config(*custom_config);
 
         const std::string profile_name = page_custom->profile_name();
-        preset_bundle->load_config(profile_name, *custom_config);
+        preset_bundle->load_config_from_wizard(profile_name, *custom_config);
     }
 
     // Update the selections from the compatibilty.

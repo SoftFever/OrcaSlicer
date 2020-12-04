@@ -102,7 +102,11 @@ class Preview : public wxPanel
     std::function<void()> m_schedule_background_process;
 
     unsigned int m_number_extruders { 1 };
+#if ENABLE_PREVIEW_TYPE_CHANGE
+    bool m_keep_current_preview_type{ false };
+#else
     std::string m_preferred_color_mode;
+#endif // ENABLE_PREVIEW_TYPE_CHANGE
 
     bool m_loaded { false };
 
@@ -136,7 +140,9 @@ public:
 
     void set_as_dirty();
 
+#if !ENABLE_PREVIEW_TYPE_CHANGE
     void set_number_extruders(unsigned int number_extruders);
+#endif // !ENABLE_PREVIEW_TYPE_CHANGE
     void bed_shape_changed();
     void select_view(const std::string& direction);
     void set_drop_target(wxDropTarget* target);
@@ -150,7 +156,9 @@ public:
     void move_layers_slider(wxKeyEvent& evt);
     void edit_layers_slider(wxKeyEvent& evt);
 
+#if !ENABLE_PREVIEW_TYPE_CHANGE
     void update_view_type(bool keep_volumes);
+#endif // !ENABLE_PREVIEW_TYPE_CHANGE
 
     bool is_loaded() const { return m_loaded; }
 

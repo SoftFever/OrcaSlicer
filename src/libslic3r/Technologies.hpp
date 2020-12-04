@@ -88,8 +88,9 @@
 //===================
 #define ENABLE_2_3_0_BETA2 1
 
-#define ENABLE_ARROW_KEYS_WITH_SLIDERS (1 && ENABLE_2_3_0_BETA2) 
+#define ENABLE_ARROW_KEYS_WITH_SLIDERS (1 && ENABLE_2_3_0_BETA2)
 #define ENABLE_NEW_NOTIFICATIONS_FADE_OUT (1 && ENABLE_2_3_0_BETA2) 
+#define ENABLE_PREVIEW_TYPE_CHANGE (1 && ENABLE_2_3_0_BETA2)
 
 
 #endif // _prusaslicer_technologies_h_

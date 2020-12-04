@@ -49,7 +49,7 @@ PresetBundle::PresetBundle() :
     // initialized based on PrintConfigDef(), but to empty values (zeros, empty vectors, empty strings).
     //
     // "compatible_printers", "compatible_printers_condition", "inherits",
-    // "print_settings_id", "filament_settings_id", "printer_settings_id",
+    // "print_settings_id", "filament_settings_id", "printer_settings_id", "printer_settings_id"
     // "printer_vendor", "printer_model", "printer_variant", "default_print_profile", "default_filament_profile"
 
     // Create the ID config keys, as they are not part of the Static print config classes.
@@ -586,6 +586,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     out.option<ConfigOptionString >("print_settings_id",    true)->value  = this->prints.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_settings_id", true)->values = this->filament_presets;
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
+    out.option<ConfigOptionString >("physical_printer_settings_id", true)->value = this->physical_printers.get_selected_printer_name();
 
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
@@ -637,6 +638,7 @@ DynamicPrintConfig PresetBundle::full_sla_config() const
     out.option<ConfigOptionString >("sla_print_settings_id",    true)->value  = this->sla_prints.get_selected_preset_name();
     out.option<ConfigOptionString >("sla_material_settings_id", true)->value  = this->sla_materials.get_selected_preset_name();
     out.option<ConfigOptionString >("printer_settings_id",      true)->value  = this->printers.get_selected_preset_name();
+    out.option<ConfigOptionString >("physical_printer_settings_id", true)->value = this->physical_printers.get_selected_printer_name();
 
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
@@ -712,6 +714,7 @@ void PresetBundle::load_config_file(const std::string &path)
 }
 
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
+// is_external == false on if called from ConfigWizard
 void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config)
 {
     PrinterTechnology printer_technology = Preset::printer_technology(config);
@@ -798,14 +801,17 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 			compatible_prints_condition   = compatible_prints_condition_values.front();
 			Preset                *loaded = nullptr;
 			if (is_external) {
-				loaded = &this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config);
+				auto [aloaded, modified] = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config);
+                loaded = aloaded;
 			} else {
-				loaded = &this->filaments.load_preset(this->filaments.path_from_name(name), name, config);
+                // called from Config Wizard.
+				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name), name, config);
 				loaded->save();
 			}
             this->filament_presets.clear();
 			this->filament_presets.emplace_back(loaded->name);
         } else {
+            assert(is_external);
             // Split the filament presets, load each of them separately.
             std::vector<DynamicPrintConfig> configs(num_extruders, this->filaments.default_preset().config);
             // loop through options and scatter them into configs.
@@ -826,6 +832,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             // To avoid incorrect selection of the first filament preset (means a value of Preset->m_idx_selected) 
             // in a case when next added preset take a place of previosly selected preset,
             // we should add presets from last to first
+            bool any_modified = false;
             for (int i = (int)configs.size()-1; i >= 0; i--) {
                 DynamicPrintConfig &cfg = configs[i];
                 // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
@@ -833,24 +840,15 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 cfg.opt_string("compatible_prints_condition",   true) = compatible_prints_condition_values[i];
                 cfg.opt_string("inherits", true)                      = inherits_values[i + 1];
                 // Load all filament presets, but only select the first one in the preset dialog.
-                Preset *loaded = nullptr;
-                if (is_external)
-                    loaded = &this->filaments.load_external_preset(name_or_path, name,
-                        (i < int(old_filament_profile_names->values.size())) ? old_filament_profile_names->values[i] : "",
-                        std::move(cfg), i == 0);
-                else {
-                    // Used by the config wizard when creating a custom setup.
-                    // Therefore this block should only be called for a single extruder.
-                    char suffix[64];
-                    if (i == 0)
-                        suffix[0] = 0;
-                    else
-                        sprintf(suffix, "%d", (int)i);
-                    std::string new_name = name + suffix;
-                    loaded = &this->filaments.load_preset(this->filaments.path_from_name(new_name),
-                        new_name, std::move(cfg), i == 0);
-                    loaded->save();
-                }
+                auto [loaded, modified] = this->filaments.load_external_preset(name_or_path, name,
+                    (i < int(old_filament_profile_names->values.size())) ? old_filament_profile_names->values[i] : "",
+                    std::move(cfg), 
+                    i == 0 ? 
+                        PresetCollection::LoadAndSelect::Always : 
+                    any_modified ?
+                        PresetCollection::LoadAndSelect::Never :
+                        PresetCollection::LoadAndSelect::OnlyIfModified);
+                any_modified |= modified;
                 this->filament_presets[i] = loaded->name;
             }
         }
@@ -864,10 +862,23 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         load_preset(this->sla_materials, 1, "sla_material_settings_id");
         load_preset(this->printers,      2, "printer_settings_id");
         break;
-    default: break;
+    default:
+        break;
     }
 
 	this->update_compatible(PresetSelectCompatibleType::Never);
+
+    const std::string &physical_printer = config.option<ConfigOptionString>("physical_printer_settings_id", true)->value;
+    if (this->printers.get_edited_preset().is_external || physical_printer.empty()) {
+        this->physical_printers.unselect_printer();
+    } else {
+        // Activate the physical printer profile if possible.
+        PhysicalPrinter *pp = this->physical_printers.find_printer(physical_printer, true);
+        if (pp != nullptr && std::find(pp->preset_names.begin(), pp->preset_names.end(), this->printers.get_edited_preset().name) != pp->preset_names.end())
+            this->physical_printers.select_printer(*pp);
+        else
+            this->physical_printers.unselect_printer();
+    }
 }
 
 // Load the active configuration of a config bundle from a boost property_tree. This is a private method called from load_config_file.
