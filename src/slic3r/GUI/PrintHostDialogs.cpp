@@ -19,6 +19,7 @@
 #include "I18N.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "wxExtensions.hpp"
+#include "MainFrame.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 namespace fs = boost::filesystem;
@@ -31,7 +32,7 @@ static const char *CONFIG_KEY_PRINT = "printhost_print";
 static const char *CONFIG_KEY_GROUP = "printhost_group";
 
 PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_print, const wxArrayString &groups)
-    : MsgDialog(nullptr, _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"), wxID_NONE)
+    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"), wxID_NONE)
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
     , box_print(can_start_print ? new wxCheckBox(this, wxID_ANY, _L("Start printing after upload")) : nullptr)
     , combo_groups(!groups.IsEmpty() ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, groups, wxCB_READONLY) : nullptr)
@@ -77,6 +78,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
     txt_filename->SetFocus();
     
     Fit();
+    CenterOnParent();
 
     Bind(wxEVT_SHOW, [=](const wxShowEvent &) {
         // Another similar case where the function only works with EVT_SHOW + CallAfter,
