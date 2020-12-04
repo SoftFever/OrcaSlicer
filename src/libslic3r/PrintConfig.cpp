@@ -979,6 +979,17 @@ void PrintConfigDef::init_fff_params()
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
 
+    def = this->add("full_fan_speed_layer", coInts);
+    def->label = L("Full fan speed at layer");
+    def->tooltip = L("Fan speed will be ramped up linearly from zero at layer \"disable_fan_first_layers\" "
+                   "to maximum at layer \"full_fan_speed_layer\". "
+                   "\"full_fan_speed_layer\" will be ignored if lower than \"disable_fan_first_layers\", in which case "
+                   "the fan will be running at maximum allowed speed at layer \"disable_fan_first_layers\" + 1.");
+    def->min = 0;
+    def->max = 1000;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("gap_fill_speed", coFloat);
     def->label = L("Gap fill");
     def->category = L("Speed");

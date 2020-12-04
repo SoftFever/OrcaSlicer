@@ -93,6 +93,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "extrusion_multiplier",
         "fan_always_on",
         "fan_below_layer_time",
+        "full_fan_speed_layer",
         "filament_colour",
         "filament_diameter",
         "filament_density",
