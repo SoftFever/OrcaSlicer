@@ -44,7 +44,7 @@ std::string PresetHints::cooling_description(const Preset &preset)
 		int 	disable_fan_first_layers 	= preset.config.opt_int("disable_fan_first_layers", 0);
 		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
 
-        if (full_fan_speed_layer > fan_below_layer_time + 1)
+        if (full_fan_speed_layer > disable_fan_first_layers + 1)
             out += GUI::format(_L("Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."), disable_fan_first_layers, min_fan_speed, full_fan_speed_layer);
         else {
             out += GUI::format(cooling ? _L("During the other layers, fan will always run at %1%%%") : _L("Fan will always run at %1%%%"), min_fan_speed) + " ";
