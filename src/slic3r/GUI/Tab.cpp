@@ -3110,6 +3110,11 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 // If preset selection was canceled and previously was selected physical printer, we should select it back
                 m_preset_bundle->physical_printers.select_printer(last_selected_ph_printer_name);
             }
+            if (m_preset_bundle->physical_printers.has_selection()) {
+                // If preset selection was canceled and physical printer was selected
+                // we must disable selection marker for the physical printers
+                m_preset_bundle->physical_printers.unselect_printer();
+            }
         }
 
         update_tab_ui();
