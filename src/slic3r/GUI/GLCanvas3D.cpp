@@ -3983,7 +3983,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
 
     imgui->text(_L("Use CTRL+left mouse key to enter text edit mode:"));
 
-    if (imgui->slider_float(_L("Clearance size"), &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance) {
+    if (imgui->slider_float(_L("Spacing"), &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance) {
         settings.distance = std::max(dist_min, settings.distance);
         settings_out.distance = settings.distance;
         appcfg->set("arrange", dist_key.c_str(), std::to_string(settings_out.distance));

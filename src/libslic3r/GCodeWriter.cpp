@@ -9,7 +9,7 @@
 #define FLAVOR_IS(val) this->config.gcode_flavor == val
 #define FLAVOR_IS_NOT(val) this->config.gcode_flavor != val
 #define COMMENT(comment) if (this->config.gcode_comments && !comment.empty()) gcode << " ; " << comment;
-#define PRECISION(val, precision) std::fixed << std::setprecision(precision) << val
+#define PRECISION(val, precision) std::fixed << std::setprecision(precision) << (val)
 #define XYZF_NUM(val) PRECISION(val, 3)
 #define E_NUM(val) PRECISION(val, 5)
 
@@ -458,7 +458,7 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
                 gcode << "G10 ; retract\n";
         } else {
             gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E())
-                           << " F" << float(m_extruder->retract_speed() * 60.);
+                           << " F" << XYZF_NUM(m_extruder->retract_speed() * 60.);
             COMMENT(comment);
             gcode << "\n";
         }
@@ -488,7 +488,7 @@ std::string GCodeWriter::unretract()
         } else {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
             gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E())
-                           << " F" << float(m_extruder->deretract_speed() * 60.);
+                           << " F" << XYZF_NUM(m_extruder->deretract_speed() * 60.);
             if (this->config.gcode_comments) gcode << " ; unretract";
             gcode << "\n";
         }

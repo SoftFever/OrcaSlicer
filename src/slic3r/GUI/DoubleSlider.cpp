@@ -1217,9 +1217,11 @@ wxString Control::get_tooltip(int tick/*=-1*/)
             return _L("Jump to move") + " (Shift + G)";
         else
             return m_mode == MultiAsSingle ?
-            GUI::from_u8((boost::format(_u8L("Jump to height %s Set ruler mode\n or "
-                "Set extruder sequence for the entire print")) % " (Shift + G)\n").str()) :
-            GUI::from_u8((boost::format(_u8L("Jump to height %s or Set ruler mode")) % " (Shift + G)\n").str());
+            GUI::from_u8((boost::format(_u8L("Jump to height %s\n"
+                                               "Set ruler mode\n"
+                                               "or Set extruder sequence for the entire print")) % "(Shift + G)").str()) :
+            GUI::from_u8((boost::format(_u8L("Jump to height %s\n"
+                                                "or Set ruler mode")) % "(Shift + G)").str());
     }
     if (m_focus == fiColorBand)
         return m_mode != SingleExtruder ? "" :
@@ -1844,7 +1846,7 @@ void Control::show_cog_icon_context_menu()
 
     wxMenu* ruler_mode_menu = new wxMenu();
     if (ruler_mode_menu) {
-        append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("None"), _L("Supprese show the ruler"), 
+        append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("None"), _L("Hide ruler"), 
             [this](wxCommandEvent&) { if (m_extra_style != 0) m_extra_style = 0; }, ruler_mode_menu, 
             []() { return true; }, [this]() { return m_extra_style == 0; }, GUI::wxGetApp().plater());
 
