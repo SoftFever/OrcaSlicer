@@ -2270,8 +2270,10 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
     const auto printer_model_list = [](const std::set<const VendorProfile::PrinterModel*> &printer_models) -> wxString {
     	wxString out;
     	for (const VendorProfile::PrinterModel *printer_model : printer_models) {
+            wxString name = from_u8(printer_model->name);
+            name.Replace("&", "&&", true);
     		out += "\t\t";
-    		out += from_u8(printer_model->name);
+    		out += name;
     		out += "\n";
     	}
     	return out;
