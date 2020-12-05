@@ -4,8 +4,6 @@ min_slic3r_version = 2.3.0-beta0
 1.2.0-beta0 Adjusted infill anchor limits. Added filament spool weights. 
 min_slic3r_version = 2.3.0-alpha4
 1.2.0-alpha1 Renamed MK3S and MINI printer profiles. Updated end g-code (MINI). Added new SLA materials and filament profiles.
-min_slic3r_version = 2.3.0-alpha4
-1.2.0-alpha1 Renamed MK3S and MINI printer profiles. Updated end g-code (MINI). Added new SLA materials and filament profiles.
 1.2.0-alpha0 Added filament spool weights
 min_slic3r_version = 2.2.0-alpha3
 1.1.11 Renamed MK3S and MINI printer profiles. Updated end g-code (MINI). Added new SLA materials and filament profiles.
