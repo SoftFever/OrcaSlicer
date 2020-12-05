@@ -740,14 +740,15 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     const std::string           &name,
     // Original name of the profile, extracted from the loaded config. Empty, if the name has not been stored.
     const std::string           &original_name,
-    // Config to initialize the preset from.
-    const DynamicPrintConfig    &config,
+    // Config to initialize the preset from. It may contain configs of all presets merged in a single dictionary!
+    const DynamicPrintConfig    &combined_config,
     // Select the preset after loading?
     LoadAndSelect                select)
 {
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
-    DynamicPrintConfig cfg(this->default_preset_for(config).config);
-    cfg.apply_only(config, cfg.keys(), true);
+    DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
+    const auto        &keys = cfg.keys();
+    cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
     if (select == LoadAndSelect::Never) {
         // Some filament profile has been selected and modified already.
@@ -789,7 +790,8 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             // Select the existing preset and override it with new values, so that
             // the differences will be shown in the preset editor against the referenced profile.
             this->select_preset(it - m_presets.begin());
-            this->get_edited_preset().config.apply(config);
+            // The source config may contain keys from many possible preset types. Just copy those that relate to this preset.
+            this->get_edited_preset().config.apply_only(combined_config, keys, true);
             this->update_dirty();
             assert(this->get_edited_preset().is_dirty);
             return std::make_pair(&(*it), this->get_edited_preset().is_dirty);
