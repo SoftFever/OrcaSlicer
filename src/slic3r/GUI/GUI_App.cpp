@@ -1282,6 +1282,11 @@ bool GUI_App::select_language()
     // wxWidgets consider the default English locale to be en_GB, which is often missing on Linux.
     // Thus we offer en_US on Linux as well.
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US));
+    //FIXME https://github.com/prusa3d/PrusaSlicer/issues/2580#issuecomment-524546743
+    // In a correctly set up system, "locale -a" will get all the installed locales on that system.
+    // According to the installed locales, the locales for the dictionaries may be modified with the available
+    // CanonicalName of the locale, possibly duplicating the entries for each CanonicalName of the dictionary.
+    // Other languages with missing locales of the system can be greyed out or not shown at all.
 #endif // __linux__
     for (size_t i = 0; i < translations.GetCount(); ++ i) {
 	    const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
