@@ -188,11 +188,11 @@ private:
 		enum class EState
 		{
 			Unknown,
-			Static,
-			Countdown,
-			FadingOut,
-			ClosePending,
-			Finished
+			Hidden,
+			FadingOutRender,  // Requesting Render
+			FadingOutStatic,
+			ClosePending,     // Requesting Render
+			Finished,         // Requesting Render
 		};
 #else
 		enum class RenderResult
@@ -234,8 +234,8 @@ private:
         void                   hide(bool h) { m_hidden = h; }
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		void                   update_state();
-		bool				   requires_render() const { return m_fading_out || m_close_pending || m_finished; }
-		bool				   requires_update() const { return m_state != EState::Static; }
+		bool				   requires_render() const { return m_state == EState::FadingOutRender || m_state == EState::ClosePending || m_state == EState::Finished; }
+		bool				   requires_update() const { return m_state != EState::Hidden; }
 		EState                 get_state() const { return m_state; }
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
@@ -293,6 +293,7 @@ private:
 		bool             m_fading_out           { false };
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		wxMilliClock_t   m_fading_start         { 0LL };
+		wxMilliClock_t   m_last_render_fading   { 0LL };
 #else
 		// total time left when fading beggins
 		float            m_fading_time{ 0.0f };
