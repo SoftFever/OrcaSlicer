@@ -185,7 +185,7 @@ void BackgroundSlicingProcess::process_fff()
 				break;
 			}
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-	    	run_post_process_scripts(export_path, m_fff_print->config());
+	    	run_post_process_scripts(export_path, m_fff_print->full_print_config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
 	    } else if (! m_upload_job.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
@@ -538,7 +538,7 @@ void BackgroundSlicingProcess::prepare_upload()
 		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS) {
 			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
 		}
-		run_post_process_scripts(source_path.string(), m_fff_print->config());
+		run_post_process_scripts(source_path.string(), m_fff_print->full_print_config());
         m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
