@@ -1359,9 +1359,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // the data are deleted as soon as they are sent to the gpu.
     std::vector<std::vector<float>> vertices(m_buffers.size());
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
-#if ENABLE_SHOW_OPTION_POINT_LAYERS
     std::vector<float> options_zs;
-#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
 
     // toolpaths data -> extract vertices from result
     for (size_t i = 0; i < m_moves_count; ++i) {
@@ -1400,7 +1398,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
         }
 
-#if ENABLE_SHOW_OPTION_POINT_LAYERS
         EMoveType type = buffer_type(id);
         if (type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) {
             const float* const last_z = options_zs.empty() ? nullptr : &options_zs.back();
@@ -1408,7 +1405,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             if (last_z == nullptr || z < *last_z - EPSILON || *last_z + EPSILON < z)
                 options_zs.emplace_back(curr.position[2]);
         }
-#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
     }
 
 #if ENABLE_SHOW_WIPE_MOVES
@@ -1615,7 +1611,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     if (!m_layers.empty())
         m_layers_z_range = { 0, static_cast<unsigned int>(m_layers.size() - 1) };
 
-#if ENABLE_SHOW_OPTION_POINT_LAYERS
     // change color of paths whose layer contains option points
     if (!options_zs.empty()) {
         TBuffer& extrude_buffer = m_buffers[buffer_id(EMoveType::Extrude)];
@@ -1625,7 +1620,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 path.cp_color_id = 255 - path.cp_color_id;
         }
     }
-#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
 
     // roles -> remove duplicates
     std::sort(m_roles.begin(), m_roles.end());
@@ -1722,7 +1716,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
-#if ENABLE_SHOW_OPTION_POINT_LAYERS
         case EViewType::ColorPrint:     {
             if (path.cp_color_id >= static_cast<unsigned char>(m_tool_colors.size())) {
                 color = { 0.5f, 0.5f, 0.5f };
@@ -1735,9 +1728,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
             break;
         }
-#else
-        case EViewType::ColorPrint:     { color = m_tool_colors[path.cp_color_id]; break; }
-#endif // ENABLE_SHOW_OPTION_POINT_LAYERS
         default:                        { color = { 1.0f, 1.0f, 1.0f }; break; }
         }
 
