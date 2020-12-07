@@ -23,9 +23,7 @@ class GCodeViewer
     static const std::vector<Color> Extrusion_Role_Colors;
     static const std::vector<Color> Options_Colors;
     static const std::vector<Color> Travel_Colors;
-#if ENABLE_SHOW_WIPE_MOVES
     static const Color              Wipe_Color;
-#endif // ENABLE_SHOW_WIPE_MOVES
     static const std::vector<Color> Range_Colors;
 
     enum class EOptionsColors : unsigned char
@@ -329,9 +327,7 @@ class GCodeViewer
         long long render_paths_size{ 0 };
         // other
         long long travel_segments_count{ 0 };
-#if ENABLE_SHOW_WIPE_MOVES
         long long wipe_segments_count{ 0 };
-#endif // ENABLE_SHOW_WIPE_MOVES
         long long extrude_segments_count{ 0 };
         long long max_vertices_in_vertex_buffer{ 0 };
         long long max_indices_in_index_buffer{ 0 };
@@ -366,9 +362,7 @@ class GCodeViewer
 
         void reset_others() {
             travel_segments_count = 0;
-#if ENABLE_SHOW_WIPE_MOVES
             wipe_segments_count = 0;
-#endif // ENABLE_SHOW_WIPE_MOVES
             extrude_segments_count =  0;
             max_vertices_in_vertex_buffer = 0;
             max_indices_in_index_buffer = 0;

@@ -117,9 +117,7 @@ public:
     enum class OptionType : unsigned int
     {
         Travel,
-#if ENABLE_SHOW_WIPE_MOVES
         Wipe,
-#endif // ENABLE_SHOW_WIPE_MOVES
         Retractions,
         Unretractions,
         ToolChanges,
