@@ -63,8 +63,10 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("thumbnails", coPoints);
-    def->label = L("Picture sizes to be stored into a .gcode and .sl1 files");
+    def->label = L("G-code thumbnails");
+    def->tooltip = L("Picture sizes to be stored into a .gcode and .sl1 files");
     def->mode = comExpert;
+    def->gui_type = "one_string";
     def->set_default_value(new ConfigOptionPoints());
 
     def = this->add("layer_height", coFloat);

@@ -653,7 +653,7 @@ void TabPrinter::init_options_list()
 
     for (const auto opt_key : m_config->keys())
     {
-        if (opt_key == "bed_shape") {
+        if (opt_key == "bed_shape" || opt_key == "thumbnails") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -2173,6 +2173,11 @@ void TabPrinter::build_fff()
 
         optgroup = page->new_optgroup(L("Firmware"));
         optgroup->append_single_option_line("gcode_flavor");
+
+        option = optgroup->get_option("thumbnails");
+        option.opt.full_width = true;
+        optgroup->append_single_option_line(option);
+
         optgroup->append_single_option_line("silent_mode");
         optgroup->append_single_option_line("remaining_times");
 
