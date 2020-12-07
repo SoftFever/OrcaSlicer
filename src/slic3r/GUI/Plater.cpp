@@ -2399,18 +2399,18 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 wxGetApp().sidebar().update_ui_from_settings();
             };
 
-            if (imperial_units)
-                convert_from_imperial_units(model);
-            else if (model.looks_like_imperial_units()) {
-                wxMessageDialog msg_dlg(q, format_wxstr(_L(
-                    "Some object(s) in file %s looks like saved in inches.\n"
-                    "Should I consider them as a saved in inches and convert them?"), from_path(filename)) + "\n",
-                    _L("The object appears to be saved in inches"), wxICON_WARNING | wxYES | wxNO);
-                if (msg_dlg.ShowModal() == wxID_YES)
+            if (!is_project_file) {
+                if (imperial_units)
                     convert_from_imperial_units(model);
-            }
+                else if (model.looks_like_imperial_units()) {
+                    wxMessageDialog msg_dlg(q, format_wxstr(_L(
+                        "Some object(s) in file %s looks like saved in inches.\n"
+                        "Should I consider them as a saved in inches and convert them?"), from_path(filename)) + "\n",
+                        _L("The object appears to be saved in inches"), wxICON_WARNING | wxYES | wxNO);
+                    if (msg_dlg.ShowModal() == wxID_YES)
+                        convert_from_imperial_units(model);
+                }
 
-            if (! is_project_file) {
                 if (model.looks_like_multipart_object()) {
                     wxMessageDialog msg_dlg(q, _L(
                         "This file contains several objects positioned at multiple heights.\n"
