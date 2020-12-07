@@ -665,8 +665,8 @@ public:
     class WipeTowerInfo {
     protected:
         Vec2d m_pos = {std::nan(""), std::nan("")};
-        Vec2d m_bb_size = {0., 0.};
         double m_rotation = 0.;
+        BoundingBoxf m_bb;
         friend class GLCanvas3D;
     public:
         
@@ -677,7 +677,7 @@ public:
         
         inline const Vec2d& pos() const { return m_pos; }
         inline double rotation() const { return m_rotation; }
-        inline const Vec2d bb_size() const { return m_bb_size; }
+        inline const Vec2d bb_size() const { return m_bb.size(); }
         
         void apply_wipe_tower() const;
     };

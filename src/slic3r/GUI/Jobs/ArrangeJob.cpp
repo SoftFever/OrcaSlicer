@@ -30,11 +30,10 @@ public:
     ArrangePolygon get_arrange_polygon() const
     {
         Polygon ap({
-            {coord_t(0), coord_t(0)},
-            {scaled(m_bb_size(X)), coord_t(0)},
-            {scaled(m_bb_size)},
-            {coord_t(0), scaled(m_bb_size(Y))},
-            {coord_t(0), coord_t(0)},
+            {scaled(m_bb.min)},
+            {scaled(m_bb.max.x()), scaled(m_bb.min.y())},
+            {scaled(m_bb.max)},
+            {scaled(m_bb.min.x()), scaled(m_bb.max.y())}
             });
         
         ArrangePolygon ret;
