@@ -264,12 +264,14 @@ bool Snapshot::equal_to_active(const AppConfig &app_config) const
         boost::filesystem::path path1 = data_dir / subdir;
         boost::filesystem::path path2 = snapshot_dir / subdir;
         std::vector<std::string> files1, files2;
-        for (auto &dir_entry : boost::filesystem::directory_iterator(path1))
-            if (Slic3r::is_ini_file(dir_entry))
-                files1.emplace_back(dir_entry.path().filename().string());
-        for (auto &dir_entry : boost::filesystem::directory_iterator(path2))
-            if (Slic3r::is_ini_file(dir_entry))
-                files2.emplace_back(dir_entry.path().filename().string());
+        if (boost::filesystem::is_directory(path1))
+            for (auto &dir_entry : boost::filesystem::directory_iterator(path1))
+                if (Slic3r::is_ini_file(dir_entry))
+                    files1.emplace_back(dir_entry.path().filename().string());
+        if (boost::filesystem::is_directory(path2))
+            for (auto &dir_entry : boost::filesystem::directory_iterator(path2))
+                if (Slic3r::is_ini_file(dir_entry))
+                    files2.emplace_back(dir_entry.path().filename().string());
         std::sort(files1.begin(), files1.end());
         std::sort(files2.begin(), files2.end());
         if (files1 != files2)
@@ -459,8 +461,11 @@ void SnapshotDB::restore_snapshot(const Snapshot &snapshot, AppConfig &app_confi
     boost::filesystem::path snapshot_dir 	= snapshot_db_dir / snapshot.id;
     // Remove existing ini files and restore the ini files from the snapshot.
     for (const char *subdir : snapshot_subdirs) {
-		delete_existing_ini_files(data_dir / subdir);
-    	copy_config_dir_single_level(snapshot_dir / subdir, data_dir / subdir);
+        boost::filesystem::path src = snapshot_dir / subdir;
+        boost::filesystem::path dst = data_dir / subdir;
+		delete_existing_ini_files(dst);
+        if (boost::filesystem::is_directory(src))
+    	    copy_config_dir_single_level(src, dst);
     }
     // Update AppConfig with the selections of the print / sla_print / filament / sla_material / printer profiles
     // and about the installed printer types and variants.

@@ -1582,13 +1582,16 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
                 dlg.ShowModal();
                 if (!dlg.snapshot_to_activate().empty()) {
-                    if (!Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
+                    if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
                         Config::SnapshotDB::singleton().take_snapshot(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
-                    app_config->set("on_snapshot",
-                        Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
-                    preset_bundle->load_presets(*app_config);
-                    // Load the currently selected preset into the GUI, update the preset selection box.
-                    load_current_presets();
+                    try {
+                        app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
+                        preset_bundle->load_presets(*app_config);
+                        // Load the currently selected preset into the GUI, update the preset selection box.
+                        load_current_presets();
+                    } catch (std::exception &ex) {
+                        GUI::show_error(nullptr, _L("Failed to activate configuration snapshot.") + "\n" + into_u8(ex.what()));
+                    }
                 }
             }
             break;

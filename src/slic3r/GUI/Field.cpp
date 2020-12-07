@@ -5,6 +5,7 @@
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
 #include "MainFrame.hpp"
+#include "format.hpp"
 
 #include "libslic3r/PrintConfig.hpp"
 
