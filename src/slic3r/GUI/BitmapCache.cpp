@@ -7,14 +7,11 @@
 
 #include <boost/filesystem.hpp>
 
-#if ! defined(WIN32) && ! defined(__APPLE__)
-#define BROKEN_ALPHA
-#endif
-
-#ifdef BROKEN_ALPHA
+#ifdef __WXGTK2__
+    // Broken alpha workaround
     #include <wx/mstream.h>
     #include <wx/rawbmp.h>
-#endif /* BROKEN_ALPHA */
+#endif /* __WXGTK2__ */
 
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg/nanosvg.h"
@@ -44,7 +41,8 @@ void BitmapCache::clear()
 
 static wxBitmap wxImage_to_wxBitmap_with_alpha(wxImage &&image, float scale = 1.0f)
 {
-#ifdef BROKEN_ALPHA
+#ifdef __WXGTK2__
+    // Broken alpha workaround
     wxMemoryOutputStream stream;
     image.SaveFile(stream, wxBITMAP_TYPE_PNG);
     wxStreamBuffer *buf = stream.GetOutputStreamBuffer();
@@ -68,7 +66,11 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_
     wxBitmap *bitmap = nullptr;
     auto      it     = m_map.find(bitmap_key);
     if (it == m_map.end()) {
-        bitmap = new wxBitmap(width, height);
+        bitmap = new wxBitmap(width, height
+#ifdef __WXGTK3__
+            , 32
+#endif
+            );
 #ifdef __APPLE__
         // Contrary to intuition, the `scale` argument isn't "please scale this to such and such"
         // but rather "the wxImage is sized for backing scale such and such".
@@ -83,7 +85,8 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_
         if (size_t(bitmap->GetWidth()) != width || size_t(bitmap->GetHeight()) != height)
             bitmap->Create(width, height);
     }
-#ifndef BROKEN_ALPHA
+#if defined(WIN32) || defined(__APPLE__)
+    // Not needed or harmful for GTK2 and GTK3.
     bitmap->UseAlpha();
 #endif
     return bitmap;
@@ -131,8 +134,8 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
 #endif
     }
 
-#ifdef BROKEN_ALPHA
-
+#ifdef __WXGTK2__
+    // Broken alpha workaround
     wxImage image(width, height);
     image.InitAlpha();
     // Fill in with a white color.
