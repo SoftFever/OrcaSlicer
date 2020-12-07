@@ -2,6 +2,7 @@
 #include "ConfigManipulation.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "format.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
@@ -184,30 +185,21 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     if (config->option<ConfigOptionPercent>("fill_density")->value == 100) {
-        auto fill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->value;
-        std::string str_fill_pattern = "";
-        t_config_enum_values map_names = config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->get_enum_values();
-        for (auto it : map_names) {
-            if (fill_pattern == it.second) {
-                str_fill_pattern = it.first;
-                break;
-            }
-        }
-        if (!str_fill_pattern.empty()) {
-            const std::vector<std::string>& external_fill_pattern = config->def()->get("top_fill_pattern")->enum_values;
-            bool correct_100p_fill = false;
-            for (const std::string& fill : external_fill_pattern)
-            {
-                if (str_fill_pattern == fill)
-                    correct_100p_fill = true;
-            }
+        std::string  fill_pattern            = config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->serialize();
+        const auto  &top_fill_pattern_values = config->def()->get("top_fill_pattern")->enum_values;
+        bool correct_100p_fill = std::find(top_fill_pattern_values.begin(), top_fill_pattern_values.end(), fill_pattern) != top_fill_pattern_values.end();
+        if (!correct_100p_fill) {
             // get fill_pattern name from enum_labels for using this one at dialog_msg
-            str_fill_pattern = _utf8(config->def()->get("fill_pattern")->enum_labels[fill_pattern]);
-            if (!correct_100p_fill) {
-                wxString msg_text = GUI::from_u8((boost::format(_utf8(L("The %1% infill pattern is not supposed to work at 100%% density."))) % str_fill_pattern).str());
+            const ConfigOptionDef *fill_pattern_def = config->def()->get("fill_pattern");
+            assert(fill_pattern_def != nullptr);
+            auto it_pattern = std::find(fill_pattern_def->enum_values.begin(), fill_pattern_def->enum_values.end(), fill_pattern);
+            assert(it_pattern != fill_pattern_def->enum_values.end());
+            if (it_pattern != fill_pattern_def->enum_values.end()) {
+                wxString msg_text = GUI::format_wxstr(_L("The %1% infill pattern is not supposed to work at 100%% density."), 
+                    fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]);
                 if (is_global_config)
-                    msg_text += "\n\n" + _(L("Shall I switch to rectilinear fill pattern?"));
-                wxMessageDialog dialog(nullptr, msg_text, _(L("Infill")),
+                    msg_text += "\n\n" + _L("Shall I switch to rectilinear fill pattern?");
+                wxMessageDialog dialog(nullptr, msg_text, _L("Infill"),
                                                   wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
                 DynamicPrintConfig new_conf = *config;
                 auto answer = dialog.ShowModal();
