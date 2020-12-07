@@ -31,6 +31,7 @@
 #include "Mouse3DController.hpp"
 #include "I18N.hpp"
 #include "NotificationManager.hpp"
+#include "format.hpp"
 
 #if ENABLE_RETINA_GL
 #include "slic3r/Utils/RetinaHelper.hpp"
@@ -3994,7 +3995,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     dist_key += postfix;
     rot_key  += postfix;
 
-    imgui->text(_L("Use CTRL+left mouse key to enter text edit mode:"));
+    imgui->text(GUI::format_wxstr(_L("Use %1%left mouse key to enter text edit mode:"), shortkey_ctrl_prefix()));
 
     if (imgui->slider_float(_L("Spacing"), &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance) {
         settings.distance = std::max(dist_min, settings.distance);
