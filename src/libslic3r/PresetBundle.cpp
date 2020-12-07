@@ -1095,7 +1095,11 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     namespace pt = boost::property_tree;
     pt::ptree tree;
     boost::nowide::ifstream ifs(path);
-    pt::read_ini(ifs, tree);
+    try {
+        pt::read_ini(ifs, tree);
+    } catch (const boost::property_tree::ini_parser::ini_parser_error &err) {
+        throw Slic3r::RuntimeError(format("Failed loading config bundle \"%1%\"\nError: \"%2%\" at line %3%", path, err.message(), err.line()).c_str());
+    }
 
     const VendorProfile *vendor_profile = nullptr;
     if (flags & (LOAD_CFGBNDLE_SYSTEM | LOAD_CFGBUNDLE_VENDOR_ONLY)) {
