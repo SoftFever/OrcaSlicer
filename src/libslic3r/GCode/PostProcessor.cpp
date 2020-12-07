@@ -182,8 +182,10 @@ namespace Slic3r {
 void run_post_process_scripts(const std::string &path, const DynamicPrintConfig &config)
 {
     const auto* post_process = config.opt<ConfigOptionStrings>("post_process");
-    assert(post_process);
-    if (post_process->values.empty())
+    if (// likely running in SLA mode
+        post_process == nullptr || 
+        // no post-processing script
+        post_process->values.empty())
         return;
 
     // Store print configuration into environment variables.

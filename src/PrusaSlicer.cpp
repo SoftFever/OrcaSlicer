@@ -484,6 +484,12 @@ int CLI::run(int argc, char **argv)
                 if (printer_technology == ptFFF) {
                     for (auto* mo : model.objects)
                         fff_print.auto_assign_extruders(mo);
+                } else {
+                    // The default for "output_filename_format" is good for FDM: "[input_filename_base].gcode"
+                    // Replace it with a reasonable SLA default.
+                    std::string &format = m_print_config.opt_string("output_filename_format", true);
+                    if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("output_filename_format")->default_value.get())->value)
+                        format = "[input_filename_base].SL1";
                 }
                 print->apply(model, m_print_config);
                 std::string err = print->validate();
