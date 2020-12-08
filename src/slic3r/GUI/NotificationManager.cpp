@@ -20,6 +20,8 @@ static constexpr float GAP_WIDTH = 10.0f;
 static constexpr float SPACE_RIGHT_PANEL = 10.0f;
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 static constexpr float FADING_OUT_DURATION = 2.0f;
+// Time in Miliseconds after next render is requested
+static constexpr int   FADING_OUT_TIMEOUT = 100;
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 namespace Slic3r {
@@ -781,7 +783,7 @@ void NotificationManager::PopNotification::update_state()
 			wxMilliClock_t curr_time      = wxGetLocalTimeMillis() - m_fading_start;
 			wxMilliClock_t no_render_time = wxGetLocalTimeMillis() - m_last_render_fading;
 			m_current_fade_opacity = std::clamp(1.0f - 0.001f * static_cast<float>(curr_time.GetValue()) / FADING_OUT_DURATION, 0.0f, 1.0f);
-			if (no_render_time > 100) {
+			if (no_render_time > FADING_OUT_TIMEOUT) {
 				m_last_render_fading = wxGetLocalTimeMillis();
 				m_state = EState::FadingOutRender;
 			}

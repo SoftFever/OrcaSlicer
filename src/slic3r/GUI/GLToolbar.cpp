@@ -70,8 +70,8 @@ bool GLToolbarItem::update_visibility()
     bool ret = (m_data.visible != visible);
     if (ret)
         m_data.visible = visible;
-
-    return ret;
+    // Return false for separator as it would always return true.
+    return is_separator() ? false : ret;
 }
 
 bool GLToolbarItem::update_enabled_state()
