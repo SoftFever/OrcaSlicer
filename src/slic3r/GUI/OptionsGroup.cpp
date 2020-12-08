@@ -25,20 +25,22 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id) {
 const t_field& OptionsGroup::build_field(const t_config_option_key& id, const ConfigOptionDef& opt) {
     // Check the gui_type field first, fall through
     // is the normal type.
-    if (opt.gui_type.compare("select") == 0) {
-    } else if (opt.gui_type.compare("select_open") == 0) {
+    if (opt.gui_type == "select") {
+    } else if (opt.gui_type == "select_open") {
 		m_fields.emplace(id, std::move(Choice::Create<Choice>(this->ctrl_parent(), opt, id)));
-    } else if (opt.gui_type.compare("color") == 0) {
+    } else if (opt.gui_type == "color") {
 		m_fields.emplace(id, std::move(ColourPicker::Create<ColourPicker>(this->ctrl_parent(), opt, id)));
-    } else if (opt.gui_type.compare("f_enum_open") == 0 || 
-                opt.gui_type.compare("i_enum_open") == 0 ||
-                opt.gui_type.compare("i_enum_closed") == 0) {
+    } else if (opt.gui_type == "f_enum_open" || 
+                opt.gui_type == "i_enum_open" ||
+                opt.gui_type == "i_enum_closed") {
 		m_fields.emplace(id, std::move(Choice::Create<Choice>(this->ctrl_parent(), opt, id)));
-    } else if (opt.gui_type.compare("slider") == 0) {
+    } else if (opt.gui_type == "slider") {
 		m_fields.emplace(id, std::move(SliderCtrl::Create<SliderCtrl>(this->ctrl_parent(), opt, id)));
-    } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
-    } else if (opt.gui_type.compare("legend") == 0) { // StaticText
+    } else if (opt.gui_type == "i_spin") { // Spinctrl
+    } else if (opt.gui_type == "legend") { // StaticText
 		m_fields.emplace(id, std::move(StaticText::Create<StaticText>(this->ctrl_parent(), opt, id)));
+    } else if (opt.gui_type == "one_string") {
+        m_fields.emplace(id, std::move(TextCtrl::Create<TextCtrl>(this->ctrl_parent(), opt, id)));
     } else { 
         switch (opt.type) {
             case coFloatOrPercent:
@@ -837,9 +839,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		}
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
-		else if (opt->gui_flags.compare("serialized") == 0) {
+		else if (opt->gui_flags == "serialized") {
 			std::vector<std::string> values = config.option<ConfigOptionStrings>(opt_key)->values;
-			if (!values.empty() && values[0].compare("") != 0)
+			if (!values.empty() && !values[0].empty())
 				for (auto el : values)
 					text_value += el + ";";
 			ret = text_value;
@@ -897,6 +899,8 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	case coPoints:
 		if (opt_key == "bed_shape")
 			ret = config.option<ConfigOptionPoints>(opt_key)->values;
+        if (opt_key == "thumbnails")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
 		else
 			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
 		break;

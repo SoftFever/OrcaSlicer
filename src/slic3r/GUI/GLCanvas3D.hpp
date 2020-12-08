@@ -320,11 +320,22 @@ class GLCanvas3D
     };
 
 #if ENABLE_RENDER_STATISTICS
-    struct RenderStats
+    class RenderStats
     {
-        long long last_frame;
+        std::queue<std::pair<long long, long long>> m_frames;
+        long long m_curr_total{ 0 };
 
-        RenderStats() : last_frame(0) {}
+    public:
+        void add_frame(long long frame) {
+            long long now = wxGetLocalTimeMillis().GetValue();
+            if (!m_frames.empty() && now - m_frames.front().first > 1000) {
+                m_curr_total -= m_frames.front().second;
+                m_frames.pop();
+            }
+            m_curr_total += frame;
+            m_frames.push({ now, frame });
+        }
+        long long get_average() const { return m_frames.empty() ? 0 : m_curr_total / m_frames.size(); }
     };
 #endif // ENABLE_RENDER_STATISTICS
 
@@ -665,8 +676,8 @@ public:
     class WipeTowerInfo {
     protected:
         Vec2d m_pos = {std::nan(""), std::nan("")};
-        Vec2d m_bb_size = {0., 0.};
         double m_rotation = 0.;
+        BoundingBoxf m_bb;
         friend class GLCanvas3D;
     public:
         
@@ -677,7 +688,7 @@ public:
         
         inline const Vec2d& pos() const { return m_pos; }
         inline double rotation() const { return m_rotation; }
-        inline const Vec2d bb_size() const { return m_bb_size; }
+        inline const Vec2d bb_size() const { return m_bb.size(); }
         
         void apply_wipe_tower() const;
     };

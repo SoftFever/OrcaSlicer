@@ -933,13 +933,7 @@ bool GUI_App::on_init_inner()
         load_current_presets();
     mainframe->Show(true);
 
-    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
-     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit()) 
-     * after first whole Mainframe updating/layouting
-     */
-    const int list_min_height = 15 * em_unit();
-    if (obj_list()->GetMinSize().GetY() > list_min_height)
-        obj_list()->SetMinSize(wxSize(-1, list_min_height));
+    obj_list()->set_min_height();
 
     update_mode(); // update view mode after fix of the object_list size
 
@@ -1150,13 +1144,8 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     mainframe->Show(true);
 
     dlg.Update(90, _L("Loading of a mode view") + dots);
-    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
-    * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
-    * after first whole Mainframe updating/layouting
-    */
-    const int list_min_height = 15 * em_unit();
-    if (obj_list()->GetMinSize().GetY() > list_min_height)
-        obj_list()->SetMinSize(wxSize(-1, list_min_height));
+
+    obj_list()->set_min_height();
     update_mode();
 
     // #ys_FIXME_delete_after_testing  Do we still need this  ?
@@ -1582,13 +1571,16 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
                 dlg.ShowModal();
                 if (!dlg.snapshot_to_activate().empty()) {
-                    if (!Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
+                    if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
                         Config::SnapshotDB::singleton().take_snapshot(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
-                    app_config->set("on_snapshot",
-                        Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
-                    preset_bundle->load_presets(*app_config);
-                    // Load the currently selected preset into the GUI, update the preset selection box.
-                    load_current_presets();
+                    try {
+                        app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
+                        preset_bundle->load_presets(*app_config);
+                        // Load the currently selected preset into the GUI, update the preset selection box.
+                        load_current_presets();
+                    } catch (std::exception &ex) {
+                        GUI::show_error(nullptr, _L("Failed to activate configuration snapshot.") + "\n" + into_u8(ex.what()));
+                    }
                 }
             }
             break;

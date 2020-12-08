@@ -7,6 +7,8 @@
 #include "MainFrame.hpp"
 #include "format.hpp"
 
+#include <wx/clipbrd.h>
+
 namespace Slic3r { 
 namespace GUI {
 
@@ -297,6 +299,11 @@ AboutDialog::AboutDialog()
     auto copy_rights_btn = new wxButton(this, m_copy_rights_btn_id, _L("Portions copyright")+dots);
     buttons->Insert(0, copy_rights_btn, 0, wxLEFT, 5);
     copy_rights_btn->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
+
+    m_copy_version_btn_id = NewControlId();
+    auto copy_version_btn = new wxButton(this, m_copy_version_btn_id, _L("Copy Version Info"));
+    buttons->Insert(1, copy_version_btn, 0, wxLEFT, 5);
+    copy_version_btn->Bind(wxEVT_BUTTON, &AboutDialog::onCopyToClipboard, this);
     
     this->SetEscapeId(wxID_CLOSE);
     this->Bind(wxEVT_BUTTON, &AboutDialog::onCloseDialog, this, wxID_CLOSE);
@@ -346,6 +353,13 @@ void AboutDialog::onCopyrightBtn(wxEvent &)
 {
     CopyrightsDialog dlg;
     dlg.ShowModal();
+}
+
+void AboutDialog::onCopyToClipboard(wxEvent&)
+{
+    wxTheClipboard->Open();
+    wxTheClipboard->SetData(new wxTextDataObject(_L("Version") + " " + std::string(SLIC3R_VERSION)));
+    wxTheClipboard->Close();
 }
 
 } // namespace GUI

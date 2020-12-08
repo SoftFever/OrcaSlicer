@@ -37,6 +37,7 @@ using t_change = std::function<void(const t_config_option_key&, const boost::any
 using t_back_to_init = std::function<void(const std::string&)>;
 
 wxString double_to_string(double const value, const int max_precision = 4);
+wxString get_thumbnails_string(const std::vector<Vec2d>& values);
 
 class Field {
 protected:

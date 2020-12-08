@@ -410,7 +410,7 @@ const std::vector<std::string>& Preset::print_options()
         "infill_every_layers", "infill_only_where_needed", "solid_infill_every_layers", "fill_angle", "bridge_angle",
         "solid_infill_below_area", "only_retract_when_crossing_perimeters", "infill_first", 
     	"ironing", "ironing_type", "ironing_flowrate", "ironing_speed", "ironing_spacing",
-        "max_print_speed", "max_volumetric_speed",
+        "max_print_speed", "max_volumetric_speed", "avoid_crossing_perimeters_max_detour",
 #ifdef HAS_PRESSURE_EQUALIZER
         "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
@@ -991,7 +991,15 @@ const Preset* PresetCollection::get_preset_parent(const Preset& child) const
 		if (it != m_presets.end()) 
 			preset = &(*it);
     }
-    return (preset == nullptr/* || preset->is_default */|| preset->is_external) ? nullptr : preset;
+    return 
+         // not found
+        (preset == nullptr/* || preset->is_default */|| 
+         // this should not happen, user profile should not derive from an external profile
+         preset->is_external ||
+         // this should not happen, however people are creative, see GH #4996
+         preset == &child) ? 
+            nullptr : 
+            preset;
 }
 
 // Return vendor of the first parent profile, for which the vendor is defined, or null if such profile does not exist.
