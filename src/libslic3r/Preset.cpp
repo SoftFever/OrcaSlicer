@@ -991,7 +991,15 @@ const Preset* PresetCollection::get_preset_parent(const Preset& child) const
 		if (it != m_presets.end()) 
 			preset = &(*it);
     }
-    return (preset == nullptr/* || preset->is_default */|| preset->is_external) ? nullptr : preset;
+    return 
+         // not found
+        (preset == nullptr/* || preset->is_default */|| 
+         // this should not happen, user profile should not derive from an external profile
+         preset->is_external ||
+         // this should not happen, however people are creative, see GH #4996
+         preset == &child) ? 
+            nullptr : 
+            preset;
 }
 
 // Return vendor of the first parent profile, for which the vendor is defined, or null if such profile does not exist.

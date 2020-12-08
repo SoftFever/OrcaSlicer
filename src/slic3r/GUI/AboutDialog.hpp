@@ -60,6 +60,7 @@ class AboutDialog : public DPIDialog
     wxHtmlWindow*   m_html;
     wxStaticBitmap* m_logo;
     int             m_copy_rights_btn_id { wxID_ANY };
+    int             m_copy_version_btn_id { wxID_ANY };
 public:
     AboutDialog();
 
@@ -70,6 +71,7 @@ private:
     void onLinkClicked(wxHtmlLinkEvent &event);
     void onCloseDialog(wxEvent &);
     void onCopyrightBtn(wxEvent &);
+    void onCopyToClipboard(wxEvent&);
 };
 
 } // namespace GUI

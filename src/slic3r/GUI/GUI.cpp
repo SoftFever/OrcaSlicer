@@ -201,7 +201,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			}
 			break;
 		case coPoints:{
-			if (opt_key.compare("bed_shape") == 0) {
+			if (opt_key == "bed_shape" || opt_key == "thumbnails") {
 				config.option<ConfigOptionPoints>(opt_key)->values = boost::any_cast<std::vector<Vec2d>>(value);
 				break;
 			}

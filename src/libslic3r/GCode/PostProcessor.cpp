@@ -179,17 +179,22 @@ static int run_script(const std::string &script, const std::string &gcode, std::
 
 namespace Slic3r {
 
-void run_post_process_scripts(const std::string &path, const PrintConfig &config)
+void run_post_process_scripts(const std::string &path, const DynamicPrintConfig &config)
 {
-    if (config.post_process.values.empty())
+    const auto* post_process = config.opt<ConfigOptionStrings>("post_process");
+    if (// likely running in SLA mode
+        post_process == nullptr || 
+        // no post-processing script
+        post_process->values.empty())
         return;
 
+    // Store print configuration into environment variables.
     config.setenv_();
     auto gcode_file = boost::filesystem::path(path);
     if (! boost::filesystem::exists(gcode_file))
         throw Slic3r::RuntimeError(std::string("Post-processor can't find exported gcode file"));
 
-    for (const std::string &scripts : config.post_process.values) {
+    for (const std::string &scripts : post_process->values) {
 		std::vector<std::string> lines;
 		boost::split(lines, scripts, boost::is_any_of("\r\n"));
         for (std::string script : lines) {

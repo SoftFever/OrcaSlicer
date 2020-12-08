@@ -1237,7 +1237,7 @@ static void pinch_contours_insert_phony_outer_intersections(std::vector<Segmente
                 for (SegmentIntersection &ip : segs[i_vline - 1].intersections)
                     if (ip.has_right_horizontal())
                         ip.next_on_contour = map[ip.next_on_contour];
-                if (i_vline < segs.size()) {
+                if (i_vline + 1 < segs.size()) {
                     // Reindex references on next intersection line.
                     for (SegmentIntersection &ip : segs[i_vline + 1].intersections)
                         if (ip.has_left_horizontal())

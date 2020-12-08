@@ -8,7 +8,7 @@
 
 namespace Slic3r {
 
-extern void run_post_process_scripts(const std::string &path, const PrintConfig &config);
+extern void run_post_process_scripts(const std::string &path, const DynamicPrintConfig &config);
 
 } // namespace Slic3r
 

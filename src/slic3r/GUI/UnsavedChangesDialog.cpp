@@ -968,6 +968,9 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             BedShape shape(*config.option<ConfigOptionPoints>(opt_key));
             return shape.get_full_name_with_params();
         }
+        if (opt_key == "thumbnails")
+            return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+
         Vec2d val = config.opt<ConfigOptionPoints>(opt_key)->get_at(opt_idx);
         return from_u8((boost::format("[%1%]") % ConfigOptionPoint(val).serialize()).str());
     }

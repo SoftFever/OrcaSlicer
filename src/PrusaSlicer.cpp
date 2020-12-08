@@ -34,6 +34,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/GCode/PostProcessor.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Print.hpp"
@@ -483,6 +484,12 @@ int CLI::run(int argc, char **argv)
                 if (printer_technology == ptFFF) {
                     for (auto* mo : model.objects)
                         fff_print.auto_assign_extruders(mo);
+                } else {
+                    // The default for "output_filename_format" is good for FDM: "[input_filename_base].gcode"
+                    // Replace it with a reasonable SLA default.
+                    std::string &format = m_print_config.opt_string("output_filename_format", true);
+                    if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("output_filename_format")->default_value.get())->value)
+                        format = "[input_filename_base].SL1";
                 }
                 print->apply(model, m_print_config);
                 std::string err = print->validate();
@@ -513,6 +520,8 @@ int CLI::run(int argc, char **argv)
                             }
                             outfile = outfile_final;
                         }
+                        // Run the post-processing scripts if defined.
+                        run_post_process_scripts(outfile, fff_print.full_print_config());
                         boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
                     } catch (const std::exception &ex) {
                         boost::nowide::cerr << ex.what() << std::endl;
