@@ -7,6 +7,8 @@
 #include "MainFrame.hpp"
 #include "format.hpp"
 
+#include <wx/clipbrd.h>
+
 namespace Slic3r { 
 namespace GUI {
 

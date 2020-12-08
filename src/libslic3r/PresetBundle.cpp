@@ -4,6 +4,7 @@
 #include "libslic3r.h"
 #include "Utils.hpp"
 #include "Model.hpp"
+#include "format.hpp"
 
 #include <algorithm>
 #include <set>
