@@ -1316,6 +1316,8 @@ std::string PresetCollection::section_name() const
     }
 }
 
+// Used for validating the "inherits" flag when importing user's config bundles.
+// Returns names of all system presets including the former names of these presets.
 std::vector<std::string> PresetCollection::system_preset_names() const
 {
     size_t num = 0;
@@ -1325,8 +1327,10 @@ std::vector<std::string> PresetCollection::system_preset_names() const
     std::vector<std::string> out;
     out.reserve(num);
     for (const Preset &preset : m_presets)
-        if (preset.is_system)
+        if (preset.is_system) {
             out.emplace_back(preset.name);
+            out.insert(out.end(), preset.renamed_from.begin(), preset.renamed_from.end());
+        }
     std::sort(out.begin(), out.end());
     return out;
 }

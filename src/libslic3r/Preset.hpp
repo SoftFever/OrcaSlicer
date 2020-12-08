@@ -441,6 +441,8 @@ public:
         { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), deep_compare); }
 
     // Return a sorted list of system preset names.
+    // Used for validating the "inherits" flag when importing user's config bundles.
+    // Returns names of all system presets including the former names of these presets.
     std::vector<std::string>    system_preset_names() const;
 
     // Update a dirty flag of the current preset
