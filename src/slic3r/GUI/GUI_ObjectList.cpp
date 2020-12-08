@@ -258,6 +258,18 @@ ObjectList::~ObjectList()
 {
 }
 
+void ObjectList::set_min_height()
+{
+    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
+    * change min hight of object list to the normal min value (35 * wxGetApp().em_unit())
+    * after first whole Mainframe updating/layouting
+    */
+    const int list_min_height = 35 * wxGetApp().em_unit();
+    if (this->GetMinSize().GetY() > list_min_height)
+        this->SetMinSize(wxSize(-1, list_min_height));
+}
+
+
 void ObjectList::create_objects_ctrl()
 {
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:

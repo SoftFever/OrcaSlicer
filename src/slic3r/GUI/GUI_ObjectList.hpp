@@ -207,6 +207,7 @@ public:
     ObjectList(wxWindow* parent);
     ~ObjectList();
 
+    void set_min_height();
 
     std::map<std::string, wxBitmap> CATEGORY_ICON;
 

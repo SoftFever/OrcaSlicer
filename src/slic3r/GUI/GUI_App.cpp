@@ -933,13 +933,7 @@ bool GUI_App::on_init_inner()
         load_current_presets();
     mainframe->Show(true);
 
-    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
-     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit()) 
-     * after first whole Mainframe updating/layouting
-     */
-    const int list_min_height = 15 * em_unit();
-    if (obj_list()->GetMinSize().GetY() > list_min_height)
-        obj_list()->SetMinSize(wxSize(-1, list_min_height));
+    obj_list()->set_min_height();
 
     update_mode(); // update view mode after fix of the object_list size
 
@@ -1150,13 +1144,8 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     mainframe->Show(true);
 
     dlg.Update(90, _L("Loading of a mode view") + dots);
-    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
-    * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
-    * after first whole Mainframe updating/layouting
-    */
-    const int list_min_height = 15 * em_unit();
-    if (obj_list()->GetMinSize().GetY() > list_min_height)
-        obj_list()->SetMinSize(wxSize(-1, list_min_height));
+
+    obj_list()->set_min_height();
     update_mode();
 
     // #ys_FIXME_delete_after_testing  Do we still need this  ?
