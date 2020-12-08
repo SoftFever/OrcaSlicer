@@ -1,4 +1,5 @@
 min_slic3r_version = 2.3.0-beta2
+0.0.6 Reduced max print height for Predator. Updated end g-code, before layer change g-code and output filename format for Kossel.
 0.0.5 Updated end g-code.
 min_slic3r_version = 2.3.0-alpha2
 0.0.4 Fixed predator output filaname format, infill overlap.
