@@ -1679,22 +1679,20 @@ void GLCanvas3D::render()
     if (wxGetApp().plater()->is_render_statistic_dialog_visible()) {
         ImGuiWrapper& imgui = *wxGetApp().imgui();
         imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-        imgui.text("Last frame: ");
+        imgui.text("Last frame:");
         ImGui::SameLine();
-        imgui.text(std::to_string(m_render_stats.last_frame));
+        long long average = m_render_stats.get_average();
+        imgui.text(std::to_string(average));
         ImGui::SameLine();
-        imgui.text("  ms");
-        imgui.text("FPS: ");
+        imgui.text("ms");
+        imgui.text("FPS:");
         ImGui::SameLine();
-        imgui.text(std::to_string(static_cast<int>(1000.0f / static_cast<float>(m_render_stats.last_frame))));
-//    imgui.text("Imgui FPS: ");
-//    ImGui::SameLine();
-//    imgui.text(std::to_string(static_cast<int>(ImGui::GetIO().Framerate)));
+        imgui.text(std::to_string((average == 0) ? 0 : static_cast<int>(1000.0f / static_cast<float>(average))));
         ImGui::Separator();
-        imgui.text("Compressed textures: ");
+        imgui.text("Compressed textures:");
         ImGui::SameLine();
         imgui.text(OpenGLManager::are_compressed_textures_supported() ? "supported" : "not supported");
-        imgui.text("Max texture size: ");
+        imgui.text("Max texture size:");
         ImGui::SameLine();
         imgui.text(std::to_string(OpenGLManager::get_gl_info().get_max_tex_size()));
         imgui.end();
@@ -1706,8 +1704,6 @@ void GLCanvas3D::render()
 #endif // ENABLE_CAMERA_STATISTICS
 
     std::string tooltip;
-
-	
 
 	// Negative coordinate means out of the window, likely because the window was deactivated.
 	// In that case the tooltip should be hidden.
@@ -1745,7 +1741,7 @@ void GLCanvas3D::render()
 
 #if ENABLE_RENDER_STATISTICS
     auto end_time = std::chrono::high_resolution_clock::now();
-    m_render_stats.last_frame = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    m_render_stats.add_frame(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count());
 #endif // ENABLE_RENDER_STATISTICS
 }
 
