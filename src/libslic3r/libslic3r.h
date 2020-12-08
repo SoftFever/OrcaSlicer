@@ -184,7 +184,7 @@ inline std::unique_ptr<T> make_unique(Args&&... args) {
 // Variant of std::lower_bound() with compare predicate, but without the key.
 // This variant is very useful in case that the T type is large or it does not even have a public constructor.
 template<class ForwardIt, class LowerThanKeyPredicate>
-ForwardIt lower_bound_by_predicate(ForwardIt first, ForwardIt last, LowerThanKeyPredicate lower_thank_key)
+ForwardIt lower_bound_by_predicate(ForwardIt first, ForwardIt last, LowerThanKeyPredicate lower_than_key)
 {
     ForwardIt it;
     typename std::iterator_traits<ForwardIt>::difference_type count, step;
@@ -194,7 +194,7 @@ ForwardIt lower_bound_by_predicate(ForwardIt first, ForwardIt last, LowerThanKey
         it = first;
         step = count / 2;
         std::advance(it, step);
-        if (lower_thank_key(*it)) {
+        if (lower_than_key(*it)) {
             first = ++it;
             count -= step + 1;
         }

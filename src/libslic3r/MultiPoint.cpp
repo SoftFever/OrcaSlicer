@@ -18,13 +18,6 @@ void MultiPoint::scale(double factor_x, double factor_y)
     }
 }
 
-void MultiPoint::translate(double x, double y)
-{
-    Vector v(x, y);
-    for (Point &pt : points)
-        pt += v;
-}
-
 void MultiPoint::translate(const Point &v)
 {
     for (Point &pt : points)
@@ -138,6 +131,17 @@ bool MultiPoint::first_intersection(const Line& line, Point* intersection) const
         }
     }
     return found;
+}
+
+bool MultiPoint::intersections(const Line &line, Points *intersections) const
+{
+    size_t intersections_size = intersections->size();
+    for (const Line &polygon_line : this->lines()) {
+        Point intersection;
+        if (polygon_line.intersection(line, &intersection))
+            intersections->emplace_back(std::move(intersection));
+    }
+    return intersections->size() > intersections_size;
 }
 
 std::vector<Point> MultiPoint::_douglas_peucker(const std::vector<Point>& pts, const double tolerance)

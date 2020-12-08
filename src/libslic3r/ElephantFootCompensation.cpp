@@ -254,11 +254,12 @@ std::vector<float> contour_distance2(const EdgeGrid::Grid &grid, const size_t id
 				grid(grid), idx_contour(idx_contour), contour(*grid.contours()[idx_contour]), resampled_point_parameters(resampled_point_parameters), dist_same_contour_accept(dist_same_contour_accept), dist_same_contour_reject(dist_same_contour_reject) {}
 
 			void init(const Points &contour, const Point &apoint) {
-				this->idx_point = &apoint - contour.data();
-				this->point 	= apoint;
-				this->found     = false;
-				this->dir_inside = this->dir_inside_at_point(contour, this->idx_point);
-			}
+                this->idx_point  = &apoint - contour.data();
+                this->point      = apoint;
+                this->found      = false;
+                this->dir_inside = this->dir_inside_at_point(contour, this->idx_point);
+                this->distance   = std::numeric_limits<double>::max();
+            }
 
 			bool operator()(coord_t iy, coord_t ix) {
 				// Called with a row and colum of the grid cell, which is intersected by a line.

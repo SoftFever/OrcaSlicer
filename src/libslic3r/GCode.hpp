@@ -5,10 +5,10 @@
 #include "ExPolygon.hpp"
 #include "GCodeWriter.hpp"
 #include "Layer.hpp"
-#include "MotionPlanner.hpp"
 #include "Point.hpp"
 #include "PlaceholderParser.hpp"
 #include "PrintConfig.hpp"
+#include "GCode/AvoidCrossingPerimeters.hpp"
 #include "GCode/CoolingBuffer.hpp"
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
@@ -34,35 +34,6 @@ class GCode;
 namespace { struct Item; }
 struct PrintInstance;
 using PrintObjectPtrs = std::vector<PrintObject*>;
-
-class AvoidCrossingPerimeters {
-public:
-    
-    // this flag triggers the use of the external configuration space
-    bool use_external_mp;
-    bool use_external_mp_once;  // just for the next travel move
-    
-    // this flag disables avoid_crossing_perimeters just for the next travel move
-    // we enable it by default for the first travel move in print
-    bool disable_once;
-    
-    AvoidCrossingPerimeters() : use_external_mp(false), use_external_mp_once(false), disable_once(true) {}
-    ~AvoidCrossingPerimeters() {}
-
-    void reset() { m_external_mp.reset(); m_layer_mp.reset(); }
-	void init_external_mp(const Print &print);
-    void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
-
-    Polyline travel_to(const GCode &gcodegen, const Point &point);
-
-private:
-    // For initializing the regions to avoid.
-	static Polygons collect_contours_all_layers(const PrintObjectPtrs& objects);
-
-    std::unique_ptr<MotionPlanner> m_external_mp;
-    std::unique_ptr<MotionPlanner> m_layer_mp;
-};
-
 
 class OozePrevention {
 public:
@@ -185,6 +156,7 @@ public:
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
+    const GCodeWriter& writer() const { return m_writer; }
     PlaceholderParser& placeholder_parser() { return m_placeholder_parser; }
     const PlaceholderParser& placeholder_parser() const { return m_placeholder_parser; }
     // Process a template through the placeholder parser, collect error messages to be reported

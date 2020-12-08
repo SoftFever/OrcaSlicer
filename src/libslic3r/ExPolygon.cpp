@@ -42,11 +42,11 @@ void ExPolygon::scale(double factor)
         hole.scale(factor);
 }
 
-void ExPolygon::translate(double x, double y)
+void ExPolygon::translate(const Point &p)
 {
-    contour.translate(x, y);
+    contour.translate(p);
     for (Polygon &hole : holes)
-        hole.translate(x, y);
+        hole.translate(p);
 }
 
 void ExPolygon::rotate(double angle)
