@@ -545,13 +545,6 @@ void MainFrame::init_tabpanel()
 
     wxGetApp().obj_list()->create_popup_menus();
 
-    // The following event is emited by Tab implementation on config value change.
-    Bind(EVT_TAB_VALUE_CHANGED, &MainFrame::on_value_changed, this); // #ys_FIXME_to_delete
-
-    // The following event is emited by Tab on preset selection,
-    // or when the preset's "modified" status changes.
-    Bind(EVT_TAB_PRESETS_CHANGED, &MainFrame::on_presets_changed, this); // #ys_FIXME_to_delete
-
     if (wxGetApp().is_editor())
         create_preset_tabs();
 

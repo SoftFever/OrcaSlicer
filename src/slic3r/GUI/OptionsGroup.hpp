@@ -221,6 +221,8 @@ public:
 	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, ModelConfig* config, 
 						bool is_tab_opt = false, column_t extra_clmn = nullptr) :
 		OptionsGroup(parent, title, is_tab_opt, extra_clmn), m_config(&config->get()), m_modelconfig(config) {}
+	ConfigOptionsGroup(	wxWindow* parent) :
+		OptionsGroup(parent, wxEmptyString, true, nullptr) {}
 
 	const std::string& config_category() const throw() { return m_config_category; }
 	const t_opt_map&   opt_map() const throw() { return m_opt_map; }

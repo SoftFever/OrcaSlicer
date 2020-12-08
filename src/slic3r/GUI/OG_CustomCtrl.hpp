@@ -39,13 +39,15 @@ class OG_CustomCtrl :public wxPanel
         const Line&       og_line;
 
         bool draw_just_act_buttons  { false };
+        bool draw_mode_bitmap       { true };
         bool is_visible             { true };
         bool is_focused             { false };
 
         CtrlLine(   wxCoord         height,
                     OG_CustomCtrl*  ctrl,
                     const Line&     og_line,
-                    bool            draw_just_act_buttons = false);
+                    bool            draw_just_act_buttons = false,
+                    bool            draw_mode_bitmap = true);
         ~CtrlLine() { ctrl = nullptr; }
 
         void    correct_items_positions();

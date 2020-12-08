@@ -98,10 +98,6 @@ protected:
 };
 
 
-wxDECLARE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
-wxDECLARE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
-
-
 using PageShp = std::shared_ptr<Page>;
 class Tab: public wxPanel
 {

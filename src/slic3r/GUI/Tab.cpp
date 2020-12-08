@@ -49,9 +49,6 @@ namespace Slic3r {
 namespace GUI {
 
 
-wxDEFINE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
-wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
-
 void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
     m_timer.SetOwner(owner, timerid);

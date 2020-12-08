@@ -4,6 +4,7 @@
 #include "Plater.hpp"
 #include "I18N.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include <wx/notebook.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -18,27 +19,44 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent) :
 	build();
 }
 
+static std::shared_ptr<ConfigOptionsGroup>create_options_tab(const wxString& title, wxNotebook* tabs)
+{
+	wxPanel* tab = new wxPanel(tabs, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+	tabs->AddPage(tab, title);
+	tab->SetFont(wxGetApp().normal_font());
+
+	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->SetSizeHints(tab);
+	tab->SetSizer(sizer);
+
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(tab);
+	optgroup->label_width = 40;
+	return optgroup;
+}
+
+static void activate_options_tab(std::shared_ptr<ConfigOptionsGroup> optgroup)
+{
+	optgroup->activate();
+	optgroup->update_visibility(comSimple);
+	wxBoxSizer* sizer = static_cast<wxBoxSizer*>(static_cast<wxPanel*>(optgroup->parent())->GetSizer());
+	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 20);
+}
+
 void PreferencesDialog::build()
 {
 	auto app_config = get_app_config();
-	m_optgroup_general = std::make_shared<ConfigOptionsGroup>(this, _L("General"));
-	m_optgroup_general->label_width = 40;
+
+	wxNotebook* tabs = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+	tabs->SetFont(wxGetApp().normal_font());
+
+	// Add "General" tab
+	m_optgroup_general = create_options_tab(_L("General"), tabs);
 	m_optgroup_general->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		if (opt_key == "default_action_on_close_application" || opt_key == "default_action_on_select_preset")
 			m_values[opt_key] = boost::any_cast<bool>(value) ? "none" : "discard";
 		else
 		    m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};
-
-	// TODO
-//    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-//        opt_id = > 'version_check',
-//        type = > 'bool',
-//        label = > 'Check for updates',
-//        tooltip = > 'If this is enabled, Slic3r will check for updates daily and display a reminder if a newer version is available.',
-//        default = > $app_config->get("version_check") // 1,
-//        readonly = > !wxTheApp->have_version_check,
-//    ));
 
 	bool is_editor = wxGetApp().is_editor();
 
@@ -146,17 +164,6 @@ void PreferencesDialog::build()
 		option = Option(def, "single_instance");
 		m_optgroup_general->append_single_option_line(option);
 
-		/*  // ysFIXME THis part is temporary commented
-			// The using of inches is implemented just for object's size and position
-
-			def.label = L("Use inches instead of millimeters");
-			def.type = coBool;
-			def.tooltip = L("Use inches instead of millimeters for the object's size");
-			def.set_default_value(new ConfigOptionBool{ app_config->get("use_inches") == "1" });
-			option = Option(def, "use_inches");
-			m_optgroup_general->append_single_option_line(option);
-		*/
-
 		def.label = L("Ask for unsaved changes when closing application");
 		def.type = coBool;
 		def.tooltip = L("When closing the application, always ask for unsaved changes");
@@ -203,20 +210,20 @@ void PreferencesDialog::build()
 	m_optgroup_general->append_single_option_line(option);
 
 #if ENABLE_CTRL_M_ON_WINDOWS
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
 	def.label = L("Enable support for legacy 3DConnexion devices");
 	def.type = coBool;
 	def.tooltip = L("If enabled, the legacy 3DConnexion devices settings dialog is available by pressing CTRL+M");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("use_legacy_3DConnexion") == "1" });
 	option = Option(def, "use_legacy_3DConnexion");
 	m_optgroup_general->append_single_option_line(option);
-#endif // _WIN32
+#endif // _WIN32 || __APPLE__
 #endif // ENABLE_CTRL_M_ON_WINDOWS
 
-	m_optgroup_general->activate();
+	activate_options_tab(m_optgroup_general);
 
-	m_optgroup_camera = std::make_shared<ConfigOptionsGroup>(this, _L("Camera"));
-	m_optgroup_camera->label_width = 40;
+	// Add "Camera" tab
+	m_optgroup_camera = create_options_tab(_L("Camera"), tabs);
 	m_optgroup_camera->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};
@@ -242,11 +249,11 @@ void PreferencesDialog::build()
 	option = Option(def, "reverse_mouse_wheel_zoom");
 	m_optgroup_camera->append_single_option_line(option);
 
-	m_optgroup_camera->activate();
+	activate_options_tab(m_optgroup_camera);
 
-	m_optgroup_gui = std::make_shared<ConfigOptionsGroup>(this, _L("GUI"));
-	m_optgroup_gui->label_width = 40;
-	m_optgroup_gui->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+	// Add "GUI" tab
+	m_optgroup_gui = create_options_tab(_L("GUI"), tabs);
+	m_optgroup_gui->m_on_change = [this, tabs](t_config_option_key opt_key, boost::any value) {
         if (opt_key == "suppress_hyperlinks")
             m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "";
         else
@@ -254,33 +261,11 @@ void PreferencesDialog::build()
 
 		if (opt_key == "use_custom_toolbar_size") {
 			m_icon_size_sizer->ShowItems(boost::any_cast<bool>(value));
+			m_optgroup_gui->parent()->Layout();
+			tabs->Layout();
 			this->layout();
 		}
 	};
-
-	if (is_editor) {
-		def.label = L("Show sidebar collapse/expand button");
-		def.type = coBool;
-		def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
-		def.set_default_value(new ConfigOptionBool{ app_config->get("show_collapse_button") == "1" });
-		option = Option(def, "show_collapse_button");
-		m_optgroup_gui->append_single_option_line(option);
-
-		def.label = L("Use custom size for toolbar icons");
-		def.type = coBool;
-		def.tooltip = L("If enabled, you can change size of toolbar icons manually.");
-		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
-		option = Option(def, "use_custom_toolbar_size");
-		m_optgroup_gui->append_single_option_line(option);
-
-		def.label = L("Suppress to open hyperlink in browser");
-		def.type = coBool;
-		def.tooltip = L("If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. "
-			"If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks.");
-		def.set_default_value(new ConfigOptionBool{ app_config->get("suppress_hyperlinks") == "1" });
-		option = Option(def, "suppress_hyperlinks");
-		m_optgroup_gui->append_single_option_line(option);
-	}
 
 	def.label = L("Sequential slider applied only to top layer");
 	def.type = coBool;
@@ -290,7 +275,31 @@ void PreferencesDialog::build()
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
 
-	m_optgroup_gui->activate();
+	if (is_editor) {
+		def.label = L("Show sidebar collapse/expand button");
+		def.type = coBool;
+		def.tooltip = L("If enabled, the button for the collapse sidebar will be appeared in top right corner of the 3D Scene");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("show_collapse_button") == "1" });
+		option = Option(def, "show_collapse_button");
+		m_optgroup_gui->append_single_option_line(option);
+
+		def.label = L("Suppress to open hyperlink in browser");
+		def.type = coBool;
+		def.tooltip = L("If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. "
+			"If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("suppress_hyperlinks") == "1" });
+		option = Option(def, "suppress_hyperlinks");
+		m_optgroup_gui->append_single_option_line(option);
+
+		def.label = L("Use custom size for toolbar icons");
+		def.type = coBool;
+		def.tooltip = L("If enabled, you can change size of toolbar icons manually.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
+		option = Option(def, "use_custom_toolbar_size");
+		m_optgroup_gui->append_single_option_line(option);
+	}
+
+	activate_options_tab(m_optgroup_gui);
 
 	if (is_editor) {
 		create_icon_size_slider();
@@ -301,8 +310,8 @@ void PreferencesDialog::build()
 
 #if ENABLE_ENVIRONMENT_MAP
 	if (is_editor) {
-		m_optgroup_render = std::make_shared<ConfigOptionsGroup>(this, _L("Render"));
-		m_optgroup_render->label_width = 40;
+		// Add "Render" tab
+		m_optgroup_render = create_options_tab(_L("Render"), tabs);
 		m_optgroup_render->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 			m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 		};
@@ -314,25 +323,17 @@ void PreferencesDialog::build()
 		option = Option(def, "use_environment_map");
 		m_optgroup_render->append_single_option_line(option);
 
-		m_optgroup_render->activate();
+		activate_options_tab(m_optgroup_render);
 	}
 #endif // ENABLE_ENVIRONMENT_MAP
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(m_optgroup_general->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
-	sizer->Add(m_optgroup_camera->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
-	sizer->Add(m_optgroup_gui->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
-#if ENABLE_ENVIRONMENT_MAP
-	if (m_optgroup_render != nullptr)
-		sizer->Add(m_optgroup_render->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
-#endif // ENABLE_ENVIRONMENT_MAP
-
-    SetFont(wxGetApp().normal_font());
+	sizer->Add(tabs, 1, wxEXPAND);
 
 	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
 	btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { accept(); });
-	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 5);
+	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM| wxTOP, 10);
 
 	SetSizer(sizer);
 	sizer->SetSizeHints(this);
@@ -410,7 +411,7 @@ void PreferencesDialog::create_icon_size_slider()
 
     m_icon_size_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-	wxWindow* parent = m_optgroup_gui->ctrl_parent();
+	wxWindow* parent = m_optgroup_gui->parent();
 
     if (isOSX)
         // For correct rendering of the slider and value label under OSX
@@ -472,7 +473,7 @@ void PreferencesDialog::create_settings_mode_widget()
 	                app_config->get("new_settings_layout_mode") == "1" ? 1 :
 	                app_config->get("dlg_settings_layout_mode") == "1" ? 2 : 0;
 
-	wxWindow* parent = m_optgroup_gui->ctrl_parent();
+	wxWindow* parent = m_optgroup_gui->parent();
 
 	m_layout_mode_box = new wxRadioBox(parent, wxID_ANY, _L("Layout Options"), wxDefaultPosition, wxDefaultSize,
 		WXSIZEOF(choices), choices, 3, wxRA_SPECIFY_ROWS);

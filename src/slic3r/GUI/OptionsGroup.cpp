@@ -216,7 +216,7 @@ void OptionsGroup::activate_line(Line& line)
 	bool is_legend_line = option_set.front().opt.gui_type == "legend";
 
     if (!custom_ctrl && m_use_custom_ctrl) {
-        custom_ctrl = new OG_CustomCtrl(is_legend_line ? this->parent() : static_cast<wxWindow*>(this->stb), this);
+        custom_ctrl = new OG_CustomCtrl(is_legend_line || !staticbox ? this->parent() : static_cast<wxWindow*>(this->stb), this);
 		if (is_legend_line)
 			sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, wxOSX ? 0 : 10);
 		else

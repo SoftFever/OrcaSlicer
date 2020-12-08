@@ -95,7 +95,7 @@ void OG_CustomCtrl::init_ctrl_lines()
         {
             wxSize label_sz = GetTextExtent(line.label);
             height = label_sz.y * (label_sz.GetWidth() > int(opt_group->label_width * m_em_unit) ? 2 : 1) + m_v_gap;
-            ctrl_lines.emplace_back(CtrlLine(height, this, line));
+            ctrl_lines.emplace_back(CtrlLine(height, this, line, false, opt_group->staticbox));
         }
         else
             int i = 0;
@@ -387,11 +387,13 @@ void OG_CustomCtrl::sys_color_changed()
 OG_CustomCtrl::CtrlLine::CtrlLine(  wxCoord         height,
                                     OG_CustomCtrl*  ctrl,
                                     const Line&     og_line,
-                                    bool            draw_just_act_buttons /* = false*/):
+                                    bool            draw_just_act_buttons /* = false*/,
+                                    bool            draw_mode_bitmap/* = true*/):
     height(height),
     ctrl(ctrl),
     og_line(og_line),
-    draw_just_act_buttons(draw_just_act_buttons)
+    draw_just_act_buttons(draw_just_act_buttons),
+    draw_mode_bitmap(draw_mode_bitmap)
 {
 
     for (size_t i = 0; i < og_line.get_options().size(); i++) {
@@ -567,6 +569,9 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 
 wxCoord OG_CustomCtrl::CtrlLine::draw_mode_bmp(wxDC& dc, wxCoord v_pos)
 {
+    if (!draw_mode_bitmap)
+        return ctrl->m_h_gap;
+
     ConfigOptionMode mode = og_line.get_options()[0].opt.mode;
     const std::string& bmp_name = mode == ConfigOptionMode::comSimple   ? "mode_simple" :
                                   mode == ConfigOptionMode::comAdvanced ? "mode_advanced" : "mode_expert";
