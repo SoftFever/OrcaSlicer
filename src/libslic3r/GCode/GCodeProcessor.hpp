@@ -84,8 +84,13 @@ namespace Slic3r {
         static const float Wipe_Width;
         static const float Wipe_Height;
 
-#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
         static const std::string Width_Tag;
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+#if !ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+        static const std::string Width_Tag;
+#endif // !ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
         static const std::string Mm3_Per_Mm_Tag;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
@@ -401,6 +406,10 @@ namespace Slic3r {
         float m_feedrate; // mm/s
         float m_width; // mm
         float m_height; // mm
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+        float m_forced_width; // mm
+        float m_forced_height; // mm
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
         float m_mm3_per_mm;
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;

@@ -160,9 +160,14 @@ public:
         m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+        m_last_width(0.0f),
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_last_mm3_per_mm(0.0),
+#if !ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
         m_last_width(0.0f),
+#endif // !ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_brim_done(false),
         m_second_layer_things_done(false),
@@ -353,9 +358,14 @@ private:
     float                               m_last_height{ 0.0f };
     float                               m_last_layer_z{ 0.0f };
     float                               m_max_layer_z{ 0.0f };
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+    float                               m_last_width{ 0.0f };
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     double                              m_last_mm3_per_mm;
+#if !ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
     float                               m_last_width{ 0.0f };
+#endif // !ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     Point                               m_last_pos;

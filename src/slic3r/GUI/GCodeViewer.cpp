@@ -103,6 +103,12 @@ void GCodeViewer::IBuffer::reset()
 
 bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
 {
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+    auto matches_percent = [](float value1, float value2, float max_percent) {
+        return std::abs(value2 - value1) / value1 <= max_percent;
+    };
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+
     switch (move.type)
     {
     case EMoveType::Tool_change:
@@ -113,10 +119,17 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
     case EMoveType::Unretract:
     case EMoveType::Extrude: {
         // use rounding to reduce the number of generated paths
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+        return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
+            move.position[2] <= first.position[2] && feedrate == move.feedrate && fan_speed == move.fan_speed &&
+            height == round_to_nearest(move.height, 2) && width == round_to_nearest(move.width, 2) &&
+            matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f);
+#else
         return type == move.type && move.position[2] <= first.position[2] && role == move.extrusion_role && height == round_to_nearest(move.height, 2) &&
             width == round_to_nearest(move.width, 2) && feedrate == move.feedrate && fan_speed == move.fan_speed &&
             volumetric_rate == round_to_nearest(move.volumetric_rate(), 2) && extruder_id == move.extruder_id &&
             cp_color_id == move.cp_color_id;
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
     }
     case EMoveType::Travel: {
         return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
@@ -143,9 +156,15 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsi
 {
     Path::Endpoint endpoint = { b_id, i_id, s_id, move.position };
     // use rounding to reduce the number of generated paths
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+    paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder,
+        round_to_nearest(move.height, 2), round_to_nearest(move.width, 2), move.feedrate, move.fan_speed,
+        move.volumetric_rate(), move.extruder_id, move.cp_color_id });
+#else
     paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder,
         round_to_nearest(move.height, 2), round_to_nearest(move.width, 2), move.feedrate, move.fan_speed,
         round_to_nearest(move.volumetric_rate(), 2), move.extruder_id, move.cp_color_id });
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
 }
 
 GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) const

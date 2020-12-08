@@ -91,4 +91,11 @@
 #define ENABLE_PREVIEW_TYPE_CHANGE (1 && ENABLE_2_3_0_BETA2)
 
 
+//===================
+// 2.3.0.beta3 techs
+//===================
+#define ENABLE_2_3_0_BETA3 1
+
+#define ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE (1 && ENABLE_2_3_0_BETA3)
+
 #endif // _prusaslicer_technologies_h_
