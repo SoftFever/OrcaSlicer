@@ -2487,7 +2487,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         break;
 
 #if ENABLE_CTRL_M_ON_WINDOWS
+#ifdef __APPLE__
+        case 'm':
+        case 'M':
+#else /* __APPLE__ */
         case WXK_CONTROL_M:
+#endif /* __APPLE__ */
         {
 #ifdef _WIN32
             if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "1") {
