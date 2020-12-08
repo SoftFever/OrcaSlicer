@@ -257,6 +257,8 @@ public:
     bool                paste_from_clipboard();
     void                undo();
     void                redo();
+    void                increase_instances();
+    void                decrease_instances();
 
     void                get_settings_choice(const wxString& category_name);
     void                get_freq_settings_choice(const wxString& bundle_name);
