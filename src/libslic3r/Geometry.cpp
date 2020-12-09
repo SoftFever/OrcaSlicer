@@ -1223,7 +1223,7 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
     // reference: http://www.gregslabaugh.net/publications/euler.pdf
     Vec3d angles1 = Vec3d::Zero();
     Vec3d angles2 = Vec3d::Zero();
-    if (is_approx(std::abs(rotation_matrix(2, 0)), 1.0))
+    if (std::abs(std::abs(rotation_matrix(2, 0)) - 1.0) < 1e-5)
     {
         angles1(2) = 0.0;
         if (rotation_matrix(2, 0) < 0.0) // == -1.0

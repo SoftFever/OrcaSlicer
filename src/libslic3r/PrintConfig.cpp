@@ -3356,8 +3356,11 @@ void DynamicPrintConfig::normalize_fdm()
     if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
         {
             // this should be actually done only on the spiral layers instead of all
-            ConfigOptionBools* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
+            auto* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
             opt->values.assign(opt->values.size(), false);  // set all values to false
+            // Disable retract on layer change also for filament overrides.
+            auto* opt_n = this->opt<ConfigOptionBoolsNullable>("filament_retract_layer_change", true);
+            opt_n->values.assign(opt_n->values.size(), false);  // Set all values to false.
         }
         {
             this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;

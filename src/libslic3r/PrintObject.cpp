@@ -719,7 +719,7 @@ void PrintObject::detect_surfaces_type()
     // should be visible.
     bool spiral_vase      = this->print()->config().spiral_vase.value;
     bool interface_shells = ! spiral_vase && m_config.interface_shells.value;
-    size_t num_layers     = spiral_vase ? first_printing_region(*this)->config().bottom_solid_layers : m_layers.size();
+    size_t num_layers     = spiral_vase ? std::min(size_t(first_printing_region(*this)->config().bottom_solid_layers), m_layers.size()) : m_layers.size();
 
     for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - start";
@@ -1007,7 +1007,7 @@ void PrintObject::discover_vertical_shells()
         Polygons    holes;
     };
     bool     spiral_vase      = this->print()->config().spiral_vase.value;
-    size_t   num_layers       = spiral_vase ? first_printing_region(*this)->config().bottom_solid_layers : m_layers.size();
+    size_t   num_layers       = spiral_vase ? std::min(size_t(first_printing_region(*this)->config().bottom_solid_layers), m_layers.size()) : m_layers.size();
     coordf_t min_layer_height = this->slicing_parameters().min_layer_height;
     // Does this region possibly produce more than 1 top or bottom layer?
     auto has_extra_layers_fn = [min_layer_height](const PrintRegionConfig &config) {
@@ -2014,7 +2014,7 @@ std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::v
 	return this->slice_volumes(z, mode, volumes);
 }
 
-// Z ranges are not applicable to modifier meshes, therefore a sinle volume will be found in volume_and_range at most once.
+// Z ranges are not applicable to modifier meshes, therefore a single volume will be found in volume_and_range at most once.
 std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std::vector<float> &slice_zs) const
 {
 	std::vector<ExPolygons> out;
@@ -2080,10 +2080,12 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 								ranges.emplace_back(volumes_and_ranges[j].first);
 			                // slicing in parallel
 			                std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, SlicingMode::Regular, *model_volume);
+                            // Variable this_slices could be empty if no value of slice_zs is within any of the ranges of this volume.
 			                if (out.empty()) {
 			                	out = std::move(this_slices);
 			                	merge.assign(out.size(), false);
-			                } else {
+			                } else if (!this_slices.empty()) {
+                                assert(out.size() == this_slices.size());
 			                	for (size_t i = 0; i < out.size(); ++ i)
                                     if (! this_slices[i].empty()) {
 			                			if (! out[i].empty()) {
@@ -2188,7 +2190,7 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, S
     return layers;
 }
 
-// Filter the zs not inside the ranges. The ranges are closed at the botton and open at the top, they are sorted lexicographically and non overlapping.
+// Filter the zs not inside the ranges. The ranges are closed at the bottom and open at the top, they are sorted lexicographically and non overlapping.
 std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, SlicingMode mode, const ModelVolume &volume) const
 {
 	std::vector<ExPolygons> out;

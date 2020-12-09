@@ -841,41 +841,14 @@ void Selection::flattening_rotate(const Vec3d& normal)
 
     for (unsigned int i : m_list)
     {
-        Transform3d wst = m_cache.volumes_data[i].get_instance_scale_matrix();
-        Vec3d scaling_factor = Vec3d(1. / wst(0, 0), 1. / wst(1, 1), 1. / wst(2, 2));
-
-        Transform3d wmt = m_cache.volumes_data[i].get_instance_mirror_matrix();
-        Vec3d mirror(wmt(0, 0), wmt(1, 1), wmt(2, 2));
-
-        Vec3d rotation = Geometry::extract_euler_angles(m_cache.volumes_data[i].get_instance_rotation_matrix());
-        Vec3d tnormal = Geometry::assemble_transform(Vec3d::Zero(), rotation, scaling_factor, mirror) * normal;
-        tnormal.normalize();
-
-        // Calculate rotation axis. It shall be perpendicular to "down" direction
-        // and the normal, so the rotation is the shortest possible and logical.
-        Vec3d axis = tnormal.cross(-Vec3d::UnitZ());
-
-        // Make sure the axis is not zero and normalize it. "Almost" zero is not interesting.
-        // In case the vectors are almost colinear, the rotation axis does not matter much.
-        if (axis == Vec3d::Zero())
-            axis = Vec3d::UnitX();
-        axis.normalize();
-
-        // Calculate the angle using the component where we achieve more precision.
-        // Cosine of small angles is const in first order. No good.
-        double angle = 0.;
-        if (std::abs(tnormal.z()) < std::sqrt(2.)/2.)
-            angle = std::acos(-tnormal.z());
-        else {
-            double xy = std::hypot(tnormal.x(), tnormal.y());
-            angle = PI/2. + std::acos(xy * (tnormal.z() > 0.));
-        }
-
-        Transform3d extra_rotation = Transform3d::Identity();
-        extra_rotation.rotate(Eigen::AngleAxisd(angle, axis));
-
-        Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_instance_rotation_matrix());
-        (*m_volumes)[i]->set_instance_rotation(new_rotation);
+        // Normal transformed from the object coordinate space to the world coordinate space.
+        const auto &voldata = m_cache.volumes_data[i];
+        Vec3d tnormal = (Geometry::assemble_transform(
+            Vec3d::Zero(), voldata.get_instance_rotation(), 
+            voldata.get_instance_scaling_factor().cwiseInverse(), voldata.get_instance_mirror()) * normal).normalized();
+        // Additional rotation to align tnormal with the down vector in the world coordinate space.
+        auto  extra_rotation = Eigen::Quaterniond().setFromTwoVectors(tnormal, - Vec3d::UnitZ());
+        (*m_volumes)[i]->set_instance_rotation(Geometry::extract_euler_angles(extra_rotation.toRotationMatrix() * m_cache.volumes_data[i].get_instance_rotation_matrix()));
     }
 
 #if !DISABLE_INSTANCES_SYNCH
