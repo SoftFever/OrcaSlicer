@@ -37,6 +37,7 @@ public:
         const PrintRegionConfig*    config,
         const PrintObjectConfig*    object_config,
         const PrintConfig*          print_config,
+        const bool                  spiral_vase,
         // Output:
         // Loops with the external thin walls
         ExtrusionEntityCollection*  loops,
@@ -48,6 +49,7 @@ public:
             layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
+            m_spiral_vase(spiral_vase),
             loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
             m_ext_mm3_per_mm(-1), m_mm3_per_mm(-1), m_mm3_per_mm_overhang(-1)
         {}
@@ -60,6 +62,7 @@ public:
     Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
 
 private:
+    bool        m_spiral_vase;
     double      m_ext_mm3_per_mm;
     double      m_mm3_per_mm;
     double      m_mm3_per_mm_overhang;

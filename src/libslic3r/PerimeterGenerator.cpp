@@ -271,7 +271,7 @@ void PerimeterGenerator::process()
         double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->perimeter_extruder-1);
         m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter/2)));
     }
-    
+
     // we need to process each island separately because we might have different
     // extra perimeters for each one
     for (const Surface &surface : this->slices->surfaces) {
@@ -312,7 +312,7 @@ void PerimeterGenerator::process()
                         for (ExPolygon &ex : expp)
                             ex.medial_axis(ext_perimeter_width + ext_perimeter_spacing2, min_width, &thin_walls);
                     }
-                    if (print_config->spiral_vase && offsets.size() > 1) {
+                    if (m_spiral_vase && offsets.size() > 1) {
                     	// Remove all but the largest area polygon.
                     	keep_largest_contour_only(offsets);
                     }

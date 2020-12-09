@@ -1747,14 +1747,24 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     // Slice all non-modifier volumes.
     bool clipped  = false;
     bool upscaled = false;
-    auto slicing_mode = this->print()->config().spiral_vase ? SlicingMode::PositiveLargestContour : SlicingMode::Regular;
+    bool spiral_vase  = this->print()->config().spiral_vase;
+    auto slicing_mode = spiral_vase ? SlicingMode::PositiveLargestContour : SlicingMode::Regular;
     if (! has_z_ranges && (! m_config.clip_multipart_objects.value || all_volumes_single_region >= 0)) {
         // Cheap path: Slice regions without mutual clipping.
         // The cheap path is possible if no clipping is allowed or if slicing volumes of just a single region.
         for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
             BOOST_LOG_TRIVIAL(debug) << "Slicing objects - region " << region_id;
             // slicing in parallel
-            std::vector<ExPolygons> expolygons_by_layer = this->slice_region(region_id, slice_zs, slicing_mode);
+            size_t slicing_mode_normal_below_layer = 0;
+            if (spiral_vase) {
+                // Slice the bottom layers with SlicingMode::Regular.
+                // This needs to be in sync with LayerRegion::make_perimeters() spiral_vase!
+                const PrintRegionConfig &config = this->print()->regions()[region_id]->config();
+                slicing_mode_normal_below_layer = size_t(config.bottom_solid_layers.value);
+                for (; slicing_mode_normal_below_layer < slice_zs.size() && slice_zs[slicing_mode_normal_below_layer] < config.bottom_solid_min_thickness - EPSILON;
+                    ++ slicing_mode_normal_below_layer);
+            }
+            std::vector<ExPolygons> expolygons_by_layer = this->slice_region(region_id, slice_zs, slicing_mode, slicing_mode_normal_below_layer, SlicingMode::Regular);
             m_print->throw_if_canceled();
             BOOST_LOG_TRIVIAL(debug) << "Slicing objects - append slices " << region_id << " start";
             for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
@@ -2001,7 +2011,7 @@ end:
 }
 
 // To be used only if there are no layer span specific configurations applied, which would lead to z ranges being generated for this region.
-std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const
+std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below) const
 {
 	std::vector<const ModelVolume*> volumes;
     if (region_id < this->region_volumes.size()) {
@@ -2011,7 +2021,7 @@ std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::v
 				volumes.emplace_back(volume);
 		}
     }
-	return this->slice_volumes(z, mode, volumes);
+	return this->slice_volumes(z, mode, slicing_mode_normal_below_layer, mode_below, volumes);
 }
 
 // Z ranges are not applicable to modifier meshes, therefore a single volume will be found in volume_and_range at most once.
@@ -2123,7 +2133,10 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
     return this->slice_volumes(zs, SlicingMode::Regular, volumes);
 }
 
-std::vector<ExPolygons> PrintObject::slice_volumes(const std::vector<float> &z, SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const
+std::vector<ExPolygons> PrintObject::slice_volumes(
+    const std::vector<float> &z, 
+    SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below, 
+    const std::vector<const ModelVolume*> &volumes) const
 {
     std::vector<ExPolygons> layers;
     if (! volumes.empty()) {
@@ -2153,7 +2166,7 @@ std::vector<ExPolygons> PrintObject::slice_volumes(const std::vector<float> &z, 
             mesh.require_shared_vertices();
             TriangleMeshSlicer mslicer;
             mslicer.init(&mesh, callback);
-			mslicer.slice(z, mode, float(m_config.slice_closing_radius.value), &layers, callback);
+			mslicer.slice(z, mode, slicing_mode_normal_below_layer, mode_below, float(m_config.slice_closing_radius.value), &layers, callback);
             m_print->throw_if_canceled();
         }
     }

@@ -16,6 +16,7 @@
             dynamic_cast<PrintRegionConfig*>(region_config),
             dynamic_cast<PrintObjectConfig*>(object_config),
             dynamic_cast<PrintConfig*>(print_config),
+            false,
             loops, gap_fill, fill_surfaces); %};
     ~PerimeterGenerator();
     
