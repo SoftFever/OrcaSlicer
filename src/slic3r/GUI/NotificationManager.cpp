@@ -20,6 +20,8 @@ static constexpr float GAP_WIDTH = 10.0f;
 static constexpr float SPACE_RIGHT_PANEL = 10.0f;
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 static constexpr float FADING_OUT_DURATION = 2.0f;
+// Time in Miliseconds after next render is requested
+static constexpr int   FADING_OUT_TIMEOUT = 100;
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 namespace Slic3r {
@@ -746,7 +748,7 @@ void NotificationManager::PopNotification::update_state()
 		init();
 
 	if (m_hidden) {
-		m_state = EState::Static;
+		m_state = EState::Hidden;
 		return;
 	}
 
@@ -777,10 +779,16 @@ void NotificationManager::PopNotification::update_state()
 	}
 	if (m_fading_out) {
 		if (!m_paused) {
-			wxMilliClock_t curr_time = wxGetLocalTimeMillis() - m_fading_start;
+			m_state = EState::FadingOutStatic;
+			wxMilliClock_t curr_time      = wxGetLocalTimeMillis() - m_fading_start;
+			wxMilliClock_t no_render_time = wxGetLocalTimeMillis() - m_last_render_fading;
 			m_current_fade_opacity = std::clamp(1.0f - 0.001f * static_cast<float>(curr_time.GetValue()) / FADING_OUT_DURATION, 0.0f, 1.0f);
+			if (no_render_time > FADING_OUT_TIMEOUT) {
+				m_last_render_fading = wxGetLocalTimeMillis();
+				m_state = EState::FadingOutRender;
+			}
 		}
-		m_state = EState::FadingOut;
+		
 	}
 }
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
@@ -1207,9 +1215,12 @@ void NotificationManager::render_notifications(float overlay_width)
 	float last_y = 0.0f;
 
 	for (const auto& notification : m_pop_notifications) {
-		notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width);
-		if (notification->get_state() != PopNotification::EState::Finished)
-			last_y = notification->get_top() + GAP_WIDTH;
+		if (notification->get_state() != PopNotification::EState::Hidden) {
+			notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width);
+			if (notification->get_state() != PopNotification::EState::Finished)
+				last_y = notification->get_top() + GAP_WIDTH;
+		}
+		
 	}
 }
 #else
@@ -1331,7 +1342,7 @@ void NotificationManager::set_in_preview(bool preview)
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 void NotificationManager::update_notifications()
 {
-	static size_t last_size = 0;
+	static size_t last_size = m_pop_notifications.size();
 
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
 		std::unique_ptr<PopNotification>& notification = *it;
@@ -1361,10 +1372,12 @@ void NotificationManager::update_notifications()
 		}
 	}
 
+	// Reuire render if some notification was just deleted.
 	size_t curr_size = m_pop_notifications.size();
 	m_requires_render = m_hovered || (last_size != curr_size);
 	last_size = curr_size;
 
+	// Ask notification if it needs render
 	if (!m_requires_render) {
 		for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 			if (notification->requires_render()) {
@@ -1373,6 +1386,9 @@ void NotificationManager::update_notifications()
 			}
 		}
 	}
+	// Make sure there will be update after last notification erased
+	if (m_requires_render)
+		m_requires_update = true;
 
 	// actualizate timers
 	wxWindow* p = dynamic_cast<wxWindow*>(wxGetApp().plater());
@@ -1390,7 +1406,7 @@ void NotificationManager::update_notifications()
 		if (!m_hovered && m_last_time < now) {
 			if (now - m_last_time >= 1) {
 				for (auto& notification : m_pop_notifications) {
-					if (notification->get_state() != PopNotification::EState::Static)
+					//if (notification->get_state() != PopNotification::EState::Static)
 						notification->substract_remaining_time();
 				}
 			}
