@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <sstream>
 #include <map>
-#include <boost/nowide/convert.hpp>
 #ifdef _MSC_VER
     #include <stdlib.h>  // provides **_environ
 #else
@@ -26,6 +25,7 @@
 #endif
 
 #include <boost/algorithm/string.hpp>
+#include <boost/nowide/convert.hpp>
 
 // Spirit v2.5 allows you to suppress automatic generation
 // of predefined terminals to speed up complation. With
@@ -496,6 +496,12 @@ namespace client
         static void leq      (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '>', true ); }
         static void geq      (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '<', true ); }
 
+        static void throw_if_not_numeric(const expr &param)
+        {
+            const char *err_msg = "Not a numeric type.";
+            param.throw_if_not_numeric(err_msg);            
+        }
+
         enum Function2ParamsType {
             FUNCTION_MIN,
             FUNCTION_MAX,
@@ -503,9 +509,8 @@ namespace client
         // Store the result into param1.
         static void function_2params(expr &param1, expr &param2, Function2ParamsType fun)
         { 
-            const char *err_msg = "Not a numeric type.";
-            param1.throw_if_not_numeric(err_msg);
-            param2.throw_if_not_numeric(err_msg);
+            throw_if_not_numeric(param1);
+            throw_if_not_numeric(param2);
             if (param1.type == TYPE_DOUBLE || param2.type == TYPE_DOUBLE) {
                 double d = 0.;
                 switch (fun) {
@@ -529,6 +534,20 @@ namespace client
         // Store the result into param1.
         static void min(expr &param1, expr &param2) { function_2params(param1, param2, FUNCTION_MIN); }
         static void max(expr &param1, expr &param2) { function_2params(param1, param2, FUNCTION_MAX); }
+
+        // Store the result into param1.
+        static void random(expr &param1, expr &param2, std::mt19937 &rng)
+        { 
+            throw_if_not_numeric(param1);
+            throw_if_not_numeric(param2);
+            if (param1.type == TYPE_DOUBLE || param2.type == TYPE_DOUBLE) {
+                param1.data.d = std::uniform_real_distribution<>(param1.as_d(), param2.as_d())(rng);
+                param1.type   = TYPE_DOUBLE;
+            } else {
+                param1.data.i = std::uniform_int_distribution<>(param1.as_i(), param2.as_i())(rng);
+                param1.type   = TYPE_INT;
+            }
+        }
 
         static void regex_op(expr &lhs, boost::iterator_range<Iterator> &rhs, char op)
         {
@@ -624,6 +643,7 @@ namespace client
         const DynamicConfig     *config                 = nullptr;
         const DynamicConfig     *config_override        = nullptr;
         size_t                   current_extruder_id    = 0;
+        PlaceholderParser::ContextData *context_data    = nullptr;
         // If false, the macro_processor will evaluate a full macro.
         // If true, the macro processor will evaluate just a boolean condition using the full expressive power of the macro processor.
         bool                     just_boolean_expression = false;
@@ -822,6 +842,15 @@ namespace client
             if (expr_index.type != expr<Iterator>::TYPE_INT)                
                 expr_index.throw_exception("Non-integer index is not allowed to address a vector variable.");
             output = expr_index.i();
+        }
+
+        template <typename Iterator>
+        static void random(const MyContext *ctx, expr<Iterator> &param1, expr<Iterator> &param2)
+        {
+            if (ctx->context_data == nullptr)
+                ctx->throw_exception("Random number generator not available in this context.",
+                    boost::iterator_range<Iterator>(param1.it_range.begin(), param2.it_range.end()));
+            expr<Iterator>::random(param1, param2, ctx->context_data->rng);
         }
 
         template <typename Iterator>
@@ -1176,6 +1205,8 @@ namespace client
                                                                     [ px::bind(&expr<Iterator>::min, _val, _2) ]
                 |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
                                                                     [ px::bind(&expr<Iterator>::max, _val, _2) ]
+                |   (kw["random"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
+                                                                    [ px::bind(&MyContext::random<Iterator>, _r1, _val, _2) ]
                 |   (kw["int"] > '(' > unary_expression(_r1) > ')') [ px::bind(&FactorActions::to_int,  _1,     _val) ]
                 |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
@@ -1212,6 +1243,7 @@ namespace client
                 ("false")
                 ("min")
                 ("max")
+                ("random")
                 ("not")
                 ("or")
                 ("true");
@@ -1312,13 +1344,14 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
     return output;
 }
 
-std::string PlaceholderParser::process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override) const
+std::string PlaceholderParser::process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override, ContextData *context_data) const
 {
     client::MyContext context;
     context.external_config 	= this->external_config();
     context.config              = &this->config();
     context.config_override     = config_override;
     context.current_extruder_id = current_extruder_id;
+    context.context_data        = context_data;
     return process_macro(templ, context);
 }
 
