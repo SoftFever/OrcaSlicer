@@ -719,7 +719,7 @@ void PrintObject::detect_surfaces_type()
     // should be visible.
     bool spiral_vase      = this->print()->config().spiral_vase.value;
     bool interface_shells = ! spiral_vase && m_config.interface_shells.value;
-    size_t num_layers     = spiral_vase ? first_printing_region(*this)->config().bottom_solid_layers : m_layers.size();
+    size_t num_layers     = spiral_vase ? std::min(size_t(first_printing_region(*this)->config().bottom_solid_layers), m_layers.size()) : m_layers.size();
 
     for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - start";
@@ -1007,7 +1007,7 @@ void PrintObject::discover_vertical_shells()
         Polygons    holes;
     };
     bool     spiral_vase      = this->print()->config().spiral_vase.value;
-    size_t   num_layers       = spiral_vase ? first_printing_region(*this)->config().bottom_solid_layers : m_layers.size();
+    size_t   num_layers       = spiral_vase ? std::min(size_t(first_printing_region(*this)->config().bottom_solid_layers), m_layers.size()) : m_layers.size();
     coordf_t min_layer_height = this->slicing_parameters().min_layer_height;
     // Does this region possibly produce more than 1 top or bottom layer?
     auto has_extra_layers_fn = [min_layer_height](const PrintRegionConfig &config) {
