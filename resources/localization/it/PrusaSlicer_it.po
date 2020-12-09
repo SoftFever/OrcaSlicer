@@ -4056,7 +4056,7 @@ msgid "If enabled, the command line arguments are sent to an existing instance o
 msgstr "Se abilitato, gli argomenti della riga di comando vengono inviati ad un'istanza GUI esistente di PrusaSlicer, oppure viene attivata una finestra PrusaSlicer esistente. Sovrascrive il valore di configurazione \"single_instance\" dalle preferenze dell'applicazione."
 
 #: src/slic3r/GUI/Preferences.cpp:278
-msgid "If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks."
+msgid "If enabled, the descriptions of configuration parameters in settings tabs wouldn't work as hyperlinks. If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks."
 msgstr "Se abilitata, le descrizioni dei parametri di configurazione nelle schede delle impostazioni non funzionano come collegamenti ipertestuali. Se disabilitata, le descrizioni dei parametri di configurazione nelle schede delle impostazioni funzioneranno come collegamenti ipertestuali."
 
 #: src/slic3r/GUI/Preferences.cpp:209

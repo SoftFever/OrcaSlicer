@@ -4056,7 +4056,7 @@ msgid "If enabled, the command line arguments are sent to an existing instance o
 msgstr "Pokud je povoleno, argumenty příkazového řádku se odešlou do existující instance grafického uživatelského rozhraní PrusaSlicer,u nebo se aktivuje existující okno PrusaSlicer. Přepíše hodnotu konfigurace „single_instance“ z nastavení aplikace."
 
 #: src/slic3r/GUI/Preferences.cpp:278
-msgid "If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks."
+msgid "If enabled, the descriptions of configuration parameters in settings tabs wouldn't work as hyperlinks. If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks."
 msgstr "Pokud je aškrtnuto, popisky konfiguračních parametrů na kartách nastavení nebudou fungovat jako hypertextové odkazy. Pokud není zaškrtnuto, popisy konfiguračních parametrů budou fungovat jako hypertextové odkazy."
 
 #: src/slic3r/GUI/Preferences.cpp:209
