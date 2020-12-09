@@ -44,10 +44,13 @@ static void activate_options_tab(std::shared_ptr<ConfigOptionsGroup> optgroup)
 
 void PreferencesDialog::build()
 {
+	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	const wxFont& font = wxGetApp().normal_font();
+	SetFont(font);
+
 	auto app_config = get_app_config();
 
 	wxNotebook* tabs = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
-	tabs->SetFont(wxGetApp().normal_font());
 
 	// Add "General" tab
 	m_optgroup_general = create_options_tab(_L("General"), tabs);
@@ -328,12 +331,12 @@ void PreferencesDialog::build()
 #endif // ENABLE_ENVIRONMENT_MAP
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(tabs, 1, wxEXPAND);
+	sizer->Add(tabs, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 5);
 
 	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
 	btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { accept(); });
-	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM| wxTOP, 10);
+	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM | wxTOP, 10);
 
 	SetSizer(sizer);
 	sizer->SetSizeHints(this);
