@@ -1764,6 +1764,7 @@ void GCode::process_layer(
 
     // Check whether it is possible to apply the spiral vase logic for this layer.
     // Just a reminder: A spiral vase mode is allowed for a single object, single material print only.
+    m_enable_loop_clipping = true;
     if (m_spiral_vase && layers.size() == 1 && support_layer == nullptr) {
         bool enable = (layer.id() > 0 || print.config().brim_width.value == 0.) && (layer.id() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt());
         if (enable) {
@@ -1775,10 +1776,10 @@ void GCode::process_layer(
                     break;
                 }
         }
-        m_spiral_vase->enable = enable;
+        m_spiral_vase->enable(enable);
+        // If we're going to apply spiralvase to this layer, disable loop clipping.
+        m_enable_loop_clipping = !enable;
     }
-    // If we're going to apply spiralvase to this layer, disable loop clipping
-    m_enable_loop_clipping = ! m_spiral_vase || ! m_spiral_vase->enable;
 
     std::string gcode;
 

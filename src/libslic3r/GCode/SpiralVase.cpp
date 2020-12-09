@@ -16,7 +16,7 @@ std::string SpiralVase::process_layer(const std::string &gcode)
     
     // If we're not going to modify G-code, just feed it to the reader
     // in order to update positions.
-    if (! this->enable) {
+    if (! m_enabled) {
         m_reader.parse_buffer(gcode);
         return gcode;
     }
@@ -50,7 +50,10 @@ std::string SpiralVase::process_layer(const std::string &gcode)
     z -= layer_height;
     
     std::string new_gcode;
-    m_reader.parse_buffer(gcode, [&new_gcode, &z, &layer_height, &total_layer_length]
+    bool  transition = m_transition_layer;
+    float layer_height_factor = layer_height / total_layer_length;
+    float len = 0.f;
+    m_reader.parse_buffer(gcode, [&new_gcode, &z, total_layer_length, layer_height_factor, transition, &len]
         (GCodeReader &reader, GCodeReader::GCodeLine line) {
         if (line.cmd_is("G1")) {
             if (line.has_z()) {
@@ -64,8 +67,11 @@ std::string SpiralVase::process_layer(const std::string &gcode)
                 if (dist_XY > 0) {
                     // horizontal move
                     if (line.extruding(reader)) {
-                        z += dist_XY * layer_height / total_layer_length;
-                        line.set(reader, Z, z);
+                        len += dist_XY;
+                        line.set(reader, Z, z + len * layer_height_factor);
+                        if (transition && line.has(E))
+                            // Transition layer, modulate the amount of extrusion from zero to the final value.
+                            line.set(reader, E, line.value(E) * len / total_layer_length);
                         new_gcode += line.raw() + '\n';
                     }
                     return;
