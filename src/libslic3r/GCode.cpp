@@ -1340,7 +1340,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
 {
     try {
-        return m_placeholder_parser.process(templ, current_extruder_id, config_override);
+        return m_placeholder_parser.process(templ, current_extruder_id, config_override, &m_placeholder_parser_context);
     } catch (std::runtime_error &err) {
         // Collect the names of failed template substitutions for error reporting.
         auto it = m_placeholder_parser_failed_templates.find(name);

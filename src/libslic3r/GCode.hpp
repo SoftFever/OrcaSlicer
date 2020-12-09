@@ -300,6 +300,8 @@ private:
     FullPrintConfig                     m_config;
     GCodeWriter                         m_writer;
     PlaceholderParser                   m_placeholder_parser;
+    // For random number generator etc.
+    PlaceholderParser::ContextData      m_placeholder_parser_context;
     // Collection of templates, on which the placeholder substitution failed.
     std::map<std::string, std::string>  m_placeholder_parser_failed_templates;
     OozePrevention                      m_ooze_prevention;
