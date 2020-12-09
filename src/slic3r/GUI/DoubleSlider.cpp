@@ -1795,8 +1795,9 @@ void Control::show_add_context_menu()
         append_add_color_change_menu_item(&menu);
     }
 
-    append_menu_item(&menu, wxID_ANY, _L("Add pause print") + " (" + gcode(PausePrint) + ")", "",
-        [this](wxCommandEvent&) { add_code_as_tick(PausePrint); }, "pause_print", &menu);
+    if (!gcode(PausePrint).empty())
+        append_menu_item(&menu, wxID_ANY, _L("Add pause print") + " (" + gcode(PausePrint) + ")", "",
+            [this](wxCommandEvent&) { add_code_as_tick(PausePrint); }, "pause_print", &menu);
 
     if (!gcode(Template).empty())
         append_menu_item(&menu, wxID_ANY, _L("Add custom template") + " (" + gcode(Template) + ")", "",
