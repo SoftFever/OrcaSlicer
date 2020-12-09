@@ -51,7 +51,7 @@ public:
 
     // Fill in the template using a macro processing language.
     // Throws Slic3r::PlaceholderParserError on syntax or runtime error.
-    std::string process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override, ContextData *context = nullptr) const;
+    std::string process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr, ContextData *context = nullptr) const;
     
     // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
     // Throws Slic3r::PlaceholderParserError on syntax or runtime error.
