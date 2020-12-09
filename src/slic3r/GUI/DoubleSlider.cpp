@@ -754,6 +754,11 @@ void Control::draw_ticks(wxDC& dc)
     get_size(&width, &height);
     const wxCoord mid = is_horizontal() ? 0.5*height : 0.5*width;
     for (auto tick : m_ticks.ticks) {
+        if (tick.tick >= m_values.size()) {
+            // The case when OnPaint is called before m_ticks.ticks data are updated (specific for the vase mode)
+            break;
+        }
+
         const wxCoord pos = get_position_from_value(tick.tick);
         draw_ticks_pair(dc, pos, mid, 7);
 
