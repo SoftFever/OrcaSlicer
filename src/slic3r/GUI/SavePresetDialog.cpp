@@ -143,6 +143,16 @@ void SavePresetDialog::Item::update()
         m_valid_type = NoValid;
     }
 
+    if (m_valid_type == Valid && m_preset_name.find_first_of(' ') == 0) {
+        info_line = _L("The name cannot start with space character.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && m_preset_name.find_last_of(' ') == m_preset_name.length()-1) {
+        info_line = _L("The name cannot end with space character.");
+        m_valid_type = NoValid;
+    }
+
     m_valid_label->SetLabel(info_line);
     m_valid_label->Show(!info_line.IsEmpty());
 
