@@ -560,7 +560,7 @@ namespace PresetUtils {
 class PhysicalPrinter
 {
 public:
-    PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config) : name(name), config(default_config) {}
+    PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config);
     PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config, const Preset& preset);
     void set_name(const std::string &name);
 

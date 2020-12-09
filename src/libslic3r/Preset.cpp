@@ -1487,6 +1487,12 @@ bool PhysicalPrinter::delete_preset(const std::string& preset_name)
     return preset_names.erase(preset_name) > 0;
 }
 
+PhysicalPrinter::PhysicalPrinter(const std::string& name, const DynamicPrintConfig& default_config) : 
+    name(name), config(default_config)
+{
+    update_from_config(config);
+}
+
 PhysicalPrinter::PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config, const Preset& preset) :
     name(name), config(default_config)
 {
