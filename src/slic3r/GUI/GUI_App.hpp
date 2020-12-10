@@ -205,6 +205,7 @@ public:
 
     void            add_config_menu(wxMenuBar *menu);
     bool            check_unsaved_changes(const wxString &header = wxString());
+    bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
     void            load_current_presets(bool check_printer_presets = true);
 
