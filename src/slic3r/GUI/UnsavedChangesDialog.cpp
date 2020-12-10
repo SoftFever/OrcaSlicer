@@ -1208,6 +1208,7 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
 }
 
 
+
 }
 
 }    // namespace Slic3r::GUI
