@@ -3,6 +3,7 @@
 
 #include "3DScene.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/format.hpp"
 
 #include <boost/nowide/fstream.hpp>
 #include <GL/glew.h>
