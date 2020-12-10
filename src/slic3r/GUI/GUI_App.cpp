@@ -9,8 +9,9 @@
 #include <iterator>
 #include <exception>
 #include <cstdlib>
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -579,6 +580,14 @@ static void generic_exception_handle()
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
         std::terminate();
+    } catch (const boost::io::bad_format_string& ex) {
+        wxString errmsg = _L("PrusaSlicer has encountered a localization error. "
+                             "Please report to PrusaSlicer team, what language was active and in which scenario "
+                             "this issue happened. Thank you.\n\nThe application will now terminate.");
+        wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Critical error"), wxOK | wxICON_ERROR);
+        BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
+        std::terminate();
+        throw;
     } catch (const std::exception& ex) {
         wxLogError("Internal error: %s", ex.what());
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
