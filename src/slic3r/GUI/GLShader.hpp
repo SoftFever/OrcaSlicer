@@ -3,6 +3,7 @@
 
 #include <array>
 #include <string>
+#include <string_view>
 
 #include "libslic3r/Point.hpp"
 
@@ -32,7 +33,7 @@ private:
 public:
     ~GLShaderProgram();
 
-    bool init_from_files(const std::string& name, const ShaderFilenames& filenames);
+    bool init_from_files(const std::string& name, const ShaderFilenames& filenames, const std::initializer_list<std::string_view> &defines = {});
     bool init_from_texts(const std::string& name, const ShaderSources& sources);
 
     const std::string& get_name() const { return m_name; }
