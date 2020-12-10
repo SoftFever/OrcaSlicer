@@ -1,6 +1,7 @@
 #ifndef slic3r_SLAPrint_hpp_
 #define slic3r_SLAPrint_hpp_
 
+#include <cstdint>
 #include <mutex>
 #include "PrintBase.hpp"
 #include "SLA/RasterBase.hpp"
@@ -37,7 +38,7 @@ using _SLAPrintObjectBase =
 
 // Layers according to quantized height levels. This will be consumed by
 // the printer (rasterizer) in the SLAPrint class.
-// using coord_t = long long;
+// using coord_t = int64_t;
 
 enum SliceOrigin { soSupport, soModel };
 

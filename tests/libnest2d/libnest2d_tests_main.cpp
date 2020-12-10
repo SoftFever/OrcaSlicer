@@ -1,6 +1,7 @@
 #include <catch_main.hpp>
 
 #include <fstream>
+#include <cstdint>
 
 #include <libnest2d/libnest2d.hpp>
 #include "printer_parts.hpp"
@@ -472,7 +473,7 @@ TEST_CASE("ArrangeRectanglesLoose", "[Nesting]")
 namespace {
 using namespace libnest2d;
 
-template<long long SCALE = 1, class It>
+template<int64_t SCALE = 1, class It>
 void exportSVG(const char *loc, It from, It to) {
 
     static const char* svg_header =
@@ -512,7 +513,7 @@ R"raw(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     //    }
 }
 
-template<long long SCALE = 1>
+template<int64_t SCALE = 1>
 void exportSVG(std::vector<std::reference_wrapper<Item>>& result, int idx = 0) {
     exportSVG((std::string("out") + std::to_string(idx) + ".svg").c_str(),
               result.begin(), result.end());

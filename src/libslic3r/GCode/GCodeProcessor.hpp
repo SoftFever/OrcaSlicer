@@ -7,6 +7,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/CustomGCode.hpp"
 
+#include <cstdint>
 #include <array>
 #include <vector>
 #include <string>
@@ -298,7 +299,7 @@ namespace Slic3r {
             PrintEstimatedTimeStatistics time_statistics;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-            long long time{ 0 };
+            int64_t time{ 0 };
             void reset()
             {
                 time = 0;

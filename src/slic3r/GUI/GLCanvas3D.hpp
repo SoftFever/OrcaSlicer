@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <memory>
 #include <chrono>
+#include <cstdint>
 
 #include "GLToolbar.hpp"
 #include "Event.hpp"
@@ -322,12 +323,12 @@ class GLCanvas3D
 #if ENABLE_RENDER_STATISTICS
     class RenderStats
     {
-        std::queue<std::pair<long long, long long>> m_frames;
-        long long m_curr_total{ 0 };
+        std::queue<std::pair<int64_t, int64_t>> m_frames;
+        int64_t m_curr_total{ 0 };
 
     public:
-        void add_frame(long long frame) {
-            long long now = wxGetLocalTimeMillis().GetValue();
+        void add_frame(int64_t frame) {
+            int64_t now = wxGetLocalTimeMillis().GetValue();
             if (!m_frames.empty() && now - m_frames.front().first > 1000) {
                 m_curr_total -= m_frames.front().second;
                 m_frames.pop();
@@ -335,7 +336,7 @@ class GLCanvas3D
             m_curr_total += frame;
             m_frames.push({ now, frame });
         }
-        long long get_average() const { return m_frames.empty() ? 0 : m_curr_total / m_frames.size(); }
+        int64_t get_average() const { return m_frames.empty() ? 0 : m_curr_total / m_frames.size(); }
     };
 #endif // ENABLE_RENDER_STATISTICS
 

@@ -1681,7 +1681,7 @@ void GLCanvas3D::render()
         imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
         imgui.text("Last frame:");
         ImGui::SameLine();
-        long long average = m_render_stats.get_average();
+        int64_t average = m_render_stats.get_average();
         imgui.text(std::to_string(average));
         ImGui::SameLine();
         imgui.text("ms");

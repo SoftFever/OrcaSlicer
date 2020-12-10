@@ -5,6 +5,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GLModel.hpp"
 
+#include <cstdint>
 #include <float.h>
 
 namespace Slic3r {
@@ -311,26 +312,26 @@ class GCodeViewer
     struct Statistics
     {
         // time
-        long long results_time{ 0 };
-        long long load_time{ 0 };
-        long long refresh_time{ 0 };
-        long long refresh_paths_time{ 0 };
+        int64_t results_time{ 0 };
+        int64_t load_time{ 0 };
+        int64_t refresh_time{ 0 };
+        int64_t refresh_paths_time{ 0 };
         // opengl calls
-        long long gl_multi_points_calls_count{ 0 };
-        long long gl_multi_lines_calls_count{ 0 };
-        long long gl_multi_triangles_calls_count{ 0 };
+        int64_t gl_multi_points_calls_count{ 0 };
+        int64_t gl_multi_lines_calls_count{ 0 };
+        int64_t gl_multi_triangles_calls_count{ 0 };
         // memory
-        long long results_size{ 0 };
-        long long vertices_gpu_size{ 0 };
-        long long indices_gpu_size{ 0 };
-        long long paths_size{ 0 };
-        long long render_paths_size{ 0 };
+        int64_t results_size{ 0 };
+        int64_t vertices_gpu_size{ 0 };
+        int64_t indices_gpu_size{ 0 };
+        int64_t paths_size{ 0 };
+        int64_t render_paths_size{ 0 };
         // other
-        long long travel_segments_count{ 0 };
-        long long wipe_segments_count{ 0 };
-        long long extrude_segments_count{ 0 };
-        long long max_vertices_in_vertex_buffer{ 0 };
-        long long max_indices_in_index_buffer{ 0 };
+        int64_t travel_segments_count{ 0 };
+        int64_t wipe_segments_count{ 0 };
+        int64_t extrude_segments_count{ 0 };
+        int64_t max_vertices_in_vertex_buffer{ 0 };
+        int64_t max_indices_in_index_buffer{ 0 };
 
         void reset_all() {
             reset_times();
@@ -509,7 +510,7 @@ private:
         return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
     }
     bool is_visible(const Path& path) const { return is_visible(path.role); }
-    void log_memory_used(const std::string& label, long long additional = 0) const;
+    void log_memory_used(const std::string& label, int64_t additional = 0) const;
 };
 
 } // namespace GUI

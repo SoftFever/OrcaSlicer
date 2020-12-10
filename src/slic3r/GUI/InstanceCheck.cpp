@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <optional>
+#include <cstdint>
 
 #ifdef _WIN32
 #include <strsafe.h>
@@ -82,10 +83,10 @@ namespace instance_check_internal
 		if (wndTextString.find(L"PrusaSlicer") != std::wstring::npos && classNameString == L"wxWindowNR") {
 			//check if other instances has same instance hash
 			//if not it is not same version(binary) as this version 
-			HANDLE                handle = GetProp(hwnd, L"Instance_Hash_Minor");
-			unsigned long long    other_instance_hash = PtrToUint(handle);
-			unsigned long long    other_instance_hash_major;
-			unsigned long long    my_instance_hash = GUI::wxGetApp().get_instance_hash_int();
+			HANDLE   handle = GetProp(hwnd, L"Instance_Hash_Minor");
+			uint64_t other_instance_hash = PtrToUint(handle);
+			uint64_t other_instance_hash_major;
+			uint64_t my_instance_hash = GUI::wxGetApp().get_instance_hash_int();
 			handle = GetProp(hwnd, L"Instance_Hash_Major");
 			other_instance_hash_major = PtrToUint(handle);
 			other_instance_hash_major = other_instance_hash_major << 32;
