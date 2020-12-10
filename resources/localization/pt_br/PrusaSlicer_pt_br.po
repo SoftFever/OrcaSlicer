@@ -6377,8 +6377,8 @@ msgid ""
 "You have selected physical printer \"%1%\" \n"
 "with related printer preset \"%2%\""
 msgstr ""
-"Você selecionou a impressora física \"% 1%\"\n"
-"com a predefinição de impressora relacionada \"% 2%\""
+"Você selecionou a impressora física \"%1%\"\n"
+"com a predefinição de impressora relacionada \"%2%\""
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:310
 msgid "What would you like to do with \"%1%\" preset after saving?"
@@ -7222,9 +7222,9 @@ msgid ""
 "\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
 "To enable \"%1%\", please switch off \"%2%\""
 msgstr ""
-"\"% 1%\" está desabilitado porque \"% 2%\" está ativado na categoria \"% 3%"
+"\"%1%\" está desabilitado porque \"%2%\" está ativado na categoria \"%3%"
 "\".\n"
-"Para habilitar \"% 1%\", desligue \"% 2%\""
+"Para habilitar \"%1%\", desligue \"%2%\""
 
 #: src/slic3r/GUI/Tab.cpp:4127 src/libslic3r/PrintConfig.cpp:2917
 msgid "Object elevation"
