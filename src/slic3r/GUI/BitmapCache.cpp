@@ -17,7 +17,6 @@
 #include "nanosvg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
-//#include "GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
 
