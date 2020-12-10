@@ -79,7 +79,7 @@ class MainFrame : public DPIFrame
     wxMenuItem* m_menu_item_reslice_now { nullptr };
     wxSizer*    m_main_sizer{ nullptr };
 
-    PrintHostQueueDialog *m_printhost_queue_dlg;
+    
 
     size_t      m_last_selected_tab;
 
@@ -187,11 +187,12 @@ public:
 
     PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
 
-    Plater*             m_plater { nullptr };
-    wxNotebook*         m_tabpanel { nullptr };
-    SettingsDialog      m_settings_dialog;
-    wxWindow*           m_plater_page{ nullptr };
-    wxProgressDialog*   m_progress_dialog { nullptr };
+    Plater*               m_plater { nullptr };
+    wxNotebook*           m_tabpanel { nullptr };
+    SettingsDialog        m_settings_dialog;
+    wxWindow*             m_plater_page{ nullptr };
+    wxProgressDialog*     m_progress_dialog { nullptr };
+    PrintHostQueueDialog* m_printhost_queue_dlg;
     std::shared_ptr<ProgressStatusBar>  m_statusbar;
 
 #ifdef __APPLE__

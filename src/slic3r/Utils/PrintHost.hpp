@@ -109,6 +109,7 @@ public:
     void enqueue(PrintHostJob job);
     void cancel(size_t id);
 
+    bool can_close();
 private:
     struct priv;
     std::shared_ptr<priv> p;

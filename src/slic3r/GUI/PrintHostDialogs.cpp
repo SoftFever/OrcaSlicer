@@ -230,6 +230,7 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     fields.push_back(wxVariant(job.upload_data.upload_path.string()));
     fields.push_back(wxVariant(""));
     job_list->AppendItem(fields, static_cast<wxUIntPtr>(ST_NEW));
+    upload_names.emplace_back(job.printhost->get_host(), job.upload_data.upload_path.string());
 }
 
 void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -317,6 +318,17 @@ void PrintHostQueueDialog::on_cancel(Event &evt)
 
     on_list_select();
 }
-
-
+void PrintHostQueueDialog::get_active_jobs(std::vector<std::pair<std::string, std::string>>& ret)
+{
+    int ic = job_list->GetItemCount();
+    for (size_t i = 0; i < ic; i++)
+    {
+        auto item = job_list->RowToItem(i);
+        auto data = job_list->GetItemData(item);
+        JobState st = static_cast<JobState>(data);
+        if(st == JobState::ST_NEW || st == JobState::ST_PROGRESS)
+            ret.emplace_back(upload_names[i]);       
+    }
+    //job_list->data
+}
 }}

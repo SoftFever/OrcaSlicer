@@ -209,6 +209,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             event.Veto();
             return;
         }
+        if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
+            event.Veto();
+            return;
+        }
         this->shutdown();
         // propagate event
         event.Skip();

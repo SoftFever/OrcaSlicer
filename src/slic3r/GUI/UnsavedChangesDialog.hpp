@@ -270,7 +270,6 @@ public:
     ~FullCompareDialog() {}
 };
 
-
 } 
 }
 
