@@ -2835,7 +2835,7 @@ void GCodeViewer::render_statistics() const
     };
 
     imgui.set_next_window_pos(0.5f * wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width(), 0.0f, ImGuiCond_Once, 0.5f, 0.0f);
-    ImGui::SetNextWindowSizeConstraints({ 300, -1 }, { 600, -1 });
+    ImGui::SetNextWindowSizeConstraints({ 300.0f, 100.0f }, { 600.0f, 500.0f });
     imgui.begin(std::string("GCodeViewer Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
