@@ -274,9 +274,5 @@ void PrintHostJobQueue::cancel(size_t id)
 {
     p->channel_cancels.push(id);
 }
-bool PrintHostJobQueue::can_close()
-{
-    return !p->bg_thread.joinable();
-}
 
 }
