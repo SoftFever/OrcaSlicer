@@ -13,6 +13,8 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GUI_ObjectManipulation.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 
 namespace Slic3r {
@@ -33,7 +35,11 @@ GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, uns
 
 std::string GLGizmoCut::get_tooltip() const
 {
-    return (m_hover_id == 0 || m_grabbers[0].dragging) ? "Z: " + format(m_cut_z, 2) : "";
+    double cut_z = m_cut_z;
+    if (wxGetApp().app_config->get("use_inches") == "1")
+        cut_z *= ObjectManipulation::mm_to_in;
+
+    return (m_hover_id == 0 || m_grabbers[0].dragging) ? "Z: " + format(cut_z, 2) : "";
 }
 
 bool GLGizmoCut::on_init()
@@ -145,6 +151,8 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 
     m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
+    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+
     // adjust window position to avoid overlap the view toolbar
     float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
@@ -163,7 +171,17 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text("Z");
     ImGui::SameLine();
     ImGui::PushItemWidth(m_imgui->get_style_scaling() * 150.0f);
-    ImGui::InputDouble("", &m_cut_z, 0.0f, 0.0f, "%.2f");
+
+    double cut_z = m_cut_z;
+    if (imperial_units)
+        cut_z *= ObjectManipulation::mm_to_in;
+    ImGui::InputDouble("", &cut_z, 0.0f, 0.0f, "%.2f");
+
+    ImGui::SameLine();
+    m_imgui->text(imperial_units ? _L("in") : _L("mm"));
+
+    if (imperial_units)
+        m_cut_z = cut_z * ObjectManipulation::in_to_mm;
 
     ImGui::Separator();
 
