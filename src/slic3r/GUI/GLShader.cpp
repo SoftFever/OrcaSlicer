@@ -18,9 +18,10 @@ GLShaderProgram::~GLShaderProgram()
         glsafe(::glDeleteProgram(m_id));
 }
 
-bool GLShaderProgram::init_from_files(const std::string& name, const ShaderFilenames& filenames)
+bool GLShaderProgram::init_from_files(const std::string& name, const ShaderFilenames& filenames, const std::initializer_list<std::string_view> &defines)
 {
-    auto load_from_file = [](const std::string& filename) {
+    // Load a shader program from file, prepend defs block.
+    auto load_from_file = [](const std::string& filename, const std::string &defs) {
         std::string path = resources_dir() + "/shaders/" + filename;
         boost::nowide::ifstream s(path, boost::nowide::ifstream::binary);
         if (!s.good()) {
@@ -31,20 +32,39 @@ bool GLShaderProgram::init_from_files(const std::string& name, const ShaderFilen
         s.seekg(0, s.end);
         int file_length = static_cast<int>(s.tellg());
         s.seekg(0, s.beg);
-        std::string source(file_length, '\0');
-        s.read(source.data(), file_length);
+        std::string source(defs.size() + file_length, '\0');
+        memcpy(source.data(), defs.c_str(), defs.size());
+        s.read(source.data() + defs.size(), file_length);
         if (!s.good()) {
             BOOST_LOG_TRIVIAL(error) << "Error while loading file: '" << path << "'";
             return std::string();
         }
-
         s.close();
+
+        if (! defs.empty()) {
+            // Extract the version and flip the order of "defines" and version in the source block.
+            size_t idx = source.find("\n", defs.size());
+            if (idx != std::string::npos && strncmp(source.c_str() + defs.size(), "#version", 8) == 0) {
+                // Swap the version line with the defines.
+                size_t len = idx - defs.size() + 1;
+                memmove(source.data(), source.c_str() + defs.size(), len);
+                memcpy(source.data() + len, defs.c_str(), defs.size());
+            }
+        }
+
         return source;
     };
 
+    // Create a block of C "defines" from list of symbols.
+    std::string defines_program;
+    for (std::string_view def : defines)
+        // Our shaders are stored with "\r\n", thus replicate the same here for consistency. Likely "\n" would suffice, 
+        // but we don't know all the OpenGL shader compilers around.
+        defines_program += format("#define %s 1\r\n", def);
+
     ShaderSources sources = {};
     for (size_t i = 0; i < static_cast<size_t>(EShaderType::Count); ++i) {
-        sources[i] = filenames[i].empty() ? std::string() : load_from_file(filenames[i]);
+        sources[i] = filenames[i].empty() ? std::string() : load_from_file(filenames[i], defines_program);
     }
 
     bool valid = !sources[static_cast<size_t>(EShaderType::Vertex)].empty() && !sources[static_cast<size_t>(EShaderType::Fragment)].empty() && sources[static_cast<size_t>(EShaderType::Compute)].empty();
