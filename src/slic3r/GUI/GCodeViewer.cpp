@@ -1454,6 +1454,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (TBuffer& buffer : m_buffers) {
         buffer.paths.clear();
     }
+
+    // max index buffer size
+    const size_t IBUFFER_THRESHOLD = 1024 * 1024 * 32;
+
     // variable used to keep track of the current size (in vertices) of the vertex buffer
     std::vector<size_t> curr_buffer_vertices_size(m_buffers.size(), 0);
     for (size_t i = 0; i < m_moves_count; ++i) {
@@ -1478,10 +1482,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         if (buffer_indices.empty())
             buffer_indices.push_back(IndexBuffer());
 
-        static const size_t THRESHOLD = 1024 * 1024 * 128;
         // if adding the indices for the current segment exceeds the threshold size of the current index buffer
         // create another index buffer, and move the current path indices into it
-        if (buffer_indices.back().size() >= THRESHOLD - static_cast<size_t>(buffer.indices_per_segment())) {
+        if (buffer_indices.back().size() >= IBUFFER_THRESHOLD - static_cast<size_t>(buffer.indices_per_segment())) {
             buffer_indices.push_back(IndexBuffer());
             if (buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point) {
                 if (!(prev.type != curr.type || !buffer.paths.back().matches(curr))) {
