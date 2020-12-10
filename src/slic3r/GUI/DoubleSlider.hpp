@@ -43,8 +43,6 @@ enum FocusedItem {
     fiActionIcon,
     fiLowerThumb,
     fiHigherThumb,
-    fiLowerThumbText,
-    fiHigherThumbText,
     fiTick
 };
 
@@ -373,8 +371,6 @@ private:
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
-    mutable wxRect m_rect_lower_thumb_text;
-    mutable wxRect m_rect_higher_thumb_text;
     wxRect      m_rect_tick_action;
     wxRect      m_rect_one_layer_icon;
     wxRect      m_rect_revert_icon;

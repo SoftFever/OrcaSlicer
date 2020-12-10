@@ -1359,10 +1359,6 @@ void Control::OnMotion(wxMouseEvent& event)
             m_focus = fiLowerThumb;
         else if (is_point_in_rect(pos, m_rect_higher_thumb))
             m_focus = fiHigherThumb;
-        else if (is_point_in_rect(pos, m_rect_lower_thumb_text))
-            m_focus = fiLowerThumbText;
-        else if (is_point_in_rect(pos, m_rect_higher_thumb_text))
-            m_focus = fiHigherThumbText;
         else {
             m_focus = fiTick;
             tick = get_tick_near_point(pos);
