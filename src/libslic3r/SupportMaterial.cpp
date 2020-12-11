@@ -906,13 +906,15 @@ namespace SupportMaterialInternal {
                     polyline.extend_start(fw);
                     polyline.extend_end(fw);
                     // Is the straight perimeter segment supported at both sides?
-					for (size_t i = 0; i < lower_layer.lslices.size(); ++ i)
-						if (lower_layer.lslices_bboxes[i].contains(polyline.first_point()) && lower_layer.lslices_bboxes[i].contains(polyline.last_point()) && 
-							lower_layer.lslices[i].contains(polyline.first_point()) && lower_layer.lslices[i].contains(polyline.last_point())) {
-							// Offset a polyline into a thick line.
-							polygons_append(bridges, offset(polyline, 0.5f * w + 10.f));
-							break;
-						}
+                    Point pts[2]       = { polyline.first_point(), polyline.last_point() };
+                    bool  supported[2] = { false, false };
+					for (size_t i = 0; i < lower_layer.lslices.size() && ! supported[0] && ! supported[1]; ++ i)
+                        for (int j = 0; j < 2; ++ j)
+                            if (! supported[j] && lower_layer.lslices_bboxes[i].contains(pts[j]) && lower_layer.lslices[i].contains(pts[j]))
+                                supported[j] = true;
+                    if (supported[0] && supported[1])
+                        // Offset a polyline into a thick line.
+                        polygons_append(bridges, offset(polyline, 0.5f * w + 10.f));
                 }
             bridges = union_(bridges);
         }
