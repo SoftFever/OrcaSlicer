@@ -633,6 +633,9 @@ public:
 
     void load_gcode_preview(const GCodeProcessor::Result& gcode_result);
     void refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors);
+#if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+    void refresh_gcode_preview_render_paths();
+#endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
     void set_gcode_view_preview_type(GCodeViewer::EViewType type) { return m_gcode_viewer.set_view_type(type); }
     GCodeViewer::EViewType get_gcode_view_preview_type() const { return m_gcode_viewer.get_view_type(); }
     void load_sla_preview();
