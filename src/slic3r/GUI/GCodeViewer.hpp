@@ -322,14 +322,18 @@ class GCodeViewer
         int64_t gl_multi_triangles_calls_count{ 0 };
         // memory
         int64_t results_size{ 0 };
-        int64_t vertices_gpu_size{ 0 };
-        int64_t indices_gpu_size{ 0 };
+        int64_t total_vertices_gpu_size{ 0 };
+        int64_t total_indices_gpu_size{ 0 };
+        int64_t max_vbuffer_gpu_size{ 0 };
+        int64_t max_ibuffer_gpu_size{ 0 };
         int64_t paths_size{ 0 };
         int64_t render_paths_size{ 0 };
         // other
         int64_t travel_segments_count{ 0 };
         int64_t wipe_segments_count{ 0 };
         int64_t extrude_segments_count{ 0 };
+        int64_t vbuffers_count{ 0 };
+        int64_t ibuffers_count{ 0 };
         int64_t max_vertices_in_vertex_buffer{ 0 };
         int64_t max_indices_in_index_buffer{ 0 };
 
@@ -355,8 +359,10 @@ class GCodeViewer
 
         void reset_sizes() {
             results_size = 0;
-            vertices_gpu_size = 0;
-            indices_gpu_size = 0;
+            total_vertices_gpu_size = 0;
+            total_indices_gpu_size = 0;
+            max_vbuffer_gpu_size = 0;
+            max_ibuffer_gpu_size = 0;
             paths_size = 0;
             render_paths_size = 0;
         }
@@ -365,6 +371,8 @@ class GCodeViewer
             travel_segments_count = 0;
             wipe_segments_count = 0;
             extrude_segments_count =  0;
+            vbuffers_count = 0;
+            ibuffers_count = 0;
             max_vertices_in_vertex_buffer = 0;
             max_indices_in_index_buffer = 0;
         }
