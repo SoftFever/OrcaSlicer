@@ -429,10 +429,21 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // update buffers' render paths
+#if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+    refresh_render_paths();
+#else
     refresh_render_paths(false, false);
+#endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
 
     log_memory_used("Refreshed G-code extrusion paths, ");
 }
+
+#if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+void GCodeViewer::refresh_render_paths()
+{
+    refresh_render_paths(false, false);
+}
+#endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
 
 void GCodeViewer::reset()
 {

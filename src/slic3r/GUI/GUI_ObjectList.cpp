@@ -1005,6 +1005,8 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                        m_objects_model->GetParent(item) != wxDataViewItem(nullptr) ? &m_menu_part :
                        printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
+        if (type & (itObject | itVolume))
+            append_menu_item_convert_unit(menu);
         if (!(type & itInstance))
             append_menu_item_settings(menu);
     }
@@ -1883,13 +1885,57 @@ void ObjectList::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* me
         [](wxCommandEvent&) { wxGetApp().plater()->scale_selection_to_fit_print_volume(); }, "", menu);
 }
 
-void ObjectList::append_menu_items_convert_unit(wxMenu* menu)
+void ObjectList::append_menu_item_convert_unit(wxMenu* menu, int insert_pos/* = 1*/)
 {
-    append_menu_item(menu, wxID_ANY, _L("Convert from imperial units"), _L("Convert from imperial units"),
-        [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(true); }, "", menu);
+    std::vector<int> obj_idxs, vol_idxs;
+    get_selection_indexes(obj_idxs, vol_idxs);
+    if (obj_idxs.empty() && vol_idxs.empty())
+        return;
 
-    append_menu_item(menu, wxID_ANY, _L("Revert conversion from imperial units"), _L("Revert conversion from imperial units"),
-        [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(false); }, "", menu);
+    auto can_append = [this, obj_idxs, vol_idxs](bool from_imperial_unit) {
+        ModelObjectPtrs objects;
+        for (int obj_idx : obj_idxs) {
+            ModelObject* object = (*m_objects)[obj_idx];
+            if (vol_idxs.empty()) {
+                for (ModelVolume* volume : object->volumes)
+                    if (volume->source.is_converted_from_inches == from_imperial_unit)
+                        return false;
+            }
+            else {
+                for (int vol_idx : vol_idxs)
+                    if (object->volumes[vol_idx]->source.is_converted_from_inches == from_imperial_unit)
+                        return false;
+            }
+        }
+        return true;
+    };
+
+    wxString convert_menu_name = _L("Convert from imperial units");
+    int      convert_menu_id   = menu->FindItem(convert_menu_name);
+    wxString revert_menu_name  = _L("Revert conversion from imperial units");
+    int      revert_menu_id    = menu->FindItem(revert_menu_name);
+
+    if (can_append(true)) {
+        // Delete revert menu item
+        if (revert_menu_id != wxNOT_FOUND)
+            menu->Destroy(revert_menu_id);
+        // Add convert menu item if it doesn't exist
+        if (convert_menu_id == wxNOT_FOUND)
+            append_menu_item(menu, wxID_ANY, convert_menu_name, convert_menu_name,
+                [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(true); }, "", menu, 
+                []() {return true;}, nullptr, insert_pos);
+    }
+
+    if (can_append(false)) {
+        // Delete convert menu item
+        if (convert_menu_id != wxNOT_FOUND)
+            menu->Destroy(convert_menu_id);
+        // Add convert menu item if it doesn't exist
+        if (revert_menu_id == wxNOT_FOUND)
+            append_menu_item(menu, wxID_ANY, revert_menu_name, revert_menu_name,
+                [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(false); }, "", menu,
+                []() {return true;}, nullptr, insert_pos);
+    }
 }
 
 void ObjectList::append_menu_item_merge_to_multipart_object(wxMenu* menu)
@@ -1915,7 +1961,6 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
 #endif // __WXOSX__
 
     append_menu_item_reload_from_disk(menu);
-    append_menu_items_convert_unit(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_scale_selection_to_fit_print_volume(menu);
@@ -1944,7 +1989,6 @@ void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 #endif // __WXOSX__
 
     append_menu_item_reload_from_disk(menu);
-    append_menu_items_convert_unit(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
     // rest of a object_sla_menu will be added later in:
@@ -1958,7 +2002,6 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 #endif // __WXOSX__
 
     append_menu_item_reload_from_disk(menu);
-    append_menu_items_convert_unit(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
 
@@ -4526,7 +4569,7 @@ void ObjectList::show_multi_selection_menu()
         return wxGetApp().plater()->can_reload_from_disk();
     }, wxGetApp().plater());
 
-    append_menu_items_convert_unit(menu);
+    append_menu_item_convert_unit(menu);
     if (can_merge_to_multipart_object())
         append_menu_item_merge_to_multipart_object(menu);
 

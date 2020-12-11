@@ -507,6 +507,9 @@ void Preview::on_combochecklist_options(wxCommandEvent& evt)
 
     m_canvas->set_gcode_options_visibility_from_flags(new_flags);
 
+#if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+    m_canvas->refresh_gcode_preview_render_paths();
+#else
     bool skip_refresh = xored(curr_flags, new_flags, static_cast<unsigned int>(OptionType::Shells)) ||
         xored(curr_flags, new_flags, static_cast<unsigned int>(OptionType::ToolMarker));
 
@@ -514,6 +517,7 @@ void Preview::on_combochecklist_options(wxCommandEvent& evt)
         refresh_print();
     else
         m_canvas->set_as_dirty();
+#endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
 }
 
 #if !ENABLE_PREVIEW_TYPE_CHANGE

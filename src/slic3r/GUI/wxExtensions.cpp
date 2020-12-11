@@ -63,7 +63,7 @@ void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condi
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler,
-    std::function<bool()> const cb_condition, wxWindow* parent)
+    std::function<bool()> const cb_condition, wxWindow* parent, int insert_pos/* = wxNOT_FOUND*/)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -72,7 +72,10 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
     if (icon.IsOk()) {
         item->SetBitmap(icon);
     }
-    menu->Append(item);
+    if (insert_pos == wxNOT_FOUND)
+        menu->Append(item);
+    else
+        menu->Insert(insert_pos, item);
 
 #ifdef __WXMSW__
     if (event_handler != nullptr && event_handler != menu)
@@ -91,7 +94,7 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler,
-    std::function<bool()> const cb_condition, wxWindow* parent)
+    std::function<bool()> const cb_condition, wxWindow* parent, int insert_pos/* = wxNOT_FOUND*/)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -103,7 +106,7 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
         msw_menuitem_bitmaps[id] = icon;
 #endif /* __WXMSW__ */
 
-    return append_menu_item(menu, id, string, description, cb, bmp, event_handler, cb_condition, parent);
+    return append_menu_item(menu, id, string, description, cb, bmp, event_handler, cb_condition, parent, insert_pos);
 }
 
 wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon,

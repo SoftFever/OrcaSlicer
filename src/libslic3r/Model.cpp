@@ -465,8 +465,11 @@ void Model::convert_from_imperial_units()
 {
     double in_to_mm = 25.4;
     for (ModelObject* obj : this->objects)
-        if (obj->get_object_stl_stats().volume < 9.0) // 9 = 3*3*3;
+        if (obj->get_object_stl_stats().volume < 9.0) { // 9 = 3*3*3;
             obj->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
+            for (ModelVolume* v : obj->volumes)
+                v->source.is_converted_from_inches = true;
+        }
 }
 
 void Model::adjust_min_z()
@@ -1053,12 +1056,16 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
             assert(vol->config.id().valid());
             assert(vol->config.id() != volume->config.id());
             vol->set_material(volume->material_id(), *volume->material());
+            vol->source.input_file = volume->source.input_file;
+            vol->source.object_idx = (int)new_objects.size();
+            vol->source.volume_idx = vol_idx;
 
             // Perform conversion
             if (volume_idxs.empty() || 
                 std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end()) {
                 vol->scale_geometry_after_creation(versor);
                 vol->set_offset(versor.cwiseProduct(volume->get_offset()));
+                vol->source.is_converted_from_inches = from_imperial;
             }
             else
                 vol->set_offset(volume->get_offset());
@@ -1796,6 +1803,14 @@ void ModelVolume::transform_this_mesh(const Matrix3d &matrix, bool fix_left_hand
     this->m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
     // Let the rest of the application know that the geometry changed, so the meshes have to be reloaded.
     this->set_new_unique_id();
+}
+
+void ModelVolume::convert_from_imperial_units()
+{
+    double in_to_mm = 25.4;
+    this->scale_geometry_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
+    this->set_offset(Vec3d(0, 0, 0));
+    this->source.is_converted_from_inches = true;
 }
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const

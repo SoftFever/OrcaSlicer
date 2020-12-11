@@ -2287,6 +2287,15 @@ void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_resul
     request_extra_frame();
 }
 
+#if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+void GLCanvas3D::refresh_gcode_preview_render_paths()
+{
+    m_gcode_viewer.refresh_render_paths();
+    set_as_dirty();
+    request_extra_frame();
+}
+#endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+
 void GLCanvas3D::load_sla_preview()
 {
     const SLAPrint* print = this->sla_print();
