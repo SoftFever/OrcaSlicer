@@ -3297,6 +3297,8 @@ void Plater::priv::reload_from_disk()
                     new_volume->set_material_id(old_volume->material_id());
                     new_volume->set_transformation(old_volume->get_transformation() * old_volume->source.transform);
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+                    if (old_volume->source.is_converted_from_inches)
+                        new_volume->convert_from_imperial_units();
                     std::swap(old_model_object->volumes[sel_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                     old_model_object->ensure_on_bed();
@@ -3771,6 +3773,8 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (evt.data.second)
             return; 
 
+        int menu_item_convert_unit_position = 11;
+
         if (printer_technology == ptSLA)
             menu = &sla_object_menu;
         else
@@ -3780,8 +3784,11 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                                                 get_selection().is_single_full_object() || 
                                                 get_selection().is_multiple_full_instance();
             menu = is_some_full_instances ? &object_menu : &part_menu;
+            if (!is_some_full_instances)
+                menu_item_convert_unit_position = 2;
         }
 
+        sidebar->obj_list()->append_menu_item_convert_unit(menu, menu_item_convert_unit_position);
         sidebar->obj_list()->append_menu_item_settings(menu);
 
         if (printer_technology != ptSLA)
@@ -3996,7 +4003,6 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             }, menu_item_printable->GetId());
     }
 
-    sidebar->obj_list()->append_menu_items_convert_unit(menu);
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
     wxMenu* mirror_menu = new wxMenu();
