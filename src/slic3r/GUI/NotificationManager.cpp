@@ -1153,7 +1153,7 @@ void NotificationManager::remove_slicing_warnings_of_released_objects(const std:
 void NotificationManager::push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
 	close_notification_of_type(NotificationType::ExportFinished);
-	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotification, 0,  _u8L("Exporting finished.") + "\n" + path };
+	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotification, on_removable ? 0 : 20,  _u8L("Exporting finished.") + "\n" + path };
 	push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path), 0);
 }
 void  NotificationManager::push_progress_bar_notification(const std::string& text, float percentage)
