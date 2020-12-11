@@ -70,7 +70,8 @@
         %code%{ RETVAL = dynamic_cast<SupportLayer*>(THIS); %};
     
     void make_slices();
-    void merge_slices();
+    void backup_untyped_slices();
+    void restore_untyped_slices();
     void make_perimeters();
     void make_fills();
 

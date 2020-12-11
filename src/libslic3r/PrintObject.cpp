@@ -97,6 +97,7 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
     return status;
 }
 
+// Called by make_perimeters()
 // 1) Decides Z positions of the layers,
 // 2) Initializes layers and their regions
 // 3) Slices the object meshes
@@ -104,8 +105,6 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 // 5) Applies size compensation (offsets the slices in XY plane)
 // 6) Replaces bad slices by the slices reconstructed from the upper/lower layer
 // Resulting expolygons of layer regions are marked as Internal.
-//
-// this should be idempotent
 void PrintObject::slice()
 {
     if (! this->set_started(posSlice))
@@ -125,7 +124,7 @@ void PrintObject::slice()
     // Simplify slices if required.
     if (m_print->config().resolution)
         this->simplify_slices(scale_(this->print()->config().resolution));
-    // Update bounding boxes
+    // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),
         [this](const tbb::blocked_range<size_t>& range) {
@@ -136,6 +135,7 @@ void PrintObject::slice()
                 layer.lslices_bboxes.reserve(layer.lslices.size());
                 for (const ExPolygon &expoly : layer.lslices)
                 	layer.lslices_bboxes.emplace_back(get_extents(expoly));
+                layer.backup_untyped_slices();
             }
         });
     if (m_layers.empty())
@@ -157,10 +157,10 @@ void PrintObject::make_perimeters()
     m_print->set_status(20, L("Generating perimeters"));
     BOOST_LOG_TRIVIAL(info) << "Generating perimeters..." << log_memory_info();
     
-    // merge slices if they were split into types
+    // Revert the typed slices into untyped slices.
     if (m_typed_slices) {
         for (Layer *layer : m_layers) {
-            layer->merge_slices();
+            layer->restore_untyped_slices();
             m_print->throw_if_canceled();
         }
         m_typed_slices = false;

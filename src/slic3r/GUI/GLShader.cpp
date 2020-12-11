@@ -61,7 +61,7 @@ bool GLShaderProgram::init_from_files(const std::string& name, const ShaderFilen
     for (std::string_view def : defines)
         // Our shaders are stored with "\r\n", thus replicate the same here for consistency. Likely "\n" would suffice, 
         // but we don't know all the OpenGL shader compilers around.
-        defines_program += format("#define %s 1\r\n", def);
+        defines_program += format("#define %s\r\n", def);
 
     ShaderSources sources = {};
     for (size_t i = 0; i < static_cast<size_t>(EShaderType::Count); ++i) {

@@ -186,7 +186,7 @@ public:
     // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
     std::vector<unsigned int>   object_extruders() const;
 
-    // Called when slicing to SVG (see Print.pm sub export_svg), and used by perimeters.t
+    // Called by make_perimeters()
     void slice();
 
     // Helpers to slice support enforcer / blocker meshes by the support generator.
