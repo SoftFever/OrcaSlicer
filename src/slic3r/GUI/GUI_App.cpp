@@ -1272,22 +1272,65 @@ bool GUI_App::switch_language()
     }
 }
 
+#ifdef __linux
+static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguageInfo* language,
+                                                                const wxLanguageInfo* system_language)
+{
+    constexpr size_t max_len = 50;
+    char path[max_len] = "";
+    std::vector<std::string> locales;
+    const std::string lang_prefix = into_u8(language->CanonicalName.BeforeFirst('_'));
+
+    FILE* fp = popen("locale -a", "r");
+    if (fp != NULL) {
+        while (fgets(path, max_len, fp) != NULL) {
+            std::string line(path);
+            line = line.substr(0, line.find('\n'));
+            if (boost::starts_with(line, lang_prefix))
+                locales.push_back(line);
+        }
+        pclose(fp);
+    }
+
+    // locales now contain all candidates for this language.
+    // Sort them so ones containing anything about UTF-8 are at the beginning.
+    std::sort(locales.begin(), locales.end(), [](const std::string& a, const std::string& b)
+    {
+        auto has_utf8 = [](const std::string & s) {
+            return boost::to_upper_copy(s).find("UTF") != std::string::npos
+                && s.find("8") != std::string::npos;
+        };
+        return (has_utf8(a) && ! has_utf8(b));
+    });
+
+    // Remove the suffix.
+    for (std::string& s : locales)
+        s = s.substr(0, s.find("."));
+
+    // Is there a candidate matching a country code of a system language? Put it at the beginning
+    // (duplicates do not matter). Check backwards so the utf8 one ends up first if there are more.
+    std::string system_country = "_" + into_u8(system_language->CanonicalName.AfterFirst('_')).substr(0, 2);
+    int cnt = locales.size();
+    for (int i=0; i<cnt; ++i)
+        if (locales[locales.size()-i-1].find(system_country) != std::string::npos)
+            locales.insert(locales.begin(), locales[locales.size()-i-1]);
+
+    // Now try them one by one.
+    for (const std::string& locale : locales) {
+        const wxLanguageInfo* lang = wxLocale::FindLanguageInfo(locale.substr(0, locale.find(".")));
+        if (wxLocale::IsAvailable(lang->Language))
+            return lang;
+    }
+    return language;
+}
+#endif
+
 // select language from the list of installed languages
 bool GUI_App::select_language()
 {
 	wxArrayString translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo*> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
-#ifdef __linux__
-    // wxWidgets consider the default English locale to be en_GB, which is often missing on Linux.
-    // Thus we offer en_US on Linux as well.
-    language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US));
-    //FIXME https://github.com/prusa3d/PrusaSlicer/issues/2580#issuecomment-524546743
-    // In a correctly set up system, "locale -a" will get all the installed locales on that system.
-    // According to the installed locales, the locales for the dictionaries may be modified with the available
-    // CanonicalName of the locale, possibly duplicating the entries for each CanonicalName of the dictionary.
-    // Other languages with missing locales of the system can be greyed out or not shown at all.
-#endif // __linux__
     for (size_t i = 0; i < translations.GetCount(); ++ i) {
 	    const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
         if (langinfo != nullptr)
@@ -1316,13 +1359,6 @@ bool GUI_App::select_language()
         if (language_infos[i]->CanonicalName.BeforeFirst('_') == "en")
         	// This will be the default selection if the active language does not match any dictionary.
         	init_selection_default = i;
-#ifdef __linux__
-        // wxWidgets consider the default English locale to be en_GB, which is often missing on Linux.
-        // Thus we make the distintion between "en_US" and "en_GB" clear.
-        if (language_infos[i]->CanonicalName == "en_GB" && language_infos[i]->Description == "English")
-            names.Add("English (U.K.)");
-        else
-#endif // __linux__
         names.Add(language_infos[i]->Description);
     }
     if (init_selection == -1)
@@ -1389,6 +1425,14 @@ bool GUI_App::load_language(wxString language, bool initial)
 				m_language_info_best = wxLocale::FindLanguageInfo(best_language);
 	        	BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") % m_language_info_best->CanonicalName.ToUTF8().data();
 			}
+            #ifdef __linux__
+            wxString lc_all;
+            if (wxGetEnv("LC_ALL", &lc_all) && ! lc_all.IsEmpty()) {
+                // Best language returned by wxWidgets on Linux apparently does not respect LC_ALL.
+                // Disregard the "best" suggestion in case LC_ALL is provided.
+                m_language_info_best = nullptr;
+            }
+            #endif
 		}
     }
 
@@ -1433,6 +1477,17 @@ bool GUI_App::load_language(wxString language, bool initial)
         language_info = m_language_info_best;
     } else if (m_language_info_system != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_system->CanonicalName.BeforeFirst('_'))
         language_info = m_language_info_system;
+
+#ifdef __linux__
+    // If we can't find this locale , try to use different one for the language
+    // instead of just reporting that it is impossible to switch.
+    if (! wxLocale::IsAvailable(language_info->Language)) {
+        std::string original_lang = into_u8(language_info->CanonicalName);
+        language_info = linux_get_existing_locale_language(language_info, m_language_info_system);
+        BOOST_LOG_TRIVIAL(trace) << boost::format("Can't switch language to %1% (missing locales). Using %2% instead.")
+                                    % original_lang % language_info->CanonicalName.ToUTF8().data();
+    }
+#endif
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
