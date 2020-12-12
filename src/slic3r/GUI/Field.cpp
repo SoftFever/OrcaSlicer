@@ -57,9 +57,10 @@ wxString double_to_string(double const value, const int max_precision /*= 4*/)
 wxString get_thumbnails_string(const std::vector<Vec2d>& values)
 {
     wxString ret_str;
-    if (!values.empty())
-        for (auto el : values)
-            ret_str += wxString::Format("%ix%i, ", int(el[0]), int(el[1]));
+	for (size_t i = 0; i < values.size(); ++ i) {
+		const Vec2d& el = values[i];
+		ret_str += wxString::Format((i == 0) ? "%ix%i" : ", %ix%i", int(el[0]), int(el[1]));
+	}
     return ret_str;
 }
 
@@ -359,7 +360,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 if (!m_value.empty())
                     text_value = get_thumbnails_string(boost::any_cast<std::vector<Vec2d>>(m_value));
                 set_value(text_value, true);
-                show_error(m_parent, format_wxstr(_L("Invalid input format. It must be represented like \"%1%\""),"XxY, XxY, ..." ));
+                show_error(m_parent, format_wxstr(_L("Invalid input format. Expected vector of dimensions in the following format: \"%1%\""),"XxY, XxY, ..." ));
             }
         }
 
