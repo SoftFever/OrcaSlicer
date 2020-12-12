@@ -1060,9 +1060,11 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
             vol->source.object_idx = (int)new_objects.size();
             vol->source.volume_idx = vol_idx;
 
-            // Perform conversion
-            if (volume_idxs.empty() || 
-                std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end()) {
+            // Perform conversion only if the target "imperial" state is different from the current one.
+            // This check supports conversion of "mixed" set of volumes, each with different "imperial" state.
+            if (vol->source.is_converted_from_inches != from_imperial && 
+                (volume_idxs.empty() || 
+                 std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end())) {
                 vol->scale_geometry_after_creation(versor);
                 vol->set_offset(versor.cwiseProduct(volume->get_offset()));
                 vol->source.is_converted_from_inches = from_imperial;
