@@ -2393,22 +2393,24 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         {
             // The model should now be initialized
 
-            auto convert_from_imperial_units = [](Model& model) {
-                model.convert_from_imperial_units();
+            auto convert_from_imperial_units = [](Model& model, bool only_small_volumes) {
+                model.convert_from_imperial_units(only_small_volumes);
                 wxGetApp().app_config->set("use_inches", "1");
                 wxGetApp().sidebar().update_ui_from_settings();
             };
 
             if (!is_project_file) {
                 if (imperial_units)
-                    convert_from_imperial_units(model);
+                    // Convert even if the object is big.
+                    convert_from_imperial_units(model, false);
                 else if (model.looks_like_imperial_units()) {
                     wxMessageDialog msg_dlg(q, format_wxstr(_L(
                         "Some object(s) in file %s looks like saved in inches.\n"
                         "Should I consider them as a saved in inches and convert them?"), from_path(filename)) + "\n",
                         _L("The object appears to be saved in inches"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES)
-                        convert_from_imperial_units(model);
+                        //FIXME up-scale only the small parts?
+                        convert_from_imperial_units(model, true);
                 }
 
                 if (model.looks_like_multipart_object()) {

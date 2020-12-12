@@ -1928,7 +1928,7 @@ namespace Slic3r {
                 else if (metadata.key == SOURCE_OFFSET_Z_KEY)
                     volume->source.mesh_offset(2) = ::atof(metadata.value.c_str());
                 else if (metadata.key == SOURCE_IN_INCHES)
-                    volume->source.is_converted_from_inches = metadata.value.c_str() == "1";
+                    volume->source.is_converted_from_inches = metadata.value == "1";
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value);
             }
