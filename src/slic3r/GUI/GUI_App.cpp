@@ -1293,34 +1293,40 @@ static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguage
     }
 
     // locales now contain all candidates for this language.
-    // Sort them so ones containing anything about UTF-8 are at the beginning.
+    // Sort them so ones containing anything about UTF-8 are at the end.
     std::sort(locales.begin(), locales.end(), [](const std::string& a, const std::string& b)
     {
         auto has_utf8 = [](const std::string & s) {
-            return boost::to_upper_copy(s).find("UTF") != std::string::npos
-                && s.find("8") != std::string::npos;
+            auto S = boost::to_upper_copy(s);
+            return S.find("UTF8") != std::string::npos || S.find("UTF-8") != std::string::npos;
         };
-        return (has_utf8(a) && ! has_utf8(b));
+        return ! has_utf8(a) && has_utf8(b);
     });
 
     // Remove the suffix.
     for (std::string& s : locales)
         s = s.substr(0, s.find("."));
 
-    // Is there a candidate matching a country code of a system language? Put it at the beginning
-    // (duplicates do not matter). Check backwards so the utf8 one ends up first if there are more.
+    // Is there a candidate matching a country code of a system language? Move it to the end,
+    // while maintaining the order of matches, so that the best match ends up at the very end.
+    // We just hope that dear Linux "locale -a" returns country codes in ISO 3166-1 alpha-2 code (two letter) format.
+    // https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
     std::string system_country = "_" + into_u8(system_language->CanonicalName.AfterFirst('_')).substr(0, 2);
     int cnt = locales.size();
     for (int i=0; i<cnt; ++i)
-        if (locales[locales.size()-i-1].find(system_country) != std::string::npos)
-            locales.insert(locales.begin(), locales[locales.size()-i-1]);
+        if (locales[i].find(system_country) != std::string::npos) {
+            locales.emplace_back(std::move[locales[i]]);
+            locales[i].clear();
+        }
 
     // Now try them one by one.
-    for (const std::string& locale : locales) {
-        const wxLanguageInfo* lang = wxLocale::FindLanguageInfo(locale.substr(0, locale.find(".")));
-        if (wxLocale::IsAvailable(lang->Language))
-            return lang;
-    }
+    for (auto it = locales.rbegin(); it != locales.rend(); ++ it)
+        if (! it->empty()) {
+            const std::string &locale = *it;
+            const wxLanguageInfo* lang = wxLocale::FindLanguageInfo(locale.substr(0, locale.find(".")));
+            if (wxLocale::IsAvailable(lang->Language))
+                return lang;
+        }
     return language;
 }
 #endif
