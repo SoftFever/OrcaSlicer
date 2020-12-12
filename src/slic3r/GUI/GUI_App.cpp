@@ -3,6 +3,7 @@
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "format.hpp"
 #include "I18N.hpp"
 
 #include <algorithm>
@@ -1719,7 +1720,7 @@ bool GUI_App::check_print_host_queue()
     // Show dialog
     wxString job_string = wxString();
     for (const auto& job : jobs) {
-        job_string += (boost::format("   %1% : %2% \n") % job.first % job.second).str();
+        job_string += format_wxstr("   %1% : %2% \n", job.first, job.second);
     }
     wxString message;
     message += _(L("The uploads are still ongoing")) + ":\n\n" + job_string +"\n" + _(L("Stop them and continue anyway?"));
