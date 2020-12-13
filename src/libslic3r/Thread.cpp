@@ -6,6 +6,7 @@
 	#include <pthread.h>
 #endif
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <tbb/parallel_for.h>
