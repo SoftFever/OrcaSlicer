@@ -828,7 +828,7 @@ class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
 public:
 
     ConfigOptionBool                avoid_crossing_perimeters;
-    ConfigOptionFloat               avoid_crossing_perimeters_max_detour;
+    ConfigOptionFloatOrPercent      avoid_crossing_perimeters_max_detour;
     ConfigOptionPoints              bed_shape;
     ConfigOptionInts                bed_temperature;
     ConfigOptionFloat               bridge_acceleration;
