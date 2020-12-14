@@ -540,7 +540,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_filament_diameters[i] = static_cast<float>(config.filament_diameter.values[i]);
     }
 
-    if (config.machine_limits_usage.value != MachineLimitsUsage::Ignore)
+    if (m_flavor == gcfMarlin && config.machine_limits_usage.value != MachineLimitsUsage::Ignore)
         m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
 
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
@@ -620,7 +620,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-
     // replace missing values with default
     std::string default_color = "#FF8000";
     for (size_t i = 0; i < m_result.extruder_colors.size(); ++i) {
@@ -649,69 +648,71 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
-    if (machine_max_acceleration_x != nullptr)
-        m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
+    if (m_flavor == gcfMarlin) {
+        const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
+        if (machine_max_acceleration_x != nullptr)
+            m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
 
-    const ConfigOptionFloats* machine_max_acceleration_y = config.option<ConfigOptionFloats>("machine_max_acceleration_y");
-    if (machine_max_acceleration_y != nullptr)
-        m_time_processor.machine_limits.machine_max_acceleration_y.values = machine_max_acceleration_y->values;
+        const ConfigOptionFloats* machine_max_acceleration_y = config.option<ConfigOptionFloats>("machine_max_acceleration_y");
+        if (machine_max_acceleration_y != nullptr)
+            m_time_processor.machine_limits.machine_max_acceleration_y.values = machine_max_acceleration_y->values;
 
-    const ConfigOptionFloats* machine_max_acceleration_z = config.option<ConfigOptionFloats>("machine_max_acceleration_z");
-    if (machine_max_acceleration_z != nullptr)
-        m_time_processor.machine_limits.machine_max_acceleration_z.values = machine_max_acceleration_z->values;
+        const ConfigOptionFloats* machine_max_acceleration_z = config.option<ConfigOptionFloats>("machine_max_acceleration_z");
+        if (machine_max_acceleration_z != nullptr)
+            m_time_processor.machine_limits.machine_max_acceleration_z.values = machine_max_acceleration_z->values;
 
-    const ConfigOptionFloats* machine_max_acceleration_e = config.option<ConfigOptionFloats>("machine_max_acceleration_e");
-    if (machine_max_acceleration_e != nullptr)
-        m_time_processor.machine_limits.machine_max_acceleration_e.values = machine_max_acceleration_e->values;
+        const ConfigOptionFloats* machine_max_acceleration_e = config.option<ConfigOptionFloats>("machine_max_acceleration_e");
+        if (machine_max_acceleration_e != nullptr)
+            m_time_processor.machine_limits.machine_max_acceleration_e.values = machine_max_acceleration_e->values;
 
-    const ConfigOptionFloats* machine_max_feedrate_x = config.option<ConfigOptionFloats>("machine_max_feedrate_x");
-    if (machine_max_feedrate_x != nullptr)
-        m_time_processor.machine_limits.machine_max_feedrate_x.values = machine_max_feedrate_x->values;
+        const ConfigOptionFloats* machine_max_feedrate_x = config.option<ConfigOptionFloats>("machine_max_feedrate_x");
+        if (machine_max_feedrate_x != nullptr)
+            m_time_processor.machine_limits.machine_max_feedrate_x.values = machine_max_feedrate_x->values;
 
-    const ConfigOptionFloats* machine_max_feedrate_y = config.option<ConfigOptionFloats>("machine_max_feedrate_y");
-    if (machine_max_feedrate_y != nullptr)
-        m_time_processor.machine_limits.machine_max_feedrate_y.values = machine_max_feedrate_y->values;
+        const ConfigOptionFloats* machine_max_feedrate_y = config.option<ConfigOptionFloats>("machine_max_feedrate_y");
+        if (machine_max_feedrate_y != nullptr)
+            m_time_processor.machine_limits.machine_max_feedrate_y.values = machine_max_feedrate_y->values;
 
-    const ConfigOptionFloats* machine_max_feedrate_z = config.option<ConfigOptionFloats>("machine_max_feedrate_z");
-    if (machine_max_feedrate_z != nullptr)
-        m_time_processor.machine_limits.machine_max_feedrate_z.values = machine_max_feedrate_z->values;
+        const ConfigOptionFloats* machine_max_feedrate_z = config.option<ConfigOptionFloats>("machine_max_feedrate_z");
+        if (machine_max_feedrate_z != nullptr)
+            m_time_processor.machine_limits.machine_max_feedrate_z.values = machine_max_feedrate_z->values;
 
-    const ConfigOptionFloats* machine_max_feedrate_e = config.option<ConfigOptionFloats>("machine_max_feedrate_e");
-    if (machine_max_feedrate_e != nullptr)
-        m_time_processor.machine_limits.machine_max_feedrate_e.values = machine_max_feedrate_e->values;
+        const ConfigOptionFloats* machine_max_feedrate_e = config.option<ConfigOptionFloats>("machine_max_feedrate_e");
+        if (machine_max_feedrate_e != nullptr)
+            m_time_processor.machine_limits.machine_max_feedrate_e.values = machine_max_feedrate_e->values;
 
-    const ConfigOptionFloats* machine_max_jerk_x = config.option<ConfigOptionFloats>("machine_max_jerk_x");
-    if (machine_max_jerk_x != nullptr)
-        m_time_processor.machine_limits.machine_max_jerk_x.values = machine_max_jerk_x->values;
+        const ConfigOptionFloats* machine_max_jerk_x = config.option<ConfigOptionFloats>("machine_max_jerk_x");
+        if (machine_max_jerk_x != nullptr)
+            m_time_processor.machine_limits.machine_max_jerk_x.values = machine_max_jerk_x->values;
 
-    const ConfigOptionFloats* machine_max_jerk_y = config.option<ConfigOptionFloats>("machine_max_jerk_y");
-    if (machine_max_jerk_y != nullptr)
-        m_time_processor.machine_limits.machine_max_jerk_y.values = machine_max_jerk_y->values;
+        const ConfigOptionFloats* machine_max_jerk_y = config.option<ConfigOptionFloats>("machine_max_jerk_y");
+        if (machine_max_jerk_y != nullptr)
+            m_time_processor.machine_limits.machine_max_jerk_y.values = machine_max_jerk_y->values;
 
-    const ConfigOptionFloats* machine_max_jerk_z = config.option<ConfigOptionFloats>("machine_max_jerkz");
-    if (machine_max_jerk_z != nullptr)
-        m_time_processor.machine_limits.machine_max_jerk_z.values = machine_max_jerk_z->values;
+        const ConfigOptionFloats* machine_max_jerk_z = config.option<ConfigOptionFloats>("machine_max_jerkz");
+        if (machine_max_jerk_z != nullptr)
+            m_time_processor.machine_limits.machine_max_jerk_z.values = machine_max_jerk_z->values;
 
-    const ConfigOptionFloats* machine_max_jerk_e = config.option<ConfigOptionFloats>("machine_max_jerk_e");
-    if (machine_max_jerk_e != nullptr)
-        m_time_processor.machine_limits.machine_max_jerk_e.values = machine_max_jerk_e->values;
+        const ConfigOptionFloats* machine_max_jerk_e = config.option<ConfigOptionFloats>("machine_max_jerk_e");
+        if (machine_max_jerk_e != nullptr)
+            m_time_processor.machine_limits.machine_max_jerk_e.values = machine_max_jerk_e->values;
 
-    const ConfigOptionFloats* machine_max_acceleration_extruding = config.option<ConfigOptionFloats>("machine_max_acceleration_extruding");
-    if (machine_max_acceleration_extruding != nullptr)
-        m_time_processor.machine_limits.machine_max_acceleration_extruding.values = machine_max_acceleration_extruding->values;
+        const ConfigOptionFloats* machine_max_acceleration_extruding = config.option<ConfigOptionFloats>("machine_max_acceleration_extruding");
+        if (machine_max_acceleration_extruding != nullptr)
+            m_time_processor.machine_limits.machine_max_acceleration_extruding.values = machine_max_acceleration_extruding->values;
 
-    const ConfigOptionFloats* machine_max_acceleration_retracting = config.option<ConfigOptionFloats>("machine_max_acceleration_retracting");
-    if (machine_max_acceleration_retracting != nullptr)
-        m_time_processor.machine_limits.machine_max_acceleration_retracting.values = machine_max_acceleration_retracting->values;
+        const ConfigOptionFloats* machine_max_acceleration_retracting = config.option<ConfigOptionFloats>("machine_max_acceleration_retracting");
+        if (machine_max_acceleration_retracting != nullptr)
+            m_time_processor.machine_limits.machine_max_acceleration_retracting.values = machine_max_acceleration_retracting->values;
 
-    const ConfigOptionFloats* machine_min_extruding_rate = config.option<ConfigOptionFloats>("machine_min_extruding_rate");
-    if (machine_min_extruding_rate != nullptr)
-        m_time_processor.machine_limits.machine_min_extruding_rate.values = machine_min_extruding_rate->values;
+        const ConfigOptionFloats* machine_min_extruding_rate = config.option<ConfigOptionFloats>("machine_min_extruding_rate");
+        if (machine_min_extruding_rate != nullptr)
+            m_time_processor.machine_limits.machine_min_extruding_rate.values = machine_min_extruding_rate->values;
 
-    const ConfigOptionFloats* machine_min_travel_rate = config.option<ConfigOptionFloats>("machine_min_travel_rate");
-    if (machine_min_travel_rate != nullptr)
-        m_time_processor.machine_limits.machine_min_travel_rate.values = machine_min_travel_rate->values;
+        const ConfigOptionFloats* machine_min_travel_rate = config.option<ConfigOptionFloats>("machine_min_travel_rate");
+        if (machine_min_travel_rate != nullptr)
+            m_time_processor.machine_limits.machine_min_travel_rate.values = machine_min_travel_rate->values;
+    }
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
