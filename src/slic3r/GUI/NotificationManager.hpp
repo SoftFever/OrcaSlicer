@@ -67,7 +67,9 @@ enum class NotificationType
 	// Progress bar instead of text.
 	ProgressBar,
 	// Notification, when Color Change G-code is empty and user try to add color change on DoubleSlider.
-	EmptyColorChangeCode
+    EmptyColorChangeCode,
+    // Notification that custom supports/seams were deleted after mesh repair.
+    CustomSupportsAndSeamRemovedAfterRepair
 };
 
 class NotificationManager
@@ -97,7 +99,8 @@ public:
 	void push_notification(const std::string& text, int timestamp = 0);
 	// Push a NotificationType::CustomNotification with provided notification level and 10s for RegularNotification.
 	// ErrorNotification and ImportantNotification are never faded out.
-	void push_notification(const std::string& text, NotificationLevel level, int timestamp = 0);
+    void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
+                           std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0);
 	// Creates Slicing Error notification with a custom text and no fade out.
 	void push_slicing_error_notification(const std::string& text);
 	// Creates Slicing Warning notification with a custom text and no fade out.

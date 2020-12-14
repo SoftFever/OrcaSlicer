@@ -1011,7 +1011,13 @@ void NotificationManager::push_notification(const std::string& text, int timesta
 {
 	push_notification_data({ NotificationType::CustomNotification, NotificationLevel::RegularNotification, 10, text }, timestamp);
 }
-void NotificationManager::push_notification(const std::string& text, NotificationManager::NotificationLevel level, int timestamp)
+
+void NotificationManager::push_notification(NotificationType type,
+                                            NotificationLevel level,
+                                            const std::string& text,
+                                            const std::string& hypertext,
+                                            std::function<bool(wxEvtHandler*)> callback,
+                                            int timestamp)
 {
 	int duration = 0;
 	switch (level) {
@@ -1022,7 +1028,7 @@ void NotificationManager::push_notification(const std::string& text, Notificatio
 		assert(false);
 		return;
 	}
-	push_notification_data({ NotificationType::CustomNotification, level, duration, text }, timestamp);
+    push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
 }
 void NotificationManager::push_slicing_error_notification(const std::string& text)
 {
