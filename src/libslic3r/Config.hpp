@@ -86,6 +86,8 @@ enum ConfigOptionType {
     coPercents      = coPercent + coVectorType,
     // a fraction or an absolute value
     coFloatOrPercent = 5,
+    // vector of the above
+    coFloatsOrPercents = coFloatOrPercent + coVectorType,
     // single 2d point (Point2f). Currently not used.
     coPoint         = 6,
     // vector of 2d points (Point2f). Currently used for the definition of the print bed and for the extruder offsets.
@@ -888,6 +890,143 @@ private:
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionPercent>(this), percent); }
 };
+
+
+struct FloatOrPercent
+{
+    double  value;
+    bool    percent;
+
+private:
+    friend class cereal::access;
+    template<class Archive> void serialize(Archive & ar) { ar(this->value); ar(this->percent); }
+};
+
+inline bool operator==(const FloatOrPercent &l, const FloatOrPercent &r)
+{
+    return l.value == r.value && l.percent == r.percent;
+}
+
+inline bool operator!=(const FloatOrPercent& l, const FloatOrPercent& r)
+{
+    return !(l == r);
+}
+
+template<bool NULLABLE>
+class ConfigOptionFloatsOrPercentsTempl : public ConfigOptionVector<FloatOrPercent>
+{
+public:
+    ConfigOptionFloatsOrPercentsTempl() : ConfigOptionVector<FloatOrPercent>() {}
+    explicit ConfigOptionFloatsOrPercentsTempl(size_t n, FloatOrPercent value) : ConfigOptionVector<FloatOrPercent>(n, value) {}
+    explicit ConfigOptionFloatsOrPercentsTempl(std::initializer_list<FloatOrPercent> il) : ConfigOptionVector<FloatOrPercent>(std::move(il)) {}
+    explicit ConfigOptionFloatsOrPercentsTempl(const std::vector<FloatOrPercent> &vec) : ConfigOptionVector<FloatOrPercent>(vec) {}
+    explicit ConfigOptionFloatsOrPercentsTempl(std::vector<FloatOrPercent> &&vec) : ConfigOptionVector<FloatOrPercent>(std::move(vec)) {}
+
+    static ConfigOptionType static_type() { return coFloatsOrPercents; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionFloatsOrPercentsTempl(*this); }
+    bool                    operator==(const ConfigOptionFloatsOrPercentsTempl &rhs) const { return vectors_equal(this->values, rhs.values); }
+    bool                    operator==(const ConfigOption &rhs) const override {
+        if (rhs.type() != this->type())
+            throw Slic3r::RuntimeError("ConfigOptionFloatsOrPercentsTempl: Comparing incompatible types");
+        assert(dynamic_cast<const ConfigOptionVector<FloatOrPercent>*>(&rhs));
+        return vectors_equal(this->values, static_cast<const ConfigOptionVector<FloatOrPercent>*>(&rhs)->values);
+    }
+    // Could a special "nil" value be stored inside the vector, indicating undefined value?
+    bool                    nullable() const override { return NULLABLE; }
+    // Special "nil" value to be stored into the vector if this->supports_nil().
+    static FloatOrPercent   nil_value() { return { std::numeric_limits<double>::quiet_NaN(), false }; }
+    // A scalar is nil, or all values of a vector are nil.
+    bool                    is_nil() const override { for (auto v : this->values) if (! std::isnan(v.value)) return false; return true; }
+    bool                    is_nil(size_t idx) const override { return std::isnan(this->values[idx].value); }
+
+    std::string serialize() const override
+    {
+        std::ostringstream ss;
+        for (const FloatOrPercent &v : this->values) {
+            if (&v != &this->values.front())
+                ss << ",";
+            serialize_single_value(ss, v);
+        }
+        return ss.str();
+    }
+    
+    std::vector<std::string> vserialize() const override
+    {
+        std::vector<std::string> vv;
+        vv.reserve(this->values.size());
+        for (const FloatOrPercent &v : this->values) {
+            std::ostringstream ss;
+            serialize_single_value(ss, v);
+            vv.push_back(ss.str());
+        }
+        return vv;
+    }
+
+    bool deserialize(const std::string &str, bool append = false) override
+    {
+        if (! append)
+            this->values.clear();
+        std::istringstream is(str);
+        std::string item_str;
+        while (std::getline(is, item_str, ',')) {
+            boost::trim(item_str);
+            if (item_str == "nil") {
+                if (NULLABLE)
+                    this->values.push_back(nil_value());
+                else
+                    throw Slic3r::RuntimeError("Deserializing nil into a non-nullable object");
+            } else {
+                bool percent = item_str.find_first_of("%") != std::string::npos;
+                std::istringstream iss(item_str);
+                double value;
+                iss >> value;
+                this->values.push_back({ value, percent });
+            }
+        }
+        return true;
+    }
+
+    ConfigOptionFloatsOrPercentsTempl& operator=(const ConfigOption *opt)
+    {   
+        this->set(opt);
+        return *this;
+    }
+
+protected:
+    void serialize_single_value(std::ostringstream &ss, const FloatOrPercent &v) const {
+            if (std::isfinite(v.value)) {
+                ss << v.value;
+                if (v.percent)
+                    ss << "%";
+            } else if (std::isnan(v.value)) {
+                if (NULLABLE)
+                    ss << "nil";
+                else
+                    throw Slic3r::RuntimeError("Serializing NaN");
+            } else
+                throw Slic3r::RuntimeError("Serializing invalid number");
+    }
+    static bool vectors_equal(const std::vector<FloatOrPercent> &v1, const std::vector<FloatOrPercent> &v2) {
+        if (NULLABLE) {
+            if (v1.size() != v2.size())
+                return false;
+            for (auto it1 = v1.begin(), it2 = v2.begin(); it1 != v1.end(); ++ it1, ++ it2)
+                if (! ((std::isnan(it1->value) && std::isnan(it2->value)) || *it1 == *it2))
+                    return false;
+            return true;
+        } else
+            // Not supporting nullable values, the default vector compare is cheaper.
+            return v1 == v2;
+    }
+
+private:
+    friend class cereal::access;
+    template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionVector<FloatOrPercent>>(this)); }
+};
+
+using ConfigOptionFloatsOrPercents          = ConfigOptionFloatsOrPercentsTempl<false>;
+using ConfigOptionFloatsOrPercentsNullable  = ConfigOptionFloatsOrPercentsTempl<true>;
 
 class ConfigOptionPoint : public ConfigOptionSingle<Vec2d>
 {
