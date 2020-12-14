@@ -1042,8 +1042,6 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
     int vol_idx = 0;
     for (ModelVolume* volume : volumes)
     {
-        volume->supported_facets.clear();
-        volume->seam_facets.clear();
         if (!volume->mesh().empty()) {
             TriangleMesh mesh(volume->mesh());
             mesh.require_shared_vertices();
@@ -1059,6 +1057,9 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
             vol->source.input_file = volume->source.input_file;
             vol->source.object_idx = (int)new_objects.size();
             vol->source.volume_idx = vol_idx;
+
+            vol->supported_facets.assign(volume->supported_facets);
+            vol->seam_facets.assign(volume->seam_facets);
 
             // Perform conversion only if the target "imperial" state is different from the current one.
             // This check supports conversion of "mixed" set of volumes, each with different "imperial" state.
