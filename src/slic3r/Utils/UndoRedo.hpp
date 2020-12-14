@@ -107,6 +107,8 @@ public:
 	// To be queried to enable / disable the Undo / Redo buttons at the UI.
 	bool has_undo_snapshot() const;
 	bool has_redo_snapshot() const;
+	// To query whether one can undo to a snapshot. Useful for notifications, that want to Undo a specific operation.
+	bool has_undo_snapshot(size_t time_to_load) const;
 
 	// Roll back the time. If time_to_load is SIZE_MAX, the previous snapshot is activated.
 	// Undoing an action may need to take a snapshot of the current application state, so that redo to the current state is possible.
