@@ -50,6 +50,9 @@ namespace internal {
 		inline const utf8_buffer cook(wxString &arg) {
 			return utf8_buffer { arg.ToUTF8() };
 		}
+		inline const utf8_buffer cook(wxString &&arg) {
+			return utf8_buffer{ arg.ToUTF8() };
+		}
 	}
 }
 
