@@ -65,17 +65,32 @@ void copy_file_fix(const fs::path& source, const fs::path& target,const std::str
 	boost::system::error_code ec;
 	if (fs::exists(target)) {
 		fs::permissions(target, perms, ec);
-		if(ec) 
-			throw Slic3r::CriticalException((boost::format(_utf8(L("Copying of file %1% to %2% failed. Permissions fail at target file before copying.\nError message : %3%\n This error happend during %4% phase."))) % source % target % ec.message() % caller_function_name).str());
+		if (ec) {
+			std::string msg = GUI::format(
+				_L("Copying of file %1% to %2% failed. Permissions fail at target file before copying.\n"
+				   "Error message : %3%\n This error happend during %4% phase."),
+				source, target, ec.message(), caller_function_name);
+#if defined(__APPLE__) || defined(_WIN32)
+			throw Slic3r::CriticalException(msg);
+#else
+			BOOST_LOG_TRIVIAL(debug) << msg;
+#endif
+		}
 	}
 	ec.clear();
 	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists, ec);
 	if (ec)
-		throw Slic3r::CriticalException((boost::format(_utf8(L("Copying of file %1% to %2% failed.\nError message : %3%\n Copying was triggered by function: %4%"))) % source % target % ec.message() % caller_function_name).str());
+		throw Slic3r::CriticalException(GUI::format(
+			_L("Copying of file %1% to %2% failed.\n"
+			   "Error message : %3%\nCopying was triggered by function: %4%"),
+			source, target, ec.message(), caller_function_name));
 	ec.clear();
 	fs::permissions(target, perms, ec);
 	if (ec)
-		throw Slic3r::CriticalException((boost::format(_utf8(L("Copying of file %1% to %2% failed. Permissions fail at target file after copying.\nError message : %3%\n Copying was triggered by function: %4%"))) % source % target % ec.message() % caller_function_name).str());
+		throw Slic3r::CriticalException(GUI::format(
+			_L("Copying of file %1% to %2% failed. Permissions fail at target file after copying.\n"
+			   "Error message : %3%\nCopying was triggered by function: %4%"),
+			source, target, ec.message(), caller_function_name));
 }
 
 struct Update
