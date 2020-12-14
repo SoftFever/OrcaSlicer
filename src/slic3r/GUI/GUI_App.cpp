@@ -10,6 +10,7 @@
 #include <iterator>
 #include <exception>
 #include <cstdlib>
+#include <regex>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
@@ -1272,7 +1273,7 @@ bool GUI_App::switch_language()
     }
 }
 
-#ifdef __linux
+#ifdef __linux__
 static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguageInfo* language,
                                                                 const wxLanguageInfo* system_language)
 {
@@ -1281,6 +1282,9 @@ static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguage
     std::vector<std::string> locales;
     const std::string lang_prefix = into_u8(language->CanonicalName.BeforeFirst('_'));
 
+    // Call locale -a so we can parse the output to get the list of available locales
+    // We expect lines such as "en_US.utf8". Pick ones starting with the language code
+    // we are switching to. Lines with different formatting will be removed later.
     FILE* fp = popen("locale -a", "r");
     if (fp != NULL) {
         while (fgets(path, max_len, fp) != NULL) {
@@ -1303,19 +1307,30 @@ static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguage
         return ! has_utf8(a) && has_utf8(b);
     });
 
-    // Remove the suffix.
+    // Remove the suffix behind a dot, if there is one.
     for (std::string& s : locales)
         s = s.substr(0, s.find("."));
 
+    // We just hope that dear Linux "locale -a" returns country codes
+    // in ISO 3166-1 alpha-2 code (two letter) format.
+    // https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+    // To be sure, remove anything not looking as expected
+    // (any number of lowercase letters, underscore, two uppercase letters).
+    locales.erase(std::remove_if(locales.begin(),
+                                 locales.end(),
+                                 [](const std::string& s) {
+                                     return ! std::regex_match(s,
+                                         std::regex("^[a-z]+_[A-Z]{2}$"));
+                                 }),
+                   locales.end());
+
     // Is there a candidate matching a country code of a system language? Move it to the end,
     // while maintaining the order of matches, so that the best match ends up at the very end.
-    // We just hope that dear Linux "locale -a" returns country codes in ISO 3166-1 alpha-2 code (two letter) format.
-    // https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
     std::string system_country = "_" + into_u8(system_language->CanonicalName.AfterFirst('_')).substr(0, 2);
     int cnt = locales.size();
     for (int i=0; i<cnt; ++i)
         if (locales[i].find(system_country) != std::string::npos) {
-            locales.emplace_back(std::move[locales[i]]);
+            locales.emplace_back(std::move(locales[i]));
             locales[i].clear();
         }
 
@@ -1323,7 +1338,7 @@ static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguage
     for (auto it = locales.rbegin(); it != locales.rend(); ++ it)
         if (! it->empty()) {
             const std::string &locale = *it;
-            const wxLanguageInfo* lang = wxLocale::FindLanguageInfo(locale.substr(0, locale.find(".")));
+            const wxLanguageInfo* lang = wxLocale::FindLanguageInfo(from_u8(locale));
             if (wxLocale::IsAvailable(lang->Language))
                 return lang;
         }
