@@ -1336,6 +1336,9 @@ void Sidebar::update_ui_from_settings()
     p->object_manipulation->update_ui_from_settings();
     show_info_sizer();
     update_sliced_info_sizer();
+    // update Cut gizmo, if it's open
+    p->plater->canvas3D()->update_gizmos_on_off_state();
+    p->plater->canvas3D()->request_extra_frame();
 }
 
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()

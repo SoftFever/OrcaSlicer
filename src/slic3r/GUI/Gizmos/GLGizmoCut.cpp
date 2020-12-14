@@ -180,8 +180,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine();
     m_imgui->text(imperial_units ? _L("in") : _L("mm"));
 
-    if (imperial_units)
-        m_cut_z = cut_z * ObjectManipulation::in_to_mm;
+    m_cut_z = cut_z * (imperial_units ? ObjectManipulation::in_to_mm : 1.0);
 
     ImGui::Separator();
 
