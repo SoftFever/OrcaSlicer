@@ -740,6 +740,8 @@ void PresetUpdater::slic3r_update_notify()
 PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, bool no_notification) const
 {
  	if (! p->enabled_config_update) { return R_NOOP; }
+	
+	GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateAvailable);
 
 	auto updates = p->get_config_updates(old_slic3r_version);
 	if (updates.incompats.size() > 0) {

@@ -1100,6 +1100,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 
@@ -1184,6 +1185,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
+        m_render_timer.SetOwner(m_canvas);
 #if ENABLE_RETINA_GL
         m_retina_helper.reset(new RetinaHelper(canvas));
 #endif // ENABLE_RETINA_GL
@@ -1608,6 +1610,9 @@ void GLCanvas3D::render()
     if (wxGetApp().is_editor())
         wxGetApp().plater()->init_environment_texture();
 #endif // ENABLE_ENVIRONMENT_MAP
+
+    m_render_timer.Stop();
+    m_extra_frame_requested_delayed = std::numeric_limits<size_t>::max();
 
     const Size& cnv_size = get_canvas_size();
     // Probably due to different order of events on Linux/GTK2, when one switched from 3D scene
@@ -2346,6 +2351,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_KEY_UP, &GLCanvas3D::on_key, this);
         m_canvas->Bind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Bind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
+        m_canvas->Bind(EVT_GLCANVAS_RENDER_TIMER, &GLCanvas3D::on_render_timer, this);
         m_canvas->Bind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
@@ -2405,11 +2411,11 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
         return;
 
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-    NotificationManager* notification_mgr = wxGetApp().plater()->get_notification_manager();
+    /*NotificationManager* notification_mgr = wxGetApp().plater()->get_notification_manager();
     if (notification_mgr->requires_update())
         notification_mgr->update_notifications();
 
-    m_dirty |= notification_mgr->requires_render();
+    m_dirty |= notification_mgr->requires_render();*/
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
     // FIXME
     m_dirty |= m_main_toolbar.update_items_state();
@@ -2420,9 +2426,10 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= mouse3d_controller_applied;
 
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+    /*
     if (notification_mgr->requires_update()) {
         evt.RequestMore();
-    }
+    }*/
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
     if (!m_dirty)
@@ -2971,6 +2978,29 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 {
     if (m_layers_editing.state == LayersEditing::Editing)
         _perform_layer_editing_action();
+}
+
+void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
+{
+    render();
+}
+
+void GLCanvas3D::request_extra_frame_delayed(wxLongLong miliseconds)
+{
+   
+    if (!m_render_timer.IsRunning() ) {
+        m_extra_frame_requested_delayed = miliseconds;
+        m_render_timer.StartOnce((int)miliseconds.ToLong());
+        m_render_timer_start = wxGetLocalTimeMillis();
+    } else {
+        const wxLongLong remaining_time = m_extra_frame_requested_delayed - (wxGetLocalTimeMillis() - m_render_timer_start);
+        if(miliseconds < remaining_time) {
+            m_extra_frame_requested_delayed = miliseconds;
+            m_render_timer.StartOnce((int)miliseconds.ToLong());
+            m_render_timer_start = wxGetLocalTimeMillis();
+        }
+    }
+
 }
 
 #ifndef NDEBUG
@@ -6439,5 +6469,10 @@ void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
     wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
 }
 
+
+void  GLCanvas3D::RenderTimer::Notify()
+{
+    wxPostEvent((wxEvtHandler*)GetOwner(), RenderTimerEvent( EVT_GLCANVAS_RENDER_TIMER, *this));
+}
 } // namespace GUI
 } // namespace Slic3r

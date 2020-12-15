@@ -136,6 +136,7 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
     , m_hypertext           (n.hypertext)
     , m_text2               (n.text2)
 	, m_evt_handler         (evt_handler)
+	, m_notification_start  (wxGetLocalTimeMillis())
 {
 	//init();
 }
@@ -146,6 +147,9 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		m_top_y = initial_y - GAP_WIDTH;
 		return;
 	}
+
+	if (m_fading_out) 
+		m_last_render_fading = wxGetLocalTimeMillis();
 
 	Size cnv_size = canvas.get_canvas_size();
 	ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -747,6 +751,8 @@ void NotificationManager::PopNotification::update_state()
 	if (!m_initialized)
 		init();
 
+	m_next_render = std::numeric_limits<wxLongLong>::max();
+
 	if (m_hidden) {
 		m_state = EState::Hidden;
 		return;
@@ -760,21 +766,32 @@ void NotificationManager::PopNotification::update_state()
 	}
 
 	if (m_counting_down) {
+		wxMilliClock_t up_time = wxGetLocalTimeMillis() - m_notification_start;
+		
 		if (m_fading_out && m_current_fade_opacity <= 0.0f)
 			m_finished = true;
-		else if (!m_fading_out && m_remaining_time == 0) {
+		else if (!m_fading_out && up_time >= m_remaining_time * 1000) {
 			m_fading_out = true;
 			m_fading_start = wxGetLocalTimeMillis();
+			m_last_render_fading = wxGetLocalTimeMillis();
+		} else if (!m_fading_out) {
+			m_next_render = m_remaining_time * 1000 - up_time;
+			BOOST_LOG_TRIVIAL(error) << (boost::format("next render %1%") % m_next_render);
 		}
+		
 	}
 
 	if (m_finished) {
 		m_state = EState::Finished;
+		m_next_render = 0;
+		BOOST_LOG_TRIVIAL(error) << "EState::Finished";
 		return;
 	}
 	if (m_close_pending) {
 		m_finished = true;
 		m_state = EState::ClosePending;
+		m_next_render = 0;
+		BOOST_LOG_TRIVIAL(error) << "EState::ClosePending";
 		return;
 	}
 	if (m_fading_out) {
@@ -783,13 +800,17 @@ void NotificationManager::PopNotification::update_state()
 			wxMilliClock_t curr_time      = wxGetLocalTimeMillis() - m_fading_start;
 			wxMilliClock_t no_render_time = wxGetLocalTimeMillis() - m_last_render_fading;
 			m_current_fade_opacity = std::clamp(1.0f - 0.001f * static_cast<float>(curr_time.GetValue()) / FADING_OUT_DURATION, 0.0f, 1.0f);
-			if (no_render_time > FADING_OUT_TIMEOUT) {
+			auto next_render = FADING_OUT_TIMEOUT - no_render_time;
+			if (next_render <= 0) {
 				m_last_render_fading = wxGetLocalTimeMillis();
 				m_state = EState::FadingOutRender;
-			}
+				m_next_render = 0;
+			} else 
+				m_next_render = next_render;
+			BOOST_LOG_TRIVIAL(error) << (boost::format("fade render %1%") % m_next_render);
 		}
-		
 	}
+	
 }
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
@@ -1228,6 +1249,7 @@ void NotificationManager::render_notifications(float overlay_width)
 		}
 		
 	}
+	update_notifications();
 }
 #else
 void NotificationManager::render_notifications(float overlay_width)
@@ -1377,6 +1399,12 @@ void NotificationManager::update_notifications()
 			break;
 		}
 	}
+	if (m_hovered) {
+		for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+			notification->reset_start_time();
+		}
+	}
+
 
 	// Reuire render if some notification was just deleted.
 	size_t curr_size = m_pop_notifications.size();
@@ -1395,6 +1423,18 @@ void NotificationManager::update_notifications()
 	// Make sure there will be update after last notification erased
 	if (m_requires_render)
 		m_requires_update = true;
+
+	//request frames
+	wxLongLong next_render = std::numeric_limits<wxLongLong>::max();
+	const wxLongLong max = std::numeric_limits<wxLongLong>::max();
+	for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		next_render = std::min<wxLongLong>(next_render, notification->next_render());
+	}
+
+	if (next_render == 0)
+		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+	else if (next_render < max)
+		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame_delayed(next_render);
 
 	// actualizate timers
 	wxWindow* p = dynamic_cast<wxWindow*>(wxGetApp().plater());

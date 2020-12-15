@@ -74,6 +74,25 @@ public:
 };
 
 
+class RenderTimerEvent : public wxEvent
+{
+public:
+    RenderTimerEvent(wxEventType type, wxTimer& timer)
+        : wxEvent(timer.GetId(), type),
+        m_timer(&timer)
+    {
+        SetEventObject(timer.GetOwner());
+    }
+    int GetInterval() const { return m_timer->GetInterval(); }
+    wxTimer& GetTimer() const { return *m_timer; }
+
+    virtual wxEvent* Clone() const { return new RenderTimerEvent(*this); }
+    virtual wxEventCategory GetEventCategory() const  { return wxEVT_CATEGORY_TIMER; }
+private:
+    wxTimer* m_timer;
+};
+
+
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 
 using Vec2dEvent = Event<Vec2d>;
@@ -119,6 +138,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
 
 class GLCanvas3D
 {
@@ -391,6 +411,11 @@ class GLCanvas3D
         static float get_window_width() { return s_window_width; };
     };
 
+    class RenderTimer : public wxTimer {
+    private:
+        virtual void Notify() override;
+    };
+
 public:
     enum ECursorType : unsigned char
     {
@@ -428,11 +453,15 @@ private:
     std::string m_sidebar_field;
     // when true renders an extra frame by not resetting m_dirty to false
     // see request_extra_frame()
-    bool m_extra_frame_requested;
+    bool m_extra_frame_requested; 
+    wxLongLong m_extra_frame_requested_delayed { std::numeric_limits<wxLongLong>::max() };
     bool m_event_handlers_bound{ false };
 
     mutable GLVolumeCollection m_volumes;
     GCodeViewer m_gcode_viewer;
+
+    RenderTimer m_render_timer;
+    wxLongLong  m_render_timer_start;
 
     Selection m_selection;
     const DynamicPrintConfig* m_config;
@@ -650,6 +679,7 @@ public:
     void on_key(wxKeyEvent& evt);
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
+    void on_render_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
@@ -712,6 +742,7 @@ public:
     void msw_rescale();
 
     void request_extra_frame() { m_extra_frame_requested = true; }
+    void request_extra_frame_delayed(wxLongLong miliseconds);
 
     int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
@@ -741,6 +772,11 @@ public:
 
         return ret;
     }
+
+    
+    
+
+    
 
 private:
     bool _is_shown_on_screen() const;
