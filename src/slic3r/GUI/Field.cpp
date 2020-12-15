@@ -259,10 +259,22 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     m_value.clear();
                     break;
                 }
-                show_error(m_parent, _(L("Input value is out of range")));
-                if (m_opt.min > val) val = m_opt.min;
-                if (val > m_opt.max) val = m_opt.max;
-                set_value(double_to_string(val), true);
+                auto set_val = [this](double& val) {
+                    if (m_opt.min > val) val = m_opt.min;
+                    if (val > m_opt.max) val = m_opt.max;
+                    set_value(double_to_string(val), true);
+                };
+                if (m_opt_id == "extrusion_multiplier") {
+                    wxString msg_text = format_wxstr(_L("Input value is out of range\n"
+                                                        "Are you sure that %s is a correct value and you want to continue?"), str);
+                    wxMessageDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxICON_WARNING | wxYES | wxNO);
+                    if (dialog.ShowModal() == wxID_NO)
+                        set_val(val);
+                }
+                else {
+                    show_error(m_parent, _L("Input value is out of range"));
+                    set_val(val);
+                }
             }
         }
         m_value = val;
@@ -561,8 +573,13 @@ void TextCtrl::propagate_value()
 		// on_kill_focus() cause a call of OptionsGroup::reload_config(),
 		// Thus, do it only when it's really needed (when undefined value was input)
         on_kill_focus();
-	else if (value_was_changed())
-        on_change_field();
+	else if (value_was_changed() && m_on_change != nullptr && !m_disable_change_event) {
+		// For this moment m_value is already updated in value_was_changed()
+		// so instead of call on_change_field() { m_on_change(m_opt_id, get_value()); }
+		// just do next:
+		m_on_change(m_opt_id, m_value);
+//        on_change_field(); // #ysFIXME delete after testing
+	}
 }
 
 void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/) {
