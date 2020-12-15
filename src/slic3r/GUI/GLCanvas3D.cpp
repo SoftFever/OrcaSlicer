@@ -3092,6 +3092,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     if (m_gizmos.on_mouse(evt)) {
+        if (wxWindow::FindFocus() != this->m_canvas)
+            // Grab keyboard focus for input in gizmo dialogs.
+            m_canvas->SetFocus();
+
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
 
