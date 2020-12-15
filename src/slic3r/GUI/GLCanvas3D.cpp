@@ -86,6 +86,13 @@ static const size_t VERTEX_BUFFER_RESERVE_SIZE_SUM_MAX = 1024 * 1024 * 128 / 4; 
 namespace Slic3r {
 namespace GUI {
 
+#ifdef __WXGTK3__
+// wxGTK3 seems to simulate OSX behavior in regard to HiDPI scaling support.
+RetinaHelper::RetinaHelper(wxWindow* window) : m_window(window), m_self(nullptr) {}
+RetinaHelper::~RetinaHelper() {}
+float RetinaHelper::get_scale_factor() { return float(m_window->GetContentScaleFactor()); }
+#endif // __WXGTK3__
+
 Size::Size()
     : m_width(0)
     , m_height(0)
@@ -3732,7 +3739,8 @@ void GLCanvas3D::update_ui_from_settings()
 {
     m_dirty = true;
 
-#if ENABLE_RETINA_GL
+#if __APPLE__
+    // Update OpenGL scaling on OSX after the user toggled the "use_retina_opengl" settings in Preferences dialog.
     const float orig_scaling = m_retina_helper->get_scale_factor();
 
     const bool use_retina = wxGetApp().app_config->get("use_retina_opengl") == "1";
