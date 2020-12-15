@@ -190,7 +190,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The maximum detour length for avoid crossing perimeters. "
                      "If the detour is longer than this value, avoid crossing perimeters is not applied for this travel path. "
                      "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path.");
-    def->sidetext = L("mm (zero to disable)");
+    def->sidetext = L("mm or % (zero to disable)");
     def->min = 0;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
