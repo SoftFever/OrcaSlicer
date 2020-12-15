@@ -701,6 +701,7 @@ public:
     // If full_name doesn't contain name of selected preset, then select first preset in the list for this printer
     void select_printer(const std::string& full_name);
     void select_printer(const PhysicalPrinter& printer);
+    void select_printer(const std::string& printer_name, const std::string& preset_name);
     bool has_selection() const;
     void unselect_printer() ;
     bool is_selected(ConstIterator it, const std::string &preset_name) const;
