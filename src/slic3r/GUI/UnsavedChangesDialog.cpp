@@ -51,7 +51,12 @@ static std::string get_icon_name(Preset::Type type, PrinterTechnology pt) {
     return pt == ptSLA && type == Preset::TYPE_PRINTER ? "sla_printer" : type_icon_names.at(type);
 }
 
-static std::string black    = "#000000";
+static std::string def_text_color()
+{
+    wxColour def_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), def_colour.Red(), def_colour.Green(), def_colour.Blue());
+    return clr_str.ToStdString();
+}
 static std::string grey     = "#808080";
 static std::string orange   = "#ed6b21";
 
@@ -158,7 +163,7 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
     }
 
     // "color" strings
-    color_string(m_old_value, black);
+    color_string(m_old_value, def_text_color());
     color_string(m_new_value, orange);
 
     UpdateIcons();
@@ -176,13 +181,13 @@ void ModelNode::UpdateEnabling()
     };
 
     if (!m_toggle) {
-        change_text_color(m_text,      black, grey);
-        change_text_color(m_old_value, black, grey);
+        change_text_color(m_text,      def_text_color(), grey);
+        change_text_color(m_old_value, def_text_color(), grey);
         change_text_color(m_new_value, orange,grey);
     }
     else {
-        change_text_color(m_text,      grey, black);
-        change_text_color(m_old_value, grey, black);
+        change_text_color(m_text,      grey, def_text_color());
+        change_text_color(m_old_value, grey, def_text_color());
         change_text_color(m_new_value, grey, orange);
     }
     // update icons for the colors
@@ -227,7 +232,7 @@ UnsavedChangesModel::~UnsavedChangesModel()
 wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset_name, PrinterTechnology pt)
 {
     // "color" strings
-    color_string(preset_name, black);
+    color_string(preset_name, def_text_color());
     make_string_bold(preset_name);
 
     auto preset = new ModelNode(type, m_parent_win, preset_name, get_icon_name(type, pt));
@@ -274,9 +279,9 @@ wxDataViewItem UnsavedChangesModel::AddOption(Preset::Type type, wxString catego
                                               wxString old_value, wxString new_value, const std::string category_icon_name)
 {
     // "color" strings
-    color_string(category_name, black);
-    color_string(group_name,    black);
-    color_string(option_name,   black);
+    color_string(category_name, def_text_color());
+    color_string(group_name,    def_text_color());
+    color_string(option_name,   def_text_color());
 
     // "make" strings bold
     make_string_bold(category_name);

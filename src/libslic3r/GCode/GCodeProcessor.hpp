@@ -421,6 +421,9 @@ namespace Slic3r {
         unsigned int m_g1_line_id;
         unsigned int m_layer_id;
         CpColor m_cp_color;
+#if ENABLE_VOLUMETRIC_EXTRUSION_PROCESSING
+        bool m_use_volumetric_e;
+#endif // ENABLE_VOLUMETRIC_EXTRUSION_PROCESSING
 
         enum class EProducer
         {

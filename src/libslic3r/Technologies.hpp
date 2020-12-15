@@ -99,4 +99,12 @@
 #define ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE (1 && ENABLE_2_3_0_BETA3)
 #define ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE (1 && ENABLE_2_3_0_BETA3)
 
+
+//=================
+// 2.3.0.rc1 techs
+//=================
+#define ENABLE_2_3_0_RC1 1
+
+#define ENABLE_VOLUMETRIC_EXTRUSION_PROCESSING (1 && ENABLE_2_3_0_RC1)
+
 #endif // _prusaslicer_technologies_h_
