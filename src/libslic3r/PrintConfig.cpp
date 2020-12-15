@@ -184,7 +184,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("avoid_crossing_perimeters_max_detour", coFloat);
+    def = this->add("avoid_crossing_perimeters_max_detour", coFloatOrPercent);
     def->label = L("Avoid crossing perimeters - Max detour length");
     def->category = L("Layers and Perimeters");
     def->tooltip = L("The maximum detour length for avoid crossing perimeters. "
