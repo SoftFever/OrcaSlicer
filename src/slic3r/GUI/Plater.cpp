@@ -2398,7 +2398,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             auto convert_from_imperial_units = [](Model& model, bool only_small_volumes) {
                 model.convert_from_imperial_units(only_small_volumes);
-                wxGetApp().app_config->set("use_inches", "1");
+//                wxGetApp().app_config->set("use_inches", "1");
                 wxGetApp().sidebar().update_ui_from_settings();
             };
 
