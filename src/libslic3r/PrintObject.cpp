@@ -2943,4 +2943,11 @@ const Layer* PrintObject::get_layer_at_printz(coordf_t print_z, coordf_t epsilon
 
 Layer* PrintObject::get_layer_at_printz(coordf_t print_z, coordf_t epsilon) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z, epsilon)); }
 
+const Layer *PrintObject::get_first_layer_bellow_printz(coordf_t print_z, coordf_t epsilon) const
+{
+    coordf_t limit = print_z + epsilon;
+    auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
+    return (it == m_layers.begin()) ? nullptr : *(--it);
+}
+
 } // namespace Slic3r
