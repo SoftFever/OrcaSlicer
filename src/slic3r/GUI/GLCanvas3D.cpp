@@ -2454,21 +2454,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     if (m_gizmos.on_char(evt))
         return;
 
-    auto action_plus = [this](wxKeyEvent& evt) {
-        if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-            post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
-        else
-            post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1));
-    };
-
-    auto action_a = [this]() {
-        post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
-    };
-
-    auto action_question_mark = [this]() {
-        post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK));
-    };
-
     if ((evt.GetModifiers() & ctrlMask) != 0) {
         // CTRL is pressed
         switch (keyCode) {
@@ -2478,7 +2463,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_A:
 #endif /* __APPLE__ */
-                post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
+            post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
         case 'c':
@@ -2562,35 +2547,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
              post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
         default:            evt.Skip();
         }
-    }
-    else if ((evt.GetModifiers() & shiftMask) != 0) {
-        // SHIFT is pressed
-        switch (keyCode) {
-        case '+': { action_plus(evt); break; }
-        case 'A':
-        case 'a': { action_a(); break; }
-        case 'G':
-        case 'g': {
-            if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
-            break;
-        }
-        case '?': { action_question_mark(); break; }
-        default:
-            evt.Skip();
-        }
-    } else if (evt.HasModifiers()) {
-        evt.Skip();
     } else {
         switch (keyCode)
         {
         case WXK_BACK:
-		case WXK_DELETE:
-                  post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
-                  break;
+        case WXK_DELETE: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
         case WXK_ESCAPE: { deselect_all(); break; }
-        case WXK_F5:
-        {
+        case WXK_F5: {
             if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
                 (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
                 post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
@@ -2603,33 +2566,48 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '4': { select_view("rear"); break; }
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
-        case '+': { action_plus(evt); break; }
+        case '+': {
+            if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
+            else
+                post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1));
+            break;
+        }
         case '-': {
-                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
-                    else
-                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
-                    break; }
-        case '?': { action_question_mark(); break; }
+            if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+            else
+                post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
+            break;
+        }
+        case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
-        case 'a': { action_a(); break; }
+        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'E':
         case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
+        case 'G':
+        case 'g': {
+            if ((evt.GetModifiers() & shiftMask) != 0) {
+                if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                    post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
+            }
+            break;
+        }
         case 'I':
         case 'i': { _update_camera_zoom(1.0); break; }
         case 'K':
         case 'k': { wxGetApp().plater()->get_camera().select_next_type(); m_dirty = true; break; }
         case 'L':
         case 'l': {
-                    if (!m_main_toolbar.is_enabled()) {
-                        m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
-                        m_dirty = true;
-                        wxGetApp().plater()->update_preview_bottom_toolbar();
-                    }
-                    break;
-                  }
+            if (!m_main_toolbar.is_enabled()) {
+                m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
+                m_dirty = true;
+                wxGetApp().plater()->update_preview_bottom_toolbar();
+            }
+            break;
+        }
         case 'O':
         case 'o': { _update_camera_zoom(-1.0); break; }
 #if ENABLE_RENDER_PICKING_PASS
@@ -2641,8 +2619,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         }
 #endif // ENABLE_RENDER_PICKING_PASS
         case 'Z':
-        case 'z':
-        {
+        case 'z': {
             if (!m_selection.is_empty())
                 zoom_to_selection();
             else {
@@ -2651,7 +2628,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 else
                     _zoom_to_box(m_gcode_viewer.get_paths_bounding_box());
             }
-
             break;
         }
         default:  { evt.Skip(); break; }
