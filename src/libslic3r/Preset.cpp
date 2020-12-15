@@ -1849,6 +1849,13 @@ void PhysicalPrinterCollection::select_printer(const std::string& full_name)
         m_selected_preset = it->get_preset_name(full_name);
 }
 
+void PhysicalPrinterCollection::select_printer(const std::string& printer_name, const std::string& preset_name)
+{
+    if (preset_name.empty())
+        return select_printer(printer_name);
+    return select_printer(printer_name + PhysicalPrinter::separator() + preset_name);
+}
+
 void PhysicalPrinterCollection::select_printer(const PhysicalPrinter& printer)
 {
     return select_printer(printer.name);

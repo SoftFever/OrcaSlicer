@@ -31,8 +31,9 @@ class wxPaintEvent;
 class wxGLCanvas;
 class wxGLContext;
 
-// Support for Retina OpenGL on Mac OS
-#define ENABLE_RETINA_GL __APPLE__
+// Support for Retina OpenGL on Mac OS.
+// wxGTK3 seems to simulate OSX behavior in regard to HiDPI scaling support, enable it as well.
+#define ENABLE_RETINA_GL (__APPLE__ || __WXGTK3__)
 
 namespace Slic3r {
 

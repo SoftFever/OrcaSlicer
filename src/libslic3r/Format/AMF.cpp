@@ -1020,6 +1020,12 @@ bool load_amf_archive(const char* path, DynamicPrintConfig* config, Model* model
 #endif // forward compatibility
 
     close_zip_reader(&archive);
+
+    for (ModelObject *o : model->objects)
+        for (ModelVolume *v : o->volumes)
+            if (v->source.input_file.empty() && (v->type() == ModelVolumeType::MODEL_PART))
+                v->source.input_file = path;
+
     return true;
 }
 
