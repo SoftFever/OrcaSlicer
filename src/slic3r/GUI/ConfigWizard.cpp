@@ -2271,7 +2271,6 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
     	wxString out;
     	for (const VendorProfile::PrinterModel *printer_model : printer_models) {
             wxString name = from_u8(printer_model->name);
-            name.Replace("&", "&&", true);
     		out += "\t\t";
     		out += name;
     		out += "\n";
