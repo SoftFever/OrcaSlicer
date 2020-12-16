@@ -259,23 +259,27 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     m_value.clear();
                     break;
                 }
-                auto set_val = [this](double& val) {
-                    if (m_opt.min > val) val = m_opt.min;
-                    if (val > m_opt.max) val = m_opt.max;
-                    set_value(double_to_string(val), true);
-                };
                 if (m_opt_id == "extrusion_multiplier") {
                     if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
                         wxString msg_text = format_wxstr(_L("Input value is out of range\n"
                             "Are you sure that %s is a correct value and that you want to continue?"), str);
                         wxMessageDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxICON_WARNING | wxYES | wxNO);
-                        if (dialog.ShowModal() == wxID_NO)
-                            set_val(val);
+                        if (dialog.ShowModal() == wxID_NO) {
+                            if (m_value.empty()) {
+                                if (m_opt.min > val) val = m_opt.min;
+                                if (val > m_opt.max) val = m_opt.max;
+                            }
+                            else
+                                val = boost::any_cast<double>(m_value);
+                            set_value(double_to_string(val), true);
+                        }
                     }
                 }
                 else {
                     show_error(m_parent, _L("Input value is out of range"));
-                    set_val(val);
+                    if (m_opt.min > val) val = m_opt.min;
+                    if (val > m_opt.max) val = m_opt.max;
+                    set_value(double_to_string(val), true);
                 }
             }
         }
