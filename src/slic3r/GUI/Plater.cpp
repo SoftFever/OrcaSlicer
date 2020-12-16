@@ -2124,11 +2124,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 		    if (evt.data.second) {
 			    this->show_action_buttons(this->ready_to_slice);
                 notification_manager->close_notification_of_type(NotificationType::ExportFinished);
-                notification_manager->push_notification(format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."), evt.data.first.name, evt.data.first.path),
-                    NotificationManager::NotificationLevel::RegularNotification);
+                notification_manager->push_notification(NotificationType::CustomNotification,
+                                                        NotificationManager::NotificationLevel::RegularNotification,
+                                                        format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."), evt.data.first.name, evt.data.first.path)
+                    );
             } else {
-                notification_manager->push_notification(format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path),
-                    NotificationManager::NotificationLevel::ErrorNotification);
+                notification_manager->push_notification(NotificationType::CustomNotification,
+                                                        NotificationManager::NotificationLevel::ErrorNotification,
+                                                        format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path)
+                    );
             }
 	    });
         this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this, q](RemovableDrivesChangedEvent &) {
@@ -3361,10 +3365,38 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     if (obj_idx < 0)
         return;
 
-    Plater::TakeSnapshot snapshot(q, _L("Fix Throught NetFabb"));
+    size_t snapshot_time = undo_redo_stack().active_snapshot_time();
+    Plater::TakeSnapshot snapshot(q, _L("Fix through NetFabb"));
 
-    fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
-    sla::reproject_points_and_holes(model.objects[obj_idx]);
+    ModelObject* mo = model.objects[obj_idx];
+
+    // If there are custom supports/seams, remove them. Fixed mesh
+    // may be different and they would make no sense.
+    bool paint_removed = false;
+    for (ModelVolume* mv : mo->volumes) {
+        paint_removed |= ! mv->supported_facets.empty() || ! mv->seam_facets.empty();
+        mv->supported_facets.clear();
+        mv->seam_facets.clear();
+    }
+    if (paint_removed) {
+        // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
+        notification_manager->push_notification(
+                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                    NotificationManager::NotificationLevel::RegularNotification,
+                    _u8L("Custom supports and seams were removed after repairing the mesh."),
+                    _u8L("Undo the repair"),
+                    [this, snapshot_time](wxEvtHandler*){
+                        if (undo_redo_stack().has_undo_snapshot(snapshot_time))
+                            undo_redo_to(snapshot_time);
+                        else
+                            notification_manager->push_notification(
+                                _u8L("Cannot undo to before the mesh repair!"));
+                        return true;
+                    });
+    }
+
+    fix_model_by_win10_sdk_gui(*mo, vol_idx);
+    sla::reproject_points_and_holes(mo);
     this->update();
     this->object_list_changed();
     this->schedule_background_process();
