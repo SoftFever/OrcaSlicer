@@ -943,19 +943,24 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         travel_intersection_count = 0;
     }
 
-    const ConfigOptionFloatOrPercent &opt_max_detour = gcodegen.config().avoid_crossing_perimeters_max_detour;
+    const ConfigOptionFloatOrPercent &opt_max_detour             = gcodegen.config().avoid_crossing_perimeters_max_detour;
+    bool                              max_detour_length_exceeded = false;
     if (opt_max_detour.value > 0) {
         double direct_length     = travel.length();
         double detour            = result_pl.length() - direct_length;
         double max_detour_length = opt_max_detour.percent ?
             direct_length * 0.01 * opt_max_detour.value :
             scale_(opt_max_detour.value);
-        if (detour > max_detour_length)
+        if (detour > max_detour_length) {
             result_pl = {start, end};
+            max_detour_length_exceeded = true;
+        }
     }
 
     if (use_external) {
         result_pl.translate(-scaled_origin);
+        *could_be_wipe_disabled = false;
+    } else if (max_detour_length_exceeded) {
         *could_be_wipe_disabled = false;
     } else
         *could_be_wipe_disabled = !need_wipe(gcodegen, m_grid_lslice, travel, result_pl, travel_intersection_count);
