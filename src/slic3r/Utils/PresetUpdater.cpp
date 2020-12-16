@@ -741,7 +741,7 @@ void PresetUpdater::slic3r_update_notify()
 PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, bool no_notification) const
 {
  	if (! p->enabled_config_update) { return R_NOOP; }
-	
+
 	auto updates = p->get_config_updates(old_slic3r_version);
 	if (updates.incompats.size() > 0) {
 		BOOST_LOG_TRIVIAL(info) << format("%1% bundles incompatible. Asking for action...", updates.incompats.size());
