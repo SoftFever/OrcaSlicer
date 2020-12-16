@@ -3365,7 +3365,18 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     if (obj_idx < 0)
         return;
 
-    size_t snapshot_time = undo_redo_stack().active_snapshot_time();
+    // Do not fix anything when a gizmo is open. There might be issues with updates
+    // and what is worse, the snapshot time would refer to the internal stack.
+    if (q->canvas3D()->get_gizmos_manager().get_current_type() != GLGizmosManager::Undefined) {
+        notification_manager->push_notification(
+                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                    NotificationManager::NotificationLevel::RegularNotification,
+                    _u8L("ERROR: Please close all manipulators available from "
+                         "the left toolbar before fixing the mesh."));
+        return;
+    }
+
+    // size_t snapshot_time = undo_redo_stack().active_snapshot_time();
     Plater::TakeSnapshot snapshot(q, _L("Fix through NetFabb"));
 
     ModelObject* mo = model.objects[obj_idx];
@@ -3383,16 +3394,21 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
         notification_manager->push_notification(
                     NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
                     NotificationManager::NotificationLevel::RegularNotification,
-                    _u8L("Custom supports and seams were removed after repairing the mesh."),
-                    _u8L("Undo the repair"),
-                    [this, snapshot_time](wxEvtHandler*){
-                        if (undo_redo_stack().has_undo_snapshot(snapshot_time))
-                            undo_redo_to(snapshot_time);
-                        else
-                            notification_manager->push_notification(
-                                _u8L("Cannot undo to before the mesh repair!"));
-                        return true;
-                    });
+                    _u8L("Custom supports and seams were removed after repairing the mesh."));
+//                    _u8L("Undo the repair"),
+//                    [this, snapshot_time](wxEvtHandler*){
+//                        // Make sure the snapshot is still available and that
+//                        // we are in the main stack and not in a gizmo-stack.
+//                        if (undo_redo_stack().has_undo_snapshot(snapshot_time)
+//                         && q->canvas3D()->get_gizmos_manager().get_current() == nullptr)
+//                            undo_redo_to(snapshot_time);
+//                        else
+//                            notification_manager->push_notification(
+//                                NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+//                                NotificationManager::NotificationLevel::RegularNotification,
+//                                _u8L("Cannot undo to before the mesh repair!"));
+//                        return true;
+//                    });
     }
 
     fix_model_by_win10_sdk_gui(*mo, vol_idx);
