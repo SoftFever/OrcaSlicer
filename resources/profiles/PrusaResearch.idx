@@ -1,3 +1,5 @@
+min_slic3r_version = 2.3.0-rc1
+1.2.0 Added full_fan_speed_layer value for PETG. Increased support interface spacing for 0.6mm nozzle profiles. Updated firmware version.
 min_slic3r_version = 2.3.0-beta2
 1.2.0-beta1 Updated end g-code. Added full_fan_speed_layer values.
 min_slic3r_version = 2.3.0-beta0
