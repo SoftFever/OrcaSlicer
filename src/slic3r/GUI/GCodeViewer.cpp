@@ -370,6 +370,13 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     }
 
     m_time_statistics = gcode_result.time_statistics;
+
+    if (m_time_estimate_mode != PrintEstimatedTimeStatistics::ETimeMode::Normal) {
+        float time = m_time_statistics.modes[static_cast<size_t>(m_time_estimate_mode)].time;
+        if (time == 0.0f ||
+            short_time(get_time_dhms(time)) == short_time(get_time_dhms(m_time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time)))
+            m_time_estimate_mode = PrintEstimatedTimeStatistics::ETimeMode::Normal;
+    }
 }
 
 void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -467,7 +474,6 @@ void GCodeViewer::reset()
     m_layers_z_range = { 0, 0 };
     m_roles = std::vector<ExtrusionRole>();
     m_time_statistics.reset();
-    m_time_estimate_mode = PrintEstimatedTimeStatistics::ETimeMode::Normal;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
