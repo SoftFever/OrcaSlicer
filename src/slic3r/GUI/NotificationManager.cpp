@@ -767,7 +767,7 @@ void NotificationManager::PopNotification::update_state()
 		m_current_fade_opacity = 1.0f;
 		m_remaining_time = m_data.duration;
 //		m_notification_start = wxGetLocalTimeMillis();
-		BOOST_LOG_TRIVIAL(error) << "hover";
+//		BOOST_LOG_TRIVIAL(error) << "hover";
 	}
 
 	if (m_counting_down) {
@@ -789,14 +789,14 @@ void NotificationManager::PopNotification::update_state()
 	if (m_finished) {
 		m_state = EState::Finished;
 		m_next_render = 0;
-		BOOST_LOG_TRIVIAL(error) << "EState::Finished";
+		//BOOST_LOG_TRIVIAL(error) << "EState::Finished";
 		return;
 	}
 	if (m_close_pending) {
 		m_finished = true;
 		m_state = EState::ClosePending;
 		m_next_render = 0;
-		BOOST_LOG_TRIVIAL(error) << "EState::ClosePending";
+		//BOOST_LOG_TRIVIAL(error) << "EState::ClosePending";
 		return;
 	}
 	if (m_fading_out) {
@@ -815,7 +815,7 @@ void NotificationManager::PopNotification::update_state()
 			//BOOST_LOG_TRIVIAL(error) << (boost::format("fade render %1%") % m_next_render);
 		}
 	}
-	BOOST_LOG_TRIVIAL(error) << (boost::format("remaining time %1% fading %2% next render %3%") % m_remaining_time % m_fading_out % m_next_render);
+	//BOOST_LOG_TRIVIAL(error) << (boost::format("remaining time %1% fading %2% next render %3%") % m_remaining_time % m_fading_out % m_next_render);
 }
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
