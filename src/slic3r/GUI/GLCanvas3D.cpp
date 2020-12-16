@@ -4027,7 +4027,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     dist_key += postfix;
     rot_key  += postfix;
 
-    imgui->text(GUI::format_wxstr(_L("Use %1%left mouse key to enter text edit mode:"), shortkey_ctrl_prefix()));
+    imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
 
     if (imgui->slider_float(_L("Spacing"), &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance) {
         settings.distance = std::max(dist_min, settings.distance);

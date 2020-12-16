@@ -68,7 +68,8 @@ void copy_file_fix(const fs::path& source, const fs::path& target,const std::str
 		if (ec) {
 			std::string msg = GUI::format(
 				_L("Copying of file %1% to %2% failed. Permissions fail at target file before copying.\n"
-				   "Error message : %3%\n This error happend during %4% phase."),
+				   "Error message : %3%\n"
+				   "This error happend during %4% phase."),
 				source, target, ec.message(), caller_function_name);
 #if defined(__APPLE__) || defined(_WIN32)
 			throw Slic3r::CriticalException(msg);

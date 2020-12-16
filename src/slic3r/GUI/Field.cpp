@@ -267,7 +267,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 if (m_opt_id == "extrusion_multiplier") {
                     if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
                         wxString msg_text = format_wxstr(_L("Input value is out of range\n"
-                            "Are you sure that %s is a correct value and you want to continue?"), str);
+                            "Are you sure that %s is a correct value and that you want to continue?"), str);
                         wxMessageDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxICON_WARNING | wxYES | wxNO);
                         if (dialog.ShowModal() == wxID_NO)
                             set_val(val);

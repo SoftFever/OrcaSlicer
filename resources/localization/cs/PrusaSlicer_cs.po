@@ -744,6 +744,10 @@ msgstr "Všechny horní povrchy"
 msgid "allocation failed"
 msgstr "alokace selhala"
 
+#: src/slic3r/GUI/Preferences.cpp:161 src/slic3r/GUI/Preferences.cpp:165
+msgid "Allow just a single PrusaSlicer instance"
+msgstr "Povolit pouze jednu instanci PrusaSliceru"
+
 #: src/slic3r/GUI/Plater.cpp:3915
 msgid "Along X axis"
 msgstr "Podél osy X"
@@ -1010,6 +1014,10 @@ msgstr "Automatická rychlost (pokročilé)"
 #: src/libslic3r/PrintConfig.cpp:169
 msgid "Avoid crossing perimeters"
 msgstr "Vyhnout se přejíždění perimetrů"
+
+#: src/libslic3r/PrintConfig.cpp:188
+msgid "Avoid crossing perimeters - Max detour length"
+msgstr "Vyvarovat se přejezdů přes perimetry - maximální délka objízdné cesty"
 
 #: src/slic3r/GUI/Tab.cpp:3705
 msgid "BACK ARROW"
@@ -1388,6 +1396,11 @@ msgstr "Zkontrolujte aktualizace konfigurace"
 msgid "Check for updates"
 msgstr "Zkontrolovat akt&ualizace"
 
+#: src/slic3r/Utils/PresetUpdater.cpp:412
+#: src/slic3r/Utils/PresetUpdater.cpp:420
+msgid "checking install indices"
+msgstr "kontrola indexů instalace"
+
 #: src/slic3r/GUI/BedShapeDialog.cpp:608
 msgid "Choose a file to import bed texture from (PNG/SVG):"
 msgstr "Vyberte soubor, ze kterého chcete importovat texturu pro tiskovou podložku (PNG/SVG):"
@@ -1729,6 +1742,26 @@ msgstr "Kopírovat do schránky"
 msgid "Copy to Clipboard"
 msgstr "Kopírovat do Schránky"
 
+#: src/slic3r/GUI/AboutDialog.cpp:304
+msgid "Copy Version Info"
+msgstr "Zkopírovat číslo verze"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:84
+msgid "Copying of file %1% to %2% failed.\nError message : %3%\nCopying was triggered by function: %4%"
+msgstr "Kopírování souboru %1% do %2% se nezdařilo.\nChybová zpráva: %3%\nTato chyba nastala ve funkci: %4%"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:91
+msgid "Copying of file %1% to %2% failed. Permissions fail at target file after copying.\nError message : %3%\nCopying was triggered by function: %4%"
+msgstr "Kopírování souboru %1% do %2% se nezdařilo. Pro kopírování z/do cílového souboru nemáte dostatečná oprávnění.\nChybová zpráva: %3%\nTato chyba nastala ve funkci: %4%"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:70
+msgid "Copying of file %1% to %2% failed. Permissions fail at target file before copying.\nError message : %3%\n This error happend during %4% phase."
+msgstr "Kopírování souboru %1% do %2% se nezdařilo. Pro kopírování z/do cílového souboru nemáte dostatečná oprávnění.\nChybová zpráva: %3%\nTato chyba nastala ve funkci: %4%"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:70
+msgid "Copying of file %1% to %2% failed. Permissions fail at target file before copying.\nError message : %3%\nThis error happend during %4% phase."
+msgstr "Kopírování souboru %1% do %2% se nezdařilo. Pro kopírování z/do cílového souboru nemáte dostatečná oprávnění.\nChybová zpráva: %3%\nTato chyba nastala ve funkci: %4%"
+
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:156
 msgid "Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."
 msgstr "Kopírování dočasného G-codu bylo dokončeno, ale exportovaný G-code nemohl být během kontroly kopírování otevřen. Výstupní G-cod je v %1%.tmp."
@@ -1825,6 +1858,10 @@ msgstr "Vytvoří podložku kolem objektu a ignorujte nadzvednutí objektu podp�
 #: src/libslic3r/PrintConfig.cpp:2888
 msgid "Critical angle"
 msgstr "Kritický úhel"
+
+#: src/slic3r/GUI/GUI_App.cpp:589
+msgid "Critical error"
+msgstr "Kritická chyba"
 
 #: src/libslic3r/PrintConfig.cpp:2832
 msgid "Cross"
@@ -2436,6 +2473,14 @@ msgstr "Doba trvání"
 #: src/slic3r/GUI/PresetHints.cpp:39
 msgid "During the other layers, fan"
 msgstr "V průběhu ostatních vrstev, ventilátor"
+
+#: src/slic3r/GUI/PresetHints.cpp:51
+msgid "During the other layers, fan will always run at %1%%%"
+msgstr "Během ostatních vrstev bude ventilátor vždy běžet na %1%%%"
+
+#: src/slic3r/GUI/PresetHints.cpp:58
+msgid "During the other layers, fan will be turned off."
+msgstr "Během ostatních vrstev bude ventilátor vypnutý."
 
 #: src/libslic3r/PrintConfig.cpp:2833
 msgid "Dynamic"
@@ -3155,6 +3200,10 @@ msgstr "Načtení vstupního modelu se nezdařilo."
 msgid "Failed processing of the output_filename_format template."
 msgstr "Zpracování šablony output_filename_format selhalo."
 
+#: src/slic3r/GUI/GUI_App.cpp:1648
+msgid "Failed to activate configuration snapshot."
+msgstr "Aktivace konfiguračního snapshotu se nezdařila."
+
 #: src/slic3r/GUI/PresetHints.cpp:41
 msgid "Fan"
 msgstr "Ventilátor"
@@ -3170,6 +3219,22 @@ msgstr "Rychlost ventilátoru"
 #: src/slic3r/GUI/GCodeViewer.cpp:2239 src/libslic3r/GCode/PreviewData.cpp:358
 msgid "Fan Speed (%)"
 msgstr "Rychlost ventilátoru (%)"
+
+#: src/slic3r/GUI/PresetHints.cpp:49
+msgid "Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."
+msgstr "Rychlost ventilátoru se zvýší z nuly ve vrstvě %1% na %2%%% ve vrstvě %3%."
+
+#: src/libslic3r/PrintConfig.cpp:1001
+msgid "Fan speed will be ramped up linearly from zero at layer \"disable_fan_first_layers\" to maximum at layer \"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower than \"disable_fan_first_layers\", in which case the fan will be running at maximum allowed speed at layer \"disable_fan_first_layers\" + 1."
+msgstr "Otáčky ventilátoru se lineárně zvýší z nuly ve vrstvě \"disable_fan_first_layers\" na maximum ve vrstvě \"full_fan_speed_layer\". Hodnota \"full_fan_speed_layer\" bude ignorována, pokud je nižší než \"disable_fan_first_layers\", v takovém případě se bude ventilátor točit na maximální povolenou hodnotu ve vrstvě \"disable_fan_first_layers\" + 1."
+
+#: src/slic3r/GUI/PresetHints.cpp:51
+msgid "Fan will always run at %1%%%"
+msgstr "Ventilátor vždy poběží na %1%%%"
+
+#: src/slic3r/GUI/PresetHints.cpp:58
+msgid "Fan will be turned off."
+msgstr "Ventilátor bude vypnutý."
 
 #: src/libslic3r/PrintConfig.cpp:2548
 msgid "Fast"
@@ -3521,6 +3586,10 @@ msgstr "Zepředu"
 msgid "Front View"
 msgstr "Pohled zepředu"
 
+#: src/libslic3r/PrintConfig.cpp:1000
+msgid "Full fan speed at layer"
+msgstr "Maximální otáčky ventilátoru ve vrstvě"
+
 #: src/slic3r/GUI/Tab.cpp:1331
 msgid "full profile name"
 msgstr "celé jméno profilu"
@@ -3548,6 +3617,10 @@ msgstr "Druh G-code"
 #: src/slic3r/GUI/MainFrame.cpp:66 src/slic3r/GUI/MainFrame.cpp:79
 msgid "G-code preview"
 msgstr "Náhled G-codu"
+
+#: src/libslic3r/PrintConfig.cpp:66
+msgid "G-code thumbnails"
+msgstr "Náhledy G-codu"
 
 #: src/libslic3r/PrintConfig.cpp:3552
 msgid "G-code viewer"
@@ -3643,6 +3716,10 @@ msgstr "Generování vrcholového bufferu"
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2181
 msgid "Generic"
 msgstr "Obecný"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:600
+msgid "getting config updates"
+msgstr "získávání aktualizací konfigurace"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:169
 msgid "Gizmo cut"
@@ -3880,6 +3957,10 @@ msgstr "Plástev"
 msgid "Horizontal shells"
 msgstr "Vodorovné stěny"
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:253
+msgid "Horizontal Slider"
+msgstr "Horizontální posuvník"
+
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:209
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:213
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:238
@@ -3902,7 +3983,7 @@ msgstr "Horizontální posuvník - Pohyb posuvníkem vpravo"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:236
 msgid "Horizontal slider - Set left thumb as active"
-msgstr "Horizontální posuvník -Nastavit levý ukazatel jako aktivní"
+msgstr "Horizontální posuvník - Nastavit levý ukazatel jako aktivní"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:236
 msgid "Horizontal slider - Set left thumb to current thumb"
@@ -3910,11 +3991,11 @@ msgstr "Horizontální posuvník -Pohyb levým posuvníkem k aktivnímu posuvní
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:237
 msgid "Horizontal slider - Set right thumb as active"
-msgstr "Horizontální posuvník -Nastavit pravý ukazatel jako aktivní"
+msgstr "Horizontální posuvník - Nastavit pravý ukazatel jako aktivní"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:237
 msgid "Horizontal slider - Set right thumb to current thumb"
-msgstr "Horizontální posuvník -Pohyb pravým posuvníkem k aktivnímu posuvníku"
+msgstr "Horizontální posuvník - Pohyb pravým posuvníkem k aktivnímu posuvníku"
 
 #: src/libslic3r/PrintConfig.cpp:279
 msgid "Horizontal width of the brim that will be printed around each object on the first layer."
@@ -4056,6 +4137,10 @@ msgid "If enabled, the command line arguments are sent to an existing instance o
 msgstr "Pokud je povoleno, argumenty příkazového řádku se odešlou do existující instance grafického uživatelského rozhraní PrusaSlicer,u nebo se aktivuje existující okno PrusaSlicer. Přepíše hodnotu konfigurace „single_instance“ z nastavení aplikace."
 
 #: src/slic3r/GUI/Preferences.cpp:278
+msgid "If enabled, the descriptions of configuration parameters in settings tabs woldn't work as hyperlinks. If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks."
+msgstr "Pokud je aškrtnuto, popisky konfiguračních parametrů na kartách nastavení nebudou fungovat jako hypertextové odkazy. Pokud není zaškrtnuto, popisy konfiguračních parametrů budou fungovat jako hypertextové odkazy."
+
+#: src/slic3r/GUI/Preferences.cpp:294
 msgid "If enabled, the descriptions of configuration parameters in settings tabs wouldn't work as hyperlinks. If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks."
 msgstr "Pokud je aškrtnuto, popisky konfiguračních parametrů na kartách nastavení nebudou fungovat jako hypertextové odkazy. Pokud není zaškrtnuto, popisy konfiguračních parametrů budou fungovat jako hypertextové odkazy."
 
@@ -4355,6 +4440,16 @@ msgstr "Doba počátečního osvitu"
 msgid "Initial layer height"
 msgstr "Výška první vrstvy"
 
+#: src/slic3r/GUI/Field.cpp:269
+#, possible-c-format
+msgid "Input value is out of range\nAre you sure that %s is a correct value and that you want to continue?"
+msgstr "Vstupní hodnota je mimo povolený rozsah\nJste si jisti, že %s je správná hodnota a že chcete pokračovat?"
+
+#: src/slic3r/GUI/Field.cpp:268
+#, possible-c-format
+msgid "Input value is out of range\nAre you sure that %s is a correct value and you want to continue?"
+msgstr "Vstupní hodnota je mimo povolený rozsah\nJste si jisti, že %s je správná hodnota a chcete pokračovat?"
+
 #: src/slic3r/GUI/Field.cpp:252 src/slic3r/GUI/Field.cpp:1370
 msgid "Input value is out of range"
 msgstr "Zadaná hodnota je mimo rozsah"
@@ -4362,6 +4457,10 @@ msgstr "Zadaná hodnota je mimo rozsah"
 #: src/slic3r/GUI/GUI_App.cpp:1480
 msgid "Inspect / activate configuration snapshots"
 msgstr "Zkontrolovat / aktivovat zálohy konfigurace"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:120
+msgid "install"
+msgstr "instralovat"
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:62
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:218
@@ -4431,6 +4530,10 @@ msgstr "Neplatný průnik podpěry do modelu"
 #: src/libslic3r/miniz_extension.cpp:107
 msgid "invalid header or archive is corrupted"
 msgstr "neplatná hlavička nebo je archiv poškozen"
+
+#: src/slic3r/GUI/Field.cpp:375
+msgid "Invalid input format. Expected vector of dimensions in the following format: \"%1%\""
+msgstr "Neplatný vstupní formát. Očekává se vektor rozměrů v následujícím formátu: \"%1%\""
 
 #: src/slic3r/GUI/Field.cpp:243 src/slic3r/GUI/Field.cpp:274
 #: src/slic3r/GUI/Field.cpp:1358 src/slic3r/GUI/GUI_ObjectLayers.cpp:413
@@ -5355,6 +5458,10 @@ msgstr "mm (nula pro vypnutí)"
 msgid "mm or %"
 msgstr "mm nebo %"
 
+#: src/libslic3r/PrintConfig.cpp:193
+msgid "mm or % (zero to disable)"
+msgstr "mm nebo % (nula pro deaktivaci)"
+
 #: src/libslic3r/PrintConfig.cpp:271 src/libslic3r/PrintConfig.cpp:645
 #: src/libslic3r/PrintConfig.cpp:653 src/libslic3r/PrintConfig.cpp:662
 #: src/libslic3r/PrintConfig.cpp:670 src/libslic3r/PrintConfig.cpp:697
@@ -5493,6 +5600,22 @@ msgstr "Posunout ukazatel aktivního posuvníku vlevo"
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:256
 msgid "Move active slider thumb Right"
 msgstr "Posunout ukazatel aktivního posuvníku vpravo"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:220
+msgid "Move active thumb Down"
+msgstr "Posunout aktivní ukazatel dolů"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:241
+msgid "Move active thumb Left"
+msgstr "Posunout aktivní ukazatel vlevo"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:242
+msgid "Move active thumb Right"
+msgstr "Posunout aktivní ukazatel vpravo"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:219
+msgid "Move active thumb Up"
+msgstr "Posunout aktivní ukazatel nahoru"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:1219
 msgid "Move clipping plane"
@@ -5955,6 +6078,14 @@ msgstr "Zobrazení po jedné vrstvě"
 msgid "One or more object were assigned an extruder that the printer does not have."
 msgstr "Jeden nebo více objektů bylo přiřazeno extruderu, který tiskárna nemá."
 
+#: src/slic3r/GUI/GUI_App.cpp:1784
+msgid "Ongoing uploads"
+msgstr "Probíhá nahrávání"
+
+#: src/libslic3r/Print.cpp:1269
+msgid "Only a single object may be printed at a time in Spiral Vase mode. Either remove all but the last object, or enable sequential mode by \"complete_objects\"."
+msgstr "V režimu spirálové vázy lze současně tisknout pouze jeden objekt. Buď odeberte všechny objekty kromě posledního, nebo povolte sekvenční režim pomocí \"complete_objects\"."
+
 #: src/libslic3r/PrintConfig.cpp:2045 src/libslic3r/PrintConfig.cpp:2840
 msgid "Only create support if it lies on a build plate. Don't create support on a print."
 msgstr "Podpěry vytvářet pouze v případě, že leží na tiskové podložce. Nevytváří podpěry na výtisky."
@@ -6364,6 +6495,10 @@ msgstr "Vyberte si jiného výrobce, který je podporováný programem %s"
 msgid "Picture sizes to be stored into a .gcode and .sl1 files"
 msgstr "Velikosti obrázků, které mají být uloženy do souborů .gcode a .sl1"
 
+#: src/libslic3r/PrintConfig.cpp:67
+msgid "Picture sizes to be stored into a .gcode and .sl1 files, in the following format: \"XxY, XxY, ...\""
+msgstr "Velikosti obrázků, které mají být uloženy do souborů .gcode a .sl1, v následujícím formátu: „XxY, XxY, ...“"
+
 #: src/libslic3r/PrintConfig.cpp:2822
 msgid "Pillar connection mode"
 msgstr "Způsob propojení podpěr"
@@ -6489,6 +6624,10 @@ msgid "Preset with name \"%1%\" already exists and is imcopatible with selected 
 msgstr "Přednastavení s názvem \"%1%\" již existuje a není kompatibilní s vybranou tiskárnou."
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:136
+msgid "Preset with name \"%1%\" already exists and is incompatible with selected printer."
+msgstr "Přednastavení s názvem \"%1%\" již existuje a není kompatibilní s vybranou tiskárnou."
+
+#: src/slic3r/GUI/SavePresetDialog.cpp:136
 msgid "Preset with name \"%1%\" already exists and is incopatible with selected printer."
 msgstr "Přednastavení s názvem \"%1%\" již existuje a není kompatibilní s vybranou tiskárnou."
 
@@ -6500,6 +6639,10 @@ msgstr "Přednastavení s názvem \"%1%\" již existuje."
 msgctxt "PresetName"
 msgid "Copy"
 msgstr "Kopie"
+
+#: src/slic3r/GUI/GLCanvas3D.cpp:3990
+msgid "Press %1%left mouse button to enter the exact value"
+msgstr "Pro zadání přesné hodnoty stiskni %1%levé tlačítko myši"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:157
 msgid "Press to activate deselection rectangle"
@@ -6718,6 +6861,10 @@ msgstr "PrusaSlicer detekoval úložiště SSL certifikátu v: %1%"
 #: src/slic3r/GUI/GUI_Init.cpp:85 src/slic3r/GUI/GUI_Init.cpp:88
 msgid "PrusaSlicer GUI initialization failed"
 msgstr "Inicializace grafického uživatelského rozhraní PrusaSliceru se nezdařila"
+
+#: src/slic3r/GUI/GUI_App.cpp:586
+msgid "PrusaSlicer has encountered a localization error. Please report to PrusaSlicer team, what language was active and in which scenario this issue happened. Thank you.\n\nThe application will now terminate."
+msgstr "V aplikaci PrusaSlicer došlo k chybě v lokalizaci. Nahlaste PrusaSlicer týmu, jaký jazyk byl aktivní a ve kterém scénáři k tomuto problému došlo. Děkujeme.\n\nAplikace bude nyní ukončena."
 
 #: src/slic3r/GUI/AboutDialog.cpp:285
 msgid "PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community."
@@ -7787,6 +7934,14 @@ msgstr "Nastavení sekvence extruderů pro celý tisk"
 msgid "Set extruder(tool) sequence"
 msgstr "Nastavte pořadí extruderu(nástroje)"
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:243
+msgid "Set left thumb as active"
+msgstr "Nastavit levý ukazatel jako aktivní"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:222
+msgid "Set lower thumb as active"
+msgstr "Nastavit spodní ukazatel jako aktivní"
+
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:218
 msgid "Set lower thumb to current slider thumb"
 msgstr "Aktivovat spodní ukazatel aktivního posuvníku"
@@ -7819,6 +7974,10 @@ msgstr "Zvolen příznak Tisknout objekt"
 #: src/slic3r/GUI/Selection.cpp:1515
 msgid "Set Printable Instance"
 msgstr "Zvolen příznak Tisknout Instanci"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:244
+msgid "Set right thumb as active"
+msgstr "Nastavit pravý ukazatel jako aktivní"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1836
 msgid "Set ruler mode"
@@ -7887,6 +8046,10 @@ msgstr "Odebrán příznak Tisknout objekt"
 #: src/slic3r/GUI/Selection.cpp:1515
 msgid "Set Unprintable Instance"
 msgstr "Odebrán příznak Tisknout Instanci"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:221
+msgid "Set upper thumb as active"
+msgstr "Nastavit horní ukazatel jako aktivní"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:217
 msgid "Set upper thumb to current slider thumb"
@@ -8632,6 +8795,10 @@ msgstr "Soubor STL exportován do %s"
 msgid "Stop at height"
 msgstr "Skončit ve výšce"
 
+#: src/slic3r/GUI/GUI_App.cpp:1781
+msgid "Stop them and continue anyway?"
+msgstr "Chcete i přesto pokračovat a zastavit nahrávání?"
+
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:295
 msgid "Success!"
 msgstr "Úspěch!"
@@ -8986,6 +9153,18 @@ msgstr "Následující modely FFF tiskáren nemají vybraný filament:"
 msgid "The following presets were modified:"
 msgstr "Byla upravena následující přednastavení:"
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:253
+msgid "The following shortcuts are applicable in G-code preview when the horizontal slider is active"
+msgstr "Následující zkratky jsou použitelné v náhledu G-codu, když je aktivní vodorovný posuvník"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:237
+msgid "The following shortcuts are applicable in G-code preview when the vertical slider is active"
+msgstr "Následující zkratky jsou použitelné v náhledu G-codu, když je aktivní svislý posuvník"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:179
+msgid "The following shortcuts are applicable when the specified gizmo is active"
+msgstr "Následující klávesové zkratky jsou funkční při patřičném aktivním gizmu"
+
 #: src/slic3r/GUI/ConfigWizard.cpp:2275
 msgid "The following SLA printer models have no materials selected:"
 msgstr "Následující modely SLA tiskáren nemají vybrané žádné materiály:"
@@ -9022,6 +9201,10 @@ msgstr "Maximální vzdálenost dvou podpůrných pilířů pro vzájemné prov�
 msgid "The max length of a bridge"
 msgstr "Maximální délka přemostění"
 
+#: src/libslic3r/PrintConfig.cpp:190
+msgid "The maximum detour length for avoid crossing perimeters. If the detour is longer than this value, avoid crossing perimeters is not applied for this travel path. Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path."
+msgstr "Maximální délka objízdné trasy s cílem, aby nedošlo k přejetí přes perimetry. Pokud je objízdná trasa delší než tato hodnota, nebude dodrženo omezení přejíždění přes perimetry. Délka objízdné trasy může být zadána buď jako absolutní hodnota, nebo jako procento (například 50%) přímé cesty."
+
 #: src/libslic3r/PrintConfig.cpp:2878
 msgid "The minimum distance of the pillar base from the model in mm. Makes sense in zero elevation mode where a gap according to this parameter is inserted between the model and the pad."
 msgstr "Minimální vzdálenost základny podpěr od modelu v mm. Dává smysl v režimu nulového nadzvednutí nad podložku, kde je mezera podle tohoto parametru vložena mezi model a podložku."
@@ -9029,6 +9212,14 @@ msgstr "Minimální vzdálenost základny podpěr od modelu v mm. Dává smysl v
 #: src/slic3r/GUI/SavePresetDialog.cpp:142
 msgid "The name cannot be empty."
 msgstr "Název nesmí být prázdný."
+
+#: src/slic3r/GUI/SavePresetDialog.cpp:152
+msgid "The name cannot end with space character."
+msgstr "Název nesmí končit mezerou."
+
+#: src/slic3r/GUI/SavePresetDialog.cpp:147
+msgid "The name cannot start with space character."
+msgstr "Název nesmí začínat mezerou."
 
 #: src/libslic3r/PrintConfig.cpp:219
 msgid "The number of bottom solid layers is increased above bottom_solid_layers if necessary to satisfy minimum thickness of bottom shell."
@@ -9161,6 +9352,10 @@ msgstr "Zadané nastavení způsobí prázdný tisk."
 #: src/libslic3r/PrintConfig.cpp:2953
 msgid "The thickness of the pad and its optional cavity walls."
 msgstr "Tloušťka podložky a její volitelné duté stěny."
+
+#: src/slic3r/GUI/GUI_App.cpp:1781
+msgid "The uploads are still ongoing"
+msgstr "Nahrávání stále probíhá"
 
 #: src/libslic3r/PrintConfig.cpp:2053
 msgid "The vertical distance between object and support material interface. Setting this to 0 will also prevent Slic3r from using bridge flow and speed for the first object layer."
@@ -9318,6 +9513,10 @@ msgstr "Tato funkce umožňuje vynucení plné vrstvy za každý daný počet vr
 #: src/libslic3r/PrintConfig.cpp:1910
 msgid "This feature will raise Z gradually while printing a single-walled object in order to remove any visible seam. This option requires a single perimeter, no infill, no top solid layers and no support material. You can still set any number of bottom solid layers as well as skirt/brim loops. It won't work when printing more than an object."
 msgstr "Tato funkce zvýší postupně Z při tisku jednovrstvého objektu, aby se odstranil jakýkoli viditelný šev. Tato volba vyžaduje jediný obvod, žádnou výplň, žádné vrchní plné vrstvy a žádný podpůrný materiál. Můžete stále nastavit libovolný počet spodních plných vrstev, stejně jako obrysové smyčky / límec. Při tisku více než jednoho objektu nebude toto nastavení fungovat."
+
+#: src/libslic3r/PrintConfig.cpp:1995
+msgid "This feature will raise Z gradually while printing a single-walled object in order to remove any visible seam. This option requires a single perimeter, no infill, no top solid layers and no support material. You can still set any number of bottom solid layers as well as skirt/brim loops. It won't work when printing more than one single object."
+msgstr "Tato funkce zvýší postupně Z při tisku jednovrstvého objektu, aby se odstranil jakýkoli viditelný šev. Tato volba vyžaduje jediný obvod, žádnou výplň, žádné vrchní plné vrstvy a žádný podpůrný materiál. Můžete stále nastavit libovolný počet spodních plných vrstev, stejně jako obrysové smyčky / límec. Při tisku více než jednoho samostatného objektu nebude toto nastavení fungovat."
 
 #: src/slic3r/GUI/Plater.cpp:2329
 msgid "This file cannot be loaded in a simple mode. Do you want to switch to an advanced mode?"
@@ -9888,6 +10087,10 @@ msgstr "Vyšší vrstva"
 msgid "Upper layer"
 msgstr "Horní vrstva"
 
+#: src/slic3r/GUI/GLCanvas3D.cpp:3990
+msgid "Use %1%left mouse key to enter text edit mode:"
+msgstr "Stiskněte %1%levé tlačítko myši pro vstup do režimu textové editace:\n"
+
 #: src/slic3r/GUI/DoubleSlider.cpp:1276
 msgid "Use another extruder"
 msgstr "Použít jiný extruder"
@@ -10067,6 +10270,10 @@ msgstr "verze"
 msgid "Vertical shells"
 msgstr "Svislé stěny"
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:237
+msgid "Vertical Slider"
+msgstr "Vertikální posuvník"
+
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:234
 msgid "Vertical slider - Add color change marker for current layer"
 msgstr "Vertikální posuvník - Přidat značku změny barvy pro aktuální vrstvu"
@@ -10105,7 +10312,7 @@ msgstr "Vertikální posuvník - Pohyb spodním posuvníkem k aktivnímu posuvn�
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:232
 msgid "Vertical slider - Set upper thumb as active"
-msgstr "Vertikální posuvník -Nastavit horní ukazatel jako aktivní"
+msgstr "Vertikální posuvník - Nastavit horní ukazatel jako aktivní"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:232
 msgid "Vertical slider - Set upper thumb to current thumb"
@@ -10457,6 +10664,10 @@ msgstr "Nelze načíst SLA projekt s objektem na podložce, který je složený 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:625
 msgid "You cannot use non-uniform scaling mode for multiple objects/parts selection"
 msgstr "Nemůžete použít nestejnoměrnou změnu měřítka pro více vybraných objektů/částí"
+
+#: src/slic3r/GUI/NotificationManager.hpp:459
+msgid "You have just added a G-code for color change, but its value is empty.\nTo export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\""
+msgstr "Právě jste přidali G-code pro změnu barvy, ale jeho obsah je prázdný.\nChcete-li exportovat G-code správně, zkontrolujte „G-code pro změnu barvy“ v „Nastavení tiskárny> Vlastní G-code“"
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:277
 msgid "You have selected physical printer \"%1%\" \nwith related printer preset \"%2%\""
