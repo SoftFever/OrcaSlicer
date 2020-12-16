@@ -242,8 +242,7 @@ private:
 		bool				   requires_render() const { return m_state == EState::FadingOutRender || m_state == EState::ClosePending || m_state == EState::Finished; }
 		bool				   requires_update() const { return m_state != EState::Hidden; }
 		EState                 get_state() const { return m_state; }
-		wxLongLong		       next_render() const { return m_next_render; }
-//		void				   reset_start_time() {	m_notification_start = wxGetLocalTimeMillis(); }
+		int64_t 		       next_render() const { return m_next_render; }
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 	protected:
@@ -299,13 +298,13 @@ private:
 		int              m_countdown_frame      { 0 };
 		bool             m_fading_out           { false };
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-		wxLongLong		 m_fading_start         { 0LL };
+		int64_t		 	 m_fading_start         { 0LL };
 		// time of last done render when fading
-		wxLongLong		 m_last_render_fading   { 0LL };
+		int64_t		 	 m_last_render_fading   { 0LL };
 		// first appereance of notification or last hover;
-//		wxLongLong		 m_notification_start;
+//		int64_t		 	 m_notification_start;
 		// time to next must-do render
-		wxLongLong       m_next_render          { std::numeric_limits<wxLongLong>::max() };
+		int64_t          m_next_render          { std::numeric_limits<int64_t>::max() };
 #else
 		// total time left when fading beggins
 		float            m_fading_time{ 0.0f };

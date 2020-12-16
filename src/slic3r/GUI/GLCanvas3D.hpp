@@ -349,7 +349,7 @@ class GLCanvas3D
 
     public:
         void add_frame(int64_t frame) {
-            int64_t now = wxGetLocalTimeMillis().GetValue();
+            int64_t now = GLCanvas3D::timestamp_now();
             if (!m_frames.empty() && now - m_frames.front().first > 1000) {
                 m_curr_total -= m_frames.front().second;
                 m_frames.pop();
@@ -454,14 +454,14 @@ private:
     // when true renders an extra frame by not resetting m_dirty to false
     // see request_extra_frame()
     bool m_extra_frame_requested; 
-    wxLongLong m_extra_frame_requested_delayed { std::numeric_limits<wxLongLong>::max() };
+    int  m_extra_frame_requested_delayed { std::numeric_limits<int>::max() };
     bool m_event_handlers_bound{ false };
 
     mutable GLVolumeCollection m_volumes;
     GCodeViewer m_gcode_viewer;
 
     RenderTimer m_render_timer;
-    wxLongLong  m_render_timer_start;
+    int64_t     m_render_timer_start;
 
     Selection m_selection;
     const DynamicPrintConfig* m_config;
@@ -742,7 +742,7 @@ public:
     void msw_rescale();
 
     void request_extra_frame() { m_extra_frame_requested = true; }
-    void request_extra_frame_delayed(wxLongLong miliseconds);
+    void request_extra_frame_delayed(int miliseconds);
 
     int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
@@ -773,10 +773,16 @@ public:
         return ret;
     }
 
-    
-    
-
-    
+    // Timestamp for FPS calculation and notification fade-outs.
+    static int64_t timestamp_now() {
+#ifdef _WIN32
+        // Cheaper on Windows, calls GetSystemTimeAsFileTime()
+        return wxGetUTCTimeMillis().GetValue();
+#else
+        // calls clock()
+        return wxGetLocalTimeMillis().GetValue();
+#endif
+    }
 
 private:
     bool _is_shown_on_screen() const;

@@ -1612,7 +1612,7 @@ void GLCanvas3D::render()
 #endif // ENABLE_ENVIRONMENT_MAP
 
     m_render_timer.Stop();
-    m_extra_frame_requested_delayed = std::numeric_limits<size_t>::max();
+    m_extra_frame_requested_delayed = std::numeric_limits<int>::max();
 
     const Size& cnv_size = get_canvas_size();
     // Probably due to different order of events on Linux/GTK2, when one switched from 3D scene
@@ -2381,6 +2381,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_KEY_UP, &GLCanvas3D::on_key, this);
         m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
+        m_canvas->Unbind(EVT_GLCANVAS_RENDER_TIMER, &GLCanvas3D::on_render_timer, this);
         m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
 		m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
@@ -2994,23 +2995,22 @@ void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
     m_dirty = true;
 }
 
-void GLCanvas3D::request_extra_frame_delayed(wxLongLong miliseconds)
+void GLCanvas3D::request_extra_frame_delayed(int miliseconds)
 {
-   
-    if (!m_render_timer.IsRunning() ) {
+    int64_t now = timestamp_now();
+    if (! m_render_timer.IsRunning()) {
         m_extra_frame_requested_delayed = miliseconds;
-        m_render_timer.StartOnce((int)miliseconds.ToLong());
-        m_render_timer_start = wxGetLocalTimeMillis();
+        m_render_timer.StartOnce(miliseconds);
+        m_render_timer_start = now;
     } else {
-        const wxLongLong remaining_time = m_extra_frame_requested_delayed - (wxGetLocalTimeMillis() - m_render_timer_start);
-        if(miliseconds < remaining_time) {
+        const int64_t remaining_time = (m_render_timer_start + m_extra_frame_requested_delayed) - now;
+        if (miliseconds < remaining_time) {
             m_render_timer.Stop(); 
             m_extra_frame_requested_delayed = miliseconds;
-            m_render_timer.StartOnce((int)miliseconds.ToLong());
-            m_render_timer_start = wxGetLocalTimeMillis();
+            m_render_timer.StartOnce(miliseconds);
+            m_render_timer_start = now;
         }
     }
-
 }
 
 #ifndef NDEBUG

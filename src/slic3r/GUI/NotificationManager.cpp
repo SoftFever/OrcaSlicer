@@ -139,7 +139,6 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
     , m_hypertext           (n.hypertext)
     , m_text2               (n.text2)
 	, m_evt_handler         (evt_handler)
-//	, m_notification_start  (wxGetLocalTimeMillis())
 {
 	//init();
 }
@@ -152,7 +151,7 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	}
 
 	if (m_fading_out) 
-		m_last_render_fading = wxGetLocalTimeMillis();
+		m_last_render_fading = GLCanvas3D::timestamp_now();
 
 	Size cnv_size = canvas.get_canvas_size();
 	ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -754,7 +753,7 @@ void NotificationManager::PopNotification::update_state()
 	if (!m_initialized)
 		init();
 
-	m_next_render = std::numeric_limits<wxLongLong>::max();
+	m_next_render = std::numeric_limits<int64_t>::max();
 
 	if (m_hidden) {
 		m_state = EState::Hidden;
@@ -766,21 +765,23 @@ void NotificationManager::PopNotification::update_state()
 		m_fading_out = false;
 		m_current_fade_opacity = 1.0f;
 		m_remaining_time = m_data.duration;
-//		m_notification_start = wxGetLocalTimeMillis();
+//		m_notification_start = GLCanvas3D::timestamp_now();
 //		BOOST_LOG_TRIVIAL(error) << "hover";
 	}
 
+	int64_t now = GLCanvas3D::timestamp_now();
+
 	if (m_counting_down) {
-		//wxMilliClock_t up_time = wxGetLocalTimeMillis() - m_notification_start;
+		//int64_t up_time = GLCanvas3D::timestamp_now() - m_notification_start;
 
 		if (m_fading_out && m_current_fade_opacity <= 0.0f)
 			m_finished = true;
 		else if (!m_fading_out && m_remaining_time <=0/*up_time >= m_data.duration * 1000*/) {
 			m_fading_out = true;
-			m_fading_start = wxGetLocalTimeMillis();
-			m_last_render_fading = wxGetLocalTimeMillis();
+			m_fading_start = now;
+			m_last_render_fading = now;
 		} else if (!m_fading_out) {
-			m_next_render = std::min<wxLongLong>(/*m_data.duration * 1000 - up_time*/m_remaining_time * 1000, MAX_TIMEOUT_MILISECONDS);
+			m_next_render = std::min<int64_t>(/*m_data.duration * 1000 - up_time*/m_remaining_time * 1000, MAX_TIMEOUT_MILISECONDS);
 			//BOOST_LOG_TRIVIAL(error) << (boost::format("up time %1% next render %2%") % up_time % m_next_render);
 		}
 		
@@ -802,12 +803,12 @@ void NotificationManager::PopNotification::update_state()
 	if (m_fading_out) {
 		if (!m_paused) {
 			m_state = EState::FadingOutStatic;
-			wxMilliClock_t curr_time      = wxGetLocalTimeMillis() - m_fading_start;
-			wxMilliClock_t no_render_time = wxGetLocalTimeMillis() - m_last_render_fading;
-			m_current_fade_opacity = std::clamp(1.0f - 0.001f * static_cast<float>(curr_time.GetValue()) / FADING_OUT_DURATION, 0.0f, 1.0f);
+			int64_t curr_time      = now - m_fading_start;
+			int64_t no_render_time = now - m_last_render_fading;
+			m_current_fade_opacity = std::clamp(1.0f - 0.001f * static_cast<float>(curr_time) / FADING_OUT_DURATION, 0.0f, 1.0f);
 			auto next_render = FADING_OUT_TIMEOUT - no_render_time;
 			if (next_render <= 0) {
-				//m_last_render_fading = wxGetLocalTimeMillis();
+				//m_last_render_fading = GLCanvas3D::timestamp_now();
 				m_state = EState::FadingOutRender;
 				m_next_render = 0;
 			} else 
@@ -1425,16 +1426,16 @@ void NotificationManager::update_notifications()
 		m_requires_update = true;
 
 	//request frames
-	wxLongLong next_render = std::numeric_limits<wxLongLong>::max();
-	const wxLongLong max = std::numeric_limits<wxLongLong>::max();
+	int64_t next_render = std::numeric_limits<int64_t>::max();
+	const int64_t max = std::numeric_limits<int64_t>::max();
 	for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		next_render = std::min<wxLongLong>(next_render, notification->next_render());
+		next_render = std::min<int64_t>(next_render, notification->next_render());
 	}
 
 	if (next_render == 0)
 		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
 	else if (next_render < max)
-		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame_delayed(next_render);
+		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame_delayed(int(next_render));
 
 	// actualizate timers
 	wxWindow* p = dynamic_cast<wxWindow*>(wxGetApp().plater());
