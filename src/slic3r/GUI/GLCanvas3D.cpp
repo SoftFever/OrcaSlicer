@@ -2409,7 +2409,6 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
     if (!m_initialized)
         return;
-
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
     /*NotificationManager* notification_mgr = wxGetApp().plater()->get_notification_manager();
     if (notification_mgr->requires_update())
@@ -2982,7 +2981,17 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
 {
-    render();
+    // If slicer is not top window -> restart timer with one second to try again
+    wxWindow* p = dynamic_cast<wxWindow*>(wxGetApp().plater());
+    while (p->GetParent() != nullptr)
+        p = p->GetParent();
+    wxTopLevelWindow* top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
+    if (!top_level_wnd->IsActive()) {
+        request_extra_frame_delayed(1000);
+        return;
+    }
+    //render();
+    m_dirty = true;
 }
 
 void GLCanvas3D::request_extra_frame_delayed(wxLongLong miliseconds)
@@ -2995,6 +3004,7 @@ void GLCanvas3D::request_extra_frame_delayed(wxLongLong miliseconds)
     } else {
         const wxLongLong remaining_time = m_extra_frame_requested_delayed - (wxGetLocalTimeMillis() - m_render_timer_start);
         if(miliseconds < remaining_time) {
+            m_render_timer.Stop(); 
             m_extra_frame_requested_delayed = miliseconds;
             m_render_timer.StartOnce((int)miliseconds.ToLong());
             m_render_timer_start = wxGetLocalTimeMillis();

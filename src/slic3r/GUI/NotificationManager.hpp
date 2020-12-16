@@ -232,7 +232,7 @@ private:
 		const NotificationData get_data() const { return m_data; }
 		const bool             is_gray() const { return m_is_gray; }
 		// Call equals one second down
-		void                   substract_remaining_time() { m_remaining_time--; }
+		void                   substract_remaining_time(int seconds) { m_remaining_time -= seconds; }
 		void                   set_gray(bool g) { m_is_gray = g; }
 		void                   set_paused(bool p) { m_paused = p; }
 		bool                   compare_text(const std::string& text);
@@ -243,7 +243,7 @@ private:
 		bool				   requires_update() const { return m_state != EState::Hidden; }
 		EState                 get_state() const { return m_state; }
 		wxLongLong		       next_render() const { return m_next_render; }
-		void				   reset_start_time() {	m_notification_start = wxGetLocalTimeMillis(); }
+//		void				   reset_start_time() {	m_notification_start = wxGetLocalTimeMillis(); }
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 	protected:
@@ -303,7 +303,7 @@ private:
 		// time of last done render when fading
 		wxLongLong		 m_last_render_fading   { 0LL };
 		// first appereance of notification or last hover;
-		wxLongLong		 m_notification_start;
+//		wxLongLong		 m_notification_start;
 		// time to next must-do render
 		wxLongLong       m_next_render          { std::numeric_limits<wxLongLong>::max() };
 #else

@@ -22,6 +22,9 @@ static constexpr float SPACE_RIGHT_PANEL = 10.0f;
 static constexpr float FADING_OUT_DURATION = 2.0f;
 // Time in Miliseconds after next render is requested
 static constexpr int   FADING_OUT_TIMEOUT = 100;
+// If timeout is changed to higher than 1 second, substract_time call should be revorked
+static constexpr int   MAX_TIMEOUT_MILISECONDS = 1000; 
+static constexpr int   MAX_TIMEOUT_SECONDS = 1;
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 namespace Slic3r {
@@ -136,7 +139,7 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
     , m_hypertext           (n.hypertext)
     , m_text2               (n.text2)
 	, m_evt_handler         (evt_handler)
-	, m_notification_start  (wxGetLocalTimeMillis())
+//	, m_notification_start  (wxGetLocalTimeMillis())
 {
 	//init();
 }
@@ -763,24 +766,26 @@ void NotificationManager::PopNotification::update_state()
 		m_fading_out = false;
 		m_current_fade_opacity = 1.0f;
 		m_remaining_time = m_data.duration;
+//		m_notification_start = wxGetLocalTimeMillis();
+		BOOST_LOG_TRIVIAL(error) << "hover";
 	}
 
 	if (m_counting_down) {
-		wxMilliClock_t up_time = wxGetLocalTimeMillis() - m_notification_start;
-		
+		//wxMilliClock_t up_time = wxGetLocalTimeMillis() - m_notification_start;
+
 		if (m_fading_out && m_current_fade_opacity <= 0.0f)
 			m_finished = true;
-		else if (!m_fading_out && up_time >= m_remaining_time * 1000) {
+		else if (!m_fading_out && m_remaining_time <=0/*up_time >= m_data.duration * 1000*/) {
 			m_fading_out = true;
 			m_fading_start = wxGetLocalTimeMillis();
 			m_last_render_fading = wxGetLocalTimeMillis();
 		} else if (!m_fading_out) {
-			m_next_render = m_remaining_time * 1000 - up_time;
-			BOOST_LOG_TRIVIAL(error) << (boost::format("next render %1%") % m_next_render);
+			m_next_render = std::min<wxLongLong>(/*m_data.duration * 1000 - up_time*/m_remaining_time * 1000, MAX_TIMEOUT_MILISECONDS);
+			//BOOST_LOG_TRIVIAL(error) << (boost::format("up time %1% next render %2%") % up_time % m_next_render);
 		}
 		
 	}
-
+	
 	if (m_finished) {
 		m_state = EState::Finished;
 		m_next_render = 0;
@@ -802,15 +807,15 @@ void NotificationManager::PopNotification::update_state()
 			m_current_fade_opacity = std::clamp(1.0f - 0.001f * static_cast<float>(curr_time.GetValue()) / FADING_OUT_DURATION, 0.0f, 1.0f);
 			auto next_render = FADING_OUT_TIMEOUT - no_render_time;
 			if (next_render <= 0) {
-				m_last_render_fading = wxGetLocalTimeMillis();
+				//m_last_render_fading = wxGetLocalTimeMillis();
 				m_state = EState::FadingOutRender;
 				m_next_render = 0;
 			} else 
 				m_next_render = next_render;
-			BOOST_LOG_TRIVIAL(error) << (boost::format("fade render %1%") % m_next_render);
+			//BOOST_LOG_TRIVIAL(error) << (boost::format("fade render %1%") % m_next_render);
 		}
 	}
-	
+	BOOST_LOG_TRIVIAL(error) << (boost::format("remaining time %1% fading %2% next render %3%") % m_remaining_time % m_fading_out % m_next_render);
 }
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
@@ -1399,11 +1404,6 @@ void NotificationManager::update_notifications()
 			break;
 		}
 	}
-	if (m_hovered) {
-		for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-			notification->reset_start_time();
-		}
-	}
 
 
 	// Reuire render if some notification was just deleted.
@@ -1450,13 +1450,13 @@ void NotificationManager::update_notifications()
 		long now = wxGetLocalTime();
 		// Pausing fade-out when the mouse is over some notification.
 		if (!m_hovered && m_last_time < now) {
-			if (now - m_last_time >= 1) {
+			if (now - m_last_time >= MAX_TIMEOUT_SECONDS) {
 				for (auto& notification : m_pop_notifications) {
 					//if (notification->get_state() != PopNotification::EState::Static)
-						notification->substract_remaining_time();
+						notification->substract_remaining_time(MAX_TIMEOUT_SECONDS);
 				}
+				m_last_time = now;
 			}
-			m_last_time = now;
 		}
 	}
 }
