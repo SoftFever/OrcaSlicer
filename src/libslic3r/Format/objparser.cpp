@@ -338,11 +338,14 @@ bool objparse(const char *path, ObjData &data)
 					char *c = buf + lastLine;
 					while (*c == ' ' || *c == '\t')
 						++ c;
+					//FIXME check the return value and exit on error?
+					// Will it break parsing of some obj files?
 					obj_parseline(c, data);
 					lastLine = i + 1;
 				}
 			lenPrev = len - lastLine;
 			memmove(buf, buf + lastLine, lenPrev);
+			assert(lenPrev <= 65536);
 		}
     }
     catch (std::bad_alloc&) {

@@ -70,7 +70,8 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
                 ++ num_normals;
             }
         }
-        if (data.vertices[i].coordIdx != -1) {
+        // Result of obj_parseline() call is not checked, thus not all vertices are necessarily finalized with coord_Idx == -1.
+        if (i < data.vertices.size() && data.vertices[i].coordIdx != -1) {
             // This is a quad. Produce the other triangle.
             stl_facet &facet2 = stl.facet_start[i_face++];
             facet2.vertex[0] = facet.vertex[0];
