@@ -32,48 +32,44 @@ static TriangleMesh _generate_interior(const TriangleMesh  &mesh,
                                        double               voxel_scale,
                                        double               closing_dist)
 {
-    TriangleMesh imesh{mesh};
-    
-    _scale(voxel_scale, imesh);
-    
     double offset = voxel_scale * min_thickness;
     double D = voxel_scale * closing_dist;
     float  out_range = 0.1f * float(offset);
     float  in_range = 1.1f * float(offset + D);
-    
+
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(0, L("Hollowing"));
-    
-    auto gridptr = mesh_to_grid(imesh, {}, out_range, in_range);
-    
+
+    auto gridptr = mesh_to_grid(mesh, {}, voxel_scale, out_range, in_range);
+
     assert(gridptr);
-    
+
     if (!gridptr) {
         BOOST_LOG_TRIVIAL(error) << "Returned OpenVDB grid is NULL";
         return {};
     }
-    
+
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(30, L("Hollowing"));
-    
+
+    double iso_surface = D;
+    auto   narrowb = double(in_range);
     if (closing_dist > .0) {
-        gridptr = redistance_grid(*gridptr, -(offset + D), double(in_range));
+        gridptr = redistance_grid(*gridptr, -(offset + D), narrowb, narrowb);
     } else {
-        D = -offset;
+        iso_surface = -offset;
     }
-    
+
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(70, L("Hollowing"));
-    
-    double iso_surface = D;
+
     double adaptivity = 0.;
+
     auto omesh = grid_to_mesh(*gridptr, iso_surface, adaptivity);
-    
-    _scale(1. / voxel_scale, omesh);
-    
+
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(100, L("Hollowing"));
-    
+
     return omesh;
 }
 
