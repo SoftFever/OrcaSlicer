@@ -917,6 +917,12 @@ void Choice::BUILD() {
 #endif //__WXOSX__
     }
 
+#ifdef __WXGTK3__
+    wxSize best_sz = temp->GetBestSize();
+    if (best_sz.x > size.x)
+        temp->SetSize(best_sz);
+#endif //__WXGTK3__
+
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
