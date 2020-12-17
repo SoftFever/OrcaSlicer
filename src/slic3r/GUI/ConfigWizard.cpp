@@ -35,6 +35,11 @@
 #include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
+#if defined(__linux__) && defined(__WXGTK3__)
+#define wxLinux_gtk3 true
+#else
+#define wxLinux_gtk3 false
+#endif //defined(__linux__) && defined(__WXGTK3__)
 
 namespace Slic3r {
 namespace GUI {
@@ -409,7 +414,11 @@ ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxStrin
 
     SetSizer(sizer);
 
-    this->Hide();
+    // There is strange layout on Linux with GTK3, 
+    // see https://github.com/prusa3d/PrusaSlicer/issues/5103 and https://github.com/prusa3d/PrusaSlicer/issues/4861
+    // So, non-active pages will be hidden later, on wxEVT_SHOW, after completed Layout() for all pages 
+    if (!wxLinux_gtk3)
+        this->Hide();
 
     Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
         this->Layout();
@@ -2642,6 +2651,20 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 
         Layout();
     });
+
+    if (wxLinux_gtk3)
+        this->Bind(wxEVT_SHOW, [this, vsizer](const wxShowEvent& e) {
+            ConfigWizardPage* active_page = p->index->active_page();
+            if (!active_page)
+                return;
+            for (auto page : p->all_pages)
+                if (page != active_page)
+                    page->Hide();
+            // update best size for the dialog after hiding of the non-active pages
+            vsizer->SetSizeHints(this);
+            // set initial dialog size
+            p->init_dialog_size();
+        });
 }
 
 ConfigWizard::~ConfigWizard() {}
