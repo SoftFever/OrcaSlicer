@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include <boost/log/trivial.hpp>
+
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
 #else
@@ -22,7 +24,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
     // Parse the OBJ file.
     ObjParser::ObjData data;
     if (! ObjParser::objparse(path, data)) {
-        //    die "Failed to parse $file\n" if !-e $path;
+        BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path;
         return false;
     }
     
@@ -103,7 +105,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
     stl_get_size(&stl);
     mesh.repair();
     if (mesh.facets_count() == 0) {
-        // die "This OBJ file couldn't be read because it's empty.\n"
+        BOOST_LOG_TRIVIAL(error) << "load_obj: This OBJ file couldn't be read because it's empty. " << path;
         return false;
     }
     
