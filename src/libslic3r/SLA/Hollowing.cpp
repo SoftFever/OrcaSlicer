@@ -26,11 +26,36 @@ inline void _scale(S s, TriangleMesh &m) { m.scale(float(s)); }
 template<class S, class = FloatingOnly<S>>
 inline void _scale(S s, Contour3D &m) { for (auto &p : m.points) p *= s; }
 
-static TriangleMesh _generate_interior(const TriangleMesh  &mesh,
-                                       const JobController &ctl,
-                                       double               min_thickness,
-                                       double               voxel_scale,
-                                       double               closing_dist)
+struct Interior {
+    TriangleMesh mesh;
+    openvdb::FloatGrid::Ptr gridptr;
+    double closing_distance = 0.;
+    double thickness = 0.;
+    double voxel_scale = 1.;
+    double nb_in = 3.;
+    double nb_out = 3.;
+};
+
+void InteriorDeleter::operator()(Interior *p)
+{
+    delete p;
+}
+
+TriangleMesh &get_mesh(Interior &interior)
+{
+    return interior.mesh;
+}
+
+const TriangleMesh &get_mesh(const Interior &interior)
+{
+    return interior.mesh;
+}
+
+static InteriorPtr generate_interior_verbose(const TriangleMesh & mesh,
+                                             const JobController &ctl,
+                                             double min_thickness,
+                                             double voxel_scale,
+                                             double closing_dist)
 {
     double offset = voxel_scale * min_thickness;
     double D = voxel_scale * closing_dist;
@@ -64,22 +89,30 @@ static TriangleMesh _generate_interior(const TriangleMesh  &mesh,
     else ctl.statuscb(70, L("Hollowing"));
 
     double adaptivity = 0.;
+    InteriorPtr interior = InteriorPtr{new Interior{}};
 
-    auto omesh = grid_to_mesh(*gridptr, iso_surface, adaptivity);
+    interior->mesh = grid_to_mesh(*gridptr, iso_surface, adaptivity);
+    interior->gridptr = gridptr;
 
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(100, L("Hollowing"));
 
-    return omesh;
+    interior->closing_distance = D;
+    interior->thickness = offset;
+    interior->voxel_scale = voxel_scale;
+    interior->nb_in = narrowb;
+    interior->nb_out = narrowb;
+
+    return interior;
 }
 
-std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &   mesh,
-                                                const HollowingConfig &hc,
-                                                const JobController &  ctl)
+InteriorPtr generate_interior(const TriangleMesh &   mesh,
+                              const HollowingConfig &hc,
+                              const JobController &  ctl)
 {
     static const double MIN_OVERSAMPL = 3.;
     static const double MAX_OVERSAMPL = 8.;
-        
+
     // I can't figure out how to increase the grid resolution through openvdb
     // API so the model will be scaled up before conversion and the result
     // scaled down. Voxels have a unit size. If I set voxelSize smaller, it
@@ -88,26 +121,29 @@ std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &   mesh,
     //
     // max 8x upscale, min is native voxel size
     auto voxel_scale = MIN_OVERSAMPL + (MAX_OVERSAMPL - MIN_OVERSAMPL) * hc.quality;
-    auto meshptr = std::make_unique<TriangleMesh>(
-        _generate_interior(mesh, ctl, hc.min_thickness, voxel_scale,
-                           hc.closing_distance));
-    
-    if (meshptr && !meshptr->empty()) {
-        
+
+    InteriorPtr interior =
+        generate_interior_verbose(mesh, ctl, hc.min_thickness, voxel_scale,
+                                  hc.closing_distance);
+
+    if (interior && !interior->mesh.empty()) {
+
         // This flips the normals to be outward facing...
-        meshptr->require_shared_vertices();
-        indexed_triangle_set its = std::move(meshptr->its);
-        
+        interior->mesh.require_shared_vertices();
+        indexed_triangle_set its = std::move(interior->mesh.its);
+
         Slic3r::simplify_mesh(its);
-        
+
         // flip normals back...
         for (stl_triangle_vertex_indices &ind : its.indices)
             std::swap(ind(0), ind(2));
-        
-        *meshptr = Slic3r::TriangleMesh{its};
+
+        interior->mesh = Slic3r::TriangleMesh{its};
+        interior->mesh.repaired = true;
+        interior->mesh.require_shared_vertices();
     }
-    
-    return meshptr;
+
+    return interior;
 }
 
 Contour3D DrainHole::to_mesh() const
@@ -269,12 +305,22 @@ void cut_drainholes(std::vector<ExPolygons> & obj_slices,
         obj_slices[i] = diff_ex(obj_slices[i], hole_slices[i]);
 }
 
-void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg)
+void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg, int flags)
 {
-    std::unique_ptr<Slic3r::TriangleMesh> inter_ptr =
-            Slic3r::sla::generate_interior(mesh);
+    InteriorPtr interior = generate_interior(mesh, cfg, JobController{});
+    if (!interior) return;
 
-    if (inter_ptr) mesh.merge(*inter_ptr);
+    hollow_mesh(mesh, *interior, flags);
+}
+
+void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags)
+{
+    if (mesh.empty() || interior.mesh.empty()) return;
+
+//    if (flags & hfRemoveInsideTriangles && interior.gridptr)
+//        erase_inside_triangles_2(mesh, interior);
+
+    mesh.merge(interior.mesh);
     mesh.require_shared_vertices();
 }
 

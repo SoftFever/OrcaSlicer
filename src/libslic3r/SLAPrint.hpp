@@ -327,8 +327,8 @@ private:
     class HollowingData
     {
     public:
-        
-        TriangleMesh interior;
+
+        sla::InteriorPtr interior;
         mutable TriangleMesh hollow_mesh_with_holes; // caching the complete hollowed mesh
     };
     

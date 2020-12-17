@@ -131,13 +131,14 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
     double quality  = po.m_config.hollowing_quality.getFloat();
     double closing_d = po.m_config.hollowing_closing_distance.getFloat();
     sla::HollowingConfig hlwcfg{thickness, quality, closing_d};
-    auto meshptr = generate_interior(po.transformed_mesh(), hlwcfg);
 
-    if (meshptr->empty())
+    sla::InteriorPtr interior = generate_interior(po.transformed_mesh(), hlwcfg);
+
+    if (!interior || sla::get_mesh(*interior).empty())
         BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
     else {
         po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
-        po.m_hollowing_data->interior = *meshptr;
+        po.m_hollowing_data->interior = std::move(interior);
     }
 }
 
@@ -145,7 +146,9 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 {
     bool needs_drilling = ! po.m_model_object->sla_drain_holes.empty();
-    bool is_hollowed = (po.m_hollowing_data && ! po.m_hollowing_data->interior.empty());
+    bool is_hollowed =
+        (po.m_hollowing_data && po.m_hollowing_data->interior &&
+         !sla::get_mesh(*po.m_hollowing_data->interior).empty());
 
     if (! is_hollowed && ! needs_drilling) {
         // In this case we can dump any data that might have been
@@ -163,10 +166,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     // holes that are no longer on the frontend.
     TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
     hollowed_mesh = po.transformed_mesh();
-    if (! po.m_hollowing_data->interior.empty()) {
-        hollowed_mesh.merge(po.m_hollowing_data->interior);
-        hollowed_mesh.require_shared_vertices();
-    }
+    sla::hollow_mesh(hollowed_mesh, *po.m_hollowing_data->interior/*, sla::hfRemoveInsideTriangles*/);
 
     if (! needs_drilling) {
         BOOST_LOG_TRIVIAL(info) << "Drilling skipped (no holes).";
@@ -260,9 +260,15 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     auto &slice_grid = po.m_model_height_levels;
     slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &po.m_model_slices, thr);
     
-    if (po.m_hollowing_data && ! po.m_hollowing_data->interior.empty()) {
-        po.m_hollowing_data->interior.repair(true);
-        TriangleMeshSlicer interior_slicer(&po.m_hollowing_data->interior);
+    sla::Interior *interior = po.m_hollowing_data ?
+                                  po.m_hollowing_data->interior.get() :
+                                  nullptr;
+
+    if (interior && ! sla::get_mesh(*interior).empty()) {
+        TriangleMesh interiormesh = sla::get_mesh(*interior);
+        interiormesh.repaired = false;
+        interiormesh.repair(true);
+        TriangleMeshSlicer interior_slicer(&interiormesh);
         std::vector<ExPolygons> interior_slices;
         interior_slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &interior_slices, thr);
 

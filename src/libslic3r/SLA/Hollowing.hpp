@@ -19,6 +19,17 @@ struct HollowingConfig
     bool enabled = true;
 };
 
+enum HollowingFlags { hfRemoveInsideTriangles = 0x1 };
+
+// All data related to a generated mesh interior. Includes the 3D grid and mesh
+// and various metadata. No need to manipulate from outside.
+struct Interior;
+struct InteriorDeleter { void operator()(Interior *p); };
+using  InteriorPtr = std::unique_ptr<Interior, InteriorDeleter>;
+
+TriangleMesh &      get_mesh(Interior &interior);
+const TriangleMesh &get_mesh(const Interior &interior);
+
 struct DrainHole
 {
     Vec3f pos;
@@ -60,11 +71,15 @@ using DrainHoles = std::vector<DrainHole>;
 
 constexpr float HoleStickOutLength = 1.f;
 
-std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &mesh,
-                                                const HollowingConfig &  = {},
-                                                const JobController &ctl = {});
+InteriorPtr generate_interior(const TriangleMesh &mesh,
+                              const HollowingConfig &  = {},
+                              const JobController &ctl = {});
 
-void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg);
+// Will do the hollowing
+void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg, int flags = 0);
+
+// Hollowing prepared in "interior", merge with original mesh
+void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags = 0);
 
 void cut_drainholes(std::vector<ExPolygons> & obj_slices,
                     const std::vector<float> &slicegrid,
