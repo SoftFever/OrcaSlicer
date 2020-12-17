@@ -19,11 +19,6 @@ msgstr "\"%1%\" est désactivé car \"%2%\" est activé dans la catégorie \"%3%
 msgid "%"
 msgstr "%"
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:969
-#, possible-c-format
-msgid "%.2f - %.2f mm"
-msgstr "%.2f - %.2f mm"
-
 #. TRN  Remove/Delete
 #: src/slic3r/GUI/Tab.cpp:3425
 msgid "%1% Preset"
@@ -296,10 +291,6 @@ msgstr "(Re)Découper Main&tenant"
 msgid "(Unknown)"
 msgstr "(Inconnu)"
 
-#: src/slic3r/GUI/Plater.cpp:1195
-msgid "(weight with spool)"
-msgstr "(poids avec la bobine)"
-
 #: src/slic3r/GUI/MainFrame.cpp:1491
 msgid ") not found."
 msgstr ") non trouvé."
@@ -385,11 +376,6 @@ msgstr "Au sujet de %s"
 #: src/slic3r/GUI/GCodeViewer.cpp:2189
 msgid "above"
 msgstr "au-dessus"
-
-#: src/slic3r/GUI/GLCanvas3D.cpp:965
-#, possible-c-format
-msgid "above %.2f mm"
-msgstr "au dessus de %.2f mm"
 
 #: src/libslic3r/PrintConfig.cpp:1677
 msgid "Above Z"
@@ -744,6 +730,10 @@ msgstr "Toutes les surfaces supérieures"
 msgid "allocation failed"
 msgstr "échec de l'allocation"
 
+#: src/slic3r/GUI/Preferences.cpp:161 src/slic3r/GUI/Preferences.cpp:165
+msgid "Allow just a single PrusaSlicer instance"
+msgstr "N'autoriser qu'une seule instance de PrusaSlicer"
+
 #: src/slic3r/GUI/Plater.cpp:3915
 msgid "Along X axis"
 msgstr "Le long de l'axe X"
@@ -1010,6 +1000,10 @@ msgstr "Vitesse automatique (avancé)"
 #: src/libslic3r/PrintConfig.cpp:169
 msgid "Avoid crossing perimeters"
 msgstr "Éviter de traverser les périmètres"
+
+#: src/libslic3r/PrintConfig.cpp:188
+msgid "Avoid crossing perimeters - Max detour length"
+msgstr "Éviter de croiser les périmètres - Longueur de détour maximum"
 
 #: src/slic3r/GUI/Tab.cpp:3705
 msgid "BACK ARROW"
@@ -1388,6 +1382,11 @@ msgstr "Vérifier les mises à jour de configuration"
 msgid "Check for updates"
 msgstr "Vérifier les mises à jo&ur"
 
+#: src/slic3r/Utils/PresetUpdater.cpp:412
+#: src/slic3r/Utils/PresetUpdater.cpp:420
+msgid "checking install indices"
+msgstr "vérification des indices d'installation"
+
 #: src/slic3r/GUI/BedShapeDialog.cpp:608
 msgid "Choose a file to import bed texture from (PNG/SVG):"
 msgstr "Choisir un fichier à partir duquel importer la texture du plateau (PNG/SVG) :"
@@ -1432,10 +1431,6 @@ msgstr "Cercle"
 #: src/slic3r/GUI/BedShapeDialog.cpp:142
 msgid "Circular"
 msgstr "Circulaire"
-
-#: src/slic3r/GUI/GLCanvas3D.cpp:3961
-msgid "Clearance size"
-msgstr "Espacement"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:5028 src/slic3r/GUI/GLCanvas3D.cpp:5067
 msgid "Click right mouse button to open/close History"
@@ -1510,11 +1505,6 @@ msgstr "Changement de couleur (\"%1%\")"
 #: src/slic3r/GUI/DoubleSlider.cpp:1131
 msgid "Color change (\"%1%\") for Extruder %2%"
 msgstr "Changement de couleur (\"%1%\") pour l'extrudeur %2%"
-
-#: src/slic3r/GUI/GLCanvas3D.cpp:1001
-#, possible-c-format
-msgid "Color change for Extruder %d at %.2f mm"
-msgstr "Changement de couleur pour l'Extrudeur %d à %.2f mm"
 
 #: src/slic3r/GUI/Tab.cpp:2203
 msgid "Color Change G-code"
@@ -1729,6 +1719,22 @@ msgstr "Copier dans le presse-papier"
 msgid "Copy to Clipboard"
 msgstr "Copier dans le Presse-Papier"
 
+#: src/slic3r/GUI/AboutDialog.cpp:304
+msgid "Copy Version Info"
+msgstr "Copier les Infos de Version"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:84
+msgid "Copying of file %1% to %2% failed.\nError message : %3%\nCopying was triggered by function: %4%"
+msgstr "La copie du fichier %1% vers %2% a échoué.\nMessage d'erreur : %3%\n La copie a été déclenchée par la fonction : %4%"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:91
+msgid "Copying of file %1% to %2% failed. Permissions fail at target file after copying.\nError message : %3%\nCopying was triggered by function: %4%"
+msgstr "La copie du fichier %1% vers %2% a échoué. Échec d'autorisation sur le fichier cible après copie.\nMessage d'erreur : %3%\n Cette erreur s'est produite au cours de la phase de %4%. "
+
+#: src/slic3r/Utils/PresetUpdater.cpp:70
+msgid "Copying of file %1% to %2% failed. Permissions fail at target file before copying.\nError message : %3%\nThis error happend during %4% phase."
+msgstr "La copie du fichier %1% vers %2% a échoué. Échec d'autorisation sur le fichier cible avant copie.\nMessage d'erreur : %3%\nCette erreur s'est produite au cours de la phase de %4%. "
+
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:156
 msgid "Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."
 msgstr "La copie du G-code temporaire est terminée mais le code exporté n'a pas pu être ouvert au cours de la vérification de copie. Le G-code de sortie se trouve en %1%.tmp."
@@ -1825,6 +1831,10 @@ msgstr "Créer un socle autour de l'objet et ignorer l'élévation du support"
 #: src/libslic3r/PrintConfig.cpp:2888
 msgid "Critical angle"
 msgstr "Angle critique"
+
+#: src/slic3r/GUI/GUI_App.cpp:589
+msgid "Critical error"
+msgstr "Erreur critique"
 
 #: src/libslic3r/PrintConfig.cpp:2832
 msgid "Cross"
@@ -1978,10 +1988,6 @@ msgstr "Profil de filament par défaut"
 #: src/libslic3r/PrintConfig.cpp:380
 msgid "Default filament profile associated with the current printer profile. On selection of the current printer profile, this filament profile will be activated."
 msgstr "Profil de filament par défaut associé au profil d'imprimante courant. En sélectionnant le profil d'imprimante courant, ce profil de filament sera activé."
-
-#: src/slic3r/GUI/GLCanvas3D.cpp:910 src/slic3r/GUI/GLCanvas3D.cpp:939
-msgid "Default print color"
-msgstr "Couleur d'impression par défaut"
 
 #: src/slic3r/GUI/Tab.cpp:1302
 msgid "default print profile"
@@ -2433,9 +2439,13 @@ msgstr "Dupliquer par grille"
 msgid "Duration"
 msgstr "Durée"
 
-#: src/slic3r/GUI/PresetHints.cpp:39
-msgid "During the other layers, fan"
-msgstr "Pendant les autres couches, le ventilateur"
+#: src/slic3r/GUI/PresetHints.cpp:51
+msgid "During the other layers, fan will always run at %1%%%"
+msgstr "Pour toutes les autres couches, le ventilateur fonctionnera toujours à %1%%%"
+
+#: src/slic3r/GUI/PresetHints.cpp:58
+msgid "During the other layers, fan will be turned off."
+msgstr "Pour les autres couches, le ventilateur sera désactivé."
 
 #: src/libslic3r/PrintConfig.cpp:2833
 msgid "Dynamic"
@@ -3071,10 +3081,6 @@ msgstr "Extrudeur changé à"
 msgid "Extruder clearance"
 msgstr "Dégagement de l'extrudeur"
 
-#: src/slic3r/GUI/Tab.cpp:1563
-msgid "Extruder clearance (mm)"
-msgstr "Dégagement de l'extrudeur (mm)"
-
 #: src/libslic3r/PrintConfig.cpp:558
 msgid "Extruder Color"
 msgstr "Couleur de l'extrudeur"
@@ -3155,9 +3161,9 @@ msgstr "Échec du chargement du modèle d'entrée."
 msgid "Failed processing of the output_filename_format template."
 msgstr "Échec du traitement du modèle output_filename_format."
 
-#: src/slic3r/GUI/PresetHints.cpp:41
-msgid "Fan"
-msgstr "Ventilateur"
+#: src/slic3r/GUI/GUI_App.cpp:1648
+msgid "Failed to activate configuration snapshot."
+msgstr "L'activation de l'instantané de configuration a échoué."
 
 #: src/slic3r/GUI/Tab.cpp:1802
 msgid "Fan settings"
@@ -3170,6 +3176,22 @@ msgstr "Vitesse du ventilateur"
 #: src/slic3r/GUI/GCodeViewer.cpp:2239 src/libslic3r/GCode/PreviewData.cpp:358
 msgid "Fan Speed (%)"
 msgstr "Vitesse du ventilateur (%)"
+
+#: src/slic3r/GUI/PresetHints.cpp:49
+msgid "Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."
+msgstr "La vitesse du ventilateur va augmenter depuis zéro pour la couche %1% jusqu'à %2%%% pour la couche %3%."
+
+#: src/libslic3r/PrintConfig.cpp:1001
+msgid "Fan speed will be ramped up linearly from zero at layer \"disable_fan_first_layers\" to maximum at layer \"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower than \"disable_fan_first_layers\", in which case the fan will be running at maximum allowed speed at layer \"disable_fan_first_layers\" + 1."
+msgstr "La vitesse du ventilateur va augmenter de façon linéaire en partant de zéro pour la couche \"disable_fan_first_layers\" jusqu'au maximum pour la couche \"full_fan_speed_layer\". \"full_fan_speed_layer\" sera ignorée si inférieure à \"disable_fan_first_layers\", auquel cas le ventilateur fonctionnera à la vitesse maximum autorisée pour la couche \"disable_fan_first_layers\" +1. "
+
+#: src/slic3r/GUI/PresetHints.cpp:51
+msgid "Fan will always run at %1%%%"
+msgstr "Le ventilateur fonctionnera toujours à %1%%%"
+
+#: src/slic3r/GUI/PresetHints.cpp:58
+msgid "Fan will be turned off."
+msgstr "Le ventilateur sera désactivé."
 
 #: src/libslic3r/PrintConfig.cpp:2548
 msgid "Fast"
@@ -3521,6 +3543,10 @@ msgstr "Avant"
 msgid "Front View"
 msgstr "Vue Avant"
 
+#: src/libslic3r/PrintConfig.cpp:1000
+msgid "Full fan speed at layer"
+msgstr "Ventilateur à pleine vitesse pour la couche"
+
 #: src/slic3r/GUI/Tab.cpp:1331
 msgid "full profile name"
 msgstr "nom de profil complet"
@@ -3548,6 +3574,10 @@ msgstr "Version du G-code"
 #: src/slic3r/GUI/MainFrame.cpp:66 src/slic3r/GUI/MainFrame.cpp:79
 msgid "G-code preview"
 msgstr "Aperçu du G-code"
+
+#: src/libslic3r/PrintConfig.cpp:66
+msgid "G-code thumbnails"
+msgstr "Vignettes G-code"
 
 #: src/libslic3r/PrintConfig.cpp:3552
 msgid "G-code viewer"
@@ -3643,6 +3673,10 @@ msgstr "Génération du tampon de vertex"
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2181
 msgid "Generic"
 msgstr "Générique"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:600
+msgid "getting config updates"
+msgstr "obtention des mises à jour de configuration"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:169
 msgid "Gizmo cut"
@@ -3880,6 +3914,10 @@ msgstr "Nid d'abeille"
 msgid "Horizontal shells"
 msgstr "Coques horizontales"
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:253
+msgid "Horizontal Slider"
+msgstr "Barre de Défilement Horizontale"
+
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:209
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:213
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:238
@@ -3891,30 +3929,6 @@ msgstr "Barre de défilement horizontale - Déplacer le curseur actif vers la Ga
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:239
 msgid "Horizontal slider - Move active thumb Right"
 msgstr "Barre de défilement horizontale - Déplacer le curseur actif vers la Droite"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:238
-msgid "Horizontal slider - Move current thumb Left"
-msgstr "Barre de défilement horizontale - Déplacer le curseur actuel vers la Gauche"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:239
-msgid "Horizontal slider - Move current thumb Right"
-msgstr "Barre de défilement horizontale - Déplacer vers la droite actuelle"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:236
-msgid "Horizontal slider - Set left thumb as active"
-msgstr "Barre de défilement horizontale - Définir le curseur de gauche comme actif"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:236
-msgid "Horizontal slider - Set left thumb to current thumb"
-msgstr "Barre de défilement horizontale - Régler le curseur de gauche sur le curseur actuel"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:237
-msgid "Horizontal slider - Set right thumb as active"
-msgstr "Barre de défilement horizontale - Définir le curseur de droite comme actif"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:237
-msgid "Horizontal slider - Set right thumb to current thumb"
-msgstr "Barre de défilement horizontale - Régler le curseur de droite sur le curseur actuel"
 
 #: src/libslic3r/PrintConfig.cpp:279
 msgid "Horizontal width of the brim that will be printed around each object on the first layer."
@@ -4055,7 +4069,7 @@ msgstr "Si activé, le bouton de réduction de la barre latérale apparaîtra da
 msgid "If enabled, the command line arguments are sent to an existing instance of GUI PrusaSlicer, or an existing PrusaSlicer window is activated. Overrides the \"single_instance\" configuration value from application preferences."
 msgstr "Si activé, les arguments de ligne de commande sont envoyés à une instance existante de la GUI de PrusaSlicer, ou une fenêtre existante de PrusaSlicer est activée. Remplace la valeur de configuration \"single_instance\" des préférences de l'application."
 
-#: src/slic3r/GUI/Preferences.cpp:278
+#: src/slic3r/GUI/Preferences.cpp:294
 msgid "If enabled, the descriptions of configuration parameters in settings tabs wouldn't work as hyperlinks. If disabled, the descriptions of configuration parameters in settings tabs will work as hyperlinks."
 msgstr "Si activé, les descriptions des paramètres de configuration dans les onglets de réglage ne fonctionneront pas comme hyperliens. Si désactivé, les descriptions des paramètres de configuration dans les onglets de réglage fonctionneront comme hyperliens."
 
@@ -4335,10 +4349,6 @@ msgstr "Info"
 msgid "Information"
 msgstr "Information"
 
-#: src/slic3r/GUI/PhysicalPrinterDialog.cpp:547
-msgid "Infornation"
-msgstr "Information"
-
 #: src/libslic3r/PrintConfig.cpp:1101
 msgid "Inherits profile"
 msgstr "Hérite du profil"
@@ -4355,6 +4365,11 @@ msgstr "Temps d'exposition initial"
 msgid "Initial layer height"
 msgstr "Hauteur de couche initiale"
 
+#: src/slic3r/GUI/Field.cpp:269
+#, possible-c-format
+msgid "Input value is out of range\nAre you sure that %s is a correct value and that you want to continue?"
+msgstr "La valeur d'entrée est hors limites\nÊtes-vous certain que %s est une valeur correcte et que vous voulez continuer?"
+
 #: src/slic3r/GUI/Field.cpp:252 src/slic3r/GUI/Field.cpp:1370
 msgid "Input value is out of range"
 msgstr "La valeur entrée est hors plage"
@@ -4362,6 +4377,10 @@ msgstr "La valeur entrée est hors plage"
 #: src/slic3r/GUI/GUI_App.cpp:1480
 msgid "Inspect / activate configuration snapshots"
 msgstr "Inspecter / activer les instantanés de configuration"
+
+#: src/slic3r/Utils/PresetUpdater.cpp:120
+msgid "install"
+msgstr "installer"
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:62
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:218
@@ -4431,6 +4450,10 @@ msgstr "Pénétration de Tête invalide"
 #: src/libslic3r/miniz_extension.cpp:107
 msgid "invalid header or archive is corrupted"
 msgstr "entête non valide ou archive corrompue"
+
+#: src/slic3r/GUI/Field.cpp:375
+msgid "Invalid input format. Expected vector of dimensions in the following format: \"%1%\""
+msgstr "Format d'entrée non valide. Vecteur de dimensions attendu dans le format suivant : \"%1%\""
 
 #: src/slic3r/GUI/Field.cpp:243 src/slic3r/GUI/Field.cpp:274
 #: src/slic3r/GUI/Field.cpp:1358 src/slic3r/GUI/GUI_ObjectLayers.cpp:413
@@ -4520,21 +4543,6 @@ msgstr "Sauter à la hauteur %s\nou Définir le mode règle"
 #, possible-c-format
 msgid "Jump to height %s\nSet ruler mode\nor Set extruder sequence for the entire print"
 msgstr "Sauter à la hauteur %s\nDéfinir le mode règle\nou Définir la séquence d'extrusion pour toute l'impression"
-
-#: src/slic3r/GUI/DoubleSlider.cpp:1075
-#, possible-c-format
-msgid "Jump to height %s or Set extruder sequence for the entire print"
-msgstr "Sauter à la hauteur %s ou Définir la séquence d'extrusion pour toute l'impression"
-
-#: src/slic3r/GUI/DoubleSlider.cpp:1222
-#, possible-c-format
-msgid "Jump to height %s or Set ruler mode"
-msgstr "Sauter à la hauteur %s ou Définir le mode règle"
-
-#: src/slic3r/GUI/DoubleSlider.cpp:1220
-#, possible-c-format
-msgid "Jump to height %s Set ruler mode\n or Set extruder sequence for the entire print"
-msgstr "Sauter à la hauteur %s Définir le mode règle\nou Définir la séquence d'extrusion pour toute l'impression"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1071 src/slic3r/GUI/DoubleSlider.cpp:1852
 msgid "Jump to move"
@@ -4646,10 +4654,6 @@ msgstr "Couches et périmètres"
 msgid "Layers and Perimeters"
 msgstr "Couches et Périmètres"
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:225
-msgid "Layers Slider"
-msgstr "Barre de défilement des couches"
-
 #: src/slic3r/GUI/OptionsGroup.cpp:293
 msgctxt "Layers"
 msgid "Bottom"
@@ -4694,10 +4698,6 @@ msgstr "Bouton gauche de souris :"
 #: src/slic3r/GUI/MainFrame.cpp:968 src/slic3r/GUI/MainFrame.cpp:1288
 msgid "Left View"
 msgstr "Vue Gauche"
-
-#: src/slic3r/GUI/GUI_Preview.cpp:339
-msgid "Legend"
-msgstr "Légende"
 
 #: src/slic3r/GUI/GUI_Preview.cpp:1480
 msgid "Legend/Estimated printing time"
@@ -5355,6 +5355,10 @@ msgstr "mm (zéro pour désactiver)"
 msgid "mm or %"
 msgstr "mm ou %"
 
+#: src/libslic3r/PrintConfig.cpp:193
+msgid "mm or % (zero to disable)"
+msgstr "mm ou % (zéro pour désactiver)"
+
 #: src/libslic3r/PrintConfig.cpp:271 src/libslic3r/PrintConfig.cpp:645
 #: src/libslic3r/PrintConfig.cpp:653 src/libslic3r/PrintConfig.cpp:662
 #: src/libslic3r/PrintConfig.cpp:670 src/libslic3r/PrintConfig.cpp:697
@@ -5494,6 +5498,22 @@ msgstr "Déplacer la barre de défilement active vers la Gauche"
 msgid "Move active slider thumb Right"
 msgstr "Déplacer la barre de défilement active vers la Droite"
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:220
+msgid "Move active thumb Down"
+msgstr "Déplacer le curseur actif vers le Bas"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:241
+msgid "Move active thumb Left"
+msgstr "Déplacer le curseur actif vers la Gauche"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:242
+msgid "Move active thumb Right"
+msgstr "Déplacer le curseur actif vers la Droite"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:219
+msgid "Move active thumb Up"
+msgstr "Déplacer le curseur actif vers le Haut"
+
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:1219
 msgid "Move clipping plane"
 msgstr "Déplacer le plan de coupe"
@@ -5502,14 +5522,6 @@ msgstr "Déplacer le plan de coupe"
 msgid "Move current slider thumb Down"
 msgstr "Déplacer la barre de défilement actuelle vers le Bas"
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:229
-msgid "Move current slider thumb Left"
-msgstr "Déplacer la barre de défilement actuelle vers la Gauche"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:230
-msgid "Move current slider thumb Right"
-msgstr "Déplacer la barre de défilement actuelle vers la Droite"
-
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:215
 msgid "Move current slider thumb Up"
 msgstr "Déplacer la barre de défilement actuelle vers le Haut"
@@ -5517,16 +5529,6 @@ msgstr "Déplacer la barre de défilement actuelle vers le Haut"
 #: src/slic3r/GUI/Gizmos/GLGizmoHollow.cpp:835
 msgid "Move drainage hole"
 msgstr "Déplacer le trou de drainage"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:209
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:213
-msgid "Move horizontal slider current thumb Left"
-msgstr "Déplacer la Barre de défilement horizontale vers la Gauche actuelle"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:210
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:214
-msgid "Move horizontal slider current thumb Right"
-msgstr "Déplacer la barre de défilement horizontale vers la Droite actuelle"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:3810
 msgid "Move Object"
@@ -5555,16 +5557,6 @@ msgstr "Déplacer la sélection de 10 mm dans la direction positive Y"
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:955
 msgid "Move support point"
 msgstr "Déplacer un point de support"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:208
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:212
-msgid "Move vertical slider current thumb Down"
-msgstr "Déplacer la barre de défilement verticale vers le Bas actuel"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:207
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:211
-msgid "Move vertical slider current thumb Up"
-msgstr "Déplacer la barre de défilement verticale vers le Haut actuel"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:2492
 msgid "Movement"
@@ -5955,6 +5947,14 @@ msgstr "Mode couche unique"
 msgid "One or more object were assigned an extruder that the printer does not have."
 msgstr "Un ou plusieurs objets ont été affectés à un extrudeur que l'imprimante ne possède pas."
 
+#: src/slic3r/GUI/GUI_App.cpp:1784
+msgid "Ongoing uploads"
+msgstr "Téléchargements en cours"
+
+#: src/libslic3r/Print.cpp:1269
+msgid "Only a single object may be printed at a time in Spiral Vase mode. Either remove all but the last object, or enable sequential mode by \"complete_objects\"."
+msgstr "Vous ne pouvez imprimer qu'un seul objet à la fois en mode Vase Spirale. Vous devez soit retirer tous les objets sauf le dernier, soit activer le mode séquentiel avec \"complete_objects\"."
+
 #: src/libslic3r/PrintConfig.cpp:2045 src/libslic3r/PrintConfig.cpp:2840
 msgid "Only create support if it lies on a build plate. Don't create support on a print."
 msgstr "Créer uniquement des supports reposant sur le plateau. Ne pas créer pas de supports sur une impression."
@@ -6307,11 +6307,6 @@ msgstr "Mettre en pause l'impression (\"%1%\")"
 msgid "Pause Print G-code"
 msgstr "G-code de pause de l'impression"
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:940 src/slic3r/GUI/GLCanvas3D.cpp:949
-#: src/slic3r/GUI/GLCanvas3D.cpp:988
-msgid "Pause print or custom G-code"
-msgstr "Pause d'impression ou G-code personnalisé"
-
 #: src/libslic3r/PrintConfig.cpp:1147
 msgid "Percent of a flow rate relative to object's normal layer height."
 msgstr "Pourcentage d'un débit par rapport à la hauteur de couche normale de l'objet."
@@ -6360,9 +6355,9 @@ msgstr "Imprimantes physiques"
 msgid "Pick another vendor supported by %s"
 msgstr "Choisissez un autre fournisseur pris en charge par %s"
 
-#: src/libslic3r/PrintConfig.cpp:66
-msgid "Picture sizes to be stored into a .gcode and .sl1 files"
-msgstr "Tailles d'image devant être stockées dans des fichiers .gcode et .sl1"
+#: src/libslic3r/PrintConfig.cpp:67
+msgid "Picture sizes to be stored into a .gcode and .sl1 files, in the following format: \"XxY, XxY, ...\""
+msgstr "Tailles de photo à stocker dans un fichier .gcode et .sl1, au format suivant : \"XxY, XxY, ...\""
 
 #: src/libslic3r/PrintConfig.cpp:2822
 msgid "Pillar connection mode"
@@ -6485,11 +6480,7 @@ msgid "Preset \"%1%\" is not compatible with the new printer profile and it has 
 msgstr "Le préréglage \"%1%\" n’est pas compatible avec le nouveau profil d’imprimante et comporte les modifications non enregistrées suivantes :"
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:136
-msgid "Preset with name \"%1%\" already exists and is imcopatible with selected printer."
-msgstr "Le préréglage avec le nom \"%1%\" existe déjà et est incompatible avec l'imprimante sélectionnée."
-
-#: src/slic3r/GUI/SavePresetDialog.cpp:136
-msgid "Preset with name \"%1%\" already exists and is incopatible with selected printer."
+msgid "Preset with name \"%1%\" already exists and is incompatible with selected printer."
 msgstr "Un préréglage nommé \"%1%\" existe déjà et il est incompatible avec l'imprimante sélectionnée."
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:148
@@ -6500,6 +6491,10 @@ msgstr "Un préréglage avec le nom \"%1%\" existe déjà."
 msgctxt "PresetName"
 msgid "Copy"
 msgstr "Copie"
+
+#: src/slic3r/GUI/GLCanvas3D.cpp:3990
+msgid "Press %1%left mouse button to enter the exact value"
+msgstr "Appuyez sur %1% clic gauche sur la souris pour saisir la valeur exacte "
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:157
 msgid "Press to activate deselection rectangle"
@@ -6718,6 +6713,10 @@ msgstr "PrusaSlicer a détecté un stockage de certificats SSL système dans : %
 #: src/slic3r/GUI/GUI_Init.cpp:85 src/slic3r/GUI/GUI_Init.cpp:88
 msgid "PrusaSlicer GUI initialization failed"
 msgstr "L'initialisation de la GUI de PrusaSlicer a échoué"
+
+#: src/slic3r/GUI/GUI_App.cpp:586
+msgid "PrusaSlicer has encountered a localization error. Please report to PrusaSlicer team, what language was active and in which scenario this issue happened. Thank you.\n\nThe application will now terminate."
+msgstr "PrusaSlicer a rencontré une erreur de localisation. Veuillez signaler à l'équipe PrusaSlicer quelle langue était active et dans quel scénario cette erreur s'est produite. Merci.\n\nL'application va maintenant fermer."
 
 #: src/slic3r/GUI/AboutDialog.cpp:285
 msgid "PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community."
@@ -7737,10 +7736,6 @@ msgstr "Seq."
 msgid "Sequential printing"
 msgstr "Impression séquentielle"
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:235
-msgid "Sequential Slider"
-msgstr "Barre de défilement séquentielle"
-
 #: src/slic3r/GUI/Preferences.cpp:230
 msgid "Sequential slider applied only to top layer"
 msgstr "Barre de défilement séquentielle appliquée uniquement à la couche supérieure"
@@ -7786,6 +7781,14 @@ msgstr "Définir la séquence d'extrusion pour l'ensemble de l'impression"
 msgid "Set extruder(tool) sequence"
 msgstr "Définir la séquence d'extrudeur (outil)"
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:243
+msgid "Set left thumb as active"
+msgstr "Définir le curseur de gauche comme actif"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:222
+msgid "Set lower thumb as active"
+msgstr "Définir le curseur du bas comme actif"
+
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:218
 msgid "Set lower thumb to current slider thumb"
 msgstr "Définir le curseur inférieur sur la position actuelle de la barre de défilement"
@@ -7818,6 +7821,10 @@ msgstr "Définir Imprimable"
 #: src/slic3r/GUI/Selection.cpp:1515
 msgid "Set Printable Instance"
 msgstr "Définir une Instance Imprimable"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:244
+msgid "Set right thumb as active"
+msgstr "Définir le curseur de droite comme actif"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1836
 msgid "Set ruler mode"
@@ -7886,6 +7893,10 @@ msgstr "Définir non-Imprimable"
 #: src/slic3r/GUI/Selection.cpp:1515
 msgid "Set Unprintable Instance"
 msgstr "Définir une Instance non-Imprimable"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:221
+msgid "Set upper thumb as active"
+msgstr "Définir le curseur du haut comme actif"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:217
 msgid "Set upper thumb to current slider thumb"
@@ -8224,10 +8235,6 @@ msgstr "Slic3r peut envoyer des fichiers G-codes vers un hôte d'imprimante. Ce 
 #: src/libslic3r/PrintConfig.cpp:107
 msgid "Slic3r can upload G-code files to a printer host. This field should contain the API Key or the password required for authentication."
 msgstr "Slic3r peut envoyer des fichiers G-code à un hôte d'impression. Ce champ doit contenir la clé d'API ou le mot de passe requis pour l'authentification."
-
-#: src/libslic3r/PrintConfig.cpp:100
-msgid "Slic3r can upload G-code files to a printer host. This field should contain the hostname, IP address or URL of the printer host instance."
-msgstr "Slic3r peut télécharger des fichiers G-code vers un hôte d'impression. Ce champ doit contenir le nom d'hôte, l'adresse IP ou l'URL de l'instance hôte d'impression."
 
 #: src/libslic3r/PrintConfig.cpp:100
 msgid "Slic3r can upload G-code files to a printer host. This field should contain the hostname, IP address or URL of the printer host instance. Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL in the following format: https://username:password@your-octopi-address/"
@@ -8631,6 +8638,10 @@ msgstr "Fichier STL exporté vers %s"
 msgid "Stop at height"
 msgstr "Hauteur d'arrêt"
 
+#: src/slic3r/GUI/GUI_App.cpp:1781
+msgid "Stop them and continue anyway?"
+msgstr "Les arrêter et continuer malgré tout ?"
+
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:295
 msgid "Success!"
 msgstr "Réussi !"
@@ -8766,10 +8777,6 @@ msgstr "Supporte le mode silencieux"
 #: src/slic3r/GUI/ConfigManipulation.cpp:158
 msgid "Supports work better, if the following feature is enabled:\n- Detect bridging perimeters"
 msgstr "Les supports fonctionnent mieux, si la fonctionnalité suivante est activée :\n- Détecter les périmètres de pontage"
-
-#: src/slic3r/GUI/DoubleSlider.cpp:1824
-msgid "Supprese show the ruler"
-msgstr "Supprimer l'affichage de la règle"
 
 #: src/slic3r/GUI/Preferences.cpp:104
 msgid "Suppress \" - default - \" presets"
@@ -8985,6 +8992,18 @@ msgstr "Les modèles d'imprimantes FFF suivants n'ont aucun filament sélectionn
 msgid "The following presets were modified:"
 msgstr "Les préréglages suivants ont été modifiés :"
 
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:253
+msgid "The following shortcuts are applicable in G-code preview when the horizontal slider is active"
+msgstr "Les raccourcis suivants s'appliquent dans la prévisualisation G-code lorsque la barre de défilement horizontale est active"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:237
+msgid "The following shortcuts are applicable in G-code preview when the vertical slider is active"
+msgstr "Les raccourcis suivants s'appliquent dans la prévisualisation G-code lorsque la barre de défilement verticale est active"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:179
+msgid "The following shortcuts are applicable when the specified gizmo is active"
+msgstr "Les raccourcis suivants s'appliquent lorsque le gizmo spécifié est actif"
+
 #: src/slic3r/GUI/ConfigWizard.cpp:2275
 msgid "The following SLA printer models have no materials selected:"
 msgstr "Les modèles d'imprimantes SLA suivants n'ont aucun matériau sélectionné :"
@@ -9021,6 +9040,10 @@ msgstr "La distance maximum entre deux piliers pour qu'ils soient reliés. Une v
 msgid "The max length of a bridge"
 msgstr "La longueur maximum d'un pont"
 
+#: src/libslic3r/PrintConfig.cpp:190
+msgid "The maximum detour length for avoid crossing perimeters. If the detour is longer than this value, avoid crossing perimeters is not applied for this travel path. Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path."
+msgstr "La longueur de détour maximum pour éviter de croiser les périmètres. Si le détour est plus long que cette valeur, l'option éviter les périmètres croisés ne s'applique pas pour ce chemin de déplacement. La longueur de détour peut être spécifiée soit comme une valeur absolue soit comme le pourcentage (par exemple 50%) d'un chemin de déplacement direct."
+
 #: src/libslic3r/PrintConfig.cpp:2878
 msgid "The minimum distance of the pillar base from the model in mm. Makes sense in zero elevation mode where a gap according to this parameter is inserted between the model and the pad."
 msgstr "Distance minimum entre la base du pilier et le modèle en mm. Utile en mode élévation zéro où un espace correspondant à ce paramètre est inséré entre le modèle et le socle."
@@ -9028,6 +9051,14 @@ msgstr "Distance minimum entre la base du pilier et le modèle en mm. Utile en m
 #: src/slic3r/GUI/SavePresetDialog.cpp:142
 msgid "The name cannot be empty."
 msgstr "Le nom ne peut pas être vide."
+
+#: src/slic3r/GUI/SavePresetDialog.cpp:152
+msgid "The name cannot end with space character."
+msgstr "Le nom ne peut pas se terminer par le caractère espace."
+
+#: src/slic3r/GUI/SavePresetDialog.cpp:147
+msgid "The name cannot start with space character."
+msgstr "Le nom ne peut pas commencer par un caractère espace."
 
 #: src/libslic3r/PrintConfig.cpp:219
 msgid "The number of bottom solid layers is increased above bottom_solid_layers if necessary to satisfy minimum thickness of bottom shell."
@@ -9130,10 +9161,6 @@ msgstr "La vitesse des rétractations (ne s'applique qu'au moteur de l'extrudeur
 msgid "The Spiral Vase mode requires:\n- one perimeter\n- no top solid layers\n- 0% fill density\n- no support material\n- Ensure vertical shell thickness enabled\n- Detect thin walls disabled"
 msgstr "Les prérequis du mode Vase Spiral sont :\n-Un seul périmètre\n-Aucunes couches solides supérieures\n-Une densité de remplissage de 0%\n-Pas de support\n-Vérifier que l'épaisseur de coque verticale est activée\n-La détection de parois fines doit être désactivée"
 
-#: src/libslic3r/Print.cpp:1263
-msgid "The Spiral Vase option can only be used when printing a single object."
-msgstr "L'option Vase Spirale ne peut être utilisé que lors de l'impression d'un seul objet."
-
 #: src/libslic3r/Print.cpp:1270
 msgid "The Spiral Vase option can only be used when printing single material objects."
 msgstr "L'option Vase Spirale ne peut être utilisé que lors de l'impression d'objets mono-matériau."
@@ -9160,6 +9187,10 @@ msgstr "Les réglages fournis vont entraîner une impression vide."
 #: src/libslic3r/PrintConfig.cpp:2953
 msgid "The thickness of the pad and its optional cavity walls."
 msgstr "L'épaisseur du socle et de ses parois de cavité optionnelles."
+
+#: src/slic3r/GUI/GUI_App.cpp:1781
+msgid "The uploads are still ongoing"
+msgstr "Les téléchargements sont toujours en cours"
 
 #: src/libslic3r/PrintConfig.cpp:2053
 msgid "The vertical distance between object and support material interface. Setting this to 0 will also prevent Slic3r from using bridge flow and speed for the first object layer."
@@ -9314,9 +9345,9 @@ msgstr "Cette fonction permet de combiner le remplissage afin d'accélérer l'im
 msgid "This feature allows to force a solid layer every given number of layers. Zero to disable. You can set this to any value (for example 9999); Slic3r will automatically choose the maximum possible number of layers to combine according to nozzle diameter and layer height."
 msgstr "Cette fonction permet de forcer l'impression d'une couche solide après le nombre de couches indiqué. Réglez sur zéro pour la désactiver. Vous pouvez indiquer n'importe quelle valeur (par exemple 9999); Slic3r choisira automatiquement le nombre maximum de couches a combiner en fonction du diamètre de la buse et de l'épaisseur des couches."
 
-#: src/libslic3r/PrintConfig.cpp:1910
-msgid "This feature will raise Z gradually while printing a single-walled object in order to remove any visible seam. This option requires a single perimeter, no infill, no top solid layers and no support material. You can still set any number of bottom solid layers as well as skirt/brim loops. It won't work when printing more than an object."
-msgstr "Cette fonction élèvera le Z graduellement en cas d'impression d'un objet à paroi unique, afin de rendre invisibles les jointures. Cette option nécessite de n'avoir qu'un seul périmètre, de ne pas avoir de remplissage, ni de surface solide supérieure, ni de support. Vous pouvez toujours choisir le nombre de surface solides inférieures de même que les boucles des jupes et des bordures. Cela ne fonctionnera pas si vous imprimez plus d'un objet."
+#: src/libslic3r/PrintConfig.cpp:1995
+msgid "This feature will raise Z gradually while printing a single-walled object in order to remove any visible seam. This option requires a single perimeter, no infill, no top solid layers and no support material. You can still set any number of bottom solid layers as well as skirt/brim loops. It won't work when printing more than one single object."
+msgstr "Cette fonction va élever Z progressivement au cours de l'impression d'un objet à paroi unique afin de supprimer toute jonction visible. Cette option requiert un périmètre unique, aucun remplissage, aucune couche supérieure solide et aucun matériau de support. Vous pouvez toujours paramétrer le nombre de couches inférieures que vous souhaitez de même que des boucles de jupe/bordure. Cela ne fonctionnera pas si vous imprimez plus d'un objet unique."
 
 #: src/slic3r/GUI/Plater.cpp:2329
 msgid "This file cannot be loaded in a simple mode. Do you want to switch to an advanced mode?"
@@ -9394,10 +9425,6 @@ msgstr "L'accélération que l'imprimante utilisera pour la première couche. R�
 #: src/libslic3r/PrintConfig.cpp:1026
 msgid "This is the acceleration your printer will use for infill. Set zero to disable acceleration control for infill."
 msgstr "Il s'agit de l'accélération que votre imprimante utilisera pour le remplissage. Régler sur zéro afin de désactiver le contrôle de l'accélération pour le remplissage."
-
-#: src/libslic3r/PrintConfig.cpp:1508
-msgid "This is the acceleration your printer will use for perimeters. A high value like 9000 usually gives good results if your hardware is up to the job. Set zero to disable acceleration control for perimeters."
-msgstr "L'accélération que votre imprimante utilisera pour les périmètres. Une valeur élevée comme 9000  donne généralement de bons résultats si votre matériel le permet. Régler sur zéro afin de désactiver le contrôle de l'accélération pour les périmètres."
 
 #: src/libslic3r/PrintConfig.cpp:1582
 msgid "This is the acceleration your printer will use for perimeters. Set zero to disable acceleration control for perimeters."
@@ -9574,10 +9601,6 @@ msgstr "Pour utiliser un fichier CA personnalisé, veuillez importer votre fichi
 #, possible-c-format
 msgid "Toggle %c axis mirroring"
 msgstr "Activer la symétrie sur l'axe %c"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:215
-msgid "Toggle vertical slider one layer mode ON/OFF"
-msgstr "Basculer le mode couche unique de la barre de défilement verticale sur ON/OFF"
 
 #: src/libslic3r/miniz_extension.cpp:93
 msgid "too many files"
@@ -9836,11 +9859,6 @@ msgstr "Sélection non supportée"
 msgid "up to"
 msgstr "jusqu'à"
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:961
-#, possible-c-format
-msgid "up to %.2f mm"
-msgstr "jusqu'à %.2f mm"
-
 #: src/slic3r/GUI/UpdateDialogs.cpp:38
 msgid "Update available"
 msgstr "Mise à jour disponible"
@@ -9889,10 +9907,6 @@ msgstr "Couche supérieure"
 #: src/slic3r/GUI/DoubleSlider.cpp:1276
 msgid "Use another extruder"
 msgstr "Utiliser un autre extrudeur"
-
-#: src/slic3r/GUI/GLCanvas3D.cpp:3959
-msgid "Use CTRL+left mouse key to enter text edit mode:"
-msgstr "Appuyez sur CTRL + clic gauche pour ouvrir le mode édition de texte :"
 
 #: src/slic3r/GUI/Preferences.cpp:220
 msgid "Use custom size for toolbar icons"
@@ -10065,13 +10079,9 @@ msgstr "version"
 msgid "Vertical shells"
 msgstr "Parois verticales"
 
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:234
-msgid "Vertical slider - Add color change marker for current layer"
-msgstr "Barre de défilement verticale - Ajouter un repère de changement de couleur pour la couche en cours"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:235
-msgid "Vertical slider - Delete color change marker for current layer"
-msgstr "Barre de défilement verticale - Supprimer le repère de changement de couleur pour la couche en cours"
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:237
+msgid "Vertical Slider"
+msgstr "Barre de Défilement Verticale"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:208
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:212
@@ -10084,30 +10094,6 @@ msgstr "Barre de défilement verticale - Déplacer le curseur actif vers le Bas"
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:230
 msgid "Vertical slider - Move active thumb Up"
 msgstr "Barre de défilement verticale - Déplacer le curseur actif vers le Haut"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:231
-msgid "Vertical slider - Move current thumb Down"
-msgstr "Barre de défilement verticale - Déplacer vers le Bas actuel"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:230
-msgid "Vertical slider - Move current thumb Up"
-msgstr "Barre de défilement verticale - Déplacer vers le Haut actuel"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:233
-msgid "Vertical slider - Set lower thumb as active"
-msgstr "Barre de défilement verticale - Définir le curseur du bas comme actif"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:233
-msgid "Vertical slider - Set lower thumb to current thumb"
-msgstr "Barre de défilement verticale - Régler le curseur du bas sur le curseur actuel"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:232
-msgid "Vertical slider - Set upper thumb as active"
-msgstr "Barre de défilement verticale - Définir le curseur du haut comme actif"
-
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:232
-msgid "Vertical slider - Set upper thumb to current thumb"
-msgstr "Barre de défilement verticale - Régler le curseur du haut sur le curseur actuel"
 
 #: src/slic3r/GUI/GUI_Preview.cpp:265 src/slic3r/GUI/GUI_Preview.cpp:271
 msgid "View"
@@ -10289,14 +10275,6 @@ msgstr "Largeur des bâtonnets de connexion qui connectent l'objet et le socle g
 msgid "Width of the display"
 msgstr "Largeur de l'affichage"
 
-#: src/slic3r/GUI/PresetHints.cpp:47
-msgid "will always run at %1%%%"
-msgstr "fonctionnera toujours à %1%%%"
-
-#: src/slic3r/GUI/PresetHints.cpp:54
-msgid "will be turned off."
-msgstr "sera désactivé."
-
 #: src/libslic3r/PrintConfig.cpp:2584
 msgid "Will inflate or deflate the sliced 2D polygons according to the sign of the correction."
 msgstr "Va augmenter ou diminuer les polygones 2D découpés en fonction du signe de la correction."
@@ -10455,6 +10433,10 @@ msgstr "Vous ne pouvez pas charger un projet SLA avec un objet en plusieurs part
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:625
 msgid "You cannot use non-uniform scaling mode for multiple objects/parts selection"
 msgstr "Vous ne pouvez pas utiliser un mode de redimensionnement non-uniforme pour une sélection d'objets/de parties multiples"
+
+#: src/slic3r/GUI/NotificationManager.hpp:459
+msgid "You have just added a G-code for color change, but its value is empty.\nTo export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\""
+msgstr "Vous venez d'ajouter un G-code de changement de couleur, mais sa valeur est vide.\nPour exporter le G-code correctement, référez-vous à \"G-code de Changement de Couleur\" dans \"Réglages de l'Imprimante > G-code Personnalisé\""
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:277
 msgid "You have selected physical printer \"%1%\" \nwith related printer preset \"%2%\""
