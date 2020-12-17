@@ -54,44 +54,18 @@ static const char *INDEX_FILENAME = "index.idx";
 static const char *TMP_EXTENSION = ".download";
 
 
-//void copy_file_fix(const fs::path &source, const fs::path &target)
-void copy_file_fix(const fs::path& source, const fs::path& target,const std::string& caller_function_name)
+void copy_file_fix(const fs::path &source, const fs::path &target)
 {
 	static const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;   // aka 644
 
 	BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
 
 	// Make sure the file has correct permission both before and after we copy over it
-	boost::system::error_code ec;
 	if (fs::exists(target)) {
-		fs::permissions(target, perms, ec);
-		if (ec) {
-			std::string msg = GUI::format(
-				_L("Copying of file %1% to %2% failed. Permissions fail at target file before copying.\n"
-				   "Error message : %3%\n"
-				   "This error happend during %4% phase."),
-				source, target, ec.message(), caller_function_name);
-#if defined(__APPLE__) || defined(_WIN32)
-			throw Slic3r::CriticalException(msg);
-#else
-			BOOST_LOG_TRIVIAL(debug) << msg;
-#endif
-		}
+		fs::permissions(target, perms);
 	}
-	ec.clear();
-	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists, ec);
-	if (ec)
-		throw Slic3r::CriticalException(GUI::format(
-			_L("Copying of file %1% to %2% failed.\n"
-			   "Error message : %3%\nCopying was triggered by function: %4%"),
-			source, target, ec.message(), caller_function_name));
-	ec.clear();
-	fs::permissions(target, perms, ec);
-	if (ec)
-		throw Slic3r::CriticalException(GUI::format(
-			_L("Copying of file %1% to %2% failed. Permissions fail at target file after copying.\n"
-			   "Error message : %3%\nCopying was triggered by function: %4%"),
-			source, target, ec.message(), caller_function_name));
+	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists);
+	fs::permissions(target, perms);
 }
 
 struct Update
@@ -117,9 +91,7 @@ struct Update
 
 	void install() const
 	{
-		std::string error_message;
-		copy_file_fix(source, target, _utf8(L("install")));
-			
+		copy_file_fix(source, target);
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const Update &self)
@@ -410,7 +382,7 @@ void PresetUpdater::priv::check_install_indices() const
 
 			if (! fs::exists(path_in_cache)) {
 				BOOST_LOG_TRIVIAL(info) << "Install index from resources: " << path.filename();
-				copy_file_fix(path, path_in_cache, _utf8(L("checking install indices")));
+				copy_file_fix(path, path_in_cache);
 			} else {
 				Index idx_rsrc, idx_cache;
 				idx_rsrc.load(path);
@@ -418,7 +390,7 @@ void PresetUpdater::priv::check_install_indices() const
 
 				if (idx_cache.version() < idx_rsrc.version()) {
 					BOOST_LOG_TRIVIAL(info) << "Update index from resources: " << path.filename();
-					copy_file_fix(path, path_in_cache, _utf8(L("checking install indices")));
+					copy_file_fix(path, path_in_cache);
 				}
 			}
 		}
@@ -598,7 +570,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 			updates.updates.emplace_back(std::move(new_update));
 			// 'Install' the index in the vendor directory. This is used to memoize
 			// offered updates and to not offer the same update again if it was cancelled by the user.
-			copy_file_fix(bundle_path_idx_to_install, bundle_path_idx, _utf8(L("getting config updates")));
+			copy_file_fix(bundle_path_idx_to_install, bundle_path_idx);
 		} else {
 			BOOST_LOG_TRIVIAL(warning) << format("Index for vendor %1% indicates update (%2%) but the new bundle was found neither in cache nor resources",
 				idx.vendor(),
