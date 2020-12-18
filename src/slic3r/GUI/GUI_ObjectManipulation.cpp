@@ -420,7 +420,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     m_main_grid_sizer->Add(editors_grid_sizer, 1, wxEXPAND);
 
-    m_check_inch = new wxCheckBox(parent, wxID_ANY, "Inches");
+    m_check_inch = new wxCheckBox(parent, wxID_ANY, _L("Inches"));
     m_check_inch->SetFont(wxGetApp().normal_font());
 
     m_check_inch->SetValue(m_imperial_units);
