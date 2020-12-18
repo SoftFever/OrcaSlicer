@@ -5328,7 +5328,7 @@ void GLCanvas3D::_render_view_toolbar() const
 {
     GLToolbar& view_toolbar = wxGetApp().plater()->get_view_toolbar();
 
-#if ENABLE_RETINA_GL
+#if __APPLE__
 //     m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale();
     view_toolbar.set_scale(scale); //! #ys_FIXME_experiment
@@ -5337,7 +5337,7 @@ void GLCanvas3D::_render_view_toolbar() const
 //     m_view_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
     const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
     view_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
-#endif // ENABLE_RETINA_GL
+#endif // __APPLE__
 
     Size cnv_size = get_canvas_size();
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
