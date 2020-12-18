@@ -267,8 +267,8 @@ endif()
 #set(Boost_DEBUG ON)
 # set(Boost_COMPILER "-mgw81")
 if(NOT WIN32)
-    # boost::process was introduced first in version 1.64.0
-    set(MINIMUM_BOOST_VERSION "1.64.0")
+    # boost::beast::detail::base64 was introduced first in version 1.66.0
+    set(MINIMUM_BOOST_VERSION "1.66.0")
 endif()
 set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time")
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
