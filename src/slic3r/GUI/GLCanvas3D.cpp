@@ -2288,8 +2288,11 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 {
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
-    if (wxGetApp().is_editor())
+
+    if (wxGetApp().is_editor()) {
+        m_gcode_viewer.update_shells_color_by_extruder(m_config);
         _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
+    }
 }
 
 void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)

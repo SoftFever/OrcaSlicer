@@ -452,6 +452,12 @@ void GCodeViewer::refresh_render_paths()
 }
 #endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
 
+void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig* config)
+{
+    if (config != nullptr)
+        m_shells.volumes.update_colors_by_extruder(config);
+}
+
 void GCodeViewer::reset()
 {
     m_initialized = false;

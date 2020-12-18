@@ -472,6 +472,7 @@ public:
 #if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
     void refresh_render_paths();
 #endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+    void update_shells_color_by_extruder(const DynamicPrintConfig* config);
 
     void reset();
     void render() const;
