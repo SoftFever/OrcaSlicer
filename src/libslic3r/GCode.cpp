@@ -1258,8 +1258,8 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
                     // (See https://github.com/prusa3d/PrusaSlicer/issues/5441.)
                     if (overlap) {
                         print.active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-                            L("Your print is very close to the priming regions. "
-                              "Make sure there is no collision."));
+                            _(L("Your print is very close to the priming regions. "
+                              "Make sure there is no collision.")));
                     } else {
                         // Just continue printing, no action necessary.
                     }
