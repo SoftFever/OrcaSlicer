@@ -146,6 +146,10 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width)
 {
+	if (!m_initialized) {
+		init();
+	}
+
 	if (m_hidden) {
 		m_top_y = initial_y - GAP_WIDTH;
 		return;
