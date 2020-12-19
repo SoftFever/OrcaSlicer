@@ -886,6 +886,23 @@ bool GUI_App::on_init_inner()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
+    if (is_gcode_viewer()) {
+        mainframe->update_layout();
+        if (plater_ != nullptr)
+            // ensure the selected technology is ptFFF
+            plater_->set_printer_technology(ptFFF);
+    }
+    else
+        load_current_presets();
+    mainframe->Show(true);
+
+    obj_list()->set_min_height();
+
+    update_mode(); // update view mode after fix of the object_list size
+
+#ifdef __APPLE__
+    other_instance_message_handler()->bring_instance_forward();
+#endif //__APPLE__
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
@@ -907,12 +924,12 @@ bool GUI_App::on_init_inner()
             this->post_init();
         }
 
-		// Preset updating & Configwizard are done after the above initializations,
-	    // and after MainFrame is created & shown.
-	    // The extra CallAfter() is needed because of Mac, where this is the only way
-	    // to popup a modal dialog on start without screwing combo boxes.
-	    // This is ugly but I honestly found no better way to do it.
-	    // Neither wxShowEvent nor wxWindowCreateEvent work reliably. 
+        // Preset updating & Configwizard are done after the above initializations,
+        // and after MainFrame is created & shown.
+        // The extra CallAfter() is needed because of Mac, where this is the only way
+        // to popup a modal dialog on start without screwing combo boxes.
+        // This is ugly but I honestly found no better way to do it.
+        // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
 
         static bool once = true;
         if (once) {
@@ -929,29 +946,11 @@ bool GUI_App::on_init_inner()
             }
 
 #ifdef _WIN32
-			//sets window property to mainframe so other instances can indentify it
-			OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
+            //sets window property to mainframe so other instances can indentify it
+            OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
 #endif //WIN32
         }
     });
-
-    if (is_gcode_viewer()) {
-        mainframe->update_layout();
-        if (plater_ != nullptr)
-            // ensure the selected technology is ptFFF
-            plater_->set_printer_technology(ptFFF);
-    }
-    else
-        load_current_presets();
-    mainframe->Show(true);
-
-    obj_list()->set_min_height();
-
-    update_mode(); // update view mode after fix of the object_list size
-
-#ifdef __APPLE__
-    other_instance_message_handler()->bring_instance_forward();
-#endif //__APPLE__
 
     m_initialized = true;
     return true;
