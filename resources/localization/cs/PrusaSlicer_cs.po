@@ -1003,7 +1003,7 @@ msgstr "Vyhnout se přejíždění perimetrů"
 
 #: src/libslic3r/PrintConfig.cpp:188
 msgid "Avoid crossing perimeters - Max detour length"
-msgstr "Vyvarovat se přejezdů přes perimetry - maximální délka objízdné cesty"
+msgstr "Vyhnout se přejíždění perimetrů - maximální délka objízdné cesty"
 
 #: src/slic3r/GUI/Tab.cpp:3705
 msgid "BACK ARROW"
@@ -1180,7 +1180,7 @@ msgstr "Úhel vytváření mostů"
 
 #: src/libslic3r/PrintConfig.cpp:238
 msgid "Bridging angle override. If left to zero, the bridging angle will be calculated automatically. Otherwise the provided angle will be used for all bridges. Use 180° for zero angle."
-msgstr "Přepsání úhlu vytváření mostů. Nastavením hodnoty na nulu se bude úhel vytváření mostů vypočítávat automaticky. Při zadání jiného úhlu, bude pro všechny mosty použitý zadaný úhel. Pro nulový úhel zadejte 180°."
+msgstr "Přepsání úhlu vytváření mostů. Nastavením hodnoty na nulu se bude úhel vytváření mostů vypočítávat automaticky. Při zadání jiného úhlu bude pro všechny mosty použitý zadaný úhel. Pro nulový úhel zadejte 180°."
 
 #: src/slic3r/GUI/PresetHints.cpp:218
 msgid "Bridging volumetric"
@@ -1904,6 +1904,10 @@ msgstr "Vlastní nastavení tiskárny"
 msgid "Custom profile name:"
 msgstr "Vlastní název profilu:"
 
+#: src/slic3r/GUI/Plater.cpp:3397
+msgid "Custom supports and seams were removed after repairing the mesh."
+msgstr "Po opravě modelu byly odstraněny vlastní podpěry a švy."
+
 #: src/slic3r/GUI/DoubleSlider.cpp:1135
 msgid "Custom template (\"%1%\")"
 msgstr "Vlastní šablona (\"%1%\")"
@@ -2161,7 +2165,7 @@ msgstr "Hustota"
 
 #: src/libslic3r/PrintConfig.cpp:827
 msgid "Density of internal infill, expressed in the range 0% - 100%."
-msgstr "Hustota vnitřní výplně, vyjádřená v rozmezí 0% až 100%."
+msgstr "Hustota vnitřní výplně vyjádřená v rozmezí 0 až 100 %."
 
 #: src/slic3r/GUI/Tab.cpp:1588 src/slic3r/GUI/Tab.cpp:1895
 #: src/slic3r/GUI/Tab.cpp:2228 src/slic3r/GUI/Tab.cpp:2304
@@ -2779,6 +2783,10 @@ msgstr "Chyba: %s"
 #: src/slic3r/GUI/Jobs/Job.cpp:74
 msgid "ERROR: not enough resources to execute a new job."
 msgstr "CHYBA: nedostatek prostředků ke spuštění nové úlohy."
+
+#: src/slic3r/GUI/Plater.cpp:3374
+msgid "ERROR: Please close all manipulators available from the left toolbar before fixing the mesh."
+msgstr "CHYBA: Před opravou modelu zavřete všechny manipulátory dostupné z levého panelu nástrojů."
 
 #: src/slic3r/GUI/GCodeViewer.cpp:2552 src/slic3r/GUI/GCodeViewer.cpp:2557
 #: src/slic3r/GUI/Plater.cpp:246 src/slic3r/GUI/Plater.cpp:1125
@@ -3438,6 +3446,10 @@ msgstr "Rychlost první vrstvy"
 msgid "First layer volumetric"
 msgstr "Volumetrická hodnota první vrstvy"
 
+#: src/slic3r/GUI/Plater.cpp:3380
+msgid "Fix through NetFabb"
+msgstr "Opravit pomocí NetFabb"
+
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1776
 msgid "Fix through the Netfabb"
 msgstr "Opravit pomocí služby Netfabb"
@@ -3604,7 +3616,7 @@ msgstr "Obecné"
 
 #: src/libslic3r/PrintConfig.cpp:1415
 msgid "Generate no less than the number of skirt loops required to consume the specified amount of filament on the bottom layer. For multi-extruder machines, this minimum applies to each extruder."
-msgstr "Nevygenerovat méně, než počet obrysových smyček, potřebných ke spotřebování specifikovaného množství filamentu na spodní vrstvu. U strojů s více extrudery platí toto minimum pro každý extruder."
+msgstr "Nevygenerovat méně než je počet obrysových smyček potřebných ke spotřebování specifikovaného množství filamentu na spodní vrstvu. U strojů s více extrudery platí toto minimum pro každý extruder."
 
 #: src/libslic3r/PrintConfig.cpp:2007
 msgid "Generate support material"
@@ -3932,7 +3944,7 @@ msgstr "Horizontální posuvník - Pohyb aktivním ukazatelem vpravo"
 
 #: src/libslic3r/PrintConfig.cpp:279
 msgid "Horizontal width of the brim that will be printed around each object on the first layer."
-msgstr "Šírka límce který bude vytištěn v první vrstvě okolo každého objektu."
+msgstr "Šířka límce, který bude vytištěn v první vrstvě okolo každého objektu."
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:150
 msgid "Host"
@@ -4269,6 +4281,10 @@ msgstr "in"
 #, possible-c-format
 msgid "In this mode you can select only other %s Items%s"
 msgstr "V tomto režimu můžete vybrat pouze jinou/jiný %s %s"
+
+#: src/slic3r/GUI/GUI_ObjectManipulation.cpp:423
+msgid "Inches"
+msgstr "Palce"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:230
 msgid "Incompatible bundles:"
@@ -5471,7 +5487,7 @@ msgstr "korun/kg"
 
 #: src/libslic3r/PrintConfig.cpp:461
 msgid "Monotonic"
-msgstr "Monotóní"
+msgstr "Monotónní"
 
 #: src/slic3r/GUI/NotificationManager.cpp:305
 #: src/slic3r/GUI/NotificationManager.cpp:315
@@ -7845,7 +7861,7 @@ msgstr "Nastavte tvar a rozměry vaší tiskové podložky."
 
 #: src/libslic3r/PrintConfig.cpp:592
 msgid "Set this to a non-zero value to allow a manual extrusion width. If left to zero, Slic3r derives extrusion widths from the nozzle diameter (see the tooltips for perimeter extrusion width, infill extrusion width etc). If expressed as percentage (for example: 230%), it will be computed over layer height."
-msgstr "Nastavením kladné hodnoty povolíte manuální šířku extruze. Pokud je hodnota ponechána na nule, Slic3r odvozuje šířku extruze z průměru trysky (viz nápovědy pro šířku extruze perimetru, šířku extruze výplně apod.). Pokud je hodnota vyjádřena procenty (například: 230%), vypočítá se z výšky vrstvy."
+msgstr "Nastavením kladné hodnoty povolíte manuální nastavení šířky extruze. Pokud je hodnota ponechána na nule, Slic3r odvozuje šířku extruze z průměru trysky (viz nápovědy pro šířku extruze perimetru, šířku extruze výplně apod.). Pokud je hodnota vyjádřena procenty (například: 230%), vypočítá se z výšky vrstvy."
 
 #: src/libslic3r/PrintConfig.cpp:484
 msgid "Set this to a non-zero value to set a manual extrusion width for external perimeters. If left zero, default extrusion width will be used if set, otherwise 1.125 x nozzle diameter will be used. If expressed as percentage (for example 200%), it will be computed over layer height."
@@ -7853,7 +7869,7 @@ msgstr "Nastavením na kladnou hodnotu, definuje šířku manuální extruze pro
 
 #: src/libslic3r/PrintConfig.cpp:920
 msgid "Set this to a non-zero value to set a manual extrusion width for first layer. You can use this to force fatter extrudates for better adhesion. If expressed as percentage (for example 120%) it will be computed over first layer height. If set to zero, it will use the default extrusion width."
-msgstr "Nastavením kladné hodnoty zvolíte manuální šířku vytlačování pro první vrstvu. Toto můžete použít k vytlačování tlustší extruze pro lepší přilnavost. Pokud je vyjádřeno jako procenty (například 120%), bude vypočteno z výšky první vrstvy. Pokud je nastavena na nulu, použije se výchozí šířka vytlačování."
+msgstr "Nastavením kladné hodnoty povolíte manuální nastavení šířky vytlačování pro první vrstvu. Toto můžete použít k vytlačování tlustší extruze pro lepší přilnavost. Pokud je vyjádřeno jako procenty (například 120%), bude vypočteno z výšky první vrstvy. Pokud je nastavena na nulu, použije se výchozí šířka vytlačování."
 
 #: src/libslic3r/PrintConfig.cpp:1873
 msgid "Set this to a non-zero value to set a manual extrusion width for infill for solid surfaces. If left zero, default extrusion width will be used if set, otherwise 1.125 x nozzle diameter will be used. If expressed as percentage (for example 90%) it will be computed over layer height."
@@ -7865,7 +7881,7 @@ msgstr "Zadejte kladnou hodnotu, chcete-li nastavit manuálně šířku extruze 
 
 #: src/libslic3r/PrintConfig.cpp:1055
 msgid "Set this to a non-zero value to set a manual extrusion width for infill. If left zero, default extrusion width will be used if set, otherwise 1.125 x nozzle diameter will be used. You may want to use fatter extrudates to speed up the infill and make your parts stronger. If expressed as percentage (for example 90%) it will be computed over layer height."
-msgstr "Nastavením kladné hodnoty upravíte manuálně šířku extruze pro výplň. Pokud je ponechána nula, použije se standardní šířka extruze, pokud je nastavena, jinak se použije průměr trysky 1,125 x. Je možné, že budete chtít použít tlustší extruze, pro zrychlení výplně a zpevnění vašich výtisků. Pokud je vyjádřeno jako procenty (například 90%), bude vypočteno z výšky vrstvy."
+msgstr "Nastavením kladné hodnoty povolíte manuální nastavení šířky extruze pro výplň. Pokud je ponechána nula, použije se standardní šířka extruze, pokud je nastavena, jinak se použije průměr trysky 1,125 x. Je možné, že budete chtít použít tlustší extruze, pro zrychlení výplně a zpevnění vašich výtisků. Pokud je vyjádřeno jako procenty (například 90%), bude vypočteno z výšky vrstvy."
 
 #: src/libslic3r/PrintConfig.cpp:1527
 msgid "Set this to a non-zero value to set a manual extrusion width for perimeters. You may want to use thinner extrudates to get more accurate surfaces. If left zero, default extrusion width will be used if set, otherwise 1.125 x nozzle diameter will be used. If expressed as percentage (for example 200%) it will be computed over layer height."
@@ -9328,11 +9344,11 @@ msgstr "Tento extruder bude nastaven pro vybrané položky"
 
 #: src/libslic3r/PrintConfig.cpp:258
 msgid "This factor affects the amount of plastic for bridging. You can decrease it slightly to pull the extrudates and prevent sagging, although default settings are usually good and you should experiment with cooling (use a fan) before tweaking this."
-msgstr "Tato hodnota určuje množství vytlačeného plastu při vytváření mostů. Mírným snížením této hodnoty můžete předejít pronášení i když, přednastavené hodnoty jsou většinou dobré a je lepší experimentovat s chlazením (využitím ventilátoru), než s touto hodnotou."
+msgstr "Tato hodnota určuje množství vytlačeného plastu při vytváření mostů. Mírným snížením této hodnoty můžete předejít pronášení, i když přednastavené hodnoty jsou většinou dobré a je lepší experimentovat s chlazením (využitím ventilátoru) než s touto hodnotou."
 
 #: src/libslic3r/PrintConfig.cpp:582
 msgid "This factor changes the amount of flow proportionally. You may need to tweak this setting to get nice surface finish and correct single wall widths. Usual values are between 0.9 and 1.1. If you think you need to change this more, check filament diameter and your firmware E steps."
-msgstr "Tento faktor mění poměrné množství průtoku. Možná bude třeba toto nastavení vyladit, pro dosažení hezkého povrchu a správné šířky jednotlivých stěn. Obvyklé hodnoty jsou mezi 0,9 a 1,1. Pokud si myslíte, že hodnotu potřebujete změnit více, zkontrolujte průměr filamentu a E kroky ve firmwaru."
+msgstr "Tento faktor mění poměrné množství průtoku. Možná bude třeba toto nastavení vyladit pro dosažení hezkého povrchu a správné šířky jednotlivých stěn. Obvyklé hodnoty jsou mezi 0,9 a 1,1. Pokud si myslíte, že hodnotu potřebujete změnit více, zkontrolujte průměr filamentu a E kroky ve firmwaru."
 
 #: src/libslic3r/PrintConfig.cpp:248
 msgid "This fan speed is enforced during all bridges and overhangs."
@@ -10203,7 +10219,7 @@ msgstr "při tisku"
 
 #: src/libslic3r/PrintConfig.cpp:287
 msgid "When printing multi-material objects, this settings will make Slic3r to clip the overlapping object parts one by the other (2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc)."
-msgstr "Připnutí překrývajících se objektů jeden k druhému při Multimateriálovém tisku. (Druhá část se připne k první, třetí část k první a druhé, atd)."
+msgstr "Připnutí překrývajících se objektů jeden k druhému při Multimateriálovém tisku. (Druhá část se připne k první, třetí část k první a druhé, atd.)"
 
 #: src/libslic3r/PrintConfig.cpp:339
 msgid "When printing multiple objects or copies, this feature will complete each object before moving onto next one (and starting it from its bottom layer). This feature is useful to avoid the risk of ruined prints. Slic3r should warn and prevent you from extruder collisions, but beware."
@@ -10493,6 +10509,10 @@ msgstr "Váš soubor byl opraven."
 #: src/slic3r/GUI/Plater.cpp:2490
 msgid "Your object appears to be too large, so it was automatically scaled down to fit your print bed."
 msgstr "Váš objekt se zdá být příliš velký, takže byl automaticky zmenšen, aby se vešel na tiskovou podložku."
+
+#: src/libslic3r/GCode.cpp:1261
+msgid "Your print is very close to the priming regions. Make sure there is no collision."
+msgstr "Váš tisk je velmi blízko čistícím oblastem. Zajistěte, aby nedošlo ke kolizi."
 
 #: src/libslic3r/PrintConfig.cpp:2428
 msgid "Z offset"

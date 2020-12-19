@@ -1904,6 +1904,10 @@ msgstr "Benutzerdefinierte Drucker-Einrichtung"
 msgid "Custom profile name:"
 msgstr "Benutzerdefinierter Profilname:"
 
+#: src/slic3r/GUI/Plater.cpp:3397
+msgid "Custom supports and seams were removed after repairing the mesh."
+msgstr "Benutzerdefinierte Stützen und Nähte wurden nach der Reparatur des Netzes entfernt."
+
 #: src/slic3r/GUI/DoubleSlider.cpp:1135
 msgid "Custom template (\"%1%\")"
 msgstr "Benutzerdefinierte Vorlage (\"%1%\")"
@@ -2780,6 +2784,10 @@ msgstr "Fehler: %s"
 msgid "ERROR: not enough resources to execute a new job."
 msgstr "FEHLER: Nicht genügend Ressourcen, um einen neuen Job auszuführen."
 
+#: src/slic3r/GUI/Plater.cpp:3374
+msgid "ERROR: Please close all manipulators available from the left toolbar before fixing the mesh."
+msgstr "FEHLER: Bitte schließen Sie alle in der linken Symbolleiste verfügbaren Manipulatoren, bevor Sie das Netz reparieren."
+
 #: src/slic3r/GUI/GCodeViewer.cpp:2552 src/slic3r/GUI/GCodeViewer.cpp:2557
 #: src/slic3r/GUI/Plater.cpp:246 src/slic3r/GUI/Plater.cpp:1125
 #: src/slic3r/GUI/Plater.cpp:1175 src/slic3r/GUI/Plater.cpp:1196
@@ -3437,6 +3445,10 @@ msgstr "Druckgeschwindigkeit der ersten Schicht"
 #: src/slic3r/GUI/PresetHints.cpp:218
 msgid "First layer volumetric"
 msgstr "Volumenparameter der ersten Schicht"
+
+#: src/slic3r/GUI/Plater.cpp:3380
+msgid "Fix through NetFabb"
+msgstr "Reparieren mittels Netfabb"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1776
 msgid "Fix through the Netfabb"
@@ -4269,6 +4281,10 @@ msgstr "in"
 #, possible-c-format
 msgid "In this mode you can select only other %s Items%s"
 msgstr "In diesem Modus wählen Sie nur andere %s Elemente%s"
+
+#: src/slic3r/GUI/GUI_ObjectManipulation.cpp:423
+msgid "Inches"
+msgstr "Zoll"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:230
 msgid "Incompatible bundles:"
@@ -10491,6 +10507,10 @@ msgstr "Ihre Datei wurde repariert."
 #: src/slic3r/GUI/Plater.cpp:2490
 msgid "Your object appears to be too large, so it was automatically scaled down to fit your print bed."
 msgstr "Ihr Objekt scheint zu groß zu sein. Es wurde deshalb automatisch verkleinert, um auf Ihre Druckplatte zu passen."
+
+#: src/libslic3r/GCode.cpp:1261
+msgid "Your print is very close to the priming regions. Make sure there is no collision."
+msgstr "Ihr Druck ist sehr nahe an den Priming-Bereichen. Stellen Sie sicher, dass es keine Kollision gibt."
 
 #: src/libslic3r/PrintConfig.cpp:2428
 msgid "Z offset"

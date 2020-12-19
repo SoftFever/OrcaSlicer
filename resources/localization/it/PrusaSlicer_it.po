@@ -1904,6 +1904,10 @@ msgstr "Setup Stampante Personalizzata"
 msgid "Custom profile name:"
 msgstr "Nome profilo personalizzato:"
 
+#: src/slic3r/GUI/Plater.cpp:3397
+msgid "Custom supports and seams were removed after repairing the mesh."
+msgstr "I supporti e le cuciture personalizzate sono stati rimossi dopo la riparazione della mesh."
+
 #: src/slic3r/GUI/DoubleSlider.cpp:1135
 msgid "Custom template (\"%1%\")"
 msgstr "Modello personalizzato (\"%1%\")"
@@ -2780,6 +2784,10 @@ msgstr "Errore: %s"
 msgid "ERROR: not enough resources to execute a new job."
 msgstr "ERRORE: risorse non sufficienti per eseguire un nuovo lavoro."
 
+#: src/slic3r/GUI/Plater.cpp:3374
+msgid "ERROR: Please close all manipulators available from the left toolbar before fixing the mesh."
+msgstr "ERRORE: Chiudi tutti i manipolatori disponibili sulla barra degli strumenti di sinistra prima di riparare la mesh."
+
 #: src/slic3r/GUI/GCodeViewer.cpp:2552 src/slic3r/GUI/GCodeViewer.cpp:2557
 #: src/slic3r/GUI/Plater.cpp:246 src/slic3r/GUI/Plater.cpp:1125
 #: src/slic3r/GUI/Plater.cpp:1175 src/slic3r/GUI/Plater.cpp:1196
@@ -3437,6 +3445,10 @@ msgstr "Velocità del primo layer"
 #: src/slic3r/GUI/PresetHints.cpp:218
 msgid "First layer volumetric"
 msgstr "Volumetrica primo layer"
+
+#: src/slic3r/GUI/Plater.cpp:3380
+msgid "Fix through NetFabb"
+msgstr "Ripara tramite NetFabb"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1776
 msgid "Fix through the Netfabb"
@@ -4269,6 +4281,10 @@ msgstr "in"
 #, possible-c-format
 msgid "In this mode you can select only other %s Items%s"
 msgstr "In questa modalità puoi selezionare solo altri %s oggetti %s"
+
+#: src/slic3r/GUI/GUI_ObjectManipulation.cpp:423
+msgid "Inches"
+msgstr "Pollici"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:230
 msgid "Incompatible bundles:"
@@ -10491,6 +10507,10 @@ msgstr "Il file è stato riparato."
 #: src/slic3r/GUI/Plater.cpp:2490
 msgid "Your object appears to be too large, so it was automatically scaled down to fit your print bed."
 msgstr "L'oggetto sembra essere troppo grande, è stato quindi ridimensionato automaticamente per entrare nel piano di stampa."
+
+#: src/libslic3r/GCode.cpp:1261
+msgid "Your print is very close to the priming regions. Make sure there is no collision."
+msgstr "La stampa è molto vicina alle aree di preparazione. Assicurati che non vi siano collisioni. "
 
 #: src/libslic3r/PrintConfig.cpp:2428
 msgid "Z offset"

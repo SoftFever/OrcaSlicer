@@ -1904,6 +1904,10 @@ msgstr "Configuration d'une Imprimante Personnalisée"
 msgid "Custom profile name:"
 msgstr "Nom de profil personnalisé :"
 
+#: src/slic3r/GUI/Plater.cpp:3397
+msgid "Custom supports and seams were removed after repairing the mesh."
+msgstr "Les supports personnalisés et les jointures ont été supprimés après la réparation du maillage."
+
 #: src/slic3r/GUI/DoubleSlider.cpp:1135
 msgid "Custom template (\"%1%\")"
 msgstr "Modèle personnalisé (\"%1%\")"
@@ -2780,6 +2784,10 @@ msgstr "Erreur : %s"
 msgid "ERROR: not enough resources to execute a new job."
 msgstr "ERREUR : il n'y a pas assez de ressources pour exécuter une nouvelle tâche."
 
+#: src/slic3r/GUI/Plater.cpp:3374
+msgid "ERROR: Please close all manipulators available from the left toolbar before fixing the mesh."
+msgstr "ERREUR : Veuillez fermer tous les manipulateurs disponibles dans la barre d'outils de gauche avant de réparer le maillage."
+
 #: src/slic3r/GUI/GCodeViewer.cpp:2552 src/slic3r/GUI/GCodeViewer.cpp:2557
 #: src/slic3r/GUI/Plater.cpp:246 src/slic3r/GUI/Plater.cpp:1125
 #: src/slic3r/GUI/Plater.cpp:1175 src/slic3r/GUI/Plater.cpp:1196
@@ -3437,6 +3445,10 @@ msgstr "Vitesse de la première couche"
 #: src/slic3r/GUI/PresetHints.cpp:218
 msgid "First layer volumetric"
 msgstr "Volume de la première couche"
+
+#: src/slic3r/GUI/Plater.cpp:3380
+msgid "Fix through NetFabb"
+msgstr "Réparer avec NetFabb"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1776
 msgid "Fix through the Netfabb"
@@ -4270,6 +4282,10 @@ msgstr "in"
 msgid "In this mode you can select only other %s Items%s"
 msgstr "Dans ce mode vous ne pouvez sélectionner que d'autres %s Items %s"
 
+#: src/slic3r/GUI/GUI_ObjectManipulation.cpp:423
+msgid "Inches"
+msgstr "Pouces"
+
 #: src/slic3r/GUI/UpdateDialogs.cpp:230
 msgid "Incompatible bundles:"
 msgstr "Lots incompatibles :"
@@ -4368,7 +4384,7 @@ msgstr "Hauteur de couche initiale"
 #: src/slic3r/GUI/Field.cpp:269
 #, possible-c-format
 msgid "Input value is out of range\nAre you sure that %s is a correct value and that you want to continue?"
-msgstr "La valeur d'entrée est hors limites\nÊtes-vous certain que %s est une valeur correcte et que vous voulez continuer?"
+msgstr "La valeur d'entrée est hors limites\nÊtes-vous certain que %s est une valeur correcte et que vous voulez continuer ?"
 
 #: src/slic3r/GUI/Field.cpp:252 src/slic3r/GUI/Field.cpp:1370
 msgid "Input value is out of range"
@@ -10491,6 +10507,10 @@ msgstr "Votre fichier a été réparé."
 #: src/slic3r/GUI/Plater.cpp:2490
 msgid "Your object appears to be too large, so it was automatically scaled down to fit your print bed."
 msgstr "Votre objet semble être trop grand, il a donc été automatiquement réduit afin de l'adapter à votre plateau d'impression."
+
+#: src/libslic3r/GCode.cpp:1261
+msgid "Your print is very close to the priming regions. Make sure there is no collision."
+msgstr "Votre impression est très proche des zones de purge. Assurez-vous qu'il n'y a pas de collision."
 
 #: src/libslic3r/PrintConfig.cpp:2428
 msgid "Z offset"

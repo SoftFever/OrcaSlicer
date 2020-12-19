@@ -1904,6 +1904,10 @@ msgstr "Ustawienie Własnej Drukarki"
 msgid "Custom profile name:"
 msgstr "Nazwa własnego profilu:"
 
+#: src/slic3r/GUI/Plater.cpp:3397
+msgid "Custom supports and seams were removed after repairing the mesh."
+msgstr "Niestandardowe podpory i szwy zostały usunięte podczas naprawy modelu."
+
 #: src/slic3r/GUI/DoubleSlider.cpp:1135
 msgid "Custom template (\"%1%\")"
 msgstr "Własny szablon (\"%1%\")"
@@ -2780,6 +2784,10 @@ msgstr "Błąd: %s"
 msgid "ERROR: not enough resources to execute a new job."
 msgstr "BŁĄD: brak zasobów do wykonania nowego zadania."
 
+#: src/slic3r/GUI/Plater.cpp:3374
+msgid "ERROR: Please close all manipulators available from the left toolbar before fixing the mesh."
+msgstr "BŁĄD: Zamknij wszystkie manipulatory dostępne w lewym pasku narzędzi przed podjęciem naprawy modelu."
+
 #: src/slic3r/GUI/GCodeViewer.cpp:2552 src/slic3r/GUI/GCodeViewer.cpp:2557
 #: src/slic3r/GUI/Plater.cpp:246 src/slic3r/GUI/Plater.cpp:1125
 #: src/slic3r/GUI/Plater.cpp:1175 src/slic3r/GUI/Plater.cpp:1196
@@ -3437,6 +3445,10 @@ msgstr "Prędkość pierwszej warstwy"
 #: src/slic3r/GUI/PresetHints.cpp:218
 msgid "First layer volumetric"
 msgstr "Na pierwszej warstwie"
+
+#: src/slic3r/GUI/Plater.cpp:3380
+msgid "Fix through NetFabb"
+msgstr "Naprawa przez NetFabb"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1776
 msgid "Fix through the Netfabb"
@@ -4269,6 +4281,10 @@ msgstr "cale"
 #, possible-c-format
 msgid "In this mode you can select only other %s Items%s"
 msgstr "W tym trybie możesz wybrać jedynie %s elementów %s"
+
+#: src/slic3r/GUI/GUI_ObjectManipulation.cpp:423
+msgid "Inches"
+msgstr "Cale"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:230
 msgid "Incompatible bundles:"
@@ -10495,6 +10511,10 @@ msgstr "Twój plik został naprawiony."
 #: src/slic3r/GUI/Plater.cpp:2490
 msgid "Your object appears to be too large, so it was automatically scaled down to fit your print bed."
 msgstr "Importowany model przekracza wymiary przestrzeni roboczej i został przeskalowany do odpowiednich rozmiarów."
+
+#: src/libslic3r/GCode.cpp:1261
+msgid "Your print is very close to the priming regions. Make sure there is no collision."
+msgstr "Twój wydruk znajduje się bardzo blisko obszaru czyszczenia dyszy. Upewnij się, że nie dojdzie do kolizji."
 
 #: src/libslic3r/PrintConfig.cpp:2428
 msgid "Z offset"
