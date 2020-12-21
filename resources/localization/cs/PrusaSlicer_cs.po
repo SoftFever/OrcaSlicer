@@ -10199,7 +10199,7 @@ msgstr "Vítejte v %s Konfiguračním průvodci"
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:310
 msgid "What would you like to do with \"%1%\" preset after saving?"
-msgstr "Co chcete udělat s přednastavením „% 1%“ po uložení?"
+msgstr "Co chcete udělat s přednastavením \"%1%\" po uložení?"
 
 #: src/slic3r/GUI/Preferences.cpp:114
 msgid "When checked, the print and filament presets are shown in the preset editor even if they are marked as incompatible with the active printer"

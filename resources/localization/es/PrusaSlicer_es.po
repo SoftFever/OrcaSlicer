@@ -6501,7 +6501,7 @@ msgstr "El ajuste predeterminado con el nombre \"%1%\" ya existe y es incompatib
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:148
 msgid "Preset with name \"%1%\" already exists."
-msgstr "Ya existe un preset con el nombre \"% 1%\"."
+msgstr "Ya existe un preset con el nombre \"%1%\"."
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:219
 msgctxt "PresetName"

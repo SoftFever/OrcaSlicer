@@ -2963,7 +2963,7 @@ void Tab::rebuild_page_tree()
             continue;
         auto itemId = m_treectrl->AppendItem(rootItem, translate_category(p->title(), m_type), p->iconID());
         m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
-        if (p->title() == selected)
+        if (translate_category(p->title(), m_type) == selected)
             item = itemId;
     }
     if (!item) {
