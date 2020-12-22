@@ -2803,7 +2803,7 @@ void TabPrinter::toggle_options()
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
     }
 
-    if (m_active_page->title() == "Machine limits") {
+    if (m_active_page->title() == "Machine limits" && m_machine_limits_description_line) {
         assert(m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin);
 		const auto *machine_limits_usage = m_config->option<ConfigOptionEnum<MachineLimitsUsage>>("machine_limits_usage");
 		bool enabled = machine_limits_usage->value != MachineLimitsUsage::Ignore;
@@ -3269,7 +3269,7 @@ void Tab::clear_pages()
 
 void Tab::update_description_lines()
 {
-    if (m_active_page && m_active_page->title() == "Dependencies")
+    if (m_active_page && m_active_page->title() == "Dependencies" && m_parent_preset_description_line)
         update_preset_description_line();
 }
 
