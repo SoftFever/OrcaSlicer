@@ -947,7 +947,7 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 		if (m_hover_time > 0 && m_hover_time < time_now) {
 			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
 			ImGui::BeginTooltip();
-			imgui.text(_u8L("Eject drive ") + GUI::shortkey_ctrl_prefix() + "T");
+			imgui.text(_u8L("Eject drive") + " " + GUI::shortkey_ctrl_prefix() + "T");
 			ImGui::EndTooltip();
 			ImGui::PopStyleColor();
 		} 
