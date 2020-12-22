@@ -1070,6 +1070,8 @@ bool ObjectList::copy_to_clipboard()
 {
     wxDataViewItemArray sels;
     GetSelections(sels);
+    if (sels.IsEmpty())
+        return false;
     ItemType type = m_objects_model->GetItemType(sels.front());
     if (!(type & (itSettings | itLayer | itLayerRoot))) {
         m_clipboard.reset();
