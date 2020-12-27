@@ -44,7 +44,7 @@ enum class MachineLimitsUsage {
 };
 
 enum PrintHostType {
-    htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier
+    htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
 };
 
 enum AuthorizationType {
