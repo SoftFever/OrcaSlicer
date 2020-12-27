@@ -99,7 +99,9 @@ bool MKS::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn er
 		})
 		.perform_sync();
 
-	if (res) {
+	if (res && upload_data.start_print) {
+		// For some reason printer firmware does not want to respond on gcode commands immediately after file upload.
+		// So we just introduce artificial delay to workaround it.
 		std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
 		wxString msg;
