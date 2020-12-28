@@ -8,7 +8,6 @@
 #include "TCPConsole.hpp"
 
 namespace Slic3r {
-
 	class DynamicPrintConfig;
 	class Http;
 
@@ -31,7 +30,7 @@ namespace Slic3r {
 
 	private:
 		std::string host;
-		Utils::TCPConsole console;
+		std::string console_port;
 
 		std::string get_upload_url(const std::string& filename) const;
 		std::string timestamp_str() const;

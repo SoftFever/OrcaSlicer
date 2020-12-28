@@ -10,21 +10,13 @@
 namespace Slic3r {
     namespace Utils {
 
-        const char* default_newline = "\n";
-        const char* default_done_string = "ok";
-
         using boost::asio::ip::tcp;
 
         class TCPConsole
         {
         public:
-            TCPConsole() : resolver_(io_context_), socket_(io_context_), newline_(default_newline), done_string_(default_done_string) {}
-
-            TCPConsole(const std::string& host_name, const std::string& port_name) :
-                resolver_(io_context_), socket_(io_context_), newline_(default_newline), done_string_(default_done_string)
-            {
-                set_remote(host_name, port_name);
-            }
+            TCPConsole();
+            TCPConsole(const std::string& host_name, const std::string& port_name);
             ~TCPConsole() {}
 
             void set_line_delimiter(const std::string& newline) {

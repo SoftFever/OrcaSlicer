@@ -32,13 +32,15 @@ namespace pt = boost::property_tree;
 namespace Slic3r {
 
 	MKS::MKS(DynamicPrintConfig* config) :
-		host(config->opt_string("print_host")), console(config->opt_string("print_host"), "8080")
+		host(config->opt_string("print_host")), console_port("8080")
 	{}
 
 	const char* MKS::get_name() const { return "MKS"; }
 
 	bool MKS::test(wxString& msg) const
 	{
+		Utils::TCPConsole console(host, console_port);
+
 		console.enqueue_cmd("M105");
 		bool ret = console.run_queue();
 
@@ -130,6 +132,8 @@ namespace Slic3r {
 		// So we just introduce artificial delay to workaround it.
 		// TODO: Inspect reasons
 		std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+		Utils::TCPConsole console(host, console_port);
 
 		console.enqueue_cmd(std::string("M23 ") + filename);
 		console.enqueue_cmd("M24");
