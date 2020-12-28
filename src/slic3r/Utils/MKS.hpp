@@ -33,7 +33,6 @@ namespace Slic3r {
 		std::string console_port;
 
 		std::string get_upload_url(const std::string& filename) const;
-		std::string timestamp_str() const;
 		bool start_print(wxString& msg, const std::string& filename) const;
 		int get_err_code_from_body(const std::string& body) const;
 	};

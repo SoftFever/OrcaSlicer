@@ -20,17 +20,17 @@ using boost::asio::ip::tcp;
 namespace Slic3r {
     namespace Utils {
 
-        const char* default_newline = "\n";
-        const char* default_done_string = "ok";
-
-        TCPConsole::TCPConsole() : resolver_(io_context_), socket_(io_context_), newline_(default_newline), done_string_(default_done_string) {}
-
-        TCPConsole::TCPConsole(const std::string& host_name, const std::string& port_name) :
-            resolver_(io_context_), socket_(io_context_), newline_(default_newline), done_string_(default_done_string)
+        TCPConsole::TCPConsole() : resolver_(io_context_), socket_(io_context_)
         {
-            set_remote(host_name, port_name);
+            set_defaults();
         }
 
+        TCPConsole::TCPConsole(const std::string& host_name, const std::string& port_name) :
+            resolver_(io_context_), socket_(io_context_)
+        {
+            set_defaults();
+            set_remote(host_name, port_name);
+        }
 
         void TCPConsole::transmit_next_command()
         {
@@ -47,17 +47,20 @@ namespace Slic3r {
                 % port_name_
                 % cmd;
 
-            auto data = boost::asio::buffer(cmd + newline_);
 
+            send_buffer_ = cmd + newline_;
+
+            set_deadline_in(write_timeout_);
             boost::asio::async_write(
                 socket_,
-                data,
+                boost::asio::buffer(send_buffer_),
                 boost::bind(&TCPConsole::handle_write, this, _1, _2)
             );
         }
 
         void TCPConsole::wait_next_line()
         {
+            set_deadline_in(read_timeout_);
             boost::asio::async_read_until(
                 socket_,
                 recv_buffer_,
@@ -145,6 +148,7 @@ namespace Slic3r {
                 io_context_.stop();
             }
             else {
+                is_connected_ = true;
                 BOOST_LOG_TRIVIAL(info) << boost::format("TCPConsole: connected to %1%:%2%")
                     % host_name_
                     % port_name_;
@@ -154,10 +158,23 @@ namespace Slic3r {
             }
         }
 
+        void TCPConsole::set_deadline_in(boost::chrono::steady_clock::duration d)
+        {
+            deadline_ = boost::chrono::steady_clock::now() + d;
+        }
+        bool TCPConsole::is_deadline_over()
+        {
+            return deadline_ < boost::chrono::steady_clock::now();
+        }
+
         bool TCPConsole::run_queue()
         {
+            auto now = boost::chrono::steady_clock::now();
             try {
-                // TODO: Add more resets and initializations after previous run
+                // TODO: Add more resets and initializations after previous run (reset() method?..)
+                set_deadline_in(connect_timeout_);
+                is_connected_ = false;
+                io_context_.restart();
 
                 auto endpoints = resolver_.resolve(host_name_, port_name_);
 
@@ -165,14 +182,19 @@ namespace Slic3r {
                     boost::bind(&TCPConsole::handle_connect, this, _1)
                 );
 
-                // TODO: Add error and timeout processing
-                io_context_.restart();
-                while (!io_context_.stopped()) {
-                    BOOST_LOG_TRIVIAL(debug) << ".\n";
+                // Loop until we get any reasonable result. Negative result is also result.
+                // TODO: Rewrite to more graceful way using deadlime_timer
+                bool timeout = false;
+                while (!(timeout = is_deadline_over()) && !io_context_.stopped()) {
                     if (error_code_) {
                         io_context_.stop();
                     }
                     io_context_.run_for(boost::asio::chrono::milliseconds(100));
+                }
+
+                // Override error message if timeout is set
+                if (timeout) {
+                    error_code_ = make_error_code(boost::asio::error::timed_out);
                 }
 
                 // Socket is not closed automatically by boost

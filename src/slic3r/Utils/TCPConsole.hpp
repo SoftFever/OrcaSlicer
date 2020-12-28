@@ -4,6 +4,7 @@
 #include <string>
 #include <list>
 #include <boost/system/error_code.hpp>
+#include <boost/system/system_error.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/streambuf.hpp>
 
@@ -18,6 +19,15 @@ namespace Slic3r {
             TCPConsole();
             TCPConsole(const std::string& host_name, const std::string& port_name);
             ~TCPConsole() {}
+
+            void set_defaults()
+            {
+                newline_ = "\n";
+                done_string_ = "ok";
+                connect_timeout_ = boost::chrono::milliseconds(5000);
+                write_timeout_ = boost::chrono::milliseconds(10000);
+                read_timeout_ = boost::chrono::milliseconds(10000);
+            }
 
             void set_line_delimiter(const std::string& newline) {
                 newline_ = newline;
@@ -52,10 +62,16 @@ namespace Slic3r {
             void wait_next_line();
             std::string extract_next_line();
 
+            void set_deadline_in(boost::chrono::steady_clock::duration);
+            bool is_deadline_over();
+
             std::string host_name_;
             std::string port_name_;
             std::string newline_;
             std::string done_string_;
+            boost::chrono::steady_clock::duration connect_timeout_;
+            boost::chrono::steady_clock::duration write_timeout_;
+            boost::chrono::steady_clock::duration read_timeout_;
 
             std::list<std::string> cmd_queue_;
 
@@ -63,8 +79,11 @@ namespace Slic3r {
             tcp::resolver resolver_;
             tcp::socket socket_;
             boost::asio::streambuf recv_buffer_;
+            std::string send_buffer_;
 
+            bool is_connected_;
             boost::system::error_code error_code_;
+            boost::chrono::steady_clock::time_point deadline_;
         };
 
     } // Utils

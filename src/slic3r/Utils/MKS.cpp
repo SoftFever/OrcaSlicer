@@ -45,7 +45,7 @@ namespace Slic3r {
 		bool ret = console.run_queue();
 
 		if (!ret) {
-			msg = console.error_message();
+			msg = wxString::FromUTF8(console.error_message().c_str());
 		}
 
 		return ret;
@@ -98,25 +98,18 @@ namespace Slic3r {
 				BOOST_LOG_TRIVIAL(error) << boost::format("MKS: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
 				error_fn(format_error(body, error, status));
 				res = false;
-				})
-				.on_progress([&](Http::Progress progress, bool& cancel) {
-					prorgess_fn(std::move(progress), cancel);
-					if (cancel) {
-						// Upload was canceled
-						BOOST_LOG_TRIVIAL(info) << "MKS: Upload canceled";
-						res = false;
-					}
-					})
-					.perform_sync();
+			})
+			.on_progress([&](Http::Progress progress, bool& cancel) {
+				prorgess_fn(std::move(progress), cancel);
+				if (cancel) {
+					// Upload was canceled
+					BOOST_LOG_TRIVIAL(info) << "MKS: Upload canceled";
+					res = false;
+				}
+			}).perform_sync();
 
-					if (res && upload_data.start_print) {
-						wxString msg;
-						if (!start_print(msg, upload_data.upload_path.string())) {
-							error_fn(wxString("Can't start printing: ") + msg);
-						}
-					}
 
-					return res;
+		return res;
 	}
 
 	std::string MKS::get_upload_url(const std::string& filename) const
@@ -141,7 +134,7 @@ namespace Slic3r {
 		bool ret = console.run_queue();
 
 		if (!ret) {
-			msg = console.error_message();
+			msg = wxString::FromUTF8(console.error_message().c_str());
 		}
 
 		return ret;
