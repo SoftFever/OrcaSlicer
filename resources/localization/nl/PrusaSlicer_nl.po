@@ -6831,7 +6831,7 @@ msgstr "Voorinstelling opslaan"
 #: src/slic3r/GUI/SavePresetDialog.cpp:215
 msgctxt "PresetName"
 msgid "Copy"
-msgstr "Kopieer"
+msgstr "Kopie"
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:273
 msgid ""
