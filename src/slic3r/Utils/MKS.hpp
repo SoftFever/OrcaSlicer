@@ -5,6 +5,7 @@
 #include <wx/string.h>
 
 #include "PrintHost.hpp"
+#include "TCPConsole.hpp"
 
 namespace Slic3r {
 
@@ -27,16 +28,15 @@ public:
 	bool can_test() const override { return true; }
 	bool can_start_print() const override { return true; }
 	std::string get_host() const override { return host; }
-   
+
 private:
 	std::string host;
-	int console_port;
+    Utils::TCPConsole console;
 
 	std::string get_upload_url(const std::string &filename) const;
 	std::string timestamp_str() const;
 	bool start_print(wxString &msg, const std::string &filename) const;
 	int get_err_code_from_body(const std::string &body) const;
-	bool run_simple_gcode(const std::string& cmd, wxString& msg) const;
 };
 
 }

@@ -32,14 +32,21 @@ namespace pt = boost::property_tree;
 namespace Slic3r {
 
 MKS::MKS(DynamicPrintConfig *config) :
-	host(config->opt_string("print_host")), console_port(8080)
+	host(config->opt_string("print_host")), console(config->opt_string("print_host"), "8080")
 {}
 
 const char* MKS::get_name() const { return "MKS"; }
 
 bool MKS::test(wxString &msg) const
 {
-	return run_simple_gcode("M105", msg);
+  console.enqueue_cmd("M105");
+  bool ret = console.run_queue();
+
+  if (!ret) {
+    msg = console.error_message();
+  }
+
+  return ret;
 }
 
 wxString MKS::get_test_ok_msg () const
@@ -100,15 +107,7 @@ bool MKS::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn er
 		.perform_sync();
 
 	if (res && upload_data.start_print) {
-		// For some reason printer firmware does not want to respond on gcode commands immediately after file upload.
-		// So we just introduce artificial delay to workaround it.
-		std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
-		wxString msg;
-		res &= run_simple_gcode(std::string("M23 ") + upload_data.upload_path.string(), msg);
-		if (res) {
-			res &= run_simple_gcode(std::string("M24"), msg);
-		}
+    start_print(upload_data.upload_path);
 	}
 
 	return res;
@@ -123,8 +122,21 @@ std::string MKS::get_upload_url(const std::string &filename) const
 
 bool MKS::start_print(wxString &msg, const std::string &filename) const
 {
-	BOOST_LOG_TRIVIAL(warning) << boost::format("MKS: start_print is not implemented yet, called stub");
-		return true;
+  // For some reason printer firmware does not want to respond on gcode commands immediately after file upload.
+  // So we just introduce artificial delay to workaround it.
+  // TODO: Inspect reasons
+  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+  console.enqueue_cmd("M23 " + upload_data.upload_path.string());
+  console.enqueue_cmd("M24");
+
+  bool ret = console.run_queue();
+
+  if (!ret) {
+    msg = console.error_message();
+  }
+
+  return ret;
 }
 
 int MKS::get_err_code_from_body(const std::string& body) const
@@ -136,38 +148,4 @@ int MKS::get_err_code_from_body(const std::string& body) const
 	return root.get<int>("err", 0);
 }
 
-bool MKS::run_simple_gcode(const std::string &cmd, wxString &msg) const
-{
-	using boost::asio::ip::tcp;
-
-	try
-	{
-		boost::asio::io_context io_context;
-		tcp::socket s(io_context);
-
-		tcp::resolver resolver(io_context);
-		boost::asio::connect(s, resolver.resolve(host, std::to_string(console_port)));
-		boost::asio::write(s, boost::asio::buffer(cmd + "\r\n"));
-
-		msg = "request:" + cmd + "\r\n";
-		
-		boost::asio::streambuf input_buffer;
-		size_t reply_length = boost::asio::read_until(s, input_buffer, '\n');
-
-		std::string response((std::istreambuf_iterator<char>(&input_buffer)), std::istreambuf_iterator<char>());
-		if (response.length() == 0) {
-			msg += "Empty response";
-			return false;
-		}
-
-		msg += "response:" + response;
-		return true;
-	}
-	catch (std::exception& e)
-	{
-		msg = std::string("exception:") + e.what();
-		return false;
-	}
-}
-
-}
+} // Slic3r
