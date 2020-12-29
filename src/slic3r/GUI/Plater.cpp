@@ -633,7 +633,11 @@ Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(42 * wxGetApp().em_unit(), -1)), p(new priv(parent))
 {
     p->scrolled = new wxScrolledWindow(this);
-    p->scrolled->SetScrollbars(0, 100, 1, 2);
+//    p->scrolled->SetScrollbars(0, 100, 1, 2); // ys_DELETE_after_testing. pixelsPerUnitY = 100 from https://github.com/prusa3d/PrusaSlicer/commit/8f019e5fa992eac2c9a1e84311c990a943f80b01, 
+    // but this cause the bad layout of the sidebar, when all infoboxes appear.
+    // As a result we can see the empty block at the bottom of the sidebar
+    // But if we set this value to 5, layout will be better
+    p->scrolled->SetScrollRate(0, 5);
 
     SetFont(wxGetApp().normal_font());
 #ifndef __APPLE__
