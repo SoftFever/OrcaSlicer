@@ -260,13 +260,27 @@ ObjectList::~ObjectList()
 
 void ObjectList::set_min_height()
 {
-    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
-    * change min hight of object list to the normal min value (20 * wxGetApp().em_unit())
-    * after first whole Mainframe updating/layouting
-    */
-    const int list_min_height = 20 * wxGetApp().em_unit();
-    if (this->GetMinSize().GetY() > list_min_height)
-        this->SetMinSize(wxSize(-1, list_min_height));
+    if (m_items_count == size_t(-1))
+        m_items_count = 7;
+    int list_min_height = lround(2.25 * (m_items_count + 1) * wxGetApp().em_unit()); // +1 is for height of control header
+    this->SetMinSize(wxSize(1, list_min_height));
+}
+
+void ObjectList::update_min_height()
+{
+    wxDataViewItemArray all_items;
+    m_objects_model->GetAllChildren(wxDataViewItem(nullptr), all_items);
+    size_t items_cnt = all_items.Count();
+    if (items_cnt < 7)
+        items_cnt = 7;
+    else if (items_cnt >= 15)
+        items_cnt = 15;
+    
+    if (m_items_count == items_cnt)
+        return;
+
+    m_items_count = items_cnt;
+    set_min_height();
 }
 
 
@@ -274,7 +288,7 @@ void ObjectList::create_objects_ctrl()
 {
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
      * 1. set a height of the list to some big value 
-     * 2. change it to the normal min value (20 * wxGetApp().em_unit()) after first whole Mainframe updating/layouting
+     * 2. change it to the normal(meaningful) min value after first whole Mainframe updating/layouting
      */
     SetMinSize(wxSize(-1, 3000));
 
@@ -2989,6 +3003,8 @@ void ObjectList::part_selection_changed()
     else if (update_and_show_layers)
         wxGetApp().obj_layers()->get_og()->set_name(" " + og_name + " ");
 
+    update_min_height();
+
     Sidebar& panel = wxGetApp().sidebar();
     panel.Freeze();
 
@@ -4463,9 +4479,9 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
 
 void ObjectList::msw_rescale()
 {
+    set_min_height();
+
     const int em = wxGetApp().em_unit();
-    // update min size !!! A width of control shouldn't be a wxDefaultCoord
-    SetMinSize(wxSize(1, 15 * em));
 
     GetColumn(colName    )->SetWidth(20 * em);
     GetColumn(colPrint   )->SetWidth( 3 * em);
