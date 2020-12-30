@@ -3671,16 +3671,28 @@ void ObjectList::update_selections()
                 return;
             sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
         }
-        if (selection.is_single_volume() || selection.is_any_modifier()) {
+        else if (selection.is_single_volume() || selection.is_any_modifier()) {
             const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
                 return;
         }
-
         // but if there is selected only one of several instances by context menu,
         // then select this instance in ObjectList
-        if (selection.is_single_full_instance())
+        else if (selection.is_single_full_instance())
             sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), selection.get_instance_idx()));
+        // Can be the case, when we have selected itSettings | itLayerRoot | itLayer in the ObjectList and selected object/instance in the Scene
+        // and then select some object/instance in 3DScene using Ctrt+left click
+        // see https://github.com/prusa3d/PrusaSlicer/issues/5517
+        else {
+            // Unselect all items in ObjectList
+            m_last_selected_item = wxDataViewItem(nullptr);
+            m_prevent_list_events = true;
+            UnselectAll();
+            m_prevent_list_events = false;
+            // call this function again to update selection from the canvas
+            update_selections();
+            return;
+        }
     }
     else if (selection.is_single_full_object() || selection.is_multiple_full_object())
     {
