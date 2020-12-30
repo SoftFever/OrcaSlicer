@@ -312,6 +312,7 @@ void PreferencesDialog::build()
 		m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
 
 		create_settings_mode_widget();
+		create_settings_text_color_widget();
 	}
 
 #if ENABLE_ENVIRONMENT_MAP
@@ -379,6 +380,10 @@ void PreferencesDialog::accept()
 		app_config->set(it->first, it->second);
 
 	app_config->save();
+
+	wxGetApp().set_label_clr_sys(m_sys_colour->GetColour());
+	wxGetApp().set_label_clr_modified(m_mod_colour->GetColour());
+
 	EndModal(wxID_OK);
 
 	if (m_settings_layout_changed)
@@ -496,6 +501,42 @@ void PreferencesDialog::create_settings_mode_widget()
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_layout_mode_box, 1, wxALIGN_CENTER_VERTICAL);
 	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND);
+}
+
+void PreferencesDialog::create_settings_text_color_widget()
+{
+	wxWindow* parent = m_optgroup_gui->parent();
+
+	wxStaticBox* stb = new wxStaticBox(parent, wxID_ANY, _L("Text color Settings"));
+	if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+	wxSizer* sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
+	wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2, 10, 20);
+	sizer->Add(grid_sizer, 0, wxEXPAND);
+
+	auto sys_label = new wxStaticText(parent, wxID_ANY, _L("Value is the same as the system value"));
+	sys_label->SetForegroundColour(wxGetApp().get_label_clr_sys());
+	m_sys_colour = new wxColourPickerCtrl(parent, wxID_ANY, wxGetApp().get_label_clr_sys());
+	m_sys_colour->Bind(wxEVT_COLOURPICKER_CHANGED, [this, sys_label](wxCommandEvent&) {
+		sys_label->SetForegroundColour(m_sys_colour->GetColour());
+		sys_label->Refresh();
+	});
+	
+	grid_sizer->Add(m_sys_colour, -1, wxALIGN_CENTRE_VERTICAL);
+	grid_sizer->Add(sys_label, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
+
+	auto mod_label = new wxStaticText(parent, wxID_ANY, _L("Value was changed and is not equal to the system value or the last saved preset"));
+	mod_label->SetForegroundColour(wxGetApp().get_label_clr_modified());
+	m_mod_colour = new wxColourPickerCtrl(parent, wxID_ANY, wxGetApp().get_label_clr_modified());
+	m_mod_colour->Bind(wxEVT_COLOURPICKER_CHANGED, [this, mod_label](wxCommandEvent&) {
+		mod_label->SetForegroundColour(m_mod_colour->GetColour());
+		mod_label->Refresh();
+	});
+
+	grid_sizer->Add(m_mod_colour, -1, wxALIGN_CENTRE_VERTICAL);
+	grid_sizer->Add(mod_label, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
+
+	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND | wxTOP, em_unit());
 }
 
 

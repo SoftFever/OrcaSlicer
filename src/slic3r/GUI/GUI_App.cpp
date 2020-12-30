@@ -1024,6 +1024,12 @@ void GUI_App::update_label_colours_from_appconfig()
     }
 }
 
+void GUI_App::update_label_colours()
+{
+    for (Tab* tab : tabs_list)
+        tab->update_label_colours();
+}
+
 void GUI_App::init_fonts()
 {
     m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -1057,7 +1063,10 @@ void GUI_App::update_fonts(const MainFrame *main_frame)
     m_code_font.SetPointSize(m_normal_font.GetPointSize());
 }
 
-void GUI_App::set_label_clr_modified(const wxColour& clr) {
+void GUI_App::set_label_clr_modified(const wxColour& clr) 
+{
+    if (m_color_label_modified == clr)
+        return;
     m_color_label_modified = clr;
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
     std::string str = clr_str.ToStdString();
@@ -1065,7 +1074,10 @@ void GUI_App::set_label_clr_modified(const wxColour& clr) {
     app_config->save();
 }
 
-void GUI_App::set_label_clr_sys(const wxColour& clr) {
+void GUI_App::set_label_clr_sys(const wxColour& clr)
+{
+    if (m_color_label_sys == clr)
+        return;
     m_color_label_sys = clr;
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
     std::string str = clr_str.ToStdString();
@@ -1220,6 +1232,7 @@ void fatal_error(wxWindow* parent)
 // Update the UI based on the current preferences.
 void GUI_App::update_ui_from_settings(bool apply_free_camera_correction)
 {
+    update_label_colours();
     mainframe->update_ui_from_settings(apply_free_camera_correction);
 }
 

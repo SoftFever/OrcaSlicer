@@ -295,7 +295,7 @@ public:
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
-	void		update_labels_colour();
+	void		update_label_colours();
 	void		decorate();
 	void		update_changed_ui();
 	void		get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page);
