@@ -905,6 +905,13 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type)
         }
 
         evt.StopPropagation();
+#ifdef __WXMSW__
+        // From the Win 2004 preset combobox lose a focus after change the preset selection
+        // and that is why the up/down arrow doesn't work properly
+        // (see https://github.com/prusa3d/PrusaSlicer/issues/5531 ).
+        // So, set the focus to the combobox explicitly
+        this->SetFocus();
+#endif    
     });
 }
 
