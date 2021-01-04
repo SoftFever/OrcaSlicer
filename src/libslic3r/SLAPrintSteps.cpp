@@ -166,7 +166,10 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     // holes that are no longer on the frontend.
     TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
     hollowed_mesh = po.transformed_mesh();
-    sla::hollow_mesh(hollowed_mesh, *po.m_hollowing_data->interior/*, sla::hfRemoveInsideTriangles*/);
+    sla::hollow_mesh(hollowed_mesh, *po.m_hollowing_data->interior);
+
+    TriangleMesh &mesh_view = po.m_hollowing_data->hollow_mesh_with_holes_trimmed;
+    sla::remove_inside_triangles(mesh_view, *po.m_hollowing_data->interior);
 
     if (! needs_drilling) {
         BOOST_LOG_TRIVIAL(info) << "Drilling skipped (no holes).";
@@ -213,7 +216,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 // same imaginary grid (the height vector argument to TriangleMeshSlicer).
 void SLAPrint::Steps::slice_model(SLAPrintObject &po)
 {   
-    const TriangleMesh &mesh = po.get_mesh_to_print();
+    const TriangleMesh &mesh = po.get_mesh_to_slice();
 
     // We need to prepare the slice index...
     
@@ -303,7 +306,7 @@ void SLAPrint::Steps::support_points(SLAPrintObject &po)
     // If supports are disabled, we can skip the model scan.
     if(!po.m_config.supports_enable.getBool()) return;
     
-    const TriangleMesh &mesh = po.get_mesh_to_print();
+    const TriangleMesh &mesh = po.get_mesh_to_slice();
     
     if (!po.m_supportdata)
         po.m_supportdata.reset(new SLAPrintObject::SupportData(mesh));

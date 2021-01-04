@@ -324,4 +324,9 @@ void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags)
     mesh.require_shared_vertices();
 }
 
+void remove_inside_triangles(TriangleMesh &mesh, const Interior &interior)
+{
+
+}
+
 }} // namespace Slic3r::sla
