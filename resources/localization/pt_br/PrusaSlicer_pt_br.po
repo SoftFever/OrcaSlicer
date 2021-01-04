@@ -5106,8 +5106,8 @@ msgid "The supplied name is empty. It can't be saved."
 msgstr "O nome fornecido está vazio. Não pode ser salvo."
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:468
-msgid "You should to change a name of your printer device. It can't be saved."
-msgstr "Você deve mudar o nome da sua impressora. Não pode ser salvo."
+msgid "You should change the name of your printer device."
+msgstr "Você deve mudar o nome da sua impressora."
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:476
 msgid "Printer with name \"%1%\" already exists."

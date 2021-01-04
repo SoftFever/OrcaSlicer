@@ -10480,8 +10480,8 @@ msgid "You need to restart %s to make the changes effective."
 msgstr "È necessario riavviare %s per rendere effettive le modifiche."
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:468
-msgid "You should to change a name of your printer device. It can't be saved."
-msgstr "Devi cambiare il nome del dispositivo di stampa. Non può essere salvato."
+msgid "You should change the name of your printer device."
+msgstr "Devi cambiare il nome del dispositivo di stampa."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:3884
 #, possible-c-format
