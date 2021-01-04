@@ -2345,7 +2345,9 @@ void GCodeProcessor::process_T(const std::string_view command)
     if (command.length() > 1) {
         int eid;
         if (! parse_number(command.substr(1), eid) || eid < 0 || eid > 255) {
-            BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << command << ").";
+            // T-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools) see https://github.com/prusa3d/PrusaSlicer/issues/5677
+            if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || eid != -1)
+                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << command << ").";
         } else {
             unsigned char id = static_cast<unsigned char>(eid);
             if (m_extruder_id != id) {
