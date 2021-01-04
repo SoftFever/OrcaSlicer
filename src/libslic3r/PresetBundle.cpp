@@ -86,9 +86,8 @@ PresetBundle::PresetBundle() :
             preset.config.optptr(key, true);
         if (i == 0) {
             preset.config.optptr("default_print_profile", true);
-            preset.config.option<ConfigOptionStrings>("default_filament_profile", true)->values = { "" };
-        }
-        else {
+            preset.config.option<ConfigOptionStrings>("default_filament_profile", true);
+        } else {
             preset.config.optptr("default_sla_print_profile", true);
             preset.config.optptr("default_sla_material_profile", true);
         }
@@ -752,7 +751,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 	switch (printer_technology) {
 	case ptFFF:
 		config.option<ConfigOptionString>("default_print_profile", true);
-		config.option<ConfigOptionStrings>("default_filament_profile", true)->values.resize(num_extruders, std::string());
+        config.option<ConfigOptionStrings>("default_filament_profile", true);
 		break;
 	case ptSLA:
 		config.option<ConfigOptionString>("default_sla_print_profile", true);
