@@ -10369,6 +10369,10 @@ msgstr "Coordinate reali"
 msgid "Would you like to install it?\n\nNote that a full configuration snapshot will be created first. It can then be restored at any time should there be a problem with the new version.\n\nUpdated configuration bundles:"
 msgstr "Vuoi installarlo?\n\nNota: verrà prima creata un'istantanea della configurazione completa. Potrà essere ripristinata in qualunque momento se dovessero presentarsi problemi con la nuova versione.\n\nGruppo di configurazioni aggiornate:"
 
+#: src/slic3r/GUI/GUI_App.cpp:1802
+msgid "Would you like to stop uploads and close the program?"
+msgstr "Desideri interrompere il caricamento e chiudere il programma?"
+
 #: src/libslic3r/miniz_extension.cpp:151
 msgid "write calledback failed"
 msgstr "scrittura richiamo non riuscita"

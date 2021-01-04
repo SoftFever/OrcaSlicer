@@ -8607,7 +8607,7 @@ msgstr "Comenzar en altura"
 #: src/slic3r/GUI/Tab.cpp:1873 src/slic3r/GUI/Tab.cpp:2161
 #: src/libslic3r/PrintConfig.cpp:1928 src/libslic3r/PrintConfig.cpp:1943
 msgid "Start G-code"
-msgstr "Comenzar el código G"
+msgstr "Código G inicial"
 
 #: src/slic3r/GUI/MainFrame.cpp:1133
 msgid "Start new slicing process"
@@ -9521,7 +9521,7 @@ msgstr "Este procedimiento de inicio se inserta al principio, después de que cu
 
 #: src/libslic3r/PrintConfig.cpp:1929
 msgid "This start procedure is inserted at the beginning, after bed has reached the target temperature and extruder just started heating, and before extruder has finished heating. If PrusaSlicer detects M104 or M190 in your custom codes, such commands will not be prepended automatically so you're free to customize the order of heating commands and other custom actions. Note that you can use placeholder variables for all PrusaSlicer settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want."
-msgstr "Este procedimiento de inicio se inserta al principio, después de que la bse ha alcanzado la temperatura objetivo y el extrusor acaba de comenzar a calentar, y antes de que el extrusor haya terminado de calentar. Si PrusaSlicer detecta un M104 o M190 en tus códigos personalizados, dichos comandos no se agregarán automáticamente, por lo que se puede personalizar el orden de los comandos de calentamiento y otras acciones personalizadas. Ten en cuenta que puedes usar variables de marcador de posición para todas las configuraciones de PrusaSlicer, por lo que puedes colocar un comando \"M109 S [first_layer_temperature]\" donde lo desees."
+msgstr "Este procedimiento de inicio se inserta al principio, después de que la base ha alcanzado la temperatura objetivo y el extrusor acaba de comenzar a calentar, y antes de que el extrusor haya terminado de calentar. Si PrusaSlicer detecta un M104 o M190 en tus códigos personalizados, dichos comandos no se agregarán automáticamente, por lo que se puede personalizar el orden de los comandos de calentamiento y otras acciones personalizadas. Ten en cuenta que puedes usar variables de marcador de posición para todas las configuraciones de PrusaSlicer, por lo que puedes colocar un comando \"M109 S [first_layer_temperature]\" donde lo desees."
 
 #: src/libslic3r/PrintConfig.cpp:731
 msgid "This string is edited by RammingDialog and contains ramming specific parameters."
@@ -10368,6 +10368,10 @@ msgstr "Coordenadas mundiales"
 #: src/slic3r/GUI/UpdateDialogs.cpp:92
 msgid "Would you like to install it?\n\nNote that a full configuration snapshot will be created first. It can then be restored at any time should there be a problem with the new version.\n\nUpdated configuration bundles:"
 msgstr "¿Te gustaría instalarlo?\n\nTen en cuenta que primero se creará una instantánea de la configuración. Así que se puede recuperar en cualquier momento en caso de que hubiera algún problema con la nueva versión.\nUpdated configuration bundles:"
+
+#: src/slic3r/GUI/GUI_App.cpp:1802
+msgid "Would you like to stop uploads and close the program?"
+msgstr "¿Te gustaría detener las subidas y cerrar el programa?"
 
 #: src/libslic3r/miniz_extension.cpp:151
 msgid "write calledback failed"
