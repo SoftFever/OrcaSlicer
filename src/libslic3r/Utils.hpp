@@ -90,6 +90,7 @@ extern CopyFileResult check_copy(const std::string& origin, const std::string& c
 extern bool is_plain_file(const boost::filesystem::directory_entry &path);
 extern bool is_ini_file(const boost::filesystem::directory_entry &path);
 extern bool is_idx_file(const boost::filesystem::directory_entry &path);
+extern bool is_gcode_file(const std::string &path);
 
 // File path / name / extension splitting utilities, working with UTF-8,
 // to be published to Perl.

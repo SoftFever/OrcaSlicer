@@ -1866,11 +1866,9 @@ bool GUI_App::OnExceptionInMainLoop()
 void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 {
     size_t num_gcodes = 0;
-    for (const wxString &filename : fileNames) {
-        wxString fn = filename.Upper();
-        if (fn.EndsWith(".G") || fn.EndsWith(".GCODE"))
+    for (const wxString &filename : fileNames)
+        if (is_gcode_file(into_u8(filename)))
             ++ num_gcodes;
-    }
     if (fileNames.size() == num_gcodes) {
         // Opening PrusaSlicer by drag & dropping a G-Code onto PrusaSlicer icon in Finder,
         // just G-codes were passed. Switch to G-code viewer mode.
@@ -1890,8 +1888,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
     std::vector<wxString>    gcode_files;
     std::vector<wxString>    non_gcode_files;
     for (const auto& filename : fileNames) {
-        wxString fn = filename.Upper();
-        if (fn.EndsWith(".G") || fn.EndsWith(".GCODE"))
+        if (is_gcode_file(into_u8(filename)))
             gcode_files.emplace_back(filename);
         else {
             files.emplace_back(into_u8(filename));

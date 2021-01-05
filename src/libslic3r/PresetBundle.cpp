@@ -667,7 +667,7 @@ DynamicPrintConfig PresetBundle::full_sla_config() const
 // If the file is loaded successfully, its print / filament / printer profiles will be activated.
 void PresetBundle::load_config_file(const std::string &path)
 {
-	if (boost::iends_with(path, ".gcode") || boost::iends_with(path, ".g")) {
+	if (is_gcode_file(path)) {
 		DynamicPrintConfig config;
 		config.apply(FullPrintConfig::defaults());
         config.load_from_gcode_file(path);

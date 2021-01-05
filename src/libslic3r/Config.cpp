@@ -589,7 +589,7 @@ void ConfigBase::setenv_() const
 
 void ConfigBase::load(const std::string &file)
 {
-    if (boost::iends_with(file, ".gcode") || boost::iends_with(file, ".g"))
+    if (is_gcode_file(file))
         this->load_from_gcode_file(file);
     else
         this->load_from_ini(file);
