@@ -37,7 +37,7 @@ protected:
 
 	bool _can_connect(coord_t dist_X, coord_t dist_Y)
 	{
-	    coord_t TOLERANCE = 10 * SCALED_EPSILON;
+	    const auto TOLERANCE = coord_t(10 * SCALED_EPSILON);
     	return (dist_X >= (this->_line_spacing - this->_line_oscillation) - TOLERANCE)
         	&& (dist_X <= (this->_line_spacing + this->_line_oscillation) + TOLERANCE)
         	&& (dist_Y <= this->_diagonal_distance);
