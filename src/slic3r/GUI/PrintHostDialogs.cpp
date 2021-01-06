@@ -80,6 +80,17 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
     Fit();
     CenterOnParent();
 
+#ifdef __linux__
+    // On Linux with GTK2 when text control lose the focus then selection (colored background) disappears but text color stay white
+    // and as a result the text is invisible with light mode
+    // see https://github.com/prusa3d/PrusaSlicer/issues/4532
+    // Workaround: Unselect text selection explicitly on kill focus
+    txt_filename->Bind(wxEVT_KILL_FOCUS, [this](wxEvent& e) {
+        e.Skip();
+        txt_filename->SetInsertionPoint(txt_filename->GetLastPosition());
+    }, txt_filename->GetId());
+#endif /* __linux__ */
+
     Bind(wxEVT_SHOW, [=](const wxShowEvent &) {
         // Another similar case where the function only works with EVT_SHOW + CallAfter,
         // this time on Mac.
