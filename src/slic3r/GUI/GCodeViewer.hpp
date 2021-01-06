@@ -7,6 +7,8 @@
 
 #include <cstdint>
 #include <float.h>
+#include <set>
+#include <unordered_set>
 
 namespace Slic3r {
 
@@ -146,11 +148,35 @@ class GCodeViewer
     // Used to batch the indices needed to render paths
     struct RenderPath
     {
-        Color color;
-        unsigned int path_id;
-        unsigned int index_buffer_id;
-        std::vector<unsigned int> sizes;
-        std::vector<size_t> offsets; // use size_t because we need an unsigned int whose size matches pointer's size (used in the call glMultiDrawElements())
+        // Render path property
+        Color                       color;
+        unsigned int                index_buffer_id;
+        // Render path content
+        unsigned int                path_id;
+        std::vector<unsigned int>   sizes;
+        std::vector<size_t>         offsets; // use size_t because we need an unsigned int whose size matches pointer's size (used in the call glMultiDrawElements())
+    };
+    struct RenderPathPropertyHash {
+        size_t operator() (const RenderPath &p) const {
+            // Conver the RGB value to an integer hash.
+//            return (size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) * 7919) ^ size_t(p.index_buffer_id);
+            return size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) ^ size_t(p.index_buffer_id);
+        }
+    };
+    struct RenderPathPropertyLower {
+        bool operator() (const RenderPath &l, const RenderPath &r) const {
+            for (int i = 0; i < 3; ++ i)
+                if (l.color[i] < r.color[i])
+                    return true;
+                else if (l.color[i] > r.color[i])
+                    return false;
+            return l.index_buffer_id < r.index_buffer_id;
+        }
+    };
+    struct RenderPathPropertyEqual {
+        bool operator() (const RenderPath &l, const RenderPath &r) const {
+            return l.color == r.color && l.index_buffer_id == r.index_buffer_id;
+        }
     };
 
     // buffer containing data for rendering a specific toolpath type
@@ -169,7 +195,9 @@ class GCodeViewer
 
         std::string shader;
         std::vector<Path> paths;
-        std::vector<RenderPath> render_paths;
+        // std::set seems to perform singificantly better, at least on Windows.
+//        std::unordered_set<RenderPath, RenderPathPropertyHash, RenderPathPropertyEqual> render_paths;
+        std::set<RenderPath, RenderPathPropertyLower> render_paths;
         bool visible{ false };
 
         void reset();
