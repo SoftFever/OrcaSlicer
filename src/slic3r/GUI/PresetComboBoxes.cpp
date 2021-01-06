@@ -32,6 +32,10 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "SavePresetDialog.hpp"
 
+#include <glib-2.0/glib-object.h>
+#include <pango-1.0/pango/pango-layout.h>
+#include <gtk/gtk.h>
+
 using Slic3r::GUI::format_wxstr;
 
 namespace Slic3r {
@@ -130,6 +134,8 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
         }
         evt.Skip();
     });
+
+//    g_object_set( G_OBJECT( this ), "ellipsize", PANGO_ELLIPSIZE_END, nullptr);
 }
 
 PresetComboBox::~PresetComboBox()
@@ -179,6 +185,20 @@ void PresetComboBox::update_selection()
 
     SetSelection(m_last_selected);
     SetToolTip(GetString(m_last_selected));
+
+    GList* cells = gtk_cell_layout_get_cells( GTK_CELL_LAYOUT( m_widget ) );
+    if( !cells )
+        return;
+
+    GtkCellRendererText* cell = (GtkCellRendererText *) cells->next->data;
+
+    if( !cell )
+        return;
+
+    g_object_set( G_OBJECT( cell ), "ellipsize", PANGO_ELLIPSIZE_END, NULL );
+
+    // Only the list of cells must be freed, the renderer isn't ours to free
+    g_list_free( cells );
 }
 
 void PresetComboBox::update(std::string select_preset_name)
