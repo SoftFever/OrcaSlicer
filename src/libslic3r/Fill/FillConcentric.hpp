@@ -8,7 +8,7 @@ namespace Slic3r {
 class FillConcentric : public Fill
 {
 public:
-    ~FillConcentric() override {}
+    ~FillConcentric() override = default;
 
 protected:
     Fill* clone() const override { return new FillConcentric(*this); };
