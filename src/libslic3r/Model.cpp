@@ -461,11 +461,11 @@ bool Model::looks_like_imperial_units() const
     return false;
 }
 
-void Model::convert_from_imperial_units()
+void Model::convert_from_imperial_units(bool only_small_volumes)
 {
     double in_to_mm = 25.4;
     for (ModelObject* obj : this->objects)
-        if (obj->get_object_stl_stats().volume < 9.0) { // 9 = 3*3*3;
+        if (! only_small_volumes || obj->get_object_stl_stats().volume < 9.0) { // 9 = 3*3*3;
             obj->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
             for (ModelVolume* v : obj->volumes)
                 v->source.is_converted_from_inches = true;
@@ -1042,8 +1042,6 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
     int vol_idx = 0;
     for (ModelVolume* volume : volumes)
     {
-        volume->supported_facets.clear();
-        volume->seam_facets.clear();
         if (!volume->mesh().empty()) {
             TriangleMesh mesh(volume->mesh());
             mesh.require_shared_vertices();
@@ -1060,9 +1058,14 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
             vol->source.object_idx = (int)new_objects.size();
             vol->source.volume_idx = vol_idx;
 
-            // Perform conversion
-            if (volume_idxs.empty() || 
-                std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end()) {
+            vol->supported_facets.assign(volume->supported_facets);
+            vol->seam_facets.assign(volume->seam_facets);
+
+            // Perform conversion only if the target "imperial" state is different from the current one.
+            // This check supports conversion of "mixed" set of volumes, each with different "imperial" state.
+            if (//vol->source.is_converted_from_inches != from_imperial && 
+                (volume_idxs.empty() || 
+                 std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end())) {
                 vol->scale_geometry_after_creation(versor);
                 vol->set_offset(versor.cwiseProduct(volume->get_offset()));
                 vol->source.is_converted_from_inches = from_imperial;

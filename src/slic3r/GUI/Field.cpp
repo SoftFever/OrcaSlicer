@@ -57,9 +57,10 @@ wxString double_to_string(double const value, const int max_precision /*= 4*/)
 wxString get_thumbnails_string(const std::vector<Vec2d>& values)
 {
     wxString ret_str;
-    if (!values.empty())
-        for (auto el : values)
-            ret_str += wxString::Format("%ix%i, ", int(el[0]), int(el[1]));
+	for (size_t i = 0; i < values.size(); ++ i) {
+		const Vec2d& el = values[i];
+		ret_str += wxString::Format((i == 0) ? "%ix%i" : ", %ix%i", int(el[0]), int(el[1]));
+	}
     return ret_str;
 }
 
@@ -258,10 +259,28 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     m_value.clear();
                     break;
                 }
-                show_error(m_parent, _(L("Input value is out of range")));
-                if (m_opt.min > val) val = m_opt.min;
-                if (val > m_opt.max) val = m_opt.max;
-                set_value(double_to_string(val), true);
+                if (m_opt_id == "extrusion_multiplier") {
+                    if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
+                        wxString msg_text = format_wxstr(_L("Input value is out of range\n"
+                            "Are you sure that %s is a correct value and that you want to continue?"), str);
+                        wxMessageDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxICON_WARNING | wxYES | wxNO);
+                        if (dialog.ShowModal() == wxID_NO) {
+                            if (m_value.empty()) {
+                                if (m_opt.min > val) val = m_opt.min;
+                                if (val > m_opt.max) val = m_opt.max;
+                            }
+                            else
+                                val = boost::any_cast<double>(m_value);
+                            set_value(double_to_string(val), true);
+                        }
+                    }
+                }
+                else {
+                    show_error(m_parent, _L("Input value is out of range"));
+                    if (m_opt.min > val) val = m_opt.min;
+                    if (val > m_opt.max) val = m_opt.max;
+                    set_value(double_to_string(val), true);
+                }
             }
         }
         m_value = val;
@@ -359,7 +378,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 if (!m_value.empty())
                     text_value = get_thumbnails_string(boost::any_cast<std::vector<Vec2d>>(m_value));
                 set_value(text_value, true);
-                show_error(m_parent, format_wxstr(_L("Invalid input format. It must be represented like \"%1%\""),"XxY, XxY, ..." ));
+                show_error(m_parent, format_wxstr(_L("Invalid input format. Expected vector of dimensions in the following format: \"%1%\""),"XxY, XxY, ..." ));
             }
         }
 
@@ -897,6 +916,12 @@ void Choice::BUILD() {
         temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 #endif //__WXOSX__
     }
+
+#ifdef __WXGTK3__
+    wxSize best_sz = temp->GetBestSize();
+    if (best_sz.x > size.x)
+        temp->SetSize(best_sz);
+#endif //__WXGTK3__
 
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);

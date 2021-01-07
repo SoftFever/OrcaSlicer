@@ -504,7 +504,7 @@ Point SeamPlacer::get_random_seam(size_t layer_idx, const Polygon& polygon, size
                                   bool* saw_custom) const
 {
     // Parametrize the polygon by its length.
-    std::vector<float> lengths = polygon.parameter_by_length();
+    const std::vector<float> lengths = polygon.parameter_by_length();
 
     // Which of the points are inside enforcers/blockers?
     std::vector<size_t> enforcers_idxs;
@@ -516,23 +516,73 @@ Point SeamPlacer::get_random_seam(size_t layer_idx, const Polygon& polygon, size
     if (saw_custom)
         *saw_custom = has_enforcers || has_blockers;
 
-    // FIXME FIXME FIXME: This is just to test the outcome and whether it is
-    // reasonable. The algorithm should really sum the length of all available
-    // pieces, get a random length and find the respective point.
-    float rand_len = 0.f;
-    size_t pt_idx = 0;
-    do {
-        rand_len = lengths.back() * (rand()/float(RAND_MAX));
-        auto it = std::lower_bound(lengths.begin(), lengths.end(), rand_len);
-        pt_idx = it == lengths.end() ? 0 : (it-lengths.begin()-1);
+    assert(std::is_sorted(enforcers_idxs.begin(), enforcers_idxs.end()));
+    assert(std::is_sorted(blockers_idxs.begin(), blockers_idxs.end()));
+    std::vector<float> edges;
 
-        // If there are blockers and the point is inside, repeat.
-        // If there are enforcers and the point is NOT inside, repeat.
-    } while ((has_blockers && std::binary_search(blockers_idxs.begin(), blockers_idxs.end(), pt_idx))
-         || (has_enforcers && ! std::binary_search(enforcers_idxs.begin(), enforcers_idxs.end(), pt_idx)));
+    // Lambda to calculate lengths of all edges of interest. Last parameter
+    // decides whether to measure edges inside or outside idxs.
+    // Negative number = not an edge of interest.
+    auto get_valid_length = [&lengths](const std::vector<size_t>& idxs,
+                                       std::vector<float>& edges,
+                                       bool measure_inside_edges) -> float
+    {
+        // First mark edges we are interested in by assigning a positive number.
+        edges.assign(lengths.size()-1, measure_inside_edges ? -1.f : 1.f);
+        for (size_t i=0; i<idxs.size(); ++i) {
+            size_t this_pt_idx = idxs[i];
+            // Two concurrent indices in the list -> the edge between them is the enforcer/blocker.
+            bool inside_edge = ((i != idxs.size()-1 && idxs[i+1] == this_pt_idx + 1)
+                             || (i == idxs.size()-1 && idxs.back() == lengths.size()-2 && idxs[0] == 0));
+            if (inside_edge)
+                edges[this_pt_idx] = measure_inside_edges ? 1.f : -1.f;
+        }
+        // Now measure them.
+        float running_total = 0.f;
+        for (size_t i=0; i<edges.size(); ++i) {
+            if (edges[i] > 0.f) {
+                edges[i] = lengths[i+1] - lengths[i];
+                running_total += edges[i];
+            }
+        }
+        return running_total;
+    };
+
+    // Find all seam candidate edges and their lengths.
+    float valid_length = 0.f;
+    if (has_enforcers)
+        valid_length = get_valid_length(enforcers_idxs, edges, true);
+
+    if (! has_enforcers || valid_length == 0.f) {
+        // Second condition covers case with isolated enf points. Given how the painted
+        // triangles are projected, this should not happen. Stay on the safe side though.
+        if (has_blockers)
+            valid_length = get_valid_length(blockers_idxs, edges, false);
+        if (valid_length == 0.f) // No blockers or everything blocked - use the whole polygon.
+            valid_length = lengths.back();
+    }
+    assert(valid_length != 0.f);
+    // Now generate a random length and find the respective edge.
+    float rand_len = valid_length * (rand()/float(RAND_MAX));
+    size_t pt_idx = 0; // Index of the edge where to put the seam.
+    if (valid_length == lengths.back()) {
+        // Whole polygon is used for placing the seam.
+        auto it = std::lower_bound(lengths.begin(), lengths.end(), rand_len);
+        pt_idx = it == lengths.begin() ? 0 : (it-lengths.begin()-1); // this takes care of a corner case where rand() returns 0
+    } else {
+        float running = 0.f;
+        for (size_t i=0; i<edges.size(); ++i) {
+            running += edges[i] > 0.f ? edges[i] : 0.f;
+            if (running >= rand_len) {
+                pt_idx = i;
+                break;
+            }
+        }
+    }
 
     if (! has_enforcers && ! has_blockers) {
         // The polygon may be too coarse, calculate the point exactly.
+        assert(valid_length == lengths.back());
         bool last_seg = pt_idx == polygon.points.size()-1;
         size_t next_idx = last_seg ? 0 : pt_idx+1;
         const Point& prev = polygon.points[pt_idx];

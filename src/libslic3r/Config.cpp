@@ -233,6 +233,7 @@ ConfigOption* ConfigOptionDef::create_empty_option() const
 	    case coFloats:          return new ConfigOptionFloatsNullable();
 	    case coInts:            return new ConfigOptionIntsNullable();
 	    case coPercents:        return new ConfigOptionPercentsNullable();
+        case coFloatsOrPercents: return new ConfigOptionFloatsOrPercentsNullable();
 	    case coBools:           return new ConfigOptionBoolsNullable();
 	    default:                throw Slic3r::RuntimeError(std::string("Unknown option type for nullable option ") + this->label);
 	    }
@@ -247,6 +248,7 @@ ConfigOption* ConfigOptionDef::create_empty_option() const
 	    case coPercent:         return new ConfigOptionPercent();
 	    case coPercents:        return new ConfigOptionPercents();
 	    case coFloatOrPercent:  return new ConfigOptionFloatOrPercent();
+        case coFloatsOrPercents: return new ConfigOptionFloatsOrPercents();
 	    case coPoint:           return new ConfigOptionPoint();
 	    case coPoints:          return new ConfigOptionPoints();
 	    case coPoint3:          return new ConfigOptionPoint3();
@@ -587,7 +589,7 @@ void ConfigBase::setenv_() const
 
 void ConfigBase::load(const std::string &file)
 {
-    if (boost::iends_with(file, ".gcode") || boost::iends_with(file, ".g"))
+    if (is_gcode_file(file))
         this->load_from_gcode_file(file);
     else
         this->load_from_ini(file);
@@ -950,6 +952,8 @@ CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPercent)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPercents)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPercentsNullable)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionFloatOrPercent)
+CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionFloatsOrPercents)
+CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionFloatsOrPercentsNullable)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPoint)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPoints)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPoint3)
@@ -984,6 +988,8 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionFloat, Slic3r::ConfigOp
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionFloats, Slic3r::ConfigOptionPercents)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionFloats, Slic3r::ConfigOptionPercentsNullable)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionPercent, Slic3r::ConfigOptionFloatOrPercent)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<Slic3r::FloatOrPercent>, Slic3r::ConfigOptionFloatsOrPercents)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<Slic3r::FloatOrPercent>, Slic3r::ConfigOptionFloatsOrPercentsNullable)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionSingle<Slic3r::Vec2d>, Slic3r::ConfigOptionPoint)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<Slic3r::Vec2d>, Slic3r::ConfigOptionPoints)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionSingle<Slic3r::Vec3d>, Slic3r::ConfigOptionPoint3)

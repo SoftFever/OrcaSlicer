@@ -544,7 +544,7 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
         return;
     }
     if (printer_name == m_default_name) {
-        warning_catcher(this, _L("You should to change a name of your printer device. It can't be saved."));
+        warning_catcher(this, _L("You should change the name of your printer device."));
         return;
     }
 

@@ -150,15 +150,11 @@ int CLI::run(int argc, char **argv)
     }
 
     // Read input file(s) if any.
-    for (const std::string& file : m_input_files) {
-        std::string ext = boost::filesystem::path(file).extension().string();
-        if (ext == ".gcode" || ext == ".g") {
-            if (boost::filesystem::exists(file)) {
-                start_as_gcodeviewer = true;
-                break;
-            }
+    for (const std::string& file : m_input_files)
+        if (is_gcode_file(file) && boost::filesystem::exists(file)) {
+            start_as_gcodeviewer = true;
+            break;
         }
-    }
     if (!start_as_gcodeviewer) {
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {

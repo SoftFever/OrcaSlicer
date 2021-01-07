@@ -86,9 +86,8 @@ PresetBundle::PresetBundle() :
             preset.config.optptr(key, true);
         if (i == 0) {
             preset.config.optptr("default_print_profile", true);
-            preset.config.option<ConfigOptionStrings>("default_filament_profile", true)->values = { "" };
-        }
-        else {
+            preset.config.option<ConfigOptionStrings>("default_filament_profile", true);
+        } else {
             preset.config.optptr("default_sla_print_profile", true);
             preset.config.optptr("default_sla_material_profile", true);
         }
@@ -668,7 +667,7 @@ DynamicPrintConfig PresetBundle::full_sla_config() const
 // If the file is loaded successfully, its print / filament / printer profiles will be activated.
 void PresetBundle::load_config_file(const std::string &path)
 {
-	if (boost::iends_with(path, ".gcode") || boost::iends_with(path, ".g")) {
+	if (is_gcode_file(path)) {
 		DynamicPrintConfig config;
 		config.apply(FullPrintConfig::defaults());
         config.load_from_gcode_file(path);
@@ -752,7 +751,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 	switch (printer_technology) {
 	case ptFFF:
 		config.option<ConfigOptionString>("default_print_profile", true);
-		config.option<ConfigOptionStrings>("default_filament_profile", true)->values.resize(num_extruders, std::string());
+        config.option<ConfigOptionStrings>("default_filament_profile", true);
 		break;
 	case ptSLA:
 		config.option<ConfigOptionString>("default_sla_print_profile", true);
@@ -876,7 +875,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         // Activate the physical printer profile if possible.
         PhysicalPrinter *pp = this->physical_printers.find_printer(physical_printer, true);
         if (pp != nullptr && std::find(pp->preset_names.begin(), pp->preset_names.end(), this->printers.get_edited_preset().name) != pp->preset_names.end())
-            this->physical_printers.select_printer(*pp);
+            this->physical_printers.select_printer(pp->name, this->printers.get_edited_preset().name);
         else
             this->physical_printers.unselect_printer();
     }
@@ -1396,7 +1395,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
         if (! active_printer.empty())
             printers.select_preset_by_name(active_printer, true);
         if (! active_physical_printer.empty())
-            physical_printers.select_printer(active_physical_printer +" * " + active_printer);
+            physical_printers.select_printer(active_physical_printer, active_printer);
         // Activate the first filament preset.
         if (! active_filaments.empty() && ! active_filaments.front().empty())
             filaments.select_preset_by_name(active_filaments.front(), true);

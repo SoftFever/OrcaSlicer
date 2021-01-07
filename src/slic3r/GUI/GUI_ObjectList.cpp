@@ -261,10 +261,10 @@ ObjectList::~ObjectList()
 void ObjectList::set_min_height()
 {
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
-    * change min hight of object list to the normal min value (35 * wxGetApp().em_unit())
+    * change min hight of object list to the normal min value (20 * wxGetApp().em_unit())
     * after first whole Mainframe updating/layouting
     */
-    const int list_min_height = 35 * wxGetApp().em_unit();
+    const int list_min_height = 20 * wxGetApp().em_unit();
     if (this->GetMinSize().GetY() > list_min_height)
         this->SetMinSize(wxSize(-1, list_min_height));
 }
@@ -274,7 +274,7 @@ void ObjectList::create_objects_ctrl()
 {
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
      * 1. set a height of the list to some big value 
-     * 2. change it to the normal min value (15 * wxGetApp().em_unit()) after first whole Mainframe updating/layouting
+     * 2. change it to the normal min value (20 * wxGetApp().em_unit()) after first whole Mainframe updating/layouting
      */
     SetMinSize(wxSize(-1, 3000));
 
@@ -1070,6 +1070,8 @@ bool ObjectList::copy_to_clipboard()
 {
     wxDataViewItemArray sels;
     GetSelections(sels);
+    if (sels.IsEmpty())
+        return false;
     ItemType type = m_objects_model->GetItemType(sels.front());
     if (!(type & (itSettings | itLayer | itLayerRoot))) {
         m_clipboard.reset();
@@ -2391,6 +2393,8 @@ void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
         m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
     if (is_layer_settings)
         m_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+
+    changed_object();
 }
 
 void ObjectList::del_instances_from_object(const int obj_idx)

@@ -9,6 +9,7 @@
 #include "hidapi.h"
 
 #include <queue>
+#include <atomic>
 #include <thread>
 #include <vector>
 #include <chrono>

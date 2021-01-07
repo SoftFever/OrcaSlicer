@@ -109,6 +109,9 @@ private:
     bool            m_app_conf_exists{ false };
     EAppMode        m_app_mode{ EAppMode::Editor };
     bool            m_is_recreating_gui{ false };
+#ifdef __linux__
+    bool            m_opengl_initialized{ false };
+#endif
 
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
@@ -251,7 +254,7 @@ public:
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
 	OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
     wxSingleInstanceChecker* single_instance_checker() {return m_single_instance_checker.get();}
-    
+
 	void        init_single_instance_checker(const std::string &name, const std::string &path);
 	void        set_instance_hash (const size_t hash) { m_instance_hash_int = hash; m_instance_hash_string = std::to_string(hash); }
     std::string get_instance_hash_string ()           { return m_instance_hash_string; }

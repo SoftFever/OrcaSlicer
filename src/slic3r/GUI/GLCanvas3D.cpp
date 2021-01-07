@@ -86,6 +86,13 @@ static const size_t VERTEX_BUFFER_RESERVE_SIZE_SUM_MAX = 1024 * 1024 * 128 / 4; 
 namespace Slic3r {
 namespace GUI {
 
+#ifdef __WXGTK3__
+// wxGTK3 seems to simulate OSX behavior in regard to HiDPI scaling support.
+RetinaHelper::RetinaHelper(wxWindow* window) : m_window(window), m_self(nullptr) {}
+RetinaHelper::~RetinaHelper() {}
+float RetinaHelper::get_scale_factor() { return float(m_window->GetContentScaleFactor()); }
+#endif // __WXGTK3__
+
 Size::Size()
     : m_width(0)
     , m_height(0)
@@ -1093,6 +1100,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 
@@ -1177,6 +1185,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
+        m_render_timer.SetOwner(m_canvas);
 #if ENABLE_RETINA_GL
         m_retina_helper.reset(new RetinaHelper(canvas));
 #endif // ENABLE_RETINA_GL
@@ -1322,7 +1331,7 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
 {
     for (GLVolume* vol : m_volumes.volumes) {
         if (vol->composite_id.object_id == 1000) { // wipe tower
-                vol->is_active = (visible && mo == nullptr);
+            vol->is_active = (visible && mo == nullptr);
         }
         else {
             if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
@@ -1601,6 +1610,9 @@ void GLCanvas3D::render()
     if (wxGetApp().is_editor())
         wxGetApp().plater()->init_environment_texture();
 #endif // ENABLE_ENVIRONMENT_MAP
+
+    m_render_timer.Stop();
+    m_extra_frame_requested_delayed = std::numeric_limits<int>::max();
 
     const Size& cnv_size = get_canvas_size();
     // Probably due to different order of events on Linux/GTK2, when one switched from 3D scene
@@ -2276,8 +2288,11 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 {
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
-    if (wxGetApp().is_editor())
+
+    if (wxGetApp().is_editor()) {
+        m_gcode_viewer.update_shells_color_by_extruder(m_config);
         _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
+    }
 }
 
 void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -2339,6 +2354,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_KEY_UP, &GLCanvas3D::on_key, this);
         m_canvas->Bind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Bind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
+        m_canvas->Bind(EVT_GLCANVAS_RENDER_TIMER, &GLCanvas3D::on_render_timer, this);
         m_canvas->Bind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
@@ -2368,6 +2384,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_KEY_UP, &GLCanvas3D::on_key, this);
         m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
+        m_canvas->Unbind(EVT_GLCANVAS_RENDER_TIMER, &GLCanvas3D::on_render_timer, this);
         m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
 		m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
@@ -2396,13 +2413,12 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
     if (!m_initialized)
         return;
-
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-    NotificationManager* notification_mgr = wxGetApp().plater()->get_notification_manager();
+    /*NotificationManager* notification_mgr = wxGetApp().plater()->get_notification_manager();
     if (notification_mgr->requires_update())
         notification_mgr->update_notifications();
 
-    m_dirty |= notification_mgr->requires_render();
+    m_dirty |= notification_mgr->requires_render();*/
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
     // FIXME
     m_dirty |= m_main_toolbar.update_items_state();
@@ -2413,9 +2429,10 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= mouse3d_controller_applied;
 
 #if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+    /*
     if (notification_mgr->requires_update()) {
         evt.RequestMore();
-    }
+    }*/
 #endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
     if (!m_dirty)
@@ -2454,21 +2471,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     if (m_gizmos.on_char(evt))
         return;
 
-    auto action_plus = [this](wxKeyEvent& evt) {
-        if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-            post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
-        else
-            post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1));
-    };
-
-    auto action_a = [this]() {
-        post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
-    };
-
-    auto action_question_mark = [this]() {
-        post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK));
-    };
-
     if ((evt.GetModifiers() & ctrlMask) != 0) {
         // CTRL is pressed
         switch (keyCode) {
@@ -2478,7 +2480,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_A:
 #endif /* __APPLE__ */
-                post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
+            post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
         case 'c':
@@ -2562,35 +2564,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
              post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
         default:            evt.Skip();
         }
-    }
-    else if ((evt.GetModifiers() & shiftMask) != 0) {
-        // SHIFT is pressed
-        switch (keyCode) {
-        case '+': { action_plus(evt); break; }
-        case 'A':
-        case 'a': { action_a(); break; }
-        case 'G':
-        case 'g': {
-            if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
-            break;
-        }
-        case '?': { action_question_mark(); break; }
-        default:
-            evt.Skip();
-        }
-    } else if (evt.HasModifiers()) {
-        evt.Skip();
     } else {
         switch (keyCode)
         {
         case WXK_BACK:
-		case WXK_DELETE:
-                  post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
-                  break;
+        case WXK_DELETE: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
         case WXK_ESCAPE: { deselect_all(); break; }
-        case WXK_F5:
-        {
+        case WXK_F5: {
             if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
                 (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
                 post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
@@ -2603,33 +2583,48 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '4': { select_view("rear"); break; }
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
-        case '+': { action_plus(evt); break; }
+        case '+': {
+            if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
+            else
+                post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1));
+            break;
+        }
         case '-': {
-                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
-                    else
-                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
-                    break; }
-        case '?': { action_question_mark(); break; }
+            if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+            else
+                post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
+            break;
+        }
+        case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
-        case 'a': { action_a(); break; }
+        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'E':
         case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
+        case 'G':
+        case 'g': {
+            if ((evt.GetModifiers() & shiftMask) != 0) {
+                if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                    post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
+            }
+            break;
+        }
         case 'I':
         case 'i': { _update_camera_zoom(1.0); break; }
         case 'K':
         case 'k': { wxGetApp().plater()->get_camera().select_next_type(); m_dirty = true; break; }
         case 'L':
         case 'l': {
-                    if (!m_main_toolbar.is_enabled()) {
-                        m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
-                        m_dirty = true;
-                        wxGetApp().plater()->update_preview_bottom_toolbar();
-                    }
-                    break;
-                  }
+            if (!m_main_toolbar.is_enabled()) {
+                m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
+                m_dirty = true;
+                wxGetApp().plater()->update_preview_bottom_toolbar();
+            }
+            break;
+        }
         case 'O':
         case 'o': { _update_camera_zoom(-1.0); break; }
 #if ENABLE_RENDER_PICKING_PASS
@@ -2641,8 +2636,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         }
 #endif // ENABLE_RENDER_PICKING_PASS
         case 'Z':
-        case 'z':
-        {
+        case 'z': {
             if (!m_selection.is_empty())
                 zoom_to_selection();
             else {
@@ -2651,7 +2645,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 else
                     _zoom_to_box(m_gcode_viewer.get_paths_bounding_box());
             }
-
             break;
         }
         default:  { evt.Skip(); break; }
@@ -2990,6 +2983,39 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
         _perform_layer_editing_action();
 }
 
+void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
+{
+    // If slicer is not top window -> restart timer with one second to try again
+    wxWindow* p = dynamic_cast<wxWindow*>(wxGetApp().plater());
+    while (p->GetParent() != nullptr)
+        p = p->GetParent();
+    wxTopLevelWindow* top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
+    if (!top_level_wnd->IsActive()) {
+        request_extra_frame_delayed(1000);
+        return;
+    }
+    //render();
+    m_dirty = true;
+}
+
+void GLCanvas3D::request_extra_frame_delayed(int miliseconds)
+{
+    int64_t now = timestamp_now();
+    if (! m_render_timer.IsRunning()) {
+        m_extra_frame_requested_delayed = miliseconds;
+        m_render_timer.StartOnce(miliseconds);
+        m_render_timer_start = now;
+    } else {
+        const int64_t remaining_time = (m_render_timer_start + m_extra_frame_requested_delayed) - now;
+        if (miliseconds < remaining_time) {
+            m_render_timer.Stop(); 
+            m_extra_frame_requested_delayed = miliseconds;
+            m_render_timer.StartOnce(miliseconds);
+            m_render_timer_start = now;
+        }
+    }
+}
+
 #ifndef NDEBUG
 // #define SLIC3R_DEBUG_MOUSE_EVENTS
 #endif
@@ -3116,6 +3142,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     if (m_gizmos.on_mouse(evt)) {
+        if (wxWindow::FindFocus() != this->m_canvas)
+            // Grab keyboard focus for input in gizmo dialogs.
+            m_canvas->SetFocus();
+
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
 
@@ -3752,7 +3782,8 @@ void GLCanvas3D::update_ui_from_settings()
 {
     m_dirty = true;
 
-#if ENABLE_RETINA_GL
+#if __APPLE__
+    // Update OpenGL scaling on OSX after the user toggled the "use_retina_opengl" settings in Preferences dialog.
     const float orig_scaling = m_retina_helper->get_scale_factor();
 
     const bool use_retina = wxGetApp().app_config->get("use_retina_opengl") == "1";
@@ -3999,7 +4030,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     dist_key += postfix;
     rot_key  += postfix;
 
-    imgui->text(GUI::format_wxstr(_L("Use %1%left mouse key to enter text edit mode:"), shortkey_ctrl_prefix()));
+    imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
 
     if (imgui->slider_float(_L("Spacing"), &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance) {
         settings.distance = std::max(dist_min, settings.distance);
@@ -4120,9 +4151,13 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
     shader->start_using();
     shader->set_uniform("print_box.volume_detection", 0);
 
-    for (const GLVolume* vol : visible_volumes) {
+    for (GLVolume* vol : visible_volumes) {
         shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? orange : gray);
+        // the volume may have been deactivated by an active gizmo
+        bool is_active = vol->is_active;
+        vol->is_active = true;
         vol->render();
+        vol->is_active = is_active;
     }
 
     shader->stop_using();
@@ -5301,14 +5336,16 @@ void GLCanvas3D::_render_view_toolbar() const
     GLToolbar& view_toolbar = wxGetApp().plater()->get_view_toolbar();
 
 #if ENABLE_RETINA_GL
-//     m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale();
-    view_toolbar.set_scale(scale); //! #ys_FIXME_experiment
+#if __APPLE__
+    view_toolbar.set_scale(scale);
+#else // if GTK3
+    const float size = int(GLGizmosManager::Default_Icons_Size * scale);
+    view_toolbar.set_icons_size(size);
+#endif // __APPLE__
 #else
-//     m_view_toolbar.set_scale(m_canvas->GetContentScaleFactor());
-//     m_view_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
     const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
-    view_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
+    view_toolbar.set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
@@ -6451,5 +6488,10 @@ void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
     wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
 }
 
+
+void  GLCanvas3D::RenderTimer::Notify()
+{
+    wxPostEvent((wxEvtHandler*)GetOwner(), RenderTimerEvent( EVT_GLCANVAS_RENDER_TIMER, *this));
+}
 } // namespace GUI
 } // namespace Slic3r

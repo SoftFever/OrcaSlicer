@@ -234,7 +234,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl, L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
     };
 
-    m_full_shortcuts.push_back({ { _L("Vertical Slider"), _L("The following shortcuts are applicable when the vertical slider, in preview, is active") }, layers_slider_shortcuts });
+    m_full_shortcuts.push_back({ { _L("Vertical Slider"), _L("The following shortcuts are applicable in G-code preview when the vertical slider is active") }, layers_slider_shortcuts });
 
     Shortcuts sequential_slider_shortcuts = {
 #if ENABLE_ARROW_KEYS_WITH_SLIDERS
@@ -250,7 +250,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { ctrl, L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
     };
 
-    m_full_shortcuts.push_back({ { _L("Horizontal Slider"), _L("The following shortcuts are applicable when the horizontal slider, in preview, is active") }, sequential_slider_shortcuts });
+    m_full_shortcuts.push_back({ { _L("Horizontal Slider"), _L("The following shortcuts are applicable in G-code preview when the horizontal slider is active") }, sequential_slider_shortcuts });
 }
 
 wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_font)

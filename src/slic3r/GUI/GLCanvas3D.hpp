@@ -31,8 +31,9 @@ class wxPaintEvent;
 class wxGLCanvas;
 class wxGLContext;
 
-// Support for Retina OpenGL on Mac OS
-#define ENABLE_RETINA_GL __APPLE__
+// Support for Retina OpenGL on Mac OS.
+// wxGTK3 seems to simulate OSX behavior in regard to HiDPI scaling support, enable it as well.
+#define ENABLE_RETINA_GL (__APPLE__ || __WXGTK3__)
 
 namespace Slic3r {
 
@@ -70,6 +71,25 @@ public:
 
     int get_scale_factor() const;
     void set_scale_factor(int height);
+};
+
+
+class RenderTimerEvent : public wxEvent
+{
+public:
+    RenderTimerEvent(wxEventType type, wxTimer& timer)
+        : wxEvent(timer.GetId(), type),
+        m_timer(&timer)
+    {
+        SetEventObject(timer.GetOwner());
+    }
+    int GetInterval() const { return m_timer->GetInterval(); }
+    wxTimer& GetTimer() const { return *m_timer; }
+
+    virtual wxEvent* Clone() const { return new RenderTimerEvent(*this); }
+    virtual wxEventCategory GetEventCategory() const  { return wxEVT_CATEGORY_TIMER; }
+private:
+    wxTimer* m_timer;
 };
 
 
@@ -118,6 +138,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
 
 class GLCanvas3D
 {
@@ -328,7 +349,7 @@ class GLCanvas3D
 
     public:
         void add_frame(int64_t frame) {
-            int64_t now = wxGetLocalTimeMillis().GetValue();
+            int64_t now = GLCanvas3D::timestamp_now();
             if (!m_frames.empty() && now - m_frames.front().first > 1000) {
                 m_curr_total -= m_frames.front().second;
                 m_frames.pop();
@@ -390,6 +411,11 @@ class GLCanvas3D
         static float get_window_width() { return s_window_width; };
     };
 
+    class RenderTimer : public wxTimer {
+    private:
+        virtual void Notify() override;
+    };
+
 public:
     enum ECursorType : unsigned char
     {
@@ -427,11 +453,15 @@ private:
     std::string m_sidebar_field;
     // when true renders an extra frame by not resetting m_dirty to false
     // see request_extra_frame()
-    bool m_extra_frame_requested;
+    bool m_extra_frame_requested; 
+    int  m_extra_frame_requested_delayed { std::numeric_limits<int>::max() };
     bool m_event_handlers_bound{ false };
 
     mutable GLVolumeCollection m_volumes;
     GCodeViewer m_gcode_viewer;
+
+    RenderTimer m_render_timer;
+    int64_t     m_render_timer_start;
 
     Selection m_selection;
     const DynamicPrintConfig* m_config;
@@ -649,6 +679,7 @@ public:
     void on_key(wxKeyEvent& evt);
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
+    void on_render_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
@@ -711,6 +742,7 @@ public:
     void msw_rescale();
 
     void request_extra_frame() { m_extra_frame_requested = true; }
+    void request_extra_frame_delayed(int miliseconds);
 
     int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
@@ -739,6 +771,17 @@ public:
         }
 
         return ret;
+    }
+
+    // Timestamp for FPS calculation and notification fade-outs.
+    static int64_t timestamp_now() {
+#ifdef _WIN32
+        // Cheaper on Windows, calls GetSystemTimeAsFileTime()
+        return wxGetUTCTimeMillis().GetValue();
+#else
+        // calls clock()
+        return wxGetLocalTimeMillis().GetValue();
+#endif
     }
 
 private:

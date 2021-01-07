@@ -297,15 +297,16 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
     double                     max_nozzle_diameter            = *std::max_element(nozzle_diameters.begin(), nozzle_diameters.end());
     double                     default_infill_extrusion_width = Flow::auto_extrusion_width(FlowRole::frInfill, float(max_nozzle_diameter));
     for (const PrintRegion *region : print_object.print()->regions()) {
-        const PrintRegionConfig &config   = region->config();
-        bool                     nonempty = config.fill_density > 0;
-        bool                     has_adaptive_infill = nonempty && config.fill_pattern == ipAdaptiveCubic;
-        bool                     has_support_infill  = nonempty && config.fill_pattern == ipSupportCubic;
+        const PrintRegionConfig &config                 = region->config();
+        bool                     nonempty               = config.fill_density > 0;
+        bool                     has_adaptive_infill    = nonempty && config.fill_pattern == ipAdaptiveCubic;
+        bool                     has_support_infill     = nonempty && config.fill_pattern == ipSupportCubic;
+        double                   infill_extrusion_width = config.infill_extrusion_width.percent ? default_infill_extrusion_width * 0.01 * config.infill_extrusion_width : config.infill_extrusion_width;
         region_fill_data.push_back(RegionFillData({
             has_adaptive_infill ? Tristate::Maybe : Tristate::No,
             has_support_infill ? Tristate::Maybe : Tristate::No,
             config.fill_density,
-            config.infill_extrusion_width != 0. ? config.infill_extrusion_width : default_infill_extrusion_width
+            infill_extrusion_width != 0. ? infill_extrusion_width : default_infill_extrusion_width
         }));
         build_octree |= has_adaptive_infill || has_support_infill;
     }

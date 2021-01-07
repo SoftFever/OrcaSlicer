@@ -116,10 +116,10 @@ namespace fts {
         	int  num_matched  = std::tolower(*pattern) == std::tolower(*str) ? 1 : 0;
         	bool folded_match = false;
         	if (! num_matched) {
-        		char tmp[4];
-        		char *end = Slic3r::fold_to_ascii(*str, tmp);
-        		char *c = tmp;
-                for (const wchar_t* d = pattern; c != end && *d != 0 && wchar_t(std::tolower(*c)) == std::tolower(*d); ++c, ++d);
+                wchar_t tmp[4];
+                wchar_t *end = Slic3r::fold_to_ascii(*str, tmp);
+                wchar_t *c = tmp;
+                for (const wchar_t* d = pattern; c != end && *d != 0 && std::towlower(*c) == std::towlower(*d); ++c, ++d);
                 if (c == end) {
         			folded_match = true;
         			num_matched = end - tmp;

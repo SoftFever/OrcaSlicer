@@ -36,6 +36,15 @@
 namespace Slic3r {
 namespace UndoRedo {
 
+#ifdef SLIC3R_UNDOREDO_DEBUG
+static inline std::string ptr_to_string(const void* ptr)
+{
+    char buf[64];
+    sprintf(buf, "%p", ptr);
+    return buf;
+}
+#endif
+
 SnapshotData::SnapshotData() : printer_technology(ptUnknown), flags(0), layer_range_idx(-1)
 {
 }
@@ -368,15 +377,6 @@ private:
 	MutableHistoryInterval& operator=(const MutableHistoryInterval &rhs);
 };
 
-#ifdef SLIC3R_UNDOREDO_DEBUG
-static inline std::string ptr_to_string(const void* ptr)
-{
-	char buf[64];
-	sprintf(buf, "%p", ptr);
-	return buf;
-}
-#endif
-
 // Smaller objects (Model, ModelObject, ModelInstance, ModelVolume, DynamicPrintConfig)
 // are mutable and there is not tracking of the changes, therefore a snapshot needs to be
 // taken every time and compared to the previous data at the Undo / Redo stack.
@@ -548,6 +548,7 @@ public:
     void load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos);
 
 	bool has_undo_snapshot() const;
+	bool has_undo_snapshot(size_t time_to_load) const;
 	bool has_redo_snapshot() const;
     bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, Slic3r::GUI::GLGizmosManager &gizmos, const SnapshotData &snapshot_data, size_t jump_to_time);
     bool redo(Slic3r::Model &model, Slic3r::GUI::GLGizmosManager &gizmos, size_t jump_to_time);
@@ -907,6 +908,11 @@ bool StackImpl::has_undo_snapshot() const
 	return -- it != m_snapshots.begin();
 }
 
+bool StackImpl::has_undo_snapshot(size_t time_to_load) const
+{
+	return time_to_load < m_active_snapshot_time && std::binary_search(m_snapshots.begin(), m_snapshots.end(), Snapshot(time_to_load));
+}
+
 bool StackImpl::has_redo_snapshot() const
 {
 	assert(this->valid());
@@ -1083,6 +1089,7 @@ void Stack::release_least_recently_used() { pimpl->release_least_recently_used()
 void Stack::take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, const SnapshotData &snapshot_data)
 	{ pimpl->take_snapshot(snapshot_name, model, selection, gizmos, snapshot_data); }
 bool Stack::has_undo_snapshot() const { return pimpl->has_undo_snapshot(); }
+bool Stack::has_undo_snapshot(size_t time_to_load) const { return pimpl->has_undo_snapshot(time_to_load); }
 bool Stack::has_redo_snapshot() const { return pimpl->has_redo_snapshot(); }
 bool Stack::undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, const SnapshotData &snapshot_data, size_t time_to_load)
 	{ return pimpl->undo(model, selection, gizmos, snapshot_data, time_to_load); }

@@ -77,7 +77,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
     {
         html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), monospaced_font ? 30 * wxGetApp().em_unit() : -1));
         wxFont 	  	font 			= wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-		wxFont      monospace       = wxSystemSettings::GetFont(wxSYS_ANSI_FIXED_FONT);
+        wxFont      monospace       = wxGetApp().code_font();
 		wxColour  	text_clr  		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
         wxColour  	bgr_clr 		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 		auto      	text_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());

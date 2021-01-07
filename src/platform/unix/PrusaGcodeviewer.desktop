@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Prusa GCode viewer
 Exec=prusa-slicer --gcodeviewer %F
-Icon=PrusaSlicer # TODO: change when the new icon is ready
+Icon=PrusaSlicer-gcodeviewer
 Terminal=false
 Type=Application
 MimeType=text/x.gcode;

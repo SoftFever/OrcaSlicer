@@ -971,11 +971,15 @@ void Control::draw_ruler(wxDC& dc)
         double value = 0.0;
         int sequence = 0;
 
+        int prev_y_pos = -1;
+        wxCoord label_height = dc.GetMultiLineTextExtent("0").y - 2;
+        int values_size = (int)m_values.size();
+
         while (tick <= m_max_value) {
             value += m_ruler.long_step;
             if (value > m_values.back() && sequence < m_ruler.count) {
                 value = m_ruler.long_step;
-                for (tick; tick < m_values.size(); tick++)
+                for (; tick < values_size; tick++)
                     if (m_values[tick] < value)
                         break;
                 // short ticks from the last tick to the end of current sequence
@@ -984,7 +988,7 @@ void Control::draw_ruler(wxDC& dc)
             }
             short_tick = tick;
 
-            for (tick; tick < m_values.size(); tick++) {
+            for (; tick < values_size; tick++) {
                 if (m_values[tick] == value)
                     break;
                 if (m_values[tick] > value) {
@@ -998,7 +1002,10 @@ void Control::draw_ruler(wxDC& dc)
 
             wxCoord pos = get_position_from_value(tick);
             draw_ticks_pair(dc, pos, mid, 5);
-            draw_tick_text(dc, wxPoint(mid, pos), tick);
+            if (prev_y_pos < 0 || prev_y_pos - pos >= label_height) {
+                draw_tick_text(dc, wxPoint(mid, pos), tick);
+                prev_y_pos = pos;
+            }
 
             draw_short_ticks(dc, short_tick, tick);
 

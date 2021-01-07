@@ -35,6 +35,11 @@
 #include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
+#if defined(__linux__) && defined(__WXGTK3__)
+#define wxLinux_gtk3 true
+#else
+#define wxLinux_gtk3 false
+#endif //defined(__linux__) && defined(__WXGTK3__)
 
 namespace Slic3r {
 namespace GUI {
@@ -209,7 +214,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
                 load_bitmap(Slic3r::var(PRINTER_PLACEHOLDER), bitmap, bitmap_width);
             }
         }
-        auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+        auto *title = new wxStaticText(this, wxID_ANY, from_u8(model.name), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
         title->SetFont(font_name);
         const int wrap_width = std::max((int)MODEL_MIN_WRAP, bitmap_width);
         title->Wrap(wrap_width);
@@ -409,7 +414,11 @@ ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxStrin
 
     SetSizer(sizer);
 
-    this->Hide();
+    // There is strange layout on Linux with GTK3, 
+    // see https://github.com/prusa3d/PrusaSlicer/issues/5103 and https://github.com/prusa3d/PrusaSlicer/issues/4861
+    // So, non-active pages will be hidden later, on wxEVT_SHOW, after completed Layout() for all pages 
+    if (!wxLinux_gtk3)
+        this->Hide();
 
     Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
         this->Layout();
@@ -2271,7 +2280,6 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
     	wxString out;
     	for (const VendorProfile::PrinterModel *printer_model : printer_models) {
             wxString name = from_u8(printer_model->name);
-            name.Replace("&", "&&", true);
     		out += "\t\t";
     		out += name;
     		out += "\n";
@@ -2643,6 +2651,20 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 
         Layout();
     });
+
+    if (wxLinux_gtk3)
+        this->Bind(wxEVT_SHOW, [this, vsizer](const wxShowEvent& e) {
+            ConfigWizardPage* active_page = p->index->active_page();
+            if (!active_page)
+                return;
+            for (auto page : p->all_pages)
+                if (page != active_page)
+                    page->Hide();
+            // update best size for the dialog after hiding of the non-active pages
+            vsizer->SetSizeHints(this);
+            // set initial dialog size
+            p->init_dialog_size();
+        });
 }
 
 ConfigWizard::~ConfigWizard() {}
