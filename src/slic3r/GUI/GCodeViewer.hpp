@@ -20,6 +20,7 @@ namespace GUI {
 class GCodeViewer
 {
     using Color = std::array<float, 3>;
+    using VertexBuffer = std::vector<float>;
     using IndexBuffer = std::vector<unsigned int>;
     using MultiIndexBuffer = std::vector<IndexBuffer>;
 
