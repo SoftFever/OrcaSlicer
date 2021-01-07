@@ -333,7 +333,7 @@ void RemovableDriveManager::eject_drive()
 			// Remove the drive_data from m_current drives, searching by value, not by pointer, as m_current_drives may get modified during
 			// asynchronous execution on m_eject_thread.
 			tbb::mutex::scoped_lock lock(m_drives_mutex);
-			auto it = m_current_drives.find(drive_data);
+			auto it = std::find(m_current_drives.begin(), m_current_drives.end(), drive_data);
 			if (it != m_current_drives.end())
 				m_current_drives.erase(it);
 		}
