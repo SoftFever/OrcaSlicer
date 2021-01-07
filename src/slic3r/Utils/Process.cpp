@@ -17,7 +17,6 @@
 // For starting another PrusaSlicer instance on OSX.
 // Fails to compile on Windows on the build server.
 #ifdef __APPLE__
-	#include <signal.h>
     #include <boost/process/spawn.hpp>
     #include <boost/process/args.hpp>
 #endif
@@ -79,11 +78,12 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 			if (instance_type == NewSlicerInstanceType::Slicer && single_instance)
 				args.emplace_back("--single-instance");
 			boost::process::spawn(bin_path, args);
-			// boost::process::spawn() sets SIGINT to SIGIGN, which collides with boost::process waiting for a child to finish!
-			// https://jmmv.dev/2008/10/boostprocess-and-sigchld.html
-			// Thus reset the SIGINT to its default, so that posix waitpid() and similar continue to work.
-			// Fixes Crash on Eject in Second Instance on macOS #5507
-			signal(SIGINT, SIG_DFL);
+		    // boost::process::spawn() sets SIGCHLD to SIGIGN for the child process, thus if a child PrusaSlicer spawns another
+		    // subprocess and the subrocess dies, the child PrusaSlicer will not receive information on end of subprocess
+		    // (posix waitpid() call will always fail).
+		    // https://jmmv.dev/2008/10/boostprocess-and-sigchld.html
+		    // The child instance of PrusaSlicer has to reset SIGCHLD to its default, so that posix waitpid() and similar continue to work.
+		    // See GH issue #5507
 		}
 		catch (const std::exception& ex) {
 			BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << bin_path.string() << "\": " << ex.what();
