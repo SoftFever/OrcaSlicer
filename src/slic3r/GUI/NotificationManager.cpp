@@ -1233,11 +1233,11 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 
 	if (this->activate_existing(notification.get())) {
 		m_pop_notifications.back()->update(notification->get_data());
-		canvas.request_extra_frame();
+		canvas.request_extra_frame_delayed(33);
 		return false;
 	} else {
 		m_pop_notifications.emplace_back(std::move(notification));
-		canvas.request_extra_frame();
+		canvas.request_extra_frame_delayed(33);
 		return true;
 	}
 }
@@ -1387,15 +1387,19 @@ void NotificationManager::update_notifications()
 	if (!top_level_wnd->IsActive())
 		return;
 
-	static size_t last_size = m_pop_notifications.size();
+	//static size_t last_size = m_pop_notifications.size();
 
+	//request frames
+	int64_t next_render = std::numeric_limits<int64_t>::max();
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
 		std::unique_ptr<PopNotification>& notification = *it;
+		notification->set_paused(m_hovered);
+		notification->update_state();
+		next_render = std::min<int64_t>(next_render, notification->next_render());
 		if (notification->get_state() == PopNotification::EState::Finished)
 			it = m_pop_notifications.erase(it);
 		else {
-			notification->set_paused(m_hovered);
-			notification->update_state();
+			
 			++it;
 		}
 	}
@@ -1436,16 +1440,11 @@ void NotificationManager::update_notifications()
 	if (m_requires_render)
 		m_requires_update = true;
 	*/
-	//request frames
-	int64_t next_render = std::numeric_limits<int64_t>::max();
-	const int64_t max = std::numeric_limits<int64_t>::max();
-	for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		next_render = std::min<int64_t>(next_render, notification->next_render());
-	}
+	
 
 	if (next_render == 0)
-		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-	else if (next_render < max)
+		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame_delayed(33); //few milliseconds to get from GLCanvas::render
+	else if (next_render < std::numeric_limits<int64_t>::max())
 		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame_delayed(int(next_render));
 
 	/*
