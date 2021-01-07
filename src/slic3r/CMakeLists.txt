@@ -255,3 +255,12 @@ endif ()
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
 endif ()
+
+# We need to implement some hacks for wxWidgets and touch the underlying GTK
+# layer and sub-libraries. This forces us to use the include locations of these
+# libraries. No need to link to them, wxWidgets does that already.
+# See PresetComboBox.cpp for the includes and subsequent workarounds.
+if (UNIX AND NOT APPLE)
+    find_package(GTK${SLIC3R_GTK} REQUIRED)
+    target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
+endif ()
