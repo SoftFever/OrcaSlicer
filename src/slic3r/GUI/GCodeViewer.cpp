@@ -1964,7 +1964,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     for (const TBuffer& buffer : m_buffers) {
-        m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.render_paths, RenderPath);
+        m_statistics.render_paths_size += SLIC3R_STDUNORDEREDSET_MEMSIZE(buffer.render_paths, RenderPath);
         for (const RenderPath& path : buffer.render_paths) {
             m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.sizes, unsigned int);
             m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
