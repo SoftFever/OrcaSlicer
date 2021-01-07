@@ -261,19 +261,34 @@ void RemovableDriveManager::eject_drive()
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 	this->update();
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
+#if __APPLE__
+	// If eject is still pending on the eject thread, wait until it finishes.
+	//FIXME while waiting for the eject thread to finish, the main thread is not pumping Cocoa messages, which may lead 
+	// to blocking by the diskutil tool for a couple (up to 10) seconds. This is likely not critical, as the eject normally
+	// finishes quickly.
+	this->eject_thread_finish();
+#endif
+
 	BOOST_LOG_TRIVIAL(info) << "Ejecting started";
 
-	tbb::mutex::scoped_lock lock(m_drives_mutex);
-	auto it_drive_data = this->find_last_save_path_drive_data();
-	if (it_drive_data != m_current_drives.end()) {
-		std::string correct_path(m_last_save_path);
-#ifndef __APPLE__
-		for (size_t i = 0; i < correct_path.size(); ++i) 
-        	if (correct_path[i]==' ') {
-				correct_path = correct_path.insert(i,1,'\\');
-        		++ i;
-        	}
+	DriveData drive_data;
+	{
+		tbb::mutex::scoped_lock lock(m_drives_mutex);
+		auto it_drive_data = this->find_last_save_path_drive_data();
+		if (it_drive_data == m_current_drives.end())
+			return;
+		drive_data = *it_drive_data;
+	}
+
+	std::string correct_path(m_last_save_path);
+#if __APPLE__
+	// On Apple, run the eject asynchronously on a worker thread, see the discussion at GH issue #4844.
+	m_eject_thread = std::thread([this, correct_path, drive_data]()
+#else
+	// Escape spaces on Unix systems. Why not on Apple?
+	boost::replace_all(correct_path, " ", "\\ ");
 #endif
+	{
 		//std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
 		// there is no usable command in c++ so terminal command is used instead
 		// but neither triggers "succesful safe removal messege"
@@ -296,31 +311,36 @@ void RemovableDriveManager::eject_drive()
 		// wait for command to finnish (blocks ui thread)
 		std::error_code ec;
 		child.wait(ec);
+		bool success = false;
 		if (ec) {
             // The wait call can fail, as it did in https://github.com/prusa3d/PrusaSlicer/issues/5507
             // It can happen even in cases where the eject is sucessful, but better report it as failed.
             // We did not find a way to reliably retrieve the exit code of the process.
 			BOOST_LOG_TRIVIAL(error) << "boost::process::child::wait() failed during Ejection. State of Ejection is unknown. Error code: " << ec.value();
-			assert(m_callback_evt_handler);
-			if (m_callback_evt_handler)
-				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(*it_drive_data, false)));
-			return;
+		} else {
+			int err = child.exit_code();
+	    	if (err) {
+	    		BOOST_LOG_TRIVIAL(error) << "Ejecting failed. Exit code: " << err;
+	    	} else {
+				BOOST_LOG_TRIVIAL(info) << "Ejecting finished";
+				success = true;
+			}
 		}
-		int err = child.exit_code();
-    	if (err) {
-    		BOOST_LOG_TRIVIAL(error) << "Ejecting failed. Exit code: " << err;
-			assert(m_callback_evt_handler);
-			if (m_callback_evt_handler)
-				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(*it_drive_data, false)));
-    		return;
-    	}
-		BOOST_LOG_TRIVIAL(info) << "Ejecting finished";
-
 		assert(m_callback_evt_handler);
 		if (m_callback_evt_handler) 
-			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(std::move(*it_drive_data), true)));
-		m_current_drives.erase(it_drive_data);
+			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(drive_data, success)));
+		if (success) {
+			// Remove the drive_data from m_current drives, searching by value, not by pointer, as m_current_drives may get modified during
+			// asynchronous execution on m_eject_thread.
+			tbb::mutex::scoped_lock lock(m_drives_mutex);
+			auto it = m_current_drives.find(drive_data);
+			if (it != m_current_drives.end())
+				m_current_drives.erase(it);
+		}
 	}
+#if __APPLE__
+	);
+#endif // __APPLE__
 }
 
 std::string RemovableDriveManager::get_removable_drive_path(const std::string &path)
@@ -382,7 +402,11 @@ void RemovableDriveManager::init(wxEvtHandler *callback_evt_handler)
 void RemovableDriveManager::shutdown()
 {
 #if __APPLE__
-	this->unregister_window_osx();
+	// If eject is still pending on the eject thread, wait until it finishes.
+	//FIXME while waiting for the eject thread to finish, the main thread is not pumping Cocoa messages, which may lead 
+	// to blocking by the diskutil tool for a couple (up to 10) seconds. This is likely not critical, as the eject normally
+	// finishes quickly.
+	this->eject_thread_finish();
 #endif
 
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
@@ -492,5 +516,16 @@ std::vector<DriveData>::const_iterator RemovableDriveManager::find_last_save_pat
 		[this](const DriveData &data){ return data.path < m_last_save_path; }, 
 		[this](const DriveData &data){ return data.path == m_last_save_path; });
 }
+
+#if __APPLE__
+void RemovableDriveManager::eject_thread_finish()
+{
+	if (m_eject_thread) {
+		m_eject_thread->join();
+		delete m_eject_thread;
+		m_eject_thread = nullptr;
+	}
+}
+#endif // __APPLE__
 
 }} // namespace Slic3r::GUI
