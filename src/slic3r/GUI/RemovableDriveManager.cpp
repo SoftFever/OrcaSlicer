@@ -283,7 +283,7 @@ void RemovableDriveManager::eject_drive()
 	std::string correct_path(m_last_save_path);
 #if __APPLE__
 	// On Apple, run the eject asynchronously on a worker thread, see the discussion at GH issue #4844.
-	m_eject_thread = new std::thread([this, correct_path, drive_data]()
+	m_eject_thread = new boost::thread([this, correct_path, drive_data]()
 #else
 	// Escape spaces on Unix systems. Why not on Apple?
 	boost::replace_all(correct_path, " ", "\\ ");
