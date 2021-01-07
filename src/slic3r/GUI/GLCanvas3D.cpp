@@ -2996,6 +2996,7 @@ void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
     }
     //render();
     m_dirty = true;
+    wxWakeUpIdle();
 }
 
 void GLCanvas3D::request_extra_frame_delayed(int miliseconds)

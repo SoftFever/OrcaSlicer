@@ -1444,7 +1444,7 @@ void NotificationManager::update_notifications()
 	}
 
 	if (next_render == 0)
-		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+		wxGetApp().plater()->get_current_canvas3D()->request_extra_framee_delayed(33); //few milliseconds to get from GLCanvas::render
 	else if (next_render < max)
 		wxGetApp().plater()->get_current_canvas3D()->request_extra_frame_delayed(int(next_render));
 
