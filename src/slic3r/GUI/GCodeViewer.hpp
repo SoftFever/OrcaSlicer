@@ -195,7 +195,7 @@ class GCodeViewer
 
         std::string shader;
         std::vector<Path> paths;
-        // std::set seems to perform singificantly better, at least on Windows.
+        // std::set seems to perform significantly better, at least on Windows.
 //        std::unordered_set<RenderPath, RenderPathPropertyHash, RenderPathPropertyEqual> render_paths;
         std::set<RenderPath, RenderPathPropertyLower> render_paths;
         bool visible{ false };
@@ -228,7 +228,7 @@ class GCodeViewer
             {
             case ERenderPrimitiveType::Point:    { return 0; }
             case ERenderPrimitiveType::Line:     { return 1; }
-            case ERenderPrimitiveType::Triangle: { return 36; } // 1 vertex of 13th triangle
+            case ERenderPrimitiveType::Triangle: { return 36; } // 1st vertex of 13th triangle
             default:                             { return 0; }
             }
         }
@@ -461,7 +461,6 @@ public:
     };
 
 private:
-    bool m_initialized{ false };
     mutable bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
@@ -490,7 +489,7 @@ private:
     GCodeProcessor::Result::SettingsIds m_settings_ids;
 
 public:
-    GCodeViewer() = default;
+    GCodeViewer();
     ~GCodeViewer() { reset(); }
 
     // extract rendering data from the given parameters
@@ -536,7 +535,6 @@ public:
     void export_toolpaths_to_obj(const char* filename) const;
 
 private:
-    void init();
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;

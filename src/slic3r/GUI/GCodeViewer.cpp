@@ -306,10 +306,47 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
     { 0.581f, 0.149f, 0.087f }  // reddish
 }};
 
+GCodeViewer::GCodeViewer()
+{
+    // initializes non opengl data of TBuffers
+    for (size_t i = 0; i < m_buffers.size(); ++i) {
+        TBuffer& buffer = m_buffers[i];
+        switch (buffer_type(i))
+        {
+        default: { break; }
+        case EMoveType::Tool_change:
+        case EMoveType::Color_change:
+        case EMoveType::Pause_Print:
+        case EMoveType::Custom_GCode:
+        case EMoveType::Retract:
+        case EMoveType::Unretract:
+        {
+            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
+            buffer.vertices.format = VBuffer::EFormat::Position;
+            break;
+        }
+        case EMoveType::Wipe:
+        case EMoveType::Extrude:
+        {
+            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
+            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
+            break;
+        }
+        case EMoveType::Travel:
+        {
+            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
+            buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
+            break;
+        }
+        }
+    }
+
+    set_toolpath_move_type_visible(EMoveType::Extrude, true);
+//    m_sequential_view.skip_invisible_moves = true;
+}
+
 void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
 {
-    init();
-
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id)
         return;
@@ -460,9 +497,6 @@ void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig* conf
 
 void GCodeViewer::reset()
 {
-    m_initialized = false;
-    m_gl_data_initialized = false;
-
     m_moves_count = 0;
     for (TBuffer& buffer : m_buffers) {
         buffer.reset();
@@ -953,50 +987,6 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     fclose(fp);
-}
-
-void GCodeViewer::init()
-{
-    if (m_initialized)
-        return;
-
-    // initializes non opengl data of TBuffers
-    for (size_t i = 0; i < m_buffers.size(); ++i) {
-        TBuffer& buffer = m_buffers[i];
-        switch (buffer_type(i))
-        {
-        default: { break; }
-        case EMoveType::Tool_change:
-        case EMoveType::Color_change:
-        case EMoveType::Pause_Print:
-        case EMoveType::Custom_GCode:
-        case EMoveType::Retract:
-        case EMoveType::Unretract:
-        {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
-            buffer.vertices.format = VBuffer::EFormat::Position;
-            break;
-        }
-        case EMoveType::Wipe:
-        case EMoveType::Extrude:
-        {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-            break;
-        }
-        case EMoveType::Travel:
-        {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
-            break;
-        }
-        }
-    }
-
-    set_toolpath_move_type_visible(EMoveType::Extrude, true);
-//    m_sequential_view.skip_invisible_moves = true;
-
-    m_initialized = true;
 }
 
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
