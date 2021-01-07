@@ -1053,7 +1053,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     // format data into the buffers to be rendered as lines
     auto add_vertices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr,
-        TBuffer& buffer, std::vector<float>& buffer_vertices) {
+        std::vector<float>& buffer_vertices) {
             // x component of the normal to the current segment (the normal is parallel to the XY plane)
             float normal_x = (curr.position - prev.position).normalized()[1];
 
@@ -1413,7 +1413,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             break;
         }
         case TBuffer::ERenderPrimitiveType::Line: {
-            add_vertices_as_line(prev, curr, buffer, buffer_vertices);
+            add_vertices_as_line(prev, curr, buffer_vertices);
             break;
         }
         case TBuffer::ERenderPrimitiveType::Triangle: {
@@ -1422,11 +1422,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
         }
 
-        EMoveType type = buffer_type(id);
-        if (type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) {
+        if (curr.type == EMoveType::Pause_Print || curr.type == EMoveType::Custom_GCode) {
             const float* const last_z = options_zs.empty() ? nullptr : &options_zs.back();
-            float z = static_cast<double>(curr.position[2]);
-            if (last_z == nullptr || z < *last_z - EPSILON || *last_z + EPSILON < z)
+            if (last_z == nullptr || curr.position[2] < *last_z - EPSILON || *last_z + EPSILON < curr.position[2])
                 options_zs.emplace_back(curr.position[2]);
         }
     }
