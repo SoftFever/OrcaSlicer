@@ -284,9 +284,6 @@ void RemovableDriveManager::eject_drive()
 #if __APPLE__
 	// On Apple, run the eject asynchronously on a worker thread, see the discussion at GH issue #4844.
 	m_eject_thread = new boost::thread([this, correct_path, drive_data]()
-#else
-	// Escape spaces on Unix systems. Why not on Apple?
-	boost::replace_all(correct_path, " ", "\\ ");
 #endif
 	{
 		//std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
