@@ -257,10 +257,10 @@ if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
 endif ()
 
 # We need to implement some hacks for wxWidgets and touch the underlying GTK
-# layer and sub-libraries. This forces us to use the include locations of these
-# libraries. No need to link to them, wxWidgets does that already.
-# See PresetComboBox.cpp for the includes and subsequent workarounds.
+# layer and sub-libraries. This forces us to use the include locations and
+# link these libraries.
 if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
+    target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES})
 endif ()
