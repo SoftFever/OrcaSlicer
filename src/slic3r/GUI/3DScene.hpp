@@ -611,7 +611,7 @@ struct _3DScene
     static void point3_to_verts(const Vec3crd& point, double width, double height, GLVolume& volume);
 };
 
-static constexpr float BedEpsilon = float(EPSILON);
+static constexpr float BedEpsilon = 3.f * float(EPSILON);
 
 }
 
