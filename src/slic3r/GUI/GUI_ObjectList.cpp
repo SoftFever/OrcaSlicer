@@ -1197,7 +1197,7 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     **/
     m_prevent_list_events = true;//it's needed for GTK
 
-    /* Under GTK, DnD requires to the wxTextDataObject been initialized with some valid vaSome textlue,
+    /* Under GTK, DnD requires to the wxTextDataObject been initialized with some valid value,
      * so set some nonempty string
      */
     wxTextDataObject* obj = new wxTextDataObject;
@@ -1257,7 +1257,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 // It looks like a fixed in current version of the wxWidgets
 // #ifdef __WXGTK__
 //     /* Under GTK, DnD moves an item between another two items.
-//     * And event.GetItem() return item, which is under "insertion line"Some text
+//     * And event.GetItem() return item, which is under "insertion line"
 //     * So, if we move item down we should to decrease the to_volume_id value
 //     **/
 //     if (to_volume_id > from_volume_id) to_volume_id--;
