@@ -262,7 +262,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	// see https://docs.appimage.org/packaging-guide/environment-variables.html#id2
 	const char *appimage_binary = std::getenv("APPIMAGE");
 	if (appimage_binary)
-		hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(appimage_binary, ec).string());
+		hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(appimage_binary, ec).string()));
 	if (ec.value() > 0)
 #endif // __linux
 		hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]), ec).string());
