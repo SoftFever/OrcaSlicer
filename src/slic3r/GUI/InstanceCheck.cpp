@@ -260,10 +260,21 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 #ifdef __linux
 	// If executed by an AppImage, start the AppImage, not the main process.
 	// see https://docs.appimage.org/packaging-guide/environment-variables.html#id2
-	const char *appimage_binary = std::getenv("APPIMAGE");
-	if (appimage_binary)
-		hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(appimage_binary, ec).string()));
-	if (ec.value() > 0)
+	const char *appimage_env = std::getenv("APPIMAGE");
+	bool appimage_env_valid = false;
+	if (appimage_env) {
+		try {
+			auto appimage_path = boost::filesystem::canonical(boost::filesystem::path(appimage_env));
+			if (boost::filesystem::exists(appimage_path)) {
+				hashed_path = std::hash<std::string>{}(appimage_path.string());
+				appimage_env_valid = true;
+			}
+		} catch (std::exception &) {			
+		}
+		if (! appimage_env_valid)
+			BOOST_LOG_TRIVIAL(error) << "APPIMAGE environment variable was set, but it does not point to a valid file: " << appimage_env;
+	}
+	if (! appimage_env_valid)
 #endif // __linux
 		hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]), ec).string());
 	if (ec.value() > 0) { // canonical was not able to find the executable (can happen with appimage on some systems. Does it fail on Fuse file systems?)
