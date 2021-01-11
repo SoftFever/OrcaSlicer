@@ -257,7 +257,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	hashed_path = std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
 #else
 	boost::system::error_code ec;
-#ifdef __linux
+#ifdef __linux__
 	// If executed by an AppImage, start the AppImage, not the main process.
 	// see https://docs.appimage.org/packaging-guide/environment-variables.html#id2
 	const char *appimage_env = std::getenv("APPIMAGE");
@@ -275,7 +275,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 			BOOST_LOG_TRIVIAL(error) << "APPIMAGE environment variable was set, but it does not point to a valid file: " << appimage_env;
 	}
 	if (! appimage_env_valid)
-#endif // __linux
+#endif // __linux__
 		hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]), ec).string());
 	if (ec.value() > 0) { // canonical was not able to find the executable (can happen with appimage on some systems. Does it fail on Fuse file systems?)
 		ec.clear();

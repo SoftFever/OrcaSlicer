@@ -39,9 +39,9 @@
 
 #include <tbb/task_scheduler_init.h>
 
-#if defined(__linux) || defined(__GNUC__ )
+#if defined(__linux__) || defined(__GNUC__ )
 #include <strings.h>
-#endif /* __linux */
+#endif /* __linux__ */
 
 #ifdef _MSC_VER 
     #define strcasecmp _stricmp
