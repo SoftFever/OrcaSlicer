@@ -2004,10 +2004,9 @@ end:
 	                layer->make_slices();
 	            }
 	        });
-	    if (elephant_foot_compensation_scaled > 0.f) {
+	    if (elephant_foot_compensation_scaled > 0.f && ! m_layers.empty()) {
 	    	// The Elephant foot has been compensated, therefore the 1st layer's lslices are shrank with the Elephant foot compensation value.
 	    	// Store the uncompensated value there.
-	    	assert(! m_layers.empty());
 	    	assert(m_layers.front()->id() == 0);
 			m_layers.front()->lslices = std::move(lslices_1st_layer);
 		}
