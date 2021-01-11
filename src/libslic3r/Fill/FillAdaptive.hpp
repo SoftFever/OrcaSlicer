@@ -59,7 +59,7 @@ public:
     ~Filler() override {}
 
 protected:
-    Fill* clone() const override { return new Filler(*this); };
+    Fill* clone() const override { return new Filler(*this); }
 	void _fill_surface_single(
 	    const FillParams                &params,
 	    unsigned int                     thickness_layers,
@@ -73,7 +73,7 @@ protected:
 	bool no_sort() const override { return false; }
 };
 
-}; // namespace FillAdaptive
+} // namespace FillAdaptive
 } // namespace Slic3r
 
 #endif // slic3r_FillAdaptive_hpp_

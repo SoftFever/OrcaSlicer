@@ -160,66 +160,66 @@ bool triangle_AABB_intersects(const Vector &a, const Vector &b, const Vector &c,
     return true;
 }
 
-static double dist2_to_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, const Vec3d &p)
-{
-    double out = std::numeric_limits<double>::max();
-    const Vec3d v1 = b - a;
-    auto        l1 = v1.squaredNorm();
-    const Vec3d v2 = c - b;
-    auto        l2 = v2.squaredNorm();
-    const Vec3d v3 = a - c;
-    auto        l3 = v3.squaredNorm();
+//    static double dist2_to_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, const Vec3d &p)
+//    {
+//        double out = std::numeric_limits<double>::max();
+//        const Vec3d v1 = b - a;
+//        auto        l1 = v1.squaredNorm();
+//        const Vec3d v2 = c - b;
+//        auto        l2 = v2.squaredNorm();
+//        const Vec3d v3 = a - c;
+//        auto        l3 = v3.squaredNorm();
 
-    // Is the triangle valid?
-    if (l1 > 0. && l2 > 0. && l3 > 0.) 
-    {
-        // 1) Project point into the plane of the triangle.
-        const Vec3d n = v1.cross(v2);
-        double d = (p - a).dot(n);
-        const Vec3d foot_pt = p - n * d / n.squaredNorm();
+//        // Is the triangle valid?
+//        if (l1 > 0. && l2 > 0. && l3 > 0.)
+//        {
+//            // 1) Project point into the plane of the triangle.
+//            const Vec3d n = v1.cross(v2);
+//            double d = (p - a).dot(n);
+//            const Vec3d foot_pt = p - n * d / n.squaredNorm();
 
-        // 2) Maximum projection of n.
-        int proj_axis;
-        n.array().cwiseAbs().maxCoeff(&proj_axis);
+//            // 2) Maximum projection of n.
+//            int proj_axis;
+//            n.array().cwiseAbs().maxCoeff(&proj_axis);
 
-        // 3) Test whether the foot_pt is inside the triangle.
-        {
-            auto inside_triangle = [](const Vec2d& v1, const Vec2d& v2, const Vec2d& v3, const Vec2d& pt) {
-                const double d1 = cross2(v1, pt);
-                const double d2 = cross2(v2, pt);
-                const double d3 = cross2(v3, pt);
-                // Testing both CCW and CW orientations.
-                return (d1 >= 0. && d2 >= 0. && d3 >= 0.) || (d1 <= 0. && d2 <= 0. && d3 <= 0.);
-            };
-            bool inside;
-            switch (proj_axis) {
-            case 0: 
-                inside = inside_triangle({v1.y(), v1.z()}, {v2.y(), v2.z()}, {v3.y(), v3.z()}, {foot_pt.y(), foot_pt.z()}); break;
-            case 1: 
-                inside = inside_triangle({v1.z(), v1.x()}, {v2.z(), v2.x()}, {v3.z(), v3.x()}, {foot_pt.z(), foot_pt.x()}); break;
-            default: 
-                assert(proj_axis == 2);
-                inside = inside_triangle({v1.x(), v1.y()}, {v2.x(), v2.y()}, {v3.x(), v3.y()}, {foot_pt.x(), foot_pt.y()}); break;
-            }
-            if (inside)
-                return (p - foot_pt).squaredNorm();
-        }
+//            // 3) Test whether the foot_pt is inside the triangle.
+//            {
+//                auto inside_triangle = [](const Vec2d& v1, const Vec2d& v2, const Vec2d& v3, const Vec2d& pt) {
+//                    const double d1 = cross2(v1, pt);
+//                    const double d2 = cross2(v2, pt);
+//                    const double d3 = cross2(v3, pt);
+//                    // Testing both CCW and CW orientations.
+//                    return (d1 >= 0. && d2 >= 0. && d3 >= 0.) || (d1 <= 0. && d2 <= 0. && d3 <= 0.);
+//                };
+//                bool inside;
+//                switch (proj_axis) {
+//                case 0:
+//                    inside = inside_triangle({v1.y(), v1.z()}, {v2.y(), v2.z()}, {v3.y(), v3.z()}, {foot_pt.y(), foot_pt.z()}); break;
+//                case 1:
+//                    inside = inside_triangle({v1.z(), v1.x()}, {v2.z(), v2.x()}, {v3.z(), v3.x()}, {foot_pt.z(), foot_pt.x()}); break;
+//                default:
+//                    assert(proj_axis == 2);
+//                    inside = inside_triangle({v1.x(), v1.y()}, {v2.x(), v2.y()}, {v3.x(), v3.y()}, {foot_pt.x(), foot_pt.y()}); break;
+//                }
+//                if (inside)
+//                    return (p - foot_pt).squaredNorm();
+//            }
 
-        // 4) Find minimum distance to triangle vertices and edges.
-        out = std::min((p - a).squaredNorm(), std::min((p - b).squaredNorm(), (p - c).squaredNorm()));
-        auto t = (p - a).dot(v1);
-        if (t > 0. && t < l1)
-            out = std::min(out, (a + v1 * (t / l1) - p).squaredNorm());
-        t = (p - b).dot(v2);
-        if (t > 0. && t < l2)
-            out = std::min(out, (b + v2 * (t / l2) - p).squaredNorm());
-        t = (p - c).dot(v3);
-        if (t > 0. && t < l3)
-            out = std::min(out, (c + v3 * (t / l3) - p).squaredNorm());
-    }
+//            // 4) Find minimum distance to triangle vertices and edges.
+//            out = std::min((p - a).squaredNorm(), std::min((p - b).squaredNorm(), (p - c).squaredNorm()));
+//            auto t = (p - a).dot(v1);
+//            if (t > 0. && t < l1)
+//                out = std::min(out, (a + v1 * (t / l1) - p).squaredNorm());
+//            t = (p - b).dot(v2);
+//            if (t > 0. && t < l2)
+//                out = std::min(out, (b + v2 * (t / l2) - p).squaredNorm());
+//            t = (p - c).dot(v3);
+//            if (t > 0. && t < l3)
+//                out = std::min(out, (c + v3 * (t / l3) - p).squaredNorm());
+//        }
 
-    return out;
-}
+//        return out;
+//    }
 
 // Ordering of children cubes.
 static const std::array<Vec3d, 8> child_centers {
@@ -690,7 +690,8 @@ static void add_hook(
 
     // Trim the hook start by the infill line it will connect to.
     Point hook_start;
-    bool  intersection_found = intersection.intersect_line->intersection(
+
+    [[maybe_unused]] bool intersection_found = intersection.intersect_line->intersection(
         create_offset_line(*intersection.closest_line, intersection, scaled_offset),
         &hook_start);
     assert(intersection_found);
@@ -703,7 +704,7 @@ static void add_hook(
     Vector  hook_vector      = ((hook_length + 1.16 * scaled_trim_distance) * hook_vector_norm).cast<coord_t>();
     Line    hook_forward(hook_start, hook_start + hook_vector);
 
-    auto filter_itself = [&intersection, &lines_src](const auto &item) { return item.second != intersection.intersect_line - lines_src.data(); };
+    auto filter_itself = [&intersection, &lines_src](const auto &item) { return item.second != (long unsigned int)(intersection.intersect_line - lines_src.data()); };
 
     std::vector<std::pair<rtree_segment_t, size_t>> hook_intersections;
     rtree.query(bgi::intersects(mk_rtree_seg(hook_forward)) && bgi::satisfies(filter_itself), std::back_inserter(hook_intersections));
@@ -1178,7 +1179,8 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                 rtree.query(
                     bgi::intersects(mk_rtree_seg(first_i_point, nearest_i_point)) &&
                     bgi::satisfies([&first_i, &nearest_i, &lines_src](const auto &item) 
-                        { return item.second != first_i.intersect_line - lines_src.data() && item.second != nearest_i.intersect_line - lines_src.data(); }),
+                        { return item.second != (long unsigned int)(first_i.intersect_line - lines_src.data())
+                              && item.second != (long unsigned int)(nearest_i.intersect_line - lines_src.data()); }),
                     std::back_inserter(closest));
                 could_connect = closest.empty();
 #if 0
@@ -1252,7 +1254,7 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
             }
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
             ++ iStep;
-#endif ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
+#endif // ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
             first_i.used = true;
         }
     }
@@ -1410,15 +1412,15 @@ void Filler::_fill_surface_single(
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 }
 
-static double bbox_max_radius(const BoundingBoxf3 &bbox, const Vec3d &center)
-{
-    const auto p = (bbox.min - center);
-    const auto s = bbox.size();
-    double r2max = 0.;
-    for (int i = 0; i < 8; ++ i)
-        r2max = std::max(r2max, (p + Vec3d(s.x() * double(i & 1), s.y() * double(i & 2), s.z() * double(i & 4))).squaredNorm());
-    return sqrt(r2max);
-}
+//static double bbox_max_radius(const BoundingBoxf3 &bbox, const Vec3d &center)
+//{
+//    const auto p = (bbox.min - center);
+//    const auto s = bbox.size();
+//    double r2max = 0.;
+//    for (int i = 0; i < 8; ++ i)
+//        r2max = std::max(r2max, (p + Vec3d(s.x() * double(i & 1), s.y() * double(i & 2), s.z() * double(i & 4))).squaredNorm());
+//    return sqrt(r2max);
+//}
 
 static std::vector<CubeProperties> make_cubes_properties(double max_cube_edge_length, double line_spacing)
 {
@@ -1513,8 +1515,10 @@ void Octree::insert_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, Cub
     assert(current_cube);
     assert(depth > 0);
 
+    --depth;
+
     // Squared radius of a sphere around the child cube.
-    const double r2_cube = Slic3r::sqr(0.5 * this->cubes_properties[-- depth].height + EPSILON);
+    // const double r2_cube = Slic3r::sqr(0.5 * this->cubes_properties[depth].height + EPSILON);
 
     for (size_t i = 0; i < 8; ++ i) {
         const Vec3d &child_center_dir = child_centers[i];
@@ -1532,6 +1536,7 @@ void Octree::insert_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, Cub
         }
         Vec3d child_center = current_cube->center + (child_center_dir * (this->cubes_properties[depth].edge_length / 2.));
         //if (dist2_to_triangle(a, b, c, child_center) < r2_cube) {
+        // dist2_to_triangle and r2_cube are commented out too.
         if (triangle_AABB_intersects(a, b, c, bbox)) {
             if (! current_cube->children[i])
                 current_cube->children[i] = this->pool.construct(child_center);

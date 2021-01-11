@@ -50,11 +50,6 @@ const std::string GCodeProcessor::Width_Tag      = "WIDTH:";
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag = "MM3_PER_MM:";
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
-static bool is_valid_extrusion_role(int value)
-{
-    return (static_cast<int>(erNone) <= value) && (value <= static_cast<int>(erMixed));
-}
-
 static void set_option_value(ConfigOptionFloats& option, size_t id, float value)
 {
     if (id < option.values.size())
@@ -2343,7 +2338,7 @@ void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 void GCodeProcessor::process_T(const std::string_view command)
 {
     if (command.length() > 1) {
-        int eid;
+        int eid = 0;
         if (! parse_number(command.substr(1), eid) || eid < 0 || eid > 255) {
             // T-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools) see https://github.com/prusa3d/PrusaSlicer/issues/5677
             if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || eid != -1)

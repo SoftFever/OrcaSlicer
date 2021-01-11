@@ -1483,8 +1483,8 @@ bool EdgeGrid::Grid::has_intersecting_edges() const
 
 void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path, size_t scale)
 {
-	unsigned int w = (bbox.max(0) - bbox.min(0) + resolution - 1) / resolution;
-	unsigned int h = (bbox.max(1) - bbox.min(1) + resolution - 1) / resolution;
+    coord_t w = (bbox.max(0) - bbox.min(0) + resolution - 1) / resolution;
+    coord_t h = (bbox.max(1) - bbox.min(1) + resolution - 1) / resolution;
 
 	std::vector<uint8_t> pixels(w * h * 3, 0);
 

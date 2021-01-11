@@ -59,7 +59,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     const PrintRegionConfig &region_config = this->region()->config();
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
     bool spiral_vase = print_config.spiral_vase &&
-        (this->layer()->id() >= region_config.bottom_solid_layers.value &&
+        (this->layer()->id() >= size_t(region_config.bottom_solid_layers.value) &&
          this->layer()->print_z >= region_config.bottom_solid_min_thickness - EPSILON);
 
     PerimeterGenerator g(
