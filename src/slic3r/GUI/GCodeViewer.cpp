@@ -1079,15 +1079,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
     auto log_memory_usage = [this](const std::string& label, const std::vector<MultiVertexBuffer>& vertices, const std::vector<MultiIndexBuffer>& indices) {
         int64_t vertices_size = 0;
-        for (const MultiVertexBuffer& v_multibuffer : vertices) {
-            for (const VertexBuffer& v_buffer : v_multibuffer) {
-                vertices_size += SLIC3R_STDVEC_MEMSIZE(v_buffer, float);
+        for (const MultiVertexBuffer& buffers : vertices) {
+            for (const VertexBuffer& buffer : buffers) {
+                vertices_size += SLIC3R_STDVEC_MEMSIZE(buffer, float);
             }
         }
         int64_t indices_size = 0;
-        for (const MultiIndexBuffer& i_multibuffer : indices) {
-            for (const IndexBuffer& i_buffer : i_multibuffer) {
-                indices_size += SLIC3R_STDVEC_MEMSIZE(i_buffer, unsigned int);
+        for (const MultiIndexBuffer& buffers : indices) {
+            for (const IndexBuffer& buffer : buffers) {
+                indices_size += SLIC3R_STDVEC_MEMSIZE(buffer, unsigned int);
             }
         }
         log_memory_used(label, vertices_size + indices_size);
@@ -1100,8 +1100,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         vertices.push_back(curr.position[2]);
     };
     auto add_indices_as_point = [](const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        unsigned int i_buffer_id, IndexBuffer& indices, size_t move_id) {
-            buffer.add_path(curr, i_buffer_id, indices.size(), move_id);
+        unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+            buffer.add_path(curr, ibuffer_id, indices.size(), move_id);
             indices.push_back(static_cast<unsigned int>(indices.size()));
     };
 
@@ -1125,11 +1125,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         add_vertex(curr);
     };
     auto add_indices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        unsigned int i_buffer_id, IndexBuffer& indices, size_t move_id) {
+        unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
                 // add starting index
                 indices.push_back(static_cast<unsigned int>(indices.size()));
-                buffer.add_path(curr, i_buffer_id, indices.size() - 1, move_id - 1);
+                buffer.add_path(curr, ibuffer_id, indices.size() - 1, move_id - 1);
                 buffer.paths.back().sub_paths.front().first.position = prev.position;
             }
 
@@ -1141,7 +1141,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
             // add current index
             indices.push_back(static_cast<unsigned int>(indices.size()));
-            last_path.sub_paths.back().last = { i_buffer_id, indices.size() - 1, move_id, curr.position };
+            last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
     };
 
     // format data into the buffers to be rendered as solid
@@ -1629,7 +1629,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
             if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point) {
                 Path& last_path = t_buffer.paths.back();
-                last_path.add_sub_path(curr, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, i);
+                last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, i - 1);
             }
         }
 
@@ -1700,21 +1700,18 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (const TBuffer& buffer : m_buffers) {
         m_statistics.paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
     }
-    unsigned int travel_buffer_id = buffer_id(EMoveType::Travel);
-    const MultiIndexBuffer& travel_buffers = indices[travel_buffer_id];
-    for (const IndexBuffer& buffer : travel_buffers) {
-        m_statistics.travel_segments_count += buffer.size() / m_buffers[travel_buffer_id].indices_per_segment();
-    }
-    unsigned int wipe_buffer_id = buffer_id(EMoveType::Wipe);
-    const MultiIndexBuffer& wipe_buffers = indices[wipe_buffer_id];
-    for (const IndexBuffer& buffer : wipe_buffers) {
-        m_statistics.wipe_segments_count += buffer.size() / m_buffers[wipe_buffer_id].indices_per_segment();
-    }
-    unsigned int extrude_buffer_id = buffer_id(EMoveType::Extrude);
-    const MultiIndexBuffer& extrude_buffers = indices[extrude_buffer_id];
-    for (const IndexBuffer& buffer : extrude_buffers) {
-        m_statistics.extrude_segments_count += buffer.size() / m_buffers[extrude_buffer_id].indices_per_segment();
-    }
+
+    auto update_segments_count = [&](EMoveType type, int64_t& count) {
+        unsigned int id = buffer_id(type);
+        const MultiIndexBuffer& buffers = indices[id];
+        for (const IndexBuffer& buffer : buffers) {
+            count += buffer.size() / m_buffers[id].indices_per_segment();
+        }
+    };
+
+    update_segments_count(EMoveType::Travel, m_statistics.travel_segments_count);
+    update_segments_count(EMoveType::Wipe, m_statistics.wipe_segments_count);
+    update_segments_count(EMoveType::Extrude, m_statistics.extrude_segments_count);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     log_memory_usage("Loaded G-code generated indices buffers ", vertices, indices);
@@ -1865,11 +1862,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     };
     auto add_indices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
         unsigned int index_buffer_id, IndexBuffer& indices, size_t move_id) {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//            // x component of the normal to the current segment (the normal is parallel to the XY plane)
-//            float normal_x = (curr.position - prev.position).normalized()[1];
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
                 // add starting index
                 indices.push_back(static_cast<unsigned int>(indices.size()));
@@ -2054,10 +2046,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 buffer.paths.back().first.position = prev.position;
             }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//            unsigned int starting_vertices_size = static_cast<unsigned int>(buffer_vertices_size);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
             Vec3f dir = (curr.position - prev.position).normalized();
             Vec3f right = (std::abs(std::abs(dir.dot(Vec3f::UnitZ())) - 1.0f) < EPSILON) ? -Vec3f::UnitY() : Vec3f(dir[1], -dir[0], 0.0f).normalized();
             Vec3f up = right.cross(dir);
@@ -2072,7 +2060,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
             float length = (curr_pos - prev_pos).norm();
             if (last_path.vertices_count() == 1) {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 // 1st segment
 
                 // triangles starting cap
@@ -2097,31 +2084,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 store_triangle(indices, buffer_vertices_size + 4, buffer_vertices_size + 5, buffer_vertices_size + 6);
 
                 buffer_vertices_size += 8;
-
-//                // 1st segment
-//                buffer_vertices_size += 8;
-//
-//                // triangles starting cap
-//                store_triangle(indices, starting_vertices_size + 0, starting_vertices_size + 2, starting_vertices_size + 1);
-//                store_triangle(indices, starting_vertices_size + 0, starting_vertices_size + 3, starting_vertices_size + 2);
-//
-//                // dummy triangles outer corner cap
-//                append_dummy_cap(indices, starting_vertices_size);
-//
-//                // triangles sides
-//                store_triangle(indices, starting_vertices_size + 0, starting_vertices_size + 1, starting_vertices_size + 4);
-//                store_triangle(indices, starting_vertices_size + 1, starting_vertices_size + 5, starting_vertices_size + 4);
-//                store_triangle(indices, starting_vertices_size + 1, starting_vertices_size + 2, starting_vertices_size + 5);
-//                store_triangle(indices, starting_vertices_size + 2, starting_vertices_size + 6, starting_vertices_size + 5);
-//                store_triangle(indices, starting_vertices_size + 2, starting_vertices_size + 3, starting_vertices_size + 6);
-//                store_triangle(indices, starting_vertices_size + 3, starting_vertices_size + 7, starting_vertices_size + 6);
-//                store_triangle(indices, starting_vertices_size + 3, starting_vertices_size + 0, starting_vertices_size + 7);
-//                store_triangle(indices, starting_vertices_size + 0, starting_vertices_size + 4, starting_vertices_size + 7);
-//
-//                // triangles ending cap
-//                store_triangle(indices, starting_vertices_size + 4, starting_vertices_size + 6, starting_vertices_size + 7);
-//                store_triangle(indices, starting_vertices_size + 4, starting_vertices_size + 5, starting_vertices_size + 6);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             }
             else {
                 // any other segment
@@ -2152,7 +2114,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                     }
                 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 // triangles starting cap
                 store_triangle(indices, buffer_vertices_size - 4, buffer_vertices_size - 2, buffer_vertices_size + 0);
                 store_triangle(indices, buffer_vertices_size - 4, buffer_vertices_size + 1, buffer_vertices_size - 2);
@@ -2192,47 +2153,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 store_triangle(indices, buffer_vertices_size + 2, buffer_vertices_size + 3, buffer_vertices_size + 4);
 
                 buffer_vertices_size += 6;
-
-//                buffer_vertices_size += 6;
-//
-//                // triangles starting cap
-//                store_triangle(indices, starting_vertices_size - 4, starting_vertices_size - 2, starting_vertices_size + 0);
-//                store_triangle(indices, starting_vertices_size - 4, starting_vertices_size + 1, starting_vertices_size - 2);
-//
-//                // triangles outer corner cap
-//                if (is_right_turn) {
-//                    if (left_displaced)
-//                        // dummy triangles
-//                        append_dummy_cap(indices, starting_vertices_size);
-//                    else {
-//                        store_triangle(indices, starting_vertices_size - 4, starting_vertices_size + 1, starting_vertices_size - 1);
-//                        store_triangle(indices, starting_vertices_size + 1, starting_vertices_size - 2, starting_vertices_size - 1);
-//                    }
-//                }
-//                else {
-//                    if (right_displaced)
-//                        // dummy triangles
-//                        append_dummy_cap(indices, starting_vertices_size);
-//                    else {
-//                        store_triangle(indices, starting_vertices_size - 4, starting_vertices_size - 3, starting_vertices_size + 0);
-//                        store_triangle(indices, starting_vertices_size - 3, starting_vertices_size - 2, starting_vertices_size + 0);
-//                    }
-//                }
-//
-//                // triangles sides
-//                store_triangle(indices, starting_vertices_size - 4, starting_vertices_size + 0, starting_vertices_size + 2);
-//                store_triangle(indices, starting_vertices_size + 0, starting_vertices_size + 3, starting_vertices_size + 2);
-//                store_triangle(indices, starting_vertices_size + 0, starting_vertices_size - 2, starting_vertices_size + 3);
-//                store_triangle(indices, starting_vertices_size - 2, starting_vertices_size + 4, starting_vertices_size + 3);
-//                store_triangle(indices, starting_vertices_size - 2, starting_vertices_size + 1, starting_vertices_size + 4);
-//                store_triangle(indices, starting_vertices_size + 1, starting_vertices_size + 5, starting_vertices_size + 4);
-//                store_triangle(indices, starting_vertices_size + 1, starting_vertices_size - 4, starting_vertices_size + 5);
-//                store_triangle(indices, starting_vertices_size - 4, starting_vertices_size + 2, starting_vertices_size + 5);
-//
-//                // triangles ending cap
-//                store_triangle(indices, starting_vertices_size + 2, starting_vertices_size + 4, starting_vertices_size + 5);
-//                store_triangle(indices, starting_vertices_size + 2, starting_vertices_size + 3, starting_vertices_size + 4);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             }
 
             last_path.last = { index_buffer_id, indices.size() - 1, move_id, curr.position };
@@ -2310,9 +2230,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_GCODE_VIEWER_STATISTICS
         m_statistics.total_vertices_gpu_size += buffer_vertices.size() * sizeof(float);
         m_statistics.max_vbuffer_gpu_size = std::max(m_statistics.max_vbuffer_gpu_size, static_cast<int64_t>(buffer_vertices.size() * sizeof(float)));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//        m_statistics.max_vertices_in_vertex_buffer = std::max(m_statistics.max_vertices_in_vertex_buffer, static_cast<int64_t>(buffer.vertices.count));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         if (buffer.vertices.count > 0) {
@@ -2423,9 +2340,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_GCODE_VIEWER_STATISTICS
             m_statistics.total_indices_gpu_size += ibuffer.count * sizeof(unsigned int);
             m_statistics.max_ibuffer_gpu_size = std::max(m_statistics.max_ibuffer_gpu_size, static_cast<int64_t>(ibuffer.count * sizeof(unsigned int)));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//            m_statistics.max_indices_in_index_buffer = std::max(m_statistics.max_indices_in_index_buffer, static_cast<int64_t>(ibuffer.count));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
             if (ibuffer.count > 0) {
@@ -2447,26 +2361,17 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     unsigned int travel_buffer_id = buffer_id(EMoveType::Travel);
     const MultiIndexBuffer& travel_buffer_indices = indices[travel_buffer_id];
     for (size_t i = 0; i < travel_buffer_indices.size(); ++i) {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         m_statistics.travel_segments_count += travel_buffer_indices[i].size() / m_buffers[travel_buffer_id].indices_per_segment();
-//        m_statistics.travel_segments_count = travel_buffer_indices[i].size() / m_buffers[travel_buffer_id].indices_per_segment();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
     unsigned int wipe_buffer_id = buffer_id(EMoveType::Wipe);
     const MultiIndexBuffer& wipe_buffer_indices = indices[wipe_buffer_id];
     for (size_t i = 0; i < wipe_buffer_indices.size(); ++i) {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         m_statistics.wipe_segments_count += wipe_buffer_indices[i].size() / m_buffers[wipe_buffer_id].indices_per_segment();
-//        m_statistics.wipe_segments_count = wipe_buffer_indices[i].size() / m_buffers[wipe_buffer_id].indices_per_segment();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
     unsigned int extrude_buffer_id = buffer_id(EMoveType::Extrude);
     const MultiIndexBuffer& extrude_buffer_indices = indices[extrude_buffer_id];
     for (size_t i = 0; i < extrude_buffer_indices.size(); ++i) {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         m_statistics.extrude_segments_count += extrude_buffer_indices[i].size() / m_buffers[extrude_buffer_id].indices_per_segment();
-//        m_statistics.extrude_segments_count = extrude_buffer_indices[i].size() / m_buffers[extrude_buffer_id].indices_per_segment();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
@@ -2743,33 +2648,36 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     for (const TBuffer& buffer : m_buffers) {
         // searches the path containing the current position
         for (const Path& path : buffer.paths) {
-            int sub_path_id = path.get_id_of_sub_path_containing(m_sequential_view.current.last);
-            if (sub_path_id != -1) {
-                const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
-                unsigned int offset = static_cast<unsigned int>(m_sequential_view.current.last - sub_path.first.s_id);
-                if (offset > 0) {
-                    if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Line)
-                        offset = 2 * offset - 1;
-                    else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
-                        unsigned int indices_count = buffer.indices_per_segment();
-                        offset = indices_count * (offset - 1) + (indices_count - 6);
+            if (path.contains(m_sequential_view.current.last)) {
+                int sub_path_id = path.get_id_of_sub_path_containing(m_sequential_view.current.last);
+                if (sub_path_id != -1) {
+                    const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
+                    unsigned int offset = static_cast<unsigned int>(m_sequential_view.current.last - sub_path.first.s_id);
+                    if (offset > 0) {
+                        if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Line)
+                            offset = 2 * offset - 1;
+                        else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
+                            unsigned int indices_count = buffer.indices_per_segment();
+                            offset = indices_count * (offset - 1) + (indices_count - 6);
+                        }
                     }
+                    offset += static_cast<unsigned int>(sub_path.first.i_id);
+
+                    // gets the vertex index from the index buffer on gpu
+                    const IBuffer& i_buffer = buffer.indices[sub_path.first.b_id];
+                    unsigned int index = 0;
+                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+                    glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(unsigned int)), static_cast<GLsizeiptr>(sizeof(unsigned int)), static_cast<void*>(&index)));
+                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+                    // gets the position from the vertices buffer on gpu
+                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+                    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index * buffer.vertices.vertex_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(m_sequential_view.current_position.data())));
+                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+                    found = true;
+                    break;
                 }
-                offset += static_cast<unsigned int>(sub_path.first.i_id);
-
-                // gets the index from the index buffer on gpu
-                const IBuffer& i_buffer = buffer.indices[sub_path.first.b_id];
-                unsigned int index = 0;
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
-                glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(unsigned int)), static_cast<GLsizeiptr>(sizeof(unsigned int)), static_cast<void*>(&index)));
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-                // gets the position from the vertices buffer on gpu
-                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index * buffer.vertices.vertex_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(m_sequential_view.current_position.data())));
-                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-                found = true;
-                break;
             }
         }
 
@@ -2779,7 +2687,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
     // second pass: filter paths by sequential data and collect them by color
     RenderPath* render_path = nullptr;
-    for (const auto& [buffer, index_buffer_id, path_id, sub_path_id] : paths) {
+    for (const auto& [buffer, ibuffer_id, path_id, sub_path_id] : paths) {
         const Path& path = buffer->paths[path_id];
         const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
         if (m_sequential_view.current.last <= sub_path.first.s_id || sub_path.last.s_id <= m_sequential_view.current.first)
@@ -2810,17 +2718,24 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         default: { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
-        RenderPath key{ color, static_cast<unsigned int>(index_buffer_id), path_id };
+        RenderPath key{ color, static_cast<unsigned int>(ibuffer_id), path_id };
         if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key))
             render_path = const_cast<RenderPath*>(&(*buffer->render_paths.emplace(key).first));
-        unsigned int segments_count = std::min(m_sequential_view.current.last, sub_path.last.s_id) - std::max(m_sequential_view.current.first, sub_path.first.s_id) + 1;
         unsigned int size_in_indices = 0;
         switch (buffer->render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point:    { size_in_indices = segments_count; break; }
-        case TBuffer::ERenderPrimitiveType::Line:
-        case TBuffer::ERenderPrimitiveType::Triangle: { size_in_indices = buffer->indices_per_segment() * (segments_count - 1); break; }
+        case TBuffer::ERenderPrimitiveType::Point: {
+            size_in_indices = buffer->indices_per_segment();
+            break;
         }
+        case TBuffer::ERenderPrimitiveType::Line:
+        case TBuffer::ERenderPrimitiveType::Triangle: {
+            unsigned int segments_count = std::min(m_sequential_view.current.last, sub_path.last.s_id) - std::max(m_sequential_view.current.first, sub_path.first.s_id);
+            size_in_indices = buffer->indices_per_segment() * segments_count;
+            break;
+        }
+        }
+
         render_path->sizes.push_back(size_in_indices);
 
         unsigned int delta_1st = 0;
@@ -4202,11 +4117,6 @@ void GCodeViewer::render_statistics() const
         ImGui::Separator();
         add_counter(std::string("VBuffers count:"), m_statistics.vbuffers_count);
         add_counter(std::string("IBuffers count:"), m_statistics.ibuffers_count);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//        ImGui::Separator();
-//        add_counter(std::string("Max vertices in VBuffer:"), m_statistics.max_vertices_in_vertex_buffer);
-//        add_counter(std::string("Max indices in IBuffer:"), m_statistics.max_indices_in_index_buffer);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
         wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }

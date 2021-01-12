@@ -146,7 +146,7 @@ class GCodeViewer
             unsigned int b_id{ 0 };
             // index into the index buffer
             size_t i_id{ 0 };
-            // sequential id (index into the vertex buffer)
+            // move id
             size_t s_id{ 0 };
             Vec3f position{ Vec3f::Zero() };
         };
@@ -314,18 +314,7 @@ class GCodeViewer
         size_t indices_per_segment_size_bytes() const { return static_cast<size_t>(indices_per_segment() * sizeof(unsigned int)); }
 #endif // ENABLE_SPLITTED_VERTEX_BUFFER
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        unsigned int start_segment_vertex_offset() const {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            return 0;
-//            switch (render_primitive_type)
-//            {
-//            case ERenderPrimitiveType::Point:
-//            case ERenderPrimitiveType::Line: 
-//            case ERenderPrimitiveType::Triangle:
-//            default: { return 0; }
-//            }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        }
+        unsigned int start_segment_vertex_offset() const { return 0; }
         unsigned int end_segment_vertex_offset() const {
             switch (render_primitive_type)
             {
@@ -493,10 +482,6 @@ class GCodeViewer
         int64_t extrude_segments_count{ 0 };
         int64_t vbuffers_count{ 0 };
         int64_t ibuffers_count{ 0 };
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//        int64_t max_vertices_in_vertex_buffer{ 0 };
-//        int64_t max_indices_in_index_buffer{ 0 };
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         void reset_all() {
             reset_times();
@@ -534,10 +519,6 @@ class GCodeViewer
             extrude_segments_count =  0;
             vbuffers_count = 0;
             ibuffers_count = 0;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//            max_vertices_in_vertex_buffer = 0;
-//            max_indices_in_index_buffer = 0;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         }
     };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
