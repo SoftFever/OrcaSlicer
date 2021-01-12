@@ -93,7 +93,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	{
 		std::vector<const char*> args;
 		args.reserve(3);
-#ifdef __linux
+#ifdef __linux__
 		static const char* gcodeviewer_param = "--gcodeviewer";
 		{
 			// If executed by an AppImage, start the AppImage, not the main process.
@@ -105,7 +105,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 					args.emplace_back(gcodeviewer_param);
 			}
 		}
-#endif // __linux
+#endif // __linux__
 		std::string my_path;
 		if (args.empty()) {
 			// Binary path was not set to the AppImage in the Linux specific block above, call the application directly.

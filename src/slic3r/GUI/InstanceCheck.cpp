@@ -252,14 +252,31 @@ namespace instance_check_internal
 
 bool instance_check(int argc, char** argv, bool app_config_single_instance)
 {
-#ifndef _WIN32
-	boost::system::error_code ec;
-#endif
-	std::size_t hashed_path = 
+	std::size_t hashed_path;
 #ifdef _WIN32
-		std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
+	hashed_path = std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
 #else
-		std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]), ec).string());
+	boost::system::error_code ec;
+#ifdef __linux__
+	// If executed by an AppImage, start the AppImage, not the main process.
+	// see https://docs.appimage.org/packaging-guide/environment-variables.html#id2
+	const char *appimage_env = std::getenv("APPIMAGE");
+	bool appimage_env_valid = false;
+	if (appimage_env) {
+		try {
+			auto appimage_path = boost::filesystem::canonical(boost::filesystem::path(appimage_env));
+			if (boost::filesystem::exists(appimage_path)) {
+				hashed_path = std::hash<std::string>{}(appimage_path.string());
+				appimage_env_valid = true;
+			}
+		} catch (std::exception &) {			
+		}
+		if (! appimage_env_valid)
+			BOOST_LOG_TRIVIAL(error) << "APPIMAGE environment variable was set, but it does not point to a valid file: " << appimage_env;
+	}
+	if (! appimage_env_valid)
+#endif // __linux__
+		hashed_path = std::hash<std::string>{}(boost::filesystem::canonical(boost::filesystem::system_complete(argv[0]), ec).string());
 	if (ec.value() > 0) { // canonical was not able to find the executable (can happen with appimage on some systems. Does it fail on Fuse file systems?)
 		ec.clear();
 		// Compose path with boost canonical of folder and filename
@@ -269,7 +286,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 			hashed_path = std::hash<std::string>{}(boost::filesystem::system_complete(argv[0]).string());
 		}
 	}
-#endif // win32
+#endif // _WIN32
 
 	std::string lock_name 	= std::to_string(hashed_path);
 	GUI::wxGetApp().set_instance_hash(hashed_path);
