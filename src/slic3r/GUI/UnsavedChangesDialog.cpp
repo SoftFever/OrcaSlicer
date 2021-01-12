@@ -198,9 +198,9 @@ void ModelNode::UpdateIcons()
 {
     // update icons for the colors, if any exists
     if (!m_old_color.IsEmpty())
-        m_old_color_bmp = get_bitmap(m_toggle ? m_old_color : grey);
+        m_old_color_bmp = get_bitmap(m_toggle ? m_old_color : grey.c_str());
     if (!m_new_color.IsEmpty())
-        m_new_color_bmp = get_bitmap(m_toggle ? m_new_color : grey);
+        m_new_color_bmp = get_bitmap(m_toggle ? m_new_color : grey.c_str());
 
     // update main icon, if any exists
     if (m_icon_name.empty())
