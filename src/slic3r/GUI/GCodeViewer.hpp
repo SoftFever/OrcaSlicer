@@ -59,7 +59,9 @@ class GCodeViewer
         EFormat format{ EFormat::Position };
 #if ENABLE_SPLITTED_VERTEX_BUFFER
         // vbos id
-        std::vector<unsigned int> ids;
+        std::vector<unsigned int> vbos;
+        // sizes of the buffers, in bytes, used in export to obj
+        std::vector<size_t> sizes;
 #else
         // vbo id
         unsigned int id{ 0 };
@@ -301,7 +303,7 @@ class GCodeViewer
 
 #if ENABLE_SPLITTED_VERTEX_BUFFER
         bool has_data() const {
-            return !vertices.ids.empty() && vertices.ids.front() != 0 && !indices.empty() && indices.front().ibo != 0;
+            return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
         }
 #else
         bool has_data() const { return vertices.id != 0 && !indices.empty() && indices.front().id != 0; }
@@ -588,6 +590,9 @@ public:
     void render() const;
 
     bool has_data() const { return !m_roles.empty(); }
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+    bool can_export_toolpaths() const;
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
