@@ -887,9 +887,13 @@ void PlaterPresetComboBox::update()
     if (!tooltip.IsEmpty())
         SetToolTip(tooltip);
 
+#ifdef __WXMSW__
+    // Use this part of code just on Windows to avoid of some layout issues on Linux
+    // see https://github.com/prusa3d/PrusaSlicer/issues/5163 and https://github.com/prusa3d/PrusaSlicer/issues/5505
     // Update control min size after rescale (changed Display DPI under MSW)
     if (GetMinWidth() != 20 * m_em_unit)
         SetMinSize(wxSize(20 * m_em_unit, GetSize().GetHeight()));
+#endif //__WXMSW__
 }
 
 void PlaterPresetComboBox::msw_rescale()
