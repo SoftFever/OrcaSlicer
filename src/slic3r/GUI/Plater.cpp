@@ -3566,6 +3566,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
      */
         wxGetApp().obj_list()->update_object_list_by_printer_technology();
     }
+
+#ifdef __WXMSW__
+    // From the Win 2004 preset combobox lose a focus after change the preset selection
+    // and that is why the up/down arrow doesn't work properly
+    // (see https://github.com/prusa3d/PrusaSlicer/issues/5531 ).
+    // So, set the focus to the combobox explicitly
+    combo->SetFocus();
+#endif
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
@@ -4847,9 +4855,7 @@ void Plater::load_gcode()
 
 void Plater::load_gcode(const wxString& filename)
 {
-    if (filename.empty() ||
-        (!filename.Lower().EndsWith(".gcode") && !filename.Lower().EndsWith(".g")) ||
-        m_last_loaded_gcode == filename)
+    if (! is_gcode_file(into_u8(filename)) || m_last_loaded_gcode == filename)
         return;
 
     m_last_loaded_gcode = filename;

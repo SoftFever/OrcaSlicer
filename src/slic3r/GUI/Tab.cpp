@@ -302,6 +302,13 @@ void Tab::create_preset_tab()
     // This helps to process all the cursor key events on Windows in the tree control,
     // so that the cursor jumps to the last item.
     m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent&) {
+#ifdef __linux__
+        // Events queue is opposite On Linux. wxEVT_SET_FOCUS invokes after wxEVT_TREE_SEL_CHANGED,
+        // and a result wxEVT_KILL_FOCUS doesn't invoke for the TextCtrls.
+        // see https://github.com/prusa3d/PrusaSlicer/issues/5720
+        // So, call SetFocus explicitly for this control before changing of the selection
+        m_treectrl->SetFocus();
+#endif
             if (!m_disable_tree_sel_changed_event && !m_pages.empty()) {
                 if (m_page_switch_running)
                     m_page_switch_planned = true;
@@ -499,7 +506,7 @@ void Tab::update_label_colours()
         if (opt.first == "bed_shape"            || opt.first == "filament_ramming_parameters" || 
             opt.first == "compatible_prints"    || opt.first == "compatible_printers"           ) {
             if (m_colored_Label_colors.find(opt.first) != m_colored_Label_colors.end())
-                *m_colored_Label_colors.at(opt.first) = *color;
+                m_colored_Label_colors.at(opt.first) = *color;
             continue;
         }
 
@@ -540,7 +547,7 @@ void Tab::decorate()
 
         if (opt.first == "bed_shape" || opt.first == "filament_ramming_parameters" ||
             opt.first == "compatible_prints" || opt.first == "compatible_printers")
-            colored_label_clr = (m_colored_Label_colors.find(opt.first) == m_colored_Label_colors.end()) ? nullptr : m_colored_Label_colors.at(opt.first);
+            colored_label_clr = (m_colored_Label_colors.find(opt.first) == m_colored_Label_colors.end()) ? nullptr : &m_colored_Label_colors.at(opt.first);
 
         if (!colored_label_clr) {
             field = get_field(opt.first);
@@ -3551,8 +3558,8 @@ void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::strin
     line.widget = widget;
     line.label_path = path;
 
-    m_colored_Label_colors[opt_key] = &m_default_text_clr;
-    line.full_Label_color = m_colored_Label_colors[opt_key];
+    m_colored_Label_colors[opt_key] = m_default_text_clr;
+    line.full_Label_color = &m_colored_Label_colors[opt_key];
 
     optgroup->append_line(line);
 }

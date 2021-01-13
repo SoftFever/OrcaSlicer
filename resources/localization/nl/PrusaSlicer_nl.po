@@ -5423,9 +5423,8 @@ msgid "The supplied name is empty. It can't be saved."
 msgstr "De ingevoerde naam is leeg. Kan niet opgeslagen worden."
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:547
-msgid "You should to change a name of your printer device. It can't be saved."
-msgstr ""
-"Je moet de naam van de printer aanpassen. Het kan niet opgeslagen worden."
+msgid "You should change the name of your printer device."
+msgstr "Je moet de naam van de printer aanpassen."
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:555
 msgid "Printer with name \"%1%\" already exists."
@@ -6831,7 +6830,7 @@ msgstr "Voorinstelling opslaan"
 #: src/slic3r/GUI/SavePresetDialog.cpp:215
 msgctxt "PresetName"
 msgid "Copy"
-msgstr "Kopieer"
+msgstr "Kopie"
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:273
 msgid ""

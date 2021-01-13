@@ -147,9 +147,9 @@ void GCodeViewer::TBuffer::reset()
     }
 
     // release cpu memory
-    indices = std::vector<IBuffer>();
-    paths = std::vector<Path>();
-    render_paths = std::vector<RenderPath>();
+    indices.clear();
+    paths.clear();
+    render_paths.clear();
 }
 
 void GCodeViewer::TBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id)
@@ -781,9 +781,9 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     unsigned int start_vertex_offset = buffer.start_segment_vertex_offset();
     unsigned int end_vertex_offset = buffer.end_segment_vertex_offset();
 
-    for (size_t i = 0; i < buffer.render_paths.size(); ++i) {
+    size_t i = 0;
+    for (const RenderPath& render_path : buffer.render_paths) {
         // get paths segments from buffer paths
-        const RenderPath& render_path = buffer.render_paths[i];
         const IndexBuffer& ibuffer = indices[render_path.index_buffer_id];
         const Path& path = buffer.paths[render_path.path_id];
         float half_width = 0.5f * path.width;
@@ -948,6 +948,8 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
         for (const Triangle& t : out_triangles) {
             fprintf(fp, "f %zu//%zu %zu//%zu %zu//%zu\n", t[0], t[0], t[1], t[1], t[2], t[2]);
         }
+
+        ++ i;
     }
 
     fclose(fp);
@@ -1900,6 +1902,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     }
 
     // second pass: filter paths by sequential data and collect them by color
+    RenderPath *render_path = nullptr;
     for (const auto& [buffer, index_buffer_id, path_id] : paths) {
         const Path& path = buffer->paths[path_id];
         if (m_sequential_view.current.last <= path.first.s_id || path.last.s_id <= m_sequential_view.current.first)
@@ -1930,16 +1933,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         default: { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
-        unsigned int ibuffer_id = index_buffer_id;
-        auto it = std::find_if(buffer->render_paths.begin(), buffer->render_paths.end(),
-            [color, ibuffer_id](const RenderPath& path) { return path.index_buffer_id == ibuffer_id && path.color == color; });
-        if (it == buffer->render_paths.end()) {
-            it = buffer->render_paths.insert(buffer->render_paths.end(), RenderPath());
-            it->color = color;
-            it->path_id = path_id;
-            it->index_buffer_id = index_buffer_id;
-        }
-
+        RenderPath key{ color, static_cast<unsigned int>(index_buffer_id), path_id };
+        if (render_path == nullptr || ! RenderPathPropertyEqual()(*render_path, key))
+            render_path = const_cast<RenderPath*>(&(*buffer->render_paths.emplace(key).first));
         unsigned int segments_count = std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1;
         unsigned int size_in_indices = 0;
         switch (buffer->render_primitive_type)
@@ -1948,7 +1944,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case TBuffer::ERenderPrimitiveType::Line:
         case TBuffer::ERenderPrimitiveType::Triangle: { size_in_indices = buffer->indices_per_segment() * (segments_count - 1); break; }
         }
-        it->sizes.push_back(size_in_indices);
+        render_path->sizes.push_back(size_in_indices);
 
         unsigned int delta_1st = 0;
         if (path.first.s_id < m_sequential_view.current.first && m_sequential_view.current.first <= path.last.s_id)
@@ -1957,7 +1953,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (buffer->render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle)
             delta_1st *= buffer->indices_per_segment();
 
-        it->offsets.push_back(static_cast<size_t>((path.first.i_id + delta_1st) * sizeof(unsigned int)));
+        render_path->offsets.push_back(static_cast<size_t>((path.first.i_id + delta_1st) * sizeof(unsigned int)));
     }
 
     // set sequential data to their final value
@@ -2943,7 +2939,7 @@ void GCodeViewer::log_memory_used(const std::string& label, int64_t additional) 
         int64_t render_paths_size = 0;
         for (const TBuffer& buffer : m_buffers) {
             paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
-            render_paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.render_paths, RenderPath);
+            render_paths_size += SLIC3R_STDUNORDEREDSET_MEMSIZE(buffer.render_paths, RenderPath);
             for (const RenderPath& path : buffer.render_paths) {
                 render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.sizes, unsigned int);
                 render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);

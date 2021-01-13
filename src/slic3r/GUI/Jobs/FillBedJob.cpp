@@ -73,9 +73,14 @@ void FillBedJob::prepare()
     // This is the maximum number of items, the real number will always be close but less.
     int needed_items = (bed_area - fixed_area) / poly_area;
 
-    ModelInstance *mi = model_object->instances[0];
+    int sel_id = m_plater->get_selection().get_instance_idx();
+    // if the selection is not a single instance, choose the first as template
+    sel_id = std::max(sel_id, 0);
+    ModelInstance *mi = model_object->instances[sel_id];
+    ArrangePolygon template_ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
+
     for (int i = 0; i < needed_items; ++i) {
-        ArrangePolygon ap;
+        ArrangePolygon ap = template_ap;
         ap.poly = m_selected.front().poly;
         ap.bed_idx = arrangement::UNARRANGED;
         ap.setter = [this, mi](const ArrangePolygon &p) {

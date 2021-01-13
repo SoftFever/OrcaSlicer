@@ -10371,6 +10371,10 @@ msgstr "Světové souřadnice"
 msgid "Would you like to install it?\n\nNote that a full configuration snapshot will be created first. It can then be restored at any time should there be a problem with the new version.\n\nUpdated configuration bundles:"
 msgstr "Přejete si spustit instalaci?\n\nNejprve bude provedena kompletní záloha nastavení. V případě problémů s novou verzí ji bude možné kdykoliv obnovit.\n\nAktualizované balíčky nastavení:"
 
+#: src/slic3r/GUI/GUI_App.cpp:1802
+msgid "Would you like to stop uploads and close the program?"
+msgstr "Chcete zastavit nahrávání a ukončit program?"
+
 #: src/libslic3r/miniz_extension.cpp:151
 msgid "write calledback failed"
 msgstr "zpětné volání se nezdařilo"
@@ -10478,8 +10482,8 @@ msgid "You need to restart %s to make the changes effective."
 msgstr "Chcete-li provést změny, musíte restartovat aplikaci %s."
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:468
-msgid "You should to change a name of your printer device. It can't be saved."
-msgstr "Měli byste změnit název tiskového zařízení. Nemůže být uloženo."
+msgid "You should change the name of your printer device."
+msgstr "Měli byste změnit název tiskového zařízení."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:3884
 #, possible-c-format

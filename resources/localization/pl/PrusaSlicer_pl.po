@@ -6570,7 +6570,7 @@ msgstr "Średnice"
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:209 src/slic3r/GUI/Tab.cpp:2024
 msgid "Print Host upload"
-msgstr "Wysyłanie do serwera druku"
+msgstr "Przesyłanie do serwera druku"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:138
 #: src/slic3r/GUI/PrintHostDialogs.cpp:136
@@ -10373,6 +10373,10 @@ msgstr "Globalny układ współrzędnych"
 msgid "Would you like to install it?\n\nNote that a full configuration snapshot will be created first. It can then be restored at any time should there be a problem with the new version.\n\nUpdated configuration bundles:"
 msgstr "Czy chcesz kontynuować instalację?\n\nWeź pod uwagę, że najpierw zostanie stworzony zrzut konfiguracji. Może być przywrócony w każdej chwili, gdyby okazało się, że nowa wersja powoduje problemy.\n\nZaktualizowane paczki konfiguracyjne:"
 
+#: src/slic3r/GUI/GUI_App.cpp:1802
+msgid "Would you like to stop uploads and close the program?"
+msgstr "Czy chcesz zatrzymać przesyłanie i zamknąć program?"
+
 #: src/libslic3r/miniz_extension.cpp:151
 msgid "write calledback failed"
 msgstr "błąd write calledback"
@@ -10480,8 +10484,8 @@ msgid "You need to restart %s to make the changes effective."
 msgstr "Wymagany jest restart %s, aby wprowadzić zmiany."
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:468
-msgid "You should to change a name of your printer device. It can't be saved."
-msgstr "Należy zmienić nazwę drukarki. Nie można jej zapisać."
+msgid "You should change the name of your printer device."
+msgstr "Należy zmienić nazwę drukarki."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:3884
 #, possible-c-format

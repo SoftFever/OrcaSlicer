@@ -11,8 +11,8 @@
 #include <mutex>
 #include <tbb/parallel_for.h>
 #include <tbb/tbb_thread.h>
+#include <tbb/task_arena.h>
 #include <tbb/task_scheduler_init.h>
-
 
 #include "Thread.hpp"
 
@@ -195,7 +195,10 @@ void name_tbb_thread_pool_threads()
 		return;
 	initialized = true;
 
-	const size_t nthreads_hw = std::thread::hardware_concurrency();
+	// see GH issue #5661 PrusaSlicer hangs on Linux when run with non standard task affinity
+	// TBB will respect the task affinity mask on Linux and spawn less threads than std::thread::hardware_concurrency().
+//	const size_t nthreads_hw = std::thread::hardware_concurrency();
+	const size_t nthreads_hw = tbb::this_task_arena::max_concurrency();
 	size_t 		 nthreads    = nthreads_hw;
 
 #ifdef SLIC3R_PROFILE

@@ -5169,7 +5169,7 @@ msgid "The supplied name is empty. It can't be saved."
 msgstr ""
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:547
-msgid "You should to change a name of your printer device. It can't be saved."
+msgid "You should change the name of your printer device."
 msgstr ""
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:555

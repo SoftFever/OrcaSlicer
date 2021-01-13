@@ -66,7 +66,11 @@ protected:
 	    const std::pair<float, Point>   &direction,
 	    ExPolygon                        expolygon,
 	    Polylines                       &polylines_out) override;
-	bool no_sort() const override { return true; }
+    // Let the G-code export reoder the infill lines.
+    //FIXME letting the G-code exporter to reorder infill lines of Adaptive Cubic Infill
+    // may not be optimal as the internal infill lines may get extruded before the long infill
+    // lines to which the short infill lines are supposed to anchor.
+	bool no_sort() const override { return false; }
 };
 
 }; // namespace FillAdaptive

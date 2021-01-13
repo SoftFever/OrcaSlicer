@@ -78,6 +78,12 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 			if (instance_type == NewSlicerInstanceType::Slicer && single_instance)
 				args.emplace_back("--single-instance");
 			boost::process::spawn(bin_path, args);
+		    // boost::process::spawn() sets SIGCHLD to SIGIGN for the child process, thus if a child PrusaSlicer spawns another
+		    // subprocess and the subrocess dies, the child PrusaSlicer will not receive information on end of subprocess
+		    // (posix waitpid() call will always fail).
+		    // https://jmmv.dev/2008/10/boostprocess-and-sigchld.html
+		    // The child instance of PrusaSlicer has to reset SIGCHLD to its default, so that posix waitpid() and similar continue to work.
+		    // See GH issue #5507
 		}
 		catch (const std::exception& ex) {
 			BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << bin_path.string() << "\": " << ex.what();
@@ -87,7 +93,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	{
 		std::vector<const char*> args;
 		args.reserve(3);
-#ifdef __linux
+#ifdef __linux__
 		static const char* gcodeviewer_param = "--gcodeviewer";
 		{
 			// If executed by an AppImage, start the AppImage, not the main process.
@@ -99,7 +105,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 					args.emplace_back(gcodeviewer_param);
 			}
 		}
-#endif // __linux
+#endif // __linux__
 		std::string my_path;
 		if (args.empty()) {
 			// Binary path was not set to the AppImage in the Linux specific block above, call the application directly.

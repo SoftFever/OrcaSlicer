@@ -45,9 +45,11 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
     m_cursor = Cursor(hit, source, radius, cursor_type, trafo);
 
     // In case user changed cursor size since last time, update triangle edge limit.
-    if (m_old_cursor_radius != radius) {
-        set_edge_limit(radius / 5.f);
-        m_old_cursor_radius = radius;
+    // It is necessary to compare the internal radius in m_cursor! radius is in
+    // world coords and does not change after scaling.
+    if (m_old_cursor_radius_sqr != m_cursor.radius_sqr) {
+        set_edge_limit(std::sqrt(m_cursor.radius_sqr) / 5.f);
+        m_old_cursor_radius_sqr = m_cursor.radius_sqr;
     }
 
     // Now start with the facet the pointer points to and check all adjacent facets.

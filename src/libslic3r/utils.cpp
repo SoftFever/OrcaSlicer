@@ -39,9 +39,9 @@
 
 #include <tbb/task_scheduler_init.h>
 
-#if defined(__linux) || defined(__GNUC__ )
+#if defined(__linux__) || defined(__GNUC__ )
 #include <strings.h>
-#endif /* __linux */
+#endif /* __linux__ */
 
 #ifdef _MSC_VER 
     #define strcasecmp _stricmp
@@ -520,6 +520,12 @@ bool is_ini_file(const boost::filesystem::directory_entry &dir_entry)
 bool is_idx_file(const boost::filesystem::directory_entry &dir_entry)
 {
 	return is_plain_file(dir_entry) && strcasecmp(dir_entry.path().extension().string().c_str(), ".idx") == 0;
+}
+
+bool is_gcode_file(const std::string &path)
+{
+	return boost::iends_with(path, ".gcode") || boost::iends_with(path, ".gco") ||
+		   boost::iends_with(path, ".g")     || boost::iends_with(path, ".ngc");
 }
 
 } // namespace Slic3r

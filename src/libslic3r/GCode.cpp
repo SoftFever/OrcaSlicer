@@ -714,8 +714,21 @@ namespace DoExport {
 	                if (region->config().get_abs_value("infill_speed") == 0 ||
 	                    region->config().get_abs_value("solid_infill_speed") == 0 ||
 	                    region->config().get_abs_value("top_solid_infill_speed") == 0 ||
-	                    region->config().get_abs_value("bridge_speed") == 0)
-	                    mm3_per_mm.push_back(layerm->fills.min_mm3_per_mm());
+                        region->config().get_abs_value("bridge_speed") == 0)
+                    {
+                        // Minimal volumetric flow should not be calculated over ironing extrusions.
+                        // Use following lambda instead of the built-it method.
+                        // https://github.com/prusa3d/PrusaSlicer/issues/5082
+                        auto min_mm3_per_mm_no_ironing = [](const ExtrusionEntityCollection& eec) -> double {
+                            double min = std::numeric_limits<double>::max();
+                            for (const ExtrusionEntity* ee : eec.entities)
+                                if (ee->role() != erIroning)
+                                    min = std::min(min, ee->min_mm3_per_mm());
+                            return min;
+                        };
+
+                        mm3_per_mm.push_back(min_mm3_per_mm_no_ironing(layerm->fills));
+                    }
 	            }
 	        }
 	        if (object->config().get_abs_value("support_material_speed") == 0 ||
@@ -1709,7 +1722,9 @@ namespace Skirt {
             //FIXME infinite or high skirt does not make sense for sequential print!
             (skirt_done.size() < (size_t)print.config().skirt_height.value || print.has_infinite_skirt()) &&
             // This print_z has not been extruded yet (sequential print)
-            skirt_done.back() < layer_tools.print_z - EPSILON &&
+            // FIXME: The skirt_done should not be empty at this point. The check is a workaround
+            // of https://github.com/prusa3d/PrusaSlicer/issues/5652, but it deserves a real fix.
+            (! skirt_done.empty() && skirt_done.back() < layer_tools.print_z - EPSILON) &&
             // and this layer is an object layer, or it is a raft layer.
             (layer_tools.has_object || support_layer->id() < (size_t)support_layer->object()->config().raft_layers.value)) {
 #if 0
@@ -2096,6 +2111,8 @@ void GCode::process_layer(
                         instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, instance_to_print.object_by_extruder.support_extrusion_role));
                     m_layer = layers[instance_to_print.layer_id].layer();
                 }
+                //FIXME order islands?
+                // Sequential tool path ordering of multiple parts within the same object, aka. perimeter tracking (#5511)
                 for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
                     const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, static_cast<unsigned int>(instance_to_print.instance_id), extruder_id, print_wipe_extrusions != 0) : island.by_region;
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.

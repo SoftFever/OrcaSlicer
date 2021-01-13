@@ -132,6 +132,8 @@ private:
     void eject_device(const std::string &path);
     // Opaque pointer to RemovableDriveManagerMM
     void *m_impl_osx;
+    boost::thread *m_eject_thread { nullptr };
+    void eject_thread_finish();
 #endif
 };
 
