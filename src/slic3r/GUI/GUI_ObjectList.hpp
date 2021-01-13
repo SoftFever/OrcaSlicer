@@ -197,6 +197,8 @@ private:
     SettingsBundle m_freq_settings_sla;
 #endif
 
+    size_t    m_items_count { size_t(-1) };
+
     inline void ensure_current_item_visible()
     {
         if (const auto &item = this->GetCurrentItem())
@@ -208,6 +210,7 @@ public:
     ~ObjectList();
 
     void set_min_height();
+    void update_min_height();
 
     std::map<std::string, wxBitmap> CATEGORY_ICON;
 

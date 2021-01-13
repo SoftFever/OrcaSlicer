@@ -235,18 +235,11 @@ void Tab::create_preset_tab()
 
     m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(); }));
     m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
-    m_question_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent)
-    {
+    m_question_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) {
         ButtonsDescription dlg(this, m_icon_descriptions);
-        if (dlg.ShowModal() == wxID_OK) {
-            // Colors for ui "decoration"
-            for (Tab *tab : wxGetApp().tabs_list) {
-                tab->m_sys_label_clr = wxGetApp().get_label_clr_sys();
-                tab->m_modified_label_clr = wxGetApp().get_label_clr_modified();
-                tab->update_labels_colour();
-            }
-        }
-    }));
+        if (dlg.ShowModal() == wxID_OK)
+            wxGetApp().update_label_colours();
+    });
     m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) { wxGetApp().plater()->search(false); });
 
     // Colors for ui "decoration"
@@ -489,8 +482,13 @@ void Tab::OnActivate()
     Refresh();
 }
 
-void Tab::update_labels_colour()
+void Tab::update_label_colours()
 {
+    if (m_sys_label_clr == wxGetApp().get_label_clr_sys() && m_modified_label_clr == wxGetApp().get_label_clr_modified())
+        return;
+    m_sys_label_clr = wxGetApp().get_label_clr_sys();
+    m_modified_label_clr = wxGetApp().get_label_clr_modified();
+
     //update options "decoration"
     for (const auto opt : m_options_list)
     {
@@ -536,6 +534,8 @@ void Tab::update_labels_colour()
         }
         cur_item = m_treectrl->GetNextVisible(cur_item);
     }
+
+    decorate();
 }
 
 void Tab::decorate()
@@ -999,9 +999,7 @@ void Tab::sys_color_changed()
     m_treectrl->AssignImageList(m_icons);
 
     // Colors for ui "decoration"
-    m_sys_label_clr = wxGetApp().get_label_clr_sys();
-    m_modified_label_clr = wxGetApp().get_label_clr_modified();
-    update_labels_colour();
+    update_label_colours();
 
     // update options_groups
     if (m_active_page)

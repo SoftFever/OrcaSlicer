@@ -153,6 +153,11 @@ void SavePresetDialog::Item::update()
         m_valid_type = NoValid;
     }
 
+    if (m_valid_type == Valid && m_presets->get_preset_name_by_alias(m_preset_name) != m_preset_name) {
+        info_line = _L("The name cannot be the same as a preset alias name.");
+        m_valid_type = NoValid;
+    }
+
     m_valid_label->SetLabel(info_line);
     m_valid_label->Show(!info_line.IsEmpty());
 
