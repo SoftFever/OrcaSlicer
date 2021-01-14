@@ -167,6 +167,7 @@ public:
     static bool     dark_mode();
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
+    void            update_label_colours();
     void            init_fonts();
 	void            update_fonts(const MainFrame *main_frame = nullptr);
     void            set_label_clr_modified(const wxColour& clr);

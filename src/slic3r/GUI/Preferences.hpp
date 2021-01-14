@@ -8,6 +8,7 @@
 #include <map>
 
 class wxRadioBox;
+class wxColourPickerCtrl;
 
 namespace Slic3r {
 namespace GUI {
@@ -25,6 +26,8 @@ class PreferencesDialog : public DPIDialog
 #endif // ENABLE_ENVIRONMENT_MAP
 	wxSizer*                            m_icon_size_sizer;
 	wxRadioBox*							m_layout_mode_box;
+	wxColourPickerCtrl*					m_sys_colour {nullptr};
+	wxColourPickerCtrl*					m_mod_colour {nullptr};
     bool                                isOSX {false};
 	bool								m_settings_layout_changed {false};
 	bool								m_seq_top_layer_only_changed{ false };
@@ -43,6 +46,7 @@ protected:
     void layout();
     void create_icon_size_slider();
     void create_settings_mode_widget();
+    void create_settings_text_color_widget();
 };
 
 } // GUI
