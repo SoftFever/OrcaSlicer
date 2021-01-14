@@ -540,7 +540,9 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
             va.push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
                              double(m_vertices[tr.verts_idxs[i]].v[1]),
                              double(m_vertices[tr.verts_idxs[i]].v[2]),
-                             0., 0., 1.);
+                             double(tr.normal[0]),
+                             double(tr.normal[1]),
+                             double(tr.normal[2]));
         va.push_triangle(cnt,
                          cnt+1,
                          cnt+2);
@@ -550,14 +552,26 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     m_iva_enforcers.finalize_geometry(true);
     m_iva_blockers.finalize_geometry(true);
 
-    if (m_iva_enforcers.has_VBOs()) {
-        ::glColor4f(0.f, 0.f, 1.f, 0.4f);
+    bool render_enf = m_iva_enforcers.has_VBOs();
+    bool render_blc = m_iva_blockers.has_VBOs();
+
+    auto* shader = wxGetApp().get_shader("gouraud");
+    if (! shader)
+        return;
+
+    shader->start_using();
+    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+    shader->set_uniform("slope.actived", false);
+
+    if (render_enf) {
+        std::array<float, 4> color = { 0.47f, 0.47f, 1.f, 1.f };
+        shader->set_uniform("uniform_color", color);
         m_iva_enforcers.render();
     }
 
-
-    if (m_iva_blockers.has_VBOs()) {
-        ::glColor4f(1.f, 0.f, 0.f, 0.4f);
+    if (render_blc) {
+        std::array<float, 4> color = { 1.f, 0.44f, 0.44f, 1.f };
+        shader->set_uniform("uniform_color", color);
         m_iva_blockers.render();
     }
 

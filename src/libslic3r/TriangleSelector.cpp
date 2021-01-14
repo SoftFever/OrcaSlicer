@@ -425,8 +425,11 @@ void TriangleSelector::reset()
     m_triangles.clear();
     for (const stl_vertex& vert : m_mesh->its.vertices)
         m_vertices.emplace_back(vert);
-    for (const stl_triangle_vertex_indices& ind : m_mesh->its.indices)
-        push_triangle(ind[0], ind[1], ind[2]);
+    for (size_t i=0; i<m_mesh->its.indices.size(); ++i) {
+        const stl_triangle_vertex_indices& ind = m_mesh->its.indices[i];
+        const Vec3f& normal = m_mesh->stl.facet_start[i].normal;
+        push_triangle(ind[0], ind[1], ind[2], normal);
+    }
     m_orig_size_vertices = m_vertices.size();
     m_orig_size_indices = m_triangles.size();
     m_invalid_triangles = 0;
@@ -451,19 +454,20 @@ void TriangleSelector::set_edge_limit(float edge_limit)
 
 
 
-void TriangleSelector::push_triangle(int a, int b, int c)
+void TriangleSelector::push_triangle(int a, int b, int c, const Vec3f& normal)
 {
     for (int i : {a, b, c}) {
         assert(i >= 0 && i < int(m_vertices.size()));
         ++m_vertices[i].ref_cnt;
     }
-    m_triangles.emplace_back(a, b, c);
+    m_triangles.emplace_back(a, b, c, normal);
 }
 
 
 void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_state)
 {
     Triangle* tr = &m_triangles[facet_idx];
+    const Vec3f normal = tr->normal;
 
     assert(tr->is_split());
 
@@ -483,8 +487,8 @@ void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_stat
         m_vertices.emplace_back((m_vertices[verts_idxs[1]].v + m_vertices[verts_idxs[2]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+2, m_vertices.size() - 1);
 
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2]);
-        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0]);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2], normal);
+        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0], normal);
     }
 
     if (sides_to_split == 2) {
@@ -494,9 +498,9 @@ void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_stat
         m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[3]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+4, m_vertices.size() - 1);
 
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4]);
-        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4]);
-        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4]);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4], normal);
+        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4], normal);
+        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4], normal);
     }
 
     if (sides_to_split == 3) {
@@ -507,10 +511,10 @@ void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_stat
         m_vertices.emplace_back((m_vertices[verts_idxs[4]].v + m_vertices[verts_idxs[0]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+5, m_vertices.size() - 1);
 
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5]);
-        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3]);
-        push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5]);
-        push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5]);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5], normal);
+        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3], normal);
+        push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5], normal);
+        push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5], normal);
     }
 
     tr = &m_triangles[facet_idx]; // may have been invalidated

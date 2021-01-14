@@ -20,10 +20,8 @@ namespace GUI {
 
 void GLGizmoFdmSupports::on_shutdown()
 {
-    if (m_setting_angle) {
-        m_setting_angle = false;
-        m_parent.use_slope(false);
-    }
+    m_angle_threshold_deg = 0.f;
+    m_parent.use_slope(false);
 }
 
 
@@ -52,6 +50,9 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["remove_all"]       = _L("Remove all selection");
     m_desc["circle"]           = _L("Circle");
     m_desc["sphere"]           = _L("Sphere");
+    m_desc["highlight_by_angle"] = _L("Highlight by angle");
+    m_desc["enforce_button"]   = _L("Enforce");
+    m_desc["cancel"]           = _L("Cancel");
 
     return true;
 }
@@ -65,8 +66,7 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    if (! m_setting_angle)
-        render_triangles(selection);
+    render_triangles(selection);
 
     m_c->object_clipper()->render_cut();
     render_cursor();
@@ -81,179 +81,183 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     if (! m_c->selection_info()->model_object())
         return;
 
-    const float approx_height = m_imgui->scaled(14.0f);
+    const float approx_height = m_imgui->scaled(17.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
 
-    if (! m_setting_angle) {
-        m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
-        // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
-        const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
-                                                    m_imgui->calc_text_size(m_desc.at("reset_direction")).x)
-                                              + m_imgui->scaled(1.5f);
-        const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
-        const float cursor_type_radio_left  = m_imgui->calc_text_size(m_desc.at("cursor_type")).x + m_imgui->scaled(1.f);
-        const float cursor_type_radio_width1 = m_imgui->calc_text_size(m_desc["circle"]).x
-                                                 + m_imgui->scaled(2.5f);
-        const float cursor_type_radio_width2 = m_imgui->calc_text_size(m_desc["sphere"]).x
-                                                 + m_imgui->scaled(2.5f);
-        const float button_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
-        const float minimal_slider_width = m_imgui->scaled(4.f);
+    // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
+    const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
+                                                m_imgui->calc_text_size(m_desc.at("reset_direction")).x)
+                                          + m_imgui->scaled(1.5f);
+    const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
+    const float autoset_slider_left = m_imgui->calc_text_size(m_desc.at("highlight_by_angle")).x + m_imgui->scaled(1.f);
+    const float cursor_type_radio_left  = m_imgui->calc_text_size(m_desc.at("cursor_type")).x + m_imgui->scaled(1.f);
+    const float cursor_type_radio_width1 = m_imgui->calc_text_size(m_desc["circle"]).x
+                                             + m_imgui->scaled(2.5f);
+    const float cursor_type_radio_width2 = m_imgui->calc_text_size(m_desc["sphere"]).x
+                                             + m_imgui->scaled(2.5f);
+    const float button_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
+    const float button_enforce_width = m_imgui->calc_text_size(m_desc.at("enforce_button")).x;
+    const float button_cancel_width = m_imgui->calc_text_size(m_desc.at("cancel")).x;
+    const float buttons_width = std::max(button_enforce_width, button_cancel_width) + m_imgui->scaled(0.5f);
+    const float minimal_slider_width = m_imgui->scaled(4.f);
 
-        float caption_max = 0.f;
-        float total_text_max = 0.;
-        for (const std::string& t : {"enforce", "block", "remove"}) {
-            caption_max = std::max(caption_max, m_imgui->calc_text_size(m_desc.at(t+"_caption")).x);
-            total_text_max = std::max(total_text_max, caption_max + m_imgui->calc_text_size(m_desc.at(t)).x);
-        }
-        caption_max += m_imgui->scaled(1.f);
-        total_text_max += m_imgui->scaled(1.f);
+    float caption_max = 0.f;
+    float total_text_max = 0.;
+    for (const std::string& t : {"enforce", "block", "remove"}) {
+        caption_max = std::max(caption_max, m_imgui->calc_text_size(m_desc.at(t+"_caption")).x);
+        total_text_max = std::max(total_text_max, caption_max + m_imgui->calc_text_size(m_desc.at(t)).x);
+    }
+    caption_max += m_imgui->scaled(1.f);
+    total_text_max += m_imgui->scaled(1.f);
 
-        float window_width = minimal_slider_width + std::max(cursor_slider_left, clipping_slider_left);
-        window_width = std::max(window_width, total_text_max);
-        window_width = std::max(window_width, button_width);
-        window_width = std::max(window_width, cursor_type_radio_left + cursor_type_radio_width1 + cursor_type_radio_width2);
+    float window_width = minimal_slider_width + std::max(autoset_slider_left, std::max(cursor_slider_left, clipping_slider_left));
+    window_width = std::max(window_width, total_text_max);
+    window_width = std::max(window_width, button_width);
+    window_width = std::max(window_width, cursor_type_radio_left + cursor_type_radio_width1 + cursor_type_radio_width2);
+    window_width = std::max(window_width, 2.f * buttons_width + m_imgui->scaled(1.f));
 
-        auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
-            m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, caption);
-            ImGui::SameLine(caption_max);
-            m_imgui->text(text);
-        };
+    auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
+        m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, caption);
+        ImGui::SameLine(caption_max);
+        m_imgui->text(text);
+    };
 
-        for (const std::string& t : {"enforce", "block", "remove"})
-            draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+    for (const std::string& t : {"enforce", "block", "remove"})
+        draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
 
-        m_imgui->text("");
+    m_imgui->text("");
+    ImGui::Separator();
 
-        if (m_imgui->button(_L("Autoset by angle") + "...")) {
-            m_setting_angle = true;
-        }
-
-        ImGui::SameLine();
-
-        if (m_imgui->button(m_desc.at("remove_all"))) {
-            Plater::TakeSnapshot(wxGetApp().plater(), wxString(_L("Reset selection")));
-            ModelObject* mo = m_c->selection_info()->model_object();
-            int idx = -1;
-            for (ModelVolume* mv : mo->volumes) {
-                if (mv->is_model_part()) {
-                    ++idx;
-                    m_triangle_selectors[idx]->reset();
-                }
-            }
-
-            update_model_object();
+    m_imgui->text(m_desc["highlight_by_angle"] + ":");
+    ImGui::AlignTextToFramePadding();
+    std::string format_str = std::string("%.f") + I18N::translate_utf8("°",
+        "Degree sign to use in the respective slider in FDM supports gizmo,"
+        "placed after the number with no whitespace in between.");
+    ImGui::SameLine(autoset_slider_left);
+    ImGui::PushItemWidth(window_width - autoset_slider_left);
+    if (m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, format_str.data())) {
+        m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
+        if (! m_parent.is_using_slope()) {
+            m_parent.use_slope(true);
             m_parent.set_as_dirty();
         }
+    }
 
-        const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+    m_imgui->disabled_begin(m_angle_threshold_deg == 0.f);
+    ImGui::NewLine();
+    ImGui::SameLine(window_width - 2.f*buttons_width - m_imgui->scaled(0.5f));
+    if (m_imgui->button(m_desc["enforce_button"], buttons_width, 0.f)) {
+        select_facets_by_angle(m_angle_threshold_deg, false);
+        m_angle_threshold_deg = 0.f;
+    }
+    ImGui::SameLine(window_width - buttons_width);
+    if (m_imgui->button(m_desc["cancel"], buttons_width, 0.f)) {
+        m_angle_threshold_deg = 0.f;
+        m_parent.use_slope(false);
+    }
+    m_imgui->disabled_end();
 
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("cursor_size"));
-        ImGui::SameLine(cursor_slider_left);
-        ImGui::PushItemWidth(window_width - cursor_slider_left);
-        ImGui::SliderFloat(" ", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Alt + Mouse wheel").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+    ImGui::Separator();
 
-
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("cursor_type"));
-        ImGui::SameLine(cursor_type_radio_left + m_imgui->scaled(0.f));
-        ImGui::PushItemWidth(cursor_type_radio_width1);
-
-        bool sphere_sel = m_cursor_type == TriangleSelector::CursorType::SPHERE;
-        if (m_imgui->radio_button(m_desc["sphere"], sphere_sel))
-            sphere_sel = true;
-
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Paints all facets inside, regardless of their orientation.").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
-
-        ImGui::SameLine(cursor_type_radio_left + cursor_type_radio_width2 + m_imgui->scaled(0.f));
-        ImGui::PushItemWidth(cursor_type_radio_width2);
-
-        if (m_imgui->radio_button(m_desc["circle"], ! sphere_sel))
-            sphere_sel = false;
-
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Ignores facets facing away from the camera.").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
-
-        m_cursor_type = sphere_sel
-                ? TriangleSelector::CursorType::SPHERE
-                : TriangleSelector::CursorType::CIRCLE;
-
-
-
-
-        ImGui::Separator();
-        if (m_c->object_clipper()->get_position() == 0.f) {
-            ImGui::AlignTextToFramePadding();
-            m_imgui->text(m_desc.at("clipping_of_view"));
-        }
-        else {
-            if (m_imgui->button(m_desc.at("reset_direction"))) {
-                wxGetApp().CallAfter([this](){
-                        m_c->object_clipper()->set_position(-1., false);
-                    });
+    if (m_imgui->button(m_desc.at("remove_all"))) {
+        Plater::TakeSnapshot(wxGetApp().plater(), wxString(_L("Reset selection")));
+        ModelObject* mo = m_c->selection_info()->model_object();
+        int idx = -1;
+        for (ModelVolume* mv : mo->volumes) {
+            if (mv->is_model_part()) {
+                ++idx;
+                m_triangle_selectors[idx]->reset();
             }
         }
 
-        ImGui::SameLine(clipping_slider_left);
-        ImGui::PushItemWidth(window_width - clipping_slider_left);
-        float clp_dist = m_c->object_clipper()->get_position();
-        if (ImGui::SliderFloat("  ", &clp_dist, 0.f, 1.f, "%.2f"))
-        m_c->object_clipper()->set_position(clp_dist, true);
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Ctrl + Mouse wheel").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        update_model_object();
+        m_parent.set_as_dirty();
+    }
 
-        m_imgui->end();
+
+    const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(m_desc.at("cursor_size"));
+    ImGui::SameLine(cursor_slider_left);
+    ImGui::PushItemWidth(window_width - cursor_slider_left);
+    ImGui::SliderFloat(" ", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Alt + Mouse wheel").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+
+
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(m_desc.at("cursor_type"));
+    ImGui::SameLine(cursor_type_radio_left + m_imgui->scaled(0.f));
+    ImGui::PushItemWidth(cursor_type_radio_width1);
+
+    bool sphere_sel = m_cursor_type == TriangleSelector::CursorType::SPHERE;
+    if (m_imgui->radio_button(m_desc["sphere"], sphere_sel))
+        sphere_sel = true;
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Paints all facets inside, regardless of their orientation.").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+
+    ImGui::SameLine(cursor_type_radio_left + cursor_type_radio_width2 + m_imgui->scaled(0.f));
+    ImGui::PushItemWidth(cursor_type_radio_width2);
+
+    if (m_imgui->radio_button(m_desc["circle"], ! sphere_sel))
+        sphere_sel = false;
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Ignores facets facing away from the camera.").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+
+    m_cursor_type = sphere_sel
+            ? TriangleSelector::CursorType::SPHERE
+            : TriangleSelector::CursorType::CIRCLE;
+
+
+
+
+    ImGui::Separator();
+    if (m_c->object_clipper()->get_position() == 0.f) {
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc.at("clipping_of_view"));
     }
     else {
-        m_imgui->begin(_L("Autoset custom supports"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(_L("Threshold:"));
-        std::string format_str = std::string("%.f") + I18N::translate_utf8("°",
-            "Degree sign to use in the respective slider in FDM supports gizmo,"
-            "placed after the number with no whitespace in between.");
-        ImGui::SameLine();
-        if (m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, format_str.data()))
-            m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
-        if (m_imgui->button(_L("Enforce")))
-            select_facets_by_angle(m_angle_threshold_deg, false);
-        ImGui::SameLine();
-        if (m_imgui->button(_L("Block")))
-            select_facets_by_angle(m_angle_threshold_deg, true);
-        ImGui::SameLine();
-        if (m_imgui->button(_L("Cancel")))
-            m_setting_angle = false;
-        m_imgui->end();
-        bool needs_update = !(m_setting_angle && m_parent.is_using_slope());
-        if (needs_update) {
-            m_parent.use_slope(m_setting_angle);
-            m_parent.set_as_dirty();
+        if (m_imgui->button(m_desc.at("reset_direction"))) {
+            wxGetApp().CallAfter([this](){
+                    m_c->object_clipper()->set_position(-1., false);
+                });
         }
     }
+
+    ImGui::SameLine(clipping_slider_left);
+    ImGui::PushItemWidth(window_width - clipping_slider_left);
+    float clp_dist = m_c->object_clipper()->get_position();
+    if (ImGui::SliderFloat("  ", &clp_dist, 0.f, 1.f, "%.2f"))
+    m_c->object_clipper()->set_position(clp_dist, true);
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Ctrl + Mouse wheel").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+    m_imgui->end();
 }
 
 
@@ -296,7 +300,6 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
                                                     : _L("Add supports by angle"));
     update_model_object();
     m_parent.set_as_dirty();
-    m_setting_angle = false;
 }
 
 

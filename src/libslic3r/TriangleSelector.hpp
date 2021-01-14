@@ -63,8 +63,9 @@ protected:
     public:
         // Use TriangleSelector::push_triangle to create a new triangle.
         // It increments/decrements reference counter on vertices.
-        Triangle(int a, int b, int c)
+        Triangle(int a, int b, int c, const Vec3f& normal_)
             : verts_idxs{a, b, c},
+              normal{normal_},
               state{EnforcerBlockerType(0)},
               number_of_splits{0},
               special_side_idx{0},
@@ -72,6 +73,9 @@ protected:
         {}
         // Indices into m_vertices.
         std::array<int, 3> verts_idxs;
+
+        // Triangle normal (a shader might need it).
+        Vec3f normal;
 
         // Is this triangle valid or marked to be removed?
         bool valid{true};
@@ -158,7 +162,7 @@ protected:
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
     bool is_pointer_in_triangle(int facet_idx) const;
     bool is_edge_inside_cursor(int facet_idx) const;
-    void push_triangle(int a, int b, int c);
+    void push_triangle(int a, int b, int c, const Vec3f& normal);
     void perform_split(int facet_idx, EnforcerBlockerType old_state);
 };
 
