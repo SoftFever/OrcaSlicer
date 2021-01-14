@@ -561,9 +561,11 @@ Polygons voronoi_offset(
                 const Point &pt    = cell->contains_point() ?
                     ((cell->source_category() == boost::polygon::SOURCE_CATEGORY_SEGMENT_START_POINT) ? line0.a : line0.b) :
                     ((cell2->source_category() == boost::polygon::SOURCE_CATEGORY_SEGMENT_START_POINT) ? line1.a : line1.b);
+            #ifndef NDEBUG
                 const Line  &line  = cell->contains_segment() ? line0 : line1;
                 assert(pt == line.a || pt == line.b);
                 assert((pt.cast<double>() - Vec2d(v0->x(), v0->y())).norm() < SCALED_EPSILON);
+            #endif // NDEBUG
                 Vec2d dir(v1->x() - v0->x(), v1->y() - v0->y());
                 double l2 = dir.squaredNorm();
                 if (offset_distance2 <= l2) {

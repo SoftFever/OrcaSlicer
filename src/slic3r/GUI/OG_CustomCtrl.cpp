@@ -98,7 +98,7 @@ void OG_CustomCtrl::init_ctrl_lines()
             ctrl_lines.emplace_back(CtrlLine(height, this, line, false, opt_group->staticbox));
         }
         else
-            int i = 0;
+            assert(false);
     }
 }
 

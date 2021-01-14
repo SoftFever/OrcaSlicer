@@ -339,14 +339,14 @@ private:
 		// Height of text
 		// Used as basic scaling unit!
 		float            m_line_height;
-		std::vector<int> m_endlines;
+        std::vector<size_t> m_endlines;
 		// Gray are f.e. eorrors when its uknown if they are still valid
 		bool             m_is_gray              { false };
 		//if multiline = true, notification is showing all lines(>2)
 		bool             m_multiline            { false };
 		// True if minimized button is rendered, helps to decide where is area for invisible close button
 		bool             m_minimize_b_visible   { false };
-		int              m_lines_count{ 1 };
+        size_t           m_lines_count{ 1 };
 	    // Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
 		wxEvtHandler*    m_evt_handler;
 	};
@@ -366,7 +366,7 @@ private:
 			                     override;
 		bool        m_is_large;
 		bool        m_has_print_info { false };
-		std::string m_print_info { std::string() };
+        std::string m_print_info;
 	};
 
 	class SlicingWarningNotification : public PopNotification
@@ -471,8 +471,13 @@ private:
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
 //		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
 //		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
-		{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more."), [](wxEvtHandler* evnthndlr){
-			if (evnthndlr != nullptr) wxPostEvent(evnthndlr, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED)); return true; }},
+        {NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more."),
+             [](wxEvtHandler* evnthndlr) {
+                 if (evnthndlr != nullptr)
+                     wxPostEvent(evnthndlr, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED));
+                 return true;
+             }
+        },
 		{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr){ 
 				wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
 		{NotificationType::EmptyColorChangeCode, NotificationLevel::RegularNotification, 10,  
