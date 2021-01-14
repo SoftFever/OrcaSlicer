@@ -3,6 +3,7 @@
 
 #include "libslic3r.h"
 #include <map>
+#include <random>
 #include <string>
 #include <vector>
 #include "PrintConfig.hpp"
@@ -11,7 +12,16 @@ namespace Slic3r {
 
 class PlaceholderParser
 {
-public:    
+public:
+    // Context to be shared during multiple executions of the PlaceholderParser.
+    // The context is kept external to the PlaceholderParser, so that the same PlaceholderParser
+    // may be called safely from multiple threads.
+    // In the future, the context may hold variables created and modified by the PlaceholderParser
+    // and shared between the PlaceholderParser::process() invocations.
+    struct ContextData {
+        std::mt19937 rng;
+    };
+
     PlaceholderParser(const DynamicConfig *external_config = nullptr);
     
     // Return a list of keys, which should be changed in m_config from rhs.
@@ -40,11 +50,11 @@ public:
 	const DynamicConfig*	external_config() const  			{ return m_external_config; }
 
     // Fill in the template using a macro processing language.
-    // Throws Slic3r::RuntimeError on syntax or runtime error.
-    std::string process(const std::string &templ, unsigned int current_extruder_id = 0, const DynamicConfig *config_override = nullptr) const;
+    // Throws Slic3r::PlaceholderParserError on syntax or runtime error.
+    std::string process(const std::string &templ, unsigned int current_extruder_id = 0, const DynamicConfig *config_override = nullptr, ContextData *context = nullptr) const;
     
     // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
-    // Throws Slic3r::RuntimeError on syntax or runtime error.
+    // Throws Slic3r::PlaceholderParserError on syntax or runtime error.
     static bool evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override = nullptr);
 
     // Update timestamp, year, month, day, hour, minute, second variables at the provided config.

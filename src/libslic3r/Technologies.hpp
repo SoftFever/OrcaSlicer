@@ -1,9 +1,9 @@
 #ifndef _prusaslicer_technologies_h_
 #define _prusaslicer_technologies_h_
 
-//============
+//=============
 // debug techs
-//============
+//=============
 
 // Shows camera target in the 3D scene
 #define ENABLE_SHOW_CAMERA_TARGET 0
@@ -23,20 +23,24 @@
 #define DISABLE_INSTANCES_SYNCH 0
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING 0
+// Enable G-Code viewer statistics imgui dialog
+#define ENABLE_GCODE_VIEWER_STATISTICS 0
+// Enable G-Code viewer comparison between toolpaths height and width detected from gcode and calculated at gcode generation 
+#define ENABLE_GCODE_VIEWER_DATA_CHECKING 0
 
 
-//================
+//=================
 // 2.2.0.rc1 techs
-//================
+//=================
 #define ENABLE_2_2_0_RC1 1
 
 // Enable hack to remove crash when closing on OSX 10.9.5
 #define ENABLE_HACK_CLOSING_ON_OSX_10_9_5 (1 && ENABLE_2_2_0_RC1)
 
 
-//===================
+//====================
 // 2.3.0.alpha1 techs
-//===================
+//====================
 #define ENABLE_2_3_0_ALPHA1 1
 
 // Enable rendering of objects using environment map
@@ -51,17 +55,56 @@
 // Enable built-in DPI changed event handler of wxWidgets 3.1.3
 #define ENABLE_WX_3_1_3_DPI_CHANGED_EVENT (1 && ENABLE_2_3_0_ALPHA1)
 
-// Enable G-Code viewer
-#define ENABLE_GCODE_VIEWER (1 && ENABLE_2_3_0_ALPHA1)
-#define ENABLE_GCODE_VIEWER_STATISTICS (0 && ENABLE_GCODE_VIEWER)
-#define ENABLE_GCODE_VIEWER_DATA_CHECKING (0 && ENABLE_GCODE_VIEWER)
 
-
-//===================
+//====================
 // 2.3.0.alpha3 techs
-//===================
+//====================
 #define ENABLE_2_3_0_ALPHA3 1
 
-#define ENABLE_CTRL_M_ON_WINDOWS (0 && ENABLE_2_3_0_ALPHA3)
+#define ENABLE_CTRL_M_ON_WINDOWS (1 && ENABLE_2_3_0_ALPHA3)
+
+
+//====================
+// 2.3.0.alpha4 techs
+//====================
+#define ENABLE_2_3_0_ALPHA4 1
+
+#define ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS (1 && ENABLE_2_3_0_ALPHA4)
+
+
+//===================
+// 2.3.0.beta1 techs
+//===================
+#define ENABLE_2_3_0_BETA1 1
+
+#define ENABLE_DRAG_AND_DROP_FIX (1 && ENABLE_2_3_0_BETA1)
+#define ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN (1 && ENABLE_2_3_0_BETA1)
+
+
+//===================
+// 2.3.0.beta2 techs
+//===================
+#define ENABLE_2_3_0_BETA2 1
+
+#define ENABLE_ARROW_KEYS_WITH_SLIDERS (1 && ENABLE_2_3_0_BETA2)
+#define ENABLE_NEW_NOTIFICATIONS_FADE_OUT (1 && ENABLE_2_3_0_BETA2) 
+#define ENABLE_PREVIEW_TYPE_CHANGE (1 && ENABLE_2_3_0_BETA2)
+
+
+//===================
+// 2.3.0.beta3 techs
+//===================
+#define ENABLE_2_3_0_BETA3 1
+
+#define ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE (1 && ENABLE_2_3_0_BETA3)
+#define ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE (1 && ENABLE_2_3_0_BETA3)
+
+
+//=================
+// 2.3.0.rc1 techs
+//=================
+#define ENABLE_2_3_0_RC1 1
+
+#define ENABLE_VOLUMETRIC_EXTRUSION_PROCESSING (1 && ENABLE_2_3_0_RC1)
 
 #endif // _prusaslicer_technologies_h_

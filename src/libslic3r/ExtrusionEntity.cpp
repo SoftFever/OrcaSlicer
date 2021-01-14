@@ -14,12 +14,12 @@ namespace Slic3r {
     
 void ExtrusionPath::intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
 {
-    this->_inflate_collection(intersection_pl(this->polyline, (Polygons)collection), retval);
+    this->_inflate_collection(intersection_pl((Polylines)polyline, to_polygons(collection.expolygons)), retval);
 }
 
 void ExtrusionPath::subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
 {
-    this->_inflate_collection(diff_pl(this->polyline, (Polygons)collection), retval);
+    this->_inflate_collection(diff_pl((Polylines)this->polyline, to_polygons(collection.expolygons)), retval);
 }
 
 void ExtrusionPath::clip_end(double distance)
@@ -306,11 +306,7 @@ double ExtrusionLoop::min_mm3_per_mm() const
 std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
 {
     switch (role) {
-#if ENABLE_GCODE_VIEWER
         case erNone                         : return L("Unknown");
-#else
-        case erNone                         : return L("None");
-#endif // ENABLE_GCODE_VIEWER
         case erPerimeter                    : return L("Perimeter");
         case erExternalPerimeter            : return L("External perimeter");
         case erOverhangPerimeter            : return L("Overhang perimeter");

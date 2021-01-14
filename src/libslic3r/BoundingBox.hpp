@@ -47,10 +47,14 @@ public:
     void translate(coordf_t x, coordf_t y) { assert(this->defined); PointClass v(x, y); this->min += v; this->max += v; }
     void translate(const Vec2d &v) { this->min += v; this->max += v; }
     void offset(coordf_t delta);
+    BoundingBoxBase<PointClass> inflated(coordf_t delta) const throw() { BoundingBoxBase<PointClass> out(*this); out.offset(delta); return out; }
     PointClass center() const;
     bool contains(const PointClass &point) const {
         return point(0) >= this->min(0) && point(0) <= this->max(0)
             && point(1) >= this->min(1) && point(1) <= this->max(1);
+    }
+    bool contains(const BoundingBoxBase<PointClass> &other) const {
+        return contains(other.min) && contains(other.max);
     }
     bool overlap(const BoundingBoxBase<PointClass> &other) const {
         return ! (this->max(0) < other.min(0) || this->min(0) > other.max(0) ||
@@ -91,6 +95,7 @@ public:
     void translate(coordf_t x, coordf_t y, coordf_t z) { assert(this->defined); PointClass v(x, y, z); this->min += v; this->max += v; }
     void translate(const Vec3d &v) { this->min += v; this->max += v; }
     void offset(coordf_t delta);
+    BoundingBoxBase<PointClass> inflated(coordf_t delta) const throw() { BoundingBoxBase<PointClass> out(*this); out.offset(delta); return out; }
     PointClass center() const;
     coordf_t max_size() const;
 
@@ -158,6 +163,8 @@ public:
     BoundingBox() : BoundingBoxBase<Point>() {}
     BoundingBox(const Point &pmin, const Point &pmax) : BoundingBoxBase<Point>(pmin, pmax) {}
     BoundingBox(const Points &points) : BoundingBoxBase<Point>(points) {}
+
+    BoundingBox inflated(coordf_t delta) const throw() { BoundingBox out(*this); out.offset(delta); return out; }
 
     friend BoundingBox get_extents_rotated(const Points &points, double angle);
 };

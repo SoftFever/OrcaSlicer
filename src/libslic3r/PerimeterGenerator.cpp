@@ -158,7 +158,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // get non-overhang paths by intersecting this loop with the grown lower slices
             extrusion_paths_append(
                 paths,
-                intersection_pl(loop.polygon, perimeter_generator.lower_slices_polygons()),
+                intersection_pl((Polygons)loop.polygon, perimeter_generator.lower_slices_polygons()),
                 role,
                 is_external ? perimeter_generator.ext_mm3_per_mm()          : perimeter_generator.mm3_per_mm(),
                 is_external ? perimeter_generator.ext_perimeter_flow.width  : perimeter_generator.perimeter_flow.width,
@@ -169,7 +169,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // the loop centerline and original lower slices is >= half nozzle diameter
             extrusion_paths_append(
                 paths,
-                diff_pl(loop.polygon, perimeter_generator.lower_slices_polygons()),
+                diff_pl((Polygons)loop.polygon, perimeter_generator.lower_slices_polygons()),
                 erOverhangPerimeter,
                 perimeter_generator.mm3_per_mm_overhang(),
                 perimeter_generator.overhang_flow.width,
@@ -271,7 +271,7 @@ void PerimeterGenerator::process()
         double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->perimeter_extruder-1);
         m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter/2)));
     }
-    
+
     // we need to process each island separately because we might have different
     // extra perimeters for each one
     for (const Surface &surface : this->slices->surfaces) {
@@ -312,7 +312,7 @@ void PerimeterGenerator::process()
                         for (ExPolygon &ex : expp)
                             ex.medial_axis(ext_perimeter_width + ext_perimeter_spacing2, min_width, &thin_walls);
                     }
-                    if (print_config->spiral_vase && offsets.size() > 1) {
+                    if (m_spiral_vase && offsets.size() > 1) {
                     	// Remove all but the largest area polygon.
                     	keep_largest_contour_only(offsets);
                     }

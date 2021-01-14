@@ -5,6 +5,8 @@
 
 #include <cassert>
 #include <algorithm>
+#include <string_view>
+using namespace std::literals;
 
 #include <GL/glew.h>
 
@@ -14,9 +16,10 @@ std::pair<bool, std::string> GLShadersManager::init()
 {
     std::string error;
 
-    auto append_shader = [this, &error](const std::string& name, const GLShaderProgram::ShaderFilenames& filenames) {
+    auto append_shader = [this, &error](const std::string& name, const GLShaderProgram::ShaderFilenames& filenames, 
+        const std::initializer_list<std::string_view> &defines = {}) {
         m_shaders.push_back(std::make_unique<GLShaderProgram>());
-        if (!m_shaders.back()->init_from_files(name, filenames)) {
+        if (!m_shaders.back()->init_from_files(name, filenames, defines)) {
             error += name + "\n";
             // if any error happens while initializating the shader, we remove it from the list
             m_shaders.pop_back();
@@ -40,7 +43,11 @@ std::pair<bool, std::string> GLShadersManager::init()
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
     // used to render objects in 3d editor
-    valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" });
+    valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
+#if ENABLE_ENVIRONMENT_MAP
+        , { "ENABLE_ENVIRONMENT_MAP"sv }
+#endif
+        );
     // used to render variable layers heights in 3d editor
     valid &= append_shader("variable_layer_height", { "variable_layer_height.vs", "variable_layer_height.fs" });
 
@@ -49,14 +56,12 @@ std::pair<bool, std::string> GLShadersManager::init()
 
 void GLShadersManager::shutdown()
 {
-    for (std::unique_ptr<GLShaderProgram>& shader : m_shaders) {
-        shader.reset();
-    }
+    m_shaders.clear();
 }
 
 GLShaderProgram* GLShadersManager::get_shader(const std::string& shader_name)
 {
-    auto it = std::find_if(m_shaders.begin(), m_shaders.end(), [shader_name](std::unique_ptr<GLShaderProgram>& p) { return p->get_name() == shader_name; });
+    auto it = std::find_if(m_shaders.begin(), m_shaders.end(), [&shader_name](std::unique_ptr<GLShaderProgram>& p) { return p->get_name() == shader_name; });
     return (it != m_shaders.end()) ? it->get() : nullptr;
 }
 

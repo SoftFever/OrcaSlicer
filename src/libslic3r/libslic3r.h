@@ -103,12 +103,6 @@ enum Axis {
 	NUM_AXES_WITH_UNKNOWN,
 };
 
-template <class T>
-inline void append_to(std::vector<T> &dst, const std::vector<T> &src)
-{
-    dst.insert(dst.end(), src.begin(), src.end());
-}
-
 template <typename T>
 inline void append(std::vector<T>& dest, const std::vector<T>& src)
 {
@@ -123,8 +117,34 @@ inline void append(std::vector<T>& dest, std::vector<T>&& src)
 {
     if (dest.empty())
         dest = std::move(src);
-    else
+    else {
+        dest.reserve(dest.size() + src.size());
         std::move(std::begin(src), std::end(src), std::back_inserter(dest));
+    }
+    src.clear();
+    src.shrink_to_fit();
+}
+
+// Append the source in reverse.
+template <typename T>
+inline void append_reversed(std::vector<T>& dest, const std::vector<T>& src)
+{
+    if (dest.empty())
+        dest = src;
+    else
+        dest.insert(dest.end(), src.rbegin(), src.rend());
+}
+
+// Append the source in reverse.
+template <typename T>
+inline void append_reversed(std::vector<T>& dest, std::vector<T>&& src)
+{
+    if (dest.empty())
+        dest = std::move(src);
+    else {
+        dest.reserve(dest.size() + src.size());
+        std::move(std::rbegin(src), std::rend(src), std::back_inserter(dest));
+    }
     src.clear();
     src.shrink_to_fit();
 }
@@ -164,7 +184,7 @@ inline std::unique_ptr<T> make_unique(Args&&... args) {
 // Variant of std::lower_bound() with compare predicate, but without the key.
 // This variant is very useful in case that the T type is large or it does not even have a public constructor.
 template<class ForwardIt, class LowerThanKeyPredicate>
-ForwardIt lower_bound_by_predicate(ForwardIt first, ForwardIt last, LowerThanKeyPredicate lower_thank_key)
+ForwardIt lower_bound_by_predicate(ForwardIt first, ForwardIt last, LowerThanKeyPredicate lower_than_key)
 {
     ForwardIt it;
     typename std::iterator_traits<ForwardIt>::difference_type count, step;
@@ -174,7 +194,7 @@ ForwardIt lower_bound_by_predicate(ForwardIt first, ForwardIt last, LowerThanKey
         it = first;
         step = count / 2;
         std::advance(it, step);
-        if (lower_thank_key(*it)) {
+        if (lower_than_key(*it)) {
             first = ++it;
             count -= step + 1;
         }

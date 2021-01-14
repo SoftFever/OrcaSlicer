@@ -35,11 +35,11 @@ public:
 	// Load svg from resources/icons. bitmap_key is given without the .svg suffix. SVG will be rasterized to provided height/width.
     wxBitmap* 		load_svg(const std::string &bitmap_key, unsigned width = 0, unsigned height = 0, const bool grayscale = false, const bool dark_mode = false);
 
-	/*static */wxBitmap mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, bool suppress_scaling = false);
-	/*static */wxBitmap mksolid(size_t width, size_t height, const unsigned char rgb[3], bool suppress_scaling = false) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE, suppress_scaling); }
-	/*static */wxBitmap mkclear(size_t width, size_t height) { return mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT); }
+	wxBitmap 		mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, bool suppress_scaling = false);
+	wxBitmap 		mksolid(size_t width, size_t height, const unsigned char rgb[3], bool suppress_scaling = false) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE, suppress_scaling); }
+	wxBitmap 		mkclear(size_t width, size_t height) { return mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT); }
 
-	static bool                 parse_color(const std::string& scolor, unsigned char* rgb_out);
+	static bool     parse_color(const std::string& scolor, unsigned char* rgb_out);
 
 private:
     std::map<std::string, wxBitmap*>	m_map;

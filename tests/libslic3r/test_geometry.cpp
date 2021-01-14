@@ -168,21 +168,21 @@ SCENARIO("Circle Fit, TaubinFit with Newton's method", "[Geometry]") {
 
         WHEN("Circle fit is called on the entire array") {
             Vec2d result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample);
+            result_center = Geometry::circle_center_taubin_newton(sample);
             THEN("A center point of -6,0 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }
         }
         WHEN("Circle fit is called on the first four points") {
             Vec2d result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample.cbegin(), sample.cbegin()+4);
+            result_center = Geometry::circle_center_taubin_newton(sample.cbegin(), sample.cbegin()+4);
             THEN("A center point of -6,0 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }
         }
         WHEN("Circle fit is called on the middle four points") {
             Vec2d result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample.cbegin()+2, sample.cbegin()+6);
+            result_center = Geometry::circle_center_taubin_newton(sample.cbegin()+2, sample.cbegin()+6);
             THEN("A center point of -6,0 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }
@@ -199,21 +199,21 @@ SCENARIO("Circle Fit, TaubinFit with Newton's method", "[Geometry]") {
 
         WHEN("Circle fit is called on the entire array") {
             Vec2d result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample);
+            result_center = Geometry::circle_center_taubin_newton(sample);
             THEN("A center point of 3,9 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }
         }
         WHEN("Circle fit is called on the first four points") {
             Vec2d result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample.cbegin(), sample.cbegin()+4);
+            result_center = Geometry::circle_center_taubin_newton(sample.cbegin(), sample.cbegin()+4);
             THEN("A center point of 3,9 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }
         }
         WHEN("Circle fit is called on the middle four points") {
             Vec2d result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample.cbegin()+2, sample.cbegin()+6);
+            result_center = Geometry::circle_center_taubin_newton(sample.cbegin()+2, sample.cbegin()+6);
             THEN("A center point of 3,9 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }
@@ -230,21 +230,21 @@ SCENARIO("Circle Fit, TaubinFit with Newton's method", "[Geometry]") {
 
         WHEN("Circle fit is called on the entire array") {
             Point result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample);
+            result_center = Geometry::circle_center_taubin_newton(sample);
             THEN("A center point of scaled 3,9 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }
         }
         WHEN("Circle fit is called on the first four points") {
             Point result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample.cbegin(), sample.cbegin()+4);
+            result_center = Geometry::circle_center_taubin_newton(sample.cbegin(), sample.cbegin()+4);
             THEN("A center point of scaled 3,9 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }
         }
         WHEN("Circle fit is called on the middle four points") {
             Point result_center(0,0);
-            result_center = Geometry::circle_taubin_newton(sample.cbegin()+2, sample.cbegin()+6);
+            result_center = Geometry::circle_center_taubin_newton(sample.cbegin()+2, sample.cbegin()+6);
             THEN("A center point of scaled 3,9 is returned.") {
                 REQUIRE(is_approx(result_center, expected_center));
             }

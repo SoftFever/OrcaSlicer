@@ -369,7 +369,7 @@ bool add_cavity(Contour3D &pad, ExPolygon &top_poly, const PadConfig3D &cfg,
 
     if (inner_base.empty() || middle_base.empty()) { logerr(); return false; }
 
-    ExPolygons pdiff = diff_ex(top_poly, middle_base.contour);
+    ExPolygons pdiff = diff_ex((Polygons)top_poly, (Polygons)middle_base.contour);
 
     if (pdiff.size() != 1) { logerr(); return false; }
 

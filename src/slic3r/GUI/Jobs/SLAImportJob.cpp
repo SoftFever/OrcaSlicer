@@ -36,7 +36,7 @@ public:
                                             "SL1 archive files (*.sl1, *.zip)|*.sl1;*.SL1;*.zip;*.ZIP",
                                             wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE | wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         
-        szfilepck->Add(new wxStaticText(this, wxID_ANY, _(L("Import file: "))), 0, wxALIGN_CENTER);
+        szfilepck->Add(new wxStaticText(this, wxID_ANY, _L("Import file") + ": "), 0, wxALIGN_CENTER);
         szfilepck->Add(m_filepicker, 1);
         szvert->Add(szfilepck, 0, wxALL | wxEXPAND, 5);
         
@@ -53,7 +53,7 @@ public:
             inp_choices.size(), inp_choices.data(), wxCB_READONLY | wxCB_DROPDOWN);
         
         szchoices->Add(m_import_dropdown);
-        szchoices->Add(new wxStaticText(this, wxID_ANY, _(L("Quality: "))), 0, wxALIGN_CENTER | wxALL, 5);
+        szchoices->Add(new wxStaticText(this, wxID_ANY, _L("Quality") + ": "), 0, wxALIGN_CENTER | wxALL, 5);
         
         static const std::vector<wxString> qual_choices = {
             _(L("Accurate")),

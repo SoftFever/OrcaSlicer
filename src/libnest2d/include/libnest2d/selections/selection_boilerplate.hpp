@@ -18,6 +18,8 @@ public:
         return packed_bins_;
     }
 
+    inline int lastPackedBinId() const { return last_packed_bin_id_; }
+
     inline void progressIndicator(ProgressFunction fn) { progress_ = fn; }
 
     inline void stopCondition(StopCondition cond) { stopcond_ = cond; }
@@ -54,6 +56,7 @@ protected:
     PackGroup packed_bins_;
     ProgressFunction progress_ = [](unsigned){};
     StopCondition stopcond_ = [](){ return false; };
+    int last_packed_bin_id_ = -1;
 };
 
 }

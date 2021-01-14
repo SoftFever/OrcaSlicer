@@ -9,6 +9,7 @@
 #include <wx/intl.h> 
 
 #include "GUI.hpp"
+#include "format.hpp"
 #include "I18N.hpp"
 
 namespace Slic3r {
@@ -18,40 +19,43 @@ std::string PresetHints::cooling_description(const Preset &preset)
 {
 	std::string out;
 
-    if (preset.config.opt_bool("cooling", 0)) {
+    bool cooling              = preset.config.opt_bool("cooling", 0);
+    int  fan_below_layer_time = preset.config.opt_int("fan_below_layer_time", 0);
+    int  full_fan_speed_layer = preset.config.opt_int("full_fan_speed_layer", 0);
+
+    if (cooling) {
 		int 	slowdown_below_layer_time 	= preset.config.opt_int("slowdown_below_layer_time", 0);
 		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
 		int 	max_fan_speed 				= preset.config.opt_int("max_fan_speed", 0);
 		int 	min_print_speed				= int(preset.config.opt_float("min_print_speed", 0) + 0.5);
-		int 	fan_below_layer_time		= preset.config.opt_int("fan_below_layer_time", 0);
 
-        out += (boost::format(_utf8(L("If estimated layer time is below ~%1%s, "
-                                      "fan will run at %2%%% and print speed will be reduced "
-                                      "so that no less than %3%s are spent on that layer "
-                                      "(however, speed will never be reduced below %4%mm/s)."))) 
-                                      % slowdown_below_layer_time % max_fan_speed % slowdown_below_layer_time % min_print_speed).str();
-
-        if (fan_below_layer_time > slowdown_below_layer_time) {
-            out += "\n" + (boost::format(_utf8(L("If estimated layer time is greater, but still below ~%1%s, "
-                                          "fan will run at a proportionally decreasing speed between %2%%% and %3%%%."))) 
-                                          % fan_below_layer_time % max_fan_speed % min_fan_speed).str();
-        }
-        out += "\n" + _utf8(L("During the other layers, fan")) + " ";
-    } else {
-        out = _utf8(L("Fan")) + " ";
+        out += GUI::format(_L("If estimated layer time is below ~%1%s, "
+                              "fan will run at %2%%% and print speed will be reduced "
+                              "so that no less than %3%s are spent on that layer "
+                              "(however, speed will never be reduced below %4%mm/s)."),
+                              slowdown_below_layer_time, max_fan_speed, slowdown_below_layer_time, min_print_speed);
+        if (fan_below_layer_time > slowdown_below_layer_time)
+            out += "\n" + 
+                GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
+                               "fan will run at a proportionally decreasing speed between %2%%% and %3%%%."),
+                               fan_below_layer_time, max_fan_speed, min_fan_speed);
+        out += "\n";
     }
 	if (preset.config.opt_bool("fan_always_on", 0)) {
 		int 	disable_fan_first_layers 	= preset.config.opt_int("disable_fan_first_layers", 0);
 		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
 
-	    out += (boost::format(_utf8(L("will always run at %1%%%"))) % min_fan_speed).str() + " ";
-
-        if (disable_fan_first_layers > 1)
-            out += (boost::format(_utf8(L("except for the first %1% layers."))) % disable_fan_first_layers).str();
-        else if (disable_fan_first_layers == 1)
-        	out += _utf8(L("except for the first layer."));
+        if (full_fan_speed_layer > disable_fan_first_layers + 1)
+            out += GUI::format(_L("Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."), disable_fan_first_layers, min_fan_speed, full_fan_speed_layer);
+        else {
+            out += GUI::format(cooling ? _L("During the other layers, fan will always run at %1%%%") : _L("Fan will always run at %1%%%"), min_fan_speed) + " ";
+            if (disable_fan_first_layers > 1)
+                out += GUI::format(_L("except for the first %1% layers."), disable_fan_first_layers);
+            else if (disable_fan_first_layers == 1)
+            	out += GUI::format(_L("except for the first layer."));
+        }
     } else
-       out += _utf8(L("will be turned off."));
+       out += cooling ? _u8L("During the other layers, fan will be turned off.") : _u8L("Fan will be turned off.");
 
     return out;
 }

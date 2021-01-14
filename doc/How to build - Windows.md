@@ -159,6 +159,3 @@ Refer to the CMake scripts inside the `deps` directory to see which dependencies
 
 \*) Specifically, the problem arises when building boost. Boost build tool appends all build options into paths of
 intermediate files, which are not handled correctly by either `b2.exe` or possibly `ninja` (?).
-
-
-

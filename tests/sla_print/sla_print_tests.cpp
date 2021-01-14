@@ -1,6 +1,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <random>
+#include <cstdint>
 
 #include "sla_test_utils.hpp"
 
@@ -63,7 +64,7 @@ TEST_CASE("Support point generator should be deterministic if seeded",
     point_gen.execute(slices, slicegrid);
     
     auto get_chksum = [](const std::vector<sla::SupportPoint> &pts){
-        long long chksum = 0;
+        int64_t chksum = 0;
         for (auto &pt : pts) {
             auto p = scaled(pt.pos);
             chksum += p.x() + p.y() + p.z();
@@ -72,7 +73,7 @@ TEST_CASE("Support point generator should be deterministic if seeded",
         return chksum;
     };
     
-    long long checksum = get_chksum(point_gen.output());
+    int64_t checksum = get_chksum(point_gen.output());
     size_t ptnum = point_gen.output().size();
     REQUIRE(point_gen.output().size() > 0);
     

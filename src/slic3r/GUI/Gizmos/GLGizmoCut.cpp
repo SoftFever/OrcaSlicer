@@ -13,6 +13,8 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GUI_ObjectManipulation.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 
 namespace Slic3r {
@@ -33,7 +35,11 @@ GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, uns
 
 std::string GLGizmoCut::get_tooltip() const
 {
-    return (m_hover_id == 0 || m_grabbers[0].dragging) ? "Z: " + format(m_cut_z, 2) : "";
+    double cut_z = m_cut_z;
+    if (wxGetApp().app_config->get("use_inches") == "1")
+        cut_z *= ObjectManipulation::mm_to_in;
+
+    return (m_hover_id == 0 || m_grabbers[0].dragging) ? "Z: " + format(cut_z, 2) : "";
 }
 
 bool GLGizmoCut::on_init()
@@ -78,9 +84,8 @@ void GLGizmoCut::on_start_dragging()
 
 void GLGizmoCut::on_update(const UpdateData& data)
 {
-    if (m_hover_id != -1) {
+    if (m_hover_id != -1)
         set_cut_z(m_start_z + calc_projection(data.mouse_ray));
-    }
 }
 
 void GLGizmoCut::on_render() const
@@ -143,14 +148,15 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
     static float last_y = 0.0f;
     static float last_h = 0.0f;
 
-    m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->begin(_L("Cut"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
 
     // adjust window position to avoid overlap the view toolbar
     float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
     ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
-    if ((last_h != win_h) || (last_y != y))
-    {
+    if (last_h != win_h || last_y != y) {
         // ask canvas for another frame to render the window in the correct position
         m_parent.request_extra_frame();
         if (last_h != win_h)
@@ -163,25 +169,33 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text("Z");
     ImGui::SameLine();
     ImGui::PushItemWidth(m_imgui->get_style_scaling() * 150.0f);
-    ImGui::InputDouble("", &m_cut_z, 0.0f, 0.0f, "%.2f");
+
+    double cut_z = m_cut_z;
+    if (imperial_units)
+        cut_z *= ObjectManipulation::mm_to_in;
+    ImGui::InputDouble("", &cut_z, 0.0f, 0.0f, "%.2f");
+
+    ImGui::SameLine();
+    m_imgui->text(imperial_units ? _L("in") : _L("mm"));
+
+    m_cut_z = cut_z * (imperial_units ? ObjectManipulation::in_to_mm : 1.0);
 
     ImGui::Separator();
 
-    m_imgui->checkbox(_(L("Keep upper part")), m_keep_upper);
-    m_imgui->checkbox(_(L("Keep lower part")), m_keep_lower);
-    m_imgui->checkbox(_(L("Rotate lower part upwards")), m_rotate_lower);
+    m_imgui->checkbox(_L("Keep upper part"), m_keep_upper);
+    m_imgui->checkbox(_L("Keep lower part"), m_keep_lower);
+    m_imgui->checkbox(_L("Rotate lower part upwards"), m_rotate_lower);
 
     ImGui::Separator();
 
-    m_imgui->disabled_begin(!m_keep_upper && !m_keep_lower);
-    const bool cut_clicked = m_imgui->button(_(L("Perform cut")));
+    m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower) || m_cut_z <= 0.0 || m_max_z < m_cut_z);
+    const bool cut_clicked = m_imgui->button(_L("Perform cut"));
     m_imgui->disabled_end();
 
     m_imgui->end();
 
-    if (cut_clicked && (m_keep_upper || m_keep_lower)) {
+    if (cut_clicked && (m_keep_upper || m_keep_lower))
         perform_cut(m_parent.get_selection());
-    }
 }
 
 void GLGizmoCut::update_max_z(const Selection& selection) const

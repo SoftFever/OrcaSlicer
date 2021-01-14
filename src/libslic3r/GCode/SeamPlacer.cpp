@@ -6,6 +6,7 @@
 #include "libslic3r/EdgeGrid.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/SVG.hpp"
+#include "libslic3r/Layer.hpp"
 
 namespace Slic3r {
 
@@ -191,24 +192,102 @@ void SeamPlacer::init(const Print& print)
 {
     m_enforcers.clear();
     m_blockers.clear();
-    //m_last_seam_position.clear();
     m_seam_history.clear();
+    m_po_list.clear();
 
-   for (const PrintObject* po : print.objects()) {
-       po->project_and_append_custom_facets(true, EnforcerBlockerType::ENFORCER, m_enforcers);
-       po->project_and_append_custom_facets(true, EnforcerBlockerType::BLOCKER, m_blockers);
-   }
-   const std::vector<double>& nozzle_dmrs = print.config().nozzle_diameter.values;
-   float max_nozzle_dmr = *std::max_element(nozzle_dmrs.begin(), nozzle_dmrs.end());
-   for (ExPolygons& explgs : m_enforcers)
-       explgs = Slic3r::offset_ex(explgs, scale_(max_nozzle_dmr));
-   for (ExPolygons& explgs : m_blockers)
-       explgs = Slic3r::offset_ex(explgs, scale_(max_nozzle_dmr));
+    const std::vector<double>& nozzle_dmrs = print.config().nozzle_diameter.values;
+    float max_nozzle_dmr = *std::max_element(nozzle_dmrs.begin(), nozzle_dmrs.end());
+
+
+    std::vector<ExPolygons> temp_enf;
+    std::vector<ExPolygons> temp_blk;
+
+    for (const PrintObject* po : print.objects()) {
+        temp_enf.clear();
+        temp_blk.clear();
+        po->project_and_append_custom_facets(true, EnforcerBlockerType::ENFORCER, temp_enf);
+        po->project_and_append_custom_facets(true, EnforcerBlockerType::BLOCKER, temp_blk);
+
+        // Offset the triangles out slightly.
+        for (auto* custom_per_object : {&temp_enf, &temp_blk}) {
+            float offset = max_nozzle_dmr + po->config().elefant_foot_compensation;
+            for (ExPolygons& explgs : *custom_per_object) {
+                explgs = Slic3r::offset_ex(explgs, scale_(offset));
+                offset = max_nozzle_dmr;
+            }
+        }
+
+//     FIXME: Offsetting should be done somehow cheaper, but following does not work
+//        for (auto* custom_per_object : {&temp_enf, &temp_blk}) {
+//            for (ExPolygons& plgs : *custom_per_object) {
+//                for (ExPolygon& plg : plgs) {
+//                    auto out = Slic3r::offset_ex(plg, scale_(max_nozzle_dmr));
+//                    plg = out.empty() ? ExPolygon() : out.front();
+//                    assert(out.empty() || out.size() == 1);
+//                }
+//            }
+//        }
+
+
+
+        // Remember this PrintObject and initialize a store of enforcers and blockers for it.
+        m_po_list.push_back(po);
+        size_t po_idx = m_po_list.size() - 1;
+        m_enforcers.emplace_back(std::vector<CustomTrianglesPerLayer>(temp_enf.size()));
+        m_blockers.emplace_back(std::vector<CustomTrianglesPerLayer>(temp_blk.size()));
+
+        // A helper class to store data to build the AABB tree from.
+        class CustomTriangleRef {
+        public:
+            CustomTriangleRef(size_t idx,
+                              Point&& centroid,
+                              BoundingBox&& bb)
+                : m_idx{idx}, m_centroid{centroid},
+                  m_bbox{AlignedBoxType(bb.min, bb.max)}
+            {}
+            size_t idx() const              { return m_idx;      }
+            const Point& centroid() const   { return m_centroid; }
+            const TreeType::BoundingBox& bbox() const { return m_bbox; }
+
+        private:
+            size_t m_idx;
+            Point m_centroid;
+            AlignedBoxType m_bbox;
+        };
+
+        // A lambda to extract the ExPolygons and save them into the member AABB tree.
+        // Will be called for enforcers and blockers separately.
+        auto add_custom = [](std::vector<ExPolygons>& src, std::vector<CustomTrianglesPerLayer>& dest) {
+            // Go layer by layer, and append all the ExPolygons into the AABB tree.
+            size_t layer_idx = 0;
+            for (ExPolygons& expolys_on_layer : src) {
+                CustomTrianglesPerLayer& layer_data = dest[layer_idx];
+                std::vector<CustomTriangleRef> triangles_data;
+                layer_data.polys.reserve(expolys_on_layer.size());
+                triangles_data.reserve(expolys_on_layer.size());
+
+                for (ExPolygon& expoly : expolys_on_layer) {
+                    if (expoly.empty())
+                        continue;
+                    layer_data.polys.emplace_back(std::move(expoly));
+                    triangles_data.emplace_back(layer_data.polys.size() - 1,
+                                                layer_data.polys.back().centroid(),
+                                                layer_data.polys.back().bounding_box());
+                }
+                // All polygons are saved, build the AABB tree for them.
+                layer_data.tree.build(std::move(triangles_data));
+                ++layer_idx;
+            }
+        };
+
+        add_custom(temp_enf, m_enforcers.at(po_idx));
+        add_custom(temp_blk, m_blockers.at(po_idx));
+    }
 }
 
 
 
-Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_position,
+Point SeamPlacer::get_seam(const Layer& layer, const SeamPosition seam_position,
                const ExtrusionLoop& loop, Point last_pos, coordf_t nozzle_dmr,
                const PrintObject* po, bool was_clockwise, const EdgeGrid::Grid* lower_layer_edge_grid)
 {
@@ -216,7 +295,28 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
     BoundingBox polygon_bb = polygon.bounding_box();
     const coord_t  nozzle_r   = coord_t(scale_(0.5 * nozzle_dmr) + 0.5);
 
-    if (this->is_custom_seam_on_layer(layer_idx)) {
+    size_t po_idx = std::find(m_po_list.begin(), m_po_list.end(), po) - m_po_list.begin();
+
+    // Find current layer in respective PrintObject. Cache the result so the
+    // lookup is only done once per layer, not for each loop.
+    const Layer* layer_po = nullptr;
+    if (po == m_last_po && layer.print_z == m_last_print_z)
+        layer_po = m_last_layer_po;
+    else {
+        layer_po = po->get_layer_at_printz(layer.print_z);
+        m_last_po = po;
+        m_last_print_z = layer.print_z;
+        m_last_layer_po = layer_po;
+    }
+    if (! layer_po)
+        return last_pos;
+
+    // Index of this layer in the respective PrintObject.
+    size_t layer_idx = layer_po->id() - po->layers().front()->id(); // raft layers
+
+    assert(layer_idx < po->layer_count());
+
+    if (this->is_custom_seam_on_layer(layer_idx, po_idx)) {
         // Seam enf/blockers can begin and end in between the original vertices.
         // Let add extra points in between and update the leghths.
         polygon.densify(MINIMAL_POLYGON_SIDE);
@@ -229,11 +329,10 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
         if (seam_position == spAligned) {
             // Seam is aligned to the seam at the preceding layer.
             if (po != nullptr) {
-                std::optional<Point> pos = m_seam_history.get_last_seam(po, layer_idx, polygon_bb);
+                std::optional<Point> pos = m_seam_history.get_last_seam(m_po_list[po_idx], layer_idx, polygon_bb);
                 if (pos.has_value()) {
-                    //last_pos = m_last_seam_position[po];
                     last_pos = *pos;
-                    last_pos_weight = is_custom_enforcer_on_layer(layer_idx) ? 0.f : 1.f;
+                    last_pos_weight = is_custom_enforcer_on_layer(layer_idx, po_idx) ? 0.f : 1.f;
                 }
             }
         }
@@ -313,18 +412,18 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
 
         // Custom seam. Huge (negative) constant penalty is applied inside
         // blockers (enforcers) to rule out points that should not win.
-        this->apply_custom_seam(polygon, penalties, lengths, layer_idx, seam_position);
+        this->apply_custom_seam(polygon, po_idx, penalties, lengths, layer_idx, seam_position);
 
         // Find a point with a minimum penalty.
         size_t idx_min = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
-        if (seam_position != spAligned || ! is_custom_enforcer_on_layer(layer_idx)) {
+        if (seam_position != spAligned || ! is_custom_enforcer_on_layer(layer_idx, po_idx)) {
             // Very likely the weight of idx_min is very close to the weight of last_pos_proj_idx.
             // In that case use last_pos_proj_idx instead.
             float penalty_aligned  = penalties[last_pos_proj_idx];
             float penalty_min      = penalties[idx_min];
             float penalty_diff_abs = std::abs(penalty_min - penalty_aligned);
-            float penalty_max      = std::max(penalty_min, penalty_aligned);
+            float penalty_max      = std::max(std::abs(penalty_min), std::abs(penalty_aligned));
             float penalty_diff_rel = (penalty_max == 0.f) ? 0.f : penalty_diff_abs / penalty_max;
             // printf("Align seams, penalty aligned: %f, min: %f, diff abs: %f, diff rel: %f\n", penalty_aligned, penalty_min, penalty_diff_abs, penalty_diff_rel);
             if (std::abs(penalty_diff_rel) < 0.05) {
@@ -363,61 +462,127 @@ Point SeamPlacer::get_seam(const size_t layer_idx, const SeamPosition seam_posit
         return polygon.points[idx_min];
 
     } else { // spRandom
-        if (loop.loop_role() == elrContourInternalPerimeter && loop.role() != erExternalPerimeter) {
-            // This loop does not contain any other loop. Set a random position.
-            // The other loops will get a seam close to the random point chosen
-            // on the innermost contour.
-            //FIXME This works correctly for inner contours first only.
-            last_pos = this->get_random_seam(layer_idx, polygon);
-        }
-        if (loop.role() == erExternalPerimeter && is_custom_seam_on_layer(layer_idx)) {
-            // There is a possibility that the loop will be influenced by custom
-            // seam enforcer/blocker. In this case do not inherit the seam
-            // from internal loops (which may conflict with the custom selection
-            // and generate another random one.
-            bool saw_custom = false;
-            Point candidate = this->get_random_seam(layer_idx, polygon, &saw_custom);
-            if (saw_custom)
-                last_pos = candidate;
+        if (po->print()->default_region_config().external_perimeters_first) {
+            if (loop.role() == erExternalPerimeter)
+                last_pos = this->get_random_seam(layer_idx, polygon, po_idx);
+            else {
+                // Internal perimeters will just use last_pos.
+            }
+        } else {
+            if (loop.loop_role() == elrContourInternalPerimeter && loop.role() != erExternalPerimeter) {
+                // This loop does not contain any other loop. Set a random position.
+                // The other loops will get a seam close to the random point chosen
+                // on the innermost contour.
+                last_pos = this->get_random_seam(layer_idx, polygon, po_idx);
+                m_last_loop_was_external = false;
+            }
+            if (loop.role() == erExternalPerimeter) {
+                if (m_last_loop_was_external) {
+                    // There was no internal perimeter before this one.
+                    last_pos = this->get_random_seam(layer_idx, polygon, po_idx);
+                } else {
+                    if (is_custom_seam_on_layer(layer_idx, po_idx)) {
+                        // There is a possibility that the loop will be influenced by custom
+                        // seam enforcer/blocker. In this case do not inherit the seam
+                        // from internal loops (which may conflict with the custom selection
+                        // and generate another random one.
+                        bool saw_custom = false;
+                        Point candidate = this->get_random_seam(layer_idx, polygon, po_idx, &saw_custom);
+                        if (saw_custom)
+                            last_pos = candidate;
+                    }
+                }
+                m_last_loop_was_external = true;
+            }
         }
         return last_pos;
     }
 }
 
 
-Point SeamPlacer::get_random_seam(size_t layer_idx, const Polygon& polygon,
+Point SeamPlacer::get_random_seam(size_t layer_idx, const Polygon& polygon, size_t po_idx,
                                   bool* saw_custom) const
 {
     // Parametrize the polygon by its length.
-    std::vector<float> lengths = polygon.parameter_by_length();
+    const std::vector<float> lengths = polygon.parameter_by_length();
 
     // Which of the points are inside enforcers/blockers?
     std::vector<size_t> enforcers_idxs;
     std::vector<size_t> blockers_idxs;
-    this->get_enforcers_and_blockers(layer_idx, polygon, enforcers_idxs, blockers_idxs);
+    this->get_enforcers_and_blockers(layer_idx, polygon, po_idx, enforcers_idxs, blockers_idxs);
 
     bool has_enforcers = ! enforcers_idxs.empty();
     bool has_blockers = ! blockers_idxs.empty();
     if (saw_custom)
         *saw_custom = has_enforcers || has_blockers;
 
-    // FIXME FIXME FIXME: This is just to test the outcome and whether it is
-    // reasonable. The algorithm should really sum the length of all available
-    // pieces, get a random length and find the respective point.
-    float rand_len = 0.f;
-    size_t pt_idx = 0;
-    do {
-        rand_len = lengths.back() * (rand()/float(RAND_MAX));
-        auto it = std::lower_bound(lengths.begin(), lengths.end(), rand_len);
-        pt_idx = it == lengths.end() ? 0 : (it-lengths.begin()-1);
+    assert(std::is_sorted(enforcers_idxs.begin(), enforcers_idxs.end()));
+    assert(std::is_sorted(blockers_idxs.begin(), blockers_idxs.end()));
+    std::vector<float> edges;
 
-        // If there are blockers and the point is inside, repeat.
-        // If there are enforcers and the point is NOT inside, repeat.
-    } while ((has_blockers && std::binary_search(blockers_idxs.begin(), blockers_idxs.end(), pt_idx))
-         || (has_enforcers && ! std::binary_search(enforcers_idxs.begin(), enforcers_idxs.end(), pt_idx)));
+    // Lambda to calculate lengths of all edges of interest. Last parameter
+    // decides whether to measure edges inside or outside idxs.
+    // Negative number = not an edge of interest.
+    auto get_valid_length = [&lengths](const std::vector<size_t>& idxs,
+                                       std::vector<float>& edges,
+                                       bool measure_inside_edges) -> float
+    {
+        // First mark edges we are interested in by assigning a positive number.
+        edges.assign(lengths.size()-1, measure_inside_edges ? -1.f : 1.f);
+        for (size_t i=0; i<idxs.size(); ++i) {
+            size_t this_pt_idx = idxs[i];
+            // Two concurrent indices in the list -> the edge between them is the enforcer/blocker.
+            bool inside_edge = ((i != idxs.size()-1 && idxs[i+1] == this_pt_idx + 1)
+                             || (i == idxs.size()-1 && idxs.back() == lengths.size()-2 && idxs[0] == 0));
+            if (inside_edge)
+                edges[this_pt_idx] = measure_inside_edges ? 1.f : -1.f;
+        }
+        // Now measure them.
+        float running_total = 0.f;
+        for (size_t i=0; i<edges.size(); ++i) {
+            if (edges[i] > 0.f) {
+                edges[i] = lengths[i+1] - lengths[i];
+                running_total += edges[i];
+            }
+        }
+        return running_total;
+    };
+
+    // Find all seam candidate edges and their lengths.
+    float valid_length = 0.f;
+    if (has_enforcers)
+        valid_length = get_valid_length(enforcers_idxs, edges, true);
+
+    if (! has_enforcers || valid_length == 0.f) {
+        // Second condition covers case with isolated enf points. Given how the painted
+        // triangles are projected, this should not happen. Stay on the safe side though.
+        if (has_blockers)
+            valid_length = get_valid_length(blockers_idxs, edges, false);
+        if (valid_length == 0.f) // No blockers or everything blocked - use the whole polygon.
+            valid_length = lengths.back();
+    }
+    assert(valid_length != 0.f);
+    // Now generate a random length and find the respective edge.
+    float rand_len = valid_length * (rand()/float(RAND_MAX));
+    size_t pt_idx = 0; // Index of the edge where to put the seam.
+    if (valid_length == lengths.back()) {
+        // Whole polygon is used for placing the seam.
+        auto it = std::lower_bound(lengths.begin(), lengths.end(), rand_len);
+        pt_idx = it == lengths.begin() ? 0 : (it-lengths.begin()-1); // this takes care of a corner case where rand() returns 0
+    } else {
+        float running = 0.f;
+        for (size_t i=0; i<edges.size(); ++i) {
+            running += edges[i] > 0.f ? edges[i] : 0.f;
+            if (running >= rand_len) {
+                pt_idx = i;
+                break;
+            }
+        }
+    }
 
     if (! has_enforcers && ! has_blockers) {
         // The polygon may be too coarse, calculate the point exactly.
+        assert(valid_length == lengths.back());
         bool last_seg = pt_idx == polygon.points.size()-1;
         size_t next_idx = last_seg ? 0 : pt_idx+1;
         const Point& prev = polygon.points[pt_idx];
@@ -444,32 +609,46 @@ Point SeamPlacer::get_random_seam(size_t layer_idx, const Polygon& polygon,
 
 void SeamPlacer::get_enforcers_and_blockers(size_t layer_id,
                              const Polygon& polygon,
+                             size_t po_idx,
                              std::vector<size_t>& enforcers_idxs,
                              std::vector<size_t>& blockers_idxs) const
 {
     enforcers_idxs.clear();
     blockers_idxs.clear();
 
-    // FIXME: This is quadratic and it should be improved, maybe by building
-    // an AABB tree (or at least utilize bounding boxes).
-    for (size_t i=0; i<polygon.points.size(); ++i) {
+    auto is_inside = [](const Point& pt,
+                        const CustomTrianglesPerLayer& custom_data) -> bool {
+        assert(! custom_data.polys.empty());
+        // Now ask the AABB tree which polygons we should check and check them.
+        std::vector<size_t> candidates;
+        AABBTreeIndirect::get_candidate_idxs(custom_data.tree, pt, candidates);
+        if (! candidates.empty())
+            for (size_t idx : candidates)
+                if (custom_data.polys[idx].contains(pt))
+                    return true;
+        return false;
+    };
 
-        if (! m_enforcers.empty()) {
-            assert(layer_id < m_enforcers.size());
-            for (const ExPolygon& explg : m_enforcers[layer_id]) {
-                if (explg.contains(polygon.points[i]))
-                    enforcers_idxs.push_back(i);
-            }
-        }
-
-        if (! m_blockers.empty()) {
-            assert(layer_id < m_blockers.size());
-            for (const ExPolygon& explg : m_blockers[layer_id]) {
-                if (explg.contains(polygon.points[i]))
-                    blockers_idxs.push_back(i);
+    if (! m_enforcers[po_idx].empty()) {
+        const CustomTrianglesPerLayer& enforcers = m_enforcers[po_idx][layer_id];
+        if (! enforcers.polys.empty()) {
+            for (size_t i=0; i<polygon.points.size(); ++i) {
+                if (is_inside(polygon.points[i], enforcers))
+                    enforcers_idxs.emplace_back(i);
             }
         }
     }
+
+    if (! m_blockers[po_idx].empty()) {
+        const CustomTrianglesPerLayer& blockers = m_blockers[po_idx][layer_id];
+        if (! blockers.polys.empty()) {
+            for (size_t i=0; i<polygon.points.size(); ++i) {
+                if (is_inside(polygon.points[i], blockers))
+                    blockers_idxs.emplace_back(i);
+            }
+        }
+    }
+
 }
 
 
@@ -543,17 +722,17 @@ static std::vector<size_t> find_enforcer_centers(const Polygon& polygon,
 
 
 
-void SeamPlacer::apply_custom_seam(const Polygon& polygon,
+void SeamPlacer::apply_custom_seam(const Polygon& polygon, size_t po_idx,
                                    std::vector<float>& penalties,
                                    const std::vector<float>& lengths,
                                    int layer_id, SeamPosition seam_position) const
 {
-    if (! is_custom_seam_on_layer(layer_id))
+    if (! is_custom_seam_on_layer(layer_id, po_idx))
         return;
 
     std::vector<size_t> enforcers_idxs;
     std::vector<size_t> blockers_idxs;
-    this->get_enforcers_and_blockers(layer_id, polygon, enforcers_idxs, blockers_idxs);
+    this->get_enforcers_and_blockers(layer_id, polygon, po_idx, enforcers_idxs, blockers_idxs);
 
     for (size_t i : enforcers_idxs) {
         assert(i < penalties.size());
@@ -574,12 +753,14 @@ void SeamPlacer::apply_custom_seam(const Polygon& polygon,
 ////////////////////////
 //    std::ostringstream os;
 //    os << std::setw(3) << std::setfill('0') << layer_id;
-//    int a = scale_(20.);
+//    int a = scale_(30.);
 //    SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
-//    /*if (! m_enforcers.empty())
-//        svg.draw(m_enforcers[layer_id], "blue");
-//    if (! m_blockers.empty())
-//        svg.draw(m_blockers[layer_id], "red");*/
+//    //if (! m_enforcers[po_idx].empty())
+//    //    svg.draw(m_enforcers[po_idx][layer_id].polys, "blue");
+//    //if (! m_blockers[po_idx].empty())
+//    //    svg.draw(m_blockers[po_idx][layer_id].polys, "red");
+
+
 
 //    size_t min_idx = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
@@ -590,13 +771,8 @@ void SeamPlacer::apply_custom_seam(const Polygon& polygon,
 //        if (min_idx == i) {
 //            fill = "yellow";
 //            size = 5e5;
-//        } else {
+//        } else
 //            fill = (std::find(enforcers_idxs.begin(), enforcers_idxs.end(), i) != enforcers_idxs.end() ? "green" : "black");
-//            if (std::find(enf_centers.begin(), enf_centers.end(), i) != enf_centers.end()) {
-//                size = 5e5;
-//                fill = "blue";
-//            }
-//        }
 //        if (i != 0)
 //            svg.draw(polygon.points[i], fill, size);
 //        else

@@ -71,6 +71,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
     // or they are only notes not influencing the generated G-code.
     static std::unordered_set<std::string> steps_gcode = {
         "avoid_crossing_perimeters",
+        "avoid_crossing_perimeters_max_detour",
         "bed_shape",
         "bed_temperature",
         "before_layer_gcode",
@@ -93,11 +94,13 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "extrusion_multiplier",
         "fan_always_on",
         "fan_below_layer_time",
+        "full_fan_speed_layer",
         "filament_colour",
         "filament_diameter",
         "filament_density",
         "filament_notes",
         "filament_cost",
+        "filament_spool_weight",
         "first_layer_acceleration",
         "first_layer_bed_temperature",
         "first_layer_speed",
@@ -595,9 +598,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 #endif /* _DEBUG */
 
     // Normalize the config.
-	new_full_config.option("print_settings_id",    true);
-	new_full_config.option("filament_settings_id", true);
-	new_full_config.option("printer_settings_id",  true);
+	new_full_config.option("print_settings_id",            true);
+	new_full_config.option("filament_settings_id",         true);
+	new_full_config.option("printer_settings_id",          true);
+    new_full_config.option("physical_printer_settings_id", true);
     new_full_config.normalize_fdm();
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
@@ -626,9 +630,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     if (! full_config_diff.empty()) {
         update_apply_status(this->invalidate_step(psGCodeExport));
         // Set the profile aliases for the PrintBase::output_filename()
-		m_placeholder_parser.set("print_preset",    new_full_config.option("print_settings_id")->clone());
-		m_placeholder_parser.set("filament_preset", new_full_config.option("filament_settings_id")->clone());
-		m_placeholder_parser.set("printer_preset",  new_full_config.option("printer_settings_id")->clone());
+		m_placeholder_parser.set("print_preset",              new_full_config.option("print_settings_id")->clone());
+		m_placeholder_parser.set("filament_preset",           new_full_config.option("filament_settings_id")->clone());
+		m_placeholder_parser.set("printer_preset",            new_full_config.option("printer_settings_id")->clone());
+        m_placeholder_parser.set("physical_printer_preset",   new_full_config.option("physical_printer_settings_id")->clone());
 		// We want the filament overrides to be applied over their respective extruder parameters by the PlaceholderParser.
 		// see "Placeholders do not respect filament overrides." GH issue #3649
 		m_placeholder_parser.apply_config(filament_overrides);
@@ -1219,9 +1224,9 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
 	        // instance.shift is a position of a centered object, while model object may not be centered.
 	        // Conver the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
 	        convex_hull.translate(instance.shift - print_object->center_offset());
-	        if (! intersection(convex_hulls_other, convex_hull).empty())
+	        if (! intersection(convex_hulls_other, (Polygons)convex_hull).empty())
 	            return false;
-	        polygons_append(convex_hulls_other, convex_hull);
+	        convex_hulls_other.emplace_back(std::move(convex_hull));
 	    }
 	}
 	return true;
@@ -1261,7 +1266,8 @@ std::string Print::validate() const
             total_copies_count += object->instances().size();
         // #4043
         if (total_copies_count > 1 && ! m_config.complete_objects.value)
-            return L("The Spiral Vase option can only be used when printing a single object.");
+            return L("Only a single object may be printed at a time in Spiral Vase mode. "
+                     "Either remove all but the last object, or enable sequential mode by \"complete_objects\".");
         assert(m_objects.size() == 1);
         size_t num_regions = 0;
         for (const std::vector<std::pair<t_layer_height_range, int>> &volumes_per_region : m_objects.front()->region_volumes)
@@ -1661,21 +1667,13 @@ void Print::process()
 // The export_gcode may die for various reasons (fails to process output_filename_format,
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
-#if ENABLE_GCODE_VIEWER
 std::string Print::export_gcode(const std::string& path_template, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
-#else
-std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
-#endif // ENABLE_GCODE_VIEWER
 {
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
     std::string message;
-#if ENABLE_GCODE_VIEWER
     if (!path.empty() && result == nullptr) {
-#else
-    if (! path.empty() && preview_data == nullptr) {
-#endif // ENABLE_GCODE_VIEWER
         // Only show the path if preview_data is not set -> running from command line.
         message = L("Exporting G-code");
         message += " to ";
@@ -1686,11 +1684,7 @@ std::string Print::export_gcode(const std::string& path_template, GCodePreviewDa
 
     // The following line may die for multiple reasons.
     GCode gcode;
-#if ENABLE_GCODE_VIEWER
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
-#else
-    gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
-#endif // ENABLE_GCODE_VIEWER
     return path.c_str();
 }
 
@@ -1857,10 +1851,7 @@ void Print::_make_brim()
         }
         polygons_append(loops, offset(islands, -0.5f * float(flow.scaled_spacing())));
     }
-    loops = union_pt_chained(loops, false);
-    // The function above produces ordering well suited for concentric infill (from outside to inside).
-    // For Brim, the ordering should be reversed (from inside to outside).
-    std::reverse(loops.begin(), loops.end());
+    loops = union_pt_chained_outside_in(loops, false);
 
     // If there is a possibility that brim intersects skirt, go through loops and split those extrusions
     // The result is either the original Polygon or a list of Polylines

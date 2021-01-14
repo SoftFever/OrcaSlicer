@@ -83,7 +83,7 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
             options.emplace_back(Option{ boost::nowide::widen(opt_key), type,
                                         (label + suffix).ToStdWstring(), (_(label) + suffix_local).ToStdWstring(),
                                         gc.group.ToStdWstring(), _(gc.group).ToStdWstring(),
-                                        gc.category.ToStdWstring(), _(gc.category).ToStdWstring() });
+                                        gc.category.ToStdWstring(), GUI::Tab::translate_category(gc.category, type).ToStdWstring() });
     };
 
     for (std::string opt_key : config->keys())
@@ -94,7 +94,7 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
 
         int cnt = 0;
 
-        if ( (type == Preset::TYPE_SLA_MATERIAL || type == Preset::TYPE_PRINTER) && opt_key != "bed_shape")
+        if ( (type == Preset::TYPE_SLA_MATERIAL || type == Preset::TYPE_PRINTER) && opt_key != "bed_shape" && opt_key != "thumbnails")
             switch (config->option(opt_key)->type())
             {
             case coInts:	change_opt_key<ConfigOptionInts		>(opt_key, config, cnt);	break;
@@ -336,81 +336,6 @@ void OptionsSearcher::add_key(const std::string& opt_key, const wxString& group,
 
 
 //------------------------------------------
-//          SearchComboPopup
-//------------------------------------------
-
-
-void SearchComboPopup::Init()
-{
-    this->Bind(wxEVT_MOTION,    &SearchComboPopup::OnMouseMove,     this);
-    this->Bind(wxEVT_LEFT_UP,   &SearchComboPopup::OnMouseClick,    this);
-    this->Bind(wxEVT_KEY_DOWN,  &SearchComboPopup::OnKeyDown,       this);
-}
-
-bool SearchComboPopup::Create(wxWindow* parent)
-{
-    return wxListBox::Create(parent, 1, wxPoint(0, 0), wxDefaultSize);
-}
-
-void SearchComboPopup::SetStringValue(const wxString& s)
-{
-    int n = wxListBox::FindString(s);
-    if (n >= 0 && n < int(wxListBox::GetCount()))
-        wxListBox::Select(n);
-
-    // save a combo control's string
-    m_input_string = s;
-}
-
-void SearchComboPopup::ProcessSelection(int selection) 
-{
-    wxCommandEvent event(wxEVT_LISTBOX, GetId());
-    event.SetInt(selection);
-    event.SetEventObject(this);
-    ProcessEvent(event);
-
-    Dismiss();
-}
-
-void SearchComboPopup::OnMouseMove(wxMouseEvent& event)
-{
-    wxPoint pt = wxGetMousePosition() - this->GetScreenPosition();
-    int selection = this->HitTest(pt);
-    wxListBox::Select(selection);
-}
-
-void SearchComboPopup::OnMouseClick(wxMouseEvent&)
-{
-    int selection = wxListBox::GetSelection();
-    SetSelection(wxNOT_FOUND);
-    ProcessSelection(selection);
-}
-
-void SearchComboPopup::OnKeyDown(wxKeyEvent& event)
-{
-    int key = event.GetKeyCode();
-
-    // change selected item in the list
-    if (key == WXK_UP || key == WXK_DOWN)
-    {
-        int selection = wxListBox::GetSelection();
-
-        if (key == WXK_UP && selection > 0)
-            selection--;
-        if (key == WXK_DOWN && selection < int(wxListBox::GetCount() - 1))
-            selection++;
-
-        wxListBox::Select(selection);
-    }
-    // send wxEVT_LISTBOX event if "Enter" was pushed
-    else if (key == WXK_NUMPAD_ENTER || key == WXK_RETURN)
-        ProcessSelection(wxListBox::GetSelection());
-    else
-        event.Skip(); // !Needed to have EVT_CHAR generated as well
-}
-
-
-//------------------------------------------
 //          SearchDialog
 //------------------------------------------
 
@@ -430,7 +355,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     SetBackgroundColour(bgr_clr);
 
-    default_string = _L("Type here to search");
+    default_string = _L("Enter a search term");
     int border = 10;
     int em = em_unit();
 

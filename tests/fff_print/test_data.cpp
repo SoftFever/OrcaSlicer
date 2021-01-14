@@ -244,11 +244,7 @@ std::string gcode(Print & print)
 	boost::filesystem::path temp = boost::filesystem::unique_path();
     print.set_status_silent();
     print.process();
-#if ENABLE_GCODE_VIEWER
     print.export_gcode(temp.string(), nullptr, nullptr);
-#else
-    print.export_gcode(temp.string(), nullptr);
-#endif // ENABLE_GCODE_VIEWER
     std::ifstream t(temp.string());
 	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 	boost::nowide::remove(temp.string().c_str());

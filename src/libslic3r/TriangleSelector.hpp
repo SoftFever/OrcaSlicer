@@ -146,7 +146,7 @@ protected:
     };
 
     Cursor m_cursor;
-    float m_old_cursor_radius;
+    float m_old_cursor_radius_sqr;
 
     // Private functions:
     bool select_triangle(int facet_idx, EnforcerBlockerType type,

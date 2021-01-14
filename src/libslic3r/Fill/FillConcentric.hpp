@@ -8,18 +8,18 @@ namespace Slic3r {
 class FillConcentric : public Fill
 {
 public:
-    virtual ~FillConcentric() {}
+    ~FillConcentric() override = default;
 
 protected:
-    virtual Fill* clone() const { return new FillConcentric(*this); };
-	virtual void _fill_surface_single(
+    Fill* clone() const override { return new FillConcentric(*this); };
+	void _fill_surface_single(
 	    const FillParams                &params, 
 	    unsigned int                     thickness_layers,
 	    const std::pair<float, Point>   &direction, 
-	    ExPolygon                       &expolygon, 
-	    Polylines                       &polylines_out);
+	    ExPolygon     		             expolygon,
+	    Polylines                       &polylines_out) override;
 
-	virtual bool no_sort() const { return true; }
+	bool no_sort() const override { return true; }
 };
 
 } // namespace Slic3r

@@ -44,7 +44,7 @@ enum AuthorizationType {
 };
 
 enum InfillPattern : int {
-    ipRectilinear, ipMonotonic, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
+    ipRectilinear, ipMonotonic, ipAlignedRectilinear, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
     ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipCount,
 };
 
@@ -145,6 +145,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::g
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = ipRectilinear;
         keys_map["monotonic"]           = ipMonotonic;
+        keys_map["alignedrectilinear"]  = ipAlignedRectilinear;
         keys_map["grid"]                = ipGrid;
         keys_map["triangles"]           = ipTriangles;
         keys_map["stars"]               = ipStars;
@@ -530,6 +531,8 @@ public:
     ConfigOptionPercent             fill_density;
     ConfigOptionEnum<InfillPattern> fill_pattern;
     ConfigOptionFloat               gap_fill_speed;
+    ConfigOptionFloatOrPercent      infill_anchor;
+    ConfigOptionFloatOrPercent      infill_anchor_max;
     ConfigOptionInt                 infill_extruder;
     ConfigOptionFloatOrPercent      infill_extrusion_width;
     ConfigOptionInt                 infill_every_layers;
@@ -581,6 +584,8 @@ protected:
         OPT_PTR(fill_density);
         OPT_PTR(fill_pattern);
         OPT_PTR(gap_fill_speed);
+        OPT_PTR(infill_anchor);
+        OPT_PTR(infill_anchor_max);
         OPT_PTR(infill_extruder);
         OPT_PTR(infill_extrusion_width);
         OPT_PTR(infill_every_layers);
@@ -681,6 +686,7 @@ public:
     ConfigOptionStrings             filament_type;
     ConfigOptionBools               filament_soluble;
     ConfigOptionFloats              filament_cost;
+    ConfigOptionFloats              filament_spool_weight;
     ConfigOptionFloats              filament_max_volumetric_speed;
     ConfigOptionFloats              filament_loading_speed;
     ConfigOptionFloats              filament_loading_speed_start;
@@ -757,6 +763,7 @@ protected:
         OPT_PTR(filament_type);
         OPT_PTR(filament_soluble);
         OPT_PTR(filament_cost);
+        OPT_PTR(filament_spool_weight);
         OPT_PTR(filament_max_volumetric_speed);
         OPT_PTR(filament_loading_speed);
         OPT_PTR(filament_loading_speed_start);
@@ -821,6 +828,7 @@ class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
 public:
 
     ConfigOptionBool                avoid_crossing_perimeters;
+    ConfigOptionFloatOrPercent      avoid_crossing_perimeters_max_detour;
     ConfigOptionPoints              bed_shape;
     ConfigOptionInts                bed_temperature;
     ConfigOptionFloat               bridge_acceleration;
@@ -845,6 +853,7 @@ public:
     ConfigOptionFloatOrPercent      first_layer_extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_speed;
     ConfigOptionInts                first_layer_temperature;
+    ConfigOptionInts                full_fan_speed_layer;
     ConfigOptionFloat               infill_acceleration;
     ConfigOptionBool                infill_first;
     ConfigOptionInts                max_fan_speed;
@@ -894,6 +903,7 @@ protected:
         this->MachineEnvelopeConfig::initialize(cache, base_ptr);
         this->GCodeConfig::initialize(cache, base_ptr);
         OPT_PTR(avoid_crossing_perimeters);
+        OPT_PTR(avoid_crossing_perimeters_max_detour);
         OPT_PTR(bed_shape);
         OPT_PTR(bed_temperature);
         OPT_PTR(bridge_acceleration);
@@ -918,6 +928,7 @@ protected:
         OPT_PTR(first_layer_extrusion_width);
         OPT_PTR(first_layer_speed);
         OPT_PTR(first_layer_temperature);
+        OPT_PTR(full_fan_speed_layer);
         OPT_PTR(infill_acceleration);
         OPT_PTR(infill_first);
         OPT_PTR(max_fan_speed);

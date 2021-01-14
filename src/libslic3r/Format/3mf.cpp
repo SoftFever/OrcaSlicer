@@ -56,58 +56,59 @@ const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_poin
 const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
 
-const char* MODEL_TAG = "model";
-const char* RESOURCES_TAG = "resources";
-const char* OBJECT_TAG = "object";
-const char* MESH_TAG = "mesh";
-const char* VERTICES_TAG = "vertices";
-const char* VERTEX_TAG = "vertex";
-const char* TRIANGLES_TAG = "triangles";
-const char* TRIANGLE_TAG = "triangle";
-const char* COMPONENTS_TAG = "components";
-const char* COMPONENT_TAG = "component";
-const char* BUILD_TAG = "build";
-const char* ITEM_TAG = "item";
-const char* METADATA_TAG = "metadata";
+static constexpr const char* MODEL_TAG = "model";
+static constexpr const char* RESOURCES_TAG = "resources";
+static constexpr const char* OBJECT_TAG = "object";
+static constexpr const char* MESH_TAG = "mesh";
+static constexpr const char* VERTICES_TAG = "vertices";
+static constexpr const char* VERTEX_TAG = "vertex";
+static constexpr const char* TRIANGLES_TAG = "triangles";
+static constexpr const char* TRIANGLE_TAG = "triangle";
+static constexpr const char* COMPONENTS_TAG = "components";
+static constexpr const char* COMPONENT_TAG = "component";
+static constexpr const char* BUILD_TAG = "build";
+static constexpr const char* ITEM_TAG = "item";
+static constexpr const char* METADATA_TAG = "metadata";
 
-const char* CONFIG_TAG = "config";
-const char* VOLUME_TAG = "volume";
+static constexpr const char* CONFIG_TAG = "config";
+static constexpr const char* VOLUME_TAG = "volume";
 
-const char* UNIT_ATTR = "unit";
-const char* NAME_ATTR = "name";
-const char* TYPE_ATTR = "type";
-const char* ID_ATTR = "id";
-const char* X_ATTR = "x";
-const char* Y_ATTR = "y";
-const char* Z_ATTR = "z";
-const char* V1_ATTR = "v1";
-const char* V2_ATTR = "v2";
-const char* V3_ATTR = "v3";
-const char* OBJECTID_ATTR = "objectid";
-const char* TRANSFORM_ATTR = "transform";
-const char* PRINTABLE_ATTR = "printable";
-const char* INSTANCESCOUNT_ATTR = "instances_count";
-const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
-const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
+static constexpr const char* UNIT_ATTR = "unit";
+static constexpr const char* NAME_ATTR = "name";
+static constexpr const char* TYPE_ATTR = "type";
+static constexpr const char* ID_ATTR = "id";
+static constexpr const char* X_ATTR = "x";
+static constexpr const char* Y_ATTR = "y";
+static constexpr const char* Z_ATTR = "z";
+static constexpr const char* V1_ATTR = "v1";
+static constexpr const char* V2_ATTR = "v2";
+static constexpr const char* V3_ATTR = "v3";
+static constexpr const char* OBJECTID_ATTR = "objectid";
+static constexpr const char* TRANSFORM_ATTR = "transform";
+static constexpr const char* PRINTABLE_ATTR = "printable";
+static constexpr const char* INSTANCESCOUNT_ATTR = "instances_count";
+static constexpr const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
+static constexpr const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
 
-const char* KEY_ATTR = "key";
-const char* VALUE_ATTR = "value";
-const char* FIRST_TRIANGLE_ID_ATTR = "firstid";
-const char* LAST_TRIANGLE_ID_ATTR = "lastid";
+static constexpr const char* KEY_ATTR = "key";
+static constexpr const char* VALUE_ATTR = "value";
+static constexpr const char* FIRST_TRIANGLE_ID_ATTR = "firstid";
+static constexpr const char* LAST_TRIANGLE_ID_ATTR = "lastid";
 
-const char* OBJECT_TYPE = "object";
-const char* VOLUME_TYPE = "volume";
+static constexpr const char* OBJECT_TYPE = "object";
+static constexpr const char* VOLUME_TYPE = "volume";
 
-const char* NAME_KEY = "name";
-const char* MODIFIER_KEY = "modifier";
-const char* VOLUME_TYPE_KEY = "volume_type";
-const char* MATRIX_KEY = "matrix";
-const char* SOURCE_FILE_KEY = "source_file";
-const char* SOURCE_OBJECT_ID_KEY = "source_object_id";
-const char* SOURCE_VOLUME_ID_KEY = "source_volume_id";
-const char* SOURCE_OFFSET_X_KEY = "source_offset_x";
-const char* SOURCE_OFFSET_Y_KEY = "source_offset_y";
-const char* SOURCE_OFFSET_Z_KEY = "source_offset_z";
+static constexpr const char* NAME_KEY = "name";
+static constexpr const char* MODIFIER_KEY = "modifier";
+static constexpr const char* VOLUME_TYPE_KEY = "volume_type";
+static constexpr const char* MATRIX_KEY = "matrix";
+static constexpr const char* SOURCE_FILE_KEY = "source_file";
+static constexpr const char* SOURCE_OBJECT_ID_KEY = "source_object_id";
+static constexpr const char* SOURCE_VOLUME_ID_KEY = "source_volume_id";
+static constexpr const char* SOURCE_OFFSET_X_KEY = "source_offset_x";
+static constexpr const char* SOURCE_OFFSET_Y_KEY = "source_offset_y";
+static constexpr const char* SOURCE_OFFSET_Z_KEY = "source_offset_z";
+static constexpr const char* SOURCE_IN_INCHES    = "source_in_inches";
 
 const unsigned int VALID_OBJECT_TYPES_COUNT = 1;
 const char* VALID_OBJECT_TYPES[] =
@@ -1926,6 +1927,8 @@ namespace Slic3r {
                     volume->source.mesh_offset(1) = ::atof(metadata.value.c_str());
                 else if (metadata.key == SOURCE_OFFSET_Z_KEY)
                     volume->source.mesh_offset(2) = ::atof(metadata.value.c_str());
+                else if (metadata.key == SOURCE_IN_INCHES)
+                    volume->source.is_converted_from_inches = metadata.value == "1";
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value);
             }
@@ -2248,7 +2251,7 @@ namespace Slic3r {
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
         stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
-        std::string name = boost::filesystem::path(filename).stem().string();
+        std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
         stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
         stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
         stream << " <" << METADATA_TAG << " name=\"Description\">" << name << "</" << METADATA_TAG << ">\n";
@@ -2749,15 +2752,20 @@ namespace Slic3r {
                             stream << "\"/>\n";
 
                             // stores volume's source data
-                            if (!volume->source.input_file.empty())
                             {
                                 std::string input_file = xml_escape(m_fullpath_sources ? volume->source.input_file : boost::filesystem::path(volume->source.input_file).filename().string());
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_FILE_KEY << "\" " << VALUE_ATTR << "=\"" << input_file << "\"/>\n";
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OBJECT_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.object_idx << "\"/>\n";
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_VOLUME_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.volume_idx << "\"/>\n";
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_X_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(0) << "\"/>\n";
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_Y_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(1) << "\"/>\n";
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_Z_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(2) << "\"/>\n";
+                                std::string prefix = std::string("   <") + METADATA_TAG + " " + TYPE_ATTR + "=\"" + VOLUME_TYPE + "\" " + KEY_ATTR + "=\"";
+                                if (! volume->source.input_file.empty()) {
+                                    stream << prefix << SOURCE_FILE_KEY      << "\" " << VALUE_ATTR << "=\"" << input_file << "\"/>\n";
+                                    stream << prefix << SOURCE_OBJECT_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.object_idx << "\"/>\n";
+                                    stream << prefix << SOURCE_VOLUME_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.volume_idx << "\"/>\n";
+                                    stream << prefix << SOURCE_OFFSET_X_KEY  << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(0) << "\"/>\n";
+                                    stream << prefix << SOURCE_OFFSET_Y_KEY  << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(1) << "\"/>\n";
+                                    stream << prefix << SOURCE_OFFSET_Z_KEY  << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(2) << "\"/>\n";
+                                    stream << prefix << SOURCE_OFFSET_Z_KEY  << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(2) << "\"/>\n";
+                                }
+                                if (volume->source.is_converted_from_inches)
+                                    stream << prefix << SOURCE_IN_INCHES << "\" " << VALUE_ATTR << "=\"1\"/>\n";
                             }
 
                             // stores volume's config data

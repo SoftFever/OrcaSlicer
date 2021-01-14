@@ -8,6 +8,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
+#include "format.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -90,11 +91,11 @@ void OG_CustomCtrl::init_ctrl_lines()
             height = m_bmp_blinking_sz.GetHeight() + m_v_gap;
             ctrl_lines.emplace_back(CtrlLine(height, this, line, true));
         }
-        else if (opt_group->label_width != 0 && !line.label.IsEmpty())
+        else if (opt_group->label_width != 0 && (!line.label.IsEmpty() || option_set.front().opt.gui_type == "legend") )
         {
             wxSize label_sz = GetTextExtent(line.label);
             height = label_sz.y * (label_sz.GetWidth() > int(opt_group->label_width * m_em_unit) ? 2 : 1) + m_v_gap;
-            ctrl_lines.emplace_back(CtrlLine(height, this, line));
+            ctrl_lines.emplace_back(CtrlLine(height, this, line, false, opt_group->staticbox));
         }
         else
             int i = 0;
@@ -114,7 +115,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     wxCoord v_pos = 0;
     wxCoord h_pos = 0;
-    for (auto ctrl_line : ctrl_lines) {
+
+    auto correct_line_height = [](int& line_height, wxWindow* win)
+    {
+        int win_height = win->GetSize().GetHeight();
+        if (line_height < win_height)
+            line_height = win_height;
+    };
+
+    for (CtrlLine& ctrl_line : ctrl_lines) {
         if (&ctrl_line.og_line == &line)
         {
             h_pos = m_bmp_mode_sz.GetWidth() + m_h_gap;
@@ -127,13 +136,17 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             }
 
             wxString label = line.label;
-            if (opt_group->label_width != 0 && !label.IsEmpty())
+            if (opt_group->label_width != 0)
                 h_pos += opt_group->label_width * m_em_unit + m_h_gap;
 
             int blinking_button_width = m_bmp_blinking_sz.GetWidth() + m_h_gap;
 
             if (line.widget) {
                 h_pos += blinking_button_width;
+
+                for (auto child : line.widget_sizer->GetChildren())
+                    if (child->IsWindow())
+                        correct_line_height(ctrl_line.height, child->GetWindow());
                 break;
             }
 
@@ -144,11 +157,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0)
             {
                 h_pos += 3 * blinking_button_width;
+                Field* field = opt_group->get_field(option_set.front().opt_id);
+                correct_line_height(ctrl_line.height, field->getWindow());
                 break;
             }
 
             for (auto opt : option_set) {
                 Field* field = opt_group->get_field(opt.opt_id);
+                correct_line_height(ctrl_line.height, field->getWindow());
+
                 ConfigOptionDef option = opt.opt;
                 // add label if any
                 if (!option.label.empty()) {
@@ -157,14 +174,25 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                         _CTX(option.label, "Layers") : _(option.label);
                     label += ":";
 
-                    wxPaintDC dc(this);
+                    wxCoord label_w, label_h;
+#ifdef __WXMSW__
+                    // when we use 2 monitors with different DPIs, GetTextExtent() return value for the primary display
+                    // so, use dc.GetMultiLineTextExtent on Windows 
+                    wxClientDC dc(this);
                     dc.SetFont(m_font);
-                    h_pos += dc.GetMultiLineTextExtent(label).x + m_h_gap;
+                    dc.GetMultiLineTextExtent(label, &label_w, &label_h);
+#else
+                    GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
+#endif //__WXMSW__
+                    h_pos += label_w + 1 + m_h_gap;
                 }                
-                h_pos += 3 * blinking_button_width;
+                h_pos += (opt.opt.gui_type == "legend" ? 1 : 3) * blinking_button_width;
                 
                 if (field == field_in)
-                    break;    
+                    break;
+                if (opt.opt.gui_type == "legend")
+                    h_pos += 2 * blinking_button_width;
+
                 h_pos += field->getWindow()->GetSize().x;
 
                 if (option_set.size() == 1 && option_set.front().opt.full_width)
@@ -189,12 +217,6 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
 void OG_CustomCtrl::OnPaint(wxPaintEvent&)
 {
-#ifdef _WIN32 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#else
-    SetBackgroundColour(GetParent()->GetBackgroundColour());
-#endif // _WIN32 
-
     // case, when custom controll is destroyed but doesn't deleted from the evet loop
     if(!this->opt_group->custom_ctrl)
         return;
@@ -218,10 +240,14 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
 
     wxString language = wxGetApp().app_config->get("translation_language");
 
+    bool suppress_hyperlinks = get_app_config()->get("suppress_hyperlinks") == "1";
+
     for (CtrlLine& line : ctrl_lines) {
         line.is_focused = is_point_in_rect(pos, line.rect_label);
         if (line.is_focused) {
-            tooltip = get_url(line.og_line.label_path);
+            if (!suppress_hyperlinks && !line.og_line.label_path.empty())
+                tooltip = get_url(line.og_line.label_path) +"\n\n";
+            tooltip += line.og_line.label_tooltip;
             break;
         }
 
@@ -361,11 +387,13 @@ void OG_CustomCtrl::sys_color_changed()
 OG_CustomCtrl::CtrlLine::CtrlLine(  wxCoord         height,
                                     OG_CustomCtrl*  ctrl,
                                     const Line&     og_line,
-                                    bool            draw_just_act_buttons /* = false*/):
+                                    bool            draw_just_act_buttons /* = false*/,
+                                    bool            draw_mode_bitmap/* = true*/):
     height(height),
     ctrl(ctrl),
     og_line(og_line),
-    draw_just_act_buttons(draw_just_act_buttons)
+    draw_just_act_buttons(draw_just_act_buttons),
+    draw_mode_bitmap(draw_mode_bitmap)
 {
 
     for (size_t i = 0; i < og_line.get_options().size(); i++) {
@@ -407,12 +435,6 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
     if (ctrl->opt_group->label_width != 0 && !og_line.label.IsEmpty()) {
         wxSize label_sz = ctrl->GetTextExtent(og_line.label);
         height = label_sz.y * (label_sz.GetWidth() > int(ctrl->opt_group->label_width * ctrl->m_em_unit) ? 2 : 1) + ctrl->m_v_gap;
-    }
-    
-    if (og_line.get_options().front().opt.full_width) {
-        Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
-        if (field->getWindow())
-            field->getWindow()->SetSize(wxSize(3 * Field::def_width_wider() * ctrl->m_em_unit, -1));
     }
 
     correct_items_positions();
@@ -457,6 +479,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 {
     Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
 
+    bool suppress_hyperlinks = get_app_config()->get("suppress_hyperlinks") == "1";
     if (draw_just_act_buttons) {
         if (field)
             draw_act_bmps(dc, wxPoint(0, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
@@ -474,7 +497,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     bool is_url_string = false;
     if (ctrl->opt_group->label_width != 0 && !label.IsEmpty()) {
         const wxColour* text_clr = (option_set.size() == 1 && field ? field->label_color() : og_line.full_Label_color);
-        is_url_string = !og_line.label_path.IsEmpty();
+        is_url_string = !suppress_hyperlinks && !og_line.label_path.IsEmpty();
         h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label + ":", text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, is_url_string);
     }
 
@@ -493,7 +516,10 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
     {
         if (field && field->undo_to_sys_bitmap())
-            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink()) + ctrl->m_h_gap;
+        // update width for full_width fields
+        if (option_set.front().opt.full_width && field->getWindow())
+            field->getWindow()->SetSize(ctrl->GetSize().x - h_pos, -1);
         return;
     }
 
@@ -511,7 +537,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
             if (is_url_string)
                 is_url_string = false;
             else if(opt == option_set.front())
-                is_url_string = !og_line.label_path.IsEmpty();
+                is_url_string = !suppress_hyperlinks && !og_line.label_path.IsEmpty();
             h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? field->label_color() : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
         }
 
@@ -543,13 +569,17 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 
 wxCoord OG_CustomCtrl::CtrlLine::draw_mode_bmp(wxDC& dc, wxCoord v_pos)
 {
+    if (!draw_mode_bitmap)
+        return ctrl->m_h_gap;
+
     ConfigOptionMode mode = og_line.get_options()[0].opt.mode;
     const std::string& bmp_name = mode == ConfigOptionMode::comSimple   ? "mode_simple" :
                                   mode == ConfigOptionMode::comAdvanced ? "mode_advanced" : "mode_expert";
     wxBitmap bmp = create_scaled_bitmap(bmp_name, ctrl, wxOSX ? 10 : 12);
     wxCoord y_draw = v_pos + lround((height - get_bitmap_size(bmp).GetHeight()) / 2);
 
-    dc.DrawBitmap(bmp, 0, y_draw);
+    if (og_line.get_options().front().opt.gui_type != "legend")
+        dc.DrawBitmap(bmp, 0, y_draw);
 
     return get_bitmap_size(bmp).GetWidth() + ctrl->m_h_gap;
 }
@@ -587,7 +617,7 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
         dc.GetMultiLineTextExtent(out_text, &text_width, &text_height);
 
         pos.y = pos.y + lround((height - text_height) / 2);
-        if (width > 0 && is_url)
+        if (width > 0)
             rect_label = wxRect(pos, wxSize(text_width, text_height));
 
         wxColour old_clr = dc.GetTextForeground();
@@ -611,7 +641,7 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
     return pos.x + width + ctrl->m_h_gap;
 }
 
-wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking, size_t rect_id)
+wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking)
 {
     wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "search_blink" : "empty", ctrl);
     wxCoord h_pos = pos.x;
@@ -627,7 +657,7 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
 
 wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id)
 {
-    pos = draw_blinking_bmp(dc, pos, is_blinking, rect_id);
+    pos = draw_blinking_bmp(dc, pos, is_blinking);
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y;
 
@@ -649,9 +679,67 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
 
 bool OG_CustomCtrl::CtrlLine::launch_browser() const
 {
-    return is_focused && !og_line.label_path.IsEmpty() && wxLaunchDefaultBrowser(get_url(og_line.label_path));
+    if (!is_focused || og_line.label_path.IsEmpty())
+        return false;
+
+    bool launch = true;
+
+    if (get_app_config()->get("suppress_hyperlinks").empty()) {
+        RememberChoiceDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"));
+        int answer = dialog.ShowModal();
+        launch = answer == wxID_YES;
+
+        get_app_config()->set("suppress_hyperlinks", dialog.remember_choice() ? (answer == wxID_NO ? "1" : "0") : "");
+    }
+    if (launch)
+        launch = get_app_config()->get("suppress_hyperlinks") != "1";
+
+    return  launch && wxLaunchDefaultBrowser(get_url(og_line.label_path));
 }
 
+
+RememberChoiceDialog::RememberChoiceDialog(wxWindow* parent, const wxString& msg_text, const wxString& caption)
+    : wxDialog(parent, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxICON_INFORMATION)
+{
+    this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    this->SetEscapeId(wxID_CLOSE);
+
+    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+
+    m_remember_choice = new wxCheckBox(this, wxID_ANY, _L("Remember my choice"));
+    m_remember_choice->SetValue(false);
+    m_remember_choice->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& evt)
+        {
+            if (!evt.IsChecked())
+                return;
+            wxString preferences_item = _L("Suppress to open hyperlink in browser");
+            wxString msg =
+                _L("PrusaSlicer will remember your choice.") + "\n\n" +
+                _L("You will not be asked about it again on label hovering.") + "\n\n" +
+                format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
+
+            wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            if (dialog.ShowModal() == wxID_CANCEL)
+                m_remember_choice->SetValue(false);
+        });
+
+
+    // Add dialog's buttons
+    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxYES | wxNO);
+    wxButton* btnYES = static_cast<wxButton*>(this->FindWindowById(wxID_YES, this));
+    wxButton* btnNO = static_cast<wxButton*>(this->FindWindowById(wxID_NO, this));
+    btnYES->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->EndModal(wxID_YES); });
+    btnNO->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->EndModal(wxID_NO); });
+
+    topSizer->Add(new wxStaticText(this, wxID_ANY, msg_text), 0, wxEXPAND | wxALL, 10);
+    topSizer->Add(m_remember_choice, 0, wxEXPAND | wxALL, 10);
+    topSizer->Add(btns, 0, wxEXPAND | wxALL, 10);
+
+    this->SetSizer(topSizer);
+    topSizer->SetSizeHints(this);
+
+    this->CenterOnScreen();
+}
 
 } // GUI
 } // Slic3r

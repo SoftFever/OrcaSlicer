@@ -16,27 +16,28 @@ public:
     bool arrows;
     std::string fill, stroke;
     Point origin;
-    bool flipY;
+    float height;
+    bool  flipY;
 
     SVG(const char* afilename) :
         arrows(false), fill("grey"), stroke("black"), filename(afilename), flipY(false)
         { open(filename); }
-    SVG(const char* afilename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool aflipY = false) : 
-        arrows(false), fill("grey"), stroke("black"), filename(afilename), origin(bbox.min - Point(bbox_offset, bbox_offset)), flipY(aflipY)
-        { open(filename, bbox, bbox_offset, aflipY); }
+    SVG(const char* afilename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = true) : 
+        arrows(false), fill("grey"), stroke("black"), filename(afilename), origin(bbox.min - Point(bbox_offset, bbox_offset)), flipY(flipY)
+        { open(filename, bbox, bbox_offset, flipY); }
     SVG(const std::string &filename) :
         arrows(false), fill("grey"), stroke("black"), filename(filename), flipY(false)
         { open(filename); }
-    SVG(const std::string &filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool aflipY = false) : 
-        arrows(false), fill("grey"), stroke("black"), filename(filename), origin(bbox.min - Point(bbox_offset, bbox_offset)), flipY(aflipY)
-        { open(filename, bbox, bbox_offset, aflipY); }
+    SVG(const std::string &filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = true) : 
+        arrows(false), fill("grey"), stroke("black"), filename(filename), origin(bbox.min - Point(bbox_offset, bbox_offset)), flipY(flipY)
+        { open(filename, bbox, bbox_offset, flipY); }
     ~SVG() { if (f != NULL) Close(); }
 
     bool open(const char* filename);
-    bool open(const char* filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = false);
+    bool open(const char* filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = true);
     bool open(const std::string &filename) 
         { return open(filename.c_str()); }
-    bool open(const std::string &filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = false)
+    bool open(const std::string &filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = true)
         { return open(filename.c_str(), bbox, bbox_offset, flipY); }
 
     void draw(const Line &line, std::string stroke = "black", coordf_t stroke_width = 0);
@@ -127,6 +128,11 @@ public:
     };
 
     static void export_expolygons(const char *path, const std::vector<std::pair<Slic3r::ExPolygons, ExPolygonAttributes>> &expolygons_with_attributes);
+
+private:
+    static float    to_svg_coord(float x) throw() { return unscale<float>(x) * 10.f; }
+    static float    to_svg_x(float x) throw() { return to_svg_coord(x); }
+    float           to_svg_y(float x) const throw() { return flipY ? this->height - to_svg_coord(x) : to_svg_coord(x); }
 };
 
 }

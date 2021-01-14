@@ -7,6 +7,7 @@
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
 #include <libnest2d/placers/nfpplacer.hpp>
 #include <libnest2d/selections/firstfit.hpp>
+#include <libnest2d/utils/rotcalipers.hpp>
 
 #include <numeric>
 #include <ClipperUtils.hpp>
@@ -83,7 +84,7 @@ const double BIG_ITEM_TRESHOLD = 0.02;
 // Fill in the placer algorithm configuration with values carefully chosen for
 // Slic3r.
 template<class PConf>
-void fill_config(PConf& pcfg) {
+void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
     // Align the arranged pile into the center of the bin
     pcfg.alignment = PConf::Alignment::CENTER;
@@ -93,18 +94,22 @@ void fill_config(PConf& pcfg) {
 
     // TODO cannot use rotations until multiple objects of same geometry can
     // handle different rotations.
-    pcfg.rotations = { 0.0 };
+    if (params.allow_rotations)
+        pcfg.rotations = {0., PI / 2., PI, 3. * PI / 2. };
+    else
+        pcfg.rotations = {0.};
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 0.65f;
+    pcfg.accuracy = params.accuracy;
     
     // Allow parallel execution.
-    pcfg.parallel = true;
+    pcfg.parallel = params.parallel;
 }
 
 // Apply penalty to object function result. This is used only when alignment
 // after arrange is explicitly disabled (PConfig::Alignment::DONT_ALIGN)
+// Also, this will only work well for Box shaped beds.
 static double fixed_overfit(const std::tuple<double, Box>& result, const Box &binbb)
 {
     double score = std::get<0>(result);
@@ -277,10 +282,10 @@ protected:
             if (result.empty())
                 score = 0.50 * dist + 0.50 * density;
             else
-                score = R * 0.60 * dist +
-                        (1.0 - R) * 0.20 * density +
-                        0.20 * alignment_score;
-            
+                // Let the density matter more when fewer objects remain
+                score = 0.50 * dist + (1.0 - R) * 0.20 * density +
+                        0.30 * alignment_score;
+
             break;
         }
         case LAST_BIG_ITEM: {
@@ -304,15 +309,15 @@ protected:
     
 public:
     AutoArranger(const TBin &                  bin,
-                 Distance                      dist,
+                 const ArrangeParams           &params,
                  std::function<void(unsigned)> progressind,
                  std::function<bool(void)>     stopcond)
-        : m_pck(bin, dist)
+        : m_pck(bin, params.min_obj_distance)
         , m_bin(bin)
         , m_bin_area(sl::area(bin))
         , m_norm(std::sqrt(m_bin_area))
     {
-        fill_config(m_pconf);
+        fill_config(m_pconf, params);
 
         // Set up a callback that is called just before arranging starts
         // This functionality is provided by the Nester class (m_pack).
@@ -343,18 +348,42 @@ public:
         };
         
         m_pconf.object_function = get_objfn();
+
+        m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
+            if (items.empty()) return;
+
+            cfg.alignment = PConfig::Alignment::DONT_ALIGN;
+            auto bb = sl::boundingBox(m_bin);
+            auto bbcenter = bb.center();
+            cfg.object_function = [this, bb, bbcenter](const Item &item) {
+                return fixed_overfit(objfunc(item, bbcenter), bb);
+            };
+        };
+
+        auto on_packed = params.on_packed;
         
-        if (progressind) m_pck.progressIndicator(progressind);
+        if (progressind || on_packed)
+            m_pck.progressIndicator([this, progressind, on_packed](unsigned rem) {
+
+            if (progressind)
+                progressind(rem);
+
+            if (on_packed) {
+                int last_bed = m_pck.lastPackedBinId();
+                if (last_bed >= 0) {
+                    Item &last_packed = m_pck.lastResult()[last_bed].back();
+                    ArrangePolygon ap;
+                    ap.bed_idx = last_packed.binId();
+                    ap.priority = last_packed.priority();
+                    on_packed(ap);
+                }
+            }
+        });
+
         if (stopcond) m_pck.stopCondition(stopcond);
         
         m_pck.configure(m_pconf);
     }
-    
-    AutoArranger(const TBin &                  bin,
-                 std::function<void(unsigned)> progressind,
-                 std::function<bool(void)>     stopcond)
-        : AutoArranger{bin, 0 /* no min distance */, progressind, stopcond}
-    {}
      
     template<class It> inline void operator()(It from, It to) {
         m_rtree.clear();
@@ -366,22 +395,12 @@ public:
     PConfig& config() { return m_pconf; }
     const PConfig& config() const { return m_pconf; }
     
-    inline void preload(std::vector<Item>& fixeditems) {
-        m_pconf.alignment = PConfig::Alignment::DONT_ALIGN;
-        auto bb = sl::boundingBox(m_bin);
-        auto bbcenter = bb.center();
-        m_pconf.object_function = [this, bb, bbcenter](const Item &item) {
-            return fixed_overfit(objfunc(item, bbcenter), bb);
-        };
-
-        // Build the rtree for queries to work
-        
+    inline void preload(std::vector<Item>& fixeditems) {        
         for(unsigned idx = 0; idx < fixeditems.size(); ++idx) {
             Item& itm = fixeditems[idx];
             itm.markAsFixedInBin(itm.binId());
         }
 
-        m_pck.configure(m_pconf);
         m_item_count += fixeditems.size();
     }
 };
@@ -395,13 +414,10 @@ template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
         
         double score = std::get<0>(result);
         auto& fullbb = std::get<1>(result);
-        
-        auto bin = m_bin;
-        sl::offset(bin, -EPSILON * (m_bin.width() + m_bin.height()));
 
-        double miss = Placer::overfit(fullbb, bin);
+        double miss = Placer::overfit(fullbb, m_bin);
         miss = miss > 0? miss : 0;
-        score += miss*miss;
+        score += miss * miss;
         
         return score;
     };
@@ -452,26 +468,31 @@ template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
             ++it : it = items.erase(it);
 }
 
+template<class S> Radians min_area_boundingbox_rotation(const S &sh)
+{
+    return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
+        .angleToX();
+}
+
 template<class BinT> // Arrange for arbitrary bin type
 void _arrange(
         std::vector<Item> &           shapes,
         std::vector<Item> &           excludes,
         const BinT &                  bin,
-        const ArrangeParams &         params,
+        const ArrangeParams           &params,
         std::function<void(unsigned)> progressfn,
         std::function<bool()>         stopfn)
 {
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = params.min_obj_distance;
-    md = (md % 2) ? md / 2 + 1 : md / 2;
+    md = md / 2;
     
     auto corrected_bin = bin;
     sl::offset(corrected_bin, md);
-    
-    AutoArranger<BinT> arranger{corrected_bin, progressfn, stopfn};
-    
-    arranger.config().accuracy = params.accuracy;
-    arranger.config().parallel = params.parallel;
+    ArrangeParams mod_params = params;
+    mod_params.min_obj_distance = 0;
+
+    AutoArranger<BinT> arranger{corrected_bin, mod_params, progressfn, stopfn};
     
     auto infl = coord_t(std::ceil(params.min_obj_distance / 2.0));
     for (Item& itm : shapes) itm.inflate(infl);
@@ -487,6 +508,13 @@ void _arrange(
     for (auto &itm : shapes  ) inp.emplace_back(itm);
     for (auto &itm : excludes) inp.emplace_back(itm);
     
+    // Use the minimum bounding box rotation as a starting point.
+    // TODO: This only works for convex hull. If we ever switch to concave
+    // polygon nesting, a convex hull needs to be calculated.
+    if (params.allow_rotations)
+        for (auto &itm : shapes)
+            itm.rotation(min_area_boundingbox_rotation(itm.rawShape()));
+
     arranger(inp.begin(), inp.end());
     for (Item &itm : inp) itm.inflate(-infl);
 }
@@ -544,10 +572,13 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
 
     clppr::Polygon clpath(Slic3rMultiPoint_to_ClipperPath(p));
 
-    if (!clpath.Contour.empty()) {
-        auto firstp = clpath.Contour.front();
-        clpath.Contour.emplace_back(firstp);
-    }
+    // This fixes:
+    // https://github.com/prusa3d/PrusaSlicer/issues/2209
+    if (clpath.Contour.size() < 3)
+        return;
+
+    auto firstp = clpath.Contour.front();
+    clpath.Contour.emplace_back(firstp);
 
     outp.emplace_back(std::move(clpath));
     outp.back().rotation(rotation);
@@ -556,28 +587,35 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     outp.back().priority(arrpoly.priority);
 }
 
+template<class Fn> auto call_with_bed(const Points &bed, Fn &&fn)
+{
+    if (bed.empty())
+        return fn(InfiniteBed{});
+    else if (bed.size() == 1)
+        return fn(InfiniteBed{bed.front()});
+    else {
+        auto      bb    = BoundingBox(bed);
+        CircleBed circ  = to_circle(bb.center(), bed);
+        auto      parea = poly_area(bed);
+
+        if ((1.0 - parea / area(bb)) < 1e-3)
+            return fn(bb);
+        else if (!std::isnan(circ.radius()))
+            return fn(circ);
+        else
+            return fn(Polygon(bed));
+    }
+}
+
 template<>
 void arrange(ArrangePolygons &      items,
              const ArrangePolygons &excludes,
              const Points &         bed,
              const ArrangeParams &  params)
 {
-    if (bed.empty())
-        arrange(items, excludes, InfiniteBed{}, params);
-    else if (bed.size() == 1)
-        arrange(items, excludes, InfiniteBed{bed.front()}, params);
-    else {
-        auto      bb    = BoundingBox(bed);
-        CircleBed circ  = to_circle(bb.center(), bed);
-        auto      parea = poly_area(bed);
-        
-        if ((1.0 - parea / area(bb)) < 1e-3)
-            arrange(items, excludes, bb, params);
-        else if (!std::isnan(circ.radius()))
-            arrange(items, excludes, circ, params);
-        else
-            arrange(items, excludes, Polygon(bed), params);   
-    }
+    call_with_bed(bed, [&](const auto &bin) {
+        arrange(items, excludes, bin, params);
+    });
 }
 
 template<class BedT>

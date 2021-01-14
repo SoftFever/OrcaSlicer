@@ -95,6 +95,7 @@ public:
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList 
         this->SetFont(m_normal_font);
 #endif
+        this->CenterOnParent();
 
         // Linux specific issue : get_dpi_for_window(this) still doesn't responce to the Display's scale in new wxWidgets(3.1.3).
         // So, calculate the m_em_unit value from the font size, as before
@@ -384,7 +385,6 @@ public:
 
 std::ostream& operator<<(std::ostream &os, const WindowMetrics& metrics);
 
-#if ENABLE_GCODE_VIEWER
 inline int hex_digit_to_int(const char c)
 {
     return
@@ -392,7 +392,6 @@ inline int hex_digit_to_int(const char c)
         (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
         (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
-#endif // ENABLE_GCODE_VIEWER
 
 class TaskTimer
 {

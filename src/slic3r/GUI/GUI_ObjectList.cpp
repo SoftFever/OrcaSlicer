@@ -191,7 +191,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 //    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
     {
         // Accelerators
-        wxAcceleratorEntry entries[8];
+        wxAcceleratorEntry entries[10];
         entries[0].Set(wxACCEL_CTRL, (int) 'C',    wxID_COPY);
         entries[1].Set(wxACCEL_CTRL, (int) 'X',    wxID_CUT);
         entries[2].Set(wxACCEL_CTRL, (int) 'V',    wxID_PASTE);
@@ -200,7 +200,9 @@ ObjectList::ObjectList(wxWindow* parent) :
         entries[5].Set(wxACCEL_CTRL, (int) 'Y',    wxID_REDO);
         entries[6].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
         entries[7].Set(wxACCEL_NORMAL, WXK_BACK,   wxID_DELETE);
-        wxAcceleratorTable accel(8, entries);
+        entries[8].Set(wxACCEL_NORMAL, int('+'),   wxID_ADD);
+        entries[9].Set(wxACCEL_NORMAL, int('-'),   wxID_REMOVE);
+        wxAcceleratorTable accel(10, entries);
         SetAcceleratorTable(accel);
 
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->copy();                      }, wxID_COPY);
@@ -209,6 +211,8 @@ ObjectList::ObjectList(wxWindow* parent) :
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->remove();                    }, wxID_DELETE);
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->undo();  					}, wxID_UNDO);
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->redo();                    	}, wxID_REDO);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->increase_instances();        }, wxID_ADD);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->decrease_instances();        }, wxID_REMOVE);
     }
 #else //__WXOSX__
     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
@@ -254,11 +258,37 @@ ObjectList::~ObjectList()
 {
 }
 
+void ObjectList::set_min_height()
+{
+    if (m_items_count == size_t(-1))
+        m_items_count = 7;
+    int list_min_height = lround(2.25 * (m_items_count + 1) * wxGetApp().em_unit()); // +1 is for height of control header
+    this->SetMinSize(wxSize(1, list_min_height));
+}
+
+void ObjectList::update_min_height()
+{
+    wxDataViewItemArray all_items;
+    m_objects_model->GetAllChildren(wxDataViewItem(nullptr), all_items);
+    size_t items_cnt = all_items.Count();
+    if (items_cnt < 7)
+        items_cnt = 7;
+    else if (items_cnt >= 15)
+        items_cnt = 15;
+    
+    if (m_items_count == items_cnt)
+        return;
+
+    m_items_count = items_cnt;
+    set_min_height();
+}
+
+
 void ObjectList::create_objects_ctrl()
 {
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
      * 1. set a height of the list to some big value 
-     * 2. change it to the normal min value (15 * wxGetApp().em_unit()) after first whole Mainframe updating/layouting
+     * 2. change it to the normal(meaningful) min value after first whole Mainframe updating/layouting
      */
     SetMinSize(wxSize(-1, 3000));
 
@@ -989,6 +1019,8 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                        m_objects_model->GetParent(item) != wxDataViewItem(nullptr) ? &m_menu_part :
                        printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
+        if (type & (itObject | itVolume))
+            append_menu_item_convert_unit(menu);
         if (!(type & itInstance))
             append_menu_item_settings(menu);
     }
@@ -1052,6 +1084,8 @@ bool ObjectList::copy_to_clipboard()
 {
     wxDataViewItemArray sels;
     GetSelections(sels);
+    if (sels.IsEmpty())
+        return false;
     ItemType type = m_objects_model->GetItemType(sels.front());
     if (!(type & (itSettings | itLayer | itLayerRoot))) {
         m_clipboard.reset();
@@ -1092,6 +1126,16 @@ void ObjectList::redo()
 	wxGetApp().plater()->redo();	
 }
 
+void ObjectList::increase_instances()
+{
+    wxGetApp().plater()->increase_instances(1);
+}
+
+void ObjectList::decrease_instances()
+{
+    wxGetApp().plater()->decrease_instances(1);
+}
+
 #ifndef __WXOSX__
 void ObjectList::key_event(wxKeyEvent& event)
 {
@@ -1116,6 +1160,10 @@ void ObjectList::key_event(wxKeyEvent& event)
         redo();
     else if (wxGetKeyState(wxKeyCode('Z')) && wxGetKeyState(WXK_CONTROL))
         undo();
+    else if (event.GetUnicodeKey() == '+')
+        increase_instances();
+    else if (event.GetUnicodeKey() == '-')
+        decrease_instances();
     else
         event.Skip();
 }
@@ -1163,7 +1211,7 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     **/
     m_prevent_list_events = true;//it's needed for GTK
 
-    /* Under GTK, DnD requires to the wxTextDataObject been initialized with some valid value,
+    /* Under GTK, DnD requires to the wxTextDataObject been initialized with some valid vaSome textlue,
      * so set some nonempty string
      */
     wxTextDataObject* obj = new wxTextDataObject;
@@ -1195,8 +1243,10 @@ void ObjectList::OnDropPossible(wxDataViewEvent &event)
 {
     const wxDataViewItem& item = event.GetItem();
 
-    if (!can_drop(item))
+    if (!can_drop(item)) {
         event.Veto();
+        m_prevent_list_events = false;
+    }
 }
 
 void ObjectList::OnDrop(wxDataViewEvent &event)
@@ -1221,7 +1271,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 // It looks like a fixed in current version of the wxWidgets
 // #ifdef __WXGTK__
 //     /* Under GTK, DnD moves an item between another two items.
-//     * And event.GetItem() return item, which is under "insertion line"
+//     * And event.GetItem() return item, which is under "insertion line"Some text
 //     * So, if we move item down we should to decrease the to_volume_id value
 //     **/
 //     if (to_volume_id > from_volume_id) to_volume_id--;
@@ -1853,13 +1903,57 @@ void ObjectList::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* me
         [](wxCommandEvent&) { wxGetApp().plater()->scale_selection_to_fit_print_volume(); }, "", menu);
 }
 
-void ObjectList::append_menu_items_convert_unit(wxMenu* menu)
+void ObjectList::append_menu_item_convert_unit(wxMenu* menu, int insert_pos/* = 1*/)
 {
-    append_menu_item(menu, wxID_ANY, _L("Convert from imperial units"), _L("Convert from imperial units"),
-        [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(true); }, "", menu);
+    std::vector<int> obj_idxs, vol_idxs;
+    get_selection_indexes(obj_idxs, vol_idxs);
+    if (obj_idxs.empty() && vol_idxs.empty())
+        return;
 
-    append_menu_item(menu, wxID_ANY, _L("Revert conversion from imperial units"), _L("Revert conversion from imperial units"),
-        [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(false); }, "", menu);
+    auto can_append = [this, obj_idxs, vol_idxs](bool from_imperial_unit) {
+        ModelObjectPtrs objects;
+        for (int obj_idx : obj_idxs) {
+            ModelObject* object = (*m_objects)[obj_idx];
+            if (vol_idxs.empty()) {
+                for (ModelVolume* volume : object->volumes)
+                    if (volume->source.is_converted_from_inches == from_imperial_unit)
+                        return false;
+            }
+            else {
+                for (int vol_idx : vol_idxs)
+                    if (object->volumes[vol_idx]->source.is_converted_from_inches == from_imperial_unit)
+                        return false;
+            }
+        }
+        return true;
+    };
+
+    wxString convert_menu_name = _L("Convert from imperial units");
+    int      convert_menu_id   = menu->FindItem(convert_menu_name);
+    wxString revert_menu_name  = _L("Revert conversion from imperial units");
+    int      revert_menu_id    = menu->FindItem(revert_menu_name);
+
+    if (can_append(true)) {
+        // Delete revert menu item
+        if (revert_menu_id != wxNOT_FOUND)
+            menu->Destroy(revert_menu_id);
+        // Add convert menu item if it doesn't exist
+        if (convert_menu_id == wxNOT_FOUND)
+            append_menu_item(menu, wxID_ANY, convert_menu_name, convert_menu_name,
+                [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(true); }, "", menu, 
+                []() {return true;}, nullptr, insert_pos);
+    }
+
+    if (can_append(false)) {
+        // Delete convert menu item
+        if (convert_menu_id != wxNOT_FOUND)
+            menu->Destroy(convert_menu_id);
+        // Add convert menu item if it doesn't exist
+        if (revert_menu_id == wxNOT_FOUND)
+            append_menu_item(menu, wxID_ANY, revert_menu_name, revert_menu_name,
+                [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(false); }, "", menu,
+                []() {return true;}, nullptr, insert_pos);
+    }
 }
 
 void ObjectList::append_menu_item_merge_to_multipart_object(wxMenu* menu)
@@ -1885,7 +1979,6 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
 #endif // __WXOSX__
 
     append_menu_item_reload_from_disk(menu);
-    append_menu_items_convert_unit(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_scale_selection_to_fit_print_volume(menu);
@@ -1914,7 +2007,6 @@ void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 #endif // __WXOSX__
 
     append_menu_item_reload_from_disk(menu);
-    append_menu_items_convert_unit(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
     // rest of a object_sla_menu will be added later in:
@@ -1928,7 +2020,6 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 #endif // __WXOSX__
 
     append_menu_item_reload_from_disk(menu);
-    append_menu_items_convert_unit(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
 
@@ -2189,8 +2280,8 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
-    select_item(m_objects_model->AddVolumeChild(object_item, name, type, 
-        new_volume->get_mesh_errors_count()>0));
+    select_item([this, object_item, name, type, new_volume]() { return m_objects_model->AddVolumeChild(object_item, name, type,
+        new_volume->get_mesh_errors_count() > 0); });
 //#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 //#endif //no __WXOSX__ //__WXMSW__
@@ -2292,19 +2383,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     if (type & itVolume && (*m_objects)[obj_idx]->get_mesh_errors_count() == 0)
         m_objects_model->DeleteWarningIcon(m_objects_model->GetParent(item));
 
-    // If last two Instances of object is selected, show the message about impossible action
-    bool show_msg = false;
-    if (type & itInstance) { 
-        wxDataViewItemArray instances;
-        m_objects_model->GetChildren(m_objects_model->GetParent(item), instances);
-        if (instances.Count() == 2 && IsSelected(instances[0]) && IsSelected(instances[1]))
-            show_msg = true;
-    }
-
     m_objects_model->Delete(item);
-
-    if (show_msg)
-        Slic3r::GUI::show_error(nullptr, _(L("Last instance of an object cannot be deleted.")));
 }
 
 void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
@@ -2330,6 +2409,8 @@ void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
         m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
     if (is_layer_settings)
         m_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+
+    changed_object();
 }
 
 void ObjectList::del_instances_from_object(const int obj_idx)
@@ -2926,6 +3007,8 @@ void ObjectList::part_selection_changed()
     else if (update_and_show_layers)
         wxGetApp().obj_layers()->get_og()->set_name(" " + og_name + " ");
 
+    update_min_height();
+
     Sidebar& panel = wxGetApp().sidebar();
     panel.Freeze();
 
@@ -3055,24 +3138,24 @@ void ObjectList::delete_object_from_list()
     if (!item) 
         return;
     if (m_objects_model->GetParent(item) == wxDataViewItem(nullptr))
-        select_item(m_objects_model->Delete(item));
+        select_item([this, item]() { return m_objects_model->Delete(item); });
     else
-        select_item(m_objects_model->Delete(m_objects_model->GetParent(item)));
+        select_item([this, item]() { return m_objects_model->Delete(m_objects_model->GetParent(item)); });
 }
 
 void ObjectList::delete_object_from_list(const size_t obj_idx)
 {
-    select_item(m_objects_model->Delete(m_objects_model->GetItemById(obj_idx)));
+    select_item([this, obj_idx]() { return m_objects_model->Delete(m_objects_model->GetItemById(obj_idx)); });
 }
 
 void ObjectList::delete_volume_from_list(const size_t obj_idx, const size_t vol_idx)
 {
-    select_item(m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)));
+    select_item([this, obj_idx, vol_idx]() { return m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)); });
 }
 
 void ObjectList::delete_instance_from_list(const size_t obj_idx, const size_t inst_idx)
 {
-    select_item(m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)));
+    select_item([this, obj_idx, inst_idx]() { return m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)); });
 }
 
 void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx)
@@ -3099,6 +3182,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
     if (items_for_delete.empty())
         return;
 
+    m_prevent_list_events = true;
     for (std::vector<ItemForDelete>::const_reverse_iterator item = items_for_delete.rbegin(); item != items_for_delete.rend(); ++item)
     {
         if (!(item->type&(itObject | itVolume | itInstance)))
@@ -3125,6 +3209,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
                 m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item->obj_idx, item->sub_obj_idx));
         }
     }
+    m_prevent_list_events = true;
     part_selection_changed();
 }
 
@@ -3139,13 +3224,13 @@ void ObjectList::delete_all_objects_from_list()
 
 void ObjectList::increase_object_instances(const size_t obj_idx, const size_t num)
 {
-    select_item(m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), num));
+    select_item([this, obj_idx, num]() { return m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), num); });
     selection_changed();
 }
 
 void ObjectList::decrease_object_instances(const size_t obj_idx, const size_t num)
 {
-    select_item(m_objects_model->DeleteLastInstance(m_objects_model->GetItemById(obj_idx), num));
+    select_item([this, obj_idx, num]() { return m_objects_model->DeleteLastInstance(m_objects_model->GetItemById(obj_idx), num); });
 }
 
 void ObjectList::unselect_objects()
@@ -3183,6 +3268,50 @@ void ObjectList::select_current_volume(int idx, int vol_idx)
     m_prevent_list_events = false;
 }
 
+static void update_selection(wxDataViewItemArray& sels, ObjectList::SELECTION_MODE mode, ObjectDataViewModel* model)
+{
+    if (mode == ObjectList::smInstance)
+    {
+        for (auto& item : sels)
+        {
+            ItemType type = model->GetItemType(item);
+            if (type == itObject)
+                continue;
+            if (type == itInstanceRoot) {
+                wxDataViewItem obj_item = model->GetParent(item);
+                sels.Remove(item);
+                sels.Add(obj_item);
+                update_selection(sels, mode, model);
+                return;
+            }
+            if (type == itInstance)
+            {
+                wxDataViewItemArray instances;
+                model->GetChildren(model->GetParent(item), instances);
+                assert(instances.Count() > 0);
+                size_t selected_instances_cnt = 0;
+                for (auto& inst : instances) {
+                    if (sels.Index(inst) == wxNOT_FOUND)
+                        break;
+                    selected_instances_cnt++;
+                }
+
+                if (selected_instances_cnt == instances.Count()) 
+                {
+                    wxDataViewItem obj_item = model->GetTopParent(item);
+                    for (auto& inst : instances)
+                        sels.Remove(inst);
+                    sels.Add(obj_item);
+                    update_selection(sels, mode, model);
+                    return;
+                }
+            }
+            else
+                return;
+        }
+    }
+}
+
 void ObjectList::remove()
 {
     if (GetSelectedItemsCount() == 0)
@@ -3218,6 +3347,10 @@ void ObjectList::remove()
         parent = delete_item(GetSelection());
     else
     {
+        SELECTION_MODE sels_mode = m_selection_mode;
+        UnselectAll();
+        update_selection(sels, sels_mode, m_objects_model);
+
         Plater::TakeSnapshot snapshot = Plater::TakeSnapshot(wxGetApp().plater(), _(L("Delete Selected")));
 
         for (auto& item : sels)
@@ -3542,16 +3675,28 @@ void ObjectList::update_selections()
                 return;
             sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
         }
-        if (selection.is_single_volume() || selection.is_any_modifier()) {
+        else if (selection.is_single_volume() || selection.is_any_modifier()) {
             const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
                 return;
         }
-
         // but if there is selected only one of several instances by context menu,
         // then select this instance in ObjectList
-        if (selection.is_single_full_instance())
+        else if (selection.is_single_full_instance())
             sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), selection.get_instance_idx()));
+        // Can be the case, when we have selected itSettings | itLayerRoot | itLayer in the ObjectList and selected object/instance in the Scene
+        // and then select some object/instance in 3DScene using Ctrt+left click
+        // see https://github.com/prusa3d/PrusaSlicer/issues/5517
+        else {
+            // Unselect all items in ObjectList
+            m_last_selected_item = wxDataViewItem(nullptr);
+            m_prevent_list_events = true;
+            UnselectAll();
+            m_prevent_list_events = false;
+            // call this function again to update selection from the canvas
+            update_selections();
+            return;
+        }
     }
     else if (selection.is_single_full_object() || selection.is_multiple_full_object())
     {
@@ -3776,6 +3921,23 @@ void ObjectList::select_item(const wxDataViewItem& item)
     UnselectAll();
     Select(item);
     part_selection_changed();
+
+    m_prevent_list_events = false;
+}
+
+void ObjectList::select_item(std::function<wxDataViewItem()> get_item)
+{
+    if (!get_item) 
+        return;
+
+    m_prevent_list_events = true;
+
+    wxDataViewItem item = get_item();
+    if (item.IsOk()) {
+        UnselectAll();
+        Select(item);
+        part_selection_changed();
+    }
 
     m_prevent_list_events = false;
 }
@@ -4060,7 +4222,7 @@ void ObjectList::update_and_show_object_settings_item()
     if (!item) return;
 
     const wxDataViewItem& obj_item = m_objects_model->IsSettingsItem(item) ? m_objects_model->GetParent(item) : item;
-    select_item(add_settings_item(obj_item, &get_item_config(obj_item).get()));
+    select_item([this, obj_item](){ return add_settings_item(obj_item, &get_item_config(obj_item).get()); });
 }
 
 // Update settings item for item had it
@@ -4333,9 +4495,9 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
 
 void ObjectList::msw_rescale()
 {
+    set_min_height();
+
     const int em = wxGetApp().em_unit();
-    // update min size !!! A width of control shouldn't be a wxDefaultCoord
-    SetMinSize(wxSize(1, 15 * em));
 
     GetColumn(colName    )->SetWidth(20 * em);
     GetColumn(colPrint   )->SetWidth( 3 * em);
@@ -4441,7 +4603,7 @@ void ObjectList::show_multi_selection_menu()
         return wxGetApp().plater()->can_reload_from_disk();
     }, wxGetApp().plater());
 
-    append_menu_items_convert_unit(menu);
+    append_menu_item_convert_unit(menu);
     if (can_merge_to_multipart_object())
         append_menu_item_merge_to_multipart_object(menu);
 

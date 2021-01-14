@@ -19,9 +19,6 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
-#if !ENABLE_GCODE_VIEWER
-#include "libslic3r/GCode/PreviewData.hpp"
-#endif // !ENABLE_GCODE_VIEWER
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/libslic3r.h"
@@ -53,9 +50,28 @@ bool SlicingProcessCompletedEvent::critical_error() const
 	return true;
 }
 
-std::string SlicingProcessCompletedEvent::format_error_message() const
+bool SlicingProcessCompletedEvent::invalidate_plater() const
+{
+	if (critical_error())
+	{
+		try {
+			this->rethrow_exception();
+		}
+		catch (const Slic3r::ExportError&) {
+			// Exception thrown by copying file does not ivalidate plater
+			return false;
+		}
+		catch (...) {
+		}
+		return true;
+	}
+	return false;
+}
+
+std::pair<std::string, bool> SlicingProcessCompletedEvent::format_error_message() const
 {
 	std::string error;
+	bool        monospace = false;
 	try {
 		this->rethrow_exception();
     } catch (const std::bad_alloc& ex) {
@@ -63,12 +79,15 @@ std::string SlicingProcessCompletedEvent::format_error_message() const
                               "If you are sure you have enough RAM on your system, this may also be a bug and we would "
                               "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
         error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
+    } catch (PlaceholderParserError &ex) {
+		error = ex.what();
+		monospace = true;
     } catch (std::exception &ex) {
 		error = ex.what();
 	} catch (...) {
 		error = "Unknown C++ exception.";
 	}
-	return error;
+	return std::make_pair(std::move(error), monospace);
 }
 
 BackgroundSlicingProcess::BackgroundSlicingProcess()
@@ -126,11 +145,7 @@ void BackgroundSlicingProcess::process_fff()
 	// Passing the timestamp 
 	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
-#if ENABLE_GCODE_VIEWER
 	m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, m_thumbnail_cb);
-#else
-	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
-#endif // ENABLE_GCODE_VIEWER
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
@@ -138,32 +153,39 @@ void BackgroundSlicingProcess::process_fff()
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 			std::string error_message;
-			int copy_ret_val = copy_file(m_temp_output_path, export_path, error_message, m_export_path_on_removable_media);
+			int copy_ret_val = CopyFileResult::SUCCESS;
+			try
+			{
+				copy_ret_val = copy_file(m_temp_output_path, export_path, error_message, m_export_path_on_removable_media);
+			}
+			catch (...)
+			{
+				throw Slic3r::ExportError(_utf8(L("Unknown error occured during exporting G-code.")));
+			}
 			switch (copy_ret_val) {
-			case SUCCESS: break; // no error
-			case FAIL_COPY_FILE:
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"))) % error_message).str());
+			case CopyFileResult::SUCCESS: break; // no error
+			case CopyFileResult::FAIL_COPY_FILE:
+				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"))) % error_message).str());
 				break;
-			case FAIL_FILES_DIFFERENT: 
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
+			case CopyFileResult::FAIL_FILES_DIFFERENT:
+				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
 				break;
-			case FAIL_RENAMING: 
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str()); 
+			case CopyFileResult::FAIL_RENAMING:
+				throw Slic3r::ExportError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str());
 				break;
-			case FAIL_CHECK_ORIGIN_NOT_OPENED: 
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
+			case CopyFileResult::FAIL_CHECK_ORIGIN_NOT_OPENED:
+				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
 				break;
-			case FAIL_CHECK_TARGET_NOT_OPENED: 
-				throw Slic3r::RuntimeError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str()); 
+			case CopyFileResult::FAIL_CHECK_TARGET_NOT_OPENED:
+				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str());
 				break;
 			default:
-				throw Slic3r::RuntimeError(_utf8(L("Unknown error occured during exporting G-code.")));
+				throw Slic3r::ExportError(_utf8(L("Unknown error occured during exporting G-code.")));
 				BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
 				break;
 			}
-			
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-	    	run_post_process_scripts(export_path, m_fff_print->config());
+	    	run_post_process_scripts(export_path, m_fff_print->full_print_config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
 	    } else if (! m_upload_job.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
@@ -418,25 +440,14 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 	assert(m_print != nullptr);
 	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
 	Print::ApplyStatus invalidated = m_print->apply(model, config);
-#if ENABLE_GCODE_VIEWER
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
-		!this->m_fff_print->is_step_done(psGCodeExport))
-	{
+		!this->m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.
 		// Let the G-code preview UI know that the final G-code preview is not valid.
 		// In addition, this early memory deallocation reduces memory footprint.
 		if (m_gcode_result != nullptr)
 			m_gcode_result->reset();
 	}
-#else
-	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
-		m_gcode_preview_data != nullptr && ! this->m_fff_print->is_step_done(psGCodeExport)) {
-		// Some FFF status was invalidated, and the G-code was not exported yet.
-		// Let the G-code preview UI know that the final G-code preview is not valid.
-		// In addition, this early memory deallocation reduces memory footprint.
-		m_gcode_preview_data->reset();
-	}
-#endif // ENABLE_GCODE_VIEWER
 	return invalidated;
 }
 
@@ -527,7 +538,7 @@ void BackgroundSlicingProcess::prepare_upload()
 		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS) {
 			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
 		}
-		run_post_process_scripts(source_path.string(), m_fff_print->config());
+		run_post_process_scripts(source_path.string(), m_fff_print->full_print_config());
         m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());

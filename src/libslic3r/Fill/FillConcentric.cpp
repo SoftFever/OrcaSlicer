@@ -10,7 +10,7 @@ void FillConcentric::_fill_surface_single(
     const FillParams                &params, 
     unsigned int                     thickness_layers,
     const std::pair<float, Point>   &direction, 
-    ExPolygon                       &expolygon, 
+    ExPolygon                        expolygon,
     Polylines                       &polylines_out)
 {
     // no rotation is supported for this infill pattern
@@ -24,22 +24,22 @@ void FillConcentric::_fill_surface_single(
         this->spacing = unscale<double>(distance);
     }
 
-    Polygons loops = (Polygons)expolygon;
+    Polygons loops = to_polygons(std::move(expolygon));
     Polygons last  = loops;
     while (! last.empty()) {
         last = offset2(last, -(distance + min_spacing/2), +min_spacing/2);
-        loops.insert(loops.end(), last.begin(), last.end());
+        append(loops, last);
     }
 
     // generate paths from the outermost to the innermost, to avoid
     // adhesion problems of the first central tiny loops
-    loops = union_pt_chained(loops, false);
+    loops = union_pt_chained_outside_in(loops, false);
     
     // split paths using a nearest neighbor search
     size_t iPathFirst = polylines_out.size();
     Point last_pos(0, 0);
     for (const Polygon &loop : loops) {
-        polylines_out.push_back(loop.split_at_index(last_pos.nearest_point_index(loop)));
+        polylines_out.emplace_back(loop.split_at_index(last_pos.nearest_point_index(loop.points)));
         last_pos = polylines_out.back().last_point();
     }
 

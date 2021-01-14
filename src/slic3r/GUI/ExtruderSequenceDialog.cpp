@@ -14,13 +14,14 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "OptionsGroup.hpp"
+#include "MainFrame.hpp"
 
 
 namespace Slic3r {
 namespace GUI {
 
 ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequence& sequence)
-    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Set extruder sequence")),
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Set extruder sequence")),
         wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_sequence(sequence)
 {
@@ -36,7 +37,7 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
 
     auto option_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto intervals_box = new wxStaticBox(this, wxID_ANY, _(L("Set extruder change for every"))+ " : ");
+    auto intervals_box = new wxStaticBox(this, wxID_ANY, _(L("Set extruder change for every"))+ ": ");
     auto intervals_box_sizer = new wxStaticBoxSizer(intervals_box, wxVERTICAL);
 
     m_intervals_grid_sizer = new wxFlexGridSizer(3, 5, em);
@@ -114,26 +115,26 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
         rb_by_mm->SetValue(true);
     });
 
-    m_interval_by_mm->Bind(wxEVT_KILL_FOCUS, [this, change_value](wxFocusEvent& event)
+    m_interval_by_mm->Bind(wxEVT_KILL_FOCUS, [change_value](wxFocusEvent& event)
     {
         change_value();
         event.Skip();
     });
 
-    m_interval_by_mm->Bind(wxEVT_TEXT_ENTER, [this, change_value](wxEvent&)
+    m_interval_by_mm->Bind(wxEVT_TEXT_ENTER, [change_value](wxEvent&)
     {
         change_value();
     });
 
     m_intervals_grid_sizer->Add(rb_by_mm, 0, wxALIGN_CENTER_VERTICAL);
-    m_intervals_grid_sizer->Add(m_interval_by_mm,0, wxALIGN_CENTER_VERTICAL);
+    m_intervals_grid_sizer->Add(m_interval_by_mm, 0, wxALIGN_CENTER_VERTICAL);
     m_intervals_grid_sizer->Add(st_by_mm,0, wxALIGN_CENTER_VERTICAL);
 
     intervals_box_sizer->Add(m_intervals_grid_sizer, 0, wxLEFT, em);
     option_sizer->Add(intervals_box_sizer, 0, wxEXPAND);
 
     
-    auto extruders_box = new wxStaticBox(this, wxID_ANY, _(L("Set extruder(tool) sequence"))+ " : ");
+    auto extruders_box = new wxStaticBox(this, wxID_ANY, _(L("Set extruder(tool) sequence"))+ ": ");
     auto extruders_box_sizer = new wxStaticBoxSizer(extruders_box, wxVERTICAL);
 
     m_extruders_grid_sizer = new wxFlexGridSizer(3, 5, em);

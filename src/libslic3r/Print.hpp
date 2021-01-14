@@ -11,9 +11,7 @@
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
 #include "GCode/ThumbnailData.hpp"
-#if ENABLE_GCODE_VIEWER
 #include "GCode/GCodeProcessor.hpp"
-#endif // ENABLE_GCODE_VIEWER
 
 #include "libslic3r.h"
 
@@ -23,9 +21,6 @@ class Print;
 class PrintObject;
 class ModelObject;
 class GCode;
-#if !ENABLE_GCODE_VIEWER
-class GCodePreviewData;
-#endif // !ENABLE_GCODE_VIEWER
 enum class SlicingMode : uint32_t;
 class Layer;
 class SupportLayer;
@@ -166,6 +161,8 @@ public:
     // Get a layer approximately at print_z.
     const Layer*	get_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
     Layer*			get_layer_at_printz(coordf_t print_z, coordf_t epsilon);
+    // Get the first layer approximately bellow print_z.
+    const Layer*	get_first_layer_bellow_printz(coordf_t print_z, coordf_t epsilon) const;
 
     // print_z: top of the layer; slice_z: center of the layer.
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
@@ -191,7 +188,7 @@ public:
     // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
     std::vector<unsigned int>   object_extruders() const;
 
-    // Called when slicing to SVG (see Print.pm sub export_svg), and used by perimeters.t
+    // Called by make_perimeters()
     void slice();
 
     // Helpers to slice support enforcer / blocker meshes by the support generator.
@@ -264,9 +261,16 @@ private:
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
 
-    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const;
+    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below) const;
+    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const
+        { return this->slice_region(region_id, z, mode, 0, mode); }
     std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;
-    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const;
+    std::vector<ExPolygons> slice_volumes(
+        const std::vector<float> &z, 
+        SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below, 
+        const std::vector<const ModelVolume*> &volumes) const;
+    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const
+        { return this->slice_volumes(z, mode, 0, mode, volumes); }
     std::vector<ExPolygons> slice_volume(const std::vector<float> &z, SlicingMode mode, const ModelVolume &volume) const;
     std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, SlicingMode mode, const ModelVolume &volume) const;
 };
@@ -312,10 +316,6 @@ struct PrintStatistics
     PrintStatistics() { clear(); }
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
-#if !ENABLE_GCODE_VIEWER
-    std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_normal_custom_gcode_print_times;
-    std::vector<std::pair<CustomGCode::Type, std::string>>    estimated_silent_custom_gcode_print_times;
-#endif // !ENABLE_GCODE_VIEWER
     double                          total_used_filament;
     double                          total_extruded_volume;
     double                          total_cost;
@@ -333,12 +333,6 @@ struct PrintStatistics
     std::string             finalize_output_path(const std::string &path_in) const;
 
     void clear() {
-#if !ENABLE_GCODE_VIEWER
-        estimated_normal_print_time.clear();
-        estimated_silent_print_time.clear();
-        estimated_normal_custom_gcode_print_times.clear();
-        estimated_silent_custom_gcode_print_times.clear();
-#endif // !ENABLE_GCODE_VIEWER
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
         total_cost             = 0.;
@@ -380,11 +374,7 @@ public:
     void                process() override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
-#if ENABLE_GCODE_VIEWER
     std::string         export_gcode(const std::string& path_template, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
-#else
-    std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
-#endif // ENABLE_GCODE_VIEWER
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }

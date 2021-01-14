@@ -37,39 +37,7 @@ using t_change = std::function<void(const t_config_option_key&, const boost::any
 using t_back_to_init = std::function<void(const std::string&)>;
 
 wxString double_to_string(double const value, const int max_precision = 4);
-
-class RevertButton : public ScalableButton
-{
-    bool hidden = false; // never show button if it's hidden ones
-public:
-// 	RevertButton() {} 
-// 	RevertButton(wxWindow* parent, wxWindowID id, const wxString& label = wxEmptyString,
-// 		const wxPoint& pos = wxDefaultPosition,
-// 		const wxSize& size = wxDefaultSize, long style = 0,
-// 		const wxValidator& validator = wxDefaultValidator,
-// 		const wxString& name = wxTextCtrlNameStr)
-// 	{
-// 		this->Create(parent, id, label, pos, size, style, validator, name);
-// 	}
-    RevertButton(
-        wxWindow *parent,
-        const std::string& icon_name = ""
-        ) :
-        ScalableButton(parent, wxID_ANY, icon_name) {}
-
-	// overridden from wxWindow base class
-	virtual bool
-		AcceptsFocusFromKeyboard() const { return false; }
-
-    void set_as_hidden() {
-        Hide();
-        hidden = true;
-	}
-
-    virtual bool Show(bool show = true) override {
-        return wxButton::Show(hidden ? false : show);
-	}
-};
+wxString get_thumbnails_string(const std::vector<Vec2d>& values);
 
 class Field {
 protected:
@@ -283,14 +251,14 @@ public:
     void propagate_value();
     wxWindow* window {nullptr};
 
-    virtual void	set_value(const std::string& value, bool change_event = false) {
+    void	set_value(const std::string& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
         dynamic_cast<wxTextCtrl*>(window)->SetValue(wxString(value));
 		m_disable_change_event = false;
     }
-	virtual void	set_value(const boost::any& value, bool change_event = false) override;
-    virtual void    set_last_meaningful_value() override;
-    virtual void	set_na_value() override;
+	void	set_value(const boost::any& value, bool change_event = false) override;
+    void    set_last_meaningful_value() override;
+    void	set_na_value() override;
 
 	boost::any&		get_value() override;
 
@@ -385,11 +353,14 @@ public:
     /* Under OSX: wxBitmapComboBox->GetWindowStyle() returns some weard value, 
      * so let use a flag, which has TRUE value for a control without wxCB_READONLY style
      */
-    bool            m_is_editable { false };
+    bool            m_is_editable     { false };
+    bool            m_is_dropped      { false };
+    bool            m_suppress_scroll { false };
+    int             m_last_selected   { wxNOT_FOUND };
 
 	void			set_selection();
 	void			set_value(const std::string& value, bool change_event = false);
-	void			set_value(const boost::any& value, bool change_event = false);
+	void			set_value(const boost::any& value, bool change_event = false) override;
 	void			set_values(const std::vector<std::string> &values);
 	void			set_values(const wxArrayString &values);
 	boost::any&		get_value() override;
@@ -399,6 +370,8 @@ public:
 	void			enable() override ;//{ dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };
 	void			disable() override;//{ dynamic_cast<wxBitmapComboBox*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
+
+    void            suppress_scroll();
 };
 
 class ColourPicker : public Field {
@@ -443,7 +416,7 @@ public:
     // Propagate value from field to the OptionGroupe and Config after kill_focus/ENTER
     void            propagate_value(wxTextCtrl* win);
 	void			set_value(const Vec2d& value, bool change_event = false);
-	void			set_value(const boost::any& value, bool change_event = false);
+	void			set_value(const boost::any& value, bool change_event = false) override;
 	boost::any&		get_value() override;
 
     void            msw_rescale() override;
@@ -473,7 +446,7 @@ public:
 		dynamic_cast<wxStaticText*>(window)->SetLabel(wxString::FromUTF8(value.data()));
 		m_disable_change_event = false;
 	}
-	void			set_value(const boost::any& value, bool change_event = false) {
+	void			set_value(const boost::any& value, bool change_event = false) override {
 		m_disable_change_event = !change_event;
 		dynamic_cast<wxStaticText*>(window)->SetLabel(boost::any_cast<wxString>(value));
 		m_disable_change_event = false;
@@ -504,7 +477,7 @@ public:
 	void			BUILD()  override;
 
 	void			set_value(const int value, bool change_event = false);
-	void			set_value(const boost::any& value, bool change_event = false);
+	void			set_value(const boost::any& value, bool change_event = false) override;
 	boost::any&		get_value() override;
 
 	void			enable() override {

@@ -27,6 +27,7 @@
 #include <wx/debug.h>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Config.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
@@ -34,6 +35,11 @@
 #include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
+#if defined(__linux__) && defined(__WXGTK3__)
+#define wxLinux_gtk3 true
+#else
+#define wxLinux_gtk3 false
+#endif //defined(__linux__) && defined(__WXGTK3__)
 
 namespace Slic3r {
 namespace GUI {
@@ -191,24 +197,24 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
 
         wxBitmap bitmap;
         int bitmap_width = 0;
-        const wxString bitmap_file = GUI::from_u8(Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png");
-        if (wxFileExists(bitmap_file)) {
-            bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
-            bitmap_width = bitmap.GetWidth();
-        } else {
-            BOOST_LOG_TRIVIAL(warning) << boost::format("Can't find bitmap file `%1%` for vendor `%2%`, printer `%3%`, using placeholder icon instead")
-                % bitmap_file
-                % vendor.id
-                % model.id;
-
-            const wxString placeholder_file = GUI::from_u8(Slic3r::var(PRINTER_PLACEHOLDER));
-            if (wxFileExists(placeholder_file)) {
-                bitmap.LoadFile(placeholder_file, wxBITMAP_TYPE_PNG);
+        auto load_bitmap = [](const wxString& bitmap_file, wxBitmap& bitmap, int& bitmap_width)->bool {
+            if (wxFileExists(bitmap_file)) {
+                bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
                 bitmap_width = bitmap.GetWidth();
+                return true;
+            }
+            return false;
+        };
+        if (!load_bitmap(GUI::from_u8(Slic3r::data_dir() + "/vendor/" + vendor.id + "/" + model.id + "_thumbnail.png"), bitmap, bitmap_width)) {
+            if (!load_bitmap(GUI::from_u8(Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png"), bitmap, bitmap_width)) {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Can't find bitmap file `%1%` for vendor `%2%`, printer `%3%`, using placeholder icon instead")
+                    % (Slic3r::resources_dir() + "/profiles/" + vendor.id + "/" + model.id + "_thumbnail.png")
+                    % vendor.id
+                    % model.id;
+                load_bitmap(Slic3r::var(PRINTER_PLACEHOLDER), bitmap, bitmap_width);
             }
         }
-
-        auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+        auto *title = new wxStaticText(this, wxID_ANY, from_u8(model.name), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
         title->SetFont(font_name);
         const int wrap_width = std::max((int)MODEL_MIN_WRAP, bitmap_width);
         title->Wrap(wrap_width);
@@ -237,7 +243,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
                 : from_u8(model.name);
 
             if (i == 1) {
-                auto *alt_label = new wxStaticText(variants_panel, wxID_ANY, _(L("Alternate nozzles:")));
+                auto *alt_label = new wxStaticText(variants_panel, wxID_ANY, _L("Alternate nozzles:"));
                 alt_label->SetFont(font_alt_nozzle);
                 variants_sizer->Add(alt_label, 0, wxBOTTOM, 3);
                 is_variants = true;
@@ -270,24 +276,21 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
         const size_t odd_items = titles.size() % cols;
 
         for (size_t i = 0; i < titles.size() - odd_items; i += cols) {
-            for (size_t j = i; j < i + cols; j++) { printer_grid->Add(titles[j], 0, wxBOTTOM, 3); }
             for (size_t j = i; j < i + cols; j++) { printer_grid->Add(bitmaps[j], 0, wxBOTTOM, 20); }
+            for (size_t j = i; j < i + cols; j++) { printer_grid->Add(titles[j], 0, wxBOTTOM, 3); }
             for (size_t j = i; j < i + cols; j++) { printer_grid->Add(variants_panels[j]); }
 
-            // Add separator space
-            if (i > 0) {
-                for (size_t j = i; j < i + cols; j++) { printer_grid->Add(1, 100); }
+            // Add separator space to multiliners
+            if (titles.size() > cols) {
+                for (size_t j = i; j < i + cols; j++) { printer_grid->Add(1, 30); }
             }
         }
-
         if (odd_items > 0) {
-            for (size_t i = 0; i < cols; i++) { printer_grid->Add(1, 100); }
-
             const size_t rem = titles.size() - odd_items;
 
-            for (size_t i = rem; i < titles.size(); i++) { printer_grid->Add(titles[i], 0, wxBOTTOM, 3); }
-            for (size_t i = 0; i < cols - odd_items; i++) { printer_grid->AddSpacer(1); }
             for (size_t i = rem; i < titles.size(); i++) { printer_grid->Add(bitmaps[i], 0, wxBOTTOM, 20); }
+            for (size_t i = 0; i < cols - odd_items; i++) { printer_grid->AddSpacer(1); }
+            for (size_t i = rem; i < titles.size(); i++) { printer_grid->Add(titles[i], 0, wxBOTTOM, 3); }
             for (size_t i = 0; i < cols - odd_items; i++) { printer_grid->AddSpacer(1); }
             for (size_t i = rem; i < titles.size(); i++) { printer_grid->Add(variants_panels[i]); }
         }
@@ -304,9 +307,9 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     if (/*titles.size() > 1*/is_variants) {
         // It only makes sense to add the All / None buttons if there's multiple printers
 
-        auto *sel_all_std = new wxButton(this, wxID_ANY, titles.size() > 1 ? _(L("All standard")) : _(L("Standard")));
-        auto *sel_all = new wxButton(this, wxID_ANY, _(L("All")));
-        auto *sel_none = new wxButton(this, wxID_ANY, _(L("None")));
+        auto *sel_all_std = new wxButton(this, wxID_ANY, titles.size() > 1 ? _L("All standard") : _L("Standard"));
+        auto *sel_all = new wxButton(this, wxID_ANY, _L("All"));
+        auto *sel_none = new wxButton(this, wxID_ANY, _L("None"));
         sel_all_std->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(true, false); });
         sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(true, true); });
         sel_none->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(false); });
@@ -411,7 +414,11 @@ ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxStrin
 
     SetSizer(sizer);
 
-    this->Hide();
+    // There is strange layout on Linux with GTK3, 
+    // see https://github.com/prusa3d/PrusaSlicer/issues/5103 and https://github.com/prusa3d/PrusaSlicer/issues/4861
+    // So, non-active pages will be hidden later, on wxEVT_SHOW, after completed Layout() for all pages 
+    if (!wxLinux_gtk3)
+        this->Hide();
 
     Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
         this->Layout();
@@ -446,14 +453,14 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
 #else
             _utf8(L("Welcome to the %s Configuration Wizard"))
 #endif
-            ) % SLIC3R_APP_NAME).str()), _(L("Welcome")))
+            ) % SLIC3R_APP_NAME).str()), _L("Welcome"))
     , welcome_text(append_text(from_u8((boost::format(
         _utf8(L("Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")))
         % SLIC3R_APP_NAME
         % _utf8(ConfigWizard::name())).str())
     ))
     , cbox_reset(append(
-        new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles (a snapshot will be taken beforehand)")))
+        new wxCheckBox(this, wxID_ANY, _L("Remove user profiles (a snapshot will be taken beforehand)"))
     ))
 {
     welcome_text->Hide();
@@ -584,10 +591,10 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     grid->AddGrowableCol(3, 1);
     grid->AddGrowableRow(1, 1);
 
-	grid->Add(new wxStaticText(this, wxID_ANY, _(L("Printer:"))));
+	grid->Add(new wxStaticText(this, wxID_ANY, _L("Printer:")));
     grid->Add(new wxStaticText(this, wxID_ANY, list1name));
-    grid->Add(new wxStaticText(this, wxID_ANY, _(L("Vendor:"))));
-    grid->Add(new wxStaticText(this, wxID_ANY, _(L("Profile:"))));
+    grid->Add(new wxStaticText(this, wxID_ANY, _L("Vendor:")));
+    grid->Add(new wxStaticText(this, wxID_ANY, _L("Profile:")));
 
 	grid->Add(list_printer, 0, wxEXPAND);
     grid->Add(list_type, 0, wxEXPAND);
@@ -595,8 +602,8 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     grid->Add(list_profile, 1, wxEXPAND);
 
     auto *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto *sel_all = new wxButton(this, wxID_ANY, _(L("All")));
-    auto *sel_none = new wxButton(this, wxID_ANY, _(L("None")));
+    auto *sel_all = new wxButton(this, wxID_ANY, _L("All"));
+    auto *sel_none = new wxButton(this, wxID_ANY, _L("None"));
     btn_sizer->Add(sel_all, 0, wxRIGHT, em / 2);
     btn_sizer->Add(sel_none);
 
@@ -659,7 +666,7 @@ void PageMaterials::reload_presets()
 {
     clear();
 
-	list_printer->append(_(L("(All)")), &EMPTY);
+	list_printer->append(_L("(All)"), &EMPTY);
     //list_printer->SetLabelMarkup("<b>bald</b>");
 	for (const Preset* printer : materials->printers) {
 		list_printer->append(printer->name, &printer->name);
@@ -688,10 +695,10 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
     const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
     const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
-    wxString first_line = _(L("Filaments marked with <b>*</b> are <b>not</b> compatible with some installed printers."));
+    wxString first_line = _L("Filaments marked with <b>*</b> are <b>not</b> compatible with some installed printers.");
     wxString text;
     if (all_printers) {
-        wxString second_line = _(L("All installed printers are compatible with the selected filament."));
+        wxString second_line = _L("All installed printers are compatible with the selected filament.");
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -711,7 +718,7 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
             , second_line
             );
     } else {
-        wxString second_line = _(L("Only the following installed printers are compatible with the selected filament:"));
+        wxString second_line = _L("Only the following installed printers are compatible with the selected filament:");
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -809,7 +816,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 	if (sel_printers_count != sel_printer_count_prev || (sel_printers_count == 1 && sel_printer_item_prev != sel_printer && sel_printer != -1)) {
         // Refresh type list
 		list_type->Clear();
-		list_type->append(_(L("(All)")), &EMPTY);
+		list_type->append(_L("(All)"), &EMPTY);
 		if (sel_printers_count > 0) {
             // If all is selected with other printers
             // unselect "all" or all printers depending on last value
@@ -870,7 +877,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 		// but the number of vendors is going to be very small this shouldn't be a problem.
 
 		list_vendor->Clear();
-		list_vendor->append(_(L("(All)")), &EMPTY);
+		list_vendor->append(_L("(All)"), &EMPTY);
 		if (sel_printers_count != 0 && sel_type != wxNOT_FOUND) {
 			const std::string& type = list_type->get_data(sel_type);
 			// find printer preset
@@ -1007,7 +1014,7 @@ void PageMaterials::sort_list_data(StringList* list, bool add_All_item, bool mat
     
     list->Clear();
     if (add_All_item)
-        list->append(_(L("(All)")), &EMPTY);
+        list->append(_L("(All)"), &EMPTY);
     for (const auto& item : prusa_profiles)
         list->append(item, &const_cast<std::string&>(item.get()));
     for (const auto& item : other_profiles)
@@ -1097,11 +1104,11 @@ void PageMaterials::on_activate()
 const char *PageCustom::default_profile_name = "My Settings";
 
 PageCustom::PageCustom(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Custom Printer Setup")), _(L("Custom Printer")))
+    : ConfigWizardPage(parent, _L("Custom Printer Setup"), _L("Custom Printer"))
 {
-    cb_custom = new wxCheckBox(this, wxID_ANY, _(L("Define a custom printer profile")));
+    cb_custom = new wxCheckBox(this, wxID_ANY, _L("Define a custom printer profile"));
     tc_profile_name = new wxTextCtrl(this, wxID_ANY, default_profile_name);
-    auto *label = new wxStaticText(this, wxID_ANY, _(L("Custom profile name:")));
+    auto *label = new wxStaticText(this, wxID_ANY, _L("Custom profile name:"));
 
     tc_profile_name->Enable(false);
     tc_profile_name->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &evt) {
@@ -1126,7 +1133,7 @@ PageCustom::PageCustom(ConfigWizard *parent)
 }
 
 PageUpdate::PageUpdate(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Automatic updates")), _(L("Updates")))
+    : ConfigWizardPage(parent, _L("Automatic updates"), _L("Updates"))
     , version_check(true)
     , preset_update(true)
 {
@@ -1134,60 +1141,76 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
     auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
-    auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _(L("Check for application updates")));
+    auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _L("Check for application updates"));
     box_slic3r->SetValue(app_config->get("version_check") == "1");
     append(box_slic3r);
-    append_text(wxString::Format(_(L(
+    append_text(wxString::Format(_L(
         "If enabled, %s checks for new application versions online. When a new version becomes available, "
          "a notification is displayed at the next application startup (never during program usage). "
-         "This is only a notification mechanisms, no automatic installation is done.")), SLIC3R_APP_NAME));
+         "This is only a notification mechanisms, no automatic installation is done."), SLIC3R_APP_NAME));
 
     append_spacer(VERTICAL_SPACING);
 
-    auto *box_presets = new wxCheckBox(this, wxID_ANY, _(L("Update built-in Presets automatically")));
+    auto *box_presets = new wxCheckBox(this, wxID_ANY, _L("Update built-in Presets automatically"));
     box_presets->SetValue(app_config->get("preset_update") == "1");
     append(box_presets);
-    append_text(wxString::Format(_(L(
+    append_text(wxString::Format(_L(
         "If enabled, %s downloads updates of built-in system presets in the background."
         "These updates are downloaded into a separate temporary location."
-        "When a new preset version becomes available it is offered at application startup.")), SLIC3R_APP_NAME));
-    const auto text_bold = _(L("Updates are never applied without user's consent and never overwrite user's customized settings."));
+        "When a new preset version becomes available it is offered at application startup."), SLIC3R_APP_NAME));
+    const auto text_bold = _L("Updates are never applied without user's consent and never overwrite user's customized settings.");
     auto *label_bold = new wxStaticText(this, wxID_ANY, text_bold);
     label_bold->SetFont(boldfont);
     label_bold->Wrap(WRAP_WIDTH);
     append(label_bold);
-    append_text(_(L("Additionally a backup snapshot of the whole configuration is created before an update is applied.")));
+    append_text(_L("Additionally a backup snapshot of the whole configuration is created before an update is applied."));
 
     box_slic3r->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->version_check = event.IsChecked(); });
     box_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->preset_update = event.IsChecked(); });
 }
 
 PageReloadFromDisk::PageReloadFromDisk(ConfigWizard* parent)
-    : ConfigWizardPage(parent, _(L("Reload from disk")), _(L("Reload from disk")))
+    : ConfigWizardPage(parent, _L("Reload from disk"), _L("Reload from disk"))
     , full_pathnames(false)
 {
-    auto* box_pathnames = new wxCheckBox(this, wxID_ANY, _(L("Export full pathnames of models and parts sources into 3mf and amf files")));
+    auto* box_pathnames = new wxCheckBox(this, wxID_ANY, _L("Export full pathnames of models and parts sources into 3mf and amf files"));
     box_pathnames->SetValue(wxGetApp().app_config->get("export_sources_full_pathnames") == "1");
     append(box_pathnames);
-    append_text(_(L(
+    append_text(_L(
         "If enabled, allows the Reload from disk command to automatically find and load the files when invoked.\n"
         "If not enabled, the Reload from disk command will ask to select each file using an open file dialog."
-    )));
+    ));
 
     box_pathnames->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) { this->full_pathnames = event.IsChecked(); });
 }
 
-PageMode::PageMode(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("View mode")), _(L("View mode")))
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+PageFilesAssociation::PageFilesAssociation(ConfigWizard* parent)
+    : ConfigWizardPage(parent, _L("Files association"), _L("Files association"))
 {
-    append_text(_(L("PrusaSlicer's user interfaces comes in three variants:\nSimple, Advanced, and Expert.\n"
+    cb_3mf = new wxCheckBox(this, wxID_ANY, _L("Associate .3mf files to PrusaSlicer"));
+    cb_stl = new wxCheckBox(this, wxID_ANY, _L("Associate .stl files to PrusaSlicer"));
+//    cb_gcode = new wxCheckBox(this, wxID_ANY, _L("Associate .gcode files to PrusaSlicer G-code Viewer"));
+
+    append(cb_3mf);
+    append(cb_stl);
+//    append(cb_gcode);
+}
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+
+PageMode::PageMode(ConfigWizard *parent)
+    : ConfigWizardPage(parent, _L("View mode"), _L("View mode"))
+{
+    append_text(_L("PrusaSlicer's user interfaces comes in three variants:\nSimple, Advanced, and Expert.\n"
         "The Simple mode shows only the most frequently used settings relevant for regular 3D printing. "
         "The other two offer progressively more sophisticated fine-tuning, "
-        "they are suitable for advanced and expert users, respectively.")));
+        "they are suitable for advanced and expert users, respectively."));
 
-    radio_simple = new wxRadioButton(this, wxID_ANY, _(L("Simple mode")));
-    radio_advanced = new wxRadioButton(this, wxID_ANY, _(L("Advanced mode")));
-    radio_expert = new wxRadioButton(this, wxID_ANY, _(L("Expert mode")));
+    radio_simple = new wxRadioButton(this, wxID_ANY, _L("Simple mode"));
+    radio_advanced = new wxRadioButton(this, wxID_ANY, _L("Advanced mode"));
+    radio_expert = new wxRadioButton(this, wxID_ANY, _L("Expert mode"));
 
     append(radio_simple);
     append(radio_advanced);
@@ -1228,11 +1251,11 @@ void PageMode::serialize_mode(AppConfig *app_config) const
 }
 
 PageVendors::PageVendors(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Other Vendors")), _(L("Other Vendors")))
+    : ConfigWizardPage(parent, _L("Other Vendors"), _L("Other Vendors"))
 {
     const AppConfig &appconfig = this->wizard_p()->appconfig_new;
 
-    append_text(wxString::Format(_(L("Pick another vendor supported by %s")), SLIC3R_APP_NAME) + ":");
+    append_text(wxString::Format(_L("Pick another vendor supported by %s"), SLIC3R_APP_NAME) + ":");
 
     auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     boldfont.SetWeight(wxFONTWEIGHT_BOLD);
@@ -1263,11 +1286,11 @@ PageVendors::PageVendors(ConfigWizard *parent)
 }
 
 PageFirmware::PageFirmware(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Firmware Type")), _(L("Firmware")), 1)
+    : ConfigWizardPage(parent, _L("Firmware Type"), _L("Firmware"), 1)
     , gcode_opt(*print_config_def.get("gcode_flavor"))
     , gcode_picker(nullptr)
 {
-    append_text(_(L("Choose the type of firmware used by your printer.")));
+    append_text(_L("Choose the type of firmware used by your printer."));
     append_text(_(gcode_opt.tooltip));
 
     wxArrayString choices;
@@ -1301,10 +1324,10 @@ void PageFirmware::apply_custom_config(DynamicPrintConfig &config)
 }
 
 PageBedShape::PageBedShape(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Bed Shape and Size")), _(L("Bed Shape")), 1)
+    : ConfigWizardPage(parent, _L("Bed Shape and Size"), _L("Bed Shape"), 1)
     , shape_panel(new BedShapePanel(this))
 {
-    append_text(_(L("Set the shape of your printer's bed.")));
+    append_text(_L("Set the shape of your printer's bed."));
 
     shape_panel->build_panel(*wizard_p()->custom_config->option<ConfigOptionPoints>("bed_shape"),
         *wizard_p()->custom_config->option<ConfigOptionString>("bed_custom_texture"),
@@ -1324,7 +1347,7 @@ void PageBedShape::apply_custom_config(DynamicPrintConfig &config)
 }
 
 PageDiameters::PageDiameters(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Filament and Nozzle Diameters")), _(L("Print Diameters")), 1)
+    : ConfigWizardPage(parent, _L("Filament and Nozzle Diameters"), _L("Print Diameters"), 1)
     , spin_nozzle(new wxSpinCtrlDouble(this, wxID_ANY))
     , spin_filam(new wxSpinCtrlDouble(this, wxID_ANY))
 {
@@ -1338,11 +1361,11 @@ PageDiameters::PageDiameters(ConfigWizard *parent)
     auto *default_filam = print_config_def.get("filament_diameter")->get_default_value<ConfigOptionFloats>();
     spin_filam->SetValue(default_filam != nullptr && default_filam->size() > 0 ? default_filam->get_at(0) : 3.0);
 
-    append_text(_(L("Enter the diameter of your printer's hot end nozzle.")));
+    append_text(_L("Enter the diameter of your printer's hot end nozzle."));
 
     auto *sizer_nozzle = new wxFlexGridSizer(3, 5, 5);
-    auto *text_nozzle = new wxStaticText(this, wxID_ANY, _(L("Nozzle Diameter:")));
-    auto *unit_nozzle = new wxStaticText(this, wxID_ANY, _(L("mm")));
+    auto *text_nozzle = new wxStaticText(this, wxID_ANY, _L("Nozzle Diameter:"));
+    auto *unit_nozzle = new wxStaticText(this, wxID_ANY, _L("mm"));
     sizer_nozzle->AddGrowableCol(0, 1);
     sizer_nozzle->Add(text_nozzle, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_nozzle->Add(spin_nozzle);
@@ -1351,12 +1374,12 @@ PageDiameters::PageDiameters(ConfigWizard *parent)
 
     append_spacer(VERTICAL_SPACING);
 
-    append_text(_(L("Enter the diameter of your filament.")));
-    append_text(_(L("Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average.")));
+    append_text(_L("Enter the diameter of your filament."));
+    append_text(_L("Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."));
 
     auto *sizer_filam = new wxFlexGridSizer(3, 5, 5);
-    auto *text_filam = new wxStaticText(this, wxID_ANY, _(L("Filament Diameter:")));
-    auto *unit_filam = new wxStaticText(this, wxID_ANY, _(L("mm")));
+    auto *text_filam = new wxStaticText(this, wxID_ANY, _L("Filament Diameter:"));
+    auto *unit_filam = new wxStaticText(this, wxID_ANY, _L("mm"));
     sizer_filam->AddGrowableCol(0, 1);
     sizer_filam->Add(text_filam, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_filam->Add(spin_filam);
@@ -1389,7 +1412,7 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
 }
 
 PageTemperatures::PageTemperatures(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _(L("Extruder and Bed Temperatures")), _(L("Temperatures")), 1)
+    : ConfigWizardPage(parent, _L("Nozzle and Bed Temperatures"), _L("Temperatures"), 1)
     , spin_extr(new wxSpinCtrlDouble(this, wxID_ANY))
     , spin_bed(new wxSpinCtrlDouble(this, wxID_ANY))
 {
@@ -1405,12 +1428,12 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
     auto *default_bed = def_bed.get_default_value<ConfigOptionInts>();
     spin_bed->SetValue(default_bed != nullptr && default_bed->size() > 0 ? default_bed->get_at(0) : 0);
 
-    append_text(_(L("Enter the temperature needed for extruding your filament.")));
-    append_text(_(L("A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS.")));
+    append_text(_L("Enter the temperature needed for extruding your filament."));
+    append_text(_L("A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."));
 
     auto *sizer_extr = new wxFlexGridSizer(3, 5, 5);
-    auto *text_extr = new wxStaticText(this, wxID_ANY, _(L("Extrusion Temperature:")));
-    auto *unit_extr = new wxStaticText(this, wxID_ANY, _(L("°C")));
+    auto *text_extr = new wxStaticText(this, wxID_ANY, _L("Extrusion Temperature:"));
+    auto *unit_extr = new wxStaticText(this, wxID_ANY, _L("°C"));
     sizer_extr->AddGrowableCol(0, 1);
     sizer_extr->Add(text_extr, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_extr->Add(spin_extr);
@@ -1419,12 +1442,12 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
     append_spacer(VERTICAL_SPACING);
 
-    append_text(_(L("Enter the bed temperature needed for getting your filament to stick to your heated bed.")));
-    append_text(_(L("A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed.")));
+    append_text(_L("Enter the bed temperature needed for getting your filament to stick to your heated bed."));
+    append_text(_L("A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."));
 
     auto *sizer_bed = new wxFlexGridSizer(3, 5, 5);
-    auto *text_bed = new wxStaticText(this, wxID_ANY, _(L("Bed Temperature:")));
-    auto *unit_bed = new wxStaticText(this, wxID_ANY, _(L("°C")));
+    auto *text_bed = new wxStaticText(this, wxID_ANY, _L("Bed Temperature:"));
+    auto *unit_bed = new wxStaticText(this, wxID_ANY, _L("°C"));
     sizer_bed->AddGrowableCol(0, 1);
     sizer_bed->Add(text_bed, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_bed->Add(spin_bed);
@@ -1782,6 +1805,11 @@ void ConfigWizard::priv::load_pages()
 
     index->add_page(page_update);
     index->add_page(page_reload_from_disk);
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+    index->add_page(page_files_association);
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
     index->add_page(page_mode);
 
     index->go_to(former_active);   // Will restore the active item/page if possible
@@ -1878,7 +1906,7 @@ void ConfigWizard::priv::load_vendors()
 
 void ConfigWizard::priv::add_page(ConfigWizardPage *page)
 {
-    const int proportion = (page->shortname == _(L("Filaments"))) || (page->shortname == _(L("SLA Materials"))) ? 1 : 0;
+    const int proportion = (page->shortname == _L("Filaments")) || (page->shortname == _L("SLA Materials")) ? 1 : 0;
     hscroll_sizer->Add(page, proportion, wxEXPAND);
     all_pages.push_back(page);
 }
@@ -1932,12 +1960,12 @@ void ConfigWizard::priv::create_3rdparty_pages()
         PagePrinters* pageSLA = nullptr;
 
         if (is_fff_technology) {
-            pageFFF = new PagePrinters(q, vendor->name + " " +_(L("FFF Technology Printers")), vendor->name+" FFF", *vendor, 1, T_FFF);
+            pageFFF = new PagePrinters(q, vendor->name + " " +_L("FFF Technology Printers"), vendor->name+" FFF", *vendor, 1, T_FFF);
             add_page(pageFFF);
         }
 
         if (is_sla_technology) {
-            pageSLA = new PagePrinters(q, vendor->name + " " + _(L("SLA Technology Printers")), vendor->name+" MSLA", *vendor, 1, T_SLA);
+            pageSLA = new PagePrinters(q, vendor->name + " " + _L("SLA Technology Printers"), vendor->name+" MSLA", *vendor, 1, T_SLA);
             add_page(pageSLA);
         }
 
@@ -2243,7 +2271,7 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
 
     const auto ask_and_select_default_materials = [this](const wxString &message, const std::set<const VendorProfile::PrinterModel*> &printer_models, Technology technology)
     {
-        wxMessageDialog msg(q, message, _(L("Notice")), wxYES_NO);
+        wxMessageDialog msg(q, message, _L("Notice"), wxYES_NO);
         if (msg.ShowModal() == wxID_YES)
             select_default_materials_for_printer_models(technology, printer_models);
     };
@@ -2251,8 +2279,9 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
     const auto printer_model_list = [](const std::set<const VendorProfile::PrinterModel*> &printer_models) -> wxString {
     	wxString out;
     	for (const VendorProfile::PrinterModel *printer_model : printer_models) {
+            wxString name = from_u8(printer_model->name);
     		out += "\t\t";
-    		out += from_u8(printer_model->name);
+    		out += name;
     		out += "\n";
     	}
     	return out;
@@ -2374,6 +2403,26 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     app_config->set("preset_update", page_update->preset_update ? "1" : "0");
     app_config->set("export_sources_full_pathnames", page_reload_from_disk->full_pathnames ? "1" : "0");
 
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+    app_config->set("associate_3mf", page_files_association->associate_3mf() ? "1" : "0");
+    app_config->set("associate_stl", page_files_association->associate_stl() ? "1" : "0");
+//    app_config->set("associate_gcode", page_files_association->associate_gcode() ? "1" : "0");
+
+    if (wxGetApp().is_editor()) {
+        if (page_files_association->associate_3mf())
+            wxGetApp().associate_3mf_files();
+        if (page_files_association->associate_stl())
+            wxGetApp().associate_stl_files();
+    }
+//    else {
+//        if (page_files_association->associate_gcode())
+//            wxGetApp().associate_gcode_files();
+//    }
+
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+
     page_mode->serialize_mode(app_config);
 
     std::string preferred_model;
@@ -2418,7 +2467,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         page_temps->apply_custom_config(*custom_config);
 
         const std::string profile_name = page_custom->profile_name();
-        preset_bundle->load_config(profile_name, *custom_config);
+        preset_bundle->load_config_from_wizard(profile_name, *custom_config);
     }
 
     // Update the selections from the compatibilty.
@@ -2493,13 +2542,13 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     topsizer->AddSpacer(INDEX_MARGIN);
     topsizer->Add(p->hscroll, 1, wxEXPAND);
 
-    p->btn_sel_all = new wxButton(this, wxID_ANY, _(L("Select all standard printers")));
+    p->btn_sel_all = new wxButton(this, wxID_ANY, _L("Select all standard printers"));
     p->btnsizer->Add(p->btn_sel_all);
 
-    p->btn_prev = new wxButton(this, wxID_ANY, _(L("< &Back")));
-    p->btn_next = new wxButton(this, wxID_ANY, _(L("&Next >")));
-    p->btn_finish = new wxButton(this, wxID_APPLY, _(L("&Finish")));
-    p->btn_cancel = new wxButton(this, wxID_CANCEL, _(L("Cancel")));   // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
+    p->btn_prev = new wxButton(this, wxID_ANY, _L("< &Back"));
+    p->btn_next = new wxButton(this, wxID_ANY, _L("&Next >"));
+    p->btn_finish = new wxButton(this, wxID_APPLY, _L("&Finish"));
+    p->btn_cancel = new wxButton(this, wxID_CANCEL, _L("Cancel"));   // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
     p->btnsizer->AddStretchSpacer();
     p->btnsizer->Add(p->btn_prev, 0, wxLEFT, BTN_SPACING);
     p->btnsizer->Add(p->btn_next, 0, wxLEFT, BTN_SPACING);
@@ -2512,10 +2561,10 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 
     p->add_page(p->page_welcome = new PageWelcome(this));
 
-    p->page_fff = new PagePrinters(this, _(L("Prusa FFF Technology Printers")), "Prusa FFF", *vendor_prusa, 0, T_FFF);
+    p->page_fff = new PagePrinters(this, _L("Prusa FFF Technology Printers"), "Prusa FFF", *vendor_prusa, 0, T_FFF);
     p->add_page(p->page_fff);
 
-    p->page_msla = new PagePrinters(this, _(L("Prusa MSLA Technology Printers")), "Prusa MSLA", *vendor_prusa, 0, T_SLA);
+    p->page_msla = new PagePrinters(this, _L("Prusa MSLA Technology Printers"), "Prusa MSLA", *vendor_prusa, 0, T_SLA);
     p->add_page(p->page_msla);
 
 	// Pages for 3rd party vendors
@@ -2530,13 +2579,18 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->update_materials(T_ANY);
 
     p->add_page(p->page_filaments = new PageMaterials(this, &p->filaments,
-        _(L("Filament Profiles Selection")), _(L("Filaments")), _(L("Type:")) ));
+        _L("Filament Profiles Selection"), _L("Filaments"), _L("Type:") ));
     p->add_page(p->page_sla_materials = new PageMaterials(this, &p->sla_materials,
-        _(L("SLA Material Profiles Selection")) + " ", _(L("SLA Materials")), _(L("Type:")) ));
+        _L("SLA Material Profiles Selection") + " ", _L("SLA Materials"), _L("Type:") ));
 
     
     p->add_page(p->page_update   = new PageUpdate(this));
     p->add_page(p->page_reload_from_disk = new PageReloadFromDisk(this));
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+    p->add_page(p->page_files_association = new PageFilesAssociation(this));
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
     p->add_page(p->page_mode     = new PageMode(this));
     p->add_page(p->page_firmware = new PageFirmware(this));
     p->add_page(p->page_bed      = new PageBedShape(this));
@@ -2597,6 +2651,20 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 
         Layout();
     });
+
+    if (wxLinux_gtk3)
+        this->Bind(wxEVT_SHOW, [this, vsizer](const wxShowEvent& e) {
+            ConfigWizardPage* active_page = p->index->active_page();
+            if (!active_page)
+                return;
+            for (auto page : p->all_pages)
+                if (page != active_page)
+                    page->Hide();
+            // update best size for the dialog after hiding of the non-active pages
+            vsizer->SetSizeHints(this);
+            // set initial dialog size
+            p->init_dialog_size();
+        });
 }
 
 ConfigWizard::~ConfigWizard() {}

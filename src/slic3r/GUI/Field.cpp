@@ -5,6 +5,7 @@
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
 #include "MainFrame.hpp"
+#include "format.hpp"
 
 #include "libslic3r/PrintConfig.hpp"
 
@@ -12,6 +13,7 @@
 #include <wx/numformatter.h>
 #include <wx/tooltip.h>
 #include <wx/notebook.h>
+#include <wx/tokenzr.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include "OG_CustomCtrl.hpp"
 
@@ -51,6 +53,17 @@ wxString double_to_string(double const value, const int max_precision /*= 4*/)
 
     return s;
 }
+
+wxString get_thumbnails_string(const std::vector<Vec2d>& values)
+{
+    wxString ret_str;
+	for (size_t i = 0; i < values.size(); ++ i) {
+		const Vec2d& el = values[i];
+		ret_str += wxString::Format((i == 0) ? "%ix%i" : ", %ix%i", int(el[0]), int(el[1]));
+	}
+    return ret_str;
+}
+
 
 Field::~Field()
 {
@@ -128,8 +141,8 @@ void Field::PostInitialize()
 }
 
 // Values of width to alignments of fields
-int Field::def_width()			{ return wxOSX ? 8 : 7; }
-int Field::def_width_wider()	{ return 14; }
+int Field::def_width()			{ return 8; }
+int Field::def_width_wider()	{ return 16; }
 int Field::def_width_thinner()	{ return 4; }
 
 void Field::on_kill_focus()
@@ -246,10 +259,28 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     m_value.clear();
                     break;
                 }
-                show_error(m_parent, _(L("Input value is out of range")));
-                if (m_opt.min > val) val = m_opt.min;
-                if (val > m_opt.max) val = m_opt.max;
-                set_value(double_to_string(val), true);
+                if (m_opt_id == "extrusion_multiplier") {
+                    if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
+                        wxString msg_text = format_wxstr(_L("Input value is out of range\n"
+                            "Are you sure that %s is a correct value and that you want to continue?"), str);
+                        wxMessageDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxICON_WARNING | wxYES | wxNO);
+                        if (dialog.ShowModal() == wxID_NO) {
+                            if (m_value.empty()) {
+                                if (m_opt.min > val) val = m_opt.min;
+                                if (val > m_opt.max) val = m_opt.max;
+                            }
+                            else
+                                val = boost::any_cast<double>(m_value);
+                            set_value(double_to_string(val), true);
+                        }
+                    }
+                }
+                else {
+                    show_error(m_parent, _L("Input value is out of range"));
+                    if (m_opt.min > val) val = m_opt.min;
+                    if (val > m_opt.max) val = m_opt.max;
+                    set_value(double_to_string(val), true);
+                }
             }
         }
         m_value = val;
@@ -262,6 +293,11 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             double val = 0.;
 			// Replace the first occurence of comma in decimal number.
 			str.Replace(",", ".", false);
+
+            // remove space and "mm" substring, if any exists
+            str.Replace(" ", "", true);
+            str.Replace("m", "", true);
+
             if (!str.ToCDouble(&val))
             {
                 if (!check_value) {
@@ -280,13 +316,15 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     break;
                 }
 
+                bool infill_anchors = m_opt.opt_key == "infill_anchor" || m_opt.opt_key == "infill_anchor_max";
+
                 const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
                 const wxString stVal = double_to_string(val, 2);
                 const wxString msg_text = from_u8((boost::format(_utf8(L("Do you mean %s%% instead of %s %s?\n"
                     "Select YES if you want to change this value to %s%%, \n"
                     "or NO if you are sure that %s %s is a correct value."))) % stVal % stVal % sidetext % stVal % stVal % sidetext).str());
                 wxMessageDialog dialog(m_parent, msg_text, _(L("Parameter validation")) + ": " + m_opt_id , wxICON_WARNING | wxYES | wxNO);
-                if (dialog.ShowModal() == wxID_YES) {
+                if ((!infill_anchors || val > 100) && dialog.ShowModal() == wxID_YES) {
                     set_value(from_u8((boost::format("%s%%") % stVal).str()), false/*true*/);
                     str += "%%";
                 }
@@ -297,6 +335,56 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
     
         m_value = std::string(str.ToUTF8().data());
 		break; }
+
+    case coPoints: {
+        std::vector<Vec2d> out_values;
+        str.Replace(" ", wxEmptyString, true);
+        if (!str.IsEmpty()) {
+            bool invalid_val = false;
+            bool out_of_range_val = false;
+            wxStringTokenizer thumbnails(str, ",");
+            while (thumbnails.HasMoreTokens()) {
+                wxString token = thumbnails.GetNextToken();
+                double x, y;
+                wxStringTokenizer thumbnail(token, "x");
+                if (thumbnail.HasMoreTokens()) {
+                    wxString x_str = thumbnail.GetNextToken();
+                    if (x_str.ToDouble(&x) && thumbnail.HasMoreTokens()) {
+                        wxString y_str = thumbnail.GetNextToken();
+                        if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
+                            if (0 < x && x < 1000 && 0 < y && y < 1000) {
+                                out_values.push_back(Vec2d(x, y));
+                                continue;
+                            }
+                            out_of_range_val = true;
+                            break;
+                        }
+                    } 
+                } 
+                invalid_val = true;
+                break;
+            }
+
+            if (out_of_range_val) {
+                wxString text_value;
+                if (!m_value.empty())
+                    text_value = get_thumbnails_string(boost::any_cast<std::vector<Vec2d>>(m_value));
+                set_value(text_value, true);
+                show_error(m_parent, _L("Input value is out of range")
+                );
+            }
+            else if (invalid_val) {
+                wxString text_value;
+                if (!m_value.empty())
+                    text_value = get_thumbnails_string(boost::any_cast<std::vector<Vec2d>>(m_value));
+                set_value(text_value, true);
+                show_error(m_parent, format_wxstr(_L("Invalid input format. Expected vector of dimensions in the following format: \"%1%\""),"XxY, XxY, ..." ));
+            }
+        }
+
+        m_value = out_values;
+        break; }
+
 	default:
 		break;
 	}
@@ -364,6 +452,9 @@ void TextCtrl::BUILD() {
 		text_value = vec->get_at(m_opt_idx);
 		break;
 	}
+    case coPoints:
+        text_value = get_thumbnails_string(m_opt.get_default_value<ConfigOptionPoints>()->values);
+        break;
 	default:
 		break; 
 	}
@@ -693,6 +784,11 @@ void SpinCtrl::BUILD() {
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0|wxTE_PROCESS_ENTER, min_val, max_val, default_value);
+#ifdef __WXGTK3__
+	wxSize best_sz = temp->GetBestSize();
+	if (best_sz.x > size.x)
+		temp->SetSize(wxSize(size.x + 2 * best_sz.y, best_sz.y));
+#endif //__WXGTK3__
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -821,6 +917,12 @@ void Choice::BUILD() {
 #endif //__WXOSX__
     }
 
+#ifdef __WXGTK3__
+    wxSize best_sz = temp->GetBestSize();
+    if (best_sz.x > size.x)
+        temp->SetSize(best_sz);
+#endif //__WXGTK3__
+
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -856,8 +958,16 @@ void Choice::BUILD() {
     temp->SetItemBitmap(0, empty_bmp);
 #endif
 
-// 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
- 	temp->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
+    temp->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& e) {
+        if (m_suppress_scroll && !m_is_dropped)
+            e.StopPropagation();
+        else
+            e.Skip();
+        });
+    temp->Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_is_dropped = true; });
+    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_is_dropped = false; });
+
+    temp->Bind(wxEVT_COMBOBOX,          [this](wxCommandEvent&) { on_change_field(); }, temp->GetId());
 
     if (m_is_editable) {
         temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) {
@@ -867,12 +977,18 @@ void Choice::BUILD() {
                 return;
             }
 
-            double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
             if (is_defined_input_value<choice_ctrl>(window, m_opt.type)) {
-                if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
-                    return;
-                else
-                    on_change_field();
+                if (m_opt.type == coFloatOrPercent) {
+                    std::string old_val = !m_value.empty() ? boost::any_cast<std::string>(m_value) : "";
+                    if (old_val == boost::any_cast<std::string>(get_value()))
+                        return;
+                }
+                else {
+                    double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
+                    if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
+                        return;
+                }
+                on_change_field();
             }
             else
                 on_kill_focus();
@@ -880,6 +996,11 @@ void Choice::BUILD() {
     }
 
 	temp->SetToolTip(get_tooltip_text(temp->GetValue()));
+}
+
+void Choice::suppress_scroll()
+{
+    m_suppress_scroll = true;
 }
 
 void Choice::set_selection()
@@ -893,59 +1014,42 @@ void Choice::set_selection()
 
     choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
 	switch (m_opt.type) {
-	case coFloat:
-	case coPercent:	{
-		double val = m_opt.default_value->getFloat();
-		text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 1);
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
-			if (el == text_value)
-				break;
-			++idx;
-		}
-//		if (m_opt.type == coPercent) text_value += "%";
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
-		break;
-	}
 	case coEnum:{
 		int id_value = m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()->value; //!!
         field->SetSelection(id_value);
 		break;
 	}
+	case coFloat:
+	case coPercent:	{
+		double val = m_opt.default_value->getFloat();
+		text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 1);
+		break;
+	}
 	case coInt:{
-		int val = m_opt.default_value->getInt(); //!!
-		text_value = wxString::Format(_T("%i"), int(val));
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
-			if (el == text_value)
-				break;
-			++idx;
-		}
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
+		text_value = wxString::Format(_T("%i"), int(m_opt.default_value->getInt()));
 		break;
 	}
 	case coStrings:{
 		text_value = m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx);
+		break;
+	}
+	case coFloatOrPercent: {
+		text_value = double_to_string(m_opt.default_value->getFloat());
+		if (m_opt.get_default_value<ConfigOptionFloatOrPercent>()->percent)
+			text_value += "%";
+		break;
+	}
+    default: break;
+	}
 
-		size_t idx = 0;
-		for (auto el : m_opt.enum_values)
-		{
+	if (!text_value.IsEmpty()) {
+		int idx = 0;
+		for (auto el : m_opt.enum_values) {
 			if (el == text_value)
 				break;
 			++idx;
 		}
-		idx == m_opt.enum_values.size() ?
-			field->SetValue(text_value) :
-			field->SetSelection(idx);
-		break;
-	}
-    default: break;
+		idx == m_opt.enum_values.size() ? field->SetValue(text_value) : field->SetSelection(idx);
 	}
 }
 
@@ -979,6 +1083,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 	case coInt:
 	case coFloat:
 	case coPercent:
+	case coFloatOrPercent:
 	case coString:
 	case coStrings: {
 		wxString text_value;
@@ -987,13 +1092,14 @@ void Choice::set_value(const boost::any& value, bool change_event)
 		else
 			text_value = boost::any_cast<wxString>(value);
         size_t idx = 0;
-		for (auto el : m_opt.enum_values)
+        const std::vector<std::string>& enums = m_opt.enum_values.empty() ? m_opt.enum_labels : m_opt.enum_values;
+		for (auto el : enums)
 		{
 			if (el == text_value)
 				break;
 			++idx;
 		}
-        if (idx == m_opt.enum_values.size()) {
+        if (idx == enums.size()) {
             // For editable Combobox under OSX is needed to set selection to -1 explicitly,
             // otherwise selection doesn't be changed
             field->SetSelection(-1);
@@ -1069,7 +1175,7 @@ void Choice::set_values(const wxArrayString &values)
 
 	// 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
 	// 	# but we want to preserve it
-	auto ww = dynamic_cast<wxBitmapComboBox*>(window);
+	auto ww = dynamic_cast<choice_ctrl*>(window);
 	auto value = ww->GetValue();
 	ww->Clear();
 	ww->Append("");
@@ -1132,7 +1238,9 @@ boost::any& Choice::get_value()
             (ret_str != m_opt.enum_values[ret_enum] && ret_str != _(m_opt.enum_labels[ret_enum])))
 			// modifies ret_string!
             get_value_by_opt_type(ret_str);
-        else 
+        else if (m_opt.type == coFloatOrPercent)
+            m_value = m_opt.enum_values[ret_enum];
+        else
             m_value = atof(m_opt.enum_values[ret_enum].c_str());
     }
 	else	

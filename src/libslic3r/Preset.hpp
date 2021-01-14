@@ -287,7 +287,18 @@ public:
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true);
     Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true);
 
-    Preset&         load_external_preset(
+    // Returns a loaded preset, returns true if an existing preset was selected AND modified from config.
+    // In that case the successive filament loaded for a multi material printer should not be modified, but
+    // an external preset should be created instead.
+    enum class LoadAndSelect {
+        // Never select
+        Never,
+        // Always select
+        Always,
+        // Select a profile only if it was modified.
+        OnlyIfModified,
+    };
+    std::pair<Preset*, bool> load_external_preset(
         // Path to the profile source file (a G-code, an AMF or 3MF file, a config file)
         const std::string           &path,
         // Name of the profile, derived from the source file name.
@@ -297,7 +308,7 @@ public:
         // Config to initialize the preset from.
         const DynamicPrintConfig    &config,
         // Select the preset after loading?
-        bool                         select = true);
+        LoadAndSelect                select = LoadAndSelect::Always);
 
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.
@@ -430,6 +441,8 @@ public:
         { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), deep_compare); }
 
     // Return a sorted list of system preset names.
+    // Used for validating the "inherits" flag when importing user's config bundles.
+    // Returns names of all system presets including the former names of these presets.
     std::vector<std::string>    system_preset_names() const;
 
     // Update a dirty flag of the current preset
@@ -537,10 +550,8 @@ public:
 namespace PresetUtils {
 	// PrinterModel of a system profile, from which this preset is derived, or null if it is not derived from a system profile.
 	const VendorProfile::PrinterModel* system_printer_model(const Preset &preset);
-#if ENABLE_GCODE_VIEWER
     std::string system_printer_bed_model(const Preset& preset);
     std::string system_printer_bed_texture(const Preset& preset);
-#endif // ENABLE_GCODE_VIEWER
 } // namespace PresetUtils
 
 
@@ -549,7 +560,7 @@ namespace PresetUtils {
 class PhysicalPrinter
 {
 public:
-    PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config) : name(name), config(default_config) {}
+    PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config);
     PhysicalPrinter(const std::string& name, const DynamicPrintConfig &default_config, const Preset& preset);
     void set_name(const std::string &name);
 
@@ -690,6 +701,7 @@ public:
     // If full_name doesn't contain name of selected preset, then select first preset in the list for this printer
     void select_printer(const std::string& full_name);
     void select_printer(const PhysicalPrinter& printer);
+    void select_printer(const std::string& printer_name, const std::string& preset_name);
     bool has_selection() const;
     void unselect_printer() ;
     bool is_selected(ConstIterator it, const std::string &preset_name) const;

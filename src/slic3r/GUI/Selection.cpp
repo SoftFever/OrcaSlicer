@@ -16,9 +16,7 @@
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#if ENABLE_GCODE_VIEWER
 #include <boost/log/trivial.hpp>
-#endif // ENABLE_GCODE_VIEWER
 
 static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
 
@@ -113,11 +111,6 @@ Selection::Selection()
     , m_valid(false)
     , m_scale_factor(1.0f)
 {
-#if !ENABLE_GCODE_VIEWER
-    m_arrow.reset(new GLArrow);
-    m_curved_arrow.reset(new GLCurvedArrow(16));
-#endif // !ENABLE_GCODE_VIEWER
-
     this->set_bounding_boxes_dirty();
 #if ENABLE_RENDER_SELECTION_CENTER
     m_quadric = ::gluNewQuadric();
@@ -143,20 +136,8 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
 // Init shall be called from the OpenGL render function, so that the OpenGL context is initialized!
 bool Selection::init()
 {
-#if ENABLE_GCODE_VIEWER
     m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
-#else
-    if (!m_arrow->init())
-        return false;
-
-    m_arrow->set_scale(5.0 * Vec3d::Ones());
-
-    if (!m_curved_arrow->init())
-        return false;
-
-    m_curved_arrow->set_scale(5.0 * Vec3d::Ones());
-#endif //ENABLE_GCODE_VIEWER
     return true;
 }
 
@@ -860,41 +841,14 @@ void Selection::flattening_rotate(const Vec3d& normal)
 
     for (unsigned int i : m_list)
     {
-        Transform3d wst = m_cache.volumes_data[i].get_instance_scale_matrix();
-        Vec3d scaling_factor = Vec3d(1. / wst(0, 0), 1. / wst(1, 1), 1. / wst(2, 2));
-
-        Transform3d wmt = m_cache.volumes_data[i].get_instance_mirror_matrix();
-        Vec3d mirror(wmt(0, 0), wmt(1, 1), wmt(2, 2));
-
-        Vec3d rotation = Geometry::extract_euler_angles(m_cache.volumes_data[i].get_instance_rotation_matrix());
-        Vec3d tnormal = Geometry::assemble_transform(Vec3d::Zero(), rotation, scaling_factor, mirror) * normal;
-        tnormal.normalize();
-
-        // Calculate rotation axis. It shall be perpendicular to "down" direction
-        // and the normal, so the rotation is the shortest possible and logical.
-        Vec3d axis = tnormal.cross(-Vec3d::UnitZ());
-
-        // Make sure the axis is not zero and normalize it. "Almost" zero is not interesting.
-        // In case the vectors are almost colinear, the rotation axis does not matter much.
-        if (axis == Vec3d::Zero())
-            axis = Vec3d::UnitX();
-        axis.normalize();
-
-        // Calculate the angle using the component where we achieve more precision.
-        // Cosine of small angles is const in first order. No good.
-        double angle = 0.;
-        if (std::abs(tnormal.z()) < std::sqrt(2.)/2.)
-            angle = std::acos(-tnormal.z());
-        else {
-            double xy = std::hypot(tnormal.x(), tnormal.y());
-            angle = PI/2. + std::acos(xy * (tnormal.z() > 0.));
-        }
-
-        Transform3d extra_rotation = Transform3d::Identity();
-        extra_rotation.rotate(Eigen::AngleAxisd(angle, axis));
-
-        Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_instance_rotation_matrix());
-        (*m_volumes)[i]->set_instance_rotation(new_rotation);
+        // Normal transformed from the object coordinate space to the world coordinate space.
+        const auto &voldata = m_cache.volumes_data[i];
+        Vec3d tnormal = (Geometry::assemble_transform(
+            Vec3d::Zero(), voldata.get_instance_rotation(), 
+            voldata.get_instance_scaling_factor().cwiseInverse(), voldata.get_instance_mirror()) * normal).normalized();
+        // Additional rotation to align tnormal with the down vector in the world coordinate space.
+        auto  extra_rotation = Eigen::Quaterniond().setFromTwoVectors(tnormal, - Vec3d::UnitZ());
+        (*m_volumes)[i]->set_instance_rotation(Geometry::extract_euler_angles(extra_rotation.toRotationMatrix() * m_cache.volumes_data[i].get_instance_rotation_matrix()));
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -1962,7 +1916,6 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
     glsafe(::glEnd());
 }
 
-#if ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
 {
     auto set_color = [](Axis axis) {
@@ -1984,25 +1937,7 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
         m_arrow.render();
     }
 }
-#else
-void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
-{
-    if (boost::ends_with(sidebar_field, "x"))
-    {
-        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        render_sidebar_position_hint(X);
-    }
-    else if (boost::ends_with(sidebar_field, "y"))
-        render_sidebar_position_hint(Y);
-    else if (boost::ends_with(sidebar_field, "z"))
-    {
-        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        render_sidebar_position_hint(Z);
-    }
-}
-#endif // ENABLE_GCODE_VIEWER
 
-#if ENABLE_GCODE_VIEWER
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
 {
     auto set_color = [](Axis axis) {
@@ -2030,23 +1965,6 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
         render_sidebar_rotation_hint();
     }
 }
-#else
-void Selection::render_sidebar_rotation_hints(const std::string & sidebar_field) const
-{
-    if (boost::ends_with(sidebar_field, "x"))
-    {
-        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-        render_sidebar_rotation_hint(X);
-    }
-    else if (boost::ends_with(sidebar_field, "y"))
-    {
-        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-        render_sidebar_rotation_hint(Y);
-    }
-    else if (boost::ends_with(sidebar_field, "z"))
-        render_sidebar_rotation_hint(Z);
-}
-#endif // ENABLE_GCODE_VIEWER
 
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
@@ -2058,38 +1976,27 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
             shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
 
         glsafe(::glTranslated(0.0, 5.0, 0.0));
-#if ENABLE_GCODE_VIEWER
         m_arrow.render();
-#else
-        m_arrow->render();
-#endif // ENABLE_GCODE_VIEWER
 
         glsafe(::glTranslated(0.0, -10.0, 0.0));
         glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-#if ENABLE_GCODE_VIEWER
         m_arrow.render();
-#else
-        m_arrow->render();
-#endif // ENABLE_GCODE_VIEWER
     };
 
-    if (boost::ends_with(sidebar_field, "x") || uniform_scale)
-    {
+    if (boost::ends_with(sidebar_field, "x") || uniform_scale) {
         glsafe(::glPushMatrix());
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
         render_sidebar_scale_hint(X);
         glsafe(::glPopMatrix());
     }
 
-    if (boost::ends_with(sidebar_field, "y") || uniform_scale)
-    {
+    if (boost::ends_with(sidebar_field, "y") || uniform_scale) {
         glsafe(::glPushMatrix());
         render_sidebar_scale_hint(Y);
         glsafe(::glPopMatrix());
     }
 
-    if (boost::ends_with(sidebar_field, "z") || uniform_scale)
-    {
+    if (boost::ends_with(sidebar_field, "z") || uniform_scale) {
         glsafe(::glPushMatrix());
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
         render_sidebar_scale_hint(Z);
@@ -2168,35 +2075,6 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
 }
-
-#if !ENABLE_GCODE_VIEWER
-void Selection::render_sidebar_position_hint(Axis axis) const
-{
-    m_arrow->set_color(AXES_COLOR[axis], 3);
-    m_arrow->render();
-}
-
-void Selection::render_sidebar_rotation_hint(Axis axis) const
-{
-    m_curved_arrow->set_color(AXES_COLOR[axis], 3);
-    m_curved_arrow->render();
-
-    glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-    m_curved_arrow->render();
-}
-
-void Selection::render_sidebar_scale_hint(Axis axis) const
-{
-    m_arrow->set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
-
-    glsafe(::glTranslated(0.0, 5.0, 0.0));
-    m_arrow->render();
-
-    glsafe(::glTranslated(0.0, -10.0, 0.0));
-    glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-    m_arrow->render();
-}
-#endif // !ENABLE_GCODE_VIEWER
 
 #ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)

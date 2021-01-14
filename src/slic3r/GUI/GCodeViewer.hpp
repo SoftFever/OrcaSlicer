@@ -1,12 +1,14 @@
 #ifndef slic3r_GCodeViewer_hpp_
 #define slic3r_GCodeViewer_hpp_
 
-#if ENABLE_GCODE_VIEWER
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GLModel.hpp"
 
+#include <cstdint>
 #include <float.h>
+#include <set>
+#include <unordered_set>
 
 namespace Slic3r {
 
@@ -24,6 +26,7 @@ class GCodeViewer
     static const std::vector<Color> Extrusion_Role_Colors;
     static const std::vector<Color> Options_Colors;
     static const std::vector<Color> Travel_Colors;
+    static const Color              Wipe_Color;
     static const std::vector<Color> Range_Colors;
 
     enum class EOptionsColors : unsigned char
@@ -145,11 +148,35 @@ class GCodeViewer
     // Used to batch the indices needed to render paths
     struct RenderPath
     {
-        Color color;
-        unsigned int path_id;
-        unsigned int index_buffer_id;
-        std::vector<unsigned int> sizes;
-        std::vector<size_t> offsets; // use size_t because we need an unsigned int whose size matches pointer's size (used in the call glMultiDrawElements())
+        // Render path property
+        Color                       color;
+        unsigned int                index_buffer_id;
+        // Render path content
+        unsigned int                path_id;
+        std::vector<unsigned int>   sizes;
+        std::vector<size_t>         offsets; // use size_t because we need an unsigned int whose size matches pointer's size (used in the call glMultiDrawElements())
+    };
+    struct RenderPathPropertyHash {
+        size_t operator() (const RenderPath &p) const {
+            // Conver the RGB value to an integer hash.
+//            return (size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) * 7919) ^ size_t(p.index_buffer_id);
+            return size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) ^ size_t(p.index_buffer_id);
+        }
+    };
+    struct RenderPathPropertyLower {
+        bool operator() (const RenderPath &l, const RenderPath &r) const {
+            for (int i = 0; i < 3; ++ i)
+                if (l.color[i] < r.color[i])
+                    return true;
+                else if (l.color[i] > r.color[i])
+                    return false;
+            return l.index_buffer_id < r.index_buffer_id;
+        }
+    };
+    struct RenderPathPropertyEqual {
+        bool operator() (const RenderPath &l, const RenderPath &r) const {
+            return l.color == r.color && l.index_buffer_id == r.index_buffer_id;
+        }
     };
 
     // buffer containing data for rendering a specific toolpath type
@@ -168,7 +195,9 @@ class GCodeViewer
 
         std::string shader;
         std::vector<Path> paths;
-        std::vector<RenderPath> render_paths;
+        // std::set seems to perform singificantly better, at least on Windows.
+//        std::unordered_set<RenderPath, RenderPathPropertyHash, RenderPathPropertyEqual> render_paths;
+        std::set<RenderPath, RenderPathPropertyLower> render_paths;
         bool visible{ false };
 
         void reset();
@@ -272,29 +301,69 @@ class GCodeViewer
         void reset_ranges() { ranges.reset(); }
     };
 
+    class Layers
+    {
+    public:
+        struct Endpoints
+        {
+            size_t first{ 0 };
+            size_t last{ 0 };
+        };
+
+    private:
+        std::vector<double> m_zs;
+        std::vector<Endpoints> m_endpoints;
+
+    public:
+        void append(double z, Endpoints endpoints)
+        {
+            m_zs.emplace_back(z);
+            m_endpoints.emplace_back(endpoints);
+        }
+
+        void reset()
+        {
+            m_zs = std::vector<double>();
+            m_endpoints = std::vector<Endpoints>();
+        }
+
+        size_t size() const { return m_zs.size(); }
+        bool empty() const { return m_zs.empty(); }
+        const std::vector<double>& get_zs() const { return m_zs; }
+        const std::vector<Endpoints>& get_endpoints() const { return m_endpoints; }
+        std::vector<Endpoints>& get_endpoints() { return m_endpoints; }
+        double get_z_at(unsigned int id) const { return (id < m_zs.size()) ? m_zs[id] : 0.0; }
+        Endpoints get_endpoints_at(unsigned int id) const { return (id < m_endpoints.size()) ? m_endpoints[id] : Endpoints(); }
+    };
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
     {
         // time
-        long long results_time{ 0 };
-        long long load_time{ 0 };
-        long long refresh_time{ 0 };
-        long long refresh_paths_time{ 0 };
+        int64_t results_time{ 0 };
+        int64_t load_time{ 0 };
+        int64_t refresh_time{ 0 };
+        int64_t refresh_paths_time{ 0 };
         // opengl calls
-        long long gl_multi_points_calls_count{ 0 };
-        long long gl_multi_lines_calls_count{ 0 };
-        long long gl_multi_triangles_calls_count{ 0 };
+        int64_t gl_multi_points_calls_count{ 0 };
+        int64_t gl_multi_lines_calls_count{ 0 };
+        int64_t gl_multi_triangles_calls_count{ 0 };
         // memory
-        long long results_size{ 0 };
-        long long vertices_gpu_size{ 0 };
-        long long indices_gpu_size{ 0 };
-        long long paths_size{ 0 };
-        long long render_paths_size{ 0 };
+        int64_t results_size{ 0 };
+        int64_t total_vertices_gpu_size{ 0 };
+        int64_t total_indices_gpu_size{ 0 };
+        int64_t max_vbuffer_gpu_size{ 0 };
+        int64_t max_ibuffer_gpu_size{ 0 };
+        int64_t paths_size{ 0 };
+        int64_t render_paths_size{ 0 };
         // other
-        long long travel_segments_count{ 0 };
-        long long extrude_segments_count{ 0 };
-        long long max_vertices_in_vertex_buffer{ 0 };
-        long long max_indices_in_index_buffer{ 0 };
+        int64_t travel_segments_count{ 0 };
+        int64_t wipe_segments_count{ 0 };
+        int64_t extrude_segments_count{ 0 };
+        int64_t vbuffers_count{ 0 };
+        int64_t ibuffers_count{ 0 };
+        int64_t max_vertices_in_vertex_buffer{ 0 };
+        int64_t max_indices_in_index_buffer{ 0 };
 
         void reset_all() {
             reset_times();
@@ -318,15 +387,20 @@ class GCodeViewer
 
         void reset_sizes() {
             results_size = 0;
-            vertices_gpu_size = 0;
-            indices_gpu_size = 0;
+            total_vertices_gpu_size = 0;
+            total_indices_gpu_size = 0;
+            max_vbuffer_gpu_size = 0;
+            max_ibuffer_gpu_size = 0;
             paths_size = 0;
             render_paths_size = 0;
         }
 
         void reset_others() {
             travel_segments_count = 0;
+            wipe_segments_count = 0;
             extrude_segments_count =  0;
+            vbuffers_count = 0;
+            ibuffers_count = 0;
             max_vertices_in_vertex_buffer = 0;
             max_indices_in_index_buffer = 0;
         }
@@ -388,6 +462,7 @@ public:
 
 private:
     bool m_initialized{ false };
+    mutable bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
     mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
@@ -396,9 +471,10 @@ private:
     // bounding box of toolpaths + marker tools
     BoundingBoxf3 m_max_bounding_box;
     std::vector<Color> m_tool_colors;
-    std::vector<double> m_layers_zs;
-    std::array<double, 2> m_layers_z_range;
+    Layers m_layers;
+    std::array<unsigned int, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
+    size_t m_extruders_count;
     std::vector<unsigned char> m_extruder_ids;
     mutable Extrusions m_extrusions;
     mutable SequentialView m_sequential_view;
@@ -411,6 +487,7 @@ private:
     mutable Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     mutable std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
+    GCodeProcessor::Result::SettingsIds m_settings_ids;
 
 public:
     GCodeViewer() = default;
@@ -420,6 +497,10 @@ public:
     void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
     // recalculate ranges in dependence of what is visible and sets tool/print colors
     void refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors);
+#if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+    void refresh_render_paths();
+#endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
+    void update_shells_color_by_extruder(const DynamicPrintConfig* config);
 
     void reset();
     void render() const;
@@ -428,7 +509,7 @@ public:
 
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
-    const std::vector<double>& get_layers_zs() const { return m_layers_zs; };
+    const std::vector<double>& get_layers_zs() const { return m_layers.get_zs(); };
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
     void update_sequential_view_current(unsigned int first, unsigned int last);
@@ -447,7 +528,7 @@ public:
     void set_toolpath_role_visibility_flags(unsigned int flags) { m_extrusions.role_visibility_flags = flags; }
     unsigned int get_options_visibility_flags() const;
     void set_options_visibility_from_flags(unsigned int flags);
-    void set_layers_z_range(const std::array<double, 2>& layers_z_range);
+    void set_layers_z_range(const std::array<unsigned int, 2>& layers_z_range);
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
@@ -469,13 +550,11 @@ private:
         return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;
     }
     bool is_visible(const Path& path) const { return is_visible(path.role); }
-    void log_memory_used(const std::string& label, long long additional = 0) const;
+    void log_memory_used(const std::string& label, int64_t additional = 0) const;
 };
 
 } // namespace GUI
 } // namespace Slic3r
-
-#endif // ENABLE_GCODE_VIEWER
 
 #endif // slic3r_GCodeViewer_hpp_
 

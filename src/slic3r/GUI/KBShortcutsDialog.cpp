@@ -7,37 +7,14 @@
 #include <wx/display.h>
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
-#if ENABLE_GCODE_VIEWER
 #include "MainFrame.hpp"
-#endif // ENABLE_GCODE_VIEWER
-
-#define NOTEBOOK_TOP 1
-#define NOTEBOOK_LEFT 2
-#define LISTBOOK_TOP 3
-#define LISTBOOK_LEFT 4
-#define TOOLBOOK 5
-#define CHOICEBOOK 6
-#define BOOK_TYPE NOTEBOOK_TOP
-
-#if (BOOK_TYPE == NOTEBOOK_TOP) || (BOOK_TYPE == NOTEBOOK_LEFT)
 #include <wx/notebook.h>
-#elif (BOOK_TYPE == LISTBOOK_TOP) || (BOOK_TYPE == LISTBOOK_LEFT)
-#include <wx/listbook.h>
-#elif BOOK_TYPE == TOOLBOOK
-#include <wx/toolbook.h>
-#elif BOOK_TYPE == CHOICEBOOK
-#include <wx/choicebk.h>
-#endif // BOOK_TYPE 
 
 namespace Slic3r {
 namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
-#if ENABLE_GCODE_VIEWER
-    : DPIDialog(NULL, wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
-#else
-    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
-#endif // ENABLE_GCODE_VIEWER
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -51,26 +28,14 @@ KBShortcutsDialog::KBShortcutsDialog()
 
     main_sizer->Add(create_header(this, bold_font), 0, wxEXPAND | wxALL, 10);
 
-#if BOOK_TYPE == NOTEBOOK_TOP
     wxNotebook* book = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
-#elif BOOK_TYPE == NOTEBOOK_LEFT
-    wxNotebook* book = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_LEFT);
-#elif BOOK_TYPE == LISTBOOK_TOP
-    wxListbook* book = new wxListbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLB_TOP);
-#elif BOOK_TYPE == LISTBOOK_LEFT
-    wxListbook* book = new wxListbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLB_LEFT);
-#elif BOOK_TYPE == TOOLBOOK
-    wxToolbook* book = new wxToolbook(this, wxID_ANY);
-#elif BOOK_TYPE == CHOICEBOOK
-    wxChoicebook* book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCHB_TOP);
-#endif // BOOK_TYPE 
-main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
+    main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
 
     fill_shortcuts();
     for (size_t i = 0; i < m_full_shortcuts.size(); ++i) {
         wxPanel* page = create_page(book, m_full_shortcuts[i], font, bold_font);
         m_pages.push_back(page);
-        book->AddPage(page, m_full_shortcuts[i].first, i == 0);
+        book->AddPage(page, m_full_shortcuts[i].first.first, i == 0);
     }
 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
@@ -79,6 +44,7 @@ main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
 
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
+    this->CenterOnParent();
 }
 
 void KBShortcutsDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -97,9 +63,7 @@ void KBShortcutsDialog::fill_shortcuts()
     const std::string& ctrl = GUI::shortkey_ctrl_prefix();
     const std::string& alt = GUI::shortkey_alt_prefix();
 
-#if ENABLE_GCODE_VIEWER
     if (wxGetApp().is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         Shortcuts commands_shortcuts = {
             // File
             { ctrl + "N", L("New project, clear plater") },
@@ -126,7 +90,11 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "Y", L("Redo") },
             { ctrl + "C", L("Copy to clipboard") },
             { ctrl + "V", L("Paste from clipboard") },
+#ifdef __APPLE__
+            { ctrl + "Shift+" + "R", L("Reload plater from disk") },
+#else
             { "F5", L("Reload plater from disk") },
+#endif // __APPLE__
             { ctrl + "F", L("Search") },
             // Window
             { ctrl + "1", L("Select Plater Tab") },
@@ -136,6 +104,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "5", L("Switch to 3D") },
             { ctrl + "6", L("Switch to Preview") },
             { ctrl + "J", L("Print host upload queue") },
+            { ctrl + "Shift+" + "I", L("Open new instance") },
             // View
             { "0-6", L("Camera view") },
             { "E", L("Show/Hide object/instance labels") },
@@ -145,7 +114,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { "?", L("Show keyboard shortcuts list") }
         };
 
-        m_full_shortcuts.push_back(std::make_pair(_L("Commands"), commands_shortcuts));
+        m_full_shortcuts.push_back({ { _L("Commands"), "" }, commands_shortcuts });
 
         Shortcuts plater_shortcuts = {
             { "A", L("Arrange") },
@@ -179,7 +148,11 @@ void KBShortcutsDialog::fill_shortcuts()
             { "Tab", L("Switch between Editor/Preview") },
             { "Shift+Tab", L("Collapse/Expand the sidebar") },
 #if ENABLE_CTRL_M_ON_WINDOWS
+#ifdef _WIN32
+            { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog, if enabled") },
+#else
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#endif // _WIN32
 #else
 #if defined(__linux__) || defined(__APPLE__)
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
@@ -191,10 +164,10 @@ void KBShortcutsDialog::fill_shortcuts()
 #endif // ENABLE_RENDER_PICKING_PASS
         };
 
-        m_full_shortcuts.push_back(std::make_pair(_L("Plater"), plater_shortcuts));
+        m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
 
         Shortcuts gizmos_shortcuts = {
-            { ctrl, L("All gizmos: Press to rotate view with mouse left or to pan view with mouse right") },
+            { ctrl, L("All gizmos: Rotate - left mouse button; Pan - right mouse button") },
             { "Shift+", L("Gizmo move: Press to snap by 1mm") },
             { "Shift+", L("Gizmo scale: Press to snap by 5%") },
             { "F", L("Gizmo scale: Scale selection to fit print volume") },
@@ -203,44 +176,81 @@ void KBShortcutsDialog::fill_shortcuts()
             { alt, L("Gizmo rotate: Press to rotate selected objects around their own center") },
         };
 
-        m_full_shortcuts.push_back(std::make_pair(_L("Gizmos"), gizmos_shortcuts));
-#if ENABLE_GCODE_VIEWER
+        m_full_shortcuts.push_back({ { _L("Gizmos"), _L("The following shortcuts are applicable when the specified gizmo is active") }, gizmos_shortcuts });
     }
-#endif // ENABLE_GCODE_VIEWER
+    else {
+        Shortcuts commands_shortcuts = {
+            { ctrl + "O", L("Open a G-code file") },
+#ifdef __APPLE__
+            { ctrl + "Shift+" + "R", L("Reload the plater from disk") },
+#else
+            { "F5", L("Reload plater from disk") },
+#endif // __APPLE__
+        };
+
+        m_full_shortcuts.push_back({ { _L("Commands"), "" }, commands_shortcuts });
+    }
 
     Shortcuts preview_shortcuts = {
-        { L("Arrow Up"), L("Upper Layer") },
-        { L("Arrow Down"), L("Lower Layer") },
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+        { L("Arrow Up"),    L("Vertical slider - Move active thumb Up") },
+        { L("Arrow Down"),  L("Vertical slider - Move active thumb Down") },
+        { L("Arrow Left"),  L("Horizontal slider - Move active thumb Left") },
+        { L("Arrow Right"), L("Horizontal slider - Move active thumb Right") },
+        { "W", L("Vertical slider - Move active thumb Up") },
+        { "S", L("Vertical slider - Move active thumb Down") },
+        { "A", L("Horizontal slider - Move active thumb Left") },
+        { "D", L("Horizontal slider - Move active thumb Right") },
+        { "X", L("On/Off one layer mode of the vertical slider") },
+        { "L", L("Show/Hide Legend and Estimated printing time") },
+#else
+        { L("Arrow Up"), L("Upper layer") },
+        { L("Arrow Down"), L("Lower layer") },
         { "U", L("Upper Layer") },
         { "D", L("Lower Layer") },
-        { "L", L("Show/Hide Legend/Estimated printing time") },
+        { "L", L("Show/Hide Legend & Estimated printing time") },
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
     };
 
-    m_full_shortcuts.push_back(std::make_pair(_L("Preview"), preview_shortcuts));
+    m_full_shortcuts.push_back({ { _L("Preview"), "" }, preview_shortcuts });
 
     Shortcuts layers_slider_shortcuts = {
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+        { L("Arrow Up"),    L("Move active thumb Up") },
+        { L("Arrow Down"),  L("Move active thumb Down") },
+        { L("Arrow Left"),  L("Set upper thumb as active") },
+        { L("Arrow Right"), L("Set lower thumb as active") },
+        { "+", L("Add color change marker for current layer") },
+        { "-", L("Delete color change marker for current layer") },
+#else
         { L("Arrow Up"), L("Move current slider thumb Up") },
         { L("Arrow Down"), L("Move current slider thumb Down") },
         { L("Arrow Left"), L("Set upper thumb to current slider thumb") },
         { L("Arrow Right"), L("Set lower thumb to current slider thumb") },
         { "+", L("Add color change marker for current layer") },
         { "-", L("Delete color change marker for current layer") },
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
         { "Shift+", L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
         { ctrl, L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
     };
 
-    m_full_shortcuts.push_back(std::make_pair(_L("Layers Slider"), layers_slider_shortcuts));
+    m_full_shortcuts.push_back({ { _L("Vertical Slider"), _L("The following shortcuts are applicable in G-code preview when the vertical slider is active") }, layers_slider_shortcuts });
 
-#if ENABLE_GCODE_VIEWER
     Shortcuts sequential_slider_shortcuts = {
-        { L("Arrow Left"), L("Move current slider thumb Left") },
-        { L("Arrow Right"), L("Move current slider thumb Right") },
+#if ENABLE_ARROW_KEYS_WITH_SLIDERS
+        { L("Arrow Left"),  L("Move active thumb Left") },
+        { L("Arrow Right"), L("Move active thumb Right") },
+        { L("Arrow Up"),    L("Set left thumb as active") },
+        { L("Arrow Down"),  L("Set right thumb as active") },
+#else
+        { L("Arrow Left"),  L("Move active slider thumb Left") },
+        { L("Arrow Right"), L("Move active slider thumb Right") },
+#endif // ENABLE_ARROW_KEYS_WITH_SLIDERS
         { "Shift+", L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
         { ctrl, L("Press to speed up 5 times while moving thumb\nwith arrow keys or mouse wheel") },
     };
 
-    m_full_shortcuts.push_back(std::make_pair(_L("Sequential Slider"), sequential_slider_shortcuts));
-#endif // ENABLE_GCODE_VIEWER
+    m_full_shortcuts.push_back({ { _L("Horizontal Slider"), _L("The following shortcuts are applicable in G-code preview when the horizontal slider is active") }, sequential_slider_shortcuts });
 }
 
 wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_font)
@@ -258,11 +268,7 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
     sizer->AddStretchSpacer();
 
     // logo
-#if ENABLE_GCODE_VIEWER
     m_logo_bmp = ScalableBitmap(this, wxGetApp().is_editor() ? "PrusaSlicer_32px.png" : "PrusaSlicer-gcodeviewer_32px.png", 32);
-#else
-    m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_32px.png", 32);
-#endif // ENABLE_GCODE_VIEWER
     m_header_bitmap = new wxStaticBitmap(panel, wxID_ANY, m_logo_bmp.bmp());
     sizer->Add(m_header_bitmap, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
 
@@ -277,22 +283,29 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
     return panel;
 }
 
-wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxString, Shortcuts>& shortcuts, const wxFont& font, const wxFont& bold_font)
+wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& shortcuts, const wxFont& font, const wxFont& bold_font)
 {
+    wxPanel* main_page = new wxPanel(parent);
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    if (!shortcuts.first.second.empty()) {
+        main_sizer->AddSpacer(10);
+        wxBoxSizer* info_sizer = new wxBoxSizer(wxHORIZONTAL);
+        info_sizer->AddStretchSpacer();
+        info_sizer->Add(new wxStaticText(main_page, wxID_ANY, shortcuts.first.second), 0);
+        info_sizer->AddStretchSpacer();
+        main_sizer->Add(info_sizer, 0, wxEXPAND);
+        main_sizer->AddSpacer(10);
+    }
+
     static const int max_items_per_column = 20;
-    int columns_count = 1 + (int)shortcuts.second.size() / max_items_per_column;
+    int columns_count = 1 + static_cast<int>(shortcuts.second.size()) / max_items_per_column;
 
-    wxScrolledWindow* page = new wxScrolledWindow(parent);
-    page->SetScrollbars(20, 20, 50, 50);
-    page->SetInitialSize(wxSize(850, 450));
+    wxScrolledWindow* scrollable_panel = new wxScrolledWindow(main_page);
+    scrollable_panel->SetScrollbars(20, 20, 50, 50);
+    scrollable_panel->SetInitialSize(wxSize(850, 450));
 
-#if (BOOK_TYPE == LISTBOOK_TOP) || (BOOK_TYPE == LISTBOOK_LEFT)
-    wxStaticBoxSizer* sizer = new wxStaticBoxSizer(wxVERTICAL, page, " " + shortcuts.first + " ");
-    sizer->GetStaticBox()->SetFont(bold_font);
-#else
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-#endif // BOOK_TYPE
-
+    wxBoxSizer* scrollable_panel_sizer = new wxBoxSizer(wxVERTICAL);
     wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2 * columns_count, 5, 15);
 
     int items_count = (int)shortcuts.second.size();
@@ -301,25 +314,30 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const std::pair<wxStri
             int id = j * max_items_per_column + i;
             if (id < items_count) {
                 const auto& [shortcut, description] = shortcuts.second[id];
-                auto key = new wxStaticText(page, wxID_ANY, _(shortcut));
+                auto key = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
                 key->SetFont(bold_font);
                 grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
 
-                auto desc = new wxStaticText(page, wxID_ANY, _(description));
+                auto desc = new wxStaticText(scrollable_panel, wxID_ANY, _(description));
                 desc->SetFont(font);
                 grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
             }
             else {
-                grid_sizer->Add(new wxStaticText(page, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
-                grid_sizer->Add(new wxStaticText(page, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
+                if (columns_count > 1) {
+                    grid_sizer->Add(new wxStaticText(scrollable_panel, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
+                    grid_sizer->Add(new wxStaticText(scrollable_panel, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
+                }
             }
         }
     }
 
-    sizer->Add(grid_sizer, 1, wxEXPAND | wxALL, 10);
+    scrollable_panel_sizer->Add(grid_sizer, 1, wxEXPAND | wxALL, 10);
+    scrollable_panel->SetSizer(scrollable_panel_sizer);
 
-    page->SetSizer(sizer);
-    return page;
+    main_sizer->Add(scrollable_panel, 1, wxEXPAND);
+    main_page->SetSizer(main_sizer);
+
+    return main_page;
 }
 
 } // namespace GUI

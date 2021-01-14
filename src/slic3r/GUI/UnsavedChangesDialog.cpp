@@ -5,6 +5,7 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -23,6 +24,12 @@
 #include "BitmapCache.hpp"
 
 using boost::optional;
+
+#ifdef __linux__
+#define wxLinux true
+#else
+#define wxLinux false
+#endif
 
 namespace Slic3r {
 
@@ -44,7 +51,12 @@ static std::string get_icon_name(Preset::Type type, PrinterTechnology pt) {
     return pt == ptSLA && type == Preset::TYPE_PRINTER ? "sla_printer" : type_icon_names.at(type);
 }
 
-static std::string black    = "#000000";
+static std::string def_text_color()
+{
+    wxColour def_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), def_colour.Red(), def_colour.Green(), def_colour.Blue());
+    return clr_str.ToStdString();
+}
 static std::string grey     = "#808080";
 static std::string orange   = "#ed6b21";
 
@@ -151,7 +163,7 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
     }
 
     // "color" strings
-    color_string(m_old_value, black);
+    color_string(m_old_value, def_text_color());
     color_string(m_new_value, orange);
 
     UpdateIcons();
@@ -169,13 +181,13 @@ void ModelNode::UpdateEnabling()
     };
 
     if (!m_toggle) {
-        change_text_color(m_text,      black, grey);
-        change_text_color(m_old_value, black, grey);
+        change_text_color(m_text,      def_text_color(), grey);
+        change_text_color(m_old_value, def_text_color(), grey);
         change_text_color(m_new_value, orange,grey);
     }
     else {
-        change_text_color(m_text,      grey, black);
-        change_text_color(m_old_value, grey, black);
+        change_text_color(m_text,      grey, def_text_color());
+        change_text_color(m_old_value, grey, def_text_color());
         change_text_color(m_new_value, grey, orange);
     }
     // update icons for the colors
@@ -220,7 +232,7 @@ UnsavedChangesModel::~UnsavedChangesModel()
 wxDataViewItem UnsavedChangesModel::AddPreset(Preset::Type type, wxString preset_name, PrinterTechnology pt)
 {
     // "color" strings
-    color_string(preset_name, black);
+    color_string(preset_name, def_text_color());
     make_string_bold(preset_name);
 
     auto preset = new ModelNode(type, m_parent_win, preset_name, get_icon_name(type, pt));
@@ -267,9 +279,9 @@ wxDataViewItem UnsavedChangesModel::AddOption(Preset::Type type, wxString catego
                                               wxString old_value, wxString new_value, const std::string category_icon_name)
 {
     // "color" strings
-    color_string(category_name, black);
-    color_string(group_name,    black);
-    color_string(option_name,   black);
+    color_string(category_name, def_text_color());
+    color_string(group_name,    def_text_color());
+    color_string(option_name,   def_text_color());
 
     // "make" strings bold
     make_string_bold(category_name);
@@ -327,7 +339,7 @@ static void update_parents(ModelNode* node)
 void UnsavedChangesModel::UpdateItemEnabling(wxDataViewItem item)
 {
     assert(item.IsOk());
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     node->UpdateEnabling();
 
     update_children(node);
@@ -337,7 +349,7 @@ void UnsavedChangesModel::UpdateItemEnabling(wxDataViewItem item)
 bool UnsavedChangesModel::IsEnabledItem(const wxDataViewItem& item)
 {
     assert(item.IsOk());
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     return node->IsToggled();
 }
 
@@ -345,7 +357,7 @@ void UnsavedChangesModel::GetValue(wxVariant& variant, const wxDataViewItem& ite
 {
     assert(item.IsOk());
 
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     switch (col)
     {
     case colToggle:
@@ -382,7 +394,7 @@ bool UnsavedChangesModel::SetValue(const wxVariant& variant, const wxDataViewIte
 {
     assert(item.IsOk());
 
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     switch (col)
     {
     case colToggle:
@@ -440,7 +452,7 @@ bool UnsavedChangesModel::IsEnabled(const wxDataViewItem& item, unsigned int col
         return true;
 
     // disable unchecked nodes
-    return ((ModelNode*)item.GetID())->IsToggled();
+    return (static_cast<ModelNode*>(item.GetID()))->IsToggled();
 }
 
 wxDataViewItem UnsavedChangesModel::GetParent(const wxDataViewItem& item) const
@@ -449,7 +461,7 @@ wxDataViewItem UnsavedChangesModel::GetParent(const wxDataViewItem& item) const
     if (!item.IsOk())
         return wxDataViewItem(nullptr);
 
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
 
     // "MyMusic" also has no parent
     if (node->IsRoot())
@@ -464,7 +476,7 @@ bool UnsavedChangesModel::IsContainer(const wxDataViewItem& item) const
     if (!item.IsOk())
         return true;
 
-    ModelNode* node = (ModelNode*)item.GetID();
+    ModelNode* node = static_cast<ModelNode*>(item.GetID());
     return node->IsContainer();
 }
 
@@ -522,7 +534,7 @@ void UnsavedChangesModel::Rescale()
 //------------------------------------------
 
 UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
-    : DPIDialog(nullptr, wxID_ANY, _L("Closing PrusaSlicer: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("PrusaSlicer is closing: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_close_application";
 
@@ -539,7 +551,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
-    : DPIDialog(nullptr, wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_select_preset";
 
@@ -586,7 +598,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     m_tree->AssociateModel(m_tree_model);
     m_tree_model->SetAssociatedControl(m_tree);
 
-    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, 6 * em);//2610,11,12 //2714
+    m_tree->AppendToggleColumn(L"\u2714", UnsavedChangesModel::colToggle, wxDATAVIEW_CELL_ACTIVATABLE, (wxLinux ? 8 : 6) * em);
 
     auto append_bmp_text_column = [this](const wxString& label, unsigned model_column, int width, bool set_expander = false) 
     {
@@ -734,10 +746,10 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
         if (action == Action::Undef)
             text = _L("Some fields are too long to fit. Right mouse click reveals the full text.");
         else if (action == Action::Discard)
-            text = _L("All modified options will be reverted.");
+            text = _L("All settings changes will be discarded.");
         else {
             if (preset_name.empty())
-                text = action == Action::Save ? _L("Save the selected options.") : _L("Transfer the selected options to the newly selected presets.");
+                text = action == Action::Save ? _L("Save the selected options.") : _L("Transfer the selected settings to the newly selected preset.");
             else
                 text = format_wxstr(
                     action == Action::Save ?
@@ -781,7 +793,7 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
 
         // for system/default/external presets we should take an edited name
         if (preset.is_system || preset.is_default || preset.is_external) {
-            SavePresetDialog save_dlg(preset.type);
+            SavePresetDialog save_dlg(this, preset.type);
             if (save_dlg.ShowModal() != wxID_OK) {
                 m_exit_action = Action::Discard;
                 return false;
@@ -809,7 +821,7 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
 
 
         if (!types_for_save.empty()) {
-            SavePresetDialog save_dlg(types_for_save);
+            SavePresetDialog save_dlg(this, types_for_save);
             if (save_dlg.ShowModal() != wxID_OK) {
                 m_exit_action = Action::Discard;
                 return false;
@@ -961,6 +973,9 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             BedShape shape(*config.option<ConfigOptionPoints>(opt_key));
             return shape.get_full_name_with_params();
         }
+        if (opt_key == "thumbnails")
+            return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+
         Vec2d val = config.opt<ConfigOptionPoints>(opt_key)->get_at(opt_idx);
         return from_u8((boost::format("[%1%]") % ConfigOptionPoint(val).serialize()).str());
     }
@@ -1053,7 +1068,6 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         // Collect dirty options.
         const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
         auto dirty_options = presets->current_dirty_options(deep_compare);
-        auto dirty_options_ = presets->current_dirty_options();
 
         // process changes of extruders count
         if (type == Preset::TYPE_PRINTER && old_pt == ptFFF &&
@@ -1069,6 +1083,12 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
 
         for (const std::string& opt_key : dirty_options) {
             const Search::Option& option = searcher.get_option(opt_key);
+            if (option.opt_key != boost::nowide::widen(opt_key)) {
+                // When founded option isn't the correct one.
+                // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
+                // because of they don't exist in searcher
+                continue;
+            }
 
             ItemData item_data = { opt_key, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config), type };
 
@@ -1191,6 +1211,7 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
 }
+
 
 
 }

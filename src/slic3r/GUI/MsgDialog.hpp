@@ -25,7 +25,7 @@ struct MsgDialog : wxDialog
 	MsgDialog(const MsgDialog &) = delete;
 	MsgDialog &operator=(MsgDialog &&) = delete;
 	MsgDialog &operator=(const MsgDialog &) = delete;
-	virtual ~MsgDialog();
+	virtual ~MsgDialog() = default;
 
 	// TODO: refactor with CreateStdDialogButtonSizer usage
 
@@ -52,12 +52,14 @@ protected:
 class ErrorDialog : public MsgDialog
 {
 public:
-	ErrorDialog(wxWindow *parent, const wxString &msg);
+	// If monospaced_font is true, the error message is displayed using html <code><pre></pre></code> tags,
+	// so that the code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
+	ErrorDialog(wxWindow *parent, const wxString &msg, bool courier_font);
 	ErrorDialog(ErrorDialog &&) = delete;
 	ErrorDialog(const ErrorDialog &) = delete;
 	ErrorDialog &operator=(ErrorDialog &&) = delete;
 	ErrorDialog &operator=(const ErrorDialog &) = delete;
-	virtual ~ErrorDialog();
+	virtual ~ErrorDialog() = default;
 
 private:
 	wxString msg;

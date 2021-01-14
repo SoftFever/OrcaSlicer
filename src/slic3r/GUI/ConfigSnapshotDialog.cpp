@@ -6,6 +6,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Time.hpp"
 #include "GUI_App.hpp"
+#include "MainFrame.hpp"
 #include "wxExtensions.hpp"
 
 namespace Slic3r { 
@@ -109,7 +110,7 @@ static wxString generate_html_page(const Config::SnapshotDB &snapshot_db, const 
 }
 
 ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const wxString &on_snapshot)
-    : DPIDialog(NULL, wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition, 
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition,
                wxSize(45 * wxGetApp().em_unit(), 40 * wxGetApp().em_unit()), 
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX)
 {

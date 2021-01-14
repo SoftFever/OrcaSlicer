@@ -3,14 +3,17 @@
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "format.hpp"
 #include "I18N.hpp"
 
 #include <algorithm>
 #include <iterator>
 #include <exception>
 #include <cstdlib>
-#include <boost/lexical_cast.hpp>
+#include <regex>
 #include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -64,6 +67,7 @@
 #include "NotificationManager.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "SavePresetDialog.hpp"
+#include "PrintHostDialogs.hpp"
 
 #include "BitmapCache.hpp"
 
@@ -86,7 +90,7 @@ class SplashScreen : public wxSplashScreen
 {
 public:
     SplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxPoint pos = wxDefaultPosition)
-        : wxSplashScreen(bitmap, splashStyle, milliseconds, nullptr, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+        : wxSplashScreen(bitmap, splashStyle, milliseconds, static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, wxDefaultPosition, wxDefaultSize,
 #ifdef __APPLE__
             wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP
 #else
@@ -127,7 +131,7 @@ public:
 
             memDC.SetFont(m_action_font);
             memDC.SetTextForeground(wxColour(237, 107, 33));
-            memDC.DrawText(text, int(m_scale * 60), int(m_scale * 275));
+            memDC.DrawText(text, int(m_scale * 60), m_action_line_y_position);
 
             memDC.SelectObject(wxNullBitmap);
             set_bitmap(bitmap);
@@ -177,11 +181,7 @@ public:
         // load bitmap for logo
         BitmapCache bmp_cache;
         int logo_size = lround(width * 0.25);
-#if ENABLE_GCODE_VIEWER
         wxBitmap logo_bmp = *bmp_cache.load_svg(wxGetApp().is_editor() ? "prusa_slicer_logo" : "add_gcode", logo_size, logo_size);
-#else
-        wxBitmap logo_bmp = *bmp_cache.load_svg("prusa_slicer_logo", logo_size, logo_size);
-#endif // ENABLE_GCODE_VIEWER
 
         wxCoord margin = int(m_scale * 20);
 
@@ -206,14 +206,22 @@ public:
 
         memDc.SetFont(m_constant_text.version_font);
         memDc.DrawLabel(m_constant_text.version, banner_rect, wxALIGN_TOP | wxALIGN_LEFT);
+        int version_height = memDc.GetTextExtent(m_constant_text.version).GetY();
 
         memDc.SetFont(m_constant_text.credits_font);
         memDc.DrawLabel(m_constant_text.credits, banner_rect, wxALIGN_BOTTOM | wxALIGN_LEFT);
+        int credits_height = memDc.GetMultiLineTextExtent(m_constant_text.credits).GetY();
+        int text_height    = memDc.GetTextExtent("text").GetY();
+
+        // calculate position for the dynamic text
+        int logo_and_header_height = margin + logo_size + title_height + version_height;
+        m_action_line_y_position = logo_and_header_height + 0.5 * (bmp.GetHeight() - margin - credits_height - logo_and_header_height - text_height);
     }
 
 private:
     wxBitmap    m_main_bitmap;
     wxFont      m_action_font;
+    int         m_action_line_y_position;
     float       m_scale {1.0};
 
     struct ConstantText
@@ -229,11 +237,7 @@ private:
         void init(wxFont init_font)
         {
             // title
-#if ENABLE_GCODE_VIEWER
             title = wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME;
-#else
-            title = SLIC3R_APP_NAME;
-#endif // ENABLE_GCODE_VIEWER
 
             // dynamically get the version to display
             version = _L("Version") + " " + std::string(SLIC3R_VERSION);
@@ -262,7 +266,8 @@ private:
         float title_font_scale = (float)text_banner_width / GetTextExtent(m_constant_text.title).GetX();
         scale_font(m_constant_text.title_font, title_font_scale > 3.5f ? 3.5f : title_font_scale);
 
-        scale_font(m_constant_text.version_font, 2.f);
+        float version_font_scale = (float)text_banner_width / GetTextExtent(m_constant_text.version).GetX();
+        scale_font(m_constant_text.version_font, version_font_scale > 2.f ? 2.f : version_font_scale);
 
         // The width of the credits information string doesn't respect to the banner width some times.
         // So, scale credits_font in the respect to the longest string width
@@ -550,7 +555,6 @@ static void register_win32_device_notification_event()
     });
 
 	wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
-
 		COPYDATASTRUCT* copy_data_structure = { 0 };
 		copy_data_structure = (COPYDATASTRUCT*)lParam;
 		if (copy_data_structure->dwData == 1) {
@@ -588,6 +592,14 @@ static void generic_exception_handle()
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
         std::terminate();
+    } catch (const boost::io::bad_format_string& ex) {
+        wxString errmsg = _L("PrusaSlicer has encountered a localization error. "
+                             "Please report to PrusaSlicer team, what language was active and in which scenario "
+                             "this issue happened. Thank you.\n\nThe application will now terminate.");
+        wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Critical error"), wxOK | wxICON_ERROR);
+        BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
+        std::terminate();
+        throw;
     } catch (const std::exception& ex) {
         wxLogError("Internal error: %s", ex.what());
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
@@ -601,13 +613,11 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
-#if ENABLE_GCODE_VIEWER
     if (this->init_params->start_as_gcodeviewer) {
         if (! this->init_params->input_files.empty())
             this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
     }
     else {
-#endif // ENABLE_GCODE_VIEWER_AS
 #if 0
         // Load the cummulative config over the currently active profiles.
         //FIXME if multiple configs are loaded, only the last one will have an effect.
@@ -626,22 +636,14 @@ void GUI_App::post_init()
             this->plater()->load_files(this->init_params->input_files, true, true);
         if (! this->init_params->extra_config.empty())
             this->mainframe->load_config(this->init_params->extra_config);
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 }
 
 IMPLEMENT_APP(GUI_App)
 
-#if ENABLE_GCODE_VIEWER
 GUI_App::GUI_App(EAppMode mode)
-#else
-GUI_App::GUI_App()
-#endif // ENABLE_GCODE_VIEWER
     : wxApp()
-#if ENABLE_GCODE_VIEWER
     , m_app_mode(mode)
-#endif // ENABLE_GCODE_VIEWER
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
     , m_wizard(nullptr)
@@ -676,14 +678,20 @@ wxGLContext* GUI_App::init_glcontext(wxGLCanvas& canvas)
 
 bool GUI_App::init_opengl()
 {
+#ifdef __linux__
+    bool status = m_opengl_mgr.init_gl();
+    m_opengl_initialized = true;
+    return status;
+#else
     return m_opengl_mgr.init_gl();
+#endif
 }
 
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
-	SetAppName(SLIC3R_APP_KEY);
-	SetAppName(SLIC3R_APP_KEY "-alpha");
+    SetAppName(SLIC3R_APP_KEY);
+//	SetAppName(SLIC3R_APP_KEY "-beta");
 //	SetAppDisplayName(SLIC3R_APP_NAME);
 
 	// Set the Slic3r data directory at the Slic3r XS module.
@@ -705,11 +713,7 @@ void GUI_App::init_app_config()
     }
 
 	if (!app_config)
-#if ENABLE_GCODE_VIEWER
         app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
-#else
-        app_config = new AppConfig();
-#endif // ENABLE_GCODE_VIEWER
 
 	// load settings
 	m_app_conf_exists = app_config->exists();
@@ -717,7 +721,6 @@ void GUI_App::init_app_config()
         std::string error = app_config->load();
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-#if ENABLE_GCODE_VIEWER
             if (is_editor()) {
                 throw Slic3r::RuntimeError(
                     _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
@@ -725,14 +728,11 @@ void GUI_App::init_app_config()
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
             else {
-#endif // ENABLE_GCODE_VIEWER
                 throw Slic3r::RuntimeError(
                     _u8L("Error parsing PrusaGCodeViewer config file, it is probably corrupted. "
                         "Try to manually delete the file to recover from the error.") +
                     "\n\n" + app_config->config_path() + "\n\n" + error);
-#if ENABLE_GCODE_VIEWER
             }
-#endif // ENABLE_GCODE_VIEWER
         }
     }
 }
@@ -762,7 +762,7 @@ bool GUI_App::on_init_inner()
 
 #ifdef __linux__
     if (! check_old_linux_datadir(GetAppName())) {
-        std::cerr << "Quitting, user chose to move his data to new location." << std::endl;
+        std::cerr << "Quitting, user chose to move their data to new location." << std::endl;
         return false;
     }
 #endif
@@ -775,9 +775,7 @@ bool GUI_App::on_init_inner()
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 
-#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         std::string msg = Http::tls_global_init();
         std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
         bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
@@ -795,9 +793,7 @@ bool GUI_App::on_init_inner()
             app_config->set("tls_accepted_cert_store_location",
                 dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
         }
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
@@ -807,11 +803,7 @@ bool GUI_App::on_init_inner()
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1") {
         // make a bitmap with dark grey banner on the left side
-#if ENABLE_GCODE_VIEWER
         wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var(is_editor() ? "splashscreen.jpg" : "splashscreen-gcodepreview.jpg")), wxBITMAP_TYPE_JPEG));
-#else
-        wxBitmap bmp = SplashScreen::MakeBitmap(wxBitmap(from_u8(var("splashscreen.jpg")), wxBITMAP_TYPE_JPEG));
-#endif // ENABLE_GCODE_VIEWER
 
         // Detect position (display) to show the splash screen
         // Now this position is equal to the mainframe position
@@ -825,8 +817,10 @@ bool GUI_App::on_init_inner()
         // create splash screen with updated bmp
         scrn = new SplashScreen(bmp.IsOk() ? bmp : create_scaled_bitmap("prusa_slicer_logo", nullptr, 400), 
                                 wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 4000, splashscreen_pos);
+#ifndef __linux__
         wxYield();
-        scrn->SetText(_L("Loading configuration..."));
+#endif
+        scrn->SetText(_L("Loading configuration")+ dots);
     }
 
     preset_bundle = new PresetBundle();
@@ -835,11 +829,16 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
-#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
 #ifdef __WXMSW__ 
-        associate_3mf_files();
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+        if (app_config->get("associate_3mf") == "1")
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+            associate_3mf_files();
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+        if (app_config->get("associate_stl") == "1")
+            associate_stl_files();
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 #endif // __WXMSW__
 
         preset_updater = new PresetUpdater();
@@ -848,18 +847,19 @@ bool GUI_App::on_init_inner()
             app_config->save();
             if (this->plater_ != nullptr) {
                 if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable, *(this->plater_->get_current_canvas3D()));
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
                 }
             }
             });
-#if ENABLE_GCODE_VIEWER
     }
     else {
 #ifdef __WXMSW__ 
-        associate_gcode_files();
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+        if (app_config->get("associate_gcode") == "1")
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+            associate_gcode_files();
 #endif // __WXMSW__
     }
-#endif // ENABLE_GCODE_VIEWER
 
     // initialize label colors and fonts
     init_label_colours();
@@ -887,18 +887,12 @@ bool GUI_App::on_init_inner()
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
     // application frame
-#if ENABLE_GCODE_VIEWER
     if (scrn && is_editor())
-#else
-    if (scrn)
-#endif // ENABLE_GCODE_VIEWER
-        scrn->SetText(_L("Creating settings tabs..."));
+        scrn->SetText(_L("Preparing settings tabs") + dots);
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
-#if ENABLE_GCODE_VIEWER
     if (is_editor())
-#endif // ENABLE_GCODE_VIEWER
         mainframe->select_tab(size_t(0));
 
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
@@ -907,6 +901,23 @@ bool GUI_App::on_init_inner()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
+    if (is_gcode_viewer()) {
+        mainframe->update_layout();
+        if (plater_ != nullptr)
+            // ensure the selected technology is ptFFF
+            plater_->set_printer_technology(ptFFF);
+    }
+    else
+        load_current_presets();
+    mainframe->Show(true);
+
+    obj_list()->set_min_height();
+
+    update_mode(); // update view mode after fix of the object_list size
+
+#ifdef __APPLE__
+    other_instance_message_handler()->bring_instance_forward();
+#endif //__APPLE__
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
@@ -920,7 +931,14 @@ bool GUI_App::on_init_inner()
         this->obj_manipul()->update_if_dirty();
 
         static bool update_gui_after_init = true;
+
+        // An ugly solution to GH #5537 in which GUI_App::init_opengl (normally called from events wxEVT_PAINT
+        // and wxEVT_SET_FOCUS before GUI_App::post_init is called) wasn't called before GUI_App::post_init and OpenGL wasn't initialized.
+#ifdef __linux__
+        if (update_gui_after_init && m_opengl_initialized) {
+#else
         if (update_gui_after_init) {
+#endif
             update_gui_after_init = false;
 #ifdef WIN32
             this->mainframe->register_win32_callbacks();
@@ -928,20 +946,18 @@ bool GUI_App::on_init_inner()
             this->post_init();
         }
 
-		// Preset updating & Configwizard are done after the above initializations,
-	    // and after MainFrame is created & shown.
-	    // The extra CallAfter() is needed because of Mac, where this is the only way
-	    // to popup a modal dialog on start without screwing combo boxes.
-	    // This is ugly but I honestly found no better way to do it.
-	    // Neither wxShowEvent nor wxWindowCreateEvent work reliably. 
+        // Preset updating & Configwizard are done after the above initializations,
+        // and after MainFrame is created & shown.
+        // The extra CallAfter() is needed because of Mac, where this is the only way
+        // to popup a modal dialog on start without screwing combo boxes.
+        // This is ugly but I honestly found no better way to do it.
+        // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
 
         static bool once = true;
         if (once) {
             once = false;
 
-#if ENABLE_GCODE_VIEWER
             if (preset_updater != nullptr) {
-#endif // ENABLE_GCODE_VIEWER
                 check_updates(false);
 
                 CallAfter([this] {
@@ -949,42 +965,14 @@ bool GUI_App::on_init_inner()
                     preset_updater->slic3r_update_notify();
                     preset_updater->sync(preset_bundle);
                     });
-#if ENABLE_GCODE_VIEWER
             }
-#endif // ENABLE_GCODE_VIEWER
 
 #ifdef _WIN32
-			//sets window property to mainframe so other instances can indentify it
-			OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
+            //sets window property to mainframe so other instances can indentify it
+            OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
 #endif //WIN32
         }
     });
-
-#if ENABLE_GCODE_VIEWER
-    if (is_gcode_viewer()) {
-        mainframe->update_layout();
-        if (plater_ != nullptr)
-            // ensure the selected technology is ptFFF
-            plater_->set_printer_technology(ptFFF);
-    }
-    else
-#endif // ENABLE_GCODE_VIEWER
-        load_current_presets();
-    mainframe->Show(true);
-
-    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
-     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit()) 
-     * after first whole Mainframe updating/layouting
-     */
-    const int list_min_height = 15 * em_unit();
-    if (obj_list()->GetMinSize().GetY() > list_min_height)
-        obj_list()->SetMinSize(wxSize(-1, list_min_height));
-
-    update_mode(); // update view mode after fix of the object_list size
-
-#ifdef __APPLE__
-    other_instance_message_handler()->bring_instance_forward();
-#endif //__APPLE__
 
     m_initialized = true;
     return true;
@@ -1045,6 +1033,12 @@ void GUI_App::update_label_colours_from_appconfig()
     }
 }
 
+void GUI_App::update_label_colours()
+{
+    for (Tab* tab : tabs_list)
+        tab->update_label_colours();
+}
+
 void GUI_App::init_fonts()
 {
     m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -1078,7 +1072,10 @@ void GUI_App::update_fonts(const MainFrame *main_frame)
     m_code_font.SetPointSize(m_normal_font.GetPointSize());
 }
 
-void GUI_App::set_label_clr_modified(const wxColour& clr) {
+void GUI_App::set_label_clr_modified(const wxColour& clr) 
+{
+    if (m_color_label_modified == clr)
+        return;
     m_color_label_modified = clr;
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
     std::string str = clr_str.ToStdString();
@@ -1086,7 +1083,10 @@ void GUI_App::set_label_clr_modified(const wxColour& clr) {
     app_config->save();
 }
 
-void GUI_App::set_label_clr_sys(const wxColour& clr) {
+void GUI_App::set_label_clr_sys(const wxColour& clr)
+{
+    if (m_color_label_sys == clr)
+        return;
     m_color_label_sys = clr;
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
     std::string str = clr_str.ToStdString();
@@ -1149,8 +1149,8 @@ void GUI_App::check_printer_presets()
     for (const std::string& preset_name : preset_names)
         msg_text += "\n    \"" + from_u8(preset_name) + "\",";
     msg_text.RemoveLast();
-    msg_text += "\n\n" + _L("But from this version of PrusaSlicer we don't show/use this information in Printer Settings.\n"
-                            "Now, this information will be exposed in physical printers settings.") + "\n\n" +
+    msg_text += "\n\n" + _L("But since this version of PrusaSlicer we don't show this information in Printer Settings anymore.\n"
+                            "Settings will be available in physical printers settings.") + "\n\n" +
                          _L("By default new Printer devices will be named as \"Printer N\" during its creation.\n"
                             "Note: This name can be changed later from the physical printers settings");
 
@@ -1161,9 +1161,7 @@ void GUI_App::check_printer_presets()
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
 {
-#if ENABLE_GCODE_VIEWER
     m_is_recreating_gui = true;
-#endif // ENABLE_GCODE_VIEWER
 
     mainframe->shutdown();
 
@@ -1173,9 +1171,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
-#if ENABLE_GCODE_VIEWER
     if (is_editor())
-#endif // ENABLE_GCODE_VIEWER
         // hide settings tabs after first Layout
         mainframe->select_tab(size_t(0));
     // Propagate model objects to object list.
@@ -1193,13 +1189,8 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     mainframe->Show(true);
 
     dlg.Update(90, _L("Loading of a mode view") + dots);
-    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
-    * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
-    * after first whole Mainframe updating/layouting
-    */
-    const int list_min_height = 15 * em_unit();
-    if (obj_list()->GetMinSize().GetY() > list_min_height)
-        obj_list()->SetMinSize(wxSize(-1, list_min_height));
+
+    obj_list()->set_min_height();
     update_mode();
 
     // #ys_FIXME_delete_after_testing  Do we still need this  ?
@@ -1208,9 +1199,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //         config_wizard_startup(true);
 //     });
 
-#if ENABLE_GCODE_VIEWER
     m_is_recreating_gui = false;
-#endif // ENABLE_GCODE_VIEWER
 }
 
 void GUI_App::system_info()
@@ -1252,6 +1241,7 @@ void fatal_error(wxWindow* parent)
 // Update the UI based on the current preferences.
 void GUI_App::update_ui_from_settings(bool apply_free_camera_correction)
 {
+    update_label_colours();
     mainframe->update_ui_from_settings(apply_free_camera_correction);
 }
 
@@ -1295,7 +1285,6 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
         dialog.GetPaths(input_files);
 }
 
-#if ENABLE_GCODE_VIEWER
 void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 {
     input_file.Clear();
@@ -1307,7 +1296,6 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
     if (dialog.ShowModal() == wxID_OK)
         input_file = dialog.GetPath();
 }
-#endif // ENABLE_GCODE_VIEWER
 
 bool GUI_App::switch_language()
 {
@@ -1318,6 +1306,79 @@ bool GUI_App::switch_language()
         return false;
     }
 }
+
+#ifdef __linux__
+static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguageInfo* language,
+                                                                const wxLanguageInfo* system_language)
+{
+    constexpr size_t max_len = 50;
+    char path[max_len] = "";
+    std::vector<std::string> locales;
+    const std::string lang_prefix = into_u8(language->CanonicalName.BeforeFirst('_'));
+
+    // Call locale -a so we can parse the output to get the list of available locales
+    // We expect lines such as "en_US.utf8". Pick ones starting with the language code
+    // we are switching to. Lines with different formatting will be removed later.
+    FILE* fp = popen("locale -a", "r");
+    if (fp != NULL) {
+        while (fgets(path, max_len, fp) != NULL) {
+            std::string line(path);
+            line = line.substr(0, line.find('\n'));
+            if (boost::starts_with(line, lang_prefix))
+                locales.push_back(line);
+        }
+        pclose(fp);
+    }
+
+    // locales now contain all candidates for this language.
+    // Sort them so ones containing anything about UTF-8 are at the end.
+    std::sort(locales.begin(), locales.end(), [](const std::string& a, const std::string& b)
+    {
+        auto has_utf8 = [](const std::string & s) {
+            auto S = boost::to_upper_copy(s);
+            return S.find("UTF8") != std::string::npos || S.find("UTF-8") != std::string::npos;
+        };
+        return ! has_utf8(a) && has_utf8(b);
+    });
+
+    // Remove the suffix behind a dot, if there is one.
+    for (std::string& s : locales)
+        s = s.substr(0, s.find("."));
+
+    // We just hope that dear Linux "locale -a" returns country codes
+    // in ISO 3166-1 alpha-2 code (two letter) format.
+    // https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+    // To be sure, remove anything not looking as expected
+    // (any number of lowercase letters, underscore, two uppercase letters).
+    locales.erase(std::remove_if(locales.begin(),
+                                 locales.end(),
+                                 [](const std::string& s) {
+                                     return ! std::regex_match(s,
+                                         std::regex("^[a-z]+_[A-Z]{2}$"));
+                                 }),
+                   locales.end());
+
+    // Is there a candidate matching a country code of a system language? Move it to the end,
+    // while maintaining the order of matches, so that the best match ends up at the very end.
+    std::string system_country = "_" + into_u8(system_language->CanonicalName.AfterFirst('_')).substr(0, 2);
+    int cnt = locales.size();
+    for (int i=0; i<cnt; ++i)
+        if (locales[i].find(system_country) != std::string::npos) {
+            locales.emplace_back(std::move(locales[i]));
+            locales[i].clear();
+        }
+
+    // Now try them one by one.
+    for (auto it = locales.rbegin(); it != locales.rend(); ++ it)
+        if (! it->empty()) {
+            const std::string &locale = *it;
+            const wxLanguageInfo* lang = wxLocale::FindLanguageInfo(from_u8(locale));
+            if (wxLocale::IsAvailable(lang->Language))
+                return lang;
+        }
+    return language;
+}
+#endif
 
 // select language from the list of installed languages
 bool GUI_App::select_language()
@@ -1419,6 +1480,14 @@ bool GUI_App::load_language(wxString language, bool initial)
 				m_language_info_best = wxLocale::FindLanguageInfo(best_language);
 	        	BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") % m_language_info_best->CanonicalName.ToUTF8().data();
 			}
+            #ifdef __linux__
+            wxString lc_all;
+            if (wxGetEnv("LC_ALL", &lc_all) && ! lc_all.IsEmpty()) {
+                // Best language returned by wxWidgets on Linux apparently does not respect LC_ALL.
+                // Disregard the "best" suggestion in case LC_ALL is provided.
+                m_language_info_best = nullptr;
+            }
+            #endif
 		}
     }
 
@@ -1463,6 +1532,17 @@ bool GUI_App::load_language(wxString language, bool initial)
         language_info = m_language_info_best;
     } else if (m_language_info_system != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_system->CanonicalName.BeforeFirst('_'))
         language_info = m_language_info_system;
+
+#ifdef __linux__
+    // If we can't find this locale , try to use different one for the language
+    // instead of just reporting that it is impossible to switch.
+    if (! wxLocale::IsAvailable(language_info->Language)) {
+        std::string original_lang = into_u8(language_info->CanonicalName);
+        language_info = linux_get_existing_locale_language(language_info, m_language_info_system);
+        BOOST_LOG_TRIVIAL(trace) << boost::format("Can't switch language to %1% (missing locales). Using %2% instead.")
+                                    % original_lang % language_info->CanonicalName.ToUTF8().data();
+    }
+#endif
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
@@ -1543,17 +1623,13 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     const auto config_wizard_name = _(ConfigWizard::name(true));
     const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     // Cmd+, is standard on OS X - what about other operating systems?
-#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
         local_menu->Append(config_id_base + ConfigMenuSnapshots, _L("&Configuration Snapshots") + dots, _L("Inspect / activate configuration snapshots"));
         local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _L("Take Configuration &Snapshot"), _L("Capture a configuration snapshot"));
         local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for updates"), _L("Check for configuration updates"));
         local_menu->AppendSeparator();
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
     local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +
 #ifdef __APPLE__
         "\tCtrl+,",
@@ -1561,16 +1637,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         "\tCtrl+P",
 #endif
         _L("Application preferences"));
-#if ENABLE_GCODE_VIEWER
     wxMenu* mode_menu = nullptr;
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         local_menu->AppendSeparator();
-#if ENABLE_GCODE_VIEWER
         mode_menu = new wxMenu();
-#else
-        auto mode_menu = new wxMenu();
-#endif // ENABLE_GCODE_VIEWER
         mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple View Mode"));
 //    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced View Mode"));
         mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _CTX(L_CONTEXT("Advanced", "Mode"), "Mode"), _L("Advanced View Mode"));
@@ -1580,21 +1650,15 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comExpert) evt.Check(true); }, config_id_base + ConfigMenuModeExpert);
 
         local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s View Mode"), SLIC3R_APP_NAME));
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
-#if ENABLE_GCODE_VIEWER
     if (is_editor()) {
-#endif // ENABLE_GCODE_VIEWER
         local_menu->AppendSeparator();
         local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash printer &firmware"), _L("Upload a firmware image into an Arduino based printer"));
         // TODO: for when we're able to flash dictionaries
         // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash language file"),    _L("Upload a language dictionary file into a Prusa printer"));
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
@@ -1628,13 +1692,16 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
                 dlg.ShowModal();
                 if (!dlg.snapshot_to_activate().empty()) {
-                    if (!Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
+                    if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
                         Config::SnapshotDB::singleton().take_snapshot(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
-                    app_config->set("on_snapshot",
-                        Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
-                    preset_bundle->load_presets(*app_config);
-                    // Load the currently selected preset into the GUI, update the preset selection box.
-                    load_current_presets();
+                    try {
+                        app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
+                        preset_bundle->load_presets(*app_config);
+                        // Load the currently selected preset into the GUI, update the preset selection box.
+                        load_current_presets();
+                    } catch (std::exception &ex) {
+                        GUI::show_error(nullptr, _L("Failed to activate configuration snapshot.") + "\n" + into_u8(ex.what()));
+                    }
                 }
             }
             break;
@@ -1648,10 +1715,22 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
                 app_layout_changed = dlg.settings_layout_changed();
-#if ENABLE_GCODE_VIEWER
                 if (dlg.seq_top_layer_only_changed())
                     this->plater_->refresh_print();
-#endif // ENABLE_GCODE_VIEWER
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+#ifdef _WIN32
+                if (is_editor()) {
+                    if (app_config->get("associate_3mf") == "1")
+                        associate_3mf_files();
+                    if (app_config->get("associate_stl") == "1")
+                        associate_stl_files();
+                }
+                else {
+                    if (app_config->get("associate_gcode") == "1")
+                        associate_gcode_files();
+                }
+#endif // _WIN32
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
             }
             if (app_layout_changed) {
                 // hide full main_sizer for mainFrame
@@ -1670,19 +1749,13 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 // the dialog needs to be destroyed before the call to switch_language()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
-#if ENABLE_GCODE_VIEWER
                 wxString title = is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
                 title += " - " + _L("Language selection");
-#endif // ENABLE_GCODE_VIEWER
                 wxMessageDialog dialog(nullptr,
                     _L("Switching the language will trigger application restart.\n"
                         "You will lose content of the plater.") + "\n\n" +
                     _L("Do you want to proceed?"),
-#if ENABLE_GCODE_VIEWER
                     title,
-#else
-                    wxString(SLIC3R_APP_NAME) + " - " + _L("Language selection"),
-#endif // ENABLE_GCODE_VIEWER
                     wxICON_QUESTION | wxOK | wxCANCEL);
                 if (dialog.ShowModal() == wxID_CANCEL)
                     return;
@@ -1701,16 +1774,12 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     
     using std::placeholders::_1;
 
-#if ENABLE_GCODE_VIEWER
     if (mode_menu != nullptr) {
-#endif // ENABLE_GCODE_VIEWER
         auto modfn = [this](int mode, wxCommandEvent&) { if (get_mode() != mode) save_mode(mode); };
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comSimple, _1), config_id_base + ConfigMenuModeSimple);
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comExpert, _1), config_id_base + ConfigMenuModeExpert);
-#if ENABLE_GCODE_VIEWER
     }
-#endif // ENABLE_GCODE_VIEWER
 
     menu->Append(local_menu, _L("&Configuration"));
 }
@@ -1750,6 +1819,33 @@ bool GUI_App::check_unsaved_changes(const wxString &header)
     return true;
 }
 
+bool GUI_App::check_print_host_queue()
+{
+    wxString dirty;
+    std::vector<std::pair<std::string, std::string>> jobs;
+    // Get ongoing jobs from dialog
+    mainframe->m_printhost_queue_dlg->get_active_jobs(jobs);
+    if (jobs.empty())
+        return true;
+    // Show dialog
+    wxString job_string = wxString();
+    for (const auto& job : jobs) {
+        job_string += format_wxstr("   %1% : %2% \n", job.first, job.second);
+    }
+    wxString message;
+    message += _(L("The uploads are still ongoing")) + ":\n\n" + job_string +"\n" + _(L("Stop them and continue anyway?"));
+    wxMessageDialog dialog(mainframe,
+        message,
+        wxString(SLIC3R_APP_NAME) + " - " + _(L("Ongoing uploads")),
+        wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+    if (dialog.ShowModal() == wxID_YES)
+        return true;
+
+    // TODO: If already shown, bring forward
+    mainframe->m_printhost_queue_dlg->Show();
+    return false;
+}
+
 bool GUI_App::checked_tab(Tab* tab)
 {
     bool ret = true;
@@ -1759,11 +1855,12 @@ bool GUI_App::checked_tab(Tab* tab)
 }
 
 // Update UI / Tabs to reflect changes in the currently loaded presets
-void GUI_App::load_current_presets()
+void GUI_App::load_current_presets(bool check_printer_presets_ /*= true*/)
 {
     // check printer_presets for the containing information about "Print Host upload"
     // and create physical printer from it, if any exists
-    check_printer_presets();
+    if (check_printer_presets_)
+        check_printer_presets();
 
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
 	this->plater()->set_printer_technology(printer_technology);
@@ -1791,11 +1888,9 @@ bool GUI_App::OnExceptionInMainLoop()
 void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 {
     size_t num_gcodes = 0;
-    for (const wxString &filename : fileNames) {
-        wxString fn = filename.Upper();
-        if (fn.EndsWith(".G") || fn.EndsWith(".GCODE"))
+    for (const wxString &filename : fileNames)
+        if (is_gcode_file(into_u8(filename)))
             ++ num_gcodes;
-    }
     if (fileNames.size() == num_gcodes) {
         // Opening PrusaSlicer by drag & dropping a G-Code onto PrusaSlicer icon in Finder,
         // just G-codes were passed. Switch to G-code viewer mode.
@@ -1815,8 +1910,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
     std::vector<wxString>    gcode_files;
     std::vector<wxString>    non_gcode_files;
     for (const auto& filename : fileNames) {
-        wxString fn = filename.Upper();
-        if (fn.EndsWith(".G") || fn.EndsWith(".GCODE"))
+        if (is_gcode_file(into_u8(filename)))
             gcode_files.emplace_back(filename);
         else {
             files.emplace_back(into_u8(filename));
@@ -1832,8 +1926,17 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
         if (!non_gcode_files.empty()) 
             start_new_slicer(non_gcode_files, true);
     } else {
-        if (! files.empty())
+        if (! files.empty()) {
+#if ENABLE_DRAG_AND_DROP_FIX
+            wxArrayString input_files;
+            for (size_t i = 0; i < non_gcode_files.size(); ++i) {
+                input_files.push_back(non_gcode_files[i]);
+            }
+            this->plater()->load_files(input_files);
+#else
             this->plater()->load_files(files, true, true);
+#endif     
+        }
         for (const wxString &filename : gcode_files)
             start_new_gcodeviewer(&filename);
     }
@@ -1912,6 +2015,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "pl", 	"pl_PL", },
 		{ "uk", 	"uk_UA", },
 		{ "zh", 	"zh_CN", },
+		{ "ru", 	"ru_RU", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);
@@ -2196,6 +2300,32 @@ void GUI_App::associate_3mf_files()
         // notify Windows only when any of the values gets changed
         ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
+
+#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+void GUI_App::associate_stl_files()
+{
+    wchar_t app_path[MAX_PATH];
+    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
+
+    std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
+    std::wstring prog_id = L"Prusa.Slicer.1";
+    std::wstring prog_desc = L"PrusaSlicer";
+    std::wstring prog_command = prog_path + L" \"%1\"";
+    std::wstring reg_base = L"Software\\Classes";
+    std::wstring reg_extension = reg_base + L"\\.stl";
+    std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
+    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
+
+    bool is_new = false;
+    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
+    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+
+    if (is_new)
+        // notify Windows only when any of the values gets changed
+        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+}
+#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
 void GUI_App::associate_gcode_files()
 {

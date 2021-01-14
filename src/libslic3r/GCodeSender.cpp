@@ -134,7 +134,7 @@ GCodeSender::set_baud_rate(unsigned int baud_rate)
         speed_t newSpeed = baud_rate;
         ioctl(handle, IOSSIOSPEED, &newSpeed);
         ::tcsetattr(handle, TCSANOW, &ios);
-#elif __linux
+#elif __linux__
         termios2 ios;
         if (ioctl(handle, TCGETS2, &ios))
             printf("Error in TCGETS2: %s\n", strerror(errno));

@@ -67,7 +67,6 @@ ExternalProject_Add(dep_libcurl
         --disable-smb
         --disable-smtp
         --disable-gopher
-        --disable-crypto-auth
         --without-gssapi
         --without-libpsl
         --without-libidn2

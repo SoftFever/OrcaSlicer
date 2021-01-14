@@ -219,7 +219,7 @@ ClipperLib::PolyTree union_pt(const Slic3r::ExPolygons &subject, bool safety_off
 ClipperLib::PolyTree union_pt(Slic3r::Polygons &&subject, bool safety_offset_ = false);
 ClipperLib::PolyTree union_pt(Slic3r::ExPolygons &&subject, bool safety_offset_ = false);
 
-Slic3r::Polygons union_pt_chained(const Slic3r::Polygons &subject, bool safety_offset_ = false);
+Slic3r::Polygons union_pt_chained_outside_in(const Slic3r::Polygons &subject, bool safety_offset_ = false);
 
 ClipperLib::PolyNodes order_nodes(const ClipperLib::PolyNodes &nodes);
 

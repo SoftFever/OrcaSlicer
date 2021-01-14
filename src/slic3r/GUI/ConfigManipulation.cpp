@@ -2,6 +2,7 @@
 #include "ConfigManipulation.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "format.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
@@ -184,30 +185,21 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     if (config->option<ConfigOptionPercent>("fill_density")->value == 100) {
-        auto fill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->value;
-        std::string str_fill_pattern = "";
-        t_config_enum_values map_names = config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->get_enum_values();
-        for (auto it : map_names) {
-            if (fill_pattern == it.second) {
-                str_fill_pattern = it.first;
-                break;
-            }
-        }
-        if (!str_fill_pattern.empty()) {
-            const std::vector<std::string>& external_fill_pattern = config->def()->get("top_fill_pattern")->enum_values;
-            bool correct_100p_fill = false;
-            for (const std::string& fill : external_fill_pattern)
-            {
-                if (str_fill_pattern == fill)
-                    correct_100p_fill = true;
-            }
+        std::string  fill_pattern            = config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->serialize();
+        const auto  &top_fill_pattern_values = config->def()->get("top_fill_pattern")->enum_values;
+        bool correct_100p_fill = std::find(top_fill_pattern_values.begin(), top_fill_pattern_values.end(), fill_pattern) != top_fill_pattern_values.end();
+        if (!correct_100p_fill) {
             // get fill_pattern name from enum_labels for using this one at dialog_msg
-            str_fill_pattern = _utf8(config->def()->get("fill_pattern")->enum_labels[fill_pattern]);
-            if (!correct_100p_fill) {
-                wxString msg_text = GUI::from_u8((boost::format(_utf8(L("The %1% infill pattern is not supposed to work at 100%% density."))) % str_fill_pattern).str());
+            const ConfigOptionDef *fill_pattern_def = config->def()->get("fill_pattern");
+            assert(fill_pattern_def != nullptr);
+            auto it_pattern = std::find(fill_pattern_def->enum_values.begin(), fill_pattern_def->enum_values.end(), fill_pattern);
+            assert(it_pattern != fill_pattern_def->enum_values.end());
+            if (it_pattern != fill_pattern_def->enum_values.end()) {
+                wxString msg_text = GUI::format_wxstr(_L("The %1% infill pattern is not supposed to work at 100%% density."), 
+                    _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
                 if (is_global_config)
-                    msg_text += "\n\n" + _(L("Shall I switch to rectilinear fill pattern?"));
-                wxMessageDialog dialog(nullptr, msg_text, _(L("Infill")),
+                    msg_text += "\n\n" + _L("Shall I switch to rectilinear fill pattern?");
+                wxMessageDialog dialog(nullptr, msg_text, _L("Infill"),
                                                   wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
                 DynamicPrintConfig new_conf = *config;
                 auto answer = dialog.ShowModal();
@@ -237,8 +229,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_infill = config->option<ConfigOptionPercent>("fill_density")->value > 0;
     // infill_extruder uses the same logic as in Print::extruders()
     for (auto el : { "fill_pattern", "infill_every_layers", "infill_only_where_needed",
-                    "solid_infill_every_layers", "solid_infill_below_area", "infill_extruder" })
+                    "solid_infill_every_layers", "solid_infill_below_area", "infill_extruder", "infill_anchor_max" })
         toggle_field(el, have_infill);
+    // Only allow configuration of open anchors if the anchoring is enabled.
+    bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
+    toggle_field("infill_anchor", has_infill_anchors);
 
     bool has_spiral_vase         = config->opt_bool("spiral_vase");
     bool has_top_solid_infill 	 = config->opt_int("top_solid_layers") > 0;
@@ -312,6 +307,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     for (auto el : { "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
                      "wipe_tower_bridging", "wipe_tower_no_sparse_layers", "single_extruder_multi_material_priming" })
         toggle_field(el, have_wipe_tower);
+
+    bool have_avoid_crossing_perimeters = config->opt_bool("avoid_crossing_perimeters");
+    toggle_field("avoid_crossing_perimeters_max_detour", have_avoid_crossing_perimeters);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

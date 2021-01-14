@@ -552,11 +552,12 @@ public:
         int volume_idx{ -1 };
         Vec3d mesh_offset{ Vec3d::Zero() };
         Geometry::Transformation transform;
+        bool is_converted_from_inches = false;
 
         template<class Archive> void serialize(Archive& ar) { 
             //FIXME Vojtech: Serialize / deserialize only if the Source is set.
             // likely testing input_file or object_idx would be sufficient.
-            ar(input_file, object_idx, volume_idx, mesh_offset, transform);
+            ar(input_file, object_idx, volume_idx, mesh_offset, transform, is_converted_from_inches);
         }
     };
     Source              source;
@@ -655,6 +656,7 @@ public:
 
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
+    void convert_from_imperial_units();
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
@@ -1016,7 +1018,7 @@ public:
     bool 		  looks_like_multipart_object() const;
     void 		  convert_multipart_object(unsigned int max_extruders);
     bool          looks_like_imperial_units() const;
-    void          convert_from_imperial_units();
+    void          convert_from_imperial_units(bool only_small_volumes);
 
     // Ensures that the min z of the model is not negative
     void 		  adjust_min_z();

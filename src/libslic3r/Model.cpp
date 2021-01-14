@@ -22,9 +22,6 @@
 #include "SVG.hpp"
 #include <Eigen/Dense>
 #include "GCodeWriter.hpp"
-#if !ENABLE_GCODE_VIEWER
-#include "GCode/PreviewData.hpp"
-#endif // !ENABLE_GCODE_VIEWER
 
 namespace Slic3r {
 
@@ -464,12 +461,15 @@ bool Model::looks_like_imperial_units() const
     return false;
 }
 
-void Model::convert_from_imperial_units()
+void Model::convert_from_imperial_units(bool only_small_volumes)
 {
     double in_to_mm = 25.4;
     for (ModelObject* obj : this->objects)
-        if (obj->get_object_stl_stats().volume < 9.0) // 9 = 3*3*3;
+        if (! only_small_volumes || obj->get_object_stl_stats().volume < 9.0) { // 9 = 3*3*3;
             obj->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
+            for (ModelVolume* v : obj->volumes)
+                v->source.is_converted_from_inches = true;
+        }
 }
 
 void Model::adjust_min_z()
@@ -1042,8 +1042,6 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
     int vol_idx = 0;
     for (ModelVolume* volume : volumes)
     {
-        volume->supported_facets.clear();
-        volume->seam_facets.clear();
         if (!volume->mesh().empty()) {
             TriangleMesh mesh(volume->mesh());
             mesh.require_shared_vertices();
@@ -1056,12 +1054,21 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, bool from_imperial
             assert(vol->config.id().valid());
             assert(vol->config.id() != volume->config.id());
             vol->set_material(volume->material_id(), *volume->material());
+            vol->source.input_file = volume->source.input_file;
+            vol->source.object_idx = (int)new_objects.size();
+            vol->source.volume_idx = vol_idx;
 
-            // Perform conversion
-            if (volume_idxs.empty() || 
-                std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end()) {
+            vol->supported_facets.assign(volume->supported_facets);
+            vol->seam_facets.assign(volume->seam_facets);
+
+            // Perform conversion only if the target "imperial" state is different from the current one.
+            // This check supports conversion of "mixed" set of volumes, each with different "imperial" state.
+            if (//vol->source.is_converted_from_inches != from_imperial && 
+                (volume_idxs.empty() || 
+                 std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end())) {
                 vol->scale_geometry_after_creation(versor);
                 vol->set_offset(versor.cwiseProduct(volume->get_offset()));
+                vol->source.is_converted_from_inches = from_imperial;
             }
             else
                 vol->set_offset(volume->get_offset());
@@ -1276,6 +1283,10 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     ModelVolume* volume = this->volumes.front();
     TriangleMeshPtrs meshptrs = volume->mesh().split();
     for (TriangleMesh *mesh : meshptrs) {
+
+        // FIXME: crashes if not satisfied
+        if (mesh->facets_count() < 3) continue;
+
         mesh->repair();
         
         // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
@@ -1797,6 +1808,14 @@ void ModelVolume::transform_this_mesh(const Matrix3d &matrix, bool fix_left_hand
     this->set_new_unique_id();
 }
 
+void ModelVolume::convert_from_imperial_units()
+{
+    double in_to_mm = 25.4;
+    this->scale_geometry_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
+    this->set_offset(Vec3d(0, 0, 0));
+    this->source.is_converted_from_inches = true;
+}
+
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->transform(get_matrix(dont_translate));
@@ -1849,7 +1868,7 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 
 arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 {
-    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
+//    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
     
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
@@ -1861,13 +1880,11 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 
     assert(!p.points.empty());
 
-    // this may happen for malformed models, see:
-    // https://github.com/prusa3d/PrusaSlicer/issues/2209
-    if (!p.points.empty()) {
-        Polygons pp{p};
-        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
-        if (!pp.empty()) p = pp.front();
-    }
+//    if (!p.points.empty()) {
+//        Polygons pp{p};
+//        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
+//        if (!pp.empty()) p = pp.front();
+//    }
    
     arrangement::ArrangePolygon ret;
     ret.poly.contour = std::move(p);

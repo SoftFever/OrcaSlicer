@@ -420,7 +420,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     m_main_grid_sizer->Add(editors_grid_sizer, 1, wxEXPAND);
 
-    m_check_inch = new wxCheckBox(parent, wxID_ANY, "Inches");
+    m_check_inch = new wxCheckBox(parent, wxID_ANY, _L("Inches"));
     m_check_inch->SetFont(wxGetApp().normal_font());
 
     m_check_inch->SetValue(m_imperial_units);
@@ -1007,7 +1007,7 @@ ManipulationEditor::ManipulationEditor(ObjectManipulation* parent,
                                        const std::string& opt_key,
                                        int axis) :
     wxTextCtrl(parent->parent(), wxID_ANY, wxEmptyString, wxDefaultPosition,
-        wxSize(5*int(wxGetApp().em_unit()), wxDefaultCoord), wxTE_PROCESS_ENTER),
+        wxSize((wxOSX ? 5 : 6)*int(wxGetApp().em_unit()), wxDefaultCoord), wxTE_PROCESS_ENTER),
     m_opt_key(opt_key),
     m_axis(axis)
 {

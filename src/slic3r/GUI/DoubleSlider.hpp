@@ -4,9 +4,6 @@
 #include "libslic3r/CustomGCode.hpp"
 #include "wxExtensions.hpp"
 
-#if !ENABLE_GCODE_VIEWER
-#include <wx/wx.h>
-#endif // !ENABLE_GCODE_VIEWER
 #include <wx/window.h>
 #include <wx/control.h>
 #include <wx/dc.h>
@@ -46,8 +43,6 @@ enum FocusedItem {
     fiActionIcon,
     fiLowerThumb,
     fiHigherThumb,
-    fiLowerThumbText,
-    fiHigherThumbText,
     fiTick
 };
 
@@ -79,9 +74,14 @@ enum DrawMode
     dmRegular,
     dmSlaPrint,
     dmSequentialFffPrint,
-#if ENABLE_GCODE_VIEWER
     dmSequentialGCodeView,
-#endif // ENABLE_GCODE_VIEWER
+};
+
+enum LabelType
+{
+    ltHeightWithLayer,
+    ltHeight,
+    ltEstimatedTime,
 };
 
 struct TickCode
@@ -212,16 +212,16 @@ public:
 
     void    SetMaxValue(const int max_value);
     void    SetKoefForLabels(const double koef)                { m_label_koef = koef; }
-    void    SetSliderValues(const std::vector<double>& values) { m_values = values; }
+    void    SetSliderValues(const std::vector<double>& values);
     void    ChangeOneLayerLock();
 
-    Info   GetTicksValues() const;
-    void   SetTicksValues(const Info &custom_gcode_per_print_z);
+    Info    GetTicksValues() const;
+    void    SetTicksValues(const Info &custom_gcode_per_print_z);
+    void    SetLayersTimes(const std::vector<float>& layers_times);
+    void    SetLayersTimes(const std::vector<double>& layers_times);
 
     void    SetDrawMode(bool is_sla_print, bool is_sequential_print);
-#if ENABLE_GCODE_VIEWER
     void    SetDrawMode(DrawMode mode) { m_draw_mode = mode; }
-#endif // ENABLE_GCODE_VIEWER
 
     void    SetManipulationMode(Mode mode)  { m_mode = mode; }
     Mode    GetManipulationMode() const     { return m_mode; }
@@ -261,12 +261,8 @@ public:
     void discard_all_thicks();
     void move_current_thumb_to_pos(wxPoint pos);
     void edit_extruder_sequence();
-#if ENABLE_GCODE_VIEWER
     void jump_to_value();
     void enable_action_icon(bool enable) { m_enable_action_icon = enable; }
-#else
-    void jump_to_print_z();
-#endif // ENABLE_GCODE_VIEWER
     void show_add_context_menu();
     void show_edit_context_menu();
     void show_cog_icon_context_menu();
@@ -281,15 +277,17 @@ protected:
     void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
     void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
     void    draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& higher_pos);
+    void    draw_ticks_pair(wxDC& dc, wxCoord pos, wxCoord mid, int tick_len);
     void    draw_ticks(wxDC& dc);
     void    draw_colored_band(wxDC& dc);
+    void    draw_ruler(wxDC& dc);
     void    draw_one_layer_icon(wxDC& dc);
     void    draw_revert_icon(wxDC& dc);
     void    draw_cog_icon(wxDC &dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
     void    draw_tick_on_mouse_position(wxDC &dc);
-    void    draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, bool right_side = true) const;
+    void    draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, LabelType label_type = ltHeight, bool right_side = true) const;
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
 
     void    update_thumb_rect(const wxCoord begin_x, const wxCoord begin_y, const SelectedSlider& selection);
@@ -306,7 +304,7 @@ private:
     int     get_tick_near_point(const wxPoint& pt);
 
     double      get_scroll_step();
-    wxString    get_label(int tick) const;
+    wxString    get_label(int tick, LabelType label_type = ltHeightWithLayer) const;
     void        get_lower_and_higher_position(int& lower_pos, int& higher_pos);
     int         get_value_from_position(const wxCoord x, const wxCoord y);
     int         get_value_from_position(const wxPoint pos) { return get_value_from_position(pos.x, pos.y); }
@@ -360,9 +358,7 @@ private:
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
     bool        m_force_mode_apply = true;
-#if ENABLE_GCODE_VIEWER
     bool        m_enable_action_icon = true;
-#endif // ENABLE_GCODE_VIEWER
 
     DrawMode    m_draw_mode = dmRegular;
 
@@ -375,8 +371,6 @@ private:
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
-    mutable wxRect m_rect_lower_thumb_text;
-    mutable wxRect m_rect_higher_thumb_text;
     wxRect      m_rect_tick_action;
     wxRect      m_rect_one_layer_icon;
     wxRect      m_rect_revert_icon;
@@ -387,10 +381,12 @@ private:
     int         m_revert_icon_dim;
     int         m_cog_icon_dim;
     long        m_style;
+    long        m_extra_style;
     float       m_label_koef = 1.0;
 
     std::vector<double> m_values;
     TickCodeInfo        m_ticks;
+    std::vector<double> m_layers_times;
 
     std::vector<std::string>    m_extruder_colors;
 
@@ -407,6 +403,15 @@ private:
 
     std::vector<wxPen*> m_line_pens;
     std::vector<wxPen*> m_segm_pens;
+
+    struct Ruler {
+        double long_step;
+        double short_step;
+        int count { 1 }; // > 1 for sequential print
+
+        void update(wxWindow* win, const std::vector<double>& values, double scroll_step);
+        bool is_ok() { return long_step > 0 && short_step > 0; }
+    } m_ruler;
 };
 
 } // DoubleSlider;

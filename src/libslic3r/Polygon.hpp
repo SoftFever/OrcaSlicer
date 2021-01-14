@@ -16,12 +16,12 @@ typedef std::vector<Polygon> Polygons;
 class Polygon : public MultiPoint
 {
 public:
-    operator Polygons() const { Polygons pp; pp.push_back(*this); return pp; }
-    operator Polyline() const { return this->split_at_first_point(); }
+    explicit operator Polygons() const { Polygons pp; pp.push_back(*this); return pp; }
+    explicit operator Polyline() const { return this->split_at_first_point(); }
     Point& operator[](Points::size_type idx) { return this->points[idx]; }
     const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
 
-    Polygon() {}
+    Polygon() = default;
     virtual ~Polygon() = default;
     explicit Polygon(const Points &points) : MultiPoint(points) {}
 	Polygon(std::initializer_list<Point> points) : MultiPoint(points) {}
@@ -74,7 +74,6 @@ public:
 inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
 inline bool operator!=(const Polygon &lhs, const Polygon &rhs) { return lhs.points != rhs.points; }
 
-extern BoundingBox get_extents(const Points &points);
 extern BoundingBox get_extents(const Polygon &poly);
 extern BoundingBox get_extents(const Polygons &polygons);
 extern BoundingBox get_extents_rotated(const Polygon &poly, double angle);

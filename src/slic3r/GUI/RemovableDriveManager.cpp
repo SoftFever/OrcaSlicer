@@ -20,6 +20,7 @@
 #include <glob.h>
 #include <pwd.h>
 #include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/process.hpp>
 #endif
@@ -81,7 +82,7 @@ void RemovableDriveManager::eject_drive()
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 	this->update();
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
-
+	BOOST_LOG_TRIVIAL(info) << "Ejecting started"; 
 	tbb::mutex::scoped_lock lock(m_drives_mutex);
 	auto it_drive_data = this->find_last_save_path_drive_data();
 	if (it_drive_data != m_current_drives.end()) {
@@ -90,7 +91,7 @@ void RemovableDriveManager::eject_drive()
 		mpath = mpath.substr(0, mpath.size() - 1);
 		HANDLE handle = CreateFileW(boost::nowide::widen(mpath).c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 		if (handle == INVALID_HANDLE_VALUE) {
-			std::cerr << "Ejecting " << mpath << " failed " << GetLastError() << " \n";
+			BOOST_LOG_TRIVIAL(error) << "Ejecting " << mpath << " failed (handle == INVALID_HANDLE_VALUE): " << GetLastError();
 			assert(m_callback_evt_handler);
 			if (m_callback_evt_handler)
 				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(*it_drive_data, false)));
@@ -99,19 +100,22 @@ void RemovableDriveManager::eject_drive()
 		DWORD deviceControlRetVal(0);
 		//these 3 commands should eject device safely but they dont, the device does disappear from file explorer but the "device was safely remove" notification doesnt trigger.
 		//sd cards does  trigger WM_DEVICECHANGE messege, usb drives dont
-		DeviceIoControl(handle, FSCTL_LOCK_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
-		DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
+		BOOL e1 = DeviceIoControl(handle, FSCTL_LOCK_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
+		BOOST_LOG_TRIVIAL(debug) << "FSCTL_LOCK_VOLUME " << e1 << " ; " << deviceControlRetVal << " ; " << GetLastError();
+		BOOL e2 = DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
+		BOOST_LOG_TRIVIAL(debug) << "FSCTL_DISMOUNT_VOLUME " << e2 << " ; " << deviceControlRetVal << " ; " << GetLastError();
 		// some implemenatations also calls IOCTL_STORAGE_MEDIA_REMOVAL here but it returns error to me
 		BOOL error = DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
 		if (error == 0) {
 			CloseHandle(handle);
-			BOOST_LOG_TRIVIAL(error) << "Ejecting " << mpath << " failed " << deviceControlRetVal << " " << GetLastError() << " \n";
+			BOOST_LOG_TRIVIAL(error) << "Ejecting " << mpath << " failed (IOCTL_STORAGE_EJECT_MEDIA)" << deviceControlRetVal << " " << GetLastError();
 			assert(m_callback_evt_handler);
 			if (m_callback_evt_handler)
 				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(*it_drive_data, false)));
 			return;
 		}
 		CloseHandle(handle);
+		BOOST_LOG_TRIVIAL(info) << "Ejecting finished";
 		assert(m_callback_evt_handler);
 		if (m_callback_evt_handler) 
 			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair< DriveData, bool >(std::move(*it_drive_data), true)));
@@ -184,8 +188,9 @@ namespace search_for_drives_internal
 		//if not same file system - could be removable drive
 		if (! compare_filesystem_id(path, parent_path)) {
 			//free space
-			boost::filesystem::space_info si = boost::filesystem::space(path);
-			if (si.available != 0) {
+			boost::system::error_code ec;
+			boost::filesystem::space_info si = boost::filesystem::space(path, ec);
+			if (!ec && si.available != 0) {
 				//user id
 				struct stat buf;
 				stat(path.c_str(), &buf);
@@ -256,29 +261,43 @@ void RemovableDriveManager::eject_drive()
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 	this->update();
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
-
-	tbb::mutex::scoped_lock lock(m_drives_mutex);
-	auto it_drive_data = this->find_last_save_path_drive_data();
-	if (it_drive_data != m_current_drives.end()) {
-		std::string correct_path(m_last_save_path);
-#ifndef __APPLE__
-		for (size_t i = 0; i < correct_path.size(); ++i) 
-        	if (correct_path[i]==' ') {
-				correct_path = correct_path.insert(i,1,'\\');
-        		++ i;
-        	}
+#if __APPLE__
+	// If eject is still pending on the eject thread, wait until it finishes.
+	//FIXME while waiting for the eject thread to finish, the main thread is not pumping Cocoa messages, which may lead 
+	// to blocking by the diskutil tool for a couple (up to 10) seconds. This is likely not critical, as the eject normally
+	// finishes quickly.
+	this->eject_thread_finish();
 #endif
+
+	BOOST_LOG_TRIVIAL(info) << "Ejecting started";
+
+	DriveData drive_data;
+	{
+		tbb::mutex::scoped_lock lock(m_drives_mutex);
+		auto it_drive_data = this->find_last_save_path_drive_data();
+		if (it_drive_data == m_current_drives.end())
+			return;
+		drive_data = *it_drive_data;
+	}
+
+	std::string correct_path(m_last_save_path);
+#if __APPLE__
+	// On Apple, run the eject asynchronously on a worker thread, see the discussion at GH issue #4844.
+	m_eject_thread = new boost::thread([this, correct_path, drive_data]()
+#endif
+	{
 		//std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
 		// there is no usable command in c++ so terminal command is used instead
 		// but neither triggers "succesful safe removal messege"
-        	BOOST_LOG_TRIVIAL(info) << "Ejecting started";
-        	boost::process::ipstream istd_err;
-    		boost::process::child child(
+		
+		BOOST_LOG_TRIVIAL(info) << "Ejecting started";
+		boost::process::ipstream istd_err;
+    	boost::process::child child(
 #if __APPLE__		
 			boost::process::search_path("diskutil"), "eject", correct_path.c_str(), (boost::process::std_out & boost::process::std_err) > istd_err);
-			//Another option how to eject at mac. Currently not working.
-			//used insted of system() command;
-			//this->eject_device(correct_path);
+		//Another option how to eject at mac. Currently not working.
+		//used insted of system() command;
+		//this->eject_device(correct_path);
 #else
     		boost::process::search_path("umount"), correct_path.c_str(), (boost::process::std_out & boost::process::std_err) > istd_err);
 #endif
@@ -287,22 +306,38 @@ void RemovableDriveManager::eject_drive()
 			BOOST_LOG_TRIVIAL(trace) << line;
 		}
 		// wait for command to finnish (blocks ui thread)
-		child.wait();
-    	int err = child.exit_code();
-    	if (err) {
-    		BOOST_LOG_TRIVIAL(error) << "Ejecting failed";
-			assert(m_callback_evt_handler);
-			if (m_callback_evt_handler)
-				wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(*it_drive_data, false)));
-    		return;
-    	}
-		BOOST_LOG_TRIVIAL(info) << "Ejecting finished";
-
+		std::error_code ec;
+		child.wait(ec);
+		bool success = false;
+		if (ec) {
+            // The wait call can fail, as it did in https://github.com/prusa3d/PrusaSlicer/issues/5507
+            // It can happen even in cases where the eject is sucessful, but better report it as failed.
+            // We did not find a way to reliably retrieve the exit code of the process.
+			BOOST_LOG_TRIVIAL(error) << "boost::process::child::wait() failed during Ejection. State of Ejection is unknown. Error code: " << ec.value();
+		} else {
+			int err = child.exit_code();
+	    	if (err) {
+	    		BOOST_LOG_TRIVIAL(error) << "Ejecting failed. Exit code: " << err;
+	    	} else {
+				BOOST_LOG_TRIVIAL(info) << "Ejecting finished";
+				success = true;
+			}
+		}
 		assert(m_callback_evt_handler);
 		if (m_callback_evt_handler) 
-			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(std::move(*it_drive_data), true)));
-		m_current_drives.erase(it_drive_data);
+			wxPostEvent(m_callback_evt_handler, RemovableDriveEjectEvent(EVT_REMOVABLE_DRIVE_EJECTED, std::pair<DriveData, bool>(drive_data, success)));
+		if (success) {
+			// Remove the drive_data from m_current drives, searching by value, not by pointer, as m_current_drives may get modified during
+			// asynchronous execution on m_eject_thread.
+			tbb::mutex::scoped_lock lock(m_drives_mutex);
+			auto it = std::find(m_current_drives.begin(), m_current_drives.end(), drive_data);
+			if (it != m_current_drives.end())
+				m_current_drives.erase(it);
+		}
 	}
+#if __APPLE__
+	);
+#endif // __APPLE__
 }
 
 std::string RemovableDriveManager::get_removable_drive_path(const std::string &path)
@@ -364,7 +399,11 @@ void RemovableDriveManager::init(wxEvtHandler *callback_evt_handler)
 void RemovableDriveManager::shutdown()
 {
 #if __APPLE__
-	this->unregister_window_osx();
+	// If eject is still pending on the eject thread, wait until it finishes.
+	//FIXME while waiting for the eject thread to finish, the main thread is not pumping Cocoa messages, which may lead 
+	// to blocking by the diskutil tool for a couple (up to 10) seconds. This is likely not critical, as the eject normally
+	// finishes quickly.
+	this->eject_thread_finish();
 #endif
 
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
@@ -391,7 +430,6 @@ bool RemovableDriveManager::set_and_verify_last_save_path(const std::string &pat
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 	this->update();
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
-
 	m_last_save_path = this->get_removable_drive_from_path(path);
 	m_exporting_finished = false;
 	return ! m_last_save_path.empty();
@@ -475,5 +513,16 @@ std::vector<DriveData>::const_iterator RemovableDriveManager::find_last_save_pat
 		[this](const DriveData &data){ return data.path < m_last_save_path; }, 
 		[this](const DriveData &data){ return data.path == m_last_save_path; });
 }
+
+#if __APPLE__
+void RemovableDriveManager::eject_thread_finish()
+{
+	if (m_eject_thread) {
+		m_eject_thread->join();
+		delete m_eject_thread;
+		m_eject_thread = nullptr;
+	}
+}
+#endif // __APPLE__
 
 }} // namespace Slic3r::GUI

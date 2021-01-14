@@ -42,11 +42,11 @@ void ExPolygon::scale(double factor)
         hole.scale(factor);
 }
 
-void ExPolygon::translate(double x, double y)
+void ExPolygon::translate(const Point &p)
 {
-    contour.translate(x, y);
+    contour.translate(p);
     for (Polygon &hole : holes)
-        hole.translate(x, y);
+        hole.translate(p);
 }
 
 void ExPolygon::rotate(double angle)
@@ -350,23 +350,10 @@ void ExPolygon::get_trapezoids2(Polygons* polygons) const
     // find trapezoids by looping from first to next-to-last coordinate
     for (std::vector<coord_t>::const_iterator x = xx.begin(); x != xx.end()-1; ++x) {
         coord_t next_x = *(x + 1);
-        if (*x == next_x) continue;
-        
-        // build rectangle
-        Polygon poly;
-        poly.points.resize(4);
-        poly[0](0) = *x;
-        poly[0](1) = bb.min(1);
-        poly[1](0) = next_x;
-        poly[1](1) = bb.min(1);
-        poly[2](0) = next_x;
-        poly[2](1) = bb.max(1);
-        poly[3](0) = *x;
-        poly[3](1) = bb.max(1);
-        
-        // intersect with this expolygon
-        // append results to return value
-        polygons_append(*polygons, intersection(poly, to_polygons(*this)));
+        if (*x != next_x)
+            // intersect with rectangle
+            // append results to return value
+            polygons_append(*polygons, intersection({ { { *x, bb.min.y() }, { next_x, bb.min.y() }, { next_x, bb.max.y() }, { *x, bb.max.y() } } }, to_polygons(*this)));
     }
 }
 

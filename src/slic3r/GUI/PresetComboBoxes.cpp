@@ -32,6 +32,14 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "SavePresetDialog.hpp"
 
+// A workaround for a set of issues related to text fitting into gtk widgets:
+// See e.g.: https://github.com/prusa3d/PrusaSlicer/issues/4584
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    #include <glib-2.0/glib-object.h>
+    #include <pango-1.0/pango/pango-layout.h>
+    #include <gtk/gtk.h>
+#endif
+
 using Slic3r::GUI::format_wxstr;
 
 namespace Slic3r {
@@ -104,6 +112,15 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     // parameters for an icon's drawing
     fill_width_height();
 
+    Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& e) {
+        if (m_suppress_change)
+            e.StopPropagation();
+        else
+            e.Skip();
+    });
+    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_suppress_change = false; });
+    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_suppress_change = true;  });
+
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         // see https://github.com/prusa3d/PrusaSlicer/issues/3889
         // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
@@ -170,6 +187,25 @@ void PresetComboBox::update_selection()
 
     SetSelection(m_last_selected);
     SetToolTip(GetString(m_last_selected));
+
+// A workaround for a set of issues related to text fitting into gtk widgets:
+// See e.g.: https://github.com/prusa3d/PrusaSlicer/issues/4584
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    GList* cells = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(m_widget));
+
+    // 'cells' contains the GtkCellRendererPixBuf for the icon,
+    // 'cells->next' contains GtkCellRendererText for the text we need to ellipsize
+    if (!cells || !cells->next) return;
+
+    auto cell = static_cast<GtkCellRendererText *>(cells->next->data);
+
+    if (!cell) return;
+
+    g_object_set(G_OBJECT(cell), "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+
+    // Only the list of cells must be freed, the renderer isn't ours to free
+    g_list_free(cells);
+#endif
 }
 
 void PresetComboBox::update(std::string select_preset_name)
@@ -253,14 +289,14 @@ void PresetComboBox::edit_physical_printer()
     if (!m_preset_bundle->physical_printers.has_selection())
         return;
 
-    PhysicalPrinterDialog dlg(this->GetString(this->GetSelection()));
+    PhysicalPrinterDialog dlg(this->GetParent(),this->GetString(this->GetSelection()));
     if (dlg.ShowModal() == wxID_OK)
         update();
 }
 
 void PresetComboBox::add_physical_printer()
 {
-    if (PhysicalPrinterDialog(wxEmptyString).ShowModal() == wxID_OK)
+    if (PhysicalPrinterDialog(this->GetParent(), wxEmptyString).ShowModal() == wxID_OK)
         update();
 }
 
@@ -501,7 +537,7 @@ void PresetComboBox::OnDrawItem(wxDC& dc,
     int item,
     int flags) const
 {
-    const wxBitmap& bmp = *(wxBitmap*)m_bitmaps[item];
+    const wxBitmap& bmp = *(static_cast<wxBitmap*>(m_bitmaps[item]));
     if (bmp.IsOk())
     {
         // we should use scaled! size values of bitmap
@@ -675,7 +711,7 @@ void PlaterPresetComboBox::show_add_menu()
 
     append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
         [this](wxCommandEvent&) {
-            PhysicalPrinterDialog dlg(wxEmptyString);
+            PhysicalPrinterDialog dlg(this->GetParent(), wxEmptyString);
             if (dlg.ShowModal() == wxID_OK)
                 update();
         }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
@@ -851,9 +887,13 @@ void PlaterPresetComboBox::update()
     if (!tooltip.IsEmpty())
         SetToolTip(tooltip);
 
+#ifdef __WXMSW__
+    // Use this part of code just on Windows to avoid of some layout issues on Linux
+    // see https://github.com/prusa3d/PrusaSlicer/issues/5163 and https://github.com/prusa3d/PrusaSlicer/issues/5505
     // Update control min size after rescale (changed Display DPI under MSW)
     if (GetMinWidth() != 20 * m_em_unit)
         SetMinSize(wxSize(20 * m_em_unit, GetSize().GetHeight()));
+#endif //__WXMSW__
 }
 
 void PlaterPresetComboBox::msw_rescale()
@@ -896,6 +936,13 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type)
         }
 
         evt.StopPropagation();
+#ifdef __WXMSW__
+        // From the Win 2004 preset combobox lose a focus after change the preset selection
+        // and that is why the up/down arrow doesn't work properly
+        // (see https://github.com/prusa3d/PrusaSlicer/issues/5531 ).
+        // So, set the focus to the combobox explicitly
+        this->SetFocus();
+#endif    
     });
 }
 

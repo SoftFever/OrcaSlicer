@@ -62,6 +62,15 @@ struct ArrangePolygon {
 
     /// Test if arrange() was called previously and gave a successful result.
     bool is_arranged() const { return bed_idx != UNARRANGED; }
+
+    inline ExPolygon transformed_poly() const
+    {
+        ExPolygon ret = poly;
+        ret.rotate(rotation);
+        ret.translate(translation.x(), translation.y());
+
+        return ret;
+    }
 };
 
 using ArrangePolygons = std::vector<ArrangePolygon>;
@@ -74,14 +83,18 @@ struct ArrangeParams {
     
     /// The accuracy of optimization.
     /// Goes from 0.0 to 1.0 and scales performance as well
-    float accuracy = 0.65f;
+    float accuracy = 1.f;
     
     /// Allow parallel execution.
     bool parallel = true;
+
+    bool allow_rotations = false;
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
     std::function<void(unsigned)> progressind;
+
+    std::function<void(const ArrangePolygon &)> on_packed;
     
     /// A predicate returning true if abort is needed.
     std::function<bool(void)>     stopcondition;

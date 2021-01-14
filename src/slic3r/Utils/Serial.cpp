@@ -313,7 +313,7 @@ void Serial::set_baud_rate(unsigned baud_rate)
 		speed_t newSpeed = baud_rate;
 		handle_errno(::ioctl(handle, IOSSIOSPEED, &newSpeed));
 		handle_errno(::tcsetattr(handle, TCSANOW, &ios));
-#elif __linux
+#elif __linux__
 
 		/* The following definitions are kindly borrowed from:
 			/usr/include/asm-generic/termbits.h

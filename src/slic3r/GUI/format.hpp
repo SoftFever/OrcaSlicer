@@ -45,6 +45,14 @@ namespace internal {
 		inline const utf8_buffer cook(const wxString &arg) {
 			return utf8_buffer { arg.ToUTF8() };
 		}
+		// Vojtech seemingly does not understand perfect forwarding:
+		// Why Slic3r::internal::format::cook(T&& arg) is taken for non-const wxString reference?
+		inline const utf8_buffer cook(wxString &arg) {
+			return utf8_buffer { arg.ToUTF8() };
+		}
+		inline const utf8_buffer cook(wxString &&arg) {
+			return utf8_buffer{ arg.ToUTF8() };
+		}
 	}
 }
 

@@ -234,6 +234,7 @@ use Slic3r::Test;
     $config->set('first_layer_height', '100%');
     $config->set('layer_height', 0.4);
     $config->set('start_gcode', '');
+#    $config->set('use_relative_e_distances', 1);
     $config->validate;
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -269,7 +270,12 @@ use Slic3r::Test;
                 
                 my $total_dist_XY = sum(map $_->[1], @this_layer);
                 $sum_of_partial_z_equals_to_layer_height = 1
-                    if abs(sum(map $_->[0], @this_layer) - $config->layer_height) > epsilon;
+                    if abs(sum(map $_->[0], @this_layer) - $config->layer_height) > 
+                        # The first segment on the 2nd layer has extrusion interpolated from zero 
+                        # and the 1st segment has such a low extrusion assigned, that it is effectively zero, thus the move
+                        # is considered non-extruding and a higher epsilon is required.
+                        ($z_moves == 2 ? 0.0021 : epsilon);
+                #printf ("Total height: %f, layer height: %f, good: %d\n", sum(map $_->[0], @this_layer), $config->layer_height, $sum_of_partial_z_equals_to_layer_height);
                 
                 foreach my $segment (@this_layer) {
                     # check that segment's dist_Z is proportioned to its dist_XY
@@ -281,6 +287,7 @@ use Slic3r::Test;
             } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
                 $horizontal_extrusions = 1
                     if $info->{dist_Z} == 0;
+                #printf("Pushing dist_z: %f, dist_xy: %f\n", $info->{dist_Z}, $info->{dist_XY});
                 push @this_layer, [ $info->{dist_Z}, $info->{dist_XY} ];
             }
         }

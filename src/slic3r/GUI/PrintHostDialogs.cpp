@@ -19,6 +19,7 @@
 #include "I18N.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "wxExtensions.hpp"
+#include "MainFrame.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 namespace fs = boost::filesystem;
@@ -31,7 +32,7 @@ static const char *CONFIG_KEY_PRINT = "printhost_print";
 static const char *CONFIG_KEY_GROUP = "printhost_group";
 
 PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_print, const wxArrayString &groups)
-    : MsgDialog(nullptr, _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"), wxID_NONE)
+    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"), wxID_NONE)
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
     , box_print(can_start_print ? new wxCheckBox(this, wxID_ANY, _L("Start printing after upload")) : nullptr)
     , combo_groups(!groups.IsEmpty() ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, groups, wxCB_READONLY) : nullptr)
@@ -77,6 +78,18 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
     txt_filename->SetFocus();
     
     Fit();
+    CenterOnParent();
+
+#ifdef __linux__
+    // On Linux with GTK2 when text control lose the focus then selection (colored background) disappears but text color stay white
+    // and as a result the text is invisible with light mode
+    // see https://github.com/prusa3d/PrusaSlicer/issues/4532
+    // Workaround: Unselect text selection explicitly on kill focus
+    txt_filename->Bind(wxEVT_KILL_FOCUS, [this](wxEvent& e) {
+        e.Skip();
+        txt_filename->SetInsertionPoint(txt_filename->GetLastPosition());
+    }, txt_filename->GetId());
+#endif /* __linux__ */
 
     Bind(wxEVT_SHOW, [=](const wxShowEvent &) {
         // Another similar case where the function only works with EVT_SHOW + CallAfter,
@@ -228,6 +241,8 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     fields.push_back(wxVariant(job.upload_data.upload_path.string()));
     fields.push_back(wxVariant(""));
     job_list->AppendItem(fields, static_cast<wxUIntPtr>(ST_NEW));
+    // Both strings are UTF-8 encoded.
+    upload_names.emplace_back(job.printhost->get_host(), job.upload_data.upload_path.string());
 }
 
 void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -315,6 +330,17 @@ void PrintHostQueueDialog::on_cancel(Event &evt)
 
     on_list_select();
 }
-
-
+void PrintHostQueueDialog::get_active_jobs(std::vector<std::pair<std::string, std::string>>& ret)
+{
+    int ic = job_list->GetItemCount();
+    for (size_t i = 0; i < ic; i++)
+    {
+        auto item = job_list->RowToItem(i);
+        auto data = job_list->GetItemData(item);
+        JobState st = static_cast<JobState>(data);
+        if(st == JobState::ST_NEW || st == JobState::ST_PROGRESS)
+            ret.emplace_back(upload_names[i]);       
+    }
+    //job_list->data
+}
 }}

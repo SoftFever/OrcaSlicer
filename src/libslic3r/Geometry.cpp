@@ -338,19 +338,19 @@ double rad2deg_dir(double angle)
     return rad2deg(angle);
 }
 
-Point circle_taubin_newton(const Points::const_iterator& input_begin, const Points::const_iterator& input_end, size_t cycles)
+Point circle_center_taubin_newton(const Points::const_iterator& input_begin, const Points::const_iterator& input_end, size_t cycles)
 {
     Vec2ds tmp;
     tmp.reserve(std::distance(input_begin, input_end));
     std::transform(input_begin, input_end, std::back_inserter(tmp), [] (const Point& in) { return unscale(in); } );
-    Vec2d center = circle_taubin_newton(tmp.cbegin(), tmp.end(), cycles);
+    Vec2d center = circle_center_taubin_newton(tmp.cbegin(), tmp.end(), cycles);
 	return Point::new_scale(center.x(), center.y());
 }
 
 /// Adapted from work in "Circular and Linear Regression: Fitting circles and lines by least squares", pg 126
 /// Returns a point corresponding to the center of a circle for which all of the points from input_begin to input_end
 /// lie on.
-Vec2d circle_taubin_newton(const Vec2ds::const_iterator& input_begin, const Vec2ds::const_iterator& input_end, size_t cycles)
+Vec2d circle_center_taubin_newton(const Vec2ds::const_iterator& input_begin, const Vec2ds::const_iterator& input_end, size_t cycles)
 {
     // calculate the centroid of the data set
     const Vec2d sum = std::accumulate(input_begin, input_end, Vec2d(0,0));
@@ -1223,7 +1223,7 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
     // reference: http://www.gregslabaugh.net/publications/euler.pdf
     Vec3d angles1 = Vec3d::Zero();
     Vec3d angles2 = Vec3d::Zero();
-    if (is_approx(std::abs(rotation_matrix(2, 0)), 1.0))
+    if (std::abs(std::abs(rotation_matrix(2, 0)) - 1.0) < 1e-5)
     {
         angles1(2) = 0.0;
         if (rotation_matrix(2, 0) < 0.0) // == -1.0

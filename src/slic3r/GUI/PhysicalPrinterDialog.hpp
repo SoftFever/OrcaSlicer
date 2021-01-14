@@ -82,10 +82,11 @@ class PhysicalPrinterDialog : public DPIDialog
     void AddPreset(wxEvent& event);
 
 public:
-    PhysicalPrinterDialog(wxString printer_name);
+    PhysicalPrinterDialog(wxWindow* parent, wxString printer_name);
     ~PhysicalPrinterDialog();
 
     void        update();
+    void        update_printhost_buttons();
     void        update_printers();
     wxString    get_printer_name();
     void        update_full_printer_names();

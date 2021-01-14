@@ -906,13 +906,15 @@ namespace SupportMaterialInternal {
                     polyline.extend_start(fw);
                     polyline.extend_end(fw);
                     // Is the straight perimeter segment supported at both sides?
-					for (size_t i = 0; i < lower_layer.lslices.size(); ++ i)
-						if (lower_layer.lslices_bboxes[i].contains(polyline.first_point()) && lower_layer.lslices_bboxes[i].contains(polyline.last_point()) && 
-							lower_layer.lslices[i].contains(polyline.first_point()) && lower_layer.lslices[i].contains(polyline.last_point())) {
-							// Offset a polyline into a thick line.
-							polygons_append(bridges, offset(polyline, 0.5f * w + 10.f));
-							break;
-						}
+                    Point pts[2]       = { polyline.first_point(), polyline.last_point() };
+                    bool  supported[2] = { false, false };
+					for (size_t i = 0; i < lower_layer.lslices.size() && ! (supported[0] && supported[1]); ++ i)
+                        for (int j = 0; j < 2; ++ j)
+                            if (! supported[j] && lower_layer.lslices_bboxes[i].contains(pts[j]) && lower_layer.lslices[i].contains(pts[j]))
+                                supported[j] = true;
+                    if (supported[0] && supported[1])
+                        // Offset a polyline into a thick line.
+                        polygons_append(bridges, offset(polyline, 0.5f * w + 10.f));
                 }
             bridges = union_(bridges);
         }
@@ -2324,7 +2326,6 @@ static inline void fill_expolygons_generate_paths(
 {
     FillParams fill_params;
     fill_params.density = density;
-    fill_params.complete = true;
     fill_params.dont_adjust = true;
     for (const ExPolygon &expoly : expolygons) {
         Surface surface(stInternal, expoly);
@@ -2351,7 +2352,6 @@ static inline void fill_expolygons_generate_paths(
 {
     FillParams fill_params;
     fill_params.density = density;
-    fill_params.complete = true;
     fill_params.dont_adjust = true;
     for (ExPolygon &expoly : expolygons) {
         Surface surface(stInternal, std::move(expoly));
@@ -2515,7 +2515,7 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
                 Polygon     &contour = (i_contour == 0) ? it_contact_expoly->contour : it_contact_expoly->holes[i_contour - 1];
                 const Point *seg_current_pt = nullptr;
                 coordf_t     seg_current_t  = 0.;
-                if (! intersection_pl(contour.split_at_first_point(), overhang_with_margin).empty()) {
+                if (! intersection_pl((Polylines)contour.split_at_first_point(), overhang_with_margin).empty()) {
                     // The contour is below the overhang at least to some extent.
                     //FIXME ideally one would place the circles below the overhang only.
                     // Walk around the contour and place circles so their centers are not closer than circle_distance from each other.

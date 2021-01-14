@@ -316,7 +316,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
 
 bool BitmapChoiceRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value)
 {
-    wxBitmapComboBox* c = (wxBitmapComboBox*)ctrl;
+    wxBitmapComboBox* c = static_cast<wxBitmapComboBox*>(ctrl);
     int selection = c->GetSelection();
     if (selection < 0)
         return false;

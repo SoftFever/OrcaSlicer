@@ -9,6 +9,7 @@
 #include "hidapi.h"
 
 #include <queue>
+#include <atomic>
 #include <thread>
 #include <vector>
 #include <chrono>
@@ -33,12 +34,12 @@ class Mouse3DController
 	struct Params
 	{
 		static constexpr double DefaultTranslationScale = 2.5;
-        static constexpr double MaxTranslationDeadzone = 0.0;
-        static constexpr double DefaultTranslationDeadzone = 0.5 * MaxTranslationDeadzone;
-		static constexpr float  DefaultRotationScale = 1.0f;
-        static constexpr float  MaxRotationDeadzone = 0.0f;
-        static constexpr float  DefaultRotationDeadzone = 0.5f * MaxRotationDeadzone;
-		static constexpr double DefaultZoomScale = 0.1;
+        static constexpr double MaxTranslationDeadzone = 0.2;
+        static constexpr double DefaultTranslationDeadzone = 0.0;
+        static constexpr float  DefaultRotationScale = 1.0f;
+        static constexpr float  MaxRotationDeadzone = 0.2f;
+        static constexpr float  DefaultRotationDeadzone = 0.0f;
+        static constexpr double DefaultZoomScale = 0.1;
 
         template <typename Number>
         struct CustomParameters
@@ -189,7 +190,7 @@ public:
     bool handle_input(const DataPacketAxis& packet);
 #endif // __APPLE__
 
-#ifdef WIN32
+#ifdef _WIN32
 	bool handle_raw_input_win32(const unsigned char *data, const int packet_lenght);
 
     // Called by Win32 HID enumeration callback.
@@ -202,7 +203,7 @@ public:
     // if the application does not register at the driver. This is a workaround to ignore these superfluous
     // mouse wheel events.
     bool process_mouse_wheel() { return m_state.process_mouse_wheel(); }
-#endif // WIN32
+#endif // _WIN32
 
     // Apply the received 3DConnexion mouse events to the camera. Called from the UI rendering thread.
     bool apply(Camera& camera);
