@@ -68,6 +68,7 @@ ExternalProject_Add(dep_boost
         --with-log
         --with-locale
         --with-regex
+        --with-date_time
         "--prefix=${DESTDIR}/usr/local"
         "address-model=${DEPS_BITS}"
         "toolset=${DEP_BOOST_TOOLSET}"
