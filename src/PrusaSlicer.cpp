@@ -197,6 +197,9 @@ int CLI::run(int argc, char **argv)
     // Normalizing after importing the 3MFs / AMFs
     m_print_config.normalize_fdm();
 
+    if (printer_technology == ptUnknown)
+        printer_technology = std::find(m_actions.begin(), m_actions.end(), "export_sla") == m_actions.end() ? ptFFF : ptSLA;
+
     // Initialize full print configs for both the FFF and SLA technologies.
     FullPrintConfig    fff_print_config;
     SLAFullPrintConfig sla_print_config;
@@ -205,7 +208,8 @@ int CLI::run(int argc, char **argv)
     if (printer_technology == ptFFF) {
         fff_print_config.apply(m_print_config, true);
         m_print_config.apply(fff_print_config, true);
-    } else if (printer_technology == ptSLA) {
+    } else {
+        assert(printer_technology == ptSLA);
         // The default value has to be different from the one in fff mode.
         sla_print_config.printer_technology.value = ptSLA;
         sla_print_config.output_filename_format.value = "[input_filename_base].sl1";
@@ -481,12 +485,6 @@ int CLI::run(int argc, char **argv)
                 if (printer_technology == ptFFF) {
                     for (auto* mo : model.objects)
                         fff_print.auto_assign_extruders(mo);
-                } else {
-                    // The default for "output_filename_format" is good for FDM: "[input_filename_base].gcode"
-                    // Replace it with a reasonable SLA default.
-                    std::string &format = m_print_config.opt_string("output_filename_format", true);
-                    if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("output_filename_format")->default_value.get())->value)
-                        format = "[input_filename_base].SL1";
                 }
                 print->apply(model, m_print_config);
                 std::string err = print->validate();
