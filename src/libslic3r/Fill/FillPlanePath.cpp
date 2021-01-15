@@ -101,9 +101,9 @@ Pointfs FillArchimedeanChords::_generate(coord_t min_x, coord_t min_y, coord_t m
 //
 static inline Point hilbert_n_to_xy(const size_t n)
 {
-    static const int next_state[16] = { 4,0,0,12, 0,4,4,8, 12,8,8,4, 8,12,12,0 };
-    static const int digit_to_x[16] = { 0,1,1,0, 0,0,1,1, 1,0,0,1, 1,1,0,0 };
-    static const int digit_to_y[16] = { 0,0,1,1, 0,1,1,0, 1,1,0,0, 1,0,0,1 };
+    static constexpr const int next_state[16] { 4,0,0,12, 0,4,4,8, 12,8,8,4, 8,12,12,0 };
+    static constexpr const int digit_to_x[16] { 0,1,1,0, 0,0,1,1, 1,0,0,1, 1,1,0,0 };
+    static constexpr const int digit_to_y[16] { 0,0,1,1, 0,1,1,0, 1,1,0,0, 1,0,0,1 };
 
     // Number of 2 bit digits.
     size_t ndigits = 0;
