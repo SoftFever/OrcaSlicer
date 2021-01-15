@@ -16,7 +16,7 @@ Full manual for GNUgettext can be seen here: http://www.gnu.org/software/gettext
 https://github.com/prusa3d/PrusaSlicer/tree/master/resources/localization
 2. Open this file in PoEdit as "Edit a translation"
 3. Apply your corrections to the translation
-4. Push changed PrusaSlicer.po and PrusaSlicer.mo (will create automatically after saving of PrusaSlicer.po in PoEdit) back to to the enter folder.
+4. Push changed PrusaSlicer.po and PrusaSlicer.mo (will create automatically after saving of PrusaSlicer.po in PoEdit) into the original folder.
 
 ### Scenario 2. How do I add a new language support
 1. Get file PrusaSlicer.pot here :
@@ -71,6 +71,33 @@ https://github.com/prusa3d/PrusaSlicer/tree/master/resources/localization/list.t
     ```
     Notice, in this Catalog it will be totally same strings for initial text and translated.
 
-When you have Catalog to translation open POT or PO file in PoEdit and start to translation, 
-it's very important to keep attention to every gaps and punctuation. Especially with 
-formatted strings. (using %d, %s, etc.) 
+When you have Catalog to translation open POT or PO file in PoEdit and start translating.
+
+
+## General guidelines for PrusaSlicer translators
+
+
+- We recommend using *PoEdit* application for translation (as described above). It will help you eliminate most punctuation errors and will show you strings with "random" translations (if the fuzzy parameter was used).
+
+- To check how the translated text looks on the UI elements, test it :) If you use *PoEdit*, all you need to do is save the file. At this point, a MO file will be created. Rename it PrusaSlicer.mo, and you can run PrusaSlicer (see above).
+
+- If you see an encoding error (garbage characters instead of Unicode) somewhere in PrusaSlicer, report it. It is likely not a problem of your translation, but a bug in the software.
+
+- See on which UI elements the translated phrase will be used. Especially if it's a button, it is very important to decide on the translation and not write alternative translations in parentheses, as this will significantly increase the width of the button, which is sometimes highly undesirable:
+
+![Long text on button](images/long_text_on_button.png)
+
+- If you decide to use autocorrect or any batch processing tool, the output requires very careful proofreading. It is very easy to make it do changes that break things big time.
+
+- **Any formatting parts of the phrases must remain unchanged.** For example, you should not change `%1%` to `%1 %`, you should not change `%%` to `%` (for percent sign) and similar. This will lead to application crashes.
+
+- Please pay attention to spaces, line breaks (\n) and punctuation marks. **Don't add extra line breaks.** This is especially important for parameter names.
+
+- Description of the parameters should not contain units of measurement. For example, "Enable fan if layer print time is less than ~~n seconds~~"
+
+- For units of measurement, use the international system of units. Use "s" instead of "sec".
+
+- If the phrase doesn't have a dot at the end, don't add it. And if it does, then don't forget to :)
+
+- It is useful to stick to the same terminology in the application (especially with basic terms such as "filament" and similar). Stay consistent. Otherwise it will confuse users.
+
