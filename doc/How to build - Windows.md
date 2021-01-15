@@ -1,29 +1,35 @@
 # Step by Step Visual Studio 2019 Instructions
 
-Install Visual Studio Community 2019 from [visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/)
+Install Visual Studio Community 2019 from [visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/). Older versions are not supported as PrusaSlicer requires support for C++17.
 Select all workload options for C++ 
 
 Install git for Windows from [gitforwindows.org](https://gitforwindows.org/)
 Download and run the exe accepting all defaults
 
-Clone the respository.  To place it in C:\PrusaSlicer, run:
-c:\>git clone https://github.com/prusa3d/PrusaSlicer.git
+Clone the respository.  To place it in C:\src\PrusaSlicer, run:
+```
+c:> mkdir src
+c:> cd src
+c:\src> git clone https://github.com/prusa3d/PrusaSlicer.git
+```
 
 Go to the Windows Start Menu and Click on "Visual Studio 2019" folder, then select the ->"x64 Native Tools Command Prompt" to open a command window and run the following:
 
-cd c:\PrusaSlicer\deps
+```
+cd c:\src\PrusaSlicer\deps
 mkdir build
 cd build
-cmake .. -G "Visual Studio 16 2019" -DDESTDIR="c:\PrusaSlicer"
+cmake .. -G "Visual Studio 16 2019" -DDESTDIR="c:\src\PrusaSlicer-deps"
 
 msbuild /m ALL_BUILD.vcxproj // This took 13.5 minutes on my machine: core I7-7700K @ 4.2Ghz with 32GB main memory and 20min on a average laptop
 
-cd c:\PrusaSlicer\
+cd c:\src\PrusaSlicer\
 mkdir build
 cd build
-cmake .. -G "Visual Studio 16 2019" -DCMAKE_PREFIX_PATH="c:\PrusaSlicer\usr\local"
+cmake .. -G "Visual Studio 16 2019" -DCMAKE_PREFIX_PATH="c:\src\PrusaSlicer-deps\usr\local"
+```
 
-Double-click c:\PrusaSlicer\build\PrusaSlicer.sln to open in Visual Studio 2019.
+Double-click c:\src\PrusaSlicer\build\PrusaSlicer.sln to open in Visual Studio 2019.
 OR
 Open Visual Studio for C++ development (VS asks this the first time you start it).
 
