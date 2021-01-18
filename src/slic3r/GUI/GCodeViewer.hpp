@@ -134,9 +134,12 @@ class GCodeViewer
     {
         struct Endpoint
         {
-            // index of the index buffer
+            // index of the buffer in the multibuffer vector
+            // the buffer type may change:
+            // it is the vertex buffer while extracting vertices data,
+            // the index buffer while extracting indices data
             unsigned int b_id{ 0 };
-            // index into the index buffer
+            // index into the buffer
             size_t i_id{ 0 };
             // move id
             size_t s_id{ 0 };

@@ -1151,6 +1151,11 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 #if ENABLE_SPLITTED_VERTEX_BUFFER
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
+    // max vertex buffer size, in bytes
+    static const size_t VBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
+    // max index buffer size, in bytes
+    static const size_t IBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
+
     auto log_memory_usage = [this](const std::string& label, const std::vector<MultiVertexBuffer>& vertices, const std::vector<MultiIndexBuffer>& indices) {
         int64_t vertices_size = 0;
         for (const MultiVertexBuffer& buffers : vertices) {
@@ -1601,9 +1606,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
     std::vector<float> options_zs;
 
-    // max vertex buffer size, in bytes
-    const size_t VBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
-
     // toolpaths data -> extract vertices from result
     for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
@@ -1679,6 +1681,38 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             vertices[offset + 1] = position[1];
             vertices[offset + 2] = position[2];
         };
+        auto match_right_vertices = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
+            size_t curr_s_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
+                // offset into the vertex buffer of the next segment 1st vertex
+                size_t next_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
+                // offset into the vertex buffer of the right vertex of the previous segment 
+                size_t prev_right_offset = prev_sub_path.last.i_id - next_offset - 3 * vertex_size_floats;
+                // new position of the right vertices
+                Vec3f shared_vertex = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset) + displacement_vec;
+                // update previous segment
+                update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset, shared_vertex);
+                // offset into the vertex buffer of the right vertex of the next segment
+                size_t r_offset = (curr_s_id == next_sub_path.first.i_id) ? 1 : 0;
+                size_t next_right_offset = next_sub_path.last.i_id - next_offset + r_offset * vertex_size_floats;
+                // update next segment
+                update_position_at(v_multibuffer[next_sub_path.first.b_id], next_right_offset, shared_vertex);
+        };
+        auto match_left_vertices = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
+            size_t curr_s_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
+                // offset into the vertex buffer of the next segment 1st vertex
+                size_t next_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
+                // offset into the vertex buffer of the left vertex of the previous segment 
+                size_t prev_left_offset = prev_sub_path.last.i_id - next_offset - 1 * vertex_size_floats;
+                // new position of the left vertices
+                Vec3f shared_vertex = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset) + displacement_vec;
+                // update previous segment
+                update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset, shared_vertex);
+                // offset into the vertex buffer of the left vertex of the next segment 
+                size_t l_offset = (curr_s_id == next_sub_path.first.i_id) ? 3 : 1;
+                size_t next_left_offset = next_sub_path.last.i_id - next_offset + l_offset * vertex_size_floats;
+                // update next segment
+                update_position_at(v_multibuffer[next_sub_path.first.b_id], next_left_offset, shared_vertex);
+        };
 
         size_t vertex_size_floats = t_buffer.vertices.vertex_size_floats();
         for (const Path& path : t_buffer.paths) {
@@ -1728,63 +1762,20 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length&& sq_displacement < sq_next_length;
 
                 if (can_displace) {
+                    // displacement to apply to the vertices to match
                     Vec3f displacement_vec = displacement * prev_dir;
                     // matches inner corner vertices
-                    if (is_right_turn) {
-                        // offset into the vertex buffer of the right vertex of the previous segment 
-                        size_t prev_right_offset = prev_sub_path.last.i_id - ((prev_sub_path.last.s_id - curr_s_id) * 6 + 3) * vertex_size_floats;
-                        // new position of the right vertices
-                        Vec3f shared_right = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset) - displacement_vec;
-                        // update previous segment
-                        update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset, shared_right);
-                        // offset into the vertex buffer of the right vertex of the next segment
-                        size_t r_offset = (curr_s_id == next_sub_path.first.i_id) ? 1 : 0;
-                        size_t next_right_offset = next_sub_path.last.i_id - ((next_sub_path.last.s_id - curr_s_id) * 6 - r_offset) * vertex_size_floats;
-                        // update next segment
-                        update_position_at(v_multibuffer[next_sub_path.first.b_id], next_right_offset, shared_right);
-                    }
-                    else {
-                        // offset into the vertex buffer of the left vertex of the previous segment 
-                        size_t prev_left_offset = prev_sub_path.last.i_id - ((prev_sub_path.last.s_id - curr_s_id) * 6 + 1) * vertex_size_floats;
-                        // new position of the left vertices
-                        Vec3f shared_left = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset) - displacement_vec;
-                        // update previous segment
-                        update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset, shared_left);
-                        // offset into the vertex buffer of the left vertex of the next segment 
-                        size_t l_offset = (curr_s_id == next_sub_path.first.i_id) ? 3 : 1;
-                        size_t next_left_offset = next_sub_path.last.i_id - ((next_sub_path.last.s_id - curr_s_id) * 6 - l_offset) * vertex_size_floats;
-                        // update next segment
-                        update_position_at(v_multibuffer[next_sub_path.first.b_id], next_left_offset, shared_left);
-                    }
+                    if (is_right_turn)
+                        match_right_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, -displacement_vec);
+                    else
+                        match_left_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, -displacement_vec);
 
                     if (!is_sharp) {
                         // matches outer corner vertices
-                        if (is_right_turn) {
-                            // offset into the vertex buffer of the left vertex of the previous segment 
-                            size_t prev_left_offset = prev_sub_path.last.i_id - ((prev_sub_path.last.s_id - curr_s_id) * 6 + 1) * vertex_size_floats;
-                            // new position of the left vertices
-                            Vec3f shared_left = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset) + displacement_vec;
-                            // update previous segment
-                            update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset, shared_left);
-                            // offset into the vertex buffer of the left vertex of the next segment 
-                            size_t l_offset = (curr_s_id == next_sub_path.first.i_id) ? 3 : 1;
-                            size_t next_left_offset = next_sub_path.last.i_id - ((next_sub_path.last.s_id - curr_s_id) * 6 - l_offset) * vertex_size_floats;
-                            // update next segment
-                            update_position_at(v_multibuffer[next_sub_path.first.b_id], next_left_offset, shared_left);
-                        }
-                        else {
-                            // offset into the vertex buffer of the right vertex of the previous segment 
-                            size_t prev_right_offset = prev_sub_path.last.i_id - ((prev_sub_path.last.s_id - curr_s_id) * 6 + 3) * vertex_size_floats;
-                            // new position of the right vertices
-                            Vec3f shared_right = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset) + displacement_vec;
-                            // update previous segment
-                            update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset, shared_right);
-                            // offset into the vertex buffer of the right vertex of the next segment 
-                            size_t r_offset = (curr_s_id == next_sub_path.first.i_id) ? 1 : 0;
-                            size_t next_right_offset = next_sub_path.last.i_id - ((next_sub_path.last.s_id - curr_s_id) * 6 - r_offset) * vertex_size_floats;
-                            // update next segment
-                            update_position_at(v_multibuffer[next_sub_path.first.b_id], next_right_offset, shared_right);
-                        }
+                        if (is_right_turn)
+                            match_left_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, displacement_vec);
+                        else
+                            match_right_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, displacement_vec);
                     }
                 }
             }
@@ -1852,9 +1843,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (TBuffer& buffer : m_buffers) {
         buffer.paths.clear();
     }
-
-    // max index buffer size, in bytes
-    const size_t IBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
 
     // variable used to keep track of the current vertex buffers index and size
     using CurrVertexBuffer = std::pair<unsigned int, size_t>;
