@@ -1377,7 +1377,7 @@ void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx
     }
 }
 
-void GLCanvas3D::update_instance_printable_state_for_objects(std::vector<size_t>& object_idxs)
+void GLCanvas3D::update_instance_printable_state_for_objects(const std::vector<size_t>& object_idxs)
 {
     for (size_t obj_idx : object_idxs)
         update_instance_printable_state_for_object(obj_idx);
