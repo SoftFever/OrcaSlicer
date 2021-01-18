@@ -1282,6 +1282,128 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         last_path.sub_paths.back().last = { vbuffer_id, vertices.size(), move_id, curr.position };
     };
+    auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
+        size_t& vbuffer_size, unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+            static Vec3f prev_dir;
+            static Vec3f prev_up;
+            static float sq_prev_length;
+            auto store_triangle = [](IndexBuffer& indices, unsigned int i1, unsigned int i2, unsigned int i3) {
+                indices.push_back(i1);
+                indices.push_back(i2);
+                indices.push_back(i3);
+            };
+            auto append_dummy_cap = [store_triangle](IndexBuffer& indices, unsigned int id) {
+                store_triangle(indices, id, id, id);
+                store_triangle(indices, id, id, id);
+            };
+            auto store_main_triangles = [&](IndexBuffer& indices, size_t vbuffer_size, const std::array<int, 8>& v_offsets) {
+                std::array<unsigned int, 8> v_ids;
+                for (size_t i = 0; i < v_ids.size(); ++i) {
+                    v_ids[i] = static_cast<unsigned int>(static_cast<int>(vbuffer_size) + v_offsets[i]);
+                }
+
+                // triangles starting cap
+                store_triangle(indices, v_ids[0], v_ids[2], v_ids[1]);
+                store_triangle(indices, v_ids[0], v_ids[3], v_ids[2]);
+
+                // triangles sides
+                store_triangle(indices, v_ids[0], v_ids[1], v_ids[4]);
+                store_triangle(indices, v_ids[1], v_ids[5], v_ids[4]);
+                store_triangle(indices, v_ids[1], v_ids[2], v_ids[5]);
+                store_triangle(indices, v_ids[2], v_ids[6], v_ids[5]);
+                store_triangle(indices, v_ids[2], v_ids[3], v_ids[6]);
+                store_triangle(indices, v_ids[3], v_ids[7], v_ids[6]);
+                store_triangle(indices, v_ids[3], v_ids[0], v_ids[7]);
+                store_triangle(indices, v_ids[0], v_ids[4], v_ids[7]);
+
+                // triangles ending cap
+                store_triangle(indices, v_ids[4], v_ids[6], v_ids[7]);
+                store_triangle(indices, v_ids[4], v_ids[5], v_ids[6]);
+            };
+
+            if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+                buffer.add_path(curr, ibuffer_id, indices.size(), move_id - 1);
+                buffer.paths.back().sub_paths.back().first.position = prev.position;
+            }
+
+            Path& last_path = buffer.paths.back();
+
+            Vec3f dir = (curr.position - prev.position).normalized();
+            Vec3f right = Vec3f(dir[1], -dir[0], 0.0f).normalized();
+            Vec3f up = right.cross(dir);
+            float sq_length = (curr.position - prev.position).squaredNorm();
+
+            if (last_path.vertices_count() == 1 || vbuffer_size == 0) {
+                // 1st segment or restart into a new vertex buffer
+                // ===============================================
+                // dummy triangles outer corner cap
+                append_dummy_cap(indices, vbuffer_size);
+
+                // stem triangles
+                store_main_triangles(indices, vbuffer_size, { 0, 1, 2, 3, 4, 5, 6, 7 });
+
+                vbuffer_size += 8;
+            }
+            else {
+                // any other segment
+                // =================
+                float displacement = 0.0f;
+                float cos_dir = prev_dir.dot(dir);
+                if (cos_dir > -0.9998477f) {
+                    // if the angle between adjacent segments is smaller than 179 degrees
+                    Vec3f med_dir = (prev_dir + dir).normalized();
+                    float half_width = 0.5f * last_path.width;
+                    displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
+                }
+
+                float sq_displacement = sqr(displacement);
+                bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_length;
+
+                bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
+                // whether the angle between adjacent segments is greater than 45 degrees
+                bool is_sharp = cos_dir < 0.7071068f;
+
+                bool right_displaced = false;
+                bool left_displaced = false;
+
+                if (!is_sharp && can_displace) {
+                    if (is_right_turn)
+                        left_displaced = true;
+                    else
+                        right_displaced = true;
+                }
+
+                // triangles outer corner cap
+                if (is_right_turn) {
+                    if (left_displaced)
+                        // dummy triangles
+                        append_dummy_cap(indices, vbuffer_size);
+                    else {
+                        store_triangle(indices, vbuffer_size - 4, vbuffer_size + 1, vbuffer_size - 1);
+                        store_triangle(indices, vbuffer_size + 1, vbuffer_size - 2, vbuffer_size - 1);
+                    }
+                }
+                else {
+                    if (right_displaced)
+                        // dummy triangles
+                        append_dummy_cap(indices, vbuffer_size);
+                    else {
+                        store_triangle(indices, vbuffer_size - 4, vbuffer_size - 3, vbuffer_size + 0);
+                        store_triangle(indices, vbuffer_size - 3, vbuffer_size - 2, vbuffer_size + 0);
+                    }
+                }
+
+                // stem triangles
+                store_main_triangles(indices, vbuffer_size, { -4, 0, -2, 1, 2, 3, 4, 5 });
+
+                vbuffer_size += 6;
+            }
+
+            last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
+            prev_dir = dir;
+            prev_up = up;
+            sq_prev_length = sq_length;
+    };
 #else
     auto add_vertices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer, VertexBuffer& vertices, size_t move_id) {
         static Vec3f prev_dir;
@@ -1430,7 +1552,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         prev_up = up;
         prev_length = length;
     };
-#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
     auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
         size_t& vbuffer_size, unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
             static Vec3f prev_dir;
@@ -1568,6 +1689,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             prev_up = up;
             prev_length = length;
     };
+#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
