@@ -114,6 +114,7 @@
 #define ENABLE_2_3_1 1
 
 #define ENABLE_SPLITTED_VERTEX_BUFFER (1 && ENABLE_2_3_1)
+#define ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING (1 && ENABLE_SPLITTED_VERTEX_BUFFER)
 
 
 #endif // _prusaslicer_technologies_h_

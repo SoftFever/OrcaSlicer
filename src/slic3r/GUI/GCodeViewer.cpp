@@ -1219,6 +1219,65 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     };
 
     // format data into the buffers to be rendered as solid
+#if ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
+    auto add_vertices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer, unsigned int vbuffer_id, VertexBuffer& vertices, size_t move_id) {
+        auto store_vertex = [](VertexBuffer& vertices, const Vec3f& position, const Vec3f& normal) {
+            // append position
+            vertices.push_back(position[0]);
+            vertices.push_back(position[1]);
+            vertices.push_back(position[2]);
+            // append normal
+            vertices.push_back(normal[0]);
+            vertices.push_back(normal[1]);
+            vertices.push_back(normal[2]);
+        };
+
+        if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+            buffer.add_path(curr, vbuffer_id, vertices.size(), move_id - 1);
+            buffer.paths.back().sub_paths.back().first.position = prev.position;
+        }
+
+        Path& last_path = buffer.paths.back();
+
+        Vec3f dir = (curr.position - prev.position).normalized();
+        Vec3f right = Vec3f(dir[1], -dir[0], 0.0f).normalized();
+        Vec3f left = -right;
+        Vec3f up = right.cross(dir);
+        Vec3f down = -up;
+        float half_width = 0.5f * last_path.width;
+        float half_height = 0.5f * last_path.height;
+        Vec3f prev_pos = prev.position - half_height * up;
+        Vec3f curr_pos = curr.position - half_height * up;
+        Vec3f d_up = half_height * up;
+        Vec3f d_down = -half_height * up;
+        Vec3f d_right = half_width * right;
+        Vec3f d_left = -half_width * right;
+
+        // vertices 1st endpoint
+        if (last_path.vertices_count() == 1 || vertices.empty()) {
+            // 1st segment or restart into a new vertex buffer
+            // ===============================================
+            store_vertex(vertices, prev_pos + d_up, up);
+            store_vertex(vertices, prev_pos + d_right, right);
+            store_vertex(vertices, prev_pos + d_down, down);
+            store_vertex(vertices, prev_pos + d_left, left);
+        }
+        else {
+            // any other segment
+            // =================
+            store_vertex(vertices, prev_pos + d_right, right);
+            store_vertex(vertices, prev_pos + d_left, left);
+        }
+
+        // vertices 2nd endpoint
+        store_vertex(vertices, curr_pos + d_up, up);
+        store_vertex(vertices, curr_pos + d_right, right);
+        store_vertex(vertices, curr_pos + d_down, down);
+        store_vertex(vertices, curr_pos + d_left, left);
+
+        last_path.sub_paths.back().last = { vbuffer_id, vertices.size(), move_id, curr.position };
+    };
+#else
     auto add_vertices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer, VertexBuffer& vertices, size_t move_id) {
         static Vec3f prev_dir;
         static Vec3f prev_up;
@@ -1293,7 +1352,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             }
 
             Vec3f displacement_vec = displacement * prev_dir;
-            bool can_displace = displacement > 0.0f && displacement < prev_length&& displacement < length;
+            bool can_displace = displacement > 0.0f && displacement < prev_length && displacement < length;
 
             size_t prev_right_id = (starting_vertices_size - 3) * buffer.vertices.vertex_size_floats();
             size_t prev_left_id = (starting_vertices_size - 1) * buffer.vertices.vertex_size_floats();
@@ -1366,6 +1425,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         prev_up = up;
         prev_length = length;
     };
+#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
     auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
         size_t& vbuffer_size, unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
             static Vec3f prev_dir;
@@ -1573,8 +1633,19 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         // if adding the vertices for the current segment exceeds the threshold size of the current vertex buffer
         // add another vertex buffer
+#if ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
+        if (v_multibuffer.back().size() * sizeof(float) > VBUFFER_THRESHOLD_BYTES - t_buffer.max_vertices_per_segment_size_bytes()) {
+            v_multibuffer.push_back(VertexBuffer());
+            if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
+                Path& last_path = t_buffer.paths.back();
+                if (prev.type == curr.type && last_path.matches(curr))
+                    last_path.add_sub_path(prev, static_cast<unsigned int>(v_multibuffer.size()) - 1, 0, i - 1);
+            }
+        }
+#else
         if (v_multibuffer.back().size() * sizeof(float) > VBUFFER_THRESHOLD_BYTES - t_buffer.max_vertices_per_segment_size_bytes())
             v_multibuffer.push_back(VertexBuffer());
+#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
 
         VertexBuffer& v_buffer = v_multibuffer.back();
 
@@ -1582,7 +1653,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         {
         case TBuffer::ERenderPrimitiveType::Point:    { add_vertices_as_point(curr, v_buffer); break; }
         case TBuffer::ERenderPrimitiveType::Line:     { add_vertices_as_line(prev, curr, v_buffer); break; }
+#if ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
+        case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, static_cast<unsigned int>(v_multibuffer.size()) - 1, v_buffer, i); break; }
+#else
         case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, v_buffer, i); break; }
+#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
         }
 
         // collect options zs for later use
@@ -1592,6 +1667,138 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 options_zs.emplace_back(curr.position[2]);
         }
     }
+
+#if ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
+    // smooth toolpaths corners for the given TBuffer using triangles
+    auto smooth_triangle_toolpaths_corners = [&gcode_result](const TBuffer& t_buffer, MultiVertexBuffer& v_multibuffer) {
+        auto extract_position_at = [](const VertexBuffer& vertices, size_t offset) {
+            return Vec3f(vertices[offset + 0], vertices[offset + 1], vertices[offset + 2]);
+        };
+        auto update_position_at = [](VertexBuffer& vertices, size_t offset, const Vec3f& position) {
+            vertices[offset + 0] = position[0];
+            vertices[offset + 1] = position[1];
+            vertices[offset + 2] = position[2];
+        };
+
+        size_t vertex_size_floats = t_buffer.vertices.vertex_size_floats();
+        for (const Path& path : t_buffer.paths) {
+            // the two segments of the path sharing the current vertex may belong
+            // to two different vertex buffers
+            size_t prev_sub_path_id = 0;
+            size_t next_sub_path_id = 0;
+            size_t path_vertices_count = path.vertices_count();
+            float half_width = 0.5f * path.width;
+            for (size_t j = 1; j < path_vertices_count - 1; ++j) {
+                size_t curr_s_id = path.sub_paths.front().first.s_id + j;
+                const Vec3f& prev = gcode_result.moves[curr_s_id - 1].position;
+                const Vec3f& curr = gcode_result.moves[curr_s_id].position;
+                const Vec3f& next = gcode_result.moves[curr_s_id + 1].position;
+
+                // select the subpaths which contains the previous/next segments
+                if (!path.sub_paths[prev_sub_path_id].contains(curr_s_id))
+                    ++prev_sub_path_id;
+                if (!path.sub_paths[next_sub_path_id].contains(curr_s_id + 1))
+                    ++next_sub_path_id;
+                const Path::Sub_Path& prev_sub_path = path.sub_paths[prev_sub_path_id];
+                const Path::Sub_Path& next_sub_path = path.sub_paths[next_sub_path_id];
+
+                Vec3f prev_dir = (curr - prev).normalized();
+                Vec3f prev_right = Vec3f(prev_dir[1], -prev_dir[0], 0.0f).normalized();
+                Vec3f prev_up = prev_right.cross(prev_dir);
+
+                Vec3f next_dir = (next - curr).normalized();
+                Vec3f next_right = Vec3f(next_dir[1], -next_dir[0], 0.0f).normalized();
+                Vec3f next_up = next_right.cross(next_dir);
+
+                bool is_right_turn = prev_up.dot(prev_dir.cross(next_dir)) <= 0.0f;
+                float cos_dir = prev_dir.dot(next_dir);
+                // whether the angle between adjacent segments is greater than 45 degrees
+                bool is_sharp = cos_dir < 0.7071068f;
+
+                float displacement = 0.0f;
+                if (cos_dir > -0.9998477f) {
+                    // if the angle between adjacent segments is smaller than 179 degrees
+                    Vec3f med_dir = (prev_dir + next_dir).normalized();
+                    displacement = half_width * ::tan(::acos(std::clamp(next_dir.dot(med_dir), -1.0f, 1.0f)));
+                }
+
+                float sq_prev_length = (curr - prev).squaredNorm();
+                float sq_next_length = (next - curr).squaredNorm();
+                float sq_displacement = sqr(displacement);
+                bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length&& sq_displacement < sq_next_length;
+
+                if (can_displace) {
+                    Vec3f displacement_vec = displacement * prev_dir;
+                    // matches inner corner vertices
+                    if (is_right_turn) {
+                        // offset into the vertex buffer of the right vertex of the previous segment 
+                        size_t prev_right_offset = prev_sub_path.last.i_id - ((prev_sub_path.last.s_id - curr_s_id) * 6 + 3) * vertex_size_floats;
+                        // new position of the right vertices
+                        Vec3f shared_right = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset) - displacement_vec;
+                        // update previous segment
+                        update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset, shared_right);
+                        // offset into the vertex buffer of the right vertex of the next segment
+                        size_t r_offset = (curr_s_id == next_sub_path.first.i_id) ? 1 : 0;
+                        size_t next_right_offset = next_sub_path.last.i_id - ((next_sub_path.last.s_id - curr_s_id) * 6 - r_offset) * vertex_size_floats;
+                        // update next segment
+                        update_position_at(v_multibuffer[next_sub_path.first.b_id], next_right_offset, shared_right);
+                    }
+                    else {
+                        // offset into the vertex buffer of the left vertex of the previous segment 
+                        size_t prev_left_offset = prev_sub_path.last.i_id - ((prev_sub_path.last.s_id - curr_s_id) * 6 + 1) * vertex_size_floats;
+                        // new position of the left vertices
+                        Vec3f shared_left = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset) - displacement_vec;
+                        // update previous segment
+                        update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset, shared_left);
+                        // offset into the vertex buffer of the left vertex of the next segment 
+                        size_t l_offset = (curr_s_id == next_sub_path.first.i_id) ? 3 : 1;
+                        size_t next_left_offset = next_sub_path.last.i_id - ((next_sub_path.last.s_id - curr_s_id) * 6 - l_offset) * vertex_size_floats;
+                        // update next segment
+                        update_position_at(v_multibuffer[next_sub_path.first.b_id], next_left_offset, shared_left);
+                    }
+
+                    if (!is_sharp) {
+                        // matches outer corner vertices
+                        if (is_right_turn) {
+                            // offset into the vertex buffer of the left vertex of the previous segment 
+                            size_t prev_left_offset = prev_sub_path.last.i_id - ((prev_sub_path.last.s_id - curr_s_id) * 6 + 1) * vertex_size_floats;
+                            // new position of the left vertices
+                            Vec3f shared_left = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset) + displacement_vec;
+                            // update previous segment
+                            update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_left_offset, shared_left);
+                            // offset into the vertex buffer of the left vertex of the next segment 
+                            size_t l_offset = (curr_s_id == next_sub_path.first.i_id) ? 3 : 1;
+                            size_t next_left_offset = next_sub_path.last.i_id - ((next_sub_path.last.s_id - curr_s_id) * 6 - l_offset) * vertex_size_floats;
+                            // update next segment
+                            update_position_at(v_multibuffer[next_sub_path.first.b_id], next_left_offset, shared_left);
+                        }
+                        else {
+                            // offset into the vertex buffer of the right vertex of the previous segment 
+                            size_t prev_right_offset = prev_sub_path.last.i_id - ((prev_sub_path.last.s_id - curr_s_id) * 6 + 3) * vertex_size_floats;
+                            // new position of the right vertices
+                            Vec3f shared_right = extract_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset) + displacement_vec;
+                            // update previous segment
+                            update_position_at(v_multibuffer[prev_sub_path.first.b_id], prev_right_offset, shared_right);
+                            // offset into the vertex buffer of the right vertex of the next segment 
+                            size_t r_offset = (curr_s_id == next_sub_path.first.i_id) ? 1 : 0;
+                            size_t next_right_offset = next_sub_path.last.i_id - ((next_sub_path.last.s_id - curr_s_id) * 6 - r_offset) * vertex_size_floats;
+                            // update next segment
+                            update_position_at(v_multibuffer[next_sub_path.first.b_id], next_right_offset, shared_right);
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // smooth toolpaths corners for TBuffers using triangles
+    for (size_t i = 0; i < m_buffers.size(); ++i) {
+        const TBuffer& t_buffer = m_buffers[i];
+        if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
+            smooth_triangle_toolpaths_corners(t_buffer, vertices[i]);
+        }
+    }
+#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
 
     for (MultiVertexBuffer& v_multibuffer : vertices) {
         for (VertexBuffer& v_buffer : v_multibuffer) {
@@ -1693,7 +1900,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
             if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point) {
                 Path& last_path = t_buffer.paths.back();
-                --last_path.sub_paths.back().last.s_id;
                 last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, i - 1);
             }
         }
@@ -1709,7 +1915,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
             if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point) {
                 Path& last_path = t_buffer.paths.back();
-                --last_path.sub_paths.back().last.s_id;
                 last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, i - 1);
             }
         }
@@ -2819,6 +3024,16 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             delta_1st *= buffer->indices_per_segment();
 
         render_path->offsets.push_back(static_cast<size_t>((sub_path.first.i_id + delta_1st) * sizeof(unsigned int)));
+
+#if 0
+        // check sizes and offsets against index buffer size on gpu
+        GLint buffer_size;
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->indices[render_path->index_buffer_id].ibo));
+        glsafe(::glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &buffer_size));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        if (render_path->offsets.back() + render_path->sizes.back() * sizeof(unsigned int) > buffer_size)
+            BOOST_LOG_TRIVIAL(error) << "GCodeViewer::refresh_render_paths: Invalid render path data";
+#endif 
     }
 
     // set sequential data to their final value
