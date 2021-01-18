@@ -595,17 +595,10 @@ struct Sidebar::priv
 
 Sidebar::priv::~priv()
 {
-    if (object_manipulation != nullptr)
-        delete object_manipulation;
-
-    if (object_settings != nullptr)
-        delete object_settings;
-
-    if (frequently_changed_parameters != nullptr)
-        delete frequently_changed_parameters;
-
-    if (object_layers != nullptr)
-        delete object_layers;
+    delete object_manipulation;
+    delete object_settings;
+    delete frequently_changed_parameters;
+    delete object_layers;
 }
 
 void Sidebar::priv::show_preset_comboboxes()

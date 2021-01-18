@@ -36,11 +36,8 @@ View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, Backg
 
 View3D::~View3D()
 {
-    if (m_canvas != nullptr)
-        delete m_canvas;
-
-    if (m_canvas_widget != nullptr)
-        delete m_canvas_widget;
+    delete m_canvas;
+    delete m_canvas_widget;
 }
 
 bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)

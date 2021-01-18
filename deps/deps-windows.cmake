@@ -55,8 +55,8 @@ endmacro()
 
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
-    URL "https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz"
-    URL_HASH SHA256=882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9
+    URL "https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz"
+    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND bootstrap.bat
     BUILD_COMMAND b2.exe
@@ -68,6 +68,7 @@ ExternalProject_Add(dep_boost
         --with-log
         --with-locale
         --with-regex
+        --with-date_time
         "--prefix=${DESTDIR}/usr/local"
         "address-model=${DEPS_BITS}"
         "toolset=${DEP_BOOST_TOOLSET}"
