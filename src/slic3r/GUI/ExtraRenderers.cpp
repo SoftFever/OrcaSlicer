@@ -49,8 +49,7 @@ BitmapTextRenderer::~BitmapTextRenderer()
 {
 #ifdef SUPPORTS_MARKUP
     #ifdef wxHAS_GENERIC_DATAVIEWCTRL
-    if (m_markupText)
-        delete m_markupText;
+    delete m_markupText;
     #endif //wxHAS_GENERIC_DATAVIEWCTRL
 #endif // SUPPORTS_MARKUP
 }
