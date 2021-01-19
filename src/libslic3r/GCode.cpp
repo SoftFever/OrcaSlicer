@@ -2591,10 +2591,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             throw Slic3r::InvalidArgument("Invalid speed");
         }
     }
-    if (this->on_first_layer())
-        speed = m_config.get_abs_value("first_layer_speed", speed);
     if (m_volumetric_speed != 0. && speed == 0)
         speed = m_volumetric_speed / path.mm3_per_mm;
+    if (this->on_first_layer())
+        speed = m_config.get_abs_value("first_layer_speed", speed);
     if (m_config.max_volumetric_speed.value > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
