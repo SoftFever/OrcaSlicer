@@ -57,6 +57,12 @@
 
 using namespace Slic3r;
 
+static PrinterTechnology get_printer_technology(const DynamicConfig &config)
+{
+    const ConfigOptionEnum<PrinterTechnology> *opt = config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
+    return (opt == nullptr) ? ptUnknown : opt->value;
+}
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -95,7 +101,7 @@ int CLI::run(int argc, char **argv)
     m_extra_config.apply(m_config, true);
     m_extra_config.normalize_fdm();
     
-    PrinterTechnology printer_technology = Slic3r::printer_technology(m_config);
+    PrinterTechnology printer_technology = get_printer_technology(m_config);
 
     bool							start_gui			= m_actions.empty() &&
         // cutting transformations are setting an "export" action.
@@ -130,7 +136,7 @@ int CLI::run(int argc, char **argv)
             return 1;
         }
         config.normalize_fdm();
-        PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
+        PrinterTechnology other_printer_technology = get_printer_technology(config);
         if (printer_technology == ptUnknown) {
             printer_technology = other_printer_technology;
         } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
@@ -167,7 +173,7 @@ int CLI::run(int argc, char **argv)
                 // When loading an AMF or 3MF, config is imported as well, including the printer technology.
                 DynamicPrintConfig config;
                 model = Model::read_from_file(file, &config, true);
-                PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
+                PrinterTechnology other_printer_technology = get_printer_technology(config);
                 if (printer_technology == ptUnknown) {
                     printer_technology = other_printer_technology;
                 }
@@ -224,10 +230,12 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(sla_print_config, true);
     }
     
-    std::string validity = m_print_config.validate();
-    if (!validity.empty()) {
-        boost::nowide::cerr << "error: " << validity << std::endl;
-        return 1;
+    {
+        std::string validity = m_print_config.validate();
+        if (! validity.empty()) {
+            boost::nowide::cerr << "Error: The composite configation is not valid: " << validity << std::endl;
+            return 1;
+        }
     }
     
     // Loop through transform options.
@@ -645,6 +653,7 @@ bool CLI::setup(int argc, char **argv)
             set_logging_level(opt_loglevel->value);
     }
     
+    //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     std::string validity = m_config.validate();
 
     // Initialize with defaults.
@@ -654,6 +663,7 @@ bool CLI::setup(int argc, char **argv)
 
     set_data_dir(m_config.opt_string("datadir"));
     
+    //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     if (!validity.empty()) {
         boost::nowide::cerr << "error: " << validity << std::endl;
         return false;
