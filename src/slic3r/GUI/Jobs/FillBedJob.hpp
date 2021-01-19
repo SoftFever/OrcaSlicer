@@ -7,9 +7,8 @@ namespace Slic3r { namespace GUI {
 
 class Plater;
 
-class FillBedJob : public Job
+class FillBedJob : public PlaterJob
 {
-    Plater *m_plater;
     int     m_object_idx = -1;
 
     using ArrangePolygon  = arrangement::ArrangePolygon;
@@ -28,7 +27,7 @@ protected:
 
 public:
     FillBedJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
-        : Job{std::move(pri)}, m_plater{plater}
+        : PlaterJob{std::move(pri), plater}
     {}
 
     int status_range() const override
