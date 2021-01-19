@@ -124,7 +124,7 @@ public:
 };
 
 SLAImportJob::SLAImportJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
-    : Job{std::move(pri)}, p{std::make_unique<priv>(plater)}
+    : PlaterJob{std::move(pri), plater}, p{std::make_unique<priv>(plater)}
 {}
 
 SLAImportJob::~SLAImportJob() = default;

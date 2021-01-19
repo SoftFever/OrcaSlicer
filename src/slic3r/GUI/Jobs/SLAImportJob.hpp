@@ -1,13 +1,11 @@
 #ifndef SLAIMPORTJOB_HPP
 #define SLAIMPORTJOB_HPP
 
-#include "Job.hpp"
+#include "PlaterJob.hpp"
 
 namespace Slic3r { namespace GUI {
 
-class Plater;
-
-class SLAImportJob : public Job {    
+class SLAImportJob : public PlaterJob {
     class priv;
     
     std::unique_ptr<priv> p;

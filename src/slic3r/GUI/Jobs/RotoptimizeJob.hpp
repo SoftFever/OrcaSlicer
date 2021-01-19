@@ -1,18 +1,15 @@
 #ifndef ROTOPTIMIZEJOB_HPP
 #define ROTOPTIMIZEJOB_HPP
 
-#include "Job.hpp"
+#include "PlaterJob.hpp"
 
 namespace Slic3r { namespace GUI {
 
-class Plater;
-
-class RotoptimizeJob : public Job
+class RotoptimizeJob : public PlaterJob
 {
-    Plater *m_plater;
 public:
     RotoptimizeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
-        : Job{std::move(pri)}, m_plater{plater}
+        : PlaterJob{std::move(pri), plater}
     {}
     
     void process() override;
