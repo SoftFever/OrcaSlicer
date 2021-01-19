@@ -111,7 +111,7 @@
       </dict>
     </array>
     <key>LSMinimumSystemVersion</key>
-    <string>10.9</string>
+    <string>10.10</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
