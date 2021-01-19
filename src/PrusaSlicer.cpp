@@ -205,6 +205,7 @@ int CLI::run(int argc, char **argv)
 
     if (printer_technology == ptUnknown)
         printer_technology = std::find(m_actions.begin(), m_actions.end(), "export_sla") == m_actions.end() ? ptFFF : ptSLA;
+    m_print_config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology", true)->value = printer_technology;
 
     // Initialize full print configs for both the FFF and SLA technologies.
     FullPrintConfig    fff_print_config;
@@ -216,8 +217,6 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(fff_print_config, true);
     } else {
         assert(printer_technology == ptSLA);
-        // The default value has to be different from the one in fff mode.
-        sla_print_config.printer_technology.value = ptSLA;
         sla_print_config.output_filename_format.value = "[input_filename_base].sl1";
         
         // The default bed shape should reflect the default display parameters
