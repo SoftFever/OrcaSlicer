@@ -45,11 +45,11 @@ static double get_volume_min_z(const GLVolume* volume)
 
 
 
-static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
+static choice_ctrl* create_word_local_combo(wxWindow *parent)
 {
     wxSize size(15 * wxGetApp().em_unit(), -1);
 
-    wxBitmapComboBox *temp = nullptr;
+    choice_ctrl* temp = nullptr;
 #ifdef __WXOSX__
     /* wxBitmapComboBox with wxCB_READONLY style return NULL for GetTextCtrl(),
      * so ToolTip doesn't shown.
@@ -59,7 +59,7 @@ static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
     temp->SetTextCtrlStyle(wxTE_READONLY);
 	temp->Create(parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr);
 #else
-	temp = new wxBitmapComboBox(parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
+	temp = new choice_ctrl(parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 #endif //__WXOSX__
 
     temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -70,26 +70,11 @@ static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
     temp->SetSelection(0);
     temp->SetValue(temp->GetString(0));
 
-#ifndef __WXGTK__
-    /* Workaround for a correct rendering of the control without Bitmap (under MSW and OSX):
-     * 
-     * 1. We should create small Bitmap to fill Bitmaps RefData,
-     *    ! in this case wxBitmap.IsOK() return true.
-     * 2. But then set width to 0 value for no using of bitmap left and right spacing 
-     * 3. Set this empty bitmap to the at list one item and BitmapCombobox will be recreated correct
-     * 
-     * Note: Set bitmap height to the Font size because of OSX rendering.
-     */
-    wxBitmap empty_bmp(1, temp->GetFont().GetPixelSize().y + 2);
-    empty_bmp.SetWidth(0);
-    temp->SetItemBitmap(0, empty_bmp);
-#endif
-
     temp->SetToolTip(_L("Select coordinate space, in which the transformation will be performed."));
 	return temp;
 }
 
-void msw_rescale_word_local_combo(wxBitmapComboBox* combo)
+void msw_rescale_word_local_combo(choice_ctrl* combo)
 {
     const wxString selection = combo->GetString(combo->GetSelection());
 
@@ -110,10 +95,6 @@ void msw_rescale_word_local_combo(wxBitmapComboBox* combo)
     
     combo->Append(_L("World coordinates"));
     combo->Append(_L("Local coordinates"));
-
-    wxBitmap empty_bmp(1, combo->GetFont().GetPixelSize().y + 2);
-    empty_bmp.SetWidth(0);
-    combo->SetItemBitmap(0, empty_bmp);
 
     combo->SetValue(selection);
 }

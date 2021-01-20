@@ -7,7 +7,11 @@
 #include "libslic3r/Point.hpp"
 #include <float.h>
 
+#ifdef __WXOSX__
 class wxBitmapComboBox;
+#else
+class wxComboBox;
+#endif // __WXOSX__
 class wxStaticText;
 class LockButton;
 class wxStaticBitmap;
@@ -15,6 +19,13 @@ class wxCheckBox;
 
 namespace Slic3r {
 namespace GUI {
+
+#ifdef __WXOSX__
+    static_assert(wxMAJOR_VERSION >= 3, "Use of wxBitmapComboBox on Manipulation panel requires wxWidgets 3.0 and newer");
+    using choice_ctrl = wxBitmapComboBox;
+#else
+    using choice_ctrl = wxComboBox;
+#endif // __WXOSX__
 
 class Selection;
 
@@ -125,7 +136,7 @@ private:
     // Does the object manipulation panel work in World or Local coordinates?
     bool            m_world_coordinates = true;
     LockButton*     m_lock_bnt{ nullptr };
-    wxBitmapComboBox* m_word_local_combo = nullptr;
+    choice_ctrl*    m_word_local_combo { nullptr };
 
     ScalableBitmap  m_manifold_warning_bmp;
     wxStaticBitmap* m_fix_throught_netfab_bitmap;
