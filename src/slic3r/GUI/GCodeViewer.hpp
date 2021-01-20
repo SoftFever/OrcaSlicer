@@ -19,12 +19,19 @@ namespace GUI {
 
 class GCodeViewer
 {
+#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
+    using IBufferType = unsigned short;
+#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
     using Color = std::array<float, 3>;
     using VertexBuffer = std::vector<float>;
 #if ENABLE_SPLITTED_VERTEX_BUFFER
     using MultiVertexBuffer = std::vector<VertexBuffer>;
 #endif // ENABLE_SPLITTED_VERTEX_BUFFER
+#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
+    using IndexBuffer = std::vector<IBufferType>;
+#else
     using IndexBuffer = std::vector<unsigned int>;
+#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
     using MultiIndexBuffer = std::vector<IndexBuffer>;
 
     static const std::vector<Color> Extrusion_Role_Colors;
@@ -70,6 +77,11 @@ class GCodeViewer
         size_t count{ 0 };
 
         size_t data_size_bytes() const { return count * vertex_size_bytes(); }
+#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
+        // We set 65536 as max count of vertices inside a vertex buffer to allow
+        // to use unsigned short in place of unsigned int for indices in the index buffer, to save memory
+        size_t max_size_bytes() const { return 65536 * vertex_size_bytes(); }
+#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 
         size_t vertex_size_floats() const { return position_size_floats() + normal_size_floats(); }
         size_t vertex_size_bytes() const { return vertex_size_floats() * sizeof(float); }
@@ -291,7 +303,11 @@ class GCodeViewer
             }
         }
 #if ENABLE_SPLITTED_VERTEX_BUFFER
+#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
+        size_t indices_per_segment_size_bytes() const { return static_cast<size_t>(indices_per_segment() * sizeof(IBufferType)); }
+#else
         size_t indices_per_segment_size_bytes() const { return static_cast<size_t>(indices_per_segment() * sizeof(unsigned int)); }
+#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 #endif // ENABLE_SPLITTED_VERTEX_BUFFER
         unsigned int start_segment_vertex_offset() const { return 0; }
         unsigned int end_segment_vertex_offset() const {
