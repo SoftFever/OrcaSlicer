@@ -246,7 +246,7 @@ extern const PrintConfigDef print_config_def;
 
 class StaticPrintConfig;
 
-PrinterTechnology printer_technology(const ConfigBase &cfg);
+// Minimum object distance for arrangement, based on printer technology.
 double min_object_distance(const ConfigBase &cfg);
 
 // Slic3r dynamic configuration, used to override the configuration

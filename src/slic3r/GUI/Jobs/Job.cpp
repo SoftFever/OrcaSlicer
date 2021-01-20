@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <exception>
 
 #include "Job.hpp"
 #include <libslic3r/Thread.hpp>
@@ -6,10 +7,15 @@
 
 namespace Slic3r {
 
-void GUI::Job::run()
+void GUI::Job::run(std::exception_ptr &eptr)
 {
     m_running.store(true);
-    process();
+    try {
+        process();
+    } catch (...) {
+        eptr = std::current_exception();
+    }
+
     m_running.store(false);
     
     // ensure to call the last status to finalize the job
@@ -27,22 +33,29 @@ void GUI::Job::update_status(int st, const wxString &msg)
 GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
     : m_progress(std::move(pri))
 {
-    Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
+    Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {            
         auto msg = evt.GetString();
-        if (!msg.empty())
+        if (!msg.empty() && !m_worker_error)
             m_progress->set_status_text(msg.ToUTF8().data());
-        
+
         if (m_finalized) return;
-        
+
         m_progress->set_progress(evt.GetInt());
-        if (evt.GetInt() == status_range()) {
+        if (evt.GetInt() == status_range() || m_worker_error) {
             // set back the original range and cancel callback
             m_progress->set_range(m_range);
             m_progress->set_cancel_callback();
             wxEndBusyCursor();
             
-            finalize();
-            
+            if (m_worker_error) {
+                m_finalized = true;
+                m_progress->set_status_text("");
+                m_progress->set_progress(m_range);
+                on_exception(m_worker_error);
+            }
+            else
+                finalize();
+
             // dont do finalization again for the same process
             m_finalized = true;
         }
@@ -69,7 +82,8 @@ void GUI::Job::start()
         wxBeginBusyCursor();
         
         try { // Execute the job
-            m_thread = create_thread([this] { this->run(); });
+            m_worker_error = nullptr;
+            m_thread = create_thread([this] { this->run(m_worker_error); });
         } catch (std::exception &) {
             update_status(status_range(),
                           _(L("ERROR: not enough resources to "

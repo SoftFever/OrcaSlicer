@@ -1,4 +1,4 @@
-if (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+if (APPLE)
     # The new OSX 11 (Big Sur) is not compatible with wxWidgets 3.1.3.
     # Let's use patched wxWidgets 3.1.4, even though it is not quite tested.
     set(_wx_git_tag v3.1.4-patched)

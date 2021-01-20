@@ -928,7 +928,11 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
             if (opt_compatible->type() == coStrings)
                 static_cast<ConfigOptionStrings*>(opt_compatible)->values.clear();
         }
-        collection_dst.load_preset(path, preset_name_dst, std::move(preset_src->config), activate).is_external = true;
+        (collection_dst.type() == Preset::TYPE_FILAMENT ? 
+            collection_dst.load_preset(path, preset_name_dst, preset_src->config, activate) :
+            // Only move the source config for non filament profiles, as single filament profile may be referenced multiple times.
+            collection_dst.load_preset(path, preset_name_dst, std::move(preset_src->config), activate))
+            .is_external = true;
         return preset_name_dst;
     };
     load_one(this->prints,        tmp_bundle.prints,        tmp_bundle.prints       .get_selected_preset_name(), true);
