@@ -1400,8 +1400,12 @@ std::string Print::validate() const
 #endif
 
 		auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
-        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
-        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
+            // This may change in the future, if we switch to "extrusion width wrt. nozzle diameter"
+            // instead of currently used logic "extrusion width wrt. layer height", see GH issues #1923 #2829.
+//        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
+//        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
+            double extrusion_width_min = config.get_abs_value(opt_key, layer_height);
+            double extrusion_width_max = config.get_abs_value(opt_key, layer_height);
         	if (extrusion_width_min == 0) {
         		// Default "auto-generated" extrusion width is always valid.
         	} else if (extrusion_width_min <= layer_height) {
