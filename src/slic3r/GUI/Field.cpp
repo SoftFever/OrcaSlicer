@@ -888,6 +888,7 @@ void SpinCtrl::msw_rescale()
 }
 
 #ifdef __WXOSX__
+static_assert(wxMAJOR_VERSION >= 3, "Use of wxBitmapComboBox on Settings Tabs requires wxWidgets 3.0 and newer");
 using choice_ctrl = wxBitmapComboBox;
 #else
 using choice_ctrl = wxComboBox;
@@ -941,22 +942,6 @@ void Choice::BUILD() {
 		}
 		set_selection();
 	}
-
-#ifdef __WXOSX__
-//#ifndef __WXGTK__
-    /* Workaround for a correct rendering of the control without Bitmap (under MSW and OSX):
-     * 
-     * 1. We should create small Bitmap to fill Bitmaps RefData,
-     *    ! in this case wxBitmap.IsOK() return true.
-     * 2. But then set width to 0 value for no using of bitmap left and right spacing 
-     * 3. Set this empty bitmap to the at list one item and BitmapCombobox will be recreated correct
-     * 
-     * Note: Set bitmap height to the Font size because of OSX rendering.
-     */
-    wxBitmap empty_bmp(1, temp->GetFont().GetPixelSize().y + 2);
-    empty_bmp.SetWidth(0);
-    temp->SetItemBitmap(0, empty_bmp);
-#endif
 
     temp->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& e) {
         if (m_suppress_scroll && !m_is_dropped)
@@ -1288,10 +1273,6 @@ void Choice::msw_rescale()
             ++ counter;
         }
     }
-
-    wxBitmap empty_bmp(1, field->GetFont().GetPixelSize().y + 2);
-    empty_bmp.SetWidth(0);
-    field->SetItemBitmap(0, empty_bmp);
 
     idx == m_opt.enum_values.size() ?
         field->SetValue(selection) :
