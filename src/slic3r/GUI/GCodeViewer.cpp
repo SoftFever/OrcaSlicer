@@ -3147,6 +3147,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         Color color;
         switch (path.type)
         {
+        case EMoveType::Tool_change:  { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]; break; }
+        case EMoveType::Color_change: { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]; break; }
+        case EMoveType::Pause_Print:  { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]; break; }
+        case EMoveType::Custom_GCode: { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]; break; }
+        case EMoveType::Retract:      { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]; break; }
+        case EMoveType::Unretract:    { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]; break; }
         case EMoveType::Extrude: {
             if (!top_layer_only ||
                 m_sequential_view.current.last == global_endpoints.last ||
@@ -3166,7 +3172,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             break;
         }
         case EMoveType::Wipe: { color = Wipe_Color; break; }
-        default: { color = { 0.0f, 0.0f, 0.0f }; break; }
+        default:              { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
         RenderPath key{ color, static_cast<unsigned int>(ibuffer_id), path_id };
@@ -3505,8 +3511,7 @@ void GCodeViewer::render_toolpaths() const
     };
 
     auto render_as_points = [this, zoom, point_size, near_plane_height, set_uniform_color]
-    (const TBuffer& buffer, unsigned int i_buffer_id, EOptionsColors color_id, GLShaderProgram& shader) {
-        set_uniform_color(Options_Colors[static_cast<unsigned int>(color_id)], shader);
+        (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
 #if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
         shader.set_uniform("use_fixed_screen_size", 1);
 #else
@@ -3522,7 +3527,8 @@ void GCodeViewer::render_toolpaths() const
         glsafe(::glEnable(GL_POINT_SPRITE));
 
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == i_buffer_id) {
+            if (path.index_buffer_id == ibuffer_id) {
+                set_uniform_color(path.color, shader);
 #if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #else
@@ -3538,10 +3544,10 @@ void GCodeViewer::render_toolpaths() const
         glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
     };
 
-    auto render_as_lines = [this, light_intensity, set_uniform_color](const TBuffer& buffer, unsigned int index_buffer_id, GLShaderProgram& shader) {
+    auto render_as_lines = [this, light_intensity, set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         shader.set_uniform("light_intensity", light_intensity);
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == index_buffer_id) {
+            if (path.index_buffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
 #if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -3555,9 +3561,9 @@ void GCodeViewer::render_toolpaths() const
         }
     };
 
-    auto render_as_triangles = [this, set_uniform_color](const TBuffer& buffer, unsigned int index_buffer_id, GLShaderProgram& shader) {
+    auto render_as_triangles = [this, set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == index_buffer_id) {
+            if (path.index_buffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
 #if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
@@ -3606,17 +3612,7 @@ void GCodeViewer::render_toolpaths() const
                 switch (buffer.render_primitive_type)
                 {
                 case TBuffer::ERenderPrimitiveType::Point: {
-                    EOptionsColors color;
-                    switch (buffer_type(i))
-                    {
-                    case EMoveType::Tool_change:  { color = EOptionsColors::ToolChanges; break; }
-                    case EMoveType::Color_change: { color = EOptionsColors::ColorChanges; break; }
-                    case EMoveType::Pause_Print:  { color = EOptionsColors::PausePrints; break; }
-                    case EMoveType::Custom_GCode: { color = EOptionsColors::CustomGCodes; break; }
-                    case EMoveType::Retract:      { color = EOptionsColors::Retractions; break; }
-                    case EMoveType::Unretract:    { color = EOptionsColors::Unretractions; break; }
-                    }
-                    render_as_points(buffer, static_cast<unsigned int>(j), color, *shader);
+                    render_as_points(buffer, static_cast<unsigned int>(j), *shader);
                     break;
                 }
                 case TBuffer::ERenderPrimitiveType::Line: {

@@ -222,6 +222,7 @@ class GCodeViewer
     {
         // Render path property
         Color                       color;
+        // Index of the buffer in TBuffer::indices
         unsigned int                index_buffer_id;
         // Render path content
         unsigned int                path_id;
