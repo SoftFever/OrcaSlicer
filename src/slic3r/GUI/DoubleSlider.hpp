@@ -192,6 +192,7 @@ public:
     ~Control() {}
 
     void    msw_rescale();
+    void    sys_color_changed();
 
     int     GetMinValue() const { return m_min_value; }
     int     GetMaxValue() const { return m_max_value; }

@@ -160,6 +160,26 @@ void Control::msw_rescale()
     GetParent()->Layout();
 }
 
+void Control::sys_color_changed()
+{
+    m_bmp_add_tick_on .msw_rescale();
+    m_bmp_add_tick_off.msw_rescale();
+    m_bmp_del_tick_on .msw_rescale();
+    m_bmp_del_tick_off.msw_rescale();
+    m_tick_icon_dim = m_bmp_add_tick_on.GetBmpWidth();
+
+    m_bmp_one_layer_lock_on   .msw_rescale();
+    m_bmp_one_layer_lock_off  .msw_rescale();
+    m_bmp_one_layer_unlock_on .msw_rescale();
+    m_bmp_one_layer_unlock_off.msw_rescale();
+    m_lock_icon_dim = m_bmp_one_layer_lock_on.GetBmpWidth();
+
+    m_bmp_revert.msw_rescale();
+    m_revert_icon_dim = m_bmp_revert.GetBmpWidth();
+    m_bmp_cog.msw_rescale();
+    m_cog_icon_dim = m_bmp_cog.GetBmpWidth();
+}
+
 int Control::GetActiveValue() const
 {
     return m_selection == ssLower ?

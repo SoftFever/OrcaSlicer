@@ -410,6 +410,12 @@ void Preview::msw_rescale()
     refresh_print();
 }
 
+void Preview::sys_color_changed()
+{
+    if (m_layers_slider != nullptr)
+        m_layers_slider->sys_color_changed();
+}
+
 void Preview::jump_layers_slider(wxKeyEvent& evt)
 {
     if (m_layers_slider) m_layers_slider->OnChar(evt);
