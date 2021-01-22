@@ -4576,16 +4576,12 @@ void GCodeViewer::render_statistics() const
         add_time(std::string("Load:"), m_statistics.load_time);
         add_time(std::string("Refresh:"), m_statistics.refresh_time);
         add_time(std::string("Refresh paths:"), m_statistics.refresh_paths_time);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     if (ImGui::CollapsingHeader("OpenGL calls")) {
         add_counter(std::string("Multi GL_POINTS:"), m_statistics.gl_multi_points_calls_count);
         add_counter(std::string("Multi GL_LINES:"), m_statistics.gl_multi_lines_calls_count);
         add_counter(std::string("Multi GL_TRIANGLES:"), m_statistics.gl_multi_triangles_calls_count);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     if (ImGui::CollapsingHeader("CPU memory")) {
@@ -4594,8 +4590,6 @@ void GCodeViewer::render_statistics() const
         ImGui::Separator();
         add_memory(std::string("Paths:"), m_statistics.paths_size);
         add_memory(std::string("Render paths:"), m_statistics.render_paths_size);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     if (ImGui::CollapsingHeader("GPU memory")) {
@@ -4604,8 +4598,6 @@ void GCodeViewer::render_statistics() const
         ImGui::Separator();
         add_memory(std::string("Max VBuffer:"), m_statistics.max_vbuffer_gpu_size);
         add_memory(std::string("Max IBuffer:"), m_statistics.max_ibuffer_gpu_size);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     if (ImGui::CollapsingHeader("Other")) {
@@ -4615,8 +4607,6 @@ void GCodeViewer::render_statistics() const
         ImGui::Separator();
         add_counter(std::string("VBuffers count:"), m_statistics.vbuffers_count);
         add_counter(std::string("IBuffers count:"), m_statistics.ibuffers_count);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     imgui.end();
