@@ -1434,6 +1434,18 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_position", category_path + "seam-position");
         optgroup->append_single_option_line("external_perimeters_first", category_path + "external-perimeters-first");
 
+        optgroup = page->new_optgroup(L("Fuzzy skin (experimental)"));
+        Option option = optgroup->get_option("fuzzy_skin_perimeter_mode");
+        option.opt.width = 30;
+        optgroup->append_single_option_line(option);
+#if 0
+        option = optgroup->get_option("fuzzy_skin_shape");
+        option.opt.width = 30;
+        optgroup->append_single_option_line(option);
+#endif
+        optgroup->append_single_option_line(optgroup->get_option("fuzzy_skin_thickness"));
+        optgroup->append_single_option_line(optgroup->get_option("fuzzy_skin_point_dist"));
+
     page = add_options_page(L("Infill"), "infill");
         category_path = "infill_42#";
         optgroup = page->new_optgroup(L("Infill"));
@@ -1597,7 +1609,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Output file"));
         optgroup->append_single_option_line("gcode_comments");
         optgroup->append_single_option_line("gcode_label_objects");
-        Option option = optgroup->get_option("output_filename_format");
+        option = optgroup->get_option("output_filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 

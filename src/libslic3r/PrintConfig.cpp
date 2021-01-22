@@ -1007,6 +1007,68 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionInts { 0 });
 
+    def = this->add("fuzzy_skin_perimeter_mode", coEnum);
+    def->label = L("Fuzzy skin perimeter mode");
+    def->category = L("Fuzzy Skin");
+    def->tooltip = L("Fuzzy skin perimeter mode.");
+
+    def->enum_keys_map = &ConfigOptionEnum<FuzzySkinPerimeterMode>::get_enum_values();
+    def->enum_values.push_back("none");
+    def->enum_values.push_back("external_only");
+    def->enum_values.push_back("external_only_skip_first_layer");
+    def->enum_values.push_back("all");
+    def->enum_labels.push_back(L("None"));
+    def->enum_labels.push_back(L("External"));
+    def->enum_labels.push_back(L("External (skip first layer)"));
+    def->enum_labels.push_back(L("All perimeters"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<FuzzySkinPerimeterMode>(FuzzySkinPerimeterMode::None));
+
+    def = this->add("fuzzy_skin_shape", coEnum);
+    def->label = L("Fuzzy skin shape");
+    def->category = L("Fuzzy Skin");
+    def->tooltip = L("Fuzzy skin shape.");
+
+    def->enum_keys_map = &ConfigOptionEnum<FuzzySkinShape>::get_enum_values();
+    def->enum_values.push_back("triangle1");
+    def->enum_values.push_back("triangle2");
+    def->enum_values.push_back("triangle3");
+    def->enum_values.push_back("sawtooth1");
+    def->enum_values.push_back("sawtooth2");
+    def->enum_values.push_back("sawtooth3");
+    def->enum_values.push_back("random1");
+    def->enum_values.push_back("random2");
+    def->enum_values.push_back("random3");
+    def->enum_labels.push_back(L("Triangle (1)"));
+    def->enum_labels.push_back(L("Triangle (2)"));
+    def->enum_labels.push_back(L("Triangle (3)"));
+    def->enum_labels.push_back(L("Sawtooth (1)"));
+    def->enum_labels.push_back(L("Sawtooth (2)"));
+    def->enum_labels.push_back(L("Sawtooth (3)"));
+    def->enum_labels.push_back(L("Random (1)"));
+    def->enum_labels.push_back(L("Random (2)"));
+    def->enum_labels.push_back(L("Random (3)"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<FuzzySkinShape>(FuzzySkinShape::Triangle1));
+
+    def = this->add("fuzzy_skin_thickness", coFloat);
+    def->label = L("Fuzzy skin thickness");
+    def->category = L("Fuzzy Skin");
+    def->tooltip = L("");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.3));
+
+    def = this->add("fuzzy_skin_point_dist", coFloat);
+    def->label = L("Fuzzy skin point distance");
+    def->category = L("Fuzzy Skin");
+    def->tooltip = L("");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.8));
+
     def = this->add("gap_fill_speed", coFloat);
     def->label = L("Gap fill");
     def->category = L("Speed");
