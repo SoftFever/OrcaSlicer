@@ -84,6 +84,7 @@ public:
         float                                   overhangs_area = 0.f;
         
         bool overlaps(const Structure &rhs) const { 
+            //FIXME ExPolygon::overlaps() shall be commutative, it is not!
             return this->bbox.overlap(rhs.bbox) && (this->polygon->overlaps(*rhs.polygon) || rhs.polygon->overlaps(*this->polygon)); 
         }
         float overlap_area(const Structure &rhs) const { 

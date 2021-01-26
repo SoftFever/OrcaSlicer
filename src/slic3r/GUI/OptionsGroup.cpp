@@ -870,6 +870,12 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		else if (opt_key == "ironing_type") {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<IroningType>>(opt_key)->value);
 		}
+        else if (opt_key == "fuzzy_skin_perimeter_mode") {
+            ret = static_cast<int>(config.option<ConfigOptionEnum<FuzzySkinPerimeterMode>>(opt_key)->value);
+        }
+        else if (opt_key == "fuzzy_skin_shape") {
+            ret = static_cast<int>(config.option<ConfigOptionEnum<FuzzySkinShape>>(opt_key)->value);
+        }
 		else if (opt_key == "gcode_flavor") {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
 		}

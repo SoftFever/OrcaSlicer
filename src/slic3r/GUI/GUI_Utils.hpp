@@ -108,6 +108,7 @@ public:
 
 //        recalc_font();
 
+#ifndef __WXOSX__
 #if wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
         this->Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent& evt) {
 	            m_scale_factor = (float)evt.GetNewDPI().x / (float)DPI_DEFAULT;
@@ -128,6 +129,7 @@ public:
                 rescale(evt.rect);
             });
 #endif // wxVERSION_EQUAL_OR_GREATER_THAN
+#endif // no __WXOSX__
 
         this->Bind(wxEVT_MOVE_START, [this](wxMoveEvent& event)
         {
