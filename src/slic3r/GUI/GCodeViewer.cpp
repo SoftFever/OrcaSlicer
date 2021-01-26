@@ -1239,7 +1239,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     };
 
     // format data into the buffers to be rendered as solid
-#if ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
     auto add_vertices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer, unsigned int vbuffer_id, VertexBuffer& vertices, size_t move_id) {
         auto store_vertex = [](VertexBuffer& vertices, const Vec3f& position, const Vec3f& normal) {
             // append position
@@ -1434,296 +1433,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             prev_up = up;
             sq_prev_length = sq_length;
     };
-#else
-    auto add_vertices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer, VertexBuffer& vertices, size_t move_id) {
-        static Vec3f prev_dir;
-        static Vec3f prev_up;
-        static float prev_length;
-        auto store_vertex = [](VertexBuffer& vertices, const Vec3f& position, const Vec3f& normal) {
-            // append position
-            vertices.push_back(position[0]);
-            vertices.push_back(position[1]);
-            vertices.push_back(position[2]);
-            // append normal
-            vertices.push_back(normal[0]);
-            vertices.push_back(normal[1]);
-            vertices.push_back(normal[2]);
-        };
-        auto extract_position_at = [](const VertexBuffer& vertices, size_t id) {
-            return Vec3f(vertices[id + 0], vertices[id + 1], vertices[id + 2]);
-        };
-        auto update_position_at = [](VertexBuffer& vertices, size_t id, const Vec3f& position) {
-            vertices[id + 0] = position[0];
-            vertices[id + 1] = position[1];
-            vertices[id + 2] = position[2];
-        };
-
-        if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
-            buffer.add_path(curr, 0, 0, move_id - 1);
-            buffer.paths.back().sub_paths.back().first.position = prev.position;
-        }
-
-        unsigned int starting_vertices_size = static_cast<unsigned int>(vertices.size() / buffer.vertices.vertex_size_floats());
-
-        Vec3f dir = (curr.position - prev.position).normalized();
-        Vec3f right = (std::abs(std::abs(dir.dot(Vec3f::UnitZ())) - 1.0f) < EPSILON) ? -Vec3f::UnitY() : Vec3f(dir[1], -dir[0], 0.0f).normalized();
-        Vec3f left = -right;
-        Vec3f up = right.cross(dir);
-        Vec3f down = -up;
-
-        Path& last_path = buffer.paths.back();
-
-        float half_width = 0.5f * last_path.width;
-        float half_height = 0.5f * last_path.height;
-
-        Vec3f prev_pos = prev.position - half_height * up;
-        Vec3f curr_pos = curr.position - half_height * up;
-
-        float length = (curr_pos - prev_pos).norm();
-        if (last_path.vertices_count() == 1 || vertices.empty()) {
-            // 1st segment or restart into a new vertex buffer
-            // ===============================================
-
-            // vertices 1st endpoint
-            store_vertex(vertices, prev_pos + half_height * up, up);
-            store_vertex(vertices, prev_pos + half_width * right, right);
-            store_vertex(vertices, prev_pos + half_height * down, down);
-            store_vertex(vertices, prev_pos + half_width * left, left);
-
-            // vertices 2nd endpoint
-            store_vertex(vertices, curr_pos + half_height * up, up);
-            store_vertex(vertices, curr_pos + half_width * right, right);
-            store_vertex(vertices, curr_pos + half_height * down, down);
-            store_vertex(vertices, curr_pos + half_width * left, left);
-        }
-        else {
-            // any other segment
-            // =================
-
-            float displacement = 0.0f;
-            float cos_dir = prev_dir.dot(dir);
-            if (cos_dir > -0.9998477f) {
-                // if the angle between adjacent segments is smaller than 179 degrees
-                Vec3f med_dir = (prev_dir + dir).normalized();
-                displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
-            }
-
-            Vec3f displacement_vec = displacement * prev_dir;
-            bool can_displace = displacement > 0.0f && displacement < prev_length && displacement < length;
-
-            size_t prev_right_id = (starting_vertices_size - 3) * buffer.vertices.vertex_size_floats();
-            size_t prev_left_id = (starting_vertices_size - 1) * buffer.vertices.vertex_size_floats();
-            Vec3f prev_right_pos = extract_position_at(vertices, prev_right_id);
-            Vec3f prev_left_pos = extract_position_at(vertices, prev_left_id);
-
-            bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
-            // whether the angle between adjacent segments is greater than 45 degrees
-            bool is_sharp = cos_dir < 0.7071068f;
-
-            bool right_displaced = false;
-            bool left_displaced = false;
-
-            // displace the vertex (inner with respect to the corner) of the previous segment 2nd endpoint, if possible
-            if (can_displace) {
-                if (is_right_turn) {
-                    prev_right_pos -= displacement_vec;
-                    update_position_at(vertices, prev_right_id, prev_right_pos);
-                    right_displaced = true;
-                }
-                else {
-                    prev_left_pos -= displacement_vec;
-                    update_position_at(vertices, prev_left_id, prev_left_pos);
-                    left_displaced = true;
-                }
-            }
-
-            if (!is_sharp) {
-                // displace the vertex (outer with respect to the corner) of the previous segment 2nd endpoint, if possible
-                if (can_displace) {
-                    if (is_right_turn) {
-                        prev_left_pos += displacement_vec;
-                        update_position_at(vertices, prev_left_id, prev_left_pos);
-                        left_displaced = true;
-                    }
-                    else {
-                        prev_right_pos += displacement_vec;
-                        update_position_at(vertices, prev_right_id, prev_right_pos);
-                        right_displaced = true;
-                    }
-                }
-
-                // vertices 1st endpoint (top and bottom are from previous segment 2nd endpoint)
-                // vertices position matches that of the previous segment 2nd endpoint, if displaced
-                store_vertex(vertices, right_displaced ? prev_right_pos : prev_pos + half_width * right, right);
-                store_vertex(vertices, left_displaced ? prev_left_pos : prev_pos + half_width * left, left);
-            }
-            else {
-                // vertices 1st endpoint (top and bottom are from previous segment 2nd endpoint)
-                // the inner corner vertex position matches that of the previous segment 2nd endpoint, if displaced
-                if (is_right_turn) {
-                    store_vertex(vertices, right_displaced ? prev_right_pos : prev_pos + half_width * right, right);
-                    store_vertex(vertices, prev_pos + half_width * left, left);
-                }
-                else {
-                    store_vertex(vertices, prev_pos + half_width * right, right);
-                    store_vertex(vertices, left_displaced ? prev_left_pos : prev_pos + half_width * left, left);
-                }
-            }
-
-            // vertices 2nd endpoint
-            store_vertex(vertices, curr_pos + half_height * up, up);
-            store_vertex(vertices, curr_pos + half_width * right, right);
-            store_vertex(vertices, curr_pos + half_height * down, down);
-            store_vertex(vertices, curr_pos + half_width * left, left);
-        }
-
-        last_path.sub_paths.back().last = { 0, 0, move_id, curr.position };
-        prev_dir = dir;
-        prev_up = up;
-        prev_length = length;
-    };
-    auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        size_t& vbuffer_size, unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
-            static Vec3f prev_dir;
-            static Vec3f prev_up;
-            static float prev_length;
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
-            auto store_triangle = [](IndexBuffer& indices, IBufferType i1, IBufferType i2, IBufferType i3) {
-#else
-            auto store_triangle = [](IndexBuffer& indices, unsigned int i1, unsigned int i2, unsigned int i3) {
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
-                indices.push_back(i1);
-                indices.push_back(i2);
-                indices.push_back(i3);
-            };
-            auto append_dummy_cap = [store_triangle](IndexBuffer& indices, unsigned int id) {
-                store_triangle(indices, id, id, id);
-                store_triangle(indices, id, id, id);
-            };
-
-            if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
-                buffer.add_path(curr, ibuffer_id, indices.size(), move_id - 1);
-                buffer.paths.back().sub_paths.back().first.position = prev.position;
-            }
-
-            Vec3f dir = (curr.position - prev.position).normalized();
-            Vec3f right = (std::abs(std::abs(dir.dot(Vec3f::UnitZ())) - 1.0f) < EPSILON) ? -Vec3f::UnitY() : Vec3f(dir[1], -dir[0], 0.0f).normalized();
-            Vec3f up = right.cross(dir);
-
-            Path& last_path = buffer.paths.back();
-
-            float half_width = 0.5f * last_path.width;
-            float half_height = 0.5f * last_path.height;
-
-            Vec3f prev_pos = prev.position - half_height * up;
-            Vec3f curr_pos = curr.position - half_height * up;
-
-            float length = (curr_pos - prev_pos).norm();
-            if (last_path.vertices_count() == 1 || vbuffer_size == 0) {
-                // 1st segment or restart into a new vertex buffer
-                // ===============================================
-
-                // triangles starting cap
-                store_triangle(indices, vbuffer_size + 0, vbuffer_size + 2, vbuffer_size + 1);
-                store_triangle(indices, vbuffer_size + 0, vbuffer_size + 3, vbuffer_size + 2);
-
-                // dummy triangles outer corner cap
-                append_dummy_cap(indices, vbuffer_size);
-
-                // triangles sides
-                store_triangle(indices, vbuffer_size + 0, vbuffer_size + 1, vbuffer_size + 4);
-                store_triangle(indices, vbuffer_size + 1, vbuffer_size + 5, vbuffer_size + 4);
-                store_triangle(indices, vbuffer_size + 1, vbuffer_size + 2, vbuffer_size + 5);
-                store_triangle(indices, vbuffer_size + 2, vbuffer_size + 6, vbuffer_size + 5);
-                store_triangle(indices, vbuffer_size + 2, vbuffer_size + 3, vbuffer_size + 6);
-                store_triangle(indices, vbuffer_size + 3, vbuffer_size + 7, vbuffer_size + 6);
-                store_triangle(indices, vbuffer_size + 3, vbuffer_size + 0, vbuffer_size + 7);
-                store_triangle(indices, vbuffer_size + 0, vbuffer_size + 4, vbuffer_size + 7);
-
-                // triangles ending cap
-                store_triangle(indices, vbuffer_size + 4, vbuffer_size + 6, vbuffer_size + 7);
-                store_triangle(indices, vbuffer_size + 4, vbuffer_size + 5, vbuffer_size + 6);
-
-                vbuffer_size += 8;
-            }
-            else {
-                // any other segment
-                // =================
-
-                float displacement = 0.0f;
-                float cos_dir = prev_dir.dot(dir);
-                if (cos_dir > -0.9998477f) {
-                    // if the angle between adjacent segments is smaller than 179 degrees
-                    Vec3f med_dir = (prev_dir + dir).normalized();
-                    displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
-                }
-
-                Vec3f displacement_vec = displacement * prev_dir;
-                bool can_displace = displacement > 0.0f && displacement < prev_length&& displacement < length;
-
-                bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
-                // whether the angle between adjacent segments is greater than 45 degrees
-                bool is_sharp = cos_dir < 0.7071068f;
-
-                bool right_displaced = false;
-                bool left_displaced = false;
-
-                if (!is_sharp) {
-                    if (can_displace) {
-                        if (is_right_turn)
-                            left_displaced = true;
-                        else
-                            right_displaced = true;
-                    }
-                }
-
-                // triangles starting cap
-                store_triangle(indices, vbuffer_size - 4, vbuffer_size - 2, vbuffer_size + 0);
-                store_triangle(indices, vbuffer_size - 4, vbuffer_size + 1, vbuffer_size - 2);
-
-                // triangles outer corner cap
-                if (is_right_turn) {
-                    if (left_displaced)
-                        // dummy triangles
-                        append_dummy_cap(indices, vbuffer_size);
-                    else {
-                        store_triangle(indices, vbuffer_size - 4, vbuffer_size + 1, vbuffer_size - 1);
-                        store_triangle(indices, vbuffer_size + 1, vbuffer_size - 2, vbuffer_size - 1);
-                    }
-                }
-                else {
-                    if (right_displaced)
-                        // dummy triangles
-                        append_dummy_cap(indices, vbuffer_size);
-                    else {
-                        store_triangle(indices, vbuffer_size - 4, vbuffer_size - 3, vbuffer_size + 0);
-                        store_triangle(indices, vbuffer_size - 3, vbuffer_size - 2, vbuffer_size + 0);
-                    }
-                }
-
-                // triangles sides
-                store_triangle(indices, vbuffer_size - 4, vbuffer_size + 0, vbuffer_size + 2);
-                store_triangle(indices, vbuffer_size + 0, vbuffer_size + 3, vbuffer_size + 2);
-                store_triangle(indices, vbuffer_size + 0, vbuffer_size - 2, vbuffer_size + 3);
-                store_triangle(indices, vbuffer_size - 2, vbuffer_size + 4, vbuffer_size + 3);
-                store_triangle(indices, vbuffer_size - 2, vbuffer_size + 1, vbuffer_size + 4);
-                store_triangle(indices, vbuffer_size + 1, vbuffer_size + 5, vbuffer_size + 4);
-                store_triangle(indices, vbuffer_size + 1, vbuffer_size - 4, vbuffer_size + 5);
-                store_triangle(indices, vbuffer_size - 4, vbuffer_size + 2, vbuffer_size + 5);
-
-                // triangles ending cap
-                store_triangle(indices, vbuffer_size + 2, vbuffer_size + 4, vbuffer_size + 5);
-                store_triangle(indices, vbuffer_size + 2, vbuffer_size + 3, vbuffer_size + 4);
-
-                vbuffer_size += 6;
-            }
-
-            last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
-            prev_dir = dir;
-            prev_up = up;
-            prev_length = length;
-    };
-#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -1791,7 +1500,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         // if adding the vertices for the current segment exceeds the threshold size of the current vertex buffer
         // add another vertex buffer
-#if ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
 #if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
         if (v_multibuffer.back().size() * sizeof(float) > t_buffer.vertices.max_size_bytes() - t_buffer.max_vertices_per_segment_size_bytes()) {
 #else
@@ -1804,15 +1512,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                     last_path.add_sub_path(prev, static_cast<unsigned int>(v_multibuffer.size()) - 1, 0, i - 1);
             }
         }
-#else
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
-        if (v_multibuffer.back().size() * sizeof(float) > t_buffer.vertices.max_size_bytes() - t_buffer.max_vertices_per_segment_size_bytes())
-            v_multibuffer.push_back(VertexBuffer());
-#else
-        if (v_multibuffer.back().size() * sizeof(float) > VBUFFER_THRESHOLD_BYTES - t_buffer.max_vertices_per_segment_size_bytes())
-            v_multibuffer.push_back(VertexBuffer());
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
-#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
 
         VertexBuffer& v_buffer = v_multibuffer.back();
 
@@ -1820,11 +1519,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         {
         case TBuffer::ERenderPrimitiveType::Point:    { add_vertices_as_point(curr, v_buffer); break; }
         case TBuffer::ERenderPrimitiveType::Line:     { add_vertices_as_line(prev, curr, v_buffer); break; }
-#if ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
         case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, static_cast<unsigned int>(v_multibuffer.size()) - 1, v_buffer, i); break; }
-#else
-        case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, v_buffer, i); break; }
-#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
         }
 
         // collect options zs for later use
@@ -1835,7 +1530,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
     }
 
-#if ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
     // smooth toolpaths corners for the given TBuffer using triangles
     auto smooth_triangle_toolpaths_corners = [&gcode_result](const TBuffer& t_buffer, MultiVertexBuffer& v_multibuffer) {
         auto extract_position_at = [](const VertexBuffer& vertices, size_t offset) {
@@ -1986,7 +1680,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             smooth_triangle_toolpaths_corners(t_buffer, vertices[i]);
         }
     }
-#endif // ENABLE_TOOLPATHS_ALTERNATE_SMOOTHING
 
     for (MultiVertexBuffer& v_multibuffer : vertices) {
         for (VertexBuffer& v_buffer : v_multibuffer) {
