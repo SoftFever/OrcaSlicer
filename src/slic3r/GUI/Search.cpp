@@ -124,11 +124,12 @@ static wxString wrap_string(const wxString& str)
 }
 
 // Mark a string using ColorMarkerStart and ColorMarkerEnd symbols
-static std::wstring mark_string(const std::wstring &str, const std::vector<uint16_t> &matches)
+static std::wstring mark_string(const std::wstring &str, const std::vector<uint16_t> &matches, Preset::Type type, PrinterTechnology pt)
 {
 	std::wstring out;
+    out += marker_by_type(type, pt);
 	if (matches.empty())
-		out = str;
+		out += str;
 	else {
 		out.reserve(str.size() * 2);
 		if (matches.front() > 0)
@@ -181,10 +182,11 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
     bool full_list = search.empty();
     std::wstring sep = L" : ";
 
-    auto get_label = [this, &sep](const Option& opt)
+    auto get_label = [this, &sep](const Option& opt, bool marked = true)
     {
         std::wstring out;
-        out += marker_by_type(opt.type, printer_technology);
+        if (marked)
+            out += marker_by_type(opt.type, printer_technology);
     	const std::wstring *prev = nullptr;
     	for (const std::wstring * const s : {
 	        view_params.category 	? &opt.category_local 		: nullptr,
@@ -198,10 +200,11 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         return out;
     };
 
-    auto get_label_english = [this, &sep](const Option& opt)
+    auto get_label_english = [this, &sep](const Option& opt, bool marked = true)
     {
         std::wstring out;
-        out += marker_by_type(opt.type, printer_technology);
+        if (marked)
+            out += marker_by_type(opt.type, printer_technology);
     	const std::wstring*prev = nullptr;
     	for (const std::wstring * const s : {
 	        view_params.category 	? &opt.category 			: nullptr,
@@ -234,8 +237,8 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 
         std::wstring wsearch       = boost::nowide::widen(search);
         boost::trim_left(wsearch);
-        std::wstring label         = get_label(opt);
-        std::wstring label_english = get_label_english(opt);
+        std::wstring label         = get_label(opt, false);
+        std::wstring label_english = get_label_english(opt, false);
         int score = std::numeric_limits<int>::min();
         int score2;
         matches.clear();
@@ -252,8 +255,8 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         	matches = std::move(matches2);
         	score   = score2;
         }
-        if (score > std::numeric_limits<int>::min()) {
-		    label = mark_string(label, matches);            
+        if (score > 90/*std::numeric_limits<int>::min()*/) {
+		    label = mark_string(label, matches, opt.type, printer_technology);
             label += L"  [" + std::to_wstring(score) + L"]";// add score value
 	        std::string label_u8 = into_u8(label);
 	        std::string label_plain = label_u8;
