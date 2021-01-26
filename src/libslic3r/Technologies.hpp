@@ -24,7 +24,7 @@
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING 0
 // Enable G-Code viewer statistics imgui dialog
-#define ENABLE_GCODE_VIEWER_STATISTICS 1
+#define ENABLE_GCODE_VIEWER_STATISTICS 0
 // Enable G-Code viewer comparison between toolpaths height and width detected from gcode and calculated at gcode generation 
 #define ENABLE_GCODE_VIEWER_DATA_CHECKING 0
 
