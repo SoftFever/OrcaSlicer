@@ -3866,7 +3866,11 @@ void GLCanvas3D::update_tooltip_for_settings_item_in_main_toolbar()
 
 bool GLCanvas3D::has_toolpaths_to_export() const
 {
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+    return m_gcode_viewer.can_export_toolpaths();
+#else
     return m_gcode_viewer.has_data();
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 }
 
 void GLCanvas3D::export_toolpaths_to_obj(const char* filename) const

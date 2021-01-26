@@ -79,6 +79,18 @@ static float round_to_nearest(float value, unsigned int decimals)
     return res;
 }
 
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+void GCodeViewer::VBuffer::reset()
+{
+    // release gpu memory
+    if (!vbos.empty()) {
+        glsafe(::glDeleteBuffers(static_cast<GLsizei>(vbos.size()), static_cast<const GLuint*>(vbos.data())));
+        vbos.clear();
+    }
+    sizes.clear();
+    count = 0;
+}
+#else
 void GCodeViewer::VBuffer::reset()
 {
     // release gpu memory
@@ -89,15 +101,27 @@ void GCodeViewer::VBuffer::reset()
 
     count = 0;
 }
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
 void GCodeViewer::IBuffer::reset()
 {
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+    // release gpu memory
+    if (ibo > 0) {
+        glsafe(::glDeleteBuffers(1, &ibo));
+        ibo = 0;
+    }
+#else
     // release gpu memory
     if (id > 0) {
         glsafe(::glDeleteBuffers(1, &id));
         id = 0;
     }
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+    vbo = 0;
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
     count = 0;
 }
 
@@ -119,6 +143,19 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
     case EMoveType::Unretract:
     case EMoveType::Extrude: {
         // use rounding to reduce the number of generated paths
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+        return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
+            move.position[2] <= sub_paths.front().first.position[2] && feedrate == move.feedrate && fan_speed == move.fan_speed &&
+            height == round_to_nearest(move.height, 2) && width == round_to_nearest(move.width, 2) &&
+            matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f);
+#else
+        return type == move.type && move.position[2] <= sub_paths.front().position[2] && role == move.extrusion_role && height == round_to_nearest(move.height, 2) &&
+            width == round_to_nearest(move.width, 2) && feedrate == move.feedrate && fan_speed == move.fan_speed &&
+            volumetric_rate == round_to_nearest(move.volumetric_rate(), 2) && extruder_id == move.extruder_id &&
+            cp_color_id == move.cp_color_id;
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+#else
 #if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
             move.position[2] <= first.position[2] && feedrate == move.feedrate && fan_speed == move.fan_speed &&
@@ -130,6 +167,7 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
             volumetric_rate == round_to_nearest(move.volumetric_rate(), 2) && extruder_id == move.extruder_id &&
             cp_color_id == move.cp_color_id;
 #endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
     }
     case EMoveType::Travel: {
         return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
@@ -156,6 +194,17 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsi
 {
     Path::Endpoint endpoint = { b_id, i_id, s_id, move.position };
     // use rounding to reduce the number of generated paths
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+#if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+    paths.push_back({ move.type, move.extrusion_role, move.delta_extruder,
+        round_to_nearest(move.height, 2), round_to_nearest(move.width, 2), move.feedrate, move.fan_speed,
+        move.volumetric_rate(), move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
+#else
+    paths.push_back({ move.type, move.extrusion_role, move.delta_extruder,
+        round_to_nearest(move.height, 2), round_to_nearest(move.width, 2), move.feedrate, move.fan_speed,
+        round_to_nearest(move.volumetric_rate(), 2), move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
+#endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+#else
 #if ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
     paths.push_back({ move.type, move.extrusion_role, endpoint, endpoint, move.delta_extruder,
         round_to_nearest(move.height, 2), round_to_nearest(move.width, 2), move.feedrate, move.fan_speed,
@@ -165,6 +214,7 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsi
         round_to_nearest(move.height, 2), round_to_nearest(move.width, 2), move.feedrate, move.fan_speed,
         round_to_nearest(move.volumetric_rate(), 2), move.extruder_id, move.cp_color_id });
 #endif // ENABLE_TOOLPATHS_WIDTH_HEIGHT_FROM_GCODE
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 }
 
 GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) const
@@ -306,10 +356,45 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
     { 0.581f, 0.149f, 0.087f }  // reddish
 }};
 
+GCodeViewer::GCodeViewer()
+{
+    // initializes non OpenGL data of TBuffers
+    // OpenGL data are initialized into render().init_gl_data()
+    for (size_t i = 0; i < m_buffers.size(); ++i) {
+        TBuffer& buffer = m_buffers[i];
+        switch (buffer_type(i))
+        {
+        default: { break; }
+        case EMoveType::Tool_change:
+        case EMoveType::Color_change:
+        case EMoveType::Pause_Print:
+        case EMoveType::Custom_GCode:
+        case EMoveType::Retract:
+        case EMoveType::Unretract: {
+            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
+            buffer.vertices.format = VBuffer::EFormat::Position;
+            break;
+        }
+        case EMoveType::Wipe:
+        case EMoveType::Extrude: {
+            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
+            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
+            break;
+        }
+        case EMoveType::Travel: {
+            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
+            buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
+            break;
+        }
+        }
+    }
+
+    set_toolpath_move_type_visible(EMoveType::Extrude, true);
+//    m_sequential_view.skip_invisible_moves = true;
+}
+
 void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
 {
-    init();
-
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id)
         return;
@@ -320,6 +405,7 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     reset();
 
     load_toolpaths(gcode_result);
+
     if (m_layers.empty())
         return;
 
@@ -460,9 +546,6 @@ void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig* conf
 
 void GCodeViewer::reset()
 {
-    m_initialized = false;
-    m_gl_data_initialized = false;
-
     m_moves_count = 0;
     for (TBuffer& buffer : m_buffers) {
         buffer.reset();
@@ -492,7 +575,8 @@ void GCodeViewer::render() const
         // initializes opengl data of TBuffers
         for (size_t i = 0; i < m_buffers.size(); ++i) {
             TBuffer& buffer = m_buffers[i];
-            switch (buffer_type(i)) {
+            switch (buffer_type(i))
+            {
             default: { break; }
             case EMoveType::Tool_change:
             case EMoveType::Color_change:
@@ -550,14 +634,25 @@ void GCodeViewer::render() const
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+bool GCodeViewer::can_export_toolpaths() const
+{
+    return has_data() && m_buffers[buffer_id(EMoveType::Extrude)].render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle;
+}
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
+
 void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned int last)
 {
     auto is_visible = [this](unsigned int id) {
         for (const TBuffer& buffer : m_buffers) {
             if (buffer.visible) {
                 for (const Path& path : buffer.paths) {
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+                    if (path.sub_paths.front().first.s_id <= id && id <= path.sub_paths.back().last.s_id)
+#else
                     if (path.first.s_id <= id && id <= path.last.s_id)
-                        return true;
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
+                    return true;
                 }
             }
         }
@@ -669,15 +764,24 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     wxBusyCursor busy;
 
     // the data needed is contained into the Extrude TBuffer
-    const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Extrude)];
-    if (!buffer.has_data())
+    const TBuffer& t_buffer = m_buffers[buffer_id(EMoveType::Extrude)];
+    if (!t_buffer.has_data())
         return;
+
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+    if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Triangle)
+        return;
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
     // collect color information to generate materials
     std::vector<Color> colors;
-    for (const RenderPath& path : buffer.render_paths) {
+    for (const RenderPath& path : t_buffer.render_paths) {
         colors.push_back(path.color);
     }
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+    std::sort(colors.begin(), colors.end());
+    colors.erase(std::unique(colors.begin(), colors.end()), colors.end());
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
     // save materials file
     boost::filesystem::path mat_filename(filename);
@@ -689,13 +793,13 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     fprintf(fp, "# G-Code Toolpaths Materials\n");
-    fprintf(fp, "# Generated by %s based on Slic3r\n", SLIC3R_BUILD_ID);
+    fprintf(fp, "# Generated by %s-%s based on Slic3r\n", SLIC3R_APP_NAME, SLIC3R_VERSION);
 
     unsigned int colors_count = 1;
     for (const Color& color : colors) {
         fprintf(fp, "\nnewmtl material_%d\n", colors_count++);
         fprintf(fp, "Ka 1 1 1\n");
-        fprintf(fp, "Kd %f %f %f\n", color[0], color[1], color[2]);
+        fprintf(fp, "Kd %g %g %g\n", color[0], color[1], color[2]);
         fprintf(fp, "Ks 0 0 0\n");
     }
 
@@ -709,21 +813,108 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     fprintf(fp, "# G-Code Toolpaths\n");
-    fprintf(fp, "# Generated by %s based on Slic3r\n", SLIC3R_BUILD_ID);
+    fprintf(fp, "# Generated by %s-%s based on Slic3r\n", SLIC3R_APP_NAME, SLIC3R_VERSION);
     fprintf(fp, "\nmtllib ./%s\n", mat_filename.filename().string().c_str());
 
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+    const size_t floats_per_vertex = t_buffer.vertices.vertex_size_floats();
+
+    std::vector<Vec3f> out_vertices;
+    std::vector<Vec3f> out_normals;
+
+    struct VerticesOffset
+    {
+        unsigned int vbo;
+        size_t offset;
+    };
+    std::vector<VerticesOffset> vertices_offsets;
+    vertices_offsets.push_back({ t_buffer.vertices.vbos.front(), 0 });
+
+    // get vertices/normals data from vertex buffers on gpu
+    for (size_t i = 0; i < t_buffer.vertices.vbos.size(); ++i) {
+        const size_t floats_count = t_buffer.vertices.sizes[i] / sizeof(float);
+        VertexBuffer vertices(floats_count);
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, t_buffer.vertices.vbos[i]));
+        glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(t_buffer.vertices.sizes[i]), static_cast<void*>(vertices.data())));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        const size_t vertices_count = floats_count / floats_per_vertex;
+        for (size_t j = 0; j < vertices_count; ++j) {
+            const size_t base = j * floats_per_vertex;
+            out_vertices.push_back({ vertices[base + 0], vertices[base + 1], vertices[base + 2] });
+            out_normals.push_back({ vertices[base + 3], vertices[base + 4], vertices[base + 5] });
+        }
+
+        if (i < t_buffer.vertices.vbos.size() - 1)
+            vertices_offsets.push_back({ t_buffer.vertices.vbos[i + 1], vertices_offsets.back().offset + vertices_count });
+    }
+
+    // save vertices to file
+    fprintf(fp, "\n# vertices\n");
+    for (const Vec3f& v : out_vertices) {
+        fprintf(fp, "v %g %g %g\n", v[0], v[1], v[2]);
+    }
+
+    // save normals to file
+    fprintf(fp, "\n# normals\n");
+    for (const Vec3f& n : out_normals) {
+        fprintf(fp, "vn %g %g %g\n", n[0], n[1], n[2]);
+    }
+
+    size_t i = 0;
+    for (const Color& color : colors) {
+        // save material triangles to file
+        fprintf(fp, "\nusemtl material_%zu\n", i + 1);
+        fprintf(fp, "# triangles material %zu\n", i + 1);
+
+        for (const RenderPath& render_path : t_buffer.render_paths) {
+            if (render_path.color != color)
+                continue;
+
+            const IBuffer& ibuffer = t_buffer.indices[render_path.index_buffer_id];
+            size_t vertices_offset = 0;
+            for (size_t j = 0; j < vertices_offsets.size(); ++j) {
+                const VerticesOffset& offset = vertices_offsets[j];
+                if (offset.vbo == ibuffer.vbo) {
+                    vertices_offset = offset.offset;
+                    break;
+                }
+            }
+
+            // get indices data from index buffer on gpu
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuffer.ibo));
+            for (size_t j = 0; j < render_path.sizes.size(); ++j) {
+                IndexBuffer indices(render_path.sizes[j]);
+                glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(render_path.offsets[j]),
+                    static_cast<GLsizeiptr>(render_path.sizes[j] * sizeof(IBufferType)), static_cast<void*>(indices.data())));
+
+                const size_t triangles_count = render_path.sizes[j] / 3;
+                for (size_t k = 0; k < triangles_count; ++k) {
+                    const size_t base = k * 3;
+                    const size_t v1 = 1 + static_cast<size_t>(indices[base + 0]) + vertices_offset;
+                    const size_t v2 = 1 + static_cast<size_t>(indices[base + 1]) + vertices_offset;
+                    const size_t v3 = 1 + static_cast<size_t>(indices[base + 2]) + vertices_offset;
+                    if (v1 != v2)
+                        // do not export dummy triangles
+                        fprintf(fp, "f %zu//%zu %zu//%zu %zu//%zu\n", v1, v1, v2, v2, v3, v3);
+                }
+            }
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        }
+        ++i;
+    }
+#else
     // get vertices data from vertex buffer on gpu
-    size_t floats_per_vertex = buffer.vertices.vertex_size_floats();
-    std::vector<float> vertices = std::vector<float>(buffer.vertices.count * floats_per_vertex);
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.vertices.id));
-    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer.vertices.data_size_bytes(), vertices.data()));
+    size_t floats_per_vertex = t_buffer.vertices.vertex_size_floats();
+    VertexBuffer vertices = VertexBuffer(t_buffer.vertices.count * floats_per_vertex);
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, t_buffer.vertices.id));
+    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, 0, t_buffer.vertices.data_size_bytes(), vertices.data()));
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     // get indices data from index buffer on gpu
     MultiIndexBuffer indices;
-    for (size_t i = 0; i < buffer.indices.size(); ++i) {
-        indices.push_back(IndexBuffer(buffer.indices[i].count));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.indices[i].id));
+    for (size_t i = 0; i < t_buffer.indices.size(); ++i) {
+        indices.push_back(IndexBuffer(t_buffer.indices[i].count));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, t_buffer.indices[i].id));
         glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(indices.back().size() * sizeof(unsigned int)), indices.back().data()));
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
@@ -777,15 +968,16 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     };
 
     size_t out_vertices_count = 0;
-    unsigned int indices_per_segment = buffer.indices_per_segment();
-    unsigned int start_vertex_offset = buffer.start_segment_vertex_offset();
-    unsigned int end_vertex_offset = buffer.end_segment_vertex_offset();
+    unsigned int indices_per_segment = t_buffer.indices_per_segment();
+    unsigned int start_vertex_offset = t_buffer.start_segment_vertex_offset();
+    unsigned int end_vertex_offset = t_buffer.end_segment_vertex_offset();
 
     size_t i = 0;
-    for (const RenderPath& render_path : buffer.render_paths) {
+    for (const RenderPath& render_path : t_buffer.render_paths) {
         // get paths segments from buffer paths
         const IndexBuffer& ibuffer = indices[render_path.index_buffer_id];
-        const Path& path = buffer.paths[render_path.path_id];
+        const Path& path = t_buffer.paths[render_path.path_id];
+
         float half_width = 0.5f * path.width;
         // clamp height to avoid artifacts due to z-fighting when importing the obj file into blender and similar
         float half_height = std::max(0.5f * path.height, 0.005f);
@@ -951,54 +1143,764 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 
         ++ i;
     }
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
     fclose(fp);
 }
 
-void GCodeViewer::init()
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
-    if (m_initialized)
+    // max index buffer size, in bytes
+    static const size_t IBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
+
+    auto log_memory_usage = [this](const std::string& label, const std::vector<MultiVertexBuffer>& vertices, const std::vector<MultiIndexBuffer>& indices) {
+        int64_t vertices_size = 0;
+        for (const MultiVertexBuffer& buffers : vertices) {
+            for (const VertexBuffer& buffer : buffers) {
+                vertices_size += SLIC3R_STDVEC_MEMSIZE(buffer, float);
+            }
+        }
+        int64_t indices_size = 0;
+        for (const MultiIndexBuffer& buffers : indices) {
+            for (const IndexBuffer& buffer : buffers) {
+                indices_size += SLIC3R_STDVEC_MEMSIZE(buffer, IBufferType);
+            }
+        }
+        log_memory_used(label, vertices_size + indices_size);
+    };
+
+    // format data into the buffers to be rendered as points
+    auto add_vertices_as_point = [](const GCodeProcessor::MoveVertex& curr, VertexBuffer& vertices) {
+        vertices.push_back(curr.position[0]);
+        vertices.push_back(curr.position[1]);
+        vertices.push_back(curr.position[2]);
+    };
+    auto add_indices_as_point = [](const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
+        unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+            buffer.add_path(curr, ibuffer_id, indices.size(), move_id);
+            indices.push_back(static_cast<IBufferType>(indices.size()));
+    };
+
+    // format data into the buffers to be rendered as lines
+    auto add_vertices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, VertexBuffer& vertices) {
+        // x component of the normal to the current segment (the normal is parallel to the XY plane)
+        float normal_x = (curr.position - prev.position).normalized()[1];
+
+        auto add_vertex = [&vertices, normal_x](const GCodeProcessor::MoveVertex& vertex) {
+            // add position
+            vertices.push_back(vertex.position[0]);
+            vertices.push_back(vertex.position[1]);
+            vertices.push_back(vertex.position[2]);
+            // add normal x component
+            vertices.push_back(normal_x);
+        };
+
+        // add previous vertex
+        add_vertex(prev);
+        // add current vertex
+        add_vertex(curr);
+    };
+    auto add_indices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
+        unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+            if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+                // add starting index
+                indices.push_back(static_cast<unsigned int>(indices.size()));
+                buffer.add_path(curr, ibuffer_id, indices.size() - 1, move_id - 1);
+                buffer.paths.back().sub_paths.front().first.position = prev.position;
+            }
+
+            Path& last_path = buffer.paths.back();
+            if (last_path.sub_paths.front().first.i_id != last_path.sub_paths.back().last.i_id) {
+                // add previous index
+                indices.push_back(static_cast<unsigned int>(indices.size()));
+            }
+
+            // add current index
+            indices.push_back(static_cast<unsigned int>(indices.size()));
+            last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
+    };
+
+    // format data into the buffers to be rendered as solid
+    auto add_vertices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer, unsigned int vbuffer_id, VertexBuffer& vertices, size_t move_id) {
+        auto store_vertex = [](VertexBuffer& vertices, const Vec3f& position, const Vec3f& normal) {
+            // append position
+            vertices.push_back(position[0]);
+            vertices.push_back(position[1]);
+            vertices.push_back(position[2]);
+            // append normal
+            vertices.push_back(normal[0]);
+            vertices.push_back(normal[1]);
+            vertices.push_back(normal[2]);
+        };
+
+        if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+            buffer.add_path(curr, vbuffer_id, vertices.size(), move_id - 1);
+            buffer.paths.back().sub_paths.back().first.position = prev.position;
+        }
+
+        Path& last_path = buffer.paths.back();
+
+        Vec3f dir = (curr.position - prev.position).normalized();
+        Vec3f right = Vec3f(dir[1], -dir[0], 0.0f).normalized();
+        Vec3f left = -right;
+        Vec3f up = right.cross(dir);
+        Vec3f down = -up;
+        float half_width = 0.5f * last_path.width;
+        float half_height = 0.5f * last_path.height;
+        Vec3f prev_pos = prev.position - half_height * up;
+        Vec3f curr_pos = curr.position - half_height * up;
+        Vec3f d_up = half_height * up;
+        Vec3f d_down = -half_height * up;
+        Vec3f d_right = half_width * right;
+        Vec3f d_left = -half_width * right;
+
+        // vertices 1st endpoint
+        if (last_path.vertices_count() == 1 || vertices.empty()) {
+            // 1st segment or restart into a new vertex buffer
+            // ===============================================
+            store_vertex(vertices, prev_pos + d_up, up);
+            store_vertex(vertices, prev_pos + d_right, right);
+            store_vertex(vertices, prev_pos + d_down, down);
+            store_vertex(vertices, prev_pos + d_left, left);
+        }
+        else {
+            // any other segment
+            // =================
+            store_vertex(vertices, prev_pos + d_right, right);
+            store_vertex(vertices, prev_pos + d_left, left);
+        }
+
+        // vertices 2nd endpoint
+        store_vertex(vertices, curr_pos + d_up, up);
+        store_vertex(vertices, curr_pos + d_right, right);
+        store_vertex(vertices, curr_pos + d_down, down);
+        store_vertex(vertices, curr_pos + d_left, left);
+
+        last_path.sub_paths.back().last = { vbuffer_id, vertices.size(), move_id, curr.position };
+    };
+    auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
+        size_t& vbuffer_size, unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+            static Vec3f prev_dir;
+            static Vec3f prev_up;
+            static float sq_prev_length;
+            auto store_triangle = [](IndexBuffer& indices, IBufferType i1, IBufferType i2, IBufferType i3) {
+                indices.push_back(i1);
+                indices.push_back(i2);
+                indices.push_back(i3);
+            };
+            auto append_dummy_cap = [store_triangle](IndexBuffer& indices, IBufferType id) {
+                store_triangle(indices, id, id, id);
+                store_triangle(indices, id, id, id);
+            };
+            auto store_main_triangles = [&](IndexBuffer& indices, size_t vbuffer_size, const std::array<int, 8>& v_offsets) {
+                std::array<IBufferType, 8> v_ids;
+                for (size_t i = 0; i < v_ids.size(); ++i) {
+                    v_ids[i] = static_cast<IBufferType>(static_cast<int>(vbuffer_size) + v_offsets[i]);
+                }
+
+                // triangles starting cap
+                store_triangle(indices, v_ids[0], v_ids[2], v_ids[1]);
+                store_triangle(indices, v_ids[0], v_ids[3], v_ids[2]);
+
+                // triangles sides
+                store_triangle(indices, v_ids[0], v_ids[1], v_ids[4]);
+                store_triangle(indices, v_ids[1], v_ids[5], v_ids[4]);
+                store_triangle(indices, v_ids[1], v_ids[2], v_ids[5]);
+                store_triangle(indices, v_ids[2], v_ids[6], v_ids[5]);
+                store_triangle(indices, v_ids[2], v_ids[3], v_ids[6]);
+                store_triangle(indices, v_ids[3], v_ids[7], v_ids[6]);
+                store_triangle(indices, v_ids[3], v_ids[0], v_ids[7]);
+                store_triangle(indices, v_ids[0], v_ids[4], v_ids[7]);
+
+                // triangles ending cap
+                store_triangle(indices, v_ids[4], v_ids[6], v_ids[7]);
+                store_triangle(indices, v_ids[4], v_ids[5], v_ids[6]);
+            };
+
+            if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+                buffer.add_path(curr, ibuffer_id, indices.size(), move_id - 1);
+                buffer.paths.back().sub_paths.back().first.position = prev.position;
+            }
+
+            Path& last_path = buffer.paths.back();
+
+            Vec3f dir = (curr.position - prev.position).normalized();
+            Vec3f right = Vec3f(dir[1], -dir[0], 0.0f).normalized();
+            Vec3f up = right.cross(dir);
+            float sq_length = (curr.position - prev.position).squaredNorm();
+
+            if (last_path.vertices_count() == 1 || vbuffer_size == 0) {
+                // 1st segment or restart into a new vertex buffer
+                // ===============================================
+                // dummy triangles outer corner cap
+                append_dummy_cap(indices, vbuffer_size);
+
+                // stem triangles
+                store_main_triangles(indices, vbuffer_size, { 0, 1, 2, 3, 4, 5, 6, 7 });
+
+                vbuffer_size += 8;
+            }
+            else {
+                // any other segment
+                // =================
+                float displacement = 0.0f;
+                float cos_dir = prev_dir.dot(dir);
+                if (cos_dir > -0.9998477f) {
+                    // if the angle between adjacent segments is smaller than 179 degrees
+                    Vec3f med_dir = (prev_dir + dir).normalized();
+                    float half_width = 0.5f * last_path.width;
+                    displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
+                }
+
+                float sq_displacement = sqr(displacement);
+                bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_length;
+
+                bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
+                // whether the angle between adjacent segments is greater than 45 degrees
+                bool is_sharp = cos_dir < 0.7071068f;
+
+                bool right_displaced = false;
+                bool left_displaced = false;
+
+                if (!is_sharp && can_displace) {
+                    if (is_right_turn)
+                        left_displaced = true;
+                    else
+                        right_displaced = true;
+                }
+
+                // triangles outer corner cap
+                if (is_right_turn) {
+                    if (left_displaced)
+                        // dummy triangles
+                        append_dummy_cap(indices, vbuffer_size);
+                    else {
+                        store_triangle(indices, vbuffer_size - 4, vbuffer_size + 1, vbuffer_size - 1);
+                        store_triangle(indices, vbuffer_size + 1, vbuffer_size - 2, vbuffer_size - 1);
+                    }
+                }
+                else {
+                    if (right_displaced)
+                        // dummy triangles
+                        append_dummy_cap(indices, vbuffer_size);
+                    else {
+                        store_triangle(indices, vbuffer_size - 4, vbuffer_size - 3, vbuffer_size + 0);
+                        store_triangle(indices, vbuffer_size - 3, vbuffer_size - 2, vbuffer_size + 0);
+                    }
+                }
+
+                // stem triangles
+                store_main_triangles(indices, vbuffer_size, { -4, 0, -2, 1, 2, 3, 4, 5 });
+
+                vbuffer_size += 6;
+            }
+
+            last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
+            prev_dir = dir;
+            prev_up = up;
+            sq_prev_length = sq_length;
+    };
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto start_time = std::chrono::high_resolution_clock::now();
+    m_statistics.results_size = SLIC3R_STDVEC_MEMSIZE(gcode_result.moves, GCodeProcessor::MoveVertex);
+    m_statistics.results_time = gcode_result.time;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    m_moves_count = gcode_result.moves.size();
+    if (m_moves_count == 0)
         return;
 
-    // initializes non opengl data of TBuffers
+    unsigned int progress_count = 0;
+    static const unsigned int progress_threshold = 1000;
+    wxProgressDialog* progress_dialog = wxGetApp().is_gcode_viewer() ?
+        new wxProgressDialog(_L("Generating toolpaths"), "...",
+            100, wxGetApp().plater(), wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
+
+    wxBusyCursor busy;
+
+    // extract approximate paths bounding box from result
+    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
+        if (wxGetApp().is_gcode_viewer())
+            // for the gcode viewer we need to take in account all moves to correctly size the printbed
+            m_paths_bounding_box.merge(move.position.cast<double>());
+        else {
+            if (move.type == EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
+                m_paths_bounding_box.merge(move.position.cast<double>());
+        }
+    }
+
+    // set approximate max bounding box (take in account also the tool marker)
+    m_max_bounding_box = m_paths_bounding_box;
+    m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size()[2] * Vec3d::UnitZ());
+
+    std::vector<MultiVertexBuffer> vertices(m_buffers.size());
+    std::vector<MultiIndexBuffer> indices(m_buffers.size());
+    std::vector<float> options_zs;
+
+    // toolpaths data -> extract vertices from result
+    for (size_t i = 0; i < m_moves_count; ++i) {
+        const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
+
+        // skip first vertex
+        if (i == 0)
+            continue;
+
+        const GCodeProcessor::MoveVertex& prev = gcode_result.moves[i - 1];
+
+        // update progress dialog
+        ++progress_count;
+        if (progress_dialog != nullptr && progress_count % progress_threshold == 0) {
+            progress_dialog->Update(int(100.0f * float(i) / (2.0f * float(m_moves_count))),
+                _L("Generating vertex buffer") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
+            progress_dialog->Fit();
+            progress_count = 0;
+        }
+
+        unsigned char id = buffer_id(curr.type);
+        TBuffer& t_buffer = m_buffers[id];
+        MultiVertexBuffer& v_multibuffer = vertices[id];
+
+        // ensure there is at least one vertex buffer
+        if (v_multibuffer.empty())
+            v_multibuffer.push_back(VertexBuffer());
+
+        // if adding the vertices for the current segment exceeds the threshold size of the current vertex buffer
+        // add another vertex buffer
+        if (v_multibuffer.back().size() * sizeof(float) > t_buffer.vertices.max_size_bytes() - t_buffer.max_vertices_per_segment_size_bytes()) {
+            v_multibuffer.push_back(VertexBuffer());
+            if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
+                Path& last_path = t_buffer.paths.back();
+                if (prev.type == curr.type && last_path.matches(curr))
+                    last_path.add_sub_path(prev, static_cast<unsigned int>(v_multibuffer.size()) - 1, 0, i - 1);
+            }
+        }
+
+        VertexBuffer& v_buffer = v_multibuffer.back();
+
+        switch (t_buffer.render_primitive_type)
+        {
+        case TBuffer::ERenderPrimitiveType::Point:    { add_vertices_as_point(curr, v_buffer); break; }
+        case TBuffer::ERenderPrimitiveType::Line:     { add_vertices_as_line(prev, curr, v_buffer); break; }
+        case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, static_cast<unsigned int>(v_multibuffer.size()) - 1, v_buffer, i); break; }
+        }
+
+        // collect options zs for later use
+        if (curr.type == EMoveType::Pause_Print || curr.type == EMoveType::Custom_GCode) {
+            const float* const last_z = options_zs.empty() ? nullptr : &options_zs.back();
+            if (last_z == nullptr || curr.position[2] < *last_z - EPSILON || *last_z + EPSILON < curr.position[2])
+                options_zs.emplace_back(curr.position[2]);
+        }
+    }
+
+    // smooth toolpaths corners for the given TBuffer using triangles
+    auto smooth_triangle_toolpaths_corners = [&gcode_result](const TBuffer& t_buffer, MultiVertexBuffer& v_multibuffer) {
+        auto extract_position_at = [](const VertexBuffer& vertices, size_t offset) {
+            return Vec3f(vertices[offset + 0], vertices[offset + 1], vertices[offset + 2]);
+        };
+        auto update_position_at = [](VertexBuffer& vertices, size_t offset, const Vec3f& position) {
+            vertices[offset + 0] = position[0];
+            vertices[offset + 1] = position[1];
+            vertices[offset + 2] = position[2];
+        };
+        auto match_right_vertices = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
+            size_t curr_s_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
+                if (&prev_sub_path == &next_sub_path) { // previous and next segment are both contained into to the same vertex buffer
+                    VertexBuffer& vbuffer = v_multibuffer[prev_sub_path.first.b_id];
+                    // offset into the vertex buffer of the next segment 1st vertex
+                    size_t next_1st_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
+                    // offset into the vertex buffer of the right vertex of the previous segment 
+                    size_t prev_right_offset = prev_sub_path.last.i_id - next_1st_offset - 3 * vertex_size_floats;
+                    // new position of the right vertices
+                    Vec3f shared_vertex = extract_position_at(vbuffer, prev_right_offset) + displacement_vec;
+                    // update previous segment
+                    update_position_at(vbuffer, prev_right_offset, shared_vertex);
+                    // offset into the vertex buffer of the right vertex of the next segment
+                    size_t next_right_offset = next_sub_path.last.i_id - next_1st_offset;
+                    // update next segment
+                    update_position_at(vbuffer, next_right_offset, shared_vertex);
+                }
+                else { // previous and next segment are contained into different vertex buffers
+                    VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
+                    VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
+                    // offset into the previous vertex buffer of the right vertex of the previous segment 
+                    size_t prev_right_offset = prev_sub_path.last.i_id - 3 * vertex_size_floats;
+                    // new position of the right vertices
+                    Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_right_offset) + displacement_vec;
+                    // update previous segment
+                    update_position_at(prev_vbuffer, prev_right_offset, shared_vertex);
+                    // offset into the next vertex buffer of the right vertex of the next segment
+                    size_t next_right_offset = next_sub_path.first.i_id + 1 * vertex_size_floats;
+                    // update next segment
+                    update_position_at(next_vbuffer, next_right_offset, shared_vertex);
+                }
+        };
+        auto match_left_vertices = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
+            size_t curr_s_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
+                if (&prev_sub_path == &next_sub_path) { // previous and next segment are both contained into to the same vertex buffer
+                    VertexBuffer& vbuffer = v_multibuffer[prev_sub_path.first.b_id];
+                    // offset into the vertex buffer of the next segment 1st vertex
+                    size_t next_1st_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
+                    // offset into the vertex buffer of the left vertex of the previous segment 
+                    size_t prev_left_offset = prev_sub_path.last.i_id - next_1st_offset - 1 * vertex_size_floats;
+                    // new position of the left vertices
+                    Vec3f shared_vertex = extract_position_at(vbuffer, prev_left_offset) + displacement_vec;
+                    // update previous segment
+                    update_position_at(vbuffer, prev_left_offset, shared_vertex);
+                    // offset into the vertex buffer of the left vertex of the next segment
+                    size_t next_left_offset = next_sub_path.last.i_id - next_1st_offset + 1 * vertex_size_floats;
+                    // update next segment
+                    update_position_at(vbuffer, next_left_offset, shared_vertex);
+                }
+                else { // previous and next segment are contained into different vertex buffers
+                    VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
+                    VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
+                    // offset into the previous vertex buffer of the left vertex of the previous segment 
+                    size_t prev_left_offset = prev_sub_path.last.i_id - 1 * vertex_size_floats;
+                    // new position of the left vertices
+                    Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_left_offset) + displacement_vec;
+                    // update previous segment
+                    update_position_at(prev_vbuffer, prev_left_offset, shared_vertex);
+                    // offset into the next vertex buffer of the left vertex of the next segment
+                    size_t next_left_offset = next_sub_path.first.i_id + 3 * vertex_size_floats;
+                    // update next segment
+                    update_position_at(next_vbuffer, next_left_offset, shared_vertex);
+                }
+        };
+
+        size_t vertex_size_floats = t_buffer.vertices.vertex_size_floats();
+        for (const Path& path : t_buffer.paths) {
+            // the two segments of the path sharing the current vertex may belong
+            // to two different vertex buffers
+            size_t prev_sub_path_id = 0;
+            size_t next_sub_path_id = 0;
+            size_t path_vertices_count = path.vertices_count();
+            float half_width = 0.5f * path.width;
+            for (size_t j = 1; j < path_vertices_count - 1; ++j) {
+                size_t curr_s_id = path.sub_paths.front().first.s_id + j;
+                const Vec3f& prev = gcode_result.moves[curr_s_id - 1].position;
+                const Vec3f& curr = gcode_result.moves[curr_s_id].position;
+                const Vec3f& next = gcode_result.moves[curr_s_id + 1].position;
+
+                // select the subpaths which contains the previous/next segments
+                if (!path.sub_paths[prev_sub_path_id].contains(curr_s_id))
+                    ++prev_sub_path_id;
+                if (!path.sub_paths[next_sub_path_id].contains(curr_s_id + 1))
+                    ++next_sub_path_id;
+                const Path::Sub_Path& prev_sub_path = path.sub_paths[prev_sub_path_id];
+                const Path::Sub_Path& next_sub_path = path.sub_paths[next_sub_path_id];
+
+                Vec3f prev_dir = (curr - prev).normalized();
+                Vec3f prev_right = Vec3f(prev_dir[1], -prev_dir[0], 0.0f).normalized();
+                Vec3f prev_up = prev_right.cross(prev_dir);
+
+                Vec3f next_dir = (next - curr).normalized();
+                Vec3f next_right = Vec3f(next_dir[1], -next_dir[0], 0.0f).normalized();
+                Vec3f next_up = next_right.cross(next_dir);
+
+                bool is_right_turn = prev_up.dot(prev_dir.cross(next_dir)) <= 0.0f;
+                float cos_dir = prev_dir.dot(next_dir);
+                // whether the angle between adjacent segments is greater than 45 degrees
+                bool is_sharp = cos_dir < 0.7071068f;
+
+                float displacement = 0.0f;
+                if (cos_dir > -0.9998477f) {
+                    // if the angle between adjacent segments is smaller than 179 degrees
+                    Vec3f med_dir = (prev_dir + next_dir).normalized();
+                    displacement = half_width * ::tan(::acos(std::clamp(next_dir.dot(med_dir), -1.0f, 1.0f)));
+                }
+
+                float sq_prev_length = (curr - prev).squaredNorm();
+                float sq_next_length = (next - curr).squaredNorm();
+                float sq_displacement = sqr(displacement);
+                bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_next_length;
+
+                if (can_displace) {
+                    // displacement to apply to the vertices to match
+                    Vec3f displacement_vec = displacement * prev_dir;
+                    // matches inner corner vertices
+                    if (is_right_turn)
+                        match_right_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, -displacement_vec);
+                    else
+                        match_left_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, -displacement_vec);
+
+                    if (!is_sharp) {
+                        // matches outer corner vertices
+                        if (is_right_turn)
+                            match_left_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, displacement_vec);
+                        else
+                            match_right_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, displacement_vec);
+                    }
+                }
+            }
+        }
+    };
+
+    // smooth toolpaths corners for TBuffers using triangles
     for (size_t i = 0; i < m_buffers.size(); ++i) {
-        TBuffer& buffer = m_buffers[i];
-        switch (buffer_type(i))
+        const TBuffer& t_buffer = m_buffers[i];
+        if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
+            smooth_triangle_toolpaths_corners(t_buffer, vertices[i]);
+        }
+    }
+
+    for (MultiVertexBuffer& v_multibuffer : vertices) {
+        for (VertexBuffer& v_buffer : v_multibuffer) {
+            v_buffer.shrink_to_fit();
+        }
+    }
+
+    // move the wipe toolpaths half height up to render them on proper position
+    MultiVertexBuffer& wipe_vertices = vertices[buffer_id(EMoveType::Wipe)];
+    for (VertexBuffer& v_buffer : wipe_vertices) {
+        for (size_t i = 2; i < v_buffer.size(); i += 3) {
+            v_buffer[i] += 0.5f * GCodeProcessor::Wipe_Height;
+        }
+    }
+
+    // send vertices data to gpu
+    for (size_t i = 0; i < m_buffers.size(); ++i) {
+        TBuffer& t_buffer = m_buffers[i];
+
+        const MultiVertexBuffer& v_multibuffer = vertices[i];
+        for (const VertexBuffer& v_buffer : v_multibuffer) {
+            size_t size_elements = v_buffer.size();
+            size_t size_bytes = size_elements * sizeof(float);
+            size_t vertices_count = size_elements / t_buffer.vertices.vertex_size_floats();
+            t_buffer.vertices.count += vertices_count;
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+            m_statistics.total_vertices_gpu_size += static_cast<int64_t>(size_bytes);
+            m_statistics.max_vbuffer_gpu_size = std::max(m_statistics.max_vbuffer_gpu_size, static_cast<int64_t>(size_bytes));
+            ++m_statistics.vbuffers_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+            GLuint id = 0;
+            glsafe(::glGenBuffers(1, &id));
+            t_buffer.vertices.vbos.push_back(static_cast<unsigned int>(id));
+            t_buffer.vertices.sizes.push_back(size_bytes);
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, id));
+            glsafe(::glBufferData(GL_ARRAY_BUFFER, size_bytes, v_buffer.data(), GL_STATIC_DRAW));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        }
+    }
+
+    log_memory_usage("Loaded G-code generated vertex buffers ", vertices, indices);
+
+    // dismiss vertices data, no more needed
+    std::vector<MultiVertexBuffer>().swap(vertices);
+
+    // toolpaths data -> extract indices from result
+    // paths may have been filled while extracting vertices,
+    // so reset them, they will be filled again while extracting indices
+    for (TBuffer& buffer : m_buffers) {
+        buffer.paths.clear();
+    }
+
+    // variable used to keep track of the current vertex buffers index and size
+    using CurrVertexBuffer = std::pair<unsigned int, size_t>;
+    std::vector<CurrVertexBuffer> curr_vertex_buffers(m_buffers.size(), { 0, 0 });
+
+    // variable used to keep track of the vertex buffers ids
+    using VboIndexList = std::vector<unsigned int>;
+    std::vector<VboIndexList> vbo_indices(m_buffers.size());
+
+    for (size_t i = 0; i < m_moves_count; ++i) {
+        const GCodeProcessor::MoveVertex& curr = gcode_result.moves[i];
+
+        // skip first vertex
+        if (i == 0)
+            continue;
+
+        const GCodeProcessor::MoveVertex& prev = gcode_result.moves[i - 1];
+
+        ++progress_count;
+        if (progress_dialog != nullptr && progress_count % progress_threshold == 0) {
+            progress_dialog->Update(int(100.0f * float(m_moves_count + i) / (2.0f * float(m_moves_count))),
+                _L("Generating index buffers") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
+            progress_dialog->Fit();
+            progress_count = 0;
+        }
+
+        unsigned char id = buffer_id(curr.type);
+        TBuffer& t_buffer = m_buffers[id];
+        MultiIndexBuffer& i_multibuffer = indices[id];
+        CurrVertexBuffer& curr_vertex_buffer = curr_vertex_buffers[id];
+        VboIndexList& vbo_index_list = vbo_indices[id];
+
+        // ensure there is at least one index buffer
+        if (i_multibuffer.empty()) {
+            i_multibuffer.push_back(IndexBuffer());
+            vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
+        }
+
+        // if adding the indices for the current segment exceeds the threshold size of the current index buffer
+        // create another index buffer
+        if (i_multibuffer.back().size() * sizeof(IBufferType) >= IBUFFER_THRESHOLD_BYTES - t_buffer.indices_per_segment_size_bytes()) {
+            i_multibuffer.push_back(IndexBuffer());
+            vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
+            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point) {
+                Path& last_path = t_buffer.paths.back();
+                last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, i - 1);
+            }
+        }
+
+        // if adding the vertices for the current segment exceeds the threshold size of the current vertex buffer
+        // create another index buffer
+        if (curr_vertex_buffer.second * t_buffer.vertices.vertex_size_bytes() > t_buffer.vertices.max_size_bytes() - t_buffer.max_vertices_per_segment_size_bytes()) {
+            i_multibuffer.push_back(IndexBuffer());
+
+            ++curr_vertex_buffer.first;
+            curr_vertex_buffer.second = 0;
+            vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
+
+            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point) {
+                Path& last_path = t_buffer.paths.back();
+                last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, i - 1);
+            }
+        }
+
+        IndexBuffer& i_buffer = i_multibuffer.back();
+
+        switch (t_buffer.render_primitive_type)
         {
-        default: { break; }
-        case EMoveType::Tool_change:
-        case EMoveType::Color_change:
-        case EMoveType::Pause_Print:
-        case EMoveType::Custom_GCode:
-        case EMoveType::Retract:
-        case EMoveType::Unretract:
-        {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
-            buffer.vertices.format = VBuffer::EFormat::Position;
+        case TBuffer::ERenderPrimitiveType::Point: {
+            add_indices_as_point(curr, t_buffer, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, i);
+            curr_vertex_buffer.second += t_buffer.max_vertices_per_segment();
             break;
         }
-        case EMoveType::Wipe:
-        case EMoveType::Extrude:
-        {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
+        case TBuffer::ERenderPrimitiveType::Line: {
+            add_indices_as_line(prev, curr, t_buffer, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, i);
+            curr_vertex_buffer.second += t_buffer.max_vertices_per_segment();
             break;
         }
-        case EMoveType::Travel:
-        {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
+        case TBuffer::ERenderPrimitiveType::Triangle: {
+            add_indices_as_solid(prev, curr, t_buffer, curr_vertex_buffer.second, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, i);
             break;
         }
         }
     }
 
-    set_toolpath_move_type_visible(EMoveType::Extrude, true);
-//    m_sequential_view.skip_invisible_moves = true;
+    for (MultiIndexBuffer& i_multibuffer : indices) {
+        for (IndexBuffer& i_buffer : i_multibuffer) {
+            i_buffer.shrink_to_fit();
+        }
+    }
 
-    m_initialized = true;
+    // toolpaths data -> send indices data to gpu
+    for (size_t i = 0; i < m_buffers.size(); ++i) {
+        TBuffer& t_buffer = m_buffers[i];
+        const MultiIndexBuffer& i_multibuffer = indices[i];
+        for (const IndexBuffer& i_buffer : i_multibuffer) {
+            size_t size_elements = i_buffer.size();
+            size_t size_bytes = size_elements * sizeof(IBufferType);
+
+            // stores index buffer informations into TBuffer
+            t_buffer.indices.push_back(IBuffer());
+            IBuffer& ibuf = t_buffer.indices.back();
+            ibuf.count = size_elements;
+            ibuf.vbo = vbo_indices[i][t_buffer.indices.size() - 1];
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+            m_statistics.total_indices_gpu_size += static_cast<int64_t>(size_bytes);
+            m_statistics.max_ibuffer_gpu_size = std::max(m_statistics.max_ibuffer_gpu_size, static_cast<int64_t>(size_bytes));
+            ++m_statistics.ibuffers_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+            glsafe(::glGenBuffers(1, &ibuf.ibo));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf.ibo));
+            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_bytes, i_buffer.data(), GL_STATIC_DRAW));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        }
+    }
+
+    if (progress_dialog != nullptr) {
+        progress_dialog->Update(100, "");
+        progress_dialog->Fit();
+    }
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    for (const TBuffer& buffer : m_buffers) {
+        m_statistics.paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.paths, Path);
+    }
+
+    auto update_segments_count = [&](EMoveType type, int64_t& count) {
+        unsigned int id = buffer_id(type);
+        const MultiIndexBuffer& buffers = indices[id];
+        for (const IndexBuffer& buffer : buffers) {
+            count += buffer.size() / m_buffers[id].indices_per_segment();
+        }
+    };
+
+    update_segments_count(EMoveType::Travel, m_statistics.travel_segments_count);
+    update_segments_count(EMoveType::Wipe, m_statistics.wipe_segments_count);
+    update_segments_count(EMoveType::Extrude, m_statistics.extrude_segments_count);
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    log_memory_usage("Loaded G-code generated indices buffers ", vertices, indices);
+
+    // dismiss indices data, no more needed
+    std::vector<MultiIndexBuffer>().swap(indices);
+
+    // layers zs / roles / extruder ids -> extract from result
+    size_t last_travel_s_id = 0;
+    for (size_t i = 0; i < m_moves_count; ++i) {
+        const GCodeProcessor::MoveVertex& move = gcode_result.moves[i];
+        if (move.type == EMoveType::Extrude) {
+            // layers zs
+            const double* const last_z = m_layers.empty() ? nullptr : &m_layers.get_zs().back();
+            double z = static_cast<double>(move.position[2]);
+            if (last_z == nullptr || z < *last_z - EPSILON || *last_z + EPSILON < z)
+                m_layers.append(z, { last_travel_s_id, i });
+            else
+                m_layers.get_endpoints().back().last = i;
+            // extruder ids
+            m_extruder_ids.emplace_back(move.extruder_id);
+            // roles
+            if (i > 0)
+                m_roles.emplace_back(move.extrusion_role);
+        }
+        else if (move.type == EMoveType::Travel) {
+            if (i - last_travel_s_id > 1 && !m_layers.empty())
+                m_layers.get_endpoints().back().last = i;
+
+            last_travel_s_id = i;
+        }
+    }
+
+    // roles -> remove duplicates
+    std::sort(m_roles.begin(), m_roles.end());
+    m_roles.erase(std::unique(m_roles.begin(), m_roles.end()), m_roles.end());
+    m_roles.shrink_to_fit();
+
+    // extruder ids -> remove duplicates
+    std::sort(m_extruder_ids.begin(), m_extruder_ids.end());
+    m_extruder_ids.erase(std::unique(m_extruder_ids.begin(), m_extruder_ids.end()), m_extruder_ids.end());
+    m_extruder_ids.shrink_to_fit();
+
+    // set layers z range
+    if (!m_layers.empty())
+        m_layers_z_range = { 0, static_cast<unsigned int>(m_layers.size() - 1) };
+
+    // change color of paths whose layer contains option points
+    if (!options_zs.empty()) {
+        TBuffer& extrude_buffer = m_buffers[buffer_id(EMoveType::Extrude)];
+        for (Path& path : extrude_buffer.paths) {
+            float z = path.sub_paths.front().first.position[2];
+            if (std::find_if(options_zs.begin(), options_zs.end(), [z](float f) { return f - EPSILON <= z && z <= f + EPSILON; }) != options_zs.end())
+                path.cp_color_id = 255 - path.cp_color_id;
+        }
+    }
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_statistics.load_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    if (progress_dialog != nullptr)
+        progress_dialog->Destroy();
 }
-
+#else
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1035,7 +1937,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size()[2] * Vec3d::UnitZ());
 
-    auto log_memory_usage = [this](const std::string& label, const std::vector<std::vector<float>>& vertices, const std::vector<MultiIndexBuffer>& indices) {
+    auto log_memory_usage = [this](const std::string& label, const std::vector<VertexBuffer>& vertices, const std::vector<MultiIndexBuffer>& indices) {
         int64_t vertices_size = 0;
         for (size_t i = 0; i < vertices.size(); ++i) {
             vertices_size += SLIC3R_STDVEC_MEMSIZE(vertices[i], float);
@@ -1050,30 +1952,30 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     };
 
     // format data into the buffers to be rendered as points
-    auto add_vertices_as_point = [](const GCodeProcessor::MoveVertex& curr, std::vector<float>& buffer_vertices) {
-        for (int j = 0; j < 3; ++j) {
-            buffer_vertices.push_back(curr.position[j]);
-        }
+    auto add_vertices_as_point = [](const GCodeProcessor::MoveVertex& curr, VertexBuffer& vertices) {
+        vertices.push_back(curr.position[0]);
+        vertices.push_back(curr.position[1]);
+        vertices.push_back(curr.position[2]);
     };
     auto add_indices_as_point = [](const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        unsigned int index_buffer_id, IndexBuffer& buffer_indices, size_t move_id) {
-            buffer.add_path(curr, index_buffer_id, buffer_indices.size(), move_id);
-            buffer_indices.push_back(static_cast<unsigned int>(buffer_indices.size()));
+            unsigned int index_buffer_id, IndexBuffer& indices, size_t move_id) {
+            buffer.add_path(curr, index_buffer_id, indices.size(), move_id);
+            indices.push_back(static_cast<unsigned int>(indices.size()));
     };
 
     // format data into the buffers to be rendered as lines
     auto add_vertices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr,
-        TBuffer& buffer, std::vector<float>& buffer_vertices) {
+        VertexBuffer& vertices) {
             // x component of the normal to the current segment (the normal is parallel to the XY plane)
             float normal_x = (curr.position - prev.position).normalized()[1];
 
-            auto add_vertex = [&buffer_vertices, normal_x](const GCodeProcessor::MoveVertex& vertex) {
+            auto add_vertex = [&vertices, normal_x](const GCodeProcessor::MoveVertex& vertex) {
                 // add position
-                for (int j = 0; j < 3; ++j) {
-                    buffer_vertices.push_back(vertex.position[j]);
-                }
+                vertices.push_back(vertex.position[0]);
+                vertices.push_back(vertex.position[1]);
+                vertices.push_back(vertex.position[2]);
                 // add normal x component
-                buffer_vertices.push_back(normal_x);
+                vertices.push_back(normal_x);
             };
 
             // add previous vertex
@@ -1082,48 +1984,45 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             add_vertex(curr);
     };
     auto add_indices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        unsigned int index_buffer_id, IndexBuffer& buffer_indices, size_t move_id) {
-            // x component of the normal to the current segment (the normal is parallel to the XY plane)
-            float normal_x = (curr.position - prev.position).normalized()[1];
-
+        unsigned int index_buffer_id, IndexBuffer& indices, size_t move_id) {
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
                 // add starting index
-                buffer_indices.push_back(static_cast<unsigned int>(buffer_indices.size()));
-                buffer.add_path(curr, index_buffer_id, buffer_indices.size() - 1, move_id - 1);
+                indices.push_back(static_cast<unsigned int>(indices.size()));
+                buffer.add_path(curr, index_buffer_id, indices.size() - 1, move_id - 1);
                 buffer.paths.back().first.position = prev.position;
             }
 
             Path& last_path = buffer.paths.back();
             if (last_path.first.i_id != last_path.last.i_id) {
                 // add previous index
-                buffer_indices.push_back(static_cast<unsigned int>(buffer_indices.size()));
+                indices.push_back(static_cast<unsigned int>(indices.size()));
             }
 
             // add current index
-            buffer_indices.push_back(static_cast<unsigned int>(buffer_indices.size()));
-            last_path.last = { index_buffer_id, buffer_indices.size() - 1, move_id, curr.position };
+            indices.push_back(static_cast<unsigned int>(indices.size()));
+            last_path.last = { index_buffer_id, indices.size() - 1, move_id, curr.position };
     };
 
     // format data into the buffers to be rendered as solid
     auto add_vertices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        std::vector<float>& buffer_vertices, size_t move_id) {
+        VertexBuffer& vertices, size_t move_id) {
             static Vec3f prev_dir;
             static Vec3f prev_up;
             static float prev_length;
-            auto store_vertex = [](std::vector<float>& buffer_vertices, const Vec3f& position, const Vec3f& normal) {
+            auto store_vertex = [](VertexBuffer& vertices, const Vec3f& position, const Vec3f& normal) {
                 // append position
-                for (int j = 0; j < 3; ++j) {
-                    buffer_vertices.push_back(position[j]);
-                }
+                vertices.push_back(position[0]);
+                vertices.push_back(position[1]);
+                vertices.push_back(position[2]);
                 // append normal
-                for (int j = 0; j < 3; ++j) {
-                    buffer_vertices.push_back(normal[j]);
-                }
+                vertices.push_back(normal[0]);
+                vertices.push_back(normal[1]);
+                vertices.push_back(normal[2]);
             };
-            auto extract_position_at = [](const std::vector<float>& vertices, size_t id) {
+            auto extract_position_at = [](const VertexBuffer& vertices, size_t id) {
                 return Vec3f(vertices[id + 0], vertices[id + 1], vertices[id + 2]);
             };
-            auto update_position_at = [](std::vector<float>& vertices, size_t id, const Vec3f& position) {
+            auto update_position_at = [](VertexBuffer& vertices, size_t id, const Vec3f& position) {
                 vertices[id + 0] = position[0];
                 vertices[id + 1] = position[1];
                 vertices[id + 2] = position[2];
@@ -1134,7 +2033,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 buffer.paths.back().first.position = prev.position;
             }
 
-            unsigned int starting_vertices_size = static_cast<unsigned int>(buffer_vertices.size() / buffer.vertices.vertex_size_floats());
+            unsigned int starting_vertices_size = static_cast<unsigned int>(vertices.size() / buffer.vertices.vertex_size_floats());
 
             Vec3f dir = (curr.position - prev.position).normalized();
             Vec3f right = (std::abs(std::abs(dir.dot(Vec3f::UnitZ())) - 1.0f) < EPSILON) ? -Vec3f::UnitY() : Vec3f(dir[1], -dir[0], 0.0f).normalized();
@@ -1155,16 +2054,16 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 // 1st segment
 
                 // vertices 1st endpoint
-                store_vertex(buffer_vertices, prev_pos + half_height * up, up);
-                store_vertex(buffer_vertices, prev_pos + half_width * right, right);
-                store_vertex(buffer_vertices, prev_pos + half_height * down, down);
-                store_vertex(buffer_vertices, prev_pos + half_width * left, left);
+                store_vertex(vertices, prev_pos + half_height * up, up);
+                store_vertex(vertices, prev_pos + half_width * right, right);
+                store_vertex(vertices, prev_pos + half_height * down, down);
+                store_vertex(vertices, prev_pos + half_width * left, left);
 
                 // vertices 2nd endpoint
-                store_vertex(buffer_vertices, curr_pos + half_height * up, up);
-                store_vertex(buffer_vertices, curr_pos + half_width * right, right);
-                store_vertex(buffer_vertices, curr_pos + half_height * down, down);
-                store_vertex(buffer_vertices, curr_pos + half_width * left, left);
+                store_vertex(vertices, curr_pos + half_height * up, up);
+                store_vertex(vertices, curr_pos + half_width * right, right);
+                store_vertex(vertices, curr_pos + half_height * down, down);
+                store_vertex(vertices, curr_pos + half_width * left, left);
             }
             else {
                 // any other segment
@@ -1181,8 +2080,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
                 size_t prev_right_id = (starting_vertices_size - 3) * buffer.vertices.vertex_size_floats();
                 size_t prev_left_id = (starting_vertices_size - 1) * buffer.vertices.vertex_size_floats();
-                Vec3f prev_right_pos = extract_position_at(buffer_vertices, prev_right_id);
-                Vec3f prev_left_pos = extract_position_at(buffer_vertices, prev_left_id);
+                Vec3f prev_right_pos = extract_position_at(vertices, prev_right_id);
+                Vec3f prev_left_pos = extract_position_at(vertices, prev_left_id);
 
                 bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
                 // whether the angle between adjacent segments is greater than 45 degrees
@@ -1195,12 +2094,12 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 if (can_displace) {
                     if (is_right_turn) {
                         prev_right_pos -= displacement_vec;
-                        update_position_at(buffer_vertices, prev_right_id, prev_right_pos);
+                        update_position_at(vertices, prev_right_id, prev_right_pos);
                         right_displaced = true;
                     }
                     else {
                         prev_left_pos -= displacement_vec;
-                        update_position_at(buffer_vertices, prev_left_id, prev_left_pos);
+                        update_position_at(vertices, prev_left_id, prev_left_pos);
                         left_displaced = true;
                     }
                 }
@@ -1210,39 +2109,39 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                     if (can_displace) {
                         if (is_right_turn) {
                             prev_left_pos += displacement_vec;
-                            update_position_at(buffer_vertices, prev_left_id, prev_left_pos);
+                            update_position_at(vertices, prev_left_id, prev_left_pos);
                             left_displaced = true;
                         }
                         else {
                             prev_right_pos += displacement_vec;
-                            update_position_at(buffer_vertices, prev_right_id, prev_right_pos);
+                            update_position_at(vertices, prev_right_id, prev_right_pos);
                             right_displaced = true;
                         }
                     }
 
                     // vertices 1st endpoint (top and bottom are from previous segment 2nd endpoint)
                     // vertices position matches that of the previous segment 2nd endpoint, if displaced
-                    store_vertex(buffer_vertices, right_displaced ? prev_right_pos : prev_pos + half_width * right, right);
-                    store_vertex(buffer_vertices, left_displaced ? prev_left_pos : prev_pos + half_width * left, left);
+                    store_vertex(vertices, right_displaced ? prev_right_pos : prev_pos + half_width * right, right);
+                    store_vertex(vertices, left_displaced ? prev_left_pos : prev_pos + half_width * left, left);
                 }
                 else {
                     // vertices 1st endpoint (top and bottom are from previous segment 2nd endpoint)
                     // the inner corner vertex position matches that of the previous segment 2nd endpoint, if displaced
                     if (is_right_turn) {
-                        store_vertex(buffer_vertices, right_displaced ? prev_right_pos : prev_pos + half_width * right, right);
-                        store_vertex(buffer_vertices, prev_pos + half_width * left, left);
+                        store_vertex(vertices, right_displaced ? prev_right_pos : prev_pos + half_width * right, right);
+                        store_vertex(vertices, prev_pos + half_width * left, left);
                     }
                     else {
-                        store_vertex(buffer_vertices, prev_pos + half_width * right, right);
-                        store_vertex(buffer_vertices, left_displaced ? prev_left_pos : prev_pos + half_width * left, left);
+                        store_vertex(vertices, prev_pos + half_width * right, right);
+                        store_vertex(vertices, left_displaced ? prev_left_pos : prev_pos + half_width * left, left);
                     }
                 }
 
                 // vertices 2nd endpoint
-                store_vertex(buffer_vertices, curr_pos + half_height * up, up);
-                store_vertex(buffer_vertices, curr_pos + half_width * right, right);
-                store_vertex(buffer_vertices, curr_pos + half_height * down, down);
-                store_vertex(buffer_vertices, curr_pos + half_width * left, left);
+                store_vertex(vertices, curr_pos + half_height * up, up);
+                store_vertex(vertices, curr_pos + half_width * right, right);
+                store_vertex(vertices, curr_pos + half_height * down, down);
+                store_vertex(vertices, curr_pos + half_width * left, left);
             }
 
             last_path.last = { 0, 0, move_id, curr.position };
@@ -1250,28 +2149,25 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             prev_up = up;
             prev_length = length;
     };
-
     auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        size_t& buffer_vertices_size, unsigned int index_buffer_id, IndexBuffer& buffer_indices, size_t move_id) {
+        size_t& buffer_vertices_size, unsigned int index_buffer_id, IndexBuffer& indices, size_t move_id) {
             static Vec3f prev_dir;
             static Vec3f prev_up;
             static float prev_length;
-            auto store_triangle = [](IndexBuffer& buffer_indices, unsigned int i1, unsigned int i2, unsigned int i3) {
-                buffer_indices.push_back(i1);
-                buffer_indices.push_back(i2);
-                buffer_indices.push_back(i3);
+            auto store_triangle = [](IndexBuffer& indices, unsigned int i1, unsigned int i2, unsigned int i3) {
+                indices.push_back(i1);
+                indices.push_back(i2);
+                indices.push_back(i3);
             };
-            auto append_dummy_cap = [store_triangle](IndexBuffer& buffer_indices, unsigned int id) {
-                store_triangle(buffer_indices, id, id, id);
-                store_triangle(buffer_indices, id, id, id);
+            auto append_dummy_cap = [store_triangle](IndexBuffer& indices, unsigned int id) {
+                store_triangle(indices, id, id, id);
+                store_triangle(indices, id, id, id);
             };
 
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
-                buffer.add_path(curr, index_buffer_id, buffer_indices.size(), move_id - 1);
+                buffer.add_path(curr, index_buffer_id, indices.size(), move_id - 1);
                 buffer.paths.back().first.position = prev.position;
             }
-
-            unsigned int starting_vertices_size = static_cast<unsigned int>(buffer_vertices_size);
 
             Vec3f dir = (curr.position - prev.position).normalized();
             Vec3f right = (std::abs(std::abs(dir.dot(Vec3f::UnitZ())) - 1.0f) < EPSILON) ? -Vec3f::UnitY() : Vec3f(dir[1], -dir[0], 0.0f).normalized();
@@ -1288,28 +2184,29 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             float length = (curr_pos - prev_pos).norm();
             if (last_path.vertices_count() == 1) {
                 // 1st segment
-                buffer_vertices_size += 8;
 
                 // triangles starting cap
-                store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 2, starting_vertices_size + 1);
-                store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 3, starting_vertices_size + 2);
+                store_triangle(indices, buffer_vertices_size + 0, buffer_vertices_size + 2, buffer_vertices_size + 1);
+                store_triangle(indices, buffer_vertices_size + 0, buffer_vertices_size + 3, buffer_vertices_size + 2);
 
                 // dummy triangles outer corner cap
-                append_dummy_cap(buffer_indices, starting_vertices_size);
+                append_dummy_cap(indices, buffer_vertices_size);
 
                 // triangles sides
-                store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 1, starting_vertices_size + 4);
-                store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size + 5, starting_vertices_size + 4);
-                store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size + 2, starting_vertices_size + 5);
-                store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 6, starting_vertices_size + 5);
-                store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 3, starting_vertices_size + 6);
-                store_triangle(buffer_indices, starting_vertices_size + 3, starting_vertices_size + 7, starting_vertices_size + 6);
-                store_triangle(buffer_indices, starting_vertices_size + 3, starting_vertices_size + 0, starting_vertices_size + 7);
-                store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 4, starting_vertices_size + 7);
+                store_triangle(indices, buffer_vertices_size + 0, buffer_vertices_size + 1, buffer_vertices_size + 4);
+                store_triangle(indices, buffer_vertices_size + 1, buffer_vertices_size + 5, buffer_vertices_size + 4);
+                store_triangle(indices, buffer_vertices_size + 1, buffer_vertices_size + 2, buffer_vertices_size + 5);
+                store_triangle(indices, buffer_vertices_size + 2, buffer_vertices_size + 6, buffer_vertices_size + 5);
+                store_triangle(indices, buffer_vertices_size + 2, buffer_vertices_size + 3, buffer_vertices_size + 6);
+                store_triangle(indices, buffer_vertices_size + 3, buffer_vertices_size + 7, buffer_vertices_size + 6);
+                store_triangle(indices, buffer_vertices_size + 3, buffer_vertices_size + 0, buffer_vertices_size + 7);
+                store_triangle(indices, buffer_vertices_size + 0, buffer_vertices_size + 4, buffer_vertices_size + 7);
 
                 // triangles ending cap
-                store_triangle(buffer_indices, starting_vertices_size + 4, starting_vertices_size + 6, starting_vertices_size + 7);
-                store_triangle(buffer_indices, starting_vertices_size + 4, starting_vertices_size + 5, starting_vertices_size + 6);
+                store_triangle(indices, buffer_vertices_size + 4, buffer_vertices_size + 6, buffer_vertices_size + 7);
+                store_triangle(indices, buffer_vertices_size + 4, buffer_vertices_size + 5, buffer_vertices_size + 6);
+
+                buffer_vertices_size += 8;
             }
             else {
                 // any other segment
@@ -1340,48 +2237,48 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                     }
                 }
 
-                buffer_vertices_size += 6;
-
                 // triangles starting cap
-                store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size - 2, starting_vertices_size + 0);
-                store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size + 1, starting_vertices_size - 2);
+                store_triangle(indices, buffer_vertices_size - 4, buffer_vertices_size - 2, buffer_vertices_size + 0);
+                store_triangle(indices, buffer_vertices_size - 4, buffer_vertices_size + 1, buffer_vertices_size - 2);
 
                 // triangles outer corner cap
                 if (is_right_turn) {
                     if (left_displaced)
                         // dummy triangles
-                        append_dummy_cap(buffer_indices, starting_vertices_size);
+                        append_dummy_cap(indices, buffer_vertices_size);
                     else {
-                        store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size + 1, starting_vertices_size - 1);
-                        store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size - 2, starting_vertices_size - 1);
+                        store_triangle(indices, buffer_vertices_size - 4, buffer_vertices_size + 1, buffer_vertices_size - 1);
+                        store_triangle(indices, buffer_vertices_size + 1, buffer_vertices_size - 2, buffer_vertices_size - 1);
                     }
                 }
                 else {
                     if (right_displaced)
                         // dummy triangles
-                        append_dummy_cap(buffer_indices, starting_vertices_size);
+                        append_dummy_cap(indices, buffer_vertices_size);
                     else {
-                        store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size - 3, starting_vertices_size + 0);
-                        store_triangle(buffer_indices, starting_vertices_size - 3, starting_vertices_size - 2, starting_vertices_size + 0);
+                        store_triangle(indices, buffer_vertices_size - 4, buffer_vertices_size - 3, buffer_vertices_size + 0);
+                        store_triangle(indices, buffer_vertices_size - 3, buffer_vertices_size - 2, buffer_vertices_size + 0);
                     }
                 }
 
                 // triangles sides
-                store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size + 0, starting_vertices_size + 2);
-                store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size + 3, starting_vertices_size + 2);
-                store_triangle(buffer_indices, starting_vertices_size + 0, starting_vertices_size - 2, starting_vertices_size + 3);
-                store_triangle(buffer_indices, starting_vertices_size - 2, starting_vertices_size + 4, starting_vertices_size + 3);
-                store_triangle(buffer_indices, starting_vertices_size - 2, starting_vertices_size + 1, starting_vertices_size + 4);
-                store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size + 5, starting_vertices_size + 4);
-                store_triangle(buffer_indices, starting_vertices_size + 1, starting_vertices_size - 4, starting_vertices_size + 5);
-                store_triangle(buffer_indices, starting_vertices_size - 4, starting_vertices_size + 2, starting_vertices_size + 5);
+                store_triangle(indices, buffer_vertices_size - 4, buffer_vertices_size + 0, buffer_vertices_size + 2);
+                store_triangle(indices, buffer_vertices_size + 0, buffer_vertices_size + 3, buffer_vertices_size + 2);
+                store_triangle(indices, buffer_vertices_size + 0, buffer_vertices_size - 2, buffer_vertices_size + 3);
+                store_triangle(indices, buffer_vertices_size - 2, buffer_vertices_size + 4, buffer_vertices_size + 3);
+                store_triangle(indices, buffer_vertices_size - 2, buffer_vertices_size + 1, buffer_vertices_size + 4);
+                store_triangle(indices, buffer_vertices_size + 1, buffer_vertices_size + 5, buffer_vertices_size + 4);
+                store_triangle(indices, buffer_vertices_size + 1, buffer_vertices_size - 4, buffer_vertices_size + 5);
+                store_triangle(indices, buffer_vertices_size - 4, buffer_vertices_size + 2, buffer_vertices_size + 5);
 
                 // triangles ending cap
-                store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 4, starting_vertices_size + 5);
-                store_triangle(buffer_indices, starting_vertices_size + 2, starting_vertices_size + 3, starting_vertices_size + 4);
+                store_triangle(indices, buffer_vertices_size + 2, buffer_vertices_size + 4, buffer_vertices_size + 5);
+                store_triangle(indices, buffer_vertices_size + 2, buffer_vertices_size + 3, buffer_vertices_size + 4);
+
+                buffer_vertices_size += 6;
             }
 
-            last_path.last = { index_buffer_id, buffer_indices.size() - 1, move_id, curr.position };
+            last_path.last = { index_buffer_id, indices.size() - 1, move_id, curr.position };
             prev_dir = dir;
             prev_up = up;
             prev_length = length;
@@ -1391,7 +2288,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     // to reduce the peak in memory usage, we split the generation of the vertex and index buffers in two steps.
     // the data are deleted as soon as they are sent to the gpu.
-    std::vector<std::vector<float>> vertices(m_buffers.size());
+    std::vector<VertexBuffer> vertices(m_buffers.size());
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
     std::vector<float> options_zs;
 
@@ -1414,7 +2311,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         unsigned char id = buffer_id(curr.type);
         TBuffer& buffer = m_buffers[id];
-        std::vector<float>& buffer_vertices = vertices[id];
+        VertexBuffer& buffer_vertices = vertices[id];
 
         switch (buffer.render_primitive_type)
         {
@@ -1423,7 +2320,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             break;
         }
         case TBuffer::ERenderPrimitiveType::Line: {
-            add_vertices_as_line(prev, curr, buffer, buffer_vertices);
+            add_vertices_as_line(prev, curr, buffer_vertices);
             break;
         }
         case TBuffer::ERenderPrimitiveType::Triangle: {
@@ -1432,17 +2329,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
         }
 
-        EMoveType type = buffer_type(id);
-        if (type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) {
+        if (curr.type == EMoveType::Pause_Print || curr.type == EMoveType::Custom_GCode) {
             const float* const last_z = options_zs.empty() ? nullptr : &options_zs.back();
-            float z = static_cast<double>(curr.position[2]);
-            if (last_z == nullptr || z < *last_z - EPSILON || *last_z + EPSILON < z)
+            if (last_z == nullptr || curr.position[2] < *last_z - EPSILON || *last_z + EPSILON < curr.position[2])
                 options_zs.emplace_back(curr.position[2]);
         }
     }
 
     // move the wipe toolpaths half height up to render them on proper position
-    std::vector<float>& wipe_vertices = vertices[buffer_id(EMoveType::Wipe)];
+    VertexBuffer& wipe_vertices = vertices[buffer_id(EMoveType::Wipe)];
     for (size_t i = 2; i < wipe_vertices.size(); i += 3) {
         wipe_vertices[i] += 0.5f * GCodeProcessor::Wipe_Height;
     }
@@ -1453,12 +2348,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     for (size_t i = 0; i < m_buffers.size(); ++i) {
         TBuffer& buffer = m_buffers[i];
 
-        const std::vector<float>& buffer_vertices = vertices[i];
+        const VertexBuffer& buffer_vertices = vertices[i];
         buffer.vertices.count = buffer_vertices.size() / buffer.vertices.vertex_size_floats();
 #if ENABLE_GCODE_VIEWER_STATISTICS
         m_statistics.total_vertices_gpu_size += buffer_vertices.size() * sizeof(float);
         m_statistics.max_vbuffer_gpu_size = std::max(m_statistics.max_vbuffer_gpu_size, static_cast<int64_t>(buffer_vertices.size() * sizeof(float)));
-        m_statistics.max_vertices_in_vertex_buffer = std::max(m_statistics.max_vertices_in_vertex_buffer, static_cast<int64_t>(buffer.vertices.count));
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         if (buffer.vertices.count > 0) {
@@ -1473,7 +2367,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     }
 
     // dismiss vertices data, no more needed
-    std::vector<std::vector<float>>().swap(vertices);
+    std::vector<VertexBuffer>().swap(vertices);
 
     // toolpaths data -> extract indices from result
     // paths may have been filled while extracting vertices,
@@ -1569,7 +2463,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_GCODE_VIEWER_STATISTICS
             m_statistics.total_indices_gpu_size += ibuffer.count * sizeof(unsigned int);
             m_statistics.max_ibuffer_gpu_size = std::max(m_statistics.max_ibuffer_gpu_size, static_cast<int64_t>(ibuffer.count * sizeof(unsigned int)));
-            m_statistics.max_indices_in_index_buffer = std::max(m_statistics.max_indices_in_index_buffer, static_cast<int64_t>(ibuffer.count));
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
             if (ibuffer.count > 0) {
@@ -1591,17 +2484,17 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     unsigned int travel_buffer_id = buffer_id(EMoveType::Travel);
     const MultiIndexBuffer& travel_buffer_indices = indices[travel_buffer_id];
     for (size_t i = 0; i < travel_buffer_indices.size(); ++i) {
-        m_statistics.travel_segments_count = travel_buffer_indices[i].size() / m_buffers[travel_buffer_id].indices_per_segment();
+        m_statistics.travel_segments_count += travel_buffer_indices[i].size() / m_buffers[travel_buffer_id].indices_per_segment();
     }
     unsigned int wipe_buffer_id = buffer_id(EMoveType::Wipe);
     const MultiIndexBuffer& wipe_buffer_indices = indices[wipe_buffer_id];
     for (size_t i = 0; i < wipe_buffer_indices.size(); ++i) {
-        m_statistics.wipe_segments_count = wipe_buffer_indices[i].size() / m_buffers[wipe_buffer_id].indices_per_segment();
+        m_statistics.wipe_segments_count += wipe_buffer_indices[i].size() / m_buffers[wipe_buffer_id].indices_per_segment();
     }
     unsigned int extrude_buffer_id = buffer_id(EMoveType::Extrude);
     const MultiIndexBuffer& extrude_buffer_indices = indices[extrude_buffer_id];
     for (size_t i = 0; i < extrude_buffer_indices.size(); ++i) {
-        m_statistics.extrude_segments_count = extrude_buffer_indices[i].size() / m_buffers[extrude_buffer_id].indices_per_segment();
+        m_statistics.extrude_segments_count += extrude_buffer_indices[i].size() / m_buffers[extrude_buffer_id].indices_per_segment();
     }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
@@ -1667,6 +2560,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     if (progress_dialog != nullptr)
         progress_dialog->Destroy();
 }
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
 void GCodeViewer::load_shells(const Print& print, bool initialized)
 {
@@ -1726,6 +2620,288 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
     }
 }
 
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
+{
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    auto extrusion_color = [this](const Path& path) {
+        Color color;
+        switch (m_view_type)
+        {
+        case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
+        case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height); break; }
+        case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width); break; }
+        case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
+        case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
+        case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
+        case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
+        case EViewType::ColorPrint:     {
+            if (path.cp_color_id >= static_cast<unsigned char>(m_tool_colors.size())) {
+                color = { 0.5f, 0.5f, 0.5f };
+//                // complementary color
+//                color = m_tool_colors[255 - path.cp_color_id];
+//                color = { 1.0f - color[0], 1.0f - color[1], 1.0f - color[2] };
+            }
+            else
+                color = m_tool_colors[path.cp_color_id];
+
+            break;
+        }
+        default: { color = { 1.0f, 1.0f, 1.0f }; break; }
+        }
+
+        return color;
+    };
+
+    auto travel_color = [this](const Path& path) {
+        return (path.delta_extruder < 0.0f) ? Travel_Colors[2] /* Retract */ :
+            ((path.delta_extruder > 0.0f) ? Travel_Colors[1] /* Extrude */ :
+                Travel_Colors[0] /* Move */);
+    };
+
+    auto is_in_layers_range = [this](const Path& path, size_t min_id, size_t max_id) {
+        auto in_layers_range = [this, min_id, max_id](size_t id) {
+            return m_layers.get_endpoints_at(min_id).first <= id && id <= m_layers.get_endpoints_at(max_id).last;
+        };
+
+        return in_layers_range(path.sub_paths.front().first.s_id) || in_layers_range(path.sub_paths.back().last.s_id);
+    };
+
+    auto is_travel_in_layers_range = [this](size_t path_id, size_t min_id, size_t max_id) {
+        auto is_in_z_range = [](const Path& path, double min_z, double max_z) {
+            auto in_z_range = [min_z, max_z](double z) {
+                return min_z - EPSILON < z && z < max_z + EPSILON;
+            };
+
+            return in_z_range(path.sub_paths.front().first.position[2]) || in_z_range(path.sub_paths.back().last.position[2]);
+        };
+
+        const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
+        if (path_id >= buffer.paths.size())
+            return false;
+
+        Path path = buffer.paths[path_id];
+        size_t first = path_id;
+        size_t last = path_id;
+
+        // check adjacent paths
+        while (first > 0 && path.sub_paths.front().first.position.isApprox(buffer.paths[first - 1].sub_paths.back().last.position)) {
+            --first;
+            path.sub_paths.front().first = buffer.paths[first].sub_paths.front().first;
+        }
+        while (last < buffer.paths.size() - 1 && path.sub_paths.back().last.position.isApprox(buffer.paths[last + 1].sub_paths.front().first.position)) {
+            ++last;
+            path.sub_paths.back().last = buffer.paths[last].sub_paths.back().last;
+        }
+
+        size_t min_s_id = m_layers.get_endpoints_at(min_id).first;
+        size_t max_s_id = m_layers.get_endpoints_at(max_id).last;
+
+        return (min_s_id <= path.sub_paths.front().first.s_id && path.sub_paths.front().first.s_id <= max_s_id) ||
+            (min_s_id <= path.sub_paths.back().last.s_id && path.sub_paths.back().last.s_id <= max_s_id);
+    };
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_statistics.render_paths_size = 0;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    bool top_layer_only = get_app_config()->get("seq_top_layer_only") == "1";
+
+    SequentialView::Endpoints global_endpoints = { m_moves_count , 0 };
+    SequentialView::Endpoints top_layer_endpoints = global_endpoints;
+    if (top_layer_only || !keep_sequential_current_first) m_sequential_view.current.first = 0;
+    if (!keep_sequential_current_last) m_sequential_view.current.last = m_moves_count;
+
+    // first pass: collect visible paths and update sequential view data
+    std::vector<std::tuple<TBuffer*, unsigned int, unsigned int, unsigned int>> paths;
+    for (TBuffer& buffer : m_buffers) {
+        // reset render paths
+        buffer.render_paths.clear();
+
+        if (!buffer.visible)
+            continue;
+
+        for (size_t i = 0; i < buffer.paths.size(); ++i) {
+            const Path& path = buffer.paths[i];
+            if (path.type == EMoveType::Travel) {
+                if (!is_travel_in_layers_range(i, m_layers_z_range[0], m_layers_z_range[1]))
+                    continue;
+            }
+            else if (!is_in_layers_range(path, m_layers_z_range[0], m_layers_z_range[1]))
+                continue;
+
+            if (path.type == EMoveType::Extrude && !is_visible(path))
+                continue;
+
+            // store valid path
+            for (size_t j = 0; j < path.sub_paths.size(); ++j) {
+                paths.push_back({ &buffer, path.sub_paths[j].first.b_id, static_cast<unsigned int>(i), static_cast<unsigned int>(j) });
+            }
+
+            global_endpoints.first = std::min(global_endpoints.first, path.sub_paths.front().first.s_id);
+            global_endpoints.last = std::max(global_endpoints.last, path.sub_paths.back().last.s_id);
+
+            if (top_layer_only) {
+                if (path.type == EMoveType::Travel) {
+                    if (is_travel_in_layers_range(i, m_layers_z_range[1], m_layers_z_range[1])) {
+                        top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.sub_paths.front().first.s_id);
+                        top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.sub_paths.back().last.s_id);
+                    }
+                }
+                else if (is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1])) {
+                    top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.sub_paths.front().first.s_id);
+                    top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.sub_paths.back().last.s_id);
+                }
+            }
+        }
+    }
+
+    // update current sequential position
+    m_sequential_view.current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(m_sequential_view.current.first, global_endpoints.first, global_endpoints.last) : global_endpoints.first;
+    m_sequential_view.current.last = keep_sequential_current_last ? std::clamp(m_sequential_view.current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
+
+    // get the world position from gpu
+    bool found = false;
+    for (const TBuffer& buffer : m_buffers) {
+        // searches the path containing the current position
+        for (const Path& path : buffer.paths) {
+            if (path.contains(m_sequential_view.current.last)) {
+                int sub_path_id = path.get_id_of_sub_path_containing(m_sequential_view.current.last);
+                if (sub_path_id != -1) {
+                    const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
+                    unsigned int offset = static_cast<unsigned int>(m_sequential_view.current.last - sub_path.first.s_id);
+                    if (offset > 0) {
+                        if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Line)
+                            offset = 2 * offset - 1;
+                        else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
+                            unsigned int indices_count = buffer.indices_per_segment();
+                            offset = indices_count * (offset - 1) + (indices_count - 6);
+                        }
+                    }
+                    offset += static_cast<unsigned int>(sub_path.first.i_id);
+
+                    // gets the vertex index from the index buffer on gpu
+                    const IBuffer& i_buffer = buffer.indices[sub_path.first.b_id];
+                    unsigned int index = 0;
+                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+                    glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(IBufferType)), static_cast<GLsizeiptr>(sizeof(IBufferType)), static_cast<void*>(&index)));
+                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+                    // gets the position from the vertices buffer on gpu
+                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+                    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index * buffer.vertices.vertex_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(m_sequential_view.current_position.data())));
+                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (found)
+            break;
+    }
+
+    // second pass: filter paths by sequential data and collect them by color
+    RenderPath* render_path = nullptr;
+    for (const auto& [buffer, ibuffer_id, path_id, sub_path_id] : paths) {
+        const Path& path = buffer->paths[path_id];
+        const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
+        if (m_sequential_view.current.last <= sub_path.first.s_id || sub_path.last.s_id <= m_sequential_view.current.first)
+            continue;
+
+        Color color;
+        switch (path.type)
+        {
+        case EMoveType::Tool_change:  { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]; break; }
+        case EMoveType::Color_change: { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]; break; }
+        case EMoveType::Pause_Print:  { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]; break; }
+        case EMoveType::Custom_GCode: { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]; break; }
+        case EMoveType::Retract:      { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]; break; }
+        case EMoveType::Unretract:    { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]; break; }
+        case EMoveType::Extrude: {
+            if (!top_layer_only ||
+                m_sequential_view.current.last == global_endpoints.last ||
+                is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1]))
+                color = extrusion_color(path);
+            else
+                color = { 0.25f, 0.25f, 0.25f };
+
+            break;
+        }
+        case EMoveType::Travel: {
+            if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_travel_in_layers_range(path_id, m_layers_z_range[1], m_layers_z_range[1]))
+                color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path);
+            else
+                color = { 0.25f, 0.25f, 0.25f };
+
+            break;
+        }
+        case EMoveType::Wipe: { color = Wipe_Color; break; }
+        default:              { color = { 0.0f, 0.0f, 0.0f }; break; }
+        }
+
+        RenderPath key{ color, static_cast<unsigned int>(ibuffer_id), path_id };
+        if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key))
+            render_path = const_cast<RenderPath*>(&(*buffer->render_paths.emplace(key).first));
+
+        unsigned int size_in_indices = 0;
+        switch (buffer->render_primitive_type)
+        {
+        case TBuffer::ERenderPrimitiveType::Point: {
+            size_in_indices = buffer->indices_per_segment();
+            break;
+        }
+        case TBuffer::ERenderPrimitiveType::Line:
+        case TBuffer::ERenderPrimitiveType::Triangle: {
+            unsigned int segments_count = std::min(m_sequential_view.current.last, sub_path.last.s_id) - std::max(m_sequential_view.current.first, sub_path.first.s_id);
+            size_in_indices = buffer->indices_per_segment() * segments_count;
+            break;
+        }
+        }
+        render_path->sizes.push_back(size_in_indices);
+
+        unsigned int delta_1st = 0;
+        if (sub_path.first.s_id < m_sequential_view.current.first && m_sequential_view.current.first <= sub_path.last.s_id)
+            delta_1st = m_sequential_view.current.first - sub_path.first.s_id;
+
+        if (buffer->render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle)
+            delta_1st *= buffer->indices_per_segment();
+
+        render_path->offsets.push_back(static_cast<size_t>((sub_path.first.i_id + delta_1st) * sizeof(IBufferType)));
+
+#if 0
+        // check sizes and offsets against index buffer size on gpu
+        GLint buffer_size;
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->indices[render_path->index_buffer_id].ibo));
+        glsafe(::glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &buffer_size));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        if (render_path->offsets.back() + render_path->sizes.back() * sizeof(IBufferType) > buffer_size)
+            BOOST_LOG_TRIVIAL(error) << "GCodeViewer::refresh_render_paths: Invalid render path data";
+#endif 
+    }
+
+    // set sequential data to their final value
+    m_sequential_view.endpoints = top_layer_only ? top_layer_endpoints : global_endpoints;
+    m_sequential_view.current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(m_sequential_view.current.first, m_sequential_view.endpoints.first, m_sequential_view.endpoints.last) : m_sequential_view.endpoints.first;
+
+    wxGetApp().plater()->enable_preview_moves_slider(!paths.empty());
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    for (const TBuffer& buffer : m_buffers) {
+        m_statistics.render_paths_size += SLIC3R_STDUNORDEREDSET_MEMSIZE(buffer.render_paths, RenderPath);
+        for (const RenderPath& path : buffer.render_paths) {
+            m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.sizes, unsigned int);
+            m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
+        }
+    }
+    m_statistics.refresh_paths_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+}
+#else
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1964,7 +3140,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     for (const TBuffer& buffer : m_buffers) {
-        m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(buffer.render_paths, RenderPath);
+        m_statistics.render_paths_size += SLIC3R_STDUNORDEREDSET_MEMSIZE(buffer.render_paths, RenderPath);
         for (const RenderPath& path : buffer.render_paths) {
             m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.sizes, unsigned int);
             m_statistics.render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
@@ -1973,7 +3149,145 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     m_statistics.refresh_paths_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+void GCodeViewer::render_toolpaths() const
+{
+#if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+    float point_size = 20.0f;
+#else
+    float point_size = 0.8f;
+#endif // ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+    std::array<float, 4> light_intensity = { 0.25f, 0.70f, 0.75f, 0.75f };
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    double zoom = camera.get_zoom();
+    const std::array<int, 4>& viewport = camera.get_viewport();
+    float near_plane_height = camera.get_type() == Camera::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
+        static_cast<float>(viewport[3]) * 0.0005;
+
+    auto set_uniform_color = [](const std::array<float, 3>& color, GLShaderProgram& shader) {
+        std::array<float, 4> color4 = { color[0], color[1], color[2], 1.0f };
+        shader.set_uniform("uniform_color", color4);
+    };
+
+    auto render_as_points = [this, zoom, point_size, near_plane_height, set_uniform_color]
+        (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+#if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+        shader.set_uniform("use_fixed_screen_size", 1);
+#else
+        shader.set_uniform("use_fixed_screen_size", 0);
+#endif // ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+        shader.set_uniform("zoom", zoom);
+        shader.set_uniform("percent_outline_radius", 0.0f);
+        shader.set_uniform("percent_center_radius", 0.33f);
+        shader.set_uniform("point_size", point_size);
+        shader.set_uniform("near_plane_height", near_plane_height);
+
+        glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+        glsafe(::glEnable(GL_POINT_SPRITE));
+
+        for (const RenderPath& path : buffer.render_paths) {
+            if (path.index_buffer_id == ibuffer_id) {
+                set_uniform_color(path.color, shader);
+                glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                ++m_statistics.gl_multi_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+            }
+        }
+
+        glsafe(::glDisable(GL_POINT_SPRITE));
+        glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+    };
+
+    auto render_as_lines = [this, light_intensity, set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+        shader.set_uniform("light_intensity", light_intensity);
+        for (const RenderPath& path : buffer.render_paths) {
+            if (path.index_buffer_id == ibuffer_id) {
+                set_uniform_color(path.color, shader);
+                glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                ++m_statistics.gl_multi_lines_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+            }
+        }
+    };
+
+    auto render_as_triangles = [this, set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+        for (const RenderPath& path : buffer.render_paths) {
+            if (path.index_buffer_id == ibuffer_id) {
+                set_uniform_color(path.color, shader);
+                glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                ++m_statistics.gl_multi_triangles_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+            }
+        }
+    };
+
+    auto line_width = [](double zoom) {
+        return (zoom < 5.0) ? 1.0 : (1.0 + 5.0 * (zoom - 5.0) / (100.0 - 5.0));
+    };
+
+    glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
+
+    unsigned char begin_id = buffer_id(EMoveType::Retract);
+    unsigned char end_id = buffer_id(EMoveType::Count);
+
+    for (unsigned char i = begin_id; i < end_id; ++i) {
+        const TBuffer& buffer = m_buffers[i];
+        if (!buffer.visible || !buffer.has_data())
+            continue;
+
+        GLShaderProgram* shader = wxGetApp().get_shader(buffer.shader.c_str());
+        if (shader != nullptr) {
+            shader->start_using();
+
+            for (size_t j = 0; j < buffer.indices.size(); ++j) {
+                const IBuffer& i_buffer = buffer.indices[j];
+
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+                glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_size()));
+                glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+                bool has_normals = buffer.vertices.normal_size_floats() > 0;
+                if (has_normals) {
+                    glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_size()));
+                    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+                }
+
+                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+
+                switch (buffer.render_primitive_type)
+                {
+                case TBuffer::ERenderPrimitiveType::Point: {
+                    render_as_points(buffer, static_cast<unsigned int>(j), *shader);
+                    break;
+                }
+                case TBuffer::ERenderPrimitiveType::Line: {
+                    render_as_lines(buffer, static_cast<unsigned int>(j), *shader);
+                    break;
+                }
+                case TBuffer::ERenderPrimitiveType::Triangle: {
+                    render_as_triangles(buffer, static_cast<unsigned int>(j), *shader);
+                    break;
+                }
+                }
+
+                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+                if (has_normals)
+                    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+
+                glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            }
+
+            shader->stop_using();
+        }
+    }
+}
+#else
 void GCodeViewer::render_toolpaths() const
 {
 #if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
@@ -2120,6 +3434,7 @@ void GCodeViewer::render_toolpaths() const
         }
     }
 }
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
 void GCodeViewer::render_shells() const
 {
@@ -2882,16 +4197,12 @@ void GCodeViewer::render_statistics() const
         add_time(std::string("Load:"), m_statistics.load_time);
         add_time(std::string("Refresh:"), m_statistics.refresh_time);
         add_time(std::string("Refresh paths:"), m_statistics.refresh_paths_time);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     if (ImGui::CollapsingHeader("OpenGL calls")) {
         add_counter(std::string("Multi GL_POINTS:"), m_statistics.gl_multi_points_calls_count);
         add_counter(std::string("Multi GL_LINES:"), m_statistics.gl_multi_lines_calls_count);
         add_counter(std::string("Multi GL_TRIANGLES:"), m_statistics.gl_multi_triangles_calls_count);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     if (ImGui::CollapsingHeader("CPU memory")) {
@@ -2900,8 +4211,6 @@ void GCodeViewer::render_statistics() const
         ImGui::Separator();
         add_memory(std::string("Paths:"), m_statistics.paths_size);
         add_memory(std::string("Render paths:"), m_statistics.render_paths_size);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     if (ImGui::CollapsingHeader("GPU memory")) {
@@ -2910,8 +4219,6 @@ void GCodeViewer::render_statistics() const
         ImGui::Separator();
         add_memory(std::string("Max VBuffer:"), m_statistics.max_vbuffer_gpu_size);
         add_memory(std::string("Max IBuffer:"), m_statistics.max_ibuffer_gpu_size);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
     }
 
     if (ImGui::CollapsingHeader("Other")) {
@@ -2920,12 +4227,7 @@ void GCodeViewer::render_statistics() const
         add_counter(std::string("Extrude segments count:"), m_statistics.extrude_segments_count);
         ImGui::Separator();
         add_counter(std::string("VBuffers count:"), m_statistics.vbuffers_count);
-        add_counter(std::string("IBuffers  count:"), m_statistics.ibuffers_count);
-        ImGui::Separator();
-        add_counter(std::string("Max vertices in VBuffer:"), m_statistics.max_vertices_in_vertex_buffer);
-        add_counter(std::string("Max indices in IBuffer:"), m_statistics.max_indices_in_index_buffer);
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+        add_counter(std::string("IBuffers count:"), m_statistics.ibuffers_count);
     }
 
     imgui.end();
@@ -2947,9 +4249,15 @@ void GCodeViewer::log_memory_used(const std::string& label, int64_t additional) 
         }
         int64_t layers_size = SLIC3R_STDVEC_MEMSIZE(m_layers.get_zs(), double);
         layers_size += SLIC3R_STDVEC_MEMSIZE(m_layers.get_endpoints(), Layers::Endpoints);
+#if ENABLE_SPLITTED_VERTEX_BUFFER
+        BOOST_LOG_TRIVIAL(trace) << label
+            << "(" << format_memsize_MB(additional + paths_size + render_paths_size + layers_size) << ");"
+            << log_memory_info();
+#else
         BOOST_LOG_TRIVIAL(trace) << label
             << format_memsize_MB(additional + paths_size + render_paths_size + layers_size)
             << log_memory_info();
+#endif // ENABLE_SPLITTED_VERTEX_BUFFER
     }
 }
 
