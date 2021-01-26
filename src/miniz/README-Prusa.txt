@@ -2,6 +2,12 @@ This library is based on miniz 2.1.0 - amalgamated version.
 
 ----------------------------------------------------------------
 
+mz_zip_writer_add_staged_open(), mz_zip_writer_add_staged_data() and mz_zip_writer_add_staged_finish() 
+were derived from mz_zip_writer_add_read_buf_callback() by splitting it and passing a new
+mz_zip_writer_staged_context between them.
+
+----------------------------------------------------------------
+
 Merged with https://github.com/richgel999/miniz/pull/147
 to support writing a zipped file using a callback without
 knowing the size of the file up front.
