@@ -2029,8 +2029,8 @@ namespace Slic3r {
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data);
-        bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
-        bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
+        bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
+        bool _add_mesh_to_object_stream(mz_zip_writer_staged_context &context, std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -2240,31 +2240,55 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data)
+    static void reset_stream(std::stringstream &stream)
     {
-        std::stringstream stream;
+        stream.str("");
+        stream.clear();
         // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
         // Conversion of a floating-point value to text and back is exact as long as at least max_digits10 were used (9 for float, 17 for double).
         // It is guaranteed to produce the same floating-point value, even though the intermediate text representation is not exact.
         // The default value of std::stream precision is 6 digits only!
-		stream << std::setprecision(std::numeric_limits<float>::max_digits10);
-        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
-        stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
-        std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
-        stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
-        stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
-        stream << " <" << METADATA_TAG << " name=\"Description\">" << name << "</" << METADATA_TAG << ">\n";
-        stream << " <" << METADATA_TAG << " name=\"Copyright\">" << "</" << METADATA_TAG << ">\n";
-        stream << " <" << METADATA_TAG << " name=\"LicenseTerms\">" << "</" << METADATA_TAG << ">\n";
-        stream << " <" << METADATA_TAG << " name=\"Rating\">" << "</" << METADATA_TAG << ">\n";
-        std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
-        // keep only the date part of the string
-        date = date.substr(0, 10);
-        stream << " <" << METADATA_TAG << " name=\"CreationDate\">" << date << "</" << METADATA_TAG << ">\n";
-        stream << " <" << METADATA_TAG << " name=\"ModificationDate\">" << date << "</" << METADATA_TAG << ">\n";
-        stream << " <" << METADATA_TAG << " name=\"Application\">" << SLIC3R_APP_KEY << "-" << SLIC3R_VERSION << "</" << METADATA_TAG << ">\n";
-        stream << " <" << RESOURCES_TAG << ">\n";
+        stream << std::setprecision(std::numeric_limits<float>::max_digits10);
+    }
+
+    bool _3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data)
+    {
+        mz_zip_writer_staged_context context;
+        if (!mz_zip_writer_add_staged_open(&archive, &context, MODEL_FILE.c_str(), 
+            // Maximum expected and allowed 3MF file size is 16GiB.
+            // This switches the ZIP file to a 64bit mode, which adds a tiny bit of overhead to file records.
+            (uint64_t(1) << 30) * 16,
+            nullptr, nullptr, 0, MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0)) {
+            add_error("Unable to add model file to archive");
+            return false;
+        }
+
+        {
+            std::stringstream stream;
+            reset_stream(stream);
+            stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+            stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
+            std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
+            stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"Description\">" << name << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"Copyright\">" << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"LicenseTerms\">" << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"Rating\">" << "</" << METADATA_TAG << ">\n";
+            std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
+            // keep only the date part of the string
+            date = date.substr(0, 10);
+            stream << " <" << METADATA_TAG << " name=\"CreationDate\">" << date << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"ModificationDate\">" << date << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"Application\">" << SLIC3R_APP_KEY << "-" << SLIC3R_VERSION << "</" << METADATA_TAG << ">\n";
+            stream << " <" << RESOURCES_TAG << ">\n";
+            std::string buf = stream.str();
+            if (! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) {
+                add_error("Unable to add model file to archive");
+                return false;
+            }
+        }
 
         // Instance transformations, indexed by the 3MF object ID (which is a linear serialization of all instances of all ModelObjects).
         BuildItemsList build_items;
@@ -2284,40 +2308,46 @@ namespace Slic3r {
             // Store geometry of all ModelVolumes contained in a single ModelObject into a single 3MF indexed triangle set object.
             // object_it->second.volumes_offsets will contain the offsets of the ModelVolumes in that single indexed triangle set.
             // object_id will be increased to point to the 1st instance of the next ModelObject.
-            if (!_add_object_to_model_stream(stream, object_id, *obj, build_items, object_it->second.volumes_offsets))
+            if (!_add_object_to_model_stream(context, object_id, *obj, build_items, object_it->second.volumes_offsets))
             {
                 add_error("Unable to add object to archive");
+                mz_zip_writer_add_staged_finish(&context);
                 return false;
             }
         }
 
-        stream << " </" << RESOURCES_TAG << ">\n";
-
-        // Store the transformations of all the ModelInstances of all ModelObjects, indexed in a linear fashion.
-        if (!_add_build_to_model_stream(stream, build_items))
         {
-            add_error("Unable to add build to archive");
-            return false;
-        }
+            std::stringstream stream;
+            reset_stream(stream);
+            stream << " </" << RESOURCES_TAG << ">\n";
 
-        stream << "</" << MODEL_TAG << ">\n";
-       
-        mz_zip_writer_staged_context context;
-        std::string buf = stream.str();
+            // Store the transformations of all the ModelInstances of all ModelObjects, indexed in a linear fashion.
+            if (!_add_build_to_model_stream(stream, build_items))
+            {
+                add_error("Unable to add build to archive");
+                mz_zip_writer_add_staged_finish(&context);
+                return false;
+            }
 
-        if (!mz_zip_writer_add_staged_open(&archive, &context, MODEL_FILE.c_str(), buf.size(), nullptr, nullptr, 0, MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0) ||
-            !mz_zip_writer_add_staged_data(&archive, &context, buf.data(), buf.size()) ||
-            !mz_zip_writer_add_staged_finish(&archive, &context))
-        {
-            add_error("Unable to add model file to archive");
-            return false;
+            stream << "</" << MODEL_TAG << ">\n";
+           
+            std::string buf = stream.str();
+
+            if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
+                ! mz_zip_writer_add_staged_finish(&context))
+            {
+                add_error("Unable to add model file to archive");
+                return false;
+            }
         }
 
         return true;
     }
 
-    bool _3MF_Exporter::_add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets)
+    bool _3MF_Exporter::_add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets)
     {
+        std::stringstream stream;
+        reset_stream(stream);
         unsigned int id = 0;
         for (const ModelInstance* instance : object.instances)
         {
@@ -2330,7 +2360,7 @@ namespace Slic3r {
 
             if (id == 0)
             {
-                if (!_add_mesh_to_object_stream(stream, object, volumes_offsets))
+                if (!_add_mesh_to_object_stream(context, stream, object, volumes_offsets))
                 {
                     add_error("Unable to add mesh to archive");
                     return false;
@@ -2354,13 +2384,31 @@ namespace Slic3r {
         }
 
         object_id += id;
-        return true;
+        std::string buf = stream.str();
+        return buf.empty() || mz_zip_writer_add_staged_data(&context, buf.data(), buf.size());
     }
 
-    bool _3MF_Exporter::_add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets)
+    bool _3MF_Exporter::_add_mesh_to_object_stream(mz_zip_writer_staged_context &context, std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets)
     {
         stream << "   <" << MESH_TAG << ">\n";
         stream << "    <" << VERTICES_TAG << ">\n";
+
+        // Flush at the rate of 6400 lines per miniz invocation,
+        // that corresponds to roughly 5x 64kB blocks.
+        size_t       lines = 6400;
+        auto         flush = [this, &lines, &context, &stream]() {
+            if (lines == 0) {
+                lines = 6400;
+                std::string buf = stream.str();
+                reset_stream(stream);
+                if (! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) {
+                    add_error("Error during writing or compression");
+                    return false;
+                }
+            } else
+                -- lines;
+            return true;
+        };
 
         unsigned int vertices_count = 0;
         for (ModelVolume* volume : object.volumes)
@@ -2393,6 +2441,8 @@ namespace Slic3r {
                 stream << "x=\"" << v(0) << "\" ";
                 stream << "y=\"" << v(1) << "\" ";
                 stream << "z=\"" << v(2) << "\" />\n";
+                if (! flush())
+                    return false;
             }
         }
 
@@ -2432,13 +2482,18 @@ namespace Slic3r {
                     stream << CUSTOM_SEAM_ATTR << "=\"" << custom_seam_data_string << "\" ";
 
                 stream << "/>\n";
+
+                if (! flush())
+                    return false;
             }
         }
 
         stream << "    </" << TRIANGLES_TAG << ">\n";
         stream << "   </" << MESH_TAG << ">\n";
 
-        return true;
+        // Force flush.
+        lines = 0;
+        return flush();
     }
 
     bool _3MF_Exporter::_add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items)
