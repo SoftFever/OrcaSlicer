@@ -6858,9 +6858,11 @@ mz_bool mz_zip_writer_add_staged_open(mz_zip_archive* pZip, mz_zip_writer_staged
     return MZ_TRUE;
 }
 
-mz_bool mz_zip_writer_add_staged_data(mz_zip_writer_staged_context *pContext, const char *pRead_buf, size_t read_buf_size)
+mz_bool mz_zip_writer_add_staged_data(mz_zip_writer_staged_context *pContext, const char *pRead_buf, size_t n)
 {
-    if (pContext->file_ofs + read_buf_size > pContext->max_size)
+    tdefl_flush  flush = TDEFL_NO_FLUSH;
+
+    if (pContext->file_ofs + n > pContext->max_size)
     {
         mz_zip_set_error(pContext->pZip, MZ_ZIP_FILE_READ_FAILED);
         pContext->pZip->m_pFree(pContext->pZip->m_pAlloc_opaque, pContext->pCompressor);
@@ -6868,38 +6870,22 @@ mz_bool mz_zip_writer_add_staged_data(mz_zip_writer_staged_context *pContext, co
         return MZ_FALSE;
     }
 
-    for (;;) {
-        tdefl_status status;
-        tdefl_flush  flush = TDEFL_NO_FLUSH;
-        size_t       n = read_buf_size;
-        if (n > MZ_ZIP_MAX_IO_BUF_SIZE)
-            n = MZ_ZIP_MAX_IO_BUF_SIZE;
+    pContext->file_ofs += n;
+    pContext->uncomp_crc32 = (mz_uint32)mz_crc32(pContext->uncomp_crc32, (const mz_uint8 *)pRead_buf, n);
 
-        pContext->file_ofs += n;
-        pContext->uncomp_crc32 = (mz_uint32)mz_crc32(pContext->uncomp_crc32, (const mz_uint8 *)pRead_buf, n);
+    if (pContext->pZip->m_pNeeds_keepalive != NULL && pContext->pZip->m_pNeeds_keepalive(pContext->pZip->m_pIO_opaque))
+        flush = TDEFL_FULL_FLUSH;
 
-        if (pContext->pZip->m_pNeeds_keepalive != NULL && pContext->pZip->m_pNeeds_keepalive(pContext->pZip->m_pIO_opaque))
-            flush = TDEFL_FULL_FLUSH;
-
-        if (n == 0)
-            flush = TDEFL_FINISH;
-
-        status = tdefl_compress_buffer(pContext->pCompressor, pRead_buf, n, flush);
-        if (status == TDEFL_STATUS_DONE || n < MZ_ZIP_MAX_IO_BUF_SIZE)
-        {
+    {
+        tdefl_status status = tdefl_compress_buffer(pContext->pCompressor, pRead_buf, n, (n == 0) ? TDEFL_FINISH : flush);
+        if (status == TDEFL_STATUS_DONE || status == TDEFL_STATUS_OKAY)
             return MZ_TRUE;
-        }
-        else if (status != TDEFL_STATUS_OKAY)
-        {
-            mz_zip_set_error(pContext->pZip, MZ_ZIP_COMPRESSION_FAILED);
-            pContext->pZip->m_pFree(pContext->pZip->m_pAlloc_opaque, pContext->pCompressor);
-            pContext->pCompressor = NULL;
-            return MZ_FALSE;
-        }
-        pRead_buf     += n;
-        read_buf_size -= n;
     }
-    return MZ_TRUE;
+
+    mz_zip_set_error(pContext->pZip, MZ_ZIP_COMPRESSION_FAILED);
+    pContext->pZip->m_pFree(pContext->pZip->m_pAlloc_opaque, pContext->pCompressor);
+    pContext->pCompressor = NULL;
+    return MZ_FALSE;
 }
 
 mz_bool mz_zip_writer_add_staged_finish(mz_zip_writer_staged_context *pContext)
