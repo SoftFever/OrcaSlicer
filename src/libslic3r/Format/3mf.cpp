@@ -2301,10 +2301,13 @@ namespace Slic3r {
         }
 
         stream << "</" << MODEL_TAG << ">\n";
+       
+        mz_zip_writer_staged_context context;
+        std::string buf = stream.str();
 
-        std::string out = stream.str();
-
-        if (!mz_zip_writer_add_mem(&archive, MODEL_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        if (!mz_zip_writer_add_staged_open(&archive, &context, MODEL_FILE.c_str(), buf.size(), nullptr, nullptr, 0, MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0) ||
+            !mz_zip_writer_add_staged_data(&archive, &context, buf.data(), buf.size()) ||
+            !mz_zip_writer_add_staged_finish(&archive, &context))
         {
             add_error("Unable to add model file to archive");
             return false;
