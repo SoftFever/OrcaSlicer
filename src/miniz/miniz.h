@@ -1282,7 +1282,7 @@ mz_bool mz_zip_writer_add_mem_ex_v2(mz_zip_archive *pZip, const char *pArchive_n
 
 /* Adds the contents of a file to an archive. This function also records the disk file's modified time into the archive. */
 /* File data is supplied via a read callback function. User mz_zip_writer_add_(c)file to add a file directly.*/
-mz_bool mz_zip_writer_add_read_buf_callback(mz_zip_archive *pZip, const char *pArchive_name, mz_file_read_func read_callback, void* callback_opaque, mz_uint64 size_to_add,
+mz_bool mz_zip_writer_add_read_buf_callback(mz_zip_archive *pZip, const char *pArchive_name, mz_file_read_func read_callback, void* callback_opaque, mz_uint64 max_size,
 	const MZ_TIME_T *pFile_time, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags, const char *user_extra_data_local, mz_uint user_extra_data_local_len,
 	const char *user_extra_data_central, mz_uint user_extra_data_central_len);
 
