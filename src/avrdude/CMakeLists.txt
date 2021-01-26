@@ -77,22 +77,16 @@ elseif (MINGW)
     )
 endif()
 
-add_executable(avrdude-conf-gen conf-generate.cpp)
+include(bin2h)
 
-# Config file embedding
-add_custom_command(
-    DEPENDS avrdude-conf-gen ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/avrdude-slic3r.conf.h
-    COMMAND $<TARGET_FILE:avrdude-conf-gen> avrdude-slic3r.conf avrdude_slic3r_conf ${CMAKE_CURRENT_BINARY_DIR}/avrdude-slic3r.conf.h
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-add_custom_target(gen_conf_h
-   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/avrdude-slic3r.conf.h
+bin2h(
+    SOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf
+    VARIABLE_NAME avrdude_slic3r_conf
+    HEADER_FILE ${CMAKE_CURRENT_BINARY_DIR}/avrdude-slic3r.conf.h
+    ADD_WARNING_TEXT
 )
 
 add_library(avrdude STATIC ${AVRDUDE_SOURCES})
-add_dependencies(avrdude gen_conf_h)
 
 add_executable(avrdude-slic3r main-standalone.cpp)
 target_link_libraries(avrdude-slic3r avrdude)
