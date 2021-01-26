@@ -884,13 +884,8 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuffer.ibo));
             for (size_t j = 0; j < render_path.sizes.size(); ++j) {
                 IndexBuffer indices(render_path.sizes[j]);
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(render_path.offsets[j]),
                     static_cast<GLsizeiptr>(render_path.sizes[j] * sizeof(IBufferType)), static_cast<void*>(indices.data())));
-#else
-                glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(render_path.offsets[j]),
-                    static_cast<GLsizeiptr>(render_path.sizes[j] * sizeof(unsigned int)), static_cast<void*>(indices.data())));
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 
                 const size_t triangles_count = render_path.sizes[j] / 3;
                 for (size_t k = 0; k < triangles_count; ++k) {
@@ -1156,10 +1151,6 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 #if ENABLE_SPLITTED_VERTEX_BUFFER
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
-#if !ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
-    // max vertex buffer size, in bytes
-    static const size_t VBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
-#endif // !ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
     // max index buffer size, in bytes
     static const size_t IBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
 
@@ -1173,11 +1164,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         int64_t indices_size = 0;
         for (const MultiIndexBuffer& buffers : indices) {
             for (const IndexBuffer& buffer : buffers) {
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 indices_size += SLIC3R_STDVEC_MEMSIZE(buffer, IBufferType);
-#else
-                indices_size += SLIC3R_STDVEC_MEMSIZE(buffer, unsigned int);
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             }
         }
         log_memory_used(label, vertices_size + indices_size);
@@ -1192,11 +1179,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     auto add_indices_as_point = [](const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
         unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
             buffer.add_path(curr, ibuffer_id, indices.size(), move_id);
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             indices.push_back(static_cast<IBufferType>(indices.size()));
-#else
-            indices.push_back(static_cast<unsigned int>(indices.size()));
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
     };
 
     // format data into the buffers to be rendered as lines
@@ -1301,35 +1284,20 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             static Vec3f prev_dir;
             static Vec3f prev_up;
             static float sq_prev_length;
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             auto store_triangle = [](IndexBuffer& indices, IBufferType i1, IBufferType i2, IBufferType i3) {
-#else
-            auto store_triangle = [](IndexBuffer& indices, unsigned int i1, unsigned int i2, unsigned int i3) {
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 indices.push_back(i1);
                 indices.push_back(i2);
                 indices.push_back(i3);
             };
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             auto append_dummy_cap = [store_triangle](IndexBuffer& indices, IBufferType id) {
-#else
-            auto append_dummy_cap = [store_triangle](IndexBuffer& indices, unsigned int id) {
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 store_triangle(indices, id, id, id);
                 store_triangle(indices, id, id, id);
             };
             auto store_main_triangles = [&](IndexBuffer& indices, size_t vbuffer_size, const std::array<int, 8>& v_offsets) {
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 std::array<IBufferType, 8> v_ids;
                 for (size_t i = 0; i < v_ids.size(); ++i) {
                     v_ids[i] = static_cast<IBufferType>(static_cast<int>(vbuffer_size) + v_offsets[i]);
                 }
-#else
-                std::array<unsigned int, 8> v_ids;
-                for (size_t i = 0; i < v_ids.size(); ++i) {
-                    v_ids[i] = static_cast<unsigned int>(static_cast<int>(vbuffer_size) + v_offsets[i]);
-                }
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 
                 // triangles starting cap
                 store_triangle(indices, v_ids[0], v_ids[2], v_ids[1]);
@@ -1500,11 +1468,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         // if adding the vertices for the current segment exceeds the threshold size of the current vertex buffer
         // add another vertex buffer
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
         if (v_multibuffer.back().size() * sizeof(float) > t_buffer.vertices.max_size_bytes() - t_buffer.max_vertices_per_segment_size_bytes()) {
-#else
-        if (v_multibuffer.back().size() * sizeof(float) > VBUFFER_THRESHOLD_BYTES - t_buffer.max_vertices_per_segment_size_bytes()) {
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             v_multibuffer.push_back(VertexBuffer());
             if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
                 Path& last_path = t_buffer.paths.back();
@@ -1773,11 +1737,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         // if adding the indices for the current segment exceeds the threshold size of the current index buffer
         // create another index buffer
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
         if (i_multibuffer.back().size() * sizeof(IBufferType) >= IBUFFER_THRESHOLD_BYTES - t_buffer.indices_per_segment_size_bytes()) {
-#else
-        if (i_multibuffer.back().size() * sizeof(unsigned int) >= IBUFFER_THRESHOLD_BYTES - t_buffer.indices_per_segment_size_bytes()) {
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             i_multibuffer.push_back(IndexBuffer());
             vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
             if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point) {
@@ -1788,11 +1748,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         // if adding the vertices for the current segment exceeds the threshold size of the current vertex buffer
         // create another index buffer
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
         if (curr_vertex_buffer.second * t_buffer.vertices.vertex_size_bytes() > t_buffer.vertices.max_size_bytes() - t_buffer.max_vertices_per_segment_size_bytes()) {
-#else
-        if (curr_vertex_buffer.second * t_buffer.vertices.vertex_size_bytes() > VBUFFER_THRESHOLD_BYTES - t_buffer.max_vertices_per_segment_size_bytes()) {
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             i_multibuffer.push_back(IndexBuffer());
 
             ++curr_vertex_buffer.first;
@@ -1838,11 +1794,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         const MultiIndexBuffer& i_multibuffer = indices[i];
         for (const IndexBuffer& i_buffer : i_multibuffer) {
             size_t size_elements = i_buffer.size();
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             size_t size_bytes = size_elements * sizeof(IBufferType);
-#else
-            size_t size_bytes = size_elements * sizeof(unsigned int);
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 
             // stores index buffer informations into TBuffer
             t_buffer.indices.push_back(IBuffer());
@@ -2835,11 +2787,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                     const IBuffer& i_buffer = buffer.indices[sub_path.first.b_id];
                     unsigned int index = 0;
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                     glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(IBufferType)), static_cast<GLsizeiptr>(sizeof(IBufferType)), static_cast<void*>(&index)));
-#else
-                    glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(unsigned int)), static_cast<GLsizeiptr>(sizeof(unsigned int)), static_cast<void*>(&index)));
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
                     // gets the position from the vertices buffer on gpu
@@ -2923,11 +2871,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (buffer->render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle)
             delta_1st *= buffer->indices_per_segment();
 
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
         render_path->offsets.push_back(static_cast<size_t>((sub_path.first.i_id + delta_1st) * sizeof(IBufferType)));
-#else
-        render_path->offsets.push_back(static_cast<size_t>((sub_path.first.i_id + delta_1st) * sizeof(unsigned int)));
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 
 #if 0
         // check sizes and offsets against index buffer size on gpu
@@ -2935,11 +2879,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->indices[render_path->index_buffer_id].ibo));
         glsafe(::glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &buffer_size));
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
         if (render_path->offsets.back() + render_path->sizes.back() * sizeof(IBufferType) > buffer_size)
-#else
-        if (render_path->offsets.back() + render_path->sizes.back() * sizeof(unsigned int) > buffer_size)
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
             BOOST_LOG_TRIVIAL(error) << "GCodeViewer::refresh_render_paths: Invalid render path data";
 #endif 
     }
@@ -3250,11 +3190,7 @@ void GCodeViewer::render_toolpaths() const
         for (const RenderPath& path : buffer.render_paths) {
             if (path.index_buffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#else
-                glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -3270,11 +3206,7 @@ void GCodeViewer::render_toolpaths() const
         for (const RenderPath& path : buffer.render_paths) {
             if (path.index_buffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#else
-                glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_multi_lines_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -3286,11 +3218,7 @@ void GCodeViewer::render_toolpaths() const
         for (const RenderPath& path : buffer.render_paths) {
             if (path.index_buffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
-#if ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
                 glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#else
-                glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#endif // ENABLE_UNSIGNED_SHORT_INDEX_BUFFER
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_multi_triangles_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

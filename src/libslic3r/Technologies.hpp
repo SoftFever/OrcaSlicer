@@ -108,13 +108,12 @@
 #define ENABLE_VOLUMETRIC_EXTRUSION_PROCESSING (1 && ENABLE_2_3_0_RC1)
 
 
-//============== 
-// 2.3.1.alpha1
-//==============
+//====================
+// 2.3.1.alpha1 techs
+//====================
 #define ENABLE_2_3_1_ALPHA1 1
 
 #define ENABLE_SPLITTED_VERTEX_BUFFER (1 && ENABLE_2_3_1_ALPHA1)
-#define ENABLE_UNSIGNED_SHORT_INDEX_BUFFER (1 && ENABLE_SPLITTED_VERTEX_BUFFER)
 
 
 #endif // _prusaslicer_technologies_h_
