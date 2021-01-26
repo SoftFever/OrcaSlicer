@@ -1308,6 +1308,8 @@ typedef struct
 
 typedef struct mz_zip_writer_staged_context
 {
+    mz_zip_archive *pZip;
+
     mz_uint16  gen_flags;
     mz_uint    uncomp_crc32;
     mz_uint16  method;
@@ -1346,8 +1348,8 @@ typedef struct mz_zip_writer_staged_context
 mz_bool mz_zip_writer_add_staged_open(mz_zip_archive* pZip, mz_zip_writer_staged_context* pContext, const char* pArchive_name, 
     mz_uint64 max_size, const MZ_TIME_T* pFile_time, const void* pComment, mz_uint16 comment_size, mz_uint level_and_flags,
     const char* user_extra_data, mz_uint user_extra_data_len, const char* user_extra_data_central, mz_uint user_extra_data_central_len);
-mz_bool mz_zip_writer_add_staged_data(mz_zip_archive* pZip, mz_zip_writer_staged_context* pContext, const char* pRead_buf, size_t n);
-mz_bool mz_zip_writer_add_staged_finish(mz_zip_archive* pZip, mz_zip_writer_staged_context* pContext);
+mz_bool mz_zip_writer_add_staged_data(mz_zip_writer_staged_context* pContext, const char* pRead_buf, size_t n);
+mz_bool mz_zip_writer_add_staged_finish(mz_zip_writer_staged_context* pContext);
 
 /* Adds a file to an archive by fully cloning the data from another archive. */
 /* This function fully clones the source file's compressed data (no recompression), along with its full filename, extra data (it may add or modify the zip64 local header extra data field), and the optional descriptor following the compressed data. */
