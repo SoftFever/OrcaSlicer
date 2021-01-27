@@ -1024,12 +1024,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<FuzzySkinPerimeterMode>(FuzzySkinPerimeterMode::None));
 
+/*
     def = this->add("fuzzy_skin_shape", coEnum);
     def->label = L("Fuzzy skin shape");
     def->category = L("Fuzzy Skin");
     def->tooltip = L("Fuzzy skin shape.");
 
-/*
     def->enum_keys_map = &ConfigOptionEnum<FuzzySkinShape>::get_enum_values();
     def->enum_values.push_back("triangle1");
     def->enum_values.push_back("triangle2");

@@ -522,7 +522,7 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "overhangs"
             || opt_key == "first_layer_extrusion_width"
             || opt_key == "fuzzy_skin_perimeter_mode"
-            || opt_key == "fuzzy_skin_shape"
+//            || opt_key == "fuzzy_skin_shape"
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_dist"
             || opt_key == "perimeter_extrusion_width"
