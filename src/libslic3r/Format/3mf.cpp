@@ -2193,9 +2193,9 @@ namespace Slic3r {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n";
-        stream << " <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\" />\n";
-        stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\" />\n";
-        stream << " <Default Extension=\"png\" ContentType=\"image/png\" />\n";
+        stream << " <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n";
+        stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n";
+        stream << " <Default Extension=\"png\" ContentType=\"image/png\"/>\n";
         stream << "</Types>";
 
         std::string out = stream.str();
@@ -2232,8 +2232,8 @@ namespace Slic3r {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
-        stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" />\n";
-        stream << " <Relationship Target=\"/" << THUMBNAIL_FILE << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\" />\n";
+        stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
+        stream << " <Relationship Target=\"/" << THUMBNAIL_FILE << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
         stream << "</Relationships>";
 
         std::string out = stream.str();
@@ -2379,7 +2379,7 @@ namespace Slic3r {
             else
             {
                 stream << "   <" << COMPONENTS_TAG << ">\n";
-                stream << "    <" << COMPONENT_TAG << " objectid=\"" << object_id << "\" />\n";
+                stream << "    <" << COMPONENT_TAG << " objectid=\"" << object_id << "\"/>\n";
                 stream << "   </" << COMPONENTS_TAG << ">\n";
             }
 
@@ -2502,7 +2502,7 @@ namespace Slic3r {
                 ptr = format_coordinate(v.y(), ptr);
                 boost::spirit::karma::generate(ptr, "\" z=\"");
                 ptr = format_coordinate(v.z(), ptr);
-                boost::spirit::karma::generate(ptr, "\" />\n");
+                boost::spirit::karma::generate(ptr, "\"/>\n");
                 *ptr = '\0';
                 output_buffer += buf;
                 if (! flush())
@@ -2540,7 +2540,7 @@ namespace Slic3r {
                     boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
                         " v1=\"" << boost::spirit::int_ <<
                         "\" v2=\"" << boost::spirit::int_ <<
-                        "\" v3=\"" << boost::spirit::int_ << "\" ",
+                        "\" v3=\"" << boost::spirit::int_ << "\"",
                         idx[0] + volume_it->second.first_vertex_id,
                         idx[1] + volume_it->second.first_vertex_id,
                         idx[2] + volume_it->second.first_vertex_id);
@@ -2550,18 +2550,20 @@ namespace Slic3r {
 
                 std::string custom_supports_data_string = volume->supported_facets.get_triangle_as_string(i);
                 if (! custom_supports_data_string.empty()) {
+                    output_buffer += " ";
                     output_buffer += CUSTOM_SUPPORTS_ATTR;
                     output_buffer += "=\"";
                     output_buffer += custom_supports_data_string;
-                    output_buffer += "\" ";
+                    output_buffer += "\"";
                 }
 
                 std::string custom_seam_data_string = volume->seam_facets.get_triangle_as_string(i);
                 if (! custom_seam_data_string.empty()) {
+                    output_buffer += " ";
                     output_buffer += CUSTOM_SEAM_ATTR;
                     output_buffer += "=\"";
                     output_buffer += custom_seam_data_string;
-                    output_buffer += "\" ";
+                    output_buffer += "\"";
                 }
 
                 output_buffer += "/>\n";
@@ -2603,7 +2605,7 @@ namespace Slic3r {
                         stream << " ";
                 }
             }
-            stream << "\" " << PRINTABLE_ATTR << "=\"" << item.printable << "\" />\n";
+            stream << "\" " << PRINTABLE_ATTR << "=\"" << item.printable << "\"/>\n";
         }
 
         stream << " </" << BUILD_TAG << ">\n";
