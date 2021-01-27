@@ -14,6 +14,7 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "wxExtensions.hpp"
+#include "../libslic3r/LibraryCheck.hpp"
 
 #ifdef _WIN32
 	// The standard Windows includes.
@@ -149,7 +150,8 @@ SysInfoDialog::SysInfoDialog()
             "</font>"
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
-            get_mem_info(true) + "<br>" + wxGetApp().get_gl_info(true, true) + "<br>Eigen vectorization supported: " + Eigen::SimdInstructionSetsInUse());
+            get_mem_info(true) + "<br>" + wxGetApp().get_gl_info(true, true) + "<br>Eigen vectorization supported: " + Eigen::SimdInstructionSetsInUse()
+            + "<br><br><b>Blacklisted loaded libraries:</b><br>" + LibraryCheck::get_instance().get_blacklisted_string().c_str());
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
     }
