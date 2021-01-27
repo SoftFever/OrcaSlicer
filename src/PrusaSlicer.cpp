@@ -48,6 +48,7 @@
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/LibraryCheck.hpp"
 
 #include "PrusaSlicer.hpp"
 
@@ -566,6 +567,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+
     if (start_gui) {
 #ifdef SLIC3R_GUI
         Slic3r::GUI::GUI_InitParams params;
@@ -599,6 +601,18 @@ bool CLI::setup(int argc, char **argv)
                 boost::nowide::cerr << "Invalid SLIC3R_LOGLEVEL environment variable: " << loglevel << std::endl;
         }
     }
+
+#ifdef WIN32
+    // Notify user if blacklisted library is already loaded (Nahimic)
+    // If there are cases of no reports with blacklisted lib - this check should be performed later.
+    // Some libraries are loaded when we load libraries during startup.
+    if (LibraryCheck::get_instance().perform_check()) { 
+        std::wstring text = L"Following libraries has been detected inside of the PrusaSlicer process."
+        L" We suggest stopping or uninstalling these services if you experience crashes or unexpected behaviour while using PrusaSlicer.\n\n";
+        text += LibraryCheck::get_instance().get_blacklisted_string();
+        MessageBoxW(NULL, text.c_str(), L"Warning"/*L"Incopatible library found"*/, MB_OK);
+    }
+#endif
 
     // See Invoking prusa-slicer from $PATH environment variable crashes #5542
     // boost::filesystem::path path_to_binary = boost::filesystem::system_complete(argv[0]);

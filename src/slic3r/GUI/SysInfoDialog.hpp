@@ -29,7 +29,6 @@ private:
     void onCopyToClipboard(wxEvent &);
     void onCloseDialog(wxEvent &);
 };
-
 } // namespace GUI
 } // namespace Slic3r
 

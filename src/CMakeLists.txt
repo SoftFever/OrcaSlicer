@@ -140,6 +140,11 @@ target_link_libraries(PrusaSlicer libslic3r_gui)
     else ()
         target_link_libraries(PrusaSlicer -ldl)
     endif ()
+    if (WIN32)
+	include_directories(detours)
+        find_library(PSAPI_LIB NAMES Psapi)
+        target_link_libraries(PrusaSlicer ${PSAPI_LIB})
+    endif ()
 endif ()
 
 # On Windows, a shim application is required to produce a console / non console version of the Slic3r application.

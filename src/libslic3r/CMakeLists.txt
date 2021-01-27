@@ -120,6 +120,8 @@ add_library(libslic3r STATIC
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     Line.cpp
     Line.hpp
+    LibraryCheck.cpp
+    LibraryCheck.hpp
     Model.cpp
     Model.hpp
     ModelArrange.hpp

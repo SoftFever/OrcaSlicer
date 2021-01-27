@@ -17,7 +17,6 @@
 
 #include "libslic3r/Config.hpp"
 
-
 namespace Slic3r {
 namespace GUI {
 

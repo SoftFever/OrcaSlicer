@@ -775,6 +775,7 @@ bool GUI_App::on_init_inner()
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 
+
     if (is_editor()) {
         std::string msg = Http::tls_global_init();
         std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
