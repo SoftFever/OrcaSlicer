@@ -231,13 +231,15 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     return out;
 }
 
+/*
 enum class FuzzyShape {
     Triangle,
     Sawtooth,
     Random
 };
+*/
 
-static void fuzzy_polygon(Polygon &poly, FuzzyShape shape, double fuzzy_skin_thickness, double fuzzy_skin_point_dist)
+static void fuzzy_polygon(Polygon &poly, /* FuzzyShape shape, */ double fuzzy_skin_thickness, double fuzzy_skin_point_dist)
 {
 #if 0
     Point last = poly.points.at(poly.points.size() - 1);
@@ -396,8 +398,9 @@ void PerimeterGenerator::process()
     // fuzzy skin configuration
     double fuzzy_skin_thickness;
     double fuzzy_skin_point_dist;
-    FuzzyShape fuzzy_skin_shape;
+    //FuzzyShape fuzzy_skin_shape;
     if (this->object_config->fuzzy_skin_perimeter_mode != FuzzySkinPerimeterMode::None) {
+        /*
         switch (this->object_config->fuzzy_skin_shape) {
         case FuzzySkinShape::Triangle1:
         case FuzzySkinShape::Triangle2:
@@ -415,6 +418,7 @@ void PerimeterGenerator::process()
             fuzzy_skin_shape = FuzzyShape::Random;
             break;
         }
+        */
         fuzzy_skin_thickness  = scale_(this->object_config->fuzzy_skin_thickness);
         fuzzy_skin_point_dist = scale_(this->object_config->fuzzy_skin_point_dist);
     }
@@ -514,12 +518,12 @@ void PerimeterGenerator::process()
                                 this->object_config->fuzzy_skin_perimeter_mode ==  FuzzySkinPerimeterMode::ExternalSkipFirst
                             ) {
                                 ExPolygon expolygon_fuzzy(expolygon);
-                                fuzzy_polygon(expolygon_fuzzy.contour, fuzzy_skin_shape, fuzzy_skin_thickness, fuzzy_skin_point_dist);
+                                fuzzy_polygon(expolygon_fuzzy.contour, /* fuzzy_skin_shape, */ fuzzy_skin_thickness, fuzzy_skin_point_dist);
                                 // compensate for the depth of intersection.
                                 contours[i].emplace_back(PerimeterGeneratorLoop(expolygon_fuzzy.contour, i, true)); 
                                 skip_polygon = true;
                             } else
-                                fuzzy_polygon(expolygon.contour, fuzzy_skin_shape, fuzzy_skin_thickness, fuzzy_skin_point_dist);
+                                fuzzy_polygon(expolygon.contour, /* fuzzy_skin_shape, */ fuzzy_skin_thickness, fuzzy_skin_point_dist);
                         }
                     }
 

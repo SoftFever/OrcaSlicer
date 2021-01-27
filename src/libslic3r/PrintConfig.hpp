@@ -50,6 +50,7 @@ enum class FuzzySkinPerimeterMode {
     All
 };
 
+/*
 enum class FuzzySkinShape {
     Triangle1,
     Triangle2,
@@ -61,6 +62,7 @@ enum class FuzzySkinShape {
     Random2,
     Random3
 };
+*/
 
 enum InfillPattern : int {
     ipRectilinear, ipMonotonic, ipAlignedRectilinear, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
@@ -170,6 +172,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<FuzzySkinPerimete
     return keys_map;
 }
 
+/*
 template<> inline const t_config_enum_values& ConfigOptionEnum<FuzzySkinShape>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
@@ -185,6 +188,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<FuzzySkinShape>::
     }
     return keys_map;
 }
+*/
 
 template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
@@ -479,7 +483,7 @@ public:
     ConfigOptionFloatOrPercent      extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionEnum<FuzzySkinPerimeterMode>    fuzzy_skin_perimeter_mode;
-    ConfigOptionEnum<FuzzySkinShape>            fuzzy_skin_shape;
+//    ConfigOptionEnum<FuzzySkinShape>            fuzzy_skin_shape;
     ConfigOptionFloat               fuzzy_skin_thickness;
     ConfigOptionFloat               fuzzy_skin_point_dist;
     ConfigOptionBool                infill_only_where_needed;
@@ -528,7 +532,7 @@ protected:
         OPT_PTR(extrusion_width);
         OPT_PTR(first_layer_height);
         OPT_PTR(fuzzy_skin_perimeter_mode);
-        OPT_PTR(fuzzy_skin_shape);
+//        OPT_PTR(fuzzy_skin_shape);
         OPT_PTR(fuzzy_skin_thickness);
         OPT_PTR(fuzzy_skin_point_dist);
         OPT_PTR(infill_only_where_needed);

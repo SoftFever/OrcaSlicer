@@ -1202,8 +1202,8 @@ boost::any& Choice::get_value()
 			m_value = static_cast<IroningType>(ret_enum);
         else if (m_opt_id.compare("fuzzy_skin_perimeter_mode") == 0)
             m_value = static_cast<FuzzySkinPerimeterMode>(ret_enum);
-        else if (m_opt_id.compare("fuzzy_skin_shape") == 0)
-            m_value = static_cast<FuzzySkinShape>(ret_enum);
+//        else if (m_opt_id.compare("fuzzy_skin_shape") == 0)
+//            m_value = static_cast<FuzzySkinShape>(ret_enum);
 		else if (m_opt_id.compare("gcode_flavor") == 0)
 			m_value = static_cast<GCodeFlavor>(ret_enum);
 		else if (m_opt_id.compare("machine_limits_usage") == 0)

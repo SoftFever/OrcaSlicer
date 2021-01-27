@@ -1029,6 +1029,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Fuzzy Skin");
     def->tooltip = L("Fuzzy skin shape.");
 
+/*
     def->enum_keys_map = &ConfigOptionEnum<FuzzySkinShape>::get_enum_values();
     def->enum_values.push_back("triangle1");
     def->enum_values.push_back("triangle2");
@@ -1050,6 +1051,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Random (3)"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<FuzzySkinShape>(FuzzySkinShape::Triangle1));
+*/
 
     def = this->add("fuzzy_skin_thickness", coFloat);
     def->label = L("Fuzzy skin thickness");
