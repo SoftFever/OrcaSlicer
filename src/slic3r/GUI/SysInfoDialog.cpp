@@ -151,7 +151,11 @@ SysInfoDialog::SysInfoDialog()
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
             get_mem_info(true) + "<br>" + wxGetApp().get_gl_info(true, true) + "<br>Eigen vectorization supported: " + Eigen::SimdInstructionSetsInUse()
-            + "<br><br><b>Blacklisted loaded libraries:</b><br>" + LibraryCheck::get_instance().get_blacklisted_string().c_str());
+#ifdef WIN32
+            + "<br><br><b>Blacklisted loaded libraries:</b><br>" + LibraryCheck::get_instance().get_blacklisted_string().c_str()
+#endif
+        );
+
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
     }
