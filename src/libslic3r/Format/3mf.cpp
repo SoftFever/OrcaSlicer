@@ -21,6 +21,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include <boost/spirit/include/karma.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -30,6 +31,12 @@ namespace pt = boost::property_tree;
 #include <expat.h>
 #include <Eigen/Dense>
 #include "miniz_extension.hpp"
+
+// Slightly faster than sprintf("%.9g"), but there is an issue with the karma floating point formatter,
+// https://github.com/boostorg/spirit/pull/586
+// where the exported string is one digit shorter than it should be to guarantee lossless round trip.
+// The code is left here for the ocasion boost guys improve.
+#define EXPORT_3MF_USE_SPIRIT_KARMA_FP 0
 
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
@@ -2030,7 +2037,7 @@ namespace Slic3r {
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
-        bool _add_mesh_to_object_stream(mz_zip_writer_staged_context &context, std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
+        bool _add_mesh_to_object_stream(mz_zip_writer_staged_context &context, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -2360,7 +2367,10 @@ namespace Slic3r {
 
             if (id == 0)
             {
-                if (!_add_mesh_to_object_stream(context, stream, object, volumes_offsets))
+                std::string buf = stream.str();
+                reset_stream(stream);
+                if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
+                    ! _add_mesh_to_object_stream(context, object, volumes_offsets))
                 {
                     add_error("Unable to add mesh to archive");
                     return false;
@@ -2388,28 +2398,76 @@ namespace Slic3r {
         return buf.empty() || mz_zip_writer_add_staged_data(&context, buf.data(), buf.size());
     }
 
-    bool _3MF_Exporter::_add_mesh_to_object_stream(mz_zip_writer_staged_context &context, std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets)
+#if EXPORT_3MF_USE_SPIRIT_KARMA_FP
+    template <typename Num>
+    struct coordinate_policy_fixed : boost::spirit::karma::real_policies<Num>
     {
-        stream << "   <" << MESH_TAG << ">\n";
-        stream << "    <" << VERTICES_TAG << ">\n";
+        static int floatfield(Num n) { return fmtflags::fixed; }
+        // Number of decimal digits to maintain float accuracy when storing into a text file and parsing back.
+        static unsigned precision(Num /* n */) { return std::numeric_limits<Num>::max_digits10 + 1; }
+        // No trailing zeros, thus for fmtflags::fixed usually much less than max_digits10 decimal numbers will be produced.
+        static bool trailing_zeros(Num /* n */) { return false; }
+    };
+    template <typename Num>
+    struct coordinate_policy_scientific : coordinate_policy_fixed<Num>
+    {
+        static int floatfield(Num n) { return fmtflags::scientific; }
+    };
+    // Define a new generator type based on the new coordinate policy.
+    using coordinate_type_fixed      = boost::spirit::karma::real_generator<float, coordinate_policy_fixed<float>>;
+    using coordinate_type_scientific = boost::spirit::karma::real_generator<float, coordinate_policy_scientific<float>>;
+#endif // EXPORT_3MF_USE_SPIRIT_KARMA_FP
 
-        // Flush at the rate of 6400 lines per miniz invocation,
-        // that corresponds to roughly 5x 64kB blocks.
-        size_t       lines = 6400;
-        auto         flush = [this, &lines, &context, &stream]() {
-            if (lines == 0) {
-                lines = 6400;
-                std::string buf = stream.str();
-                reset_stream(stream);
-                if (! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) {
+    bool _3MF_Exporter::_add_mesh_to_object_stream(mz_zip_writer_staged_context &context, ModelObject& object, VolumeToOffsetsMap& volumes_offsets)
+    {
+        std::string output_buffer;
+        output_buffer += "   <";
+        output_buffer += MESH_TAG;
+        output_buffer += ">\n    <";
+        output_buffer += VERTICES_TAG;
+        output_buffer += ">\n";
+
+        auto flush = [this, &output_buffer, &context](bool force = false) {
+            if ((force && ! output_buffer.empty()) || output_buffer.size() >= 65536 * 16) {
+                if (! mz_zip_writer_add_staged_data(&context, output_buffer.data(), output_buffer.size())) {
                     add_error("Error during writing or compression");
                     return false;
                 }
-            } else
-                -- lines;
+                output_buffer.clear();
+            }
             return true;
         };
 
+        auto format_coordinate = [](float f, char *buf) -> char* {
+#if EXPORT_3MF_USE_SPIRIT_KARMA_FP
+            // Slightly faster than sprintf("%.9g"), but there is an issue with the karma floating point formatter,
+            // https://github.com/boostorg/spirit/pull/586
+            // where the exported string is one digit shorter than it should be to guarantee lossless round trip.
+            // The code is left here for the ocasion boost guys improve.
+            coordinate_type_fixed      const coordinate_fixed      = coordinate_type_fixed();
+            coordinate_type_scientific const coordinate_scientific = coordinate_type_scientific();
+            // Format "f" in a fixed format.
+            char *ptr = buf;
+            boost::spirit::karma::generate(ptr, coordinate_fixed, f);
+            // Format "f" in a scientific format.
+            char *ptr2 = ptr;
+            boost::spirit::karma::generate(ptr2, coordinate_scientific, f);
+            // Return end of the shorter string.
+            auto len2 = ptr2 - ptr;
+            if (ptr - buf > len2) {
+                // Move the shorter scientific form to the front.
+                memcpy(buf, ptr, len2);
+                ptr = buf + len2;
+            }
+            // Return pointer to the end.
+            return ptr;
+#else
+            // Round-trippable float, shortest possible.
+            return buf + sprintf(buf, "%.9g", f);
+#endif
+        };
+
+        char buf[256];
         unsigned int vertices_count = 0;
         for (ModelVolume* volume : object.volumes)
         {
@@ -2436,18 +2494,27 @@ namespace Slic3r {
 
             for (size_t i = 0; i < its.vertices.size(); ++i)
             {
-                stream << "     <" << VERTEX_TAG << " ";
                 Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
-                stream << "x=\"" << v(0) << "\" ";
-                stream << "y=\"" << v(1) << "\" ";
-                stream << "z=\"" << v(2) << "\" />\n";
+                char *ptr = buf;
+                boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << VERTEX_TAG << " x=\"");
+                ptr = format_coordinate(v.x(), ptr);
+                boost::spirit::karma::generate(ptr, "\" y=\"");
+                ptr = format_coordinate(v.y(), ptr);
+                boost::spirit::karma::generate(ptr, "\" z=\"");
+                ptr = format_coordinate(v.z(), ptr);
+                boost::spirit::karma::generate(ptr, "\" />\n");
+                *ptr = '\0';
+                output_buffer += buf;
                 if (! flush())
                     return false;
             }
         }
 
-        stream << "    </" << VERTICES_TAG << ">\n";
-        stream << "    <" << TRIANGLES_TAG << ">\n";
+        output_buffer += "    </";
+        output_buffer += VERTICES_TAG;
+        output_buffer += ">\n    <";
+        output_buffer += TRIANGLES_TAG;
+        output_buffer += ">\n";
 
         unsigned int triangles_count = 0;
         for (ModelVolume* volume : object.volumes)
@@ -2467,33 +2534,51 @@ namespace Slic3r {
 
             for (int i = 0; i < int(its.indices.size()); ++ i)
             {
-                stream << "     <" << TRIANGLE_TAG << " ";
-                for (int j = 0; j < 3; ++j)
                 {
-                    stream << "v" << j + 1 << "=\"" << its.indices[i][j] + volume_it->second.first_vertex_id << "\" ";
+                    const Vec3i &idx = its.indices[i];
+                    char *ptr = buf;
+                    boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
+                        " v1=\"" << boost::spirit::int_ <<
+                        "\" v2=\"" << boost::spirit::int_ <<
+                        "\" v3=\"" << boost::spirit::int_ << "\" ",
+                        idx[0] + volume_it->second.first_vertex_id,
+                        idx[1] + volume_it->second.first_vertex_id,
+                        idx[2] + volume_it->second.first_vertex_id);
+                    *ptr = '\0';
+                    output_buffer += buf;
                 }
 
                 std::string custom_supports_data_string = volume->supported_facets.get_triangle_as_string(i);
-                if (! custom_supports_data_string.empty())
-                    stream << CUSTOM_SUPPORTS_ATTR << "=\"" << custom_supports_data_string << "\" ";
+                if (! custom_supports_data_string.empty()) {
+                    output_buffer += CUSTOM_SUPPORTS_ATTR;
+                    output_buffer += "=\"";
+                    output_buffer += custom_supports_data_string;
+                    output_buffer += "\" ";
+                }
 
                 std::string custom_seam_data_string = volume->seam_facets.get_triangle_as_string(i);
-                if (! custom_seam_data_string.empty())
-                    stream << CUSTOM_SEAM_ATTR << "=\"" << custom_seam_data_string << "\" ";
+                if (! custom_seam_data_string.empty()) {
+                    output_buffer += CUSTOM_SEAM_ATTR;
+                    output_buffer += "=\"";
+                    output_buffer += custom_seam_data_string;
+                    output_buffer += "\" ";
+                }
 
-                stream << "/>\n";
+                output_buffer += "/>\n";
 
                 if (! flush())
                     return false;
             }
         }
 
-        stream << "    </" << TRIANGLES_TAG << ">\n";
-        stream << "   </" << MESH_TAG << ">\n";
+        output_buffer += "    </";
+        output_buffer += TRIANGLES_TAG;
+        output_buffer += ">\n   </";
+        output_buffer += MESH_TAG;
+        output_buffer += ">\n";
 
         // Force flush.
-        lines = 0;
-        return flush();
+        return flush(true);
     }
 
     bool _3MF_Exporter::_add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items)
