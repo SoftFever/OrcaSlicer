@@ -2143,6 +2143,16 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
     return this->slice_volumes(zs, SlicingMode::Regular, volumes);
 }
 
+//FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
+static void fix_mesh_connectivity(TriangleMesh &mesh)
+{
+    auto nr_degenerated = mesh.stl.stats.degenerate_facets;
+    stl_check_facets_exact(&mesh.stl);
+    if (nr_degenerated != mesh.stl.stats.degenerate_facets)
+        // stl_check_facets_exact() removed some newly degenerated faces. Some faces could become degenerate after some mesh transformation.
+        stl_generate_shared_vertices(&mesh.stl, mesh.its);
+}
+
 std::vector<ExPolygons> PrintObject::slice_volumes(
     const std::vector<float> &z, 
     SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below, 
@@ -2155,10 +2165,8 @@ std::vector<ExPolygons> PrintObject::slice_volumes(
 		TriangleMesh mesh(volumes.front()->mesh());
         mesh.transform(volumes.front()->get_matrix(), true);
 		assert(mesh.repaired);
-		if (volumes.size() == 1 && mesh.repaired) {
-			//FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
-			stl_check_facets_exact(&mesh.stl);
-		}
+		if (volumes.size() == 1 && mesh.repaired)
+            fix_mesh_connectivity(mesh);
         for (size_t idx_volume = 1; idx_volume < volumes.size(); ++ idx_volume) {
             const ModelVolume &model_volume = *volumes[idx_volume];
             TriangleMesh vol_mesh(model_volume.mesh());
@@ -2191,10 +2199,8 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, S
 	    //FIXME better to split the mesh into separate shells, perform slicing over each shell separately and then to use a Boolean operation to merge them.
 	    TriangleMesh mesh(volume.mesh());
 	    mesh.transform(volume.get_matrix(), true);
-		if (mesh.repaired) {
-			//FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
-			stl_check_facets_exact(&mesh.stl);
-		}
+		if (mesh.repaired)
+            fix_mesh_connectivity(mesh);
 	    if (mesh.stl.stats.number_of_facets > 0) {
 	        mesh.transform(m_trafo, true);
 	        // apply XY shift
