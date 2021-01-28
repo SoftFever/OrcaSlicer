@@ -974,6 +974,7 @@ void Preview::load_print_as_sla()
     sort_remove_duplicates(zs);
 
     m_canvas->reset_clipping_planes_cache();
+    m_canvas->set_use_clipping_planes(true);
 
     n_layers = (unsigned int)zs.size();
     if (n_layers == 0) {
@@ -1007,7 +1008,6 @@ void Preview::on_layers_slider_scroll_changed(wxCommandEvent& event)
         else if (tech == ptSLA) {
             m_canvas->set_clipping_plane(0, ClippingPlane(Vec3d::UnitZ(), -m_layers_slider->GetLowerValueD()));
             m_canvas->set_clipping_plane(1, ClippingPlane(-Vec3d::UnitZ(), m_layers_slider->GetHigherValueD()));
-            m_canvas->set_use_clipping_planes(m_layers_slider->GetHigherValue() != 0);
             m_canvas->render();
         }
     }
