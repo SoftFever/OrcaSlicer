@@ -392,18 +392,18 @@ void NotificationManager::PopNotification::count_spaces()
 }
 void NotificationManager::PopNotification::init()
 {
-	std::string text          = m_text1 + " " + m_hypertext;
-	int         last_end      = 0;
-	            m_lines_count = 0;
+    std::string text          = m_text1 + " " + m_hypertext;
+    size_t      last_end      = 0;
+    m_lines_count = 0;
 
 	count_spaces();
-	
+
 	// count lines
 	m_endlines.clear();
 	while (last_end < text.length() - 1)
 	{
-		int next_hard_end = text.find_first_of('\n', last_end);
-		if (next_hard_end > 0 && ImGui::CalcTextSize(text.substr(last_end, next_hard_end - last_end).c_str()).x < m_window_width - m_window_width_offset) {
+        size_t next_hard_end = text.find_first_of('\n', last_end);
+        if (next_hard_end != std::string::npos && ImGui::CalcTextSize(text.substr(last_end, next_hard_end - last_end).c_str()).x < m_window_width - m_window_width_offset) {
 			//next line is ended by '/n'
 			m_endlines.push_back(next_hard_end);
 			last_end = next_hard_end + 1;
@@ -411,9 +411,9 @@ void NotificationManager::PopNotification::init()
 			// find next suitable endline
 			if (ImGui::CalcTextSize(text.substr(last_end).c_str()).x >= m_window_width - m_window_width_offset) {
 				// more than one line till end
-				int next_space = text.find_first_of(' ', last_end);
+                size_t next_space = text.find_first_of(' ', last_end);
 				if (next_space > 0) {
-					int next_space_candidate = text.find_first_of(' ', next_space + 1);
+                    size_t next_space_candidate = text.find_first_of(' ', next_space + 1);
 					while (next_space_candidate > 0 && ImGui::CalcTextSize(text.substr(last_end, next_space_candidate - last_end).c_str()).x < m_window_width - m_window_width_offset) {
 						next_space = next_space_candidate;
 						next_space_candidate = text.find_first_of(' ', next_space + 1);
@@ -456,7 +456,6 @@ void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& im
 void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
 	ImVec2      win_size(win_size_x, win_size_y);
-	ImVec2      win_pos(win_pos_x, win_pos_y);
 	float       x_offset = m_left_indentation;
 	std::string fulltext = m_text1 + m_hypertext; //+ m_text2;
 	ImVec2      text_size = ImGui::CalcTextSize(fulltext.c_str());
@@ -594,8 +593,6 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 {
 	ImVec2 win_size(win_size_x, win_size_y);
 	ImVec2 win_pos(win_pos_x, win_pos_y); 
-	ImVec4 orange_color = ImGui::GetStyleColorVec4(ImGuiCol_Button);
-	orange_color.w = 0.8f;
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
 	Notifications_Internal::push_style_color(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f), m_fading_out, m_current_fade_opacity);
@@ -831,9 +828,7 @@ void NotificationManager::SlicingCompleteLargeNotification::render_text(ImGuiWra
 	if (!m_is_large)
 		PopNotification::render_text(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	else {
-		ImVec2 win_size(win_size_x, win_size_y);
-		ImVec2 win_pos(win_pos_x, win_pos_y);
-
+        ImVec2 win_size(win_size_x, win_size_y);
 		ImVec2 text1_size = ImGui::CalcTextSize(m_text1.c_str());
 		float x_offset = m_left_indentation;
 		std::string fulltext = m_text1 + m_hypertext + m_text2;
@@ -889,15 +884,12 @@ void NotificationManager::ExportFinishedNotification::count_spaces()
 void NotificationManager::ExportFinishedNotification::render_text(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
 	
-	ImVec2      win_size(win_size_x, win_size_y);
-	ImVec2      win_pos(win_pos_x, win_pos_y);
 	float       x_offset = m_left_indentation;
 	std::string fulltext = m_text1 + m_hypertext; //+ m_text2;
-	ImVec2      text_size = ImGui::CalcTextSize(fulltext.c_str());
 	// Lines are always at least two and m_multiline is always true for ExportFinishedNotification.
 	// First line has "Export Finished" text and than hyper text open folder.
 	// Following lines are path to gcode.
-	int last_end = 0;
+    size_t last_end = 0;
 	float starting_y = m_line_height / 2;//10;
 	float shift_y = m_line_height;// -m_line_height / 20;
 	for (size_t i = 0; i < m_lines_count; i++) {
@@ -926,8 +918,6 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 {
 	ImVec2 win_size(win_size_x, win_size_y);
 	ImVec2 win_pos(win_pos_x, win_pos_y);
-	ImVec4 orange_color = ImGui::GetStyleColorVec4(ImGuiCol_Button);
-	orange_color.w = 0.8f;
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
 	Notifications_Internal::push_style_color(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f), m_fading_out, m_current_fade_opacity);
@@ -1003,7 +993,6 @@ void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& img
 }
 void NotificationManager::ProgressBarNotification::render_bar(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-	float bar_y = win_size_y / 2 - win_size_y / 6 + m_line_height;
 	ImVec4 orange_color = ImVec4(.99f, .313f, .0f, 1.0f);
 	float  invisible_length = 0;//((float)(m_data.duration - m_remaining_time) / (float)m_data.duration * win_size_x);
 	//invisible_length -= win_size_x / ((float)m_data.duration * 60.f) * (60 - m_countdown_frame);
@@ -1141,12 +1130,17 @@ void NotificationManager::push_slicing_complete_notification(int timestamp, bool
 	int         time = 10;
     if (has_slicing_error_notification())
         return;
-	if (large) {
+    if (large) {
 		hypertext = _u8L("Export G-Code.");
 		time = 0;
 	}
-	NotificationData data{ NotificationType::SlicingComplete, NotificationLevel::RegularNotification, time,  _u8L("Slicing finished."), hypertext, [](wxEvtHandler* evnthndlr){
-		if (evnthndlr != nullptr) wxPostEvent(evnthndlr, ExportGcodeNotificationClickedEvent(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED)); return true; } };
+    NotificationData data{ NotificationType::SlicingComplete, NotificationLevel::RegularNotification, time,  _u8L("Slicing finished."), hypertext,
+                           [](wxEvtHandler* evnthndlr){
+                               if (evnthndlr != nullptr)
+                                   wxPostEvent(evnthndlr, ExportGcodeNotificationClickedEvent(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED));
+                               return true;
+                           }
+    };
 	push_notification_data(std::make_unique<NotificationManager::SlicingCompleteLargeNotification>(data, m_id_provider, m_evt_handler, large), timestamp);
 }
 void NotificationManager::set_slicing_complete_print_time(const std::string &info)

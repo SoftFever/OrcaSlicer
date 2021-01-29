@@ -304,8 +304,6 @@ void SupportPointGenerator::add_support_points(SupportPointGenerator::Structure 
 
     float tp      = m_config.tear_pressure();
     float current = s.supports_force_total();
-    static constexpr float DANGL_DAMPING = .5f;
-    static constexpr float SLOPE_DAMPING = .1f;
 
     if (s.islands_below.empty()) {
         // completely new island - needs support no doubt

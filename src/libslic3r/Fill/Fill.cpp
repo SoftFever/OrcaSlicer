@@ -512,7 +512,6 @@ void Layer::make_ironing()
 	};
 
 	std::vector<IroningParams> by_extruder;
-	bool   extruder_dont_care   = this->object()->config().wipe_into_objects;
     double default_layer_height = this->object()->config().layer_height;
 
 	for (LayerRegion *layerm : m_regions)

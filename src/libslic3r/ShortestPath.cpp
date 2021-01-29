@@ -21,7 +21,7 @@ template<typename EndPointType, typename KDTreeType, typename CouldReverseFunc>
 std::vector<std::pair<size_t, bool>> chain_segments_closest_point(std::vector<EndPointType> &end_points, KDTreeType &kdtree, CouldReverseFunc &could_reverse_func, EndPointType &first_point)
 {
 	assert((end_points.size() & 1) == 0);
-	size_t num_segments = end_points.size() / 2;
+    size_t num_segments = end_points.size() / 2;
 	assert(num_segments >= 2);
 	for (EndPointType &ep : end_points)
 		ep.chain_id = 0;
@@ -1553,9 +1553,7 @@ static inline void reorder_by_two_exchanges_with_segment_flipping(std::vector<Fl
 		size_t crossover1_pos_final = std::numeric_limits<size_t>::max();
 		size_t crossover2_pos_final = std::numeric_limits<size_t>::max();
 		size_t crossover_flip_final = 0;
-		for (const std::pair<double, size_t> &first_crossover_candidate : connection_lengths) {
-			double longest_connection_length = first_crossover_candidate.first;
-			size_t longest_connection_idx    = first_crossover_candidate.second;
+        for (const auto& [longest_connection_length, longest_connection_idx] : connection_lengths) {
 			connection_tried[longest_connection_idx] = true;
 			// Find the second crossover connection with the lowest total chain cost.
 			size_t crossover_pos_min  = std::numeric_limits<size_t>::max();
@@ -1630,12 +1628,9 @@ static inline void reorder_by_three_exchanges_with_segment_flipping(std::vector<
 		size_t crossover2_pos_final = std::numeric_limits<size_t>::max();
 		size_t crossover3_pos_final = std::numeric_limits<size_t>::max();
 		size_t crossover_flip_final = 0;
-		for (const std::pair<double, size_t> &first_crossover_candidate : connection_lengths) {
-			double longest_connection_length = first_crossover_candidate.first;
-			size_t longest_connection_idx    = first_crossover_candidate.second;
-			connection_tried[longest_connection_idx] = true;
+        for (const auto& [longest_connection_length, longest_connection_idx] : connection_lengths) {
+            connection_tried[longest_connection_idx] = true;
 			// Find the second crossover connection with the lowest total chain cost.
-			size_t crossover_pos_min  = std::numeric_limits<size_t>::max();
 			double crossover_cost_min = connections.back().cost;
 			for (size_t j = 1; j < connections.size(); ++ j)
 				if (! connection_tried[j]) {
@@ -1789,12 +1784,9 @@ static inline void reorder_by_three_exchanges_with_segment_flipping2(std::vector
 #else /* NDEBUG */
 		Matrixd segment_end_point_distance_matrix = Matrixd::Constant(4 * 4, 4 * 4, std::numeric_limits<double>::max());
 #endif /* NDEBUG */
-		for (const std::pair<double, size_t> &first_crossover_candidate : connection_lengths) {
-			double longest_connection_length = first_crossover_candidate.first;
-			size_t longest_connection_idx    = first_crossover_candidate.second;
-			connection_tried[longest_connection_idx] = true;
-			// Find the second crossover connection with the lowest total chain cost.
-			size_t crossover_pos_min  = std::numeric_limits<size_t>::max();
+        for (const auto& [longest_connection_length, longest_connection_idx] : connection_lengths) {
+            connection_tried[longest_connection_idx] = true;
+            // Find the second crossover connection with the lowest total chain cost.
 			double crossover_cost_min = connections.back().cost;
 			for (size_t j = 1; j < connections.size(); ++ j)
 				if (! connection_tried[j]) {

@@ -1028,7 +1028,7 @@ void Choice::set_selection()
 	}
 
 	if (!text_value.IsEmpty()) {
-		int idx = 0;
+        size_t idx = 0;
 		for (auto el : m_opt.enum_values) {
 			if (el == text_value)
 				break;
@@ -1375,7 +1375,7 @@ void ColourPicker::msw_rescale()
         size.SetHeight(m_opt.height * m_em_unit);
     else if (parent_is_custom_ctrl && opt_height > 0)
         size.SetHeight(lround(opt_height * m_em_unit));
-	if (m_opt.width >= 0) size.SetWidth(m_opt.width * m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width * m_em_unit);
     if (parent_is_custom_ctrl)
         field->SetSize(size);
     else
@@ -1402,7 +1402,7 @@ void PointCtrl::BUILD()
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double)x_textctrl->GetSize().GetHeight() / m_em_unit;
 
-	x_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    x_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	x_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	y_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	y_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);

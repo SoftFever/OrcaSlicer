@@ -734,7 +734,7 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
             , text_clr_str
             , first_line
             , second_line);
-        for (int i = 0; i < printer_names.size(); ++i)
+        for (size_t i = 0; i < printer_names.size(); ++i)
         {
             text += wxString::Format("<td>%s</td>", boost::nowide::widen(printer_names[i]));
             if (i % 3 == 2) {
@@ -830,7 +830,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
                 }
             }
 			if (sel_printers[0] != 0) {
-				for (size_t i = 0; i < sel_printers_count; i++) {
+                for (int i = 0; i < sel_printers_count; i++) {
 					const std::string& printer_name = list_printer->get_data(sel_printers[i]);
 					const Preset* printer = nullptr;
 					for (const Preset* it : materials->printers) {
@@ -881,7 +881,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 		if (sel_printers_count != 0 && sel_type != wxNOT_FOUND) {
 			const std::string& type = list_type->get_data(sel_type);
 			// find printer preset
-			for (size_t i = 0; i < sel_printers_count; i++) {
+            for (int i = 0; i < sel_printers_count; i++) {
 				const std::string& printer_name = list_printer->get_data(sel_printers[i]);
 				const Preset* printer = nullptr;
 				for (const Preset* it : materials->printers) {
@@ -917,7 +917,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 			const std::string& vendor = list_vendor->get_data(sel_vendor);
 			// finst printer preset
             std::vector<ProfilePrintData> to_list;
-			for (size_t i = 0; i < sel_printers_count; i++) {
+            for (int i = 0; i < sel_printers_count; i++) {
 				const std::string& printer_name = list_printer->get_data(sel_printers[i]);
 				const Preset* printer = nullptr;
 				for (const Preset* it : materials->printers) {
@@ -986,7 +986,7 @@ void PageMaterials::sort_list_data(StringList* list, bool add_All_item, bool mat
         
         const ConfigOptionDef* def = print_config_def.get("filament_type");
         std::vector<std::string>enum_values = def->enum_values;
-        int end_of_sorted = 0;
+        size_t end_of_sorted = 0;
         for (size_t vals = 0; vals < enum_values.size(); vals++) {
             for (size_t profs = end_of_sorted; profs < other_profiles.size(); profs++)
             {
@@ -1044,13 +1044,11 @@ void PageMaterials::sort_list_data(PresetList* list, const std::vector<ProfilePr
         return a.name.get() < b.name.get();
         });
     list->Clear();
-    //for (const auto& item : prusa_profiles)
-    for (int i = 0; i < prusa_profiles.size(); ++i) {
+    for (size_t i = 0; i < prusa_profiles.size(); ++i) {
         list->append(std::string(prusa_profiles[i].name) + (prusa_profiles[i].omnipresent ? "" : " *"), &const_cast<std::string&>(prusa_profiles[i].name.get()));
         list->Check(i, prusa_profiles[i].checked);
     }
-    //for (const auto& item : other_profiles)
-    for (int i = 0; i < other_profiles.size(); ++i) {
+    for (size_t i = 0; i < other_profiles.size(); ++i) {
         list->append(std::string(other_profiles[i].name) + (other_profiles[i].omnipresent ? "" : " *"), &const_cast<std::string&>(other_profiles[i].name.get()));
         list->Check(i + prusa_profiles.size(), other_profiles[i].checked);
     }

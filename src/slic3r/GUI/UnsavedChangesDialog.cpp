@@ -989,7 +989,7 @@ wxString UnsavedChangesDialog::get_short_string(wxString full_string)
 {
     int max_len = 30;
     if (full_string.IsEmpty() || full_string.StartsWith("#") || 
-        (full_string.Find("\n") == wxNOT_FOUND && full_string.Length() < max_len))
+        (full_string.Find("\n") == wxNOT_FOUND && full_string.Length() < size_t(max_len)))
         return full_string;
 
     m_has_long_strings = true;

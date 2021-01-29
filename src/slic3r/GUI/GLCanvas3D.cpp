@@ -5822,7 +5822,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         int get_color_idx_for_tool_change(std::vector<CustomGCode::Item>::const_iterator it, const int extruder) const
         {
             const int current_extruder = it->extruder == 0 ? extruder : it->extruder;
-            if (number_tools() == extruders_cnt + 1) // there is no one "M600"
+            if (number_tools() == size_t(extruders_cnt + 1)) // there is no one "M600"
                 return std::min<int>(extruders_cnt - 1, std::max<int>(current_extruder - 1, 0));
 
             auto it_n = it;

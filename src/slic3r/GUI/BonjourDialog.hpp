@@ -43,6 +43,7 @@ private:
 
 	void on_reply(BonjourReplyEvent &);
 	void on_timer(wxTimerEvent &);
+    void on_timer_process();
 };
 
 

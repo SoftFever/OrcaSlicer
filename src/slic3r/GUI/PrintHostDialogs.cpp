@@ -333,7 +333,7 @@ void PrintHostQueueDialog::on_cancel(Event &evt)
 void PrintHostQueueDialog::get_active_jobs(std::vector<std::pair<std::string, std::string>>& ret)
 {
     int ic = job_list->GetItemCount();
-    for (size_t i = 0; i < ic; i++)
+    for (int i = 0; i < ic; i++)
     {
         auto item = job_list->RowToItem(i);
         auto data = job_list->GetItemData(item);
