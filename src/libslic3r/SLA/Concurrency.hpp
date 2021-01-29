@@ -41,7 +41,7 @@ template<> struct _ccr<true>
     static void for_each(It from, It to, Fn &&fn, size_t granularity = 1)
     {
         tbb::parallel_for(tbb::blocked_range{from, to, granularity},
-                          [&fn, from](const auto &range) {
+                          [&fn](const auto &range) {
             loop_(range, std::forward<Fn>(fn));
         });
     }

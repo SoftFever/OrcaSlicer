@@ -10,15 +10,6 @@
 
 #include <GL/glew.h>
 
-// phi / theta angles to orient the camera.
-static const float VIEW_DEFAULT[2] = { 45.0f, 45.0f };
-static const float VIEW_LEFT[2] = { 90.0f, 90.0f };
-static const float VIEW_RIGHT[2] = { -90.0f, 90.0f };
-static const float VIEW_TOP[2] = { 0.0f, 0.0f };
-static const float VIEW_BOTTOM[2] = { 0.0f, 180.0f };
-static const float VIEW_FRONT[2] = { 0.0f, 90.0f };
-static const float VIEW_REAR[2] = { 180.0f, 90.0f };
-
 namespace Slic3r {
 namespace GUI {
 

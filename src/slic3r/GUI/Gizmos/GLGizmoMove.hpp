@@ -33,14 +33,14 @@ public:
     std::string get_tooltip() const override;
 
 protected:
-    virtual bool on_init();
-    virtual std::string on_get_name() const;
-    virtual bool on_is_activable() const;
-    virtual void on_start_dragging();
-    virtual void on_stop_dragging();
-    virtual void on_update(const UpdateData& data);
-    virtual void on_render() const;
-    virtual void on_render_for_picking() const;
+    virtual bool on_init() override;
+    virtual std::string on_get_name() const override;
+    virtual bool on_is_activable() const override;
+    virtual void on_start_dragging() override;
+    virtual void on_stop_dragging() override;
+    virtual void on_update(const UpdateData& data) override;
+    virtual void on_render() const override;
+    virtual void on_render_for_picking() const override;
 
 private:
     double calc_projection(const UpdateData& data) const;

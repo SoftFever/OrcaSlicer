@@ -19,7 +19,7 @@ public:
     Repetier(DynamicPrintConfig *config);
     ~Repetier() override = default;
 
-    const char* get_name() const;
+    const char* get_name() const override;
 
     bool test(wxString &curl_msg) const override;
     wxString get_test_ok_msg () const override;

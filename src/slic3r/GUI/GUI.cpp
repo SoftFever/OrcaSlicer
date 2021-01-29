@@ -35,7 +35,7 @@ void disable_screensaver()
 {
     #if __APPLE__
     CFStringRef reasonForActivity = CFSTR("Slic3r");
-    IOReturn success = IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep, 
+    [[maybe_unused]]IOReturn success = IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep,
         kIOPMAssertionLevelOn, reasonForActivity, &assertionID); 
     // ignore result: success == kIOReturnSuccess
     #elif _WIN32
@@ -46,7 +46,7 @@ void disable_screensaver()
 void enable_screensaver()
 {
     #if __APPLE__
-    IOReturn success = IOPMAssertionRelease(assertionID);
+    IOPMAssertionRelease(assertionID);
     #elif _WIN32
     SetThreadExecutionState(ES_CONTINUOUS);
     #endif

@@ -133,7 +133,7 @@ class MainFrame : public DPIFrame
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
 protected:
-    virtual void on_dpi_changed(const wxRect &suggested_rect);
+    virtual void on_dpi_changed(const wxRect &suggested_rect) override;
     virtual void on_sys_color_changed() override;
 
 public:

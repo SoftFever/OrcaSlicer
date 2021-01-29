@@ -273,7 +273,6 @@ private:
     const DynamicPrintConfig*	m_config {nullptr};
     // If the config is modelconfig, then ModelConfig::touch() has to be called after value change.
     ModelConfig*				m_modelconfig { nullptr };
-	bool						m_full_labels{ 0 };
 	t_opt_map					m_opt_map;
     std::string             	m_config_category;
 

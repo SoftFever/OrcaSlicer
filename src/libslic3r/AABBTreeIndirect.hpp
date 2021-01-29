@@ -653,7 +653,7 @@ inline bool intersect_ray_all_hits(
 	std::vector<igl::Hit> 				&hits)
 {
     auto ray_intersector = detail::RayIntersectorHits<VertexType, IndexedFaceType, TreeType, VectorType> {
-		vertices, faces, tree,
+        vertices, faces, {tree},
         origin, dir, VectorType(dir.cwiseInverse())
 	};
 	if (! tree.empty()) {
