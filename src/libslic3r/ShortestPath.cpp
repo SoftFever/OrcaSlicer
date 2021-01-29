@@ -1553,7 +1553,8 @@ static inline void reorder_by_two_exchanges_with_segment_flipping(std::vector<Fl
 		size_t crossover1_pos_final = std::numeric_limits<size_t>::max();
 		size_t crossover2_pos_final = std::numeric_limits<size_t>::max();
 		size_t crossover_flip_final = 0;
-        for (const auto& [longest_connection_length, longest_connection_idx] : connection_lengths) {
+        for (const std::pair<double, size_t>& first_crossover_candidate : connection_lengths) {
+            size_t longest_connection_idx = first_crossover_candidate.second;
 			connection_tried[longest_connection_idx] = true;
 			// Find the second crossover connection with the lowest total chain cost.
 			size_t crossover_pos_min  = std::numeric_limits<size_t>::max();
@@ -1628,7 +1629,8 @@ static inline void reorder_by_three_exchanges_with_segment_flipping(std::vector<
 		size_t crossover2_pos_final = std::numeric_limits<size_t>::max();
 		size_t crossover3_pos_final = std::numeric_limits<size_t>::max();
 		size_t crossover_flip_final = 0;
-        for (const auto& [longest_connection_length, longest_connection_idx] : connection_lengths) {
+        for (const std::pair<double, size_t> &first_crossover_candidate : connection_lengths) {
+            size_t longest_connection_idx = first_crossover_candidate.second;
             connection_tried[longest_connection_idx] = true;
 			// Find the second crossover connection with the lowest total chain cost.
 			double crossover_cost_min = connections.back().cost;
@@ -1784,7 +1786,8 @@ static inline void reorder_by_three_exchanges_with_segment_flipping2(std::vector
 #else /* NDEBUG */
 		Matrixd segment_end_point_distance_matrix = Matrixd::Constant(4 * 4, 4 * 4, std::numeric_limits<double>::max());
 #endif /* NDEBUG */
-        for (const auto& [longest_connection_length, longest_connection_idx] : connection_lengths) {
+        for (const std::pair<double, size_t> &first_crossover_candidate : connection_lengths) {
+            size_t longest_connection_idx = first_crossover_candidate.second;
             connection_tried[longest_connection_idx] = true;
             // Find the second crossover connection with the lowest total chain cost.
 			double crossover_cost_min = connections.back().cost;

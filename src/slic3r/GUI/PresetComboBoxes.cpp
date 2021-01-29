@@ -201,7 +201,7 @@ void PresetComboBox::update_selection()
 
     if (!cell) return;
 
-    g_object_set(G_OBJECT(cell), "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+    g_object_set(G_OBJECT(cell), "ellipsize", PANGO_ELLIPSIZE_END, (char*)NULL);
 
     // Only the list of cells must be freed, the renderer isn't ours to free
     g_list_free(cells);

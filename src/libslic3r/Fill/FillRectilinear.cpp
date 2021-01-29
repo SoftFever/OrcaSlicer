@@ -2178,11 +2178,11 @@ static std::vector<MonotonicRegionLink> chain_monotonic_regions(
 	float best_path_length = std::numeric_limits<float>::max();
 
 	struct NextCandidate {
-        MonotonicRegion    *region;
+        MonotonicRegion    *region = nullptr;
         AntPath  	        *link;
         AntPath  	        *link_flipped;
         float                probability;
-		bool 		         dir;
+        bool 		         dir = false;
 	};
 	std::vector<NextCandidate> next_candidates;
 
@@ -2317,6 +2317,7 @@ static std::vector<MonotonicRegionLink> chain_monotonic_regions(
                 queue.pop_back();
             }
 			// Extend the path.
+            assert(next_candidate.region);
 			MonotonicRegion *next_region = next_candidate.region;
 			bool              next_dir    = next_candidate.dir;
             total_length += next_region->length(next_dir) + path_matrix(*path_end.region, path_end.flipped, *next_region, next_dir).length;

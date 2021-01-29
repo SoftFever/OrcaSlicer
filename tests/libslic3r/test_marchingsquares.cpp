@@ -326,7 +326,9 @@ static void recreate_object_from_rasters(const std::string &objname, float lh) {
     double                      disp_w = 120.96;
     double                      disp_h = 68.04;
 
+#ifndef NDEBUG
     size_t cntr = 0;
+#endif
     for (ExPolygons &layer : layers) {
         auto rst = create_raster(res, disp_w, disp_h);
         

@@ -800,10 +800,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             compatible_printers_condition = compatible_printers_condition_values[1];
 			compatible_prints_condition   = compatible_prints_condition_values.front();
 			Preset                *loaded = nullptr;
-			if (is_external) {
-				auto [aloaded, modified] = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config);
-                loaded = aloaded;
-			} else {
+            if (is_external)
+                loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config).first;
+            else {
                 // called from Config Wizard.
 				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name), name, config);
 				loaded->save();
