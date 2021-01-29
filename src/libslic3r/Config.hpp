@@ -1344,7 +1344,7 @@ public:
 
     static bool has(T value) 
     {
-        for (const std::pair<std::string, int> &kvp : ConfigOptionEnum<T>::get_enum_values())
+        for (const auto &kvp : ConfigOptionEnum<T>::get_enum_values())
             if (kvp.second == value)
                 return true;
         return false;

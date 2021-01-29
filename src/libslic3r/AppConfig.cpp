@@ -266,14 +266,14 @@ void AppConfig::save()
     else
         c << "# " << Slic3r::header_gcodeviewer_generated() << std::endl;
     // Make sure the "no" category is written first.
-    for (const std::pair<std::string, std::string> &kvp : m_storage[""])
+    for (const auto& kvp : m_storage[""])
         c << kvp.first << " = " << kvp.second << std::endl;
     // Write the other categories.
-    for (const auto category : m_storage) {
+    for (const auto& category : m_storage) {
     	if (category.first.empty())
     		continue;
     	c << std::endl << "[" << category.first << "]" << std::endl;
-    	for (const std::pair<std::string, std::string> &kvp : category.second)
+        for (const auto& kvp : category.second)
 	        c << kvp.first << " = " << kvp.second << std::endl;
 	}
     // Write vendor sections

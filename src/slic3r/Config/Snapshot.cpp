@@ -251,7 +251,7 @@ bool Snapshot::equal_to_active(const AppConfig &app_config) const
                 return false;
             matched.insert(vc.name);
         }
-        for (const std::pair<std::string, std::map<std::string, std::set<std::string>>> &v : app_config.vendors())
+        for (const auto &v : app_config.vendors())
             if (matched.find(v.first) == matched.end() && ! v.second.empty())
                 // There are more vendors currently installed than enabled in the snapshot.
                 return false;
@@ -402,7 +402,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
         snapshot.filaments.emplace_back(app_config.get("presets", name));
     }
     // Vendor specific config bundles and installed printers.
-    for (const std::pair<std::string, std::map<std::string, std::set<std::string>>> &vendor : app_config.vendors()) {
+    for (const auto &vendor : app_config.vendors()) {
         Snapshot::VendorConfig cfg;
         cfg.name = vendor.first;
         cfg.models_variants_installed = vendor.second;

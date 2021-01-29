@@ -290,7 +290,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 surfaces_append(bottom, union_ex(grown, true), bridges[idx_last]);
             }
 
-            fill_boundaries = std::move(to_polygons(fill_boundaries_ex));
+            fill_boundaries = to_polygons(fill_boundaries_ex);
 			BOOST_LOG_TRIVIAL(trace) << "Processing external surface, detecting bridges - done";
 		}
 
@@ -327,7 +327,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             surfaces_append(
                 new_surfaces,
                 // Don't use a safety offset as fill_boundaries were already united using the safety offset.
-                std::move(intersection_ex(polys, fill_boundaries, false)),
+                intersection_ex(polys, fill_boundaries, false),
                 s1);
         }
     }
@@ -424,7 +424,7 @@ void LayerRegion::elephant_foot_compensation_step(const float elephant_foot_comp
     Polygons   slices_polygons   = to_polygons(slices_expolygons);
     Polygons   tmp               = intersection(slices_polygons, trimming_polygons, false);
     append(tmp, diff(slices_polygons, offset(offset_ex(slices_expolygons, -elephant_foot_compensation_perimeter_step), elephant_foot_compensation_perimeter_step)));
-    this->slices.set(std::move(union_ex(tmp)), stInternal);
+    this->slices.set(union_ex(tmp), stInternal);
 }
 
 void LayerRegion::export_region_slices_to_svg(const char *path) const

@@ -117,7 +117,9 @@ ObjectList::ObjectList(wxWindow* parent) :
         // detect the current mouse position here, to pass it to list_manipulation() method
         // if we detect it later, the user may have moved the mouse pointer while calculations are performed, and this would mess-up the HitTest() call performed into list_manipulation()
         // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
+#ifndef __WXOSX__
         const wxPoint mouse_pos = this->get_mouse_position_in_control();
+#endif
 
 #ifndef __APPLE__
         // On Windows and Linux, forces a kill focus emulation on the object manipulator fields because this event handler is called
@@ -752,7 +754,7 @@ void ObjectList::copy_layers_to_clipboard()
         return;
     }
 
-    for (const auto layer_item : sel_layers)
+    for (const auto& layer_item : sel_layers)
         if (m_objects_model->GetItemType(layer_item) & itLayer) {
             auto range = m_objects_model->GetLayerRangeByItem(layer_item);
             auto it = ranges.find(range);
@@ -778,7 +780,7 @@ void ObjectList::paste_layers_into_list()
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
     // and create Layer item(s) according to the layer_config_ranges
-    for (const auto range : cache_ranges)
+    for (const auto& range : cache_ranges)
         ranges.emplace(range);
 
     layers_item = add_layer_root_item(object_item);
@@ -1842,7 +1844,7 @@ void ObjectList::append_menu_item_export_stl(wxMenu* menu) const
 void ObjectList::append_menu_item_reload_from_disk(wxMenu* menu) const
 {
     append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
-        [this](wxCommandEvent&) { wxGetApp().plater()->reload_from_disk(); }, "", menu,
+        [](wxCommandEvent&) { wxGetApp().plater()->reload_from_disk(); }, "", menu,
         []() { return wxGetApp().plater()->can_reload_from_disk(); }, wxGetApp().plater());
 }
 
@@ -2063,9 +2065,9 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
 
     for (auto cat : settings_menu) {
         append_menu_item(menu, wxID_ANY, _(cat.first), "",
-                        [menu, this](wxCommandEvent& event) { get_settings_choice(menu->GetLabel(event.GetId())); }, 
+                        [this, menu](wxCommandEvent& event) { get_settings_choice(menu->GetLabel(event.GetId())); },
                         CATEGORY_ICON.find(cat.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(cat.first), parent_menu,
-                        [this]() { return true; }, wxGetApp().plater());
+                        []() { return true; }, wxGetApp().plater());
     }
 
     return menu;
@@ -2084,9 +2086,9 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu, const bool is_obje
             continue;
 
         append_menu_item(menu, wxID_ANY, _(it.first), "",
-                        [menu, this](wxCommandEvent& event) { get_freq_settings_choice(menu->GetLabel(event.GetId())); }, 
+                        [this, menu](wxCommandEvent& event) { get_freq_settings_choice(menu->GetLabel(event.GetId())); },
                         CATEGORY_ICON.find(it.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(it.first), menu,
-                        [this]() { return true; }, wxGetApp().plater());
+                        []() { return true; }, wxGetApp().plater());
     }
 #if 0
     // Add "Quick" settings bundles
@@ -4600,7 +4602,7 @@ void ObjectList::show_multi_selection_menu()
         append_menu_item_change_extruder(menu);
 
     append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
-        [this](wxCommandEvent&) { wxGetApp().plater()->reload_from_disk(); }, "", menu, []() {
+        [](wxCommandEvent&) { wxGetApp().plater()->reload_from_disk(); }, "", menu, []() {
         return wxGetApp().plater()->can_reload_from_disk();
     }, wxGetApp().plater());
 

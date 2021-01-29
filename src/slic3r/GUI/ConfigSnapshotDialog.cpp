@@ -68,7 +68,7 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
         if (vc.version.max_slic3r_version != Semver::inf())
             text += ", " + _(L("max PrusaSlicer version")) + ": " + vc.version.max_slic3r_version.to_string();
         text += "<br>";
-        for (const std::pair<std::string, std::set<std::string>> &model : vc.models_variants_installed) {
+        for (const auto& model : vc.models_variants_installed) {
             text += _(L("model")) + ": " + model.first + ", " + _(L("variants")) + ": ";
             for (const std::string &variant : model.second) {
                 if (&variant != &*model.second.begin())

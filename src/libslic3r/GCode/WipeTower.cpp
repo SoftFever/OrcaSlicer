@@ -405,7 +405,7 @@ public:
 
 	WipeTowerWriter& append(const std::string& text) { m_gcode += text; return *this; }
 
-    std::vector<Vec2f> wipe_path() const
+    const std::vector<Vec2f>& wipe_path() const
     {
         return m_wipe_path;
     }

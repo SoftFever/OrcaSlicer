@@ -119,7 +119,7 @@ bool BonjourDialog::show_and_lookup()
 	// Note: More can be done here when we support discovery of hosts other than Octoprint and SL1
 	Bonjour::TxtKeys txt_keys { "version", "model" };
 
-	bonjour = std::move(Bonjour("octoprint")
+    bonjour = Bonjour("octoprint")
 		.set_txt_keys(std::move(txt_keys))
 		.set_retries(3)
 		.set_timeout(4)
@@ -139,8 +139,7 @@ bool BonjourDialog::show_and_lookup()
 				wxQueueEvent(dialog, evt);
 			}
 		})
-		.lookup()
-	);
+		.lookup();
 
 	bool res = ShowModal() == wxID_OK && list->GetFirstSelected() >= 0;
 	{

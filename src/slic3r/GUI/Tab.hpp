@@ -383,7 +383,6 @@ public:
 private:
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
 	ogStaticText*	m_top_bottom_shell_thickness_explanation = nullptr;
-	bool			m_support_material_overhangs_queried = false;
 };
 
 class TabFilament : public Tab

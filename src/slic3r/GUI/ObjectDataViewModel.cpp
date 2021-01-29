@@ -1362,7 +1362,7 @@ void ObjectDataViewModel::GetAllChildren(const wxDataViewItem &parent, wxDataVie
     }
 
     wxDataViewItemArray new_array = array;
-    for (const auto item : new_array)
+    for (const auto& item : new_array)
     {
         wxDataViewItemArray children;
         GetAllChildren(item, children);
