@@ -417,7 +417,7 @@ namespace boost { namespace polygon {
         typedef coord_t coordinate_type;
     
         static inline coordinate_type get(const Slic3r::Point& point, orientation_2d orient) {
-            return (coordinate_type)point((orient == HORIZONTAL) ? 0 : 1);
+            return static_cast<coordinate_type>(point((orient == HORIZONTAL) ? 0 : 1));
         }
     };
     

@@ -228,6 +228,16 @@ ForwardIt binary_find_by_predicate(ForwardIt first, ForwardIt last, LowerThanKey
     return first != last && equal_to_key(*first) ? first : last;
 }
 
+template<typename ContainerType, typename ValueType> inline bool contains(const ContainerType &c, const ValueType &v)
+    { return std::find(c.begin(), c.end(), v) != c.end(); }
+template<typename T> inline bool contains(const std::initializer_list<T> &il, const T &v)
+    { return std::find(il.begin(), il.end(), v) != il.end(); }
+
+template<typename ContainerType, typename ValueType> inline bool one_of(const ValueType &v, const ContainerType &c)
+    { return contains(c, v); }
+template<typename T> inline bool one_of(const T& v, const std::initializer_list<T>& il)
+    { return contains(il, v); }
+
 template<typename T>
 static inline T sqr(T x)
 {

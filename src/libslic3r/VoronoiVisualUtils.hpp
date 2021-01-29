@@ -5,6 +5,8 @@
 #include <libslic3r/Polygon.hpp>
 #include <libslic3r/SVG.hpp>
 
+#include "VoronoiOffset.hpp"
+
 namespace boost { namespace polygon {
 
 // The following code for the visualization of the boost Voronoi diagram is based on:
@@ -70,6 +72,7 @@ class voronoi_visual_utils {
         get_point_projection((*discretization)[0], segment);
     CT projection_end = sqr_segment_length *
         get_point_projection((*discretization)[1], segment);
+    assert(projection_start != projection_end);
 
     // Compute parabola parameters in the transformed space.
     // Parabola has next representation:
@@ -99,13 +102,16 @@ class voronoi_visual_utils {
       // furthest from the current line segment.
       CT mid_x = (new_y - cur_y) / (new_x - cur_x) * rot_y + rot_x;
       CT mid_y = parabola_y(mid_x, rot_x, rot_y);
+      assert(mid_x != cur_x || mid_y != cur_y);
+      assert(mid_x != new_x || mid_y != new_y);
 
       // Compute maximum distance between the given parabolic arc
       // and line segment that discretize it.
       CT dist = (new_y - cur_y) * (mid_x - cur_x) -
           (new_x - cur_x) * (mid_y - cur_y);
-      dist = dist * dist / ((new_y - cur_y) * (new_y - cur_y) +
-          (new_x - cur_x) * (new_x - cur_x));
+      CT div = (new_y - cur_y) * (new_y - cur_y) + (new_x - cur_x) * (new_x - cur_x);
+      assert(div != 0);
+      dist = dist * dist / div;
       if (dist <= max_dist_transformed) {
         // Distance between parabola and line segment is less than max_dist.
         point_stack.pop();
@@ -236,50 +242,39 @@ namespace Voronoi { namespace Internal {
 
     inline void clip_infinite_edge(const Points &points, const std::vector<segment_type> &segments, const edge_type& edge, coordinate_type bbox_max_size, std::vector<point_type>* clipped_edge)
     {
+        assert(edge.is_infinite());
+        assert((edge.vertex0() == nullptr) != (edge.vertex1() == nullptr));
+
         const cell_type& cell1 = *edge.cell();
         const cell_type& cell2 = *edge.twin()->cell();
-        point_type origin, direction;
         // Infinite edges could not be created by two segment sites.
+        assert(cell1.contains_point() || cell2.contains_point());
         if (! cell1.contains_point() && ! cell2.contains_point()) {
             printf("Error! clip_infinite_edge - infinite edge separates two segment cells\n");
             return;
         }
+        point_type direction;
         if (cell1.contains_point() && cell2.contains_point()) {
+            assert(! edge.is_secondary());
             point_type p1 = retrieve_point(points, segments, cell1);
             point_type p2 = retrieve_point(points, segments, cell2);
-            origin.x((p1.x() + p2.x()) * 0.5);
-            origin.y((p1.y() + p2.y()) * 0.5);
+            if (edge.vertex0() == nullptr)
+                std::swap(p1, p2);
             direction.x(p1.y() - p2.y());
             direction.y(p2.x() - p1.x());
         } else {
-            origin = cell1.contains_segment() ? retrieve_point(points, segments, cell2) : retrieve_point(points, segments, cell1);
+            assert(edge.is_secondary());
             segment_type segment = cell1.contains_segment() ? segments[cell1.source_index()] : segments[cell2.source_index()];
-            coordinate_type dx = high(segment).x() - low(segment).x();
-            coordinate_type dy = high(segment).y() - low(segment).y();
-            if ((low(segment) == origin) ^ cell1.contains_point()) {
-                direction.x(dy);
-                direction.y(-dx);
-            } else {
-                direction.x(-dy);
-                direction.y(dx);
-            }
+            direction.x(high(segment).y() - low(segment).y());
+            direction.y(low(segment).x() - high(segment).x());
         }
         coordinate_type koef = bbox_max_size / (std::max)(fabs(direction.x()), fabs(direction.y()));
-        if (edge.vertex0() == NULL) {
-            clipped_edge->push_back(point_type(
-                origin.x() - direction.x() * koef,
-                origin.y() - direction.y() * koef));
+        if (edge.vertex0() == nullptr) {
+            clipped_edge->push_back(point_type(edge.vertex1()->x() + direction.x() * koef, edge.vertex1()->y() + direction.y() * koef));
+            clipped_edge->push_back(point_type(edge.vertex1()->x(), edge.vertex1()->y()));
         } else {
-            clipped_edge->push_back(
-                point_type(edge.vertex0()->x(), edge.vertex0()->y()));
-        }
-        if (edge.vertex1() == NULL) {
-            clipped_edge->push_back(point_type(
-                origin.x() + direction.x() * koef,
-                origin.y() + direction.y() * koef));
-        } else {
-            clipped_edge->push_back(
-                point_type(edge.vertex1()->x(), edge.vertex1()->y()));
+            clipped_edge->push_back(point_type(edge.vertex0()->x(), edge.vertex0()->y()));
+            clipped_edge->push_back(point_type(edge.vertex0()->x() + direction.x() * koef, edge.vertex0()->y() + direction.y() * koef));
         }
     }
 
@@ -307,11 +302,16 @@ static inline void dump_voronoi_to_svg(
     const Lines         &helper_lines = Lines(),
     double               scale = 0)
 {
+    const bool          internalEdgesOnly           = false;
+
     BoundingBox bbox;
     bbox.merge(get_extents(points));
     bbox.merge(get_extents(lines));
     bbox.merge(get_extents(offset_curves));
     bbox.merge(get_extents(helper_lines));
+    for (boost::polygon::voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin(); it != vd.vertices().end(); ++it)
+        if (! internalEdgesOnly || it->color() != Voronoi::Internal::EXTERNAL_COLOR)
+            bbox.merge(Point(it->x(), it->y()));
     bbox.min -= (0.01 * bbox.size().cast<double>()).cast<coord_t>();
     bbox.max += (0.01 * bbox.size().cast<double>()).cast<coord_t>();
 
@@ -321,15 +321,17 @@ static inline void dump_voronoi_to_svg(
                 0.01
                 * std::min(bbox.size().x(), bbox.size().y());
     else
-        scale /= SCALING_FACTOR;
+        scale *= SCALING_FACTOR;
 
     const std::string   inputSegmentPointColor      = "lightseagreen";
-    const coord_t       inputSegmentPointRadius     = coord_t(0.09 * scale);
+    const coord_t       inputSegmentPointRadius     = std::max<coord_t>(1, coord_t(0.09 * scale));
     const std::string   inputSegmentColor           = "lightseagreen";
     const coord_t       inputSegmentLineWidth       = coord_t(0.03 * scale);
 
     const std::string   voronoiPointColor           = "black";
-    const coord_t       voronoiPointRadius          = coord_t(0.06 * scale);
+    const std::string   voronoiPointColorOutside    = "red";
+    const std::string   voronoiPointColorInside     = "blue";
+    const coord_t       voronoiPointRadius          = std::max<coord_t>(1, coord_t(0.06 * scale));
     const std::string   voronoiLineColorPrimary     = "black";
     const std::string   voronoiLineColorSecondary   = "green";
     const std::string   voronoiArcColor             = "red";
@@ -341,7 +343,6 @@ static inline void dump_voronoi_to_svg(
     const std::string   helperLineColor             = "orange";
     const coord_t       helperLineWidth             = coord_t(0.04 * scale);
 
-    const bool          internalEdgesOnly           = false;
     const bool          primaryEdgesOnly            = false;
 
     ::Slic3r::SVG svg(path, bbox);
@@ -360,9 +361,11 @@ static inline void dump_voronoi_to_svg(
             Voronoi::Internal::point_type(double(it->b(0)), double(it->b(1)))));
 
     // Color exterior edges.
-    for (boost::polygon::voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
-        if (!it->is_finite())
-            Voronoi::Internal::color_exterior(&(*it));
+    if (internalEdgesOnly) {
+        for (boost::polygon::voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
+            if (!it->is_finite())
+                Voronoi::Internal::color_exterior(&(*it));
+    }
 
     // Draw the end points of the input polygon.
     for (Lines::const_iterator it = lines.begin(); it != lines.end(); ++it) {
@@ -376,8 +379,19 @@ static inline void dump_voronoi_to_svg(
 #if 1
     // Draw voronoi vertices.
     for (boost::polygon::voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin(); it != vd.vertices().end(); ++it)
-        if (! internalEdgesOnly || it->color() != Voronoi::Internal::EXTERNAL_COLOR)
-            svg.draw(Point(coord_t(it->x()), coord_t(it->y())), voronoiPointColor, voronoiPointRadius);
+        if (! internalEdgesOnly || it->color() != Voronoi::Internal::EXTERNAL_COLOR) {
+            const std::string *color = nullptr;
+            switch (Voronoi::vertex_category(*it)) {
+            case Voronoi::VertexCategory::OnContour:    color = &voronoiPointColor;         break;
+            case Voronoi::VertexCategory::Outside:      color = &voronoiPointColorOutside;  break;
+            case Voronoi::VertexCategory::Inside:       color = &voronoiPointColorInside;   break;
+            default: color = &voronoiPointColor; // assert(false);
+            }
+            Point pt(coord_t(it->x()), coord_t(it->y()));
+            if (it->x() * pt.x() >= 0. && it->y() * pt.y() >= 0.)
+                // Conversion to coord_t is valid.
+                svg.draw(Point(coord_t(it->x()), coord_t(it->y())), *color, voronoiPointRadius);
+        }
 
     for (boost::polygon::voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it) {
         if (primaryEdgesOnly && !it->is_primary())
@@ -401,8 +415,32 @@ static inline void dump_voronoi_to_svg(
             } else if (! it->is_primary())
                 color = voronoiLineColorSecondary;
         }
-        for (std::size_t i = 0; i + 1 < samples.size(); ++i)
-            svg.draw(Line(Point(coord_t(samples[i].x()), coord_t(samples[i].y())), Point(coord_t(samples[i+1].x()), coord_t(samples[i+1].y()))), color, voronoiLineWidth);
+        for (std::size_t i = 0; i + 1 < samples.size(); ++ i) {
+            Vec2d a(samples[i].x(), samples[i].y());
+            Vec2d b(samples[i+1].x(), samples[i+1].y());
+            // Convert to coord_t.
+            Point ia = a.cast<coord_t>();
+            Point ib = b.cast<coord_t>();
+            // Is the conversion possible? Do the resulting points fit into int32_t?
+            auto  in_range = [](const Point &ip, const Vec2d &p) { return p.x() * ip.x() >= 0. && p.y() * ip.y() >= 0.; };
+            bool  a_in_range = in_range(ia, a);
+            bool  b_in_range = in_range(ib, b);
+            if (! a_in_range || ! b_in_range) {
+                if (! a_in_range && ! b_in_range)
+                    // None fits, ignore.
+                    continue;
+                // One fit, the other does not. Try to clip.
+                Vec2d v = b - a;
+                v.normalize();
+                v *= bbox.size().cast<double>().norm();
+                auto p = a_in_range ? Vec2d(a + v) : Vec2d(b - v);
+                Point ip = p.cast<coord_t>();
+                if (! in_range(ip, p))
+                    continue;
+                (a_in_range ? ib : ia) = ip;
+            }
+            svg.draw(Line(ia, ib), color, voronoiLineWidth);
+        }
     }
 #endif
 
