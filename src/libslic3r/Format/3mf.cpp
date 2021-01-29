@@ -124,7 +124,6 @@ const char* VALID_OBJECT_TYPES[] =
     "model"
 };
 
-const unsigned int INVALID_OBJECT_TYPES_COUNT = 4;
 const char* INVALID_OBJECT_TYPES[] =
 {
     "solidsupport",

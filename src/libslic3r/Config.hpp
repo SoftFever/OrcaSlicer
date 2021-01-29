@@ -1358,11 +1358,11 @@ public:
             // Initialize the map.
             const t_config_enum_values &enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
             int cnt = 0;
-            for (const std::pair<std::string, int> &kvp : enum_keys_map)
+            for (const auto& kvp : enum_keys_map)
                 cnt = std::max(cnt, kvp.second);
             cnt += 1;
             names.assign(cnt, "");
-            for (const std::pair<std::string, int> &kvp : enum_keys_map)
+            for (const auto& kvp : enum_keys_map)
                 names[kvp.second] = kvp.first;
         }
         return names;

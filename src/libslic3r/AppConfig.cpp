@@ -395,7 +395,7 @@ std::vector<std::string> AppConfig::get_mouse_device_names() const
     static constexpr const char   *prefix     = "mouse_device:";
     static const size_t  prefix_len = strlen(prefix);
     std::vector<std::string> out;
-    for (const std::pair<std::string, std::map<std::string, std::string>>& key_value_pair : m_storage)
+    for (const auto& key_value_pair : m_storage)
         if (boost::starts_with(key_value_pair.first, prefix) && key_value_pair.first.size() > prefix_len)
             out.emplace_back(key_value_pair.first.substr(prefix_len));
     return out;

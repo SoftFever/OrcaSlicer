@@ -190,7 +190,7 @@ bool Repetier::get_groups(wxArrayString& groups) const
     http.on_error([&](std::string body, std::string error, unsigned status) {
             BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error getting version: %2%, HTTP %3%, body: `%4%`") % name % error % status % body;
         })
-        .on_complete([&, this](std::string body, unsigned) {
+        .on_complete([&](std::string body, unsigned) {
             BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: Got groups: %2%") % name % body;
 
             try {
@@ -233,7 +233,7 @@ bool Repetier::get_printers(wxArrayString& printers) const
             BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error listing printers: %2%, HTTP %3%, body: `%4%`") % name % error % status % body;
             res = false;
         })
-        .on_complete([&, this](std::string body, unsigned http_status) {
+        .on_complete([&](std::string body, unsigned http_status) {
             BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: Got printers: %2%, HTTP status: %3%") % name % body % http_status;
             
             if (http_status != 200)

@@ -1208,7 +1208,7 @@ void ObjectDataViewModel::AddAllChildren(const wxDataViewItem& parent)
         ItemAdded(parent, wxDataViewItem((void*)child));
     }
 
-    for (const auto item : array)
+    for (const auto& item : array)
         AddAllChildren(item);
 
     m_ctrl->Expand(parent);

@@ -1423,7 +1423,7 @@ static inline void do_crossover(const std::vector<FlipEdge> &edges_in, std::vect
 		const std::pair<size_t, size_t> &span2, bool reversed2, bool flipped2,
 		const std::pair<size_t, size_t> &span3, bool reversed3, bool flipped3) {
 		auto it_edges_out = edges_out.begin();
-		auto copy_span = [&edges_in, &edges_out, &it_edges_out](std::pair<size_t, size_t> span, bool reversed, bool flipped) {
+        auto copy_span = [&edges_in, &it_edges_out](std::pair<size_t, size_t> span, bool reversed, bool flipped) {
 			assert(span.first < span.second);
 			auto it = it_edges_out;
 			if (reversed)
@@ -1466,7 +1466,7 @@ static inline void do_crossover(const std::vector<FlipEdge> &edges_in, std::vect
 		const std::pair<size_t, size_t> &span3, bool reversed3, bool flipped3,
 		const std::pair<size_t, size_t> &span4, bool reversed4, bool flipped4) {
 		auto it_edges_out = edges_out.begin();
-		auto copy_span = [&edges_in, &edges_out, &it_edges_out](std::pair<size_t, size_t> span, bool reversed, bool flipped) {
+        auto copy_span = [&edges_in, &it_edges_out](std::pair<size_t, size_t> span, bool reversed, bool flipped) {
 			assert(span.first < span.second);
 			auto it = it_edges_out;
 			if (reversed)

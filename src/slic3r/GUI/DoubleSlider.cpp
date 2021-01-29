@@ -1889,7 +1889,7 @@ void Control::show_cog_icon_context_menu()
             []() { return true; }, [this]() { return m_extra_style & wxSL_VALUE_LABEL; }, GUI::wxGetApp().plater());
 
         append_submenu(&menu, ruler_mode_menu, wxID_ANY, _L("Ruler mode"), _L("Set ruler mode"), "",
-            [this]() { return true; }, this);
+            []() { return true; }, this);
     }
 
     if (m_mode == MultiAsSingle && m_draw_mode == dmRegular)
