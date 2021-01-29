@@ -2524,7 +2524,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
 
 #ifndef AUTOPLACEMENT_ON_LOAD
-    bool need_arrange = false;
+    // bool need_arrange = false;
 #endif /* AUTOPLACEMENT_ON_LOAD */
     bool scaled_down = false;
     std::vector<size_t> obj_idxs;
@@ -2544,7 +2544,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             new_instances.emplace_back(object->add_instance());
 #else /* AUTOPLACEMENT_ON_LOAD */
             // if object has no defined position(s) we need to rearrange everything after loading
-            need_arrange = true;
+            // need_arrange = true;
              // add a default instance and center object around origin
             object->center_around_origin();  // also aligns object to Z = 0
             ModelInstance* instance = object->add_instance();
@@ -3687,9 +3687,8 @@ bool Plater::priv::warnings_dialog()
 	if (current_warnings.empty())
 		return true;
 	std::string text = _u8L("There are active warnings concerning sliced models:") + "\n";
-	bool empt = true;
 	for (auto const& it : current_warnings) {
-		int next_n = it.first.message.find_first_of('\n', 0);
+        size_t next_n = it.first.message.find_first_of('\n', 0);
 		text += "\n";
 		if (next_n != std::string::npos)
 			text += it.first.message.substr(0, next_n);
@@ -5052,6 +5051,10 @@ bool Plater::load_files(const wxArrayString& filenames)
                 load_files(in_paths, false, true);
                 break;
             }
+            case LoadType::Unknown : {
+                assert(false);
+                break;
+            }
             }
 
             return true;
@@ -5925,7 +5928,6 @@ void Plater::force_print_bed_update()
 void Plater::on_activate()
 {
 #if defined(__linux__) || defined(_WIN32)
-    wxWindow *focus_window = wxWindow::FindFocus();
     // Activating the main frame, and no window has keyboard focus.
     // Set the keyboard focus to the visible Canvas3D.
     if (this->p->view3D->IsShown() && wxWindow::FindFocus() != this->p->view3D->get_wxglcanvas())

@@ -117,12 +117,6 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
     }
 }
 
-// Wrap a string with ColorMarkerStart and ColorMarkerEnd symbols
-static wxString wrap_string(const wxString& str)
-{
-    return wxString::Format("%c%s%c", ImGui::ColorMarkerStart, str, ImGui::ColorMarkerEnd);
-}
-
 // Mark a string using ColorMarkerStart and ColorMarkerEnd symbols
 static std::wstring mark_string(const std::wstring &str, const std::vector<uint16_t> &matches, Preset::Type type, PrinterTechnology pt)
 {

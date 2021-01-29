@@ -1596,8 +1596,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 Vec3f prev_up = prev_right.cross(prev_dir);
 
                 Vec3f next_dir = (next - curr).normalized();
-                Vec3f next_right = Vec3f(next_dir[1], -next_dir[0], 0.0f).normalized();
-                Vec3f next_up = next_right.cross(next_dir);
 
                 bool is_right_turn = prev_up.dot(prev_dir.cross(next_dir)) <= 0.0f;
                 float cos_dir = prev_dir.dot(next_dir);
@@ -2671,13 +2669,13 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     };
 
     auto is_travel_in_layers_range = [this](size_t path_id, size_t min_id, size_t max_id) {
-        auto is_in_z_range = [](const Path& path, double min_z, double max_z) {
-            auto in_z_range = [min_z, max_z](double z) {
-                return min_z - EPSILON < z && z < max_z + EPSILON;
-            };
-
-            return in_z_range(path.sub_paths.front().first.position[2]) || in_z_range(path.sub_paths.back().last.position[2]);
-        };
+        // auto is_in_z_range = [](const Path& path, double min_z, double max_z) {
+        //     auto in_z_range = [min_z, max_z](double z) {
+        //         return min_z - EPSILON < z && z < max_z + EPSILON;
+        //     };
+        //
+        //     return in_z_range(path.sub_paths.front().first.position[2]) || in_z_range(path.sub_paths.back().last.position[2]);
+        // };
 
         const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
         if (path_id >= buffer.paths.size())
@@ -3396,7 +3394,7 @@ void GCodeViewer::render_toolpaths() const
                 {
                 case TBuffer::ERenderPrimitiveType::Point:
                 {
-                    EOptionsColors color;
+                    EOptionsColors color = EOptionsColors(0);
                     switch (buffer_type(i))
                     {
                     case EMoveType::Tool_change:  { color = EOptionsColors::ToolChanges; break; }
@@ -3405,6 +3403,7 @@ void GCodeViewer::render_toolpaths() const
                     case EMoveType::Custom_GCode: { color = EOptionsColors::CustomGCodes; break; }
                     case EMoveType::Retract:      { color = EOptionsColors::Retractions; break; }
                     case EMoveType::Unretract:    { color = EOptionsColors::Unretractions; break; }
+                    default:                      { assert(false); break; }
                     }
                     render_as_points(buffer, static_cast<unsigned int>(j), color, *shader);
                     break;
@@ -4101,6 +4100,7 @@ void GCodeViewer::render_legend() const
             imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Stealth mode") + "]:");
             break;
         }
+        default : { assert(false); break; }
         }
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(time_mode.time)));
@@ -4132,6 +4132,7 @@ void GCodeViewer::render_legend() const
             show_mode_button(_L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
             break;
         }
+        default : { assert(false); break; }
         }
     }
 

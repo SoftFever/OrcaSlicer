@@ -759,7 +759,7 @@ void PlaterPresetComboBox::update()
     this->Clear();
     invalidate_selection();
 
-    const Preset* selected_filament_preset;
+    const Preset* selected_filament_preset = nullptr;
     std::string extruder_color;
     if (m_type == Preset::TYPE_FILAMENT)
     {

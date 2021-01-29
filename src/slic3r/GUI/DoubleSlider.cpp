@@ -317,7 +317,7 @@ double Control::get_double_value(const SelectedSlider& selection)
 {
     if (m_values.empty() || m_lower_value<0)
         return 0.0;
-    if (m_values.size() <= m_higher_value) {
+    if (m_values.size() <= size_t(m_higher_value)) {
         correct_higher_value();
         return m_values.back();
     }
@@ -621,7 +621,7 @@ static std::string short_and_splitted_time(const std::string& time)
             ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else if (hours > 10 && minutes > 10 && seconds > 10)
             ::sprintf(buffer, "%dh\n%dm\n%ds", hours, minutes, seconds);
-        else if (minutes < 10 && seconds > 10 || minutes > 10 && seconds < 10)
+        else if ((minutes < 10 && seconds > 10) || (minutes > 10 && seconds < 10))
             ::sprintf(buffer, "%dh\n%dm%ds", hours, minutes, seconds);
         else
             ::sprintf(buffer, "%dh%dm\n%ds", hours, minutes, seconds);
@@ -639,15 +639,15 @@ static std::string short_and_splitted_time(const std::string& time)
 
 wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer*/) const
 {
-    const int value = tick;
+    const size_t value = tick;
 
     if (m_label_koef == 1.0 && m_values.empty())
-        return wxString::Format("%d", value);
+        return wxString::Format("%lu", static_cast<unsigned long>(value));
     if (value >= m_values.size())
         return "ErrVal";
 
     if (m_draw_mode == dmSequentialGCodeView)
-        return wxString::Format("%d", static_cast<unsigned int>(m_values[value]));
+        return wxString::Format("%lu", static_cast<unsigned long>(m_values[value]));
     else {
         if (label_type == ltEstimatedTime) {
             return (value < m_layers_times.size()) ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
@@ -762,7 +762,7 @@ void Control::draw_ticks_pair(wxDC& dc, wxCoord pos, wxCoord mid, int tick_len)
         dc.DrawLine(mid - (mid_space + tick_len), pos, mid - mid_space, pos);
     is_horizontal() ? dc.DrawLine(pos, mid + (mid_space + tick_len), pos, mid + mid_space) :
         dc.DrawLine(mid + (mid_space + tick_len), pos, mid + mid_space, pos);
-};
+}
 
 void Control::draw_ticks(wxDC& dc)
 {
@@ -773,8 +773,8 @@ void Control::draw_ticks(wxDC& dc)
     int height, width;
     get_size(&width, &height);
     const wxCoord mid = is_horizontal() ? 0.5*height : 0.5*width;
-    for (auto tick : m_ticks.ticks) {
-        if (tick.tick >= m_values.size()) {
+    for (const TickCode& tick : m_ticks.ticks) {
+        if (size_t(tick.tick) >= m_values.size()) {
             // The case when OnPaint is called before m_ticks.ticks data are updated (specific for the vase mode)
             break;
         }
@@ -927,7 +927,6 @@ void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, do
     auto end_it = count == 1 ? values.end() : values.begin() + lround(values.size() / count);
 
     while (pow < 3) {
-        int tick = 0;
         for (int istep : {1, 2, 5}) {
             double val = (double)istep * std::pow(10,pow);
             auto val_it = std::lower_bound(values.begin(), end_it, val - epsilon());
@@ -970,7 +969,7 @@ void Control::draw_ruler(wxDC& dc)
     dc.SetTextForeground(GREY_PEN.GetColour());
 
     if (m_ruler.long_step < 0)
-        for (int tick = 1; tick < m_values.size(); tick++) {
+        for (size_t tick = 1; tick < m_values.size(); tick++) {
             wxCoord pos = get_position_from_value(tick);
             draw_ticks_pair(dc, pos, mid, 5);
             draw_tick_text(dc, wxPoint(mid, pos), tick);
@@ -986,7 +985,7 @@ void Control::draw_ruler(wxDC& dc)
             }
         };
 
-        double short_tick;
+        double short_tick = std::nan("");
         int tick = 0;
         double value = 0.0;
         int sequence = 0;
@@ -1003,6 +1002,7 @@ void Control::draw_ruler(wxDC& dc)
                     if (m_values[tick] < value)
                         break;
                 // short ticks from the last tick to the end of current sequence
+                assert(! std::isnan(short_tick));
                 draw_short_ticks(dc, short_tick, tick);
                 sequence++;
             }

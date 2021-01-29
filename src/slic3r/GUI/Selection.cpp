@@ -2092,7 +2092,7 @@ static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &
 
 static void verify_instances_rotation_synchronized(const Model &model, const GLVolumePtrs &volumes)
 {
-    for (size_t idx_object = 0; idx_object < model.objects.size(); ++idx_object) {
+    for (int idx_object = 0; idx_object < int(model.objects.size()); ++idx_object) {
         int idx_volume_first = -1;
         for (int i = 0; i < (int)volumes.size(); ++i) {
             if (volumes[i]->object_idx() == idx_object) {

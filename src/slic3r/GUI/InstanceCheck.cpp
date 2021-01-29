@@ -41,7 +41,7 @@ namespace instance_check_internal
 		//if (argc < 2)
 		//	return ret;
 		std::vector<std::string> arguments { argv[0] };
-		for (size_t i = 1; i < argc; ++i) {
+        for (int i = 1; i < argc; ++i) {
 			const std::string token = argv[i];
 			// Processing of boolean command line arguments shall match DynamicConfig::read_cli().
 			if (token == "--single-instance")
@@ -180,7 +180,7 @@ namespace instance_check_internal
 		if ( !checker->IsAnotherRunning() ) */
 		{
 			DBusMessage* msg;
-			DBusMessageIter args;
+            // DBusMessageIter args;
 			DBusConnection* conn;
 			DBusError 		err;
 			dbus_uint32_t 	serial = 0;
