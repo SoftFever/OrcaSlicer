@@ -35,14 +35,26 @@ option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
 
 set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
+set(IS_CROSS_COMPILE FALSE)
+
 if (APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
     set(CMAKE_FIND_APPBUNDLE LAST)
+    list(FIND CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} _arch_idx)
+    if (CMAKE_OSX_ARCHITECTURES AND _arch_idx LESS 0)
+        set(IS_CROSS_COMPILE TRUE)
+    endif ()
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
 option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
 option(SLIC3R_BUILD_TESTS       "Build unit tests" ON)
+
+if (IS_CROSS_COMPILE)
+    message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
+    set(SLIC3R_PERL_XS OFF CACHE BOOL "" FORCE)
+    set(SLIC3R_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+endif ()
 
 # Print out the SLIC3R_* cache options
 get_cmake_property(_cache_vars CACHE_VARIABLES)

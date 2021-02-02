@@ -1,6 +1,11 @@
 
 option(SLIC3R_ENC_CHECK "Verify encoding of source files" 1)
 
+if (IS_CROSS_COMPILE)
+    # Force disable due to cross compilation. This fact is already printed on cli for users
+    set(SLIC3R_ENC_CHECK OFF CACHE BOOL "" FORCE)
+endif ()
+
 if (SLIC3R_ENC_CHECK)
     add_executable(encoding-check encoding-check.cpp)
 
