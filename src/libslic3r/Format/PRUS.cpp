@@ -2,8 +2,6 @@
 #include <exception>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/nowide/convert.hpp>
-#include <boost/nowide/cstdio.hpp>
 
 #include "miniz_extension.hpp"
 

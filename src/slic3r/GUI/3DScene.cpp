@@ -34,8 +34,6 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-#include <boost/nowide/cstdio.hpp>
-
 #include <Eigen/Dense>
 
 #ifdef HAS_GLSAFE
