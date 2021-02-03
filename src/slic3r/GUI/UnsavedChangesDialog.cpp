@@ -966,6 +966,8 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             return get_string_from_enum<SLADisplayOrientation>(opt_key, config);
         if (opt_key == "support_pillar_connection_mode")
             return get_string_from_enum<SLAPillarConnectionMode>(opt_key, config);
+        if (opt_key == "brim_type")
+            return get_string_from_enum<BrimType>(opt_key, config);
         break;
     }
     case coPoints: {

@@ -324,6 +324,20 @@ protected:
     ModelObject                  *m_model_object;
 };
 
+// Wrapper around the private PrintBase.throw_if_canceled(), so that a cancellation object could be passed
+// to a non-friend of PrintBase by a PrintBase derived object.
+class PrintTryCancel
+{
+public:
+    // calls print.throw_if_canceled().
+    void operator()();
+private:
+    friend PrintBase;
+    PrintTryCancel() = delete;
+    PrintTryCancel(const PrintBase *print) : m_print(print) {}
+    const PrintBase *m_print;
+};
+
 /**
  * @brief Printing involves slicing and export of device dependent instructions.
  *
@@ -472,6 +486,8 @@ protected:
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
     void                   throw_if_canceled() const { if (m_cancel_status) throw CanceledException(); }
+    // Wrapper around this->throw_if_canceled(), so that throw_if_canceled() may be passed to a function without making throw_if_canceled() public.
+    PrintTryCancel         make_try_cancel() const { return PrintTryCancel(this); }
 
     // To be called by this->output_filename() with the format string pulled from the configuration layer.
     std::string            output_filename(const std::string &format, const std::string &default_ext, const std::string &filename_base, const DynamicConfig *config_override = nullptr) const;
@@ -495,6 +511,8 @@ private:
     // The mutex will be used to guard the worker thread against entering a stage
     // while the data influencing the stage is modified.
     mutable tbb::mutex                      m_state_mutex;
+
+    friend PrintTryCancel;
 };
 
 template<typename PrintStepEnum, const size_t COUNT>

@@ -49,6 +49,7 @@ public:
     double area() const;
     bool empty() const { return contour.points.empty(); }
     bool is_valid() const;
+    void douglas_peucker(double tolerance);
 
     // Contains the line / polyline / polylines etc COMPLETELY.
     bool contains(const Line &line) const;
@@ -247,6 +248,24 @@ inline Polygons to_polygons(ExPolygons &&src)
         it->holes.clear();
     }
     return polygons;
+}
+
+inline ExPolygons to_expolygons(const Polygons &polys)
+{
+    ExPolygons ex_polys;
+    ex_polys.assign(polys.size(), ExPolygon());
+    for (size_t idx = 0; idx < polys.size(); ++idx)
+        ex_polys[idx].contour = polys[idx];
+    return ex_polys;
+}
+
+inline ExPolygons to_expolygons(Polygons &&polys)
+{
+    ExPolygons ex_polys;
+    ex_polys.assign(polys.size(), ExPolygon());
+    for (size_t idx = 0; idx < polys.size(); ++idx)
+        ex_polys[idx].contour = std::move(polys[idx]);
+    return ex_polys;
 }
 
 inline void polygons_append(Polygons &dst, const ExPolygon &src) 

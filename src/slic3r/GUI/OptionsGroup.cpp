@@ -899,6 +899,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         else if (opt_key == "printhost_authorization_type") {
             ret  = static_cast<int>(config.option<ConfigOptionEnum<AuthorizationType>>(opt_key)->value);
         }
+        else if (opt_key == "brim_type") {
+            ret  = static_cast<int>(config.option<ConfigOptionEnum<BrimType>>(opt_key)->value);
+        }
 	}
 		break;
 	case coPoints:

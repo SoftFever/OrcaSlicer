@@ -21,6 +21,8 @@ add_library(libslic3r STATIC
     BoundingBox.hpp
     BridgeDetector.cpp
     BridgeDetector.hpp
+    Brim.cpp
+    Brim.hpp
     ClipperUtils.cpp
     ClipperUtils.hpp
     Config.cpp

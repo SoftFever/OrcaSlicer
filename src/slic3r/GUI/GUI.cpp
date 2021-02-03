@@ -202,6 +202,8 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
                 config.set_key_value(opt_key, new ConfigOptionEnum<SLAPillarConnectionMode>(boost::any_cast<SLAPillarConnectionMode>(value)));
             else if(opt_key == "printhost_authorization_type")
                 config.set_key_value(opt_key, new ConfigOptionEnum<AuthorizationType>(boost::any_cast<AuthorizationType>(value)));
+            else if(opt_key == "brim_type")
+                config.set_key_value(opt_key, new ConfigOptionEnum<BrimType>(boost::any_cast<BrimType>(value)));
 			}
 			break;
 		case coPoints:{

@@ -604,7 +604,7 @@ void PerimeterGenerator::process()
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
             if (this->config->external_perimeters_first || 
-                (this->layer_id == 0 && this->print_config->brim_width.value > 0))
+                (this->layer_id == 0 && this->object_config->brim_width.value > 0))
                 entities.reverse();
             // append perimeters for this slice as a collection
             if (! entities.empty())

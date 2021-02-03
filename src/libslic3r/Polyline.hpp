@@ -75,6 +75,7 @@ public:
     template <class T> void simplify_by_visibility(const T &area);
     void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
     bool is_straight() const;
+    bool is_closed() const { return this->points.front() == this->points.back(); }
 };
 
 // Don't use this class in production code, it is used exclusively by the Perl binding for unit tests!

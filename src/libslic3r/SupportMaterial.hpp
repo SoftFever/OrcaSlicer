@@ -224,7 +224,7 @@ private:
 
 	// Produce the actual G-code.
 	void generate_toolpaths(
-        const PrintObject	&object,
+        SupportLayerPtrs	&support_layers,
         const MyLayersPtr 	&raft_layers,
         const MyLayersPtr   &bottom_contacts,
         const MyLayersPtr   &top_contacts,

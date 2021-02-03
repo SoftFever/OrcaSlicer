@@ -95,16 +95,16 @@ _constant()
     int wipe_tower_number_of_toolchanges()
         %code%{ RETVAL = THIS->wipe_tower_data().number_of_toolchanges; %};
     PrintObjectPtrs* objects()
-        %code%{ RETVAL = const_cast<PrintObjectPtrs*>(&THIS->objects()); %};
+        %code%{ RETVAL = const_cast<PrintObjectPtrs*>(&THIS->objects_mutable()); %};
     Ref<PrintObject> get_object(int idx)
-        %code%{ RETVAL = THIS->objects()[idx]; %};
+        %code%{ RETVAL = THIS->objects_mutable()[idx]; %};
     size_t object_count()
         %code%{ RETVAL = THIS->objects().size(); %};
 
     PrintRegionPtrs* regions()
-        %code%{ RETVAL = const_cast<PrintRegionPtrs*>(&THIS->regions()); %};
+        %code%{ RETVAL = const_cast<PrintRegionPtrs*>(&THIS->regions_mutable()); %};
     Ref<PrintRegion> get_region(int idx)
-        %code%{ RETVAL = THIS->regions()[idx]; %};
+        %code%{ RETVAL = THIS->regions_mutable()[idx]; %};
     size_t region_count()
         %code%{ RETVAL = THIS->regions().size(); %};
     

@@ -80,6 +80,13 @@ bool ExPolygon::is_valid() const
     return true;
 }
 
+void ExPolygon::douglas_peucker(double tolerance)
+{
+    this->contour.douglas_peucker(tolerance);
+    for (Polygon &poly : this->holes)
+        poly.douglas_peucker(tolerance);
+}
+
 bool ExPolygon::contains(const Line &line) const
 {
     return this->contains(Polyline(line.a, line.b));

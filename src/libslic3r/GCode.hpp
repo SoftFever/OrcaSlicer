@@ -33,7 +33,7 @@ class GCode;
 
 namespace { struct Item; }
 struct PrintInstance;
-using PrintObjectPtrs = std::vector<PrintObject*>;
+class ConstPrintObjectPtrsAdaptor;
 
 class OozePrevention {
 public:

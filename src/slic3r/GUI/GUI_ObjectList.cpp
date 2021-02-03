@@ -97,7 +97,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
         CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap("funnel");
         CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap("funnel");
-//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap("skirt+brim"); 
+        CATEGORY_ICON[L("Skirt and brim")]           = create_scaled_bitmap("skirt+brim");
 //         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap("time");
         CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap("wrench");
         // ptSLA
@@ -686,7 +686,7 @@ void ObjectList::msw_rescale_icons()
         CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
         CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap("funnel");
         CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap("funnel");
-//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap("skirt+brim"); 
+        CATEGORY_ICON[L("Skirt and brim")]           = create_scaled_bitmap("skirt+brim");
 //         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap("time");
         CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap("wrench");
         // ptSLA

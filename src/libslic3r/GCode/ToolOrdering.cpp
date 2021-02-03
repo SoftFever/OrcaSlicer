@@ -600,7 +600,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
         return std::max(0.f, volume_to_wipe); // Soluble filament cannot be wiped in a random infill, neither the filament after it
 
     // we will sort objects so that dedicated for wiping are at the beginning:
-    PrintObjectPtrs object_list = print.objects();
+    ConstPrintObjectPtrs object_list = print.objects().vector();
     std::sort(object_list.begin(), object_list.end(), [](const PrintObject* a, const PrintObject* b) { return a->config().wipe_into_objects; });
 
     // We will now iterate through

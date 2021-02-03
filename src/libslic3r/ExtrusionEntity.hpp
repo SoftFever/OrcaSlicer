@@ -343,6 +343,25 @@ inline void extrusion_entities_append_loops(ExtrusionEntitiesPtr &dst, Polygons 
     loops.clear();
 }
 
+inline void extrusion_entities_append_loops_and_paths(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
+{
+    dst.reserve(dst.size() + polylines.size());
+    for (Polyline &polyline : polylines) {
+        if (polyline.is_valid()) {
+            if (polyline.is_closed()) {
+                ExtrusionPath extrusion_path(role, mm3_per_mm, width, height);
+                extrusion_path.polyline = std::move(polyline);
+                dst.emplace_back(new ExtrusionLoop(std::move(extrusion_path)));
+            } else {
+                ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
+                extrusion_path->polyline      = std::move(polyline);
+                dst.emplace_back(extrusion_path);
+            }
+        }
+    }
+    polylines.clear();
+}
+
 }
 
 #endif

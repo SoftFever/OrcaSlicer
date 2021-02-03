@@ -298,9 +298,34 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("brim_width", coFloat);
     def->label = L("Brim width");
+    def->category = L("Skirt and brim");
     def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer.");
     def->sidetext = L("mm");
     def->min = 0;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("brim_type", coEnum);
+    def->label = L("Brim type");
+    def->category = L("Skirt and brim");
+    def->tooltip = L("The places where the brim will be printed around each object on the first layer.");
+    def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
+    def->enum_values.emplace_back("no_brim");
+    def->enum_values.emplace_back("outer_only");
+    def->enum_values.emplace_back("inner_only");
+    def->enum_values.emplace_back("outer_and_inner");
+    def->enum_labels.emplace_back(L("No brim"));
+    def->enum_labels.emplace_back(L("Outer brim only"));
+    def->enum_labels.emplace_back(L("Inner brim only"));
+    def->enum_labels.emplace_back(L("Outer and inner brim"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<BrimType>(btOuterOnly));
+
+    def = this->add("brim_offset", coFloat);
+    def->label = L("Brim offset");
+    def->category = L("Skirt and brim");
+    def->tooltip = L("The offset of the brim from the printed object.");
+    def->sidetext = L("mm");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0));
 

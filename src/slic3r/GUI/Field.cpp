@@ -1220,6 +1220,8 @@ boost::any& Choice::get_value()
             m_value = static_cast<SLAPillarConnectionMode>(ret_enum);
 		else if (m_opt_id == "printhost_authorization_type")
 			m_value = static_cast<AuthorizationType>(ret_enum);
+        else if (m_opt_id == "brim_type")
+            m_value = static_cast<BrimType>(ret_enum);
 	}
     else if (m_opt.gui_type == "f_enum_open") {
         const int ret_enum = field->GetSelection();

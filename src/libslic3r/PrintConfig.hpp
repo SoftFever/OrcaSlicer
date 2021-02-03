@@ -103,6 +103,13 @@ enum SLAPillarConnectionMode {
     slapcmDynamic
 };
 
+enum BrimType {
+    btNoBrim,
+    btOuterOnly,
+    btInnerOnly,
+    btOuterAndInner,
+};
+
 template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
@@ -259,6 +266,17 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<SLAPillarConnecti
         {"zigzag", slapcmZigZag},
         {"cross", slapcmCross},
         {"dynamic", slapcmDynamic}
+    };
+
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<BrimType>::get_enum_values() {
+    static const t_config_enum_values keys_map = {
+        {"no_brim", btNoBrim},
+        {"outer_only", btOuterOnly},
+        {"inner_only", btInnerOnly},
+        {"outer_and_inner", btOuterAndInner}
     };
 
     return keys_map;
@@ -477,6 +495,9 @@ class PrintObjectConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(PrintObjectConfig)
 public:
+    ConfigOptionFloat               brim_offset;
+    ConfigOptionEnum<BrimType>      brim_type;
+    ConfigOptionFloat               brim_width;
     ConfigOptionBool                clip_multipart_objects;
     ConfigOptionBool                dont_support_bridges;
     ConfigOptionFloat               elefant_foot_compensation;
@@ -526,6 +547,9 @@ public:
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
+        OPT_PTR(brim_offset);
+        OPT_PTR(brim_type);
+        OPT_PTR(brim_width);
         OPT_PTR(clip_multipart_objects);
         OPT_PTR(dont_support_bridges);
         OPT_PTR(elefant_foot_compensation);
@@ -891,7 +915,6 @@ public:
     ConfigOptionInts                bed_temperature;
     ConfigOptionFloat               bridge_acceleration;
     ConfigOptionInts                bridge_fan_speed;
-    ConfigOptionFloat               brim_width;
     ConfigOptionBool                complete_objects;
     ConfigOptionFloats              colorprint_heights;
     ConfigOptionBools               cooling;
@@ -966,7 +989,6 @@ protected:
         OPT_PTR(bed_temperature);
         OPT_PTR(bridge_acceleration);
         OPT_PTR(bridge_fan_speed);
-        OPT_PTR(brim_width);
         OPT_PTR(complete_objects);
         OPT_PTR(colorprint_heights);
         OPT_PTR(cooling);

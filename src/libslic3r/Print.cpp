@@ -1,8 +1,7 @@
-#include "clipper/clipper_z.hpp"
-
 #include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
+#include "Brim.hpp"
 #include "ClipperUtils.hpp"
 #include "Extruder.hpp"
 #include "Flow.hpp"
@@ -14,8 +13,6 @@
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
-
-//#include "PrintExport.hpp"
 
 #include <float.h>
 
@@ -174,7 +171,10 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower_y"
             || opt_key == "wipe_tower_rotation_angle") {
             steps.emplace_back(psSkirt);
-        } else if (opt_key == "brim_width") {
+        } else if (
+               opt_key == "brim_width"
+            || opt_key == "brim_offset"
+            || opt_key == "brim_type") {
             steps.emplace_back(psBrim);
             steps.emplace_back(psSkirt);
         } else if (
@@ -797,7 +797,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             }
             if (deleted_any) {
                 // Delete PrintObjects of the deleted ModelObjects.
-                std::vector<PrintObject*> print_objects_old = std::move(m_objects);
+                PrintObjectPtrs print_objects_old = std::move(m_objects);
                 m_objects.clear();
                 m_objects.reserve(print_objects_old.size());
                 for (PrintObject *print_object : print_objects_old) {
@@ -945,7 +945,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     // 4) Generate PrintObjects from ModelObjects and their instances.
     {
-        std::vector<PrintObject*> print_objects_new;
+        PrintObjectPtrs print_objects_new;
         print_objects_new.reserve(std::max(m_objects.size(), m_model.objects.size()));
         bool new_objects = false;
         // Walk over all new model objects and check, whether there are matching PrintObjects.
@@ -1186,6 +1186,12 @@ bool Print::has_infinite_skirt() const
 bool Print::has_skirt() const
 {
     return (m_config.skirt_height > 0 && m_config.skirts > 0) || this->has_infinite_skirt();
+}
+
+bool Print::has_brim() const
+{
+    return std::any_of(m_objects.begin(), m_objects.end(),
+                       [](PrintObject *object) { return object->config().brim_type != btNoBrim && object->config().brim_width.value > 0.; });
 }
 
 static inline bool sequential_print_horizontal_clearance_valid(const Print &print)
@@ -1655,9 +1661,12 @@ void Print::process()
 	if (this->set_started(psBrim)) {
         m_brim.clear();
         m_first_layer_convex_hull.points.clear();
-        if (m_config.brim_width > 0) {
+        if (this->has_brim()) {
             this->set_status(88, L("Generating brim"));
-            this->_make_brim();
+            Polygons islands_area;
+            m_brim = make_brim(*this, this->make_try_cancel(), islands_area);
+            for (Polygon &poly : union_(this->first_layer_islands(), islands_area))
+                append(m_first_layer_convex_hull.points, std::move(poly.points));
         }
         // Brim depends on skirt (brim lines are trimmed by the skirt lines), therefore if
         // the skirt gets invalidated, brim gets invalidated as well and the following line is called.
@@ -1831,164 +1840,6 @@ void Print::_make_skirt()
         append(m_skirt_convex_hull, std::move(poly.points));
 }
 
-void Print::_make_brim()
-{
-    // Brim is only printed on first layer and uses perimeter extruder.
-    Polygons    islands = this->first_layer_islands();
-    Polygons    loops;
-    Flow        flow = this->brim_flow();
-    size_t      num_loops = size_t(floor(m_config.brim_width.value / flow.spacing()));
-    for (size_t i = 0; i < num_loops; ++ i) {
-        this->throw_if_canceled();
-        islands = offset(islands, float(flow.scaled_spacing()), jtSquare);
-        for (Polygon &poly : islands) {
-            // poly.simplify(SCALED_RESOLUTION);
-            poly.points.push_back(poly.points.front());
-            Points p = MultiPoint::_douglas_peucker(poly.points, SCALED_RESOLUTION);
-            p.pop_back();
-            poly.points = std::move(p);
-        }
-        if (i + 1 == num_loops) {
-            // Remember the outer edge of the last brim line extruded as m_first_layer_convex_hull.
-            for (Polygon &poly : islands)
-                append(m_first_layer_convex_hull.points, poly.points);
-        }
-        polygons_append(loops, offset(islands, -0.5f * float(flow.scaled_spacing())));
-    }
-    loops = union_pt_chained_outside_in(loops, false);
-
-    // If there is a possibility that brim intersects skirt, go through loops and split those extrusions
-    // The result is either the original Polygon or a list of Polylines
-    if (! m_skirt.empty() && m_config.skirt_distance.value < m_config.brim_width)
-    {
-        // Find the bounding polygons of the skirt
-        const Polygons skirt_inners = offset(dynamic_cast<ExtrusionLoop*>(m_skirt.entities.back())->polygon(),
-                                              -float(scale_(this->skirt_flow().spacing()))/2.f,
-                                              ClipperLib::jtRound,
-                                              float(scale_(0.1)));
-        const Polygons skirt_outers = offset(dynamic_cast<ExtrusionLoop*>(m_skirt.entities.front())->polygon(),
-                                              float(scale_(this->skirt_flow().spacing()))/2.f,
-                                              ClipperLib::jtRound,
-                                              float(scale_(0.1)));
-
-        // First calculate the trimming region.
-		ClipperLib_Z::Paths trimming;
-		{
-		    ClipperLib_Z::Paths input_subject;
-		    ClipperLib_Z::Paths input_clip;
-		    for (const Polygon &poly : skirt_outers) {
-		    	input_subject.emplace_back();
-		    	ClipperLib_Z::Path &out = input_subject.back();
-		    	out.reserve(poly.points.size());
-			    for (const Point &pt : poly.points)
-					out.emplace_back(pt.x(), pt.y(), 0);
-		    }
-		    for (const Polygon &poly : skirt_inners) {
-		    	input_clip.emplace_back();
-		    	ClipperLib_Z::Path &out = input_clip.back();
-		    	out.reserve(poly.points.size());
-			    for (const Point &pt : poly.points)
-					out.emplace_back(pt.x(), pt.y(), 0);
-		    }
-		    // init Clipper
-		    ClipperLib_Z::Clipper clipper;	    
-		    // add polygons
-		    clipper.AddPaths(input_subject, ClipperLib_Z::ptSubject, true);
-		    clipper.AddPaths(input_clip,    ClipperLib_Z::ptClip,    true);
-		    // perform operation
-		    clipper.Execute(ClipperLib_Z::ctDifference, trimming, ClipperLib_Z::pftEvenOdd, ClipperLib_Z::pftEvenOdd);
-		}
-
-		// Second, trim the extrusion loops with the trimming regions.
-		ClipperLib_Z::Paths loops_trimmed;
-		{
-			// Produce a closed polyline (repeat the first point at the end).
-			ClipperLib_Z::Paths input_clip;
-			for (const Polygon &loop : loops) {
-				input_clip.emplace_back();
-				ClipperLib_Z::Path& out = input_clip.back();
-				out.reserve(loop.points.size());
-				int64_t loop_idx = &loop - &loops.front();
-				for (const Point& pt : loop.points)
-					// The Z coordinate carries index of the source loop.
-					out.emplace_back(pt.x(), pt.y(), loop_idx + 1);
-				out.emplace_back(out.front());
-			}
-			// init Clipper
-			ClipperLib_Z::Clipper clipper;
-			clipper.ZFillFunction([](const ClipperLib_Z::IntPoint& e1bot, const ClipperLib_Z::IntPoint& e1top, const ClipperLib_Z::IntPoint& e2bot, const ClipperLib_Z::IntPoint& e2top, ClipperLib_Z::IntPoint& pt) {
-				// Assign a valid input loop identifier. Such an identifier is strictly positive, the next line is safe even in case one side of a segment
-				// hat the Z coordinate not set to the contour coordinate.
-				pt.Z = std::max(std::max(e1bot.Z, e1top.Z), std::max(e2bot.Z, e2top.Z));
-			});
-			// add polygons
-			clipper.AddPaths(input_clip, ClipperLib_Z::ptSubject, false);
-			clipper.AddPaths(trimming,   ClipperLib_Z::ptClip,    true);
-			// perform operation
-			ClipperLib_Z::PolyTree loops_trimmed_tree;
-			clipper.Execute(ClipperLib_Z::ctDifference, loops_trimmed_tree, ClipperLib_Z::pftEvenOdd, ClipperLib_Z::pftEvenOdd);
-			ClipperLib_Z::PolyTreeToPaths(loops_trimmed_tree, loops_trimmed);
-		}
-
-		// Third, produce the extrusions, sorted by the source loop indices.
-		{
-			std::vector<std::pair<const ClipperLib_Z::Path*, size_t>> loops_trimmed_order;
-			loops_trimmed_order.reserve(loops_trimmed.size());
-			for (const ClipperLib_Z::Path &path : loops_trimmed) {
-				size_t input_idx = 0;
-				for (const ClipperLib_Z::IntPoint &pt : path)
-					if (pt.Z > 0) {
-						input_idx = (size_t)pt.Z;
-						break;
-					}
-				assert(input_idx != 0);
-				loops_trimmed_order.emplace_back(&path, input_idx);
-			}
-			std::stable_sort(loops_trimmed_order.begin(), loops_trimmed_order.end(),
-				[](const std::pair<const ClipperLib_Z::Path*, size_t> &l, const std::pair<const ClipperLib_Z::Path*, size_t> &r) {
-					return l.second < r.second;
-				});
-
-			Point last_pt(0, 0);
-			for (size_t i = 0; i < loops_trimmed_order.size();) {
-				// Find all pieces that the initial loop was split into.
-				size_t j = i + 1;
-                for (; j < loops_trimmed_order.size() && loops_trimmed_order[i].second == loops_trimmed_order[j].second; ++ j) ;
-                const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
-				if (i + 1 == j && first_path.size() > 3 && first_path.front().X == first_path.back().X && first_path.front().Y == first_path.back().Y) {
-					auto *loop = new ExtrusionLoop();
-					m_brim.entities.emplace_back(loop);
-					loop->paths.emplace_back(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height()));
-		            Points &points = loop->paths.front().polyline.points;
-		            points.reserve(first_path.size());
-		            for (const ClipperLib_Z::IntPoint &pt : first_path)
-		            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
-		            i = j;
-				} else {
-			    	//FIXME The path chaining here may not be optimal.
-			    	ExtrusionEntityCollection this_loop_trimmed;
-					this_loop_trimmed.entities.reserve(j - i);
-			    	for (; i < j; ++ i) {
-			            this_loop_trimmed.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height())));
-						const ClipperLib_Z::Path &path = *loops_trimmed_order[i].first;
-			            Points &points = static_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
-			            points.reserve(path.size());
-			            for (const ClipperLib_Z::IntPoint &pt : path)
-			            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
-		           	}
-		           	chain_and_reorder_extrusion_entities(this_loop_trimmed.entities, &last_pt);
-		           	m_brim.entities.reserve(m_brim.entities.size() + this_loop_trimmed.entities.size());
-		           	append(m_brim.entities, std::move(this_loop_trimmed.entities));
-		           	this_loop_trimmed.entities.clear();
-		        }
-		        last_pt = m_brim.last_point();
-			}
-		}
-    } else {
-    	extrusion_entities_append_loops(m_brim.entities, std::move(loops), erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height()));
-    }
-}
-
 Polygons Print::first_layer_islands() const
 {
     Polygons islands;
@@ -2104,8 +1955,8 @@ void Print::_make_wipe_tower()
         if (idx_begin != size_t(-1)) {
             // Find the position in m_objects.first()->support_layers to insert these new support layers.
             double wipe_tower_new_layer_print_z_first = m_wipe_tower_data.tool_ordering.layer_tools()[idx_begin].print_z;
-            SupportLayerPtrs::const_iterator it_layer = m_objects.front()->support_layers().begin();
-            SupportLayerPtrs::const_iterator it_end   = m_objects.front()->support_layers().end();
+            auto it_layer = m_objects.front()->support_layers().begin();
+            auto it_end   = m_objects.front()->support_layers().end();
             for (; it_layer != it_end && (*it_layer)->print_z - EPSILON < wipe_tower_new_layer_print_z_first; ++ it_layer);
             // Find the stopper of the sequence of wipe tower layers, which do not have a counterpart in an object or a support layer.
             for (size_t i = idx_begin; i < idx_end; ++ i) {

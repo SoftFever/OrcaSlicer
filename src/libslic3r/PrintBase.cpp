@@ -13,6 +13,11 @@
 namespace Slic3r
 {
 
+void PrintTryCancel::operator()()
+{
+    m_print->throw_if_canceled();
+}
+
 size_t PrintStateBase::g_last_timestamp = 0;
 
 // Update "scale", "input_filename", "input_filename_base" placeholders from the current m_objects.

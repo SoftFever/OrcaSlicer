@@ -96,6 +96,14 @@ bool Polygon::make_clockwise()
     return false;
 }
 
+void Polygon::douglas_peucker(double tolerance)
+{
+    this->points.push_back(this->points.front());
+    Points p = MultiPoint::_douglas_peucker(this->points, tolerance);
+    p.pop_back();
+    this->points = std::move(p);
+}
+
 // Does an unoriented polygon contain a point?
 // Tested by counting intersections along a horizontal line.
 bool Polygon::contains(const Point &point) const

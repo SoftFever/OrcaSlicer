@@ -388,7 +388,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     BOOST_LOG_TRIVIAL(info) << "Support generator - Generating tool paths";
 
     // Generate the actual toolpaths and save them into each layer.
-    this->generate_toolpaths(object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers);
+    this->generate_toolpaths(object.support_layers(), raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers);
 
 #ifdef SLIC3R_DEBUG
     {
@@ -1662,30 +1662,36 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
 // If no vec item with Z value >= of an internal threshold of fn_higher_equal is found, return vec.size()
 // If the initial idx is size_t(-1), then use binary search.
 // Otherwise search linearly upwards.
-template<typename T, typename FN_HIGHER_EQUAL>
-size_t idx_higher_or_equal(const std::vector<T*> &vec, size_t idx, FN_HIGHER_EQUAL fn_higher_equal)
+template<typename IT, typename FN_HIGHER_EQUAL>
+size_t idx_higher_or_equal(IT begin, IT end, size_t idx, FN_HIGHER_EQUAL fn_higher_equal)
 {
-    if (vec.empty()) {
+    auto size = int(end - begin);
+    if (size == 0) {
         idx = 0;
     } else if (idx == size_t(-1)) {
         // First of the batch of layers per thread pool invocation. Use binary search.
         int idx_low  = 0;
-        int idx_high = std::max(0, int(vec.size()) - 1);
+        int idx_high = std::max(0, size - 1);
         while (idx_low + 1 < idx_high) {
             int idx_mid  = (idx_low + idx_high) / 2;
-            if (fn_higher_equal(vec[idx_mid]))
+            if (fn_higher_equal(begin[idx_mid]))
                 idx_high = idx_mid;
             else
                 idx_low  = idx_mid;
         }
-        idx =  fn_higher_equal(vec[idx_low])  ? idx_low  :
-              (fn_higher_equal(vec[idx_high]) ? idx_high : vec.size());
+        idx =  fn_higher_equal(begin[idx_low])  ? idx_low  :
+              (fn_higher_equal(begin[idx_high]) ? idx_high : size);
     } else {
         // For the other layers of this batch of layers, search incrementally, which is cheaper than the binary search.
-        while (idx < vec.size() && ! fn_higher_equal(vec[idx]))
+        while (idx < size && ! fn_higher_equal(begin[idx]))
             ++ idx;
     }
     return idx;
+}
+template<typename T, typename FN_HIGHER_EQUAL>
+size_t idx_higher_or_equal(const std::vector<T>& vec, size_t idx, FN_HIGHER_EQUAL fn_higher_equal)
+{
+    return idx_higher_or_equal(vec.begin(), vec.end(), idx, fn_higher_equal);
 }
 
 // FN_LOWER_EQUAL: the provided object pointer has a Z value <= of an internal threshold.
@@ -1693,30 +1699,36 @@ size_t idx_higher_or_equal(const std::vector<T*> &vec, size_t idx, FN_HIGHER_EQU
 // If no vec item with Z value <= of an internal threshold of fn_lower_equal is found, return -1.
 // If the initial idx is < -1, then use binary search.
 // Otherwise search linearly downwards.
-template<typename T, typename FN_LOWER_EQUAL>
-int idx_lower_or_equal(const std::vector<T*> &vec, int idx, FN_LOWER_EQUAL fn_lower_equal)
+template<typename IT, typename FN_LOWER_EQUAL>
+int idx_lower_or_equal(IT begin, IT end, int idx, FN_LOWER_EQUAL fn_lower_equal)
 {
-    if (vec.empty()) {
+    auto size = int(end - begin);
+    if (size == 0) {
         idx = -1;
     } else if (idx < -1) {
         // First of the batch of layers per thread pool invocation. Use binary search.
         int idx_low  = 0;
-        int idx_high = std::max(0, int(vec.size()) - 1);
+        int idx_high = std::max(0, size - 1);
         while (idx_low + 1 < idx_high) {
             int idx_mid  = (idx_low + idx_high) / 2;
-            if (fn_lower_equal(vec[idx_mid]))
+            if (fn_lower_equal(begin[idx_mid]))
                 idx_low  = idx_mid;
             else
                 idx_high = idx_mid;
         }
-        idx =  fn_lower_equal(vec[idx_high]) ? idx_high :
-              (fn_lower_equal(vec[idx_low ]) ? idx_low  : -1);
+        idx =  fn_lower_equal(begin[idx_high]) ? idx_high :
+              (fn_lower_equal(begin[idx_low ]) ? idx_low  : -1);
     } else {
         // For the other layers of this batch of layers, search incrementally, which is cheaper than the binary search.
-        while (idx >= 0 && ! fn_lower_equal(vec[idx]))
+        while (idx >= 0 && ! fn_lower_equal(begin[idx]))
             -- idx;
     }
     return idx;
+}
+template<typename T, typename FN_LOWER_EQUAL>
+int idx_lower_or_equal(const std::vector<T*> &vec, int idx, FN_LOWER_EQUAL fn_lower_equal)
+{
+    return idx_lower_or_equal(vec.begin(), vec.end(), idx, fn_lower_equal);
 }
 
 // Trim the top_contacts layers with the bottom_contacts layers if they overlap, so there would not be enough vertical space for both of them.
@@ -1972,7 +1984,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
                 Polygons polygons_new;
 
                 // Use the precomputed layer_support_areas.
-                idx_object_layer_above = std::max(0, idx_lower_or_equal(object.layers(), idx_object_layer_above, 
+                idx_object_layer_above = std::max(0, idx_lower_or_equal(object.layers().begin(), object.layers().end(), idx_object_layer_above,
                     [&layer_intermediate](const Layer *layer){ return layer->print_z <= layer_intermediate.print_z + EPSILON; }));
                 polygons_new = layer_support_areas[idx_object_layer_above];
 
@@ -2108,7 +2120,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 // Find the overlapping object layers including the extra above / below gap.
                 coordf_t z_threshold = support_layer.print_z - support_layer.height - gap_extra_below + EPSILON;
                 idx_object_layer_overlapping = idx_higher_or_equal(
-                    object.layers(), idx_object_layer_overlapping, 
+                    object.layers().begin(), object.layers().end(), idx_object_layer_overlapping,
                     [z_threshold](const Layer *layer){ return layer->print_z >= z_threshold; });
                 // Collect all the object layers intersecting with this layer.
                 Polygons polygons_trimming;
@@ -2931,7 +2943,7 @@ void modulate_extrusion_by_overlapping_layers(
 }
 
 void PrintObjectSupportMaterial::generate_toolpaths(
-    const PrintObject   &object,
+    SupportLayerPtrs    &support_layers,
     const MyLayersPtr   &raft_layers,
     const MyLayersPtr   &bottom_contacts,
     const MyLayersPtr   &top_contacts,
@@ -3000,13 +3012,13 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     // Insert the raft base layers.
     size_t n_raft_layers = size_t(std::max(0, int(m_slicing_params.raft_layers()) - 1));
     tbb::parallel_for(tbb::blocked_range<size_t>(0, n_raft_layers),
-        [this, &object, &raft_layers, 
+        [this, &support_layers, &raft_layers,
             infill_pattern, &bbox_object, support_density, interface_density, raft_angle_1st_layer, raft_angle_base, raft_angle_interface, link_max_length_factor, with_sheath]
             (const tbb::blocked_range<size_t>& range) {
         for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id)
         {
             assert(support_layer_id < raft_layers.size());
-            SupportLayer &support_layer = *object.support_layers()[support_layer_id];
+            SupportLayer &support_layer = *support_layers[support_layer_id];
             assert(support_layer.support_fills.entities.empty());
             MyLayer      &raft_layer    = *raft_layers[support_layer_id];
 
@@ -3102,10 +3114,10 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         MyLayerExtruded                 interface_layer;
         std::vector<LayerCacheItem>     overlaps;
     };
-    std::vector<LayerCache>             layer_caches(object.support_layers().size(), LayerCache());
+    std::vector<LayerCache>             layer_caches(support_layers.size(), LayerCache());
 
-    tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, object.support_layers().size()),
-        [this, &object, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &layer_caches, &loop_interface_processor, 
+    tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
+        [this, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &layer_caches, &loop_interface_processor,
             infill_pattern, &bbox_object, support_density, interface_density, interface_angle, &angles, link_max_length_factor, with_sheath]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
@@ -3119,7 +3131,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         filler_support->set_bounding_box(bbox_object);
         for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id)
         {
-            SupportLayer &support_layer = *object.support_layers()[support_layer_id];
+            SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
 
             // Find polygons with the same print_z.
@@ -3317,11 +3329,11 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     });
 
     // Now modulate the support layer height in parallel.
-    tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, object.support_layers().size()),
-        [this, &object, &layer_caches]
+    tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
+        [this, &support_layers, &layer_caches]
             (const tbb::blocked_range<size_t>& range) {
         for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id) {
-            SupportLayer &support_layer = *object.support_layers()[support_layer_id];
+            SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
             for (LayerCacheItem &layer_cache_item : layer_cache.overlaps) {
                 modulate_extrusion_by_overlapping_layers(layer_cache_item.layer_extruded->extrusions, *layer_cache_item.layer_extruded->layer, layer_cache_item.overlapping);

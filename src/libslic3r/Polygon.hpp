@@ -55,6 +55,7 @@ public:
     bool make_counter_clockwise();
     bool make_clockwise();
     bool is_valid() const { return this->points.size() >= 3; }
+    void douglas_peucker(double tolerance);
 
     // Does an unoriented polygon contain a point?
     // Tested by counting intersections along a horizontal line.
