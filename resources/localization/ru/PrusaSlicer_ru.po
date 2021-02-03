@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-01-09 15:30+0700\n"
-"PO-Revision-Date: 2021-01-10 02:38+0700\n"
+"PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && "
-"(n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 1.8.7\n"
-"Last-Translator: \n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n"
+"%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 2.4.2\n"
+"Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language: ru_RU\n"
 
 #: src/slic3r/GUI/AboutDialog.cpp:45 src/slic3r/GUI/AboutDialog.cpp:299
@@ -394,7 +394,6 @@ msgid "First layer height"
 msgstr "Высота первого слоя"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:81
-#, c-format
 msgid ""
 "The Spiral Vase mode requires:\n"
 "- one perimeter\n"
@@ -410,7 +409,7 @@ msgstr ""
 "- отсутствие верхних сплошных слоёв\n"
 "- плотность заполнения 0%\n"
 "- отсутствие поддержки\n"
-"- отключено \"Обеспечивать вертикальную толщину оболочки\"\n"
+"- включено \"Обеспечивать вертикальную толщину оболочки\"\n"
 "- отключено \"Обнаружение тонких стенок\""
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:89
@@ -432,7 +431,7 @@ msgstr ""
 "только в том случае, если она печатается текущим экструдером, без запуска\n"
 "смены инструмента. (Значения \"Экструдер, печатающий поддержки/подложки/юбки\"\n"
 "и \"Экструдер, печатающий связующий слой поддержки/подложки\" должны быть\n"
-"установлены в 0).\""
+"установлены в 0)."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:119
 msgid "Shall I adjust those settings in order to enable the Wipe Tower?"
@@ -546,7 +545,7 @@ msgstr "пруток"
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:59 src/libslic3r/Preset.cpp:1300
 msgid "SLA print"
-msgstr "Профиль SLA печати:"
+msgstr "Профиль SLA печати"
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:60 src/slic3r/GUI/Plater.cpp:696
 #: src/libslic3r/Preset.cpp:1301
@@ -1070,7 +1069,7 @@ msgstr ""
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1241
 msgid "Edit current color - Right click the colored slider segment"
-msgstr "Изменить текущий цвет - Правая кнопка мыши по цветному сегменту ползунка ???"
+msgstr "Изменить текущий цвет - Правая кнопка мыши по цветному сегменту ползунка"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1251
 msgid "Print mode"
@@ -2238,7 +2237,7 @@ msgstr "Ctrl + Колесо мыши"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:233
 msgid "Autoset custom supports"
-msgstr "Автоустановка пользовательских поддержек ???"
+msgstr "Автоустановка пользовательских поддержек"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:235
 msgid "Threshold:"
@@ -2344,7 +2343,7 @@ msgstr "Поворот"
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:547
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:563 src/libslic3r/PrintConfig.cpp:3754
 msgid "Scale"
-msgstr "Масштаб "
+msgstr "Масштаб"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:30
 #: src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp:381
@@ -2712,7 +2711,7 @@ msgid ""
 "Note: This name can be changed later from the physical printers settings"
 msgstr ""
 "При создании новых принтеров они будут именоваться как \"Принтер N\".\n"
-"Примечание: это имя можно изменить позже в настройках физических принтеров."
+"Примечание: это имя можно изменить позже в настройках физических принтеров"
 
 #: src/slic3r/GUI/GUI_App.cpp:1124 src/slic3r/GUI/PhysicalPrinterDialog.cpp:626
 msgid "Information"
@@ -2875,7 +2874,7 @@ msgstr "&Настройки"
 
 #: src/slic3r/GUI/GUI_App.cpp:1781
 msgid "The preset(s) modifications are successfully saved"
-msgstr "Изменения в профиле(-ях) успешно сохранены."
+msgstr "Изменения в профиле(-ях) успешно сохранены"
 
 #: src/slic3r/GUI/GUI_App.cpp:1802
 msgid "The uploads are still ongoing"
@@ -3459,7 +3458,7 @@ msgstr "Неподдерживаемый выбор"
 #: src/slic3r/GUI/GUI_ObjectList.cpp:4012
 #, c-format
 msgid "You started your selection with %s Item."
-msgstr "Вы начали свой выбор с сущности %s"
+msgstr "Вы начали свой выбор с сущности %s."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:4013
 #, c-format
@@ -3477,7 +3476,7 @@ msgstr "Информация"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:4137
 msgid "You can't change a type of the last solid part of the object."
-msgstr "Вы не можете изменить тип последнего твердотельного элемента модели"
+msgstr "Вы не можете изменить тип последнего твердотельного элемента модели."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:4142
 msgid "Modifier"
@@ -3794,7 +3793,7 @@ msgstr "ОШИБКА: недостаточно ресурсов для выпо�
 
 #: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:41
 msgid "Searching for optimal orientation"
-msgstr "Поиск оптимального положения."
+msgstr "Поиск оптимального положения"
 
 #: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:73
 msgid "Orientation search canceled."
@@ -3850,7 +3849,7 @@ msgstr "Импорт завершён."
 
 #: src/slic3r/GUI/Jobs/SLAImportJob.cpp:208 src/slic3r/GUI/Plater.cpp:2357
 msgid "You cannot load SLA project with a multi-part object on the bed"
-msgstr "Вы не можете загрузить SLA проект с составной моделью на столе."
+msgstr "Вы не можете загрузить SLA проект с составной моделью на столе"
 
 #: src/slic3r/GUI/Jobs/SLAImportJob.cpp:209 src/slic3r/GUI/Plater.cpp:2358
 #: src/slic3r/GUI/Tab.cpp:3243
@@ -5114,7 +5113,7 @@ msgstr ""
 #: src/slic3r/GUI/NotificationManager.cpp:490
 #: src/slic3r/GUI/NotificationManager.cpp:500
 msgid "More"
-msgstr "Подробнее."
+msgstr "Подробнее"
 
 #: src/slic3r/GUI/NotificationManager.cpp:864
 #: src/slic3r/GUI/NotificationManager.cpp:1141
@@ -9314,7 +9313,6 @@ msgid "Extra perimeters if needed"
 msgstr "Дополнительные периметры при необходимости"
 
 #: src/libslic3r/PrintConfig.cpp:539
-#, c-format
 msgid ""
 "Add more perimeters when needed for avoiding gaps in sloping walls. Slic3r keeps "
 "adding perimeters, until more than 70% of the loop immediately above is supported."
@@ -10365,7 +10363,6 @@ msgid "This setting represents the maximum speed of your fan."
 msgstr "Этот параметр регулирует максимальную скорость вращения вентилятора."
 
 #: src/libslic3r/PrintConfig.cpp:1435
-#, c-format
 msgid ""
 "This is the highest printable layer height for this extruder, used to cap the "
 "variable layer height and support layer height. Maximum recommended layer height is "
