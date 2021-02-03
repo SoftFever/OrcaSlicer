@@ -799,6 +799,9 @@ bool GUI_App::on_init_inner()
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
 
+    // If load_language() fails, the application closes.
+    load_language(wxString(), true);
+
     wxInitAllImageHandlers();
 
     SplashScreen* scrn = nullptr;
@@ -865,9 +868,6 @@ bool GUI_App::on_init_inner()
     // initialize label colors and fonts
     init_label_colours();
     init_fonts();
-
-    // If load_language() fails, the application closes.
-    load_language(wxString(), true);
 
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");

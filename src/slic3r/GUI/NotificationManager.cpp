@@ -740,11 +740,11 @@ void NotificationManager::PopNotification::update(const NotificationData& n)
 }
 bool NotificationManager::PopNotification::compare_text(const std::string& text)
 {
-	std::string t1(m_text1);
-	std::string t2(text);
-	t1.erase(std::remove_if(t1.begin(), t1.end(), ::isspace), t1.end());
-	t2.erase(std::remove_if(t2.begin(), t2.end(), ::isspace), t2.end());
-	if (t1.compare(t2) == 0)
+	std::wstring wt1 = boost::nowide::widen(m_text1);
+	std::wstring wt2 = boost::nowide::widen(text);
+	wt1.erase(std::remove_if(wt1.begin(), wt1.end(), ::iswspace), wt1.end());
+	wt2.erase(std::remove_if(wt2.begin(), wt2.end(), ::iswspace), wt2.end());
+	if (wt1.compare(wt2) == 0)
 		return true;
 	return false;
 }

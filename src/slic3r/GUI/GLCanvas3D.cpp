@@ -631,12 +631,12 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     std::string text;
     bool error = false;
     switch (warning) {
-    case ObjectOutside: text = L("An object outside the print area was detected."); break;
-    case ToolpathOutside: text = L("A toolpath outside the print area was detected."); error = true; break;
-    case SlaSupportsOutside: text = L("SLA supports outside the print area were detected."); error = true; break;
-    case SomethingNotShown: text = L("Some objects are not visible."); break;
+    case ObjectOutside: text = _u8L("An object outside the print area was detected."); break;
+    case ToolpathOutside: text = _u8L("A toolpath outside the print area was detected."); error = true; break;
+    case SlaSupportsOutside: text = _u8L("SLA supports outside the print area were detected."); error = true; break;
+    case SomethingNotShown: text = _u8L("Some objects are not visible."); break;
     case ObjectClashed:
-        text = L( "An object outside the print area was detected.\n"
+        text = _u8L( "An object outside the print area was detected.\n"
                   "Resolve the current problem to continue slicing.");
         error = true;
         break;
