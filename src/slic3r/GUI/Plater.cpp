@@ -1065,18 +1065,29 @@ void Sidebar::show_info_sizer()
 
     const auto& stats = model_object->get_object_stl_stats();//model_object->volumes.front()->mesh.stl.stats;
     p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume*pow(koef,3)));
-    p->object_info->info_facets->SetLabel(wxString::Format(_L("%d (%d shells)"), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
+    p->object_info->info_facets->SetLabel(format_wxstr(_L_PLURAL("%1% (%2$d shell)", "%1% (%2$d shells)", stats.number_of_parts),
+                                                       static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
         stats.facets_added + stats.facets_reversed + stats.backwards_edges;
     if (errors > 0) {
-        wxString tooltip = wxString::Format(_L("Auto-repaired (%d errors)"), errors);
+        wxString tooltip = format_wxstr(_L_PLURAL("Auto-repaired %1$d error", "Auto-repaired %1$d errors", errors), errors);
         p->object_info->info_manifold->SetLabel(tooltip);
 
-        tooltip += ":\n" + wxString::Format(_L("%d degenerate facets, %d edges fixed, %d facets removed, "
-                                        "%d facets added, %d facets reversed, %d backwards edges"),
-                                        stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
-                                        stats.facets_added, stats.facets_reversed, stats.backwards_edges);
+        tooltip += ":\n";
+        if (stats.degenerate_facets > 0)
+            tooltip += format_wxstr(_L_PLURAL("%1$d degenerate facet", "%1$d degenerate facets", stats.degenerate_facets), stats.degenerate_facets) + ", ";
+        if (stats.edges_fixed > 0)
+            tooltip += format_wxstr(_L_PLURAL("%1$d edge fixed", "%1$d edges fixed", stats.edges_fixed), stats.edges_fixed) + ", ";
+        if (stats.facets_removed > 0)
+            tooltip += format_wxstr(_L_PLURAL("%1$d facet removed", "%1$d facets removed", stats.facets_removed), stats.facets_removed) + ", ";
+        if (stats.facets_added > 0)
+            tooltip += format_wxstr(_L_PLURAL("%1$d facet added", "%1$d facets added", stats.facets_added), stats.facets_added) + ", ";
+        if (stats.facets_reversed > 0)
+            tooltip += format_wxstr(_L_PLURAL("%1$d facet reversed", "%1$d facets reversed", stats.facets_reversed), stats.facets_reversed) + ", ";
+        if (stats.backwards_edges > 0)
+            tooltip += format_wxstr(_L_PLURAL("%1$d backwards edge", "%1$d backwards edges", stats.backwards_edges), stats.backwards_edges) + ", ";
+        tooltip.RemoveLast(2);//remove last coma
 
         p->object_info->showing_manifold_warning_icon = true;
         p->object_info->info_manifold->SetToolTip(tooltip);
@@ -1107,7 +1118,7 @@ void Sidebar::update_sliced_info_sizer()
             wxString new_label = _L("Used Material (ml)") + ":";
             const bool is_supports = ps.support_used_material > 0.0;
             if (is_supports)
-                new_label += format_wxstr("\n    - %s\n    - %s", _L("object(s)"), _L("supports and pad"));
+                new_label += format_wxstr("\n    - %s\n    - %s", _L_PLURAL("object", "objects", p->plater->model().objects.size()), _L("supports and pad"));
 
             wxString info_text = is_supports ?
                 wxString::Format("%.2f \n%.2f \n%.2f", (ps.objects_used_material + ps.support_used_material) / 1000,
@@ -2412,9 +2423,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
                 else if (model.looks_like_imperial_units()) {
-                    wxMessageDialog msg_dlg(q, format_wxstr(_L(
-                        "Some object(s) in file %s looks like saved in inches.\n"
-                        "Should I consider them as a saved in inches and convert them?"), from_path(filename)) + "\n",
+                    wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
+                        "The object in file %s looks like saved in inches.\n"
+                        "Should I consider it as a saved in inches and convert it?",
+                        "Some objects in file %s look like saved in inches.\n"
+                        "Should I consider them as a saved in inches and convert them?", model.objects.size()), from_path(filename)) + "\n",
                         _L("The object appears to be saved in inches"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES)
                         //FIXME up-scale only the small parts?

@@ -1813,7 +1813,8 @@ bool GUI_App::check_unsaved_changes(const wxString &header)
             // synchronize config.ini with the current selections.
             preset_bundle->export_selections(*app_config);
 
-            wxMessageBox(_L("The preset(s) modifications are successfully saved"));
+            wxMessageBox(_L_PLURAL("The preset modifications are successfully saved", 
+                                   "The presets modifications are successfully saved", dlg.get_names_and_types().size()));
         }
     }
 

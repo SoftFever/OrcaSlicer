@@ -3476,19 +3476,23 @@ void Tab::delete_preset()
             std::vector<std::string> ph_printers_only   = physical_printers.get_printers_with_only_preset(current_preset.name);
 
             if (!ph_printers.empty()) {
-                msg += _L("The physical printer(s) below is based on the preset, you are going to delete.");
+                msg += _L_PLURAL("The physical printer below is based on the preset, you are going to delete.", 
+                                 "The physical printers below are based on the preset, you are going to delete.", ph_printers.size());
                 for (const std::string& printer : ph_printers)
                     msg += "\n    \"" + from_u8(printer) + "\",";
                 msg.RemoveLast();
-                msg += "\n" + _L("Note, that selected preset will be deleted from this/those printer(s) too.")+ "\n\n";
+                msg += "\n" + _L_PLURAL("Note, that selected preset will be deleted from this printer too.", 
+                                        "Note, that selected preset will be deleted from these printers too.", ph_printers.size()) + "\n\n";
             }
 
             if (!ph_printers_only.empty()) {
-                msg += _L("The physical printer(s) below is based only on the preset, you are going to delete.");
+                msg += _L_PLURAL("The physical printer below is based only on the preset, you are going to delete.", 
+                                 "The physical printers below are based only on the preset, you are going to delete.", ph_printers_only.size());
                 for (const std::string& printer : ph_printers_only)
                     msg += "\n    \"" + from_u8(printer) + "\",";
                 msg.RemoveLast();
-                msg += "\n" + _L("Note, that this/those printer(s) will be deleted after deleting of the selected preset.") + "\n\n";
+                msg += "\n" + _L_PLURAL("Note, that this printer will be deleted after deleting of the selected preset.",
+                                        "Note, that these printers will be deleted after deleting of the selected preset.", ph_printers_only.size()) + "\n\n";
             }
         }
     

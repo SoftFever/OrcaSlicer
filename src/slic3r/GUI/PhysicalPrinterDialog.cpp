@@ -572,12 +572,17 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
     if (!repeat_presets.empty())
     {
         wxString repeatable_presets = "\n";
-        for (const std::string& preset_name : repeat_presets)
+        int repeat_cnt = 0;
+        for (const std::string& preset_name : repeat_presets) {
             repeatable_presets += "    " + from_u8(preset_name) + "\n";
+            repeat_cnt++;
+        }
         repeatable_presets += "\n";
 
-        wxString msg_text = from_u8((boost::format(_u8L("Following printer preset(s) is duplicated:%1%"
-                                                        "The above preset for printer \"%2%\" will be used just once.")) % repeatable_presets % printer_name).str());
+        wxString msg_text = format_wxstr(_L_PLURAL("Following printer preset is duplicated:%1%"
+                                                   "The above preset for printer \"%2%\" will be used just once.",
+                                                   "Following printer presets are duplicated:%1%"
+                                                   "The above presets for printer \"%2%\" will be used just once.", repeat_cnt), repeatable_presets, printer_name);
         wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxOK | wxCANCEL);
         if (dialog.ShowModal() == wxID_CANCEL)
             return;

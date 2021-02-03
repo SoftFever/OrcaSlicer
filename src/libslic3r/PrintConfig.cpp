@@ -1081,7 +1081,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_thickness", coFloat);
     def->label = L("Fuzzy skin thickness");
     def->category = L("Fuzzy Skin");
-    def->tooltip = L("");
+    def->tooltip = "";
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1090,7 +1090,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_point_dist", coFloat);
     def->label = L("Fuzzy skin point distance");
     def->category = L("Fuzzy Skin");
-    def->tooltip = L("");
+    def->tooltip = "";
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
