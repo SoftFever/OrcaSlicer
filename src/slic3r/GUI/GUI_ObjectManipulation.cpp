@@ -76,6 +76,7 @@ static choice_ctrl* create_word_local_combo(wxWindow *parent)
 
 void msw_rescale_word_local_combo(choice_ctrl* combo)
 {
+#ifdef __WXOSX__
     const wxString selection = combo->GetString(combo->GetSelection());
 
     /* To correct scaling (set new controll size) of a wxBitmapCombobox
@@ -97,6 +98,9 @@ void msw_rescale_word_local_combo(choice_ctrl* combo)
     combo->Append(_L("Local coordinates"));
 
     combo->SetValue(selection);
+#else
+    combo->SetMinSize(wxSize(15 * wxGetApp().em_unit(), -1));
+#endif
 }
 
 static void set_font_and_background_style(wxWindow* win, const wxFont& font)
