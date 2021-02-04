@@ -30,8 +30,9 @@ class BitmapCache;
 // BitmapComboBox used to presets list on Sidebar and Tabs
 class PresetComboBox : public wxBitmapComboBox
 {
+    bool m_show_all { false };
 public:
-    PresetComboBox(wxWindow* parent, Preset::Type preset_type, const wxSize& size = wxDefaultSize);
+    PresetComboBox(wxWindow* parent, Preset::Type preset_type, const wxSize& size = wxDefaultSize, PresetBundle* preset_bundle = nullptr);
     ~PresetComboBox();
 
 	enum LabelItemType {
@@ -58,11 +59,16 @@ public:
     bool selection_is_changed_according_to_physical_printers();
 
     void update(std::string select_preset);
+    // select preset which is selected in PreseBundle
+    void update_from_bundle();
 
     void edit_physical_printer();
     void add_physical_printer();
     bool del_physical_printer(const wxString& note_string = wxEmptyString);
 
+    virtual wxString get_preset_name(const Preset& preset); 
+    Preset::Type     get_type() { return m_type; }
+    void             show_all(bool show_all);
     virtual void update();
     virtual void msw_rescale();
 
@@ -158,6 +164,7 @@ public:
     void show_add_menu();
     void show_edit_menu();
 
+    wxString get_preset_name(const Preset& preset) override;
     void update() override;
     void msw_rescale() override;
 
@@ -182,6 +189,7 @@ public:
         show_incompatible = show_incompatible_presets;
     }
 
+    wxString get_preset_name(const Preset& preset) override;
     void update() override;
     void update_dirty();
     void msw_rescale() override;

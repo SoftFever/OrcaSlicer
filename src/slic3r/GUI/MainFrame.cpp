@@ -37,6 +37,7 @@
 #include <string_view>
 
 #include "GUI_App.hpp"
+#include "UnsavedChangesDialog.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1190,6 +1191,10 @@ void MainFrame::init_menubar_as_editor()
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _L("Open new instance") + "\tCtrl+Shift+I", _L("Open a new PrusaSlicer instance"),
 			[this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr, [this]() {return m_plater != nullptr && wxGetApp().app_config->get("single_instance") != "1"; }, this);
+
+        windowMenu->AppendSeparator();
+        append_menu_item(windowMenu, wxID_ANY, _L("Compare presets")/* + "\tCtrl+F"*/, _L("Compare presets"), 
+            [this](wxCommandEvent&) { diff_dialog.show();}, "compare", nullptr, []() {return true; }, this);
     }
 
     // View menu

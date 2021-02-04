@@ -15,7 +15,8 @@ class PresetBundle
 {
 public:
     PresetBundle();
-    ~PresetBundle();
+    PresetBundle(const PresetBundle &rhs);
+    PresetBundle& operator=(const PresetBundle &rhs);
 
     // Remove all the presets but the "-- default --".
     // Optionally remove all the files referenced by the presets from the user profile directory.

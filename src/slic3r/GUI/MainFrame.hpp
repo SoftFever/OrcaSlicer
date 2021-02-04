@@ -16,6 +16,7 @@
 
 #include "GUI_Utils.hpp"
 #include "Event.hpp"
+#include "UnsavedChangesDialog.hpp"
 
 class wxNotebook;
 class wxProgressDialog;
@@ -190,6 +191,7 @@ public:
     Plater*               m_plater { nullptr };
     wxNotebook*           m_tabpanel { nullptr };
     SettingsDialog        m_settings_dialog;
+    DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };
     wxProgressDialog*     m_progress_dialog { nullptr };
     PrintHostQueueDialog* m_printhost_queue_dlg;

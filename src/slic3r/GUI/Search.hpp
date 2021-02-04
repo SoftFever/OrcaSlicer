@@ -117,6 +117,7 @@ public:
     const FoundOption& operator[](const size_t pos) const noexcept { return found[pos]; }
     const Option& get_option(size_t pos_in_filter) const;
     const Option& get_option(const std::string& opt_key) const;
+    Option get_option(const std::string& opt_key, const wxString& label, Preset::Type type) const;
 
     const std::vector<FoundOption>& found_options() { return found; }
     const GroupAndCategory&         get_group_and_category (const std::string& opt_key) { return groups_and_categories[opt_key]; }

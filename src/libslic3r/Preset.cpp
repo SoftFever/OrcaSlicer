@@ -616,10 +616,6 @@ PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::str
     m_edited_preset.config.apply(m_presets.front().config);
 }
 
-PresetCollection::~PresetCollection()
-{
-}
-
 void PresetCollection::reset(bool delete_files)
 {
     if (m_presets.size() > m_num_default_presets) {
@@ -1276,6 +1272,18 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
             duplicates.emplace_back(std::move(preset.name));
     }
     return duplicates;
+}
+
+void PresetCollection::update_vendor_ptrs_after_copy(const VendorMap &new_vendors)
+{
+    for (Preset &preset : m_presets)
+        if (preset.vendor != nullptr) {
+            assert(! preset.is_default && ! preset.is_external);
+            // Re-assign a pointer to the vendor structure in the new PresetBundle.
+            auto it = new_vendors.find(preset.vendor->id);
+            assert(it != new_vendors.end());
+            preset.vendor = &it->second;
+        }
 }
 
 void PresetCollection::update_map_alias_to_profile_name()
