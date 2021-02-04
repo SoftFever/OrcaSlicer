@@ -15,7 +15,8 @@ namespace EdgeGrid {
 class Grid
 {
 public:
-	Grid();
+	Grid() = default;
+	Grid(const BoundingBox &bbox) : m_bbox(bbox) {}
 	~Grid();
 
 	void set_bbox(const BoundingBox &bbox) { m_bbox = bbox; }
@@ -295,8 +296,8 @@ protected:
 	BoundingBox 								m_bbox;
 	// Grid dimensions.
 	coord_t										m_resolution;
-	size_t										m_rows;
-	size_t										m_cols;
+	size_t										m_rows = 0;
+	size_t										m_cols = 0;
 
 	// Referencing the source contours.
 	// This format allows one to work with any Slic3r fixed point contour format

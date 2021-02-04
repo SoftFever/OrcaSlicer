@@ -25,11 +25,6 @@
 
 namespace Slic3r {
 
-EdgeGrid::Grid::Grid() : 
-	m_rows(0), m_cols(0) 
-{
-}
-
 EdgeGrid::Grid::~Grid() 
 {
 	m_contours.clear();

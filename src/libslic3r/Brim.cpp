@@ -34,9 +34,9 @@ static void append_and_translate(Polygons &dst, const Polygons &src, const Print
 static float max_brim_width(const ConstPrintObjectPtrsAdaptor &objects)
 {
     assert(!objects.empty());
-    return float(std::accumulate(objects.begin() + 1, objects.end(), objects.front()->config().brim_width.value,
+    return float(std::accumulate(objects.begin(), objects.end(), 0.,
                                  [](double partial_result, const PrintObject *object) {
-                                     return std::max(partial_result, object->config().brim_width.value);
+                                     return std::max(partial_result, object->config().brim_type == btNoBrim ? 0. : object->config().brim_width.value);
                                  }));
 }
 
@@ -46,6 +46,7 @@ static ConstPrintObjectPtrs get_top_level_objects_with_brim(const Print &print)
     ConstPrintObjectPtrs island_to_object;
     for (const PrintObject *object : print.objects()) {
         Polygons islands_object;
+        islands_object.reserve(object->layers().front()->lslices.size());
         for (const ExPolygon &ex_poly : object->layers().front()->lslices)
             islands_object.emplace_back(ex_poly.contour);
 
@@ -101,6 +102,7 @@ static Polygons top_level_outer_brim_islands(const ConstPrintObjectPtrs &top_lev
 {
     Polygons islands;
     for (const PrintObject *object : top_level_objects_with_brim) {
+        //FIXME how about the brim type?
         float    brim_offset = float(scale_(object->config().brim_offset.value));
         Polygons islands_object;
         for (const ExPolygon &ex_poly : object->layers().front()->lslices) {
@@ -206,6 +208,7 @@ static ExPolygons inner_brim_area(const Print &print, const ConstPrintObjectPtrs
     return diff_ex(intersection_ex(to_polygons(std::move(brim_area)), holes), no_brim_area);
 }
 
+// Flip orientation of open polylines to minimize travel distance.
 static void optimize_polylines_by_reversing(Polylines *polylines)
 {
     for (size_t poly_idx = 1; poly_idx < polylines->size(); ++poly_idx) {
@@ -216,23 +219,24 @@ static void optimize_polylines_by_reversing(Polylines *polylines)
             double dist_to_start = (next.first_point() - prev.last_point()).cast<double>().norm();
             double dist_to_end   = (next.last_point() - prev.last_point()).cast<double>().norm();
 
-            if (dist_to_end < dist_to_start) next.reverse();
+            if (dist_to_end < dist_to_start) 
+                next.reverse();
         }
     }
 }
 
 static Polylines connect_brim_lines(Polylines &&polylines, const Polygons &brim_area, float max_connection_length)
 {
-    EdgeGrid::Grid grid;
-    BoundingBox    bbox(get_extents(polylines));
-    bbox.offset(SCALED_EPSILON);
-    grid.set_bbox(bbox);
+    if (polylines.empty())
+        return Polylines();
 
     std::vector<Points> polylines_points(polylines.size() + brim_area.size());
     for (const Polyline &poly : polylines)
         polylines_points[&poly - &polylines.front()] = poly.points;
     for (const Polygon &poly : brim_area)
         polylines_points.emplace_back(poly.points);
+
+    EdgeGrid::Grid grid(get_extents(polylines).inflated(SCALED_EPSILON));
     grid.create(polylines_points, coord_t(scale_(10.)));
 
     struct Visitor
@@ -262,30 +266,44 @@ static Polylines connect_brim_lines(Polylines &&polylines, const Polygons &brim_
 
     } visitor(grid);
 
-    Polyline *prev = &polylines.front();
-    for (size_t poly_idx = 1; poly_idx < polylines.size(); ++poly_idx) {
-        Polyline &next = polylines[poly_idx];
-
-        double dist = Line(prev->last_point(), next.first_point()).length();
-        if (dist <= max_connection_length) {
-            visitor.brim_line.a = prev->last_point();
-            visitor.brim_line.b = next.first_point();
-            visitor.brim_line.extend(-SCALED_EPSILON);
-            grid.visit_cells_intersecting_line(visitor.brim_line.a, visitor.brim_line.b, visitor);
-            if (!visitor.intersect)
-                append(prev->points, std::move(next.points));
-            else
-                prev = &next;
+    // Connect successive polylines if they are open, their ends are closer than max_connection_length.
+    // Remove empty polylines.
+    {
+        // Skip initial empty lines.
+        size_t poly_idx = 0;
+        for (; poly_idx < polylines.size() && polylines[poly_idx].empty(); ++ poly_idx) ;
+        size_t end = ++ poly_idx;
+        double max_connection_length2 = Slic3r::sqr(max_connection_length);
+        for (; poly_idx < polylines.size(); ++poly_idx) {
+            Polyline &next = polylines[poly_idx];
+            if (! next.empty()) {
+                Polyline &prev = polylines[end - 1];
+                bool   connect = false;
+                if (! prev.is_closed() && ! next.is_closed()) {
+                    double dist2 = (prev.last_point() - next.first_point()).cast<double>().squaredNorm();
+                    if (dist2 <= max_connection_length2) {
+                        visitor.brim_line.a = prev.last_point();
+                        visitor.brim_line.b = next.first_point();
+                        // Shrink the connection line to avoid collisions with the brim centerlines.
+                        visitor.brim_line.extend(-SCALED_EPSILON);
+                        grid.visit_cells_intersecting_line(visitor.brim_line.a, visitor.brim_line.b, visitor);
+                        connect = ! visitor.intersect;
+                    }
+                }
+                if (connect) {
+                    append(prev.points, std::move(next.points));
+                } else {
+                    if (end < poly_idx)
+                        polylines[end] = std::move(next);
+                    ++ end;
+                }
+            }
         }
+        if (end < polylines.size())
+            polylines.erase(polylines.begin() + end, polylines.end());
     }
 
-    Polylines polylines_out;
-    polylines_out.reserve(std::count_if(polylines.begin(), polylines.end(), [](const Polyline &pl) { return !pl.empty(); }));
-    for (Polyline &pl : polylines)
-        if (!pl.empty())
-            polylines_out.emplace_back(std::move(pl));
-
-    return polylines_out;
+    return polylines;
 }
 
 static void make_inner_brim(const Print &print, const ConstPrintObjectPtrs &top_level_objects_with_brim, ExtrusionEntityCollection &brim)
@@ -349,6 +367,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
         append(all_loops, std::move(polylines));
     loops_pl_by_levels.clear();
 
+    // Flip orientation of open polylines to minimize travel distance.
     optimize_polylines_by_reversing(&all_loops);
 
 #ifdef BRIM_DEBUG_TO_SVG
@@ -363,8 +382,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     }
 #endif // BRIM_DEBUG_TO_SVG
 
-//FIXME WIP this breaks unit tests.
-//    all_loops = connect_brim_lines(std::move(all_loops), offset(islands_area_ex,SCALED_EPSILON), flow.scaled_spacing() * 2);
+    all_loops = connect_brim_lines(std::move(all_loops), offset(islands_area_ex,SCALED_EPSILON), flow.scaled_spacing() * 2);
 
 #ifdef BRIM_DEBUG_TO_SVG
     {
