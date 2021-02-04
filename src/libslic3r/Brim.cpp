@@ -11,6 +11,10 @@
 #include <numeric>
 #include <tbb/parallel_for.h>
 
+#ifndef NDEBUG
+    // #define BRIM_DEBUG_TO_SVG
+#endif
+
 namespace Slic3r {
 
 static void append_and_translate(ExPolygons &dst, const ExPolygons &src, const PrintInstance &instance) {
@@ -346,7 +350,30 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     loops_pl_by_levels.clear();
 
     optimize_polylines_by_reversing(&all_loops);
-    all_loops = connect_brim_lines(std::move(all_loops), offset(islands_area_ex,SCALED_EPSILON), flow.scaled_spacing() * 2);
+
+#ifdef BRIM_DEBUG_TO_SVG
+    static int irun = 0;
+    ++ irun;
+
+    {
+        SVG svg(debug_out_path("brim-%d.svg", irun).c_str(), get_extents(all_loops));
+        svg.draw(union_ex(islands), "blue");
+        svg.draw(islands_area_ex, "green");
+        svg.draw(all_loops, "black", coord_t(scale_(0.1)));
+    }
+#endif // BRIM_DEBUG_TO_SVG
+
+//FIXME WIP this breaks unit tests.
+//    all_loops = connect_brim_lines(std::move(all_loops), offset(islands_area_ex,SCALED_EPSILON), flow.scaled_spacing() * 2);
+
+#ifdef BRIM_DEBUG_TO_SVG
+    {
+        SVG svg(debug_out_path("brim-connected-%d.svg", irun).c_str(), get_extents(all_loops));
+        svg.draw(union_ex(islands), "blue");
+        svg.draw(islands_area_ex, "green");
+        svg.draw(all_loops, "black", coord_t(scale_(0.1)));
+    }
+#endif // BRIM_DEBUG_TO_SVG
 
     const bool could_brim_intersects_skirt = std::any_of(print.objects().begin(), print.objects().end(), [&print](PrintObject *object) {
         const BrimType &bt = object->config().brim_type;
@@ -483,7 +510,6 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     }
 
     make_inner_brim(print, top_level_objects_with_brim, brim);
-
     return brim;
 }
 
