@@ -288,16 +288,16 @@ static void make_inner_brim(const Print &print, const ConstPrintObjectPtrs &top_
 {
     Flow       flow = print.brim_flow();
     ExPolygons islands_ex = inner_brim_area(print, top_level_objects_with_brim, flow.scaled_spacing());
-    ExPolygons loops_ex;
+    Polygons   loops;
     islands_ex      = offset_ex(islands_ex, -0.5f * float(flow.scaled_spacing()), jtSquare);
     for (size_t i = 0; !islands_ex.empty(); ++i) {
         for (ExPolygon &poly_ex : islands_ex)
             poly_ex.douglas_peucker(SCALED_RESOLUTION);
-        expolygons_append(loops_ex, islands_ex);
+        polygons_append(loops, to_polygons(islands_ex));
         islands_ex = offset_ex(islands_ex, -float(flow.scaled_spacing()), jtSquare);
     }
 
-    Polygons loops = union_pt_chained_outside_in(loops, false);
+    loops = union_pt_chained_outside_in(loops, false);
     std::reverse(loops.begin(), loops.end());
     extrusion_entities_append_loops(brim.entities, std::move(loops), erSkirt, float(flow.mm3_per_mm()),
                                     float(flow.width), float(print.skirt_first_layer_height()));
