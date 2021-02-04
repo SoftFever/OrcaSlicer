@@ -76,6 +76,7 @@ ExternalProject_Add(dep_boost
         variant=release
         threading=multi
         boost.locale.icu=off
+        --disable-icu
         "${DEP_BOOST_DEBUG}" release install
     INSTALL_COMMAND ""   # b2 does that already
 )

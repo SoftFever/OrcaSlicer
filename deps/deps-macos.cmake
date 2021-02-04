@@ -33,6 +33,7 @@ ExternalProject_Add(dep_boost
         variant=release
         threading=multi
         boost.locale.icu=off
+        --disable-icu
         "cflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET}"
         "cxxflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET}"
         "mflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET}"

@@ -26,6 +26,7 @@ ExternalProject_Add(dep_boost
         variant=release
         threading=multi
         boost.locale.icu=off
+        --disable-icu
         cflags=-fPIC
         cxxflags=-fPIC
         install
