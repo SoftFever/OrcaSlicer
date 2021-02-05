@@ -133,16 +133,16 @@ void stl_fix_normal_directions(stl_file *stl)
 	// Initialize list that keeps track of already fixed facets.
 	std::vector<char> norm_sw(stl->stats.number_of_facets, 0);
 	// Initialize list that keeps track of reversed facets.
-	std::vector<int>  reversed_ids(stl->stats.number_of_facets, 0);
+    std::vector<int>  reversed_ids;
+    reversed_ids.reserve(stl->stats.number_of_facets);
 
   	int facet_num = 0;
-  	int reversed_count = 0;
   	// If normal vector is not within tolerance and backwards:
     // Arbitrarily starts at face 0.  If this one is wrong, we're screwed. Thankfully, the chances
     // of it being wrong randomly are low if most of the triangles are right:
   	if (check_normal_vector(stl, 0, 0)) {
     	reverse_facet(stl, 0);
-      	reversed_ids[reversed_count ++] = 0;
+      	reversed_ids.emplace_back(0);
   	}
 
   	// Say that we've fixed this facet:
@@ -159,13 +159,13 @@ void stl_fix_normal_directions(stl_file *stl)
         		if (stl->neighbors_start[facet_num].neighbor[j] != -1) {
             		if (norm_sw[stl->neighbors_start[facet_num].neighbor[j]] == 1) {
                 		// trying to modify a facet already marked as fixed, revert all changes made until now and exit (fixes: #716, #574, #413, #269, #262, #259, #230, #228, #206)
-                		for (int id = reversed_count - 1; id >= 0; -- id)
+                		for (int id = int(reversed_ids.size()) - 1; id >= 0; -- id)
                     		reverse_facet(stl, reversed_ids[id]);
                 		force_exit = true;
                 		break;
             		}
             		reverse_facet(stl, stl->neighbors_start[facet_num].neighbor[j]);
-            		reversed_ids[reversed_count ++] = stl->neighbors_start[facet_num].neighbor[j];
+            		reversed_ids.emplace_back(stl->neighbors_start[facet_num].neighbor[j]);
         		}
       		}
       		// If this edge of the facet is connected:
@@ -188,6 +188,7 @@ void stl_fix_normal_directions(stl_file *stl)
     	// Get next facet to fix from top of list.
     	if (head->next != tail) {
       		facet_num = head->next->facet_num;
+            assert(facet_num < stl->stats.number_of_facets);
       		if (norm_sw[facet_num] != 1) { // If facet is in list mutiple times
         		norm_sw[facet_num] = 1; // Record this one as being fixed.
         		++ checked;
@@ -207,7 +208,7 @@ void stl_fix_normal_directions(stl_file *stl)
         			facet_num = i;
         			if (check_normal_vector(stl, i, 0)) {
             			reverse_facet(stl, i);
-            			reversed_ids[reversed_count++] = i;
+            			reversed_ids.emplace_back(i);
         			}
         			norm_sw[facet_num] = 1;
         			++ checked;
