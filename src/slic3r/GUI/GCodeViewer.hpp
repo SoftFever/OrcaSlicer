@@ -226,6 +226,15 @@ class GCodeViewer
         unsigned int                path_id;
         std::vector<unsigned int>   sizes;
         std::vector<size_t>         offsets; // use size_t because we need an unsigned int whose size matches pointer's size (used in the call glMultiDrawElements())
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+        bool contains(size_t offset) const {
+            for (size_t i = 0; i < offsets.size(); ++i) {
+                if (offsets[i] <= offset && offset <= offsets[i] + static_cast<size_t>(sizes[i] * sizeof(IBufferType)))
+                    return true;
+            }
+            return false;
+        }
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
     };
     struct RenderPathPropertyHash {
         size_t operator() (const RenderPath &p) const {
@@ -297,29 +306,46 @@ class GCodeViewer
             {
             case ERenderPrimitiveType::Point:    { return 1; }
             case ERenderPrimitiveType::Line:     { return 2; }
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+            case ERenderPrimitiveType::Triangle: { return 30; } // 3 indices x 10 triangles
+#else
             case ERenderPrimitiveType::Triangle: { return 42; } // 3 indices x 14 triangles
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             default:                             { return 0; }
             }
         }
 #if ENABLE_SPLITTED_VERTEX_BUFFER
         size_t indices_per_segment_size_bytes() const { return static_cast<size_t>(indices_per_segment() * sizeof(IBufferType)); }
 #endif // ENABLE_SPLITTED_VERTEX_BUFFER
-        unsigned int start_segment_vertex_offset() const { return 0; }
-        unsigned int end_segment_vertex_offset() const {
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+        unsigned int max_indices_per_segment() const {
             switch (render_primitive_type)
             {
-            case ERenderPrimitiveType::Point:    { return 0; }
-            case ERenderPrimitiveType::Line:     { return 1; }
-            case ERenderPrimitiveType::Triangle: { return 36; } // 1st vertex of 13th triangle
+            case ERenderPrimitiveType::Point:    { return 1; }
+            case ERenderPrimitiveType::Line:     { return 2; }
+            case ERenderPrimitiveType::Triangle: { return 36; } // 3 indices x 12 triangles
             default:                             { return 0; }
             }
         }
+        size_t max_indices_per_segment_size_bytes() const { return max_indices_per_segment() * sizeof(IBufferType); }
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
 #if ENABLE_SPLITTED_VERTEX_BUFFER
         bool has_data() const {
             return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
         }
 #else
+        unsigned int start_segment_vertex_offset() const { return 0; }
+        unsigned int end_segment_vertex_offset() const {
+            switch (render_primitive_type)
+            {
+            case ERenderPrimitiveType::Point: { return 0; }
+            case ERenderPrimitiveType::Line: { return 1; }
+            case ERenderPrimitiveType::Triangle: { return 36; } // 1st vertex of 13th triangle
+            default: { return 0; }
+            }
+        }
+
         bool has_data() const { return vertices.id != 0 && !indices.empty() && indices.front().id != 0; }
 #endif // ENABLE_SPLITTED_VERTEX_BUFFER
     };
@@ -439,18 +465,41 @@ class GCodeViewer
 #endif // ENABLE_SPLITTED_VERTEX_BUFFER
     };
 
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+    // used to render the toolpath caps of the current sequential range
+    // (i.e. when sliding on the horizontal slider)
+    struct SequentialRangeCap
+    {
+        TBuffer* buffer{ nullptr };
+        unsigned int ibo{ 0 };
+        unsigned int vbo{ 0 };
+        Color color;
+
+        ~SequentialRangeCap();
+        bool is_renderable() const { return buffer != nullptr; }
+        void reset();
+        size_t indices_count() const { return 6; }
+    };
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
     {
         // time
         int64_t results_time{ 0 };
         int64_t load_time{ 0 };
+        int64_t load_vertices{ 0 };
+        int64_t smooth_vertices{ 0 };
+        int64_t load_indices{ 0 };
         int64_t refresh_time{ 0 };
         int64_t refresh_paths_time{ 0 };
         // opengl calls
         int64_t gl_multi_points_calls_count{ 0 };
         int64_t gl_multi_lines_calls_count{ 0 };
         int64_t gl_multi_triangles_calls_count{ 0 };
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+        int64_t gl_triangles_calls_count{ 0 };
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         // memory
         int64_t results_size{ 0 };
         int64_t total_vertices_gpu_size{ 0 };
@@ -476,6 +525,9 @@ class GCodeViewer
         void reset_times() {
             results_time = 0;
             load_time = 0;
+            load_vertices = 0;
+            smooth_vertices = 0;
+            load_indices = 0;
             refresh_time = 0;
             refresh_paths_time = 0;
         }
@@ -484,6 +536,9 @@ class GCodeViewer
             gl_multi_points_calls_count = 0;
             gl_multi_lines_calls_count = 0;
             gl_multi_triangles_calls_count = 0;
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+            gl_triangles_calls_count = 0;
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         }
 
         void reset_sizes() {
@@ -560,10 +615,10 @@ public:
     };
 
 private:
-    mutable bool m_gl_data_initialized{ false };
+    bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
-    mutable std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
+    std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
     // bounding box of toolpaths
     BoundingBoxf3 m_paths_bounding_box;
     // bounding box of toolpaths + marker tools
@@ -574,18 +629,21 @@ private:
     std::vector<ExtrusionRole> m_roles;
     size_t m_extruders_count;
     std::vector<unsigned char> m_extruder_ids;
-    mutable Extrusions m_extrusions;
-    mutable SequentialView m_sequential_view;
+    Extrusions m_extrusions;
+    SequentialView m_sequential_view;
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
     PrintEstimatedTimeStatistics m_time_statistics;
-    mutable PrintEstimatedTimeStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedTimeStatistics::ETimeMode::Normal };
+    PrintEstimatedTimeStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedTimeStatistics::ETimeMode::Normal };
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    mutable Statistics m_statistics;
+    Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    mutable std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
+    std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
     GCodeProcessor::Result::SettingsIds m_settings_ids;
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+    std::array<SequentialRangeCap, 2> m_sequential_range_caps;
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
 public:
     GCodeViewer();
