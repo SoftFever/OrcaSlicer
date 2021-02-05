@@ -24,6 +24,7 @@ namespace pt = boost::property_tree;
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include "miniz_extension.hpp"
 
@@ -827,7 +828,7 @@ void AMFParserContext::endDocument()
 {
     for (const auto &object : m_object_instances_map) {
         if (object.second.idx == -1) {
-            printf("Undefined object %s referenced in constellation\n", object.first.c_str());
+            BOOST_LOG_TRIVIAL(error) << "Undefined object " << object.first.c_str() << " referenced in constellation";
             continue;
         }
         for (const Instance &instance : object.second.instances)
@@ -850,13 +851,13 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
 
     XML_Parser parser = XML_ParserCreate(nullptr); // encoding
     if (!parser) {
-        printf("Couldn't allocate memory for parser\n");
+        BOOST_LOG_TRIVIAL(error) << "Couldn't allocate memory for parser";
         return false;
     }
 
     FILE *pFile = boost::nowide::fopen(path, "rt");
     if (pFile == nullptr) {
-        printf("Cannot open file %s\n", path);
+        BOOST_LOG_TRIVIAL(error) << "Cannot open file " << path;
         return false;
     }
 
@@ -870,14 +871,12 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
     for (;;) {
         int len = (int)fread(buff, 1, 8192, pFile);
         if (ferror(pFile)) {
-            printf("AMF parser: Read error\n");
+            BOOST_LOG_TRIVIAL(error) << "AMF parser: Read error";
             break;
         }
         int done = feof(pFile);
         if (XML_Parse(parser, buff, len, done) == XML_STATUS_ERROR || ctx.error()) {
-            printf("AMF parser: Parse error at line %d:\n%s\n",
-                  (int)XML_GetCurrentLineNumber(parser),
-                  ctx.error_message());
+            BOOST_LOG_TRIVIAL(error) << "AMF parser: Parse error at line " << int(XML_GetCurrentLineNumber(parser)) << ": " << ctx.error_message();
             break;
         }
         if (done) {
@@ -908,14 +907,14 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
 {
     if (stat.m_uncomp_size == 0)
     {
-        printf("Found invalid size\n");
+        BOOST_LOG_TRIVIAL(error) << "Found invalid size";
         close_zip_reader(&archive);
         return false;
     }
 
     XML_Parser parser = XML_ParserCreate(nullptr); // encoding
     if (!parser) {
-        printf("Couldn't allocate memory for parser\n");
+        BOOST_LOG_TRIVIAL(error) << "Couldn't allocate memory for parser";
         close_zip_reader(&archive);
         return false;
     }
@@ -954,14 +953,14 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     }
     catch (std::exception& e)
     {
-        printf("%s\n", e.what());
+        BOOST_LOG_TRIVIAL(error) << "Error reading AMF file: " << e.what();
         close_zip_reader(&archive);
         return false;
     }
 
     if (res == 0)
     {
-        printf("Error while extracting model data from zip archive");
+        BOOST_LOG_TRIVIAL(error) << "Error while extracting model data from zip archive";
         close_zip_reader(&archive);
         return false;
     }
@@ -990,7 +989,7 @@ bool load_amf_archive(const char* path, DynamicPrintConfig* config, Model* model
 
     if (!open_zip_reader(&archive, path))
     {
-        printf("Unable to init zip reader\n");
+        BOOST_LOG_TRIVIAL(error) << "Unable to init zip reader";
         return false;
     }
 
@@ -1009,7 +1008,7 @@ bool load_amf_archive(const char* path, DynamicPrintConfig* config, Model* model
                     if (!extract_model_from_archive(archive, stat, config, model, check_version))
                     {
                         close_zip_reader(&archive);
-                        printf("Archive does not contain a valid model");
+                        BOOST_LOG_TRIVIAL(error) << "Archive does not contain a valid model";
                         return false;
                     }
                 }
@@ -1248,7 +1247,7 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
         if (!object->instances.empty()) {
             for (ModelInstance *instance : object->instances) {
                 char buf[512];
-                sprintf(buf,
+                ::sprintf(buf,
                     "    <instance objectid=\"%zu\">\n"
                     "      <deltax>%lf</deltax>\n"
                     "      <deltay>%lf</deltay>\n"

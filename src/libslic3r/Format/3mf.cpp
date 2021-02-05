@@ -22,6 +22,7 @@
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/spirit/include/karma.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -257,9 +258,8 @@ namespace Slic3r {
     public:
         void log_errors()
         {
-            for (const std::string& error : m_errors) {
-                printf("%s\n", error.c_str());
-            }
+            for (const std::string& error : m_errors)
+                BOOST_LOG_TRIVIAL(error) << error;
         }
     };
 
