@@ -1601,6 +1601,12 @@ PrintRegionConfig PrintObject::region_config_from_model_volume(const PrintRegion
     clamp_exturder_to_default(config.infill_extruder,       num_extruders);
     clamp_exturder_to_default(config.perimeter_extruder,    num_extruders);
     clamp_exturder_to_default(config.solid_infill_extruder, num_extruders);
+    if (config.fill_density.value < 0.00011f)
+        // Switch of infill for very low infill rates, also avoid division by zero in infill generator for these very low rates.
+        // See GH issue #5910.
+        config.fill_density.value = 0;
+    else 
+        config.fill_density.value = std::min(config.fill_density.value, 1.);
     return config;
 }
 
