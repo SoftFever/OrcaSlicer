@@ -1239,7 +1239,8 @@ namespace Slic3r {
 
                 CustomGCode::Type   type;
                 std::string         extra;
-                if (tree.find("type") == tree.not_found()) {
+                pt::ptree attr_tree = tree.find("<xmlattr>")->second;
+                if (attr_tree.find("type") == attr_tree.not_found()) {
                     // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
                     // read old data ... 
                     std::string gcode       = tree.get<std::string> ("<xmlattr>.gcode");
