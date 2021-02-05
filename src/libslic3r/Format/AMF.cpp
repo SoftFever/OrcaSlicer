@@ -63,21 +63,29 @@ namespace Slic3r
 struct AMFParserContext
 {
     AMFParserContext(XML_Parser parser, DynamicPrintConfig* config, Model* model) :
-        m_version(0),
         m_parser(parser),
         m_model(*model), 
-        m_object(nullptr), 
-        m_volume(nullptr),
-        m_material(nullptr),
-        m_instance(nullptr),
         m_config(config)
     {
         m_path.reserve(12);
     }
 
-    void stop() 
+    void stop(const std::string &msg = std::string())
     {
+        assert(! m_error);
+        assert(m_error_message.empty());
+        m_error = true;
+        m_error_message = msg;
         XML_StopParser(m_parser, 0);
+    }
+
+    bool        error()         const { return m_error; }
+    const char* error_message() const {
+        return m_error ?
+            // The error was signalled by the user code, not the expat parser.
+            (m_error_message.empty() ? "Invalid AMF format" : m_error_message.c_str()) :
+            // The error was signalled by the expat parser.
+            XML_ErrorString(XML_GetErrorCode(m_parser));
     }
 
     void startElement(const char *name, const char **atts);
@@ -217,33 +225,37 @@ struct AMFParserContext
     };
 
     // Version of the amf file
-    unsigned int             m_version;
+    unsigned int             m_version { 0 };
     // Current Expat XML parser instance.
     XML_Parser               m_parser;
+    // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
+    // after returning from XML_Parse() function, thus we keep the error state here.
+    bool                     m_error { false };
+    std::string              m_error_message;
     // Model to receive objects extracted from an AMF file.
     Model                   &m_model;
     // Current parsing path in the XML file.
     std::vector<AMFNodeType> m_path;
     // Current object allocated for an amf/object XML subtree.
-    ModelObject             *m_object;
+    ModelObject             *m_object { nullptr };
     // Map from obect name to object idx & instances.
     std::map<std::string, Object> m_object_instances_map;
     // Vertices parsed for the current m_object.
     std::vector<float>       m_object_vertices;
     // Current volume allocated for an amf/object/mesh/volume subtree.
-    ModelVolume             *m_volume;
+    ModelVolume             *m_volume { nullptr };
     // Faces collected for the current m_volume.
     std::vector<int>         m_volume_facets;
     // Transformation matrix of a volume mesh from its coordinate system to Object's coordinate system.
     Transform3d 			 m_volume_transform;
     // Current material allocated for an amf/metadata subtree.
-    ModelMaterial           *m_material;
+    ModelMaterial           *m_material { nullptr };
     // Current instance allocated for an amf/constellation/instance subtree.
-    Instance                *m_instance;
+    Instance                *m_instance { nullptr };
     // Generic string buffer for vertices, face indices, metadata etc.
     std::string              m_value[5];
     // Pointer to config to update if config data are stored inside the amf file
-    DynamicPrintConfig      *m_config;
+    DynamicPrintConfig      *m_config { nullptr };
 
 private:
     AMFParserContext& operator=(AMFParserContext&);
@@ -591,9 +603,9 @@ void AMFParserContext::endElement(const char * /* name */)
     // Faces of the current volume:
     case NODE_TYPE_TRIANGLE:
         assert(m_object && m_volume);
-        m_volume_facets.push_back(atoi(m_value[0].c_str()));
-        m_volume_facets.push_back(atoi(m_value[1].c_str()));
-        m_volume_facets.push_back(atoi(m_value[2].c_str()));
+        m_volume_facets.emplace_back(atoi(m_value[0].c_str()));
+        m_volume_facets.emplace_back(atoi(m_value[1].c_str()));
+        m_volume_facets.emplace_back(atoi(m_value[2].c_str()));
         m_value[0].clear();
         m_value[1].clear();
         m_value[2].clear();
@@ -616,6 +628,10 @@ void AMFParserContext::endElement(const char * /* name */)
             for (unsigned int v = 0; v < 3; ++v)
             {
                 unsigned int tri_id = m_volume_facets[i++] * 3;
+                if (tri_id < 0 || tri_id + 2 >= m_object_vertices.size()) {
+                    this->stop("Malformed triangle mesh");
+                    return;
+                }
                 facet.vertex[v] = Vec3f(m_object_vertices[tri_id + 0], m_object_vertices[tri_id + 1], m_object_vertices[tri_id + 2]);
             }
         }        
@@ -858,10 +874,10 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
             break;
         }
         int done = feof(pFile);
-        if (XML_Parse(parser, buff, len, done) == XML_STATUS_ERROR) {
+        if (XML_Parse(parser, buff, len, done) == XML_STATUS_ERROR || ctx.error()) {
             printf("AMF parser: Parse error at line %d:\n%s\n",
                   (int)XML_GetCurrentLineNumber(parser),
-                  XML_ErrorString(XML_GetErrorCode(parser)));
+                  ctx.error_message());
             break;
         }
         if (done) {
@@ -912,12 +928,13 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     struct CallbackData
     {
         XML_Parser& parser;
+        AMFParserContext& ctx;
         const mz_zip_archive_file_stat& stat;
 
-        CallbackData(XML_Parser& parser, const mz_zip_archive_file_stat& stat) : parser(parser), stat(stat) {}
+        CallbackData(XML_Parser& parser, AMFParserContext& ctx, const mz_zip_archive_file_stat& stat) : parser(parser), ctx(ctx), stat(stat) {}
     };
 
-    CallbackData data(parser, stat);
+    CallbackData data(parser, ctx, stat);
 
     mz_bool res = 0;
 
@@ -925,10 +942,10 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     {
         res = mz_zip_reader_extract_file_to_callback(&archive, stat.m_filename, [](void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)->size_t {
             CallbackData* data = (CallbackData*)pOpaque;
-            if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0))
+            if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0) || data->ctx.error())
             {
                 char error_buf[1024];
-                ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", XML_ErrorString(XML_GetErrorCode(data->parser)), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
+                ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", data->ctx.error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
                 throw Slic3r::FileIOError(error_buf);
             }
 
