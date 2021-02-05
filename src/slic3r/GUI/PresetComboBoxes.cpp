@@ -186,6 +186,12 @@ void PresetComboBox::update_selection()
     validate_selection();
 
     SetSelection(m_last_selected);
+#ifdef __WXMSW__
+    // From the Windows 2004 the tooltip for preset combobox doesn't work after next call of SetTooltip()
+    // (There was an issue, when tooltip doesn't appears after changing of the preset selection)
+    // But this workaround seems to work: We should to kill tooltip and than set new tooltip value
+    SetToolTip(NULL);
+#endif
     SetToolTip(GetString(m_last_selected));
 
 // A workaround for a set of issues related to text fitting into gtk widgets:
@@ -411,7 +417,8 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 
     bitmap_key += is_system ? ",syst" : ",nsyst";
     bitmap_key += ",h" + std::to_string(icon_height);
-    if (wxGetApp().dark_mode())
+    bool dark_mode = wxGetApp().dark_mode();
+    if (dark_mode)
         bitmap_key += ",dark";
 
     wxBitmap* bmp = bitmap_cache().find(bitmap_key);
@@ -427,10 +434,10 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
             unsigned char rgb[3];
             // Paint the color bars.
             bitmap_cache().parse_color(filament_rgb, rgb);
-            bmps.emplace_back(bitmap_cache().mksolid(is_single_bar ? wide_icon_width : norm_icon_width, icon_height, rgb, false, 1));
+            bmps.emplace_back(bitmap_cache().mksolid(is_single_bar ? wide_icon_width : norm_icon_width, icon_height, rgb, false, 1, dark_mode));
             if (!is_single_bar) {
                 bitmap_cache().parse_color(extruder_rgb, rgb);
-                bmps.emplace_back(bitmap_cache().mksolid(thin_icon_width, icon_height, rgb, false, 1));
+                bmps.emplace_back(bitmap_cache().mksolid(thin_icon_width, icon_height, rgb, false, 1, dark_mode));
             }
             // Paint a lock at the system presets.
             bmps.emplace_back(bitmap_cache().mkclear(space_icon_width, icon_height));
@@ -916,8 +923,16 @@ void PlaterPresetComboBox::update()
     update_selection();
     Thaw();
 
-    if (!tooltip.IsEmpty())
+    if (!tooltip.IsEmpty()) {
+#ifdef __WXMSW__
+        // From the Windows 2004 the tooltip for preset combobox doesn't work after next call of SetTooltip()
+        // (There was an issue, when tooltip doesn't appears after changing of the preset selection)
+        // But this workaround seems to work: We should to kill tooltip and than set new tooltip value
+        // See, https://groups.google.com/g/wx-users/c/mOEe3fgHrzk
+        SetToolTip(NULL);
+#endif
         SetToolTip(tooltip);
+    }
 
 #ifdef __WXMSW__
     // Use this part of code just on Windows to avoid of some layout issues on Linux

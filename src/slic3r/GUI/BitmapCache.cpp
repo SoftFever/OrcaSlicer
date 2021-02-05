@@ -338,7 +338,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 }
 
 //we make scaled solid bitmaps only for the cases, when its will be used with scaled SVG icon in one output bitmap
-wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, bool suppress_scaling/* = false*/, size_t border_width /*= 0*/)
+wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, bool suppress_scaling/* = false*/, size_t border_width /*= 0*/, bool dark_mode/* = false*/)
 {
     double scale = suppress_scaling ? 1.0f : m_scale;
     width  *= scale;
@@ -371,7 +371,7 @@ wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsi
                     x >= (width - border_width) || y >= (height - border_width)) {
                     const size_t idx = (x + y * width);
                     const size_t idx_rgb = (x + y * width) * 3;
-                    px_data[idx_rgb] = px_data[idx_rgb + 1] = px_data[idx_rgb + 2] = 0u;
+                    px_data[idx_rgb] = px_data[idx_rgb + 1] = px_data[idx_rgb + 2] = dark_mode ? 245u : 110u;
                     a_data[idx] = 255u;
                 }
             }
