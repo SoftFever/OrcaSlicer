@@ -230,14 +230,11 @@ static Polylines connect_brim_lines(Polylines &&polylines, const Polygons &brim_
     if (polylines.empty())
         return Polylines();
 
-    std::vector<Points> polylines_points(polylines.size() + brim_area.size());
-    for (const Polyline &poly : polylines)
-        polylines_points[&poly - &polylines.front()] = poly.points;
-    for (const Polygon &poly : brim_area)
-        polylines_points.emplace_back(poly.points);
+    BoundingBox bbox = get_extents(polylines);
+    bbox.merge(get_extents(brim_area));
 
-    EdgeGrid::Grid grid(get_extents(polylines).inflated(SCALED_EPSILON));
-    grid.create(polylines_points, coord_t(scale_(10.)));
+    EdgeGrid::Grid grid(bbox.inflated(SCALED_EPSILON));
+    grid.create(brim_area, polylines, coord_t(scale_(10.)));
 
     struct Visitor
     {

@@ -1129,7 +1129,7 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
 			intersection_points.reserve(infill_ordered.size() * 2);
 			for (const Polyline &pl : infill_ordered)
 				for (const Point *pt : { &pl.points.front(), &pl.points.back() }) {
-					EdgeGrid::Grid::ClosestPointResult cp = grid.closest_point(*pt, coord_t(SCALED_EPSILON));
+					EdgeGrid::Grid::ClosestPointResult cp = grid.closest_point_signed_distance(*pt, coord_t(SCALED_EPSILON));
 					if (cp.valid()) {
 						// The infill end point shall lie on the contour.
 						assert(cp.distance <= 3.);

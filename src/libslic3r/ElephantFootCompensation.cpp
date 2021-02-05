@@ -104,7 +104,7 @@ std::vector<float> contour_distance(const EdgeGrid::Grid &grid, const size_t idx
 								double param_hi;
 								double param_end = resampled_point_parameters.back().curve_parameter;
 								{
-									const Slic3r::Points &ipts = *grid.contours()[it_contour_and_segment->first];
+									const EdgeGrid::Contour &contour = grid.contours()[it_contour_and_segment->first];
 									size_t ipt = it_contour_and_segment->second;
 									ResampledPoint key(ipt, false, 0.);
 									auto lower = [](const ResampledPoint& l, const ResampledPoint r) { return l.idx_src < r.idx_src || (l.idx_src == r.idx_src && int(l.interpolated) > int(r.interpolated)); };
@@ -112,7 +112,7 @@ std::vector<float> contour_distance(const EdgeGrid::Grid &grid, const size_t idx
 									assert(it != resampled_point_parameters.end() && it->idx_src == ipt && ! it->interpolated);
 									double t2 = cross2(dir, vptpt2) / denom;
 									assert(t2 > - EPSILON && t2 < 1. + EPSILON);
-									if (++ ipt == ipts.size())
+									if (contour.begin() + (++ ipt) == contour.end())
 										param_hi = t2 * dir2.norm();
 									else
 										param_hi = it->curve_parameter + t2 * dir2.norm();
@@ -251,7 +251,7 @@ std::vector<float> contour_distance2(const EdgeGrid::Grid &grid, const size_t id
 #endif
 		struct Visitor {
 			Visitor(const EdgeGrid::Grid &grid, const size_t idx_contour, const std::vector<ResampledPoint> &resampled_point_parameters, double dist_same_contour_accept, double dist_same_contour_reject) :
-				grid(grid), idx_contour(idx_contour), contour(*grid.contours()[idx_contour]), resampled_point_parameters(resampled_point_parameters), dist_same_contour_accept(dist_same_contour_accept), dist_same_contour_reject(dist_same_contour_reject) {}
+				grid(grid), idx_contour(idx_contour), contour(grid.contours()[idx_contour]), resampled_point_parameters(resampled_point_parameters), dist_same_contour_accept(dist_same_contour_accept), dist_same_contour_reject(dist_same_contour_reject) {}
 
 			void init(const Points &contour, const Point &apoint) {
                 this->idx_point  = &apoint - contour.data();
@@ -283,15 +283,15 @@ std::vector<float> contour_distance2(const EdgeGrid::Grid &grid, const size_t id
 							double param_lo = resampled_point_parameters[this->idx_point].curve_parameter;
 							double param_hi;
 							double param_end = resampled_point_parameters.back().curve_parameter;
-							const Slic3r::Points &ipts = *grid.contours()[it_contour_and_segment->first];
-							const size_t		  ipt  = it_contour_and_segment->second;
+							const EdgeGrid::Contour &contour = grid.contours()[it_contour_and_segment->first];
+							const size_t		     ipt     = it_contour_and_segment->second;
 							{
 								ResampledPoint key(ipt, false, 0.);
 								auto lower = [](const ResampledPoint& l, const ResampledPoint r) { return l.idx_src < r.idx_src || (l.idx_src == r.idx_src && int(l.interpolated) > int(r.interpolated)); };
 								auto it = std::lower_bound(resampled_point_parameters.begin(), resampled_point_parameters.end(), key, lower);
 								assert(it != resampled_point_parameters.end() && it->idx_src == ipt && ! it->interpolated);
 								param_hi = t * sqrt(l2);
-								if (ipt + 1 < ipts.size())
+								if (contour.begin() + ipt + 1 < contour.end())
 									param_hi += it->curve_parameter;
 							}
 							if (param_lo > param_hi)
@@ -307,9 +307,9 @@ std::vector<float> contour_distance2(const EdgeGrid::Grid &grid, const size_t id
 								// Bulge is estimated by 0.6 of the circle circumference drawn around the bisector.
 								// Test whether the contour is convex or concave.
 								bool inside = 
-									(t == 0.) ? this->inside_corner(ipts, ipt, this->point) :
-									(t == 1.) ? this->inside_corner(ipts, ipt + 1 == ipts.size() ? 0 : ipt + 1, this->point) :
-									this->left_of_segment(ipts, ipt, this->point);
+									(t == 0.) ? this->inside_corner(contour, ipt, this->point) :
+									(t == 1.) ? this->inside_corner(contour, contour.segment_idx_next(ipt), this->point) :
+									this->left_of_segment(contour, ipt, this->point);
 								accept = inside && dist_along_contour > 0.6 * M_PI * dist;
 							}
 					    }
@@ -329,7 +329,7 @@ std::vector<float> contour_distance2(const EdgeGrid::Grid &grid, const size_t id
 
 			const EdgeGrid::Grid 			   &grid;
 			const size_t 		  				idx_contour;
-			const Points					   &contour;
+			const EdgeGrid::Contour			   &contour;
 			const std::vector<ResampledPoint>  &resampled_point_parameters;
 			const double                        dist_same_contour_accept;
 			const double 						dist_same_contour_reject;
@@ -358,24 +358,28 @@ std::vector<float> contour_distance2(const EdgeGrid::Grid &grid, const size_t id
 				return Vec2d(- v.y(), v.x());
 			}
 
-			static bool inside_corner(const Slic3r::Points &contour, size_t i, const Point &pt_oposite) {
-				const Vec2d pt = pt_oposite.cast<double>();
-				size_t iprev = prev_idx_modulo(i, contour);
-				size_t inext = next_idx_modulo(i, contour);
-				Vec2d v1 = (contour[i] - contour[iprev]).cast<double>();
-				Vec2d v2 = (contour[inext] - contour[i]).cast<double>();
-				bool  left_of_v1 = cross2(v1, pt - contour[iprev].cast<double>()) > 0.;
-				bool  left_of_v2 = cross2(v2, pt - contour[i    ].cast<double>()) > 0.;
-				return cross2(v1, v2) > 0 ? 
-					left_of_v1 && left_of_v2 : // convex corner
-					left_of_v1 || left_of_v2;  // concave corner
-			}
-			static bool left_of_segment(const Slic3r::Points &contour, size_t i, const Point &pt_oposite) {
-				const Vec2d pt = pt_oposite.cast<double>();
-				size_t inext = next_idx_modulo(i, contour);
-				Vec2d v = (contour[inext] - contour[i]).cast<double>();
-				return cross2(v, pt - contour[i].cast<double>()) > 0.;
-			}
+            static bool inside_corner(const EdgeGrid::Contour &contour, size_t i, const Point &pt_oposite)
+            {
+                const Vec2d pt         = pt_oposite.cast<double>();
+                const Point &pt_prev   = contour.segment_prev(i);
+                const Point &pt_this   = contour.segment_start(i);
+                const Point &pt_next   = contour.segment_end(i);
+                Vec2d       v1         = (pt_this - pt_prev).cast<double>();
+                Vec2d       v2         = (pt_next - pt_this).cast<double>();
+                bool        left_of_v1 = cross2(v1, pt - pt_prev.cast<double>()) > 0.;
+                bool        left_of_v2 = cross2(v2, pt - pt_this.cast<double>()) > 0.;
+                return cross2(v1, v2) > 0 ? left_of_v1 && left_of_v2 : // convex corner
+                                            left_of_v1 || left_of_v2;                   // concave corner
+            }
+
+            static bool left_of_segment(const EdgeGrid::Contour &contour, size_t i, const Point &pt_oposite)
+            {
+                const Vec2d  pt      = pt_oposite.cast<double>();
+                const Point &pt_this = contour.segment_start(i);
+                const Point &pt_next = contour.segment_end(i);
+                Vec2d        v       = (pt_next - pt_this).cast<double>();
+                return cross2(v, pt - pt_this.cast<double>()) > 0.;
+            }
 		} visitor(grid, idx_contour, resampled_point_parameters, 0.5 * compensation * M_PI, search_radius);
 
 		out.reserve(contour.size());
