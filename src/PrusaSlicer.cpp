@@ -402,7 +402,8 @@ int CLI::run(int argc, char **argv)
             for (Model &model : m_models) {
                 size_t num_objects = model.objects.size();
                 for (size_t i = 0; i < num_objects; ++ i) {
-                    model.objects.front()->split(nullptr);
+                    ModelObjectPtrs new_objects;
+                    model.objects.front()->split(&new_objects);
                     model.delete_object(size_t(0));
                 }
             }

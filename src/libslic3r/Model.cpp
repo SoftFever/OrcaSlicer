@@ -1305,6 +1305,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     
     ModelVolume* volume = this->volumes.front();
     TriangleMeshPtrs meshptrs = volume->mesh().split();
+    size_t counter = 1;
     for (TriangleMesh *mesh : meshptrs) {
 
         // FIXME: crashes if not satisfied
@@ -1314,7 +1315,8 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         
         // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
         ModelObject* new_object = m_model->add_object();    
-        new_object->name   = this->name;
+        new_object->name   = this->name + (meshptrs.size() > 1 ? "_" + std::to_string(counter++) : "");
+
         // Don't copy the config's ID.
 		new_object->config.assign_config(this->config);
 		assert(new_object->config.id().valid());

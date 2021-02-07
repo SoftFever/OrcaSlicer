@@ -2892,10 +2892,6 @@ void Plater::priv::split_object()
     {
         Plater::TakeSnapshot snapshot(q, _L("Split to Objects"));
 
-        unsigned int counter = 1;
-        for (ModelObject* m : new_objects)
-            m->name = current_model_object->name + "_" + std::to_string(counter++);
-
         remove(obj_idx);
 
         // load all model objects at once, otherwise the plate would be rearranged after each one
