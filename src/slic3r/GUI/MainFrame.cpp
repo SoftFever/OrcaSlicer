@@ -64,10 +64,10 @@ public:
             // Only allow opening a new PrusaSlicer instance on OSX if "single_instance" is disabled, 
             // as starting new instances would interfere with the locking mechanism of "single_instance" support.
             append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new PrusaSlicer instance"),
-            [this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
+            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
         }
         append_menu_item(menu, wxID_ANY, _L("G-code preview") + dots, _L("Open G-code viewer"),
-            [this](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
+            [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
         return menu;
     }
 };
@@ -78,9 +78,9 @@ public:
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         append_menu_item(menu, wxID_ANY, _L("Open PrusaSlicer"), _L("Open a new PrusaSlicer instance"),
-            [this](wxCommandEvent&) { start_new_slicer(nullptr, true); }, "", nullptr);
+            [](wxCommandEvent&) { start_new_slicer(nullptr, true); }, "", nullptr);
         append_menu_item(menu, wxID_ANY, _L("G-code preview") + dots, _L("Open new G-code viewer"),
-            [this](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
+            [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
         return menu;
     }
 };
@@ -231,7 +231,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 // So, redraw explicitly canvas, when application is moved
 //FIXME maybe this is useful for __WXGTK3__ as well?
 #if __APPLE__
-    Bind(wxEVT_MOVE, [this](wxMoveEvent& event) {
+    Bind(wxEVT_MOVE, [](wxMoveEvent& event) {
         wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
         wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
         event.Skip();
@@ -1190,7 +1190,7 @@ void MainFrame::init_menubar_as_editor()
         
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _L("Open new instance") + "\tCtrl+Shift+I", _L("Open a new PrusaSlicer instance"),
-			[this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr, [this]() {return m_plater != nullptr && wxGetApp().app_config->get("single_instance") != "1"; }, this);
+            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr, [this]() {return m_plater != nullptr && wxGetApp().app_config->get("single_instance") != "1"; }, this);
 
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _L("Compare presets")/* + "\tCtrl+F"*/, _L("Compare presets"), 
@@ -1263,8 +1263,8 @@ void MainFrame::init_menubar_as_gcodeviewer()
             [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
             [this]() {return can_export_toolpaths(); }, this);
         append_menu_item(fileMenu, wxID_ANY, _L("Open &PrusaSlicer") + dots, _L("Open PrusaSlicer"),
-            [this](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
-            [this]() {return true; }, this);
+            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
+            []() {return true; }, this);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { Close(false); });

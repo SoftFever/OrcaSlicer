@@ -738,7 +738,7 @@ void PlaterPresetComboBox::show_add_menu()
     wxMenu* menu = new wxMenu();
 
     append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
-        [this](wxCommandEvent&) { 
+        [](wxCommandEvent&) {
             wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS); });
         }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
@@ -768,7 +768,7 @@ void PlaterPresetComboBox::show_edit_menu()
     }
     else
         append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
-            [this](wxCommandEvent&) {
+            [](wxCommandEvent&) {
                 wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS); });
             }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
@@ -893,7 +893,7 @@ void PlaterPresetComboBox::update()
             const PhysicalPrinterCollection& ph_printers = m_preset_bundle->physical_printers;
 
             for (PhysicalPrinterCollection::ConstIterator it = ph_printers.begin(); it != ph_printers.end(); ++it) {
-                for (const std::string preset_name : it->get_preset_names()) {
+                for (const std::string& preset_name : it->get_preset_names()) {
                     Preset* preset = m_collection->find_preset(preset_name);
                     if (!preset)
                         continue;
@@ -1078,7 +1078,7 @@ void TabPresetComboBox::update()
             const PhysicalPrinterCollection& ph_printers = m_preset_bundle->physical_printers;
 
             for (PhysicalPrinterCollection::ConstIterator it = ph_printers.begin(); it != ph_printers.end(); ++it) {
-                for (const std::string preset_name : it->get_preset_names()) {
+                for (const std::string& preset_name : it->get_preset_names()) {
                     Preset* preset = m_collection->find_preset(preset_name);
                     if (!preset)
                         continue;

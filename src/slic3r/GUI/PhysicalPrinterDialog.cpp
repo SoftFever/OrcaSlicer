@@ -275,7 +275,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     m_optgroup->append_single_option_line("host_type");
 
-    auto create_sizer_with_btn = [this](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
+    auto create_sizer_with_btn = [](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
         *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
         (*btn)->SetFont(wxGetApp().normal_font());
 
@@ -290,7 +290,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         m_printhost_browse_btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent& e) {
             BonjourDialog dialog(this, Preset::printer_technology(m_printer.config));
             if (dialog.show_and_lookup()) {
-                m_optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
+                m_optgroup->set_value("print_host", dialog.get_selected(), true);
                 m_optgroup->get_field("print_host")->field_changed();
             }
         });
@@ -366,7 +366,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
                 static const auto filemasks = _L("Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*");
                 wxFileDialog openFileDialog(this, _L("Open CA certificate file"), "", "", filemasks, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
                 if (openFileDialog.ShowModal() != wxID_CANCEL) {
-                    m_optgroup->set_value("printhost_cafile", std::move(openFileDialog.GetPath()), true);
+                    m_optgroup->set_value("printhost_cafile", openFileDialog.GetPath(), true);
                     m_optgroup->get_field("printhost_cafile")->field_changed();
                 }
                 });
@@ -379,7 +379,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
         Line cafile_hint{ "", "" };
         cafile_hint.full_width = 1;
-        cafile_hint.widget = [this, ca_file_hint](wxWindow* parent) {
+        cafile_hint.widget = [ca_file_hint](wxWindow* parent) {
             auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(txt);
@@ -420,7 +420,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     {
         wxTextCtrl* temp = dynamic_cast<wxTextCtrl*>(printhost_field->getWindow());
         if (temp)
-            temp->Bind(wxEVT_TEXT, ([this, printhost_field, temp](wxEvent& e)
+            temp->Bind(wxEVT_TEXT, ([printhost_field, temp](wxEvent& e)
             {
 #ifndef __WXGTK__
                 e.Skip();

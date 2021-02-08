@@ -664,7 +664,7 @@ static std::vector<size_t> find_enforcer_centers(const Polygon& polygon,
     if (polygon.size() < 2 || enforcers_idxs.empty())
         return out;
 
-    auto get_center_idx = [&polygon, &lengths](size_t start_idx, size_t end_idx) -> size_t {
+    auto get_center_idx = [&lengths](size_t start_idx, size_t end_idx) -> size_t {
         assert(end_idx >= start_idx);
         if (start_idx == end_idx)
             return start_idx;

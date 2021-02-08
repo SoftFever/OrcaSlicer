@@ -132,7 +132,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     // Add control for the "Layer height"
 
     editor = new LayerRangeEditor(this, double_to_string(m_object->layer_config_ranges[range].option("layer_height")->getFloat()), etLayerHeight, set_focus_data,
-        [range, this](coordf_t layer_height, bool, bool)
+        [range](coordf_t layer_height, bool, bool)
     {
         return wxGetApp().obj_list()->edit_layer_range(range, layer_height);
     });

@@ -1405,7 +1405,7 @@ std::string Print::validate() const
                 return L("One or more object were assigned an extruder that the printer does not have.");
 #endif
 
-		auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
+        auto validate_extrusion_width = [/*min_nozzle_diameter,*/ max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
             // This may change in the future, if we switch to "extrusion width wrt. nozzle diameter"
             // instead of currently used logic "extrusion width wrt. layer height", see GH issues #1923 #2829.
 //        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);

@@ -553,7 +553,7 @@ void Http::cancel()
 
 Http Http::get(std::string url)
 {
-	return std::move(Http{std::move(url)});
+    return Http{std::move(url)};
 }
 
 Http Http::post(std::string url)

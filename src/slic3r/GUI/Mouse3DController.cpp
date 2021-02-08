@@ -397,7 +397,7 @@ void Mouse3DController::save_config(AppConfig &appconfig) const
 	// We do not synchronize m_params_by_device with the background thread explicitely 
 	// as there should be a full memory barrier executed once the background thread is stopped.
 
-	for (const std::pair<std::string, Params> &key_value_pair : m_params_by_device) {
+    for (const auto &key_value_pair : m_params_by_device) {
 		const std::string &device_name = key_value_pair.first;
 		const Params      &params      = key_value_pair.second;
 	    // Store current device parameters into the config

@@ -206,7 +206,7 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 		tmp_path.string());
 
 	Http::get(url)
-		.on_progress([this](Http::Progress, bool &cancel) {
+        .on_progress([](Http::Progress, bool &cancel) {
 			if (cancel) { cancel = true; }
 		})
 		.on_error([&](std::string body, std::string error, unsigned http_status) {
@@ -406,7 +406,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 	BOOST_LOG_TRIVIAL(info) << "Checking for cached configuration updates...";
 
 	// Over all indices from the cache directory:
-	for (const auto idx : index_db) {
+    for (const Index& idx : index_db) {
 		auto bundle_path = vendor_path / (idx.vendor() + ".ini");
 		auto bundle_path_idx = vendor_path / idx.path().filename();
 
@@ -679,11 +679,11 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 	// into the closure (but perhaps the compiler can elide this).
 	VendorMap vendors = preset_bundle->vendors;
 
-	p->thread = std::move(std::thread([this, vendors]() {
+    p->thread = std::thread([this, vendors]() {
 		this->p->prune_tmps();
 		this->p->sync_version();
 		this->p->sync_config(std::move(vendors));
-	}));
+    });
 }
 
 void PresetUpdater::slic3r_update_notify()

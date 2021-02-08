@@ -202,6 +202,13 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-ignored-attributes) # Tamas: Eigen include dirs are marked as SYSTEM
     endif()
 
+    # Clang reports legacy OpenGL calls as deprecated. Turn off the warning for now
+    # to reduce the clutter, we know about this one. It should be reenabled after
+    # we finally get rid of the deprecated code.
+    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+        add_compile_options(-Wno-deprecated-declarations)
+    endif()
+
     #GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66943 or
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431

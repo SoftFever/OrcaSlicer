@@ -915,7 +915,7 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
     std::string bundle_name = std::string(" - ") + boost::filesystem::path(path).filename().string();
 
     // 2) Extract active configs from the config bundle, copy them and activate them in this bundle.
-    auto load_one = [this, &path, &bundle_name](PresetCollection &collection_dst, PresetCollection &collection_src, const std::string &preset_name_src, bool activate) -> std::string {
+    auto load_one = [&path, &bundle_name](PresetCollection &collection_dst, PresetCollection &collection_src, const std::string &preset_name_src, bool activate) -> std::string {
         Preset *preset_src = collection_src.find_preset(preset_name_src, false);
         Preset *preset_dst = collection_dst.find_preset(preset_name_src, false);
         assert(preset_src != nullptr);

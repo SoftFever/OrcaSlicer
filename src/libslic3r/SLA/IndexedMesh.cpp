@@ -55,8 +55,6 @@ public:
     }
 };
 
-static const constexpr double MESH_EPS = 1e-6;
-
 IndexedMesh::IndexedMesh(const TriangleMesh& tmesh)
     : m_aabb(new AABBImpl()), m_tm(&tmesh)
 {

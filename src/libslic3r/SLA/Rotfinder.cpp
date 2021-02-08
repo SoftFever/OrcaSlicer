@@ -165,7 +165,7 @@ XYRotation from_transform3d(const Transform3d &tr)
 template<size_t N, class Fn, class It, class StopCond>
 std::array<double, N> find_min_score(Fn &&fn, It from, It to, StopCond &&stopfn)
 {
-    std::array<double, N> ret;
+    std::array<double, N> ret = {};
 
     double score = std::numeric_limits<double>::max();
 

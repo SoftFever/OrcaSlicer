@@ -394,7 +394,6 @@ class GLCanvas3D
     class Slope
     {
         bool m_enabled{ false };
-        bool m_dialog_shown{ false };
         GLCanvas3D& m_canvas;
         GLVolumeCollection& m_volumes;
         static float s_window_width;

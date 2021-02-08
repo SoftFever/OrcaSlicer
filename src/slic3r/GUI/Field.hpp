@@ -113,8 +113,8 @@ public:
 
     void				field_changed() { on_change_field(); }
 
-    Field(const ConfigOptionDef& opt, const t_config_option_key& id) : m_opt(opt), m_opt_id(id) {};
-    Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : m_parent(parent), m_opt(opt), m_opt_id(id) {};
+    Field(const ConfigOptionDef& opt, const t_config_option_key& id) : m_opt(opt), m_opt_id(id) {}
+    Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : m_parent(parent), m_opt(opt), m_opt_id(id) {}
     virtual ~Field();
 
     /// If you don't know what you are getting back, check both methods for nullptr. 
@@ -315,12 +315,12 @@ public:
     /// Propagate value from field to the OptionGroupe and Config after kill_focus/ENTER
     void	        propagate_value() ;
 
-	void			set_value(const std::string& value, bool change_event = false) {
+    void			set_value(const std::string& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
 		dynamic_cast<wxSpinCtrl*>(window)->SetValue(value);
 		m_disable_change_event = false;
-	}
-	void			set_value(const boost::any& value, bool change_event = false) {
+    }
+    void			set_value(const boost::any& value, bool change_event = false) override {
 		m_disable_change_event = !change_event;
 		tmp_value = boost::any_cast<int>(value);
         m_value = value;
@@ -395,8 +395,8 @@ public:
 	boost::any&		get_value() override;
     void            msw_rescale() override;
 
-	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
-	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
+    void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); }
+    void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); }
 	wxWindow*		getWindow() override { return window; }
 };
 
@@ -456,8 +456,8 @@ public:
 
     void            msw_rescale() override;
 
-	void			enable() override { dynamic_cast<wxStaticText*>(window)->Enable(); };
-	void			disable() override{ dynamic_cast<wxStaticText*>(window)->Disable(); };
+    void			enable() override { dynamic_cast<wxStaticText*>(window)->Enable(); }
+    void			disable() override{ dynamic_cast<wxStaticText*>(window)->Disable(); }
 	wxWindow*		getWindow() override { return window; }
 };
 

@@ -226,7 +226,7 @@ struct DnsResource
 		}
 
 		dataoffset = offset;
-		res.data = std::move(std::vector<char>(buffer.begin() + offset, buffer.begin() + offset + rdlength));
+        res.data = std::vector<char>(buffer.begin() + offset, buffer.begin() + offset + rdlength);
 		offset += rdlength;
 
 		return std::move(res);

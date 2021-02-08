@@ -209,7 +209,7 @@ public:
 	bool is_immutable() const override { return true; }
 	bool is_optional() const override { return m_optional; }
 	// If it is an immutable object, return its pointer. There is a map assigning a temporary ObjectID to the immutable object pointer.
-	const void* immutable_object_ptr() const { return (const void*)m_shared_object.get(); }
+    const void* immutable_object_ptr() const override { return (const void*)m_shared_object.get(); }
 
 	// Estimated size in memory, to be used to drop least recently used snapshots.
 	size_t memsize() const override {

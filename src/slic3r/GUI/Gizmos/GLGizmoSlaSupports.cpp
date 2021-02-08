@@ -893,7 +893,7 @@ void GLGizmoSlaSupports::on_set_state()
             // Only take the snapshot when the USER opens the gizmo. Common gizmos
             // data are not yet available, the CallAfter will postpone taking the
             // snapshot until they are. No, it does not feel right.
-            wxGetApp().CallAfter([this]() {
+            wxGetApp().CallAfter([]() {
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
             });
         }

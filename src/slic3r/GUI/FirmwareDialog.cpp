@@ -648,7 +648,7 @@ void FirmwareDialog::priv::perform_upload()
 				}
 			}
 		})
-		.on_message(std::move([q, extra_verbose](const char *msg, unsigned /* size */) {
+        .on_message([q](const char *msg, unsigned /* size */) {
 			if (extra_verbose) {
 				BOOST_LOG_TRIVIAL(debug) << "avrdude: " << msg;
 			}
@@ -665,19 +665,19 @@ void FirmwareDialog::priv::perform_upload()
 			evt->SetExtraLong(AE_MESSAGE);
 			evt->SetString(std::move(wxmsg));
 			wxQueueEvent(q, evt);
-		}))
-		.on_progress(std::move([q](const char * /* task */, unsigned progress) {
+        })
+        .on_progress([q](const char * /* task */, unsigned progress) {
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			evt->SetExtraLong(AE_PROGRESS);
 			evt->SetInt(progress);
 			wxQueueEvent(q, evt);
-		}))
-		.on_complete(std::move([this]() {
+        })
+        .on_complete([this]() {
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, this->q->GetId());
 			evt->SetExtraLong(AE_EXIT);
 			evt->SetInt(this->avrdude->exit_code());
 			wxQueueEvent(this->q, evt);
-		}))
+        })
 		.run();
 }
 

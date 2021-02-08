@@ -297,7 +297,7 @@ template<class Rst> class Grid {
         case SquareTag::full:
         case SquareTag::none: {
             Coord crd{tl(cell) + Coord{m_cellsize.r / 2, m_cellsize.c / 2}};
-            return {{crd, Dir::none, m_rst}, crd};
+            return {{crd, Dir::none, m_rst}, {crd}};
         }
         }
         

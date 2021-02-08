@@ -213,7 +213,7 @@ inline bool liang_barsky_line_clipping_interval(
     double t0 = 0.0;
     double t1 = 1.0;
     // Traverse through left, right, bottom, top edges.
-    auto clip_side = [&x0, &v, &bbox, &t0, &t1](double p, double q) -> bool {
+    auto clip_side = [&t0, &t1](double p, double q) -> bool {
         if (p == 0) {
             if (q < 0)
                 // Line parallel to the bounding box edge is fully outside of the bounding box.

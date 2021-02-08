@@ -31,17 +31,17 @@ public:
     std::string get_tooltip() const override;
 
 protected:
-    virtual bool on_init();
-    virtual void on_load(cereal::BinaryInputArchive& ar) { ar(m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower); }
-    virtual void on_save(cereal::BinaryOutputArchive& ar) const { ar(m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower); }
-    virtual std::string on_get_name() const;
-    virtual void on_set_state();
-    virtual bool on_is_activable() const;
-    virtual void on_start_dragging();
-    virtual void on_update(const UpdateData& data);
-    virtual void on_render() const;
-    virtual void on_render_for_picking() const;
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
+    virtual bool on_init() override;
+    virtual void on_load(cereal::BinaryInputArchive& ar)  override{ ar(m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower); }
+    virtual void on_save(cereal::BinaryOutputArchive& ar) const override { ar(m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower); }
+    virtual std::string on_get_name() const override;
+    virtual void on_set_state() override;
+    virtual bool on_is_activable() const override;
+    virtual void on_start_dragging() override;
+    virtual void on_update(const UpdateData& data) override;
+    virtual void on_render() const override;
+    virtual void on_render_for_picking() const override;
+    virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
 private:
     void update_max_z(const Selection& selection) const;

@@ -1872,7 +1872,7 @@ void ConfigWizard::priv::load_vendors()
 		std::map<std::string, std::string> section_new;
 		if (app_config->has_section(section_name)) {
 			const std::map<std::string, std::string> &section_old = app_config->get_section(section_name);
-			for (const std::pair<std::string, std::string> &material_name_and_installed : section_old)
+            for (const auto& material_name_and_installed : section_old)
 				if (material_name_and_installed.second == "1") {
 					// Material is installed. Resolve it in bundles.
                     size_t num_found = 0;
@@ -2248,7 +2248,7 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
 	            	if ((only_for_model_id.empty() || only_for_model_id == printer_model->id) &&
 	            		printer_models_without_material.find(printer_model) == printer_models_without_material.end()) {
                     	bool has_material = false;
-			            for (const std::pair<std::string, std::string> &preset : appconfig_presets) {
+                        for (const auto& preset : appconfig_presets) {
 			            	if (preset.second == "1") {
 			            		const Preset *material = materials.find_preset(preset.first, false);
 			            		if (material != nullptr && is_compatible_with_printer(PresetWithVendorProfile(*material, nullptr), PresetWithVendorProfile(printer, nullptr))) {

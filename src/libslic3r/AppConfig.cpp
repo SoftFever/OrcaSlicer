@@ -266,14 +266,14 @@ void AppConfig::save()
     else
         c << "# " << Slic3r::header_gcodeviewer_generated() << std::endl;
     // Make sure the "no" category is written first.
-    for (const std::pair<std::string, std::string> &kvp : m_storage[""])
+    for (const auto& kvp : m_storage[""])
         c << kvp.first << " = " << kvp.second << std::endl;
     // Write the other categories.
-    for (const auto category : m_storage) {
+    for (const auto& category : m_storage) {
     	if (category.first.empty())
     		continue;
     	c << std::endl << "[" << category.first << "]" << std::endl;
-    	for (const std::pair<std::string, std::string> &kvp : category.second)
+        for (const auto& kvp : category.second)
 	        c << kvp.first << " = " << kvp.second << std::endl;
 	}
     // Write vendor sections
@@ -395,7 +395,7 @@ std::vector<std::string> AppConfig::get_mouse_device_names() const
     static constexpr const char   *prefix     = "mouse_device:";
     static const size_t  prefix_len = strlen(prefix);
     std::vector<std::string> out;
-    for (const std::pair<std::string, std::map<std::string, std::string>>& key_value_pair : m_storage)
+    for (const auto& key_value_pair : m_storage)
         if (boost::starts_with(key_value_pair.first, prefix) && key_value_pair.first.size() > prefix_len)
             out.emplace_back(key_value_pair.first.substr(prefix_len));
     return out;
