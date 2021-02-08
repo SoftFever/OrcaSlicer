@@ -683,6 +683,13 @@ std::string CoolingBuffer::apply_layer_cooldown(
         int min_fan_speed = EXTRUDER_CONFIG(min_fan_speed);
         int fan_speed_new = EXTRUDER_CONFIG(fan_always_on) ? min_fan_speed : 0;
         int disable_fan_first_layers = EXTRUDER_CONFIG(disable_fan_first_layers);
+        // Is the fan speed ramp enabled?
+        int full_fan_speed_layer = EXTRUDER_CONFIG(full_fan_speed_layer);
+        if (disable_fan_first_layers <= 0 && full_fan_speed_layer > 0) {
+            // When ramping up fan speed from disable_fan_first_layers to full_fan_speed_layer, force disable_fan_first_layers above zero,
+            // so there will be a zero fan speed at least at the 1st layer.
+            disable_fan_first_layers = 1;
+        }
         if (int(layer_id) >= disable_fan_first_layers) {
             int   max_fan_speed             = EXTRUDER_CONFIG(max_fan_speed);
             float slowdown_below_layer_time = float(EXTRUDER_CONFIG(slowdown_below_layer_time));
@@ -699,11 +706,6 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 }
             }
             bridge_fan_speed   = EXTRUDER_CONFIG(bridge_fan_speed);
-            // Is the fan speed ramp enabled?
-            int full_fan_speed_layer = EXTRUDER_CONFIG(full_fan_speed_layer);
-            // When ramping up fan speed from disable_fan_first_layers to full_fan_speed_layer, force disable_fan_first_layers above zero,
-            // so there will be a zero fan speed at least at the 1st layer.
-            disable_fan_first_layers = std::max(disable_fan_first_layers, 1);
             if (int(layer_id) >= disable_fan_first_layers && int(layer_id) + 1 < full_fan_speed_layer) {
                 // Ramp up the fan speed from disable_fan_first_layers to full_fan_speed_layer.
                 float factor = float(int(layer_id + 1) - disable_fan_first_layers) / float(full_fan_speed_layer - disable_fan_first_layers);
