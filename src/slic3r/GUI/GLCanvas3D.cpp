@@ -641,6 +641,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         error = true;
         break;
     }
+    BOOST_LOG_TRIVIAL(error) << state << " : " << text ;
     auto &notification_manager = *wxGetApp().plater()->get_notification_manager();
     if (state) {
         if(error)
@@ -1620,9 +1621,6 @@ void GLCanvas3D::render()
         wxGetApp().plater()->init_environment_texture();
 #endif // ENABLE_ENVIRONMENT_MAP
 
-    m_render_timer.Stop();
-    m_extra_frame_requested_delayed = std::numeric_limits<int>::max();
-
     const Size& cnv_size = get_canvas_size();
     // Probably due to different order of events on Linux/GTK2, when one switched from 3D scene
     // to preview, this was called before canvas had its final size. It reported zero width
@@ -1754,7 +1752,7 @@ void GLCanvas3D::render()
         m_tooltip.render(m_mouse.position, *this);
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
-    wxGetApp().plater()->get_notification_manager()->render_notifications(get_overlay_window_width());
+    wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width());
 
     wxGetApp().imgui()->render();
 
@@ -2238,24 +2236,24 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     // checks for geometry outside the print volume to render it accordingly
     if (!m_volumes.empty()) {
-        ModelInstanceEPrintVolumeState state;
-
-        const bool contained_min_one = m_volumes.check_outside_state(m_config, &state);
+        bool partlyOut = false;
+        bool fullyOut = false;
+        const bool contained_min_one = m_volumes.check_outside_state(m_config, partlyOut, fullyOut);
 
 #if ENABLE_WARNING_TEXTURE_REMOVAL
-        _set_warning_notification(EWarning::ObjectClashed, state == ModelInstancePVS_Partly_Outside);
-        _set_warning_notification(EWarning::ObjectOutside, state == ModelInstancePVS_Fully_Outside);
-        if (printer_technology != ptSLA || state == ModelInstancePVS_Inside)
+        _set_warning_notification(EWarning::ObjectClashed, partlyOut);
+        _set_warning_notification(EWarning::ObjectOutside, fullyOut);
+        if (printer_technology != ptSLA || !contained_min_one)
             _set_warning_notification(EWarning::SlaSupportsOutside, false);
 #else
-        _set_warning_texture(WarningTexture::ObjectClashed, state == ModelInstancePVS_Partly_Outside);
-        _set_warning_texture(WarningTexture::ObjectOutside, state == ModelInstancePVS_Fully_Outside);
-        if(printer_technology != ptSLA || state == ModelInstancePVS_Inside)
+        _set_warning_texture(WarningTexture::ObjectClashed, partlyOut);
+        _set_warning_texture(WarningTexture::ObjectOutside, fullyOut);
+        if(printer_technology != ptSLA || !contained_min_one)
             _set_warning_texture(WarningTexture::SlaSupportsOutside, false);
 #endif // ENABLE_WARNING_TEXTURE_REMOVAL
 
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
-                               contained_min_one && !m_model->objects.empty() && state != ModelInstancePVS_Partly_Outside));
+                               contained_min_one && !m_model->objects.empty() && !partlyOut));
     }
     else {
 #if ENABLE_WARNING_TEXTURE_REMOVAL
@@ -2442,13 +2440,13 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     if (!m_initialized)
         return;
 
-    // FIXME
     m_dirty |= m_main_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
     m_dirty |= wxGetApp().plater()->get_collapse_toolbar().update_items_state();
     bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(wxGetApp().plater()->get_camera());
     m_dirty |= mouse3d_controller_applied;
+    m_dirty |= wxGetApp().plater()->get_notification_manager()->update_notifications(*this);
 
     if (!m_dirty)
         return;
@@ -2982,30 +2980,39 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
 {
-    // If slicer is not top window -> restart timer with one second to try again
-    wxWindow* p = dynamic_cast<wxWindow*>(wxGetApp().plater());
-    while (p->GetParent() != nullptr)
-        p = p->GetParent();
-    wxTopLevelWindow* top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
-    if (!top_level_wnd->IsActive()) {
-        request_extra_frame_delayed(1000);
-        return;
-    }
-    //render();
-    m_dirty = true;
-    wxWakeUpIdle();
+    // no need to do anything here
+    // right after this event is recieved, idle event is fired
+
+    //m_dirty = true;
+    //wxWakeUpIdle();  
 }
 
-void GLCanvas3D::request_extra_frame_delayed(int miliseconds)
+
+void GLCanvas3D::schedule_extra_frame(int miliseconds)
 {
+    // Schedule idle event right now
+    if (miliseconds == 0)
+    {
+        // We want to wakeup idle evnt but most likely this is call inside render cycle so we need to wait
+        if (m_in_render)
+            miliseconds = 33;
+        else {
+            m_dirty = true;
+            wxWakeUpIdle();
+            return;
+        }
+    } 
+    // Start timer
     int64_t now = timestamp_now();
+    // Timer is not running
     if (! m_render_timer.IsRunning()) {
         m_extra_frame_requested_delayed = miliseconds;
         m_render_timer.StartOnce(miliseconds);
         m_render_timer_start = now;
+    // Timer is running - restart only if new period is shorter than remaning period
     } else {
         const int64_t remaining_time = (m_render_timer_start + m_extra_frame_requested_delayed) - now;
-        if (miliseconds < remaining_time) {
+        if (miliseconds + 20 < remaining_time) {
             m_render_timer.Stop(); 
             m_extra_frame_requested_delayed = miliseconds;
             m_render_timer.StartOnce(miliseconds);

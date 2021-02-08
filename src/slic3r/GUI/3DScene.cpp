@@ -845,6 +845,57 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     return contained_min_one;
 }
 
+bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, bool& partlyOut, bool& fullyOut)
+{
+    if (config == nullptr)
+        return false;
+
+    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config->option("bed_shape"));
+    if (opt == nullptr)
+        return false;
+
+    BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
+    BoundingBoxf3 print_volume(Vec3d(unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config->opt_float("max_print_height")));
+    // Allow the objects to protrude below the print bed
+    print_volume.min(2) = -1e10;
+    print_volume.min(0) -= BedEpsilon;
+    print_volume.min(1) -= BedEpsilon;
+    print_volume.max(0) += BedEpsilon;
+    print_volume.max(1) += BedEpsilon;
+
+    bool contained_min_one = false;
+
+    partlyOut = false;
+    fullyOut = false;
+    for (GLVolume* volume : this->volumes)
+    {
+        if ((volume == nullptr) || volume->is_modifier || (volume->is_wipe_tower && !volume->shader_outside_printer_detection_enabled) || ((volume->composite_id.volume_id < 0) && !volume->shader_outside_printer_detection_enabled))
+            continue;
+
+        const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
+        bool contained = print_volume.contains(bb);
+
+        volume->is_outside = !contained;
+        if (!volume->printable)
+            continue;
+
+        if (contained)
+            contained_min_one = true;
+
+        if (volume->is_outside) {
+            if (print_volume.intersects(bb))
+                partlyOut = true;
+            else 
+                fullyOut = true;
+        }
+    }
+    /*
+    if (out_state != nullptr)
+        *out_state = state;
+    */
+    return contained_min_one;
+}
+
 void GLVolumeCollection::reset_outside_state()
 {
     for (GLVolume* volume : this->volumes)
