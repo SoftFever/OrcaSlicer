@@ -1606,7 +1606,7 @@ PrintRegionConfig PrintObject::region_config_from_model_volume(const PrintRegion
         // See GH issue #5910.
         config.fill_density.value = 0;
     else 
-        config.fill_density.value = std::min(config.fill_density.value, 1.);
+        config.fill_density.value = std::min(config.fill_density.value, 100.);
     return config;
 }
 
