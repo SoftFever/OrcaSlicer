@@ -1873,9 +1873,6 @@ namespace Slic3r {
                     triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix());
                     object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
                 }
-                else {
-                    std::cout << "non-single instance !!!\n";
-                }
             }
 #endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
 
