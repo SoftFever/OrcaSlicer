@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <unordered_set>
 #include <tbb/parallel_for.h>
 
 #ifndef NDEBUG
