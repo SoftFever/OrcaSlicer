@@ -417,7 +417,7 @@ private:
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
-        {NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 10,  _u8L("Configuration update is available."),  _u8L("See more."),
+        {NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more."),
              [](wxEvtHandler* evnthndlr) {
                  if (evnthndlr != nullptr)
                      wxPostEvent(evnthndlr, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED));
