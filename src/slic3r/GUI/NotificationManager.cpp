@@ -547,15 +547,17 @@ bool NotificationManager::PopNotification::compare_text(const std::string& text)
 	return false;
 }
 
-void NotificationManager::PopNotification::update_state(bool paused, const int64_t delta)
+bool NotificationManager::PopNotification::update_state(bool paused, const int64_t delta)
 {
-	if (m_state == EState::Unknown)
+	if (m_state == EState::Unknown) {
 		init();
+		return true;
+	}
 
 	m_next_render = std::numeric_limits<int64_t>::max();
 
 	if (m_state == EState::Hidden) {
-		return;
+		return false;
 	}
 
 	int64_t now = GLCanvas3D::timestamp_now();
@@ -581,22 +583,25 @@ void NotificationManager::PopNotification::update_state(bool paused, const int64
 		m_current_fade_opacity	= std::clamp(1.0f - 0.001f * static_cast<float>(curr_time) / FADING_OUT_DURATION, 0.0f, 1.0f);
 		if (m_current_fade_opacity <= 0.0f)
 			m_state = EState::Finished;
-		else if (next_render < 0) 
-			m_next_render = 0;
+		else if (next_render <= 20) {
+			m_next_render = FADING_OUT_TIMEOUT;
+			return true;
+		}
 		else
 			m_next_render = next_render;
 	}
 
 	if (m_state == EState::Finished) {
-		m_next_render = 0;
-		return;
+		//m_next_render = 0;
+		return true;
 	}
 
 	if (m_state == EState::ClosePending) {
 		m_state = EState::Finished;
-		m_next_render = 0;
-		return;
+		//m_next_render = 0;
+		return true;
 	}
+	return false;
 }
 
 NotificationManager::SlicingCompleteLargeNotification::SlicingCompleteLargeNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, bool large) :
@@ -1034,6 +1039,7 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 		}
 		
 	}
+	BOOST_LOG_TRIVIAL(error) << "render " << GLCanvas3D::timestamp_now() - m_last_render;
 	m_last_render = GLCanvas3D::timestamp_now();
 }
 
@@ -1051,6 +1057,7 @@ bool NotificationManager::update_notifications(GLCanvas3D& canvas)
 	const int64_t max = std::numeric_limits<int64_t>::max();
 	int64_t       next_render = max;
 	const int64_t time_since_render = GLCanvas3D::timestamp_now() - m_last_render;
+	bool		  request_render = false;
 	// During render, each notification detects if its currently hovered and changes its state to EState::Hovered
 	// If any notification is hovered, all restarts its countdown 
 	bool          hover = false;
@@ -1063,7 +1070,7 @@ bool NotificationManager::update_notifications(GLCanvas3D& canvas)
 	// update state of all notif and erase finished
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
 		std::unique_ptr<PopNotification>& notification = *it;
-		notification->update_state(hover, time_since_render);
+		request_render |= notification->update_state(hover, time_since_render);
 		next_render = std::min<int64_t>(next_render, notification->next_render());
 		if (notification->get_state() == PopNotification::EState::Finished)
 			it = m_pop_notifications.erase(it);
@@ -1071,16 +1078,19 @@ bool NotificationManager::update_notifications(GLCanvas3D& canvas)
 			++it;
 	}
 
+	BOOST_LOG_TRIVIAL(error) << "update " << request_render << " : " << next_render <<" : " << GLCanvas3D::timestamp_now() - m_last_update;
+	m_last_update = GLCanvas3D::timestamp_now();
+	//BOOST_LOG_TRIVIAL(error) << time_since_render << ":" << next_render;
+
 	// render needed right now
-	if (next_render < 20)
-		return true;
+	//if (next_render < 20)
+	//	request_render = true;
 	// request next frame 
 	if (next_render < max)
 		canvas.schedule_extra_frame(int(next_render));
 
-	return false;
+	return request_render;
 }
->>>>>>> 6df0d8ff81... Notifications management and rendering  refactoring.
 
 void NotificationManager::sort_notifications()
 {
