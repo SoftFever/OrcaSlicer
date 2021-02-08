@@ -11,6 +11,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/bind/placeholders.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include <iostream>
 
