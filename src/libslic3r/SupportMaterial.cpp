@@ -1683,7 +1683,7 @@ size_t idx_higher_or_equal(IT begin, IT end, size_t idx, FN_HIGHER_EQUAL fn_high
               (fn_higher_equal(begin[idx_high]) ? idx_high : size);
     } else {
         // For the other layers of this batch of layers, search incrementally, which is cheaper than the binary search.
-        while (idx < size && ! fn_higher_equal(begin[idx]))
+        while (int(idx) < size && ! fn_higher_equal(begin[idx]))
             ++ idx;
     }
     return idx;

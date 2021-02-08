@@ -666,19 +666,21 @@ void annotate_inside_outside(VD &vd, const Lines &lines)
 
     // Set a VertexCategory, verify validity of the operation.
     auto annotate_vertex = [](const VD::vertex_type *vertex, VertexCategory new_vertex_category) {
+#ifndef NDEBUG
         VertexCategory vc = vertex_category(vertex);
         assert(vc == VertexCategory::Unknown || vc == new_vertex_category);
         assert(new_vertex_category == VertexCategory::Inside || 
                new_vertex_category == VertexCategory::Outside ||
                new_vertex_category == VertexCategory::OnContour);
+#endif // NDEBUG
         set_vertex_category(const_cast<VD::vertex_type*>(vertex), new_vertex_category);
     };
 
     // Set an EdgeCategory, verify validity of the operation.
     auto annotate_edge = [](const VD::edge_type *edge, EdgeCategory new_edge_category) {
+#ifndef NDEBUG
         EdgeCategory ec = edge_category(edge);
         assert(ec == EdgeCategory::Unknown || ec == new_edge_category);
-#ifndef NDEBUG
         switch (new_edge_category) {
         case EdgeCategory::PointsInside:
             assert(edge->vertex0() != nullptr);
@@ -693,7 +695,6 @@ void annotate_inside_outside(VD &vd, const Lines &lines)
         default:
             assert(false);
         }
-
 #endif // NDEBUG
         set_edge_category(const_cast<VD::edge_type*>(edge), new_edge_category);
     };
@@ -760,10 +761,12 @@ void annotate_inside_outside(VD &vd, const Lines &lines)
                 // Only one of the two vertices may lie on input contour.
                 const VD::vertex_type  *v0          = edge.vertex0();
                 const VD::vertex_type  *v1          = edge.vertex1();
+#ifndef NDEBUG
                 VertexCategory          v0_category = vertex_category(v0);
                 VertexCategory          v1_category = vertex_category(v1);
                 assert(v0_category != VertexCategory::OnContour || v1_category != VertexCategory::OnContour);
                 assert(! (on_contour(v0) && on_contour(v1)));
+#endif // NDEBUG
                 if (on_contour(v0))
                     annotate_vertex(v0, VertexCategory::OnContour);
                 else {

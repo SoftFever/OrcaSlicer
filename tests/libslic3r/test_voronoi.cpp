@@ -176,13 +176,13 @@ TEST_CASE("Voronoi missing edges - Alessandro gapfill 12707", "[Voronoi]")
 
     std::mt19937 gen;
     std::uniform_int_distribution<coord_t> dist(-100, 100);
-    for (Point &p : poly.points) {
 #if 0
+    for (Point &p : poly.points) {
       // Wiggle the points a bit to find out whether this fixes the voronoi diagram for this particular polygon.
       p.x() = (p.x() += dist(gen));
       p.y() = (p.y() += dist(gen));
-#endif
     }
+#endif
 
     REQUIRE(intersecting_edges({ poly }).empty());
 
@@ -267,7 +267,7 @@ TEST_CASE("Voronoi weirdness", "[Voronoi]")
     };
 
 //    coord_t shift = 35058881;
-    coord_t shift_ok = 17000000;
+//    coord_t shift_ok = 17000000;
     coord_t shift = 35058881;
     Polygon poly {
         // <-4, 0>: bug
