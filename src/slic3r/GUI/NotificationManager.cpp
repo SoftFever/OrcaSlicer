@@ -1039,7 +1039,6 @@ void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay
 		}
 		
 	}
-	BOOST_LOG_TRIVIAL(error) << "render " << GLCanvas3D::timestamp_now() - m_last_render;
 	m_last_render = GLCanvas3D::timestamp_now();
 }
 
@@ -1077,10 +1076,6 @@ bool NotificationManager::update_notifications(GLCanvas3D& canvas)
 		else 
 			++it;
 	}
-
-	BOOST_LOG_TRIVIAL(error) << "update " << request_render << " : " << next_render <<" : " << GLCanvas3D::timestamp_now() - m_last_update;
-	m_last_update = GLCanvas3D::timestamp_now();
-	//BOOST_LOG_TRIVIAL(error) << time_since_render << ":" << next_render;
 
 	// render needed right now
 	//if (next_render < 20)

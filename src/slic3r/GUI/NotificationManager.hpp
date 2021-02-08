@@ -413,7 +413,6 @@ private:
 	bool                         m_move_from_overlay { false };
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
-	int64_t						 m_last_update { 0LL };
 
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
