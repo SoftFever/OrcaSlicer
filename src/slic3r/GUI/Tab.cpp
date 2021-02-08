@@ -612,7 +612,7 @@ void Tab::update_changed_ui()
     const bool deep_compare = (m_type == Slic3r::Preset::TYPE_PRINTER || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL);
     auto dirty_options = m_presets->current_dirty_options(deep_compare);
     auto nonsys_options = m_presets->current_different_from_parent_options(deep_compare);
-    if (m_type == Slic3r::Preset::TYPE_PRINTER) {
+    if (m_type == Preset::TYPE_PRINTER && static_cast<TabPrinter*>(this)->m_printer_technology == ptFFF) {
         TabPrinter* tab = static_cast<TabPrinter*>(this);
         if (tab->m_initial_extruders_count != tab->m_extruders_count)
             dirty_options.emplace_back("extruders_count");
@@ -673,7 +673,8 @@ void TabPrinter::init_options_list()
         default:		m_options_list.emplace(opt_key, m_opt_status_value);		break;
         }
     }
-    m_options_list.emplace("extruders_count", m_opt_status_value);
+    if (m_printer_technology == ptFFF)
+        m_options_list.emplace("extruders_count", m_opt_status_value);
 }
 
 void TabPrinter::msw_rescale()
@@ -2080,6 +2081,8 @@ void TabPrinter::build()
     std::string def_preset_name = "- default " + std::string(m_printer_technology == ptSLA ? "FFF" : "SLA") + " -";
     m_config = &m_presets->find_preset(def_preset_name)->config;
     m_printer_technology == ptSLA ? build_fff() : build_sla();
+    if (m_printer_technology == ptSLA)
+        m_extruders_count_old = 0;// revert this value 
 
     // ... and than for selected printer technology
     load_initial_data();
@@ -2510,7 +2513,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
 
     if (existed_page < n_before_extruders && (is_marlin_flavor || from_initial_build)) {
         auto page = build_kinematics_page();
-        if (from_initial_build)
+        if (from_initial_build && !is_marlin_flavor)
             page->clear();
         else
             m_pages.insert(m_pages.begin() + n_before_extruders, page);
@@ -2662,7 +2665,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
 
     m_extruders_count_old = m_extruders_count;
 
-    if (m_printer_technology == ptSLA/*from_initial_build*/)
+    if (from_initial_build && m_printer_technology == ptSLA)
         return; // next part of code is no needed to execute at this moment
 
     rebuild_page_tree();
