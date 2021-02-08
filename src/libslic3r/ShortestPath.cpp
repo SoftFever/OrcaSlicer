@@ -1527,6 +1527,11 @@ static inline void do_crossover(const std::vector<FlipEdge> &edges_in, std::vect
 	assert(edges_in.size() == edges_out.size());
 }
 
+// Worst time complexity:    O(min(n, 100) * (n * log n + n^2)
+// Expected time complexity: O(min(n, 100) * (n * log n + k * n)
+// where n is the number of edges and k is the number of connection_lengths candidates after the first one
+// is found that improves the total cost.
+//FIXME there are likley better heuristics to lower the time complexity.
 static inline void reorder_by_two_exchanges_with_segment_flipping(std::vector<FlipEdge> &edges)
 {
 	if (edges.size() < 2)
@@ -1536,7 +1541,8 @@ static inline void reorder_by_two_exchanges_with_segment_flipping(std::vector<Fl
 	std::vector<FlipEdge> 					edges_tmp(edges);
 	std::vector<std::pair<double, size_t>>	connection_lengths(edges.size() - 1, std::pair<double, size_t>(0., 0));
 	std::vector<char>						connection_tried(edges.size(), false);
-	for (size_t iter = 0; iter < edges.size(); ++ iter) {
+	const size_t 							max_iterations = std::min(edges.size(), size_t(100));
+	for (size_t iter = 0; iter < max_iterations; ++ iter) {
 		// Initialize connection costs and connection lengths.
 		for (size_t i = 1; i < edges.size(); ++ i) {
 			const FlipEdge   	 &e1 = edges[i - 1];
@@ -1600,6 +1606,8 @@ static inline void reorder_by_two_exchanges_with_segment_flipping(std::vector<Fl
 	}
 }
 
+#if 0
+// Currently not used, too slow.
 static inline void reorder_by_three_exchanges_with_segment_flipping(std::vector<FlipEdge> &edges)
 {
 	if (edges.size() < 3) {
@@ -1680,6 +1688,7 @@ static inline void reorder_by_three_exchanges_with_segment_flipping(std::vector<
 		}
 	}
 }
+#endif
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign> Matrixd;
 
@@ -1751,6 +1760,8 @@ static inline std::pair<double, size_t> minimum_crossover_cost(
 	return std::make_pair(cost_min, flip_min);
 }
 
+#if 0
+// Currently not used, too slow.
 static inline void reorder_by_three_exchanges_with_segment_flipping2(std::vector<FlipEdge> &edges)
 {
 	if (edges.size() < 3) {
@@ -1845,8 +1856,11 @@ static inline void reorder_by_three_exchanges_with_segment_flipping2(std::vector
 		}
 	}
 }
+#endif
 
 // Flip the sequences of polylines to lower the total length of connecting lines.
+// Used by the infill generator if the infill is not connected with perimeter lines
+// and to order the brim lines.
 static inline void improve_ordering_by_two_exchanges_with_segment_flipping(Polylines &polylines, bool fixed_start)
 {
 #ifndef NDEBUG
@@ -1898,6 +1912,7 @@ static inline void improve_ordering_by_two_exchanges_with_segment_flipping(Polyl
 #endif /* NDEBUG */
 }
 
+// Used to optimize order of infill lines and brim lines.
 Polylines chain_polylines(Polylines &&polylines, const Point *start_near)
 {
 #ifdef DEBUG_SVG_OUTPUT
