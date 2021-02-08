@@ -653,7 +653,7 @@ void DiffViewCtrl::Clear()
 
 wxString DiffViewCtrl::get_short_string(wxString full_string)
 {
-    int max_len = 30;
+    size_t max_len = 30;
     if (full_string.IsEmpty() || full_string.StartsWith("#") ||
         (full_string.Find("\n") == wxNOT_FOUND && full_string.Length() < max_len))
         return full_string;
@@ -661,7 +661,7 @@ wxString DiffViewCtrl::get_short_string(wxString full_string)
     m_has_long_strings = true;
 
     int n_pos = full_string.Find("\n");
-    if (n_pos != wxNOT_FOUND && n_pos < max_len)
+    if (n_pos != wxNOT_FOUND && n_pos < (int)max_len)
         max_len = n_pos;
 
     full_string.Truncate(max_len);
@@ -1008,12 +1008,12 @@ wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConf
     return from_u8(_utf8(names[static_cast<int>(val)]));
 }
 
-static int get_id_from_opt_key(std::string opt_key)
+static size_t get_id_from_opt_key(std::string opt_key)
 {
     int pos = opt_key.find("#");
     if (pos > 0) {
         boost::erase_head(opt_key, pos + 1);
-        return atoi(opt_key.c_str());
+        return static_cast<size_t>(atoi(opt_key.c_str()));
     }
     return 0;
 }
@@ -1031,7 +1031,7 @@ static wxString get_full_label(std::string opt_key, const DynamicPrintConfig& co
 
 static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& config)
 {
-    int opt_idx = get_id_from_opt_key(opt_key);
+    size_t opt_idx = get_id_from_opt_key(opt_key);
     opt_key = get_pure_opt_key(opt_key);
 
     if (config.option(opt_key)->is_nil())
@@ -1700,14 +1700,11 @@ void DiffPresetDialog::update_compatibility(const std::string& preset_name, Pres
 
     if (printer_tab) {
         const Preset& new_printer_preset = *presets->find_preset(preset_name, true);
-        const PresetWithVendorProfile new_printer_preset_with_vendor_profile = presets->get_preset_with_vendor_profile(new_printer_preset);
         PrinterTechnology    old_printer_technology = presets->get_selected_preset().printer_technology();
         PrinterTechnology    new_printer_technology = new_printer_preset.printer_technology();
 
         technology_changed = old_printer_technology != new_printer_technology;
     }
-
-    bool is_selected = presets->select_preset_by_name(preset_name, false);
 
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
     // The following method should not discard changes of current print or filament presets on change of a printer profile,
@@ -1730,10 +1727,12 @@ void DiffPresetDialog::update_compatibility(const std::string& preset_name, Pres
     {
         PresetComboBox* cb = is_left_presets ? preset_combos.presets_left : preset_combos.presets_right;
         Preset::Type presets_type = cb->get_type();
-        if (print_tab && (pr_tech == ptFFF && presets_type == Preset::TYPE_FILAMENT ||
-            pr_tech == ptSLA && presets_type == Preset::TYPE_SLA_MATERIAL) ||
-            printer_tab && (pr_tech == ptFFF && (presets_type == Preset::TYPE_PRINT || presets_type == Preset::TYPE_FILAMENT) ||
-                pr_tech == ptSLA && (presets_type == Preset::TYPE_SLA_PRINT || presets_type == Preset::TYPE_SLA_MATERIAL)))
+        if ((print_tab && (
+                (pr_tech == ptFFF && presets_type == Preset::TYPE_FILAMENT) ||
+                (pr_tech == ptSLA && presets_type == Preset::TYPE_SLA_MATERIAL) )) ||
+            (printer_tab && (
+                (pr_tech == ptFFF && (presets_type == Preset::TYPE_PRINT || presets_type == Preset::TYPE_FILAMENT) ) ||
+                (pr_tech == ptSLA && (presets_type == Preset::TYPE_SLA_PRINT || presets_type == Preset::TYPE_SLA_MATERIAL) )) ))
             cb->update();
     }
 
