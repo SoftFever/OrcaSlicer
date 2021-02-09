@@ -52,9 +52,8 @@ static void unmount_callback(DADiskRef disk, DADissenterRef dissenter, void *con
     {
         int                 err = 0;
         DADiskRef           disk;
-        DASessionRef        session;
-        CFDictionaryRef     descDict;
-        session = DASessionCreate(nullptr);
+        CFDictionaryRef     descDict = nullptr;        
+        DASessionRef        session = DASessionCreate(nullptr);
         if (session == nullptr)
             err = EINVAL;
         if (err == 0) {
@@ -96,16 +95,15 @@ static void unmount_callback(DADiskRef disk, DADissenterRef dissenter, void *con
 //this eject drive is not used now
 -(void)eject_drive:(NSString *)path
 {
-    DADiskRef disk;
-    DASessionRef session;
     NSURL *url = [[NSURL alloc] initFileURLWithPath:path];
+    DASessionRef session = DASessionCreate(nullptr);
     int err = 0;
-    session = DASessionCreate(nullptr);
     if (session == nullptr)
         err = EINVAL;
+    DADiskRef disk = nullptr;
     if (err == 0)
-        disk = DADiskCreateFromVolumePath(nullptr,session,(CFURLRef)url);
-    if( err == 0)
+        disk = DADiskCreateFromVolumePath(nullptr, session, (CFURLRef)url);
+    if (err == 0)
         //DADiskUnmount(disk, kDADiskUnmountOptionDefault, nullptr, nullptr);
         DADiskUnmount(disk, kDADiskUnmountOptionWhole | kDADiskUnmountOptionForce, unmount_callback, nullptr);
     if (disk != nullptr)

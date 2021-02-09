@@ -52,7 +52,7 @@ static inline std::pair<float, float> face_z_span(const stl_facet &f)
 // https://tams.informatik.uni-hamburg.de/publications/2017/Adaptive%20Slicing%20for%20the%20FDM%20Process%20Revisited.pdf
 // (page 51, formula (8))
 // Currenty @platch's error metric formula is not used.
-static constexpr const double SURFACE_CONST = 0.18403;
+//static constexpr const double SURFACE_CONST = 0.18403;
 
 // for a given facet, compute maximum height within the allowed surface roughness / stairstepping deviation
 static inline float layer_height_from_slope(const SlicingAdaptive::FaceZ &face, float max_surface_deviation)
