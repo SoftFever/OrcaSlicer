@@ -549,12 +549,13 @@ bool NotificationManager::PopNotification::compare_text(const std::string& text)
 
 bool NotificationManager::PopNotification::update_state(bool paused, const int64_t delta)
 {
+
+	m_next_render = std::numeric_limits<int64_t>::max();
+
 	if (m_state == EState::Unknown) {
 		init();
 		return true;
 	}
-
-	m_next_render = std::numeric_limits<int64_t>::max();
 
 	if (m_state == EState::Hidden) {
 		return false;
@@ -581,24 +582,24 @@ bool NotificationManager::PopNotification::update_state(bool paused, const int64
 		int64_t curr_time		= now - m_fading_start;
 		int64_t next_render		= FADING_OUT_TIMEOUT - delta;
 		m_current_fade_opacity	= std::clamp(1.0f - 0.001f * static_cast<float>(curr_time) / FADING_OUT_DURATION, 0.0f, 1.0f);
-		if (m_current_fade_opacity <= 0.0f)
+		if (m_current_fade_opacity <= 0.0f) {
 			m_state = EState::Finished;
-		else if (next_render <= 20) {
+			return true;
+		} else if (next_render <= 20) {
 			m_next_render = FADING_OUT_TIMEOUT;
 			return true;
-		}
-		else
+		} else {
 			m_next_render = next_render;
+			return false;
+		}
 	}
 
 	if (m_state == EState::Finished) {
-		//m_next_render = 0;
 		return true;
 	}
 
 	if (m_state == EState::ClosePending) {
 		m_state = EState::Finished;
-		//m_next_render = 0;
 		return true;
 	}
 	return false;
@@ -1077,10 +1078,7 @@ bool NotificationManager::update_notifications(GLCanvas3D& canvas)
 			++it;
 	}
 
-	// render needed right now
-	//if (next_render < 20)
-	//	request_render = true;
-	// request next frame 
+	// request next frame in future
 	if (next_render < max)
 		canvas.schedule_extra_frame(int(next_render));
 
