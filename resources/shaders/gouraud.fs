@@ -39,8 +39,8 @@ void main()
     vec3 color = uniform_color.rgb;
     float alpha = uniform_color.a;
     if (slope.actived && world_normal_z < slope.normal_z - EPSILON) {
-        color = vec3(0.7f, 0.7f, 1.f);
-        alpha = 1.f;
+        color = vec3(0.7, 0.7, 1.0);
+        alpha = 1.0;
     }
     // if the fragment is outside the print volume -> use darker color
 	color = (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
