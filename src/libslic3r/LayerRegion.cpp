@@ -278,7 +278,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 				if (bd.detect_angle(custom_angle)) {
                     bridges[idx_last].bridge_angle = bd.angle;
                     if (this->layer()->object()->config().support_material) {
-                        polygons_append(this->bridged, bd.coverage());
+//                        polygons_append(this->bridged, bd.coverage());
                         append(this->unsupported_bridge_edges, bd.unsupported_edges());
                     }
 				} else if (custom_angle > 0) {

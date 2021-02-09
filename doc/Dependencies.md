@@ -22,8 +22,6 @@
 * qhull: libqhull-dev does not contain libqhullcpp => link errors. Until it is fixed, we will use the builtin version. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=925540
 * semver: One module C library, author expects to use clib for installation. No packages.
 * Shiny: no packages
-* poly2tree: Obsolete, candidate for removal
-* polypartition: Obsolete, candidate for removal
 
 ## Header only
 * igl

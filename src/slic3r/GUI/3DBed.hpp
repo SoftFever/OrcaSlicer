@@ -17,20 +17,14 @@ class GeometryBuffer
 {
     struct Vertex
     {
-        float position[3];
-        float tex_coords[2];
-
-        Vertex()
-        {
-            position[0] = 0.0f; position[1] = 0.0f; position[2] = 0.0f;
-            tex_coords[0] = 0.0f; tex_coords[1] = 0.0f;
-        }
+        Vec3f position = Vec3f::Zero();
+        Vec2f tex_coords = Vec2f::Zero();
     };
 
     std::vector<Vertex> m_vertices;
 
 public:
-    bool set_from_triangles(const Polygons& triangles, float z, bool generate_tex_coords);
+    bool set_from_triangles(const std::vector<Vec2f> &triangles, float z);
     bool set_from_lines(const Lines& lines, float z);
 
     const float* get_vertices_data() const;

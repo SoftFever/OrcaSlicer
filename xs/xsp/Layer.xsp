@@ -18,8 +18,6 @@
         %code%{ RETVAL = &THIS->thin_fills; %};
     Ref<SurfaceCollection> fill_surfaces()
         %code%{ RETVAL = &THIS->fill_surfaces; %};
-    Polygons bridged()
-        %code%{ RETVAL = THIS->bridged; %};
     Ref<ExtrusionEntityCollection> perimeters()
         %code%{ RETVAL = &THIS->perimeters; %};
     Ref<ExtrusionEntityCollection> fills()

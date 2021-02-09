@@ -99,8 +99,6 @@ void CopyrightsDialog::fill_entries()
                               "2002 - 2007, Marcelo E.Magallon; "
                               "2002, Lev Povalahev"                         , "http://glew.sourceforge.net/" },
         { "Libigl"          , "2013 Alec Jacobson and others"               , "https://libigl.github.io/" },
-        { "Poly2Tri"        , "2009-2018, Poly2Tri Contributors"            , "https://github.com/jhasse/poly2tri" },
-        { "PolyPartition"   , "2011 Ivan Fratric"                           , "https://github.com/ivanfratric/polypartition" },
         { "Qhull"           , "1993-2015 C.B.Barber Arlington and "
                               "University of Minnesota"                     , "http://qhull.org/" },
         { "SemVer"          , "2015-2017 Tomas Aparicio"                    , "https://semver.org/" },

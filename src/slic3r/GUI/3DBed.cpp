@@ -6,6 +6,7 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/Tesselate.hpp"
 
 #include "GUI_App.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -23,59 +24,36 @@ static const float GROUND_Z = -0.02f;
 namespace Slic3r {
 namespace GUI {
 
-bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z, bool generate_tex_coords)
+bool GeometryBuffer::set_from_triangles(const std::vector<Vec2f> &triangles, float z)
 {
-    m_vertices.clear();
-    unsigned int v_size = 3 * (unsigned int)triangles.size();
-
-    if (v_size == 0)
+    if (triangles.empty()) {
+        m_vertices.clear();
         return false;
-
-    m_vertices = std::vector<Vertex>(v_size, Vertex());
-
-    float min_x = unscale<float>(triangles[0].points[0](0));
-    float min_y = unscale<float>(triangles[0].points[0](1));
-    float max_x = min_x;
-    float max_y = min_y;
-
-    unsigned int v_count = 0;
-    for (const Polygon& t : triangles) {
-        for (unsigned int i = 0; i < 3; ++i) {
-            Vertex& v = m_vertices[v_count];
-
-            const Point& p = t.points[i];
-            float x = unscale<float>(p(0));
-            float y = unscale<float>(p(1));
-
-            v.position[0] = x;
-            v.position[1] = y;
-            v.position[2] = z;
-
-            if (generate_tex_coords) {
-                v.tex_coords[0] = x;
-                v.tex_coords[1] = y;
-
-                min_x = std::min(min_x, x);
-                max_x = std::max(max_x, x);
-                min_y = std::min(min_y, y);
-                max_y = std::max(max_y, y);
-            }
-
-            ++v_count;
-        }
     }
 
-    if (generate_tex_coords) {
-        float size_x = max_x - min_x;
-        float size_y = max_y - min_y;
+    assert(triangles.size() % 3 == 0);
+    m_vertices = std::vector<Vertex>(triangles.size(), Vertex());
 
-        if ((size_x != 0.0f) && (size_y != 0.0f)) {
-            float inv_size_x = 1.0f / size_x;
-            float inv_size_y = -1.0f / size_y;
-            for (Vertex& v : m_vertices) {
-                v.tex_coords[0] = (v.tex_coords[0] - min_x) * inv_size_x;
-                v.tex_coords[1] = (v.tex_coords[1] - min_y) * inv_size_y;
-            }
+    Vec2f min(unscaled<float>(triangles.front()));
+    Vec2f max = min;
+
+    for (size_t v_count = 0; v_count < triangles.size(); ++ v_count) {
+        const Vec2f &p = triangles[v_count];
+        Vertex      &v = m_vertices[v_count];
+        v.position   = Vec3f(p.x(), p.y(), z);
+        v.tex_coords = p;
+        min = min.cwiseMin(p).eval();
+        max = max.cwiseMax(p).eval();
+    }
+
+    Vec2f size = max - min;
+    if (size.x() != 0.f && size.y() != 0.f) {
+        Vec2f inv_size = size.cwiseInverse();
+        inv_size.y() *= -1;
+        for (Vertex& v : m_vertices) {
+            v.tex_coords -= min;
+            v.tex_coords.x() *= inv_size.x();
+            v.tex_coords.y() *= inv_size.y();
         }
     }
 
@@ -290,11 +268,8 @@ void Bed3D::calc_bounding_boxes() const
 
 void Bed3D::calc_triangles(const ExPolygon& poly)
 {
-    Polygons triangles;
-    poly.triangulate_p2t(&triangles);
-
-    if (!m_triangles.set_from_triangles(triangles, GROUND_Z, true))
-        printf("Unable to create bed triangles\n");
+    if (! m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
+        BOOST_LOG_TRIVIAL(error) << "Unable to create bed triangles";
 }
 
 void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
@@ -321,7 +296,7 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
     std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
 
     if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
-        printf("Unable to create bed grid lines\n");
+        BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";
 }
 
 

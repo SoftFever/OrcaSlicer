@@ -5,7 +5,7 @@ use warnings;
 
 use List::Util qw(first sum);
 use Slic3r::XS;
-use Test::More tests => 31;
+use Test::More tests => 21;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -103,34 +103,6 @@ is $expolygon->area, 100*100-20*20, 'area';
     is $collection->[0][0][0][0], $exp->[0][0][0], 'collection items are returned by reference';
     
     is_deeply $collection->[0]->clone->pp, $collection->[0]->pp, 'clone collection item';
-}
-
-{
-    my $expolygon = Slic3r::ExPolygon->new($square);
-    my $polygons = $expolygon->get_trapezoids2(PI/2);
-    is scalar(@$polygons), 1, 'correct number of trapezoids returned';
-    is scalar(@{$polygons->[0]}), 4, 'trapezoid has 4 points';
-    is $polygons->[0]->area, $expolygon->area, 'trapezoid has correct area';
-}
-
-{
-    my $polygons = $expolygon->get_trapezoids2(PI/2);
-    is scalar(@$polygons), 4, 'correct number of trapezoids returned';
-    
-    # trapezoid polygons might have more than 4 points in case of collinear segments
-    $polygons = [ map @{$_->simplify(1)}, @$polygons ];
-    ok !defined(first { @$_ != 4 } @$polygons), 'all trapezoids have 4 points';
-    
-    is scalar(grep { $_->area == 40*100 } @$polygons), 2, 'trapezoids have expected area';
-    is scalar(grep { $_->area == 20*40 } @$polygons), 2, 'trapezoids have expected area';
-}
-
-{
-    my $expolygon = Slic3r::ExPolygon->new([ [0,100],[100,0],[200,0],[300,100],[200,200],[100,200] ]);
-    my $polygons = $expolygon->get_trapezoids2(PI/2);
-    is scalar(@$polygons), 3, 'correct number of trapezoids returned';
-    is scalar(grep { $_->area == 100*200/2 } @$polygons), 2, 'trapezoids have expected area';
-    is scalar(grep { $_->area == 100*200 } @$polygons), 1, 'trapezoids have expected area';
 }
 
 __END__

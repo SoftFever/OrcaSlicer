@@ -207,6 +207,62 @@ std::vector<double> BridgeDetector::bridge_direction_candidates() const
     return angles;
 }
 
+/*
+static void get_trapezoids(const ExPolygon &expoly, Polygons* polygons) const
+{
+    ExPolygons expp;
+    expp.push_back(expoly);
+    boost::polygon::get_trapezoids(*polygons, expp);
+}
+
+void ExPolygon::get_trapezoids(ExPolygon clone, Polygons* polygons, double angle) const
+{
+    clone.rotate(PI/2 - angle, Point(0,0));
+    clone.get_trapezoids(polygons);
+    for (Polygons::iterator polygon = polygons->begin(); polygon != polygons->end(); ++polygon)
+        polygon->rotate(-(PI/2 - angle), Point(0,0));
+}
+*/
+
+// This algorithm may return more trapezoids than necessary
+// (i.e. it may break a single trapezoid in several because
+// other parts of the object have x coordinates in the middle)
+static void get_trapezoids2(const ExPolygon &expoly, Polygons* polygons)
+{
+    Polygons     src_polygons = to_polygons(expoly);
+    // get all points of this ExPolygon
+    const Points pp           = to_points(src_polygons);
+    
+    // build our bounding box
+    BoundingBox bb(pp);
+    
+    // get all x coordinates
+    std::vector<coord_t> xx;
+    xx.reserve(pp.size());
+    for (Points::const_iterator p = pp.begin(); p != pp.end(); ++p)
+        xx.push_back(p->x());
+    std::sort(xx.begin(), xx.end());
+    
+    // find trapezoids by looping from first to next-to-last coordinate
+    for (std::vector<coord_t>::const_iterator x = xx.begin(); x != xx.end()-1; ++x) {
+        coord_t next_x = *(x + 1);
+        if (*x != next_x)
+            // intersect with rectangle
+            // append results to return value
+            polygons_append(*polygons, intersection({ { { *x, bb.min.y() }, { next_x, bb.min.y() }, { next_x, bb.max.y() }, { *x, bb.max.y() } } }, src_polygons));
+    }
+}
+
+static void get_trapezoids2(const ExPolygon &expoly, Polygons* polygons, double angle)
+{
+    ExPolygon clone = expoly;
+    clone.rotate(PI/2 - angle, Point(0,0));
+    get_trapezoids2(clone, polygons);
+    for (Polygon &polygon : *polygons)
+        polygon.rotate(-(PI/2 - angle), Point(0,0));
+}
+
+// Coverage is currently only used by the unit tests. It is extremely slow and unreliable!
 Polygons BridgeDetector::coverage(double angle) const
 {
     if (angle == -1)
@@ -228,7 +284,7 @@ Polygons BridgeDetector::coverage(double angle) const
             for (ExPolygon &expoly : offset_ex(expolygon, 0.5f * float(this->spacing))) {
                 // Compute trapezoids according to a vertical orientation
                 Polygons trapezoids;
-                expoly.get_trapezoids2(&trapezoids, PI/2.0);
+                get_trapezoids2(expoly, &trapezoids, PI/2.0);
                 for (const Polygon &trapezoid : trapezoids) {
                     // not nice, we need a more robust non-numeric check
                     size_t n_supported = 0;
