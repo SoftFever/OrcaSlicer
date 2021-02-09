@@ -648,7 +648,7 @@ void FirmwareDialog::priv::perform_upload()
 				}
 			}
 		})
-        .on_message([q](const char *msg, unsigned /* size */) {
+		.on_message([extra_verbose, q](const char* msg, unsigned /* size */) {
 			if (extra_verbose) {
 				BOOST_LOG_TRIVIAL(debug) << "avrdude: " << msg;
 			}
