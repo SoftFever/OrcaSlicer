@@ -2245,13 +2245,13 @@ static std::vector<MonotonicRegionLink> chain_monotonic_regions(
 #endif /* NDEBUG */
 
 	// How many times to repeat the ant simulation (number of ant generations).
-	constexpr int const const num_rounds = 25;
+	constexpr int const   num_rounds = 25;
 	// After how many rounds without an improvement to exit?
-	constexpr int const num_rounds_no_change_exit = 8;
+	constexpr int const   num_rounds_no_change_exit = 8;
 	// With how many ants each of the run will be performed?
-	const int const     num_ants = std::min(int(regions.size()), 10);
+	const int             num_ants = std::min(int(regions.size()), 10);
 	// Base (initial) pheromone level. This value will be adjusted based on the length of the first greedy path found.
-	float           pheromone_initial_deposit = 0.5f;
+	float                 pheromone_initial_deposit = 0.5f;
 	// Evaporation rate of pheromones.
 	constexpr float const pheromone_evaporation = 0.1f;
     // Evaporation rate to diversify paths taken by individual ants.
