@@ -690,6 +690,7 @@ static inline bool interval_inside_interval(double outer_low, double outer_high,
     return inside_interval(outer_low, outer_high, inner_low) && inside_interval(outer_low, outer_high, inner_high);
 }
 
+#if 0
 static inline bool cyclic_interval_inside_interval(double outer_low, double outer_high, double inner_low, double inner_high, double length)
 {
     if (outer_low > outer_high)
@@ -702,6 +703,7 @@ static inline bool cyclic_interval_inside_interval(double outer_low, double oute
     }
     return interval_inside_interval(outer_low, outer_high, inner_low, inner_high, double(SCALED_EPSILON));
 }
+#endif
 
 // #define INFILL_DEBUG_OUTPUT
 

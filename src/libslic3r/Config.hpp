@@ -1695,6 +1695,7 @@ public:
     // Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     virtual const ConfigDef*        def() const = 0;
     // Find ando/or create a ConfigOption instance for a given name.
+    using ConfigOptionResolver::optptr;
     virtual ConfigOption*           optptr(const t_config_option_key &opt_key, bool create = false) = 0;
     // Collect names of all configuration values maintained by this configuration store.
     virtual t_config_option_keys    keys() const = 0;

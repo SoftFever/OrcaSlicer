@@ -2245,22 +2245,22 @@ static std::vector<MonotonicRegionLink> chain_monotonic_regions(
 #endif /* NDEBUG */
 
 	// How many times to repeat the ant simulation (number of ant generations).
-	constexpr int   num_rounds = 25;
+	constexpr int const const num_rounds = 25;
 	// After how many rounds without an improvement to exit?
-	constexpr int 	num_rounds_no_change_exit = 8;
+	constexpr int const num_rounds_no_change_exit = 8;
 	// With how many ants each of the run will be performed?
-	const int   	num_ants = std::min(int(regions.size()), 10);
+	const int const     num_ants = std::min(int(regions.size()), 10);
 	// Base (initial) pheromone level. This value will be adjusted based on the length of the first greedy path found.
 	float           pheromone_initial_deposit = 0.5f;
 	// Evaporation rate of pheromones.
-	constexpr float pheromone_evaporation = 0.1f;
+	constexpr float const pheromone_evaporation = 0.1f;
     // Evaporation rate to diversify paths taken by individual ants.
-    constexpr float pheromone_diversification = 0.1f;
+    constexpr float const pheromone_diversification = 0.1f;
 	// Probability at which to take the next best path. Otherwise take the the path based on the cost distribution.
-	constexpr float probability_take_best = 0.9f;
+	constexpr float const probability_take_best = 0.9f;
 	// Exponents of the cost function.
-	constexpr float pheromone_alpha = 1.f; // pheromone exponent
-	constexpr float pheromone_beta  = 2.f; // attractiveness weighted towards edge length
+	constexpr float const pheromone_alpha = 1.f; // pheromone exponent
+	constexpr float const pheromone_beta  = 2.f; // attractiveness weighted towards edge length
 
     AntPathMatrix path_matrix(regions, poly_with_offset, segs, pheromone_initial_deposit);
 

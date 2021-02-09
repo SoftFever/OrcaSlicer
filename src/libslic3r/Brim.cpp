@@ -301,7 +301,7 @@ static Polylines connect_brim_lines(Polylines &&polylines, const Polygons &brim_
             polylines.erase(polylines.begin() + end, polylines.end());
     }
 
-    return polylines;
+    return std::move(polylines);
 }
 
 static void make_inner_brim(const Print &print, const ConstPrintObjectPtrs &top_level_objects_with_brim, ExtrusionEntityCollection &brim)

@@ -1146,6 +1146,7 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
     return NoSlice;
 }
 
+#if 0
 //FIXME Should this go away? For valid meshes the function slice_facet() returns Slicing
 // and sets edges of vertical triangles to produce only a single edge per pair of neighbor faces.
 // So the following code makes only sense now to handle degenerate meshes with more than two faces
@@ -1209,7 +1210,7 @@ static inline void remove_tangent_edges(std::vector<IntersectionLine> &lines)
         }
     }
 }
-
+#endif
 
 struct OpenPolyline {
     OpenPolyline() {};

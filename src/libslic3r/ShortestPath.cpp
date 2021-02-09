@@ -1083,6 +1083,7 @@ void svg_draw_polyline_chain(const char *name, size_t idx, const Polylines &poly
 }
 #endif /* DEBUG_SVG_OUTPUT */
 
+#if 0
 // Flip the sequences of polylines to lower the total length of connecting lines.
 static inline void improve_ordering_by_segment_flipping(Polylines &polylines, bool fixed_start)
 {
@@ -1253,6 +1254,7 @@ static inline void improve_ordering_by_segment_flipping(Polylines &polylines, bo
 	assert(cost_final <= cost_initial);
 #endif /* NDEBUG */
 }
+#endif
 
 struct FlipEdge {
 	FlipEdge(const Vec2d &p1, const Vec2d &p2, size_t source_index) : p1(p1), p2(p2), source_index(source_index) {}
@@ -1337,6 +1339,7 @@ static inline std::pair<double, size_t> minimum_crossover_cost(
 	return std::make_pair(cost_min, flip_min);
 }
 
+#if 0
 static inline std::pair<double, size_t> minimum_crossover_cost(
 	const std::vector<FlipEdge>		  &edges,
 	const std::pair<size_t, size_t>   &span1, const ConnectionCost &cost1,
@@ -1412,6 +1415,7 @@ static inline std::pair<double, size_t> minimum_crossover_cost(
 	}
 	return std::make_pair(cost_min, flip_min);
 }
+#endif
 
 static inline void do_crossover(const std::vector<FlipEdge> &edges_in, std::vector<FlipEdge> &edges_out,
 	const std::pair<size_t, size_t> &span1, const std::pair<size_t, size_t> &span2, const std::pair<size_t, size_t> &span3,
@@ -1454,7 +1458,7 @@ static inline void do_crossover(const std::vector<FlipEdge> &edges_in, std::vect
 	assert(edges_in.size() == edges_out.size());
 }
 
-
+#if 0
 static inline void do_crossover(const std::vector<FlipEdge> &edges_in, std::vector<FlipEdge> &edges_out,
 	const std::pair<size_t, size_t> &span1, const std::pair<size_t, size_t> &span2, const std::pair<size_t, size_t> &span3, const std::pair<size_t, size_t> &span4,
 	size_t i)
@@ -1526,6 +1530,7 @@ static inline void do_crossover(const std::vector<FlipEdge> &edges_in, std::vect
 	}
 	assert(edges_in.size() == edges_out.size());
 }
+#endif
 
 // Worst time complexity:    O(min(n, 100) * (n * log n + n^2)
 // Expected time complexity: O(min(n, 100) * (n * log n + k * n)
@@ -1702,6 +1707,7 @@ private:
 	const ConnectionCost* costs[4];
 };
 
+#if 0
 static inline std::pair<double, size_t> minimum_crossover_cost(
 	const FourOptCosts				  &segment_costs,
 	const Matrixd 					  &segment_end_point_distance_matrix,
@@ -1760,7 +1766,6 @@ static inline std::pair<double, size_t> minimum_crossover_cost(
 	return std::make_pair(cost_min, flip_min);
 }
 
-#if 0
 // Currently not used, too slow.
 static inline void reorder_by_three_exchanges_with_segment_flipping2(std::vector<FlipEdge> &edges)
 {

@@ -2432,7 +2432,7 @@ namespace Slic3r {
 			if (!volume->mesh().has_shared_vertices())
 				throw Slic3r::FileIOError("store_3mf() requires shared vertices");
 
-            volumes_offsets.insert({ volume, Offsets(vertices_count) }).first;
+            volumes_offsets.insert({ volume, Offsets(vertices_count) });
 
             const indexed_triangle_set &its = volume->mesh().its;
             if (its.vertices.empty()) {

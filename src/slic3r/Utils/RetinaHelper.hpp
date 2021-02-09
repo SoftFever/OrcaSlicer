@@ -18,7 +18,9 @@ public:
     float get_scale_factor();
 
 private:
+#ifdef __WXGTK3__
     wxWindow* m_window;
+#endif // __WXGTK3__
     void* m_self;
 };
 

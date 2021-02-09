@@ -394,11 +394,10 @@ class GLCanvas3D
     class Slope
     {
         bool m_enabled{ false };
-        GLCanvas3D& m_canvas;
         GLVolumeCollection& m_volumes;
         static float s_window_width;
     public:
-        Slope(GLCanvas3D& canvas, GLVolumeCollection& volumes) : m_canvas(canvas), m_volumes(volumes) {}
+        Slope(GLVolumeCollection& volumes) : m_volumes(volumes) {}
 
         void enable(bool enable) { m_enabled = enable; }
         bool is_enabled() const { return m_enabled; }

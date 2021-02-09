@@ -3553,7 +3553,7 @@ void GCodeViewer::render_toolpaths() const
     }
 
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
-    auto render_sequential_range_cap = [this, set_uniform_color](const SequentialRangeCap& cap) {
+    auto render_sequential_range_cap = [set_uniform_color](const SequentialRangeCap& cap) {
         GLShaderProgram* shader = wxGetApp().get_shader(cap.buffer->shader.c_str());
         if (shader != nullptr) {
             shader->start_using();

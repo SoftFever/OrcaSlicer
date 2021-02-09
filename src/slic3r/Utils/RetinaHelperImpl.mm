@@ -11,8 +11,7 @@
 namespace Slic3r {
 namespace GUI {
 
-RetinaHelper::RetinaHelper(wxWindow* window) :
-    m_window(window)
+RetinaHelper::RetinaHelper(wxWindow*)
 {
     m_self = nullptr;
     m_self = [[RetinaHelperImpl alloc] initWithView:window->GetHandle() handler:window->GetEventHandler()];
