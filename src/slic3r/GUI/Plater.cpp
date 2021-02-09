@@ -2415,13 +2415,24 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             auto convert_from_imperial_units = [](Model& model, bool only_small_volumes) {
                 model.convert_from_imperial_units(only_small_volumes);
 //                wxGetApp().app_config->set("use_inches", "1");
-                wxGetApp().sidebar().update_ui_from_settings();
+//                wxGetApp().sidebar().update_ui_from_settings();
             };
 
             if (!is_project_file) {
                 if (imperial_units)
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
+                else if (model.looks_like_saved_in_meters()) {
+                    wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
+                        "The object in file %s looks like saved in meters.\n"
+                        "Should I consider it as a saved in meters and convert it?",
+                        "Some objects in file %s look like saved in meters.\n"
+                        "Should I consider them as a saved in meters and convert them?", model.objects.size()), from_path(filename)) + "\n",
+                        _L("The object appears to be saved in meters"), wxICON_WARNING | wxYES | wxNO);
+                    if (msg_dlg.ShowModal() == wxID_YES)
+                        //FIXME up-scale only the small parts?
+                        model.convert_from_meters(true);
+                }
                 else if (model.looks_like_imperial_units()) {
                     wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
                         "The object in file %s looks like saved in inches.\n"

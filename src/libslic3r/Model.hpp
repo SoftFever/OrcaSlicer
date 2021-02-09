@@ -1019,6 +1019,8 @@ public:
     void 		  convert_multipart_object(unsigned int max_extruders);
     bool          looks_like_imperial_units() const;
     void          convert_from_imperial_units(bool only_small_volumes);
+    bool          looks_like_saved_in_meters() const;
+    void          convert_from_meters(bool only_small_volumes);
 
     // Ensures that the min z of the model is not negative
     void 		  adjust_min_z();
