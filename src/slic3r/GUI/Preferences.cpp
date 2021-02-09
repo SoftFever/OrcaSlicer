@@ -297,6 +297,14 @@ void PreferencesDialog::build()
 		option = Option(def, "suppress_hyperlinks");
 		m_optgroup_gui->append_single_option_line(option);
 
+		def.label = L("Use colors for axes values in Manipulation panel");
+		def.type = coBool;
+		def.tooltip = L("If enabled, the axes names and axes values will be colorized according to the axes colors. "
+						"If disabled, old UI will be used.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("color_mapinulation_panel") == "1" });
+		option = Option(def, "color_mapinulation_panel");
+		m_optgroup_gui->append_single_option_line(option);
+
 		def.label = L("Use custom size for toolbar icons");
 		def.type = coBool;
 		def.tooltip = L("If enabled, you can change size of toolbar icons manually.");

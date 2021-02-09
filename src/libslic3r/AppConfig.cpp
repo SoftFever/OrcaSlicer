@@ -123,6 +123,9 @@ void AppConfig::set_defaults()
 
         if (get("default_action_on_select_preset").empty())
             set("default_action_on_select_preset", "none");     // , "transfer", "discard" or "save" 
+
+        if (get("color_mapinulation_panel").empty())
+            set("color_mapinulation_panel", "0");
     }
 #if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
     else {
