@@ -149,13 +149,13 @@ void BackgroundSlicingProcess::process_fff()
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
-		
-            m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-            run_post_process_scripts(m_temp_output_path, m_fff_print->full_print_config());
-
-            //FIXME localize the messages
-            // Perform the final post-processing of the export path by applying the print statistics over the file name.
-            std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
+			
+			m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+			run_post_process_scripts(m_temp_output_path, m_fff_print->full_print_config());
+			
+			//FIXME localize the messages
+			// Perform the final post-processing of the export path by applying the print statistics over the file name.
+			std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 			std::string error_message;
 			int copy_ret_val = CopyFileResult::SUCCESS;
 			try
