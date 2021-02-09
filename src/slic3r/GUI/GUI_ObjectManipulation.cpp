@@ -109,10 +109,13 @@ static void set_font_and_background_style(wxWindow* win, const wxFont& font)
     win->SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
 
+static const wxString axes_color_text[] = { "#990000", "#009900", "#000099" };
+static const wxString axes_color_back[] = { "#f5dcdc", "#dcf5dc", "#dcdcf5" };
 ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 {
     m_imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+    m_use_colors     = wxGetApp().app_config->get("color_mapinulation_panel") == "1";
 
     m_manifold_warning_bmp = ScalableBitmap(parent, "exclamation");
 
@@ -236,13 +239,14 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Add Axes labels with icons
     static const char axes[] = { 'X', 'Y', 'Z' };
-//    std::vector<wxString> axes_color = {"#990000", "#009900","#000099"};
+//    std::vector<wxString> axes_color = {"#EE0000", "#00EE00", "#0000EE"};
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++) {
         const char label = axes[axis_idx];
 
         wxStaticText* axis_name = new wxStaticText(m_parent, wxID_ANY, wxString(label));
         set_font_and_background_style(axis_name, wxGetApp().bold_font());
-//        axis_name->SetForegroundColour(wxColour(axes_color[axis_idx]));
+        //if (m_use_colors)
+        //    axis_name->SetForegroundColour(wxColour(axes_color_text[axis_idx]));
 
         sizer = new wxBoxSizer(wxHORIZONTAL);
         // Under OSX we use font, smaller than default font, so
@@ -481,8 +485,20 @@ void ObjectManipulation::update_ui_from_settings()
             update(3/*meSize*/,     m_new_size);
         }
     }
-
     m_check_inch->SetValue(m_imperial_units);
+
+    if (m_use_colors != (wxGetApp().app_config->get("color_mapinulation_panel") == "1"))
+    {
+        m_use_colors = wxGetApp().app_config->get("color_mapinulation_panel") == "1";
+        // update colors for edit-boxes
+        int axis_id = 0;
+        for (ManipulationEditor* editor : m_editors) {
+//            editor->SetForegroundColour(m_use_colors ? wxColour(axes_color_text[axis_id]) : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+            editor->SetBackgroundColour(m_use_colors ? wxColour(axes_color_back[axis_id]) : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+            if (++axis_id == 3)
+                axis_id = 0;
+        }
+    }
 }
 
 void ObjectManipulation::update_settings_value(const Selection& selection)
@@ -1000,6 +1016,10 @@ ManipulationEditor::ManipulationEditor(ObjectManipulation* parent,
 #ifdef __WXOSX__
     this->OSXDisableAllSmartSubstitutions();
 #endif // __WXOSX__
+    if (parent->use_colors()) {
+//        this->SetForegroundColour(wxColour(axes_color_text[axis]));
+        this->SetBackgroundColour(wxColour(axes_color_back[axis]));
+    }
 
     // A name used to call handle_sidebar_focus_event()
     m_full_opt_name = m_opt_key+"_"+axes[axis];

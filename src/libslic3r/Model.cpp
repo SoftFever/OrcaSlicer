@@ -472,6 +472,29 @@ void Model::convert_from_imperial_units(bool only_small_volumes)
         }
 }
 
+bool Model::looks_like_saved_in_meters() const
+{
+    if (this->objects.size() == 0)
+        return false;
+
+    for (ModelObject* obj : this->objects)
+        if (obj->get_object_stl_stats().volume < 0.001) // 0.001 = 0.1*0.1*0.1;
+            return true;
+
+    return false;
+}
+
+void Model::convert_from_meters(bool only_small_volumes)
+{
+    double m_to_mm = 1000;
+    for (ModelObject* obj : this->objects)
+        if (! only_small_volumes || obj->get_object_stl_stats().volume < 0.001) { // 0.001 = 0.1*0.1*0.1;
+            obj->scale_mesh_after_creation(Vec3d(m_to_mm, m_to_mm, m_to_mm));
+            for (ModelVolume* v : obj->volumes)
+                v->source.is_converted_from_inches = true;
+        }
+}
+
 void Model::adjust_min_z()
 {
     if (objects.empty())

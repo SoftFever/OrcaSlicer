@@ -95,6 +95,7 @@ private:
     wxStaticText*   m_rotate_Label = nullptr;
 
     bool            m_imperial_units { false };
+    bool            m_use_colors     { false };
     wxStaticText*   m_position_unit  { nullptr };
     wxStaticText*   m_size_unit      { nullptr };
 
@@ -162,7 +163,8 @@ public:
     void        Show(const bool show) override;
     bool        IsShown() override;
     void        UpdateAndShow(const bool show) override;
-    void update_ui_from_settings();
+    void        update_ui_from_settings();
+    bool        use_colors() { return m_use_colors; }
 
     void        set_dirty() { m_dirty = true; }
 	// Called from the App to update the UI if dirty.
