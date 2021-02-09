@@ -399,7 +399,8 @@ void PrintObject::ironing()
     if (this->set_started(posIroning)) {
         BOOST_LOG_TRIVIAL(debug) << "Ironing in parallel - start";
         tbb::parallel_for(
-            tbb::blocked_range<size_t>(1, m_layers.size()),
+            // Ironing starting with layer 0 to support ironing all surfaces.
+            tbb::blocked_range<size_t>(0, m_layers.size()),
             [this](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
@@ -605,7 +606,11 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "first_layer_extrusion_width") {
             steps.emplace_back(posInfill);
         } else if (
+            //FIXME
+            // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
+            // normal infill and 100% (solid) infill.
                opt_key == "fill_density"
+            // for perimeter - infill overlap
             || opt_key == "solid_infill_extrusion_width") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posPrepareInfill);

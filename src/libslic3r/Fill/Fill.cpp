@@ -532,6 +532,7 @@ void Layer::make_ironing()
 				}
 			}
 			if (ironing_params.extruder != -1) {
+				//TODO just_infill is currently not used.
 				ironing_params.just_infill 	= false;
 				ironing_params.line_spacing = config.ironing_spacing;
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flowrate;
@@ -562,17 +563,54 @@ void Layer::make_ironing()
 		ExPolygons ironing_areas;
 		double nozzle_dmr = this->object()->print()->config().nozzle_diameter.values[ironing_params.extruder - 1];
 		if (ironing_params.just_infill) {
+			//TODO just_infill is currently not used.
 			// Just infill.
 		} else {
 			// Infill and perimeter.
 			// Merge top surfaces with the same ironing parameters.
 			Polygons polys;
-			for (size_t k = i; k < j; ++ k)
-				for (const Surface &surface : by_extruder[k].layerm->slices.surfaces)
-					if (surface.surface_type == stTop)
+			Polygons infills;
+			for (size_t k = i; k < j; ++ k) {
+				const IroningParams		 &ironing_params  = by_extruder[k];
+				const PrintRegionConfig  &region_config   = ironing_params.layerm->region()->config();
+				bool					  iron_everything = region_config.ironing_type == IroningType::AllSolid;
+				bool					  iron_completely = iron_everything;
+				if (iron_everything) {
+					// Check whether there is any non-solid hole in the regions.
+					bool internal_infill_solid = region_config.fill_density.value > 95.;
+					for (const Surface &surface : ironing_params.layerm->fill_surfaces.surfaces)
+						if ((! internal_infill_solid && surface.surface_type == stInternal) || surface.surface_type == stInternalBridge || surface.surface_type == stInternalVoid) {
+							// Some fill region is not quite solid. Don't iron over the whole surface.
+							iron_completely = false;
+							break;
+						}
+				}
+				if (iron_completely) {
+					// Iron everything. This is likely only good for solid transparent objects.
+					for (const Surface &surface : ironing_params.layerm->slices.surfaces)
 						polygons_append(polys, surface.expolygon);
+				} else {
+					for (const Surface &surface : ironing_params.layerm->slices.surfaces)
+						if (surface.surface_type == stTop || (iron_everything && surface.surface_type == stBottom))
+							// stBottomBridge is not being ironed on purpose, as it would likely destroy the bridges.
+							polygons_append(polys, surface.expolygon);
+				}
+				if (iron_everything && ! iron_completely) {
+					// Add solid fill surfaces. This may not be ideal, as one will not iron perimeters touching these
+					// solid fill surfaces, but it is likely better than nothing.
+					for (const Surface &surface : ironing_params.layerm->fill_surfaces.surfaces)
+						if (surface.surface_type == stInternalSolid)
+							polygons_append(infills, surface.expolygon);
+				}
+			}
 			// Trim the top surfaces with half the nozzle diameter.
 			ironing_areas = intersection_ex(polys, offset(this->lslices, - float(scale_(0.5 * nozzle_dmr))));
+			if (! infills.empty()) {
+				// For IroningType::AllSolid only:
+				// Add solid infill areas for layers, that contain some non-ironable infil (sparse infill, bridge infill).
+				append(infills, to_polygons(std::move(ironing_areas)));
+				ironing_areas = union_ex(infills, true);
+			}
 		}
 
         // Create the filler object.
