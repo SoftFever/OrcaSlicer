@@ -21,6 +21,7 @@ namespace GUI{
 
 class ModelNode;
 class PresetComboBox;
+class MainFrame;
 using ModelNodePtrArray = std::vector<std::unique_ptr<ModelNode>>;
 
 // On all of 3 different platforms Bitmap+Text icon column looks different 
@@ -333,7 +334,7 @@ class DiffPresetDialog : public DPIDialog
     std::vector<DiffPresets> m_preset_combos;
 
 public:
-    DiffPresetDialog();
+    DiffPresetDialog(MainFrame* mainframe);
     ~DiffPresetDialog() {}
 
     void                    show(Preset::Type type = Preset::TYPE_INVALID);
