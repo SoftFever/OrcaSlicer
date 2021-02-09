@@ -1116,7 +1116,7 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
                 out.RemoveLast(1);
                 return out;
             }
-            if (!strings->empty() && opt_idx < (int)strings->values.size())
+            if (!strings->empty() && opt_idx < strings->values.size())
                 return from_u8(strings->get_at(opt_idx));
         }
         break;
