@@ -19,7 +19,7 @@ RetinaHelper::RetinaHelper(wxWindow *window)
 
 RetinaHelper::~RetinaHelper()
 {
-    [m_self release];
+    [(id)m_self release];
 }
 
 void RetinaHelper::set_use_retina(bool aValue)

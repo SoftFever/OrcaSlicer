@@ -57,7 +57,7 @@ void OtherInstanceMessageHandler::register_for_messages(const std::string &versi
 	m_impl_osx = [[OtherInstanceMessageHandlerMac alloc] init];
 	if(m_impl_osx) {
 		NSString *nsver = [NSString stringWithCString:version_hash.c_str() encoding:[NSString defaultCStringEncoding]];
-		[m_impl_osx add_observer:nsver];
+		[(id)m_impl_osx add_observer:nsver];
 	}
 }
 
@@ -65,7 +65,7 @@ void OtherInstanceMessageHandler::unregister_for_messages()
 {
 	//NSLog(@"unreegistering other instance messages");
 	if (m_impl_osx) {
-        [m_impl_osx release];
+        [(id)m_impl_osx release];
         m_impl_osx = nullptr;
     } else {
 		NSLog(@"warning: unregister instance InstanceCheck notifications not required");
@@ -75,7 +75,7 @@ void OtherInstanceMessageHandler::unregister_for_messages()
 void OtherInstanceMessageHandler::bring_instance_forward()
 {
 	if (m_impl_osx) {
-		[m_impl_osx bring_forward];
+		[(id)m_impl_osx bring_forward];
 	}
 }
 }//namespace GUI
