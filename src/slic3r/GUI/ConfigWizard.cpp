@@ -304,21 +304,28 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     }
     title_sizer->AddStretchSpacer();
 
-    if (/*titles.size() > 1*/is_variants) {
+    if (titles.size() > 1 || is_variants) {
         // It only makes sense to add the All / None buttons if there's multiple printers
-
+        // All Standard button is added when there are more variants for at least one printer
         auto *sel_all_std = new wxButton(this, wxID_ANY, titles.size() > 1 ? _L("All standard") : _L("Standard"));
         auto *sel_all = new wxButton(this, wxID_ANY, _L("All"));
         auto *sel_none = new wxButton(this, wxID_ANY, _L("None"));
-        sel_all_std->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(true, false); });
+        if (is_variants) 
+            sel_all_std->Bind(wxEVT_BUTTON, [this](const wxCommandEvent& event) { this->select_all(true, false); });
         sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(true, true); });
         sel_none->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(false); });
-        title_sizer->Add(sel_all_std, 0, wxRIGHT, BTN_SPACING);
+        if (is_variants) 
+            title_sizer->Add(sel_all_std, 0, wxRIGHT, BTN_SPACING);
         title_sizer->Add(sel_all, 0, wxRIGHT, BTN_SPACING);
         title_sizer->Add(sel_none);
 
         // fill button indexes used later for buttons rescaling
-        m_button_indexes = { sel_all_std->GetId(), sel_all->GetId(), sel_none->GetId() };
+        if (is_variants)
+            m_button_indexes = { sel_all_std->GetId(), sel_all->GetId(), sel_none->GetId() };
+        else {
+            sel_all_std->Destroy();
+            m_button_indexes = { sel_all->GetId(), sel_none->GetId() };
+        }
     }
 
     sizer->Add(title_sizer, 0, wxEXPAND | wxBOTTOM, BTN_SPACING);
