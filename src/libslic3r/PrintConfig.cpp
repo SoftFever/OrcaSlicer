@@ -558,6 +558,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("gap_fill_enabled", coBool);
+    def->label = L("Fill gaps");
+    def->category = L("Layers and Perimeters");
+    def->tooltip = L("Enables small gap fill.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("extra_perimeters", coBool);
     def->label = L("Extra perimeters if needed");
     def->category = L("Layers and Perimeters");

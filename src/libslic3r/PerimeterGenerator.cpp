@@ -384,7 +384,7 @@ void PerimeterGenerator::process()
     // internal flow which is unrelated.
     coord_t min_spacing         = coord_t(perimeter_spacing      * (1 - INSET_OVERLAP_TOLERANCE));
     coord_t ext_min_spacing     = coord_t(ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE));
-    bool    has_gap_fill 		= this->config->gap_fill_speed.value > 0;
+    bool    has_gap_fill 		= this->config->gap_fill_speed.value > 0 && this->config->gap_fill_enabled.value;
 
     // prepare grown lower layer slices for overhang detection
     if (this->lower_slices != NULL && this->config->overhangs) {
