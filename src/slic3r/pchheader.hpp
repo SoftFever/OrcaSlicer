@@ -78,10 +78,17 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/optional.hpp>
+
+// boost/property_tree/json_parser/detail/parser.hpp includes boost/bind.hpp, which is deprecated.
+// Suppress the following boost message:
+// The practice of declaring the Bind placeholders (_1, _2, ...) in the global namespace is deprecated.
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
+#undef BOOST_BIND_GLOBAL_PLACEHOLDERS
+
 #include <boost/system/error_code.hpp>
 
 #include <tbb/parallel_for.h>

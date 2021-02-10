@@ -3,7 +3,16 @@
 
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
+
+#ifdef _MSC_VER
+// Suppress warning C4146 in include/gmp.h(2177,31): unary minus operator applied to unsigned type, result still unsigned 
+#pragma warning(push)
+#pragma warning(disable : 4146)
+#endif // _MSC_VER
 #include <openvdb/openvdb.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif // _MSC_VER
 
 namespace Slic3r {
 
