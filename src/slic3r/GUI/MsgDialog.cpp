@@ -107,5 +107,55 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
 	Fit();
 }
 
+// WarningDialog
+
+WarningDialog::WarningDialog(wxWindow *parent,
+                             const wxString& message,
+                             const wxString& caption/* = wxEmptyString*/,
+                             long style/* = wxOK*/)
+    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s warning"), SLIC3R_APP_NAME) : caption, 
+                        wxString::Format(_L("%s has a warning")+":", SLIC3R_APP_NAME), wxID_NONE)
+    , msg(message)
+{
+    // Text shown as HTML, so that mouse selection and Ctrl-V to copy will work.
+    wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
+    {
+        html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), 10 * wxGetApp().em_unit()));
+        wxFont           font             = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        wxFont      monospace       = wxGetApp().code_font();
+        wxColour      text_clr          = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+        wxColour      bgr_clr         = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+        auto          text_clr_str     = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+        auto          bgr_clr_str     = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+        const int     font_size       = font.GetPointSize();
+        int         size[]             = {font_size, font_size, font_size, font_size, font_size, font_size, font_size};
+        html->SetFonts(font.GetFaceName(), monospace.GetFaceName(), size);
+        html->SetBorders(2);
+        std::string msg_escaped = xml_escape(msg.ToUTF8().data());
+        boost::replace_all(msg_escaped, "\r\n", "<br>");
+        boost::replace_all(msg_escaped, "\n", "<br>");
+        html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
+        content_sizer->Add(html, 1, wxEXPAND|wxBOTTOM, BORDER);
+    }
+
+    auto add_btn = [this](wxWindowID btn_id) {
+        auto* btn = new wxButton(this, btn_id);
+        btn_sizer->Add(btn, 0, wxRIGHT, HORIZ_SPACING);
+        btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { this->EndModal(btn_id); });
+    };
+
+    if (style & wxOK)
+        add_btn(wxID_OK);
+    if (style & wxYES)
+        add_btn(wxID_YES);
+    if (style & wxNO)
+        add_btn(wxID_NO);
+
+    logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 150));
+
+    SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
+    Fit();
+}
+
 }
 }

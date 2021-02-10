@@ -66,6 +66,27 @@ private:
 };
 
 
+// Generic error dialog, used for displaying exceptions
+class WarningDialog : public MsgDialog
+{
+public:
+	// If monospaced_font is true, the error message is displayed using html <code><pre></pre></code> tags,
+	// so that the code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
+	WarningDialog(	wxWindow *parent,
+		            const wxString& message,
+		            const wxString& caption = wxEmptyString,
+		            long style = wxOK);
+	WarningDialog(WarningDialog&&) = delete;
+	WarningDialog(const WarningDialog&) = delete;
+	WarningDialog &operator=(WarningDialog&&) = delete;
+	WarningDialog &operator=(const WarningDialog&) = delete;
+	virtual ~WarningDialog() = default;
+
+private:
+	wxString	msg;
+};
+
+
 }
 }
 
