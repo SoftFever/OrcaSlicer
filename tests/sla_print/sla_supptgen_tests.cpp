@@ -12,7 +12,7 @@ TEST_CASE("Overhanging point should be supported", "[SupGen]") {
 
     // Pyramid with 45 deg slope
     TriangleMesh mesh = make_pyramid(10.f, 10.f);
-    mesh.rotate_y(PI);
+    mesh.rotate_y(float(PI));
     mesh.require_shared_vertices();
     mesh.WriteOBJFile("Pyramid.obj");
 
@@ -81,7 +81,7 @@ TEST_CASE("Overhanging edge should be supported", "[SupGen]") {
     float width = 10.f, depth = 10.f, height = 5.f;
 
     TriangleMesh mesh = make_prism(width, depth, height);
-    mesh.rotate_y(PI); // rotate on its back
+    mesh.rotate_y(float(PI)); // rotate on its back
     mesh.translate(0., 0., height);
     mesh.require_shared_vertices();
     mesh.WriteOBJFile("Prism.obj");

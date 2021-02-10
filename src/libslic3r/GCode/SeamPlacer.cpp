@@ -15,7 +15,7 @@ static constexpr float ENFORCER_BLOCKER_PENALTY = 100;
 
 // In case there are custom enforcers/blockers, the loop polygon shall always have
 // sides smaller than this (so it isn't limited to original resolution).
-static constexpr float MINIMAL_POLYGON_SIDE = scale_(0.2f);
+static constexpr float MINIMAL_POLYGON_SIDE = scaled<float>(0.2f);
 
 // When spAligned is active and there is a support enforcer,
 // add this penalty to its center.

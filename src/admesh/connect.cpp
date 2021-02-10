@@ -532,7 +532,7 @@ void stl_remove_unconnected_facets(stl_file *stl)
 			assert(false);
 		}
 
-	  	if (facet_number < -- stl->stats.number_of_facets) {
+	  	if (facet_number < int(-- stl->stats.number_of_facets)) {
 	  		// Removing a face, which was not the last one.
 		  	// Copy the face and neighborship from the last face to facet_number.
 		  	stl->facet_start[facet_number] = stl->facet_start[stl->stats.number_of_facets];

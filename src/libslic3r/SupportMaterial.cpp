@@ -1128,8 +1128,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                             // Subtracting them as they are may leave unwanted narrow
                             // residues of diff_polygons that would then be supported.
                             diff_polygons = diff(diff_polygons,
-                                offset(union_(to_polygons(std::move(blockers[layer_id]))),
-                                       1000.*SCALED_EPSILON));
+                                offset(union_(to_polygons(std::move(blockers[layer_id]))), float(1000.*SCALED_EPSILON)));
                         }
 
                         #ifdef SLIC3R_DEBUG

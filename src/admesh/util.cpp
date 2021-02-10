@@ -70,7 +70,7 @@ void stl_translate(stl_file *stl, float x, float y, float z)
 {
 	stl_vertex new_min(x, y, z);
 	stl_vertex shift = new_min - stl->stats.min;
-	for (int i = 0; i < stl->stats.number_of_facets; ++ i)
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
 		for (int j = 0; j < 3; ++ j)
 	  		stl->facet_start[i].vertex[j] += shift;
 	stl->stats.min = new_min;
@@ -81,7 +81,7 @@ void stl_translate(stl_file *stl, float x, float y, float z)
 void stl_translate_relative(stl_file *stl, float x, float y, float z)
 {
 	stl_vertex shift(x, y, z);
-	for (int i = 0; i < stl->stats.number_of_facets; ++ i)
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
 		for (int j = 0; j < 3; ++ j)
 	  		stl->facet_start[i].vertex[j] += shift;
 	stl->stats.min += shift;
@@ -100,7 +100,7 @@ void stl_scale_versor(stl_file *stl, const stl_vertex &versor)
 	if (stl->stats.volume > 0.0)
 		stl->stats.volume *= versor(0) * versor(1) * versor(2);
 	// Scale the mesh.
-	for (int i = 0; i < stl->stats.number_of_facets; ++ i)
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
 		for (int j = 0; j < 3; ++ j)
 	  		stl->facet_start[i].vertex[j].array() *= s;
 }
@@ -330,10 +330,10 @@ void stl_repair(
       		increment = stl->stats.bounding_diameter / 10000.0;
     }
 
-	if (stl->stats.connected_facets_3_edge < stl->stats.number_of_facets) {
+	if (stl->stats.connected_facets_3_edge < int(stl->stats.number_of_facets)) {
 	  	int last_edges_fixed = 0;
 	  	for (int i = 0; i < iterations; ++ i) {
-	    	if (stl->stats.connected_facets_3_edge < stl->stats.number_of_facets) {
+	    	if (stl->stats.connected_facets_3_edge < int(stl->stats.number_of_facets)) {
 	      		if (verbose_flag)
 	        		printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
 	      		stl_check_facets_nearby(stl, tolerance);
@@ -351,7 +351,7 @@ void stl_repair(
 	    printf("All facets connected.  No nearby check necessary.\n");
 
 	if (remove_unconnected_flag || fixall_flag || fill_holes_flag) {
-		if (stl->stats.connected_facets_3_edge <  stl->stats.number_of_facets) {
+		if (stl->stats.connected_facets_3_edge < int(stl->stats.number_of_facets)) {
 	  		if (verbose_flag)
 	    		printf("Removing unconnected facets...\n");
 	  		stl_remove_unconnected_facets(stl);
@@ -360,7 +360,7 @@ void stl_repair(
 	}
 
 	if (fill_holes_flag || fixall_flag) {
-		if (stl->stats.connected_facets_3_edge <  stl->stats.number_of_facets) {
+		if (stl->stats.connected_facets_3_edge < int(stl->stats.number_of_facets)) {
 	  		if (verbose_flag)
 	    		printf("Filling holes...\n");
 	  		stl_fill_holes(stl);

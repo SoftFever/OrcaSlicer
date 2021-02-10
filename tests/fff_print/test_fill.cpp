@@ -126,7 +126,7 @@ TEST_CASE("Fill: Pattern Path Length", "[Fill]") {
         filler->angle = 0;
         
         Surface surface(stTop, expolygon);
-        auto flow = Slic3r::Flow(0.69, 0.4, 0.50);
+        auto flow = Slic3r::Flow(0.69f, 0.4f, 0.50f);
 
 		FillParams fill_params;
 		fill_params.density = 1.0;
@@ -435,7 +435,7 @@ bool test_if_solid_surface_filled(const ExPolygon& expolygon, double flow_spacin
 	filler->bounding_box = get_extents(expolygon.contour);
     filler->angle = float(angle);
 
-	Flow flow(flow_spacing, 0.4, flow_spacing);
+	Flow flow(float(flow_spacing), 0.4f, float(flow_spacing));
 	filler->spacing = flow.spacing();
 
 	FillParams fill_params;

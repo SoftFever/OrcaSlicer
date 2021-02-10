@@ -11,7 +11,16 @@
 #include <cereal/access.hpp>
 
 #define BOOST_VORONOI_USE_GMP 1
+
+#ifdef _MSC_VER
+// Suppress warning C4146 in include/gmp.h(2177,31): unary minus operator applied to unsigned type, result still unsigned 
+#pragma warning(push)
+#pragma warning(disable : 4146)
+#endif // _MSC_VER
 #include "boost/polygon/voronoi.hpp"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif // _MSC_VER
 
 namespace ClipperLib {
 class PolyNode;

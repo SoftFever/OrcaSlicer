@@ -290,6 +290,12 @@ void Preset::normalize(DynamicPrintConfig &config)
                 static_cast<ConfigOptionStrings*>(opt)->values.resize(n, std::string());
         }
     }
+    if (const auto *gap_fill_speed = config.option<ConfigOptionFloat>("gap_fill_speed", false); gap_fill_speed && gap_fill_speed->value <= 0.) {
+        // Legacy conversion. If the gap fill speed is zero, it means the gap fill is not enabled.
+        // Set the new gap_fill_enabled value, so that it will show up in the UI as disabled.
+        if (auto *gap_fill_enabled = config.option<ConfigOptionBool>("gap_fill_enabled", false); gap_fill_enabled)
+            gap_fill_enabled->value = false;
+    }
 }
 
 std::string Preset::remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config)
@@ -406,7 +412,7 @@ const std::vector<std::string>& Preset::print_options()
         "layer_height", "first_layer_height", "perimeters", "spiral_vase", "slice_closing_radius", 
         "top_solid_layers", "top_solid_min_thickness", "bottom_solid_layers", "bottom_solid_min_thickness",
         "extra_perimeters", "ensure_vertical_shell_thickness", "avoid_crossing_perimeters", "thin_walls", "overhangs",
-        "seam_position", "external_perimeters_first", "gap_fill_enabled", "fill_density", "fill_pattern", "top_fill_pattern", "bottom_fill_pattern",
+        "seam_position", "external_perimeters_first", "fill_density", "fill_pattern", "top_fill_pattern", "bottom_fill_pattern",
         "infill_every_layers", "infill_only_where_needed", "solid_infill_every_layers", "fill_angle", "bridge_angle",
         "solid_infill_below_area", "only_retract_when_crossing_perimeters", "infill_first", 
     	"ironing", "ironing_type", "ironing_flowrate", "ironing_speed", "ironing_spacing",
@@ -417,7 +423,7 @@ const std::vector<std::string>& Preset::print_options()
 #endif /* HAS_PRESSURE_EQUALIZER */
         "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed",
         "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
-        "bridge_speed", "gap_fill_speed", "travel_speed", "first_layer_speed", "perimeter_acceleration", "infill_acceleration",
+        "bridge_speed", "gap_fill_speed", "gap_fill_enabled", "travel_speed", "first_layer_speed", "perimeter_acceleration", "infill_acceleration",
         "bridge_acceleration", "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height", "draft_shield",
         "min_skirt_length", "brim_width", "brim_offset", "brim_type", "support_material", "support_material_auto", "support_material_threshold", "support_material_enforce_layers",
         "raft_layers", "support_material_pattern", "support_material_with_sheath", "support_material_spacing",

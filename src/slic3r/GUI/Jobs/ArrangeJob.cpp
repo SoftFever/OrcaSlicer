@@ -152,7 +152,7 @@ void ArrangeJob::on_exception(const std::exception_ptr &eptr)
     } catch (libnest2d::GeometryException &) {
         show_error(m_plater, _(L("Could not arrange model objects! "
                                  "Some geometries may be invalid.")));
-    } catch (std::exception &e) {
+    } catch (std::exception &) {
         PlaterJob::on_exception(eptr);
     }
 }

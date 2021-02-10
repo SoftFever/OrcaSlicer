@@ -198,7 +198,7 @@ void stl_fix_normal_directions(stl_file *stl)
       		// pool.destroy(temp);
     	} else { // If we ran out of facets to fix: All of the facets in this part have been fixed.
       		++ stl->stats.number_of_parts;
-      		if (checked >= stl->stats.number_of_facets)
+      		if (checked >= int(stl->stats.number_of_facets))
         		// All of the facets have been checked.  Bail out.
         		break;
     		// There is another part here.  Find it and continue.

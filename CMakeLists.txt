@@ -92,6 +92,10 @@ if (MSVC)
     # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
     #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
     add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
+    # Disable warnings on conversion from unsigned to signed (possible loss of data)
+    # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data. An integer type is converted to a smaller integer type.
+    # C4267: The compiler detected a conversion from size_t to a smaller type.
+    add_compile_options(/wd4244 /wd4267)
 endif ()
 
 if (MINGW)

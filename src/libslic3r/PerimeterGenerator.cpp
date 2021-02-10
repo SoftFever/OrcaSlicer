@@ -305,7 +305,7 @@ void PerimeterGenerator::process()
     // internal flow which is unrelated.
     coord_t min_spacing         = coord_t(perimeter_spacing      * (1 - INSET_OVERLAP_TOLERANCE));
     coord_t ext_min_spacing     = coord_t(ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE));
-    bool    has_gap_fill 		= this->config->gap_fill_speed.value > 0 && this->config->gap_fill_enabled.value;
+    bool    has_gap_fill 		= this->config->gap_fill_enabled.value && this->config->gap_fill_speed.value > 0;
 
     // prepare grown lower layer slices for overhang detection
     if (this->lower_slices != NULL && this->config->overhangs) {
@@ -315,10 +315,6 @@ void PerimeterGenerator::process()
         double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->perimeter_extruder-1);
         m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter/2)));
     }
-
-    // fuzzy skin configuration
-    double fuzzy_skin_thickness = scale_(this->config->fuzzy_skin_thickness);
-    double fuzzy_skin_point_dist = scale_(this->config->fuzzy_skin_point_dist);
 
     // we need to process each island separately because we might have different
     // extra perimeters for each one

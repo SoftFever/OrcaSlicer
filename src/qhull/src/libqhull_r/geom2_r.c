@@ -2054,7 +2054,7 @@ pointT *qh_voronoi_center(qhT *qh, int dim, setT *points) {
   factor= qh_divzero(0.5, det, qh->MINdenom, &infinite);
   if (infinite) {
     for (k=dim; k--; )
-      center[k]= qh_INFINITE;
+      center[k]= (float)qh_INFINITE;
     if (qh->IStracing)
       qh_printpoints(qh, qh->ferr, "qh_voronoi_center: at infinity for ", simplex);
   }else {
