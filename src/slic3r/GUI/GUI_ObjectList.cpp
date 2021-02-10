@@ -1023,7 +1023,7 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                        printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
         if (type & (itObject | itVolume))
-            append_menu_item_convert_unit(menu);
+            append_menu_items_convert_unit(menu);
         if (!(type & itInstance))
             append_menu_item_settings(menu);
     }
@@ -1906,56 +1906,59 @@ void ObjectList::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* me
         [](wxCommandEvent&) { wxGetApp().plater()->scale_selection_to_fit_print_volume(); }, "", menu);
 }
 
-void ObjectList::append_menu_item_convert_unit(wxMenu* menu, int insert_pos/* = 1*/)
+void ObjectList::append_menu_items_convert_unit(wxMenu* menu, int insert_pos/* = 1*/)
 {
     std::vector<int> obj_idxs, vol_idxs;
     get_selection_indexes(obj_idxs, vol_idxs);
     if (obj_idxs.empty() && vol_idxs.empty())
         return;
 
-    auto can_append = [this, obj_idxs, vol_idxs](bool from_imperial_unit) {
+    auto volume_respects_conversion = [](ModelVolume* volume, ConversionType conver_type)
+    {
+        return  (conver_type == ConversionType::CONV_FROM_INCH  &&  volume->source.is_converted_from_inches) ||
+                (conver_type == ConversionType::CONV_TO_INCH    && !volume->source.is_converted_from_inches) ||
+                (conver_type == ConversionType::CONV_FROM_METER &&  volume->source.is_converted_from_meters) ||
+                (conver_type == ConversionType::CONV_TO_METER   && !volume->source.is_converted_from_meters);
+    };
+
+    auto can_append = [this, obj_idxs, vol_idxs, volume_respects_conversion](ConversionType conver_type)
+    {
         ModelObjectPtrs objects;
         for (int obj_idx : obj_idxs) {
             ModelObject* object = (*m_objects)[obj_idx];
             if (vol_idxs.empty()) {
                 for (ModelVolume* volume : object->volumes)
-                    if (volume->source.is_converted_from_inches == from_imperial_unit)
+                    if (volume_respects_conversion(volume, conver_type))
                         return false;
             }
             else {
                 for (int vol_idx : vol_idxs)
-                    if (object->volumes[vol_idx]->source.is_converted_from_inches == from_imperial_unit)
+                    if (volume_respects_conversion(object->volumes[vol_idx], conver_type))
                         return false;
             }
         }
         return true;
     };
 
-    wxString convert_menu_name = _L("Convert from imperial units");
-    int      convert_menu_id   = menu->FindItem(convert_menu_name);
-    wxString revert_menu_name  = _L("Revert conversion from imperial units");
-    int      revert_menu_id    = menu->FindItem(revert_menu_name);
+    std::vector<std::pair<ConversionType, wxString>> items = {
+        {ConversionType::CONV_FROM_INCH , _L("Convert from imperial units") },
+        {ConversionType::CONV_TO_INCH   , _L("Revert conversion from imperial units") },
+        {ConversionType::CONV_FROM_METER, _L("Convert from meters") },
+        {ConversionType::CONV_TO_METER  , _L("Revert conversion from meters") } };
 
-    if (can_append(true)) {
-        // Delete revert menu item
-        if (revert_menu_id != wxNOT_FOUND)
-            menu->Destroy(revert_menu_id);
-        // Add convert menu item if it doesn't exist
-        if (convert_menu_id == wxNOT_FOUND)
-            append_menu_item(menu, wxID_ANY, convert_menu_name, convert_menu_name,
-                [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(true); }, "", menu, 
-                []() {return true;}, nullptr, insert_pos);
-    }
-
-    if (can_append(false)) {
-        // Delete convert menu item
-        if (convert_menu_id != wxNOT_FOUND)
-            menu->Destroy(convert_menu_id);
-        // Add convert menu item if it doesn't exist
-        if (revert_menu_id == wxNOT_FOUND)
-            append_menu_item(menu, wxID_ANY, revert_menu_name, revert_menu_name,
-                [](wxCommandEvent&) { wxGetApp().plater()->convert_unit(false); }, "", menu,
-                []() {return true;}, nullptr, insert_pos);
+    for (auto item : items) {
+        int menu_id = menu->FindItem(item.second);
+        if (can_append(item.first)) {
+            // Add menu item if it doesn't exist
+            if (menu_id == wxNOT_FOUND)
+                append_menu_item(menu, wxID_ANY, item.second, item.second,
+                    [item](wxCommandEvent&) { wxGetApp().plater()->convert_unit(item.first); }, "", menu,
+                    []() {return true; }, nullptr, insert_pos);
+        }
+        else if (menu_id != wxNOT_FOUND) {
+            // Delete menu item
+            menu->Destroy(menu_id);
+        }
     }
 }
 
@@ -4606,7 +4609,7 @@ void ObjectList::show_multi_selection_menu()
         return wxGetApp().plater()->can_reload_from_disk();
     }, wxGetApp().plater());
 
-    append_menu_item_convert_unit(menu);
+    append_menu_items_convert_unit(menu);
     if (can_merge_to_multipart_object())
         append_menu_item_merge_to_multipart_object(menu);
 

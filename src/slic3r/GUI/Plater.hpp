@@ -28,6 +28,7 @@ class ModelInstance;
 class Print;
 class SLAPrint;
 enum SLAPrintObjectStep : unsigned int;
+enum class ConversionType : int;
 
 using ModelInstancePtrs = std::vector<ModelInstance*>;
 
@@ -191,7 +192,7 @@ public:
     void fill_bed_with_instances();
     bool is_selection_empty() const;
     void scale_selection_to_fit_print_volume();
-    void convert_unit(bool from_imperial_unit);
+    void convert_unit(ConversionType conv_type);
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 

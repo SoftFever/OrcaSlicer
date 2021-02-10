@@ -798,6 +798,9 @@ void AMFParserContext::endElement(const char * /* name */)
                 else if (strcmp(opt_key, "source_in_inches") == 0) {
                     m_volume->source.is_converted_from_inches = m_value[1] == "1";
                 }
+                else if (strcmp(opt_key, "source_in_meters") == 0) {
+                    m_volume->source.is_converted_from_meters = m_value[1] == "1";
+                }
             }
         } else if (m_path.size() == 3) {
             if (m_path[1] == NODE_TYPE_MATERIAL) {
@@ -1232,6 +1235,8 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
             }
             if (volume->source.is_converted_from_inches)
                 stream << "        <metadata type=\"slic3r.source_in_inches\">1</metadata>\n";
+            if (volume->source.is_converted_from_meters)
+                stream << "        <metadata type=\"slic3r.source_in_meters\">1</metadata>\n";
 			stream << std::setprecision(std::numeric_limits<float>::max_digits10);
             const indexed_triangle_set &its = volume->mesh().its;
             for (size_t i = 0; i < its.indices.size(); ++i) {

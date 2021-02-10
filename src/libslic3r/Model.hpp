@@ -29,6 +29,7 @@ namespace cereal {
 }
 
 namespace Slic3r {
+enum class ConversionType;
 
 class Model;
 class ModelInstance;
@@ -325,7 +326,7 @@ public:
 
     // This method could only be called before the meshes of this ModelVolumes are not shared!
     void scale_mesh_after_creation(const Vec3d& versor);
-    void convert_units(ModelObjectPtrs&new_objects, bool from_imperial, std::vector<int> volume_idxs);
+    void convert_units(ModelObjectPtrs&new_objects, ConversionType conv_type, std::vector<int> volume_idxs);
 
     size_t materials_count() const;
     size_t facets_count() const;
@@ -495,6 +496,13 @@ enum class EnforcerBlockerType : int8_t {
     BLOCKER   = 2
 };
 
+enum class ConversionType : int {
+    CONV_TO_INCH,
+    CONV_FROM_INCH,
+    CONV_TO_METER,
+    CONV_FROM_METER,
+};
+
 class FacetsAnnotation final : public ObjectWithTimestamp {
 public:
     // Assign the content if the timestamp differs, don't assign an ObjectID.
@@ -553,11 +561,12 @@ public:
         Vec3d mesh_offset{ Vec3d::Zero() };
         Geometry::Transformation transform;
         bool is_converted_from_inches = false;
+        bool is_converted_from_meters = false;
 
         template<class Archive> void serialize(Archive& ar) { 
             //FIXME Vojtech: Serialize / deserialize only if the Source is set.
             // likely testing input_file or object_idx would be sufficient.
-            ar(input_file, object_idx, volume_idx, mesh_offset, transform, is_converted_from_inches);
+            ar(input_file, object_idx, volume_idx, mesh_offset, transform, is_converted_from_inches, is_converted_from_meters);
         }
     };
     Source              source;
@@ -657,6 +666,7 @@ public:
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
     void convert_from_imperial_units();
+    void convert_from_meters();
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
