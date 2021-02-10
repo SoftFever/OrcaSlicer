@@ -143,16 +143,19 @@ void Layer::make_perimeters()
 	            if (! (*it)->slices.empty()) {
 		            LayerRegion* other_layerm = *it;
 		            const PrintRegionConfig &other_config = other_layerm->region()->config();
-		            if (config.perimeter_extruder   == other_config.perimeter_extruder
-		                && config.perimeters        == other_config.perimeters
-		                && config.perimeter_speed   == other_config.perimeter_speed
-		                && config.external_perimeter_speed == other_config.external_perimeter_speed
-		                && config.gap_fill_speed    == other_config.gap_fill_speed
-		                && config.overhangs         == other_config.overhangs
+		            if (config.perimeter_extruder             == other_config.perimeter_extruder
+		                && config.perimeters                  == other_config.perimeters
+		                && config.perimeter_speed             == other_config.perimeter_speed
+		                && config.external_perimeter_speed    == other_config.external_perimeter_speed
+		                && config.gap_fill_speed              == other_config.gap_fill_speed
+		                && config.overhangs                   == other_config.overhangs
 		                && config.opt_serialize("perimeter_extrusion_width") == other_config.opt_serialize("perimeter_extrusion_width")
-		                && config.thin_walls        == other_config.thin_walls
-		                && config.external_perimeters_first == other_config.external_perimeters_first
-		                && config.infill_overlap    == other_config.infill_overlap)
+		                && config.thin_walls                  == other_config.thin_walls
+		                && config.external_perimeters_first   == other_config.external_perimeters_first
+		                && config.infill_overlap              == other_config.infill_overlap
+                        && config.fuzzy_skin                  == other_config.fuzzy_skin
+                        && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
+                        && config.fuzzy_skin_point_dist       == other_config.fuzzy_skin_point_dist)
 		            {
 			 			other_layerm->perimeters.clear();
 			 			other_layerm->fills.clear();

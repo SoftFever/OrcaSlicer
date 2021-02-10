@@ -678,7 +678,7 @@ static inline bool line_rounded_thick_segment_collision(
     return intersects;
 }
 
-#if 0
+#ifndef NDEBUG
 static inline bool inside_interval(double low, double high, double p)
 {
     return p >= low && p <= high;
@@ -703,7 +703,7 @@ static inline bool cyclic_interval_inside_interval(double outer_low, double oute
     }
     return interval_inside_interval(outer_low, outer_high, inner_low, inner_high, double(SCALED_EPSILON));
 }
-#endif
+#endif // NDEBUG
 
 // #define INFILL_DEBUG_OUTPUT
 

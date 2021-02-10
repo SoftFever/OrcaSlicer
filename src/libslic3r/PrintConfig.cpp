@@ -1039,51 +1039,20 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionInts { 0 });
 
-    def = this->add("fuzzy_skin_perimeter_mode", coEnum);
-    def->label = L("Fuzzy skin perimeter mode");
+    def = this->add("fuzzy_skin", coEnum);
+    def->label = L("Fuzzy Skin");
     def->category = L("Fuzzy Skin");
-    def->tooltip = L("Fuzzy skin perimeter mode.");
+    def->tooltip = L("Fuzzy skin type.");
 
-    def->enum_keys_map = &ConfigOptionEnum<FuzzySkinPerimeterMode>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<FuzzySkinType>::get_enum_values();
     def->enum_values.push_back("none");
-    def->enum_values.push_back("external_only");
-    def->enum_values.push_back("external_only_skip_first_layer");
+    def->enum_values.push_back("external");
     def->enum_values.push_back("all");
     def->enum_labels.push_back(L("None"));
-    def->enum_labels.push_back(L("External"));
-    def->enum_labels.push_back(L("External (skip first layer)"));
+    def->enum_labels.push_back(L("External perimeters"));
     def->enum_labels.push_back(L("All perimeters"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<FuzzySkinPerimeterMode>(FuzzySkinPerimeterMode::None));
-
-/*
-    def = this->add("fuzzy_skin_shape", coEnum);
-    def->label = L("Fuzzy skin shape");
-    def->category = L("Fuzzy Skin");
-    def->tooltip = L("Fuzzy skin shape.");
-
-    def->enum_keys_map = &ConfigOptionEnum<FuzzySkinShape>::get_enum_values();
-    def->enum_values.push_back("triangle1");
-    def->enum_values.push_back("triangle2");
-    def->enum_values.push_back("triangle3");
-    def->enum_values.push_back("sawtooth1");
-    def->enum_values.push_back("sawtooth2");
-    def->enum_values.push_back("sawtooth3");
-    def->enum_values.push_back("random1");
-    def->enum_values.push_back("random2");
-    def->enum_values.push_back("random3");
-    def->enum_labels.push_back(L("Triangle (1)"));
-    def->enum_labels.push_back(L("Triangle (2)"));
-    def->enum_labels.push_back(L("Triangle (3)"));
-    def->enum_labels.push_back(L("Sawtooth (1)"));
-    def->enum_labels.push_back(L("Sawtooth (2)"));
-    def->enum_labels.push_back(L("Sawtooth (3)"));
-    def->enum_labels.push_back(L("Random (1)"));
-    def->enum_labels.push_back(L("Random (2)"));
-    def->enum_labels.push_back(L("Random (3)"));
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<FuzzySkinShape>(FuzzySkinShape::Triangle1));
-*/
+    def->set_default_value(new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));
 
     def = this->add("fuzzy_skin_thickness", coFloat);
     def->label = L("Fuzzy skin thickness");
@@ -3357,7 +3326,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 #ifndef HAS_PRESSURE_EQUALIZER
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
-        "serial_port", "serial_speed"
+        "serial_port", "serial_speed",
+        // Introduced in some PrusaSlicer 2.3.1 alpha, later renamed or removed.
+        "fuzzy_skin_perimeter_mode", "fuzzy_skin_shape",
     };
 
     // In PrusaSlicer 2.3.0-alpha0 the "monotonous" infill was introduced, which was later renamed to "monotonic".

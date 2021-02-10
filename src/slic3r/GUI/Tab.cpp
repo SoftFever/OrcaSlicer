@@ -1438,14 +1438,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("gap_fill_enabled");
 
         optgroup = page->new_optgroup(L("Fuzzy skin (experimental)"));
-        Option option = optgroup->get_option("fuzzy_skin_perimeter_mode");
+        Option option = optgroup->get_option("fuzzy_skin");
         option.opt.width = 30;
         optgroup->append_single_option_line(option);
-#if 0
-        option = optgroup->get_option("fuzzy_skin_shape");
-        option.opt.width = 30;
-        optgroup->append_single_option_line(option);
-#endif
         optgroup->append_single_option_line(optgroup->get_option("fuzzy_skin_thickness"));
         optgroup->append_single_option_line(optgroup->get_option("fuzzy_skin_point_dist"));
 

@@ -43,26 +43,11 @@ enum AuthorizationType {
     atKeyPassword, atUserPassword
 };
 
-enum class FuzzySkinPerimeterMode {
+enum class FuzzySkinType {
     None,
     External,
-    ExternalSkipFirst,
-    All
+    All,
 };
-
-/*
-enum class FuzzySkinShape {
-    Triangle1,
-    Triangle2,
-    Triangle3,
-    Sawtooth1,
-    Sawtooth2,
-    Sawtooth3,
-    Random1,
-    Random2,
-    Random3
-};
-*/
 
 enum InfillPattern : int {
     ipRectilinear, ipMonotonic, ipAlignedRectilinear, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
@@ -168,34 +153,15 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<AuthorizationType
     return keys_map;
 }
 
-template<> inline const t_config_enum_values& ConfigOptionEnum<FuzzySkinPerimeterMode>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<FuzzySkinType>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
-        keys_map["none"]                           = int(FuzzySkinPerimeterMode::None);
-        keys_map["external_only"]                  = int(FuzzySkinPerimeterMode::External);
-        keys_map["external_only_skip_first_layer"] = int(FuzzySkinPerimeterMode::ExternalSkipFirst);
-        keys_map["all"]                            = int(FuzzySkinPerimeterMode::All);
+        keys_map["none"]                 = int(FuzzySkinType::None);
+        keys_map["external"]             = int(FuzzySkinType::External);
+        keys_map["all"]                  = int(FuzzySkinType::All);
     }
     return keys_map;
 }
-
-/*
-template<> inline const t_config_enum_values& ConfigOptionEnum<FuzzySkinShape>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["triangle1"]           = int(FuzzySkinShape::Triangle1);
-        keys_map["triangle2"]           = int(FuzzySkinShape::Triangle2);
-        keys_map["triangle3"]           = int(FuzzySkinShape::Triangle3);
-        keys_map["sawtooth1"]           = int(FuzzySkinShape::Sawtooth1);
-        keys_map["sawtooth2"]           = int(FuzzySkinShape::Sawtooth2);
-        keys_map["sawtooth3"]           = int(FuzzySkinShape::Sawtooth3);
-        keys_map["random1"]             = int(FuzzySkinShape::Random1);
-        keys_map["random2"]             = int(FuzzySkinShape::Random2);
-        keys_map["random3"]             = int(FuzzySkinShape::Random3);
-    }
-    return keys_map;
-}
-*/
 
 template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
@@ -503,10 +469,6 @@ public:
     ConfigOptionFloat               elefant_foot_compensation;
     ConfigOptionFloatOrPercent      extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_height;
-    ConfigOptionEnum<FuzzySkinPerimeterMode>    fuzzy_skin_perimeter_mode;
-//    ConfigOptionEnum<FuzzySkinShape>            fuzzy_skin_shape;
-    ConfigOptionFloat               fuzzy_skin_thickness;
-    ConfigOptionFloat               fuzzy_skin_point_dist;
     ConfigOptionBool                infill_only_where_needed;
     // Force the generation of solid shells between adjacent materials/volumes.
     ConfigOptionBool                interface_shells;
@@ -555,10 +517,6 @@ protected:
         OPT_PTR(elefant_foot_compensation);
         OPT_PTR(extrusion_width);
         OPT_PTR(first_layer_height);
-        OPT_PTR(fuzzy_skin_perimeter_mode);
-//        OPT_PTR(fuzzy_skin_shape);
-        OPT_PTR(fuzzy_skin_thickness);
-        OPT_PTR(fuzzy_skin_point_dist);
         OPT_PTR(infill_only_where_needed);
         OPT_PTR(interface_shells);
         OPT_PTR(layer_height);
@@ -613,6 +571,9 @@ public:
     ConfigOptionFloat               fill_angle;
     ConfigOptionPercent             fill_density;
     ConfigOptionEnum<InfillPattern> fill_pattern;
+    ConfigOptionEnum<FuzzySkinType> fuzzy_skin;
+    ConfigOptionFloat               fuzzy_skin_thickness;
+    ConfigOptionFloat               fuzzy_skin_point_dist;
     ConfigOptionFloat               gap_fill_speed;
     ConfigOptionFloatOrPercent      infill_anchor;
     ConfigOptionFloatOrPercent      infill_anchor_max;
@@ -667,6 +628,9 @@ protected:
         OPT_PTR(fill_angle);
         OPT_PTR(fill_density);
         OPT_PTR(fill_pattern);
+        OPT_PTR(fuzzy_skin);
+        OPT_PTR(fuzzy_skin_thickness);
+        OPT_PTR(fuzzy_skin_point_dist);
         OPT_PTR(gap_fill_speed);
         OPT_PTR(infill_anchor);
         OPT_PTR(infill_anchor_max);
