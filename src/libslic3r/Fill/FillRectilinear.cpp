@@ -2332,7 +2332,12 @@ static std::vector<MonotonicRegionLink> chain_monotonic_regions(
     }
 
     // Probability (unnormalized) of traversing a link between two monotonic regions.
-	auto path_probability = [pheromone_alpha, pheromone_beta](AntPath &path) {
+	auto path_probability = [
+#ifndef __APPLE__
+        // clang complains when capturing constexpr constants.
+        pheromone_alpha, pheromone_beta
+#endif // __APPLE__
+        ](AntPath &path) {
 		return pow(path.pheromone, pheromone_alpha) * pow(path.visibility, pheromone_beta);
 	};
 

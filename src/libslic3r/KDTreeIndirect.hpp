@@ -195,8 +195,9 @@ private:
 template<typename KDTreeIndirectType, typename PointType, typename FilterFn>
 size_t find_closest_point(const KDTreeIndirectType &kdtree, const PointType &point, FilterFn filter)
 {
+	using CoordType = typename KDTreeIndirectType::CoordType;
+
 	struct Visitor {
-		using CoordType = typename KDTreeIndirectType::CoordType;
 		const KDTreeIndirectType   &kdtree;
 		const PointType    		   &point;
 		const FilterFn				filter;

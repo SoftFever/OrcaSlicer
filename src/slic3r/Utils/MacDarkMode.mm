@@ -2,9 +2,12 @@
 
 #import <algorithm>
 
+#import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
 #import <AppKit/NSScreen.h>
 
+@interface MacDarkMode : NSObject {}
+@end
 
 @implementation MacDarkMode
 

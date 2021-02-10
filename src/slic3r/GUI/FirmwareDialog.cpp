@@ -648,7 +648,12 @@ void FirmwareDialog::priv::perform_upload()
 				}
 			}
 		})
-		.on_message([extra_verbose, q](const char* msg, unsigned /* size */) {
+		.on_message([
+#ifndef __APPLE__
+	        // clang complains when capturing constants.
+			extra_verbose,
+#endif // __APPLE__
+			q](const char* msg, unsigned /* size */) {
 			if (extra_verbose) {
 				BOOST_LOG_TRIVIAL(debug) << "avrdude: " << msg;
 			}

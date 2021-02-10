@@ -80,7 +80,7 @@ static constexpr const size_t MAX_VERTEX_BUFFER_SIZE     = 131072 * 6; // 3.15MB
 // Reserve size in number of floats.
 static constexpr const size_t VERTEX_BUFFER_RESERVE_SIZE = 131072 * 2; // 1.05MB
 // Reserve size in number of floats, maximum sum of all preallocated buffers.
-static constexpr const size_t VERTEX_BUFFER_RESERVE_SIZE_SUM_MAX = 1024 * 1024 * 128 / 4; // 128MB
+//static constexpr const size_t VERTEX_BUFFER_RESERVE_SIZE_SUM_MAX = 1024 * 1024 * 128 / 4; // 128MB
 
 namespace Slic3r {
 namespace GUI {

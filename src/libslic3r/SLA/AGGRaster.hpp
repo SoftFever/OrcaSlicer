@@ -147,9 +147,16 @@ public:
         , m_renderer(m_raw_renderer)
         , m_trafo(trafo)
     {
+#ifdef _MSC_VER
         // suppress false MSVC warning C4723: possible division by zero
+#pragma warning(push)
+#pragma warning(disable : 4723)
+#endif // _MSC_VER
         m_pxdim_scaled.w_mm /= pd.w_mm;
         m_pxdim_scaled.h_mm /= pd.h_mm;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif // _MSC_VER
         m_renderer.color(foreground);
         clear(background);
         
