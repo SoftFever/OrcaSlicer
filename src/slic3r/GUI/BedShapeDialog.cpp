@@ -12,7 +12,6 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
 
-#include "boost/nowide/iostream.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 
