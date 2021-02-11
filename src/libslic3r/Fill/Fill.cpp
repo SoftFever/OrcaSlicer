@@ -158,6 +158,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            params.spacing = params.flow.spacing();
 		            // Don't limit anchor length for solid or bridging infill.
 		            params.anchor_length = 1000.f;
+					params.anchor_length_max = 1000.f;
 		        } else {
 		            // it's internal infill, so we can calculate a generic flow spacing 
 		            // for all layers, for avoiding the ugly effect of
@@ -178,8 +179,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 			        params.anchor_length_max = float(region_config.infill_anchor_max);
 			        if (region_config.infill_anchor_max.percent)
 			        	params.anchor_length_max = float(params.anchor_length_max * 0.01 * params.spacing);
-		        }
-		        params.anchor_length = std::min(params.anchor_length, params.anchor_length_max);
+					params.anchor_length = std::min(params.anchor_length, params.anchor_length_max);
+				}
 
 		        auto it_params = set_surface_params.find(params);
 		        if (it_params == set_surface_params.end())
