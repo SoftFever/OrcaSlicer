@@ -74,7 +74,6 @@ class Grid
 public:
 	Grid() = default;
 	Grid(const BoundingBox &bbox) : m_bbox(bbox) {}
-	~Grid();
 
 	void set_bbox(const BoundingBox &bbox) { m_bbox = bbox; }
 

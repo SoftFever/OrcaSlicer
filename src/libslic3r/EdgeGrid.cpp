@@ -25,16 +25,10 @@
 
 namespace Slic3r {
 
-EdgeGrid::Grid::~Grid() 
-{
-	m_contours.clear();
-	m_cell_data.clear();
-	m_cells.clear();
-}
-
 void EdgeGrid::Grid::create(const Polygons &polygons, coord_t resolution)
 {
 	// Collect the contours.
+	m_contours.clear();
 	m_contours.reserve(std::count_if(polygons.begin(), polygons.end(), [](const Polygon &p) { return ! p.empty(); }));
 	for (const Polygon &polygon : polygons)
 		if (! polygon.empty())
@@ -46,6 +40,7 @@ void EdgeGrid::Grid::create(const Polygons &polygons, coord_t resolution)
 void EdgeGrid::Grid::create(const std::vector<const Polygon*> &polygons, coord_t resolution)
 {
 	// Collect the contours.
+	m_contours.clear();
 	m_contours.reserve(std::count_if(polygons.begin(), polygons.end(), [](const Polygon *p) { return ! p->empty(); }));
 	for (const Polygon *polygon : polygons)
 		if (! polygon->empty())
@@ -57,6 +52,7 @@ void EdgeGrid::Grid::create(const std::vector<const Polygon*> &polygons, coord_t
 void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolution, bool open_polylines)
 {
 	// Collect the contours.
+	m_contours.clear();
 	m_contours.reserve(std::count_if(polygons.begin(), polygons.end(), [](const Points &p) { return p.size() > 1; }));
 	for (const Points &points : polygons) 
 		if (points.size() > 1) {
@@ -79,6 +75,7 @@ void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolut
 void EdgeGrid::Grid::create(const Polygons &polygons, const Polylines &polylines, coord_t resolution)
 {
 	// Collect the contours.
+	m_contours.clear();
 	m_contours.reserve(
 		std::count_if(polygons.begin(), polygons.end(), [](const Polygon &p) { return p.size() > 1; }) +
 		std::count_if(polylines.begin(), polylines.end(), [](const Polyline &p) { return p.size() > 1; }));
@@ -104,6 +101,7 @@ void EdgeGrid::Grid::create(const Polygons &polygons, const Polylines &polylines
 
 void EdgeGrid::Grid::create(const ExPolygon &expoly, coord_t resolution)
 {
+	m_contours.clear();
 	m_contours.reserve((expoly.contour.empty() ? 0 : 1) + std::count_if(expoly.holes.begin(), expoly.holes.end(), [](const Polygon &p) { return ! p.empty(); }));
 	if (! expoly.contour.empty())
 		m_contours.emplace_back(expoly.contour.points, false);
@@ -125,6 +123,7 @@ void EdgeGrid::Grid::create(const ExPolygons &expolygons, coord_t resolution)
 	}
 
 	// Collect the contours.
+	m_contours.clear();
 	m_contours.reserve(ncontours);
 	for (const ExPolygon &expoly : expolygons) {
 		if (! expoly.contour.empty())
