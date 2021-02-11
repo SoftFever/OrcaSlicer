@@ -130,7 +130,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            params.density = 100.f;
 		            params.pattern = (surface.is_external() && ! is_bridge) ? 
 						(surface.is_top() ? region_config.top_fill_pattern.value : region_config.bottom_fill_pattern.value) :
-		                ipRectilinear;
+		                region_config.top_fill_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
 		        } else if (params.density <= 0)
 		            continue;
 
@@ -285,7 +285,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        if (internal_solid_fill == nullptr) {
 	        	// Produce another solid fill.
 		        params.extruder 	 = layerm.region()->extruder(frSolidInfill);
-	            params.pattern 		 = ipRectilinear;
+	            params.pattern 		 = layerm.region()->config().top_fill_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erInternalInfill;
 		        params.angle 		= float(Geometry::deg2rad(layerm.region()->config().fill_angle.value));
