@@ -2340,6 +2340,10 @@ void GCodeProcessor::process_T(const std::string_view command)
     if (command.length() > 1) {
         int eid = 0;
         if (! parse_number(command.substr(1), eid) || eid < 0 || eid > 255) {
+            // Specific to the MMU2 V2 (see https://www.help.prusa3d.com/en/article/prusa-specific-g-codes_112173):
+            if (m_flavor == gcfMarlin && (command == "Tx" || command == "Tc" || command == "T?"))
+                return;
+
             // T-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools) see https://github.com/prusa3d/PrusaSlicer/issues/5677
             if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || eid != -1)
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << command << ").";
