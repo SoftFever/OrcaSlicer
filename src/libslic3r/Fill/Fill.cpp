@@ -25,7 +25,7 @@ struct SurfaceFillParams
     // in unscaled coordinates
     coordf_t    	spacing = 0.;
     // infill / perimeter overlap, in unscaled coordinates
-    coordf_t    	overlap = 0.;
+//    coordf_t    	overlap = 0.;
     // Angle as provided by the region config, in radians.
     float       	angle = 0.f;
     // Non-negative for a bridge.
@@ -34,7 +34,7 @@ struct SurfaceFillParams
     // FillParams
     float       	density = 0.f;
     // Don't adjust spacing to fill the space evenly.
-    bool        	dont_adjust = false;
+//    bool        	dont_adjust = false;
     // Length of the infill anchor along the perimeter line.
     // 1000mm is roughly the maximum length line that fits into a 32bit coord_t.
     float 			anchor_length     = 1000.f;
@@ -64,10 +64,10 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(extruder);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, pattern);
 		RETURN_COMPARE_NON_EQUAL(spacing);
-		RETURN_COMPARE_NON_EQUAL(overlap);
+//		RETURN_COMPARE_NON_EQUAL(overlap);
 		RETURN_COMPARE_NON_EQUAL(angle);
 		RETURN_COMPARE_NON_EQUAL(density);
-		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
+//		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(anchor_length_max);
 		RETURN_COMPARE_NON_EQUAL(flow.width);
@@ -83,10 +83,10 @@ struct SurfaceFillParams
 				this->pattern 			== rhs.pattern 			&&
 				this->pattern 			== rhs.pattern 			&&
 				this->spacing 			== rhs.spacing 			&&
-				this->overlap 			== rhs.overlap 			&&
+//				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
 				this->density   		== rhs.density   		&&
-				this->dont_adjust   	== rhs.dont_adjust 		&&
+//				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&
 				this->flow 				== rhs.flow 			&&
@@ -385,7 +385,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
         params.density 		     = float(0.01 * surface_fill.params.density);
-        params.dont_adjust 	     = surface_fill.params.dont_adjust; // false
+		params.dont_adjust		 = false; //  surface_fill.params.dont_adjust;
         params.anchor_length     = surface_fill.params.anchor_length;
 		params.anchor_length_max = surface_fill.params.anchor_length_max;
 
