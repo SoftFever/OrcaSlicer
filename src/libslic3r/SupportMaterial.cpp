@@ -781,7 +781,7 @@ namespace SupportMaterialInternal {
     {
         for (const ExtrusionPath &ep : loop.paths)
             if (ep.role() == erOverhangPerimeter && ! ep.polyline.empty())
-                return ep.size() >= (ep.is_closed() ? 3 : 2);
+                return int(ep.size()) >= (ep.is_closed() ? 3 : 2);
         return false;
     }
     static bool has_bridging_perimeters(const ExtrusionEntityCollection &perimeters)
