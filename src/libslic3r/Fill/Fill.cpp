@@ -174,11 +174,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 			            ).spacing();
 		            // Anchor a sparse infill to inner perimeters with the following anchor length:
 			        params.anchor_length = float(region_config.infill_anchor);
-			        if (region_config.infill_anchor.percent)
-			        	params.anchor_length = float(params.anchor_length * 0.01 * params.spacing);
-			        params.anchor_length_max = float(region_config.infill_anchor_max);
-			        if (region_config.infill_anchor_max.percent)
-			        	params.anchor_length_max = float(params.anchor_length_max * 0.01 * params.spacing);
+					if (region_config.infill_anchor.percent)
+						params.anchor_length = float(params.anchor_length * 0.01 * params.spacing);
+					params.anchor_length_max = float(region_config.infill_anchor_max);
+					if (region_config.infill_anchor_max.percent)
+						params.anchor_length_max = float(params.anchor_length_max * 0.01 * params.spacing);
 					params.anchor_length = std::min(params.anchor_length, params.anchor_length_max);
 				}
 
