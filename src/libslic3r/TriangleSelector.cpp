@@ -419,7 +419,7 @@ TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
 
 void TriangleSelector::reset()
 {
-    if (! m_orig_size_indices != 0) // unless this is run from constructor
+    if (m_orig_size_indices != 0) // unless this is run from constructor
         garbage_collect();
     m_vertices.clear();
     m_triangles.clear();
