@@ -248,7 +248,9 @@ private:
     // Invalidates all PrintObject and Print steps.
     bool                    invalidate_all_steps();
     // Invalidate steps based on a set of parameters changed.
-    bool                    invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+    // It may be called for both the PrintObjectConfig and PrintRegionConfig.
+    bool                    invalidate_state_by_config_options(
+        const ConfigOptionResolver &old_config, const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys);
     // If ! m_slicing_params.valid, recalculate.
     void                    update_slicing_parameters();
 
@@ -509,7 +511,7 @@ private:
 		t_config_option_keys &full_config_diff, 
 		DynamicPrintConfig &filament_overrides) const;
 
-    bool                invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+    bool                invalidate_state_by_config_options(const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys);
 
     void                _make_skirt();
     void                _make_wipe_tower();

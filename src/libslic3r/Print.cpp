@@ -59,7 +59,7 @@ PrintRegion* Print::add_region(const PrintRegionConfig &config)
 
 // Called by Print::apply().
 // This method only accepts PrintConfig option keys.
-bool Print::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
+bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* new_config */, const std::vector<t_config_option_key> &opt_keys)
 {
     if (opt_keys.empty())
         return false;
@@ -621,7 +621,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     // The following call may stop the background processing.
     if (! print_diff.empty())
-        update_apply_status(this->invalidate_state_by_config_options(print_diff));
+        update_apply_status(this->invalidate_state_by_config_options(new_full_config, print_diff));
 
     // Apply variables to placeholder parser. The placeholder parser is used by G-code export,
     // which should be stopped if print_diff is not empty.
@@ -902,7 +902,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 for (auto it = range.first; it != range.second; ++ it) {
                     t_config_option_keys diff = it->print_object->config().diff(new_config);
                     if (! diff.empty()) {
-                        update_apply_status(it->print_object->invalidate_state_by_config_options(diff));
+                        update_apply_status(it->print_object->invalidate_state_by_config_options(it->print_object->config(), new_config, diff));
                         it->print_object->config_apply_only(new_config, diff, true);
                     }
                 }
@@ -1091,10 +1091,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         if (this_region_config_set) {
             t_config_option_keys diff = region.config().diff(this_region_config);
             if (! diff.empty()) {
-                region.config_apply_only(this_region_config, diff, false);
+                // Stop the background process before assigning new configuration to the regions.
                 for (PrintObject *print_object : m_objects)
                     if (region_id < print_object->region_volumes.size() && ! print_object->region_volumes[region_id].empty())
-                        update_apply_status(print_object->invalidate_state_by_config_options(diff));
+                        update_apply_status(print_object->invalidate_state_by_config_options(region.config(), this_region_config, diff));
+                region.config_apply_only(this_region_config, diff, false);
             }
         }
     }

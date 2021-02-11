@@ -509,7 +509,8 @@ SupportLayerPtrs::iterator PrintObject::insert_support_layer(SupportLayerPtrs::i
 
 // Called by Print::apply().
 // This method only accepts PrintObjectConfig and PrintRegionConfig option keys.
-bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
+bool PrintObject::invalidate_state_by_config_options(
+    const ConfigOptionResolver &old_config, const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys)
 {
     if (opt_keys.empty())
         return false;
@@ -574,7 +575,7 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bottom_solid_layers") {
             steps.emplace_back(posPrepareInfill);
-            if(m_print->config().spiral_vase) {
+            if (m_print->config().spiral_vase) {
                 // Changing the number of bottom layers when a spiral vase is enabled requires re-slicing the object again.
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
                 steps.emplace_back(posSlice);
@@ -605,13 +606,19 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "top_infill_extrusion_width"
             || opt_key == "first_layer_extrusion_width") {
             steps.emplace_back(posInfill);
-        } else if (
-            //FIXME
+        } else if (opt_key == "fill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
             // normal infill and 100% (solid) infill.
-               opt_key == "fill_density"
-            // for perimeter - infill overlap
-            || opt_key == "solid_infill_extrusion_width") {
+            const auto *old_density = old_config.option<ConfigOptionPercent>(opt_key);
+            const auto *new_density = new_config.option<ConfigOptionPercent>(opt_key);
+            assert(old_density && new_density);
+            //FIXME Vojtech is not quite sure about the 100% here, maybe it is not needed.
+            if (is_approx(old_density->value, 0.) || is_approx(old_density->value, 100.) ||
+                is_approx(new_density->value, 0.) || is_approx(new_density->value, 100.))
+                steps.emplace_back(posPerimeters);
+            steps.emplace_back(posPrepareInfill);
+        } else if (opt_key == "solid_infill_extrusion_width") {
+            // This value is used for calculating perimeter - infill overlap, thus perimeters need to be recalculated.
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posPrepareInfill);
         } else if (
