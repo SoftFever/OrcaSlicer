@@ -80,8 +80,8 @@ public:
     
     /// Types that represents the dimension of a pixel in millimeters.
     struct PixelDim {
-        double w_mm = 0.;
-        double h_mm = 0.;
+        double w_mm = 1.;
+        double h_mm = 1.;
         
         PixelDim(double px_width_mm = 0.0, double px_height_mm = 0.0)
             : w_mm(px_width_mm), h_mm(px_height_mm)
