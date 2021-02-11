@@ -103,6 +103,7 @@ if (MINGW)
 endif ()
 
 if (NOT MSVC)
+    # ARMs (Raspberry PI) use an unsigned char by default. Let's make it consistent for PrusaSlicer on all platforms.
     add_compile_options(-fsigned-char)
 endif ()
 
