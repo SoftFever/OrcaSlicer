@@ -710,6 +710,10 @@ namespace Slic3r {
 #endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
 
         for (const IdToModelObjectMap::value_type& object : m_objects) {
+            if (object.second >= m_model->objects.size()) {
+                add_error("Unable to find object");
+                return false;
+            }
             ModelObject* model_object = m_model->objects[object.second];
             IdToGeometryMap::const_iterator obj_geometry = m_geometries.find(object.first);
             if (obj_geometry == m_geometries.end()) {
@@ -1391,6 +1395,10 @@ namespace Slic3r {
     {
         // deletes all non-built or non-instanced objects
         for (const IdToModelObjectMap::value_type& object : m_objects) {
+            if (object.second >= m_model->objects.size()) {
+                add_error("Unable to find object");
+                return false;
+            }
             ModelObject *model_object = m_model->objects[object.second];
             if (model_object != nullptr && model_object->instances.size() == 0)
                 m_model->delete_object(model_object);
