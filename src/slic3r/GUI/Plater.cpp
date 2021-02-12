@@ -3720,7 +3720,7 @@ bool Plater::priv::warnings_dialog()
 			text += it.first.message;
 	}
 	//text += "\n\nDo you still wish to export?";
-	wxMessageDialog msg_wingow(this->q, text, wxString(SLIC3R_APP_NAME " ") + _L("generated warnings"), wxOK);
+	wxMessageDialog msg_wingow(this->q, from_u8(text), wxString(SLIC3R_APP_NAME " ") + _L("generated warnings"), wxOK);
 	const auto res = msg_wingow.ShowModal();
 	return res == wxID_OK;
 
