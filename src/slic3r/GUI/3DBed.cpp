@@ -34,7 +34,7 @@ bool GeometryBuffer::set_from_triangles(const std::vector<Vec2f> &triangles, flo
     assert(triangles.size() % 3 == 0);
     m_vertices = std::vector<Vertex>(triangles.size(), Vertex());
 
-    Vec2f min(unscaled<float>(triangles.front()));
+    Vec2f min = triangles.front();
     Vec2f max = min;
 
     for (size_t v_count = 0; v_count < triangles.size(); ++ v_count) {
