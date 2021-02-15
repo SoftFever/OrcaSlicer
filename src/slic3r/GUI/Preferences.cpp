@@ -388,9 +388,10 @@ void PreferencesDialog::accept()
 		app_config->set(it->first, it->second);
 
 	app_config->save();
-
-	wxGetApp().set_label_clr_sys(m_sys_colour->GetColour());
-	wxGetApp().set_label_clr_modified(m_mod_colour->GetColour());
+	if (wxGetApp().is_editor()) {
+		wxGetApp().set_label_clr_sys(m_sys_colour->GetColour());
+		wxGetApp().set_label_clr_modified(m_mod_colour->GetColour());
+	}
 
 	EndModal(wxID_OK);
 
