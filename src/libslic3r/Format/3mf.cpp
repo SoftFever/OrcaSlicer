@@ -710,7 +710,7 @@ namespace Slic3r {
 #endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
 
         for (const IdToModelObjectMap::value_type& object : m_objects) {
-            if (object.second >= m_model->objects.size()) {
+            if (object.second >= int(m_model->objects.size())) {
                 add_error("Unable to find object");
                 return false;
             }
@@ -1395,7 +1395,7 @@ namespace Slic3r {
     {
         // deletes all non-built or non-instanced objects
         for (const IdToModelObjectMap::value_type& object : m_objects) {
-            if (object.second >= m_model->objects.size()) {
+            if (object.second >= int(m_model->objects.size())) {
                 add_error("Unable to find object");
                 return false;
             }

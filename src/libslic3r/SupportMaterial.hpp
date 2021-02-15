@@ -201,12 +201,15 @@ private:
 	    const MyLayersPtr   &base_layers,
 	    MyLayerStorage      &layer_storage) const;
 
-    // Turn some of the base layers into interface layers.
-	MyLayersPtr generate_interface_layers(
+	// Turn some of the base layers into base interface layers.
+	// For soluble interfaces with non-soluble bases, print maximum two first interface layers with the base
+	// extruder to improve adhesion of the soluble filament to the base.
+	std::pair<MyLayersPtr, MyLayersPtr> generate_interface_layers(
 	    const MyLayersPtr   &bottom_contacts,
 	    const MyLayersPtr   &top_contacts,
 	    MyLayersPtr         &intermediate_layers,
 	    MyLayerStorage      &layer_storage) const;
+	
 
 	// Trim support layers by an object to leave a defined gap between
 	// the support volume and the object.
@@ -224,12 +227,13 @@ private:
 
 	// Produce the actual G-code.
 	void generate_toolpaths(
-        SupportLayerPtrs	&support_layers,
+		SupportLayerPtrs    &support_layers,
         const MyLayersPtr 	&raft_layers,
         const MyLayersPtr   &bottom_contacts,
         const MyLayersPtr   &top_contacts,
         const MyLayersPtr   &intermediate_layers,
-        const MyLayersPtr   &interface_layers) const;
+		const MyLayersPtr   &interface_layers,
+        const MyLayersPtr   &base_interface_layers) const;
 
 	// Following objects are not owned by SupportMaterial class.
 	const PrintObject 		*m_object;
@@ -246,7 +250,7 @@ private:
 	bool 				 m_can_merge_support_regions;
 
     coordf_t 			 m_support_layer_height_min;
-    // coordf_t		 	 m_support_layer_height_max;
+//	coordf_t		 	 m_support_layer_height_max;
 
 	coordf_t			 m_gap_xy;
 };
