@@ -302,6 +302,15 @@ class GLCanvas3D
         bool matches(double z) const { return this->z == z; }
     };
 
+#if ENABLE_WARNING_TEXTURE_REMOVAL
+    enum class EWarning {
+        ObjectOutside,
+        ToolpathOutside,
+        SlaSupportsOutside,
+        SomethingNotShown,
+        ObjectClashed
+    };
+#else
     class WarningTexture : public GUI::GLTexture
     {
     public:
@@ -340,6 +349,7 @@ class GLCanvas3D
         // Generates the texture with given text.
         bool generate(const std::string& msg, const GLCanvas3D& canvas, bool compress, bool red_colored = false);
     };
+#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 
 #if ENABLE_RENDER_STATISTICS
     class RenderStats
@@ -437,7 +447,9 @@ private:
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
     bool m_in_render;
+#if !ENABLE_WARNING_TEXTURE_REMOVAL
     WarningTexture m_warning_texture;
+#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
     wxTimer m_timer;
     LayersEditing m_layers_editing;
     Mouse m_mouse;
@@ -578,10 +590,8 @@ public:
 
     void bed_shape_changed();
 
-    void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
-    {
-        if (id < 2)
-        {
+    void set_clipping_plane(unsigned int id, const ClippingPlane& plane) {
+        if (id < 2) {
             m_clipping_planes[id] = plane;
             m_sla_caps[id].reset();
         }
@@ -812,7 +822,9 @@ private:
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _check_and_update_toolbar_icon_scale() const;
     void _render_overlays() const;
+#if !ENABLE_WARNING_TEXTURE_REMOVAL
     void _render_warning_texture() const;
+#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
     void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
@@ -865,10 +877,17 @@ private:
 	void _load_sla_shells();
     void _update_toolpath_volumes_outside_state();
     void _update_sla_shells_outside_state();
+#if ENABLE_WARNING_TEXTURE_REMOVAL
+    void _set_warning_notification_if_needed(EWarning warning);
+
+    // generates a warning notification containing the given message
+    void _set_warning_notification(EWarning warning, bool state);
+#else
     void _show_warning_texture_if_needed(WarningTexture::Warning warning);
 
     // generates a warning texture containing the given message
     void _set_warning_texture(WarningTexture::Warning warning, bool state);
+#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 
     bool _is_any_volume_outside() const;
 
