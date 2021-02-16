@@ -25,7 +25,7 @@ public:
     CoolingBuffer(GCode &gcodegen);
     void        reset();
     void        set_current_extruder(unsigned int extruder_id) { m_current_extruder = extruder_id; }
-    std::string process_layer(const std::string &gcode, size_t layer_id);
+    std::string process_layer(std::string &&gcode, size_t layer_id, bool flush);
     GCode* 	    gcodegen() { return &m_gcodegen; }
 
 private:
@@ -37,6 +37,7 @@ private:
     std::string apply_layer_cooldown(const std::string &gcode, size_t layer_id, float layer_time, std::vector<PerExtruderAdjustments> &per_extruder_adjustments);
 
     GCode&              m_gcodegen;
+    // G-code snippet cached for the support layers preceding an object layer.
     std::string         m_gcode;
     // Internal data.
     // X,Y,Z,E,F

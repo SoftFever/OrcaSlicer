@@ -279,11 +279,24 @@ finished:
 	return new_feedrate;
 }
 
-std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_id)
+std::string CoolingBuffer::process_layer(std::string &&gcode, size_t layer_id, bool flush)
 {
-    std::vector<PerExtruderAdjustments> per_extruder_adjustments = this->parse_layer_gcode(gcode, m_current_pos);
-    float layer_time_stretched = this->calculate_layer_slowdown(per_extruder_adjustments);
-    return this->apply_layer_cooldown(gcode, layer_id, layer_time_stretched, per_extruder_adjustments);
+    // Cache the input G-code.
+    if (m_gcode.empty())
+        m_gcode = std::move(gcode);
+    else
+        m_gcode += gcode;
+
+    std::string out;
+    if (flush) {
+        // This is either an object layer or the very last print layer. Calculate cool down over the collected support layers
+        // and one object layer.
+        std::vector<PerExtruderAdjustments> per_extruder_adjustments = this->parse_layer_gcode(m_gcode, m_current_pos);
+        float layer_time_stretched = this->calculate_layer_slowdown(per_extruder_adjustments);
+        out = this->apply_layer_cooldown(m_gcode, layer_id, layer_time_stretched, per_extruder_adjustments);
+        m_gcode.clear();
+    }
+    return out;
 }
 
 // Parse the layer G-code for the moves, which could be adjusted.
