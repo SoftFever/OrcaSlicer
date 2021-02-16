@@ -505,6 +505,7 @@ void Preview::on_combochecklist_options(wxCommandEvent& evt)
 
 #if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
     m_canvas->refresh_gcode_preview_render_paths();
+    update_moves_slider();
 #else
     auto xored = [](unsigned int flags1, unsigned int flags2, unsigned int flag) {
         auto is_flag_set = [](unsigned int flags, unsigned int flag) {
