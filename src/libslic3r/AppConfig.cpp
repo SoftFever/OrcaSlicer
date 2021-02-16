@@ -139,6 +139,11 @@ void AppConfig::set_defaults()
     if (get("seq_top_layer_only").empty())
         set("seq_top_layer_only", "1");
 
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+    if (get("seq_top_gcode_indices").empty())
+        set("seq_top_gcode_indices", "1");
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+
     if (get("use_perspective_camera").empty())
         set("use_perspective_camera", "1");
 

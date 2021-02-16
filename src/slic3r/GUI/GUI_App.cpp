@@ -1716,7 +1716,11 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
                 app_layout_changed = dlg.settings_layout_changed();
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+#else
                 if (dlg.seq_top_layer_only_changed())
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                     this->plater_->refresh_print();
 #if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 #ifdef _WIN32

@@ -599,6 +599,9 @@ public:
         Endpoints last_current;
         Vec3f current_position{ Vec3f::Zero() };
         Marker marker;
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+        std::vector<unsigned int> gcode_ids;
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     };
 
     enum class EViewType : unsigned char

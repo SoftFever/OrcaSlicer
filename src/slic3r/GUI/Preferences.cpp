@@ -39,7 +39,7 @@ static void activate_options_tab(std::shared_ptr<ConfigOptionsGroup> optgroup)
 	optgroup->activate();
 	optgroup->update_visibility(comSimple);
 	wxBoxSizer* sizer = static_cast<wxBoxSizer*>(static_cast<wxPanel*>(optgroup->parent())->GetSizer());
-	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 20);
+	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
 }
 
 void PreferencesDialog::build()
@@ -275,11 +275,21 @@ void PreferencesDialog::build()
 
 	def.label = L("Sequential slider applied only to top layer");
 	def.type = coBool;
-	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer. "
+	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer."
 					"If disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
+
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+	def.label = L("Sequential slider shows gcode line numbers");
+	def.type = coBool;
+	def.tooltip = L("If enabled, the sequential slider, in preview, shows the gcode lines numbers."
+		"If disabled, the sequential slider, in preview, shows the move index.");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_gcode_indices") == "1" });
+	option = Option(def, "seq_top_gcode_indices");
+	m_optgroup_gui->append_single_option_line(option);
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
 	if (is_editor) {
 		def.label = L("Show sidebar collapse/expand button");
@@ -365,6 +375,12 @@ void PreferencesDialog::accept()
 	m_seq_top_layer_only_changed = false;
 	if (auto it = m_values.find("seq_top_layer_only"); it != m_values.end())
 		m_seq_top_layer_only_changed = app_config->get("seq_top_layer_only") != it->second;
+
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+	m_seq_top_gcode_indices_changed = false;
+	if (auto it = m_values.find("seq_top_gcode_indices"); it != m_values.end())
+		m_seq_top_gcode_indices_changed = app_config->get("seq_top_gcode_indices") != it->second;
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
 	m_settings_layout_changed = false;
 	for (const std::string& key : { "old_settings_layout_mode",
@@ -509,7 +525,7 @@ void PreferencesDialog::create_settings_mode_widget()
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_layout_mode_box, 1, wxALIGN_CENTER_VERTICAL);
-	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND);
+	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND | wxTOP, em_unit());
 }
 
 void PreferencesDialog::create_settings_text_color_widget()
@@ -520,7 +536,7 @@ void PreferencesDialog::create_settings_text_color_widget()
 	if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	wxSizer* sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
-	wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2, 10, 20);
+	wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2, 5, 5);
 	sizer->Add(grid_sizer, 0, wxEXPAND);
 
 	auto sys_label = new wxStaticText(parent, wxID_ANY, _L("Value is the same as the system value"));
@@ -531,8 +547,8 @@ void PreferencesDialog::create_settings_text_color_widget()
 		sys_label->Refresh();
 	});
 	
-	grid_sizer->Add(m_sys_colour, -1, wxALIGN_CENTRE_VERTICAL);
-	grid_sizer->Add(sys_label, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
+	grid_sizer->Add(m_sys_colour, 0, wxALIGN_CENTRE_VERTICAL);
+	grid_sizer->Add(sys_label, 0, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
 
 	auto mod_label = new wxStaticText(parent, wxID_ANY, _L("Value was changed and is not equal to the system value or the last saved preset"));
 	mod_label->SetForegroundColour(wxGetApp().get_label_clr_modified());
@@ -542,8 +558,8 @@ void PreferencesDialog::create_settings_text_color_widget()
 		mod_label->Refresh();
 	});
 
-	grid_sizer->Add(m_mod_colour, -1, wxALIGN_CENTRE_VERTICAL);
-	grid_sizer->Add(mod_label, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
+	grid_sizer->Add(m_mod_colour, 0, wxALIGN_CENTRE_VERTICAL);
+	grid_sizer->Add(mod_label, 0, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
 
 	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND | wxTOP, em_unit());
 }

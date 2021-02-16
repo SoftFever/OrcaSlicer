@@ -31,12 +31,19 @@ class PreferencesDialog : public DPIDialog
     bool                                isOSX {false};
 	bool								m_settings_layout_changed {false};
 	bool								m_seq_top_layer_only_changed{ false };
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+	bool								m_seq_top_gcode_indices_changed{ false };
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+
 public:
-	PreferencesDialog(wxWindow* parent);
-	~PreferencesDialog() {}
+	explicit PreferencesDialog(wxWindow* parent);
+	~PreferencesDialog() = default;
 
 	bool settings_layout_changed() const { return m_settings_layout_changed; }
 	bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+	bool seq_seq_top_gcode_indices_changed() const { return m_seq_top_gcode_indices_changed; }
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
 	void	build();
 	void	accept();

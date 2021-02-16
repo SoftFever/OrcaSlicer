@@ -1516,6 +1516,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size()[2] * Vec3d::UnitZ());
 
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+    m_sequential_view.gcode_ids.clear();
+    for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
+        m_sequential_view.gcode_ids.push_back(move.gcode_id);
+    }
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+
     std::vector<MultiVertexBuffer> vertices(m_buffers.size());
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
     std::vector<float> options_zs;

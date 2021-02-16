@@ -646,8 +646,16 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     if (value >= m_values.size())
         return "ErrVal";
 
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+    if (m_draw_mode == dmSequentialGCodeView) {
+        return (Slic3r::GUI::get_app_config()->get("seq_top_gcode_indices") == "1") ?
+            wxString::Format("%lu", static_cast<unsigned long>(m_alternate_values[value])) :
+            wxString::Format("%lu", static_cast<unsigned long>(m_values[value]));
+    }
+#else
     if (m_draw_mode == dmSequentialGCodeView)
         return wxString::Format("%lu", static_cast<unsigned long>(m_values[value]));
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     else {
         if (label_type == ltEstimatedTime) {
             return (value < m_layers_times.size()) ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
