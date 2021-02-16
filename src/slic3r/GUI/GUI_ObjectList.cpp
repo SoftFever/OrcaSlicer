@@ -3952,6 +3952,8 @@ void ObjectList::select_items(const wxDataViewItemArray& sels)
 {
     m_prevent_list_events = true;
 
+    m_last_selected_item = sels.empty() ? wxDataViewItem(nullptr) : sels.back();
+
     UnselectAll();
     SetSelections(sels);
     part_selection_changed();

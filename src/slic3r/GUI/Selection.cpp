@@ -1160,7 +1160,7 @@ void Selection::erase()
                 if (obj_ins.first == glv_obj_idx) {
                     if (obj_ins.second.find(glv_ins_idx) != obj_ins.second.end()) {
                         if (obj_ins.second.size() == model_object->instances.size())
-                            items_set.insert(ItemForDelete(ItemType::itVolume, glv_obj_idx, gl_vol->volume_idx()));
+                            items_set.insert(ItemForDelete(ItemType::itObject, glv_obj_idx, -1));
                         else
                             items_set.insert(ItemForDelete(ItemType::itInstance, glv_obj_idx, glv_ins_idx));
 
