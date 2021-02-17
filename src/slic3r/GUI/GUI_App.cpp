@@ -1933,15 +1933,11 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
             start_new_slicer(non_gcode_files, true);
     } else {
         if (! files.empty()) {
-#if ENABLE_DRAG_AND_DROP_FIX
             wxArrayString input_files;
             for (size_t i = 0; i < non_gcode_files.size(); ++i) {
                 input_files.push_back(non_gcode_files[i]);
             }
             this->plater()->load_files(input_files);
-#else
-            this->plater()->load_files(files, true, true);
-#endif     
         }
         for (const wxString &filename : gcode_files)
             start_new_gcodeviewer(&filename);
