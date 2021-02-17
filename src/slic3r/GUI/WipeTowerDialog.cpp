@@ -263,9 +263,39 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 	gridsizer_simple->Add(new wxStaticText(m_page_simple, wxID_ANY, wxString(_(L("unloaded")))), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
     gridsizer_simple->Add(new wxStaticText(m_page_simple,wxID_ANY,wxString(_(L("loaded")))), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
 
+    auto add_spin_ctrl = [this](std::vector<wxSpinCtrl*>& vec, float initial)
+    {
+        wxSpinCtrl* spin_ctrl = new wxSpinCtrl(m_page_simple, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(ITEM_WIDTH(), -1), wxSP_ARROW_KEYS | wxALIGN_RIGHT, 0, 300, (int)initial);
+        vec.push_back(spin_ctrl);
+
+#ifdef __WXOSX__
+        // On OSX / Cocoa, wxSpinCtrl::GetValue() doesn't return the new value
+        // when it was changed from the text control, so the on_change callback
+        // gets the old one, and on_kill_focus resets the control to the old value.
+        // As a workaround, we get the new value from $event->GetString and store
+        // here temporarily so that we can return it from get_value()
+        spin_ctrl->Bind(wxEVT_TEXT, ([this, spin_ctrl](wxCommandEvent e)
+        {
+            long value;
+            const bool parsed = e.GetString().ToLong(&value);
+            int tmp_value = parsed && value >= INT_MIN && value <= INT_MAX ? (int)value : INT_MIN;
+
+            // Forcibly set the input value for SpinControl, since the value 
+            // inserted from the keyboard or clipboard is not updated under OSX
+            if (tmp_value != INT_MIN) {
+                spin_ctrl->SetValue(tmp_value);
+
+                // But in SetValue() is executed m_text_ctrl->SelectAll(), so
+                // discard this selection and set insertion point to the end of string
+                spin_ctrl->GetText()->SetInsertionPointEnd();
+            }
+        }), spin_ctrl->GetId());
+#endif
+    };
+
 	for (unsigned int i=0;i<m_number_of_extruders;++i) {
-        m_old.push_back(new wxSpinCtrl(m_page_simple,wxID_ANY,wxEmptyString,wxDefaultPosition, wxSize(ITEM_WIDTH(), -1),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i]));
-        m_new.push_back(new wxSpinCtrl(m_page_simple,wxID_ANY,wxEmptyString,wxDefaultPosition, wxSize(ITEM_WIDTH(), -1),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i+1]));
+        add_spin_ctrl(m_old, extruders[2 * i]);
+        add_spin_ctrl(m_new, extruders[2 * i+1]);
 
         auto hsizer = new wxBoxSizer(wxHORIZONTAL);
         wxWindow* w = new wxWindow(m_page_simple, wxID_ANY, wxDefaultPosition, icon_size, wxBORDER_SIMPLE);
