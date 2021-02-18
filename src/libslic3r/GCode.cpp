@@ -2853,10 +2853,10 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         Point last_post_before_retract = this->last_pos();
         gcode += this->retract();
         // When "Wipe while retracting" is enabled, then extruder moves to another position, and travel from this position can cross perimeters.
-        // Because of it, it is necessary to call avoid crossing perimeters for the path between previous last_post and last_post after calling retraction()
+        // Because of it, it is necessary to call avoid crossing perimeters again with new starting point after calling retraction()
+        // FIXME Lukas H.: Try to predict if this second calling of avoid crossing perimeters will be needed or not. It could save computations.
         if (last_post_before_retract != this->last_pos() && m_config.avoid_crossing_perimeters) {
-            Polyline retract_travel = m_avoid_crossing_perimeters.travel_to(*this, last_post_before_retract);
-            append(retract_travel.points, travel.points);
+            Polyline retract_travel = m_avoid_crossing_perimeters.travel_to(*this, point);
             travel = std::move(retract_travel);
         }
     } else
