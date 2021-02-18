@@ -627,15 +627,15 @@ namespace DoExport {
     // to be shown in the warning notification
     // The returned vector is empty if no keyword has been found
     static std::vector<std::pair<std::string, std::string>> validate_custom_gcode(const Print& print) {
-        const unsigned int MAX_COUNT = 5;
+        static const unsigned int MAX_TAGS_COUNT = 5;
         std::vector<std::pair<std::string, std::string>> ret;
 
-        auto check = [&ret, MAX_COUNT](const std::string& source, const std::string& gcode) {
+        auto check = [&ret](const std::string& source, const std::string& gcode) {
             std::vector<std::string> tags;
-            if (GCodeProcessor::contains_reserved_tags(gcode, MAX_COUNT, tags)) {
+            if (GCodeProcessor::contains_reserved_tags(gcode, MAX_TAGS_COUNT, tags)) {
                 if (!tags.empty()) {
                     size_t i = 0;
-                    while (ret.size() < MAX_COUNT && i < tags.size()) {
+                    while (ret.size() < MAX_TAGS_COUNT && i < tags.size()) {
                         ret.push_back({ source, tags[i] });
                         ++i;
                     }
@@ -645,25 +645,25 @@ namespace DoExport {
 
         const GCodeConfig& config = print.config();
         check(_(L("Start G-code")), config.start_gcode.value);
-        if (ret.size() < MAX_COUNT) check(_(L("End G-code")), config.end_gcode.value);
-        if (ret.size() < MAX_COUNT) check(_(L("Before layer change G-code")), config.before_layer_gcode.value);
-        if (ret.size() < MAX_COUNT) check(_(L("After layer change G-code")), config.layer_gcode.value);
-        if (ret.size() < MAX_COUNT) check(_(L("Tool change G-code")), config.toolchange_gcode.value);
-        if (ret.size() < MAX_COUNT) check(_(L("Between objects G-code (for sequential printing)")), config.between_objects_gcode.value);
-        if (ret.size() < MAX_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
-        if (ret.size() < MAX_COUNT) check(_(L("Pause Print G-code")), config.pause_print_gcode.value);
-        if (ret.size() < MAX_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
-        if (ret.size() < MAX_COUNT) {
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("End G-code")), config.end_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Before layer change G-code")), config.before_layer_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("After layer change G-code")), config.layer_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Tool change G-code")), config.toolchange_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Between objects G-code (for sequential printing)")), config.between_objects_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause Print G-code")), config.pause_print_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.start_filament_gcode.values) {
                 check(_(L("Filament Start G-code")), value);
-                if (ret.size() == MAX_COUNT)
+                if (ret.size() == MAX_TAGS_COUNT)
                     break;
             }
         }
-        if (ret.size() < MAX_COUNT) {
+        if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.end_filament_gcode.values) {
                 check(_(L("Filament End G-code")), value);
-                if (ret.size() == MAX_COUNT)
+                if (ret.size() == MAX_TAGS_COUNT)
                     break;
             }
         }
