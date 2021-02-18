@@ -11,7 +11,7 @@
         %code{% RETVAL = new CoolingBuffer(*gcode); %};
     ~CoolingBuffer();
     Ref<GCode> gcodegen();
-    std::string process_layer(std::string gcode, size_t layer_id);
+    std::string process_layer(std::string gcode, size_t layer_id, bool fush = true);
 };
 
 %name{Slic3r::GCode} class GCode {
