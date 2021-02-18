@@ -327,7 +327,8 @@ struct PageMaterials: ConfigWizardPage
     Materials *materials;
     StringList *list_printer, *list_type, *list_vendor;
     PresetList *list_profile;
-    int sel_printer_count_prev, sel_printer_item_prev, sel_type_prev, sel_vendor_prev;
+    wxArrayInt sel_printers_prev;
+    int sel_type_prev, sel_vendor_prev;
     bool presets_loaded;
 
     wxFlexGridSizer *grid;
@@ -342,7 +343,7 @@ struct PageMaterials: ConfigWizardPage
     PageMaterials(ConfigWizard *parent, Materials *materials, wxString title, wxString shortname, wxString list1name);
 
     void reload_presets();
-	void update_lists(int sel1, int sel2, int sel3);
+	void update_lists(int sel_type, int sel_vendor, int last_selected_printer = -1);
 	void on_material_highlighted(int sel_material);
     void on_material_hovered(int sel_material);
     void select_material(int i);

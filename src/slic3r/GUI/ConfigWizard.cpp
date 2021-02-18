@@ -629,13 +629,13 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     append(html_window, 0, wxEXPAND);
 
 	list_printer->Bind(wxEVT_LISTBOX, [this](wxCommandEvent& evt) {
-		update_lists(evt.GetInt(), list_type->GetSelection(), list_vendor->GetSelection());
+		update_lists(list_type->GetSelection(), list_vendor->GetSelection(), evt.GetInt());
 		});
     list_type->Bind(wxEVT_LISTBOX, [this](wxCommandEvent &) {
-        update_lists(list_printer->GetSelection(), list_type->GetSelection(), list_vendor->GetSelection());
+        update_lists(list_type->GetSelection(), list_vendor->GetSelection());
     });
     list_vendor->Bind(wxEVT_LISTBOX, [this](wxCommandEvent &) {
-        update_lists(list_printer->GetSelection(), list_type->GetSelection(), list_vendor->GetSelection());
+        update_lists(list_type->GetSelection(), list_vendor->GetSelection());
     });
 
     list_profile->Bind(wxEVT_CHECKLISTBOX, [this](wxCommandEvent &evt) { select_material(evt.GetInt()); });
@@ -681,8 +681,7 @@ void PageMaterials::reload_presets()
     sort_list_data(list_printer, true, false);
     if (list_printer->GetCount() > 0) {
         list_printer->SetSelection(0);
-		sel_printer_count_prev = wxNOT_FOUND;
-        sel_printer_item_prev = wxNOT_FOUND;
+        sel_printers_prev.Clear();
         sel_type_prev = wxNOT_FOUND;
         sel_vendor_prev = wxNOT_FOUND;
         update_lists(0, 0, 0);
@@ -812,7 +811,7 @@ void PageMaterials::on_material_highlighted(int sel_material)
     set_compatible_printers_html_window(names, names.size() == materials->printers.size());
 }
 
-void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
+void PageMaterials::update_lists(int sel_type, int sel_vendor, int last_selected_printer/* = -1*/)
 {
 	wxWindowUpdateLocker freeze_guard(this);
 	(void)freeze_guard;
@@ -820,7 +819,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
 	wxArrayInt sel_printers;
 	int sel_printers_count = list_printer->GetSelections(sel_printers);
 
-	if (sel_printers_count != sel_printer_count_prev || (sel_printers_count == 1 && sel_printer_item_prev != sel_printer && sel_printer != -1)) {
+	if (sel_printers != sel_printers_prev) {
         // Refresh type list
 		list_type->Clear();
 		list_type->append(_L("(All)"), &EMPTY);
@@ -828,7 +827,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
             // If all is selected with other printers
             // unselect "all" or all printers depending on last value
             if (sel_printers[0] == 0 && sel_printers_count > 1) {
-                if (sel_printer == 0) {
+                if (last_selected_printer == 0) {
                     list_printer->SetSelection(wxNOT_FOUND);
                     list_printer->SetSelection(0);
                 } else {
@@ -869,8 +868,7 @@ void PageMaterials::update_lists(int sel_printer, int sel_type, int sel_vendor)
             sort_list_data(list_type, true, true);
 		}
 
-		sel_printer_count_prev = sel_printers_count;
-        sel_printer_item_prev = sel_printer;
+		sel_printers_prev = sel_printers;
 		sel_type = 0;
 		sel_type_prev = wxNOT_FOUND;
 		list_type->SetSelection(sel_type);
@@ -1089,8 +1087,7 @@ void PageMaterials::clear()
     list_type->Clear();
     list_vendor->Clear();
     list_profile->Clear();
-	sel_printer_count_prev = wxNOT_FOUND;
-    sel_printer_item_prev = wxNOT_FOUND;
+	sel_printers_prev.Clear();
     sel_type_prev = wxNOT_FOUND;
     sel_vendor_prev = wxNOT_FOUND;
     presets_loaded = false;
