@@ -42,9 +42,15 @@ public:
         {
             // adds tag for analyzer:
             char buf[64];
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+            sprintf(buf, ";%s%f\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
+            m_gcode += buf;
+            sprintf(buf, ";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erWipeTower).c_str());
+#else
             sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
             m_gcode += buf;
             sprintf(buf, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(erWipeTower).c_str());
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
             m_gcode += buf;
             change_analyzer_line_width(line_width);
     }
@@ -52,7 +58,11 @@ public:
     WipeTowerWriter& change_analyzer_line_width(float line_width) {
         // adds tag for analyzer:
         char buf[64];
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+        sprintf(buf, ";%s%f\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width).c_str(), line_width);
+#else
         sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), line_width);
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         m_gcode += buf;
         return *this;
     }

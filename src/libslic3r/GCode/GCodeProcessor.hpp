@@ -69,7 +69,34 @@ namespace Slic3r {
 
     class GCodeProcessor
     {
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+        static const std::vector<std::string> Reserved_Tags;
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
     public:
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+        enum class ETags : unsigned char
+        {
+            Role,
+            Wipe_Start,
+            Wipe_End,
+            Height,
+            Width,
+            Layer_Change,
+            Color_Change,
+            Pause_Print,
+            Custom_Code,
+            First_Line_M73_Placeholder,
+            Last_Line_M73_Placeholder,
+            Estimated_Printing_Time_Placeholder
+        };
+
+        static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
+        // checks the given gcode for reserved tags and returns true when finding the 1st (which is returned into found_tag) 
+        static bool contains_reserved_tag(const std::string& gcode, std::string& found_tag);
+        // checks the given gcode for reserved tags and returns true when finding any
+        // (the first max_count found tags are returned into found_tag)
+        static bool contains_reserved_tags(const std::string& gcode, unsigned int max_count, std::vector<std::string>& found_tag);
+#else
         static const std::string Extrusion_Role_Tag;
         static const std::string Wipe_Start_Tag;
         static const std::string Wipe_End_Tag;
@@ -81,11 +108,12 @@ namespace Slic3r {
         static const std::string First_Line_M73_Placeholder_Tag;
         static const std::string Last_Line_M73_Placeholder_Tag;
         static const std::string Estimated_Printing_Time_Placeholder_Tag;
+        static const std::string Width_Tag;
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
         static const float Wipe_Width;
         static const float Wipe_Height;
 
-        static const std::string Width_Tag;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         static const std::string Mm3_Per_Mm_Tag;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING

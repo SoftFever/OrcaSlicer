@@ -19,15 +19,31 @@
 
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
-
 static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 
 namespace Slic3r {
 
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
+    "TYPE:",
+    "WIPE_START",
+    "WIPE_END",
+    "HEIGHT:",
+    "WIDTH:",
+    "LAYER_CHANGE",
+    "COLOR_CHANGE",
+    "PAUSE_PRINT",
+    "CUSTOM_GCODE",
+    "_GP_FIRST_LINE_M73_PLACEHOLDER",
+    "_GP_LAST_LINE_M73_PLACEHOLDER",
+    "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
+};
+#else
 const std::string GCodeProcessor::Extrusion_Role_Tag = "TYPE:";
 const std::string GCodeProcessor::Wipe_Start_Tag     = "WIPE_START";
 const std::string GCodeProcessor::Wipe_End_Tag       = "WIPE_END";
 const std::string GCodeProcessor::Height_Tag         = "HEIGHT:";
+const std::string GCodeProcessor::Width_Tag          = "WIDTH:";
 const std::string GCodeProcessor::Layer_Change_Tag   = "LAYER_CHANGE";
 const std::string GCodeProcessor::Color_Change_Tag   = "COLOR_CHANGE";
 const std::string GCodeProcessor::Pause_Print_Tag    = "PAUSE_PRINT";
@@ -36,11 +52,11 @@ const std::string GCodeProcessor::Custom_Code_Tag    = "CUSTOM_GCODE";
 const std::string GCodeProcessor::First_Line_M73_Placeholder_Tag          = "; _GP_FIRST_LINE_M73_PLACEHOLDER";
 const std::string GCodeProcessor::Last_Line_M73_Placeholder_Tag           = "; _GP_LAST_LINE_M73_PLACEHOLDER";
 const std::string GCodeProcessor::Estimated_Printing_Time_Placeholder_Tag = "; _GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER";
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
 
-const std::string GCodeProcessor::Width_Tag = "WIDTH:";
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag = "MM3_PER_MM:";
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -365,7 +381,22 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         std::string line = gcode_line.substr(0, gcode_line.length() - 1);
 
         std::string ret;
-
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+        if (line.length() > 1) {
+            line = line.substr(1);
+            if (export_remaining_time_enabled &&
+                (line == reserved_tag(ETags::First_Line_M73_Placeholder) || line == reserved_tag(ETags::Last_Line_M73_Placeholder))) {
+                for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
+                    const TimeMachine& machine = machines[i];
+                    if (machine.enabled) {
+                        ret += format_line_M73(machine.line_m73_mask.c_str(),
+                            (line == reserved_tag(ETags::First_Line_M73_Placeholder)) ? 0 : 100,
+                            (line == reserved_tag(ETags::First_Line_M73_Placeholder)) ? time_in_minutes(machine.time) : 0);
+                    }
+                }
+            }
+            else if (line == reserved_tag(ETags::Estimated_Printing_Time_Placeholder)) {
+#else
         if (export_remaining_time_enabled && (line == First_Line_M73_Placeholder_Tag || line == Last_Line_M73_Placeholder_Tag)) {
             for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
                 const TimeMachine& machine = machines[i];
@@ -377,18 +408,22 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
             }
         }
         else if (line == Estimated_Printing_Time_Placeholder_Tag) {
-            for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
-                const TimeMachine& machine = machines[i];
-                PrintEstimatedTimeStatistics::ETimeMode mode = static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i);
-                if (mode == PrintEstimatedTimeStatistics::ETimeMode::Normal || machine.enabled) {
-                    char buf[128];
-                    sprintf(buf, "; estimated printing time (%s mode) = %s\n",
-                        (mode == PrintEstimatedTimeStatistics::ETimeMode::Normal) ? "normal" : "silent",
-                        get_time_dhms(machine.time).c_str());
-                    ret += buf;
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+                for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
+                    const TimeMachine& machine = machines[i];
+                    PrintEstimatedTimeStatistics::ETimeMode mode = static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i);
+                    if (mode == PrintEstimatedTimeStatistics::ETimeMode::Normal || machine.enabled) {
+                        char buf[128];
+                        sprintf(buf, "; estimated printing time (%s mode) = %s\n",
+                            (mode == PrintEstimatedTimeStatistics::ETimeMode::Normal) ? "normal" : "silent",
+                            get_time_dhms(machine.time).c_str());
+                        ret += buf;
+                    }
                 }
             }
+#if ENABLE_VALIDATE_CUSTOM_GCODE
         }
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
         return std::make_pair(!ret.empty(), ret.empty() ? gcode_line : ret);
     };
@@ -540,6 +575,64 @@ const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProces
 };
 
 unsigned int GCodeProcessor::s_result_id = 0;
+
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+static inline bool starts_with(const std::string_view comment, const std::string_view tag)
+{
+    size_t tag_len = tag.size();
+    return comment.size() >= tag_len && comment.substr(0, tag_len) == tag;
+}
+
+bool GCodeProcessor::contains_reserved_tag(const std::string& gcode, std::string& found_tag)
+{
+    bool ret = false;
+
+    GCodeReader parser;
+    parser.parse_buffer(gcode, [&ret, &found_tag](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
+        std::string comment = line.raw();
+        if (comment.length() > 2 && comment.front() == ';') {
+            comment = comment.substr(1);
+            for (const std::string& s : Reserved_Tags) {
+                if (starts_with(comment, s)) {
+                    ret = true;
+                    found_tag = comment;
+                    parser.quit_parsing();
+                    return;
+                }
+            }
+        }
+        });
+
+    return ret;
+}
+
+bool GCodeProcessor::contains_reserved_tags(const std::string& gcode, unsigned int max_count, std::vector<std::string>& found_tag)
+{
+    max_count = std::max(max_count, 1U);
+
+    bool ret = false;
+
+    GCodeReader parser;
+    parser.parse_buffer(gcode, [&ret, &found_tag, max_count](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
+        std::string comment = line.raw();
+        if (comment.length() > 2 && comment.front() == ';') {
+            comment = comment.substr(1);
+            for (const std::string& s : Reserved_Tags) {
+                if (starts_with(comment, s)) {
+                    ret = true;
+                    found_tag.push_back(comment);
+                    if (found_tag.size() == max_count) {
+                        parser.quit_parsing();
+                        return;
+                    }
+                }
+            }
+        }
+        });
+
+    return ret;
+}
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 GCodeProcessor::GCodeProcessor()
 {
@@ -847,7 +940,11 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
             if (cmd.length() == 0) {
                 const std::string_view comment = line.comment();
                 if (comment.length() > 1 && detect_producer(comment))
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+                    m_parser.quit_parsing();
+#else
                     m_parser.quit_parsing_file();
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
             }
             });
 
@@ -1051,11 +1148,13 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
     }
 }
 
+#if !ENABLE_VALIDATE_CUSTOM_GCODE
 static inline bool starts_with(const std::string_view comment, const std::string_view tag)
 {
     size_t tag_len = tag.size();
     return comment.size() >= tag_len && comment.substr(0, tag_len) == tag;
 }
+#endif // !ENABLE_VALIDATE_CUSTOM_GCODE
 
 #if __has_include(<charconv>)
     template <typename T, typename = void>
@@ -1108,6 +1207,25 @@ void GCodeProcessor::process_tags(const std::string_view comment)
     if (m_producers_enabled && process_producers_tags(comment))
         return;
 
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+    // extrusion role tag
+    if (starts_with(comment, reserved_tag(ETags::Role))) {
+        m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(reserved_tag(ETags::Role).length()));
+        return;
+    }
+
+    // wipe start tag
+    if (starts_with(comment, reserved_tag(ETags::Wipe_Start))) {
+        m_wiping = true;
+        return;
+    }
+
+    // wipe end tag
+    if (starts_with(comment, reserved_tag(ETags::Wipe_End))) {
+        m_wiping = false;
+        return;
+    }
+#else
     // extrusion role tag
     if (starts_with(comment, Extrusion_Role_Tag)) {
         m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(Extrusion_Role_Tag.length()));
@@ -1125,8 +1243,23 @@ void GCodeProcessor::process_tags(const std::string_view comment)
         m_wiping = false;
         return;
     }
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     if (!m_producers_enabled || m_producer == EProducer::PrusaSlicer) {
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+        // height tag
+        if (starts_with(comment, reserved_tag(ETags::Height))) {
+            if (!parse_number(comment.substr(reserved_tag(ETags::Height).size()), m_forced_height))
+                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
+            return;
+        }
+        // width tag
+        if (starts_with(comment, reserved_tag(ETags::Width))) {
+            if (!parse_number(comment.substr(reserved_tag(ETags::Width).size()), m_forced_width))
+                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
+            return;
+        }
+#else
         // height tag
         if (starts_with(comment, Height_Tag)) {
             if (!parse_number(comment.substr(Height_Tag.size()), m_forced_height))
@@ -1139,8 +1272,56 @@ void GCodeProcessor::process_tags(const std::string_view comment)
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             return;
         }
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
     }
 
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+    // color change tag
+    if (starts_with(comment, reserved_tag(ETags::Color_Change))) {
+        unsigned char extruder_id = 0;
+        if (starts_with(comment.substr(reserved_tag(ETags::Color_Change).size()), ",T")) {
+            int eid;
+            if (!parse_number(comment.substr(reserved_tag(ETags::Color_Change).size() + 2), eid) || eid < 0 || eid > 255) {
+                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
+                return;
+            }
+            extruder_id = static_cast<unsigned char>(eid);
+        }
+
+        m_extruder_colors[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
+        ++m_cp_color.counter;
+        if (m_cp_color.counter == UCHAR_MAX)
+            m_cp_color.counter = 0;
+
+        if (m_extruder_id == extruder_id) {
+            m_cp_color.current = m_extruder_colors[extruder_id];
+            store_move_vertex(EMoveType::Color_change);
+        }
+
+        process_custom_gcode_time(CustomGCode::ColorChange);
+
+        return;
+    }
+
+    // pause print tag
+    if (comment == reserved_tag(ETags::Pause_Print)) {
+        store_move_vertex(EMoveType::Pause_Print);
+        process_custom_gcode_time(CustomGCode::PausePrint);
+        return;
+    }
+
+    // custom code tag
+    if (comment == reserved_tag(ETags::Custom_Code)) {
+        store_move_vertex(EMoveType::Custom_GCode);
+        return;
+    }
+
+    // layer change tag
+    if (comment == reserved_tag(ETags::Layer_Change)) {
+        ++m_layer_id;
+        return;
+    }
+#else
     // color change tag
     if (starts_with(comment, Color_Change_Tag)) {
         unsigned char extruder_id = 0;
@@ -1181,6 +1362,13 @@ void GCodeProcessor::process_tags(const std::string_view comment)
         return;
     }
 
+    // layer change tag
+    if (comment == Layer_Change_Tag) {
+        ++m_layer_id;
+        return;
+    }
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // mm3_per_mm print tag
     if (starts_with(comment, Mm3_Per_Mm_Tag)) {
@@ -1189,12 +1377,6 @@ void GCodeProcessor::process_tags(const std::string_view comment)
         return;
     }
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
-
-    // layer change tag
-    if (comment == Layer_Change_Tag) {
-        ++m_layer_id;
-        return;
-    }
 }
 
 bool GCodeProcessor::process_producers_tags(const std::string_view comment)
