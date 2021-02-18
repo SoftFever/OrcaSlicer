@@ -169,9 +169,6 @@ Preview::Preview(
     : m_config(config)
     , m_process(process)
     , m_gcode_result(gcode_result)
-#if !ENABLE_PREVIEW_TYPE_CHANGE
-    , m_preferred_color_mode("feature")
-#endif // !ENABLE_PREVIEW_TYPE_CHANGE
     , m_schedule_background_process(schedule_background_process_func)
 {
     if (init(parent, model))
@@ -315,22 +312,6 @@ void Preview::set_as_dirty()
         m_canvas->set_as_dirty();
 }
 
-#if !ENABLE_PREVIEW_TYPE_CHANGE
-void Preview::set_number_extruders(unsigned int number_extruders)
-{
-    if (m_number_extruders != number_extruders) {
-        m_number_extruders = number_extruders;
-        int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
-        int type = (number_extruders > 1) ? tool_idx /* color by a tool number */  : 0; // color by a feature type
-        m_choice_view_type->SetSelection(type);
-        if (0 <= type && (type < static_cast<int>(GCodeViewer::EViewType::Count)))
-            m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
-
-        m_preferred_color_mode = (type == tool_idx) ? "tool_or_feature" : "feature";
-    }
-}
-#endif // !ENABLE_PREVIEW_TYPE_CHANGE
-
 void Preview::bed_shape_changed()
 {
     if (m_canvas != nullptr)
@@ -468,20 +449,11 @@ void Preview::on_size(wxSizeEvent& evt)
 
 void Preview::on_choice_view_type(wxCommandEvent& evt)
 {
-#if !ENABLE_PREVIEW_TYPE_CHANGE
-    m_preferred_color_mode = (m_choice_view_type->GetStringSelection() == L("Tool")) ? "tool" : "feature";
-#endif // !ENABLE_PREVIEW_TYPE_CHANGE
     int selection = m_choice_view_type->GetCurrentSelection();
-#if ENABLE_PREVIEW_TYPE_CHANGE
     if (0 <= selection && selection < static_cast<int>(GCodeViewer::EViewType::Count)) {
         m_canvas->set_toolpath_view_type(static_cast<GCodeViewer::EViewType>(selection));
         m_keep_current_preview_type = true;
     }
-#else
-    if (0 <= selection && selection < static_cast<int>(GCodeViewer::EViewType::Count))
-        m_canvas->set_toolpath_view_type(static_cast<GCodeViewer::EViewType>(selection));
-#endif // ENABLE_PREVIEW_TYPE_CHANGE
-
     refresh_print();
 }
 
@@ -521,30 +493,6 @@ void Preview::on_combochecklist_options(wxCommandEvent& evt)
         m_canvas->set_as_dirty();
 #endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
 }
-
-#if !ENABLE_PREVIEW_TYPE_CHANGE
-void Preview::update_view_type(bool keep_volumes)
-{
-    const DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
-
-    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes.empty() /*&&
-                             (wxGetApp().extruders_edited_cnt()==1 || !slice_completed) */? 
-                                _L("Color Print") :
-                                config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
-                                    _L("Tool") : 
-                                    _L("Feature type");
-
-    int type = m_choice_view_type->FindString(choice);
-    if (m_choice_view_type->GetSelection() != type) {
-        m_choice_view_type->SetSelection(type);
-        if (0 <= type && type < static_cast<int>(GCodeViewer::EViewType::Count))
-            m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
-        m_preferred_color_mode = "feature";
-    }
-
-    reload_print(keep_volumes);
-}
-#endif // !ENABLE_PREVIEW_TYPE_CHANGE
 
 void Preview::update_bottom_toolbar()
 {
@@ -601,12 +549,8 @@ wxBoxSizer* Preview::create_layers_slider_sizer()
         model.custom_gcode_per_print_z = m_layers_slider->GetTicksValues();
         m_schedule_background_process();
 
-#if ENABLE_PREVIEW_TYPE_CHANGE
         m_keep_current_preview_type = false;
         reload_print(false);
-#else
-        update_view_type(false);
-#endif // ENABLE_PREVIEW_TYPE_CHANGE
         });
 
     return sizer;
@@ -876,21 +820,6 @@ void Preview::load_print_as_fff(bool keep_z_range)
         return;
     }
 
-#if !ENABLE_PREVIEW_TYPE_CHANGE
-    if (m_preferred_color_mode == "tool_or_feature") {
-        // It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
-        // Color by feature if it is a single extruder print.
-        unsigned int number_extruders = (unsigned int)print->extruders().size();
-        int tool_idx = m_choice_view_type->FindString(_L("Tool"));
-        int type = (number_extruders > 1) ? tool_idx /* color by a tool number */ : 0; // color by a feature type
-        m_choice_view_type->SetSelection(type);
-        if (0 <= type && type < static_cast<int>(GCodeViewer::EViewType::Count))
-            m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
-        // If the->SetSelection changed the following line, revert it to "decide yourself".
-        m_preferred_color_mode = "tool_or_feature";
-    }
-#endif // !ENABLE_PREVIEW_TYPE_CHANGE
-
     GCodeViewer::EViewType gcode_view_type = m_canvas->get_gcode_view_preview_type();
     bool gcode_preview_data_valid = !m_gcode_result->moves.empty();
     // Collect colors per extruder.
@@ -939,7 +868,6 @@ void Preview::load_print_as_fff(bool keep_z_range)
             update_layers_slider(zs, keep_z_range);
     }
 
-#if ENABLE_PREVIEW_TYPE_CHANGE
     unsigned int number_extruders = (unsigned int)print->extruders().size();
 
     if (!m_keep_current_preview_type) {
@@ -955,7 +883,6 @@ void Preview::load_print_as_fff(bool keep_z_range)
             }
         }
     }
-#endif // ENABLE_PREVIEW_TYPE_CHANGE
 }
 
 void Preview::load_print_as_sla()
