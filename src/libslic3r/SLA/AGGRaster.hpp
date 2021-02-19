@@ -147,8 +147,12 @@ public:
         , m_renderer(m_raw_renderer)
         , m_trafo(trafo)
     {
-        m_pxdim_scaled.w_mm /= pd.w_mm;
-        m_pxdim_scaled.h_mm /= pd.h_mm;
+        // Visual Studio compiler gives warnings about possible division by zero.
+        assert(pd.w_mm != 0 && pd.h_mm != 0);
+        if (pd.w_mm != 0 && pd.h_mm != 0) {
+            m_pxdim_scaled.w_mm /= pd.w_mm;
+            m_pxdim_scaled.h_mm /= pd.h_mm;
+        }
         m_renderer.color(foreground);
         clear(background);
         
