@@ -274,7 +274,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         // gets the old one, and on_kill_focus resets the control to the old value.
         // As a workaround, we get the new value from $event->GetString and store
         // here temporarily so that we can return it from get_value()
-        spin_ctrl->Bind(wxEVT_TEXT, ([this, spin_ctrl](wxCommandEvent e)
+        spin_ctrl->Bind(wxEVT_TEXT, ([spin_ctrl](wxCommandEvent e)
         {
             long value;
             const bool parsed = e.GetString().ToLong(&value);

@@ -731,7 +731,7 @@ public:
         // Generate islands, so each island may be tested for overlap with m_island_samples.
         assert(std::abs(2 * offset_in_grid) < m_grid.resolution());
         Polygons support_polygons_simplified = m_grid.contours_simplified(offset_in_grid, fill_holes);
-#endif SUPPORT_USE_AGG_RASTERIZER
+#endif // SUPPORT_USE_AGG_RASTERIZER
 
         ExPolygons islands = diff_ex(support_polygons_simplified, *m_trimming_polygons, false);
 
