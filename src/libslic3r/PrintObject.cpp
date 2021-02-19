@@ -2845,6 +2845,11 @@ void PrintObject::project_and_append_custom_facets(
             if (! seam && tr_det_sign * z_comp > 0.)
                 continue;
 
+            // The algorithm does not process vertical triangles, but it should for seam.
+            // In that case, tilt the triangle a bit so the projection does not degenerate.
+            if (seam && z_comp == 0.f)
+                facet[0].x() += float(EPSILON);
+
             // Sort the three vertices according to z-coordinate.
             std::sort(facet.begin(), facet.end(),
                       [](const Vec3f& pt1, const Vec3f&pt2) {

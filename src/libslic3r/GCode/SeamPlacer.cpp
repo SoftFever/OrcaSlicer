@@ -750,35 +750,36 @@ void SeamPlacer::apply_custom_seam(const Polygon& polygon, size_t po_idx,
         }
     }
 
-////////////////////////
-//    std::ostringstream os;
-//    os << std::setw(3) << std::setfill('0') << layer_id;
-//    int a = scale_(30.);
-//    SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
-//    //if (! m_enforcers[po_idx].empty())
-//    //    svg.draw(m_enforcers[po_idx][layer_id].polys, "blue");
-//    //if (! m_blockers[po_idx].empty())
-//    //    svg.draw(m_blockers[po_idx][layer_id].polys, "red");
+#if 0
+    std::ostringstream os;
+    os << std::setw(3) << std::setfill('0') << layer_id;
+    int a = scale_(30.);
+    SVG svg("custom_seam" + os.str() + ".svg", BoundingBox(Point(-a, -a), Point(a, a)));
+    if (! m_enforcers[po_idx].empty())
+        svg.draw(m_enforcers[po_idx][layer_id].polys, "blue");
+    if (! m_blockers[po_idx].empty())
+        svg.draw(m_blockers[po_idx][layer_id].polys, "red");
+
+    if (! blockers_idxs.empty()) {
+        ;
+    }
 
 
+    size_t min_idx = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
 
-//    size_t min_idx = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
-
-//    //svg.draw(polygon.points[idx_min], "red", 6e5);
-//    for (size_t i=0; i<polygon.points.size(); ++i) {
-//        std::string fill;
-//        coord_t size = 0;
-//        if (min_idx == i) {
-//            fill = "yellow";
-//            size = 5e5;
-//        } else
-//            fill = (std::find(enforcers_idxs.begin(), enforcers_idxs.end(), i) != enforcers_idxs.end() ? "green" : "black");
-//        if (i != 0)
-//            svg.draw(polygon.points[i], fill, size);
-//        else
-//            svg.draw(polygon.points[i], "red", 5e5);
-//    }
-//////////////////////
+    for (size_t i=0; i<polygon.points.size(); ++i) {
+        std::string fill;
+        coord_t size = 5e5;
+        if (min_idx == i)
+            fill = "yellow";
+        else
+            fill = (std::find(blockers_idxs.begin(), blockers_idxs.end(), i) != blockers_idxs.end() ? "green" : "black");
+        if (i != 0)
+            svg.draw(polygon.points[i], fill, size);
+        else
+            svg.draw(polygon.points[i], "red", 5e5);
+    }
+#endif
 
 }
 
