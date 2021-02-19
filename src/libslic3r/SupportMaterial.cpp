@@ -192,8 +192,8 @@ static Polygons contours_simplified(const Vec2i &grid_size, const double pixel_s
 
     // Fill in empty cells, which have a left / right neighbor filled.
     // Fill in empty cells, which have the top / bottom neighbor filled.
-    std::vector<unsigned char>  cell_inside_data;
-    std::vector<unsigned char> &cell_inside = fill_holes ? cell_inside_data : grid;
+    std::vector<unsigned char>        cell_inside_data;
+    const std::vector<unsigned char> &cell_inside = fill_holes ? cell_inside_data : grid;
     if (fill_holes) {
         cell_inside_data = grid;
         for (int r = 1; r + 1 < grid_size.y(); ++ r) {
