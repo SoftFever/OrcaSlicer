@@ -148,13 +148,7 @@ public:
     void set_in_preview(bool preview);
 	// Move to left to avoid colision with variable layer height gizmo.
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
-/*
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-	
-	bool requires_update() const { return m_requires_update; }
-	bool requires_render() const { return m_requires_render; }
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-*/
+
 private:
 	// duration 0 means not disapearing
 	struct NotificationData {
@@ -190,7 +184,6 @@ private:
 	{
 	public:
 
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		enum class EState
 		{
 			Unknown,
@@ -200,32 +193,16 @@ private:
 			ClosePending,     // Requesting Render
 			Finished,         // Requesting Render
 		};
-#else
-		enum class RenderResult
-		{
-			Finished,
-			ClosePending,
-			Static,
-			Countdown,
-			Hovered
-		};
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 		PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler);
 		virtual ~PopNotification() { if (m_id) m_id_provider.release_id(m_id); }
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		void                   render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width);
-#else
-		RenderResult           render(GLCanvas3D& canvas, const float& initial_y, bool move_from_overlay, float overlay_width);
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		// close will dissapear notification on next render
 		void                   close() { m_close_pending = true; }
 		// data from newer notification of same type
 		void                   update(const NotificationData& n);
 		bool                   is_finished() const { return m_finished || m_close_pending; }
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		bool                   is_hovered() const { return m_hovered; }
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		// returns top after movement
 		float                  get_top() const { return m_top_y; }
 		//returns top in actual frame
@@ -239,7 +216,6 @@ private:
 		void                   set_paused(bool p) { m_paused = p; }
 		bool                   compare_text(const std::string& text);
         void                   hide(bool h) { m_hidden = h; }
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		// sets m_next_render with time of next mandatory rendering
 		void                   update_state();
 		int64_t 		       next_render() const { return m_next_render; }
@@ -248,7 +224,6 @@ private:
 		bool				   requires_update() const { return m_state != EState::Hidden; }
 		*/
 		EState                 get_state() const { return m_state; }
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 	protected:
 		// Call after every size change
 		void         init();
@@ -262,11 +237,6 @@ private:
 		virtual void render_close_button(ImGuiWrapper& imgui,
 			                             const float win_size_x, const float win_size_y,
 			                             const float win_pos_x , const float win_pos_y);
-#if !ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-		void         render_countdown(ImGuiWrapper& imgui,
-			                          const float win_size_x, const float win_size_y,
-			                          const float win_pos_x , const float win_pos_y);
-#endif // !ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		virtual void render_hypertext(ImGuiWrapper& imgui,
 			                          const float text_x, const float text_y,
 		                              const std::string text,
@@ -284,9 +254,7 @@ private:
 		// For reusing ImGUI windows.
 		NotificationIDProvider &m_id_provider;
 
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		EState           m_state                { EState::Unknown };
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 
 		int              m_id                   { 0 };
 		bool			 m_initialized          { false };
@@ -303,7 +271,6 @@ private:
 		bool             m_paused               { false };
 		int              m_countdown_frame      { 0 };
 		bool             m_fading_out           { false };
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		int64_t		 	 m_fading_start         { 0LL };
 		// time of last done render when fading
 		int64_t		 	 m_last_render_fading   { 0LL };
@@ -311,20 +278,14 @@ private:
 		int64_t		 	 m_notification_start;
 		// time to next must-do render
 		int64_t          m_next_render          { std::numeric_limits<int64_t>::max() };
-#else
-		// total time left when fading beggins
-		float            m_fading_time{ 0.0f };
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		float            m_current_fade_opacity { 1.0f };
 		// If hidden the notif is alive but not visible to user
 		bool             m_hidden               { false };
 		//  m_finished = true - does not render, marked to delete
 		bool             m_finished             { false }; 
 		// Will go to m_finished next render
-		bool             m_close_pending        { false }; 
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
+		bool             m_close_pending        { false };
 		bool             m_hovered              { false };
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 		// variables to count positions correctly
 		// all space without text
 		float            m_window_width_offset;
@@ -438,11 +399,9 @@ private:
 	void sort_notifications();
 	// If there is some error notification active, then the "Export G-code" notification after the slicing is finished is suppressed.
     bool has_slicing_error_notification();
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
 	// perform update_state on each notification and ask for more frames if needed
 	void update_notifications();
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-    
+
 	// Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
 	wxEvtHandler*                m_evt_handler;
 	// Cache of IDs to identify and reuse ImGUI windows.
@@ -458,12 +417,7 @@ private:
 	bool                         m_in_preview { false };
 	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
 	bool                         m_move_from_overlay { false };
-/*
-#if ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-	bool						 m_requires_update{ false };
-	bool						 m_requires_render{ false };
-#endif // ENABLE_NEW_NOTIFICATIONS_FADE_OUT 
-*/
+
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
 //		{NotificationType::SlicingNotPossible, NotificationLevel::RegularNotification, 10,  _u8L("Slicing is not possible.")},

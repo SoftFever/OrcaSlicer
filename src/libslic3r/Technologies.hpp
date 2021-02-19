@@ -81,14 +81,6 @@
 
 
 //===================
-// 2.3.0.beta2 techs
-//===================
-#define ENABLE_2_3_0_BETA2 1
-
-#define ENABLE_NEW_NOTIFICATIONS_FADE_OUT (1 && ENABLE_2_3_0_BETA2)
-
-
-//===================
 // 2.3.0.beta3 techs
 //===================
 #define ENABLE_2_3_0_BETA3 1
