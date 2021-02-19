@@ -377,6 +377,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 
     // replace placeholder lines with the proper final value
     auto process_placeholders = [&](const std::string& gcode_line) {
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+        unsigned int extra_lines_count = 0;
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+
         // remove trailing '\n'
         std::string line = gcode_line.substr(0, gcode_line.length() - 1);
 
@@ -392,6 +396,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                         ret += format_line_M73(machine.line_m73_mask.c_str(),
                             (line == reserved_tag(ETags::First_Line_M73_Placeholder)) ? 0 : 100,
                             (line == reserved_tag(ETags::First_Line_M73_Placeholder)) ? time_in_minutes(machine.time) : 0);
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                        ++extra_lines_count;
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                     }
                 }
             }
@@ -425,7 +432,11 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         }
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+        return std::tuple(!ret.empty(), ret.empty() ? gcode_line : ret, (extra_lines_count == 0) ? extra_lines_count : extra_lines_count - 1);
+#else
         return std::make_pair(!ret.empty(), ret.empty() ? gcode_line : ret);
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     };
 
     // check for temporary lines
@@ -446,6 +457,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     auto g1_times_cache_it = Slic3r::reserve_vector<std::vector<TimeMachine::G1LinesCacheItem>::const_iterator>(machines.size());
     for (const auto& machine : machines)
         g1_times_cache_it.emplace_back(machine.g1_times_cache.begin());
+
     // add lines M73 to exported gcode
     auto process_line_G1 = [&]() {
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -509,7 +521,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 
         gcode_line += "\n";
         // replace placeholder lines
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+        auto [processed, result, lines_added_count] = process_placeholders(gcode_line);
+        if (processed && lines_added_count > 0)
+            offsets.push_back({ line_id, lines_added_count });
+#else
         auto [processed, result] = process_placeholders(gcode_line);
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         gcode_line = result;
         if (!processed) {
             // remove temporary lines
@@ -522,13 +540,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                     if (line.cmd_is("G1")) {
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                         unsigned int extra_lines_count = process_line_G1();
-#else
-                        process_line_G1();
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                         ++g1_lines_counter;
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                         if (extra_lines_count > 0)
                             offsets.push_back({ line_id, extra_lines_count });
+#else
+                        process_line_G1();
+                        ++g1_lines_counter;
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                     }
                 });
