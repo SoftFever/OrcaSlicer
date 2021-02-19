@@ -80,14 +80,6 @@
 #define ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN (1 && ENABLE_2_3_0_BETA1)
 
 
-//===================
-// 2.3.0.beta3 techs
-//===================
-#define ENABLE_2_3_0_BETA3 1
-
-#define ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE (1 && ENABLE_2_3_0_BETA3)
-
-
 //=================
 // 2.3.0.rc1 techs
 //=================

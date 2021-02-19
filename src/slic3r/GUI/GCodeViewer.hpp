@@ -656,9 +656,7 @@ public:
     void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
     // recalculate ranges in dependence of what is visible and sets tool/print colors
     void refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors);
-#if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
     void refresh_render_paths();
-#endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
     void update_shells_color_by_extruder(const DynamicPrintConfig* config);
 
     void reset();

@@ -472,26 +472,8 @@ void Preview::on_combochecklist_options(wxCommandEvent& evt)
         return;
 
     m_canvas->set_gcode_options_visibility_from_flags(new_flags);
-
-#if ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
     m_canvas->refresh_gcode_preview_render_paths();
     update_moves_slider();
-#else
-    auto xored = [](unsigned int flags1, unsigned int flags2, unsigned int flag) {
-        auto is_flag_set = [](unsigned int flags, unsigned int flag) {
-            return (flags & (1 << flag)) != 0;
-        };
-        return !is_flag_set(flags1, flag) != !is_flag_set(flags2, flag);
-    };
-
-    bool skip_refresh = xored(curr_flags, new_flags, static_cast<unsigned int>(OptionType::Shells)) ||
-        xored(curr_flags, new_flags, static_cast<unsigned int>(OptionType::ToolMarker));
-
-    if (!skip_refresh)
-        refresh_print();
-    else
-        m_canvas->set_as_dirty();
-#endif // ENABLE_RENDER_PATH_REFRESH_AFTER_OPTIONS_CHANGE
 }
 
 void Preview::update_bottom_toolbar()
