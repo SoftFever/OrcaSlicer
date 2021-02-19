@@ -4,7 +4,6 @@
 #include "Print.hpp"
 #include "SupportMaterial.hpp"
 #include "Fill/FillBase.hpp"
-#include "EdgeGrid.hpp"
 #include "Geometry.hpp"
 
 #include <cmath>
@@ -15,6 +14,19 @@
 #include <tbb/atomic.h>
 #include <tbb/spin_mutex.h>
 #include <tbb/task_group.h>
+
+#define SUPPORT_USE_AGG_RASTERIZER
+
+#ifdef SUPPORT_USE_AGG_RASTERIZER
+    #include <agg/agg_pixfmt_gray.h>
+    #include <agg/agg_renderer_scanline.h>
+    #include <agg/agg_scanline_p.h>
+    #include <agg/agg_rasterizer_scanline_aa.h>
+    #include <agg/agg_path_storage.h>
+    #include "PNGReadWrite.hpp"
+#else
+    #include "EdgeGrid.hpp"
+#endif // SUPPORT_USE_AGG_RASTERIZER
 
 // #define SLIC3R_DEBUG
 
@@ -129,7 +141,7 @@ void export_print_z_polygons_and_extrusions_to_svg(
         svg.draw(to_polylines(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type));
 
     Polygons polygons_support, polygons_interface;
-    support_layer.support_fills.polygons_covered_by_width(polygons_support, SCALED_EPSILON);
+    support_layer.support_fills.polygons_covered_by_width(polygons_support, float(SCALED_EPSILON));
 //    support_layer.support_interface_fills.polygons_covered_by_width(polygons_interface, SCALED_EPSILON);
     svg.draw(union_ex(polygons_support), "brown");
     svg.draw(union_ex(polygons_interface), "black");
@@ -138,6 +150,169 @@ void export_print_z_polygons_and_extrusions_to_svg(
     svg.Close();
 }
 #endif /* SLIC3R_DEBUG */
+
+#ifdef SUPPORT_USE_AGG_RASTERIZER
+static std::vector<unsigned char> rasterize_polygons(const Vec2i &grid_size, const double pixel_size, const Point &left_bottom, const Polygons &polygons)
+{
+    std::vector<unsigned char>                  data(grid_size.x() * grid_size.y());
+    agg::rendering_buffer                       rendering_buffer(data.data(), unsigned(grid_size.x()), unsigned(grid_size.y()), grid_size.x());
+    agg::pixfmt_gray8                           pixel_renderer(rendering_buffer);
+    agg::renderer_base<agg::pixfmt_gray8>       raw_renderer(pixel_renderer);
+    agg::renderer_scanline_aa_solid<agg::renderer_base<agg::pixfmt_gray8>> renderer(raw_renderer);
+        
+    renderer.color(agg::pixfmt_gray8::color_type(255));
+    raw_renderer.clear(agg::pixfmt_gray8::color_type(0));
+
+    agg::scanline_p8                            scanline;
+    agg::rasterizer_scanline_aa<>               rasterizer;
+
+    auto convert_pt = [left_bottom, pixel_size](const Point &pt) {
+        return Vec2d((pt.x() - left_bottom.x()) / pixel_size, (pt.y() - left_bottom.y()) / pixel_size);
+    };
+    rasterizer.reset();
+    for (const Polygon &polygon : polygons) {
+        agg::path_storage path;
+        auto it = polygon.points.begin();
+        Vec2d pt_front = convert_pt(*it);
+        path.move_to(pt_front.x(), pt_front.y());
+        while (++ it != polygon.points.end()) {
+            Vec2d pt = convert_pt(*it);
+            path.line_to(pt.x(), pt.y());
+        }
+        path.line_to(pt_front.x(), pt_front.y());
+        rasterizer.add_path(std::move(path));
+    }
+    agg::render_scanlines(rasterizer, scanline, renderer);
+    return data;
+}
+// Grid has to have the boundary pixels unset.
+static Polygons contours_simplified(const Vec2i &grid_size, const double pixel_size, Point left_bottom, const std::vector<unsigned char> &grid, coord_t offset, bool fill_holes)
+{
+    assert(std::abs(2 * offset) < pixel_size - 10);
+
+    // Fill in empty cells, which have a left / right neighbor filled.
+    // Fill in empty cells, which have the top / bottom neighbor filled.
+    std::vector<unsigned char>  cell_inside_data;
+    std::vector<unsigned char> &cell_inside = fill_holes ? cell_inside_data : grid;
+    if (fill_holes) {
+        cell_inside_data = grid;
+        for (int r = 1; r + 1 < grid_size.y(); ++ r) {
+            for (int c = 1; c + 1 < grid_size.x(); ++ c) {
+                int addr = r * grid_size.x() + c;
+                if ((grid[addr - 1] != 0 && grid[addr + 1] != 0) ||
+                    (grid[addr - grid_size.x()] != 0 && grid[addr + grid_size.x()] != 0))
+                    cell_inside_data[addr] = true;
+            }
+        }
+    }
+
+    // 1) Collect the lines.
+    std::vector<Line> lines;
+    std::vector<std::pair<Point, int>> start_point_to_line_idx;
+    for (int r = 1; r < grid_size.y(); ++ r) {
+        for (int c = 1; c < grid_size.x(); ++ c) {
+            int  addr    = r * grid_size.x() + c;
+            bool left    = cell_inside[addr - 1] != 0;
+            bool top     = cell_inside[addr - grid_size.x()] != 0;
+            bool current = cell_inside[addr] != 0;
+            if (left != current) {
+                lines.push_back(
+                    left ? 
+                        Line(Point(c, r+1), Point(c, r  )) : 
+                        Line(Point(c, r  ), Point(c, r+1)));
+                start_point_to_line_idx.emplace_back(lines.back().a, int(lines.size()) - 1);
+            }
+            if (top != current) {
+                lines.push_back(
+                    top ? 
+                        Line(Point(c  , r), Point(c+1, r)) :
+                        Line(Point(c+1, r), Point(c  , r))); 
+                start_point_to_line_idx.emplace_back(lines.back().a, int(lines.size()) - 1);
+            }
+        }
+    }
+    std::sort(start_point_to_line_idx.begin(), start_point_to_line_idx.end(), [](const auto &l, const auto &r){ return l.first < r.first; });
+
+    // 2) Chain the lines.
+    std::vector<char> line_processed(lines.size(), false);
+    Polygons out;
+    for (int i_candidate = 0; i_candidate < int(lines.size()); ++ i_candidate) {
+        if (line_processed[i_candidate])
+            continue;
+        Polygon poly;
+        line_processed[i_candidate] = true;
+        poly.points.push_back(lines[i_candidate].b);
+        int i_line_current = i_candidate;
+        for (;;) {
+            auto line_range = std::equal_range(std::begin(start_point_to_line_idx), std::end(start_point_to_line_idx), 
+                std::make_pair(lines[i_line_current].b, 0), [](const auto& l, const auto& r) { return l.first < r.first; });
+            // The interval has to be non empty, there shall be at least one line continuing the current one.
+            assert(line_range.first != line_range.second);
+            int i_next = -1;
+            for (auto it = line_range.first; it != line_range.second; ++ it) {
+                if (it->second == i_candidate) {
+                    // closing the loop.
+                    goto end_of_poly;
+                }
+                if (line_processed[it->second])
+                    continue;
+                if (i_next == -1) {
+                    i_next = it->second;
+                } else {
+                    // This is a corner, where two lines meet exactly. Pick the line, which encloses a smallest angle with
+                    // the current edge.
+                    const Line &line_current = lines[i_line_current];
+                    const Line &line_next = lines[it->second];
+                    const Vector v1 = line_current.vector();
+                    const Vector v2 = line_next.vector();
+                    int64_t cross = int64_t(v1(0)) * int64_t(v2(1)) - int64_t(v2(0)) * int64_t(v1(1));
+                    if (cross > 0) {
+                        // This has to be a convex right angle. There is no better next line.
+                        i_next = it->second;
+                        break;
+                    }
+                }
+            }
+            line_processed[i_next] = true;
+            i_line_current = i_next;
+            poly.points.push_back(lines[i_line_current].b);
+        }
+    end_of_poly:
+        out.push_back(std::move(poly));
+    }
+
+    // 3) Scale the polygons back into world, shrink slightly and remove collinear points.
+    for (Polygon &poly : out) {
+        for (Point &p : poly.points) {
+#if 0
+            p.x() = (p.x() + 1) * pixel_size + left_bottom.x();
+            p.y() = (p.y() + 1) * pixel_size + left_bottom.y();
+#else
+            p *= pixel_size;
+            p += left_bottom;
+#endif
+        }
+        // Shrink the contour slightly, so if the same contour gets discretized and simplified again, one will get the same result.
+        // Remove collinear points.
+        Points pts;
+        pts.reserve(poly.points.size());
+        for (size_t j = 0; j < poly.points.size(); ++ j) {
+            size_t j0 = (j == 0) ? poly.points.size() - 1 : j - 1;
+            size_t j2 = (j + 1 == poly.points.size()) ? 0 : j + 1;
+            Point  v  = poly.points[j2] - poly.points[j0];
+            if (v(0) != 0 && v(1) != 0) {
+                // This is a corner point. Copy it to the output contour.
+                Point p = poly.points[j];
+                p(1) += (v(0) < 0) ? - offset : offset;
+                p(0) += (v(1) > 0) ? - offset : offset;
+                pts.push_back(p);
+            } 
+        }
+        poly.points = std::move(pts);
+    }
+    return out;
+}
+#endif // SUPPORT_USE_AGG_RASTERIZER
 
 PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object, const SlicingParameters &slicing_params) :
     m_object                (object),
@@ -467,7 +642,8 @@ public:
         const Polygons &trimming_polygons,
         // Grid spacing, given by "support_material_spacing" + m_support_material_flow.spacing()
         coordf_t        support_spacing, 
-        coordf_t        support_angle) :
+        coordf_t        support_angle, 
+        coordf_t        line_spacing) :
         m_support_polygons(&support_polygons), m_trimming_polygons(&trimming_polygons),
         m_support_spacing(support_spacing), m_support_angle(support_angle)
     {
@@ -480,18 +656,58 @@ public:
             polygons_rotate(m_support_polygons_rotated, - support_angle);
             polygons_rotate(m_trimming_polygons_rotated, - support_angle);
         }
-        // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
+
+        // Resolution of the sparse support grid.
         coord_t grid_resolution = coord_t(scale_(m_support_spacing));
         BoundingBox bbox = get_extents(*m_support_polygons);
         bbox.offset(20);
+        // Align the bounding box with the sparse support grid.
         bbox.align_to_grid(grid_resolution);
+
+        // Sample a single point per input support polygon, keep it as a reference to maintain corresponding
+        // polygons if ever these polygons get split into parts by the trimming polygons.
+        m_island_samples = island_samples(*m_support_polygons);
+
+#ifdef SUPPORT_USE_AGG_RASTERIZER
+        m_bbox       = bbox;
+        // Oversample the grid to avoid leaking of supports through or around the object walls.
+        int oversampling = std::min(8, int(scale_(m_support_spacing) / (scale_(line_spacing) + 100)));
+        m_pixel_size = scale_(m_support_spacing / oversampling);
+        assert(scale_(line_spacing) + 20 < m_pixel_size);
+        // Add one empty column / row boundaries.
+        m_bbox.offset(m_pixel_size);
+        // Grid size fitting the support polygons plus one pixel boundary around the polygons.
+        Vec2i grid_size_raw(int(ceil((m_bbox.max.x() - m_bbox.min.x()) / m_pixel_size)),
+                            int(ceil((m_bbox.max.y() - m_bbox.min.y()) / m_pixel_size)));
+        // Overlay macro blocks of (oversampling x oversampling) over the grid.
+        Vec2i grid_blocks((grid_size_raw.x() + oversampling - 1 - 2) / oversampling, 
+                          (grid_size_raw.y() + oversampling - 1 - 2) / oversampling);
+        // and resize the grid to fit the macro blocks + one pixel boundary.
+        m_grid_size = grid_blocks * oversampling + Vec2i(2, 2);
+        assert(m_grid_size.x() >= grid_size_raw.x());
+        assert(m_grid_size.y() >= grid_size_raw.y());
+        m_grid2 = rasterize_polygons(m_grid_size, m_pixel_size, m_bbox.min, *m_support_polygons);
+
+        seed_fill_block(m_grid2, m_grid_size,
+            dilate_trimming_region(rasterize_polygons(m_grid_size, m_pixel_size, m_bbox.min, *m_trimming_polygons), m_grid_size),
+            grid_blocks, oversampling);
+
+#ifdef SLIC3R_DEBUG
+        {
+            static int irun;
+            Slic3r::png::write_gray_to_file_scaled(debug_out_path("support-rasterizer-%d.png", irun++), m_grid_size.x(), m_grid_size.y(), m_grid2.data(), 4);
+        }
+#endif // SLIC3R_DEBUG
+
+#else // SUPPORT_USE_AGG_RASTERIZER
+        // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
         m_grid.set_bbox(bbox);
         m_grid.create(*m_support_polygons, grid_resolution);
 #if 0
         if (m_grid.has_intersecting_edges()) {
             // EdgeGrid fails to produce valid signed distance function for self-intersecting polygons.
             m_support_polygons_rotated = simplify_polygons(*m_support_polygons);
-            m_support_polygons  = &m_support_polygons_rotated;
+            m_support_polygons = &m_support_polygons_rotated;
             m_grid.set_bbox(bbox);
             m_grid.create(*m_support_polygons, grid_resolution);
 //            assert(! m_grid.has_intersecting_edges());
@@ -500,9 +716,7 @@ public:
         }
 #endif
         m_grid.calculate_sdf();
-        // Sample a single point per input support polygon, keep it as a reference to maintain corresponding
-        // polygons if ever these polygons get split into parts by the trimming polygons.
-        m_island_samples = island_samples(*m_support_polygons);
+#endif // SUPPORT_USE_AGG_RASTERIZER
     }
 
     // Extract polygons from the grid, offsetted by offset_in_grid,
@@ -511,17 +725,21 @@ public:
     // Remove all the pieces, which do not contain any of the island_samples.
     Polygons extract_support(const coord_t offset_in_grid, bool fill_holes)
     {
+#ifdef SUPPORT_USE_AGG_RASTERIZER
+        Polygons support_polygons_simplified = contours_simplified(m_grid_size, m_pixel_size, m_bbox.min, m_grid2, offset_in_grid, fill_holes);
+#else // SUPPORT_USE_AGG_RASTERIZER
         // Generate islands, so each island may be tested for overlap with m_island_samples.
         assert(std::abs(2 * offset_in_grid) < m_grid.resolution());
-#ifdef SLIC3R_DEBUG
-        Polygons   support_polygons_simplified = m_grid.contours_simplified(offset_in_grid, fill_holes);
+        Polygons support_polygons_simplified = m_grid.contours_simplified(offset_in_grid, fill_holes);
+#endif SUPPORT_USE_AGG_RASTERIZER
+
         ExPolygons islands = diff_ex(support_polygons_simplified, *m_trimming_polygons, false);
-#else
-        ExPolygons islands = diff_ex(m_grid.contours_simplified(offset_in_grid, fill_holes), *m_trimming_polygons, false);
-#endif
 
         // Extract polygons, which contain some of the m_island_samples.
         Polygons out;
+#if 0
+        out = to_polygons(std::move(islands));
+#else
         for (ExPolygon &island : islands) {
             BoundingBox bbox = get_extents(island.contour);
             // Samples are sorted lexicographically.
@@ -559,6 +777,7 @@ public:
                     }
             }
         }
+#endif
 
     #ifdef SLIC3R_DEBUG
         static int iRun = 0;
@@ -588,7 +807,7 @@ public:
         return out;
     }
 
-#ifdef SLIC3R_DEBUG
+#if defined(SLIC3R_DEBUG) && ! defined(SUPPORT_USE_AGG_RASTERIZER)
     void serialize(const std::string &path)
     {
         FILE *file = ::fopen(path.c_str(), "wb");
@@ -699,11 +918,75 @@ public:
     const Polygons& trimming_polygons() const { return *m_trimming_polygons; }
     const EdgeGrid::Grid& grid() const { return m_grid; }
 
-#endif /* SLIC3R_DEBUG */
+#endif // defined(SLIC3R_DEBUG) && ! defined(SUPPORT_USE_AGG_RASTERIZER)
 
 private:
     SupportGridPattern() {}
     SupportGridPattern& operator=(const SupportGridPattern &rhs);
+
+#ifdef SUPPORT_USE_AGG_RASTERIZER
+    // Dilate the trimming region (unmask the boundary pixels).
+    static std::vector<unsigned char> dilate_trimming_region(const std::vector<unsigned char> &trimming, const Vec2i &grid_size)
+    {
+        std::vector<unsigned char> dilated(trimming.size(), 0);
+        for (int r = 1; r + 1 < grid_size.y(); ++ r)
+            for (int c = 1; c + 1 < grid_size.x(); ++ c) {
+                //int addr = c + r * m_grid_size.x();
+                // 4-neighborhood is not sufficient.
+                // dilated[addr] = trimming[addr] != 0 && trimming[addr - 1] != 0 && trimming[addr + 1] != 0 && trimming[addr - m_grid_size.x()] != 0 && trimming[addr + m_grid_size.x()] != 0;
+                // 8-neighborhood
+                int addr = c + (r - 1) * grid_size.x();
+                bool b = trimming[addr - 1] != 0 && trimming[addr] != 0 && trimming[addr + 1] != 0;
+                addr += grid_size.x();
+                b = b && trimming[addr - 1] != 0 && trimming[addr] != 0 && trimming[addr + 1] != 0;
+                addr += grid_size.x();
+                b = b && trimming[addr - 1] != 0 && trimming[addr] != 0 && trimming[addr + 1] != 0;
+                dilated[addr - grid_size.x()] = b;
+            }
+        return dilated;
+    }
+
+    // Seed fill each of the (oversampling x oversampling) block up to the dilated trimming region.
+    static void seed_fill_block(std::vector<unsigned char> &grid, Vec2i grid_size, const std::vector<unsigned char> &trimming,const Vec2i &grid_blocks, int oversampling)
+    {
+        int size      = oversampling;
+        int stride    = grid_size.x();
+        for (int block_r = 0; block_r < grid_blocks.y(); ++ block_r)
+            for (int block_c = 0; block_c < grid_blocks.x(); ++ block_c) {
+                // Propagate the support pixels over the macro cell up to the trimming mask.
+                int                  addr      = block_c * size + 1 + (block_r * size + 1) * stride;
+                unsigned char       *grid_data = grid.data() + addr;
+                const unsigned char *mask_data = trimming.data() + addr;
+                // Top to bottom propagation.
+                #define PROPAGATION_STEP(offset) \
+                    do { \
+                        int addr = r * stride + c; \
+                        int addr2 = addr + offset; \
+                        if (grid_data[addr2] && ! mask_data[addr] && ! mask_data[addr2]) \
+                            grid_data[addr] = 1; \
+                    } while (0);
+                for (int r = 0; r < size; ++ r) {
+                    if (r > 0)
+                        for (int c = 0; c < size; ++ c)
+                            PROPAGATION_STEP(- stride);
+                    for (int c = 1; c < size; ++ c)
+                        PROPAGATION_STEP(- 1);
+                    for (int c = size - 2; c >= 0; -- c)
+                        PROPAGATION_STEP(+ 1);
+                }
+                // Bottom to top propagation.
+                for (int r = size - 2; r >= 0; -- r) {
+                    for (int c = 0; c < size; ++ c)
+                        PROPAGATION_STEP(+ stride);
+                    for (int c = 1; c < size; ++ c)
+                        PROPAGATION_STEP(- 1);
+                    for (int c = size - 2; c >= 0; -- c)
+                        PROPAGATION_STEP(+ 1);
+                }
+                #undef PROPAGATION_STEP
+            }
+    }
+#endif // SUPPORT_USE_AGG_RASTERIZER
 
 #if 0
     // Get some internal point of an expolygon, to be used as a representative
@@ -745,7 +1028,12 @@ private:
                     Polygons polygons = offset(expoly, - 20.f);
                     for (const Polygon &poly : polygons)
                         if (! poly.points.empty()) {
-                            pts.push_back(poly.points.front());
+                            // Take a small fixed number of samples of this polygon for robustness.
+                            int num_points  = int(poly.points.size());
+                            int num_samples = std::min(num_points, 4);
+                            int stride = num_points / num_samples;
+                            for (int i = 0; i < num_points; i += stride)
+                                pts.push_back(poly.points[i]);
                             break;
                         }
                 #endif
@@ -769,7 +1057,15 @@ private:
     // X spacing of the support lines parallel with the Y axis.
     coordf_t                m_support_spacing;
 
-    Slic3r::EdgeGrid::Grid  m_grid;
+#ifdef SUPPORT_USE_AGG_RASTERIZER
+    Vec2i                       m_grid_size;
+    double                      m_pixel_size;
+    BoundingBox                 m_bbox;
+    std::vector<unsigned char>  m_grid2;
+#else // SUPPORT_USE_AGG_RASTERIZER
+    Slic3r::EdgeGrid::Grid      m_grid;
+#endif // SUPPORT_USE_AGG_RASTERIZER
+
     // Internal sample points of supporting expolygons. These internal points are used to pick regions corresponding
     // to the initial supporting regions, after these regions werre grown and possibly split to many by the trimming polygons.
     Points                  m_island_samples;
@@ -1141,7 +1437,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                             ::Slic3r::SVG svg(debug_out_path("support-top-contacts-raw-run%d-layer%d-region%d.svg", 
                                 iRun, layer_id, 
                                 std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin()),
-                            get_extents(diff_polygons));
+                                get_extents(diff_polygons));
                             Slic3r::ExPolygons expolys = union_ex(diff_polygons, false);
                             svg.draw(expolys);
                         }
@@ -1284,7 +1580,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         slices_margin_cached,
                         // Grid resolution.
                         m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
-                        Geometry::deg2rad(m_object_config->support_material_angle.value));
+                        Geometry::deg2rad(m_object_config->support_material_angle.value), 
+                        m_support_material_flow.spacing());
                     // 1) Contact polygons will be projected down. To keep the interface and base layers from growing, return a contour a tiny bit smaller than the grid cells.
                     new_layer.contact_polygons = new Polygons(support_grid_pattern.extract_support(-3, true));
                     // 2) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
@@ -1310,15 +1607,31 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 slices_margin_cached,
                                 // Grid resolution.
                                 m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
-                                Geometry::deg2rad(m_object_config->support_material_angle.value));                        
+                                Geometry::deg2rad(m_object_config->support_material_angle.value), 
+                                m_support_material_flow.spacing());
                             new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, false);
                     #ifdef SLIC3R_DEBUG
                             {
-                                support_grid_pattern.serialize(debug_out_path("support-top-contacts-final-run%d-layer%d-z%f.bin", iRun, layer_id, layer.print_z));
+                                BoundingBox bbox = get_extents(dense_interface_polygons);
+                                bbox.merge(get_extents(slices_margin_cached));
+                                bbox.merge(get_extents(new_layer.polygons));
+                                ::Slic3r::SVG svg(debug_out_path("support-top-contacts-grid-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z), bbox);
+                                svg.draw(union_ex(lower_layer_polygons, false), "gray", 0.2f);
+                                svg.draw(union_ex(*new_layer.contact_polygons, false), "gray", 0.5f);
+                                svg.draw(union_ex(slices_margin_cached, false), "blue", 0.5f);
+                                svg.draw(union_ex(dense_interface_polygons, false), "green", 0.5f);
+                                svg.draw(union_ex(new_layer.polygons, true), "red", 0.5f);
+                                svg.draw_outline(union_ex(new_layer.polygons, true), "black", "black", scale_(0.1f));
+                            }
+                    #endif /* SLIC3R_DEBUG */
+                    #ifdef SLIC3R_DEBUG
+                            {
+                                //support_grid_pattern.serialize(debug_out_path("support-top-contacts-final-run%d-layer%d-z%f.bin", iRun, layer_id, layer.print_z));
 
                                 BoundingBox bbox = get_extents(contact_polygons);
                                 bbox.merge(get_extents(new_layer.polygons));
-                                ::Slic3r::SVG svg(debug_out_path("support-top-contacts-final0-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z));
+                                ::Slic3r::SVG svg(debug_out_path("support-top-contacts-final0-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z), bbox);
+                                svg.draw(union_ex(lower_layer_polygons, false), "gray", 0.2f);
                                 svg.draw(union_ex(*new_layer.contact_polygons, false), "gray", 0.5f);
                                 svg.draw(union_ex(contact_polygons, false), "blue", 0.5f);
                                 svg.draw(union_ex(dense_interface_polygons, false), "green", 0.5f);
@@ -1332,7 +1645,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                     {
                         BoundingBox bbox = get_extents(contact_polygons);
                         bbox.merge(get_extents(new_layer.polygons));
-                        ::Slic3r::SVG svg(debug_out_path("support-top-contacts-final-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z));
+                        bbox.merge(get_extents(overhang_polygons));
+                        ::Slic3r::SVG svg(debug_out_path("support-top-contacts-final-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z), bbox);
+                        svg.draw(union_ex(lower_layer_polygons, false), "gray", 0.2f);
                         svg.draw(union_ex(*new_layer.contact_polygons, false), "gray", 0.5f);
                         svg.draw(union_ex(contact_polygons, false), "blue", 0.5f);
                         svg.draw(union_ex(overhang_polygons, false), "green", 0.5f);
@@ -1454,8 +1769,13 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             BOOST_LOG_TRIVIAL(trace) << "Support generator - bottom_contact_layers - layer " << layer_id;
             const Layer &layer = *object.get_layer(layer_id);
             // Collect projections of all contact areas above or at the same level as this top surface.
+#ifdef SLIC3R_DEBUG
+            Polygons polygons_new;
+#endif // SLIC3R_DEBUG
             for (; contact_idx >= 0 && top_contacts[contact_idx]->print_z > layer.print_z - EPSILON; -- contact_idx) {
+#ifndef SLIC3R_DEBUG
                 Polygons polygons_new;
+#endif // SLIC3R_DEBUG
                 // Contact surfaces are expanded away from the object, trimmed by the object.
                 // Use a slight positive offset to overlap the touching regions.
 #if 0
@@ -1478,7 +1798,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             tbb::task_group task_group;
             if (! m_object_config->support_material_buildplate_only)
                 // Find the bottom contact layers above the top surfaces of this layer.
-                task_group.run([this, &object, &top_contacts, contact_idx, &layer, layer_id, &layer_storage, &layer_support_areas, &bottom_contacts, &projection_raw] {
+                task_group.run([this, &object, &top_contacts, contact_idx, &layer, layer_id, &layer_storage, &layer_support_areas, &bottom_contacts, &projection_raw
+        #ifdef SLIC3R_DEBUG
+                    , &polygons_new
+        #endif // SLIC3R_DEBUG
+                    ] {
                     Polygons top = collect_region_slices_by_type(layer, stTop);
         #ifdef SLIC3R_DEBUG
                     {
@@ -1489,6 +1813,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                         svg.draw(union_ex(projection_raw, true), "red", 0.5f);
                         svg.draw_outline(union_ex(projection_raw, true), "red", "blue", scale_(0.1f));
                         svg.draw(layer.lslices, "green", 0.5f);
+                        svg.draw(union_ex(polygons_new, true), "magenta", 0.5f);
+                        svg.draw_outline(union_ex(polygons_new, true), "magenta", "magenta", scale_(0.1f));
                     }
         #endif /* SLIC3R_DEBUG */
 
@@ -1615,7 +1941,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                     trimming,
                     // Grid spacing.
                     m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
-                    Geometry::deg2rad(m_object_config->support_material_angle.value));
+                    Geometry::deg2rad(m_object_config->support_material_angle.value),
+                    m_support_material_flow.spacing());
                 tbb::task_group task_group_inner;
                 // 1) Cache the slice of a support volume. The support volume is expanded by 1/2 of support material flow spacing
                 // to allow a placement of suppot zig-zag snake along the grid lines.
@@ -1635,7 +1962,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                 Polygons projection_new;
                 task_group_inner.run([&projection_new, &support_grid_pattern
         #ifdef SLIC3R_DEBUG 
-                    , &layer
+                    , &layer, &projection, &trimming
         #endif /* SLIC3R_DEBUG */
                     ] {
                     projection_new = support_grid_pattern.extract_support(-5, true);
@@ -1644,6 +1971,17 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                         debug_out_path("support-projection_new-gridded-%d-%lf.svg", iRun, layer.print_z),
                         union_ex(projection_new, false));
         #endif /* SLIC3R_DEBUG */
+#ifdef SLIC3R_DEBUG
+                    {
+                        BoundingBox bbox = get_extents(projection);
+                        bbox.merge(get_extents(projection_new));
+                        bbox.merge(get_extents(trimming));
+                        ::Slic3r::SVG svg(debug_out_path("support-projection_new-gridded-%d-%lf.svg", iRun, layer.print_z), bbox);
+                        svg.draw(union_ex(trimming, false), "gray", 0.5f);
+                        svg.draw(union_ex(projection_new, false), "red", 0.5f);
+                        svg.draw(union_ex(projection, false), "blue", 0.5f);
+                    }
+#endif /* SLIC3R_DEBUG */
                 });
                 task_group_inner.wait();
                 projection = std::move(projection_new);
