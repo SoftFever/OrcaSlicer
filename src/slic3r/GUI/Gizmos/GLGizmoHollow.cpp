@@ -621,7 +621,7 @@ RENDER_AGAIN:
     ImGui::PushItemWidth(window_width - diameter_slider_left);
 
     float diam = 2.f * m_new_hole_radius;
-    m_imgui->slider_float("##hole_diameter", &diam, 1.f, 15.f, "%.1f mm", 1.f, false);
+    m_imgui->slider_float("##hole_diameter", &diam, 1.f, 25.f, "%.1f mm", 1.f, false);
     // Let's clamp the value (which could have been entered by keyboard) to a larger range
     // than the slider. This allows entering off-scale values and still protects against
     //complete non-sense.
