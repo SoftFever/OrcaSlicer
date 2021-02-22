@@ -38,6 +38,8 @@ cd build
 cmake .. -G "Visual Studio 16 2019" -DCMAKE_PREFIX_PATH="c:\src\PrusaSlicer-deps\usr\local"
 ```
 
+Note that `CMAKE_PREFIX_PATH` must be absolute path. A relative path like "..\..\PrusaSlicer-deps\usr\local" does not work.
+
 ### Compile PrusaSlicer. 
 
 Double-click c:\src\PrusaSlicer\build\PrusaSlicer.sln to open in Visual Studio 2019.
