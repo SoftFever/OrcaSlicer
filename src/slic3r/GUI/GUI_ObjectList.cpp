@@ -2487,6 +2487,13 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             if (!last_volume->config.empty()) {
                 object->config.apply(last_volume->config);
                 last_volume->config.clear();
+
+                // update extruder color in ObjectList
+                wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
+                if (obj_item) {
+                    wxString extruder = object->config.has("extruder") ? wxString::Format("%d", object->config.extruder()) : _L("default");
+                    m_objects_model->SetExtruder(extruder, obj_item);
+                }
             }
         }
     }
