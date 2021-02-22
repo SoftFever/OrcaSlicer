@@ -7,6 +7,7 @@
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 
 #include "slic3r/GUI/Gizmos/GLGizmoMove.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoScale.hpp"
@@ -1137,6 +1138,20 @@ bool GLGizmosManager::grabber_contains_mouse() const
 
     GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
+}
+
+
+bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
+{
+    if (m_current != SlaSupports || ! dynamic_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
+        return false;
+
+    if (error_notification)
+        wxGetApp().plater()->get_notification_manager()->push_slicing_error_notification(
+            _u8L("You are currently editing SLA support points. Please, apply or discard "
+                 "your changes first."));
+
+    return true;
 }
 
 } // namespace GUI

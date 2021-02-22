@@ -210,6 +210,8 @@ public:
     ClippingPlane get_clipping_plane() const;
     bool wants_reslice_supports_on_undo() const;
 
+    bool is_in_editing_mode(bool error_notification = false) const;
+
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;
     void render_painter_gizmo() const;

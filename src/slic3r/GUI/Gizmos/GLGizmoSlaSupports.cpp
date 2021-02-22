@@ -903,7 +903,7 @@ void GLGizmoSlaSupports::on_set_state()
         m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
-        bool will_ask = m_editing_mode && unsaved_changes();
+        bool will_ask = m_editing_mode && unsaved_changes() && on_is_activable();
         if (will_ask) {
             wxGetApp().CallAfter([this]() {
                 // Following is called through CallAfter, because otherwise there was a problem
