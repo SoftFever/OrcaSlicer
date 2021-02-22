@@ -1708,6 +1708,27 @@ void TabPrint::clear_pages()
     m_top_bottom_shell_thickness_explanation = nullptr;
 }
 
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+static bool validate_custom_gcode(wxWindow* parent, const wxString& title, const std::string& gcode)
+{
+    std::vector<std::string> tags;
+    bool invalid = GCodeProcessor::contains_reserved_tags(gcode, 5, tags);
+    if (parent != nullptr && invalid) {
+        wxString reports = _L_PLURAL("The following line", "The following lines", tags.size());
+        reports += ":\n";
+        for (const std::string& keyword : tags) {
+            reports += ";" + keyword + "\n";
+        }
+        reports += _L("contain reserved keywords.") + "\n";
+        reports += _L("Please remove them, as they may cause problems in g-code visualization and printing time estimation.");
+
+        wxMessageDialog dialog(parent, reports, _L("Found reserved keywords in") + " " + title, wxICON_WARNING | wxOK);
+        dialog.ShowModal();
+    }
+    return !invalid;
+}
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+
 void TabFilament::add_filament_overrides_page()
 {
     PageShp page = add_options_page(L("Filament Overrides"), "wrench");
@@ -1931,6 +1952,11 @@ void TabFilament::build()
 
     page = add_options_page(L("Custom G-code"), "cog");
         optgroup = page->new_optgroup(L("Start G-code"), 0);
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
+            validate_custom_gcode(this, L("Start G-code"), boost::any_cast<std::string>(value));
+        };
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("start_filament_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -1938,6 +1964,11 @@ void TabFilament::build()
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("End G-code"), 0);
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
+            validate_custom_gcode(this, L("End G-code"), boost::any_cast<std::string>(value));
+        };
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("end_filament_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2052,6 +2083,25 @@ void TabFilament::clear_pages()
 	m_cooling_description_line = nullptr;
 }
 
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+bool TabFilament::validate_custom_gcodes() const
+{
+    auto check_optgroup = [this](const wxString& title, const Slic3r::t_config_option_key& key) {
+        const ConfigOptionsGroupShp opt_group = m_active_page->get_optgroup(title);
+        return (opt_group != nullptr) ?
+            validate_custom_gcode((wxWindow*)this, title, boost::any_cast<std::string>(opt_group->get_value(key))) :
+            true;
+    };
+
+    bool valid = true;
+    if (m_active_page->title() == L("Custom G-code")) {
+        valid &= check_optgroup(L("Start G-code"), "start_filament_gcode");
+        valid &= check_optgroup(L("End G-code"), "end_filament_gcode");
+    }
+    return valid;
+}
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText, wxString text /*= wxEmptyString*/)
 {
     *StaticText = new ogStaticText(parent, text);
@@ -2068,27 +2118,6 @@ bool Tab::current_preset_is_dirty()
 {
     return m_presets->current_is_dirty();
 }
-
-#if ENABLE_VALIDATE_CUSTOM_GCODE
-static bool validate_custom_gcode(wxWindow* parent, const wxString& title, const std::string& gcode)
-{
-    std::vector<std::string> tags;
-    bool invalid = GCodeProcessor::contains_reserved_tags(gcode, 5, tags);
-    if (parent != nullptr && invalid) {
-        wxString reports = _L_PLURAL("The following line", "The following lines", tags.size());
-        reports += ":\n";
-        for (const std::string& keyword : tags) {
-            reports += ";" + keyword + "\n";
-        }
-        reports += _L("contain reserved keywords.") + "\n";
-        reports += _L("Please remove them, as they may cause problems in g-code visualization and printing time estimation.");
-
-        wxMessageDialog dialog(parent, reports, _L("Found reserved keywords in") + " " + title, wxICON_WARNING | wxOK);
-        dialog.ShowModal();
-    }
-    return !invalid;
-}
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 void TabPrinter::build()
 {

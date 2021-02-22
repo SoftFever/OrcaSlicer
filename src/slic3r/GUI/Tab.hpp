@@ -412,6 +412,10 @@ public:
 	void		update() override;
 	void		clear_pages() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
+
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+	bool        validate_custom_gcodes() const;
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 };
 
 class TabPrinter : public Tab

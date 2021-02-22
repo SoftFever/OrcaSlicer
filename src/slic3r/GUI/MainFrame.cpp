@@ -552,11 +552,17 @@ void MainFrame::init_tabpanel()
             if (printer_tab != nullptr) {
                 if (!printer_tab->validate_custom_gcodes())
                     evt.Veto();
+                return;
+            }
+            TabFilament* filament_tab = dynamic_cast<TabFilament*>(panel);
+            if (filament_tab != nullptr) {
+                if (!filament_tab->validate_custom_gcodes())
+                    evt.Veto();
+                return;
             }
         }
         });
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
-
 
     m_plater = new Plater(this, this);
     m_plater->Hide();
