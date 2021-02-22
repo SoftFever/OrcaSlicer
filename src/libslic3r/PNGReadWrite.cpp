@@ -149,13 +149,15 @@ static bool write_rgb_or_gray_to_file(const char *file_name_utf8, size_t width, 
 
     // Initialize rows of PNG.
     row_pointers = reinterpret_cast<png_byte**>(::png_malloc(png_ptr, height * sizeof(png_byte*)));
-    int line_width = width;
-    if (png_color_type == PNG_COLOR_TYPE_RGB)
-        line_width *= 3;
-    for (size_t y = 0; y < height; ++ y) {
-        auto row = reinterpret_cast<png_byte*>(::png_malloc(png_ptr, line_width));
-        row_pointers[y] = row;
-        memcpy(row, data + line_width * y, line_width);
+    {
+        int line_width = width;
+        if (png_color_type == PNG_COLOR_TYPE_RGB)
+            line_width *= 3;
+        for (size_t y = 0; y < height; ++ y) {
+            auto row = reinterpret_cast<png_byte*>(::png_malloc(png_ptr, line_width));
+            row_pointers[y] = row;
+            memcpy(row, data + line_width * y, line_width);
+        }
     }
 
     // Write the image data to "fp".
