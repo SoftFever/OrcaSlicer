@@ -65,7 +65,7 @@ public:
 
 	wxBoxSizer*	vsizer() const { return m_vsizer; }
 	wxWindow*	parent() const { return m_parent; }
-	wxString	title()	 const { return m_title; }
+	const wxString&	title()	 const { return m_title; }
 	size_t		iconID() const { return m_iconID; }
 	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
 	void		reload_config();
@@ -78,6 +78,9 @@ public:
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+	const ConfigOptionsGroupShp	get_optgroup(const wxString& title) const;
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 	bool		set_item_colour(const wxColour *clr) {
 		if (m_item_color != clr) {
@@ -467,6 +470,10 @@ public:
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
 	void		apply_extruder_cnt_from_cache();
+
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+	bool        validate_custom_gcodes() const;
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 };
 
 class TabSLAMaterial : public Tab
