@@ -102,7 +102,7 @@ public:
             ExPolygonAttributes(color, color, color) {}
 
         ExPolygonAttributes(
-            const std::string &color_fill, 
+            const std::string &color_fill,
             const std::string &color_contour,
             const std::string &color_holes,
             const coord_t      outline_width = scale_(0.05),
@@ -118,16 +118,54 @@ public:
             radius_points	(radius_points)
             {}
 
+        ExPolygonAttributes(
+            const std::string &legend,
+            const std::string &color_fill,
+            const std::string &color_contour,
+            const std::string &color_holes,
+            const coord_t      outline_width = scale_(0.05),
+            const float        fill_opacity  = 0.5f,
+            const std::string &color_points = "black",
+            const coord_t      radius_points = 0) :
+            legend          (legend),
+            color_fill      (color_fill),
+            color_contour   (color_contour),
+            color_holes     (color_holes),
+            outline_width   (outline_width),
+            fill_opacity    (fill_opacity),
+            color_points    (color_points),
+            radius_points   (radius_points)
+            {}
+
+        ExPolygonAttributes(
+            const std::string &legend,
+            const std::string &color_fill,
+            const float        fill_opacity) :
+            legend          (legend),
+            color_fill      (color_fill),
+            fill_opacity    (fill_opacity)
+            {}
+
+        std::string     legend;
         std::string     color_fill;
         std::string     color_contour;
         std::string     color_holes;
         std::string   	color_points;
-        coord_t         outline_width;
+        coord_t         outline_width { 0 };
         float           fill_opacity;
-        coord_t			radius_points;
+        coord_t			radius_points { 0 };
     };
 
+    // Paint the expolygons in the order they are presented, thus the latter overwrites the former expolygon.
+    // 1) Paint all areas with the provided ExPolygonAttributes::color_fill and ExPolygonAttributes::fill_opacity.
+    // 2) Optionally paint outlines of the areas if ExPolygonAttributes::outline_width > 0.
+    //    Paint with ExPolygonAttributes::color_contour and ExPolygonAttributes::color_holes.
+    //    If color_contour is empty, color_fill is used. If color_hole is empty, color_contour is used.
+    // 3) Optionally paint points of all expolygon contours with ExPolygonAttributes::radius_points if radius_points > 0.
+    // 4) Paint ExPolygonAttributes::legend into legend using the ExPolygonAttributes::color_fill if legend is not empty. 
     static void export_expolygons(const char *path, const std::vector<std::pair<Slic3r::ExPolygons, ExPolygonAttributes>> &expolygons_with_attributes);
+    static void export_expolygons(const std::string &path, const std::vector<std::pair<Slic3r::ExPolygons, ExPolygonAttributes>> &expolygons_with_attributes) 
+        { export_expolygons(path.c_str(), expolygons_with_attributes); }
 
 private:
     static float    to_svg_coord(float x) throw() { return unscale<float>(x) * 10.f; }
