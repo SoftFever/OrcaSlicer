@@ -102,7 +102,8 @@ bool decode_png(IStream &in_buf, ImageGreyscale &out_img)
 
 // Down to earth function to store a packed RGB image to file. Mostly useful for debugging purposes.
 // Based on https://www.lemoda.net/c/write-png/
-bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb)
+// png_color_type is PNG_COLOR_TYPE_RGB or PNG_COLOR_TYPE_GRAY
+static bool write_rgb_or_gray_to_file(const char *file_name_utf8, size_t width, size_t height, int png_color_type, const uint8_t *data)
 {
     bool         result       = false;
 
@@ -141,17 +142,20 @@ bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, 
         png_uint_32(width),
         png_uint_32(height),
         8, // depth
-        PNG_COLOR_TYPE_RGB,
+        png_color_type,
         PNG_INTERLACE_NONE,
         PNG_COMPRESSION_TYPE_DEFAULT,
         PNG_FILTER_TYPE_DEFAULT);
 
     // Initialize rows of PNG.
     row_pointers = reinterpret_cast<png_byte**>(::png_malloc(png_ptr, height * sizeof(png_byte*)));
+    int line_width = width;
+    if (png_color_type == PNG_COLOR_TYPE_RGB)
+        line_width *= 3;
     for (size_t y = 0; y < height; ++ y) {
-        auto row = reinterpret_cast<png_byte*>(::png_malloc(png_ptr, sizeof(uint8_t) * width * 3));
+        auto row = reinterpret_cast<png_byte*>(::png_malloc(png_ptr, line_width));
         row_pointers[y] = row;
-        memcpy(row, data_rgb + width * y * 3, sizeof(uint8_t) * width * 3);
+        memcpy(row, data + line_width * y, line_width);
     }
 
     // Write the image data to "fp".
@@ -174,6 +178,11 @@ fopen_failed:
     return result;
 }
 
+bool write_rgb_to_file(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb)
+{
+    return write_rgb_or_gray_to_file(file_name_utf8, width, height, PNG_COLOR_TYPE_RGB, data_rgb);
+}
+
 bool write_rgb_to_file(const std::string &file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb)
 {
     return write_rgb_to_file(file_name_utf8.c_str(), width, height, data_rgb);
@@ -185,30 +194,52 @@ bool write_rgb_to_file(const std::string &file_name_utf8, size_t width, size_t h
     return write_rgb_to_file(file_name_utf8.c_str(), width, height, data_rgb.data());
 }
 
+bool write_gray_to_file(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_gray)
+{
+    return write_rgb_or_gray_to_file(file_name_utf8, width, height, PNG_COLOR_TYPE_GRAY, data_gray);
+}
+
+bool write_gray_to_file(const std::string &file_name_utf8, size_t width, size_t height, const uint8_t *data_gray)
+{
+    return write_gray_to_file(file_name_utf8.c_str(), width, height, data_gray);
+}
+
+bool write_gray_to_file(const std::string &file_name_utf8, size_t width, size_t height, const std::vector<uint8_t> &data_gray)
+{
+    assert(width * height == data_gray.size());
+    return write_gray_to_file(file_name_utf8.c_str(), width, height, data_gray.data());
+}
+
 // Scaled variants are mostly useful for debugging purposes, for example to export images of low resolution distance fileds.
 // Scaling is done by multiplying rows and columns without any smoothing to emphasise the original pixels.
-bool write_rgb_to_file_scaled(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb, size_t scale)
+// png_color_type is PNG_COLOR_TYPE_RGB or PNG_COLOR_TYPE_GRAY
+static bool write_rgb_or_gray_to_file_scaled(const char *file_name_utf8, size_t width, size_t height, int png_color_type, const uint8_t *data, size_t scale)
 {
     if (scale <= 1)
-        return write_rgb_to_file(file_name_utf8, width, height, data_rgb);
+        return write_rgb_or_gray_to_file(file_name_utf8, width, height, png_color_type, data);
     else {
-        std::vector<uint8_t> scaled(width * height * 3 * scale * scale);
+        size_t pixel_bytes = png_color_type == PNG_COLOR_TYPE_RGB ? 3 : 1;
+        size_t line_width  = width * pixel_bytes;
+        std::vector<uint8_t> scaled(line_width * height * scale * scale);
         uint8_t *dst = scaled.data();
         for (size_t r = 0; r < height; ++ r) {
             for (size_t repr = 0; repr < scale; ++ repr) {
-                const uint8_t *row = data_rgb + width * 3 * r;
+                const uint8_t *row = data + line_width * r;
                 for (size_t c = 0; c < width; ++ c) {
-                    for (size_t repc = 0; repc < scale; ++ repc) {
-                        *dst ++ = row[0];
-                        *dst ++ = row[1];
-                        *dst ++ = row[2];
-                    }
-                    row += 3;
+                    for (size_t repc = 0; repc < scale; ++ repc)
+                        for (size_t b = 0; b < pixel_bytes; ++ b)
+                            *dst ++ = row[b];
+                    row += pixel_bytes;
                 }
             }
         }
-        return write_rgb_to_file(file_name_utf8, width * scale, height * scale, scaled.data());
+        return write_rgb_or_gray_to_file(file_name_utf8, width * scale, height * scale, png_color_type, scaled.data());
     }
+}
+
+bool write_rgb_to_file_scaled(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb, size_t scale)
+{
+    return write_rgb_or_gray_to_file_scaled(file_name_utf8, width, height, PNG_COLOR_TYPE_RGB, data_rgb, scale);
 }
 
 bool write_rgb_to_file_scaled(const std::string &file_name_utf8, size_t width, size_t height, const uint8_t *data_rgb, size_t scale)
@@ -220,6 +251,22 @@ bool write_rgb_to_file_scaled(const std::string &file_name_utf8, size_t width, s
 {
     assert(width * height * 3 == data_rgb.size());
     return write_rgb_to_file_scaled(file_name_utf8.c_str(), width, height, data_rgb.data(), scale);
+}
+
+bool write_gray_to_file_scaled(const char *file_name_utf8, size_t width, size_t height, const uint8_t *data_gray, size_t scale)
+{
+    return write_rgb_or_gray_to_file_scaled(file_name_utf8, width, height, PNG_COLOR_TYPE_GRAY, data_gray, scale);
+}
+
+bool write_gray_to_file_scaled(const std::string &file_name_utf8, size_t width, size_t height, const uint8_t *data_gray, size_t scale)
+{
+    return write_gray_to_file_scaled(file_name_utf8.c_str(), width, height, data_gray, scale);
+}
+
+bool write_gray_to_file_scaled(const std::string &file_name_utf8, size_t width, size_t height, const std::vector<uint8_t> &data_gray, size_t scale)
+{
+    assert(width * height == data_gray.size());
+    return write_gray_to_file_scaled(file_name_utf8.c_str(), width, height, data_gray.data(), scale);
 }
 
 }} // namespace Slic3r::png
