@@ -73,7 +73,7 @@ static DynamicPrintConfig& printer_config()
 
 static int extruders_count()
 {
-    return wxGetApp().extruders_cnt();
+    return wxGetApp().extruders_edited_cnt();
 }
 
 static void take_snapshot(const wxString& snapshot_name) 
