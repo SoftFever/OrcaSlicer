@@ -218,14 +218,19 @@ class GCodeViewer
     // Used to batch the indices needed to render the paths
     struct RenderPath
     {
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+        // Index of the parent tbuffer
+        unsigned char               tbuffer_id;
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         // Render path property
         Color                       color;
         // Index of the buffer in TBuffer::indices
-        unsigned int                index_buffer_id;
+        unsigned int                ibuffer_id;
         // Render path content
+        // Index of the path in TBuffer::paths
         unsigned int                path_id;
         std::vector<unsigned int>   sizes;
-        std::vector<size_t>         offsets; // use size_t because we need an unsigned int whose size matches pointer's size (used in the call glMultiDrawElements())
+        std::vector<size_t>         offsets; // use size_t because we need an unsigned integer whose size matches pointer's size (used in the call glMultiDrawElements())
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         bool contains(size_t offset) const {
             for (size_t i = 0; i < offsets.size(); ++i) {
@@ -236,26 +241,36 @@ class GCodeViewer
         }
 #endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
     };
-    struct RenderPathPropertyHash {
-        size_t operator() (const RenderPath &p) const {
-            // Conver the RGB value to an integer hash.
-//            return (size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) * 7919) ^ size_t(p.index_buffer_id);
-            return size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) ^ size_t(p.index_buffer_id);
-        }
-    };
+//    // for unordered_set implementation of render_paths
+//    struct RenderPathPropertyHash {
+//        size_t operator() (const RenderPath &p) const {
+//            // Convert the RGB value to an integer hash.
+////            return (size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) * 7919) ^ size_t(p.ibuffer_id);
+//            return size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) ^ size_t(p.ibuffer_id);
+//        }
+//    };
     struct RenderPathPropertyLower {
         bool operator() (const RenderPath &l, const RenderPath &r) const {
-            for (int i = 0; i < 3; ++ i)
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+            if (l.tbuffer_id < r.tbuffer_id)
+                return true;
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+            for (int i = 0; i < 3; ++i) {
                 if (l.color[i] < r.color[i])
                     return true;
                 else if (l.color[i] > r.color[i])
                     return false;
-            return l.index_buffer_id < r.index_buffer_id;
+            }
+            return l.ibuffer_id < r.ibuffer_id;
         }
     };
     struct RenderPathPropertyEqual {
         bool operator() (const RenderPath &l, const RenderPath &r) const {
-            return l.color == r.color && l.index_buffer_id == r.index_buffer_id;
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+            return l.tbuffer_id == r.tbuffer_id && l.ibuffer_id == r.ibuffer_id && l.color == r.color;
+#else
+            return l.color == r.color && l.ibuffer_id == r.ibuffer_id;
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         }
     };
 

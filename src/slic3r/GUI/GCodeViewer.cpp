@@ -853,7 +853,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
             if (render_path.color != color)
                 continue;
 
-            const IBuffer& ibuffer = t_buffer.indices[render_path.index_buffer_id];
+            const IBuffer& ibuffer = t_buffer.indices[render_path.ibuffer_id];
             size_t vertices_offset = 0;
             for (size_t j = 0; j < vertices_offsets.size(); ++j) {
                 const VerticesOffset& offset = vertices_offsets[j];
@@ -958,7 +958,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     size_t i = 0;
     for (const RenderPath& render_path : t_buffer.render_paths) {
         // get paths segments from buffer paths
-        const IndexBuffer& ibuffer = indices[render_path.index_buffer_id];
+        const IndexBuffer& ibuffer = indices[render_path.ibuffer_id];
         const Path& path = t_buffer.paths[render_path.path_id];
 
         float half_width = 0.5f * path.width;
@@ -2045,8 +2045,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         vertices.push_back(curr.position[2]);
     };
     auto add_indices_as_point = [](const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-            unsigned int index_buffer_id, IndexBuffer& indices, size_t move_id) {
-            buffer.add_path(curr, index_buffer_id, indices.size(), move_id);
+            unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+            buffer.add_path(curr, ibuffer_id, indices.size(), move_id);
             indices.push_back(static_cast<unsigned int>(indices.size()));
     };
 
@@ -2071,11 +2071,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             add_vertex(curr);
     };
     auto add_indices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        unsigned int index_buffer_id, IndexBuffer& indices, size_t move_id) {
+        unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
                 // add starting index
                 indices.push_back(static_cast<unsigned int>(indices.size()));
-                buffer.add_path(curr, index_buffer_id, indices.size() - 1, move_id - 1);
+                buffer.add_path(curr, ibuffer_id, indices.size() - 1, move_id - 1);
                 buffer.paths.back().first.position = prev.position;
             }
 
@@ -2087,7 +2087,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
             // add current index
             indices.push_back(static_cast<unsigned int>(indices.size()));
-            last_path.last = { index_buffer_id, indices.size() - 1, move_id, curr.position };
+            last_path.last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
     };
 
     // format data into the buffers to be rendered as solid
@@ -2237,7 +2237,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             prev_length = length;
     };
     auto add_indices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
-        size_t& buffer_vertices_size, unsigned int index_buffer_id, IndexBuffer& indices, size_t move_id) {
+        size_t& buffer_vertices_size, unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
             static Vec3f prev_dir;
             static Vec3f prev_up;
             static float prev_length;
@@ -2252,7 +2252,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             };
 
             if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
-                buffer.add_path(curr, index_buffer_id, indices.size(), move_id - 1);
+                buffer.add_path(curr, ibuffer_id, indices.size(), move_id - 1);
                 buffer.paths.back().first.position = prev.position;
             }
 
@@ -2365,7 +2365,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 buffer_vertices_size += 6;
             }
 
-            last_path.last = { index_buffer_id, indices.size() - 1, move_id, curr.position };
+            last_path.last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
             prev_dir = dir;
             prev_up = up;
             prev_length = length;
@@ -2797,7 +2797,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     if (!keep_sequential_current_last) sequential_view->current.last = m_moves_count;
 
     // first pass: collect visible paths and update sequential view data
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+    std::vector<std::tuple<unsigned char, unsigned int, unsigned int, unsigned int>> paths;
+#else
     std::vector<std::tuple<TBuffer*, unsigned int, unsigned int, unsigned int>> paths;
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
     for (size_t b = 0; b < m_buffers.size(); ++b) {
         TBuffer& buffer = const_cast<TBuffer&>(m_buffers[b]);
         // reset render paths
@@ -2820,7 +2824,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
             // store valid path
             for (size_t j = 0; j < path.sub_paths.size(); ++j) {
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+                paths.push_back({ static_cast<unsigned char>(b), path.sub_paths[j].first.b_id, static_cast<unsigned int>(i), static_cast<unsigned int>(j) });
+#else
                 paths.push_back({ &buffer, path.sub_paths[j].first.b_id, static_cast<unsigned int>(i), static_cast<unsigned int>(j) });
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             }
 
             global_endpoints.first = std::min(global_endpoints.first, path.sub_paths.front().first.s_id);
@@ -2895,8 +2903,14 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
     // second pass: filter paths by sequential data and collect them by color
     RenderPath* render_path = nullptr;
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+    for (const auto& [tbuffer_id, ibuffer_id, path_id, sub_path_id] : paths) {
+        TBuffer& buffer = const_cast<TBuffer&>(m_buffers[tbuffer_id]);
+        const Path& path = buffer.paths[path_id];
+#else
     for (const auto& [buffer, ibuffer_id, path_id, sub_path_id] : paths) {
         const Path& path = buffer->paths[path_id];
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
         if (m_sequential_view.current.last <= sub_path.first.s_id || sub_path.last.s_id <= m_sequential_view.current.first)
             continue;
@@ -2932,27 +2946,43 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         default: { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
-        RenderPath key{ color, static_cast<unsigned int>(ibuffer_id), path_id };
-        if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key))
-            render_path = const_cast<RenderPath*>(&(*buffer->render_paths.emplace(key).first));
-
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+        RenderPath key{ tbuffer_id, color, static_cast<unsigned int>(ibuffer_id), path_id };
+        if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key))
+            render_path = const_cast<RenderPath*>(&(*buffer.render_paths.emplace(key).first));
+
         unsigned int delta_1st = 0;
         if (sub_path.first.s_id < m_sequential_view.current.first && m_sequential_view.current.first <= sub_path.last.s_id)
             delta_1st = static_cast<unsigned int>(m_sequential_view.current.first - sub_path.first.s_id);
+#else
+        RenderPath key{ color, static_cast<unsigned int>(ibuffer_id), path_id };
+        if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key))
+            render_path = const_cast<RenderPath*>(&(*buffer->render_paths.emplace(key).first));
 #endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
         unsigned int size_in_indices = 0;
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+        switch (buffer.render_primitive_type)
+#else
         switch (buffer->render_primitive_type)
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         {
         case TBuffer::ERenderPrimitiveType::Point: {
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+            size_in_indices = buffer.indices_per_segment();
+#else
             size_in_indices = buffer->indices_per_segment();
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             break;
         }
         case TBuffer::ERenderPrimitiveType::Line:
         case TBuffer::ERenderPrimitiveType::Triangle: {
             unsigned int segments_count = std::min(m_sequential_view.current.last, sub_path.last.s_id) - std::max(m_sequential_view.current.first, sub_path.first.s_id);
+#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
+            size_in_indices = buffer.indices_per_segment() * segments_count;
+#else
             size_in_indices = buffer->indices_per_segment() * segments_count;
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             break;
         }
         }
@@ -2961,7 +2991,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (size_in_indices == 0)
             continue;
 
-        if (buffer->render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
+        if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
             if (sub_path_id == 0 && delta_1st == 0)
                 size_in_indices += 6; // add 2 triangles for starting cap 
             if (sub_path_id == path.sub_paths.size() - 1 && path.sub_paths.back().last.s_id <= m_sequential_view.current.last)
@@ -2980,8 +3010,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #endif // !ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
-        if (buffer->render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
-            delta_1st *= buffer->indices_per_segment();
+        if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
+            delta_1st *= buffer.indices_per_segment();
             if (delta_1st > 0) {
                 delta_1st += 6; // skip 2 triangles for corner cap 
                 if (sub_path_id == 0)
@@ -2998,7 +3028,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #if 0
         // check sizes and offsets against index buffer size on gpu
         GLint buffer_size;
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->indices[render_path->index_buffer_id].ibo));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->indices[render_path->ibuffer_id].ibo));
         glsafe(::glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &buffer_size));
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         if (render_path->offsets.back() + render_path->sizes.back() * sizeof(IBufferType) > buffer_size)
@@ -3017,11 +3047,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     (*sequential_range_caps)[1].reset();
 
     if (m_sequential_view.current.first != m_sequential_view.current.last) {
-        for (const auto& [buffer, ibuffer_id, path_id, sub_path_id] : paths) {
-            if (buffer->render_primitive_type != TBuffer::ERenderPrimitiveType::Triangle)
+        for (const auto& [tbuffer_id, ibuffer_id, path_id, sub_path_id] : paths) {
+            TBuffer& buffer = const_cast<TBuffer&>(m_buffers[tbuffer_id]);
+            if (buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Triangle)
                 continue;
 
-            const Path& path = buffer->paths[path_id];
+            const Path& path = buffer.paths[path_id];
             const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
             if (m_sequential_view.current.last <= sub_path.first.s_id || sub_path.last.s_id <= m_sequential_view.current.first)
                 continue;
@@ -3029,14 +3060,14 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             // update cap for first endpoint of current range
             if (m_sequential_view.current.first > sub_path.first.s_id) {
                 SequentialRangeCap& cap = (*sequential_range_caps)[0];
-                const IBuffer& i_buffer = buffer->indices[ibuffer_id];
-                cap.buffer = buffer;
+                const IBuffer& i_buffer = buffer.indices[ibuffer_id];
+                cap.buffer = &buffer;
                 cap.vbo = i_buffer.vbo;
 
                 // calculate offset into the index buffer
                 unsigned int offset = sub_path.first.i_id;
                 offset += 6; // add 2 triangles for corner cap
-                offset += static_cast<unsigned int>(m_sequential_view.current.first - sub_path.first.s_id) * buffer->indices_per_segment();
+                offset += static_cast<unsigned int>(m_sequential_view.current.first - sub_path.first.s_id) * buffer.indices_per_segment();
                 if (sub_path_id == 0)
                     offset += 6; // add 2 triangles for starting cap
 
@@ -3059,8 +3090,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
                 // extract color from render path
                 size_t offset_bytes = offset * sizeof(IBufferType);
-                for (const RenderPath& render_path : buffer->render_paths) {
-                    if (render_path.index_buffer_id == ibuffer_id) {
+                for (const RenderPath& render_path : buffer.render_paths) {
+                    if (render_path.ibuffer_id == ibuffer_id) {
                         for (size_t j = 0; j < render_path.offsets.size(); ++j) {
                             if (render_path.contains(offset_bytes)) {
                                 cap.color = render_path.color;
@@ -3074,14 +3105,14 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             // update cap for last endpoint of current range
             if (m_sequential_view.current.last < sub_path.last.s_id) {
                 SequentialRangeCap& cap = (*sequential_range_caps)[1];
-                const IBuffer& i_buffer = buffer->indices[ibuffer_id];
-                cap.buffer = buffer;
+                const IBuffer& i_buffer = buffer.indices[ibuffer_id];
+                cap.buffer = &buffer;
                 cap.vbo = i_buffer.vbo;
 
                 // calculate offset into the index buffer
                 unsigned int offset = sub_path.first.i_id;
                 offset += 6; // add 2 triangles for corner cap
-                offset += static_cast<unsigned int>(m_sequential_view.current.last - 1 - sub_path.first.s_id) * buffer->indices_per_segment();
+                offset += static_cast<unsigned int>(m_sequential_view.current.last - 1 - sub_path.first.s_id) * buffer.indices_per_segment();
                 if (sub_path_id == 0)
                     offset += 6; // add 2 triangles for starting cap
 
@@ -3104,8 +3135,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
                 // extract color from render path
                 size_t offset_bytes = offset * sizeof(IBufferType);
-                for (const RenderPath& render_path : buffer->render_paths) {
-                    if (render_path.index_buffer_id == ibuffer_id) {
+                for (const RenderPath& render_path : buffer.render_paths) {
+                    if (render_path.ibuffer_id == ibuffer_id) {
                         for (size_t j = 0; j < render_path.offsets.size(); ++j) {
                             if (render_path.contains(offset_bytes)) {
                                 cap.color = render_path.color;
@@ -3316,7 +3347,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
     // second pass: filter paths by sequential data and collect them by color
     RenderPath *render_path = nullptr;
-    for (const auto& [buffer, index_buffer_id, path_id] : paths) {
+    for (const auto& [buffer, ibuffer_id, path_id] : paths) {
         const Path& path = buffer->paths[path_id];
         if (m_sequential_view.current.last <= path.first.s_id || path.last.s_id <= m_sequential_view.current.first)
             continue;
@@ -3346,7 +3377,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         default: { color = { 0.0f, 0.0f, 0.0f }; break; }
         }
 
-        RenderPath key{ color, static_cast<unsigned int>(index_buffer_id), path_id };
+        RenderPath key{ color, static_cast<unsigned int>(ibuffer_id), path_id };
         if (render_path == nullptr || ! RenderPathPropertyEqual()(*render_path, key))
             render_path = const_cast<RenderPath*>(&(*buffer->render_paths.emplace(key).first));
         unsigned int segments_count = std::min(m_sequential_view.current.last, path.last.s_id) - std::max(m_sequential_view.current.first, path.first.s_id) + 1;
@@ -3425,7 +3456,7 @@ void GCodeViewer::render_toolpaths() const
         glsafe(::glEnable(GL_POINT_SPRITE));
 
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == ibuffer_id) {
+            if (path.ibuffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
                 glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -3441,7 +3472,7 @@ void GCodeViewer::render_toolpaths() const
     auto render_as_lines = [light_intensity, set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         shader.set_uniform("light_intensity", light_intensity);
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == ibuffer_id) {
+            if (path.ibuffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
                 glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -3453,7 +3484,7 @@ void GCodeViewer::render_toolpaths() const
 
     auto render_as_triangles = [set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == ibuffer_id) {
+            if (path.ibuffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
                 glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -3586,7 +3617,7 @@ void GCodeViewer::render_toolpaths() const
     };
 
     auto render_as_points = [this, zoom, point_size, near_plane_height, set_uniform_color]
-    (const TBuffer& buffer, unsigned int index_buffer_id, EOptionsColors color_id, GLShaderProgram& shader) {
+    (const TBuffer& buffer, unsigned int ibuffer_id, EOptionsColors color_id, GLShaderProgram& shader) {
         set_uniform_color(Options_Colors[static_cast<unsigned int>(color_id)], shader);
 #if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
         shader.set_uniform("use_fixed_screen_size", 1);
@@ -3603,7 +3634,7 @@ void GCodeViewer::render_toolpaths() const
         glsafe(::glEnable(GL_POINT_SPRITE));
 
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == index_buffer_id) {
+            if (path.ibuffer_id == ibuffer_id) {
                 glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++const_cast<Statistics*>(&m_statistics)->gl_multi_points_calls_count;
@@ -3615,10 +3646,10 @@ void GCodeViewer::render_toolpaths() const
         glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
     };
 
-    auto render_as_lines = [this, light_intensity, set_uniform_color](const TBuffer& buffer, unsigned int index_buffer_id, GLShaderProgram& shader) {
+    auto render_as_lines = [this, light_intensity, set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         shader.set_uniform("light_intensity", light_intensity);
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == index_buffer_id) {
+            if (path.ibuffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
                 glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -3628,9 +3659,9 @@ void GCodeViewer::render_toolpaths() const
         }
     };
 
-    auto render_as_triangles = [this, set_uniform_color](const TBuffer& buffer, unsigned int index_buffer_id, GLShaderProgram& shader) {
+    auto render_as_triangles = [this, set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         for (const RenderPath& path : buffer.render_paths) {
-            if (path.index_buffer_id == index_buffer_id) {
+            if (path.ibuffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
                 glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_INT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
