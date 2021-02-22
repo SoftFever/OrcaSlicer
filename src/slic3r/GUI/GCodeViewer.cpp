@@ -4086,6 +4086,8 @@ void GCodeViewer::render_legend() const
                 std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
+                    if (i >= m_tool_colors.size())
+                        break;
                     append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
                 }
                 else {
@@ -4146,6 +4148,11 @@ void GCodeViewer::render_legend() const
             for (int i = 0; i < extruders_count; ++i) {
                 last_color[i] = m_tool_colors[i];
             }
+            auto get_last_color = [last_color](int extruder_id) {
+                if (extruder_id >= (int)last_color.size())
+                    return last_color[0];
+                return last_color[extruder_id - 1];
+            };
             int last_extruder_id = 1;
             for (const auto& time_rec : times) {
                 switch (time_rec.first)
@@ -4153,7 +4160,7 @@ void GCodeViewer::render_legend() const
                 case CustomGCode::PausePrint: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, it->extruder, get_last_color(it->extruder), Color(), time_rec.second });
                         items.push_back({ PartialTime::EType::Pause, it->extruder, Color(), Color(), time_rec.second });
                         custom_gcode_per_print_z.erase(it);
                     }
@@ -4162,14 +4169,14 @@ void GCodeViewer::render_legend() const
                 case CustomGCode::ColorChange: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second });
-                        items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], decode_color(it->color), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, it->extruder, get_last_color(it->extruder), Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::ColorChange, it->extruder, get_last_color(it->extruder), decode_color(it->color), time_rec.second });
                         last_color[it->extruder - 1] = decode_color(it->color);
                         last_extruder_id = it->extruder;
                         custom_gcode_per_print_z.erase(it);
                     }
                     else
-                        items.push_back({ PartialTime::EType::Print, last_extruder_id, last_color[last_extruder_id - 1], Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, last_extruder_id, get_last_color(last_extruder_id), Color(), time_rec.second });
 
                     break;
                 }

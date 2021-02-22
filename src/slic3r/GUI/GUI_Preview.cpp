@@ -605,6 +605,9 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     CustomGCode::Info& ticks_info_from_model = plater->model().custom_gcode_per_print_z;
     check_layers_slider_values(ticks_info_from_model.gcodes, layers_z);
 
+    //first of all update extruder colors to avoid crash, when we are switching printer preset from MM to SM
+    m_layers_slider->SetExtruderColors(plater->get_extruder_colors_from_plater_config());
+
     m_layers_slider->SetSliderValues(layers_z);
     assert(m_layers_slider->GetMinValue() == 0);
     m_layers_slider->SetMaxValue(layers_z.empty() ? 0 : layers_z.size() - 1);
@@ -629,7 +632,6 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     bool sla_print_technology = plater->printer_technology() == ptSLA;
     bool sequential_print = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("complete_objects");
     m_layers_slider->SetDrawMode(sla_print_technology, sequential_print);
-    m_layers_slider->SetExtruderColors(plater->get_extruder_colors_from_plater_config());
     if (sla_print_technology)
         m_layers_slider->SetLayersTimes(plater->sla_print().print_statistics().layers_times);
     else
