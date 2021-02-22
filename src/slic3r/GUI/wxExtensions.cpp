@@ -467,6 +467,8 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
     const int icon_width = lround((thin_icon ? 1.6 : 3.2) * em);
     const int icon_height = lround(1.6 * em);
 
+    bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
+
     for (const std::string& color : colors)
     {
         std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width);
@@ -476,7 +478,7 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
             // Paint the color icon.
             Slic3r::GUI::BitmapCache::parse_color(color, rgb);
             // there is no neede to scale created solid bitmap
-            bitmap = bmp_cache.insert(bitmap_key, bmp_cache.mksolid(icon_width, icon_height, rgb, true));
+            bitmap = bmp_cache.insert(bitmap_key, bmp_cache.mksolid(icon_width, icon_height, rgb, false, 1, dark_mode));
         }
         bmps.emplace_back(bitmap);
     }

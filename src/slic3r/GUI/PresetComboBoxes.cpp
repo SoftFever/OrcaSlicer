@@ -396,9 +396,9 @@ void PresetComboBox::fill_width_height()
     thin_icon_width = lroundf(8 * scale_f);          // analogue to 8px;
     wide_icon_width = norm_icon_width + thin_icon_width;
 
-    space_icon_width = lroundf(2 * scale_f);
-    thin_space_icon_width = 2 * space_icon_width;
-    wide_space_icon_width = 3 * space_icon_width;
+    space_icon_width      = lroundf(2 * scale_f);
+    thin_space_icon_width = lroundf(4 * scale_f);
+    wide_space_icon_width = lroundf(6 * scale_f);
 }
 
 wxString PresetComboBox::separator(const std::string& label)
