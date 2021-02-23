@@ -5653,8 +5653,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     bool update_scheduled = false;
     bool bed_shape_changed = false;
     for (auto opt_key : p->config->diff(config)) {
-        if (opt_key == "filament_colour")
-        {
+        if (opt_key == "filament_colour") {
             update_scheduled = true; // update should be scheduled (for update 3DScene) #2738
 
             if (update_filament_colors_in_full_config()) {
@@ -5689,10 +5688,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         else if(opt_key == "extruder_colour") {
             update_scheduled = true;
             p->sidebar->obj_list()->update_extruder_colors();
-        } else if(opt_key == "max_print_height") {
-            update_scheduled = true;
         }
+        else if(opt_key == "max_print_height")
+            update_scheduled = true;
         else if (opt_key == "printer_model") {
+            p->reset_gcode_toolpaths();
             // update to force bed selection(for texturing)
             bed_shape_changed = true;
             update_scheduled = true;
