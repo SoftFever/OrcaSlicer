@@ -13,7 +13,7 @@ class wxNotebook;
 class wxGLCanvas;
 class wxBoxSizer;
 class wxStaticText;
-class wxChoice;
+class wxComboBox;
 class wxComboCtrl;
 class wxBitmapComboBox;
 class wxCheckBox;
@@ -82,7 +82,7 @@ class Preview : public wxPanel
     wxBoxSizer* m_layers_slider_sizer { nullptr };
     wxPanel* m_bottom_toolbar_panel { nullptr };
     wxStaticText* m_label_view_type { nullptr };
-    wxChoice* m_choice_view_type { nullptr };
+    wxComboBox* m_choice_view_type { nullptr };
     wxStaticText* m_label_show { nullptr };
     wxComboCtrl* m_combochecklist_features { nullptr };
     size_t m_combochecklist_features_pos { 0 };

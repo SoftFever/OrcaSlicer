@@ -18,6 +18,7 @@
 #include <wx/stattext.h>
 #include <wx/choice.h>
 #include <wx/combo.h>
+#include <wx/combobox.h>
 #include <wx/checkbox.h>
 
 // this include must follow the wxWidgets ones or it won't compile on Windows -> see http://trac.wxwidgets.org/ticket/2421
@@ -204,7 +205,7 @@ bool Preview::init(wxWindow* parent, Model* model)
 
     m_bottom_toolbar_panel = new wxPanel(this);
     m_label_view_type = new wxStaticText(m_bottom_toolbar_panel, wxID_ANY, _L("View"));
-    m_choice_view_type = new wxChoice(m_bottom_toolbar_panel, wxID_ANY);
+    m_choice_view_type = new wxComboBox(m_bottom_toolbar_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, wxCB_READONLY);
     m_choice_view_type->Append(_L("Feature type"));
     m_choice_view_type->Append(_L("Height"));
     m_choice_view_type->Append(_L("Width"));
@@ -415,7 +416,7 @@ void Preview::edit_layers_slider(wxKeyEvent& evt)
 void Preview::bind_event_handlers()
 {
     this->Bind(wxEVT_SIZE, &Preview::on_size, this);
-    m_choice_view_type->Bind(wxEVT_CHOICE, &Preview::on_choice_view_type, this);
+    m_choice_view_type->Bind(wxEVT_COMBOBOX, &Preview::on_choice_view_type, this);
     m_combochecklist_features->Bind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_features, this);
     m_combochecklist_options->Bind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_options, this);
     m_moves_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
@@ -424,7 +425,7 @@ void Preview::bind_event_handlers()
 void Preview::unbind_event_handlers()
 {
     this->Unbind(wxEVT_SIZE, &Preview::on_size, this);
-    m_choice_view_type->Unbind(wxEVT_CHOICE, &Preview::on_choice_view_type, this);
+    m_choice_view_type->Unbind(wxEVT_COMBOBOX, &Preview::on_choice_view_type, this);
     m_combochecklist_features->Unbind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_features, this);
     m_combochecklist_options->Unbind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_options, this);
     m_moves_slider->Unbind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
