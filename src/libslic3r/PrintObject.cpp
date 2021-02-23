@@ -518,7 +518,13 @@ bool PrintObject::invalidate_state_by_config_options(
     std::vector<PrintObjectStep> steps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (   opt_key == "perimeters"
+        if (   opt_key == "brim_width"
+            || opt_key == "brim_offset"
+            || opt_key == "brim_type") {
+            // Brim is printed below supports, support invalidates brim and skirt.
+            steps.emplace_back(posSupportMaterial);
+        } else if (
+               opt_key == "perimeters"
             || opt_key == "extra_perimeters"
             || opt_key == "gap_fill_enabled"
             || opt_key == "gap_fill_speed"

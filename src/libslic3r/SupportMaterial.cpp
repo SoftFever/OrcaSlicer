@@ -5,6 +5,7 @@
 #include "SupportMaterial.hpp"
 #include "Fill/FillBase.hpp"
 #include "Geometry.hpp"
+#include "Point.hpp"
 
 #include <cmath>
 #include <memory>
@@ -496,7 +497,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // If raft is to be generated, the 1st top_contact layer will contain the 1st object layer silhouette with holes filled.
     // There is also a 1st intermediate layer containing bases of support columns.
     // Inflate the bases of the support columns and create the raft base under the object.
-    MyLayersPtr raft_layers = this->generate_raft_base(top_contacts, interface_layers, intermediate_layers, layer_storage);
+    MyLayersPtr raft_layers = this->generate_raft_base(object, top_contacts, interface_layers, intermediate_layers, layer_storage);
 
 #ifdef SLIC3R_DEBUG
     for (const MyLayer *l : interface_layers)
@@ -2498,11 +2499,41 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
 }
 
 PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raft_base(
+    const PrintObject   &object,
     const MyLayersPtr   &top_contacts,
     const MyLayersPtr   &interface_layers,
     const MyLayersPtr   &base_layers,
     MyLayerStorage      &layer_storage) const
 {
+    // If there is brim to be generated, calculate the trimming regions.
+    Polygons brim;
+    if (object.has_brim()) {
+        // Calculate the area covered by the brim.
+        const BrimType brim_type   = object.config().brim_type;
+        const bool     brim_outer  = brim_type == btOuterOnly || brim_type == btOuterAndInner;
+        const bool     brim_inner  = brim_type == btInnerOnly || brim_type == btOuterAndInner;
+        const auto     brim_offset = scaled<float>(object.config().brim_offset.value + object.config().brim_width.value);
+        for (const ExPolygon &ex : object.layers().front()->lslices) {
+            if (brim_outer && brim_inner)
+                polygons_append(brim, offset(ex, brim_offset));
+            else {
+                if (brim_outer)
+                    polygons_append(brim, offset(ex.contour, brim_offset, ClipperLib::jtRound, float(scale_(0.1))));
+                else
+                    brim.emplace_back(ex.contour);
+                if (brim_inner) {
+                    Polygons holes = ex.holes;
+                    polygons_reverse(holes);
+                    holes = offset(holes, - brim_offset, ClipperLib::jtRound, float(scale_(0.1)));
+                    polygons_reverse(holes);
+                    polygons_append(brim, std::move(holes));
+                } else
+                    polygons_append(brim, ex.holes);
+            }
+        }
+        brim = union_(brim);
+    }
+
     // How much to inflate the support columns to be stable. This also applies to the 1st layer, if no raft layers are to be printed.
     const float inflate_factor_fine      = float(scale_((m_slicing_params.raft_layers() > 1) ? 0.5 : EPSILON));
     const float inflate_factor_1st_layer = float(scale_(3.)) - inflate_factor_fine;
@@ -2581,6 +2612,13 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
             offset(m_object->layers().front()->lslices, (float)scale_(m_gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS));
         if (contacts != nullptr)
             columns_base->polygons = diff(columns_base->polygons, interface_polygons);
+        if (! brim.empty()) {
+            columns_base->polygons = diff(columns_base->polygons, brim);
+            if (contacts)
+                contacts->polygons = diff(contacts->polygons, brim);
+            if (interfaces)
+                interfaces->polygons = diff(interfaces->polygons, brim);
+        }
     }
 
     return raft_layers;

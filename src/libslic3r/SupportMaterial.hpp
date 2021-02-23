@@ -196,6 +196,7 @@ private:
 	// Generate raft layers, also expand the 1st support layer
 	// in case there is no raft layer to improve support adhesion.
     MyLayersPtr generate_raft_base(
+    	const PrintObject   &object,
 	    const MyLayersPtr   &top_contacts,
 	    const MyLayersPtr   &interface_layers,
 	    const MyLayersPtr   &base_layers,

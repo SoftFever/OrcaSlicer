@@ -172,12 +172,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wipe_tower_rotation_angle") {
             steps.emplace_back(psSkirt);
         } else if (
-               opt_key == "brim_width"
-            || opt_key == "brim_offset"
-            || opt_key == "brim_type") {
-            steps.emplace_back(psBrim);
-            steps.emplace_back(psSkirt);
-        } else if (
                opt_key == "nozzle_diameter"
             || opt_key == "resolution"
             // Spiral Vase forces different kind of slicing than the normal model:
@@ -1191,8 +1185,7 @@ bool Print::has_skirt() const
 
 bool Print::has_brim() const
 {
-    return std::any_of(m_objects.begin(), m_objects.end(),
-                       [](PrintObject *object) { return object->config().brim_type != btNoBrim && object->config().brim_width.value > 0.; });
+    return std::any_of(m_objects.begin(), m_objects.end(), [](PrintObject *object) { return object->has_brim(); });
 }
 
 static inline bool sequential_print_horizontal_clearance_valid(const Print &print)

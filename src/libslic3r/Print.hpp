@@ -168,12 +168,15 @@ public:
 
     // Bounding box is used to align the object infill patterns, and to calculate attractor for the rear seam.
     // The bounding box may not be quite snug.
-    BoundingBox             bounding_box()    const { return BoundingBox(Point(- m_size.x() / 2, - m_size.y() / 2), Point(m_size.x() / 2, m_size.y() / 2)); }
+    BoundingBox                  bounding_box() const   { return BoundingBox(Point(- m_size.x() / 2, - m_size.y() / 2), Point(m_size.x() / 2, m_size.y() / 2)); }
     // Height is used for slicing, for sorting the objects by height for sequential printing and for checking vertical clearence in sequential print mode.
     // The height is snug.
-    coord_t 				height() 		  const { return m_size.z(); }
+    coord_t 				     height() const         { return m_size.z(); }
     // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
-    const Point& 			center_offset()   const { return m_center_offset; }
+    const Point& 			     center_offset() const  { return m_center_offset; }
+
+    bool                         has_brim() const       { return this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.; }
+
 
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id, const t_layer_height_range &layer_range) {
@@ -199,14 +202,14 @@ public:
     const Layer*	get_first_layer_bellow_printz(coordf_t print_z, coordf_t epsilon) const;
 
     // print_z: top of the layer; slice_z: center of the layer.
-    Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
+    Layer*          add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
 
-    size_t support_layer_count() const { return m_support_layers.size(); }
-    void clear_support_layers();
-    SupportLayer* get_support_layer(int idx) { return m_support_layers[idx]; }
-    SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z);
+    size_t          support_layer_count() const { return m_support_layers.size(); }
+    void            clear_support_layers();
+    SupportLayer*   get_support_layer(int idx) { return m_support_layers[idx]; }
+    SupportLayer*   add_support_layer(int id, coordf_t height, coordf_t print_z);
     SupportLayerPtrs::iterator insert_support_layer(SupportLayerPtrs::iterator pos, size_t id, coordf_t height, coordf_t print_z, coordf_t slice_z);
-    void delete_support_layer(int idx);
+    void            delete_support_layer(int idx);
     
     // Initialize the layer_height_profile from the model_object's layer_height_profile, from model_object's layer height table, or from slicing parameters.
     // Returns true, if the layer_height_profile was changed.
