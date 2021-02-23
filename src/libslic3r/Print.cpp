@@ -1418,7 +1418,7 @@ std::string Print::validate() const
 			return true;
 		};
         for (PrintObject *object : m_objects) {
-            if (object->config().raft_layers > 0 || object->config().support_material.value) {
+            if (object->has_support_material()) {
 				if ((object->config().support_material_extruder == 0 || object->config().support_material_interface_extruder == 0) && max_nozzle_diameter - min_nozzle_diameter > EPSILON) {
                     // The object has some form of support and either support_material_extruder or support_material_interface_extruder
                     // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
@@ -1444,7 +1444,7 @@ std::string Print::validate() const
             // validate first_layer_height
             double first_layer_height = object->config().get_abs_value("first_layer_height");
             double first_layer_min_nozzle_diameter;
-            if (object->config().raft_layers > 0) {
+            if (object->has_raft()) {
                 // if we have raft layers, only support material extruder is used on first layer
                 size_t first_layer_extruder = object->config().raft_layers == 1
                     ? object->config().support_material_interface_extruder-1
@@ -1468,7 +1468,7 @@ std::string Print::validate() const
             std::string err_msg;
             if (! validate_extrusion_width(object->config(), "extrusion_width", layer_height, err_msg))
             	return err_msg;
-            if ((object->config().support_material || object->config().raft_layers > 0) && ! validate_extrusion_width(object->config(), "support_material_extrusion_width", layer_height, err_msg))
+            if ((object->has_support() || object->has_raft()) && ! validate_extrusion_width(object->config(), "support_material_extrusion_width", layer_height, err_msg))
             	return err_msg;
             for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" })
 				for (size_t i = 0; i < object->region_volumes.size(); ++ i)

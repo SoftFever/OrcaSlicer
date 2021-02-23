@@ -151,7 +151,7 @@ public:
 	// Is raft enabled?
 	bool 		has_raft() 					const { return m_slicing_params.has_raft(); }
 	// Has any support?
-	bool 		has_support()				const { return m_object_config->support_material.value; }
+	bool 		has_support()				const { return m_object_config->support_material.value || m_object_config->support_material_enforce_layers; }
 	bool 		build_plate_only() 			const { return this->has_support() && m_object_config->support_material_buildplate_only.value; }
 
 	bool 		synchronize_layers()		const { return m_slicing_params.soluble_interface && m_object_config->support_material_synchronize_layers.value; }

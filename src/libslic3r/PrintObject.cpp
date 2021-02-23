@@ -418,7 +418,7 @@ void PrintObject::generate_support_material()
 {
     if (this->set_started(posSupportMaterial)) {
         this->clear_support_layers();
-        if ((m_config.support_material || m_config.raft_layers > 0) && m_layers.size() > 1) {
+        if (this->has_support_material() && m_layers.size() > 1) {
             m_print->set_status(85, L("Generating support material"));    
             this->_generate_support_material();
             m_print->throw_if_canceled();
@@ -713,13 +713,6 @@ bool PrintObject::invalidate_all_steps()
 	return result;
 }
 
-bool PrintObject::has_support_material() const
-{
-    return m_config.support_material
-        || m_config.raft_layers > 0
-        || m_config.support_material_enforce_layers > 0;
-}
-
 static const PrintRegion* first_printing_region(const PrintObject &print_object)
 {
     for (size_t idx_region = 0; idx_region < print_object.region_volumes.size(); ++ idx_region)
@@ -773,12 +766,12 @@ void PrintObject::detect_surfaces_type()
             [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 // If we have raft layers, consider bottom layer as a bridge just like any other bottom surface lying on the void.
                 SurfaceType surface_type_bottom_1st =
-                    (m_config.raft_layers.value > 0 && m_config.support_material_contact_distance.value > 0) ?
+                    (this->has_raft() && m_config.support_material_contact_distance.value > 0) ?
                     stBottomBridge : stBottom;
                 // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
                 // the support from the print.
                 SurfaceType surface_type_bottom_other =
-                    (m_config.support_material.value && m_config.support_material_contact_distance.value == 0) ?
+                    (this->has_support() && m_config.support_material_contact_distance.value == 0) ?
                     stBottom : stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();

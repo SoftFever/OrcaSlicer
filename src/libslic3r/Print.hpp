@@ -222,6 +222,10 @@ public:
     const SlicingParameters&    slicing_parameters() const { return m_slicing_params; }
     static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z);
 
+    bool                        has_support()           const { return m_config.support_material || m_config.support_material_enforce_layers > 0; }
+    bool                        has_raft()              const { return m_config.raft_layers > 0; }
+    bool                        has_support_material()  const { return this->has_support() || this->has_raft(); }
+
     // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
     std::vector<unsigned int>   object_extruders() const;
 
@@ -270,7 +274,7 @@ private:
     void _slice(const std::vector<coordf_t> &layer_height_profile);
     std::string _fix_slicing_errors();
     void simplify_slices(double distance);
-    bool has_support_material() const;
+    // Has any support (not counting the raft).
     void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();

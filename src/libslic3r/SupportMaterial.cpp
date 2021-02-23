@@ -1282,7 +1282,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;
 
-    const bool   support_auto  = m_object_config->support_material_auto.value;
+    const bool   support_auto  = m_object_config->support_material.value && m_object_config->support_material_auto.value;
     // If user specified a custom angle threshold, convert it to radians.
     // Zero means automatic overhang detection.
     const double threshold_rad = (m_object_config->support_material_threshold.value > 0) ? 
