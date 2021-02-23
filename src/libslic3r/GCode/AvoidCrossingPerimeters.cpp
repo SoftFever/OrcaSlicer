@@ -729,10 +729,11 @@ static std::vector<float> contour_distance(const EdgeGrid::Grid     &grid,
 
 // Polygon offset which ensures that if a polygon breaks up into several separate parts, the original polygon will be used in these places.
 // ExPolygons are handled one by one so returned ExPolygons could intersect.
-static ExPolygons inner_offset(const ExPolygons &ex_polygons, double offset, double min_contour_width = scale_(0.001))
+static ExPolygons inner_offset(const ExPolygons &ex_polygons, double offset)
 {
-    double     search_radius  = 2. * (offset + min_contour_width);
-    ExPolygons ex_poly_result = ex_polygons;
+    double     min_contour_width = 2. * offset + SCALED_EPSILON;
+    double     search_radius     = 2. * (offset + min_contour_width);
+    ExPolygons ex_poly_result    = ex_polygons;
     resample_expolygons(ex_poly_result, offset / 2);
 
     for (ExPolygon &ex_poly : ex_poly_result) {
