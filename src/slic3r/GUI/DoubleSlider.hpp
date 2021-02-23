@@ -123,6 +123,7 @@ public:
     void erase_all_ticks_with_code(Type type);
 
     bool            has_tick_with_code(Type type);
+    bool            has_tick(int tick);
     ConflictType    is_conflict_tick(const TickCode& tick, Mode out_mode, int only_extruder, double print_z);
 
     // Get used extruders for tick.
@@ -270,6 +271,7 @@ public:
     void show_add_context_menu();
     void show_edit_context_menu();
     void show_cog_icon_context_menu();
+    void auto_color_change();
 
     ExtrudersSequence m_extruders_sequence;
 
@@ -316,6 +318,7 @@ private:
     wxSize      get_size() const;
     void        get_size(int* w, int* h) const;
     double      get_double_value(const SelectedSlider& selection);
+    int         get_tick_from_value(double value);
     wxString    get_tooltip(int tick = -1);
     int         get_edited_tick_for_position(wxPoint pos, Type type = ColorChange);
 
