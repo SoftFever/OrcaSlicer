@@ -1408,8 +1408,18 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 const ExPolygons &enforcer = enforcers[layer_id];
                                 if (! enforcer.empty()) {
                                     // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
-                                    Polygons new_contacts = diff(intersection(layerm_polygons, to_polygons(std::move(enforcer))),
-                                            offset(lower_layer_polygons, 0.05f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+#ifdef SLIC3R_DEBUG
+                                    ExPolygons enforcers_united = union_ex(to_polygons(enforcer), false);
+#endif // SLIC3R_DEBUG
+                                    Polygons new_contacts = diff(intersection(layerm_polygons, to_polygons(std::move(enforcer))), 
+                                        offset(lower_layer_polygons, 0.05f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+#ifdef SLIC3R_DEBUG
+                                    SVG::export_expolygons(debug_out_path("support-top-contacts-enforcers-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
+                                        { { { union_ex(layerm_polygons, false) },                { "layerm_polygons",            "gray",   0.2f } },
+                                          { { union_ex(lower_layer_polygons, false) },           { "lower_layer_polygons",       "green",  0.5f } },
+                                          { enforcers_united,                                    { "enforcers",                  "blue",   0.5f } },
+                                          { { union_ex(new_contacts, true) },                    { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+#endif /* SLIC3R_DEBUG */
                                     if (! new_contacts.empty()) {
                                         if (diff_polygons.empty())
                                             diff_polygons = std::move(new_contacts);
