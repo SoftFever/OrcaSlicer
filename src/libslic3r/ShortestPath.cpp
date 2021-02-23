@@ -75,7 +75,7 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 	{
 		// Just sort the end points so that the first point visited is closest to start_near.
 		out.emplace_back(0, could_reverse_func(0) && start_near != nullptr && 
-            (end_point_func(0, true) - *start_near).template cast<double>().squaredNorm() < (end_point_func(0, false) - *start_near).template cast<double>().squaredNorm());
+            (end_point_func(0, false) - *start_near).template cast<double>().squaredNorm() < (end_point_func(0, true) - *start_near).template cast<double>().squaredNorm());
 	} 
 	else
 	{
