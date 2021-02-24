@@ -348,6 +348,11 @@ public:
 
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
 
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
+	bool        validate_custom_gcodes();
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const wxString& path, widget_t widget);
 	wxSizer*		compatible_widget_create(wxWindow* parent, PresetDependencies &deps);
@@ -412,10 +417,6 @@ public:
 	void		update() override;
 	void		clear_pages() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
-
-#if ENABLE_VALIDATE_CUSTOM_GCODE
-	bool        validate_custom_gcodes() const;
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 };
 
 class TabPrinter : public Tab
@@ -474,10 +475,6 @@ public:
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
 	void		apply_extruder_cnt_from_cache();
-
-#if ENABLE_VALIDATE_CUSTOM_GCODE
-	bool        validate_custom_gcodes() const;
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 };
 
 class TabSLAMaterial : public Tab

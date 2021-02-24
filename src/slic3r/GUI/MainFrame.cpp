@@ -548,18 +548,10 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& evt) {
         wxWindow* panel = m_tabpanel->GetCurrentPage();
         if (panel != nullptr) {
-            TabPrinter* printer_tab = dynamic_cast<TabPrinter*>(panel);
-            if (printer_tab != nullptr) {
-                if (!printer_tab->validate_custom_gcodes())
+            Tab* tab = dynamic_cast<Tab*>(panel);
+            if (tab && (tab->type() == Preset::TYPE_FILAMENT || tab->type() == Preset::TYPE_PRINTER))
+                if (!tab->validate_custom_gcodes())
                     evt.Veto();
-                return;
-            }
-            TabFilament* filament_tab = dynamic_cast<TabFilament*>(panel);
-            if (filament_tab != nullptr) {
-                if (!filament_tab->validate_custom_gcodes())
-                    evt.Veto();
-                return;
-            }
         }
         });
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE

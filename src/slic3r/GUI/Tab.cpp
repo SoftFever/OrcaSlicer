@@ -1712,11 +1712,11 @@ void TabPrint::clear_pages()
 }
 
 #if ENABLE_VALIDATE_CUSTOM_GCODE
-static bool validate_custom_gcode(wxWindow* parent, const wxString& title, const std::string& gcode)
+bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)
 {
     std::vector<std::string> tags;
     bool invalid = GCodeProcessor::contains_reserved_tags(gcode, 5, tags);
-    if (parent != nullptr && invalid) {
+    if (invalid) {
         wxString reports = _L_PLURAL("The following line", "The following lines", tags.size());
         reports += ":\n";
         for (const std::string& keyword : tags) {
@@ -1725,10 +1725,16 @@ static bool validate_custom_gcode(wxWindow* parent, const wxString& title, const
         reports += _L("contain reserved keywords.") + "\n";
         reports += _L("Please remove them, as they may cause problems in g-code visualization and printing time estimation.");
 
-        wxMessageDialog dialog(parent, reports, _L("Found reserved keywords in") + " " + title, wxICON_WARNING | wxOK);
+        wxMessageDialog dialog(wxGetApp().mainframe, reports, _L("Found reserved keywords in") + " " + _(title), wxICON_WARNING | wxOK);
         dialog.ShowModal();
     }
     return !invalid;
+}
+
+static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, const boost::any& value) {
+    Tab::validate_custom_gcode(opt_group->title, boost::any_cast<std::string>(value));
+    tab->update_dirty();
+    tab->update();
 }
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
@@ -1957,7 +1963,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Start G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("Start G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, value);
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("start_filament_gcode");
@@ -1969,7 +1975,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("End G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("End G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, value);
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("end_filament_gcode");
@@ -2085,25 +2091,6 @@ void TabFilament::clear_pages()
     m_volumetric_speed_description_line = nullptr;
 	m_cooling_description_line = nullptr;
 }
-
-#if ENABLE_VALIDATE_CUSTOM_GCODE
-bool TabFilament::validate_custom_gcodes() const
-{
-    auto check_optgroup = [this](const wxString& title, const Slic3r::t_config_option_key& key) {
-        const ConfigOptionsGroupShp opt_group = m_active_page->get_optgroup(title);
-        return (opt_group != nullptr) ?
-            validate_custom_gcode((wxWindow*)this, title, boost::any_cast<std::string>(opt_group->get_value(key))) :
-            true;
-    };
-
-    bool valid = true;
-    if (m_active_page->title() == L("Custom G-code")) {
-        valid &= check_optgroup(L("Start G-code"), "start_filament_gcode");
-        valid &= check_optgroup(L("End G-code"), "end_filament_gcode");
-    }
-    return valid;
-}
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText, wxString text /*= wxEmptyString*/)
 {
@@ -2295,7 +2282,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Start G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("Start G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("start_gcode");
@@ -2307,7 +2294,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("End G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("End G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("end_gcode");
@@ -2319,7 +2306,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Before layer change G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("Before layer change G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("before_layer_gcode");
@@ -2331,7 +2318,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("After layer change G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("After layer change G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("layer_gcode");
@@ -2343,7 +2330,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Tool change G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("Tool change G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("toolchange_gcode");
@@ -2355,7 +2342,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Between objects G-code (for sequential printing)"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("Between objects G-code (for sequential printing)"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("between_objects_gcode");
@@ -2367,7 +2354,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Color Change G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("Color Change G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("color_change_gcode");
@@ -2378,7 +2365,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Pause Print G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("Pause Print G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("pause_print_gcode");
@@ -2389,7 +2376,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Template Custom G-code"), 0);
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode(this, L("Template Custom G-code"), boost::any_cast<std::string>(value));
+            validate_custom_gcode_cb(this, optgroup, boost::any_cast<std::string>(value));
         };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("template_custom_gcode");
@@ -3842,28 +3829,17 @@ void TabPrinter::apply_extruder_cnt_from_cache()
 }
 
 #if ENABLE_VALIDATE_CUSTOM_GCODE
-bool TabPrinter::validate_custom_gcodes() const
+bool Tab::validate_custom_gcodes()
 {
-    auto check_optgroup = [this](const wxString& title, const Slic3r::t_config_option_key& key) {
-        const ConfigOptionsGroupShp opt_group = m_active_page->get_optgroup(title);
-        return (opt_group != nullptr) ? 
-            validate_custom_gcode((wxWindow*)this, title, boost::any_cast<std::string>(opt_group->get_value(key))) :
-            true;
-    };
-
     bool valid = true;
-    if (m_printer_technology == ptFFF) {
-        if (m_active_page->title() == L("Custom G-code")) {
-            valid &= check_optgroup(L("Start G-code"), "start_gcode");
-            valid &= check_optgroup(L("End G-code"), "end_gcode");
-            valid &= check_optgroup(L("Before layer change G-code"), "before_layer_gcode");
-            valid &= check_optgroup(L("After layer change G-code"), "layer_gcode");
-            valid &= check_optgroup(L("Tool change G-code"), "toolchange_gcode");
-            valid &= check_optgroup(L("Between objects G-code (for sequential printing)"), "between_objects_gcode");
-            valid &= check_optgroup(L("Color Change G-code"), "color_change_gcode");
-            valid &= check_optgroup(L("Pause Print G-code"), "pause_print_gcode");
-            valid &= check_optgroup(L("Template Custom G-code"), "template_custom_gcode");
-        }
+    if ((m_type == Preset::TYPE_FILAMENT || 
+        m_type == Preset::TYPE_PRINTER && static_cast<TabPrinter*>(this)->m_printer_technology == ptFFF) &&
+        m_active_page->title() == "Custom G-code") {
+            for (auto opt_group : m_active_page->m_optgroups) {
+                assert(opt_group->opt_map().size() == 1);
+                std::string key = opt_group->opt_map().begin()->first;
+                valid &= validate_custom_gcode(opt_group->title, boost::any_cast<std::string>(opt_group->get_value(key)));
+            }
     }
     return valid;
 }
