@@ -1731,8 +1731,7 @@ void Print::_make_skirt()
         for (const SupportLayer *layer : object->support_layers()) {
             if (layer->print_z > skirt_height_z)
                 break;
-            for (const ExtrusionEntity *extrusion_entity : layer->support_fills.entities)
-                append(object_points, extrusion_entity->as_polyline().points);
+            layer->support_fills.collect_points(object_points);
         }
         // Repeat points for each object copy.
         for (const PrintInstance &instance : object->instances()) {

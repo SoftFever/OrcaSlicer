@@ -2573,10 +2573,11 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
 
 std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fills)
 {
+    static constexpr const char *support_label            = "support material";
+    static constexpr const char *support_interface_label  = "support material interface";
+
     std::string gcode;
     if (! support_fills.entities.empty()) {
-        const char   *support_label            = "support material";
-        const char   *support_interface_label  = "support material interface";
         const double  support_speed            = m_config.support_material_speed.value;
         const double  support_interface_speed  = m_config.support_material_interface_speed.get_abs_value(support_speed);
         for (const ExtrusionEntity *ee : support_fills.entities) {
@@ -2589,9 +2590,14 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
                 gcode += this->extrude_path(*path, label, speed);
             else {
                 const ExtrusionMultiPath *multipath = dynamic_cast<const ExtrusionMultiPath*>(ee);
-                assert(multipath != nullptr);
                 if (multipath)
                     gcode += this->extrude_multi_path(*multipath, label, speed);
+                else {
+                    const ExtrusionEntityCollection *eec = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+                    assert(eec);
+                    if (eec)
+                        gcode += this->extrude_support(*eec);
+                }
             }
         }
     }

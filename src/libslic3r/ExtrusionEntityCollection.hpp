@@ -117,6 +117,11 @@ public:
             extrusion_entity->collect_polylines(dst);
     }
 
+    void   collect_points(Points &dst) const override {
+        for (ExtrusionEntity* extrusion_entity : this->entities)
+            extrusion_entity->collect_points(dst);
+    }
+
     double length() const override {
         throw Slic3r::RuntimeError("Calling length() on a ExtrusionEntityCollection");
         return 0.;        

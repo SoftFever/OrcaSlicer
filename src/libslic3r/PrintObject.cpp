@@ -576,6 +576,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_material_synchronize_layers"
             || opt_key == "support_material_threshold"
             || opt_key == "support_material_with_sheath"
+            || opt_key == "raft_first_layer_density"
+            || opt_key == "raft_first_layer_expansion"
             || opt_key == "dont_support_bridges"
             || opt_key == "first_layer_extrusion_width") {
             steps.emplace_back(posSupportMaterial);

@@ -1775,6 +1775,25 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString(""));
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("raft_first_layer_density", coPercent);
+    def->label = L("First layer density");
+    def->category = L("Support material");
+    def->tooltip = L("Density of the first raft or support layer.");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->max = 150;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionPercent(90));
+
+    def = this->add("raft_first_layer_expansion", coFloat);
+    def->label = L("First layer expansion");
+    def->category = L("Support material");
+    def->tooltip = L("Expansion of the first raft or support layer to improve adhesion to print bed.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(3.));
+
     def = this->add("raft_layers", coInt);
     def->label = L("Raft layers");
     def->category = L("Support material");

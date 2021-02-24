@@ -473,6 +473,8 @@ public:
     // Force the generation of solid shells between adjacent materials/volumes.
     ConfigOptionBool                interface_shells;
     ConfigOptionFloat               layer_height;
+    ConfigOptionPercent             raft_first_layer_density;
+    ConfigOptionFloat               raft_first_layer_expansion;
     ConfigOptionInt                 raft_layers;
     ConfigOptionEnum<SeamPosition>  seam_position;
 //    ConfigOptionFloat               seam_preferred_direction;
@@ -520,6 +522,8 @@ protected:
         OPT_PTR(infill_only_where_needed);
         OPT_PTR(interface_shells);
         OPT_PTR(layer_height);
+        OPT_PTR(raft_first_layer_density);
+        OPT_PTR(raft_first_layer_expansion);
         OPT_PTR(raft_layers);
         OPT_PTR(seam_position);
         OPT_PTR(slice_closing_radius);

@@ -2536,7 +2536,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
 
     // How much to inflate the support columns to be stable. This also applies to the 1st layer, if no raft layers are to be printed.
     const float inflate_factor_fine      = float(scale_((m_slicing_params.raft_layers() > 1) ? 0.5 : EPSILON));
-    const float inflate_factor_1st_layer = float(scale_(3.)) - inflate_factor_fine;
+    const float inflate_factor_1st_layer = std::max(0.f, float(scale_(object.config().raft_first_layer_expansion)) - inflate_factor_fine);
     MyLayer       *contacts      = top_contacts    .empty() ? nullptr : top_contacts    .front();
     MyLayer       *interfaces    = interface_layers.empty() ? nullptr : interface_layers.front();
     MyLayer       *columns_base  = base_layers     .empty() ? nullptr : base_layers     .front();
@@ -2581,7 +2581,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
             new_layer.print_z = m_slicing_params.first_print_layer_height;
             new_layer.height  = m_slicing_params.first_print_layer_height;
             new_layer.bottom_z = 0.;
-            new_layer.polygons = offset(base, inflate_factor_1st_layer);
+            new_layer.polygons = inflate_factor_1st_layer > 0 ? offset(base, inflate_factor_1st_layer) : base;
         }
         // Insert the base layers.
         for (size_t i = 1; i < m_slicing_params.base_raft_layers; ++ i) {
@@ -2608,7 +2608,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
     } else if (columns_base != nullptr) {
         // Expand the bases of the support columns in the 1st layer.
         columns_base->polygons = diff(
-            offset(columns_base->polygons, inflate_factor_1st_layer),
+            inflate_factor_1st_layer > 0 ? offset(columns_base->polygons, inflate_factor_1st_layer) : columns_base->polygons,
             offset(m_object->layers().front()->lslices, (float)scale_(m_gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS));
         if (contacts != nullptr)
             columns_base->polygons = diff(columns_base->polygons, interface_polygons);
@@ -2754,6 +2754,41 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
     return base_and_interface_layers;
 }
 
+static inline void fill_expolygon_generate_paths(
+    ExtrusionEntitiesPtr    &dst,
+    ExPolygon              &&expolygon,
+    Fill                    *filler,
+    const FillParams        &fill_params,
+    float                    density,
+    ExtrusionRole            role,
+    const Flow              &flow)
+{
+    Surface surface(stInternal, std::move(expolygon));
+    Polylines polylines;
+    try {
+        polylines = filler->fill_surface(&surface, fill_params);
+	} catch (InfillFailedException &) {
+	}
+    extrusion_entities_append_paths(
+        dst,
+        std::move(polylines),
+        role,
+        flow.mm3_per_mm(), flow.width, flow.height);
+}
+
+static inline void fill_expolygons_generate_paths(
+    ExtrusionEntitiesPtr    &dst,
+    ExPolygons             &&expolygons,
+    Fill                    *filler,
+    const FillParams        &fill_params,
+    float                    density,
+    ExtrusionRole            role,
+    const Flow              &flow)
+{
+    for (ExPolygon &expoly : expolygons)
+        fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
+}
+
 static inline void fill_expolygons_generate_paths(
     ExtrusionEntitiesPtr    &dst,
     ExPolygons             &&expolygons,
@@ -2763,20 +2798,53 @@ static inline void fill_expolygons_generate_paths(
     const Flow              &flow)
 {
     FillParams fill_params;
-    fill_params.density = density;
+    fill_params.density     = density;
     fill_params.dont_adjust = true;
-    for (ExPolygon &expoly : expolygons) {
-        Surface surface(stInternal, std::move(expoly));
+    fill_expolygons_generate_paths(dst, std::move(expolygons), filler, fill_params, density, role, flow);
+}
+
+static inline void fill_expolygons_with_sheath_generate_paths(
+    ExtrusionEntitiesPtr    &dst,
+    const Polygons          &polygons,
+    Fill                    *filler,
+    float                    density,
+    ExtrusionRole            role,
+    const Flow              &flow,
+    bool                     with_sheath)
+{
+    if (polygons.empty())
+        return;
+
+    if (! with_sheath) {
+        fill_expolygons_generate_paths(dst, offset2_ex(polygons, float(SCALED_EPSILON), float(- SCALED_EPSILON)), filler, density, role, flow);
+        return;
+    }
+
+    FillParams fill_params;
+    fill_params.density     = density;
+    fill_params.dont_adjust = true;
+
+    double spacing = flow.scaled_spacing();
+    // Clip the sheath path to avoid the extruder to get exactly on the first point of the loop.
+    double clip_length = spacing * 0.15;
+
+    for (ExPolygon &expoly : offset2_ex(polygons, float(SCALED_EPSILON), float(- SCALED_EPSILON - 0.5*flow.scaled_width()))) {
+        // Don't reorder the skirt and its infills.
+        auto eec = std::make_unique<ExtrusionEntityCollection>();
+        eec->no_sort = true;
+        // Draw the perimeters.
         Polylines polylines;
-    	try {
-            polylines = filler->fill_surface(&surface, fill_params);
-		} catch (InfillFailedException &) {
-		}
-        extrusion_entities_append_paths(
-            dst,
-            std::move(polylines),
-            role,
-            flow.mm3_per_mm(), flow.width, flow.height);
+        polylines.reserve(expoly.holes.size() + 1);
+        for (size_t i = 0; i <= expoly.holes.size();  ++ i) {
+            Polyline pl(i == 0 ? expoly.contour.points : expoly.holes[i - 1].points);
+            pl.points.emplace_back(pl.points.front());
+            pl.clip_end(clip_length);
+            polylines.emplace_back(std::move(pl));
+        }
+        extrusion_entities_append_paths(eec->entities, polylines, erSupportMaterial, flow.mm3_per_mm(), flow.width, flow.height);
+        // Fill in the rest.
+        fill_expolygons_generate_paths(eec->entities, offset_ex(expoly, float(-0.4 * spacing)), filler, fill_params, density, role, flow);
+        dst.emplace_back(eec.release());
     }
 }
 
@@ -3430,45 +3498,26 @@ void PrintObjectSupportMaterial::generate_toolpaths(
 
             // Print the support base below the support columns, or the support base for the support columns plus the contacts.
             if (support_layer_id > 0) {
-                Polygons to_infill_polygons = (support_layer_id < m_slicing_params.base_raft_layers) ? 
+                const Polygons &to_infill_polygons = (support_layer_id < m_slicing_params.base_raft_layers) ? 
                     raft_layer.polygons :
                     //FIXME misusing contact_polygons for support columns.
                     ((raft_layer.contact_polygons == nullptr) ? Polygons() : *raft_layer.contact_polygons);
                 if (! to_infill_polygons.empty()) {
                     Flow flow(float(m_support_material_flow.width), float(raft_layer.height), m_support_material_flow.nozzle_diameter, raft_layer.bridging);
-                    // find centerline of the external loop/extrusions
-                    ExPolygons to_infill = (support_layer_id == 0 || ! with_sheath) ?
-                        // union_ex(base_polygons, true) :
-                        offset2_ex(to_infill_polygons, float(SCALED_EPSILON), float(- SCALED_EPSILON)) :
-                        offset2_ex(to_infill_polygons, float(SCALED_EPSILON), float(- SCALED_EPSILON - 0.5*flow.scaled_width()));            
-                    if (! to_infill.empty() && with_sheath) {
-                        // Draw a perimeter all around the support infill. This makes the support stable, but difficult to remove.
-                        // TODO: use brim ordering algorithm
-                        to_infill_polygons = to_polygons(to_infill);
-                        // TODO: use offset2_ex()
-                        to_infill = offset_ex(to_infill, float(- 0.4 * flow.scaled_spacing()));
-                        extrusion_entities_append_paths(
-                            support_layer.support_fills.entities, 
-                            to_polylines(std::move(to_infill_polygons)),
-                            erSupportMaterial, flow.mm3_per_mm(), flow.width, flow.height);
-                    }
-                    if (! to_infill.empty()) {
-                        // We don't use $base_flow->spacing because we need a constant spacing
-                        // value that guarantees that all layers are correctly aligned.
-                        Fill *filler    = filler_support.get();
-                        filler->angle   = raft_angle_base;
-                        filler->spacing = m_support_material_flow.spacing();
-                        filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / support_density));
-                        fill_expolygons_generate_paths(
-                            // Destination
-                            support_layer.support_fills.entities, 
-                            // Regions to fill
-                            std::move(to_infill), 
-                            // Filler and its parameters
-                            filler, float(support_density),
-                            // Extrusion parameters
-                            erSupportMaterial, flow);
-                    }
+                    Fill * filler = filler_support.get();
+                    filler->angle = raft_angle_base;
+                    filler->spacing = m_support_material_flow.spacing();
+                    filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / support_density));
+                    fill_expolygons_with_sheath_generate_paths(
+                        // Destination
+                        support_layer.support_fills.entities,
+                        // Regions to fill
+                        to_infill_polygons,
+                        // Filler and its parameters
+                        filler, float(support_density),
+                        // Extrusion parameters
+                        erSupportMaterial, flow,
+                        with_sheath);
                 }
             }
 
@@ -3526,12 +3575,21 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         size_t idx_layer_bottom_contact   = size_t(-1);
         size_t idx_layer_top_contact      = size_t(-1);
         size_t idx_layer_intermediate     = size_t(-1);
-        size_t idx_layer_interface         = size_t(-1);
-        size_t idx_layer_base_interface    = size_t(-1);
-        auto filler_interface       = std::unique_ptr<Fill>(Fill::new_from_type(m_slicing_params.soluble_interface ? ipConcentric : ipRectilinear));
+        size_t idx_layer_interface        = size_t(-1);
+        size_t idx_layer_base_interface   = size_t(-1);
+        const auto fill_type_interface    = m_slicing_params.soluble_interface ? ipConcentric : ipRectilinear;
+        const auto fill_type_first_layer  = ipRectilinear;
+        auto filler_interface       = std::unique_ptr<Fill>(Fill::new_from_type(fill_type_interface));
+        // Filler for the 1st layer interface, if different from filler_interface.
+        auto filler_first_layer_ptr = std::unique_ptr<Fill>(range.begin() == 0 && fill_type_interface != fill_type_first_layer ? Fill::new_from_type(fill_type_first_layer) : nullptr);
+        // Pointer to the 1st layer interface filler.
+        auto filler_first_layer     = filler_first_layer_ptr ? filler_first_layer_ptr.get() : filler_interface.get();
+        // Filler for the base interface (to be used for soluble interface / non soluble base, to produce non soluble interface layer below soluble interface layer).
         auto filler_base_interface  = std::unique_ptr<Fill>(base_interface_layers.empty() ? nullptr : Fill::new_from_type(ipRectilinear));
         auto filler_support         = std::unique_ptr<Fill>(Fill::new_from_type(infill_pattern));
         filler_interface->set_bounding_box(bbox_object);
+        if (filler_first_layer_ptr)
+            filler_first_layer_ptr->set_bounding_box(bbox_object);
         if (filler_base_interface)
             filler_base_interface->set_bounding_box(bbox_object);
         filler_support->set_bounding_box(bbox_object);
@@ -3656,7 +3714,6 @@ void PrintObjectSupportMaterial::generate_toolpaths(
 
             // Base support or flange.
             if (! base_layer.empty() && ! base_layer.polygons_to_extrude().empty()) {
-                //FIXME When paralellizing, each thread shall have its own copy of the fillers.
                 Fill *filler = filler_support.get();
                 filler->angle = angles[support_layer_id % angles.size()];
                 // We don't use $base_flow->spacing because we need a constant spacing
@@ -3669,42 +3726,31 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 filler->spacing = m_support_material_flow.spacing();
                 filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / support_density));
                 float density = float(support_density);
-                // find centerline of the external loop/extrusions
-                ExPolygons to_infill = (support_layer_id == 0 || ! with_sheath) ?
-                    // union_ex(base_polygons, true) :
-                    offset2_ex(base_layer.polygons_to_extrude(), float(SCALED_EPSILON), float(- SCALED_EPSILON)) :
-                    offset2_ex(base_layer.polygons_to_extrude(), float(SCALED_EPSILON), float(- SCALED_EPSILON - 0.5*flow.scaled_width()));
+                bool  sheath  = with_sheath;
                 if (base_layer.layer->bottom_z < EPSILON) {
                     // Base flange (the 1st layer).
-                    filler = filler_interface.get();
+                    filler = filler_first_layer;
                     filler->angle = Geometry::deg2rad(float(m_object_config->support_material_angle.value + 90.));
-                    density = 0.5f;
+                    density = float(m_object_config->raft_first_layer_density.value * 0.01);
                     flow = m_first_layer_flow;
                     // use the proper spacing for first layer as we don't need to align
                     // its pattern to the other layers
                     //FIXME When paralellizing, each thread shall have its own copy of the fillers.
                     filler->spacing = flow.spacing();
                     filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / density));
-                } else if (with_sheath) {
-                    // Draw a perimeter all around the support infill. This makes the support stable, but difficult to remove.
-                    // TODO: use brim ordering algorithm
-                    Polygons to_infill_polygons = to_polygons(to_infill);
-                    // TODO: use offset2_ex()
-                    to_infill = offset_ex(to_infill, - 0.4f * float(flow.scaled_spacing()));
-                    extrusion_entities_append_paths(
-                        base_layer.extrusions, 
-                        to_polylines(std::move(to_infill_polygons)),
-                        erSupportMaterial, flow.mm3_per_mm(), flow.width, flow.height);
+                    sheath = true;
                 }
-                fill_expolygons_generate_paths(
+                fill_expolygons_with_sheath_generate_paths(
                     // Destination
-                    base_layer.extrusions, 
+                    base_layer.extrusions,
                     // Regions to fill
-                    std::move(to_infill), 
+                    base_layer.polygons_to_extrude(),
                     // Filler and its parameters
                     filler, density,
                     // Extrusion parameters
-                    erSupportMaterial, flow);
+                    erSupportMaterial, flow,
+                    sheath);
+
             }
 
             // Merge base_interface_layers to base_layers to avoid unneccessary retractions
