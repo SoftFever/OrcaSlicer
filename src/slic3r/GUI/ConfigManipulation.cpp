@@ -279,7 +279,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_support_interface = config->opt_int("support_material_interface_layers") > 0;
     bool have_support_soluble = have_support_material && config->opt_float("support_material_contact_distance") == 0;
     for (auto el : { "support_material_pattern", "support_material_with_sheath",
-                    "support_material_spacing", "support_material_angle", "support_material_interface_layers",
+                    "support_material_spacing", "support_material_angle", 
+                    "support_material_interface_pattern", "support_material_interface_layers",
                     "dont_support_bridges", "support_material_extrusion_width", "support_material_contact_distance",
                     "support_material_xy_spacing" })
         toggle_field(el, have_support_material);

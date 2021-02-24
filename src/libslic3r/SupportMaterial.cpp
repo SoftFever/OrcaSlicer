@@ -3573,9 +3573,15 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     };
     std::vector<LayerCache>             layer_caches(support_layers.size(), LayerCache());
 
+
+    const auto fill_type_interface  = 
+        (m_object_config->support_material_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
+         m_object_config->support_material_interface_pattern == smipConcentric ?
+         ipConcentric : ipRectilinear;
+
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
         [this, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &layer_caches, &loop_interface_processor, 
-            infill_pattern, &bbox_object, support_density, interface_density, interface_angle, &angles, link_max_length_factor, with_sheath]
+            infill_pattern, &bbox_object, support_density, fill_type_interface, interface_density, interface_angle, &angles, link_max_length_factor, with_sheath]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
         size_t idx_layer_bottom_contact   = size_t(-1);
@@ -3583,7 +3589,6 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         size_t idx_layer_intermediate     = size_t(-1);
         size_t idx_layer_interface        = size_t(-1);
         size_t idx_layer_base_interface   = size_t(-1);
-        const auto fill_type_interface    = m_slicing_params.soluble_interface ? ipConcentric : ipRectilinear;
         const auto fill_type_first_layer  = ipRectilinear;
         auto filler_interface       = std::unique_ptr<Fill>(Fill::new_from_type(fill_type_interface));
         // Filler for the 1st layer interface, if different from filler_interface.

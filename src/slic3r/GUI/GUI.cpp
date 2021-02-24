@@ -104,7 +104,8 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
             return;
         }
 
-		switch (config.def()->get(opt_key)->type) {
+        const ConfigOptionDef *opt_def = config.def()->get(opt_key);
+		switch (opt_def->type) {
 		case coFloatOrPercent:{
 			std::string str = boost::any_cast<std::string>(value);
 			bool percent = false;
@@ -176,6 +177,11 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			}
 			break;
 		case coEnum:{
+#if 0
+			auto *opt = opt_def->default_value.get()->clone();
+			opt->setInt(0);
+			config.set_key_value(opt_key, opt);
+#else
 			if (opt_key == "top_fill_pattern" ||
 				opt_key == "bottom_fill_pattern" ||
 				opt_key == "fill_pattern")
@@ -190,6 +196,8 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				config.set_key_value(opt_key, new ConfigOptionEnum<MachineLimitsUsage>(boost::any_cast<MachineLimitsUsage>(value)));
 			else if (opt_key.compare("support_material_pattern") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialPattern>(boost::any_cast<SupportMaterialPattern>(value)));
+			else if (opt_key.compare("support_material_interface_pattern") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialInterfacePattern>(boost::any_cast<SupportMaterialInterfacePattern>(value)));
 			else if (opt_key.compare("seam_position") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<SeamPosition>(boost::any_cast<SeamPosition>(value)));
 			else if (opt_key.compare("host_type") == 0)
@@ -203,6 +211,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
             else if(opt_key == "brim_type")
                 config.set_key_value(opt_key, new ConfigOptionEnum<BrimType>(boost::any_cast<BrimType>(value)));
 			}
+#endif
 			break;
 		case coPoints:{
 			if (opt_key == "bed_shape" || opt_key == "thumbnails") {

@@ -568,6 +568,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_material_extruder"
             || opt_key == "support_material_extrusion_width"
             || opt_key == "support_material_interface_layers"
+            || opt_key == "support_material_interface_pattern"
             || opt_key == "support_material_interface_contact_loops"
             || opt_key == "support_material_interface_extruder"
             || opt_key == "support_material_interface_spacing"

@@ -1313,6 +1313,7 @@ public:
     ConfigOptionEnum<T>&    operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                    operator==(const ConfigOptionEnum<T> &rhs) const { return this->value == rhs.value; }
     int                     getInt() const override { return (int)this->value; }
+    void                    setInt(int val) override { this->value = T(val); }
 
     bool operator==(const ConfigOption &rhs) const override
     {

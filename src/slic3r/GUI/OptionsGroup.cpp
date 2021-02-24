@@ -860,46 +860,8 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	case coInts:
 		ret = config.opt_int(opt_key, idx);
 		break;
-	case coEnum:{
-		if (opt_key == "top_fill_pattern" ||
-			opt_key == "bottom_fill_pattern" ||
-			opt_key == "fill_pattern" ) {
-			ret = static_cast<int>(config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
-		}
-		else if (opt_key == "ironing_type") {
-			ret = static_cast<int>(config.option<ConfigOptionEnum<IroningType>>(opt_key)->value);
-		}
-        else if (opt_key == "fuzzy_skin") {
-            ret = static_cast<int>(config.option<ConfigOptionEnum<FuzzySkinType>>(opt_key)->value);
-        }
-		else if (opt_key == "gcode_flavor") {
-			ret = static_cast<int>(config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
-		}
-		else if (opt_key == "machine_limits_usage") {
-			ret = static_cast<int>(config.option<ConfigOptionEnum<MachineLimitsUsage>>(opt_key)->value);
-		}
-		else if (opt_key == "support_material_pattern") {
-			ret = static_cast<int>(config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value);
-		}
-		else if (opt_key == "seam_position") {
-			ret = static_cast<int>(config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value);
-		}
-		else if (opt_key == "host_type") {
-			ret = static_cast<int>(config.option<ConfigOptionEnum<PrintHostType>>(opt_key)->value);
-		}
-        else if (opt_key == "display_orientation") {
-            ret  = static_cast<int>(config.option<ConfigOptionEnum<SLADisplayOrientation>>(opt_key)->value);
-        }
-        else if (opt_key == "support_pillar_connection_mode") {
-            ret  = static_cast<int>(config.option<ConfigOptionEnum<SLAPillarConnectionMode>>(opt_key)->value);
-        }
-        else if (opt_key == "printhost_authorization_type") {
-            ret  = static_cast<int>(config.option<ConfigOptionEnum<AuthorizationType>>(opt_key)->value);
-        }
-        else if (opt_key == "brim_type") {
-            ret  = static_cast<int>(config.option<ConfigOptionEnum<BrimType>>(opt_key)->value);
-		}
-	}
+	case coEnum:
+        ret = config.option(opt_key)->getInt();
 		break;
 	case coPoints:
 		if (opt_key == "bed_shape")

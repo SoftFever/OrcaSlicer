@@ -986,18 +986,17 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
     return true;
 }
 
-template<class T>
 wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConfig& config, bool is_infill = false)
 {
     const ConfigOptionDef& def = config.def()->options.at(opt_key);
     const std::vector<std::string>& names = def.enum_labels;//ConfigOptionEnum<T>::get_enum_names();
-    T val = config.option<ConfigOptionEnum<T>>(opt_key)->value;
+    int val = config.option(opt_key)->getInt();
 
     // Each infill doesn't use all list of infill declared in PrintConfig.hpp.
     // So we should "convert" val to the correct one
     if (is_infill) {
         for (auto key_val : *def.enum_keys_map)
-            if ((int)key_val.second == (int)val) {
+            if (int(key_val.second) == val) {
                 auto it = std::find(def.enum_values.begin(), def.enum_values.end(), key_val.first);
                 if (it == def.enum_values.end())
                     return "";
@@ -1005,7 +1004,7 @@ wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConf
             }
         return _L("Undef");
     }
-    return from_u8(_utf8(names[static_cast<int>(val)]));
+    return from_u8(_utf8(names[val]));
 }
 
 static size_t get_id_from_opt_key(std::string opt_key)
@@ -1128,27 +1127,10 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         return out;
     }
     case coEnum: {
-        if (opt_key == "top_fill_pattern" ||
+        return get_string_from_enum(opt_key, config, 
+            opt_key == "top_fill_pattern" ||
             opt_key == "bottom_fill_pattern" ||
-            opt_key == "fill_pattern")
-            return get_string_from_enum<InfillPattern>(opt_key, config, true);
-        if (opt_key == "gcode_flavor")
-            return get_string_from_enum<GCodeFlavor>(opt_key, config);
-        if (opt_key == "machine_limits_usage")
-            return get_string_from_enum<MachineLimitsUsage>(opt_key, config);
-        if (opt_key == "ironing_type")
-            return get_string_from_enum<IroningType>(opt_key, config);
-        if (opt_key == "support_material_pattern")
-            return get_string_from_enum<SupportMaterialPattern>(opt_key, config);
-        if (opt_key == "seam_position")
-            return get_string_from_enum<SeamPosition>(opt_key, config);
-        if (opt_key == "display_orientation")
-            return get_string_from_enum<SLADisplayOrientation>(opt_key, config);
-        if (opt_key == "support_pillar_connection_mode")
-            return get_string_from_enum<SLAPillarConnectionMode>(opt_key, config);
-        if (opt_key == "brim_type")
-            return get_string_from_enum<BrimType>(opt_key, config);
-        break;
+            opt_key == "fill_pattern");
     }
     case coPoints: {
         if (opt_key == "bed_shape") {

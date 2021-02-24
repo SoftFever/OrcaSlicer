@@ -65,6 +65,10 @@ enum SupportMaterialPattern {
     smpRectilinear, smpRectilinearGrid, smpHoneycomb,
 };
 
+enum SupportMaterialInterfacePattern {
+    smipAuto, smipRectilinear, smipConcentric,
+};
+
 enum SeamPosition {
     spRandom, spNearest, spAligned, spRear
 };
@@ -203,6 +207,16 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialPa
         keys_map["rectilinear"]         = smpRectilinear;
         keys_map["rectilinear-grid"]    = smpRectilinearGrid;
         keys_map["honeycomb"]           = smpHoneycomb;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialInterfacePattern>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["auto"]                = smipAuto;
+        keys_map["rectilinear"]         = smipRectilinear;
+        keys_map["concentric"]          = smipConcentric;
     }
     return keys_map;
 }
@@ -499,6 +513,7 @@ public:
     ConfigOptionFloat               support_material_interface_spacing;
     ConfigOptionFloatOrPercent      support_material_interface_speed;
     ConfigOptionEnum<SupportMaterialPattern> support_material_pattern;
+    ConfigOptionEnum<SupportMaterialPattern> support_material_interface_pattern;
     // Spacing between support material lines (the hatching distance).
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
@@ -547,6 +562,7 @@ protected:
         OPT_PTR(support_material_interface_spacing);
         OPT_PTR(support_material_interface_speed);
         OPT_PTR(support_material_pattern);
+        OPT_PTR(support_material_interface_pattern);
         OPT_PTR(support_material_spacing);
         OPT_PTR(support_material_speed);
         OPT_PTR(support_material_synchronize_layers);

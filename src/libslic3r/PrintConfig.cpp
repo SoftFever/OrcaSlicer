@@ -2341,6 +2341,22 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear));
 
+    def = this->add("support_material_interface_pattern", coEnum);
+    def->label = L("Interface pattern");
+    def->category = L("Support material");
+    def->tooltip = L("Pattern used to generate support material interface. "
+                     "Default pattern for non-soluble support interface is Rectilinear, "
+                     "while default pattern for soluble support interface is Concentric.");
+    def->enum_keys_map = &ConfigOptionEnum<SupportMaterialInterfacePattern>::get_enum_values();
+    def->enum_values.push_back("auto");
+    def->enum_values.push_back("rectilinear");
+    def->enum_values.push_back("concentric");
+    def->enum_labels.push_back(L("Default"));
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Concentric"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear));
+
     def = this->add("support_material_spacing", coFloat);
     def->label = L("Pattern spacing");
     def->category = L("Support material");
