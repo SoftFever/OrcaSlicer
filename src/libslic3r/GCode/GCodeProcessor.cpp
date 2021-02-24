@@ -970,7 +970,7 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
         if (m_producer == EProducer::PrusaSlicer || m_producer == EProducer::Slic3rPE || m_producer == EProducer::Slic3r) {
             DynamicPrintConfig config;
             config.apply(FullPrintConfig::defaults());
-            config.load_from_gcode_file(filename);
+            config.load_from_gcode_file(filename, false);
             apply_config(config);
         }
     }

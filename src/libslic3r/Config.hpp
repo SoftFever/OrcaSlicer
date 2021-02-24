@@ -1791,7 +1791,7 @@ public:
     void setenv_() const;
     void load(const std::string &file);
     void load_from_ini(const std::string &file);
-    void load_from_gcode_file(const std::string &file);
+    void load_from_gcode_file(const std::string& file, bool check_header = true);
     // Returns number of key/value pairs extracted.
     size_t load_from_gcode_string(const char* str);
     void load(const boost::property_tree::ptree &tree);
