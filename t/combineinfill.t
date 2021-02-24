@@ -43,9 +43,11 @@ plan tests => 8;
         my $layers_with_infill = grep $_ > 0,  values %layer_infill;
         is scalar(keys %layers), $layers_with_perimeters+$config->raft_layers, 'expected number of layers';
         
-        # first infill layer is never combined, so we don't consider it
-        $layers_with_infill--;
-        $layers_with_perimeters--;
+        if ($config->raft_layers == 0) {
+            # first infill layer printed directly on print bed is not combined, so we don't consider it.
+            $layers_with_infill--;
+            $layers_with_perimeters--;
+        }
         
         # we expect that infill is generated for half the number of combined layers
         # plus for each single layer that was not combined (remainder)
