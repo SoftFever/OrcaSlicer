@@ -1371,8 +1371,13 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                 if (layer_id == 0) {
                     // This is the first object layer, so the object is being printed on a raft and
                     // we're here just to get the object footprint for the raft.
-                    // We only consider contours and discard holes to get a more continuous raft.
+#if 0
+                    // The following line was filling excessive holes in the raft, see GH #430
                     overhang_polygons = collect_slices_outer(layer);
+#else
+                    // Don't fill in the holes. The user may apply a higher raft_expansion if one wants a better 1st layer adhesion.
+                    overhang_polygons = to_polygons(layer.lslices);
+#endif
                     // Expand for better stability.
                     contact_polygons = offset(overhang_polygons, scaled<float>(m_object_config->raft_expansion.value));
                 } else {
