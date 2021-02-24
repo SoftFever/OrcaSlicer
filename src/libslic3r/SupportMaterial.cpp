@@ -2643,9 +2643,18 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
         }
     } else if (columns_base != nullptr) {
         // Expand the bases of the support columns in the 1st layer.
-        columns_base->polygons = diff(
-            inflate_factor_1st_layer > 0 ? offset(columns_base->polygons, inflate_factor_1st_layer) : columns_base->polygons,
-            offset(m_object->layers().front()->lslices, (float)scale_(m_gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+        {
+            Polygons &raft     = columns_base->polygons;
+            Polygons  trimming = offset(m_object->layers().front()->lslices, (float)scale_(m_gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            if (inflate_factor_1st_layer > SCALED_EPSILON) {
+                // Inflate in multiple steps to avoid leaking of the support 1st layer through object walls.
+                auto  nsteps = std::max(5, int(ceil(inflate_factor_1st_layer / m_first_layer_flow.scaled_width())));
+                float step   = inflate_factor_1st_layer / nsteps;
+                for (int i = 0; i < nsteps; ++ i)
+                    raft = diff(offset(raft, step), trimming);
+            } else
+                raft = diff(raft, trimming);
+        }
         if (contacts != nullptr)
             columns_base->polygons = diff(columns_base->polygons, interface_polygons);
         if (! brim.empty()) {
