@@ -3834,7 +3834,7 @@ bool Tab::validate_custom_gcodes()
 {
     bool valid = true;
     if ((m_type == Preset::TYPE_FILAMENT || 
-        m_type == Preset::TYPE_PRINTER && static_cast<TabPrinter*>(this)->m_printer_technology == ptFFF) &&
+        (m_type == Preset::TYPE_PRINTER && static_cast<TabPrinter*>(this)->m_printer_technology == ptFFF)) &&
         m_active_page->title() == "Custom G-code") {
             for (auto opt_group : m_active_page->m_optgroups) {
                 assert(opt_group->opt_map().size() == 1);

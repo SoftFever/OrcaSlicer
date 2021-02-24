@@ -513,7 +513,7 @@ public:
     ConfigOptionFloat               support_material_interface_spacing;
     ConfigOptionFloatOrPercent      support_material_interface_speed;
     ConfigOptionEnum<SupportMaterialPattern> support_material_pattern;
-    ConfigOptionEnum<SupportMaterialPattern> support_material_interface_pattern;
+    ConfigOptionEnum<SupportMaterialInterfacePattern> support_material_interface_pattern;
     // Spacing between support material lines (the hatching distance).
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
