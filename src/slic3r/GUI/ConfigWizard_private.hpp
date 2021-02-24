@@ -518,6 +518,8 @@ private:
     ssize_t item_hover;
     size_t last_page;
 
+    int logo_height;
+
     int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em_w) + em_w; }
 
     void on_paint(wxPaintEvent &evt);
