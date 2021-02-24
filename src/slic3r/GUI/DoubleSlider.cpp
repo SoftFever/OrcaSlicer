@@ -1973,6 +1973,27 @@ static void upgrade_text_entry_dialog(wxTextEntryDialog* dlg, double min = -1.0,
     }, btn_OK->GetId());
 }
 
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+static bool validate_custom_gcode(const std::string& gcode, const wxString& title)
+{
+    std::vector<std::string> tags;
+    bool invalid = GCodeProcessor::contains_reserved_tags(gcode, 5, tags);
+    if (invalid) {
+        wxString reports = _L_PLURAL("The following line", "The following lines", tags.size());
+        reports += ":\n";
+        for (const std::string& keyword : tags) {
+            reports += ";" + keyword + "\n";
+        }
+        reports += _L("contain reserved keywords.") + "\n";
+        reports += _L("Please remove them, as they may cause problems in g-code visualization and printing time estimation.");
+
+        wxMessageDialog dialog(nullptr, reports, _L("Found reserved keywords in") + " " + title, wxICON_WARNING | wxOK);
+        dialog.ShowModal();
+    }
+    return !invalid;
+}
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+
 static std::string get_custom_code(const std::string& code_in, double height)
 {
     wxString msg_text = _L("Enter custom G-code used on current layer") + ":";
@@ -1983,10 +2004,23 @@ static std::string get_custom_code(const std::string& code_in, double height)
         wxTextEntryDialogStyle | wxTE_MULTILINE);
     upgrade_text_entry_dialog(&dlg);
 
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+    bool valid = true;
+    std::string value;
+    do {
+        if (dlg.ShowModal() != wxID_OK)
+            return "";
+
+        value = dlg.GetValue().ToStdString();
+        valid = validate_custom_gcode(value, _L("Custom G-code"));
+    } while (!valid);
+    return value;
+#else
     if (dlg.ShowModal() != wxID_OK)
         return "";
 
     return dlg.GetValue().ToStdString();
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 }
 
 static std::string get_pause_print_msg(const std::string& msg_in, double height)
