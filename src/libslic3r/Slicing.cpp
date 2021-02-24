@@ -111,7 +111,7 @@ SlicingParameters SlicingParameters::create_from_config(
     params.max_layer_height = std::max(params.max_layer_height, params.layer_height);
 
     if (! soluble_interface) {
-        params.gap_raft_object    = object_config.support_material_contact_distance.value;
+        params.gap_raft_object    = object_config.raft_contact_distance.value;
         params.gap_object_support = object_config.support_material_contact_distance.value;
         params.gap_support_object = object_config.support_material_contact_distance.value;
     }
@@ -122,27 +122,9 @@ SlicingParameters SlicingParameters::create_from_config(
         // Use as large as possible layer height for the intermediate raft layers.
         params.base_raft_layer_height       = std::max(params.layer_height, 0.75 * support_material_extruder_dmr);
         params.interface_raft_layer_height  = std::max(params.layer_height, 0.75 * support_material_interface_extruder_dmr);
-        params.contact_raft_layer_height_bridging = false;
         params.first_object_layer_bridging  = false;
-        #if 1
         params.contact_raft_layer_height    = std::max(params.layer_height, 0.75 * support_material_interface_extruder_dmr);
-        if (! soluble_interface) {
-            // Compute the average of all nozzles used for printing the object over a raft.
-            //FIXME It is expected, that the 1st layer of the object is printed with a bridging flow over a full raft. Shall it not be vice versa?
-            coordf_t average_object_extruder_dmr = 0.;
-            if (! object_extruders.empty()) {
-                for (unsigned int extruder_id : object_extruders)
-                    average_object_extruder_dmr += print_config.nozzle_diameter.get_at(extruder_id);
-                average_object_extruder_dmr /= coordf_t(object_extruders.size());
-            }
-            params.first_object_layer_height   = average_object_extruder_dmr;
-            params.first_object_layer_bridging = true;
-        }
-        #else
-        params.contact_raft_layer_height    = soluble_interface ? support_material_interface_extruder_dmr : 0.75 * support_material_interface_extruder_dmr;
-        params.contact_raft_layer_height_bridging = ! soluble_interface;
-        ...
-        #endif
+        params.first_object_layer_height    = params.layer_height;
     }
 
     if (params.has_raft()) {
@@ -150,8 +132,8 @@ SlicingParameters SlicingParameters::create_from_config(
         //FIXME The last raft layer is the contact layer, which shall be printed with a bridging flow for ease of separation. Currently it is not the case.
 		if (params.raft_layers() == 1) {
             // There is only the contact layer.
-			params.contact_raft_layer_height = first_layer_height;
-            params.raft_contact_top_z = first_layer_height;
+            params.contact_raft_layer_height = first_layer_height;
+            params.raft_contact_top_z        = first_layer_height;
 		} else {
             assert(params.base_raft_layers > 0);
             assert(params.interface_raft_layers > 0);

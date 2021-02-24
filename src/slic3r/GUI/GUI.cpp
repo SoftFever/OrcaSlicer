@@ -36,7 +36,7 @@ void disable_screensaver()
     #if __APPLE__
     CFStringRef reasonForActivity = CFSTR("Slic3r");
     [[maybe_unused]]IOReturn success = IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep,
-        kIOPMAssertionLevelOn, reasonForActivity, &assertionID); 
+        kIOPMAssertionLevelOn, reasonForActivity, &assertionID);
     // ignore result: success == kIOReturnSuccess
     #elif _WIN32
     SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_CONTINUOUS);
@@ -71,7 +71,7 @@ void break_to_debugger()
 
 const std::string& shortkey_ctrl_prefix()
 {
-	static const std::string str = 
+	static const std::string str =
 #ifdef __APPLE__
 		"⌘"
 #else
@@ -83,7 +83,7 @@ const std::string& shortkey_ctrl_prefix()
 
 const std::string& shortkey_alt_prefix()
 {
-	static const std::string str = 
+	static const std::string str =
 #ifdef __APPLE__
 		"⌥"
 #else
@@ -132,13 +132,13 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			ConfigOptionFloats* vec_new = new ConfigOptionFloats{ boost::any_cast<double>(value) };
 			config.option<ConfigOptionFloats>(opt_key)->set_at(vec_new, opt_index, opt_index);
  			break;
-		}			
+		}
 		case coString:
 			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
 			break;
 		case coStrings:{
 			if (opt_key == "compatible_prints" || opt_key == "compatible_printers") {
-				config.option<ConfigOptionStrings>(opt_key)->values = 
+				config.option<ConfigOptionStrings>(opt_key)->values =
 					boost::any_cast<std::vector<std::string>>(value);
 			}
 			else if (config.def()->get(opt_key)->gui_flags.compare("serialized") == 0) {
@@ -179,15 +179,15 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			if (opt_key == "top_fill_pattern" ||
 				opt_key == "bottom_fill_pattern" ||
 				opt_key == "fill_pattern")
-				config.set_key_value(opt_key, new ConfigOptionEnum<InfillPattern>(boost::any_cast<InfillPattern>(value))); 
+				config.set_key_value(opt_key, new ConfigOptionEnum<InfillPattern>(boost::any_cast<InfillPattern>(value)));
 			else if (opt_key.compare("ironing_type") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<IroningType>(boost::any_cast<IroningType>(value))); 
 			else if (opt_key.compare("fuzzy_skin") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<FuzzySkinType>(boost::any_cast<FuzzySkinType>(value))); 
 			else if (opt_key.compare("gcode_flavor") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<GCodeFlavor>(boost::any_cast<GCodeFlavor>(value))); 
+				config.set_key_value(opt_key, new ConfigOptionEnum<GCodeFlavor>(boost::any_cast<GCodeFlavor>(value)));
 			else if (opt_key.compare("machine_limits_usage") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<MachineLimitsUsage>(boost::any_cast<MachineLimitsUsage>(value))); 
+				config.set_key_value(opt_key, new ConfigOptionEnum<MachineLimitsUsage>(boost::any_cast<MachineLimitsUsage>(value)));
 			else if (opt_key.compare("support_material_pattern") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialPattern>(boost::any_cast<SupportMaterialPattern>(value)));
 			else if (opt_key.compare("seam_position") == 0)

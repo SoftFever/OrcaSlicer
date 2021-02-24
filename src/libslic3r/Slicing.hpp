@@ -55,7 +55,6 @@ struct SlicingParameters
     coordf_t    base_raft_layer_height;
     coordf_t    interface_raft_layer_height;
     coordf_t    contact_raft_layer_height;
-    bool        contact_raft_layer_height_bridging;
 
 	// The regular layer height, applied for all but the first layer, if not overridden by layer ranges
 	// or by the variable layer thickness table.
@@ -110,7 +109,6 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
             sp1.base_raft_layer_height              == sp2.base_raft_layer_height               &&
             sp1.interface_raft_layer_height         == sp2.interface_raft_layer_height          &&
             sp1.contact_raft_layer_height           == sp2.contact_raft_layer_height            &&
-            sp1.contact_raft_layer_height_bridging  == sp2.contact_raft_layer_height_bridging   &&
             sp1.layer_height                        == sp2.layer_height                         &&
             sp1.min_layer_height                    == sp2.min_layer_height                     &&
             sp1.max_layer_height                    == sp2.max_layer_height                     &&
