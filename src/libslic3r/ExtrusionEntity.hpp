@@ -7,6 +7,7 @@
 
 #include <assert.h>
 #include <string_view>
+#include <numeric>
 
 namespace Slic3r {
 
