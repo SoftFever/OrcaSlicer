@@ -28,6 +28,8 @@ bool    instance_check(int argc, char** argv, bool app_config_single_instance);
 // apple implementation of inner functions of instance_check
 // in InstanceCheckMac.mm
 void    send_message_mac(const std::string& msg, const std::string& version);
+void    send_message_mac_closing(const std::string& msg, const std::string& version);
+
 
 bool unlock_lockfile(const std::string& name, const std::string& path);
 #endif //__APPLE__
@@ -66,6 +68,10 @@ public:
 	//						mac - anybody who posts notification with name:@"OtherPrusaSlicerTerminating"
 	//						linux - instrospectable on dbus
 	void           handle_message(const std::string& message);
+#ifdef __APPLE__
+	// Messege form other instance, that it deleted its lockfile - first instance to get it will create its own.
+	void           handle_message_other_closed();
+#endif //__APPLE__
 #ifdef _WIN32
 	static void    init_windows_properties(MainFrame* main_frame, size_t instance_hash);
 #endif //WIN32
