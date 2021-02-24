@@ -572,6 +572,33 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Generating tool paths";
 
+#if 0 // #ifdef SLIC3R_DEBUG
+    {
+        size_t layer_id = 0;
+        for (int i = 0; i < int(layers_sorted.size());) {
+            // Find the last layer with roughly the same print_z, find the minimum layer height of all.
+            // Due to the floating point inaccuracies, the print_z may not be the same even if in theory they should.
+            int j = i + 1;
+            coordf_t zmax = layers_sorted[i]->print_z + EPSILON;
+            bool empty = true;
+            for (; j < layers_sorted.size() && layers_sorted[j]->print_z <= zmax; ++j)
+                if (!layers_sorted[j]->polygons.empty())
+                    empty = false;
+            if (!empty) {
+                export_print_z_polygons_to_svg(
+                    debug_out_path("support-%d-%lf-before.svg", iRun, layers_sorted[i]->print_z).c_str(),
+                    layers_sorted.data() + i, j - i);
+                export_print_z_polygons_and_extrusions_to_svg(
+                    debug_out_path("support-w-fills-%d-%lf-before.svg", iRun, layers_sorted[i]->print_z).c_str(),
+                    layers_sorted.data() + i, j - i,
+                    *object.support_layers()[layer_id]);
+                ++layer_id;
+            }
+            i = j;
+        }
+    }
+#endif /* SLIC3R_DEBUG */
+
     // Generate the actual toolpaths and save them into each layer.
     this->generate_toolpaths(object.support_layers(), raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
@@ -3657,21 +3684,23 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     top_contact_layer.merge(std::move(interface_layer));
             } 
 
+#if 0
             if ( ! interface_layer.empty() && ! base_layer.empty()) {
                 // turn base support into interface when it's contained in our holes
                 // (this way we get wider interface anchoring)
-                //FIXME one wants to fill in the inner most holes of the interfaces, not all the holes.
+                //FIXME The intention of the code below is unclear. One likely wanted to just merge small islands of base layers filling in the holes
+                // inside interface layers, but the code below fills just too much, see GH #4570
                 Polygons islands = top_level_islands(interface_layer.layer->polygons);
                 polygons_append(interface_layer.layer->polygons, intersection(base_layer.layer->polygons, islands));
                 base_layer.layer->polygons = diff(base_layer.layer->polygons, islands);
             }
+#endif
 
             // Top and bottom contacts, interface layers.
             for (size_t i = 0; i < 3; ++ i) {
                 MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? bottom_contact_layer : interface_layer);
                 if (layer_ex.empty() || layer_ex.polygons_to_extrude().empty())
                     continue;
-                //FIXME When paralellizing, each thread shall have its own copy of the fillers.
                 bool interface_as_base = (&layer_ex == &interface_layer) && m_object_config->support_material_interface_layers.value == 0;
                 //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
