@@ -9,6 +9,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "GUI_Utils.hpp"
+#include "MsgDialog.hpp"
 
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -324,6 +325,15 @@ double Control::get_double_value(const SelectedSlider& selection)
     return m_values[selection == ssLower ? m_lower_value : m_higher_value];
 }
 
+int Control::get_tick_from_value(double value)
+{
+    auto it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
+
+    if (it == m_values.end())
+        return -1;
+    return int(it - m_values.begin());
+}
+
 Info Control::GetTicksValues() const
 {
     Info custom_gcode_per_print_z;
@@ -355,12 +365,9 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
     m_ticks.ticks.clear();
     const std::vector<CustomGCode::Item>& heights = custom_gcode_per_print_z.gcodes;
     for (auto h : heights) {
-        auto it = std::lower_bound(m_values.begin(), m_values.end(), h.print_z - epsilon());
-
-        if (it == m_values.end())
-            continue;
-
-        m_ticks.ticks.emplace(TickCode{int(it-m_values.begin()), h.type, h.extruder, h.color, h.extra});
+        int tick = get_tick_from_value(h.print_z);
+        if (tick >=0)
+            m_ticks.ticks.emplace(TickCode{ tick, h.type, h.extruder, h.color, h.extra });
     }
     
     if (!was_empty && m_ticks.empty())
@@ -1892,7 +1899,60 @@ void Control::show_cog_icon_context_menu()
         append_menu_item(&menu, wxID_ANY, _L("Set extruder sequence for the entire print"), "",
             [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
 
+    if (m_mode != MultiExtruder && m_draw_mode == dmRegular)
+        append_menu_item(&menu, wxID_ANY, _L("Set auto color changes"), "",
+            [this](wxCommandEvent&) { auto_color_change(); }, "", &menu);
+
     GUI::wxGetApp().plater()->PopupMenu(&menu);
+}
+
+void Control::auto_color_change()
+{
+    if (!m_ticks.empty()) {
+        wxString msg_text = _L("This action will cause deletion of all ticks on vertical slider.") + "\n\n" +
+                            _L("This action is not revertible.\nDo you want to proceed?");
+        GUI::WarningDialog dialog(m_parent, msg_text, _L("Warning"), wxYES | wxNO);
+        if (dialog.ShowModal() == wxID_NO)
+            return;    
+        m_ticks.ticks.clear();
+    }
+
+    int extruders_cnt = GUI::wxGetApp().extruders_edited_cnt();
+    int extruder = 2;
+
+    const Print& print = GUI::wxGetApp().plater()->fff_print();  
+    double delta_area = scale_(scale_(25)); // equal to 25 mm2
+
+    for (auto object : print.objects()) {
+        double prev_area = area(object->get_layer(0)->lslices);
+
+        for (size_t i = 1; i < object->layers().size(); i++) {
+            Layer* layer = object->get_layer(i);
+            double cur_area = area(layer->lslices);
+
+            if (prev_area - cur_area > delta_area) {
+                int tick = get_tick_from_value(layer->print_z);
+                if (tick >= 0 && !m_ticks.has_tick(tick)) {
+                    if (m_mode == SingleExtruder) {
+                        m_ticks.set_default_colors(true);
+                        m_ticks.add_tick(tick, ColorChange, 1, layer->print_z);
+                    }
+                    else {
+                        m_ticks.add_tick(tick, ToolChange, extruder, layer->print_z);
+                        if (++extruder > extruders_cnt)
+                            extruder = 1;
+                    }
+                }
+            }
+
+            prev_area = cur_area;
+        }
+    }
+
+    if (m_ticks.empty())
+        GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::EmptyAutoColorChange);
+
+    post_ticks_changed_event();
 }
 
 void Control::OnRightUp(wxMouseEvent& event)
@@ -2234,12 +2294,9 @@ void Control::edit_extruder_sequence()
             extruder = 0;
         if (m_extruders_sequence.is_mm_intervals) {
             value += m_extruders_sequence.interval_by_mm;
-            auto val_it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
-
-            if (val_it == m_values.end())
+            tick = get_tick_from_value(value);
+            if (tick < 0)
                 break;
-
-            tick = val_it - m_values.begin();
         }
         else
             tick += m_extruders_sequence.interval_by_layers;
@@ -2255,8 +2312,7 @@ void Control::jump_to_value()
     if (value < 0.0)
         return;
 
-    auto it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
-    int tick_value = it - m_values.begin();
+    int tick_value = get_tick_from_value(value);
 
     if (m_selection == ssLower)
         SetLowerValue(tick_value);
@@ -2473,6 +2529,11 @@ bool TickCodeInfo::has_tick_with_code(Type type)
             return true;
 
     return false;
+}
+
+bool TickCodeInfo::has_tick(int tick)
+{
+    return ticks.find(TickCode{ tick }) != ticks.end();
 }
 
 ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, Mode out_mode, int only_extruder, double print_z)

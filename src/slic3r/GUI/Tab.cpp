@@ -1264,7 +1264,7 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
             	msg_text += _(L("Modifications to the current profile will be saved."));
             }
             msg_text += "\n\n";
-            msg_text += _(L("This action is not revertable.\nDo you want to proceed?"));
+            msg_text += _(L("This action is not revertible.\nDo you want to proceed?"));
 
             wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
             if (dialog.ShowModal() == wxID_YES)

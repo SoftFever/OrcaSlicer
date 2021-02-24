@@ -69,7 +69,9 @@ enum class NotificationType
 	// Notification, when Color Change G-code is empty and user try to add color change on DoubleSlider.
     EmptyColorChangeCode,
     // Notification that custom supports/seams were deleted after mesh repair.
-    CustomSupportsAndSeamRemovedAfterRepair
+    CustomSupportsAndSeamRemovedAfterRepair,
+    // Notification that auto adding of color changes is impossible
+	EmptyAutoColorChange
 };
 
 class NotificationManager
@@ -437,6 +439,8 @@ private:
 		{NotificationType::EmptyColorChangeCode, NotificationLevel::RegularNotification, 10,  
 			_u8L("You have just added a G-code for color change, but its value is empty.\n"
 				 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
+		{NotificationType::EmptyAutoColorChange, NotificationLevel::RegularNotification, 10,  
+			_u8L("This model doesn't allow to automatically add the color changes") },
 		//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
 		//{NotificationType::LoadingFailed, NotificationLevel::RegularNotification, 20,  _u8L("Loading of model has Failed") },
 		//{NotificationType::DeviceEjected, NotificationLevel::RegularNotification, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
