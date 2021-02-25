@@ -17,8 +17,6 @@ class LayerTools;
 namespace CustomGCode { struct Item; }
 class PrintRegion;
 
-
-
 // Object of this class holds information about whether an extrusion is printed immediately
 // after a toolchange (as part of infill/perimeter wiping) or not. One extrusion can be a part
 // of several copies - this has to be taken into account.
@@ -69,8 +67,6 @@ private:
     const LayerTools* m_layer_tools = nullptr;    // so we know which LayerTools object this belongs to
 };
 
-
-
 class LayerTools
 {
 public:
@@ -99,6 +95,9 @@ public:
     // If per layer extruder switches are inserted by the G-code preview slider, this value contains the new (1 based) extruder, with which the whole object layer is being printed with.
     // If not overriden, it is set to 0.
     unsigned int 				extruder_override = 0;
+    // Should a skirt be printed at this layer?
+    // Layers are marked for infinite skirt aka draft shield. Not all the layers have to be printed.
+    bool                        has_skirt = false;
     // Will there be anything extruded on this layer for the wipe tower?
     // Due to the support layers possibly interleaving the object layers,
     // wipe tower will be disabled for some support only layers.
@@ -120,12 +119,10 @@ private:
     WipingExtrusions m_wiping_extrusions;
 };
 
-
-
 class ToolOrdering
 {
 public:
-    ToolOrdering() {}
+    ToolOrdering() = default;
 
     // For the use case when each object is printed separately
     // (print.config.complete_objects is true).
@@ -169,6 +166,7 @@ private:
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
     void				reorder_extruders(unsigned int last_extruder_id);
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
+    void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
 
     std::vector<LayerTools>    m_layer_tools;
@@ -181,8 +179,6 @@ private:
 
     const PrintConfig*         m_print_config_ptr = nullptr;
 };
-
-
 
 } // namespace SLic3r
 

@@ -70,6 +70,20 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
 	return (extruder == 0) ? 0 : extruder - 1;
 }
 
+static double calc_max_layer_height(const PrintConfig &config, double max_object_layer_height)
+{
+    double max_layer_height = std::numeric_limits<double>::max();
+    for (size_t i = 0; i < config.nozzle_diameter.values.size(); ++ i) {
+        double mlh = config.max_layer_height.values[i];
+        if (mlh == 0.)
+            mlh = 0.75 * config.nozzle_diameter.values[i];
+        max_layer_height = std::min(max_layer_height, mlh);
+    }
+    // The Prusa3D Fast (0.35mm layer height) print profile sets a higher layer height than what is normally allowed
+    // by the nozzle. This is a hack and it works by increasing extrusion width. See GH #3919.
+    return std::max(max_layer_height, max_object_layer_height);
+}
+
 // For the use case when each object is printed separately
 // (print.config().complete_objects is true).
 ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
@@ -87,6 +101,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
             zs.emplace_back(layer->print_z);
         this->initialize_layers(zs);
     }
+    double max_layer_height = calc_max_layer_height(object.print()->config(), object.config().layer_height);
 
     // Collect extruders reuqired to print the layers.
     this->collect_extruders(object, std::vector<std::pair<double, unsigned int>>());
@@ -94,9 +109,11 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
 
-    this->fill_wipe_tower_partitions(object.print()->config(), object.layers().front()->print_z - object.layers().front()->height, object.config().layer_height);
+    this->fill_wipe_tower_partitions(object.print()->config(), object.layers().front()->print_z - object.layers().front()->height, max_layer_height);
 
     this->collect_extruder_statistics(prime_multi_material);
+
+    this->mark_skirt_layers(object.print()->config(), max_layer_height);
 }
 
 // For the use case when all objects are printed at once.
@@ -128,6 +145,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
         }
         this->initialize_layers(zs);
     }
+    max_layer_height = calc_max_layer_height(print.config(), max_layer_height);
 
 	// Use the extruder switches from Model::custom_gcode_per_print_z to override the extruder to print the object.
 	// Do it only if all the objects were configured to be printed with a single extruder.
@@ -150,6 +168,8 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     this->fill_wipe_tower_partitions(print.config(), object_bottom_z, max_layer_height);
 
     this->collect_extruder_statistics(prime_multi_material);
+
+    this->mark_skirt_layers(print.config(), max_layer_height);
 }
 
 void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
@@ -321,7 +341,7 @@ void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
         }    
 }
 
-void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_object_layer_height)
+void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height)
 {
     if (m_layer_tools.empty())
         return;
@@ -347,17 +367,6 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
         lt.has_wipe_tower = (lt.has_object && lt.wipe_tower_partitions > 0) || lt.print_z < object_bottom_z + EPSILON;
 
     // Test for a raft, insert additional wipe tower layer to fill in the raft separation gap.
-    double max_layer_height = std::numeric_limits<double>::max();
-    for (size_t i = 0; i < config.nozzle_diameter.values.size(); ++ i) {
-        double mlh = config.max_layer_height.values[i];
-        if (mlh == 0.)
-            mlh = 0.75 * config.nozzle_diameter.values[i];
-        max_layer_height = std::min(max_layer_height, mlh);
-    }
-    // The Prusa3D Fast (0.35mm layer height) print profile sets a higher layer height than what is normally allowed
-    // by the nozzle. This is a hack and it works by increasing extrusion width. See GH #3919.
-    max_layer_height = std::max(max_layer_height, max_object_layer_height);
-
     for (size_t i = 0; i + 1 < m_layer_tools.size(); ++ i) {
         const LayerTools &lt      = m_layer_tools[i];
         const LayerTools &lt_next = m_layer_tools[i + 1];
@@ -457,6 +466,48 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
             m_all_printing_extruders.end());
         m_all_printing_extruders.emplace_back(m_first_printing_extruder);
         m_first_printing_extruder = m_all_printing_extruders.front();
+    }
+}
+
+// Layers are marked for infinite skirt aka draft shield. Not all the layers have to be printed.
+void ToolOrdering::mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height)
+{
+    if (m_layer_tools.empty())
+        return;
+
+    if (m_layer_tools.front().extruders.empty()) {
+        // Empty first layer, no skirt will be printed.
+        //FIXME throw an exception?
+        return;
+    }
+
+    size_t i = 0;
+    for (;;) {
+        m_layer_tools[i].has_skirt = true;
+        size_t j = i + 1;
+        for (; j < m_layer_tools.size() && ! m_layer_tools[j].has_object; ++ j);
+        // i and j are two successive layers printing an object.
+        if (j == m_layer_tools.size())
+            // Don't print skirt above the last object layer.
+            break;
+        // Mark some printing intermediate layers as having skirt.
+        double last_z = m_layer_tools[i].print_z;
+        for (size_t k = i + 1; k < j; ++ k) {
+            if (m_layer_tools[k + 1].print_z - last_z > max_layer_height + EPSILON) {
+                // Layer k is the last one not violating the maximum layer height.
+                // Don't extrude skirt on empty layers.
+                while (m_layer_tools[k].extruders.empty())
+                    -- k;
+                if (m_layer_tools[k].has_skirt) {
+                    // Skirt cannot be generated due to empty layers, there would be a missing layer in the skirt.
+                    //FIXME throw an exception?
+                    break;
+                }
+                m_layer_tools[k].has_skirt = true;
+                last_z = m_layer_tools[k].print_z;
+            }
+        }
+        i = j;
     }
 }
 
