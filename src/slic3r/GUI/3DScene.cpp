@@ -39,12 +39,11 @@
 #ifdef HAS_GLSAFE
 void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char* function_name)
 {
-#if defined(NDEBUG) && ENABLE_OPENGL_ERROR_LOGGING
-    // In release mode, if OpenGL debugging was forced by ENABLE_OPENGL_ERROR_LOGGING, only show
-    // OpenGL errors if sufficiently high loglevel.
+#if defined(NDEBUG)
+    // In release mode, only show OpenGL errors if sufficiently high loglevel.
     if (Slic3r::get_logging_level() < 5)
         return;
-#endif // ENABLE_OPENGL_ERROR_LOGGING
+#endif // NDEBUG
 
     GLenum err = glGetError();
     if (err == GL_NO_ERROR)

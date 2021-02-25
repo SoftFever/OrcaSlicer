@@ -49,9 +49,6 @@
 // Enable smoothing of objects normals
 #define ENABLE_SMOOTH_NORMALS (0 && ENABLE_2_3_0_ALPHA1)
 
-// Enable error logging for OpenGL calls when SLIC3R_LOGLEVEL >= 5
-#define ENABLE_OPENGL_ERROR_LOGGING (1 && ENABLE_2_3_0_ALPHA1)
-
 
 //====================
 // 2.3.0.alpha3 techs
