@@ -121,23 +121,26 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_suppress_change = false; });
     Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_suppress_change = true;  });
 
-    Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
-        // see https://github.com/prusa3d/PrusaSlicer/issues/3889
-        // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
-        // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
-        // So, use GetSelection() from event parameter 
-        auto selected_item = evt.GetSelection();
+    Bind(wxEVT_COMBOBOX, &PresetComboBox::OnSelect, this);
+}
 
-        auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX)
-            this->SetSelection(this->m_last_selected);
-        else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
-            m_last_selected = selected_item;
-            on_selection_changed(selected_item);
-            evt.StopPropagation();
-        }
-        evt.Skip();
-    });
+void PresetComboBox::OnSelect(wxCommandEvent& evt)
+{
+    // see https://github.com/prusa3d/PrusaSlicer/issues/3889
+    // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
+    // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
+    // So, use GetSelection() from event parameter 
+    auto selected_item = evt.GetSelection();
+
+    auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
+    if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX)
+        this->SetSelection(this->m_last_selected);
+    else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
+        m_last_selected = selected_item;
+        on_selection_changed(selected_item);
+        evt.StopPropagation();
+    }
+    evt.Skip();
 }
 
 PresetComboBox::~PresetComboBox()
@@ -602,34 +605,6 @@ void PresetComboBox::OnDrawItem(wxDC& dc,
 PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset_type) :
     PresetComboBox(parent, preset_type, wxSize(15 * wxGetApp().em_unit(), -1))
 {
-    Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
-        auto selected_item = evt.GetSelection();
-
-        auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
-            this->SetSelection(this->m_last_selected);
-            evt.StopPropagation();
-            if (marker == LABEL_ITEM_WIZARD_PRINTERS)
-                show_add_menu();
-            else
-            {
-                ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
-                switch (marker) {
-                case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
-                case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
-                default: break;
-                }
-                wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
-            }
-        } else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || this->m_last_selected != selected_item || m_collection->current_is_dirty() ) {
-            this->m_last_selected = selected_item;
-            evt.SetInt(this->m_type);
-            evt.Skip();
-        } else {
-            evt.StopPropagation();
-        }
-    });
-
     if (m_type == Preset::TYPE_FILAMENT)
     {
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
@@ -715,6 +690,35 @@ PlaterPresetComboBox::~PlaterPresetComboBox()
 {
     if (edit_btn)
         edit_btn->Destroy();
+}
+
+void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
+{
+    auto selected_item = evt.GetSelection();
+
+    auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
+    if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
+        this->SetSelection(this->m_last_selected);
+        evt.StopPropagation();
+        if (marker == LABEL_ITEM_MARKER)
+            return;
+        if (marker == LABEL_ITEM_WIZARD_PRINTERS)
+            show_add_menu();
+        else {
+            ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
+            switch (marker) {
+            case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
+            case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
+            default: break;
+            }
+            wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
+        }
+        return;
+    }
+    else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || this->m_last_selected != selected_item || m_collection->current_is_dirty())
+        this->m_last_selected = selected_item;
+        
+    evt.Skip();
 }
 
 bool PlaterPresetComboBox::switch_to_tab()
@@ -957,40 +961,42 @@ void PlaterPresetComboBox::msw_rescale()
 TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type) :
     PresetComboBox(parent, preset_type, wxSize(35 * wxGetApp().em_unit(), -1))
 {
-    Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
-        // see https://github.com/prusa3d/PrusaSlicer/issues/3889
-        // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
-        // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
-        // So, use GetSelection() from event parameter 
-        auto selected_item = evt.GetSelection();
+}
 
-        auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
-            this->SetSelection(this->m_last_selected);
-            if (marker == LABEL_ITEM_WIZARD_PRINTERS)
-                wxTheApp->CallAfter([this]() {
-                wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
+{
+    // see https://github.com/prusa3d/PrusaSlicer/issues/3889
+    // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
+    // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
+    // So, use GetSelection() from event parameter 
+    auto selected_item = evt.GetSelection();
 
-                // update combobox if its parent is a PhysicalPrinterDialog
-                PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());
-                if (parent != nullptr)
-                    update();
-            });
-        }
-        else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty()) ) {
-            m_last_selected = selected_item;
-            on_selection_changed(selected_item);
-        }
+    auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
+    if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
+        this->SetSelection(this->m_last_selected);
+        if (marker == LABEL_ITEM_WIZARD_PRINTERS)
+            wxTheApp->CallAfter([this]() {
+            wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
 
-        evt.StopPropagation();
+            // update combobox if its parent is a PhysicalPrinterDialog
+            PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());
+            if (parent != nullptr)
+                update();
+        });
+    }
+    else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
+        m_last_selected = selected_item;
+        on_selection_changed(selected_item);
+    }
+
+    evt.StopPropagation();
 #ifdef __WXMSW__
-        // From the Win 2004 preset combobox lose a focus after change the preset selection
-        // and that is why the up/down arrow doesn't work properly
-        // (see https://github.com/prusa3d/PrusaSlicer/issues/5531 ).
-        // So, set the focus to the combobox explicitly
-        this->SetFocus();
-#endif    
-    });
+    // From the Win 2004 preset combobox lose a focus after change the preset selection
+    // and that is why the up/down arrow doesn't work properly
+    // (see https://github.com/prusa3d/PrusaSlicer/issues/5531 ).
+    // So, set the focus to the combobox explicitly
+    this->SetFocus();
+#endif
 }
 
 wxString TabPresetComboBox::get_preset_name(const Preset& preset)
