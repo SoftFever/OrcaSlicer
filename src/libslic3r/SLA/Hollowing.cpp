@@ -79,11 +79,7 @@ static InteriorPtr generate_interior_verbose(const TriangleMesh & mesh,
 
     double iso_surface = D;
     auto   narrowb = double(in_range);
-    if (closing_dist > .0) {
-        gridptr = redistance_grid(*gridptr, -(offset + D), narrowb, narrowb);
-    } else {
-        iso_surface = -offset;
-    }
+    gridptr = redistance_grid(*gridptr, -(offset + D), narrowb, narrowb);
 
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(70, L("Hollowing"));
