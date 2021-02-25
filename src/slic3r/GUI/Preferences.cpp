@@ -215,7 +215,6 @@ void PreferencesDialog::build()
 	option = Option(def, "show_splash_screen");
 	m_optgroup_general->append_single_option_line(option);
 
-#if ENABLE_CTRL_M_ON_WINDOWS
 #if defined(_WIN32) || defined(__APPLE__)
 	def.label = L("Enable support for legacy 3DConnexion devices");
 	def.type = coBool;
@@ -224,7 +223,6 @@ void PreferencesDialog::build()
 	option = Option(def, "use_legacy_3DConnexion");
 	m_optgroup_general->append_single_option_line(option);
 #endif // _WIN32 || __APPLE__
-#endif // ENABLE_CTRL_M_ON_WINDOWS
 
 	activate_options_tab(m_optgroup_general);
 

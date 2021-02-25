@@ -156,12 +156,10 @@ void AppConfig::set_defaults()
     if (get("show_splash_screen").empty())
         set("show_splash_screen", "1");
 
-#if ENABLE_CTRL_M_ON_WINDOWS
 #ifdef _WIN32
     if (get("use_legacy_3DConnexion").empty())
         set("use_legacy_3DConnexion", "0");
 #endif // _WIN32
-#endif // ENABLE_CTRL_M_ON_WINDOWS
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");

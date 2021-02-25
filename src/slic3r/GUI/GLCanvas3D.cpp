@@ -2509,8 +2509,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
             post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
         break;
-
-#if ENABLE_CTRL_M_ON_WINDOWS
 #ifdef __APPLE__
         case 'm':
         case 'M':
@@ -2529,18 +2527,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif //_WIN32
             break;
         }
-#else
-#if defined(__linux__) || defined(__APPLE__)
-        case WXK_CONTROL_M:
-        {
-            Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-            controller.show_settings_dialog(!controller.is_settings_dialog_shown());
-            m_dirty = true;
-            break;
-        }
-#endif /* __linux__ */
-#endif // ENABLE_CTRL_M_ON_WINDOWS
-
 #ifdef __APPLE__
         case 'v':
         case 'V':

@@ -1931,11 +1931,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_HID_DEVICE_ATTACHED, [this](HIDDeviceAttachedEvent &evt) {
     	mouse3d_controller.device_attached(evt.data);
         });
-#if ENABLE_CTRL_M_ON_WINDOWS
     this->q->Bind(EVT_HID_DEVICE_DETACHED, [this](HIDDeviceAttachedEvent& evt) {
         mouse3d_controller.device_detached(evt.data);
         });
-#endif // ENABLE_CTRL_M_ON_WINDOWS
 #endif /* _WIN32 */
 
 	notification_manager = new NotificationManager(this->q);
