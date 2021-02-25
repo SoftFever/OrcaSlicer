@@ -195,6 +195,7 @@ private:
     	const PrintObject   &object,
 	    const MyLayersPtr   &top_contacts,
 	    const MyLayersPtr   &interface_layers,
+	    const MyLayersPtr   &base_interface_layers,
 	    const MyLayersPtr   &base_layers,
 	    MyLayerStorage      &layer_storage) const;
 
