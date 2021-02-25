@@ -2838,9 +2838,11 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     Polyline travel { this->last_pos(), point };
 
     // check whether a straight travel move would need retraction
-    bool needs_retraction       = this->needs_retraction(travel, role);
+    bool needs_retraction             = this->needs_retraction(travel, role);
     // check whether wipe could be disabled without causing visible stringing
-    bool could_be_wipe_disabled = false;
+    bool could_be_wipe_disabled       = false;
+    // Save state of use_external_mp_once for the case that will be needed to call twice m_avoid_crossing_perimeters.travel_to.
+    const bool used_external_mp_once  = m_avoid_crossing_perimeters.used_external_mp_once();
 
     // if a retraction would be needed, try to use avoid_crossing_perimeters to plan a
     // multi-hop travel path inside the configuration space
@@ -2868,8 +2870,13 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         // Because of it, it is necessary to call avoid crossing perimeters again with new starting point after calling retraction()
         // FIXME Lukas H.: Try to predict if this second calling of avoid crossing perimeters will be needed or not. It could save computations.
         if (last_post_before_retract != this->last_pos() && m_config.avoid_crossing_perimeters) {
-            Polyline retract_travel = m_avoid_crossing_perimeters.travel_to(*this, point);
-            travel = std::move(retract_travel);
+            // If in the previous call of m_avoid_crossing_perimeters.travel_to was use_external_mp_once set to true restore this value for next call.
+            if (used_external_mp_once)
+                m_avoid_crossing_perimeters.use_external_mp_once();
+            travel = m_avoid_crossing_perimeters.travel_to(*this, point);
+            // If state of use_external_mp_once was changed reset it to right value.
+            if (used_external_mp_once)
+                m_avoid_crossing_perimeters.reset_once_modifiers();
         }
     } else
         // Reset the wipe path when traveling, so one would not wipe along an old path.
