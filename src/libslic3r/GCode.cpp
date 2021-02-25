@@ -667,6 +667,14 @@ namespace DoExport {
                     break;
             }
         }
+        if (ret.size() < MAX_TAGS_COUNT) {
+            const CustomGCode::Info& custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+            for (const auto& gcode : custom_gcode_per_print_z.gcodes) {
+                check(_(L("Custom G-code")), gcode.extra);
+                if (ret.size() == MAX_TAGS_COUNT)
+                    break;
+            }
+        }
 
         return ret;
     }
