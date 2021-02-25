@@ -26,11 +26,7 @@ class wxCheckBox;
 class wxTopLevelWindow;
 class wxRect;
 
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
 #define wxVERSION_EQUAL_OR_GREATER_THAN(major, minor, release) ((wxMAJOR_VERSION > major) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION > minor)) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION == minor) && (wxRELEASE_NUMBER >= release)))
-#else
-#define wxVERSION_EQUAL_OR_GREATER_THAN(major, minor, release) 0
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
 
 namespace Slic3r {
 namespace GUI {
@@ -99,12 +95,12 @@ public:
 
         // Linux specific issue : get_dpi_for_window(this) still doesn't responce to the Display's scale in new wxWidgets(3.1.3).
         // So, calculate the m_em_unit value from the font size, as before
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && !defined(__WXGTK__)
+#if !defined(__WXGTK__)
         m_em_unit = std::max<size_t>(10, 10.0f * m_scale_factor);
 #else
         // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
         m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1);
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+#endif // __WXGTK__
 
 //        recalc_font();
 
@@ -235,11 +231,7 @@ private:
         m_normal_font = this->GetFont();
 
         // update em_unit value for new window font
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
         m_em_unit = std::max<int>(10, 10.0f * m_scale_factor);
-#else
-        m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1);
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
 
         // rescale missed controls sizes and images
         on_dpi_changed(suggested_rect);
