@@ -4,7 +4,6 @@
 //=============
 // debug techs
 //=============
-
 // Shows camera target in the 3D scene
 #define ENABLE_SHOW_CAMERA_TARGET 0
 // Log debug messages to console when changing selection
@@ -27,26 +26,14 @@
 #define ENABLE_GCODE_VIEWER_STATISTICS 0
 // Enable G-Code viewer comparison between toolpaths height and width detected from gcode and calculated at gcode generation 
 #define ENABLE_GCODE_VIEWER_DATA_CHECKING 0
+
+
 // Enable rendering of objects using environment map
 #define ENABLE_ENVIRONMENT_MAP 0
 // Enable smoothing of objects normals
 #define ENABLE_SMOOTH_NORMALS 0
-
-
-//====================
-// 2.3.0.alpha4 techs
-//====================
-#define ENABLE_2_3_0_ALPHA4 1
-
-#define ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS (1 && ENABLE_2_3_0_ALPHA4)
-
-
-//===================
-// 2.3.0.beta1 techs
-//===================
-#define ENABLE_2_3_0_BETA1 1
-
-#define ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN (1 && ENABLE_2_3_0_BETA1)
+// Enable rendering markers for options in preview as fixed screen size points
+#define ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS 1
 
 
 //====================
@@ -54,11 +41,17 @@
 //====================
 #define ENABLE_2_3_1_ALPHA1 1
 
+// Enable splitting of vertex buffers used to render toolpaths
 #define ENABLE_SPLITTED_VERTEX_BUFFER (1 && ENABLE_2_3_1_ALPHA1)
+// Enable rendering only starting and final caps for toolpaths
 #define ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS (1 && ENABLE_SPLITTED_VERTEX_BUFFER)
+// Enable reload from disk command for 3mf files
 #define ENABLE_RELOAD_FROM_DISK_FOR_3MF (1 && ENABLE_2_3_1_ALPHA1)
+// Removes obsolete warning texture code
 #define ENABLE_WARNING_TEXTURE_REMOVAL (1 && ENABLE_2_3_1_ALPHA1)
+// Enable showing gcode line numbers in previeww horizontal slider
 #define ENABLE_GCODE_LINES_ID_IN_H_SLIDER (1 && ENABLE_2_3_1_ALPHA1)
+// Enable validation of custom gcode against gcode processor resserved keywords
 #define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_3_1_ALPHA1)
 
 

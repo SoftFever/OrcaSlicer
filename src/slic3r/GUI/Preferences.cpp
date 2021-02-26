@@ -106,7 +106,6 @@ void PreferencesDialog::build()
 		option = Option(def, "export_sources_full_pathnames");
 		m_optgroup_general->append_single_option_line(option);
 
-#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 #ifdef _WIN32
 		// Please keep in sync with ConfigWizard
 		def.label = L("Associate .3mf files to PrusaSlicer");
@@ -123,7 +122,6 @@ void PreferencesDialog::build()
 		option = Option(def, "associate_stl");
 		m_optgroup_general->append_single_option_line(option);
 #endif // _WIN32
-#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
 		// Please keep in sync with ConfigWizard
 		def.label = L("Update built-in Presets automatically");
@@ -184,7 +182,6 @@ void PreferencesDialog::build()
 		option = Option(def, "default_action_on_select_preset");
 		m_optgroup_general->append_single_option_line(option);
 	}
-#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 #ifdef _WIN32
 	else {
 		def.label = L("Associate .gcode files to PrusaSlicer G-code Viewer");
@@ -195,7 +192,6 @@ void PreferencesDialog::build()
 		m_optgroup_general->append_single_option_line(option);
 	}
 #endif // _WIN32
-#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
