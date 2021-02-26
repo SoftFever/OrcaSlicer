@@ -51,7 +51,7 @@
 #define ENABLE_WARNING_TEXTURE_REMOVAL (1 && ENABLE_2_3_1_ALPHA1)
 // Enable showing gcode line numbers in previeww horizontal slider
 #define ENABLE_GCODE_LINES_ID_IN_H_SLIDER (1 && ENABLE_2_3_1_ALPHA1)
-// Enable validation of custom gcode against gcode processor resserved keywords
+// Enable validation of custom gcode against gcode processor reserved keywords
 #define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_3_1_ALPHA1)
 
 

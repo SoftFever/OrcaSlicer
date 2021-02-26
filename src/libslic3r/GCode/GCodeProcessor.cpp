@@ -4,6 +4,9 @@
 #include "GCodeProcessor.hpp"
 
 #include <boost/log/trivial.hpp>
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+#include <boost/algorithm/string/predicate.hpp>
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 
@@ -594,12 +597,6 @@ const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProces
 unsigned int GCodeProcessor::s_result_id = 0;
 
 #if ENABLE_VALIDATE_CUSTOM_GCODE
-static inline bool starts_with(const std::string_view comment, const std::string_view tag)
-{
-    size_t tag_len = tag.size();
-    return comment.size() >= tag_len && comment.substr(0, tag_len) == tag;
-}
-
 bool GCodeProcessor::contains_reserved_tag(const std::string& gcode, std::string& found_tag)
 {
     bool ret = false;
@@ -610,7 +607,7 @@ bool GCodeProcessor::contains_reserved_tag(const std::string& gcode, std::string
         if (comment.length() > 2 && comment.front() == ';') {
             comment = comment.substr(1);
             for (const std::string& s : Reserved_Tags) {
-                if (starts_with(comment, s)) {
+                if (boost::starts_with(comment, s)) {
                     ret = true;
                     found_tag = comment;
                     parser.quit_parsing();
@@ -635,7 +632,7 @@ bool GCodeProcessor::contains_reserved_tags(const std::string& gcode, unsigned i
         if (comment.length() > 2 && comment.front() == ';') {
             comment = comment.substr(1);
             for (const std::string& s : Reserved_Tags) {
-                if (starts_with(comment, s)) {
+                if (boost::starts_with(comment, s)) {
                     ret = true;
                     found_tag.push_back(comment);
                     if (found_tag.size() == max_count) {
@@ -1168,14 +1165,6 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
     }
 }
 
-#if !ENABLE_VALIDATE_CUSTOM_GCODE
-static inline bool starts_with(const std::string_view comment, const std::string_view tag)
-{
-    size_t tag_len = tag.size();
-    return comment.size() >= tag_len && comment.substr(0, tag_len) == tag;
-}
-#endif // !ENABLE_VALIDATE_CUSTOM_GCODE
-
 #if __has_include(<charconv>)
     template <typename T, typename = void>
     struct is_from_chars_convertible : std::false_type {};
@@ -1229,37 +1218,37 @@ void GCodeProcessor::process_tags(const std::string_view comment)
 
 #if ENABLE_VALIDATE_CUSTOM_GCODE
     // extrusion role tag
-    if (starts_with(comment, reserved_tag(ETags::Role))) {
+    if (boost::starts_with(comment, reserved_tag(ETags::Role))) {
         m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(reserved_tag(ETags::Role).length()));
         return;
     }
 
     // wipe start tag
-    if (starts_with(comment, reserved_tag(ETags::Wipe_Start))) {
+    if (boost::starts_with(comment, reserved_tag(ETags::Wipe_Start))) {
         m_wiping = true;
         return;
     }
 
     // wipe end tag
-    if (starts_with(comment, reserved_tag(ETags::Wipe_End))) {
+    if (boost::starts_with(comment, reserved_tag(ETags::Wipe_End))) {
         m_wiping = false;
         return;
     }
 #else
     // extrusion role tag
-    if (starts_with(comment, Extrusion_Role_Tag)) {
+    if (boost::starts_with(comment, Extrusion_Role_Tag)) {
         m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(Extrusion_Role_Tag.length()));
         return;
     }
 
     // wipe start tag
-    if (starts_with(comment, Wipe_Start_Tag)) {
+    if (boost::starts_with(comment, Wipe_Start_Tag)) {
         m_wiping = true;
         return;
     }
 
     // wipe end tag
-    if (starts_with(comment, Wipe_End_Tag)) {
+    if (boost::starts_with(comment, Wipe_End_Tag)) {
         m_wiping = false;
         return;
     }
@@ -1268,26 +1257,26 @@ void GCodeProcessor::process_tags(const std::string_view comment)
     if (!m_producers_enabled || m_producer == EProducer::PrusaSlicer) {
 #if ENABLE_VALIDATE_CUSTOM_GCODE
         // height tag
-        if (starts_with(comment, reserved_tag(ETags::Height))) {
+        if (boost::starts_with(comment, reserved_tag(ETags::Height))) {
             if (!parse_number(comment.substr(reserved_tag(ETags::Height).size()), m_forced_height))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
             return;
         }
         // width tag
-        if (starts_with(comment, reserved_tag(ETags::Width))) {
+        if (boost::starts_with(comment, reserved_tag(ETags::Width))) {
             if (!parse_number(comment.substr(reserved_tag(ETags::Width).size()), m_forced_width))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             return;
         }
 #else
         // height tag
-        if (starts_with(comment, Height_Tag)) {
+        if (boost::starts_with(comment, Height_Tag)) {
             if (!parse_number(comment.substr(Height_Tag.size()), m_forced_height))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
             return;
         }
         // width tag
-        if (starts_with(comment, Width_Tag)) {
+        if (boost::starts_with(comment, Width_Tag)) {
             if (!parse_number(comment.substr(Width_Tag.size()), m_forced_width))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             return;
@@ -1297,9 +1286,9 @@ void GCodeProcessor::process_tags(const std::string_view comment)
 
 #if ENABLE_VALIDATE_CUSTOM_GCODE
     // color change tag
-    if (starts_with(comment, reserved_tag(ETags::Color_Change))) {
+    if (boost::starts_with(comment, reserved_tag(ETags::Color_Change))) {
         unsigned char extruder_id = 0;
-        if (starts_with(comment.substr(reserved_tag(ETags::Color_Change).size()), ",T")) {
+        if (boost::starts_with(comment.substr(reserved_tag(ETags::Color_Change).size()), ",T")) {
             int eid;
             if (!parse_number(comment.substr(reserved_tag(ETags::Color_Change).size() + 2), eid) || eid < 0 || eid > 255) {
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
@@ -1343,9 +1332,9 @@ void GCodeProcessor::process_tags(const std::string_view comment)
     }
 #else
     // color change tag
-    if (starts_with(comment, Color_Change_Tag)) {
+    if (boost::starts_with(comment, Color_Change_Tag)) {
         unsigned char extruder_id = 0;
-        if (starts_with(comment.substr(Color_Change_Tag.size()), ",T")) {
+        if (boost::starts_with(comment.substr(Color_Change_Tag.size()), ",T")) {
             int eid;
             if (! parse_number(comment.substr(Color_Change_Tag.size() + 2), eid) || eid < 0 || eid > 255) {
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
@@ -1391,7 +1380,7 @@ void GCodeProcessor::process_tags(const std::string_view comment)
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // mm3_per_mm print tag
-    if (starts_with(comment, Mm3_Per_Mm_Tag)) {
+    if (boost::starts_with(comment, Mm3_Per_Mm_Tag)) {
         if (! parse_number(comment.substr(Mm3_Per_Mm_Tag.size()), m_mm3_per_mm_compare.last_tag_value))
             BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Mm3_Per_Mm (" << comment << ").";
         return;
