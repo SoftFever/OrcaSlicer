@@ -481,7 +481,7 @@ protected:
 	// Notify UI about a new warning of a milestone "step" on this PrintBase.
 	// The UI will be notified by calling a status callback.
 	// If no status callback is registered, the message is printed to console.
-	void 				   status_update_warnings(ObjectID object_id, int step, PrintStateBase::WarningLevel warning_level, const std::string &message);
+    void 				   status_update_warnings(int step, PrintStateBase::WarningLevel warning_level, const std::string &message, const PrintObjectBase* print_object = nullptr);
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
@@ -528,7 +528,7 @@ protected:
 	PrintStateBase::TimeStamp set_done(PrintStepEnum step) { 
 		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); });
         if (status.second)
-            this->status_update_warnings(this->id(), static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
+            this->status_update_warnings(static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
         return status.first;
 	}
     bool            invalidate_step(PrintStepEnum step)
@@ -550,7 +550,7 @@ protected:
     	std::pair<PrintStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, this->state_mutex());
     	if (active_step.second)
     		// Update UI.
-    		this->status_update_warnings(this->id(), static_cast<int>(active_step.first), warning_level, message);
+            this->status_update_warnings(static_cast<int>(active_step.first), warning_level, message);
     }
 
 private:
