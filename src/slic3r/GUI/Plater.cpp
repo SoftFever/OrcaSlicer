@@ -1599,6 +1599,8 @@ struct Plater::priv
     void suppress_snapshots()   { this->m_prevent_snapshots++; }
     void allow_snapshots()      { this->m_prevent_snapshots--; }
 
+    void process_validation_warning(const std::string& warning) const;
+
     bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
     void schedule_background_process();
@@ -2787,6 +2789,41 @@ void Plater::priv::update_print_volume_state()
     this->q->model().update_print_volume_state(print_volume);
 }
 
+
+void Plater::priv::process_validation_warning(const std::string& warning) const
+{
+    if (warning.empty())
+        notification_manager->close_notification_of_type(NotificationType::PrintValidateWarning);
+    else {
+        std::string text = warning;
+        std::string hypertext = "";
+        std::function<bool(wxEvtHandler*)> action_fn = [](wxEvtHandler*){ return false; };
+
+        if (text == "_SUPPORTS_OFF") {
+            text = _u8L("An object has custom support enforcers which will not be used "
+                        "because supports are disabled.")+"\n";
+            hypertext = _u8L("Enable supports for enforcers only");
+            action_fn = [](wxEvtHandler*) {
+                Tab* print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+                assert(print_tab);
+                DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                config.set_key_value("support_material", new ConfigOptionBool(true));
+                config.set_key_value("support_material_auto", new ConfigOptionBool(false));
+                print_tab->on_value_change("support_material", config.opt_bool("support_material"));
+                print_tab->on_value_change("support_material_auto", config.opt_bool("support_material_auto"));
+                return true;
+            };
+        }
+
+        notification_manager->push_notification(
+            NotificationType::PrintValidateWarning,
+            NotificationManager::NotificationLevel::ImportantNotification,
+            text, hypertext, action_fn
+        );
+    }
+}
+
+
 // Update background processing thread from the current config and Model.
 // Returns a bitmask of UpdateBackgroundProcessReturnState.
 unsigned int Plater::priv::update_background_process(bool force_validation, bool postpone_error_messages)
@@ -2829,17 +2866,23 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 		// The delayed error message is no more valid.
 		this->delayed_error_message.clear();
 		// The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
-        std::string err = this->background_process.validate();
+        std::string warning;
+        std::string err = this->background_process.validate(&warning);
         if (err.empty()) {
 			notification_manager->set_all_slicing_errors_gray(true);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
+
+            // Pass a warning from validation and either show a notification,
+            // or hide the old one.
+            process_validation_warning(warning);
         } else {
 			// The print is not valid.
 			// Show error as notification.
             notification_manager->push_slicing_error_notification(err);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
+
     } else if (! this->delayed_error_message.empty()) {
     	// Reusing the old state.
         return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
