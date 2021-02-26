@@ -200,12 +200,20 @@ void HollowedMesh::on_update()
         if (print_object->is_step_done(slaposDrillHoles) && print_object->has_mesh(slaposDrillHoles)) {
             size_t timestamp = print_object->step_state_with_timestamp(slaposDrillHoles).timestamp;
             if (timestamp > m_old_hollowing_timestamp) {
-                const TriangleMesh& backend_mesh = print_object->get_mesh_to_print();
+                const TriangleMesh& backend_mesh = print_object->get_mesh_to_slice();
                 if (! backend_mesh.empty()) {
                     m_hollowed_mesh_transformed.reset(new TriangleMesh(backend_mesh));
                     Transform3d trafo_inv = canvas->sla_print()->sla_trafo(*mo).inverse();
                     m_hollowed_mesh_transformed->transform(trafo_inv);
                     m_old_hollowing_timestamp = timestamp;
+
+                    const TriangleMesh &interior = print_object->hollowed_interior_mesh();
+                    if (!interior.empty()) {
+                        m_hollowed_interior_transformed = std::make_unique<TriangleMesh>(interior);
+                        m_hollowed_interior_transformed->repaired = false;
+                        m_hollowed_interior_transformed->repair(true);
+                        m_hollowed_interior_transformed->transform(trafo_inv);
+                    }
                 }
                 else
                     m_hollowed_mesh_transformed.reset(nullptr);
@@ -230,6 +238,10 @@ const TriangleMesh* HollowedMesh::get_hollowed_mesh() const
     return m_hollowed_mesh_transformed.get();
 }
 
+const TriangleMesh* HollowedMesh::get_hollowed_interior() const
+{
+    return m_hollowed_interior_transformed.get();
+}
 
 
 
@@ -306,6 +318,10 @@ void ObjectClipper::on_update()
             m_clippers.back()->set_mesh(*mesh);
         }
         m_old_meshes = meshes;
+
+        if (has_hollowed)
+            m_clippers.front()->set_negative_mesh(*get_pool()->hollowed_mesh()->get_hollowed_interior());
+
         m_active_inst_bb_radius =
             mo->instance_bounding_box(get_pool()->selection_info()->get_active_instance()).radius();
         //if (has_hollowed && m_clp_ratio != 0.)
