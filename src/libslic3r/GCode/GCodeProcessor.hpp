@@ -121,6 +121,7 @@ namespace Slic3r {
     private:
         using AxisCoords = std::array<float, 4>;
         using ExtruderColors = std::vector<unsigned char>;
+        using ExtruderTemps = std::vector<float>;
 
         enum class EUnits : unsigned char
         {
@@ -211,6 +212,7 @@ namespace Slic3r {
             float height{ 0.0f }; // mm
             float mm3_per_mm{ 0.0f };
             float fan_speed{ 0.0f }; // percentage
+            float temperature{ 0.0f }; // Celsius degrees
             float time{ 0.0f }; // s
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
@@ -320,6 +322,7 @@ namespace Slic3r {
             float height{ 0.0f }; // mm
             float mm3_per_mm{ 0.0f };
             float fan_speed{ 0.0f }; // percentage
+            float temperature{ 0.0f }; // Celsius degrees
             float time{ 0.0f }; // s
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
@@ -468,6 +471,7 @@ namespace Slic3r {
         ExtrusionRole m_extrusion_role;
         unsigned char m_extruder_id;
         ExtruderColors m_extruder_colors;
+        ExtruderTemps m_extruder_temps;
         std::vector<float> m_filament_diameters;
         float m_extruded_last_z;
         unsigned int m_g1_line_id;
@@ -586,6 +590,9 @@ namespace Slic3r {
         // Set extruder to relative mode
         void process_M83(const GCodeReader::GCodeLine& line);
 
+        // Set extruder temperature
+        void process_M104(const GCodeReader::GCodeLine& line);
+
         // Set fan speed
         void process_M106(const GCodeReader::GCodeLine& line);
 
@@ -594,6 +601,9 @@ namespace Slic3r {
 
         // Set tool (Sailfish)
         void process_M108(const GCodeReader::GCodeLine& line);
+
+        // Set extruder temperature and wait
+        void process_M109(const GCodeReader::GCodeLine& line);
 
         // Recall stored home offsets
         void process_M132(const GCodeReader::GCodeLine& line);

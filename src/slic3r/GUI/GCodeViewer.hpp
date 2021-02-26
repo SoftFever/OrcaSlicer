@@ -179,6 +179,7 @@ class GCodeViewer
         float width{ 0.0f };
         float feedrate{ 0.0f };
         float fan_speed{ 0.0f };
+        float temperature{ 0.0f };
         float volumetric_rate{ 0.0f };
         unsigned char extruder_id{ 0 };
         unsigned char cp_color_id{ 0 };
@@ -407,6 +408,8 @@ class GCodeViewer
             Range fan_speed;
             // Color mapping by volumetric extrusion rate.
             Range volumetric_rate;
+            // Color mapping by extrusion temperature.
+            Range temperature;
 
             void reset() {
                 height.reset();
@@ -414,6 +417,7 @@ class GCodeViewer
                 feedrate.reset();
                 fan_speed.reset();
                 volumetric_rate.reset();
+                temperature.reset();
             }
         };
 
@@ -626,6 +630,7 @@ public:
         Width,
         Feedrate,
         FanSpeed,
+        Temperature,
         VolumetricRate,
         Tool,
         ColorPrint,
