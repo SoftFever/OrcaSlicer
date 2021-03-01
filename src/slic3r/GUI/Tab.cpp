@@ -3826,15 +3826,35 @@ void TabPrinter::apply_extruder_cnt_from_cache()
 #if ENABLE_VALIDATE_CUSTOM_GCODE
 bool Tab::validate_custom_gcodes()
 {
+    if (m_type != Preset::TYPE_FILAMENT &&
+        (m_type != Preset::TYPE_PRINTER || static_cast<TabPrinter*>(this)->m_printer_technology != ptFFF))
+        return true;
+    if (m_active_page->title() != L("Custom G-code"))
+        return true;
+
     bool valid = true;
-    if ((m_type == Preset::TYPE_FILAMENT || 
-        (m_type == Preset::TYPE_PRINTER && static_cast<TabPrinter*>(this)->m_printer_technology == ptFFF)) &&
-        m_active_page->title() == "Custom G-code") {
-            for (auto opt_group : m_active_page->m_optgroups) {
-                assert(opt_group->opt_map().size() == 1);
-                std::string key = opt_group->opt_map().begin()->first;
-                valid &= validate_custom_gcode(opt_group->title, boost::any_cast<std::string>(opt_group->get_value(key)));
-            }
+    for (auto opt_group : m_active_page->m_optgroups) {
+        assert(opt_group->opt_map().size() == 1);
+        std::string key = opt_group->opt_map().begin()->first;
+        std::string value = boost::any_cast<std::string>(opt_group->get_value(key));
+        std::string config_value = m_config->opt_string(key);
+        valid &= validate_custom_gcode(opt_group->title, value);
+        Field* field = opt_group->get_field(key);
+        TextCtrl* text_ctrl = dynamic_cast<TextCtrl*>(field);
+        if (text_ctrl != nullptr && text_ctrl->m_on_change != nullptr && !text_ctrl->m_disable_change_event) {
+            Slic3r::GUI::t_change callback = opt_group->m_on_change;
+            // temporary disable the opt_group->m_on_change callback to avoid multiple validations
+            opt_group->m_on_change = nullptr;
+            text_ctrl->m_on_change(key, value);
+            // restore the opt_group->m_on_change callback
+            opt_group->m_on_change = callback;
+
+            update_dirty();
+            on_value_change(key, value);
+        }
+
+        if (!valid)
+            break;
     }
     return valid;
 }
