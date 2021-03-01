@@ -1705,7 +1705,9 @@ namespace ProcessLayer
 {
 
     static std::string emit_custom_gcode_per_print_z(
+        GCode                                                   &gcodegen,
         const CustomGCode::Item 								*custom_gcode,
+        unsigned int                                             current_extruder_id,
         // ID of the first extruder printing this layer.
         unsigned int                                             first_extruder_id,
         const PrintConfig                                       &config)
@@ -1746,12 +1748,14 @@ namespace ProcessLayer
                     // && !MMU1
                     ) {
                     //! FIXME_in_fw show message during print pause
-                    gcode += config.pause_print_gcode;// pause print
+                    DynamicConfig cfg;
+                    cfg.set_key_value("color_change_extruder", new ConfigOptionInt(m600_extruder_before_layer));
+                    gcode += gcodegen.placeholder_parser_process("pause_print_gcode", config.pause_print_gcode, current_extruder_id, &cfg);
                     gcode += "\n";
                     gcode += "M117 Change filament for Extruder " + std::to_string(m600_extruder_before_layer) + "\n";
                 }
                 else {
-                    gcode += config.color_change_gcode;//ColorChangeCode;
+                    gcode += gcodegen.placeholder_parser_process("color_change_gcode", config.color_change_gcode, current_extruder_id);
                     gcode += "\n";
                 }
 	        } 
@@ -1767,7 +1771,7 @@ namespace ProcessLayer
                     //! FIXME_in_fw show message during print pause
 	                if (!pause_print_msg.empty())
 	                    gcode += "M117 " + pause_print_msg + "\n";
-                    gcode += config.pause_print_gcode;
+                    gcode += gcodegen.placeholder_parser_process("pause_print_gcode", config.pause_print_gcode, current_extruder_id);
                 }
 	            else {
                     // add tag for processor
@@ -1776,8 +1780,8 @@ namespace ProcessLayer
 #else
                     gcode += ";" + GCodeProcessor::Custom_Code_Tag + "\n";
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
-                    if (gcode_type == CustomGCode::Template)    // Template Cistom Gcode
-                        gcode += config.template_custom_gcode;
+                    if (gcode_type == CustomGCode::Template)    // Template Custom Gcode
+                        gcode += gcodegen.placeholder_parser_process("template_custom_gcode", config.template_custom_gcode, current_extruder_id);
                     else                                        // custom Gcode
                         gcode += custom_gcode->extra;
 
@@ -1985,7 +1989,7 @@ void GCode::process_layer(
 
     if (single_object_instance_idx == size_t(-1)) {
         // Normal (non-sequential) print.
-        gcode += ProcessLayer::emit_custom_gcode_per_print_z(layer_tools.custom_gcode, first_extruder_id, print.config());
+        gcode += ProcessLayer::emit_custom_gcode_per_print_z(*this, layer_tools.custom_gcode, m_writer.extruder()->id(), first_extruder_id, print.config());
     }
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
