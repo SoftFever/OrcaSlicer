@@ -245,8 +245,7 @@ Polygon convex_hull(Points points)
     return hull;
 }
 
-Pointf3s
-convex_hull(Pointf3s points)
+Pointf3s convex_hull(Pointf3s points)
 {
     assert(points.size() >= 3);
     // sort input points
@@ -304,8 +303,7 @@ convex_hull(Pointf3s points)
     return hull;
 }
 
-Polygon
-convex_hull(const Polygons &polygons)
+Polygon convex_hull(const Polygons &polygons)
 {
     Points pp;
     for (Polygons::const_iterator p = polygons.begin(); p != polygons.end(); ++p) {
