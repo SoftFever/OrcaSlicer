@@ -1195,6 +1195,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 
 GLCanvas3D::~GLCanvas3D()
 {
+#if ENABLE_GCODE_WINDOW
+    m_gcode_viewer.stop_mapping_gcode_file();
+#endif // ENABLE_GCODE_WINDOW
     reset_volumes();
 }
 
@@ -2621,6 +2624,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
+#if ENABLE_GCODE_WINDOW
+        case 'C':
+        case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
+#endif // ENABLE_GCODE_WINDOW
         case 'E':
         case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
         case 'G':
@@ -3908,6 +3915,18 @@ void GLCanvas3D::mouse_up_cleanup()
     if (m_canvas->HasCapture())
         m_canvas->ReleaseMouse();
 }
+
+#if ENABLE_GCODE_WINDOW
+void GLCanvas3D::start_mapping_gcode_file()
+{
+    m_gcode_viewer.start_mapping_gcode_file();
+}
+
+void GLCanvas3D::stop_mapping_gcode_file()
+{
+    m_gcode_viewer.stop_mapping_gcode_file();
+}
+#endif // ENABLE_GCODE_WINDOW
 
 bool GLCanvas3D::_is_shown_on_screen() const
 {

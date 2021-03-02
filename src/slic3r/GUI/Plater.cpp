@@ -3289,8 +3289,15 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     panel_sizer->Layout();
 
     if (current_panel == view3D) {
+#if ENABLE_GCODE_WINDOW
+        if (old_panel == preview) {
+            preview->get_canvas3d()->stop_mapping_gcode_file();
+            preview->get_canvas3d()->unbind_event_handlers();
+        }
+#else
         if (old_panel == preview)
             preview->get_canvas3d()->unbind_event_handlers();
+#endif // ENABLE_GCODE_WINDOW
 
         view3D->get_canvas3d()->bind_event_handlers();
 
@@ -3315,6 +3322,9 @@ void Plater::priv::set_current_panel(wxPanel* panel)
             view3D->get_canvas3d()->unbind_event_handlers();
 
         preview->get_canvas3d()->bind_event_handlers();
+#if ENABLE_GCODE_WINDOW
+        preview->get_canvas3d()->start_mapping_gcode_file();
+#endif // ENABLE_GCODE_WINDOW
 
         // see: Plater::priv::object_list_changed()
         // FIXME: it may be better to have a single function making this check and let it be called wherever needed

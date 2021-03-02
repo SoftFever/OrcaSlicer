@@ -785,6 +785,11 @@ public:
 #endif
     }
 
+#if ENABLE_GCODE_WINDOW
+    void start_mapping_gcode_file();
+    void stop_mapping_gcode_file();
+#endif // ENABLE_GCODE_WINDOW
+
 private:
     bool _is_shown_on_screen() const;
 

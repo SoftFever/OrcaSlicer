@@ -602,6 +602,29 @@ public:
             void render() const;
         };
 
+#if ENABLE_GCODE_WINDOW
+        class GCodeWindow
+        {
+            static const unsigned int DefaultMaxLinesCount;
+            bool m_visible{ false };
+            unsigned int m_max_lines_count{ DefaultMaxLinesCount };
+            unsigned int m_file_size{ 0 };
+            std::string m_filename;
+            std::vector<std::string> m_gcode;
+
+        public:
+            void set_filename(const std::string& filename) { m_filename = filename; }
+            void load_gcode();
+            void start_mapping_file();
+            void stop_mapping_file();
+            void reset() { m_filename.clear(); }
+
+            void toggle_visibility() { m_visible = !m_visible; }
+
+            void render(unsigned int curr_line_id) const;
+        };
+#endif // ENABLE_GCODE_WINDOW
+
         struct Endpoints
         {
             size_t first{ 0 };
@@ -614,9 +637,16 @@ public:
         Endpoints last_current;
         Vec3f current_position{ Vec3f::Zero() };
         Marker marker;
+#if ENABLE_GCODE_WINDOW
+        GCodeWindow gcode_window;
+#endif // ENABLE_GCODE_WINDOW
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         std::vector<unsigned int> gcode_ids;
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+
+#if ENABLE_GCODE_WINDOW
+        void render() const;
+#endif // ENABLE_GCODE_WINDOW
     };
 
     enum class EViewType : unsigned char
@@ -709,6 +739,12 @@ public:
     void enable_legend(bool enable) { m_legend_enabled = enable; }
 
     void export_toolpaths_to_obj(const char* filename) const;
+
+#if ENABLE_GCODE_WINDOW
+    void start_mapping_gcode_file() { m_sequential_view.gcode_window.start_mapping_file(); }
+    void stop_mapping_gcode_file() { m_sequential_view.gcode_window.stop_mapping_file(); }
+    void toggle_gcode_window_visibility() { m_sequential_view.gcode_window.toggle_visibility(); }
+#endif // ENABLE_GCODE_WINDOW
 
 private:
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);

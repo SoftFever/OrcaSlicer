@@ -21,6 +21,9 @@
 
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
+#if ENABLE_GCODE_WINDOW
+#include <boost/algorithm/string/split.hpp>
+#endif // ENABLE_GCODE_WINDOW
 #include <boost/nowide/cstdio.hpp>
 #include <wx/progdlg.h>
 #include <wx/numformatter.h>
@@ -278,7 +281,7 @@ void GCodeViewer::SequentialView::Marker::render() const
     imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Tool position") + ":");
     ImGui::SameLine();
     char buf[1024];
-    sprintf(buf, "X: %.2f, Y: %.2f, Z: %.2f", m_world_position(0), m_world_position(1), m_world_position(2));
+    sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", m_world_position(0), m_world_position(1), m_world_position(2));
     imgui.text(std::string(buf));
 
     // force extra frame to automatically update window size
@@ -294,6 +297,149 @@ void GCodeViewer::SequentialView::Marker::render() const
     imgui.end();
     ImGui::PopStyleVar();
 }
+
+#if ENABLE_GCODE_WINDOW
+const unsigned int GCodeViewer::SequentialView::GCodeWindow::DefaultMaxLinesCount = 20;
+
+void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
+{
+    m_gcode.clear();
+    if (m_filename.empty())
+        return;
+
+    boost::nowide::ifstream f(m_filename);
+    std::string line;
+    while (std::getline(f, line)) {
+        m_gcode.push_back(line);
+    }
+
+    m_file_size = static_cast<unsigned int>(m_gcode.size());
+    m_max_lines_count = std::min(DefaultMaxLinesCount, m_file_size);
+}
+
+void GCodeViewer::SequentialView::GCodeWindow::start_mapping_file()
+{
+    std::cout << "GCodeViewer::SequentialView::GCodeWindow::start_mapping_file()\n";
+}
+
+void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
+{
+    std::cout << "GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()\n";
+}
+
+void GCodeViewer::SequentialView::GCodeWindow::render(unsigned int curr_line_id) const
+{
+    static const ImVec4 LINE_NUMBER_COLOR = ImGuiWrapper::COL_ORANGE_LIGHT;
+    static const ImVec4 COMMAND_COLOR = { 0.8f, 0.8f, 0.0f, 1.0f };
+    static const ImVec4 COMMENT_COLOR = { 0.7f, 0.7f, 0.7f, 1.0f };
+
+    if (!m_visible)
+        return;
+
+    if (m_filename.empty() || m_gcode.empty())
+        return;
+
+    if (curr_line_id == 0)
+        return;
+
+    // calculate visible range
+    unsigned int half_max_lines_count = m_max_lines_count / 2;
+    unsigned int start_id = (curr_line_id >= half_max_lines_count) ? curr_line_id - half_max_lines_count : 0;
+    unsigned int end_id = start_id + m_max_lines_count - 1;
+    if (end_id >= m_file_size) {
+        end_id = m_file_size - 1;
+        start_id = end_id - m_max_lines_count + 1;
+    }
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    imgui.set_next_window_pos(0.0f, 0.5f * wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height(), ImGuiCond_Always, 0.0f, 0.5f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::SetNextWindowBgAlpha(0.6f);
+    imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+   
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    const auto& [id_offset, text_height] = ImGui::CalcTextSize(std::to_string(end_id).c_str());
+
+    for (unsigned int id = start_id; id <= end_id; ++id) {
+        const std::string& line = m_gcode[id];
+
+        std::string command;
+        std::string parameters;
+        std::string comment;
+
+        // extract comment
+        std::vector<std::string> tokens;
+        boost::split(tokens, line, boost::is_any_of(";"), boost::token_compress_on);
+        command = tokens.front();
+        if (tokens.size() > 1)
+            comment = ";" + tokens.back();
+
+        // extract gcode command and parameters
+        if (!command.empty()) {
+            boost::split(tokens, command, boost::is_any_of(" "), boost::token_compress_on);
+            command = tokens.front();
+            if (tokens.size() > 1) {
+                for (size_t i = 1; i < tokens.size(); ++i) {
+                    parameters += " " + tokens[i];
+                }
+            }
+        }
+
+        // background rect for the current selected move
+        if (id == curr_line_id - 2) {
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+            const float window_border_size = ImGui::GetCurrentWindow()->WindowBorderSize;
+            draw_list->AddRectFilled({ window_border_size, pos.y - 1 }, { ImGui::GetCurrentWindow()->Size.x - window_border_size, pos.y + text_height + 1 },
+                ImGui::GetColorU32({ 0.1f, 0.1f, 0.1f, 1.0f }));
+        }
+
+        // render line number
+        ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
+        const std::string id_str = std::to_string(id + 1);
+        ImGui::SameLine(0.0f, id_offset - ImGui::CalcTextSize(id_str.c_str()).x);
+        imgui.text(id_str);
+        ImGui::PopStyleColor();
+
+        if (!command.empty() || !comment.empty())
+            ImGui::SameLine();
+
+        // render command
+        if (!command.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, COMMAND_COLOR);
+            imgui.text(command);
+            ImGui::PopStyleColor();
+        }
+
+        // render command parameters
+        if (!parameters.empty()) {
+            ImGui::SameLine(0.0f, 0.0f);
+            imgui.text(parameters);
+        }
+
+        // render comment
+        if (!comment.empty()) {
+            if (!command.empty())
+                ImGui::SameLine(0.0f, 0.0f);
+            ImGui::PushStyleColor(ImGuiCol_Text, COMMENT_COLOR);
+            imgui.text(comment);
+            ImGui::PopStyleColor();
+        }
+
+        if (id < end_id)
+            ImGui::NewLine();
+    }
+
+    imgui.end();
+    ImGui::PopStyleVar();
+}
+
+void GCodeViewer::SequentialView::render() const
+{
+    marker.render();
+    gcode_window.render(gcode_ids[current.last]);
+}
+#endif // ENABLE_GCODE_WINDOW
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.75f, 0.75f, 0.75f },   // erNone
@@ -392,6 +538,11 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
 
     // release gpu memory, if used
     reset();
+
+#if ENABLE_GCODE_WINDOW
+    m_sequential_view.gcode_window.set_filename(gcode_result.filename);
+    m_sequential_view.gcode_window.load_gcode();
+#endif // ENABLE_GCODE_WINDOW
 
     load_toolpaths(gcode_result);
 
@@ -545,7 +696,9 @@ void GCodeViewer::reset()
     m_layers_z_range = { 0, 0 };
     m_roles = std::vector<ExtrusionRole>();
     m_time_statistics.reset();
-
+#if ENABLE_GCODE_WINDOW
+    m_sequential_view.gcode_window.reset();
+#endif // ENABLE_GCODE_WINDOW
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -608,7 +761,11 @@ void GCodeViewer::render() const
     SequentialView* sequential_view = const_cast<SequentialView*>(&m_sequential_view);
     if (sequential_view->current.last != sequential_view->endpoints.last) {
         sequential_view->marker.set_world_position(sequential_view->current_position);
+#if ENABLE_GCODE_WINDOW
+        sequential_view->render();
+#else
         sequential_view->marker.render();
+#endif // ENABLE_GCODE_WINDOW
     }
     render_shells();
     render_legend();
