@@ -166,13 +166,18 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     // holes that are no longer on the frontend.
     TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
     hollowed_mesh = po.transformed_mesh();
-    sla::hollow_mesh(hollowed_mesh, *po.m_hollowing_data->interior);
+    if (is_hollowed)
+        sla::hollow_mesh(hollowed_mesh, *po.m_hollowing_data->interior);
 
     TriangleMesh &mesh_view = po.m_hollowing_data->hollow_mesh_with_holes_trimmed;
 
     if (! needs_drilling) {
         mesh_view = po.transformed_mesh();
-        sla::hollow_mesh(mesh_view, *po.m_hollowing_data->interior, sla::hfRemoveInsideTriangles);
+
+        if (is_hollowed)
+            sla::hollow_mesh(mesh_view, *po.m_hollowing_data->interior,
+                             sla::hfRemoveInsideTriangles);
+
         BOOST_LOG_TRIVIAL(info) << "Drilling skipped (no holes).";
         return;
     }
@@ -200,9 +205,13 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     try {
         MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *holes_mesh_cgal);
         hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
-
         mesh_view = hollowed_mesh;
-        sla::remove_inside_triangles(mesh_view, *po.m_hollowing_data->interior);
+
+        if (is_hollowed)
+            sla::remove_inside_triangles(mesh_view,
+                                         *po.m_hollowing_data->interior,
+                                         drainholes);
+
     } catch (const std::runtime_error &) {
         throw Slic3r::SlicingError(L(
             "Drilling holes into the mesh failed. "
