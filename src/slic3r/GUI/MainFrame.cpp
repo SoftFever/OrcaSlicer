@@ -549,8 +549,10 @@ void MainFrame::init_tabpanel()
         wxWindow* panel = m_tabpanel->GetCurrentPage();
         if (panel != nullptr) {
             Tab* tab = dynamic_cast<Tab*>(panel);
-            if (tab != nullptr && !tab->validate_custom_gcodes())
-                evt.Veto();
+            if (tab != nullptr)
+                tab->validate_custom_gcodes();
+//            if (tab != nullptr && !tab->validate_custom_gcodes())
+//                evt.Veto();
         }
         });
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
