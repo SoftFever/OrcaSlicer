@@ -16,6 +16,7 @@
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
 
@@ -1161,6 +1162,7 @@ void GLGizmoSlaSupports::disable_editing_mode()
         m_c->instances_hider()->show_supports(true);
         m_parent.set_as_dirty();
     }
+    wxGetApp().plater()->get_notification_manager()->close_notification_of_type(NotificationType::QuitSLAManualMode);
 }
 
 

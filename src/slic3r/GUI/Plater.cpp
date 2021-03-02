@@ -5418,7 +5418,9 @@ void Plater::export_amf()
 
 void Plater::export_3mf(const boost::filesystem::path& output_path)
 {
-    if (p->model.objects.empty()) { return; }
+    if (p->model.objects.empty()
+     || canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
+        return;
 
     wxString path;
     bool export_config = true;
