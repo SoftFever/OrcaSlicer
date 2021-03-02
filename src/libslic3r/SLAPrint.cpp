@@ -1120,7 +1120,7 @@ TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
         return this->pad_mesh();
     case slaposDrillHoles:
         if (m_hollowing_data)
-            return m_hollowing_data->hollow_mesh_with_holes;
+            return get_mesh_to_print();
         [[fallthrough]];
     default:
         return TriangleMesh();
