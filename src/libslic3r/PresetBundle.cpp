@@ -877,16 +877,6 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             }
         }
 
-        // 3.1) If loaded filaments are invisible/non-instaled, set them as visible
-        for (const std::string& filament : this->filament_presets) {
-            Preset* preset = this->filaments.find_preset(filament);
-            if (preset && !preset->is_visible) {
-                preset->is_visible = true;
-                if (preset->name == this->filaments.m_edited_preset.name)
-                    this->filaments.get_selected_preset().is_visible = true;
-            }
-        }
-
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
 

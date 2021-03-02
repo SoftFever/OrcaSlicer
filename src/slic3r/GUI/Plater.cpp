@@ -2189,9 +2189,56 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 {
                     if (!config.empty()) {
                         Preset::normalize(config);
-                        wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
+                        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+                        preset_bundle->load_config_model(filename.string(), std::move(config));
+                        {
+                            // After loading of the presets from project, check if they are visible.
+                            // Set them to visible if they are not.
+
+                            auto update_selected_preset_visibility = [](PresetCollection& presets, std::vector<std::string>& names) {
+                                if (!presets.get_selected_preset().is_visible) {
+                                    assert(presets.get_selected_preset().name == presets.get_edited_preset().name);
+                                    presets.get_selected_preset().is_visible = true;
+                                    presets.get_edited_preset().is_visible = true;
+                                    names.emplace_back(presets.get_selected_preset().name);
+                                }
+                            };
+
+                            std::vector<std::string> names;
+                            if (printer_technology == ptFFF) {
+                                update_selected_preset_visibility(preset_bundle->prints, names);
+                                for (const std::string& filament : preset_bundle->filament_presets) {
+                                    Preset* preset = preset_bundle->filaments.find_preset(filament);
+                                    if (preset && !preset->is_visible) {
+                                        preset->is_visible = true;
+                                        names.emplace_back(preset->name);
+                                        if (preset->name == preset_bundle->filaments.get_edited_preset().name)
+                                            preset_bundle->filaments.get_selected_preset().is_visible = true;
+                                    }
+                                }
+                            }
+                            else {
+                                update_selected_preset_visibility(preset_bundle->sla_prints, names);
+                                update_selected_preset_visibility(preset_bundle->sla_materials, names);
+                            }
+                            update_selected_preset_visibility(preset_bundle->printers, names);
+
+                            preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+
+                            // show notification about temporary instaled presets
+                            if (!names.empty()) {
+                                std::string notif_text = into_u8(_L_PLURAL("The preset below was temporary instaled on active instance of PrusaSlicer",
+                                                                           "The presets below were temporary instaled on active instance of PrusaSlicer", names.size())) + ":";
+                                for (std::string& name : names)
+                                    notif_text += "\n - " + name;
+                                notification_manager->push_notification(NotificationType::CustomNotification,
+                                    NotificationManager::NotificationLevel::RegularNotification, notif_text);
+                            }
+                        }
+
                         if (printer_technology == ptFFF)
-                            CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &wxGetApp().preset_bundle->project_config);
+                            CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &preset_bundle->project_config);
+
                         // For exporting from the amf/3mf we shouldn't check printer_presets for the containing information about "Print Host upload"
                         wxGetApp().load_current_presets(false);
                         // Update filament colors for the MM-printer profile in the full config 

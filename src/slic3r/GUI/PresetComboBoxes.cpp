@@ -899,7 +899,7 @@ void PlaterPresetComboBox::update()
             for (PhysicalPrinterCollection::ConstIterator it = ph_printers.begin(); it != ph_printers.end(); ++it) {
                 for (const std::string& preset_name : it->get_preset_names()) {
                     Preset* preset = m_collection->find_preset(preset_name);
-                    if (!preset)
+                    if (!preset || !preset->is_visible)
                         continue;
                     std::string main_icon_name, bitmap_key = main_icon_name = preset->printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
                     wxBitmap* bmp = get_bmp(main_icon_name, wide_icons, main_icon_name);
@@ -1086,7 +1086,7 @@ void TabPresetComboBox::update()
             for (PhysicalPrinterCollection::ConstIterator it = ph_printers.begin(); it != ph_printers.end(); ++it) {
                 for (const std::string& preset_name : it->get_preset_names()) {
                     Preset* preset = m_collection->find_preset(preset_name);
-                    if (!preset)
+                    if (!preset || !preset->is_visible)
                         continue;
                     std::string main_icon_name = preset->printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
 
