@@ -24,8 +24,8 @@ public:
         bool             valid()   const { return m_idx >= 0; }
         const PointType& operator*() const { return m_data->at(m_idx).point; }
         const PointType* operator->() const { return &m_data->at(m_idx).point; }
-        const MutablePolygon& polygon() const { assert(this->valid()); m_data; }
-        IndexType        size()    const { assert(this->valid()); m_data->size(); }
+        const MutablePolygon& polygon() const { assert(this->valid()); return *m_data; }
+        IndexType        size()    const { assert(this->valid()); return m_data->size(); }
     private:
         const_iterator(const MutablePolygon *data, IndexType idx) : m_data(data), m_idx(idx) {}
         friend class MutablePolygon;
@@ -46,8 +46,8 @@ public:
         bool            valid()   const { return m_idx >= 0; }
         PointType&      operator*() const { return m_data->at(m_idx).point; }
         PointType*      operator->() const { return &m_data->at(m_idx).point; }
-        MutablePolygon& polygon() const { assert(this->valid()); m_data; }
-        IndexType       size()    const { assert(this->valid()); m_data->size(); }
+        MutablePolygon& polygon() const { assert(this->valid()); return *m_data; }
+        IndexType       size()    const { assert(this->valid()); return m_data->size(); }
         iterator&       remove()        { this->m_idx = m_data->remove(*this).m_idx; return *this; }
         iterator        insert(const PointType pt) const { return m_data->insert(*this, pt); }
     private:
