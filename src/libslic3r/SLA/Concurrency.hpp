@@ -5,6 +5,7 @@
 #include <tbb/mutex.h>
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_reduce.h>
+#include <tbb/task_arena.h>
 
 #include <algorithm>
 #include <numeric>
@@ -76,13 +77,18 @@ template<> struct _ccr<true>
             from, to, init, std::forward<MergeFn>(mergefn),
             [](typename I::value_type &i) { return i; }, granularity);
     }
+
+    static size_t max_concurreny()
+    {
+        return tbb::this_task_arena::max_concurrency();
+    }
 };
 
 template<> struct _ccr<false>
 {
 private:
     struct _Mtx { inline void lock() {} inline void unlock() {} };
-    
+
 public:
     using SpinningMutex = _Mtx;
     using BlockingMutex = _Mtx;
@@ -133,6 +139,8 @@ public:
         return reduce(from, to, init, std::forward<MergeFn>(mergefn),
                       [](typename I::value_type &i) { return i; });
     }
+
+    static size_t max_concurreny() { return 1; }
 };
 
 using ccr = _ccr<USE_FULL_CONCURRENCY>;
