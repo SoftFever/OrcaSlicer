@@ -876,6 +876,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 this->filament_presets[i] = loaded->name;
             }
         }
+
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
 

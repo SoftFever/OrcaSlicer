@@ -601,7 +601,7 @@ void DiffViewCtrl::AppendBmpTextColumn(const wxString& label, unsigned model_col
 #ifdef SUPPORTS_MARKUP
     rd->EnableMarkup(true);
 #endif
-    wxDataViewColumn* column = new wxDataViewColumn(label, rd, model_column, width, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
+    wxDataViewColumn* column = new wxDataViewColumn(label, rd, model_column, width * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
 #else
     wxDataViewColumn* column = new wxDataViewColumn(label, new BitmapTextRenderer(true, wxDATAVIEW_CELL_INERT), model_column, width * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
 #endif //__linux__
@@ -792,12 +792,12 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     SetBackgroundColour(bgr_clr);
 
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && defined(__WXMSW__)
+#if defined(__WXMSW__)
     // ys_FIXME! temporary workaround for correct font scaling
     // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
     // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
     this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+#endif // __WXMSW__
 
     int border = 10;
     int em = em_unit();
@@ -806,7 +806,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     m_action_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
 
     m_tree = new DiffViewCtrl(this, wxSize(em * 60, em * 30));
-    m_tree->AppendToggleColumn_(L"\u2714"      , DiffModel::colToggle, wxLinux ? 8 : 6);
+    m_tree->AppendToggleColumn_(L"\u2714"      , DiffModel::colToggle, wxLinux ? 9 : 6);
     m_tree->AppendBmpTextColumn(""             , DiffModel::colIconText, 28);
     m_tree->AppendBmpTextColumn(_L("Old Value"), DiffModel::colOldValue, 12);
     m_tree->AppendBmpTextColumn(_L("New Value"), DiffModel::colNewValue, 12);
@@ -1375,12 +1375,12 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     SetBackgroundColour(bgr_clr);
 
-#if ENABLE_WX_3_1_3_DPI_CHANGED_EVENT && defined(__WXMSW__)
+#if defined(__WXMSW__)
     // ys_FIXME! temporary workaround for correct font scaling
     // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
     // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
     this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-#endif // ENABLE_WX_3_1_3_DPI_CHANGED_EVENT
+#endif // __WXMSW__
 
     int border = 10;
     int em = em_unit();

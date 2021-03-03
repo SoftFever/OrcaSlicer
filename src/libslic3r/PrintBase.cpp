@@ -94,12 +94,14 @@ std::string PrintBase::output_filepath(const std::string &path, const std::strin
     return path;
 }
 
-void PrintBase::status_update_warnings(ObjectID object_id, int step, PrintStateBase::WarningLevel /* warning_level */, const std::string &message)
+void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */, const std::string &message, const PrintObjectBase* print_object)
 {
-    if (this->m_status_callback)
-        m_status_callback(SlicingStatus(*this, step));
+    if (this->m_status_callback) {
+        auto status = print_object ? SlicingStatus(*print_object, step) : SlicingStatus(*this, step);
+        m_status_callback(status);
+    }
     else if (! message.empty())
-    	printf("%s warning: %s\n", (object_id == this->id()) ? "print" : "print object", message.c_str());
+        printf("%s warning: %s\n",  print_object ? "print_object" : "print", message.c_str());
 }
 
 tbb::mutex& PrintObjectBase::state_mutex(PrintBase *print)
@@ -114,7 +116,7 @@ std::function<void()> PrintObjectBase::cancel_callback(PrintBase *print)
 
 void PrintObjectBase::status_update_warnings(PrintBase *print, int step, PrintStateBase::WarningLevel warning_level, const std::string &message)
 {
-	print->status_update_warnings(this->id(), step, warning_level, message);
+    print->status_update_warnings(step, warning_level, message, this);
 }
 
 } // namespace Slic3r

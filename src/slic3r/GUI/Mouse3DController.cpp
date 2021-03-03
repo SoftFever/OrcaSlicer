@@ -100,7 +100,6 @@ void Mouse3DController::State::append_button(unsigned int id, size_t /* input_qu
 }
 
 #ifdef _WIN32
-#if ENABLE_CTRL_M_ON_WINDOWS
 static std::string format_device_string(int vid, int pid)
 {
     std::string ret;
@@ -257,7 +256,6 @@ static std::string detect_attached_device()
 
     return ret;
 }
-#endif // ENABLE_CTRL_M_ON_WINDOWS
 
 // Called by Win32 HID enumeration callback.
 void Mouse3DController::device_attached(const std::string &device)
@@ -274,7 +272,6 @@ void Mouse3DController::device_attached(const std::string &device)
 			// Never mind, enumeration will be performed until connected.
 		    m_wakeup = true;
 			m_stop_condition.notify_all();
-#if ENABLE_CTRL_M_ON_WINDOWS
             m_device_str = format_device_string(vid, pid);
             if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end()) {
                 tbb::mutex::scoped_lock lock(m_params_ui_mutex);
@@ -283,12 +280,10 @@ void Mouse3DController::device_attached(const std::string &device)
             else
                 m_params_by_device[format_device_string(vid, pid)] = Params();
             m_connected = true;
-#endif // ENABLE_CTRL_M_ON_WINDOWS
         }
 	}
 }
 
-#if ENABLE_CTRL_M_ON_WINDOWS
 void Mouse3DController::device_detached(const std::string& device)
 {
     int vid = 0;
@@ -302,7 +297,6 @@ void Mouse3DController::device_detached(const std::string& device)
     m_device_str = "";
     m_connected = false;
 }
-#endif // ENABLE_CTRL_M_ON_WINDOWS
 
 // Filter out mouse scroll events produced by the 3DConnexion driver.
 bool Mouse3DController::State::process_mouse_wheel()
@@ -415,7 +409,6 @@ bool Mouse3DController::apply(Camera& camera)
         m_settings_dialog_closed_by_user = false;
     }
 
-#if ENABLE_CTRL_M_ON_WINDOWS
 #ifdef _WIN32
     {
         tbb::mutex::scoped_lock lock(m_params_ui_mutex);
@@ -425,7 +418,6 @@ bool Mouse3DController::apply(Camera& camera)
         }
     }
 #endif // _WIN32
-#endif // ENABLE_CTRL_M_ON_WINDOWS
 
     return m_state.apply(m_params, camera);
 }
@@ -661,7 +653,6 @@ bool Mouse3DController::handle_input(const DataPacketAxis& packet)
 // Initialize the application.
 void Mouse3DController::init()
 {
-#if ENABLE_CTRL_M_ON_WINDOWS
 #ifdef _WIN32
     m_device_str = detect_attached_device();
     if (!m_device_str.empty()) {
@@ -670,7 +661,6 @@ void Mouse3DController::init()
             m_params = m_params_ui = it_params->second;
     }
 #endif // _WIN32
-#endif // ENABLE_CTRL_M_ON_WINDOWS
 
 	assert(! m_thread.joinable());
     if (! m_thread.joinable()) {
@@ -698,12 +688,10 @@ void Mouse3DController::shutdown()
         m_stop = false;
 	}
 
-#if ENABLE_CTRL_M_ON_WINDOWS
 #ifdef _WIN32
     if (!m_device_str.empty())
         m_params_by_device[m_device_str] = m_params_ui;
 #endif // _WIN32
-#endif // ENABLE_CTRL_M_ON_WINDOWS
 }
 
 // Main routine of the worker thread.
@@ -1064,9 +1052,7 @@ bool Mouse3DController::handle_raw_input_win32(const unsigned char *data, const 
         DataPacketRaw packet;
     	memcpy(packet.data(), data, packet_length);
         handle_packet(packet, packet_length, m_params, m_state);
-#if ENABLE_CTRL_M_ON_WINDOWS
         m_connected = true;
-#endif // ENABLE_CTRL_M_ON_WINDOWS
     }
 
     return true;

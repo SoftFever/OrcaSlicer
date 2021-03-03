@@ -1393,9 +1393,8 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
     static std::vector<std::string> s_opts;
     if (s_opts.empty()) {
         s_opts = {
-            "preset_name",
+            "preset_names",
             "printer_technology",
-//            "printer_model",
             "host_type",
             "print_host",
             "printhost_apikey",
@@ -1453,11 +1452,10 @@ bool PhysicalPrinter::has_empty_config() const
 void PhysicalPrinter::update_preset_names_in_config()
 {
     if (!preset_names.empty()) {
-        std::string name;
-        for (auto el : preset_names)
-            name += el + ";";
-        name.pop_back();
-        config.set_key_value("preset_name", new ConfigOptionString(name));
+        std::vector<std::string>& values = config.option<ConfigOptionStrings>("preset_names")->values;
+        values.clear();
+        for (auto preset : preset_names)
+            values.push_back(preset);
     }
 }
 
@@ -1482,14 +1480,13 @@ void PhysicalPrinter::update_from_config(const DynamicPrintConfig& new_config)
 {
     config.apply_only(new_config, printer_options(), false);
 
-    std::string str = config.opt_string("preset_name");
-    std::set<std::string> values{};
-    if (!str.empty()) {
-        boost::split(values, str, boost::is_any_of(";"));
+    const std::vector<std::string>& values = config.option<ConfigOptionStrings>("preset_names")->values;
+
+    if (values.empty())
+        preset_names.clear();
+    else
         for (const std::string& val : values)
             preset_names.emplace(val);
-    }
-    preset_names = values;
 }
 
 void PhysicalPrinter::reset_presets()
@@ -1817,7 +1814,7 @@ bool PhysicalPrinterCollection::delete_preset_from_printers( const std::string& 
     return true;
 }
 
-// Get list of printers which have more than one preset and "preset_name" preset is one of them
+// Get list of printers which have more than one preset and "preset_names" preset is one of them
 std::vector<std::string> PhysicalPrinterCollection::get_printers_with_preset(const std::string& preset_name)
 {
     std::vector<std::string> printers;
@@ -1832,7 +1829,7 @@ std::vector<std::string> PhysicalPrinterCollection::get_printers_with_preset(con
     return printers;
 }
 
-// Get list of printers which has only "preset_name" preset
+// Get list of printers which has only "preset_names" preset
 std::vector<std::string> PhysicalPrinterCollection::get_printers_with_only_preset(const std::string& preset_name)
 {
     std::vector<std::string> printers;

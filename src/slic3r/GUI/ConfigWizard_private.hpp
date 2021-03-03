@@ -327,7 +327,8 @@ struct PageMaterials: ConfigWizardPage
     Materials *materials;
     StringList *list_printer, *list_type, *list_vendor;
     PresetList *list_profile;
-    int sel_printer_count_prev, sel_printer_item_prev, sel_type_prev, sel_vendor_prev;
+    wxArrayInt sel_printers_prev;
+    int sel_type_prev, sel_vendor_prev;
     bool presets_loaded;
 
     wxFlexGridSizer *grid;
@@ -342,7 +343,7 @@ struct PageMaterials: ConfigWizardPage
     PageMaterials(ConfigWizard *parent, Materials *materials, wxString title, wxString shortname, wxString list1name);
 
     void reload_presets();
-	void update_lists(int sel1, int sel2, int sel3);
+	void update_lists(int sel_type, int sel_vendor, int last_selected_printer = -1);
 	void on_material_highlighted(int sel_material);
     void on_material_hovered(int sel_material);
     void select_material(int i);
@@ -392,7 +393,6 @@ struct PageReloadFromDisk : ConfigWizardPage
     PageReloadFromDisk(ConfigWizard* parent);
 };
 
-#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 #ifdef _WIN32
 struct PageFilesAssociation : ConfigWizardPage
 {
@@ -409,7 +409,6 @@ public:
 //    bool associate_gcode() const { return cb_gcode->IsChecked(); }
 };
 #endif // _WIN32
-#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 
 struct PageMode: ConfigWizardPage
 {
@@ -571,11 +570,9 @@ struct ConfigWizard::priv
     PageCustom       *page_custom = nullptr;
     PageUpdate       *page_update = nullptr;
     PageReloadFromDisk *page_reload_from_disk = nullptr;
-#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 #ifdef _WIN32
     PageFilesAssociation* page_files_association = nullptr;
 #endif // _WIN32
-#endif // ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
     PageMode         *page_mode = nullptr;
     PageVendors      *page_vendors = nullptr;
     Pages3rdparty     pages_3rdparty;

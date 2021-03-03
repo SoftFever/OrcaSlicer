@@ -71,6 +71,7 @@ public:
     void             show_all(bool show_all);
     virtual void update();
     virtual void msw_rescale();
+    virtual void OnSelect(wxCommandEvent& evt);
 
 protected:
     typedef std::size_t Marker;
@@ -167,6 +168,7 @@ public:
     wxString get_preset_name(const Preset& preset) override;
     void update() override;
     void msw_rescale() override;
+    void OnSelect(wxCommandEvent& evt) override;
 
 private:
     int     m_extruder_idx = -1;
@@ -193,6 +195,7 @@ public:
     void update() override;
     void update_dirty();
     void msw_rescale() override;
+    void OnSelect(wxCommandEvent& evt) override;
 
     void set_enable_all(bool enable=true) { m_enable_all = enable; }
 

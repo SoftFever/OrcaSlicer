@@ -685,9 +685,9 @@ public:
     // returns true if all presets were deleted successfully.
     bool            delete_preset_from_printers(const std::string& preset_name);
 
-    // Get list of printers which have more than one preset and "preset_name" preset is one of them
+    // Get list of printers which have more than one preset and "preset_names" preset is one of them
     std::vector<std::string> get_printers_with_preset( const std::string &preset_name);
-    // Get list of printers which has only "preset_name" preset
+    // Get list of printers which has only "preset_names" preset
     std::vector<std::string> get_printers_with_only_preset( const std::string &preset_name);
 
     // Return the selected preset, without the user modifications applied.

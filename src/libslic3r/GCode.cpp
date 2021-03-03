@@ -667,6 +667,14 @@ namespace DoExport {
                     break;
             }
         }
+        if (ret.size() < MAX_TAGS_COUNT) {
+            const CustomGCode::Info& custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+            for (const auto& gcode : custom_gcode_per_print_z.gcodes) {
+                check(_(L("Custom G-code")), gcode.extra);
+                if (ret.size() == MAX_TAGS_COUNT)
+                    break;
+            }
+        }
 
         return ret;
     }
@@ -1705,7 +1713,9 @@ namespace ProcessLayer
 {
 
     static std::string emit_custom_gcode_per_print_z(
+        GCode                                                   &gcodegen,
         const CustomGCode::Item 								*custom_gcode,
+        unsigned int                                             current_extruder_id,
         // ID of the first extruder printing this layer.
         unsigned int                                             first_extruder_id,
         const PrintConfig                                       &config)
@@ -1746,12 +1756,14 @@ namespace ProcessLayer
                     // && !MMU1
                     ) {
                     //! FIXME_in_fw show message during print pause
-                    gcode += config.pause_print_gcode;// pause print
+                    DynamicConfig cfg;
+                    cfg.set_key_value("color_change_extruder", new ConfigOptionInt(m600_extruder_before_layer));
+                    gcode += gcodegen.placeholder_parser_process("pause_print_gcode", config.pause_print_gcode, current_extruder_id, &cfg);
                     gcode += "\n";
                     gcode += "M117 Change filament for Extruder " + std::to_string(m600_extruder_before_layer) + "\n";
                 }
                 else {
-                    gcode += config.color_change_gcode;//ColorChangeCode;
+                    gcode += gcodegen.placeholder_parser_process("color_change_gcode", config.color_change_gcode, current_extruder_id);
                     gcode += "\n";
                 }
 	        } 
@@ -1767,7 +1779,7 @@ namespace ProcessLayer
                     //! FIXME_in_fw show message during print pause
 	                if (!pause_print_msg.empty())
 	                    gcode += "M117 " + pause_print_msg + "\n";
-                    gcode += config.pause_print_gcode;
+                    gcode += gcodegen.placeholder_parser_process("pause_print_gcode", config.pause_print_gcode, current_extruder_id);
                 }
 	            else {
                     // add tag for processor
@@ -1776,8 +1788,8 @@ namespace ProcessLayer
 #else
                     gcode += ";" + GCodeProcessor::Custom_Code_Tag + "\n";
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
-                    if (gcode_type == CustomGCode::Template)    // Template Cistom Gcode
-                        gcode += config.template_custom_gcode;
+                    if (gcode_type == CustomGCode::Template)    // Template Custom Gcode
+                        gcode += gcodegen.placeholder_parser_process("template_custom_gcode", config.template_custom_gcode, current_extruder_id);
                     else                                        // custom Gcode
                         gcode += custom_gcode->extra;
 
@@ -1803,7 +1815,6 @@ namespace Skirt {
 
     static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_1st_layer(
         const Print             				&print,
-        const std::vector<GCode::LayerToPrint> 	& /*layers */,
         const LayerTools                		&layer_tools,
         // Heights (print_z) at which the skirt has already been extruded.
         std::vector<coordf_t>  			    	&skirt_done)
@@ -1811,7 +1822,8 @@ namespace Skirt {
         // Extrude skirt at the print_z of the raft layers and normal object layers
         // not at the print_z of the interlaced support material layers.
         std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
-        if (skirt_done.empty() && print.has_skirt() && ! print.skirt().entities.empty()) {
+        assert(skirt_done.empty());
+        if (skirt_done.empty() && print.has_skirt() && ! print.skirt().entities.empty() && layer_tools.has_skirt) {
             skirt_loops_per_extruder_all_printing(print, layer_tools, skirt_loops_per_extruder_out);
             skirt_done.emplace_back(layer_tools.print_z);
         }
@@ -1820,36 +1832,34 @@ namespace Skirt {
 
     static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_other_layers(
         const Print 							&print,
-        const std::vector<GCode::LayerToPrint> 	&layers,
         const LayerTools                		&layer_tools,
-        // First non-empty support layer.
-        const SupportLayer  					*support_layer,
         // Heights (print_z) at which the skirt has already been extruded.
         std::vector<coordf_t>			    	&skirt_done)
     {
         // Extrude skirt at the print_z of the raft layers and normal object layers
         // not at the print_z of the interlaced support material layers.
         std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
-        if (print.has_skirt() && ! print.skirt().entities.empty() &&
+        if (print.has_skirt() && ! print.skirt().entities.empty() && layer_tools.has_skirt &&
             // Not enough skirt layers printed yet.
             //FIXME infinite or high skirt does not make sense for sequential print!
-            (skirt_done.size() < (size_t)print.config().skirt_height.value || print.has_infinite_skirt()) &&
+            (skirt_done.size() < (size_t)print.config().skirt_height.value || print.has_infinite_skirt())) {
+            bool valid = ! skirt_done.empty() && skirt_done.back() < layer_tools.print_z - EPSILON;
+            assert(valid);
             // This print_z has not been extruded yet (sequential print)
             // FIXME: The skirt_done should not be empty at this point. The check is a workaround
             // of https://github.com/prusa3d/PrusaSlicer/issues/5652, but it deserves a real fix.
-            (! skirt_done.empty() && skirt_done.back() < layer_tools.print_z - EPSILON) &&
-            // and this layer is an object layer, or it is a raft layer.
-            (layer_tools.has_object || support_layer->id() < (size_t)support_layer->object()->config().raft_layers.value)) {
+            if (valid) {
 #if 0
-            // Prime just the first printing extruder. This is original Slic3r's implementation.
-            skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, print.config().skirts.value);
+                // Prime just the first printing extruder. This is original Slic3r's implementation.
+                skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, print.config().skirts.value);
 #else
-            // Prime all extruders planned for this layer, see
-            // https://github.com/prusa3d/PrusaSlicer/issues/469#issuecomment-322450619
-            skirt_loops_per_extruder_all_printing(print, layer_tools, skirt_loops_per_extruder_out);
+                // Prime all extruders planned for this layer, see
+                // https://github.com/prusa3d/PrusaSlicer/issues/469#issuecomment-322450619
+                skirt_loops_per_extruder_all_printing(print, layer_tools, skirt_loops_per_extruder_out);
 #endif
-            assert(!skirt_done.empty());
-            skirt_done.emplace_back(layer_tools.print_z);
+                assert(!skirt_done.empty());
+                skirt_done.emplace_back(layer_tools.print_z);
+            }
         }
         return skirt_loops_per_extruder_out;
     }
@@ -1987,13 +1997,13 @@ void GCode::process_layer(
 
     if (single_object_instance_idx == size_t(-1)) {
         // Normal (non-sequential) print.
-        gcode += ProcessLayer::emit_custom_gcode_per_print_z(layer_tools.custom_gcode, first_extruder_id, print.config());
+        gcode += ProcessLayer::emit_custom_gcode_per_print_z(*this, layer_tools.custom_gcode, m_writer.extruder()->id(), first_extruder_id, print.config());
     }
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
     skirt_loops_per_extruder = first_layer ?
-        Skirt::make_skirt_loops_per_extruder_1st_layer(print, layers, layer_tools, m_skirt_done) :
-        Skirt::make_skirt_loops_per_extruder_other_layers(print, layers, layer_tools, support_layer, m_skirt_done);
+        Skirt::make_skirt_loops_per_extruder_1st_layer(print, layer_tools, m_skirt_done) :
+        Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
 
     // Group extrusions by an extruder, then by an object, an island and a region.
     std::map<unsigned int, std::vector<ObjectByExtruder>> by_extruder;
@@ -2840,9 +2850,11 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     Polyline travel { this->last_pos(), point };
 
     // check whether a straight travel move would need retraction
-    bool needs_retraction       = this->needs_retraction(travel, role);
+    bool needs_retraction             = this->needs_retraction(travel, role);
     // check whether wipe could be disabled without causing visible stringing
-    bool could_be_wipe_disabled = false;
+    bool could_be_wipe_disabled       = false;
+    // Save state of use_external_mp_once for the case that will be needed to call twice m_avoid_crossing_perimeters.travel_to.
+    const bool used_external_mp_once  = m_avoid_crossing_perimeters.used_external_mp_once();
 
     // if a retraction would be needed, try to use avoid_crossing_perimeters to plan a
     // multi-hop travel path inside the configuration space
@@ -2870,8 +2882,13 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         // Because of it, it is necessary to call avoid crossing perimeters again with new starting point after calling retraction()
         // FIXME Lukas H.: Try to predict if this second calling of avoid crossing perimeters will be needed or not. It could save computations.
         if (last_post_before_retract != this->last_pos() && m_config.avoid_crossing_perimeters) {
-            Polyline retract_travel = m_avoid_crossing_perimeters.travel_to(*this, point);
-            travel = std::move(retract_travel);
+            // If in the previous call of m_avoid_crossing_perimeters.travel_to was use_external_mp_once set to true restore this value for next call.
+            if (used_external_mp_once)
+                m_avoid_crossing_perimeters.use_external_mp_once();
+            travel = m_avoid_crossing_perimeters.travel_to(*this, point);
+            // If state of use_external_mp_once was changed reset it to right value.
+            if (used_external_mp_once)
+                m_avoid_crossing_perimeters.reset_once_modifiers();
         }
     } else
         // Reset the wipe path when traveling, so one would not wipe along an old path.

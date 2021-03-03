@@ -211,6 +211,7 @@ bool Preview::init(wxWindow* parent, Model* model)
     m_choice_view_type->Append(_L("Width"));
     m_choice_view_type->Append(_L("Speed"));
     m_choice_view_type->Append(_L("Fan speed"));
+    m_choice_view_type->Append(_L("Temperature"));
     m_choice_view_type->Append(_L("Volumetric flow rate"));
     m_choice_view_type->Append(_L("Tool"));
     m_choice_view_type->Append(_L("Color Print"));

@@ -151,11 +151,11 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
     
-    def = this->add("preset_name", coString);
-    def->label = L("Printer preset name");
-    def->tooltip = L("Related printer preset name");
+    def = this->add("preset_names", coStrings);
+    def->label = L("Printer preset names");
+    def->tooltip = L("Names of presets related to the physical printer");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("printhost_authorization_type", coEnum);
     def->label = L("Authorization Type");
@@ -3366,6 +3366,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "printhost_cafile";
     } else if (opt_key == "octoprint_apikey") {
         opt_key = "printhost_apikey";
+    } else if (opt_key == "preset_name") {
+        opt_key = "preset_names";
     }
 
     // Ignore the following obsolete configuration keys:
