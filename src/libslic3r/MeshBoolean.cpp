@@ -111,32 +111,15 @@ struct CGALMesh { _EpicMesh m; };
 // /////////////////////////////////////////////////////////////////////////////
 
 template<class _Mesh> void triangle_mesh_to_cgal(const TriangleMesh &M, _Mesh &out)
-{
-    using Index3 = std::array<size_t, 3>;
-    
+{ 
     if (M.empty()) return;
-    
-    std::vector<typename _Mesh::Point> points;
-    std::vector<Index3> indices;
-    points.reserve(M.its.vertices.size());
-    indices.reserve(M.its.indices.size());
-    for (auto &v : M.its.vertices) points.emplace_back(v.x(), v.y(), v.z());
-    for (auto &_f : M.its.indices) {
-        auto f = _f.cast<size_t>();
-        indices.emplace_back(Index3{f(0), f(1), f(2)});
-    }
 
-    CGALProc::orient_polygon_soup(points, indices);
-    CGALProc::polygon_soup_to_polygon_mesh(points, indices, out);
-    
-    // Number the faces because 'orient_to_bound_a_volume' needs a face <--> index map
-    unsigned index = 0;
-    for (auto face : out.faces()) face = CGAL::SM_Face_index(index++);
-    
-    if(CGAL::is_closed(out))
-        CGALProc::orient_to_bound_a_volume(out);
-    else
-        throw Slic3r::RuntimeError("Mesh not watertight");
+    for (auto &v : M.its.vertices)
+        out.add_vertex(typename _Mesh::Point{v.x(), v.y(), v.z()});
+
+    using VI = typename _Mesh::Vertex_index;
+    for (auto &f : M.its.indices)
+        out.add_face(VI(f(0)), VI(f(1)), VI(f(2)));
 }
 
 inline Vec3d to_vec3d(const _EpicMesh::Point &v)
