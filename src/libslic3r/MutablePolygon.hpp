@@ -6,6 +6,10 @@
 
 namespace Slic3r {
 
+// Polygon implemented as a loop of double linked elements.
+// All elements are allocated in a single std::vector<>, thus integer indices are used for
+// referencing the previous and next element and inside iterators to survive reallocation
+// of the vector.
 class MutablePolygon
 {
 public:
@@ -55,6 +59,69 @@ public:
         friend class MutablePolygon;
         MutablePolygon  *m_data;
         IndexType        m_idx;
+        friend class range;
+    };
+
+    // Iterator range for maintaining a range of unprocessed items, see smooth_outward().
+    class range
+    {
+    public:
+        range(MutablePolygon& poly) : range(poly.begin(), poly.end()) {}
+        range(MutablePolygon::iterator begin, MutablePolygon::iterator end) : m_begin(begin), m_end(end) {}
+
+        // Start of a range, inclusive. If range is empty, then ! begin().valid().
+        MutablePolygon::iterator    begin() const { return m_begin; }
+        // End of a range, inclusive. If range is empty, then ! end().valid().
+        MutablePolygon::iterator    end()   const { return m_end; }
+        // Is the range empty?
+        bool                        empty() const { return !m_begin.valid(); }
+
+        // Return begin() and shorten the range by advancing front.
+        MutablePolygon::iterator    process_next() {
+            assert(!this->empty());
+            MutablePolygon::iterator out = m_begin;
+            this->advance_front();
+            return out;
+        }
+
+        void advance_front() {
+            assert(!this->empty());
+            if (m_begin == m_end)
+                this->make_empty();
+            else
+                ++ m_begin;
+        }
+
+        void retract_back() {
+            assert(!this->empty());
+            if (m_begin == m_end)
+                this->make_empty();
+            else
+                -- m_end;
+        }
+
+        MutablePolygon::iterator remove_front(MutablePolygon::iterator it) {
+            if (m_begin == it)
+                this->advance_front();
+            return it.remove();
+        }
+
+        MutablePolygon::iterator remove_back(MutablePolygon::iterator it) {
+            if (m_end == it)
+                this->retract_back();
+            return it.remove();
+        }
+
+    private:
+        // Range from begin to end, inclusive.
+        // If the range is valid, then both m_begin and m_end are invalid.
+        MutablePolygon::iterator    m_begin;
+        MutablePolygon::iterator    m_end;
+
+        void make_empty() {
+            m_begin.m_idx = -1;
+            m_end.m_idx = -1;
+        }
     };
 
     MutablePolygon() = default;
@@ -63,26 +130,35 @@ public:
 
     template<typename IT>
     MutablePolygon(IT begin, IT end, size_t reserve = 0) {
-        m_size = IndexType(end - begin);
-        if (m_size > 0) {
-            m_head = 0;
-            m_data.reserve(std::max<size_t>(m_size, reserve));
-            auto i = IndexType(-1);
-            auto j = IndexType(1);
-            for (auto it = begin; it != end; ++ it)
-                m_data.push_back({ *it, i ++, j ++ });
-            m_data.front().prev = m_size - 1;
-            m_data.back ().next = 0;
+        this->assign_inner(begin, end, reserve);
+    };
+
+    template<typename IT>
+    void assign(IT begin, IT end, size_t reserve = 0) {
+        m_data.clear();
+        m_head      = IndexType(-1);
+        m_head_free = { IndexType(-1) };
+        this->assign_inner(begin, end, reserve);  
+    };
+
+    void assign(const Polygon &rhs, size_t reserve = 0) {
+        assign(rhs.points.begin(), rhs.points.end(), reserve);
+    }
+
+    void polygon(Polygon &out) const {
+        out.points.clear();
+        if (this->valid()) {
+            out.points.reserve(this->size());
+            auto it = this->cbegin();
+            out.points.emplace_back(*it);
+            for (++ it; it != this->cbegin(); ++ it)
+                out.points.emplace_back(*it);
         }
     };
 
     Polygon polygon() const {
         Polygon out;
-        if (this->valid()) {
-            out.points.reserve(this->size());
-            for (auto it = this->cbegin(); it != this->cend(); ++ it)
-                out.points.emplace_back(*it);
-        }
+        this->polygon(out);
         return out;
     };
 
@@ -90,6 +166,7 @@ public:
     size_t          size()   const { return this->m_size; }
     size_t          capacity() const { return this->m_data.capacity(); }
     bool            valid()  const { return this->m_size >= 3; }
+    void            clear()        { m_data.clear(); m_size = 0; m_head = IndexType(-1); m_head_free = IndexType(-1); }
 
     iterator        begin()        { return { this, m_head }; }
     const_iterator  cbegin() const { return { this, m_head }; }
@@ -108,8 +185,11 @@ public:
 
 private:
     struct LinkedPoint {
+        // 8 bytes
         PointType point;
+        // 4 bytes
         IndexType prev;
+        // 4 bytes
         IndexType next;
     };
     std::vector<LinkedPoint>    m_data;
@@ -121,6 +201,21 @@ private:
 
     LinkedPoint&          at(IndexType i)       { return m_data[i]; }
     const LinkedPoint&    at(IndexType i) const { return m_data[i]; }
+
+    template<typename IT>
+    void assign_inner(IT begin, IT end, size_t reserve) {
+        m_size = IndexType(end - begin);
+        if (m_size > 0) {
+            m_head = 0;
+            m_data.reserve(std::max<size_t>(m_size, reserve));
+            auto i = IndexType(-1);
+            auto j = IndexType(1);
+            for (auto it = begin; it != end; ++ it)
+                m_data.push_back({ *it, i ++, j ++ });
+            m_data.front().prev = m_size - 1;
+            m_data.back ().next = 0;
+        }
+    };
 
     IndexType remove(const IndexType i) {
         assert(i >= 0);
@@ -213,13 +308,26 @@ inline bool operator!=(const MutablePolygon &p1, const MutablePolygon &p2) { ret
 void remove_duplicates(MutablePolygon &polygon);
 void remove_duplicates(MutablePolygon &polygon, double eps);
 
-void smooth_outward(MutablePolygon &polygon, double shortcut_length);
+void smooth_outward(MutablePolygon &polygon, coord_t clip_dist_scaled);
 
-inline Polygon smooth_outward(const Polygon &polygon, double shortcut_length) 
+inline Polygon smooth_outward(Polygon polygon, coord_t clip_dist_scaled)
 { 
     MutablePolygon mp(polygon, polygon.size() * 2);
-    smooth_outward(mp, shortcut_length);
-    return mp.polygon();
+    smooth_outward(mp, clip_dist_scaled);
+    mp.polygon(polygon);
+    return polygon;
+}
+
+inline Polygons smooth_outward(Polygons polygons, coord_t clip_dist_scaled)
+{ 
+    MutablePolygon mp;
+    for (Polygon &polygon : polygons) {
+        mp.assign(polygon, polygon.size() * 2);
+        smooth_outward(mp, clip_dist_scaled);
+        mp.polygon(polygon);
+    }
+    polygons.erase(std::remove_if(polygons.begin(), polygons.end(), [](const auto &p){ return p.empty(); }), polygons.end());
+    return polygons;
 }
 
 }
