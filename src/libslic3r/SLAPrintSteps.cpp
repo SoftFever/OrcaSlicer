@@ -144,7 +144,6 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
     }
 }
 
-
 struct FaceHash {
 
     // A hash is created for each triangle to be identifiable. The hash uses
@@ -214,10 +213,7 @@ static std::vector<bool> create_exclude_mask(
     for (size_t fi = 0; fi < its.indices.size(); ++fi) {
         auto &face = its.indices[fi];
 
-        std::string key =
-                FaceHash::facekey(face, its.vertices);
-
-        if (interior_hash.find(key)) {
+        if (interior_hash.find(FaceHash::facekey(face, its.vertices))) {
             exclude_mask[fi] = true;
             continue;
         }
