@@ -605,9 +605,7 @@ public:
 #if ENABLE_GCODE_WINDOW
         class GCodeWindow
         {
-            static const unsigned int DefaultMaxLinesCount;
-            bool m_visible{ false };
-            unsigned int m_max_lines_count{ DefaultMaxLinesCount };
+            bool m_visible{ true };
             unsigned int m_file_size{ 0 };
             std::string m_filename;
             std::vector<std::string> m_gcode;
@@ -621,7 +619,7 @@ public:
 
             void toggle_visibility() { m_visible = !m_visible; }
 
-            void render(unsigned int curr_line_id) const;
+            void render(float top, float bottom, unsigned int curr_line_id) const;
         };
 #endif // ENABLE_GCODE_WINDOW
 
@@ -645,7 +643,7 @@ public:
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
 #if ENABLE_GCODE_WINDOW
-        void render() const;
+        void render(float legend_height) const;
 #endif // ENABLE_GCODE_WINDOW
     };
 
@@ -752,7 +750,11 @@ private:
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths() const;
     void render_shells() const;
+#if ENABLE_GCODE_WINDOW
+    void render_legend(float& legend_height) const;
+#else
     void render_legend() const;
+#endif // ENABLE_GCODE_WINDOW
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

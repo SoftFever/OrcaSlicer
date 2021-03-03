@@ -299,8 +299,6 @@ void GCodeViewer::SequentialView::Marker::render() const
 }
 
 #if ENABLE_GCODE_WINDOW
-const unsigned int GCodeViewer::SequentialView::GCodeWindow::DefaultMaxLinesCount = 20;
-
 void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
 {
     m_gcode.clear();
@@ -314,7 +312,6 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
     }
 
     m_file_size = static_cast<unsigned int>(m_gcode.size());
-    m_max_lines_count = std::min(DefaultMaxLinesCount, m_file_size);
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::start_mapping_file()
@@ -327,42 +324,52 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
     std::cout << "GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()\n";
 }
 
-void GCodeViewer::SequentialView::GCodeWindow::render(unsigned int curr_line_id) const
+void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, unsigned int curr_line_id) const
 {
     static const ImVec4 LINE_NUMBER_COLOR = ImGuiWrapper::COL_ORANGE_LIGHT;
     static const ImVec4 COMMAND_COLOR = { 0.8f, 0.8f, 0.0f, 1.0f };
     static const ImVec4 COMMENT_COLOR = { 0.7f, 0.7f, 0.7f, 1.0f };
 
-    if (!m_visible)
+    if (!m_visible || m_filename.empty() || m_gcode.empty() || curr_line_id == 0)
         return;
 
-    if (m_filename.empty() || m_gcode.empty())
+    // winodws height
+    const float text_height = ImGui::CalcTextSize("0").y;
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const float height = bottom - top;
+    if (height < 2.0f * (text_height + style.ItemSpacing.y + style.WindowBorderSize + style.WindowPadding.y))
         return;
 
-    if (curr_line_id == 0)
-        return;
+    // number of visible lines
+    const unsigned int lines_count = (height - 2.0f * (style.WindowPadding.y + style.WindowBorderSize) + style.ItemSpacing.y) / (text_height + style.ItemSpacing.y);
 
     // calculate visible range
-    unsigned int half_max_lines_count = m_max_lines_count / 2;
-    unsigned int start_id = (curr_line_id >= half_max_lines_count) ? curr_line_id - half_max_lines_count : 0;
-    unsigned int end_id = start_id + m_max_lines_count - 1;
+    const unsigned int half_lines_count = lines_count / 2;
+    unsigned int start_id = (curr_line_id >= half_lines_count) ? curr_line_id - half_lines_count : 0;
+    unsigned int end_id = start_id + lines_count - 1;
     if (end_id >= m_file_size) {
         end_id = m_file_size - 1;
-        start_id = end_id - m_max_lines_count + 1;
+        start_id = end_id - lines_count + 1;
     }
+
+    const float id_offset = ImGui::CalcTextSize(std::to_string(end_id).c_str()).x;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    imgui.set_next_window_pos(0.0f, 0.5f * wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height(), ImGuiCond_Always, 0.0f, 0.5f);
+    imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
+    imgui.set_next_window_size(0.0f, height, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
    
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    const auto& [id_offset, text_height] = ImGui::CalcTextSize(std::to_string(end_id).c_str());
+
+
+    float f_lines_count = static_cast<float>(lines_count);
+    ImGui::ItemSize({ 0.0f, 0.5f * (height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y) });
 
     for (unsigned int id = start_id; id <= end_id; ++id) {
-        const std::string& line = m_gcode[id];
+        const std::string& line = m_gcode[id - 1];
 
         std::string command;
         std::string parameters;
@@ -387,16 +394,17 @@ void GCodeViewer::SequentialView::GCodeWindow::render(unsigned int curr_line_id)
         }
 
         // background rect for the current selected move
-        if (id == curr_line_id - 2) {
-            ImVec2 pos = ImGui::GetCursorScreenPos();
-            const float window_border_size = ImGui::GetCurrentWindow()->WindowBorderSize;
-            draw_list->AddRectFilled({ window_border_size, pos.y - 1 }, { ImGui::GetCurrentWindow()->Size.x - window_border_size, pos.y + text_height + 1 },
-                ImGui::GetColorU32({ 0.1f, 0.1f, 0.1f, 1.0f }));
+        if (id == curr_line_id - 1) {
+            const float pos_y = ImGui::GetCursorScreenPos().y;
+            const float half_ItemSpacing_y = 0.5f * style.ItemSpacing.y;
+            draw_list->AddRectFilled({ style.WindowBorderSize, pos_y - half_ItemSpacing_y },
+                                     { ImGui::GetCurrentWindow()->Size.x - style.WindowBorderSize, pos_y + text_height + half_ItemSpacing_y },
+                ImGui::GetColorU32({ 0.15f, 0.15f, 0.15f, 1.0f }));
         }
 
         // render line number
         ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
-        const std::string id_str = std::to_string(id + 1);
+        const std::string id_str = std::to_string(id);
         ImGui::SameLine(0.0f, id_offset - ImGui::CalcTextSize(id_str.c_str()).x);
         imgui.text(id_str);
         ImGui::PopStyleColor();
@@ -434,10 +442,13 @@ void GCodeViewer::SequentialView::GCodeWindow::render(unsigned int curr_line_id)
     ImGui::PopStyleVar();
 }
 
-void GCodeViewer::SequentialView::render() const
+void GCodeViewer::SequentialView::render(float legend_height) const
 {
     marker.render();
-    gcode_window.render(gcode_ids[current.last]);
+    float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
+    if (wxGetApp().is_editor())
+        bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
+    gcode_window.render(legend_height, bottom, gcode_ids[current.last]);
 }
 #endif // ENABLE_GCODE_WINDOW
 
@@ -758,17 +769,22 @@ void GCodeViewer::render() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
+    render_shells();
+#if ENABLE_GCODE_WINDOW
+    float legend_height = 0.0f;
+    render_legend(legend_height);
+#else
+    render_legend();
+#endif // ENABLE_GCODE_WINDOW
     SequentialView* sequential_view = const_cast<SequentialView*>(&m_sequential_view);
     if (sequential_view->current.last != sequential_view->endpoints.last) {
         sequential_view->marker.set_world_position(sequential_view->current_position);
 #if ENABLE_GCODE_WINDOW
-        sequential_view->render();
+        sequential_view->render(legend_height);
 #else
         sequential_view->marker.render();
 #endif // ENABLE_GCODE_WINDOW
     }
-    render_shells();
-    render_legend();
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -3923,7 +3939,11 @@ void GCodeViewer::render_shells() const
 //    glsafe(::glDepthMask(GL_TRUE));
 }
 
+#if ENABLE_GCODE_WINDOW
+void GCodeViewer::render_legend(float& legend_height) const
+#else
 void GCodeViewer::render_legend() const
+#endif // ENABLE_GCODE_WINDOW
 {
     if (!m_legend_enabled)
         return;
@@ -4605,6 +4625,10 @@ void GCodeViewer::render_legend() const
         default : { assert(false); break; }
         }
     }
+
+#if ENABLE_GCODE_WINDOW
+    legend_height = ImGui::GetCurrentWindow()->Size.y;
+#endif // ENABLE_GCODE_WINDOW
 
     imgui.end();
     ImGui::PopStyleVar();
