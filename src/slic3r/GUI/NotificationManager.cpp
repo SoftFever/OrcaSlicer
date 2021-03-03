@@ -568,12 +568,12 @@ bool NotificationManager::PopNotification::update_state(bool paused, const int64
 		m_current_fade_opacity = 1.0f;
 		m_notification_start = now;
 	// Timers when not fading
-	} else if (m_data.duration != 0 && !paused) {
+	} else if (m_state != EState::FadingOut && m_data.duration != 0 && !paused) {
 		int64_t up_time = now - m_notification_start;
-		if (m_state != EState::FadingOut && up_time >= m_data.duration * 1000) {
+		if (up_time >= m_data.duration * 1000) {
 			m_state					= EState::FadingOut;
 			m_fading_start			= now;
-		} else if (m_state != EState::FadingOut) {
+		} else {
 			m_next_render = m_data.duration * 1000 - up_time;
 		}	
 	}
