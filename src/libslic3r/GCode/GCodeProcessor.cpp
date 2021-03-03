@@ -2168,10 +2168,10 @@ void GCodeProcessor::process_G28(const GCodeReader::GCodeLine& line)
     if (!found)
         new_line_raw += " X0  Y0  Z0";
 
-    GCodeReader::GCodeLine new_line;
+    GCodeReader::GCodeLine new_gline;
     GCodeReader reader;
-    reader.parse_line(new_line_raw.c_str(), new_line, [](GCodeReader&, const GCodeReader::GCodeLine&) {});
-    process_G1(new_line);
+    reader.parse_line(new_line_raw, [&](GCodeReader& reader, const GCodeReader::GCodeLine& gline) { new_gline = gline; });
+    process_G1(new_gline);
 }
 
 void GCodeProcessor::process_G90(const GCodeReader::GCodeLine& line)
