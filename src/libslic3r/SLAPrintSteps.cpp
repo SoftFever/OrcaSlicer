@@ -1,3 +1,5 @@
+#include <unordered_set>
+
 #include <libslic3r/Exception.hpp>
 #include <libslic3r/SLAPrintSteps.hpp>
 #include <libslic3r/MeshBoolean.hpp>
@@ -142,6 +144,136 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
     }
 }
 
+
+struct FaceHash {
+
+    // A hash is created for each triangle to be identifiable. The hash uses
+    // only the triangle's geometric traits, not the index in a particular mesh.
+    std::unordered_set<std::string> facehash;
+
+    static std::string facekey(const Vec3i &face,
+                               const std::vector<Vec3f> &vertices)
+    {
+        // Scale to integer to avoid floating points
+        std::array<Vec<3, int64_t>, 3> pts = {
+            scaled<int64_t>(vertices[face(0)]),
+            scaled<int64_t>(vertices[face(1)]),
+            scaled<int64_t>(vertices[face(2)])
+        };
+
+        // Get the first two sides of the triangle, do a cross product and move
+        // that vector to the center of the triangle. This encodes all
+        // information to identify an identical triangle at the same position.
+        Vec<3, int64_t> a = pts[0] - pts[2], b = pts[1] - pts[2];
+        Vec<3, int64_t> c = a.cross(b) + (pts[0] + pts[1] + pts[2]) / 3;
+
+        // Return a concatenated string representation of the coordinates
+        return std::to_string(c(0)) + std::to_string(c(1)) + std::to_string(c(2));
+    };
+
+    FaceHash(const indexed_triangle_set &its)
+    {
+        for (const Vec3i &face : its.indices) {
+            std::string keystr = facekey(face, its.vertices);
+            facehash.insert(keystr);
+        }
+    }
+
+    bool find(const std::string &key)
+    {
+        auto it = facehash.find(key);
+        return it != facehash.end();
+    }
+};
+
+// Create exclude mask for triangle removal inside hollowed interiors.
+// This is necessary when the interior is already part of the mesh which was
+// drilled using CGAL mesh boolean operation. Excluded will be the triangles
+// originally part of the interior mesh and triangles that make up the drilled
+// hole walls.
+static std::vector<bool> create_exclude_mask(
+        const indexed_triangle_set &its,
+        const sla::Interior &interior,
+        const std::vector<sla::DrainHole> &holes)
+{
+    FaceHash interior_hash{sla::get_mesh(interior).its};
+
+    std::vector<bool> exclude_mask(its.indices.size(), false);
+
+    std::vector< std::vector<size_t> > neighbor_index =
+            create_neighbor_index(its);
+
+    auto exclude_neighbors = [&neighbor_index, &exclude_mask](const Vec3i &face)
+    {
+        for (int i = 0; i < 3; ++i) {
+            const std::vector<size_t> &neighbors = neighbor_index[face(i)];
+            for (size_t fi_n : neighbors) exclude_mask[fi_n] = true;
+        }
+    };
+
+    for (size_t fi = 0; fi < its.indices.size(); ++fi) {
+        auto &face = its.indices[fi];
+
+        std::string key =
+                FaceHash::facekey(face, its.vertices);
+
+        if (interior_hash.find(key)) {
+            exclude_mask[fi] = true;
+            continue;
+        }
+
+        if (exclude_mask[fi]) {
+            exclude_neighbors(face);
+            continue;
+        }
+
+        // Lets deal with the holes. All the triangles of a hole and all the
+        // neighbors of these triangles need to be kept. The neigbors were
+        // created by CGAL mesh boolean operation that modified the original
+        // interior inside the input mesh to contain the holes.
+        Vec3d tr_center = (
+            its.vertices[face(0)] +
+            its.vertices[face(1)] +
+            its.vertices[face(2)]
+        ).cast<double>() / 3.;
+
+        // If the center is more than half a mm inside the interior,
+        // it cannot possibly be part of a hole wall.
+        if (sla::get_distance(tr_center, interior) < -0.5)
+            continue;
+
+        Vec3f U = its.vertices[face(1)] - its.vertices[face(0)];
+        Vec3f V = its.vertices[face(2)] - its.vertices[face(0)];
+        Vec3f C = U.cross(V);
+        Vec3f face_normal = C.normalized();
+
+        for (const sla::DrainHole &dh : holes) {
+            Vec3d dhpos = dh.pos.cast<double>();
+            Vec3d dhend = dhpos + dh.normal.cast<double>() * dh.height;
+
+            Linef3 holeaxis{dhpos, dhend};
+
+            double D_hole_center = line_alg::distance_to(holeaxis, tr_center);
+            double D_hole        = std::abs(D_hole_center - dh.radius);
+            float dot            = dh.normal.dot(face_normal);
+
+            // Empiric tolerances for center distance and normals angle.
+            // For triangles that are part of a hole wall the angle of
+            // triangle normal and the hole axis is around 90 degrees,
+            // so the dot product is around zero.
+            double D_tol = dh.radius / sla::DrainHole::steps;
+            float normal_angle_tol = 1.f / sla::DrainHole::steps;
+
+            if (D_hole < D_tol && std::abs(dot) < normal_angle_tol) {
+                exclude_mask[fi] = true;
+                exclude_neighbors(face);
+            }
+        }
+    }
+
+    return exclude_mask;
+}
+
 // Drill holes into the hollowed/original mesh.
 void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 {
@@ -207,10 +339,13 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
         mesh_view = hollowed_mesh;
 
-        if (is_hollowed)
-            sla::remove_inside_triangles(mesh_view,
-                                         *po.m_hollowing_data->interior,
-                                         drainholes);
+        if (is_hollowed) {
+            auto &interior = *po.m_hollowing_data->interior;
+            std::vector<bool> exclude_mask =
+                    create_exclude_mask(mesh_view.its, interior, drainholes);
+
+            sla::remove_inside_triangles(mesh_view, interior, exclude_mask);
+        }
 
     } catch (const std::runtime_error &) {
         throw Slic3r::SlicingError(L(

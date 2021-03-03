@@ -81,7 +81,16 @@ void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg, int flags = 0);
 // Hollowing prepared in "interior", merge with original mesh
 void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags = 0);
 
-void remove_inside_triangles(TriangleMesh &mesh, const Interior &interior);
+void remove_inside_triangles(TriangleMesh &mesh, const Interior &interior,
+                             const std::vector<bool> &exclude_mask = {});
+
+double get_distance(const Vec3f &p, const Interior &interior);
+
+template<class T>
+FloatingOnly<T> get_distance(const Vec<3, T> &p, const Interior &interior)
+{
+    return get_distance(Vec3f(p.template cast<float>()), interior);
+}
 
 void cut_drainholes(std::vector<ExPolygons> & obj_slices,
                     const std::vector<float> &slicegrid,

@@ -421,13 +421,19 @@ void divide_triangle(const DivFace &face, Fn &&visitor)
         divide_triangle(child2, std::forward<Fn>(visitor));
 }
 
-void remove_inside_triangles(TriangleMesh &mesh, const Interior &interior)
+void remove_inside_triangles(TriangleMesh &mesh, const Interior &interior,
+                             const std::vector<bool> &exclude_mask)
 {
     enum TrPos { posInside, posTouch, posOutside };
 
     auto &faces       = mesh.its.indices;
     auto &vertices    = mesh.its.vertices;
     auto bb           = mesh.bounding_box();
+
+    bool use_exclude_mask = faces.size() == exclude_mask.size();
+    auto is_excluded = [&exclude_mask, use_exclude_mask](size_t face_id) {
+        return use_exclude_mask && exclude_mask[face_id];
+    };
 
     // TODO: Parallel mode not working yet
     using exec_policy = ccr_seq;
@@ -517,6 +523,10 @@ void remove_inside_triangles(TriangleMesh &mesh, const Interior &interior)
 
     exec_policy::for_each(size_t(0), faces.size(), [&] (size_t face_idx) {
         const Vec3i &face = faces[face_idx];
+
+        // If the triangle is excluded, we need to keep it.
+        if (is_excluded(face_idx))
+            return;
 
         std::array<Vec3f, 3> pts =
             { vertices[face(0)], vertices[face(1)], vertices[face(2)] };
