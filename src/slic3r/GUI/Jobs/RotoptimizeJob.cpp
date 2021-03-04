@@ -21,20 +21,6 @@ void RotoptimizeJob::process()
 
     if (!o || !po) return;
 
-    TriangleMesh mesh = o->raw_mesh();
-    mesh.require_shared_vertices();
-
-//    for (auto inst : o->instances) {
-//        Transform3d tr = Transform3d::Identity();
-//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(Z), Vec3d::UnitZ()));
-//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(Y), Vec3d::UnitY()));
-//        tr.rotate(Eigen::AngleAxisd(inst->get_rotation(X), Vec3d::UnitX()));
-
-//        double score = sla::get_model_supportedness(*po, tr);
-
-//        std::cout << "Model supportedness before: " << score << std::endl;
-//    }
-
     Vec2d r = sla::find_best_rotation(*po, 0.75f,
         [this](unsigned s) {
             if (s < 100)
