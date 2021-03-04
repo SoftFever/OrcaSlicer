@@ -609,8 +609,17 @@ public:
 #if ENABLE_GCODE_WINDOW
         class GCodeWindow
         {
+            struct Line
+            {
+                std::string command;
+                std::string parameters;
+                std::string comment;
+            };
             bool m_visible{ true };
             unsigned int m_file_size{ 0 };
+            unsigned int m_last_line_id{ 0 };
+            size_t m_last_lines_size{ 0 };
+            std::vector<Line> m_lines;
             std::string m_filename;
             std::vector<std::string> m_gcode;
 

@@ -314,6 +314,8 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
     }
 
     m_file_size = static_cast<unsigned int>(m_gcode.size());
+    m_last_line_id = 0;
+    m_last_lines_size = 0;
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::start_mapping_file()
@@ -328,6 +330,38 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
 
 void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, unsigned int curr_line_id) const
 {
+    auto update_lines = [this](unsigned int start_id, unsigned int end_id) {
+        std::vector<Line> ret;
+        ret.reserve(end_id - start_id + 1);
+        for (unsigned int id = start_id; id <= end_id; ++id) {
+            const std::string& gline = m_gcode[id - 1];
+
+            std::string command;
+            std::string parameters;
+            std::string comment;
+
+            // extract comment
+            std::vector<std::string> tokens;
+            boost::split(tokens, gline, boost::is_any_of(";"), boost::token_compress_on);
+            command = tokens.front();
+            if (tokens.size() > 1)
+                comment = ";" + tokens.back();
+
+            // extract gcode command and parameters
+            if (!command.empty()) {
+                boost::split(tokens, command, boost::is_any_of(" "), boost::token_compress_on);
+                command = tokens.front();
+                if (tokens.size() > 1) {
+                    for (size_t i = 1; i < tokens.size(); ++i) {
+                        parameters += " " + tokens[i];
+                    }
+                }
+            }
+            ret.push_back({ command, parameters, comment });
+        }
+        return ret;
+    };
+
     static const ImVec4 LINE_NUMBER_COLOR = ImGuiWrapper::COL_ORANGE_LIGHT;
     static const ImVec4 HIGHLIGHT_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
     static const ImVec4 COMMAND_COLOR = { 0.8f, 0.8f, 0.0f, 1.0f };
@@ -340,11 +374,12 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     const float text_height = ImGui::CalcTextSize("0").y;
     const ImGuiStyle& style = ImGui::GetStyle();
     const float wnd_height = bottom - top;
-    if (wnd_height < 2.0f * (text_height + style.ItemSpacing.y + style.WindowPadding.y))
-        return;
 
     // number of visible lines
     const unsigned int lines_count = (wnd_height - 2.0f * style.WindowPadding.y + style.ItemSpacing.y) / (text_height + style.ItemSpacing.y);
+
+    if (lines_count == 0)
+        return;
 
     // visible range
     const unsigned int half_lines_count = lines_count / 2;
@@ -353,6 +388,13 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     if (end_id >= m_file_size) {
         end_id = m_file_size - 1;
         start_id = end_id - lines_count + 1;
+    }
+
+    if (m_last_line_id != curr_line_id || m_last_lines_size != static_cast<size_t>(end_id - start_id + 1)) {
+        // updates list of lines to show
+        *const_cast<std::vector<Line>*>(&m_lines) = update_lines(start_id, end_id);
+        *const_cast<unsigned int*>(&m_last_line_id) = curr_line_id;
+        *const_cast<size_t*>(&m_last_lines_size) = m_lines.size();
     }
 
     // line id number column width
@@ -368,33 +410,13 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
    
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+    // center the text in the window by pushing down the first line
     const float f_lines_count = static_cast<float>(lines_count);
     ImGui::SetCursorPosY({ 0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y) });
 
+    // render text lines
     for (unsigned int id = start_id; id <= end_id; ++id) {
-        const std::string& line = m_gcode[id - 1];
-
-        std::string command;
-        std::string parameters;
-        std::string comment;
-
-        // extract comment
-        std::vector<std::string> tokens;
-        boost::split(tokens, line, boost::is_any_of(";"), boost::token_compress_on);
-        command = tokens.front();
-        if (tokens.size() > 1)
-            comment = ";" + tokens.back();
-
-        // extract gcode command and parameters
-        if (!command.empty()) {
-            boost::split(tokens, command, boost::is_any_of(" "), boost::token_compress_on);
-            command = tokens.front();
-            if (tokens.size() > 1) {
-                for (size_t i = 1; i < tokens.size(); ++i) {
-                    parameters += " " + tokens[i];
-                }
-            }
-        }
+        const Line& line = m_lines[id - start_id];
 
         // rect for the current selected move
         if (id == curr_line_id) {
@@ -414,28 +436,28 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
         imgui.text(id_str);
         ImGui::PopStyleColor();
 
-        if (!command.empty() || !comment.empty())
+        if (!line.command.empty() || !line.comment.empty())
             ImGui::SameLine();
 
         // render command
-        if (!command.empty()) {
+        if (!line.command.empty()) {
             ImGui::PushStyleColor(ImGuiCol_Text, COMMAND_COLOR);
-            imgui.text(command);
+            imgui.text(line.command);
             ImGui::PopStyleColor();
         }
 
         // render command parameters
-        if (!parameters.empty()) {
+        if (!line.parameters.empty()) {
             ImGui::SameLine(0.0f, 0.0f);
-            imgui.text(parameters);
+            imgui.text(line.parameters);
         }
 
         // render comment
-        if (!comment.empty()) {
-            if (!command.empty())
+        if (!line.comment.empty()) {
+            if (!line.command.empty())
                 ImGui::SameLine(0.0f, 0.0f);
             ImGui::PushStyleColor(ImGuiCol_Text, COMMENT_COLOR);
-            imgui.text(comment);
+            imgui.text(line.comment);
             ImGui::PopStyleColor();
         }
     }
