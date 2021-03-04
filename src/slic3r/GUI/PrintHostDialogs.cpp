@@ -25,6 +25,7 @@
 #include "wxExtensions.hpp"
 #include "MainFrame.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "NotificationManager.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -280,6 +281,9 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     job_list->AppendItem(fields, static_cast<wxUIntPtr>(ST_NEW));
     // Both strings are UTF-8 encoded.
     upload_names.emplace_back(job.printhost->get_host(), job.upload_data.upload_path.string());
+
+    std::string notification_text = "[" + std::to_string(job_list->GetItemCount()) + "] " + job.upload_data.upload_path.string() + " -> " + job.printhost->get_host();
+    wxGetApp().notification_manager()->push_progress_bar_notification(notification_text);
 }
 
 void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -345,6 +349,15 @@ void PrintHostQueueDialog::on_progress(Event &evt)
     }
 
     on_list_select();
+
+    if (evt.progress > 0)
+    {
+        wxVariant nm, hst;
+        job_list->GetValue(nm, evt.job_id, COL_FILENAME);
+        job_list->GetValue(hst, evt.job_id, COL_HOST);
+        std::string notification_text = "[" + std::to_string(evt.job_id + 1) + "] " + boost::nowide::narrow(nm.GetString()) + " -> " + boost::nowide::narrow(hst.GetString());
+        wxGetApp().notification_manager()->set_progress_bar_percentage(notification_text, 100 / evt.progress);
+    }
 }
 
 void PrintHostQueueDialog::on_error(Event &evt)
@@ -360,6 +373,12 @@ void PrintHostQueueDialog::on_error(Event &evt)
     on_list_select();
 
     GUI::show_error(nullptr, errormsg);
+
+    wxVariant nm, hst;
+    job_list->GetValue(nm, evt.job_id, COL_FILENAME);
+    job_list->GetValue(hst, evt.job_id, COL_HOST);
+    std::string notification_text = "[" + std::to_string(evt.job_id + 1) + "] " + boost::nowide::narrow(nm.GetString()) + " -> " + boost::nowide::narrow(hst.GetString());
+    wxGetApp().notification_manager()->progress_bar_show_error(notification_text);
 }
 
 void PrintHostQueueDialog::on_cancel(Event &evt)
@@ -370,6 +389,12 @@ void PrintHostQueueDialog::on_cancel(Event &evt)
     job_list->SetValue(wxVariant(0), evt.job_id, COL_PROGRESS);
 
     on_list_select();
+
+    wxVariant nm, hst;
+    job_list->GetValue(nm, evt.job_id, COL_FILENAME);
+    job_list->GetValue(hst, evt.job_id, COL_HOST);
+    std::string notification_text = "[" + std::to_string(evt.job_id + 1) + "] " + boost::nowide::narrow(nm.GetString()) + " -> " + boost::nowide::narrow(hst.GetString());
+    wxGetApp().notification_manager()->progress_bar_show_canceled(notification_text);
 }
 
 void PrintHostQueueDialog::get_active_jobs(std::vector<std::pair<std::string, std::string>>& ret)

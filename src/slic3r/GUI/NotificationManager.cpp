@@ -359,12 +359,14 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 			ImGui::SetCursorPosY(win_size.y / 2 - win_size.y / 6 - m_line_height / 2);
 			imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
 			// line2
-			std::string line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
-			cursor_y = win_size.y / 2 + win_size.y / 6 - m_line_height / 2;
-			ImGui::SetCursorPosX(x_offset);
-			ImGui::SetCursorPosY(cursor_y);
-			imgui.text(line.c_str());
-			cursor_x = x_offset + ImGui::CalcTextSize(line.c_str()).x;
+			if (m_text1.length() > m_endlines[0]) {
+				std::string line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
+				cursor_y = win_size.y / 2 + win_size.y / 6 - m_line_height / 2;
+				ImGui::SetCursorPosX(x_offset);
+				ImGui::SetCursorPosY(cursor_y);
+				imgui.text(line.c_str());
+				cursor_x = x_offset + ImGui::CalcTextSize(line.c_str()).x;
+			}
 		} else {
 			ImGui::SetCursorPosX(x_offset);
 			ImGui::SetCursorPosY(cursor_y);
@@ -776,17 +778,52 @@ void NotificationManager::ProgressBarNotification::init()
 }
 void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-	PopNotification::render_text(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+	// line1 - we do not print any more text than what fits on line 1. Line 2 is bar.
+	ImGui::SetCursorPosX(m_left_indentation);
+	ImGui::SetCursorPosY(win_size_y / 2 - win_size_y / 6 - m_line_height / 2);
+	imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
 	render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 }
 void NotificationManager::ProgressBarNotification::render_bar(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-	ImVec4 orange_color = ImVec4(.99f, .313f, .0f, 1.0f);
-	float  invisible_length = 0;
-
-	ImVec2 lineEnd = ImVec2(win_pos_x - invisible_length - m_window_width_offset, win_pos_y + win_size_y/2 + m_line_height / 2);
-	ImVec2 lineStart = ImVec2(win_pos_x - win_size_x + m_left_indentation, win_pos_y + win_size_y/2 + m_line_height / 2);
-	ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, IM_COL32((int)(orange_color.x * 255), (int)(orange_color.y * 255), (int)(orange_color.z * 255), (1.0f * 255.f)), m_line_height * 0.7f);
+	switch (m_pb_state)
+	{
+	case Slic3r::GUI::NotificationManager::ProgressBarNotification::ProgressBarState::PB_PROGRESS:
+	{
+		ImVec4 orange_color		 = ImVec4(.99f, .313f, .0f, 1.0f);
+		ImVec4 gray_color		 = ImVec4(.34f, .34f, .34f, 1.0f);
+		float  invisible_length	 = 0;
+		ImVec2 lineEnd			 = ImVec2(win_pos_x - invisible_length - m_window_width_offset, win_pos_y + win_size_y / 2 + m_line_height / 2);
+		ImVec2 lineStart		 = ImVec2(win_pos_x - win_size_x + m_left_indentation, win_pos_y + win_size_y / 2 + m_line_height / 2);
+		float  full_lenght		 = lineEnd.x - lineStart.x;
+		ImVec2 midPoint			 = ImVec2(lineStart.x + full_lenght * m_percentage, lineStart.y);
+		ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, IM_COL32((int)(gray_color.x * 255), (int)(gray_color.y * 255), (int)(gray_color.z * 255), (1.0f * 255.f)), m_line_height * 0.7f);
+		ImGui::GetWindowDrawList()->AddLine(lineStart, midPoint, IM_COL32((int)(orange_color.x * 255), (int)(orange_color.y * 255), (int)(orange_color.z * 255), (1.0f * 255.f)), m_line_height * 0.7f);
+		break;
+	}
+	case Slic3r::GUI::NotificationManager::ProgressBarNotification::ProgressBarState::PB_ERROR:
+	{
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
+		imgui.text(_u8L("ERROR"));
+		break;
+	}
+	case Slic3r::GUI::NotificationManager::ProgressBarNotification::ProgressBarState::PB_CANCELLED:
+	{
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
+		imgui.text(_u8L("CANCELED"));
+		break;
+	}
+	case Slic3r::GUI::NotificationManager::ProgressBarNotification::ProgressBarState::PB_COMPLETED:
+	{
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
+		imgui.text(_u8L("COMPLETED"));
+		break;
+	}
+	}
+	
 
 }
 //------NotificationManager--------
@@ -989,13 +1026,32 @@ void NotificationManager::set_progress_bar_percentage(const std::string& text, f
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::ProgressBar && notification->compare_text(text)) {
 			dynamic_cast<ProgressBarNotification*>(notification.get())->set_percentage(percentage);
-			// FIX ME: this is massive gpu eater (render every frame)
 			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
 			found = true;
 		}
 	}
 	if (!found) {
 		push_progress_bar_notification(text, percentage);
+	}
+}
+void NotificationManager::progress_bar_show_canceled(const std::string& text)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::ProgressBar && notification->compare_text(text)) {
+			dynamic_cast<ProgressBarNotification*>(notification.get())->cancel();
+			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+			break;
+		}
+	}
+}
+void NotificationManager::progress_bar_show_error(const std::string& text)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::ProgressBar && notification->compare_text(text)) {
+			dynamic_cast<ProgressBarNotification*>(notification.get())->error();
+			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+			break;
+		}
 	}
 }
 bool NotificationManager::push_notification_data(const NotificationData& notification_data, int timestamp)
@@ -1103,7 +1159,8 @@ bool NotificationManager::activate_existing(const NotificationManager::PopNotifi
 	const std::string &new_text = notification->get_data().text1;
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end(); ++it) {
 		if ((*it)->get_type() == new_type && !(*it)->is_finished()) {
-			if (new_type == NotificationType::CustomNotification || new_type == NotificationType::PlaterWarning) {
+			if (std::find(m_multiple_types.begin(), m_multiple_types.end(), new_type) != m_multiple_types.end()) {
+			//if (new_type == NotificationType::CustomNotification || new_type == NotificationType::PlaterWarning || new_type == NotificationType::ProgressBar) {
 				if (!(*it)->compare_text(new_text))
 					continue;
 			} else if (new_type == NotificationType::SlicingWarning) {

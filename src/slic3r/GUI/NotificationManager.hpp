@@ -142,6 +142,8 @@ public:
 	// notification with progress bar
 	void push_progress_bar_notification(const std::string& text, float percentage = 0);
 	void set_progress_bar_percentage(const std::string& text, float percentage);
+	void progress_bar_show_canceled(const std::string& text);
+	void progress_bar_show_error(const std::string& text);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
 	// finds ExportFinished notification and closes it if it was to removable device
@@ -228,7 +230,7 @@ private:
 		bool				   is_hovered() const { return m_state == EState::Hovered; } 
 	
 		// Call after every size change
-		void         init();
+		virtual void init();
 		// Part of init() 
 		virtual void count_spaces();
 		// Calculetes correct size but not se it in imgui!
@@ -341,8 +343,28 @@ private:
 	class ProgressBarNotification : public PopNotification
 	{
 	public:
+		enum class ProgressBarState
+		{
+			PB_PROGRESS,
+			PB_ERROR,
+			PB_CANCELLED, 
+			PB_COMPLETED
+		};
 		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage) : PopNotification(n, id_provider, evt_handler) { set_percentage(percentage); }
-		void set_percentage(float percent) { m_percentage = percent; if (percent >= 1.0f) m_progress_complete = true; else m_progress_complete = false; }
+		void set_percentage(float percent) 
+		{
+			if (m_pb_state == ProgressBarState::PB_CANCELLED)
+				return;
+			m_percentage = percent; 
+			if (percent >= 1.0f) 
+				m_pb_state = ProgressBarState::PB_COMPLETED; 
+			else if (percent < 0.0f ) 
+				m_pb_state = ProgressBarState::PB_ERROR; 
+			else 
+				m_pb_state = ProgressBarState::PB_PROGRESS; 
+		}
+		void cancel() { m_pb_state = ProgressBarState::PB_CANCELLED; }
+		void error() { m_pb_state = ProgressBarState::PB_ERROR; }
 	protected:
 		virtual void init();
 		virtual void render_text(ImGuiWrapper& imgui,
@@ -351,8 +373,12 @@ private:
 		void         render_bar(ImGuiWrapper& imgui,
 			const float win_size_x, const float win_size_y,
 			const float win_pos_x, const float win_pos_y);
-		bool m_progress_complete{ false };
-		float m_percentage;
+		float				m_percentage;
+		ProgressBarState	m_pb_state { ProgressBarState::PB_PROGRESS };
+	};
+
+	class PrintHostUploadNotification : public ProgressBarNotification
+	{
 	};
 
 	class ExportFinishedNotification : public PopNotification
@@ -413,7 +439,8 @@ private:
 	bool                         m_move_from_overlay { false };
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
-
+	// Notification types that can be shown multiple types at once (compared by text)
+	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar };
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
