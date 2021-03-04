@@ -2133,11 +2133,10 @@ void ObjectList::load_subobject(ModelVolumeType type)
     if (m_objects_model->GetItemType(item)&itInstance)
         item = m_objects_model->GetItemById(obj_idx);
 
-    take_snapshot(_(L("Load Part")));
+    take_snapshot(_L("Load Part"));
 
     std::vector<std::pair<wxString, bool>> volumes_info;
     load_part((*m_objects)[obj_idx], volumes_info, type);
-
 
     changed_object(obj_idx);
     if (type == ModelVolumeType::MODEL_PART)
@@ -2164,23 +2163,30 @@ void ObjectList::load_part( ModelObject* model_object,
 
     wxArrayString input_files;
     wxGetApp().import_model(parent, input_files);
+
+    wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().plater(), wxPD_AUTO_HIDE);
+    wxBusyCursor busy;
+
     for (size_t i = 0; i < input_files.size(); ++i) {
         std::string input_file = input_files.Item(i).ToUTF8().data();
+
+        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())),
+            _L("Loading file") + ": " + from_path(boost::filesystem::path(input_file).filename()));
+        dlg.Fit();
 
         Model model;
         try {
             model = Model::read_from_file(input_file);
         }
         catch (std::exception &e) {
-            auto msg = _(L("Error!")) + " " + input_file + " : " + e.what() + ".";
+            auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
             show_error(parent, msg);
             exit(1);
         }
 
         for (auto object : model.objects) {
             Vec3d delta = Vec3d::Zero();
-            if (model_object->origin_translation != Vec3d::Zero())
-            {
+            if (model_object->origin_translation != Vec3d::Zero()) {
                 object->center_around_origin();
                 delta = model_object->origin_translation - object->origin_translation;
             }
