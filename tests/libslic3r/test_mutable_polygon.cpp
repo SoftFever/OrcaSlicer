@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 
+#include "libslic3r/Point.hpp"
 #include "libslic3r/MutablePolygon.hpp"
 
 using namespace Slic3r;
@@ -139,6 +140,39 @@ SCENARIO("Remove degenerate points from MutablePolygon", "[MutablePolygon]") {
             remove_duplicates(p);
             THEN("Polygon content is ok") {
                 REQUIRE(p == Slic3r::MutablePolygon{ { 0, 0 }, { 0, 100 }, { 0, 150 }, { 0, 200 }, { 200, 200 }, { 180, 200 }, { 180, 20 }, { 180, 0 } });
+            }
+        }
+    }
+}
+
+SCENARIO("smooth_outward", "[MutablePolygon]") {
+    GIVEN("Convex polygon") {
+        MutablePolygon p{ { 0, 0 }, { scaled<coord_t>(10.), 0 }, { 0, scaled<coord_t>(10.) } };
+        WHEN("smooth_outward") {
+            MutablePolygon p2{ p };
+            smooth_outward(p2, scaled<double>(10.));
+            THEN("Polygon is unmodified") {
+                REQUIRE(p == p2);
+            }
+        }
+    }
+    GIVEN("Sharp tiny concave polygon (hole)") {
+        MutablePolygon p{ { 0, 0 }, { 0, scaled<coord_t>(5.) }, { scaled<coord_t>(10.), 0 } };
+        WHEN("smooth_outward") {
+            MutablePolygon p2{ p };
+            smooth_outward(p2, scaled<double>(10.));
+            THEN("Hole is closed") {
+                REQUIRE(p2.empty());
+            }
+        }
+    }
+    GIVEN("Two polygons") {
+        Polygons p{ { { 0, 0 }, { scaled<coord_t>(10.), 0 }, { 0, scaled<coord_t>(10.) } },
+                    { { 0, 0 }, { 0, scaled<coord_t>(5.) }, { scaled<coord_t>(10.), 0 } } };
+        WHEN("smooth_outward") {
+            p = smooth_outward(p, scaled<double>(10.));
+            THEN("CCW contour unmodified, CW contour removed.") {
+                REQUIRE(p == Polygons{ { { 0, 0 }, { scaled<coord_t>(10.), 0 }, { 0, scaled<coord_t>(10.) } } });
             }
         }
     }

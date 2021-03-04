@@ -617,7 +617,7 @@ std::string SLAPrint::output_filename(const std::string &filename_base) const
     return this->PrintBase::output_filename(m_print_config.output_filename_format.value, ".sl1", filename_base, &config);
 }
 
-std::string SLAPrint::validate() const
+std::string SLAPrint::validate(std::string*) const
 {
     for(SLAPrintObject * po : m_objects) {
 

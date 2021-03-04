@@ -1245,7 +1245,7 @@ static inline bool sequential_print_vertical_clearance_valid(const Print &print)
 }
 
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
-std::string Print::validate() const
+std::string Print::validate(std::string* warning) const
 {
     if (m_objects.empty())
         return L("All objects are outside of the print volume.");
@@ -1440,7 +1440,22 @@ std::string Print::validate() const
     				}
                 }
             }
-            
+
+            // Do we have custom support data that would not be used?
+            // Notify the user in that case.
+            if (! object->has_support() && warning) {
+                for (const ModelVolume* mv : object->model_object()->volumes) {
+                    bool has_enforcers = mv->is_support_enforcer()
+                        || (mv->is_model_part()
+                            && ! mv->supported_facets.empty()
+                            && ! mv->supported_facets.get_facets(*mv, EnforcerBlockerType::ENFORCER).indices.empty());
+                    if (has_enforcers) {
+                        *warning = "_SUPPORTS_OFF";
+                        break;
+                    }
+                }
+            }
+
             // validate first_layer_height
             double first_layer_height = object->config().get_abs_value("first_layer_height");
             double first_layer_min_nozzle_diameter;

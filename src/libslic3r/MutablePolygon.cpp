@@ -1,5 +1,6 @@
 #include "MutablePolygon.hpp"
 #include "Line.hpp"
+#include "libslic3r.h"
 
 namespace Slic3r {
 
@@ -36,207 +37,295 @@ void remove_duplicates(MutablePolygon &polygon, double eps)
     }
 }
 
-// Sample a point on line (a, b) at distance "dist" from ref_pt.
-// If two points fulfill the condition, then the first one (closer to point a) is taken.
-// If none of the two points falls on line (a, b), return false.
-template<typename VectorType>
-static inline VectorType point_on_line_at_dist(const VectorType &a, const VectorType &b, const VectorType &ref_pt, const double dist)
+// Adapted from Cura ConstPolygonRef::smooth_corner_complex() by Tim Kuipers.
+// A concave corner at it1 with position p1 has been removed by the caller between it0 and it2, where |p2 - p0| < shortcut_length.
+// Now try to close a concave crack by walking left from it0 and right from it2 as long as the new clipping edge is smaller than shortcut_length
+// and the new clipping edge is still inside the polygon (it is a diagonal, it does not intersect polygon boundary).
+// Once the traversal stops (always at a clipping edge shorter than shortcut_length), the final trapezoid is clipped with a new clipping edge of shortcut_length.
+// Return true if a hole was completely closed (degenerated to an empty polygon) or a single CCW triangle was left, which is not to be simplified any further.
+// it0, it2 are updated to the final clipping edge.
+static bool clip_narrow_corner(
+    const Vec2i64               p1, 
+    MutablePolygon::iterator   &it0, 
+    MutablePolygon::iterator   &it2,
+    MutablePolygon::range      &unprocessed_range,
+    int64_t                     dist2_current, 
+    const int64_t               shortcut_length)
 {
-    using T = typename VectorType::Scalar;
-    auto   v   = b - a;
-    auto   l2  = v.squaredNorm();
-    assert(l2 > T(0));
-    auto   vpt = ref_pt - a;
-    // Parameter of the foot point of ref_pt on line (a, b).
-    auto   t   = v.dot(vpt) / l2;
-    // Foot point of ref_pt on line (a, b).
-    auto   foot_pt = a + t * v;
-    auto   dfoot2 = vpt.squaredNorm() - (foot_pt - ref_pt).squaredNorm();
-    // Distance of the result point from the foot point, normalized to length of (a, b).
-    auto   dfoot  = dfoot2 > T(0) ? sqrt(dfoot2) / sqrt(l2) : T(0);
-    auto   t_result = t - dfoot;
-    if (t_result < T(0))
-        t_result = t + dfoot;
-    t_result = Slic3r::clamp(0., 1., t_result);
-    return a + v * t;
-}
+    MutablePolygon &polygon = it0.polygon();
+    assert(polygon.size() >= 2);
 
-static bool smooth_corner_complex(const Vec2d p1, MutablePolygon::iterator &it0, MutablePolygon::iterator &it2, const double shortcut_length)
-{
-    // walk away from the corner until the shortcut > shortcut_length or it would smooth a piece inward
-    // - walk in both directions untill shortcut > shortcut_length
-    // - stop walking in one direction if it would otherwise cut off a corner in that direction
-    // - same in the other direction
-    // - stop if both are cut off
-    // walk by updating p0_it and p2_it
-    double shortcut_length2    = shortcut_length * shortcut_length;
-    bool   forward_is_blocked  = false;
-    bool   forward_is_too_far  = false;
-    bool   backward_is_blocked = false;
-    bool   backward_is_too_far = false;
-    for (;;) {
-        const bool forward_has_converged  = forward_is_blocked  || forward_is_too_far;
-        const bool backward_has_converged = backward_is_blocked || backward_is_too_far;
-        if (forward_has_converged && backward_has_converged) {
-            if (forward_is_too_far && backward_is_too_far && (*it0.prev() - *it2.next()).cast<double>().squaredNorm() < shortcut_length2) {
-                // Trim the narrowing region.
-                -- it0;
-                ++ it2;
-                forward_is_too_far  = false;
-                backward_is_too_far = false;
-                continue;
-            } else
-                break;
-        }
+    const int64_t shortcut_length2 = sqr(shortcut_length);
 
-        const Vec2d p0 = it0->cast<double>();
-        const Vec2d p2 = it2->cast<double>();
-        if (! forward_has_converged && (backward_has_converged || (p2 - p1).squaredNorm() < (p0 - p1).squaredNorm())) {
-            // walk forward
-            const auto  it2_2 = it2.next();
-            const Vec2d p2_2  = it2_2->cast<double>();
-            if (cross2(p2 - p0, p2_2 - p0) > 0) {
-                forward_is_blocked  = true;
-            } else if ((p2_2 - p0).squaredNorm() > shortcut_length2) {
-                forward_is_too_far  = true;
+    enum Status {
+        Free,
+        Blocked,
+        Far,
+    };
+    Status  forward  = Free;
+    Status  backward = Free;
+
+    Vec2i64 p0 = it0->cast<int64_t>();
+    Vec2i64 p2 = it2->cast<int64_t>();
+    Vec2i64 p02;
+    Vec2i64 p22;
+    int64_t dist2_next;
+
+    // As long as there is at least a single triangle left in the polygon.
+    while (polygon.size() >= 3) {
+        assert(dist2_current <= shortcut_length2);
+        if (forward == Far && backward == Far) {
+            p02 = it0.prev()->cast<int64_t>();
+            p22 = it2.next()->cast<int64_t>();
+            auto d2 = (p22 - p02).squaredNorm();
+            if (d2 <= shortcut_length2) {
+                // The region was narrow until now and it is still narrow. Trim at both sides.
+                it0 = unprocessed_range.remove_back(it0).prev();
+                it2 = unprocessed_range.remove_front(it2);
+                if (polygon.size() <= 2)
+                    // A hole degenerated to an empty polygon.
+                    return true;
+                forward       = Free;
+                backward      = Free;
+                dist2_current = d2;
+                p0            = p02;
+                p2            = p22;
             } else {
-                it2                 = it2_2; // make one step in the forward direction
-                backward_is_blocked = false; // invalidate data about backward walking
-                backward_is_too_far = false;
+                // The region is widening. Stop traversal and trim the final trapezoid.
+                dist2_next    = d2;
+                break;
+            }
+        } else if (forward != Free && backward != Free)
+            // One of the corners is blocked, the other is blocked or too far. Stop traversal.
+            break;
+        // Try to proceed by flipping a diagonal.
+        // Progress by keeping the distance of the clipping edge end points equal to initial p1.
+        //FIXME This is an arbitrary condition, maybe a more local condition will be better (take a shorter diagonal?).
+        if (forward == Free && (backward != Free || (p2 - p1).squaredNorm() < (p0 - p1).cast<int64_t>().squaredNorm())) {
+            p22 = it2.next()->cast<int64_t>();
+            if (cross2(p2 - p0, p22 - p0) > 0)
+                forward = Blocked;
+            else {
+                // New clipping edge lenght.
+                auto d2 = (p22 - p0).squaredNorm();
+                if (d2 > shortcut_length2) {
+                    forward    = Far;
+                    dist2_next = d2;
+                } else {
+                    forward    = Free;
+                    // Make one step in the forward direction.
+                    it2        = unprocessed_range.remove_front(it2);
+                    p2         = p22;
+                    dist2_current = d2;
+                }
             }
         } else {
-            // walk backward
-            const auto  it0_2 = it0.prev();
-            const Vec2d p0_2  = it0_2->cast<double>();
-            if (cross2(p0_2 - p0, p2 - p0_2) > 0) {
-                backward_is_blocked = true;
-            } else if ((p2 - p0_2).squaredNorm() > shortcut_length2) {
-                backward_is_too_far = true;
-            } else {
-                it0                = it0_2; // make one step in the backward direction
-                forward_is_blocked = false; // invalidate data about forward walking
-                forward_is_too_far = false;
-            }
-        }
-
-        if (it0.prev() == it2 || it0 == it2) {
-            // stop if we went all the way around the polygon
-            // this should only be the case for hole polygons (?)
-            if (forward_is_too_far && backward_is_too_far) {
-                // in case p0_it.prev() == p2_it :
-                //     /                                                .
-                //    /                /|
-                //   |       becomes  | |
-                //    \                \|
-                //     \                                                .
-                // in case p0_it == p2_it :
-                //     /                                                .
-                //    /    becomes     /|
-                //    \                \|
-                //     \                                                .
-                break;
-            } else {
-                // this whole polygon can be removed
-                return true;
+            assert(backward == Free);
+            p02 = it0.prev()->cast<int64_t>();
+            if (cross2(p0 - p2, p02 - p2) > 0)
+                backward = Blocked;
+            else {
+                // New clipping edge lenght.
+                auto d2 = (p2 - p02).squaredNorm();
+                if (d2 > shortcut_length2) {
+                    backward   = Far;
+                    dist2_next = d2;
+                } else {
+                    backward   = Free;
+                    // Make one step in the backward direction.
+                    it0        = unprocessed_range.remove_back(it0).prev();
+                    p0         = p02;
+                    dist2_current = d2;
+                }
             }
         }
     }
 
-    const Vec2d   p0     = it0->cast<double>();
-    const Vec2d   p2     = it2->cast<double>();
-    const Vec2d   v02    = p2 - p0;
-    const int64_t l2_v02 = v02.squaredNorm();
-    if (std::abs(l2_v02 - shortcut_length2) < shortcut_length * 10) // i.e. if (size2 < l * (l+10) && size2 > l * (l-10))
-    { // v02 is approximately shortcut length
-        // handle this separately to avoid rounding problems below in the getPointOnLineWithDist function
-        // p0_it and p2_it are already correct
-    } else if (! backward_is_blocked && ! forward_is_blocked) {
-        const auto  l_v02 = sqrt(l2_v02);
-        const Vec2d p0_2  = it0.prev()->cast<double>();
-        const Vec2d p2_2  = it2.next()->cast<double>();
-        double t = Slic3r::clamp(0., 1., (shortcut_length - l_v02) / ((p2_2 - p0_2).norm() - l_v02));
-        it0 = it0.prev().insert((p0 + (p0_2 - p0) * t).cast<coord_t>());
-        it2 = it2.insert((p2 + (p2_2 - p2) * t).cast<coord_t>());
-    } else if (! backward_is_blocked) {
-        it0 = it0.prev().insert(point_on_line_at_dist(p0, Vec2d(it0.prev()->cast<double>()), p2, shortcut_length).cast<coord_t>());
-    } else if (! forward_is_blocked) {
-        it2 = it2.insert(point_on_line_at_dist(p2, Vec2d(it2.next()->cast<double>()), p0, shortcut_length).cast<coord_t>());
+    if (polygon.size() <= 3) {
+        // A hole degenerated to an empty polygon, or a tiny triangle remained.
+        assert(polygon.size() < 3 || (forward == Blocked && backward == Blocked) || (forward == Far && backward == Far));
+        if (polygon.size() < 3 || forward == Far) {
+            assert(polygon.size() < 3 || dist2_current <= shortcut_length2);
+            polygon.clear();
+        } else {
+            // The remaining triangle is CCW oriented, keep it.
+        }
+        return true;
+    }
+
+    assert(dist2_current <= shortcut_length2);
+    if ((forward == Blocked && backward == Blocked) || dist2_current > sqr(shortcut_length - int64_t(SCALED_EPSILON))) {
+        // The crack is filled, keep the last clipping edge.
+    } else if (dist2_next < sqr(shortcut_length - int64_t(SCALED_EPSILON))) {
+        // To avoid creating tiny edges.
+        if (forward == Far)
+            it0 = unprocessed_range.remove_back(it0).prev();
+        if (backward == Far)
+            it2 = unprocessed_range.remove_front(it2);
+        if (polygon.size() <= 2)
+            // A hole degenerated to an empty polygon.
+            return true;
+    } else if (forward == Blocked || backward == Blocked) {
+        // One side is far, the other blocked.
+        assert(forward == Far || backward == Far);
+        if (backward == Far) {
+            // Sort, so we will clip the 1st edge.
+            std::swap(p0,  p2);
+            std::swap(p02, p22);
+        }
+        // Find point on (p0, p02) at distance shortcut_length from p2.
+        // Circle intersects a line at two points, however because |p2 - p0| < shortcut_length,
+        // only the second intersection is valid. Because |p2 - p02| > shortcut_length, such
+        // intersection should always be found on (p0, p02).
+        const Vec2d     v = (p02 - p0).cast<double>();
+        const Vec2d     d = (p0 - p2).cast<double>();
+        const double    a = v.squaredNorm();
+        const double    b = 2. * double(d.dot(v));
+        double          u = b * b - 4. * a * (d.squaredNorm() - shortcut_length2);
+        assert(u > 0.);
+        u = sqrt(u);
+        double t = (- b + u) / (2. * a);
+        assert(t > 0. && t < 1.);
+        (backward == Far ? *it2 : *it0) += (v.cast<double>() * t).cast<coord_t>();
     } else {
-        //        |
-        //      __|2
-        //     | /  > shortcut cannot be of the desired length
-        //  ___|/                                                       .
-        //     0
-        // both are blocked and p0_it and p2_it are already correct
+        // The trapezoid (it0.prev(), it0, it2, it2.next()) is widening. Trim it.
+        assert(forward == Far && backward == Far);
+        assert(dist2_next > shortcut_length2);
+        const double dcurrent = sqrt(double(dist2_current));
+        double t = (shortcut_length - dcurrent) / (sqrt(double(dist2_next)) - dcurrent);
+        assert(t > 0. && t < 1.);
+        *it0 += ((p02 - p0).cast<double>() * t).cast<coord_t>();
+        *it2 += ((p22 - p2).cast<double>() * t).cast<coord_t>();
     }
-    // Delete all the points between it0 and it2.
-    while (it0.next() != it2)
-        it0.next().remove();
     return false;
 }
 
-void smooth_outward(MutablePolygon &polygon, double shortcut_length)
+// adapted from Cura ConstPolygonRef::smooth_outward() by Tim Kuipers.
+void smooth_outward(MutablePolygon &polygon, coord_t clip_dist_scaled)
 {
     remove_duplicates(polygon, scaled<double>(0.01));
 
-    const int                     shortcut_length2 = shortcut_length * shortcut_length;
-    static constexpr const double cos_min_angle    = -0.70710678118654752440084436210485; // cos(135 degrees)
+    const auto clip_dist_scaled2    = sqr<int64_t>(clip_dist_scaled);
+    const auto clip_dist_scaled2eps = sqr(clip_dist_scaled + int64_t(SCALED_EPSILON));
+    const auto foot_dist_min2       = sqr(SCALED_EPSILON);
 
-    MutablePolygon::iterator it1 = polygon.begin();
-    do {
-        const Vec2d p1  = it1->cast<double>();
-        auto        it0 = it1.prev();
-        auto        it2 = it1.next();
-        const Vec2d p0  = it0->cast<double>();
-        const Vec2d p2  = it2->cast<double>();
-        const Vec2d v1  = p0 - p1;
-        const Vec2d v2  = p2 - p1;
-        const double cos_angle = v1.dot(v2);
-        if (cos_angle < cos_min_angle && cross2(v1, v2) < 0) {
-            // Simplify the sharp angle.
-            const Vec2d  v02   = p2 - p0;
-            const double l2_v02 = v02.squaredNorm();
-            if (l2_v02 >= shortcut_length2) {
-                // Trim an obtuse corner.
+    // Each source point will be visited exactly once.
+    MutablePolygon::range unprocessed_range(polygon);
+    while (! unprocessed_range.empty() && polygon.size() > 2) {
+        auto          it1  = unprocessed_range.process_next();
+        auto          it0  = it1.prev();
+        auto          it2  = it1.next();
+        const Point   p0   = *it0;
+        const Point   p1   = *it1;
+        const Point   p2   = *it2;
+        const Vec2i64 v1   = (p0 - p1).cast<int64_t>();
+        const Vec2i64 v2   = (p2 - p1).cast<int64_t>();
+        if (cross2(v1, v2) > 0) {
+            // Concave corner.
+            int64_t dot  = v1.dot(v2);
+            auto    l2v1 = double(v1.squaredNorm());
+            auto    l2v2 = double(v2.squaredNorm());
+            if (dot > 0 || Slic3r::sqr(double(dot)) * 2. < l2v1 * l2v2) {
+                // Angle between v1 and v2 bigger than 135 degrees.
+                // Simplify the sharp angle.
+                Vec2i64 v02   = (p2 - p0).cast<int64_t>();
+                int64_t l2v02 = v02.squaredNorm();
                 it1.remove();
-                if (l2_v02 > Slic3r::sqr(shortcut_length + SCALED_EPSILON)) {
-                    double l2_1 = v1.squaredNorm();
-                    double l2_2 = v2.squaredNorm();
-                    bool trim = true;
-                    if (cos_angle > 0.9999) {
-                        // The triangle p0, p1, p2 is likely degenerate.
-                        // Measure height of the triangle.
-                        double d2 = l2_1 > l2_2 ? line_alg::distance_to_squared(Linef{ p0, p1 }, p2) : line_alg::distance_to_squared(Linef{ p2, p1 }, p0);
-                        if (d2 < Slic3r::sqr(scaled<double>(0.02)))
-                            trim = false;
-                    }
-                    if (trim) {
-                        Vec2d  bisector  = v1 / l2_1 + v2 / l2_2;
-                        double d1        = v1.dot(bisector) / l2_1;
-                        double d2        = v2.dot(bisector) / l2_2;
-                        double lbisector = bisector.norm();
-                        if (d1 < shortcut_length && d2 < shortcut_length) {
-                            it0.insert((p1 + v1 * (shortcut_length / d1)).cast<coord_t>())
-                               .insert((p1 + v2 * (shortcut_length / d2)).cast<coord_t>());
-                        } else if (v1.squaredNorm() < v2.squaredNorm())
-                            it0.insert(point_on_line_at_dist(p1, p2, p0, shortcut_length).cast<coord_t>());
-                        else
-                            it0.insert(point_on_line_at_dist(p1, p0, p2, shortcut_length).cast<coord_t>());
+                if (l2v02 < clip_dist_scaled2) {
+                    // (p0, p2) is short.
+                    // Clip a sharp concave corner by possibly expanding the trimming region left of it0 and right of it2.
+                    // Updates it0, it2 and num_to_process.
+                    if (clip_narrow_corner(p1.cast<int64_t>(), it0, it2, unprocessed_range, l2v02, clip_dist_scaled))
+                        // Trimmed down to an empty polygon or to a single CCW triangle.
+                        return;
+                } else {
+                    // Clip an obtuse corner.
+                    if (l2v02 > clip_dist_scaled2eps) {
+                        Vec2d  v1d  = v1.cast<double>();
+                        Vec2d  v2d  = v2.cast<double>();
+                        // Sort v1d, v2d, shorter first.
+                        bool   swap = l2v1 > l2v2;
+                        if (swap) {
+                            std::swap(v1d, v2d);
+                            std::swap(l2v1, l2v2);
+                        }
+                        double lv1  = sqrt(l2v1);
+                        double lv2  = sqrt(l2v2);
+                        // Bisector between v1 and v2.
+                        Vec2d  bisector   = v1d / lv1 + v2d / lv2;
+                        double l2bisector = bisector.squaredNorm();
+                        // Squared distance of the end point of v1 to the bisector.
+                        double d2         = l2v1 - sqr(v1d.dot(bisector)) / l2bisector;
+                        if (d2 < foot_dist_min2) {
+                            // Height of the p1, p0, p2 triangle is tiny. Just remove p1.
+                        } else if (d2 < 0.25 * clip_dist_scaled2 + SCALED_EPSILON) {
+                            // The shorter vector is too close to the bisector. Trim the shorter vector fully,
+                            // trim the longer vector partially.
+                            // Intersection of a circle at p2 of radius = clip_dist_scaled
+                            // with a ray (p1, p0), take the intersection after the foot point.
+                            // The intersection shall always exist because |p2 - p1| > clip_dist_scaled.
+                            const double    b = - 2. * v1d.cast<double>().dot(v2d);
+                            double          u = b * b - 4. * l2v2 * (double(l2v1) - clip_dist_scaled2);
+                            assert(u > 0.);
+                            // Take the second intersection along v2.
+                            double          t = (- b + sqrt(u)) / (2. * l2v2);
+                            assert(t > 0. && t < 1.);
+                            Point           pt_new = p1 + (t * v2d).cast<coord_t>();
+#ifndef NDEBUG
+                            double d2new = (pt_new - (swap ? p2 : p0)).cast<double>().squaredNorm();
+                            assert(std::abs(d2new - clip_dist_scaled2) < sqr(10. * SCALED_EPSILON));
+#endif // NDEBUG
+                            it2.insert(pt_new);
+                        } else {
+                            // Cut the corner with a line perpendicular to the bisector.
+                            double t  = sqrt(0.25 * clip_dist_scaled2 / d2);
+                            assert(t > 0. && t < 1.);
+                            Point  p0 = p1 + (v1d * t).cast<coord_t>();
+                            Point  p2 = p1 + (v2d * (t * lv2 / lv1)).cast<coord_t>();
+                            if (swap)
+                                std::swap(p0, p2);
+                            it2.insert(p2).insert(p0);
+                        }
+                    } else {
+                        // Just remove p1.
+                        assert(l2v02 >= clip_dist_scaled2 && l2v02 <= clip_dist_scaled2eps);
                     }
                 }
-            } else {
-                bool remove_poly = smooth_corner_complex(p1, it0, it2, shortcut_length); // edits p0_it and p2_it!
-                if (remove_poly) {
-                    // don't convert ListPolygon into result
-                    return;
-                }
-            }
-            // update:
-            it1 = it2; // next point to consider for whether it's an internal corner
-        }
-        else
+                it1 = it2;
+            } else
+                ++ it1;
+        } else
             ++ it1;
-    } while (it1 != polygon.begin());
+    }
+
+    if (polygon.size() == 3) {
+        // Check whether the last triangle is clockwise oriented (it is a hole) and its height is below clip_dist_scaled.
+        // If so, fill in the hole.
+        const Point   p0   = *polygon.begin().prev();
+        const Point   p1   = *polygon.begin();
+        const Point   p2   = *polygon.begin().next();
+        Vec2i64 v1   = (p0 - p1).cast<int64_t>();
+        Vec2i64 v2   = (p2 - p1).cast<int64_t>();
+        if (cross2(v1, v2) > 0) {
+            // CW triangle. Measure its height.
+            const Vec2i64 v3 = (p2 - p0).cast<int64_t>();
+            int64_t l12 = v1.squaredNorm();
+            int64_t l22 = v2.squaredNorm();
+            int64_t l32 = v3.squaredNorm();
+            if (l22 > l12 && l22 > l32) {
+                std::swap(v1,  v2);
+                std::swap(l12, l22);
+            } else if (l32 > l12 && l32 > l22) {
+                v1  = v3;
+                l12 = l32;
+            }
+            auto h2 = l22 - sqr(double(v1.dot(v2))) / double(l12);
+            if (h2 < clip_dist_scaled2)
+                // CW triangle with a low height. Close the hole.
+                polygon.clear();
+        }
+    } else if (polygon.size() < 3)
+        polygon.clear();
 }
 
 } // namespace Slic3r

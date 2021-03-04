@@ -131,7 +131,7 @@ public:
 	bool 		empty() const;
 	// Validate the print. Returns an empty string if valid, returns an error message if invalid.
 	// Call validate before calling start().
-	std::string validate();
+    std::string validate(std::string* warning = nullptr);
 
 	// Set the export path of the G-code.
 	// Once the path is set, the G-code 

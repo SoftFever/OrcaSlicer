@@ -71,7 +71,11 @@ enum class NotificationType
     // Notification that custom supports/seams were deleted after mesh repair.
     CustomSupportsAndSeamRemovedAfterRepair,
     // Notification that auto adding of color changes is impossible
-	EmptyAutoColorChange
+    EmptyAutoColorChange,
+    // Notification emitted by Print::validate
+    PrintValidateWarning,
+    // Notification telling user to quit SLA supports manual editing
+    QuitSLAManualMode
 };
 
 class NotificationManager

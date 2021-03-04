@@ -1120,6 +1120,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
                 case 21: { process_G21(line); break; } // Set Units to Millimeters
                 case 22: { process_G22(line); break; } // Firmware controlled retract
                 case 23: { process_G23(line); break; } // Firmware controlled unretract
+                case 28: { process_G28(line); break; } // Move to origin
                 case 90: { process_G90(line); break; } // Set to Absolute Positioning
                 case 91: { process_G91(line); break; } // Set to Relative Positioning
                 case 92: { process_G92(line); break; } // Set Position
@@ -2151,6 +2152,32 @@ void GCodeProcessor::process_G23(const GCodeReader::GCodeLine& line)
 {
     // stores unretract move
     store_move_vertex(EMoveType::Unretract);
+}
+
+void GCodeProcessor::process_G28(const GCodeReader::GCodeLine& line)
+{
+    std::string_view cmd = line.cmd();
+    std::string new_line_raw = { cmd.data(), cmd.size() };
+    bool found = false;
+    if (line.has_x()) {
+        new_line_raw += " X0";
+        found = true;
+    }
+    if (line.has_y()) {
+        new_line_raw += " Y0";
+        found = true;
+    }
+    if (line.has_z()) {
+        new_line_raw += " Z0";
+        found = true;
+    }
+    if (!found)
+        new_line_raw += " X0  Y0  Z0";
+
+    GCodeReader::GCodeLine new_gline;
+    GCodeReader reader;
+    reader.parse_line(new_line_raw, [&](GCodeReader& reader, const GCodeReader::GCodeLine& gline) { new_gline = gline; });
+    process_G1(new_gline);
 }
 
 void GCodeProcessor::process_G90(const GCodeReader::GCodeLine& line)

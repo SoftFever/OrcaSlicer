@@ -574,6 +574,9 @@ namespace Slic3r {
         // Firmware controlled Unretract
         void process_G23(const GCodeReader::GCodeLine& line);
 
+        // Move to origin
+        void process_G28(const GCodeReader::GCodeLine& line);
+
         // Set to Absolute Positioning
         void process_G90(const GCodeReader::GCodeLine& line);
 

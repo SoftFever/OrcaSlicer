@@ -366,7 +366,7 @@ public:
     virtual std::vector<ObjectID> print_object_ids() const = 0;
 
     // Validate the print, return empty string if valid, return error if process() cannot (or should not) be started.
-    virtual std::string     validate() const { return std::string(); }
+    virtual std::string     validate(std::string* warning = nullptr) const { return std::string(); }
 
     enum ApplyStatus {
         // No change after the Print::apply() call.
