@@ -329,23 +329,24 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
 void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, unsigned int curr_line_id) const
 {
     static const ImVec4 LINE_NUMBER_COLOR = ImGuiWrapper::COL_ORANGE_LIGHT;
+    static const ImVec4 HIGHLIGHT_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
     static const ImVec4 COMMAND_COLOR = { 0.8f, 0.8f, 0.0f, 1.0f };
     static const ImVec4 COMMENT_COLOR = { 0.7f, 0.7f, 0.7f, 1.0f };
 
     if (!m_visible || m_filename.empty() || m_gcode.empty() || curr_line_id == 0)
         return;
 
-    // winodws height
+    // window height
     const float text_height = ImGui::CalcTextSize("0").y;
     const ImGuiStyle& style = ImGui::GetStyle();
-    const float height = bottom - top;
-    if (height < 2.0f * (text_height + style.ItemSpacing.y + style.WindowBorderSize + style.WindowPadding.y))
+    const float wnd_height = bottom - top;
+    if (wnd_height < 2.0f * (text_height + style.ItemSpacing.y + style.WindowPadding.y))
         return;
 
     // number of visible lines
-    const unsigned int lines_count = (height - 2.0f * (style.WindowPadding.y + style.WindowBorderSize) + style.ItemSpacing.y) / (text_height + style.ItemSpacing.y);
+    const unsigned int lines_count = (wnd_height - 2.0f * style.WindowPadding.y + style.ItemSpacing.y) / (text_height + style.ItemSpacing.y);
 
-    // calculate visible range
+    // visible range
     const unsigned int half_lines_count = lines_count / 2;
     unsigned int start_id = (curr_line_id >= half_lines_count) ? curr_line_id - half_lines_count : 0;
     unsigned int end_id = start_id + lines_count - 1;
@@ -354,21 +355,21 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
         start_id = end_id - lines_count + 1;
     }
 
-    const float id_offset = ImGui::CalcTextSize(std::to_string(end_id).c_str()).x;
+    // line id number column width
+    const float id_width = ImGui::CalcTextSize(std::to_string(end_id).c_str()).x;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
-    imgui.set_next_window_size(0.0f, height, ImGuiCond_Always);
+    imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
    
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-
-    float f_lines_count = static_cast<float>(lines_count);
-    ImGui::ItemSize({ 0.0f, 0.5f * (height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y) });
+    const float f_lines_count = static_cast<float>(lines_count);
+    ImGui::SetCursorPosY({ 0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y) });
 
     for (unsigned int id = start_id; id <= end_id; ++id) {
         const std::string& line = m_gcode[id - 1];
@@ -395,19 +396,21 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
             }
         }
 
-        // background rect for the current selected move
-        if (id == curr_line_id - 1) {
+        // rect for the current selected move
+        if (id == curr_line_id) {
             const float pos_y = ImGui::GetCursorScreenPos().y;
             const float half_ItemSpacing_y = 0.5f * style.ItemSpacing.y;
-            draw_list->AddRectFilled({ style.WindowBorderSize, pos_y - half_ItemSpacing_y },
-                                     { ImGui::GetCurrentWindow()->Size.x - style.WindowBorderSize, pos_y + text_height + half_ItemSpacing_y },
-                ImGui::GetColorU32({ 0.15f, 0.15f, 0.15f, 1.0f }));
+            const float half_padding_x = 0.5f * style.WindowPadding.x;
+            draw_list->AddRect({ half_padding_x, pos_y - half_ItemSpacing_y },
+                { ImGui::GetCurrentWindow()->Size.x - half_padding_x, pos_y + text_height + half_ItemSpacing_y },
+                ImGui::GetColorU32(HIGHLIGHT_RECT_COLOR));
         }
 
         // render line number
-        ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
         const std::string id_str = std::to_string(id);
-        ImGui::SameLine(0.0f, id_offset - ImGui::CalcTextSize(id_str.c_str()).x);
+        ImGui::Dummy({ id_width - ImGui::CalcTextSize(id_str.c_str()).x, text_height });
+        ImGui::SameLine(0.0f, 0.0f);
+        ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
         imgui.text(id_str);
         ImGui::PopStyleColor();
 
@@ -435,9 +438,6 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
             imgui.text(comment);
             ImGui::PopStyleColor();
         }
-
-        if (id < end_id)
-            ImGui::NewLine();
     }
 
     imgui.end();
