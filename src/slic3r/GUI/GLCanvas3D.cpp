@@ -2211,12 +2211,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
             const Print *print = m_process->fff_print();
 
-            const DynamicPrintConfig &print_config  = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-            double layer_height                     = print_config.opt_float("layer_height");
-            double first_layer_height               = print_config.get_abs_value("first_layer_height", layer_height);
-            double nozzle_diameter                  = print->config().nozzle_diameter.values[0];
-            float depth = print->wipe_tower_data(extruders_count, first_layer_height, nozzle_diameter).depth;
-            float brim_width = print->wipe_tower_data(extruders_count, first_layer_height, nozzle_diameter).brim_width;
+            float depth = print->wipe_tower_data(extruders_count).depth;
+            float brim_width = print->wipe_tower_data(extruders_count).brim_width;
 
             int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
                 1000, x, y, w, depth, (float)height, a, !print->is_step_done(psWipeTower),

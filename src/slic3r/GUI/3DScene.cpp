@@ -610,25 +610,28 @@ void GLVolumeCollection::load_object_auxiliary(
 }
 
 int GLVolumeCollection::load_wipe_tower_preview(
-    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width, bool opengl_initialized)
+    int obj_idx, float pos_x, float pos_y, float width, float depth, float height,
+    float rotation_angle, bool size_unknown, float brim_width, bool opengl_initialized)
 {
     if (depth < 0.01f)
         return int(this->volumes.size() - 1);
     if (height == 0.0f)
         height = 0.1f;
-    Point origin_of_rotation(0.f, 0.f);
+
     TriangleMesh mesh;
     float color[4] = { 0.5f, 0.5f, 0.0f, 1.f };
 
-    // In case we don't know precise dimensions of the wipe tower yet, we'll draw the box with different color with one side jagged:
+    // In case we don't know precise dimensions of the wipe tower yet, we'll draw
+    // the box with different color with one side jagged:
     if (size_unknown) {
         color[0] = 0.9f;
         color[1] = 0.6f;
 
-        depth = std::max(depth, 10.f); // Too narrow tower would interfere with the teeth. The estimate is not precise anyway.
+        // Too narrow tower would interfere with the teeth. The estimate is not precise anyway.
+        depth = std::max(depth, 10.f);
         float min_width = 30.f;
-        // We'll now create the box with jagged edge. y-coordinates of the pre-generated model are shifted so that the front
-        // edge has y=0 and centerline of the back edge has y=depth:
+        // We'll now create the box with jagged edge. y-coordinates of the pre-generated model
+        // are shifted so that the front edge has y=0 and centerline of the back edge has y=depth:
         Pointf3s points;
         std::vector<Vec3i> facets;
         float out_points_idx[][3] = { { 0, -depth, 0 }, { 0, 0, 0 }, { 38.453f, 0, 0 }, { 61.547f, 0, 0 }, { 100.0f, 0, 0 }, { 100.0f, -depth, 0 }, { 55.7735f, -10.0f, 0 }, { 44.2265f, 10.0f, 0 },
@@ -637,13 +640,17 @@ int GLVolumeCollection::load_wipe_tower_preview(
                                    {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
                                    {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11} };
         for (int i = 0; i < 16; ++i)
-            points.emplace_back(out_points_idx[i][0] / (100.f / min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]);
+            points.emplace_back(out_points_idx[i][0] / (100.f / min_width),
+                                out_points_idx[i][1] + depth, out_points_idx[i][2]);
         for (int i = 0; i < 28; ++i)
-            facets.emplace_back(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]);
+            facets.emplace_back(out_facets_idx[i][0],
+                                out_facets_idx[i][1],
+                                out_facets_idx[i][2]);
         TriangleMesh tooth_mesh(points, facets);
 
-        // We have the mesh ready. It has one tooth and width of min_width. We will now append several of these together until we are close to
-        // the required width of the block. Than we can scale it precisely.
+        // We have the mesh ready. It has one tooth and width of min_width. We will now
+        // append several of these together until we are close to the required width
+        // of the block. Than we can scale it precisely.
         size_t n = std::max(1, int(width / min_width)); // How many shall be merged?
         for (size_t i = 0; i < n; ++i) {
             mesh.merge(tooth_mesh);

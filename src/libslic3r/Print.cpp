@@ -202,6 +202,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "temperature"
             || opt_key == "wipe_tower"
             || opt_key == "wipe_tower_width"
+            || opt_key == "wipe_tower_brim_width"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "wiping_volumes_matrix"
@@ -1909,16 +1910,15 @@ bool Print::has_wipe_tower() const
         m_config.nozzle_diameter.values.size() > 1;
 }
 
-const WipeTowerData& Print::wipe_tower_data(size_t extruders_cnt, double first_layer_height, double nozzle_diameter) const
+const WipeTowerData& Print::wipe_tower_data(size_t extruders_cnt) const
 {
     // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
     if (! is_step_done(psWipeTower) && extruders_cnt !=0) {
 
         float width = float(m_config.wipe_tower_width);
-        float brim_spacing = float(nozzle_diameter * 1.25f - first_layer_height * (1. - M_PI_4));
 
         const_cast<Print*>(this)->m_wipe_tower_data.depth = (900.f/width) * float(extruders_cnt - 1);
-        const_cast<Print*>(this)->m_wipe_tower_data.brim_width = 4.5f * brim_spacing;
+        const_cast<Print*>(this)->m_wipe_tower_data.brim_width = m_config.wipe_tower_brim_width;
     }
 
     return m_wipe_tower_data;
