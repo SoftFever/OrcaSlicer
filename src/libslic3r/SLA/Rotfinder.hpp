@@ -35,7 +35,7 @@ Vec2d find_best_rotation(
         );
 
 double get_model_supportedness(const SLAPrintObject &mesh,
-                               const Transform3d & tr);
+                               const Transform3f & tr);
 
 } // namespace sla
 } // namespace Slic3r

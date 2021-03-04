@@ -1,7 +1,9 @@
 #include <limits>
 
 #include <libslic3r/SLA/Rotfinder.hpp>
-#include <libslic3r/SLA/Concurrency.hpp>
+
+#include <libslic3r/Execution/ExecutionTBB.hpp>
+#include <libslic3r/Execution/ExecutionSeq.hpp>
 
 #include <libslic3r/Optimize/BruteforceOptimizer.hpp>
 
@@ -20,66 +22,58 @@ namespace Slic3r { namespace sla {
 namespace {
 
 // Get the vertices of a triangle directly in an array of 3 points
-std::array<Vec3d, 3> get_triangle_vertices(const TriangleMesh &mesh,
+std::array<Vec3f, 3> get_triangle_vertices(const TriangleMesh &mesh,
                                            size_t              faceidx)
 {
     const auto &face = mesh.its.indices[faceidx];
-    return {Vec3d{mesh.its.vertices[face(0)].cast<double>()},
-            Vec3d{mesh.its.vertices[face(1)].cast<double>()},
-            Vec3d{mesh.its.vertices[face(2)].cast<double>()}};
+    return {mesh.its.vertices[face(0)],
+            mesh.its.vertices[face(1)],
+            mesh.its.vertices[face(2)]};
 }
 
-std::array<Vec3d, 3> get_transformed_triangle(const TriangleMesh &mesh,
-                                              const Transform3d & tr,
+std::array<Vec3f, 3> get_transformed_triangle(const TriangleMesh &mesh,
+                                              const Transform3f & tr,
                                               size_t              faceidx)
 {
     const auto &tri = get_triangle_vertices(mesh, faceidx);
     return {tr * tri[0], tr * tri[1], tr * tri[2]};
 }
 
-// Get area and normal of a triangle
-struct Facestats {
-    Vec3d  normal;
-    double area;
-
-    explicit Facestats(const std::array<Vec3d, 3> &triangle)
-    {
-        Vec3d U = triangle[1] - triangle[0];
-        Vec3d V = triangle[2] - triangle[0];
-        Vec3d C = U.cross(V);
-        normal = C.normalized();
-        area = 0.5 * C.norm();
-    }
-};
-
-template<class AccessFn>
-double sum_score(AccessFn &&accessfn, size_t facecount, size_t Nthreads)
+template<class T> Vec<3, T> normal(const std::array<Vec<3, T>, 3> &tri)
 {
-    double initv     = 0.;
-    auto    mergefn   = [](double a, double b) { return a + b; };
-    size_t  grainsize = facecount / Nthreads;
-    size_t  from = 0, to = facecount;
+    Vec<3, T> U = tri[1] - tri[0];
+    Vec<3, T> V = tri[2] - tri[0];
+    return U.cross(V).normalized();
+}
 
-    return ccr_par::reduce(from, to, initv, mergefn, accessfn, grainsize);
+template<class T, class AccessFn>
+T sum_score(AccessFn &&accessfn, size_t facecount, size_t Nthreads)
+{
+    T  initv         = 0.;
+    auto   mergefn   = [](T a, T b) { return a + b; };
+    size_t grainsize = facecount / Nthreads;
+    size_t from = 0, to = facecount;
+
+    return execution::reduce(ex_seq, from, to, initv, mergefn, accessfn, grainsize);
 }
 
 // Try to guess the number of support points needed to support a mesh
-double get_model_supportedness(const TriangleMesh &mesh, const Transform3d &tr)
+double get_model_supportedness(const TriangleMesh &mesh, const Transform3f &tr)
 {
     if (mesh.its.vertices.empty()) return std::nan("");
 
     auto accessfn = [&mesh, &tr](size_t fi) {
-        Facestats fc{get_transformed_triangle(mesh, tr, fi)};
+        Vec3f n = normal(get_transformed_triangle(mesh, tr, fi));
 
         // We should score against the alignment with the reference planes
-        return std::abs(fc.normal.dot(Vec3d::UnitX())) +
-               std::abs(fc.normal.dot(Vec3d::UnitY())) +
-               std::abs(fc.normal.dot(Vec3d::UnitZ()));
+        return scaled<int_fast64_t>(std::abs(n.dot(Vec3f::UnitX())) +
+               std::abs(n.dot(Vec3f::UnitY())) +
+               std::abs(n.dot(Vec3f::UnitZ())));
     };
 
     size_t facecount = mesh.its.indices.size();
     size_t Nthreads  = std::thread::hardware_concurrency();
-    double S = sum_score(accessfn, facecount, Nthreads);
+    double S = unscaled(sum_score<int_fast64_t>(accessfn, facecount, Nthreads));
 
     return S / facecount;
 }
@@ -87,11 +81,12 @@ double get_model_supportedness(const TriangleMesh &mesh, const Transform3d &tr)
 using XYRotation = std::array<double, 2>;
 
 // prepare the rotation transformation
-Transform3d to_transform3d(const XYRotation &rot)
+Transform3f to_transform3f(const XYRotation &rot)
 {
-    Transform3d rt = Transform3d::Identity();
-    rt.rotate(Eigen::AngleAxisd(rot[1], Vec3d::UnitY()));
-    rt.rotate(Eigen::AngleAxisd(rot[0], Vec3d::UnitX()));
+    Transform3f rt = Transform3f::Identity();
+    rt.rotate(Eigen::AngleAxisf(float(rot[1]), Vec3f::UnitY()));
+    rt.rotate(Eigen::AngleAxisf(float(rot[0]), Vec3f::UnitX()));
+
     return rt;
 }
 
@@ -138,19 +133,27 @@ Vec2d find_best_rotation(const SLAPrintObject &        po,
     // We can specify the bounds for a dimension in the following way:
     auto bounds = opt::bounds({ {-PI/2, PI/2}, {-PI/2, PI/2} });
 
+    Benchmark bench;
+
+    bench.start();
     auto result = solver.to_max().optimize(
         [&mesh, &statusfn] (const XYRotation &rot)
         {
             statusfn();
-            return get_model_supportedness(mesh, to_transform3d(rot));
+            return get_model_supportedness(mesh, to_transform3f(rot));
         }, opt::initvals({0., 0.}), bounds);
+    bench.stop();
 
     rot = result.optimum;
+
+    std::cout << "Optimum score: " << result.score << std::endl;
+    std::cout << "Optimum rotation: " << result.optimum[0] << " " << result.optimum[1] << std::endl;
+    std::cout << "Optimization took: " << bench.getElapsedSec() << " seconds" << std::endl;
 
     return {rot[0], rot[1]};
 }
 
-double get_model_supportedness(const SLAPrintObject &po, const Transform3d &tr)
+double get_model_supportedness(const SLAPrintObject &po, const Transform3f &tr)
 {
     TriangleMesh mesh = po.model_object()->raw_mesh();
     mesh.require_shared_vertices();
