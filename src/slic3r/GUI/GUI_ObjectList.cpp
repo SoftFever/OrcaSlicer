@@ -16,6 +16,8 @@
 #include "format.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <wx/progdlg.h>
+
 #include "slic3r/Utils/FixModelByWin10.hpp"
 
 #ifdef __WXMSW__
