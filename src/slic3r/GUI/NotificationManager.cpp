@@ -786,44 +786,33 @@ void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& img
 }
 void NotificationManager::ProgressBarNotification::render_bar(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-	switch (m_pb_state)
-	{
+	std::string text;
+	switch (m_pb_state) {
 	case Slic3r::GUI::NotificationManager::ProgressBarNotification::ProgressBarState::PB_PROGRESS:
 	{
-		ImVec4 orange_color		 = ImVec4(.99f, .313f, .0f, 1.0f);
-		ImVec4 gray_color		 = ImVec4(.34f, .34f, .34f, 1.0f);
-		float  invisible_length	 = 0;
-		ImVec2 lineEnd			 = ImVec2(win_pos_x - invisible_length - m_window_width_offset, win_pos_y + win_size_y / 2 + m_line_height / 2);
-		ImVec2 lineStart		 = ImVec2(win_pos_x - win_size_x + m_left_indentation, win_pos_y + win_size_y / 2 + m_line_height / 2);
-		float  full_lenght		 = lineEnd.x - lineStart.x;
-		ImVec2 midPoint			 = ImVec2(lineStart.x + full_lenght * m_percentage, lineStart.y);
+		text					    = std::to_string((int)(m_percentage * 100)) + "%";
+		ImVec4 orange_color			= ImVec4(.99f, .313f, .0f, 1.0f);
+		ImVec4 gray_color			= ImVec4(.34f, .34f, .34f, 1.0f);
+		ImVec2 lineEnd				= ImVec2(win_pos_x - m_window_width_offset, win_pos_y + win_size_y / 2 + m_line_height / 2);
+		ImVec2 lineStart			= ImVec2(win_pos_x - win_size_x + m_left_indentation + ImGui::CalcTextSize(text.c_str()).x, win_pos_y + win_size_y / 2 + m_line_height / 2);
+		ImVec2 midPoint				= ImVec2(lineStart.x + (lineEnd.x - lineStart.x) * m_percentage, lineStart.y);
 		ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, IM_COL32((int)(gray_color.x * 255), (int)(gray_color.y * 255), (int)(gray_color.z * 255), (1.0f * 255.f)), m_line_height * 0.7f);
 		ImGui::GetWindowDrawList()->AddLine(lineStart, midPoint, IM_COL32((int)(orange_color.x * 255), (int)(orange_color.y * 255), (int)(orange_color.z * 255), (1.0f * 255.f)), m_line_height * 0.7f);
 		break;
 	}
 	case Slic3r::GUI::NotificationManager::ProgressBarNotification::ProgressBarState::PB_ERROR:
-	{
-		ImGui::SetCursorPosX(m_left_indentation);
-		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
-		imgui.text(_u8L("ERROR"));
+		text = _u8L("ERROR");
 		break;
-	}
 	case Slic3r::GUI::NotificationManager::ProgressBarNotification::ProgressBarState::PB_CANCELLED:
-	{
-		ImGui::SetCursorPosX(m_left_indentation);
-		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
-		imgui.text(_u8L("CANCELED"));
+		text = _u8L("CANCELED");
 		break;
-	}
 	case Slic3r::GUI::NotificationManager::ProgressBarNotification::ProgressBarState::PB_COMPLETED:
-	{
-		ImGui::SetCursorPosX(m_left_indentation);
-		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
-		imgui.text(_u8L("COMPLETED"));
+		text = _u8L("COMPLETED");
 		break;
 	}
-	}
-	
+	ImGui::SetCursorPosX(m_left_indentation);
+	ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
+	imgui.text(text.c_str());
 
 }
 //------NotificationManager--------
