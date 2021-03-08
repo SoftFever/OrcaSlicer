@@ -2938,8 +2938,7 @@ bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config,
         return false;
 
     _3MF_Exporter exporter;
-    exporter.zip64 = zip64;
-    bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources, thumbnail_data);
+    bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources, thumbnail_data, zip64);
     if (!res)
         exporter.log_errors();
 
