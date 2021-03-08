@@ -303,9 +303,6 @@ void GCodeViewer::SequentialView::Marker::render() const
 #if ENABLE_GCODE_WINDOW
 void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
 {
-#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-    m_gcode.clear();
-#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
     if (m_filename.empty())
         return;
 
@@ -313,19 +310,13 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
     {
         boost::nowide::ifstream f(m_filename);
         std::string line;
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
         // generate mapping for accessing data in file by line number
         uint64_t offset = 0;
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
         while (std::getline(f, line)) {
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
             size_t line_length = static_cast<uint64_t>(line.length());
             m_lines_map.push_back({ offset, line_length });
             offset += static_cast<uint64_t>(line_length) + 1;
-#else
-            m_gcode.push_back(line);
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-        }
+    }
     }
     catch (...)
     {
@@ -337,7 +328,6 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
     m_selected_line_id = 0;
     m_last_lines_size = 0;
 
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
     try
     {
         m_file.open(boost::filesystem::path(m_filename));
@@ -347,20 +337,7 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
         BOOST_LOG_TRIVIAL(error) << "Unable to map file " << m_filename << ". Cannot show G-code window.";
         reset();
     }
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 }
-
-#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-void GCodeViewer::SequentialView::GCodeWindow::start_mapping_file()
-{
-    std::cout << "GCodeViewer::SequentialView::GCodeWindow::start_mapping_file()\n";
-}
-
-void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
-{
-    std::cout << "GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()\n";
-}
-#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
 void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, uint64_t curr_line_id) const
 {
@@ -368,12 +345,8 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
         std::vector<Line> ret;
         ret.reserve(end_id - start_id + 1);
         for (uint64_t id = start_id; id <= end_id; ++id) {
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
             // read line from file
             std::string gline(m_file.data() + m_lines_map[id - 1].first, m_lines_map[id - 1].second);
-#else
-            const std::string& gline = m_gcode[id - 1];
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
             std::string command;
             std::string parameters;
@@ -407,13 +380,8 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     static const ImVec4 PARAMETERS_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
     static const ImVec4 COMMENT_COLOR = { 0.7f, 0.7f, 0.7f, 1.0f };
 
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
     if (!m_visible || m_filename.empty() || m_lines_map.empty() || curr_line_id == 0)
         return;
-#else
-    if (!m_visible || m_filename.empty() || m_gcode.empty() || curr_line_id == 0)
-        return;
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
     // window height
     const float wnd_height = bottom - top;
@@ -430,21 +398,13 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     const uint64_t half_lines_count = lines_count / 2;
     uint64_t start_id = (curr_line_id >= half_lines_count) ? curr_line_id - half_lines_count : 0;
     uint64_t end_id = start_id + lines_count - 1;
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
     if (end_id >= static_cast<uint64_t>(m_lines_map.size())) {
         end_id = static_cast<uint64_t>(m_lines_map.size()) - 1;
         start_id = end_id - lines_count + 1;
     }
-#else
-    if (end_id >= static_cast<uint64_t>(m_gcode.size())) {
-        end_id = static_cast<uint64_t>(m_gcode.size()) - 1;
-        start_id = end_id - lines_count + 1;
-    }
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
     // updates list of lines to show, if needed
     if (m_selected_line_id != curr_line_id || m_last_lines_size != end_id - start_id + 1) {
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
         try
         {
             *const_cast<std::vector<Line>*>(&m_lines) = update_lines(start_id, end_id);
@@ -454,9 +414,6 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
             BOOST_LOG_TRIVIAL(error) << "Error while loading from file " << m_filename << ". Cannot show G-code window.";
             return;
         }
-#else
-        *const_cast<std::vector<Line>*>(&m_lines) = update_lines(start_id, end_id);
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
         *const_cast<uint64_t*>(&m_selected_line_id) = curr_line_id;
         *const_cast<size_t*>(&m_last_lines_size) = m_lines.size();
     }
@@ -531,13 +488,11 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     ImGui::PopStyleVar();
 }
 
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
 {
     if (m_file.is_open())
         m_file.close();
 }
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
 void GCodeViewer::SequentialView::render(float legend_height) const
 {

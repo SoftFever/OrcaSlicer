@@ -5,9 +5,9 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GLModel.hpp"
 
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+#if ENABLE_GCODE_WINDOW
 #include <boost/iostreams/device/mapped_file.hpp>
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+#endif // ENABLE_GCODE_WINDOW
 
 #include <cstdint>
 #include <float.h>
@@ -623,46 +623,30 @@ public:
             uint64_t m_selected_line_id{ 0 };
             size_t m_last_lines_size{ 0 };
             std::string m_filename;
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
             boost::iostreams::mapped_file_source m_file;
             // map for accessing data in file by line number
             std::vector<std::pair<uint64_t, uint64_t>> m_lines_map;
-#else
-            std::vector<std::string> m_gcode;
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
             // current visible lines
             std::vector<Line> m_lines;
 
         public:
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
             GCodeWindow() = default;
             ~GCodeWindow() { stop_mapping_file(); }
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
             void set_filename(const std::string& filename) { m_filename = filename; }
             void load_gcode();
-#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-            void start_mapping_file();
-            void stop_mapping_file();
-#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
             void reset() {
                 stop_mapping_file();
                 m_lines_map.clear();
                 m_lines.clear();
                 m_filename.clear();
             }
-#else
-            void reset() { m_filename.clear(); }
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
             void toggle_visibility() { m_visible = !m_visible; }
 
             void render(float top, float bottom, uint64_t curr_line_id) const;
 
-#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
         private:
             void stop_mapping_file();
-#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
         };
 #endif // ENABLE_GCODE_WINDOW
 
@@ -783,10 +767,6 @@ public:
     void export_toolpaths_to_obj(const char* filename) const;
 
 #if ENABLE_GCODE_WINDOW
-#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-    void start_mapping_gcode_file() { m_sequential_view.gcode_window.start_mapping_file(); }
-    void stop_mapping_gcode_file() { m_sequential_view.gcode_window.stop_mapping_file(); }
-#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
     void toggle_gcode_window_visibility() { m_sequential_view.gcode_window.toggle_visibility(); }
 #endif // ENABLE_GCODE_WINDOW
 

@@ -55,8 +55,6 @@
 #define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_3_1_ALPHA1)
 // Enable showing a imgui window containing gcode in preview
 #define ENABLE_GCODE_WINDOW (1 && ENABLE_2_3_1_ALPHA1)
-// Enable using file mapping to show a imgui window containing gcode in preview
-#define ENABLE_GCODE_WINDOW_USE_MAPPED_FILE (1 && ENABLE_GCODE_WINDOW)
 
 
 #endif // _prusaslicer_technologies_h_

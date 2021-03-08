@@ -1195,11 +1195,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 
 GLCanvas3D::~GLCanvas3D()
 {
-#if ENABLE_GCODE_WINDOW
-#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-    m_gcode_viewer.stop_mapping_gcode_file();
-#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-#endif // ENABLE_GCODE_WINDOW
     reset_volumes();
 }
 
@@ -3899,20 +3894,6 @@ void GLCanvas3D::mouse_up_cleanup()
     if (m_canvas->HasCapture())
         m_canvas->ReleaseMouse();
 }
-
-#if ENABLE_GCODE_WINDOW
-#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-void GLCanvas3D::start_mapping_gcode_file()
-{
-    m_gcode_viewer.start_mapping_gcode_file();
-}
-
-void GLCanvas3D::stop_mapping_gcode_file()
-{
-    m_gcode_viewer.stop_mapping_gcode_file();
-}
-#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
-#endif // ENABLE_GCODE_WINDOW
 
 bool GLCanvas3D::_is_shown_on_screen() const
 {
