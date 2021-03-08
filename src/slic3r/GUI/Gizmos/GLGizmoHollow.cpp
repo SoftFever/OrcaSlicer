@@ -125,6 +125,8 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
     float render_color[4];
     const sla::DrainHoles& drain_holes = m_c->selection_info()->model_object()->sla_drain_holes;
     size_t cache_size = drain_holes.size();
+
+    const auto *hollowed_mesh = m_c->hollowed_mesh();
     for (size_t i = 0; i < cache_size; ++i)
     {
         const sla::DrainHole& drain_hole = drain_holes[i];
@@ -136,6 +138,13 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         // First decide about the color of the point.
         if (picking) {
             std::array<float, 4> color = picking_color_component(i);
+
+            if (hollowed_mesh && i < hollowed_mesh->get_drainholes().size() && hollowed_mesh->get_drainholes()[i].failed) {
+                render_color[0] = 1.f;
+                render_color[1] = 1.f;
+                render_color[2] = 0.f;
+                render_color[3] = color[3];
+            }
             render_color[0] = color[0];
             render_color[1] = color[1];
             render_color[2] = color[2];
@@ -149,9 +158,15 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
                 render_color[2] = 1.0f;
             }
             else { // neigher hover nor picking
-                render_color[0] = point_selected ? 1.0f : 0.7f;
-                render_color[1] = point_selected ? 0.3f : 0.7f;
-                render_color[2] = point_selected ? 0.3f : 0.7f;
+                if (hollowed_mesh && i < hollowed_mesh->get_drainholes().size() && hollowed_mesh->get_drainholes()[i].failed) {
+                    render_color[0] = 1.f;
+                    render_color[1] = 1.f;
+                    render_color[2] = 0.f;
+                } else {
+                    render_color[0] = point_selected ? 1.0f : 0.7f;
+                    render_color[1] = point_selected ? 0.3f : 0.7f;
+                    render_color[2] = point_selected ? 0.3f : 0.7f;
+                }
                 render_color[3] = 0.5f;
             }
         }

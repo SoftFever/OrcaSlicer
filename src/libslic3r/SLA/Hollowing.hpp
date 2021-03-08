@@ -36,6 +36,7 @@ struct DrainHole
     Vec3f normal;
     float radius;
     float height;
+    bool  failed = false;
 
     DrainHole()
         : pos(Vec3f::Zero()), normal(Vec3f::UnitZ()), radius(5.f), height(10.f)

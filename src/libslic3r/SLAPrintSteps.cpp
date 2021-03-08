@@ -244,6 +244,8 @@ static std::vector<bool> create_exclude_mask(
         Vec3f face_normal = C.normalized();
 
         for (const sla::DrainHole &dh : holes) {
+            if (dh.failed) continue;
+
             Vec3d dhpos = dh.pos.cast<double>();
             Vec3d dhend = dhpos + dh.normal.cast<double>() * dh.height;
 
@@ -312,41 +314,42 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 
     BOOST_LOG_TRIVIAL(info) << "Drilling drainage holes.";
     sla::DrainHoles drainholes = po.transformed_drainhole_points();
+    
+    auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
 
-    std::uniform_real_distribution<float> dist(0., float(EPSILON));
-    auto holes_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal({});
-    for (sla::DrainHole holept : drainholes) {
-        holept.normal += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
-        holept.normal.normalize();
-        holept.pos += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
+    bool hole_fail = false;
+    for (size_t i = 0; i < drainholes.size(); ++i) {
+        const sla::DrainHole &holept = drainholes[i];
+        po.model_object()->sla_drain_holes[i].failed = false;
+
         TriangleMesh m = sla::to_triangle_mesh(holept.to_mesh());
         m.require_shared_vertices();
         auto cgal_m = MeshBoolean::cgal::triangle_mesh_to_cgal(m);
-        MeshBoolean::cgal::plus(*holes_mesh_cgal, *cgal_m);
+
+        try {
+            MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *cgal_m);
+        } catch (const std::runtime_error &) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to drill hole";
+
+            hole_fail = drainholes[i].failed =
+                    po.model_object()->sla_drain_holes[i].failed = true;
+        }
     }
 
-    if (MeshBoolean::cgal::does_self_intersect(*holes_mesh_cgal))
-        throw Slic3r::SlicingError(L("Too many overlapping holes."));
+    if (hole_fail)
+        po.active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
+                                   L("Failed to drill some holes into the model"));
 
-    auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
 
-    try {
-        MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *holes_mesh_cgal);
-        hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
-        mesh_view = hollowed_mesh;
+    hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
+    mesh_view     = hollowed_mesh;
 
-        if (is_hollowed) {
-            auto &interior = *po.m_hollowing_data->interior;
-            std::vector<bool> exclude_mask =
-                    create_exclude_mask(mesh_view.its, interior, drainholes);
+    if (is_hollowed) {
+        auto &interior = *po.m_hollowing_data->interior;
+        std::vector<bool> exclude_mask =
+                create_exclude_mask(mesh_view.its, interior, drainholes);
 
-            sla::remove_inside_triangles(mesh_view, interior, exclude_mask);
-        }
-
-    } catch (const std::runtime_error &) {
-        throw Slic3r::SlicingError(L(
-            "Drilling holes into the mesh failed. "
-            "This is usually caused by broken model. Try to fix it first."));
+        sla::remove_inside_triangles(mesh_view, interior, exclude_mask);
     }
 }
 
