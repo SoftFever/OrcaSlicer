@@ -2438,7 +2438,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("toolchange_gcode", coString);
     def->label = L("Tool change G-code");
     def->tooltip = L("This custom code is inserted before every toolchange. Placeholder variables for all PrusaSlicer settings "
-                     "as well as {previous_extruder} and {next_extruder} can be used. When a tool-changing command "
+                     "as well as {toolchange_z}, {previous_extruder} and {next_extruder} can be used. When a tool-changing command "
                      "which changes to the correct extruder is included (such as T{next_extruder}), PrusaSlicer will emit no other such command. "
                      "It is therefore possible to script custom behaviour both before and after the toolchange.");
     def->multiline = true;
@@ -2594,10 +2594,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
+    def = this->add("wipe_tower_brim_width", coFloat);
+    def->label = L("Wipe tower brim width");
+    def->tooltip = L("Wipe tower brim width");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->min = 0.f;
+    def->set_default_value(new ConfigOptionFloat(2.));
+
     def = this->add("wipe_into_infill", coBool);
     def->category = L("Wipe options");
     def->label = L("Wipe into this object's infill");
-    def->tooltip = L("Purging after toolchange will done inside this object's infills. "
+    def->tooltip = L("Purging after toolchange will be done inside this object's infills. "
                      "This lowers the amount of waste but may result in longer print time "
                      " due to additional travel moves.");
     def->set_default_value(new ConfigOptionBool(false));

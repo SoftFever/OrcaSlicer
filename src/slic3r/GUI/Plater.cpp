@@ -1757,7 +1757,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "brim_offset", "brim_type", "variable_layer_height", "nozzle_diameter", "single_extruder_multi_material",
-        "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
+        "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width",
         "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "first_layer_height", "min_layer_height", "max_layer_height",
@@ -2134,7 +2134,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     const auto loading = _L("Loading") + dots;
     wxProgressDialog dlg(loading, "", 100, q, wxPD_AUTO_HIDE);
-    dlg.Pulse();
+    wxBusyCursor busy;
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
     std::vector<size_t> obj_idxs;
@@ -2142,8 +2142,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     for (size_t i = 0; i < input_files.size(); ++i) {
         const auto &path = input_files[i];
         const auto filename = path.filename();
-        const auto dlg_info = _L("Loading file") + ": " + from_path(filename);
-        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())), dlg_info);
+        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())), _L("Loading file") + ": " + from_path(filename));
+        dlg.Fit();
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
@@ -2163,12 +2163,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
 
                         // We can't to load SLA project if there is at least one multi-part object on the bed
-                        if (printer_technology == ptSLA)
-                        {
+                        if (printer_technology == ptSLA) {
                             const ModelObjectPtrs& objects = q->model().objects;
                             for (auto object : objects)
-                                if (object->volumes.size() > 1)
-                                {
+                                if (object->volumes.size() > 1) {
                                     Slic3r::GUI::show_info(nullptr,
                                         _L("You cannot load SLA project with a multi-part object on the bed") + "\n\n" +
                                         _L("Please check your object list before preset changing."),
@@ -2187,8 +2185,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                 }
 
-                if (load_config)
-                {
+                if (load_config) {
                     if (!config.empty()) {
                         Preset::normalize(config);
                         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
@@ -2263,8 +2260,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             continue;
         }
 
-        if (load_model)
-        {
+        if (load_model) {
             // The model should now be initialized
 
             auto convert_from_imperial_units = [](Model& model, bool only_small_volumes) {
@@ -2314,8 +2310,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             else if ((wxGetApp().get_mode() == comSimple) && (type_3mf || type_any_amf) && model_has_advanced_features(model)) {
                 wxMessageDialog msg_dlg(q, _L("This file cannot be loaded in a simple mode. Do you want to switch to an advanced mode?")+"\n",
                     _L("Detected advanced data"), wxICON_WARNING | wxYES | wxNO);
-                if (msg_dlg.ShowModal() == wxID_YES)
-                {
+                if (msg_dlg.ShowModal() == wxID_YES) {
                     Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
                     view3D->set_as_dirty();
                 }
@@ -2330,8 +2325,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             // check multi-part object adding for the SLA-printing
-            if (printer_technology == ptSLA)
-            {
+            if (printer_technology == ptSLA) {
                 for (auto obj : model.objects)
                     if ( obj->volumes.size()>1 ) {
                         Slic3r::GUI::show_error(nullptr,
@@ -2367,23 +2361,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
     }
 
-    if (load_model)
-    {
+    if (load_model) {
         wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().string());
         // XXX: Plater.pm had @loaded_files, but didn't seem to fill them with the filenames...
         statusbar()->set_status_text(_L("Loaded"));
     }
 
     // automatic selection of added objects
-    if (!obj_idxs.empty() && (view3D != nullptr))
-    {
+    if (!obj_idxs.empty() && view3D != nullptr) {
         // update printable state for new volumes on canvas3D
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 
         Selection& selection = view3D->get_canvas3d()->get_selection();
         selection.clear();
-        for (size_t idx : obj_idxs)
-        {
+        for (size_t idx : obj_idxs) {
             selection.add_object((unsigned int)idx, false);
         }
 

@@ -493,7 +493,7 @@ public:
 
     // Wipe tower support.
     bool                        has_wipe_tower() const;
-    const WipeTowerData&        wipe_tower_data(size_t extruders_cnt = 0, double first_layer_height = 0., double nozzle_diameter = 0.) const;
+    const WipeTowerData&        wipe_tower_data(size_t extruders_cnt = 0) const;
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;

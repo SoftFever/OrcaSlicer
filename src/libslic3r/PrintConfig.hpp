@@ -962,6 +962,7 @@ public:
     ConfigOptionFloat               wipe_tower_width;
     ConfigOptionFloat               wipe_tower_per_color_wipe;
     ConfigOptionFloat               wipe_tower_rotation_angle;
+    ConfigOptionFloat               wipe_tower_brim_width;
     ConfigOptionFloat               wipe_tower_bridging;
     ConfigOptionFloats              wiping_volumes_matrix;
     ConfigOptionFloats              wiping_volumes_extruders;
@@ -1036,6 +1037,7 @@ protected:
         OPT_PTR(wipe_tower_width);
         OPT_PTR(wipe_tower_per_color_wipe);
         OPT_PTR(wipe_tower_rotation_angle);
+        OPT_PTR(wipe_tower_brim_width);
         OPT_PTR(wipe_tower_bridging);
         OPT_PTR(wiping_volumes_matrix);
         OPT_PTR(wiping_volumes_extruders);
