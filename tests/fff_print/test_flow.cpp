@@ -143,7 +143,7 @@ SCENARIO("Flow: Flow math for non-bridges", "[Flow]") {
     GIVEN("Input spacing of 0.414159 and a total width of 2") {
         double in_spacing = 0.414159;
         double total_width = 2.0;
-        auto flow = Flow::new_from_spacing(1.0, 0.4, 0.3, false);
+        auto flow = Flow::new_from_spacing(1.0, 0.4, 0.3);
         WHEN("solid_spacing() is called") {
             double result = flow.solid_spacing(total_width, in_spacing);
             THEN("Yielded spacing is greater than 0") {

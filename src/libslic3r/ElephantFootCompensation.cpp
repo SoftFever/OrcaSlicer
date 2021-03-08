@@ -621,7 +621,7 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, double min_c
 ExPolygon  elephant_foot_compensation(const ExPolygon  &input, const Flow &external_perimeter_flow, const double compensation)
 {
     // The contour shall be wide enough to apply the external perimeter plus compensation on both sides.
-    double min_contour_width = double(external_perimeter_flow.width + external_perimeter_flow.spacing());
+    double min_contour_width = double(external_perimeter_flow.width() + external_perimeter_flow.spacing());
     return elephant_foot_compensation(input, min_contour_width, compensation);
 }
 

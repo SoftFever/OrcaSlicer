@@ -15,16 +15,14 @@
 
 namespace Slic3r {
 
-Flow LayerRegion::flow(FlowRole role, bool bridge, double width) const
+Flow LayerRegion::flow(FlowRole role) const
 {
-    return m_region->flow(
-        role,
-        m_layer->height,
-        bridge,
-        m_layer->id() == 0,
-        width,
-        *m_layer->object()
-    );
+    return m_region->flow(*m_layer->object(), role, m_layer->height, m_layer->id() == 0);
+}
+
+Flow LayerRegion::bridging_flow(FlowRole role) const
+{ 
+    return this->layer()->object()->config().thick_bridges ? m_region->bridging_flow(role) : this->flow(role);
 }
 
 // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
@@ -84,7 +82,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     
     g.layer_id              = (int)this->layer()->id();
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
-    g.overhang_flow         = this->region()->flow(frPerimeter, -1, true, false, -1, *this->layer()->object());
+    g.overhang_flow         = this->bridging_flow(frPerimeter);
     g.solid_infill_flow     = this->flow(frSolidInfill);
     
     g.process();
@@ -266,11 +264,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 // would get merged into a single one while they need different directions
                 // also, supply the original expolygon instead of the grown one, because in case
                 // of very thin (but still working) anchors, the grown expolygon would go beyond them
-                BridgeDetector bd(
-                    initial,
-                    lower_layer->lslices,
-                    this->flow(frInfill, true).scaled_width()
-                );
+                BridgeDetector bd(initial, lower_layer->lslices, this->bridging_flow(frInfill).scaled_width());
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer %zu:\n", this->layer()->id());
                 #endif

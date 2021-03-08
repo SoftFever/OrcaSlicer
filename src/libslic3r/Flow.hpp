@@ -13,11 +13,6 @@ class PrintObject;
 // Extra spacing of bridge threads, in mm.
 #define BRIDGE_EXTRA_SPACING 0.05
 
-// Overlap factor of perimeter lines. Currently no overlap.
-#ifdef HAS_PERIMETER_LINE_OVERLAP
-    #define PERIMETER_LINE_OVERLAP_FACTOR 1.0
-#endif
-
 enum FlowRole {
     frExternalPerimeter,
     frPerimeter,
@@ -58,22 +53,22 @@ class Flow
 public:
     // Non bridging flow: Maximum width of an extrusion with semicircles at the ends.
     // Bridging flow: Bridge thread diameter.
-    float width;
+    float width()           const { return m_width; }
     // Non bridging flow: Layer height.
     // Bridging flow: Bridge thread diameter = layer height.
-    float height;
+    float height()          const { return m_height; }
     // Nozzle diameter. 
-    float nozzle_diameter;
+    float nozzle_diameter() const { return m_nozzle_diameter; }
     // Is it a bridge?
-    bool  bridge;
+    bool  bridge()          const { return m_bridge; }
     
-    Flow(float _w, float _h, float _nd, bool _bridge = false) :
-        width(_w), height(_h), nozzle_diameter(_nd), bridge(_bridge) {}
+    Flow() = default;
+    Flow(float w, float h, float nozzle_diameter) : Flow(w, h, nozzle_diameter, false) {}
 
     float   spacing() const;
     float   spacing(const Flow &other) const;
     double  mm3_per_mm() const;
-    coord_t scaled_width() const { return coord_t(scale_(this->width)); }
+    coord_t scaled_width() const { return coord_t(scale_(m_width)); }
     coord_t scaled_spacing() const { return coord_t(scale_(this->spacing())); }
     coord_t scaled_spacing(const Flow &other) const { return coord_t(scale_(this->spacing(other))); }
 
@@ -83,13 +78,20 @@ public:
     // Here an overlap of 0.2x external perimeter spacing is allowed for by the elephant foot compensation.
     coord_t scaled_elephant_foot_spacing() const { return coord_t(0.5f * float(this->scaled_width() + 0.6f * this->scaled_spacing())); }
 
-    bool operator==(const Flow &rhs) const { return this->width == rhs.width && this->height == rhs.height && this->nozzle_diameter == rhs.nozzle_diameter && this->bridge == rhs.bridge; }
+    bool operator==(const Flow &rhs) const { return m_width == rhs.m_width && m_height == rhs.m_height && m_nozzle_diameter == rhs.m_nozzle_diameter && m_bridge == rhs.m_bridge; }
+
+    Flow        with_width (float width)  const { assert(! m_bridge); return Flow(width, m_height, m_nozzle_diameter, m_bridge); }
+    Flow        with_height(float height) const { assert(! m_bridge); return Flow(m_width, height, m_nozzle_diameter, m_bridge); }
+
+    static Flow bridging_flow(float dmr, float nozzle_diameter) { return Flow { dmr, dmr, nozzle_diameter, true }; }
+    static Flow bridging_flow_from_spacing(float spacing, float nozzle_diameter) 
+        { auto dmr = spacing - float(BRIDGE_EXTRA_SPACING); return Flow { dmr, dmr, nozzle_diameter, true }; }
     
-    static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio);
+    static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height);
     // Create a flow from the spacing of extrusion lines.
     // This method is used exclusively to calculate new flow of 100% infill, where the extrusion width was allowed to scale
     // to fit a region with integer number of lines.
-    static Flow new_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge);
+    static Flow new_from_spacing(float spacing, float nozzle_diameter, float height);
 
     // Sane extrusion width defautl based on nozzle diameter.
     // The defaults were derived from manual Prusa MK3 profiles.
@@ -100,6 +102,14 @@ public:
     // on active extruder etc. Therefore the value calculated by this function shall be used as a hint only.
 	static double extrusion_width(const std::string &opt_key, const ConfigOptionFloatOrPercent *opt, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
 	static double extrusion_width(const std::string &opt_key, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
+
+private:
+    Flow(float w, float h, float nozzle_diameter, bool bridge) : m_width(w), m_height(h), m_nozzle_diameter(nozzle_diameter), m_bridge(bridge) {}
+
+    float       m_width { 0 };
+    float       m_height { 0 };
+    float       m_nozzle_diameter { 0 };
+    bool        m_bridge { false };
 };
 
 extern Flow support_material_flow(const PrintObject *object, float layer_height = 0.f);

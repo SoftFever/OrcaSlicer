@@ -1577,9 +1577,7 @@ Flow Print::brim_flow() const
         frPerimeter,
 		width,
         (float)m_config.nozzle_diameter.get_at(m_regions.front()->config().perimeter_extruder-1),
-		(float)this->skirt_first_layer_height(),
-        0
-    );
+		(float)this->skirt_first_layer_height());
 }
 
 Flow Print::skirt_flow() const
@@ -1599,9 +1597,7 @@ Flow Print::skirt_flow() const
         frPerimeter,
 		width,
 		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_material_extruder-1),
-		(float)this->skirt_first_layer_height(),
-        0
-    );
+		(float)this->skirt_first_layer_height());
 }
 
 bool Print::has_support_material() const
@@ -1818,7 +1814,7 @@ void Print::_make_skirt()
             ExtrusionPath(
                 erSkirt,
                 (float)mm3_per_mm,         // this will be overridden at G-code export time
-                flow.width,
+                flow.width(),
 				(float)first_layer_height  // this will be overridden at G-code export time
             )));
         eloop.paths.back().polyline = loop.split_at_first_point();

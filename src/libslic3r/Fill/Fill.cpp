@@ -42,7 +42,7 @@ struct SurfaceFillParams
 
     // width, height of extrusion, nozzle diameter, is bridge
     // For the output, for fill generator.
-    Flow 			flow = Flow(0.f, 0.f, 0.f, false);
+    Flow 			flow;
 
 	// For the output
     ExtrusionRole	extrusion_role = ExtrusionRole(0);
@@ -70,10 +70,10 @@ struct SurfaceFillParams
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(anchor_length_max);
-		RETURN_COMPARE_NON_EQUAL(flow.width);
-		RETURN_COMPARE_NON_EQUAL(flow.height);
-		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter);
-		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, flow.bridge);
+		RETURN_COMPARE_NON_EQUAL(flow.width());
+		RETURN_COMPARE_NON_EQUAL(flow.height());
+		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter());
+		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, flow.bridge());
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, extrusion_role);
 		return false;
 	}
@@ -143,17 +143,12 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.bridge_angle = float(surface.bridge_angle);
 		        params.angle 		= float(Geometry::deg2rad(region_config.fill_angle.value));
 		        
-		        // calculate the actual flow we'll be using for this infill
-		        params.flow = layerm.region()->flow(
-		            extrusion_role,
-		            (surface.thickness == -1) ? layer.height : surface.thickness, 	// extrusion height
-		            is_bridge || Fill::use_bridge_flow(params.pattern), 			// bridge flow?
-		            layer.id() == 0,          										// first layer?
-		            -1,                                 							// auto width
-		            *layer.object()
-		        );
-		        
-		        // Calculate flow spacing for infill pattern generation.
+		        // Calculate the actual flow we'll be using for this infill.
+				params.flow = is_bridge || Fill::use_bridge_flow(params.pattern) ?
+					layerm.bridging_flow(extrusion_role) :
+					layerm.region()->flow(*layer.object(), extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness, layer.id() == 0);
+
+				// Calculate flow spacing for infill pattern generation.
 		        if (surface.is_solid() || is_bridge) {
 		            params.spacing = params.flow.spacing();
 		            // Don't limit anchor length for solid or bridging infill.
@@ -164,14 +159,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            // for all layers, for avoiding the ugly effect of
 		            // misaligned infill on first layer because of different extrusion width and
 		            // layer height
-		            params.spacing = layerm.region()->flow(
-			                frInfill,
-			                layer.object()->config().layer_height.value,  // TODO: handle infill_every_layers?
-			                false,  // no bridge
-			                false,  // no first layer
-			                -1,     // auto width
-			                *layer.object()
-			            ).spacing();
+		            params.spacing = layerm.region()->flow(*layer.object(), frInfill, layer.object()->config().layer_height).spacing();
 		            // Anchor a sparse infill to inner perimeters with the following anchor length:
 			        params.anchor_length = float(region_config.infill_anchor);
 					if (region_config.infill_anchor.percent)
@@ -278,7 +266,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				region_id = region_some_infill;
 			const LayerRegion& layerm = *layer.regions()[region_id];
 	        for (SurfaceFill &surface_fill : surface_fills)
-	        	if (surface_fill.surface.surface_type == stInternalSolid && std::abs(layer.height - surface_fill.params.flow.height) < EPSILON) {
+	        	if (surface_fill.surface.surface_type == stInternalSolid && std::abs(layer.height - surface_fill.params.flow.height()) < EPSILON) {
 	        		internal_solid_fill = &surface_fill;
 	        		break;
 	        	}
@@ -290,14 +278,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extrusion_role = erInternalInfill;
 		        params.angle 		= float(Geometry::deg2rad(layerm.region()->config().fill_angle.value));
 		        // calculate the actual flow we'll be using for this infill
-		        params.flow = layerm.region()->flow(
-		            frSolidInfill,
-		            layer.height, 		// extrusion height
-		            false, 				// bridge flow?
-		            layer.id() == 0,    // first layer?
-		            -1,                 // auto width
-		            *layer.object()
-		        );
+				params.flow = layerm.region()->flow(*layer.object(), frSolidInfill, layer.height, layer.id() == 0);
 		        params.spacing = params.flow.spacing();	        
 				surface_fills.emplace_back(params);
 				surface_fills.back().surface.surface_type = stInternalSolid;
@@ -365,9 +346,9 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
 
         // calculate flow spacing for infill pattern generation
-        bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.flow.bridge;
+        bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.flow.bridge();
         double link_max_length = 0.;
-        if (! surface_fill.params.flow.bridge) {
+        if (! surface_fill.params.flow.bridge()) {
 #if 0
             link_max_length = layerm.region()->config().get_abs_value(surface.is_external() ? "external_fill_link_max_length" : "fill_link_max_length", flow.spacing());
 //            printf("flow spacing: %f,  is_external: %d, link_max_length: %lf\n", flow.spacing(), int(surface.is_external()), link_max_length);
@@ -380,7 +361,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         // Maximum length of the perimeter segment linking two infill lines.
         f->link_max_length = (coord_t)scale_(link_max_length);
         // Used by the concentric infill pattern to clip the loops to create extrusion paths.
-        f->loop_clipping = coord_t(scale_(surface_fill.params.flow.nozzle_diameter) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
+        f->loop_clipping = coord_t(scale_(surface_fill.params.flow.nozzle_diameter()) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
 
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
@@ -402,15 +383,17 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		        // calculate actual flow from spacing (which might have been adjusted by the infill
 		        // pattern generator)
 		        double flow_mm3_per_mm = surface_fill.params.flow.mm3_per_mm();
-		        double flow_width      = surface_fill.params.flow.width;
+		        double flow_width      = surface_fill.params.flow.width();
 		        if (using_internal_flow) {
 		            // if we used the internal flow we're not doing a solid infill
 		            // so we can safely ignore the slight variation that might have
 		            // been applied to f->spacing
 		        } else {
-		            Flow new_flow = Flow::new_from_spacing(float(f->spacing), surface_fill.params.flow.nozzle_diameter, surface_fill.params.flow.height, surface_fill.params.flow.bridge);
+		            Flow new_flow = surface_fill.params.flow.bridge() ?
+		            	Flow::bridging_flow_from_spacing(float(f->spacing), surface_fill.params.flow.nozzle_diameter()) :
+		            	Flow::new_from_spacing(float(f->spacing), surface_fill.params.flow.nozzle_diameter(), surface_fill.params.flow.height());
 		        	flow_mm3_per_mm = new_flow.mm3_per_mm();
-		        	flow_width      = new_flow.width;
+		        	flow_width      = new_flow.width();
 		        }
 		        // Save into layer.
 				ExtrusionEntityCollection* eec = nullptr;
@@ -420,7 +403,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		        extrusion_entities_append_paths(
 		            eec->entities, std::move(polylines),
 		            surface_fill.params.extrusion_role,
-		            flow_mm3_per_mm, float(flow_width), surface_fill.params.flow.height);
+		            flow_mm3_per_mm, float(flow_width), surface_fill.params.flow.height());
 		    }
 		}
     }
@@ -619,7 +602,7 @@ void Layer::make_ironing()
         fill.angle = float(ironing_params.angle + 0.25 * M_PI);
         fill.link_max_length = (coord_t)scale_(3. * fill.spacing);
 		double height = ironing_params.height * fill.spacing / nozzle_dmr;
-        Flow flow = Flow::new_from_spacing(float(nozzle_dmr), 0., float(height), false);
+        Flow flow = Flow::new_from_spacing(float(nozzle_dmr), 0., float(height));
         double flow_mm3_per_mm = flow.mm3_per_mm();
         Surface surface_fill(stTop, ExPolygon());
         for (ExPolygon &expoly : ironing_areas) {
@@ -638,7 +621,7 @@ void Layer::make_ironing()
 		        extrusion_entities_append_paths(
 		            eec->entities, std::move(polylines),
 		            erIroning,
-		            flow_mm3_per_mm, float(flow.width), float(height));
+		            flow_mm3_per_mm, float(flow.width()), float(height));
 		    }
 		}
 	}

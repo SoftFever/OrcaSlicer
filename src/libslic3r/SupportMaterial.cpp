@@ -345,7 +345,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id)
         if (! object->region_volumes[region_id].empty())
             external_perimeter_width = std::max(external_perimeter_width,
-                (coordf_t)object->print()->get_region(region_id)->flow(frExternalPerimeter, slicing_params.layer_height, false, false, -1, *object).width);
+                (coordf_t)object->print()->get_region(region_id)->flow(*object, frExternalPerimeter, slicing_params.layer_height).width());
     m_gap_xy = m_object_config->support_material_xy_spacing.get_abs_value(external_perimeter_width);
 
     m_can_merge_support_regions = m_object_config->support_material_extruder.value == m_object_config->support_material_interface_extruder.value;
@@ -1231,7 +1231,7 @@ namespace SupportMaterialInternal {
             // since we're dealing with bridges, we can't assume width is larger than spacing,
             // so we take the largest value and also apply safety offset to be ensure no gaps
             // are left in between
-            Flow bridge_flow = layerm->flow(frPerimeter, true);
+            Flow bridge_flow = layerm->bridging_flow(frPerimeter);
             float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
             for (Polyline &polyline : overhang_perimeters)
                 if (polyline.is_straight()) {
@@ -1542,16 +1542,20 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 }
                             }
                             // Offset the contact polygons outside.
+#if 0
                             for (size_t i = 0; i < NUM_MARGIN_STEPS; ++ i) {
                                 diff_polygons = diff(
                                     offset(
                                         diff_polygons,
-                                        SUPPORT_MATERIAL_MARGIN / NUM_MARGIN_STEPS,
+                                        scaled<float>(SUPPORT_MATERIAL_MARGIN / NUM_MARGIN_STEPS),
                                         ClipperLib::jtRound,
                                         // round mitter limit
                                         scale_(0.05)),
                                     slices_margin_cached);
                             }
+#else
+                            diff_polygons = diff(diff_polygons, slices_margin_cached);
+#endif
                         }
                         polygons_append(contact_polygons, diff_polygons);
                     } // for each layer.region
@@ -1597,7 +1601,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
                         // Contact layer will be printed with a normal flow, but
                         // it will support layers printed with a bridging flow.
-                        if (SupportMaterialInternal::has_bridging_extrusions(layer)) {
+                        if (m_object_config->thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
                             coordf_t bridging_height = 0.;
                             for (const LayerRegion *region : layer.regions())
                                 bridging_height += region->region()->bridging_height_avg(*m_print_config);
@@ -1879,12 +1883,14 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                                 //FIXME Check whether the bottom bridging surfaces are extruded correctly (no bridging flow correction applied?)
                                 // According to Jindrich the bottom surfaces work well.
                                 //FIXME test the bridging flow instead?
-                                m_support_material_interface_flow.nozzle_diameter;
+                                m_object_config->thick_bridges.value ? m_support_material_interface_flow.nozzle_diameter() :
+                                // Take the default layer height.
+                                m_object_config->layer_height;
                             layer_new.print_z = m_slicing_params.soluble_interface ? object.layers()[layer_id + 1]->print_z :
                                 layer.print_z + layer_new.height + m_object_config->support_material_contact_distance.value;
                             layer_new.bottom_z = layer.print_z;
                             layer_new.idx_object_layer_below = layer_id;
-                            layer_new.bridging = ! m_slicing_params.soluble_interface;
+                            layer_new.bridging = ! m_slicing_params.soluble_interface && m_object_config->thick_bridges;
                             //FIXME how much to inflate the bottom surface, as it is being extruded with a bridging flow? The following line uses a normal flow.
                             //FIXME why is the offset positive? It will be trimmed by the object later on anyway, but then it just wastes CPU clocks.
                             layer_new.polygons = offset(touching, float(m_support_material_flow.scaled_width()), SUPPORT_SURFACES_OFFSET_PARAMETERS);
@@ -2512,7 +2518,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                         break;
                     polygons_append(polygons_trimming, offset(object_layer.lslices, gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                 }
-                if (! m_slicing_params.soluble_interface) {
+                if (! m_slicing_params.soluble_interface && m_object_config->thick_bridges) {
                     // Collect all bottom surfaces, which will be extruded with a bridging flow.
                     for (; i < object.layers().size(); ++ i) {
                         const Layer &object_layer = *object.layers()[i];
@@ -2810,7 +2816,7 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
         // Compress contact_out, remove the nullptr items.
         remove_nulls(interface_layers);
         remove_nulls(base_interface_layers);
-        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - end";
     }
     
     return base_and_interface_layers;
@@ -2835,7 +2841,7 @@ static inline void fill_expolygon_generate_paths(
         dst,
         std::move(polylines),
         role,
-        flow.mm3_per_mm(), flow.width, flow.height);
+        flow.mm3_per_mm(), flow.width(), flow.height());
 }
 
 static inline void fill_expolygons_generate_paths(
@@ -2903,7 +2909,7 @@ static inline void fill_expolygons_with_sheath_generate_paths(
             pl.clip_end(clip_length);
             polylines.emplace_back(std::move(pl));
         }
-        extrusion_entities_append_paths(eec->entities, polylines, erSupportMaterial, flow.mm3_per_mm(), flow.width, flow.height);
+        extrusion_entities_append_paths(eec->entities, polylines, erSupportMaterial, flow.mm3_per_mm(), flow.width(), flow.height());
         // Fill in the rest.
         fill_expolygons_generate_paths(eec->entities, offset_ex(expoly, float(-0.4 * spacing)), filler, fill_params, density, role, flow);
         dst.emplace_back(eec.release());
@@ -3011,8 +3017,7 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
     if (n_contact_loops == 0 || top_contact_layer.empty())
         return;
 
-    Flow flow = interface_flow_src;
-    flow.height = float(top_contact_layer.layer->height);
+    Flow flow = interface_flow_src.with_height(top_contact_layer.layer->height);
 
     Polygons overhang_polygons;
     if (top_contact_layer.layer->overhang_polygons != nullptr)
@@ -3209,7 +3214,7 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
     extrusion_entities_append_paths(
         top_contact_layer.extrusions,
         std::move(loop_lines),
-        erSupportMaterialInterface, flow.mm3_per_mm(), flow.width, flow.height);
+        erSupportMaterialInterface, flow.mm3_per_mm(), flow.width(), flow.height());
 }
 
 #ifdef SLIC3R_DEBUG
@@ -3342,7 +3347,7 @@ void modulate_extrusion_by_overlapping_layers(
         // Adjust the extrusion parameters for a reduced layer height and a non-bridging flow (nozzle_dmr = -1, does not matter).
         assert(this_layer.print_z > overlapping_layer.print_z);
         frag.height = float(this_layer.print_z - overlapping_layer.print_z);
-        frag.mm3_per_mm = Flow(frag.width, frag.height, -1.f, false).mm3_per_mm();
+        frag.mm3_per_mm = Flow(frag.width, frag.height, -1.f).mm3_per_mm();
 #ifdef SLIC3R_DEBUG
         svg.draw(frag.polylines, dbg_index_to_color(i_overlapping_layer), scale_(0.1));
 #endif /* SLIC3R_DEBUG */
@@ -3565,7 +3570,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     //FIXME misusing contact_polygons for support columns.
                     ((raft_layer.contact_polygons == nullptr) ? Polygons() : *raft_layer.contact_polygons);
                 if (! to_infill_polygons.empty()) {
-                    Flow flow(float(m_support_material_flow.width), float(raft_layer.height), m_support_material_flow.nozzle_diameter, raft_layer.bridging);
+                    assert(! raft_layer.bridging);
+                    Flow flow(float(m_support_material_flow.width()), float(raft_layer.height), m_support_material_flow.nozzle_diameter());
                     Fill * filler = filler_support.get();
                     filler->angle = raft_angle_base;
                     filler->spacing = m_support_material_flow.spacing();
@@ -3596,7 +3602,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 // We don't use $base_flow->spacing because we need a constant spacing
                 // value that guarantees that all layers are correctly aligned.
                 filler->spacing = m_support_material_flow.spacing();
-                flow          = Flow(float(m_support_material_interface_flow.width), float(raft_layer.height), m_support_material_flow.nozzle_diameter, raft_layer.bridging);
+                assert(! raft_layer.bridging);
+                flow          = Flow(float(m_support_material_interface_flow.width()), float(raft_layer.height), m_support_material_flow.nozzle_diameter());
                 density       = float(interface_density);
             } else
                 continue;
@@ -3734,11 +3741,10 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 bool interface_as_base = (&layer_ex == &interface_layer) && m_object_config->support_material_interface_layers.value == 0;
                 //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
-                Flow interface_flow(
-                    float(layer_ex.layer->bridging ? layer_ex.layer->height : (interface_as_base ? m_support_material_flow.width : m_support_material_interface_flow.width)),
-                    float(layer_ex.layer->height),
-                    m_support_material_interface_flow.nozzle_diameter,
-                    layer_ex.layer->bridging);
+                auto interface_flow = layer_ex.layer->bridging ?
+                    Flow::bridging_flow(layer_ex.layer->height, m_support_material_interface_flow.nozzle_diameter()) :
+                    Flow(interface_as_base ? m_support_material_flow.width() : m_support_material_interface_flow.width(), 
+                        float(layer_ex.layer->height), m_support_material_interface_flow.nozzle_diameter());
                 filler_interface->angle = interface_as_base ?
                         // If zero interface layers are configured, use the same angle as for the base layers.
                         angles[support_layer_id % angles.size()] :
@@ -3762,11 +3768,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 Fill *filler = filler_base_interface.get();
                 //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
-                Flow interface_flow(
-                    float(base_interface_layer.layer->bridging ? base_interface_layer.layer->height : m_support_material_flow.width), // m_support_material_interface_flow.width)),
-                    float(base_interface_layer.layer->height),
-                    m_support_material_flow.nozzle_diameter,
-                    base_interface_layer.layer->bridging);
+                assert(! base_interface_layer.layer->bridging);
+                Flow interface_flow = m_support_material_flow.with_height(float(base_interface_layer.layer->height));
                 filler->angle   = interface_angle;
                 filler->spacing = m_support_material_interface_flow.spacing();
                 filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / interface_density));
@@ -3788,11 +3791,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 filler->angle = angles[support_layer_id % angles.size()];
                 // We don't use $base_flow->spacing because we need a constant spacing
                 // value that guarantees that all layers are correctly aligned.
-                Flow flow(
-                    float(base_layer.layer->bridging ? base_layer.layer->height : m_support_material_flow.width), 
-                    float(base_layer.layer->height), 
-                    m_support_material_flow.nozzle_diameter, 
-                    base_layer.layer->bridging);
+                assert(! base_layer.layer->bridging);
+                auto flow = m_support_material_flow.with_height(float(base_layer.layer->height));
                 filler->spacing = m_support_material_flow.spacing();
                 filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / support_density));
                 float density = float(support_density);

@@ -522,6 +522,7 @@ public:
     ConfigOptionInt                 support_material_threshold;
     ConfigOptionBool                support_material_with_sheath;
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
+    ConfigOptionBool                thick_bridges;
     ConfigOptionFloat               xy_size_compensation;
     ConfigOptionBool                wipe_into_objects;
 
@@ -569,6 +570,7 @@ protected:
         OPT_PTR(support_material_xy_spacing);
         OPT_PTR(support_material_threshold);
         OPT_PTR(support_material_with_sheath);
+        OPT_PTR(thick_bridges);
         OPT_PTR(xy_size_compensation);
         OPT_PTR(wipe_into_objects);
     }
