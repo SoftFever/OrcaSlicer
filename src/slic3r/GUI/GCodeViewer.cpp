@@ -461,7 +461,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
         *const_cast<std::vector<Line>*>(&m_lines) = update_lines(start_id, end_id);
 #endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
         *const_cast<uint64_t*>(&m_selected_line_id) = curr_line_id;
-        *const_cast<uint64_t*>(&m_last_lines_size) = static_cast<uint64_t>(m_lines.size());
+        *const_cast<size_t*>(&m_last_lines_size) = m_lines.size();
     }
 
     // line number's column width
@@ -477,7 +477,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
    
     // center the text in the window by pushing down the first line
     const float f_lines_count = static_cast<float>(lines_count);
-    ImGui::SetCursorPosY({ 0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y) });
+    ImGui::SetCursorPosY(0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y));
 
     // render text lines
     for (uint64_t id = start_id; id <= end_id; ++id) {
