@@ -786,8 +786,10 @@ public:
     }
 
 #if ENABLE_GCODE_WINDOW
+#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
     void start_mapping_gcode_file();
     void stop_mapping_gcode_file();
+#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 #endif // ENABLE_GCODE_WINDOW
 
 private:

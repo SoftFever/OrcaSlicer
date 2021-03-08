@@ -303,21 +303,57 @@ void GCodeViewer::SequentialView::Marker::render() const
 #if ENABLE_GCODE_WINDOW
 void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
 {
+#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
     m_gcode.clear();
+#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
     if (m_filename.empty())
         return;
 
-    boost::nowide::ifstream f(m_filename);
-    std::string line;
-    while (std::getline(f, line)) {
-        m_gcode.push_back(line);
+    try
+    {
+        boost::nowide::ifstream f(m_filename);
+        std::string line;
+#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+        // generate mapping for accessing data in file by line number
+        uint64_t offset = 0;
+#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+        while (std::getline(f, line)) {
+#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+            size_t line_length = static_cast<uint64_t>(line.length());
+            m_lines_map.push_back({ offset, line_length });
+            offset += static_cast<uint64_t>(line_length) + 1;
+#else
+            m_gcode.push_back(line);
+#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+        }
+    }
+    catch (...)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Unable to load data from " << m_filename << ". Cannot show G-code window.";
+        reset();
+        return;
     }
 
-    m_file_size = static_cast<unsigned int>(m_gcode.size());
-    m_last_line_id = 0;
+    m_selected_line_id = 0;
     m_last_lines_size = 0;
+
+#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+    try
+    {
+        m_file.open(boost::filesystem::path(m_filename));
+        if (m_file.is_open()) {
+            std::cout << "open file: " << m_filename << "\n";
+        }
+    }
+    catch (...)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Unable to map file " << m_filename << ". Cannot show G-code window.";
+        reset();
+    }
+#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 }
 
+#if !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 void GCodeViewer::SequentialView::GCodeWindow::start_mapping_file()
 {
     std::cout << "GCodeViewer::SequentialView::GCodeWindow::start_mapping_file()\n";
@@ -327,14 +363,20 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
 {
     std::cout << "GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()\n";
 }
+#endif // !ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
-void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, unsigned int curr_line_id) const
+void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, uint64_t curr_line_id) const
 {
-    auto update_lines = [this](unsigned int start_id, unsigned int end_id) {
+    auto update_lines = [this](uint64_t start_id, uint64_t end_id) {
         std::vector<Line> ret;
         ret.reserve(end_id - start_id + 1);
-        for (unsigned int id = start_id; id <= end_id; ++id) {
+        for (uint64_t id = start_id; id <= end_id; ++id) {
+#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+            // read line from file
+            std::string gline(m_file.data() + m_lines_map[id - 1].first, m_lines_map[id - 1].second);
+#else
             const std::string& gline = m_gcode[id - 1];
+#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
             std::string command;
             std::string parameters;
@@ -363,41 +405,66 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     };
 
     static const ImVec4 LINE_NUMBER_COLOR = ImGuiWrapper::COL_ORANGE_LIGHT;
-    static const ImVec4 HIGHLIGHT_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
+    static const ImVec4 SELECTION_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
     static const ImVec4 COMMAND_COLOR = { 0.8f, 0.8f, 0.0f, 1.0f };
+    static const ImVec4 PARAMETERS_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
     static const ImVec4 COMMENT_COLOR = { 0.7f, 0.7f, 0.7f, 1.0f };
 
+#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+    if (!m_visible || m_filename.empty() || m_lines_map.empty() || curr_line_id == 0)
+        return;
+#else
     if (!m_visible || m_filename.empty() || m_gcode.empty() || curr_line_id == 0)
         return;
+#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
     // window height
-    const float text_height = ImGui::CalcTextSize("0").y;
-    const ImGuiStyle& style = ImGui::GetStyle();
     const float wnd_height = bottom - top;
 
     // number of visible lines
-    const unsigned int lines_count = (wnd_height - 2.0f * style.WindowPadding.y + style.ItemSpacing.y) / (text_height + style.ItemSpacing.y);
+    const float text_height = ImGui::CalcTextSize("0").y;
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const uint64_t lines_count = static_cast<uint64_t>((wnd_height - 2.0f * style.WindowPadding.y + style.ItemSpacing.y) / (text_height + style.ItemSpacing.y));
 
     if (lines_count == 0)
         return;
 
     // visible range
-    const unsigned int half_lines_count = lines_count / 2;
-    unsigned int start_id = (curr_line_id >= half_lines_count) ? curr_line_id - half_lines_count : 0;
-    unsigned int end_id = start_id + lines_count - 1;
-    if (end_id >= m_file_size) {
-        end_id = m_file_size - 1;
+    const uint64_t half_lines_count = lines_count / 2;
+    uint64_t start_id = (curr_line_id >= half_lines_count) ? curr_line_id - half_lines_count : 0;
+    uint64_t end_id = start_id + lines_count - 1;
+#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+    if (end_id >= static_cast<uint64_t>(m_lines_map.size())) {
+        end_id = static_cast<uint64_t>(m_lines_map.size()) - 1;
         start_id = end_id - lines_count + 1;
     }
+#else
+    if (end_id >= static_cast<uint64_t>(m_gcode.size())) {
+        end_id = static_cast<uint64_t>(m_gcode.size()) - 1;
+        start_id = end_id - lines_count + 1;
+    }
+#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
-    if (m_last_line_id != curr_line_id || m_last_lines_size != static_cast<size_t>(end_id - start_id + 1)) {
-        // updates list of lines to show
+    // updates list of lines to show, if needed
+    if (m_selected_line_id != curr_line_id || m_last_lines_size != end_id - start_id + 1) {
+#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+        try
+        {
+            *const_cast<std::vector<Line>*>(&m_lines) = update_lines(start_id, end_id);
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Error while loading from file " << m_filename << ". Cannot show G-code window.";
+            return;
+        }
+#else
         *const_cast<std::vector<Line>*>(&m_lines) = update_lines(start_id, end_id);
-        *const_cast<unsigned int*>(&m_last_line_id) = curr_line_id;
-        *const_cast<size_t*>(&m_last_lines_size) = m_lines.size();
+#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+        *const_cast<uint64_t*>(&m_selected_line_id) = curr_line_id;
+        *const_cast<uint64_t*>(&m_last_lines_size) = static_cast<uint64_t>(m_lines.size());
     }
 
-    // line id number column width
+    // line number's column width
     const float id_width = ImGui::CalcTextSize(std::to_string(end_id).c_str()).x;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -408,28 +475,27 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     ImGui::SetNextWindowBgAlpha(0.6f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
    
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
     // center the text in the window by pushing down the first line
     const float f_lines_count = static_cast<float>(lines_count);
     ImGui::SetCursorPosY({ 0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y) });
 
     // render text lines
-    for (unsigned int id = start_id; id <= end_id; ++id) {
+    for (uint64_t id = start_id; id <= end_id; ++id) {
         const Line& line = m_lines[id - start_id];
 
-        // rect for the current selected move
+        // rect around the current selected line
         if (id == curr_line_id) {
             const float pos_y = ImGui::GetCursorScreenPos().y;
             const float half_ItemSpacing_y = 0.5f * style.ItemSpacing.y;
             const float half_padding_x = 0.5f * style.WindowPadding.x;
-            draw_list->AddRect({ half_padding_x, pos_y - half_ItemSpacing_y },
+            ImGui::GetWindowDrawList()->AddRect({ half_padding_x, pos_y - half_ItemSpacing_y },
                 { ImGui::GetCurrentWindow()->Size.x - half_padding_x, pos_y + text_height + half_ItemSpacing_y },
-                ImGui::GetColorU32(HIGHLIGHT_RECT_COLOR));
+                ImGui::GetColorU32(SELECTION_RECT_COLOR));
         }
 
         // render line number
         const std::string id_str = std::to_string(id);
+        // spacer to right align text
         ImGui::Dummy({ id_width - ImGui::CalcTextSize(id_str.c_str()).x, text_height });
         ImGui::SameLine(0.0f, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
@@ -446,10 +512,12 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
             ImGui::PopStyleColor();
         }
 
-        // render command parameters
+        // render parameters
         if (!line.parameters.empty()) {
             ImGui::SameLine(0.0f, 0.0f);
+            ImGui::PushStyleColor(ImGuiCol_Text, PARAMETERS_COLOR);
             imgui.text(line.parameters);
+            ImGui::PopStyleColor();
         }
 
         // render comment
@@ -466,13 +534,23 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     ImGui::PopStyleVar();
 }
 
+#if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
+{
+    if (m_file.is_open()) {
+        m_file.close();
+        std::cout << "closed file: " << m_filename << "\n";
+    }
+}
+#endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
+
 void GCodeViewer::SequentialView::render(float legend_height) const
 {
     marker.render();
     float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     if (wxGetApp().is_editor())
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
-    gcode_window.render(legend_height, bottom, gcode_ids[current.last]);
+    gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
 }
 #endif // ENABLE_GCODE_WINDOW
 
