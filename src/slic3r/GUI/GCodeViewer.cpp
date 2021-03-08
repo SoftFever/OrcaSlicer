@@ -341,9 +341,6 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
     try
     {
         m_file.open(boost::filesystem::path(m_filename));
-        if (m_file.is_open()) {
-            std::cout << "open file: " << m_filename << "\n";
-        }
     }
     catch (...)
     {
@@ -537,10 +534,8 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
 #if ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
 {
-    if (m_file.is_open()) {
+    if (m_file.is_open())
         m_file.close();
-        std::cout << "closed file: " << m_filename << "\n";
-    }
 }
 #endif // ENABLE_GCODE_WINDOW_USE_MAPPED_FILE
 
