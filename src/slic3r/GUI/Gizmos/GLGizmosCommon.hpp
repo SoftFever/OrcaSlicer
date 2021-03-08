@@ -199,6 +199,7 @@ public:
 #endif // NDEBUG
 
     const TriangleMesh* get_hollowed_mesh() const;
+    const TriangleMesh* get_hollowed_interior() const;
 
 protected:
     void on_update() override;
@@ -206,6 +207,7 @@ protected:
 
 private:
     std::unique_ptr<TriangleMesh> m_hollowed_mesh_transformed;
+    std::unique_ptr<TriangleMesh> m_hollowed_interior_transformed;
     size_t m_old_hollowing_timestamp = 0;
     int m_print_object_idx = -1;
     int m_print_objects_count = 0;

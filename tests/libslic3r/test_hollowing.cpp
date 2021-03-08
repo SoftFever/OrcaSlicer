@@ -2,45 +2,21 @@
 #include <fstream>
 #include <catch2/catch.hpp>
 
-#include <libslic3r/TriangleMesh.hpp>
 #include "libslic3r/SLA/Hollowing.hpp"
-#include <openvdb/tools/Filter.h>
-#include "libslic3r/Format/OBJ.hpp"
 
-#include <libnest2d/tools/benchmark.h>
+TEST_CASE("Hollow two overlapping spheres") {
+    using namespace Slic3r;
 
-#include <libslic3r/SimplifyMesh.hpp>
+    TriangleMesh sphere1 = make_sphere(10., 2 * PI / 20.), sphere2 = sphere1;
 
-#if defined(WIN32) || defined(_WIN32)
-#define PATH_SEPARATOR R"(\)"
-#else
-#define PATH_SEPARATOR R"(/)"
-#endif
+    sphere1.translate(-5.f, 0.f, 0.f);
+    sphere2.translate( 5.f, 0.f, 0.f);
 
-static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
-{
-    Slic3r::TriangleMesh mesh;
-    auto fpath = TEST_DATA_DIR PATH_SEPARATOR + obj_filename;
-    Slic3r::load_obj(fpath.c_str(), &mesh);
-    return mesh;
-}
+    sphere1.merge(sphere2);
+    sphere1.require_shared_vertices();
 
+    sla::hollow_mesh(sphere1, sla::HollowingConfig{}, sla::HollowingFlags::hfRemoveInsideTriangles);
 
-TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
-{
-    Slic3r::TriangleMesh in_mesh = load_model("20mm_cube.obj");
-    Benchmark bench;
-    bench.start();
-    
-    std::unique_ptr<Slic3r::TriangleMesh> out_mesh_ptr =
-        Slic3r::sla::generate_interior(in_mesh);
-    
-    bench.stop();
-    
-    std::cout << "Elapsed processing time: " << bench.getElapsedSec() << std::endl;
-    
-    if (out_mesh_ptr) in_mesh.merge(*out_mesh_ptr);
-    in_mesh.require_shared_vertices();
-    in_mesh.WriteOBJFile("merged_out.obj");
+    sphere1.WriteOBJFile("twospheres.obj");
 }
 

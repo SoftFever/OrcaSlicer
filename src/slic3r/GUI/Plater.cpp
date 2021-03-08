@@ -5363,7 +5363,7 @@ void Plater::export_stl(bool extended, bool selection_only)
                         inst_mesh.merge(inst_supports_mesh);
                     }
 
-                    TriangleMesh inst_object_mesh = object->get_mesh_to_print();
+                    TriangleMesh inst_object_mesh = object->get_mesh_to_slice();
                     inst_object_mesh.transform(mesh_trafo_inv);
                     inst_object_mesh.transform(inst_transform, is_left_handed);
 
