@@ -434,7 +434,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 		ExPolygon expoly =  contour_with_hole();
 		WHEN("Compensated") {
 			// Elephant foot compensation shall not pinch off bits from this contour.
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f, false), 0.2f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f), 0.2f);
 #ifdef TESTS_EXPORT_SVGS
 			SVG::export_expolygons(debug_out_path("elephant_foot_compensation_with_hole.svg").c_str(),
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -449,7 +449,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 	GIVEN("Tiny contour") {
 		ExPolygon expoly({ { 133382606, 94912473 }, { 134232493, 95001115 }, { 133783926, 95159440 }, { 133441897, 95180666 }, { 133408242, 95191984 }, { 133339012, 95166830 }, { 132991642, 95011087 }, { 133206549, 94908304 } });
 		WHEN("Compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f, false), 0.2f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f), 0.2f);
 #ifdef TESTS_EXPORT_SVGS
 			SVG::export_expolygons(debug_out_path("elephant_foot_compensation_tiny.svg").c_str(),
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -464,7 +464,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 	GIVEN("Large box") {
 		ExPolygon expoly( { {50000000, 50000000 }, { 0, 50000000 }, { 0, 0 }, { 50000000, 0 } } );
         WHEN("Compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f, false), 0.21f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f), 0.21f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_large_box.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -479,7 +479,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 	GIVEN("Thin ring (GH issue #2085)") {
 		ExPolygon expoly = thin_ring();
         WHEN("Compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f, false), 0.25f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f), 0.25f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_thin_ring.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -532,7 +532,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 		expoly = union_ex({ expoly, expoly2 }).front();
 
         WHEN("Partially compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.45f, 0.2f, 0.4f, false), 0.25f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.45f, 0.2f, 0.4f), 0.25f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_0.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -543,7 +543,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
             }
         }
 		WHEN("Fully compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.35f, 0.2f, 0.4f, false), 0.17f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.35f, 0.2f, 0.4f), 0.17f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_1.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -558,7 +558,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 	GIVEN("Box with hole close to wall (GH issue #2998)") {
 		ExPolygon expoly = box_with_hole_close_to_wall();
         WHEN("Compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f, false), 0.25f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f), 0.25f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_2.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -575,7 +575,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 		ExPolygon expoly = spirograph_gear_1mm();
 
         WHEN("Partially compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.45f, 0.2f, 0.4f, false), 0.25f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.45f, 0.2f, 0.4f), 0.25f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_2.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -586,7 +586,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
             }
         }
 		WHEN("Fully compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.35f, 0.2f, 0.4f, false), 0.17f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.35f, 0.2f, 0.4f), 0.17f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_3.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -597,7 +597,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 			}
 		}
         WHEN("Brutally compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.45f, 0.2f, 0.4f, false), 0.6f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.45f, 0.2f, 0.4f), 0.6f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_4.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
@@ -612,7 +612,7 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 	GIVEN("Vase with fins") {
 		ExPolygon expoly = vase_with_fins();
         WHEN("Compensated") {
-			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f, false), 0.41f);
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f), 0.41f);
 #ifdef TESTS_EXPORT_SVGS
 		    SVG::export_expolygons(debug_out_path("elephant_foot_compensation_vase_with_fins.svg").c_str(), 
 				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },

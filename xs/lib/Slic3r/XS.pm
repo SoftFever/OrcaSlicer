@@ -158,7 +158,6 @@ sub new {
     my $self = $class->_new(
         @args{qw(width height nozzle_diameter)},
     );
-    $self->set_bridge($args{bridge} // 0);
     return $self;
 }
 
@@ -166,7 +165,7 @@ sub new_from_width {
     my ($class, %args) = @_;
     
     return $class->_new_from_width(
-        @args{qw(role width nozzle_diameter layer_height bridge_flow_ratio)},
+        @args{qw(role width nozzle_diameter layer_height)},
     );
 }
 

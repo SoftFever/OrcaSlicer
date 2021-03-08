@@ -33,9 +33,6 @@ _constant()
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config(); %};
     Ref<Print> print();
-    
-    Clone<Flow> flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, PrintObject* object)
-        %code%{ RETVAL = THIS->flow(role, layer_height, bridge, first_layer, width, *object); %};
 };
 
 %name{Slic3r::Print::Object} class PrintObject {
