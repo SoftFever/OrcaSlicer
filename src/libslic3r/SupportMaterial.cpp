@@ -334,7 +334,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     for (auto lh : m_print_config->min_layer_height.values)
         m_support_layer_height_min = std::min(m_support_layer_height_min, std::max(0.01, lh));
 
-    if (m_object_config->support_material_interface_layers.value == 0) {
+    if (m_slicing_params.soluble_interface) {
         // No interface layers allowed, print everything with the base support pattern.
         m_support_material_interface_flow = m_support_material_flow;
     }
@@ -342,11 +342,21 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     // Evaluate the XY gap between the object outer perimeters and the support structures.
     // Evaluate the XY gap between the object outer perimeters and the support structures.
     coordf_t external_perimeter_width = 0.;
+    size_t   num_nonempty_regions = 0;
+    coordf_t bridge_flow_ratio = 0;
     for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id)
-        if (! object->region_volumes[region_id].empty())
-            external_perimeter_width = std::max(external_perimeter_width,
-                (coordf_t)object->print()->get_region(region_id)->flow(*object, frExternalPerimeter, slicing_params.layer_height).width());
+        if (! object->region_volumes[region_id].empty()) {
+            ++ num_nonempty_regions;
+            const PrintRegion &region = *object->print()->get_region(region_id);
+            external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));
+            bridge_flow_ratio += region.config().bridge_flow_ratio;
+        }
     m_gap_xy = m_object_config->support_material_xy_spacing.get_abs_value(external_perimeter_width);
+    bridge_flow_ratio /= num_nonempty_regions;
+
+    m_support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! m_object_config->thick_bridges ?
+        m_support_material_interface_flow.with_flow_ratio(bridge_flow_ratio) :
+        Flow::bridging_flow(bridge_flow_ratio * m_support_material_interface_flow.nozzle_diameter(), m_support_material_interface_flow.nozzle_diameter());
 
     m_can_merge_support_regions = m_object_config->support_material_extruder.value == m_object_config->support_material_interface_extruder.value;
     if (! m_can_merge_support_regions && (m_object_config->support_material_extruder.value == 0 || m_object_config->support_material_interface_extruder.value == 0)) {
@@ -1231,8 +1241,8 @@ namespace SupportMaterialInternal {
             // since we're dealing with bridges, we can't assume width is larger than spacing,
             // so we take the largest value and also apply safety offset to be ensure no gaps
             // are left in between
-            Flow bridge_flow = layerm->bridging_flow(frPerimeter);
-            float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
+            Flow perimeter_bridge_flow = layerm->bridging_flow(frPerimeter);
+            float w = float(std::max(perimeter_bridge_flow.scaled_width(), perimeter_bridge_flow.scaled_spacing()));
             for (Polyline &polyline : overhang_perimeters)
                 if (polyline.is_straight()) {
                     // This is a bridge 
@@ -1879,13 +1889,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                             layer_new.height  = m_slicing_params.soluble_interface ? 
                                 // Align the interface layer with the object's layer height.
                                 object.layers()[layer_id + 1]->height :
-                                // Place a bridge flow interface layer over the top surface.
-                                //FIXME Check whether the bottom bridging surfaces are extruded correctly (no bridging flow correction applied?)
-                                // According to Jindrich the bottom surfaces work well.
-                                //FIXME test the bridging flow instead?
-                                m_object_config->thick_bridges.value ? m_support_material_interface_flow.nozzle_diameter() :
-                                // Take the default layer height.
-                                m_object_config->layer_height;
+                                // Place a bridge flow interface layer or the normal flow interface layer over the top surface.
+                                m_support_material_bottom_interface_flow.height();
                             layer_new.print_z = m_slicing_params.soluble_interface ? object.layers()[layer_id + 1]->print_z :
                                 layer.print_z + layer_new.height + m_object_config->support_material_contact_distance.value;
                             layer_new.bottom_z = layer.print_z;
@@ -3497,7 +3502,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     coordf_t interface_density  = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
     coordf_t support_spacing    = m_object_config->support_material_spacing.value + m_support_material_flow.spacing();
     coordf_t support_density    = std::min(1., m_support_material_flow.spacing() / support_spacing);
-    if (m_object_config->support_material_interface_layers.value == 0) {
+    if (m_slicing_params.soluble_interface) {
         // No interface layers allowed, print everything with the base support pattern.
         interface_spacing = support_spacing;
         interface_density = support_density;
@@ -3738,13 +3743,12 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? bottom_contact_layer : interface_layer);
                 if (layer_ex.empty() || layer_ex.polygons_to_extrude().empty())
                     continue;
-                bool interface_as_base = (&layer_ex == &interface_layer) && m_object_config->support_material_interface_layers.value == 0;
+                bool interface_as_base = (&layer_ex == &interface_layer) && m_slicing_params.soluble_interface;
                 //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
                 auto interface_flow = layer_ex.layer->bridging ?
-                    Flow::bridging_flow(layer_ex.layer->height, m_support_material_interface_flow.nozzle_diameter()) :
-                    Flow(interface_as_base ? m_support_material_flow.width() : m_support_material_interface_flow.width(), 
-                        float(layer_ex.layer->height), m_support_material_interface_flow.nozzle_diameter());
+                    Flow::bridging_flow(layer_ex.layer->height, m_support_material_bottom_interface_flow.nozzle_diameter()) :
+                    (interface_as_base ? &m_support_material_flow : &m_support_material_interface_flow)->with_height(float(layer_ex.layer->height));
                 filler_interface->angle = interface_as_base ?
                         // If zero interface layers are configured, use the same angle as for the base layers.
                         angles[support_layer_id % angles.size()] :

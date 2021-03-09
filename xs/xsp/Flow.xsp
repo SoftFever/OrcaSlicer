@@ -16,8 +16,6 @@
     float nozzle_diameter();
     bool bridge();
     float spacing();
-    float spacing_to(Flow* other)
-        %code{% RETVAL = THIS->spacing(*other); %};
     int   scaled_width();
     int   scaled_spacing();
     double mm3_per_mm();

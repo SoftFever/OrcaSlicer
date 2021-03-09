@@ -66,7 +66,6 @@ public:
 	// 1-based extruder identifier for this region and role.
 	unsigned int 				extruder(FlowRole role) const;
     Flow                        flow(const PrintObject &object, FlowRole role, double layer_height, bool first_layer = false) const;
-    Flow                        bridging_flow(FlowRole role) const;
     // Average diameter of nozzles participating on extruding this region.
     coordf_t                    nozzle_dmr_avg(const PrintConfig &print_config) const;
     // Average diameter of nozzles participating on extruding this region.

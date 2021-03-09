@@ -1457,19 +1457,18 @@ void PrintObject::bridge_over_infill()
         const PrintRegion &region = *m_print->regions()[region_id];
         
         // skip bridging in case there are no voids
-        if (region.config().fill_density.value == 100) continue;
-        
-        // get bridge flow
-        Flow bridge_flow = region.bridging_flow(frSolidInfill);
-        
+        if (region.config().fill_density.value == 100)
+            continue;
+
 		for (LayerPtrs::iterator layer_it = m_layers.begin(); layer_it != m_layers.end(); ++ layer_it) {
             // skip first layer
 			if (layer_it == m_layers.begin())
                 continue;
             
-            Layer* layer        = *layer_it;
-            LayerRegion* layerm = layer->m_regions[region_id];
-            
+            Layer       *layer       = *layer_it;
+            LayerRegion *layerm      = layer->m_regions[region_id];
+            Flow         bridge_flow = layerm->bridging_flow(frSolidInfill);
+
             // extract the stInternalSolid surfaces that might be transformed into bridges
             Polygons internal_solid;
             layerm->fill_surfaces.filter_by_type(stInternalSolid, &internal_solid);

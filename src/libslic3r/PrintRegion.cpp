@@ -48,17 +48,6 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
     return Flow::new_from_config_width(role, config_width, nozzle_diameter, float(layer_height));
 }
 
-Flow PrintRegion::bridging_flow(FlowRole role) const
-{
-    // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
-    // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
-    auto nozzle_diameter = float(m_print->config().nozzle_diameter.get_at(this->extruder(role) - 1));
-    double bfr = m_config.bridge_flow_ratio;
-    if (bfr != 1.)
-        bfr = sqrt(bfr);
-    return Flow::bridging_flow(float(bfr) * nozzle_diameter, nozzle_diameter);
-}
-
 coordf_t PrintRegion::nozzle_dmr_avg(const PrintConfig &print_config) const
 {
     return (print_config.nozzle_diameter.get_at(m_config.perimeter_extruder.value    - 1) + 

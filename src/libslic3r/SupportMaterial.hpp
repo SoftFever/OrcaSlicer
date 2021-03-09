@@ -244,6 +244,7 @@ private:
 	Flow 			 	 m_first_layer_flow;
 	Flow 			 	 m_support_material_flow;
 	Flow 			 	 m_support_material_interface_flow;
+	Flow 				 m_support_material_bottom_interface_flow;
 	// Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
 	bool 				 m_can_merge_support_regions;
 

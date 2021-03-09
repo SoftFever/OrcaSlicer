@@ -286,7 +286,7 @@ void PerimeterGenerator::process()
     m_ext_mm3_per_mm           		= this->ext_perimeter_flow.mm3_per_mm();
     coord_t ext_perimeter_width     = this->ext_perimeter_flow.scaled_width();
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
-    coord_t ext_perimeter_spacing2  = this->ext_perimeter_flow.scaled_spacing(this->perimeter_flow);
+    coord_t ext_perimeter_spacing2  = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
     
     // overhang perimeters
     m_mm3_per_mm_overhang      		= this->overhang_flow.mm3_per_mm();
