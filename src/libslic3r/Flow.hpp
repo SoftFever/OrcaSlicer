@@ -117,7 +117,8 @@ public:
 
 private:
     Flow(float width, float height, float spacing, float nozzle_diameter, bool bridge) : 
-        m_width(width), m_height(height), m_spacing(spacing), m_nozzle_diameter(nozzle_diameter), m_bridge(bridge) {}
+        m_width(width), m_height(height), m_spacing(spacing), m_nozzle_diameter(nozzle_diameter), m_bridge(bridge) 
+        { assert(width >= height); }
 
     float       m_width { 0 };
     float       m_height { 0 };

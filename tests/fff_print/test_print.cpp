@@ -53,8 +53,8 @@ SCENARIO("Print: Changing number of solid surfaces does not cause all surfaces t
 		config.set_deserialize({
 			{ "top_solid_layers",		2 },
 			{ "bottom_solid_layers",	1 },
-			{ "layer_height",			0.5 }, // get a known number of layers
-			{ "first_layer_height",		0.5 }
+			{ "layer_height",			0.25 }, // get a known number of layers
+			{ "first_layer_height",		0.25 }
 			});
         Slic3r::Print print;
         Slic3r::Model model;
@@ -72,8 +72,8 @@ SCENARIO("Print: Changing number of solid surfaces does not cause all surfaces t
 		};
         print.process();
         test_is_solid_infill(0,  0); // should be solid
-        test_is_solid_infill(0, 39); // should be solid
-        test_is_solid_infill(0, 38); // should be solid
+        test_is_solid_infill(0, 79); // should be solid
+        test_is_solid_infill(0, 78); // should be solid
         WHEN("Model is re-sliced with top_solid_layers == 3") {
 			config.set("top_solid_layers", 3);
 			print.apply(model, config);
@@ -82,9 +82,9 @@ SCENARIO("Print: Changing number of solid surfaces does not cause all surfaces t
                 test_is_solid_infill(0, 0);
             }
             AND_THEN("Print object has 3 top solid layers") {
-                test_is_solid_infill(0, 39);
-                test_is_solid_infill(0, 38);
-                test_is_solid_infill(0, 37);
+                test_is_solid_infill(0, 79);
+                test_is_solid_infill(0, 78);
+                test_is_solid_infill(0, 77);
             }
         }
     }

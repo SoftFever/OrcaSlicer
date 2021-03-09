@@ -244,23 +244,24 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
 				{ "complete_objects",               true },
                 { "gcode_comments",                 true },
                 { "layer_gcode",                    ";Layer:[layer_num] ([layer_z] mm)" },
-                { "layer_height",                   1.0 },
-                { "first_layer_height",             1.0 }
+                { "layer_height",                   0.1 },
+                { "first_layer_height",             0.1 }
                 });
 			// End of the 1st object.
-			size_t pos = gcode.find(";Layer:19 ");
+            std::string token = ";Layer:199 ";
+			size_t pos = gcode.find(token);
 			THEN("First and second object last layer is emitted") {
 				// First object
 				REQUIRE(pos != std::string::npos);
-				pos += 10;
+				pos += token.size();
 				REQUIRE(pos < gcode.size());
 				double z = 0;
 				REQUIRE((sscanf(gcode.data() + pos, "(%lf mm)", &z) == 1));
 				REQUIRE(z == Approx(20.));
 				// Second object
-				pos = gcode.find(";Layer:39 ", pos);
+				pos = gcode.find(";Layer:399 ", pos);
 				REQUIRE(pos != std::string::npos);
-				pos += 10;
+				pos += token.size();
 				REQUIRE(pos < gcode.size());
 				REQUIRE((sscanf(gcode.data() + pos, "(%lf mm)", &z) == 1));
 				REQUIRE(z == Approx(20.));

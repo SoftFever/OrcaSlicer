@@ -150,6 +150,7 @@ Flow Flow::with_spacing(float new_spacing) const
         auto  new_diameter = new_spacing - gap;
         out.m_width        = out.m_height = new_diameter;
     } else {
+        assert(m_width >= m_height);
         out.m_width += new_spacing - m_spacing;
         if (out.m_width < out.m_height)
             throw Slic3r::InvalidArgument("Invalid spacing supplied to Flow::with_spacing()");
@@ -162,7 +163,7 @@ Flow Flow::with_spacing(float new_spacing) const
 Flow Flow::with_cross_section(float area_new) const
 {
     assert(! m_bridge);
-    assert(flow.width() >= flow.height());
+    assert(m_width >= m_height);
 
     // Adjust for bridge_flow_ratio, maintain the extrusion spacing.
     float area = this->mm3_per_mm();
@@ -179,7 +180,7 @@ Flow Flow::with_cross_section(float area_new) const
     } else if (area_new < area - EPSILON) {
         // Decreasing the flow rate.
         float width_new = m_width - (area - area_new) / m_height;
-        assert(width_dif > 0);
+        assert(width_new > 0);
         if (width_new > m_height) {
             // Shrink the extrusion width.
             return this->with_width(width_new);
