@@ -509,6 +509,7 @@ public:
     ConfigOptionBool                support_material_interface_contact_loops;
     ConfigOptionInt                 support_material_interface_extruder;
     ConfigOptionInt                 support_material_interface_layers;
+    ConfigOptionInt                 support_material_bottom_interface_layers;
     // Spacing between interface lines (the hatching distance). Set zero to get a solid interface.
     ConfigOptionFloat               support_material_interface_spacing;
     ConfigOptionFloatOrPercent      support_material_interface_speed;
@@ -560,6 +561,7 @@ protected:
         OPT_PTR(support_material_extrusion_width);
         OPT_PTR(support_material_interface_extruder);
         OPT_PTR(support_material_interface_layers);
+        OPT_PTR(support_material_bottom_interface_layers);
         OPT_PTR(support_material_interface_spacing);
         OPT_PTR(support_material_interface_speed);
         OPT_PTR(support_material_pattern);
