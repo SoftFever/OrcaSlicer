@@ -2235,7 +2235,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("support_material_contact_distance", coFloat);
     def->gui_type = "f_enum_open";
-    def->label = L("Contact Z distance");
+    def->label = L("Top contact Z distance");
     def->category = L("Support material");
     def->tooltip = L("The vertical distance between object and support material interface. "
                    "Setting this to 0 will also prevent Slic3r from using bridge flow and speed "
@@ -2243,11 +2243,30 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
 //    def->min = 0;
     def->enum_values.push_back("0");
+    def->enum_values.push_back("0.1");
     def->enum_values.push_back("0.2");
     def->enum_labels.push_back(L("0 (soluble)"));
+    def->enum_labels.push_back(L("0.1 (detachable)"));
     def->enum_labels.push_back(L("0.2 (detachable)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
+
+    def = this->add("support_material_bottom_contact_distance", coFloat);
+    def->gui_type = "f_enum_open";
+    def->label = L("Bottom contact Z distance");
+    def->category = L("Support material");
+    def->tooltip = L("The vertical distance between the object top surface and the support material interface. "
+                   "If set to zero, support_material_contact_distance will be used for both top and bottom contact Z distances.");
+    def->sidetext = L("mm");
+//    def->min = 0;
+    def->enum_values.push_back("0");
+    def->enum_values.push_back("0.1");
+    def->enum_values.push_back("0.2");
+    def->enum_labels.push_back(L("same as top"));
+    def->enum_labels.push_back(L("0.1"));
+    def->enum_labels.push_back(L("0.2"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("support_material_enforce_layers", coInt);
     def->label = L("Enforce support for the first");
@@ -2298,22 +2317,36 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("support_material_interface_layers", coInt);
+    auto support_material_interface_layers = def = this->add("support_material_interface_layers", coInt);
+    def->gui_type = "f_enum_open";
     def->label = L("Top interface layers");
     def->category = L("Support material");
     def->tooltip = L("Number of interface layers to insert between the object(s) and support material.");
     def->sidetext = L("layers");
     def->min = 0;
+    def->enum_values.push_back("0");
+    def->enum_values.push_back("1");
+    def->enum_values.push_back("2");
+    def->enum_values.push_back("3");
+    def->enum_labels.push_back(L("0 (off)"));
+    def->enum_labels.push_back(L("1 (light)"));
+    def->enum_labels.push_back(L("2 (default)"));
+    def->enum_labels.push_back(L("3 (heavy)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("support_material_bottom_interface_layers", coInt);
+    def->gui_type = "f_enum_open";
     def->label = L("Bottom interface layers");
     def->category = L("Support material");
     def->tooltip = L("Number of interface layers to insert between the object(s) and support material. "
                      "Set to -1 to use support_material_interface_layers");
     def->sidetext = L("layers");
     def->min = -1;
+    def->enum_values.push_back("-1");
+    append(def->enum_values, support_material_interface_layers->enum_values);
+    def->enum_labels.push_back(L("same as top"));
+    append(def->enum_labels, support_material_interface_layers->enum_labels);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(-1));
 

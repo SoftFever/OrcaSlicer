@@ -546,15 +546,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "extra_perimeters"
             || opt_key == "gap_fill_enabled"
             || opt_key == "gap_fill_speed"
-            || opt_key == "overhangs"
             || opt_key == "first_layer_extrusion_width"
-            || opt_key == "fuzzy_skin"
-            || opt_key == "fuzzy_skin_thickness"
-            || opt_key == "fuzzy_skin_point_dist"
             || opt_key == "perimeter_extrusion_width"
             || opt_key == "infill_overlap"
-            || opt_key == "thin_walls"
-            || opt_key == "thick_bridges"
             || opt_key == "external_perimeters_first") {
             steps.emplace_back(posPerimeters);
         } else if (
@@ -586,6 +580,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_material_enforce_layers"
             || opt_key == "support_material_extruder"
             || opt_key == "support_material_extrusion_width"
+            || opt_key == "support_material_bottom_contact_distance"
             || opt_key == "support_material_interface_layers"
             || opt_key == "support_material_bottom_interface_layers"
             || opt_key == "support_material_interface_pattern"
@@ -654,7 +649,13 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "external_perimeter_extrusion_width"
-            || opt_key == "perimeter_extruder") {
+            || opt_key == "perimeter_extruder"
+            || opt_key == "fuzzy_skin"
+            || opt_key == "fuzzy_skin_thickness"
+            || opt_key == "fuzzy_skin_point_dist"
+            || opt_key == "overhangs"
+            || opt_key == "thin_walls"
+            || opt_key == "thick_bridges") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow_ratio") {

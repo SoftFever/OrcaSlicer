@@ -503,6 +503,7 @@ public:
     ConfigOptionFloat               support_material_angle;
     ConfigOptionBool                support_material_buildplate_only;
     ConfigOptionFloat               support_material_contact_distance;
+    ConfigOptionFloat               support_material_bottom_contact_distance;
     ConfigOptionInt                 support_material_enforce_layers;
     ConfigOptionInt                 support_material_extruder;
     ConfigOptionFloatOrPercent      support_material_extrusion_width;
@@ -555,6 +556,7 @@ protected:
         OPT_PTR(support_material_angle);
         OPT_PTR(support_material_buildplate_only);
         OPT_PTR(support_material_contact_distance);
+        OPT_PTR(support_material_bottom_contact_distance);
         OPT_PTR(support_material_enforce_layers);
         OPT_PTR(support_material_interface_contact_loops);
         OPT_PTR(support_material_extruder);
