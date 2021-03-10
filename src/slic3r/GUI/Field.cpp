@@ -965,15 +965,27 @@ void Choice::BUILD() {
             }
 
             if (is_defined_input_value<choice_ctrl>(window, m_opt.type)) {
-                if (m_opt.type == coFloatOrPercent) {
+				switch (m_opt.type) {
+				case coFloatOrPercent:
+				{
                     std::string old_val = !m_value.empty() ? boost::any_cast<std::string>(m_value) : "";
                     if (old_val == boost::any_cast<std::string>(get_value()))
                         return;
+					break;
                 }
-                else {
-                    double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
-                    if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
+				case coInt:
+				{
+                    int old_val = !m_value.empty() ? boost::any_cast<int>(m_value) : 0;
+                    if (old_val == boost::any_cast<int>(get_value()))
                         return;
+					break;
+				}
+				default:
+				{
+					double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
+					if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
+						return;
+				}
                 }
                 on_change_field();
             }

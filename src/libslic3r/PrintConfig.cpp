@@ -2318,7 +2318,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(1));
 
     auto support_material_interface_layers = def = this->add("support_material_interface_layers", coInt);
-    def->gui_type = "f_enum_open";
+    def->gui_type = "i_enum_open";
     def->label = L("Top interface layers");
     def->category = L("Support material");
     def->tooltip = L("Number of interface layers to insert between the object(s) and support material.");
@@ -2336,7 +2336,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("support_material_bottom_interface_layers", coInt);
-    def->gui_type = "f_enum_open";
+    def->gui_type = "i_enum_open";
     def->label = L("Bottom interface layers");
     def->category = L("Support material");
     def->tooltip = L("Number of interface layers to insert between the object(s) and support material. "
