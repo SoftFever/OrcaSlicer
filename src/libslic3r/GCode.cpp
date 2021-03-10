@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <chrono>
 #include <math.h>
 #include <string_view>
 
@@ -1129,6 +1130,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
     m_placeholder_parser.update_timestamp();
+    m_placeholder_parser_context.rng = std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     print.update_object_placeholders(m_placeholder_parser.config_writable(), ".gcode");
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
