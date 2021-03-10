@@ -110,15 +110,18 @@ struct CGALMesh { _EpicMesh m; };
 // Converions from and to CGAL mesh
 // /////////////////////////////////////////////////////////////////////////////
 
-template<class _Mesh> void triangle_mesh_to_cgal(const TriangleMesh &M, _Mesh &out)
-{ 
-    if (M.empty()) return;
+template<class _Mesh>
+void triangle_mesh_to_cgal(const std::vector<stl_vertex> &                 V,
+                           const std::vector<stl_triangle_vertex_indices> &F,
+                           _Mesh &out)
+{
+    if (F.empty()) return;
 
-    for (auto &v : M.its.vertices)
+    for (auto &v : V)
         out.add_vertex(typename _Mesh::Point{v.x(), v.y(), v.z()});
 
     using VI = typename _Mesh::Vertex_index;
-    for (auto &f : M.its.indices)
+    for (auto &f : F)
         out.add_face(VI(f(0)), VI(f(1)), VI(f(2)));
 }
 
@@ -155,14 +158,16 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
     }
     
     TriangleMesh out{points, facets};
-    out.require_shared_vertices();
+    out.repair();
     return out;
 }
 
-std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const TriangleMesh &M)
+std::unique_ptr<CGALMesh, CGALMeshDeleter>
+triangle_mesh_to_cgal(const std::vector<stl_vertex> &V,
+                      const std::vector<stl_triangle_vertex_indices> &F)
 {
     std::unique_ptr<CGALMesh, CGALMeshDeleter> out(new CGALMesh{});
-    triangle_mesh_to_cgal(M, out->m);
+    triangle_mesh_to_cgal(V, F, out->m);
     return out;
 }
 
@@ -221,8 +226,8 @@ template<class Op> void _mesh_boolean_do(Op &&op, TriangleMesh &A, const Triangl
 {
     CGALMesh meshA;
     CGALMesh meshB;
-    triangle_mesh_to_cgal(A, meshA.m);
-    triangle_mesh_to_cgal(B, meshB.m);
+    triangle_mesh_to_cgal(A.its.vertices, A.its.indices, meshA.m);
+    triangle_mesh_to_cgal(B.its.vertices, B.its.indices, meshB.m);
     
     _cgal_do(op, meshA, meshB);
     
@@ -247,7 +252,7 @@ void intersect(TriangleMesh &A, const TriangleMesh &B)
 bool does_self_intersect(const TriangleMesh &mesh)
 {
     CGALMesh cgalm;
-    triangle_mesh_to_cgal(mesh, cgalm.m);
+    triangle_mesh_to_cgal(mesh.its.vertices, mesh.its.indices, cgalm.m);
     return CGALProc::does_self_intersect(cgalm.m);
 }
 

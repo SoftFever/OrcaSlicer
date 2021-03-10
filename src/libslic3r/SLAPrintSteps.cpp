@@ -12,6 +12,7 @@
 #include <libslic3r/SLA/SupportPointGenerator.hpp>
 
 #include <libslic3r/ElephantFootCompensation.hpp>
+#include <libslic3r/AABBTreeIndirect.hpp>
 
 #include <libslic3r/ClipperUtils.hpp>
 
@@ -272,6 +273,36 @@ static std::vector<bool> create_exclude_mask(
     return exclude_mask;
 }
 
+static indexed_triangle_set
+remove_unconnected_vertices(const indexed_triangle_set &its)
+{
+    if (its.indices.empty()) {};
+
+    indexed_triangle_set M;
+
+    std::vector<int> vtransl(its.vertices.size(), -1);
+    int vcnt = 0;
+    for (auto &f : its.indices) {
+
+        for (int i = 0; i < 3; ++i)
+            if (vtransl[size_t(f(i))] < 0) {
+
+                M.vertices.emplace_back(its.vertices[size_t(f(i))]);
+                vtransl[size_t(f(i))] = vcnt++;
+            }
+
+        std::array<int, 3> new_f = {
+            vtransl[size_t(f(0))],
+            vtransl[size_t(f(1))],
+            vtransl[size_t(f(2))]
+        };
+
+        M.indices.emplace_back(new_f[0], new_f[1], new_f[2]);
+    }
+
+    return M;
+}
+
 // Drill holes into the hollowed/original mesh.
 void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 {
@@ -314,43 +345,83 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 
     BOOST_LOG_TRIVIAL(info) << "Drilling drainage holes.";
     sla::DrainHoles drainholes = po.transformed_drainhole_points();
-    
-    auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
+
+    auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
+        hollowed_mesh.its.vertices,
+        hollowed_mesh.its.indices
+    );
+
+    std::uniform_real_distribution<float> dist(0., float(EPSILON));
+    auto holes_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal({}, {});
+    indexed_triangle_set part_to_drill = hollowed_mesh.its;
 
     bool hole_fail = false;
     for (size_t i = 0; i < drainholes.size(); ++i) {
-        const sla::DrainHole &holept = drainholes[i];
-        po.model_object()->sla_drain_holes[i].failed = false;
+        sla::DrainHole holept = drainholes[i];
 
+        holept.normal += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
+        holept.normal.normalize();
+        holept.pos += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
         TriangleMesh m = sla::to_triangle_mesh(holept.to_mesh());
         m.require_shared_vertices();
-        auto cgal_m = MeshBoolean::cgal::triangle_mesh_to_cgal(m);
 
-        try {
-            MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *cgal_m);
-        } catch (const std::runtime_error &) {
+        part_to_drill.indices.clear();
+        auto bb = m.bounding_box();
+        Eigen::AlignedBox<float, 3> ebb{bb.min.cast<float>(),
+                                        bb.max.cast<float>()};
+
+        AABBTreeIndirect::traverse(
+                    tree,
+                    AABBTreeIndirect::intersecting(ebb),
+                    [&part_to_drill, &hollowed_mesh](size_t faceid)
+        {
+            part_to_drill.indices.emplace_back(hollowed_mesh.its.indices[faceid]);
+        });
+
+        auto cgal_meshpart = MeshBoolean::cgal::triangle_mesh_to_cgal(
+            remove_unconnected_vertices(part_to_drill));
+
+        if (MeshBoolean::cgal::does_self_intersect(*cgal_meshpart)) {
             BOOST_LOG_TRIVIAL(error) << "Failed to drill hole";
 
             hole_fail = drainholes[i].failed =
                     po.model_object()->sla_drain_holes[i].failed = true;
+
+            continue;
         }
+
+        auto cgal_hole = MeshBoolean::cgal::triangle_mesh_to_cgal(m);
+        MeshBoolean::cgal::plus(*holes_mesh_cgal, *cgal_hole);
+    }
+
+    if (MeshBoolean::cgal::does_self_intersect(*holes_mesh_cgal))
+        throw Slic3r::SlicingError(L("Too many overlapping holes."));
+
+    auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
+
+    try {
+        MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *holes_mesh_cgal);
+
+        hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
+        mesh_view = hollowed_mesh;
+
+        if (is_hollowed) {
+            auto &interior = *po.m_hollowing_data->interior;
+            std::vector<bool> exclude_mask =
+                    create_exclude_mask(mesh_view.its, interior, drainholes);
+
+            sla::remove_inside_triangles(mesh_view, interior, exclude_mask);
+        }
+
+    } catch (const std::runtime_error &) {
+        throw Slic3r::SlicingError(L(
+            "Drilling holes into the mesh failed. "
+            "This is usually caused by broken model. Try to fix it first."));
     }
 
     if (hole_fail)
         po.active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
                                    L("Failed to drill some holes into the model"));
-
-
-    hollowed_mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*hollowed_mesh_cgal);
-    mesh_view     = hollowed_mesh;
-
-    if (is_hollowed) {
-        auto &interior = *po.m_hollowing_data->interior;
-        std::vector<bool> exclude_mask =
-                create_exclude_mask(mesh_view.its, interior, drainholes);
-
-        sla::remove_inside_triangles(mesh_view, interior, exclude_mask);
-    }
 }
 
 // The slicing will be performed on an imaginary 1D grid which starts from
