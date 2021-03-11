@@ -42,12 +42,12 @@ struct DrainHole
         : pos(Vec3f::Zero()), normal(Vec3f::UnitZ()), radius(5.f), height(10.f)
     {}
 
-    DrainHole(Vec3f p, Vec3f n, float r, float h)
-        : pos(p), normal(n), radius(r), height(h)
+    DrainHole(Vec3f p, Vec3f n, float r, float h, bool fl = false)
+        : pos(p), normal(n), radius(r), height(h), failed(fl)
     {}
 
     DrainHole(const DrainHole& rhs) :
-        DrainHole(rhs.pos, rhs.normal, rhs.radius, rhs.height) {}
+        DrainHole(rhs.pos, rhs.normal, rhs.radius, rhs.height, rhs.failed) {}
     
     bool operator==(const DrainHole &sp) const;
     
@@ -62,7 +62,7 @@ struct DrainHole
     
     template<class Archive> inline void serialize(Archive &ar)
     {
-        ar(pos, normal, radius, height);
+        ar(pos, normal, radius, height, failed);
     }
 
     static constexpr size_t steps = 32;
