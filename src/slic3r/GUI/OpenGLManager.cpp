@@ -256,6 +256,11 @@ bool OpenGLManager::init_gl()
         }
 
         if (valid_version) {
+            if (s_gl_info.get_renderer() == "virgl")
+                // Disable multi-sampling with virgl (VirtualGL) on Linux.
+                // Namely, on ChromeOS virgl flips red/blue channels at least on some computers with multi-sampling enabled.
+                // It seems it is sufficient to disable multi-sampling after the OpenGL context is created.
+                s_multisample = EMultisampleState::Disabled;
             // load shaders
             auto [result, error] = m_shaders_manager.init();
             if (!result) {
