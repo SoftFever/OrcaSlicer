@@ -263,10 +263,14 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     fields.push_back(wxVariant(job.printhost->get_host()));
     boost::system::error_code ec;
     boost::uintmax_t size_i = boost::filesystem::file_size(job.upload_data.source_path, ec);
-    std::string size = ec ? "unknown" : ((size_i >> 10) > 1024  ? std::to_string((float)(size_i >> 10)/1024) + "MB" : std::to_string(size_i >> 10) + "KB");
-    if (ec)
+    std::stringstream stream;
+    if (ec) {
+        stream << "unknown";
+        size_i = 0;
         BOOST_LOG_TRIVIAL(error) << ec.message();
-    fields.push_back(wxVariant(size));
+    } else 
+        stream << std::fixed << std::setprecision(2) << ((float)size_i / 1024 / 1024) << "MB";
+    fields.push_back(wxVariant(stream.str()));
     fields.push_back(wxVariant(job.upload_data.upload_path.string()));
     fields.push_back(wxVariant(""));
     job_list->AppendItem(fields, static_cast<wxUIntPtr>(ST_NEW));
