@@ -123,6 +123,8 @@ namespace ImGui
 	const char ErrorMarker             = 0x11;
     const char EjectButton             = 0x12;
     const char EjectHoverButton        = 0x13;
+    const char CancelButton            = 0x14;
+    const char CancelHoverButton       = 0x15;
 //    void MyFunction(const char* name, const MyMatrix44& v);
 
 }

@@ -282,8 +282,7 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     // Both strings are UTF-8 encoded.
     upload_names.emplace_back(job.printhost->get_host(), job.upload_data.upload_path.string());
 
-    std::string notification_text = "[" + std::to_string(job_list->GetItemCount()) + "] " + job.upload_data.upload_path.string() + " -> " + job.printhost->get_host();
-    wxGetApp().notification_manager()->push_progress_bar_notification(notification_text);
+    wxGetApp().notification_manager()->push_upload_job_notification(this, job_list->GetItemCount(), 2.64931f, job.upload_data.upload_path.string(), job.printhost->get_host());
 }
 
 void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -355,8 +354,7 @@ void PrintHostQueueDialog::on_progress(Event &evt)
         wxVariant nm, hst;
         job_list->GetValue(nm, evt.job_id, COL_FILENAME);
         job_list->GetValue(hst, evt.job_id, COL_HOST);
-        std::string notification_text = "[" + std::to_string(evt.job_id + 1) + "] " + boost::nowide::narrow(nm.GetString()) + " -> " + boost::nowide::narrow(hst.GetString());
-        wxGetApp().notification_manager()->set_progress_bar_percentage(notification_text, 100 / evt.progress);
+        wxGetApp().notification_manager()->set_upload_job_notification_percentage(evt.job_id + 1, boost::nowide::narrow(nm.GetString()), boost::nowide::narrow(hst.GetString()), 100 / evt.progress);
     }
 }
 
@@ -377,8 +375,7 @@ void PrintHostQueueDialog::on_error(Event &evt)
     wxVariant nm, hst;
     job_list->GetValue(nm, evt.job_id, COL_FILENAME);
     job_list->GetValue(hst, evt.job_id, COL_HOST);
-    std::string notification_text = "[" + std::to_string(evt.job_id + 1) + "] " + boost::nowide::narrow(nm.GetString()) + " -> " + boost::nowide::narrow(hst.GetString());
-    wxGetApp().notification_manager()->progress_bar_show_error(notification_text);
+    wxGetApp().notification_manager()->upload_job_notification_show_error(evt.job_id + 1, boost::nowide::narrow(nm.GetString()), boost::nowide::narrow(hst.GetString()));
 }
 
 void PrintHostQueueDialog::on_cancel(Event &evt)
@@ -393,8 +390,7 @@ void PrintHostQueueDialog::on_cancel(Event &evt)
     wxVariant nm, hst;
     job_list->GetValue(nm, evt.job_id, COL_FILENAME);
     job_list->GetValue(hst, evt.job_id, COL_HOST);
-    std::string notification_text = "[" + std::to_string(evt.job_id + 1) + "] " + boost::nowide::narrow(nm.GetString()) + " -> " + boost::nowide::narrow(hst.GetString());
-    wxGetApp().notification_manager()->progress_bar_show_canceled(notification_text);
+    wxGetApp().notification_manager()->upload_job_notification_show_canceled(evt.job_id + 1, boost::nowide::narrow(nm.GetString()), boost::nowide::narrow(hst.GetString()));
 }
 
 void PrintHostQueueDialog::get_active_jobs(std::vector<std::pair<std::string, std::string>>& ret)

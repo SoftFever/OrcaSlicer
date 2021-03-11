@@ -66,6 +66,8 @@ enum class NotificationType
 	PlaterWarning,
 	// Progress bar instead of text.
 	ProgressBar,
+	// Progress bar with info from Print Host Upload Queue dialog.
+	PrintHostUpload,
 	// Notification, when Color Change G-code is empty and user try to add color change on DoubleSlider.
     EmptyColorChangeCode,
     // Notification that custom supports/seams were deleted after mesh repair.
@@ -140,10 +142,10 @@ public:
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
 	void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 	// notification with progress bar
-	void push_progress_bar_notification(const std::string& text, float percentage = 0);
-	void set_progress_bar_percentage(const std::string& text, float percentage);
-	void progress_bar_show_canceled(const std::string& text);
-	void progress_bar_show_error(const std::string& text);
+	void push_upload_job_notification(wxEvtHandler* evt_handler, int id, float filesize, const std::string& filename, const std::string& host, float percentage = 0);
+	void set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage);
+	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
+	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
 	// finds ExportFinished notification and closes it if it was to removable device
@@ -340,45 +342,69 @@ private:
 		void         show()       { m_state = EState::Unknown; }
 	};
 
+	
 	class ProgressBarNotification : public PopNotification
 	{
 	public:
-		enum class ProgressBarState
-		{
-			PB_PROGRESS,
-			PB_ERROR,
-			PB_CANCELLED, 
-			PB_COMPLETED
-		};
+		
 		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage) : PopNotification(n, id_provider, evt_handler) { set_percentage(percentage); }
-		void set_percentage(float percent) 
-		{
-			if (m_pb_state == ProgressBarState::PB_CANCELLED)
-				return;
-			m_percentage = percent; 
-			if (percent >= 1.0f) 
-				m_pb_state = ProgressBarState::PB_COMPLETED; 
-			else if (percent < 0.0f ) 
-				m_pb_state = ProgressBarState::PB_ERROR; 
-			else 
-				m_pb_state = ProgressBarState::PB_PROGRESS; 
-		}
-		void cancel() { m_pb_state = ProgressBarState::PB_CANCELLED; }
-		void error() { m_pb_state = ProgressBarState::PB_ERROR; }
+		virtual void set_percentage(float percent) { m_percentage = percent; }
 	protected:
-		virtual void init();
+		virtual void init() override;
+		virtual void count_spaces() override;
 		virtual void render_text(ImGuiWrapper& imgui,
-			const float win_size_x, const float win_size_y,
-			const float win_pos_x, const float win_pos_y);
-		void         render_bar(ImGuiWrapper& imgui,
-			const float win_size_x, const float win_size_y,
-			const float win_pos_x, const float win_pos_y);
+									const float win_size_x, const float win_size_y,
+									const float win_pos_x, const float win_pos_y);
+		virtual void render_bar(ImGuiWrapper& imgui,
+									const float win_size_x, const float win_size_y,
+									const float win_pos_x, const float win_pos_y);
+		virtual void render_cancel_button(ImGuiWrapper& imgui,
+									const float win_size_x, const float win_size_y,
+									const float win_pos_x, const float win_pos_y)
+		{}
 		float				m_percentage;
-		ProgressBarState	m_pb_state { ProgressBarState::PB_PROGRESS };
+		
+		bool				m_has_cancel_button {false};
+		// local time of last hover for showing tooltip
+		
 	};
+
+	
 
 	class PrintHostUploadNotification : public ProgressBarNotification
 	{
+	public:
+		enum class UploadJobState
+		{
+			PB_PROGRESS,
+			PB_ERROR,
+			PB_CANCELLED,
+			PB_COMPLETED
+		};
+		PrintHostUploadNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage, int job_id, float filesize)
+			:ProgressBarNotification(n, id_provider, evt_handler, percentage)
+			, m_job_id(job_id)
+			, m_file_size(filesize)
+		{
+			m_has_cancel_button = true;
+		}
+		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return "[" + std::to_string(id) + "] " + filename + " -> " + host; }
+		virtual void		set_percentage(float percent);
+		void				cancel() { m_uj_state = UploadJobState::PB_CANCELLED; m_has_cancel_button = false; }
+		void				error()  { m_uj_state = UploadJobState::PB_ERROR;     m_has_cancel_button = false; }
+	protected:
+		virtual void render_bar(ImGuiWrapper& imgui,
+								const float win_size_x, const float win_size_y,
+								const float win_pos_x, const float win_pos_y);
+		virtual void render_cancel_button(ImGuiWrapper& imgui,
+											const float win_size_x, const float win_size_y,
+											const float win_pos_x, const float win_pos_y);
+		// Identifies job in cancel callback
+		int					m_job_id;
+		// Size of uploaded size to be displayed in MB
+		float			    m_file_size;
+		long				m_hover_time{ 0 };
+		UploadJobState	m_uj_state{ UploadJobState::PB_PROGRESS };
 	};
 
 	class ExportFinishedNotification : public PopNotification
@@ -440,7 +466,7 @@ private:
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
 	// Notification types that can be shown multiple types at once (compared by text)
-	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar };
+	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload };
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
