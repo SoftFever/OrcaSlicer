@@ -11,7 +11,7 @@ enum class Platform
 	Windows,
 	OSX,
 	Linux,
-	BSD,
+	BSDUnix,
 };
 
 enum class PlatformFlavor
@@ -23,7 +23,7 @@ enum class PlatformFlavor
 	// For Platform::Linux
 	GenericLinux,
 	LinuxOnChromium,
-	// For Platform::BSD
+	// For Platform::BSDUnix
 	OpenBSD,
 };
 

@@ -35,7 +35,7 @@ void detect_platform()
 		}
 	}
 #elif defined(__OpenBSD__)
-	s_platform 		  = Platform::BSD;
+	s_platform 		  = Platform::BSDUnix;
 	s_platform_flavor = PlatformFlavor::OpenBSD;
 #else
 	// This should not happen.
