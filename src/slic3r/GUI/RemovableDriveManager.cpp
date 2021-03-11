@@ -247,6 +247,9 @@ std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() cons
 	path = "/run" + path;
 	pp = "/run"+pp;
 	search_for_drives_internal::search_path(path, pp, current_drives);
+
+    // ChromeOS specific: search /mnt/chromeos/removable/* folder
+	search_for_drives_internal::search_path("/mnt/chromeos/removable/*", "/mnt/chromeos/removable", current_drives);
 #endif
 
 	return current_drives;
