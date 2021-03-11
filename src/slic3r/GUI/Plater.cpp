@@ -357,7 +357,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     ConfigOptionDef support_def;
     support_def.label = L("Supports");
     support_def.type = coStrings;
-    support_def.gui_type = "select_open";
+    support_def.gui_type = ConfigOptionDef::GUIType::select_open;
     support_def.tooltip = L("Select what kind of support do you need");
     support_def.enum_labels.push_back(L("None"));
     support_def.enum_labels.push_back(L("Support on build plate only"));
@@ -397,7 +397,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     def.label = L("Brim");
     def.type = coBool;
     def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
-    def.gui_type = "";
+    def.gui_type = ConfigOptionDef::GUIType::undefined;
     def.set_default_value(new ConfigOptionBool{ m_brim_width > 0.0 ? true : false });
     option = Option(def, "brim");
     option.opt.sidetext = "";
@@ -500,7 +500,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     ConfigOptionDef pad_def;
     pad_def.label = L("Pad");
     pad_def.type = coStrings;
-    pad_def.gui_type = "select_open";
+    pad_def.gui_type = ConfigOptionDef::GUIType::select_open;
     pad_def.tooltip = L("Select what kind of pad do you need");
     pad_def.enum_labels.push_back(L("None"));
     pad_def.enum_labels.push_back(L("Below object"));

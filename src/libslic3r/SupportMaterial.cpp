@@ -2760,7 +2760,7 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
                     Polygons polygons_top_contact_projected_base;
                     Polygons polygons_bottom_contact_projected_interface;
                     Polygons polygons_bottom_contact_projected_base;
-                    if (num_interface_layers_top > -1) {
+                    if (num_interface_layers_top > 0) {
                         // Top Z coordinate of a slab, over which we are collecting the top / bottom contact surfaces
                         coordf_t top_z              = intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + num_interface_layers_top - 1)]->print_z;
                         coordf_t top_inteface_z     = std::numeric_limits<coordf_t>::max();
@@ -2781,7 +2781,7 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
                             polygons_append(top_contact_layer.bottom_z - EPSILON > top_inteface_z ? polygons_top_contact_projected_base : polygons_top_contact_projected_interface, top_contact_layer.polygons);
                         }
                     }
-                    if (num_interface_layers_bottom > -1) {
+                    if (num_interface_layers_bottom > 0) {
                         // Bottom Z coordinate of a slab, over which we are collecting the top / bottom contact surfaces
                         coordf_t bottom_z           = intermediate_layers[std::max(0, idx_intermediate_layer - num_interface_layers_bottom + 1)]->bottom_z;
                         coordf_t bottom_interface_z = - std::numeric_limits<coordf_t>::max();

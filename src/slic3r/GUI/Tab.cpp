@@ -2531,7 +2531,7 @@ PageShp TabPrinter::build_kinematics_page()
         ConfigOptionDef def;
         def.type = coString;
         def.width = Field::def_width();
-        def.gui_type = "legend";
+        def.gui_type = ConfigOptionDef::GUIType::legend;
         def.mode = comAdvanced;
         def.tooltip = L("Values in this column are for Normal mode");
         def.set_default_value(new ConfigOptionString{ _(L("Normal")).ToUTF8().data() });
