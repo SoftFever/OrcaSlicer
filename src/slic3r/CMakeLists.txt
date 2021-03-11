@@ -207,6 +207,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Bonjour.hpp
     Utils/PresetUpdater.cpp
     Utils/PresetUpdater.hpp
+    Utils/Platform.cpp
+    Utils/Platform.hpp
     Utils/Process.cpp
     Utils/Process.hpp
     Utils/Profile.hpp

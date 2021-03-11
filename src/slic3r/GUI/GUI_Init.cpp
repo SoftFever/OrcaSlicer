@@ -9,6 +9,7 @@
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/Utils/Platform.hpp"
 
 // To show a message box if GUI initialization ends up with an exception thrown.
 #include <wx/msgdlg.h>
@@ -35,6 +36,8 @@ int GUI_Run(GUI_InitParams &params)
     // See GH issue #5507
     signal(SIGCHLD, SIG_DFL);
 #endif // __APPLE__
+
+    detect_platform();
 
     try {
         GUI::GUI_App* gui = new GUI::GUI_App(params.start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
