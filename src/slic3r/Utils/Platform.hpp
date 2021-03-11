@@ -23,6 +23,10 @@ enum class PlatformFlavor
 	// For Platform::Linux
 	GenericLinux,
 	LinuxOnChromium,
+	// Microsoft's Windows on Linux (Linux kernel simulated on NTFS kernel)
+	WSL,
+	// Microsoft's Windows on Linux, version 2 (virtual machine)
+	WSL2,
 	// For Platform::BSDUnix
 	OpenBSD,
 };
