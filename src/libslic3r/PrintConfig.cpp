@@ -1,4 +1,5 @@
 #include "PrintConfig.hpp"
+#include "Config.hpp"
 #include "I18N.hpp"
 
 #include <set>
