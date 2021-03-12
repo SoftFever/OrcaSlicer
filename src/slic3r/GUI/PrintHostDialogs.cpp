@@ -282,7 +282,7 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     // Both strings are UTF-8 encoded.
     upload_names.emplace_back(job.printhost->get_host(), job.upload_data.upload_path.string());
 
-    wxGetApp().notification_manager()->push_upload_job_notification(this, job_list->GetItemCount(), 2.64931f, job.upload_data.upload_path.string(), job.printhost->get_host());
+    //wxGetApp().notification_manager()->push_upload_job_notification(this, job_list->GetItemCount(), 0, job.upload_data.upload_path.string(), job.printhost->get_host());
 }
 
 void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
