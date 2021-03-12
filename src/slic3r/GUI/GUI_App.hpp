@@ -43,6 +43,7 @@ class ObjectSettings;
 class ObjectList;
 class ObjectLayers;
 class Plater;
+class NotificationManager;
 struct GUI_InitParams;
 
 
@@ -226,14 +227,14 @@ public:
     void            MacOpenFiles(const wxArrayString &fileNames) override;
 #endif /* __APPLE */
 
-    Sidebar&            sidebar();
-    ObjectManipulation* obj_manipul();
-    ObjectSettings*     obj_settings();
-    ObjectList*         obj_list();
-    ObjectLayers*       obj_layers();
-    Plater*             plater();
-    Model&      		model();
-
+    Sidebar&             sidebar();
+    ObjectManipulation*  obj_manipul();
+    ObjectSettings*      obj_settings();
+    ObjectList*          obj_list();
+    ObjectLayers*        obj_layers();
+    Plater*              plater();
+    Model&      		 model();
+    NotificationManager* notification_manager();
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
     const GUI_InitParams* init_params { nullptr };

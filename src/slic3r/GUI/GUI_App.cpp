@@ -1978,6 +1978,11 @@ wxNotebook* GUI_App::tab_panel() const
     return mainframe->m_tabpanel;
 }
 
+NotificationManager* GUI_App::notification_manager() 
+{
+    return plater_->get_notification_manager();
+}
+
 // extruders count from selected printer preset
 int GUI_App::extruders_cnt() const
 {

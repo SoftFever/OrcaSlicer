@@ -66,6 +66,8 @@ enum class NotificationType
 	PlaterWarning,
 	// Progress bar instead of text.
 	ProgressBar,
+	// Progress bar with info from Print Host Upload Queue dialog.
+	PrintHostUpload,
 	// Notification, when Color Change G-code is empty and user try to add color change on DoubleSlider.
     EmptyColorChangeCode,
     // Notification that custom supports/seams were deleted after mesh repair.
@@ -140,21 +142,24 @@ public:
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
 	void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 	// notification with progress bar
-	void push_progress_bar_notification(const std::string& text, float percentage = 0);
-	void set_progress_bar_percentage(const std::string& text, float percentage);
+	void push_upload_job_notification(wxEvtHandler* evt_handler, int id, float filesize, const std::string& filename, const std::string& host, float percentage = 0);
+	void set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage);
+	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
+	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
 	// finds ExportFinished notification and closes it if it was to removable device
 	void device_ejected();
 	// renders notifications in queue and deletes expired ones
-	void render_notifications(float overlay_width);
+	void render_notifications(GLCanvas3D& canvas, float overlay_width);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
 	// Which view is active? Plater or G-code preview? Hide warnings in G-code preview.
     void set_in_preview(bool preview);
 	// Move to left to avoid colision with variable layer height gizmo.
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
-
+	// perform update_state on each notification and ask for more frames if needed, return true for render needed
+	bool update_notifications(GLCanvas3D& canvas);
 private:
 	// duration 0 means not disapearing
 	struct NotificationData {
@@ -192,23 +197,24 @@ private:
 
 		enum class EState
 		{
-			Unknown,
+			Unknown,		  // NOT initialized
 			Hidden,
-			FadingOutRender,  // Requesting Render
-			FadingOutStatic,
+			Shown,			  // Requesting Render at some time if duration != 0
+			FadingOut,        // Requesting Render at some time
 			ClosePending,     // Requesting Render
 			Finished,         // Requesting Render
+			Hovered,		  // Followed by Shown 
+			Paused
 		};
 
 		PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler);
 		virtual ~PopNotification() { if (m_id) m_id_provider.release_id(m_id); }
 		void                   render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width);
 		// close will dissapear notification on next render
-		void                   close() { m_close_pending = true; }
+		virtual void           close() { m_state = EState::ClosePending; }
 		// data from newer notification of same type
 		void                   update(const NotificationData& n);
-		bool                   is_finished() const { return m_finished || m_close_pending; }
-		bool                   is_hovered() const { return m_hovered; }
+		bool                   is_finished() const { return m_state == EState::ClosePending || m_state == EState::Finished; }
 		// returns top after movement
 		float                  get_top() const { return m_top_y; }
 		//returns top in actual frame
@@ -216,23 +222,17 @@ private:
 		const NotificationType get_type() const { return m_data.type; }
 		const NotificationData get_data() const { return m_data; }
 		const bool             is_gray() const { return m_is_gray; }
-		// Call equals one second down
-		void                   substract_remaining_time(int seconds) { m_remaining_time -= seconds; }
 		void                   set_gray(bool g) { m_is_gray = g; }
-		void                   set_paused(bool p) { m_paused = p; }
 		bool                   compare_text(const std::string& text);
-        void                   hide(bool h) { m_hidden = h; }
-		// sets m_next_render with time of next mandatory rendering
-		void                   update_state();
-		int64_t 		       next_render() const { return m_next_render; }
-		/*
-		bool				   requires_render() const { return m_state == EState::FadingOutRender || m_state == EState::ClosePending || m_state == EState::Finished; }
-		bool				   requires_update() const { return m_state != EState::Hidden; }
-		*/
-		EState                 get_state() const { return m_state; }
-	protected:
+        void                   hide(bool h) {  m_state = h ? EState::Hidden : EState::Unknown; }
+		// sets m_next_render with time of next mandatory rendering. Delta is time since last render.
+		bool                   update_state(bool paused, const int64_t delta);
+		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
+		EState                 get_state()  const { return m_state; }
+		bool				   is_hovered() const { return m_state == EState::Hovered; } 
+	
 		// Call after every size change
-		void         init();
+		virtual void init();
 		// Part of init() 
 		virtual void count_spaces();
 		// Calculetes correct size but not se it in imgui!
@@ -254,45 +254,36 @@ private:
 		// Hypertext action, returns true if notification should close.
 		// Action is stored in NotificationData::callback as std::function<bool(wxEvtHandler*)>
 		virtual bool on_text_click();
-
+	protected:
 		const NotificationData m_data;
-
 		// For reusing ImGUI windows.
 		NotificationIDProvider &m_id_provider;
+		int              m_id{ 0 };
 
+		// State for rendering
 		EState           m_state                { EState::Unknown };
 
-		int              m_id                   { 0 };
-		bool			 m_initialized          { false };
+		// Time values for rendering fade-out
+
+		int64_t		 	 m_fading_start{ 0LL };
+
+		// first appereance of notification or last hover;
+		int64_t		 	 m_notification_start;
+		// time to next must-do render
+		int64_t          m_next_render{ std::numeric_limits<int64_t>::max() };
+		float            m_current_fade_opacity{ 1.0f };
+
+		// Notification data
+
 		// Main text
 		std::string      m_text1;
 		// Clickable text
 		std::string      m_hypertext;
 		// Aditional text after hypertext - currently not used
 		std::string      m_text2;
-		// Countdown variables
-		long             m_remaining_time;
-		bool             m_counting_down;
-		long             m_last_remaining_time;
-		bool             m_paused               { false };
-		int              m_countdown_frame      { 0 };
-		bool             m_fading_out           { false };
-		int64_t		 	 m_fading_start         { 0LL };
-		// time of last done render when fading
-		int64_t		 	 m_last_render_fading   { 0LL };
-		// first appereance of notification or last hover;
-		int64_t		 	 m_notification_start;
-		// time to next must-do render
-		int64_t          m_next_render          { std::numeric_limits<int64_t>::max() };
-		float            m_current_fade_opacity { 1.0f };
-		// If hidden the notif is alive but not visible to user
-		bool             m_hidden               { false };
-		//  m_finished = true - does not render, marked to delete
-		bool             m_finished             { false }; 
-		// Will go to m_finished next render
-		bool             m_close_pending        { false };
-		bool             m_hovered              { false };
-		// variables to count positions correctly
+
+		// inner variables to position notification window, texts and buttons correctly
+
 		// all space without text
 		float            m_window_width_offset;
 		// Space on left side without text
@@ -302,9 +293,7 @@ private:
 		float            m_window_width         { 450.0f };
 		//Distance from bottom of notifications to top of this notification
 		float            m_top_y                { 0.0f };  
-		
-		// Height of text
-		// Used as basic scaling unit!
+		// Height of text - Used as basic scaling unit!
 		float            m_line_height;
         std::vector<size_t> m_endlines;
 		// Gray are f.e. eorrors when its uknown if they are still valid
@@ -344,21 +333,78 @@ private:
 		int    		warning_step;
 	};
 
+	class PlaterWarningNotification : public PopNotification
+	{
+	public:
+		PlaterWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
+		virtual void close()      { m_state = EState::Hidden; }
+		void		 real_close() { m_state = EState::ClosePending; }
+		void         show()       { m_state = EState::Unknown; }
+	};
+
+	
 	class ProgressBarNotification : public PopNotification
 	{
 	public:
+		
 		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage) : PopNotification(n, id_provider, evt_handler) { set_percentage(percentage); }
-		void set_percentage(float percent) { m_percentage = percent; if (percent >= 1.0f) m_progress_complete = true; else m_progress_complete = false; }
+		virtual void set_percentage(float percent) { m_percentage = percent; }
 	protected:
-		virtual void init();
+		virtual void init() override;
+		virtual void count_spaces() override;
 		virtual void render_text(ImGuiWrapper& imgui,
-			const float win_size_x, const float win_size_y,
-			const float win_pos_x, const float win_pos_y);
-		void         render_bar(ImGuiWrapper& imgui,
-			const float win_size_x, const float win_size_y,
-			const float win_pos_x, const float win_pos_y);
-		bool m_progress_complete{ false };
-		float m_percentage;
+									const float win_size_x, const float win_size_y,
+									const float win_pos_x, const float win_pos_y);
+		virtual void render_bar(ImGuiWrapper& imgui,
+									const float win_size_x, const float win_size_y,
+									const float win_pos_x, const float win_pos_y);
+		virtual void render_cancel_button(ImGuiWrapper& imgui,
+									const float win_size_x, const float win_size_y,
+									const float win_pos_x, const float win_pos_y)
+		{}
+		float				m_percentage;
+		
+		bool				m_has_cancel_button {false};
+		// local time of last hover for showing tooltip
+		
+	};
+
+	
+
+	class PrintHostUploadNotification : public ProgressBarNotification
+	{
+	public:
+		enum class UploadJobState
+		{
+			PB_PROGRESS,
+			PB_ERROR,
+			PB_CANCELLED,
+			PB_COMPLETED
+		};
+		PrintHostUploadNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage, int job_id, float filesize)
+			:ProgressBarNotification(n, id_provider, evt_handler, percentage)
+			, m_job_id(job_id)
+			, m_file_size(filesize)
+		{
+			m_has_cancel_button = true;
+		}
+		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return "[" + std::to_string(id) + "] " + filename + " -> " + host; }
+		virtual void		set_percentage(float percent);
+		void				cancel() { m_uj_state = UploadJobState::PB_CANCELLED; m_has_cancel_button = false; }
+		void				error()  { m_uj_state = UploadJobState::PB_ERROR;     m_has_cancel_button = false; }
+	protected:
+		virtual void render_bar(ImGuiWrapper& imgui,
+								const float win_size_x, const float win_size_y,
+								const float win_pos_x, const float win_pos_y);
+		virtual void render_cancel_button(ImGuiWrapper& imgui,
+											const float win_size_x, const float win_size_y,
+											const float win_pos_x, const float win_pos_y);
+		// Identifies job in cancel callback
+		int					m_job_id;
+		// Size of uploaded size to be displayed in MB
+		float			    m_file_size;
+		long				m_hover_time{ 0 };
+		UploadJobState	m_uj_state{ UploadJobState::PB_PROGRESS };
 	};
 
 	class ExportFinishedNotification : public PopNotification
@@ -405,32 +451,25 @@ private:
 	void sort_notifications();
 	// If there is some error notification active, then the "Export G-code" notification after the slicing is finished is suppressed.
     bool has_slicing_error_notification();
-	// perform update_state on each notification and ask for more frames if needed
-	void update_notifications();
-
+    
 	// Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
 	wxEvtHandler*                m_evt_handler;
 	// Cache of IDs to identify and reuse ImGUI windows.
 	NotificationIDProvider 		 m_id_provider;
 	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
-	// Last render time in seconds for fade out control.
-	long                         m_last_time { 0 };
-	// When mouse hovers over some notification, the fade-out of all notifications is suppressed.
-	bool                         m_hovered { false };
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
 	// True if G-code preview is active. False if the Plater is active.
 	bool                         m_in_preview { false };
 	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
 	bool                         m_move_from_overlay { false };
-
+	// Timestamp of last rendering
+	int64_t						 m_last_render { 0LL };
+	// Notification types that can be shown multiple types at once (compared by text)
+	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload };
 	//prepared (basic) notifications
 	const std::vector<NotificationData> basic_notifications = {
-//		{NotificationType::SlicingNotPossible, NotificationLevel::RegularNotification, 10,  _u8L("Slicing is not possible.")},
-//		{NotificationType::ExportToRemovableFinished, NotificationLevel::ImportantNotification, 0,  _u8L("Exporting finished."),  _u8L("Eject drive.") },
 		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
-//		{NotificationType::Mouse3dConnected, NotificationLevel::RegularNotification, 5,  _u8L("3D Mouse connected.") },
-//		{NotificationType::NewPresetsAviable, NotificationLevel::ImportantNotification, 20,  _u8L("New Presets are available."),  _u8L("See here.") },
         {NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more."),
              [](wxEvtHandler* evnthndlr) {
                  if (evnthndlr != nullptr)
