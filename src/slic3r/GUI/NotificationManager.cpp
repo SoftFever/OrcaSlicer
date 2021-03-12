@@ -1298,7 +1298,9 @@ void NotificationManager::set_in_preview(bool preview)
     m_in_preview = preview;
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::PlaterWarning) 
-            notification->hide(preview);     
+            notification->hide(preview);
+        if (notification->get_type() == NotificationType::SignDetected)
+            notification->hide(!preview);
     }
 }
 

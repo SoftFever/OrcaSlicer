@@ -74,6 +74,8 @@ enum class NotificationType
     CustomSupportsAndSeamRemovedAfterRepair,
     // Notification that auto adding of color changes is impossible
     EmptyAutoColorChange,
+    // Notification about detected sign
+    SignDetected,
     // Notification emitted by Print::validate
     PrintValidateWarning,
     // Notification telling user to quit SLA supports manual editing

@@ -1930,6 +1930,8 @@ void Control::auto_color_change()
     double delta_area = scale_(scale_(25)); // equal to 25 mm2
 
     for (auto object : print.objects()) {
+        if (object->layer_count() == 0)
+            continue;
         double prev_area = area(object->get_layer(0)->lslices);
 
         for (size_t i = 1; i < object->layers().size(); i++) {
