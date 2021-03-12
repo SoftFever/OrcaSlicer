@@ -8,10 +8,8 @@
 #include <wx/event.h>
 #include <wx/dialog.h>
 
-#include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "MsgDialog.hpp"
-#include "../Utils/PrintHost.hpp"
 
 class wxButton;
 class wxTextCtrl;
