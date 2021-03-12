@@ -1,6 +1,7 @@
 #include "PrintHostDialogs.hpp"
 
 #include <algorithm>
+#include <iomanip>
 
 #include <wx/frame.h>
 #include <wx/progdlg.h>
@@ -12,6 +13,9 @@
 #include <wx/dataview.h>
 #include <wx/wupdlock.h>
 #include <wx/debug.h>
+
+#include <boost/log/trivial.hpp>
+#include <boost/filesystem.hpp>
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
