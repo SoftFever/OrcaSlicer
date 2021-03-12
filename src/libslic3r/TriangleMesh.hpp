@@ -122,10 +122,8 @@ Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Matrix3f
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transform3f &t, const float z);
 
 TriangleMesh make_cube(double x, double y, double z);
-
-// Generate a TriangleMesh of a cylinder
 TriangleMesh make_cylinder(double r, double h, double fa=(2*PI/360));
-
+TriangleMesh make_cone(double r, double h, double fa=(2*PI/360));
 TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
 
 }

@@ -38,9 +38,6 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     , m_snap_fine_in_radius(0.0f)
     , m_snap_fine_out_radius(0.0f)
 {
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 }
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
@@ -60,11 +57,6 @@ GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
         ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 }
 
-GLGizmoRotate::~GLGizmoRotate()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
-}
 
 void GLGizmoRotate::set_angle(double angle)
 {
@@ -361,20 +353,16 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
     glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
+    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    VBOCone.render();
     glsafe(::glPopMatrix());
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
     glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
+    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    VBOCone.render();
     glsafe(::glPopMatrix());
 
     if (!picking)

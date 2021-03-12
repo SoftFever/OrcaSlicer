@@ -18,17 +18,8 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filenam
     , m_starting_drag_position(Vec3d::Zero())
     , m_starting_box_center(Vec3d::Zero())
     , m_starting_box_bottom_center(Vec3d::Zero())
-    , m_quadric(nullptr)
 {
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
-}
-
-GLGizmoMove3D::~GLGizmoMove3D()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
+    m_vbo_cone.init_from(make_cone(1., 1., 2*PI/36));
 }
 
 std::string GLGizmoMove3D::get_tooltip() const
@@ -200,9 +191,6 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
-    if (m_quadric == nullptr)
-        return;
-
     float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
     double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size(mean_size) : (double)m_grabbers[axis].get_half_size(mean_size);
 
@@ -228,10 +216,8 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
 
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
+    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    m_vbo_cone.render();
     glsafe(::glPopMatrix());
 
     if (!picking)

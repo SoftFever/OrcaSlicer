@@ -4,6 +4,7 @@
 #include "libslic3r/Point.hpp"
 
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/GLModel.hpp"
 
 #include <cereal/archives/binary.hpp>
 
@@ -47,6 +48,8 @@ protected:
         static const float SizeFactor;
         static const float MinHalfSize;
         static const float DraggingScaleFactor;
+        static GLModel     VBOCube;
+        static GLModel     VBOCone;
 
         Vec3d center;
         Vec3d angles;
@@ -64,7 +67,6 @@ protected:
 
     private:
         void render(float size, const float* render_color, bool use_lighting) const;
-        void render_face(float half_size) const;
     };
 
 public:
@@ -103,6 +105,9 @@ protected:
     bool m_first_input_window_render;
     mutable std::string m_tooltip;
     CommonGizmosDataPool* m_c;
+    static GLModel VBOCone;
+    static GLModel VBOCylinder;
+    static GLModel VBOSphere;
 
 public:
     GLGizmoBase(GLCanvas3D& parent,

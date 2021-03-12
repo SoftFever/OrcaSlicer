@@ -13,6 +13,10 @@ namespace GUI {
 const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
+GLModel     GLGizmoBase::Grabber::VBOCube;
+GLModel     GLGizmoBase::VBOCone;
+GLModel     GLGizmoBase::VBOCylinder;
+GLModel     GLGizmoBase::VBOSphere;
 
 GLGizmoBase::Grabber::Grabber()
     : center(Vec3d::Zero())
@@ -24,6 +28,9 @@ GLGizmoBase::Grabber::Grabber()
     color[1] = 1.0f;
     color[2] = 1.0f;
     color[3] = 1.0f;
+    TriangleMesh cube = make_cube(1., 1., 1.);
+    cube.translate(Vec3f(-0.5, -0.5, -0.5));
+    VBOCube.init_from(cube);
 }
 
 void GLGizmoBase::Grabber::render(bool hover, float size) const
@@ -54,7 +61,7 @@ float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
 
 void GLGizmoBase::Grabber::render(float size, const float* render_color, bool use_lighting) const
 {
-    float half_size = dragging ? get_dragging_half_size(size) : get_half_size(size);
+    float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
 
     if (use_lighting)
         glsafe(::glEnable(GL_LIGHTING));
@@ -63,69 +70,15 @@ void GLGizmoBase::Grabber::render(float size, const float* render_color, bool us
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(center(0), center(1), center(2)));
-
     glsafe(::glRotated(Geometry::rad2deg(angles(2)), 0.0, 0.0, 1.0));
     glsafe(::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0));
     glsafe(::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0));
-
-    // face min x
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslatef(-(GLfloat)half_size, 0.0f, 0.0f));
-    glsafe(::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f));
-    render_face(half_size);
-    glsafe(::glPopMatrix());
-
-    // face max x
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslatef((GLfloat)half_size, 0.0f, 0.0f));
-    glsafe(::glRotatef(90.0f, 0.0f, 1.0f, 0.0f));
-    render_face(half_size);
-    glsafe(::glPopMatrix());
-
-    // face min y
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslatef(0.0f, -(GLfloat)half_size, 0.0f));
-    glsafe(::glRotatef(90.0f, 1.0f, 0.0f, 0.0f));
-    render_face(half_size);
-    glsafe(::glPopMatrix());
-
-    // face max y
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslatef(0.0f, (GLfloat)half_size, 0.0f));
-    glsafe(::glRotatef(-90.0f, 1.0f, 0.0f, 0.0f));
-    render_face(half_size);
-    glsafe(::glPopMatrix());
-
-    // face min z
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslatef(0.0f, 0.0f, -(GLfloat)half_size));
-    glsafe(::glRotatef(180.0f, 1.0f, 0.0f, 0.0f));
-    render_face(half_size);
-    glsafe(::glPopMatrix());
-
-    // face max z
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslatef(0.0f, 0.0f, (GLfloat)half_size));
-    render_face(half_size);
-    glsafe(::glPopMatrix());
-
+    glsafe(::glScaled(fullsize, fullsize, fullsize));
+    VBOCube.render();
     glsafe(::glPopMatrix());
 
     if (use_lighting)
         glsafe(::glDisable(GL_LIGHTING));
-}
-
-void GLGizmoBase::Grabber::render_face(float half_size) const
-{
-    ::glBegin(GL_TRIANGLES);
-    ::glNormal3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3f(-(GLfloat)half_size, -(GLfloat)half_size, 0.0f);
-    ::glVertex3f((GLfloat)half_size, -(GLfloat)half_size, 0.0f);
-    ::glVertex3f((GLfloat)half_size, (GLfloat)half_size, 0.0f);
-    ::glVertex3f((GLfloat)half_size, (GLfloat)half_size, 0.0f);
-    ::glVertex3f(-(GLfloat)half_size, (GLfloat)half_size, 0.0f);
-    ::glVertex3f(-(GLfloat)half_size, -(GLfloat)half_size, 0.0f);
-    glsafe(::glEnd());
 }
 
 
@@ -144,6 +97,9 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 4 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 4 * sizeof(float));
     ::memcpy((void*)m_highlight_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
+    VBOCone.init_from(make_cone(1., 1., 2*PI/24));
+    VBOSphere.init_from(make_sphere(1., (2*M_PI)/24.));
+    VBOCylinder.init_from(make_cylinder(1., 1., 2*PI/24.));
 }
 
 void GLGizmoBase::set_hover_id(int id)
