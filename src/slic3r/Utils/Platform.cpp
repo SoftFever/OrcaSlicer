@@ -34,7 +34,7 @@ void detect_platform()
 		if (f) {
 			char buf[4096];
 			// Read the 1st line.
-			if (::fgets(buf, 4096, f))
+			if (::fgets(buf, 4096, f)) {
 				if (strstr(buf, "Chromium OS") != nullptr) {
 					s_platform_flavor = PlatformFlavor::LinuxOnChromium;
 				    BOOST_LOG_TRIVIAL(info) << "Platform flavor: LinuxOnChromium";
