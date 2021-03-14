@@ -323,7 +323,7 @@ private:
 		{
 			// This notification is always hidden if !large (means side bar is collapsed)
 			if (!get_large() && !is_finished()) 
-				m_state == EState::Hidden;
+				m_state = EState::Hidden;
 			PopNotification::render(canvas, initial_y, move_from_overlay, overlay_width);
 		}
 	protected:
