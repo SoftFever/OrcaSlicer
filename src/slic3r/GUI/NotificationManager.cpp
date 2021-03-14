@@ -1,12 +1,9 @@
 #include "NotificationManager.hpp"
 
-#include "GUI_App.hpp"
+
 #include "GUI.hpp"
-#include "Plater.hpp"
-#include "GLCanvas3D.hpp"
 #include "ImGuiWrapper.hpp"
 #include "PrintHostDialogs.hpp"
-
 #include "wxExtensions.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -147,6 +144,12 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		return;
 	}
 
+	if (m_state == EState::ClosePending || m_state == EState::Finished)
+	{
+		m_state = EState::Finished;
+		return;
+	}
+
 	Size          cnv_size = canvas.get_canvas_size();
 	ImGuiWrapper& imgui = *wxGetApp().imgui();
 	ImVec2        mouse_pos = ImGui::GetMousePos();
@@ -240,7 +243,11 @@ void NotificationManager::PopNotification::count_spaces()
  
 void NotificationManager::PopNotification::init()
 {
-    std::string text          = m_text1 + " " + m_hypertext;
+	// Do not init closing notification
+	if (is_finished())
+		return;
+    
+	std::string text          = m_text1 + " " + m_hypertext;
     size_t      last_end      = 0;
     m_lines_count = 0;
 
@@ -291,7 +298,9 @@ void NotificationManager::PopNotification::init()
 	}
 	if (m_lines_count == 3)
 		m_multiline = true;
-	m_state = EState::Shown;
+	m_notification_start = GLCanvas3D::timestamp_now();
+	//if (m_state != EState::Hidden)
+	//	m_state = EState::Shown;
 }
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
 { 
@@ -653,6 +662,7 @@ void NotificationManager::SlicingCompleteLargeNotification::set_large(bool l)
 //	m_counting_down = !l;
 	m_hypertext = l ? _u8L("Export G-Code.") : std::string();
 	m_state = l ? EState::Shown : EState::Hidden;
+	init();
 }
 //---------------ExportFinishedNotification-----------
 void NotificationManager::ExportFinishedNotification::count_spaces()
@@ -1270,9 +1280,10 @@ bool NotificationManager::activate_existing(const NotificationManager::PopNotifi
 	for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end(); ++it) {
 		if ((*it)->get_type() == new_type && !(*it)->is_finished()) {
 			if (std::find(m_multiple_types.begin(), m_multiple_types.end(), new_type) != m_multiple_types.end()) {
-			//if (new_type == NotificationType::CustomNotification || new_type == NotificationType::PlaterWarning || new_type == NotificationType::ProgressBar) {
-				if (!(*it)->compare_text(new_text))
+				// If found same type and same text, return true - update will be performed on the old notif
+				if ((*it)->compare_text(new_text) == false) {
 					continue;
+				}
 			} else if (new_type == NotificationType::SlicingWarning) {
 				auto w1 = dynamic_cast<const SlicingWarningNotification*>(notification);
 				auto w2 = dynamic_cast<const SlicingWarningNotification*>(it->get());
@@ -1284,7 +1295,6 @@ bool NotificationManager::activate_existing(const NotificationManager::PopNotifi
 					continue;
 				}
 			}
-
 			if (it != m_pop_notifications.end() - 1)
 				std::rotate(it, it + 1, m_pop_notifications.end());
 			return true;

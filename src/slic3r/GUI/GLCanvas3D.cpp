@@ -1752,6 +1752,7 @@ void GLCanvas3D::render()
         m_tooltip.render(m_mouse.position, *this);
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
+
     wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width());
 
     wxGetApp().imgui()->render();

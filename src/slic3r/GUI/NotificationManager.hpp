@@ -1,6 +1,9 @@
 #ifndef slic3r_GUI_NotificationManager_hpp_
 #define slic3r_GUI_NotificationManager_hpp_
 
+#include "GUI_App.hpp"
+#include "Plater.hpp"
+#include "GLCanvas3D.hpp"
 #include "Event.hpp"
 #include "I18N.hpp"
 
@@ -211,9 +214,9 @@ private:
 
 		PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler);
 		virtual ~PopNotification() { if (m_id) m_id_provider.release_id(m_id); }
-		void                   render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width);
+		virtual void           render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width);
 		// close will dissapear notification on next render
-		virtual void           close() { m_state = EState::ClosePending; }
+		virtual void           close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);}
 		// data from newer notification of same type
 		void                   update(const NotificationData& n);
 		bool                   is_finished() const { return m_state == EState::ClosePending || m_state == EState::Finished; }
@@ -226,7 +229,7 @@ private:
 		const bool             is_gray() const { return m_is_gray; }
 		void                   set_gray(bool g) { m_is_gray = g; }
 		bool                   compare_text(const std::string& text);
-        void                   hide(bool h) {  m_state = h ? EState::Hidden : EState::Unknown; }
+        void                   hide(bool h) { if (is_finished()) return; m_state = h ? EState::Hidden : EState::Unknown; }
 		// sets m_next_render with time of next mandatory rendering. Delta is time since last render.
 		bool                   update_state(bool paused, const int64_t delta);
 		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
@@ -313,10 +316,16 @@ private:
 	{
 	public:
 		SlicingCompleteLargeNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, bool largeds);
-		void set_large(bool l);
-		bool get_large() { return m_is_large; }
-
-		void set_print_info(const std::string &info);
+		void			set_large(bool l);
+		bool			get_large() { return m_is_large; }
+		void			set_print_info(const std::string &info);
+		virtual void	render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width)
+		{
+			// This notification is always hidden if !large (means side bar is collapsed)
+			if (!get_large() && !is_finished()) 
+				m_state == EState::Hidden;
+			PopNotification::render(canvas, initial_y, move_from_overlay, overlay_width);
+		}
 	protected:
 		virtual void render_text(ImGuiWrapper& imgui,
 			                     const float win_size_x, const float win_size_y,
@@ -339,8 +348,8 @@ private:
 	{
 	public:
 		PlaterWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
-		virtual void close()      { m_state = EState::Hidden; }
-		void		 real_close() { m_state = EState::ClosePending; }
+		virtual void close()      { if(is_finished()) return; m_state = EState::Hidden; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+		void		 real_close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
 		void         show()       { m_state = EState::Unknown; }
 	};
 
