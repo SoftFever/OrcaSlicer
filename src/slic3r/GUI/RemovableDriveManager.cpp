@@ -1,5 +1,5 @@
 #include "RemovableDriveManager.hpp"
-#include "slic3r/Utils/Platform.hpp"
+#include "libslic3r/Platform.hpp"
 #include <libslic3r/libslic3r.h>
 
 #include <boost/nowide/convert.hpp>
@@ -232,7 +232,7 @@ std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() cons
 
 #else
 
-   	if (platform() == Platform::Linux && platform_flavor() == PlatformFlavor::LinuxOnChromium) {
+   	if (platform_flavor() == PlatformFlavor::LinuxOnChromium) {
 	    // ChromeOS specific: search /mnt/chromeos/removable/* folder
 		search_for_drives_internal::search_path("/mnt/chromeos/removable/*", "/mnt/chromeos/removable", current_drives);
    	} else {
@@ -452,7 +452,7 @@ RemovableDriveManager::RemovableDrivesStatus RemovableDriveManager::status()
 		tbb::mutex::scoped_lock lock(m_drives_mutex);
 		out.has_eject = 
 			// Cannot control eject on Chromium.
-			(platform() != Platform::Linux || platform_flavor() != PlatformFlavor::LinuxOnChromium) &&
+			platform_flavor() != PlatformFlavor::LinuxOnChromium &&
 			this->find_last_save_path_drive_data() != m_current_drives.end();
 		out.has_removable_drives = ! m_current_drives.empty();
 	}

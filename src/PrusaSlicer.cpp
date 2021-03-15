@@ -38,6 +38,7 @@
 #include "libslic3r/GCode/PostProcessor.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
+#include "libslic3r/Platform.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -68,6 +69,8 @@ int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
     set_current_thread_name("slic3r_main");
+    // Detect the operating system flavor.
+    detect_platform();
 
 #ifdef __WXGTK__
     // On Linux, wxGTK has no support for Wayland, and the app crashes on

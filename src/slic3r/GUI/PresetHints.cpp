@@ -139,7 +139,6 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
 		const ConfigOptionFloatOrPercent *first_layer_extrusion_width_ptr = (first_layer && first_layer_extrusion_width.value > 0) ?
 			&first_layer_extrusion_width : nullptr;
         const float                       lh  = float(first_layer ? first_layer_height : layer_height);
-        const float                       bfr = bridging ? bridge_flow_ratio : 0.f;
         double                            max_flow = 0.;
         std::string                       max_flow_extrusion_type;
         auto                              limit_by_first_layer_speed = [&first_layer_speed, first_layer](double speed_normal, double speed_max) {

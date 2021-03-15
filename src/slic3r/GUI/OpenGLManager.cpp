@@ -4,7 +4,8 @@
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "3DScene.hpp"
-#include "slic3r/Utils/Platform.hpp"
+
+#include "libslic3r/Platform.hpp"
 
 #include <GL/glew.h>
 
@@ -324,7 +325,7 @@ void OpenGLManager::detect_multisample(int* attribList)
         enable_multisample &&
         // Disable multi-sampling on ChromeOS, as the OpenGL virtualization swaps Red/Blue channels with multi-sampling enabled,
         // at least on some platforms.
-        (platform() != Platform::Linux || platform_flavor() != PlatformFlavor::LinuxOnChromium) && 
+        platform_flavor() != PlatformFlavor::LinuxOnChromium &&
         wxGLCanvas::IsDisplaySupported(attribList)
         ? EMultisampleState::Enabled : EMultisampleState::Disabled;
     // Alternative method: it was working on previous version of wxWidgets but not with the latest, at least on Windows
