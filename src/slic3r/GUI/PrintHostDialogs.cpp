@@ -409,7 +409,6 @@ void PrintHostQueueDialog::get_active_jobs(std::vector<std::pair<std::string, st
 void PrintHostQueueDialog::save_user_data(int udt)
 {
     const auto em = GetTextExtent("m").x;
-    BOOST_LOG_TRIVIAL(error) << "save" << this->GetSize().x / em << " " << this->GetSize().y / em << " " << this->GetPosition().x << " " << this->GetPosition().y;
     auto *app_config = wxGetApp().app_config;
     if (udt & UserDataType::UDT_SIZE) {
         
