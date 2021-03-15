@@ -271,6 +271,10 @@ public:
     void copy_selection_to_clipboard();
     void paste_from_clipboard();
     void search(bool plater_is_active);
+    void mirror(Axis axis);
+    void split_object();
+    void split_volume();
+    void optimize_rotation();
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -287,6 +291,8 @@ public:
     bool can_undo() const;
     bool can_redo() const;
     bool can_reload_from_disk() const;
+    bool can_mirror() const;
+    bool can_split(bool to_objects) const;
 
     void msw_rescale();
     void sys_color_changed();
@@ -374,6 +380,15 @@ public:
 	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);
     bool PopupMenu(wxMenu *menu, int x, int y) { return this->PopupMenu(menu, wxPoint(x, y)); }
+
+    // get same Plater/ObjectList menus
+    wxMenu* object_menu();
+    wxMenu* part_menu();
+    wxMenu* sla_object_menu();
+    wxMenu* default_menu();
+    wxMenu* instance_menu();
+    wxMenu* layer_menu();
+    wxMenu* multi_selection_menu();
 
 private:
     struct priv;

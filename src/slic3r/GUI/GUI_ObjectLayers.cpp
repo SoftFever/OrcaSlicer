@@ -260,16 +260,15 @@ void ObjectLayers::msw_rescale()
                     editor->msw_rescale();
             }
 
-            const std::vector<size_t> btns = {2, 3};  // del_btn, add_btn
-            for (auto btn : btns)
-            {
-                wxSizerItem* b_item = item->GetSizer()->GetItem(btn);
-                if (b_item->IsWindow()) {
-                    auto button = dynamic_cast<PlusMinusButton*>(b_item->GetWindow());
-                    if (button != nullptr)
-                        button->msw_rescale();
-                }                
-            }
+            if (item->GetSizer()->GetItemCount() > 2) // if there are Add/Del buttons
+                for (size_t btn : {2, 3}) { // del_btn, add_btn
+                    wxSizerItem* b_item = item->GetSizer()->GetItem(btn);
+                    if (b_item->IsWindow()) {
+                        auto button = dynamic_cast<PlusMinusButton*>(b_item->GetWindow());
+                        if (button != nullptr)
+                            button->msw_rescale();
+                    }
+                }
         }
     }
     m_grid_sizer->Layout();
