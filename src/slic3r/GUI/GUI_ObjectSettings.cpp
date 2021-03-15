@@ -1,5 +1,6 @@
 #include "GUI_ObjectSettings.hpp"
 #include "GUI_ObjectList.hpp"
+#include "GUI_Factories.hpp"
 
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
@@ -83,7 +84,7 @@ bool ObjectSettings::update_settings_list()
         return false;
 
     const bool is_object_settings = objects_model->GetItemType(objects_model->GetParent(item)) == itObject;
-	SettingsBundle cat_options = objects_ctrl->get_item_settings_bundle(&config->get(), is_object_settings);
+    SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&config->get(), is_object_settings);
 
     if (!cat_options.empty())
     {

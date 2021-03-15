@@ -562,8 +562,6 @@ void MainFrame::init_tabpanel()
 
     wxGetApp().plater_ = m_plater;
 
-    wxGetApp().obj_list()->create_popup_menus();
-
     if (wxGetApp().is_editor())
         create_preset_tabs();
 

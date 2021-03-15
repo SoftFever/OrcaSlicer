@@ -171,13 +171,14 @@ public:
     }
 
     bool            SetValue(const wxVariant &variant, unsigned int col);
-
+    void            SetVolumeType(ModelVolumeType type) { m_volume_type = type; }
     void            SetBitmap(const wxBitmap &icon) { m_bmp = icon; }
     const wxBitmap& GetBitmap() const               { return m_bmp; }
     const wxString& GetName() const                 { return m_name; }
     ItemType        GetType() const                 { return m_type; }
 	void			SetIdx(const int& idx);
 	int             GetIdx() const                  { return m_idx; }
+    ModelVolumeType GetVolumeType()                 { return m_volume_type; }
 	t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
     PrintIndicator  IsPrintable() const             { return m_printable; }
 
@@ -241,8 +242,8 @@ wxDECLARE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 class ObjectDataViewModel :public wxDataViewModel
 {
     std::vector<ObjectDataViewModelNode*>       m_objects;
-    std::vector<wxBitmap*>                      m_volume_bmps;
-    wxBitmap*                                   m_warning_bmp { nullptr };
+    std::vector<wxBitmap>                       m_volume_bmps;
+    wxBitmap                                    m_warning_bmp;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
 
@@ -348,9 +349,8 @@ public:
     void    UpdateObjectPrintable(wxDataViewItem parent_item);
     void    UpdateInstancesPrintable(wxDataViewItem parent_item);
 
-    void    SetVolumeBitmaps(const std::vector<wxBitmap*>& volume_bmps) { m_volume_bmps = volume_bmps; }
-    void    SetWarningBitmap(wxBitmap* bitmap)                          { m_warning_bmp = bitmap; }
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
+    ModelVolumeType GetVolumeType(const wxDataViewItem &item);
     wxDataViewItem SetPrintableState( PrintIndicator printable, int obj_idx,
                                       int subobj_idx = -1, 
                                       ItemType subobj_type = itInstance);
