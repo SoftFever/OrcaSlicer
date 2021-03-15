@@ -308,15 +308,28 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
 
     try
     {
-        boost::nowide::ifstream f(m_filename);
-        std::string line;
         // generate mapping for accessing data in file by line number
+        boost::nowide::ifstream f(m_filename);
+
+        f.seekg(0, f.end);
+        uint64_t file_length = static_cast<uint64_t>(f.tellg());
+        f.seekg(0, f.beg);
+
+        std::string line;
         uint64_t offset = 0;
         while (std::getline(f, line)) {
-            size_t line_length = static_cast<uint64_t>(line.length());
+            uint64_t line_length = static_cast<uint64_t>(line.length());
             m_lines_map.push_back({ offset, line_length });
             offset += static_cast<uint64_t>(line_length) + 1;
-    }
+        }
+
+        if (offset != file_length) {
+            // if the final offset does not match with file length, lines are terminated with CR+LF
+            // so update all offsets accordingly
+            for (size_t i = 0; i < m_lines_map.size(); ++i) {
+                m_lines_map[i].first += static_cast<uint64_t>(i);
+            }
+        }
     }
     catch (...)
     {
