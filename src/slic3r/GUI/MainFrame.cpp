@@ -1217,7 +1217,13 @@ void MainFrame::init_menubar_as_editor()
         append_menu_check_item(viewMenu, wxID_ANY, _L("&Collapse sidebar") + sep + "Shift+" + sep_space + "Tab", _L("Collapse sidebar"),
             [this](wxCommandEvent&) { m_plater->collapse_sidebar(!m_plater->is_sidebar_collapsed()); }, this,
             []() { return true; }, [this]() { return m_plater->is_sidebar_collapsed(); }, this);
-        append_menu_check_item(viewMenu, wxID_ANY, _L("&Full screen") + "\t" + "F11", _L("Full screen"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("&Full screen") + "\t" + 
+#ifdef __APPLE__
+            "RAWCTRL+CTRL+F"
+#else
+            "F11"
+#endif
+            , _L("Full screen"),
             [this](wxCommandEvent&) { this->ShowFullScreen(!this->IsFullScreen(), 
                 // wxFULLSCREEN_ALL: wxFULLSCREEN_NOMENUBAR | wxFULLSCREEN_NOTOOLBAR | wxFULLSCREEN_NOSTATUSBAR | wxFULLSCREEN_NOBORDER | wxFULLSCREEN_NOCAPTION
                 wxFULLSCREEN_NOSTATUSBAR | wxFULLSCREEN_NOBORDER | wxFULLSCREEN_NOCAPTION); }, 
