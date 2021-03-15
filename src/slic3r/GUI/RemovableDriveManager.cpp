@@ -186,8 +186,13 @@ namespace search_for_drives_internal
 	{
 		//confirms if the file is removable drive and adds it to vector
 
-		//if not same file system - could be removable drive
-		if (! compare_filesystem_id(path, parent_path)) {
+		if (
+#ifdef __linux__
+			// Chromium mounts removable drives in a way that produces the same device ID.
+			platform_flavor() == PlatformFlavor::LinuxOnChromium ||
+#endif
+			// If not same file system - could be removable drive.
+			! compare_filesystem_id(path, parent_path)) {
 			//free space
 			boost::system::error_code ec;
 			boost::filesystem::space_info si = boost::filesystem::space(path, ec);
