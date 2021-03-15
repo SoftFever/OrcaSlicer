@@ -46,7 +46,6 @@ SCENARIO("Iterators", "[MutablePolygon]") {
         }
         WHEN("Deleting 1st point") {
             auto it_2nd = p.begin().next();
-            auto it_3rd = p.end();
             auto it     = p.begin().remove();
             THEN("Size is 2") {
                 REQUIRE(p.size() == 2);
@@ -59,7 +58,6 @@ SCENARIO("Iterators", "[MutablePolygon]") {
         WHEN("Deleting 2nd point") {
             auto it_1st = p.begin();
             auto it_2nd = it_1st.next();
-            auto it_3rd = p.end();
             auto it = it_2nd.remove();
             THEN("Size is 2") {
                 REQUIRE(p.size() == 2);

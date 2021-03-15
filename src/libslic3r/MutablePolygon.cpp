@@ -69,7 +69,7 @@ static bool clip_narrow_corner(
     Vec2i64 p2 = it2->cast<int64_t>();
     Vec2i64 p02;
     Vec2i64 p22;
-    int64_t dist2_next;
+    int64_t dist2_next = 0;
 
     // As long as there is at least a single triangle left in the polygon.
     while (polygon.size() >= 3) {

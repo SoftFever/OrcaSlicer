@@ -1138,12 +1138,12 @@ void  NotificationManager::push_upload_job_notification(wxEvtHandler* evt_handle
 void NotificationManager::set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage)
 {
 	std::string text = PrintHostUploadNotification::get_upload_job_text(id, filename, host);
-	bool found = false;
+//	bool found = false;
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::ProgressBar && notification->compare_text(text)) {
 			dynamic_cast<PrintHostUploadNotification*>(notification.get())->set_percentage(percentage);
 			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
-			found = true;
+//			found = true;
 		}
 	}
 	/*
