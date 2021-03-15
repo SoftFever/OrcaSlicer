@@ -645,7 +645,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     if (ticks_info_from_model.gcodes.empty())
     {
         NotificationManager* notif_mngr = wxGetApp().plater()->get_notification_manager();
-//        notif_mngr->close_notification_of_type(NotificationType::SignDetected);
+        notif_mngr->close_notification_of_type(NotificationType::SignDetected);
 
         const Print& print = wxGetApp().plater()->fff_print();
         double delta_area = scale_(scale_(25)); // equal to 25 mm2
@@ -675,8 +675,8 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
                     NotificationType::SignDetected, NotificationManager::NotificationLevel::RegularNotification,
                     _u8L("NOTE:") + "\n" + _u8L("Sliced object looks like the sign") + "\n",
                     _u8L("Apply auto color change to print"),
-                    [this/*, notif_mngr*/](wxEvtHandler*) {
- //                       notif_mngr->close_notification_of_type(NotificationType::SignDetected);
+                    [this, notif_mngr](wxEvtHandler*) {
+                        notif_mngr->close_notification_of_type(NotificationType::SignDetected);
                         m_layers_slider->auto_color_change();
                         return true;
                     });

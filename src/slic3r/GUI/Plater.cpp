@@ -3563,6 +3563,7 @@ void Plater::priv::on_slicing_began()
 {
 	clear_warnings();
 	notification_manager->close_notification_of_type(NotificationType::SlicingComplete);
+    notification_manager->close_notification_of_type(NotificationType::SignDetected);
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
