@@ -1302,51 +1302,53 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
 void ModelObject::split(ModelObjectPtrs* new_objects)
 {
-    if (this->volumes.size() > 1) {
-        // We can't split meshes if there's more than one volume, because
-        // we can't group the resulting meshes by object afterwards
-        new_objects->emplace_back(this);
-        return;
-    }
-    
-    ModelVolume* volume = this->volumes.front();
-    TriangleMeshPtrs meshptrs = volume->mesh().split();
-    size_t counter = 1;
-    for (TriangleMesh *mesh : meshptrs) {
+    for (ModelVolume* volume : this->volumes) {
+        if (volume->type() != ModelVolumeType::MODEL_PART)
+            continue;
 
-        // FIXME: crashes if not satisfied
-        if (mesh->facets_count() < 3) continue;
+        TriangleMeshPtrs meshptrs = volume->mesh().split();
+        size_t counter = 1;
+        for (TriangleMesh* mesh : meshptrs) {
 
-        mesh->repair();
-        
-        // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
-        ModelObject* new_object = m_model->add_object();    
-        new_object->name   = this->name + (meshptrs.size() > 1 ? "_" + std::to_string(counter++) : "");
+            // FIXME: crashes if not satisfied
+            if (mesh->facets_count() < 3) continue;
 
-        // Don't copy the config's ID.
-		new_object->config.assign_config(this->config);
-		assert(new_object->config.id().valid());
-		assert(new_object->config.id() != this->config.id());
-        new_object->instances.reserve(this->instances.size());
-        for (const ModelInstance *model_instance : this->instances)
-            new_object->add_instance(*model_instance);
-        ModelVolume* new_vol = new_object->add_volume(*volume, std::move(*mesh));
+            mesh->repair();
 
-        for (ModelInstance* model_instance : new_object->instances)
-        {
-            Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
-            model_instance->set_offset(model_instance->get_offset() + shift);
+            // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
+            ModelObject* new_object = m_model->add_object();
+            if (meshptrs.size() == 1) {
+                new_object->name = volume->name;
+                // Don't copy the config's ID.
+                new_object->config.assign_config(this->config.size() > 0 ? this->config : volume->config);
+            }
+            else {
+                new_object->name = this->name + (meshptrs.size() > 1 ? "_" + std::to_string(counter++) : "");
+                // Don't copy the config's ID.
+                new_object->config.assign_config(this->config);
+            }
+            assert(new_object->config.id().valid());
+            assert(new_object->config.id() != this->config.id());
+            new_object->instances.reserve(this->instances.size());
+            for (const ModelInstance* model_instance : this->instances)
+                new_object->add_instance(*model_instance);
+            ModelVolume* new_vol = new_object->add_volume(*volume, std::move(*mesh));
+
+            for (ModelInstance* model_instance : new_object->instances)
+            {
+                Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
+                model_instance->set_offset(model_instance->get_offset() + shift);
+            }
+
+            new_vol->set_offset(Vec3d::Zero());
+            // reset the source to disable reload from disk
+            new_vol->source = ModelVolume::Source();
+            new_objects->emplace_back(new_object);
+            delete mesh;
         }
-
-        new_vol->set_offset(Vec3d::Zero());
-        // reset the source to disable reload from disk
-        new_vol->source = ModelVolume::Source();
-        new_objects->emplace_back(new_object);
-        delete mesh;
     }
-    
-    return;
 }
+
 
 void ModelObject::merge()
 {
@@ -1738,6 +1740,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
         this->object->volumes[ivolume]->translate(offset);
         this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
         this->object->volumes[ivolume]->config.set_deserialize("extruder", auto_extruder_id(max_extruders, extruder_counter));
+        this->object->volumes[ivolume]->m_is_splittable = 0;
         delete mesh;
         ++ idx;
     }

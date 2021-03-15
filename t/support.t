@@ -31,7 +31,6 @@ use Slic3r::Test;
             role                => FLOW_ROLE_SUPPORT_MATERIAL,
             nozzle_diameter     => $print->config->nozzle_diameter->[$object_config->support_material_extruder-1] // $print->config->nozzle_diameter->[0],
             layer_height        => $object_config->layer_height,
-            bridge_flow_ratio   => 0,
         );
         my $support = Slic3r::Print::SupportMaterial->new(
             object_config       => $print->print->objects->[0]->config,

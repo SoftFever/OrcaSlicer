@@ -50,6 +50,7 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectLayers.hpp"
 #include "GUI_Utils.hpp"
+#include "GUI_Factories.hpp"
 #include "wxExtensions.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
@@ -75,6 +76,7 @@
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/PresetUpdater.hpp"
+#include "../Utils/Platform.hpp"
 #include "../Utils/Process.hpp"
 #include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
@@ -356,7 +358,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     ConfigOptionDef support_def;
     support_def.label = L("Supports");
     support_def.type = coStrings;
-    support_def.gui_type = "select_open";
+    support_def.gui_type = ConfigOptionDef::GUIType::select_open;
     support_def.tooltip = L("Select what kind of support do you need");
     support_def.enum_labels.push_back(L("None"));
     support_def.enum_labels.push_back(L("Support on build plate only"));
@@ -396,7 +398,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     def.label = L("Brim");
     def.type = coBool;
     def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
-    def.gui_type = "";
+    def.gui_type = ConfigOptionDef::GUIType::undefined;
     def.set_default_value(new ConfigOptionBool{ m_brim_width > 0.0 ? true : false });
     option = Option(def, "brim");
     option.opt.sidetext = "";
@@ -499,7 +501,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     ConfigOptionDef pad_def;
     pad_def.label = L("Pad");
     pad_def.type = coStrings;
-    pad_def.gui_type = "select_open";
+    pad_def.gui_type = ConfigOptionDef::GUIType::select_open;
     pad_def.tooltip = L("Select what kind of pad do you need");
     pad_def.enum_labels.push_back(L("None"));
     pad_def.enum_labels.push_back(L("Below object"));
@@ -1322,7 +1324,7 @@ void Sidebar::update_mode()
 
     p->object_list->unselect_objects();
     p->object_list->update_selections();
-    p->object_list->update_object_menu();
+//    p->object_list->update_object_menu();
 
     Layout();
 }
@@ -1404,23 +1406,7 @@ struct Plater::priv
     Plater *q;
     MainFrame *main_frame;
 
-    // Object popup menu
-    MenuWithSeparators object_menu;
-    // Part popup menu
-    MenuWithSeparators part_menu;
-    // SLA-Object popup menu
-    MenuWithSeparators sla_object_menu;
-    // Default popup menu (when nothing is selected on 3DScene)
-    MenuWithSeparators default_menu;
-
-    // Removed/Prepended Items according to the view mode
-    std::vector<wxMenuItem*> items_increase;
-    std::vector<wxMenuItem*> items_decrease;
-    std::vector<wxMenuItem*> items_set_number_of_copies;
-    enum MenuIdentifier {
-        miObjectFFF=0,
-        miObjectSLA
-    };
+    MenuFactory menus;
 
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
@@ -1669,7 +1655,6 @@ struct Plater::priv
     void on_update_geometry(Vec3dsEvent<2>&);
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
-    void update_object_menu();
     void show_action_buttons(const bool is_ready_to_slice) const;
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
@@ -1690,11 +1675,10 @@ struct Plater::priv
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
     bool can_reload_from_disk() const;
+    bool can_split(bool to_objects) const;
 
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
     void generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
-
-    void msw_rescale_object_menu();
 
     void bring_instance_forward() const;
 
@@ -1712,13 +1696,6 @@ struct Plater::priv
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
 	bool                        process_completed_with_error { false };
 private:
-    bool init_object_menu();
-    bool init_common_menu(wxMenu* menu, const bool is_part = false);
-    bool complit_init_object_menu();
-    bool complit_init_sla_object_menu();
-    bool complit_init_part_menu();
-
-    bool can_split() const;
     bool layers_height_allowed() const;
 
     void update_fff_scene();
@@ -1762,7 +1739,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "first_layer_height", "min_layer_height", "max_layer_height",
         "brim_width", "perimeters", "perimeter_extruder", "fill_density", "infill_extruder", "top_solid_layers", 
-        "support_material", "support_material_extruder", "support_material_interface_extruder", "support_material_contact_distance", "raft_layers"
+        "support_material", "support_material_extruder", "support_material_interface_extruder", 
+        "support_material_contact_distance", "support_material_bottom_contact_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
     , m_ui_jobs(this)
@@ -1827,7 +1805,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     q->SetSizer(hsizer);
 
-    init_object_menu();
+    menus.init(q);
 
     // Events:
 
@@ -2723,19 +2701,19 @@ void Plater::priv::split_object()
     Model new_model = model;
     ModelObject* current_model_object = new_model.objects[obj_idx];
 
-    if (current_model_object->volumes.size() > 1)
-    {
-        Slic3r::GUI::warning_catcher(q, _L("The selected object can't be split because it contains more than one volume/material."));
-        return;
-    }
-
     wxBusyCursor wait;
     ModelObjectPtrs new_objects;
     current_model_object->split(&new_objects);
     if (new_objects.size() == 1)
-        Slic3r::GUI::warning_catcher(q, _L("The selected object couldn't be split because it contains only one part."));
+        // #ysFIXME use notification
+        Slic3r::GUI::warning_catcher(q, _L("The selected object couldn't be split because it contains only one solid part."));
     else
     {
+        if (current_model_object->volumes.size() != new_objects.size())
+            notification_manager->push_notification(NotificationType::CustomNotification,
+                NotificationManager::NotificationLevel::RegularNotification,
+                _u8L("All non-solid parts (modifiers) was deleted"));
+
         Plater::TakeSnapshot snapshot(q, _L("Split to Objects"));
 
         remove(obj_idx);
@@ -3563,6 +3541,7 @@ void Plater::priv::on_slicing_began()
 {
 	clear_warnings();
 	notification_manager->close_notification_of_type(NotificationType::SlicingComplete);
+    notification_manager->close_notification_of_type(NotificationType::SignDetected);
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
@@ -3679,7 +3658,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         // If writing to removable drive was scheduled, show notification with eject button
         if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !has_error) {
             show_action_buttons(false);
-            notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, true);
+            notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path,
+                // Don't offer the "Eject" button on ChromeOS, the Linux side has no control over it.
+                platform() != Platform::Linux || platform_flavor() != PlatformFlavor::LinuxOnChromium);
             wxGetApp().removable_drive_manager()->set_exporting_finished(true);
         }else if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
@@ -3727,70 +3708,25 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
 
     wxMenu* menu = nullptr;
 
-    if (obj_idx == -1) // no one or several object are selected
-    { 
+    if (obj_idx == -1) { // no one or several object are selected
         if (evt.data.second) // right button was clicked on empty space
-            menu = &default_menu;
+            menu = menus.default_menu();
         else
-        {
-            sidebar->obj_list()->show_multi_selection_menu();
-            return;
-        }
+            menu = menus.multi_selection_menu();
     }
-    else
-    {
+    else {
         // If in 3DScene is(are) selected volume(s), but right button was clicked on empty space
         if (evt.data.second)
-            return; 
-
-        int menu_item_convert_unit_position = 11;
+            return;
 
         if (printer_technology == ptSLA)
-            menu = &sla_object_menu;
-        else
-        {
+            menu = menus.sla_object_menu();
+        else {
             // show "Object menu" for each one or several FullInstance instead of FullObject
             const bool is_some_full_instances = get_selection().is_single_full_instance() || 
                                                 get_selection().is_single_full_object() || 
                                                 get_selection().is_multiple_full_instance();
-            menu = is_some_full_instances ? &object_menu : &part_menu;
-            if (!is_some_full_instances)
-                menu_item_convert_unit_position = 2;
-        }
-
-        sidebar->obj_list()->append_menu_items_convert_unit(menu, menu_item_convert_unit_position);
-        sidebar->obj_list()->append_menu_item_settings(menu);
-
-        if (printer_technology != ptSLA)
-            sidebar->obj_list()->append_menu_item_change_extruder(menu);
-
-        if (menu != &part_menu)
-        {
-            /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
-             * Suppress to show those items for a Simple mode
-             */
-            const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
-            if (wxGetApp().get_mode() == comSimple) {
-                if (menu->FindItem(_L("Add instance")) != wxNOT_FOUND)
-                {
-                    /* Detach an items from the menu, but don't delete them
-                     * so that they can be added back later
-                     * (after switching to the Advanced/Expert mode)
-                     */
-                    menu->Remove(items_increase[id]);
-                    menu->Remove(items_decrease[id]);
-                    menu->Remove(items_set_number_of_copies[id]);
-                }
-            }
-            else {
-                if (menu->FindItem(_L("Add instance")) == wxNOT_FOUND)
-                {
-                    // Prepend items to the menu, if those aren't not there
-                    menu->Prepend(items_set_number_of_copies[id]);
-                    menu->Prepend(items_decrease[id]);
-                    menu->Prepend(items_increase[id]);
-                }
-            }
+            menu = is_some_full_instances ? menus.object_menu() : menus.part_menu();
         }
     }
 
@@ -3837,26 +3773,6 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
     }
 }
 
-bool Plater::priv::init_object_menu()
-{
-    items_increase.reserve(2);
-    items_decrease.reserve(2);
-    items_set_number_of_copies.reserve(2);
-
-    init_common_menu(&object_menu);
-    complit_init_object_menu();
-
-    init_common_menu(&sla_object_menu);
-    complit_init_sla_object_menu();
-
-    init_common_menu(&part_menu, true);
-    complit_init_part_menu();
-
-    sidebar->obj_list()->create_default_popupmenu(&default_menu);
-
-    return true;
-}
-
 void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, show_bed, transparent_background);
@@ -3873,12 +3789,6 @@ void Plater::priv::generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds&
         if (!thumbnails.back().is_valid())
             thumbnails.pop_back();
     }
-}
-
-void Plater::priv::msw_rescale_object_menu()
-{
-    for (MenuWithSeparators* menu : { &object_menu, &sla_object_menu, &part_menu, &default_menu })
-        msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
 }
 
 wxString Plater::priv::get_project_filename(const wxString& extension) const
@@ -3907,144 +3817,6 @@ void Plater::priv::set_project_filename(const wxString& filename)
 
     if (!filename.empty())
         wxGetApp().mainframe->add_to_recent_projects(filename);
-}
-
-bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
-{
-    if (is_part) {
-        append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected object"),
-            [this](wxCommandEvent&) { q->remove_selected();         }, "delete",            nullptr, [this]() { return can_delete(); }, q);
-
-        append_menu_item(menu, wxID_ANY, _L("Reload from disk"), _L("Reload the selected volumes from disk"),
-            [this](wxCommandEvent&) { q->reload_from_disk(); }, "", menu, [this]() { return can_reload_from_disk(); }, q);
-
-        sidebar->obj_list()->append_menu_item_export_stl(menu);
-    }
-    else {
-        wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _L("Add instance") + "\t+", _L("Add one more instance of the selected object"),
-            [this](wxCommandEvent&) { q->increase_instances();      }, "add_copies",        nullptr, [this]() { return can_increase_instances(); }, q);
-        wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _L("Remove instance") + "\t-", _L("Remove one instance of the selected object"),
-            [this](wxCommandEvent&) { q->decrease_instances();      }, "remove_copies",     nullptr, [this]() { return can_decrease_instances(); }, q);
-        wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _L("Set number of instances") + dots, _L("Change the number of instances of the selected object"),
-            [this](wxCommandEvent&) { q->set_number_of_copies();    }, "number_of_copies",  nullptr, [this]() { return can_increase_instances(); }, q);
-        append_menu_item(menu, wxID_ANY, _L("Fill bed with instances") + dots, _L("Fill the remaining area of bed with instances of the selected object"),
-            [this](wxCommandEvent&) { q->fill_bed_with_instances();    }, "",  nullptr, [this]() { return can_increase_instances(); }, q);
-
-
-        items_increase.push_back(item_increase);
-        items_decrease.push_back(item_decrease);
-        items_set_number_of_copies.push_back(item_set_number_of_copies);
-
-        // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
-        append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected object"),
-            [this](wxCommandEvent&) { q->remove_selected(); }, "delete",            nullptr, [this]() { return can_delete(); }, q);
-
-        menu->AppendSeparator();
-        sidebar->obj_list()->append_menu_item_instance_to_object(menu, q);
-        menu->AppendSeparator();
-
-        wxMenuItem* menu_item_printable = sidebar->obj_list()->append_menu_item_printable(menu, q);
-        menu->AppendSeparator();
-
-        append_menu_item(menu, wxID_ANY, _L("Reload from disk"), _L("Reload the selected object from disk"),
-            [this](wxCommandEvent&) { reload_from_disk(); }, "", nullptr, [this]() { return can_reload_from_disk(); }, q);
-
-        append_menu_item(menu, wxID_ANY, _L("Export as STL") + dots, _L("Export the selected object as STL file"),
-            [this](wxCommandEvent&) { q->export_stl(false, true); }, "", nullptr, 
-            [this]() {
-                const Selection& selection = get_selection();
-                return selection.is_single_full_instance() || selection.is_single_full_object();
-            }, q);
-
-        menu->AppendSeparator();
-
-        // "Scale to print volume" makes a sense just for whole object
-        sidebar->obj_list()->append_menu_item_scale_selection_to_fit_print_volume(menu);
-
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            const Selection& selection = get_selection();
-            int instance_idx = selection.get_instance_idx();
-            evt.Enable(selection.is_single_full_instance() || selection.is_single_full_object());
-            if (instance_idx != -1)
-            {
-                evt.Check(model.objects[selection.get_object_idx()]->instances[instance_idx]->printable);
-                view3D->set_as_dirty();
-            }
-            }, menu_item_printable->GetId());
-    }
-
-    sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
-
-    wxMenu* mirror_menu = new wxMenu();
-    if (mirror_menu == nullptr)
-        return false;
-
-    append_menu_item(mirror_menu, wxID_ANY, _L("Along X axis"), _L("Mirror the selected object along the X axis"),
-        [this](wxCommandEvent&) { mirror(X); }, "mark_X", menu);
-    append_menu_item(mirror_menu, wxID_ANY, _L("Along Y axis"), _L("Mirror the selected object along the Y axis"),
-        [this](wxCommandEvent&) { mirror(Y); }, "mark_Y", menu);
-    append_menu_item(mirror_menu, wxID_ANY, _L("Along Z axis"), _L("Mirror the selected object along the Z axis"),
-        [this](wxCommandEvent&) { mirror(Z); }, "mark_Z", menu);
-
-    append_submenu(menu, mirror_menu, wxID_ANY, _L("Mirror"), _L("Mirror the selected object"), "",
-        [this]() { return can_mirror(); }, q);
-
-    return true;
-}
-
-bool Plater::priv::complit_init_object_menu()
-{
-    wxMenu* split_menu = new wxMenu();
-    if (split_menu == nullptr)
-        return false;
-
-    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into individual objects"),
-        [this](wxCommandEvent&) { split_object(); }, "split_object_SMALL",  &object_menu, [this]() { return can_split(); }, q);
-    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into individual sub-parts"),
-        [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL",   &object_menu, [this]() { return can_split(); }, q);
-
-    append_submenu(&object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
-        [this]() { return can_split() && wxGetApp().get_mode() > comSimple; }, q);
-    object_menu.AppendSeparator();
-
-    // Layers Editing for object
-    sidebar->obj_list()->append_menu_item_layers_editing(&object_menu, q);
-    object_menu.AppendSeparator();
-
-    // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
-
-    return true;
-}
-
-bool Plater::priv::complit_init_sla_object_menu()
-{
-    append_menu_item(&sla_object_menu, wxID_ANY, _L("Split"), _L("Split the selected object into individual objects"),
-        [this](wxCommandEvent&) { split_object(); }, "split_object_SMALL", nullptr, [this]() { return can_split(); }, q);
-
-    sla_object_menu.AppendSeparator();
-
-    // Add the automatic rotation sub-menu
-    append_menu_item(
-        &sla_object_menu, wxID_ANY, _(L("Optimize orientation")),
-        _(L("Optimize the rotation of the object for better print results.")),
-        [this](wxCommandEvent &) {
-            m_ui_jobs.optimize_rotation();
-        });
-
-    return true;
-}
-
-bool Plater::priv::complit_init_part_menu()
-{
-    append_menu_item(&part_menu, wxID_ANY, _L("Split"), _L("Split the selected object into individual sub-parts"),
-        [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL", nullptr, [this]() { return can_split(); }, q);
-
-    part_menu.AppendSeparator();
-
-    auto obj_list = sidebar->obj_list();
-    obj_list->append_menu_item_change_type(&part_menu, q);
-
-    return true;
 }
 
 void Plater::priv::set_current_canvas_as_dirty()
@@ -4196,9 +3968,9 @@ bool Plater::priv::can_set_instance_to_object() const
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
 }
 
-bool Plater::priv::can_split() const
+bool Plater::priv::can_split(bool to_objects) const
 {
-    return sidebar->obj_list()->is_splittable();
+    return sidebar->obj_list()->is_splittable(to_objects);
 }
 
 bool Plater::priv::layers_height_allowed() const
@@ -4314,12 +4086,12 @@ bool Plater::priv::can_decrease_instances() const
 
 bool Plater::priv::can_split_to_objects() const
 {
-    return can_split();
+    return q->can_split(true);
 }
 
 bool Plater::priv::can_split_to_volumes() const
 {
-    return (printer_technology != ptSLA) && can_split();
+    return (printer_technology != ptSLA) && q->can_split(false);
 }
 
 bool Plater::priv::can_arrange() const
@@ -4330,11 +4102,6 @@ bool Plater::priv::can_arrange() const
 bool Plater::priv::can_layers_editing() const
 {
     return layers_height_allowed();
-}
-
-void Plater::priv::update_object_menu()
-{
-    sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
 }
 
 void Plater::priv::show_action_buttons(const bool ready_to_slice) const
@@ -5363,7 +5130,7 @@ void Plater::export_stl(bool extended, bool selection_only)
                         inst_mesh.merge(inst_supports_mesh);
                     }
 
-                    TriangleMesh inst_object_mesh = object->get_mesh_to_print();
+                    TriangleMesh inst_object_mesh = object->get_mesh_to_slice();
                     inst_object_mesh.transform(mesh_trafo_inv);
                     inst_object_mesh.transform(inst_transform, is_left_handed);
 
@@ -6056,9 +5823,12 @@ void Plater::suppress_background_process(const bool stop_background_process)
 }
 
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
-
-void Plater::update_object_menu() { p->update_object_menu(); }
-void Plater::show_action_buttons(const bool ready_to_slice) const { p->show_action_buttons(ready_to_slice); }
+void Plater::mirror(Axis axis)      { p->mirror(axis); }
+void Plater::split_object()         { p->split_object(); }
+void Plater::split_volume()         { p->split_volume(); }
+void Plater::optimize_rotation()    { p->m_ui_jobs.optimize_rotation();}
+void Plater::update_object_menu()   { p->menus.update_object_menu(); }
+void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
 
 void Plater::copy_selection_to_clipboard()
 {
@@ -6115,7 +5885,7 @@ void Plater::msw_rescale()
 
     p->sidebar->msw_rescale();
 
-    p->msw_rescale_object_menu();
+    p->menus.msw_rescale();
 
     Layout();
     GetParent()->Layout();
@@ -6127,7 +5897,7 @@ void Plater::sys_color_changed()
     p->sidebar->sys_color_changed();
 
     // msw_rescale_menu updates just icons, so use it
-    p->msw_rescale_object_menu();
+    p->menus.msw_rescale();
 
     Layout();
     GetParent()->Layout();
@@ -6292,6 +6062,8 @@ bool Plater::can_copy_to_clipboard() const
 bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
+bool Plater::can_mirror() const { return p->can_mirror(); }
+bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
@@ -6332,6 +6104,15 @@ void Plater::bring_instance_forward()
 {
     p->bring_instance_forward();
 }
+
+wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }
+wxMenu* Plater::part_menu()             { return p->menus.part_menu();              }
+wxMenu* Plater::sla_object_menu()       { return p->menus.sla_object_menu();        }
+wxMenu* Plater::default_menu()          { return p->menus.default_menu();           }
+wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }
+wxMenu* Plater::layer_menu()            { return p->menus.layer_menu();             }
+wxMenu* Plater::multi_selection_menu()  { return p->menus.multi_selection_menu();   }
+
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
     m_was_scheduled(wxGetApp().plater()->is_background_process_update_scheduled())

@@ -320,7 +320,7 @@ static void make_inner_brim(const Print &print, const ConstPrintObjectPtrs &top_
     loops = union_pt_chained_outside_in(loops, false);
     std::reverse(loops.begin(), loops.end());
     extrusion_entities_append_loops(brim.entities, std::move(loops), erSkirt, float(flow.mm3_per_mm()),
-                                    float(flow.width), float(print.skirt_first_layer_height()));
+                                    float(flow.width()), float(print.skirt_first_layer_height()));
 }
 
 // Produce brim lines around those objects, that have the brim enabled.
@@ -495,7 +495,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 				if (i + 1 == j && first_path.size() > 3 && first_path.front().X == first_path.back().X && first_path.front().Y == first_path.back().Y) {
 					auto *loop = new ExtrusionLoop();
                     brim.entities.emplace_back(loop);
-					loop->paths.emplace_back(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(print.skirt_first_layer_height()));
+					loop->paths.emplace_back(erSkirt, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height()));
 		            Points &points = loop->paths.front().polyline.points;
 		            points.reserve(first_path.size());
 		            for (const ClipperLib_Z::IntPoint &pt : first_path)
@@ -506,7 +506,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 			    	ExtrusionEntityCollection this_loop_trimmed;
 					this_loop_trimmed.entities.reserve(j - i);
 			    	for (; i < j; ++ i) {
-			            this_loop_trimmed.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(print.skirt_first_layer_height())));
+			            this_loop_trimmed.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height())));
 						const ClipperLib_Z::Path &path = *loops_trimmed_order[i].first;
 			            Points &points = static_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
 			            points.reserve(path.size());
@@ -522,7 +522,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 			}
 		}
     } else {
-        extrusion_entities_append_loops_and_paths(brim.entities, std::move(all_loops), erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(print.skirt_first_layer_height()));
+        extrusion_entities_append_loops_and_paths(brim.entities, std::move(all_loops), erSkirt, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height()));
     }
 
     make_inner_brim(print, top_level_objects_with_brim, brim);

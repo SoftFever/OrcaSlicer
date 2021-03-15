@@ -2063,4 +2063,22 @@ TriangleMesh make_sphere(double radius, double fa)
 	return mesh;
 }
 
+std::vector<std::vector<size_t> > create_neighbor_index(const indexed_triangle_set &its)
+{
+    if (its.vertices.empty()) return {};
+
+    size_t res = its.indices.size() / its.vertices.size();
+    std::vector< std::vector<size_t> > index(its.vertices.size(),
+                                             reserve_vector<size_t>(res));
+
+    for (size_t fi = 0; fi < its.indices.size(); ++fi) {
+        auto &face = its.indices[fi];
+        index[face(0)].emplace_back(fi);
+        index[face(1)].emplace_back(fi);
+        index[face(2)].emplace_back(fi);
+    }
+
+    return index;
+}
+
 }

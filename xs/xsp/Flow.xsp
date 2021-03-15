@@ -8,41 +8,30 @@
 %name{Slic3r::Flow} class Flow {
     ~Flow();
     %name{_new} Flow(float width, float height, float nozzle_diameter);
-    void set_height(float height)
-        %code{% THIS->height = height; %};
-    void set_bridge(bool bridge)
-        %code{% THIS->bridge = bridge; %};
     Clone<Flow> clone()
         %code{% RETVAL = THIS; %};
     
-    float width()
-        %code{% RETVAL = THIS->width; %};
-    float height()
-        %code{% RETVAL = THIS->height; %};
-    float nozzle_diameter()
-        %code{% RETVAL = THIS->nozzle_diameter; %};
-    bool bridge()
-        %code{% RETVAL = THIS->bridge; %};
+    float width();
+    float height();
+    float nozzle_diameter();
+    bool bridge();
     float spacing();
-    float spacing_to(Flow* other)
-        %code{% RETVAL = THIS->spacing(*other); %};
     int   scaled_width();
     int   scaled_spacing();
     double mm3_per_mm();
 %{
 
 Flow*
-_new_from_width(CLASS, role, width, nozzle_diameter, height, bridge_flow_ratio)
+_new_from_width(CLASS, role, width, nozzle_diameter, height)
     char*           CLASS;
     FlowRole        role;
     std::string     width;
     float           nozzle_diameter;
     float           height;
-    float           bridge_flow_ratio;
     CODE:
         ConfigOptionFloatOrPercent optwidth;
         optwidth.deserialize(width);
-        RETVAL = new Flow(Flow::new_from_config_width(role, optwidth, nozzle_diameter, height, bridge_flow_ratio));
+        RETVAL = new Flow(Flow::new_from_config_width(role, optwidth, nozzle_diameter, height));
     OUTPUT:
         RETVAL
 

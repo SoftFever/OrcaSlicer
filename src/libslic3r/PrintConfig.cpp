@@ -1,4 +1,5 @@
 #include "PrintConfig.hpp"
+#include "Config.hpp"
 #include "I18N.hpp"
 
 #include <set>
@@ -66,7 +67,7 @@ void PrintConfigDef::init_common_params()
     def->label = L("G-code thumbnails");
     def->tooltip = L("Picture sizes to be stored into a .gcode and .sl1 files, in the following format: \"XxY, XxY, ...\"");
     def->mode = comExpert;
-    def->gui_type = "one_string";
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints());
 
     def = this->add("layer_height", coFloat);
@@ -116,7 +117,7 @@ void PrintConfigDef::init_common_params()
     def = this->add("printhost_port", coString);
     def->label = L("Printer");
     def->tooltip = L("Name of the printer");
-    def->gui_type = "select_open";
+    def->gui_type = ConfigOptionDef::GUIType::select_open;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
     
@@ -568,7 +569,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("extruder", coInt);
-    def->gui_type = "i_enum_open";
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Extruder");
     def->category = L("Extruders");
     def->tooltip = L("The extruder to use (unless more specific extruder settings are specified). "
@@ -606,7 +607,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extruder_colour", coStrings);
     def->label = L("Extruder Color");
     def->tooltip = L("This is only used in the Slic3r interface as a visual help.");
-    def->gui_type = "color";
+    def->gui_type = ConfigOptionDef::GUIType::color;
     // Empty string means no color assigned yet.
     def->set_default_value(new ConfigOptionStrings { "" });
 
@@ -668,7 +669,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_colour", coStrings);
     def->label = L("Color");
     def->tooltip = L("This is only used in the Slic3r interface as a visual help.");
-    def->gui_type = "color";
+    def->gui_type = ConfigOptionDef::GUIType::color;
     def->set_default_value(new ConfigOptionStrings { "#29B2B2" });
 
     def = this->add("filament_notes", coStrings);
@@ -812,7 +813,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_type", coStrings);
     def->label = L("Filament type");
     def->tooltip = L("The filament material type for use in custom G-codes.");
-    def->gui_type = "f_enum_open";
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
     def->enum_values.push_back("PLA");
     def->enum_values.push_back("PET");
@@ -881,7 +882,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(45));
 
     def = this->add("fill_density", coPercent);
-    def->gui_type = "f_enum_open";
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
     def->label = L("Fill density");
     def->category = L("Infill");
@@ -1168,7 +1169,7 @@ void PrintConfigDef::init_fff_params()
                      "Set this parameter to zero to disable anchoring perimeters connected to a single infill line.");
     def->sidetext = L("mm or %");
     def->ratio_over = "infill_extrusion_width";
-    def->gui_type = "f_enum_open";
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->enum_values.push_back("0");
     def->enum_values.push_back("1");
     def->enum_values.push_back("2");
@@ -1950,7 +1951,7 @@ void PrintConfigDef::init_fff_params()
 
 #if 0
     def = this->add("seam_preferred_direction", coFloat);
-//    def->gui_type = "slider";
+//    def->gui_type = ConfigOptionDef::GUIType::slider;
     def->label = L("Direction");
     def->sidetext = L("°");
     def->full_label = L("Preferred direction of the seam");
@@ -1960,7 +1961,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("seam_preferred_direction_jitter", coFloat);
-//    def->gui_type = "slider";
+//    def->gui_type = ConfigOptionDef::GUIType::slider;
     def->label = L("Jitter");
     def->sidetext = L("°");
     def->full_label = L("Seam preferred direction jitter");
@@ -2234,8 +2235,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("support_material_contact_distance", coFloat);
-    def->gui_type = "f_enum_open";
-    def->label = L("Contact Z distance");
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
+    def->label = L("Top contact Z distance");
     def->category = L("Support material");
     def->tooltip = L("The vertical distance between object and support material interface. "
                    "Setting this to 0 will also prevent Slic3r from using bridge flow and speed "
@@ -2243,11 +2244,30 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
 //    def->min = 0;
     def->enum_values.push_back("0");
+    def->enum_values.push_back("0.1");
     def->enum_values.push_back("0.2");
     def->enum_labels.push_back(L("0 (soluble)"));
+    def->enum_labels.push_back(L("0.1 (detachable)"));
     def->enum_labels.push_back(L("0.2 (detachable)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
+
+    def = this->add("support_material_bottom_contact_distance", coFloat);
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
+    def->label = L("Bottom contact Z distance");
+    def->category = L("Support material");
+    def->tooltip = L("The vertical distance between the object top surface and the support material interface. "
+                   "If set to zero, support_material_contact_distance will be used for both top and bottom contact Z distances.");
+    def->sidetext = L("mm");
+//    def->min = 0;
+    def->enum_values.push_back("0");
+    def->enum_values.push_back("0.1");
+    def->enum_values.push_back("0.2");
+    def->enum_labels.push_back(L("same as top"));
+    def->enum_labels.push_back(L("0.1"));
+    def->enum_labels.push_back(L("0.2"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("support_material_enforce_layers", coInt);
     def->label = L("Enforce support for the first");
@@ -2298,14 +2318,38 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("support_material_interface_layers", coInt);
-    def->label = L("Interface layers");
+    auto support_material_interface_layers = def = this->add("support_material_interface_layers", coInt);
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->label = L("Top interface layers");
     def->category = L("Support material");
     def->tooltip = L("Number of interface layers to insert between the object(s) and support material.");
     def->sidetext = L("layers");
     def->min = 0;
+    def->enum_values.push_back("0");
+    def->enum_values.push_back("1");
+    def->enum_values.push_back("2");
+    def->enum_values.push_back("3");
+    def->enum_labels.push_back(L("0 (off)"));
+    def->enum_labels.push_back(L("1 (light)"));
+    def->enum_labels.push_back(L("2 (default)"));
+    def->enum_labels.push_back(L("3 (heavy)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
+
+    def = this->add("support_material_bottom_interface_layers", coInt);
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->label = L("Bottom interface layers");
+    def->category = L("Support material");
+    def->tooltip = L("Number of interface layers to insert between the object(s) and support material. "
+                     "Set to -1 to use support_material_interface_layers");
+    def->sidetext = L("layers");
+    def->min = -1;
+    def->enum_values.push_back("-1");
+    append(def->enum_values, support_material_interface_layers->enum_values);
+    def->enum_labels.push_back(L("same as top"));
+    append(def->enum_labels, support_material_interface_layers->enum_labels);
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(-1));
 
     def = this->add("support_material_interface_spacing", coFloat);
     def->label = L("Interface pattern spacing");
@@ -2414,6 +2458,13 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
+
+    def = this->add("thick_bridges", coBool);
+    def->label = L("Thick bridges");
+    def->category = L("Layers and Perimeters");
+    def->tooltip = L("Print bridges with round extrusions.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("thin_walls", coBool);
     def->label = L("Detect thin walls");
@@ -2823,7 +2874,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("material_type", coString);
     def->label = L("SLA material type");
     def->tooltip = L("SLA material type");
-    def->gui_type = "f_enum_open";   // TODO: ???
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;   // TODO: ???
     def->gui_flags = "show_value";
     def->enum_values.push_back("Tough");
     def->enum_values.push_back("Flexible");

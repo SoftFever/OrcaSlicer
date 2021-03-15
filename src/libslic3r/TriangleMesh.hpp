@@ -89,6 +89,12 @@ private:
     std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
 };
 
+// Create an index of faces belonging to each vertex. The returned vector can
+// be indexed with vertex indices and contains a list of face indices for each
+// vertex.
+std::vector< std::vector<size_t> >
+create_neighbor_index(const indexed_triangle_set &its);
+
 enum FacetEdgeType { 
     // A general case, the cutting plane intersect a face at two different edges.
     feGeneral,

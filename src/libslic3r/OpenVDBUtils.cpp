@@ -22,74 +22,54 @@ namespace Slic3r {
 class TriangleMeshDataAdapter {
 public:
     const TriangleMesh &mesh;
-    
+    float voxel_scale;
+
     size_t polygonCount() const { return mesh.its.indices.size(); }
     size_t pointCount() const   { return mesh.its.vertices.size(); }
     size_t vertexCount(size_t) const { return 3; }
-    
+
     // Return position pos in local grid index space for polygon n and vertex v
-    void getIndexSpacePoint(size_t n, size_t v, openvdb::Vec3d& pos) const;
+    // The actual mesh will appear to openvdb as scaled uniformly by voxel_size
+    // And the voxel count per unit volume can be affected this way.
+    void getIndexSpacePoint(size_t n, size_t v, openvdb::Vec3d& pos) const
+    {
+        auto vidx = size_t(mesh.its.indices[n](Eigen::Index(v)));
+        Slic3r::Vec3d p = mesh.its.vertices[vidx].cast<double>() * voxel_scale;
+        pos = {p.x(), p.y(), p.z()};
+    }
+
+    TriangleMeshDataAdapter(const TriangleMesh &m, float voxel_sc = 1.f)
+        : mesh{m}, voxel_scale{voxel_sc} {};
 };
-
-class Contour3DDataAdapter {
-public:
-    const sla::Contour3D &mesh;
-    
-    size_t polygonCount() const { return mesh.faces3.size() + mesh.faces4.size(); }
-    size_t pointCount() const   { return mesh.points.size(); }
-    size_t vertexCount(size_t n) const { return n < mesh.faces3.size() ? 3 : 4; }
-    
-    // Return position pos in local grid index space for polygon n and vertex v
-    void getIndexSpacePoint(size_t n, size_t v, openvdb::Vec3d& pos) const;
-};
-
-void TriangleMeshDataAdapter::getIndexSpacePoint(size_t          n,
-                                                 size_t          v,
-                                                 openvdb::Vec3d &pos) const
-{
-    auto vidx = size_t(mesh.its.indices[n](Eigen::Index(v)));
-    Slic3r::Vec3d p = mesh.its.vertices[vidx].cast<double>();
-    pos = {p.x(), p.y(), p.z()};
-}
-
-void Contour3DDataAdapter::getIndexSpacePoint(size_t          n,
-                                              size_t          v,
-                                              openvdb::Vec3d &pos) const
-{
-    size_t vidx = 0;
-    if (n < mesh.faces3.size()) vidx = size_t(mesh.faces3[n](Eigen::Index(v)));
-    else vidx = size_t(mesh.faces4[n - mesh.faces3.size()](Eigen::Index(v)));
-    
-    Slic3r::Vec3d p = mesh.points[vidx];
-    pos = {p.x(), p.y(), p.z()};
-}
-
 
 // TODO: Do I need to call initialize? Seems to work without it as well but the
 // docs say it should be called ones. It does a mutex lock-unlock sequence all
 // even if was called previously.
-openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &mesh,
+openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &            mesh,
                                      const openvdb::math::Transform &tr,
-                                     float               exteriorBandWidth,
-                                     float               interiorBandWidth,
-                                     int                 flags)
+                                     float voxel_scale,
+                                     float exteriorBandWidth,
+                                     float interiorBandWidth,
+                                     int   flags)
 {
     openvdb::initialize();
 
-    TriangleMeshPtrs meshparts = mesh.split();
+    TriangleMeshPtrs meshparts_raw = mesh.split();
+    auto meshparts = reserve_vector<std::unique_ptr<TriangleMesh>>(meshparts_raw.size());
+    for (auto *p : meshparts_raw)
+        meshparts.emplace_back(p);
 
-    auto it = std::remove_if(meshparts.begin(), meshparts.end(),
-    [](TriangleMesh *m){
-        m->require_shared_vertices();
-        return !m->is_manifold() || m->volume() < EPSILON;
-    });
+    auto it = std::remove_if(meshparts.begin(), meshparts.end(), [](auto &m) {
+         m->require_shared_vertices();
+         return m->volume() < EPSILON;
+     });
 
     meshparts.erase(it, meshparts.end());
 
     openvdb::FloatGrid::Ptr grid;
-    for (TriangleMesh *m : meshparts) {
+    for (auto &m : meshparts) {
         auto subgrid = openvdb::tools::meshToVolume<openvdb::FloatGrid>(
-            TriangleMeshDataAdapter{*m}, tr, exteriorBandWidth,
+            TriangleMeshDataAdapter{*m, voxel_scale}, tr, exteriorBandWidth,
             interiorBandWidth, flags);
 
         if (grid && subgrid) openvdb::tools::csgUnion(*grid, *subgrid);
@@ -106,19 +86,9 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &mesh,
             interiorBandWidth, flags);
     }
 
-    return grid;
-}
+    grid->insertMeta("voxel_scale", openvdb::FloatMetadata(voxel_scale));
 
-openvdb::FloatGrid::Ptr mesh_to_grid(const sla::Contour3D &mesh,
-                                     const openvdb::math::Transform &tr,
-                                     float exteriorBandWidth,
-                                     float interiorBandWidth,
-                                     int flags)
-{
-    openvdb::initialize();
-    return openvdb::tools::meshToVolume<openvdb::FloatGrid>(
-        Contour3DDataAdapter{mesh}, tr, exteriorBandWidth, interiorBandWidth,
-        flags);
+    return grid;
 }
 
 template<class Grid>
@@ -128,20 +98,25 @@ sla::Contour3D _volumeToMesh(const Grid &grid,
                              bool        relaxDisorientedTriangles)
 {
     openvdb::initialize();
-    
+
     std::vector<openvdb::Vec3s> points;
     std::vector<openvdb::Vec3I> triangles;
     std::vector<openvdb::Vec4I> quads;
-    
+
     openvdb::tools::volumeToMesh(grid, points, triangles, quads, isovalue,
                                  adaptivity, relaxDisorientedTriangles);
-    
+
+    float scale = 1.;
+    try {
+        scale = grid.template metaValue<float>("voxel_scale");
+    }  catch (...) { }
+
     sla::Contour3D ret;
     ret.points.reserve(points.size());
     ret.faces3.reserve(triangles.size());
     ret.faces4.reserve(quads.size());
 
-    for (auto &v : points) ret.points.emplace_back(to_vec3d(v));
+    for (auto &v : points) ret.points.emplace_back(to_vec3d(v) / scale);
     for (auto &v : triangles) ret.faces3.emplace_back(to_vec3i(v));
     for (auto &v : quads) ret.faces4.emplace_back(to_vec4i(v));
 
@@ -166,9 +141,18 @@ sla::Contour3D grid_to_contour3d(const openvdb::FloatGrid &grid,
                          relaxDisorientedTriangles);
 }
 
-openvdb::FloatGrid::Ptr redistance_grid(const openvdb::FloatGrid &grid, double iso, double er, double ir)
+openvdb::FloatGrid::Ptr redistance_grid(const openvdb::FloatGrid &grid,
+                                        double                    iso,
+                                        double                    er,
+                                        double                    ir)
 {
-    return openvdb::tools::levelSetRebuild(grid, float(iso), float(er), float(ir));
+    auto new_grid = openvdb::tools::levelSetRebuild(grid, float(iso),
+                                                    float(er), float(ir));
+
+    // Copies voxel_scale metadata, if it exists.
+    new_grid->insertMeta(*grid.deepCopyMeta());
+
+    return new_grid;
 }
 
 } // namespace Slic3r

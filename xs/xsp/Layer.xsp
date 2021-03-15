@@ -23,8 +23,8 @@
     Ref<ExtrusionEntityCollection> fills()
         %code%{ RETVAL = &THIS->fills; %};
     
-    Clone<Flow> flow(FlowRole role, bool bridge = false, double width = -1)
-        %code%{ RETVAL = THIS->flow(role, bridge, width); %};
+    Clone<Flow> flow(FlowRole role)
+        %code%{ RETVAL = THIS->flow(role); %};
     void prepare_fill_surfaces();
     void make_perimeters(SurfaceCollection* slices, SurfaceCollection* fill_surfaces)
         %code%{ THIS->make_perimeters(*slices, fill_surfaces); %};

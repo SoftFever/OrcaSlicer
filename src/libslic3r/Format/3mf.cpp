@@ -2014,9 +2014,10 @@ namespace Slic3r {
         typedef std::map<int, ObjectData> IdToObjectDataMap;
 
         bool m_fullpath_sources{ true };
+        bool m_zip64 { true };
 
     public:
-        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data = nullptr);
+        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data, bool zip64);
 
     private:
         bool _save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data);
@@ -2036,10 +2037,11 @@ namespace Slic3r {
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
     };
 
-    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data, bool zip64)
     {
         clear_errors();
         m_fullpath_sources = fullpath_sources;
+        m_zip64 = zip64;
         return _save_model_to_file(filename, model, config, thumbnail_data);
     }
 
@@ -2233,9 +2235,13 @@ namespace Slic3r {
     {
         mz_zip_writer_staged_context context;
         if (!mz_zip_writer_add_staged_open(&archive, &context, MODEL_FILE.c_str(), 
-            // Maximum expected and allowed 3MF file size is 16GiB.
-            // This switches the ZIP file to a 64bit mode, which adds a tiny bit of overhead to file records.
-            (uint64_t(1) << 30) * 16,
+            m_zip64 ? 
+                // Maximum expected and allowed 3MF file size is 16GiB.
+                // This switches the ZIP file to a 64bit mode, which adds a tiny bit of overhead to file records.
+                (uint64_t(1) << 30) * 16 : 
+                // Maximum expected 3MF file size is 4GB-1. This is a workaround for interoperability with Windows 10 3D model fixing API, see
+                // GH issue #6193.
+                (uint64_t(1) << 32) - 1,
             nullptr, nullptr, 0, MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0)) {
             add_error("Unable to add model file to archive");
             return false;
@@ -2926,13 +2932,13 @@ bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool c
     return res;
 }
 
-bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
+bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data, bool zip64)
 {
     if (path == nullptr || model == nullptr)
         return false;
 
     _3MF_Exporter exporter;
-    bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources, thumbnail_data);
+    bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources, thumbnail_data, zip64);
     if (!res)
         exporter.log_errors();
 

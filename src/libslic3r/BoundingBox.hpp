@@ -21,22 +21,30 @@ public:
         min(pmin), max(pmax), defined(pmin(0) < pmax(0) && pmin(1) < pmax(1)) {}
     BoundingBoxBase(const PointClass &p1, const PointClass &p2, const PointClass &p3) :
         min(p1), max(p1), defined(false) { merge(p2); merge(p3); }
-    BoundingBoxBase(const std::vector<PointClass>& points) : min(PointClass::Zero()), max(PointClass::Zero())
+
+    template<class It, class = IteratorOnly<It> >
+    BoundingBoxBase(It from, It to) : min(PointClass::Zero()), max(PointClass::Zero())
     {
-        if (points.empty()) {
+        if (from == to) {
             this->defined = false;
             // throw Slic3r::InvalidArgument("Empty point set supplied to BoundingBoxBase constructor");
         } else {
-            typename std::vector<PointClass>::const_iterator it = points.begin();
-            this->min = *it;
-            this->max = *it;
-            for (++ it; it != points.end(); ++ it) {
-                this->min = this->min.cwiseMin(*it);
-                this->max = this->max.cwiseMax(*it);
+            auto it = from;
+            this->min = it->template cast<typename PointClass::Scalar>();
+            this->max = this->min;
+            for (++ it; it != to; ++ it) {
+                auto vec = it->template cast<typename PointClass::Scalar>();
+                this->min = this->min.cwiseMin(vec);
+                this->max = this->max.cwiseMax(vec);
             }
             this->defined = (this->min(0) < this->max(0)) && (this->min(1) < this->max(1));
         }
     }
+
+    BoundingBoxBase(const std::vector<PointClass> &points)
+        : BoundingBoxBase(points.begin(), points.end())
+    {}
+
     void reset() { this->defined = false; this->min = PointClass::Zero(); this->max = PointClass::Zero(); }
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
@@ -74,19 +82,27 @@ public:
         { if (pmin(2) >= pmax(2)) BoundingBoxBase<PointClass>::defined = false; }
     BoundingBox3Base(const PointClass &p1, const PointClass &p2, const PointClass &p3) :
         BoundingBoxBase<PointClass>(p1, p1) { merge(p2); merge(p3); }
-    BoundingBox3Base(const std::vector<PointClass>& points)
+
+    template<class It, class = IteratorOnly<It> > BoundingBox3Base(It from, It to)
     {
-        if (points.empty())
+        if (from == to)
             throw Slic3r::InvalidArgument("Empty point set supplied to BoundingBox3Base constructor");
-        typename std::vector<PointClass>::const_iterator it = points.begin();
-        this->min = *it;
-        this->max = *it;
-        for (++ it; it != points.end(); ++ it) {
-            this->min = this->min.cwiseMin(*it);
-            this->max = this->max.cwiseMax(*it);
+
+        auto it = from;
+        this->min = it->template cast<typename PointClass::Scalar>();
+        this->max = this->min;
+        for (++ it; it != to; ++ it) {
+            auto vec = it->template cast<typename PointClass::Scalar>();
+            this->min = this->min.cwiseMin(vec);
+            this->max = this->max.cwiseMax(vec);
         }
         this->defined = (this->min(0) < this->max(0)) && (this->min(1) < this->max(1)) && (this->min(2) < this->max(2));
     }
+
+    BoundingBox3Base(const std::vector<PointClass> &points)
+        : BoundingBox3Base(points.begin(), points.end())
+    {}
+
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
     void merge(const BoundingBox3Base<PointClass> &bb);
@@ -188,9 +204,7 @@ public:
 class BoundingBoxf3 : public BoundingBox3Base<Vec3d> 
 {
 public:
-    BoundingBoxf3() : BoundingBox3Base<Vec3d>() {}
-    BoundingBoxf3(const Vec3d &pmin, const Vec3d &pmax) : BoundingBox3Base<Vec3d>(pmin, pmax) {}
-    BoundingBoxf3(const std::vector<Vec3d> &points) : BoundingBox3Base<Vec3d>(points) {}
+    using BoundingBox3Base::BoundingBox3Base;
 
     BoundingBoxf3 transformed(const Transform3d& matrix) const;
 };

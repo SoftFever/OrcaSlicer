@@ -8,7 +8,7 @@
 
 namespace Slic3r {
 
-static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline &thick_polyline, ExtrusionRole role, Flow &flow, const float tolerance)
+static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline &thick_polyline, ExtrusionRole role, const Flow &flow, const float tolerance)
 {
     ExtrusionPaths paths;
     ExtrusionPath path(role);
@@ -62,15 +62,15 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline &thi
             path.polyline.append(line.b);
             // Convert from spacing to extrusion width based on the extrusion model
             // of a square extrusion ended with semi circles.
-            flow.width = unscale<float>(w) + flow.height * float(1. - 0.25 * PI);
+            Flow new_flow = flow.with_width(unscale<float>(w) + flow.height() * float(1. - 0.25 * PI));
             #ifdef SLIC3R_DEBUG
             printf("  filling %f gap\n", flow.width);
             #endif
-            path.mm3_per_mm  = flow.mm3_per_mm();
-            path.width       = flow.width;
-            path.height      = flow.height;
+            path.mm3_per_mm  = new_flow.mm3_per_mm();
+            path.width       = new_flow.width();
+            path.height      = new_flow.height();
         } else {
-            thickness_delta = fabs(scale_(flow.width) - w);
+            thickness_delta = fabs(scale_(flow.width()) - w);
             if (thickness_delta <= tolerance) {
                 // the width difference between this line and the current flow width is 
                 // within the accepted tolerance
@@ -88,7 +88,7 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline &thi
     return paths;
 }
 
-static void variable_width(const ThickPolylines& polylines, ExtrusionRole role, Flow flow, std::vector<ExtrusionEntity*> &out)
+static void variable_width(const ThickPolylines& polylines, ExtrusionRole role, const Flow &flow, std::vector<ExtrusionEntity*> &out)
 {
 	// This value determines granularity of adaptive width, as G-code does not allow
 	// variable extrusion within a single move; this value shall only affect the amount
@@ -205,8 +205,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 paths,
                 intersection_pl({ polygon }, perimeter_generator.lower_slices_polygons()),
                 role,
-                is_external ? perimeter_generator.ext_mm3_per_mm()          : perimeter_generator.mm3_per_mm(),
-                is_external ? perimeter_generator.ext_perimeter_flow.width  : perimeter_generator.perimeter_flow.width,
+                is_external ? perimeter_generator.ext_mm3_per_mm()           : perimeter_generator.mm3_per_mm(),
+                is_external ? perimeter_generator.ext_perimeter_flow.width() : perimeter_generator.perimeter_flow.width(),
                 (float)perimeter_generator.layer_height);
             
             // get overhang paths by checking what parts of this loop fall 
@@ -217,8 +217,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 diff_pl({ polygon }, perimeter_generator.lower_slices_polygons()),
                 erOverhangPerimeter,
                 perimeter_generator.mm3_per_mm_overhang(),
-                perimeter_generator.overhang_flow.width,
-                perimeter_generator.overhang_flow.height);
+                perimeter_generator.overhang_flow.width(),
+                perimeter_generator.overhang_flow.height());
             
             // Reapply the nearest point search for starting point.
             // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
@@ -226,8 +226,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         } else {
             ExtrusionPath path(role);
             path.polyline   = polygon.split_at_first_point();
-            path.mm3_per_mm = is_external ? perimeter_generator.ext_mm3_per_mm()          : perimeter_generator.mm3_per_mm();
-            path.width      = is_external ? perimeter_generator.ext_perimeter_flow.width  : perimeter_generator.perimeter_flow.width;
+            path.mm3_per_mm = is_external ? perimeter_generator.ext_mm3_per_mm()           : perimeter_generator.mm3_per_mm();
+            path.width      = is_external ? perimeter_generator.ext_perimeter_flow.width() : perimeter_generator.perimeter_flow.width();
             path.height     = (float)perimeter_generator.layer_height;
             paths.push_back(path);
         }
@@ -286,7 +286,7 @@ void PerimeterGenerator::process()
     m_ext_mm3_per_mm           		= this->ext_perimeter_flow.mm3_per_mm();
     coord_t ext_perimeter_width     = this->ext_perimeter_flow.scaled_width();
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
-    coord_t ext_perimeter_spacing2  = this->ext_perimeter_flow.scaled_spacing(this->perimeter_flow);
+    coord_t ext_perimeter_spacing2  = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
     
     // overhang perimeters
     m_mm3_per_mm_overhang      		= this->overhang_flow.mm3_per_mm();
@@ -346,7 +346,7 @@ void PerimeterGenerator::process()
                     if (this->config->thin_walls) {
                         // the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         // (actually, something larger than that still may exist due to mitering or other causes)
-                        coord_t min_width = coord_t(scale_(this->ext_perimeter_flow.nozzle_diameter / 3));
+                        coord_t min_width = coord_t(scale_(this->ext_perimeter_flow.nozzle_diameter() / 3));
                         ExPolygons expp = offset2_ex(
                             // medial axis requires non-overlapping geometry
                             diff_ex(to_polygons(last),

@@ -1317,7 +1317,12 @@ wxString Control::get_tooltip(int tick/*=-1*/)
                         "This code won't be processed during G-code generation.");
         
         // Show custom Gcode as a first string of tooltop
-        tooltip = "    ";
+        std::string space = "   ";
+        tooltip = space;
+        auto format_gcode = [space](std::string gcode) {
+            boost::replace_all(gcode, "\n", "\n" + space);
+            return gcode;
+        };
         tooltip +=  
         	tick_code_it->type == ColorChange ?
         		(m_mode == SingleExtruder ?
@@ -1329,7 +1334,7 @@ wxString Control::get_tooltip(int tick/*=-1*/)
 	                format_wxstr(_L("Custom template (\"%1%\")"), gcode(Template)) :
 		            tick_code_it->type == ToolChange ?
 		                format_wxstr(_L("Extruder (tool) is changed to Extruder \"%1%\""), tick_code_it->extruder) :                
-		                from_u8(tick_code_it->extra);// tick_code_it->type == Custom
+		                from_u8(format_gcode(tick_code_it->extra));// tick_code_it->type == Custom
 
         // If tick is marked as a conflict (exclamation icon),
         // we should to explain why
@@ -1925,6 +1930,8 @@ void Control::auto_color_change()
     double delta_area = scale_(scale_(25)); // equal to 25 mm2
 
     for (auto object : print.objects()) {
+        if (object->layer_count() == 0)
+            continue;
         double prev_area = area(object->get_layer(0)->lslices);
 
         for (size_t i = 1; i < object->layers().size(); i++) {

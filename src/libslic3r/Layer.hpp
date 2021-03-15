@@ -59,7 +59,10 @@ public:
     // (this collection contains only ExtrusionEntityCollection objects)
     ExtrusionEntityCollection   fills;
     
-    Flow    flow(FlowRole role, bool bridge = false, double width = -1) const;
+    Flow    flow(FlowRole role) const;
+    Flow    flow(FlowRole role, double layer_height) const;
+    Flow    bridging_flow(FlowRole role) const;
+
     void    slices_to_fill_surfaces_clipped();
     void    prepare_fill_surfaces();
     void    make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces);

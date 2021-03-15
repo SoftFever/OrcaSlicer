@@ -78,6 +78,8 @@ public:
     // must make sure that it stays valid.
     void set_mesh(const TriangleMesh& mesh);
 
+    void set_negative_mesh(const TriangleMesh &mesh);
+
     // Inform the MeshClipper about the transformation that transforms the mesh
     // into world coordinates.
     void set_transformation(const Geometry::Transformation& trafo);
@@ -91,6 +93,7 @@ private:
 
     Geometry::Transformation m_trafo;
     const TriangleMesh* m_mesh = nullptr;
+    const TriangleMesh* m_negative_mesh = nullptr;
     ClippingPlane m_plane;
     std::vector<Vec2f> m_triangles2d;
     GLIndexedVertexArray m_vertex_array;

@@ -363,7 +363,7 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 				ModelObject *model_object = model.add_object();
 				model_object->add_volume(*volumes[ivolume]);
 				model_object->add_instance();
-				if (!Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr, false)) {
+				if (!Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr, false, nullptr, false)) {
 					boost::filesystem::remove(path_src);
 					throw Slic3r::RuntimeError(L("Export of a temporary 3mf file failed"));
 				}

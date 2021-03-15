@@ -1,4 +1,5 @@
 #include "RemovableDriveManager.hpp"
+#include "slic3r/Utils/Platform.hpp"
 #include <libslic3r/libslic3r.h>
 
 #include <boost/nowide/convert.hpp>
@@ -231,22 +232,28 @@ std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() cons
 
 #else
 
-    //search /media/* folder
-	search_for_drives_internal::search_path("/media/*", "/media", current_drives);
+   	if (platform() == Platform::Linux && platform_flavor() == PlatformFlavor::LinuxOnChromium) {
+	    // ChromeOS specific: search /mnt/chromeos/removable/* folder
+		search_for_drives_internal::search_path("/mnt/chromeos/removable/*", "/mnt/chromeos/removable", current_drives);
+   	} else {
+	    //search /media/* folder
+		search_for_drives_internal::search_path("/media/*", "/media", current_drives);
 
-	//search_path("/Volumes/*", "/Volumes");
-    std::string path(std::getenv("USER"));
-	std::string pp(path);
+		//search_path("/Volumes/*", "/Volumes");
+	    std::string path(std::getenv("USER"));
+		std::string pp(path);
 
-	//search /media/USERNAME/* folder
-	pp = "/media/"+pp;
-	path = "/media/" + path + "/*";
-	search_for_drives_internal::search_path(path, pp, current_drives);
+		//search /media/USERNAME/* folder
+		pp = "/media/"+pp;
+		path = "/media/" + path + "/*";
+		search_for_drives_internal::search_path(path, pp, current_drives);
 
-	//search /run/media/USERNAME/* folder
-	path = "/run" + path;
-	pp = "/run"+pp;
-	search_for_drives_internal::search_path(path, pp, current_drives);
+		//search /run/media/USERNAME/* folder
+		path = "/run" + path;
+		pp = "/run"+pp;
+		search_for_drives_internal::search_path(path, pp, current_drives);
+	}
+
 #endif
 
 	return current_drives;
@@ -443,7 +450,10 @@ RemovableDriveManager::RemovableDrivesStatus RemovableDriveManager::status()
 	RemovableDriveManager::RemovableDrivesStatus out;
 	{
 		tbb::mutex::scoped_lock lock(m_drives_mutex);
-		out.has_eject = this->find_last_save_path_drive_data() != m_current_drives.end();
+		out.has_eject = 
+			// Cannot control eject on Chromium.
+			(platform() != Platform::Linux || platform_flavor() != PlatformFlavor::LinuxOnChromium) &&
+			this->find_last_save_path_drive_data() != m_current_drives.end();
 		out.has_removable_drives = ! m_current_drives.empty();
 	}
 	if (! out.has_eject) 

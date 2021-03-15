@@ -148,74 +148,33 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                 speed_normal = first_layer_speed.get_abs_value(speed_normal);
             return (speed_normal > 0.) ? speed_normal : speed_max;
         };
+        auto test_flow =
+            [first_layer_extrusion_width_ptr, extrusion_width, nozzle_diameter, lh, bridging, bridge_speed, bridge_flow_ratio, limit_by_first_layer_speed, max_print_speed, &max_flow, &max_flow_extrusion_type]
+            (FlowRole flow_role, const ConfigOptionFloatOrPercent &this_extrusion_width, double speed, const char *err_msg) {
+            Flow flow = bridging ?
+                Flow::new_from_config_width(flow_role, first_positive(first_layer_extrusion_width_ptr, this_extrusion_width, extrusion_width), nozzle_diameter, lh) :
+                Flow::bridging_flow(nozzle_diameter * bridge_flow_ratio, nozzle_diameter);
+            double volumetric_flow = flow.mm3_per_mm() * (bridging ? bridge_speed : limit_by_first_layer_speed(speed, max_print_speed));
+            if (max_flow < volumetric_flow) {
+                max_flow = volumetric_flow;
+                max_flow_extrusion_type = _utf8(err_msg);
+            }
+        };
         if (perimeter_extruder_active) {
-            double external_perimeter_rate = Flow::new_from_config_width(frExternalPerimeter, 
-                first_positive(first_layer_extrusion_width_ptr, external_perimeter_extrusion_width, extrusion_width), 
-                nozzle_diameter, lh, bfr).mm3_per_mm() *
-                (bridging ? bridge_speed : 
-                    limit_by_first_layer_speed(std::max(external_perimeter_speed, small_perimeter_speed), max_print_speed));
-            if (max_flow < external_perimeter_rate) {
-                max_flow = external_perimeter_rate;
-                max_flow_extrusion_type = _utf8(L("external perimeters"));
-            }
-            double perimeter_rate = Flow::new_from_config_width(frPerimeter, 
-                first_positive(first_layer_extrusion_width_ptr, perimeter_extrusion_width, extrusion_width), 
-                nozzle_diameter, lh, bfr).mm3_per_mm() *
-                (bridging ? bridge_speed :
-                    limit_by_first_layer_speed(std::max(perimeter_speed, small_perimeter_speed), max_print_speed));
-            if (max_flow < perimeter_rate) {
-                max_flow = perimeter_rate;
-                max_flow_extrusion_type = _utf8(L("perimeters"));
-            }
+            test_flow(frExternalPerimeter, external_perimeter_extrusion_width, std::max(external_perimeter_speed, small_perimeter_speed), L("external perimeters"));
+            test_flow(frPerimeter,         perimeter_extrusion_width,          std::max(perimeter_speed,          small_perimeter_speed), L("perimeters"));
         }
-        if (! bridging && infill_extruder_active) {
-            double infill_rate = Flow::new_from_config_width(frInfill, 
-                first_positive(first_layer_extrusion_width_ptr, infill_extrusion_width, extrusion_width), 
-                nozzle_diameter, lh, bfr).mm3_per_mm() * limit_by_first_layer_speed(infill_speed, max_print_speed);
-            if (max_flow < infill_rate) {
-                max_flow = infill_rate;
-                max_flow_extrusion_type = _utf8(L("infill"));
-            }
-        }
+        if (! bridging && infill_extruder_active)
+            test_flow(frInfill, infill_extrusion_width, infill_speed, L("infill"));
         if (solid_infill_extruder_active) {
-            double solid_infill_rate = Flow::new_from_config_width(frInfill, 
-                first_positive(first_layer_extrusion_width_ptr, solid_infill_extrusion_width, extrusion_width), 
-                nozzle_diameter, lh, 0).mm3_per_mm() *
-                (bridging ? bridge_speed : limit_by_first_layer_speed(solid_infill_speed, max_print_speed));
-            if (max_flow < solid_infill_rate) {
-                max_flow = solid_infill_rate;
-                max_flow_extrusion_type = _utf8(L("solid infill"));
-            }
-            if (! bridging) {
-                double top_solid_infill_rate = Flow::new_from_config_width(frInfill, 
-                    first_positive(first_layer_extrusion_width_ptr, top_infill_extrusion_width, extrusion_width), 
-                    nozzle_diameter, lh, bfr).mm3_per_mm() * limit_by_first_layer_speed(top_solid_infill_speed, max_print_speed);
-                if (max_flow < top_solid_infill_rate) {
-                    max_flow = top_solid_infill_rate;
-                    max_flow_extrusion_type = _utf8(L("top solid infill"));
-                }
-            }
+            test_flow(frInfill, solid_infill_extrusion_width, solid_infill_speed, L("solid infill"));
+            if (! bridging)
+                test_flow(frInfill, top_infill_extrusion_width, top_solid_infill_speed, L("top solid infill"));
         }
-        if (support_material_extruder_active) {
-            double support_material_rate = Flow::new_from_config_width(frSupportMaterial,
-                first_positive(first_layer_extrusion_width_ptr, support_material_extrusion_width, extrusion_width), 
-                nozzle_diameter, lh, bfr).mm3_per_mm() *
-                (bridging ? bridge_speed : limit_by_first_layer_speed(support_material_speed, max_print_speed));
-            if (max_flow < support_material_rate) {
-                max_flow = support_material_rate;
-                max_flow_extrusion_type = _utf8(L("support"));
-            }
-        }
-        if (support_material_interface_extruder_active) {
-            double support_material_interface_rate = Flow::new_from_config_width(frSupportMaterialInterface,
-                first_positive(first_layer_extrusion_width_ptr, support_material_extrusion_width, extrusion_width),
-                nozzle_diameter, lh, bfr).mm3_per_mm() *
-                (bridging ? bridge_speed : limit_by_first_layer_speed(support_material_interface_speed, max_print_speed));
-            if (max_flow < support_material_interface_rate) {
-                max_flow = support_material_interface_rate;
-                max_flow_extrusion_type = _utf8(L("support interface"));
-            }
-        }
+        if (! bridging && support_material_extruder_active)
+            test_flow(frSupportMaterial, support_material_extrusion_width, support_material_speed, L("support"));
+        if (support_material_interface_extruder_active)
+            test_flow(frSupportMaterialInterface, support_material_extrusion_width, support_material_interface_speed, L("support interface"));
         //FIXME handle gap_fill_speed
         if (! out.empty())
             out += "\n";
@@ -254,11 +213,11 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
     Flow    external_perimeter_flow             = Flow::new_from_config_width(
         frExternalPerimeter, 
         *print_config.opt<ConfigOptionFloatOrPercent>("external_perimeter_extrusion_width"), 
-        nozzle_diameter, layer_height, false);
+        nozzle_diameter, layer_height);
     Flow    perimeter_flow                      = Flow::new_from_config_width(
         frPerimeter, 
         *print_config.opt<ConfigOptionFloatOrPercent>("perimeter_extrusion_width"), 
-        nozzle_diameter, layer_height, false);
+        nozzle_diameter, layer_height);
 
     
     if (num_perimeters > 0) {
@@ -266,7 +225,7 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
         out += (boost::format(_utf8(L("Recommended object thin wall thickness for layer height %.2f and"))) % layer_height).str() + " ";
         // Start with the width of two closely spaced 
         try {
-	        double width = external_perimeter_flow.width + external_perimeter_flow.spacing();
+	        double width = external_perimeter_flow.width() + external_perimeter_flow.spacing();
 	        for (int i = 2; i <= num_lines; thin_walls ? ++ i : i += 2) {
 	            if (i > 2)
 	                out += ", ";

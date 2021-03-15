@@ -902,7 +902,7 @@ void Choice::BUILD() {
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
 	choice_ctrl* temp;
-    if (!m_opt.gui_type.empty() && m_opt.gui_type.compare("select_open") != 0) {
+    if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open) {
         m_is_editable = true;
         temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
     }
@@ -965,15 +965,27 @@ void Choice::BUILD() {
             }
 
             if (is_defined_input_value<choice_ctrl>(window, m_opt.type)) {
-                if (m_opt.type == coFloatOrPercent) {
+				switch (m_opt.type) {
+				case coFloatOrPercent:
+				{
                     std::string old_val = !m_value.empty() ? boost::any_cast<std::string>(m_value) : "";
                     if (old_val == boost::any_cast<std::string>(get_value()))
                         return;
+					break;
                 }
-                else {
-                    double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
-                    if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
+				case coInt:
+				{
+                    int old_val = !m_value.empty() ? boost::any_cast<int>(m_value) : 0;
+                    if (old_val == boost::any_cast<int>(get_value()))
                         return;
+					break;
+				}
+				default:
+				{
+					double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
+					if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
+						return;
+				}
                 }
                 on_change_field();
             }
@@ -1225,7 +1237,7 @@ boost::any& Choice::get_value()
         else if (m_opt_id == "brim_type")
             m_value = static_cast<BrimType>(ret_enum);
 	}
-    else if (m_opt.gui_type == "f_enum_open") {
+    else if (m_opt.gui_type == ConfigOptionDef::GUIType::f_enum_open || m_opt.gui_type == ConfigOptionDef::GUIType::i_enum_open) {
         const int ret_enum = field->GetSelection();
         if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings ||
             (ret_str != m_opt.enum_values[ret_enum] && ret_str != _(m_opt.enum_labels[ret_enum])))
@@ -1233,6 +1245,8 @@ boost::any& Choice::get_value()
             get_value_by_opt_type(ret_str);
         else if (m_opt.type == coFloatOrPercent)
             m_value = m_opt.enum_values[ret_enum];
+        else if (m_opt.type == coInt)
+            m_value = atoi(m_opt.enum_values[ret_enum].c_str());
         else
             m_value = atof(m_opt.enum_values[ret_enum].c_str());
     }

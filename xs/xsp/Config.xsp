@@ -170,19 +170,6 @@ print_config_def()
                 throw "Unknown option type";
             }
             (void)hv_stores( hv, "type",        newSVpv(opt_type, 0) );
-            (void)hv_stores( hv, "gui_type",    newSVpvn(optdef->gui_type.c_str(), optdef->gui_type.length()) );
-            (void)hv_stores( hv, "gui_flags",   newSVpvn(optdef->gui_flags.c_str(), optdef->gui_flags.length()) );
-            (void)hv_stores( hv, "label",       newSVpvn_utf8(optdef->label.c_str(), optdef->label.length(), true) );
-            if (!optdef->full_label.empty())
-                (void)hv_stores( hv, "full_label",  newSVpvn_utf8(optdef->full_label.c_str(), optdef->full_label.length(), true) );
-            (void)hv_stores( hv, "category",    newSVpvn_utf8(optdef->category.c_str(), optdef->category.length(), true) );
-            (void)hv_stores( hv, "tooltip",     newSVpvn_utf8(optdef->tooltip.c_str(), optdef->tooltip.length(), true) );
-            (void)hv_stores( hv, "sidetext",    newSVpvn_utf8(optdef->sidetext.c_str(), optdef->sidetext.length(), true) );
-            (void)hv_stores( hv, "cli",         newSVpvn(optdef->cli.c_str(), optdef->cli.length()) );
-            (void)hv_stores( hv, "ratio_over",  newSVpvn(optdef->ratio_over.c_str(), optdef->ratio_over.length()) );
-            (void)hv_stores( hv, "multiline",   newSViv(optdef->multiline ? 1 : 0) );
-            (void)hv_stores( hv, "full_width",  newSViv(optdef->full_width ? 1 : 0) );
-            (void)hv_stores( hv, "readonly",    newSViv(optdef->readonly ? 1 : 0) );
             (void)hv_stores( hv, "height",      newSViv(optdef->height) );
             (void)hv_stores( hv, "width",       newSViv(optdef->width) );
             (void)hv_stores( hv, "min",         newSViv(optdef->min) );

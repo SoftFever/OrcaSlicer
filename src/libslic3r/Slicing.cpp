@@ -112,8 +112,10 @@ SlicingParameters SlicingParameters::create_from_config(
 
     if (! soluble_interface) {
         params.gap_raft_object    = object_config.raft_contact_distance.value;
-        params.gap_object_support = object_config.support_material_contact_distance.value;
+        params.gap_object_support = object_config.support_material_bottom_contact_distance.value;
         params.gap_support_object = object_config.support_material_contact_distance.value;
+        if (params.gap_object_support <= 0)
+            params.gap_object_support = params.gap_support_object;
     }
 
     if (params.base_raft_layers > 0) {

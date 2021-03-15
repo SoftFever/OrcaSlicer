@@ -13,11 +13,6 @@ class PrintObject;
 // Extra spacing of bridge threads, in mm.
 #define BRIDGE_EXTRA_SPACING 0.05
 
-// Overlap factor of perimeter lines. Currently no overlap.
-#ifdef HAS_PERIMETER_LINE_OVERLAP
-    #define PERIMETER_LINE_OVERLAP_FACTOR 1.0
-#endif
-
 enum FlowRole {
     frExternalPerimeter,
     frPerimeter,
@@ -56,26 +51,26 @@ public:
 class Flow
 {
 public:
+    Flow() = default;
+    Flow(float width, float height, float nozzle_diameter) :
+        Flow(width, height, rounded_rectangle_extrusion_spacing(width, height), nozzle_diameter, false) {}
+
     // Non bridging flow: Maximum width of an extrusion with semicircles at the ends.
     // Bridging flow: Bridge thread diameter.
-    float width;
+    float   width()           const { return m_width; }
+    coord_t scaled_width()    const { return coord_t(scale_(m_width)); }
     // Non bridging flow: Layer height.
     // Bridging flow: Bridge thread diameter = layer height.
-    float height;
+    float   height()          const { return m_height; }
+    // Spacing between the extrusion centerlines.
+    float   spacing()         const { return m_spacing; }
+    coord_t scaled_spacing()  const { return coord_t(scale_(m_spacing)); }
     // Nozzle diameter. 
-    float nozzle_diameter;
+    float   nozzle_diameter() const { return m_nozzle_diameter; }
     // Is it a bridge?
-    bool  bridge;
-    
-    Flow(float _w, float _h, float _nd, bool _bridge = false) :
-        width(_w), height(_h), nozzle_diameter(_nd), bridge(_bridge) {}
-
-    float   spacing() const;
-    float   spacing(const Flow &other) const;
-    double  mm3_per_mm() const;
-    coord_t scaled_width() const { return coord_t(scale_(this->width)); }
-    coord_t scaled_spacing() const { return coord_t(scale_(this->spacing())); }
-    coord_t scaled_spacing(const Flow &other) const { return coord_t(scale_(this->spacing(other))); }
+    bool    bridge()          const { return m_bridge; }
+    // Cross section area of the extrusion.
+    double  mm3_per_mm()      const;
 
     // Elephant foot compensation spacing to be used to detect narrow parts, where the elephant foot compensation cannot be applied.
     // To be used on frExternalPerimeter only.
@@ -83,13 +78,32 @@ public:
     // Here an overlap of 0.2x external perimeter spacing is allowed for by the elephant foot compensation.
     coord_t scaled_elephant_foot_spacing() const { return coord_t(0.5f * float(this->scaled_width() + 0.6f * this->scaled_spacing())); }
 
-    bool operator==(const Flow &rhs) const { return this->width == rhs.width && this->height == rhs.height && this->nozzle_diameter == rhs.nozzle_diameter && this->bridge == rhs.bridge; }
-    
-    static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio);
-    // Create a flow from the spacing of extrusion lines.
-    // This method is used exclusively to calculate new flow of 100% infill, where the extrusion width was allowed to scale
-    // to fit a region with integer number of lines.
-    static Flow new_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge);
+    bool operator==(const Flow &rhs) const { return m_width == rhs.m_width && m_height == rhs.m_height && m_nozzle_diameter == rhs.m_nozzle_diameter && m_bridge == rhs.m_bridge; }
+
+    Flow        with_width (float width)  const { 
+        assert(! m_bridge); 
+        return Flow(width, m_height, rounded_rectangle_extrusion_spacing(width, m_height), m_nozzle_diameter, m_bridge);
+    }
+    Flow        with_height(float height) const { 
+        assert(! m_bridge); 
+        return Flow(m_width, height, rounded_rectangle_extrusion_spacing(m_width, height), m_nozzle_diameter, m_bridge);
+    }
+    // Adjust extrusion flow for new extrusion line spacing, maintaining the old spacing between extrusions.
+    Flow        with_spacing(float spacing) const;
+    // Adjust the width / height of a rounded extrusion model to reach the prescribed cross section area while maintaining extrusion spacing.
+    Flow        with_cross_section(float area) const;
+    Flow        with_flow_ratio(double ratio) const { return this->with_cross_section(this->mm3_per_mm() * ratio); }
+
+    static Flow bridging_flow(float dmr, float nozzle_diameter) { return Flow { dmr, dmr, bridge_extrusion_spacing(dmr), nozzle_diameter, true }; }
+
+    static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height);
+
+    // Spacing of extrusions with rounded extrusion model.
+    static float rounded_rectangle_extrusion_spacing(float width, float height);
+    // Width of extrusions with rounded extrusion model.
+    static float rounded_rectangle_extrusion_width_from_spacing(float spacing, float height);
+    // Spacing of round thread extrusions.
+    static float bridge_extrusion_spacing(float dmr);
 
     // Sane extrusion width defautl based on nozzle diameter.
     // The defaults were derived from manual Prusa MK3 profiles.
@@ -100,6 +114,20 @@ public:
     // on active extruder etc. Therefore the value calculated by this function shall be used as a hint only.
 	static double extrusion_width(const std::string &opt_key, const ConfigOptionFloatOrPercent *opt, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
 	static double extrusion_width(const std::string &opt_key, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
+
+private:
+    Flow(float width, float height, float spacing, float nozzle_diameter, bool bridge) : 
+        m_width(width), m_height(height), m_spacing(spacing), m_nozzle_diameter(nozzle_diameter), m_bridge(bridge) 
+        { 
+            // Gap fill violates this condition.
+            //assert(width >= height); 
+        }
+
+    float       m_width { 0 };
+    float       m_height { 0 };
+    float       m_spacing { 0 };
+    float       m_nozzle_diameter { 0 };
+    bool        m_bridge { false };
 };
 
 extern Flow support_material_flow(const PrintObject *object, float layer_height = 0.f);

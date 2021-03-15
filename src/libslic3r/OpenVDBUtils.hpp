@@ -21,14 +21,16 @@ inline Vec3d to_vec3d(const openvdb::Vec3s &v) { return to_vec3f(v).cast<double>
 inline Vec3i to_vec3i(const openvdb::Vec3I &v) { return Vec3i{int(v[0]), int(v[1]), int(v[2])}; }
 inline Vec4i to_vec4i(const openvdb::Vec4I &v) { return Vec4i{int(v[0]), int(v[1]), int(v[2]), int(v[3])}; }
 
+// Here voxel_scale defines the scaling of voxels which affects the voxel count.
+// 1.0 value means a voxel for every unit cube. 2 means the model is scaled to
+// be 2x larger and the voxel count is increased by the increment in the scaled
+// volume, thus 4 times. This kind a sampling accuracy selection is not
+// achievable through the Transform parameter. (TODO: or is it?)
+// The resulting grid will contain the voxel_scale in its metadata under the
+// "voxel_scale" key to be used in grid_to_mesh function.
 openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &            mesh,
                                      const openvdb::math::Transform &tr = {},
-                                     float exteriorBandWidth = 3.0f,
-                                     float interiorBandWidth = 3.0f,
-                                     int   flags             = 0);
-
-openvdb::FloatGrid::Ptr mesh_to_grid(const sla::Contour3D &          mesh,
-                                     const openvdb::math::Transform &tr = {},
+                                     float voxel_scale = 1.f,
                                      float exteriorBandWidth = 3.0f,
                                      float interiorBandWidth = 3.0f,
                                      int   flags             = 0);

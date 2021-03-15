@@ -1,4 +1,5 @@
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/Layer.hpp"
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
@@ -24,6 +25,7 @@
 // this include must follow the wxWidgets ones or it won't compile on Windows -> see http://trac.wxwidgets.org/ticket/2421
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include "NotificationManager.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -638,6 +640,53 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
         m_layers_slider->SetLayersTimes(plater->sla_print().print_statistics().layers_times);
     else
         m_layers_slider->SetLayersTimes(m_gcode_result->time_statistics.modes.front().layers_times);
+
+    // Suggest the auto color change, if model looks like sign
+    if (ticks_info_from_model.gcodes.empty())
+    {
+        NotificationManager* notif_mngr = wxGetApp().plater()->get_notification_manager();
+        notif_mngr->close_notification_of_type(NotificationType::SignDetected);
+
+        const Print& print = wxGetApp().plater()->fff_print();
+        double delta_area = scale_(scale_(25)); // equal to 25 mm2
+
+        //bool is_possible_auto_color_change = false;
+        for (auto object : print.objects()) {
+            double height = object->height();
+            coord_t longer_side = std::max(object->size().x(), object->size().y());
+            if (height / longer_side > 0.3)
+                continue;
+
+            const ExPolygons& bottom = object->get_layer(0)->lslices;
+            if (bottom.size() > 1 || !bottom[0].holes.empty())
+                continue;
+
+            double bottom_area = area(bottom);
+            int i;
+            for (i = 1; i < int(0.3 * object->layers().size()); i++)
+                if (area(object->get_layer(1)->lslices) != bottom_area)
+                    break;
+            if (i < int(0.3 * object->layers().size()))
+                continue;
+
+            double top_area = area(object->get_layer(int(object->layers().size()) - 1)->lslices);
+            if( bottom_area - top_area > delta_area) {
+                notif_mngr->push_notification(
+                    NotificationType::SignDetected, NotificationManager::NotificationLevel::RegularNotification,
+                    _u8L("NOTE:") + "\n" + _u8L("Sliced object looks like the sign") + "\n",
+                    _u8L("Apply auto color change to print"),
+                    [this, notif_mngr](wxEvtHandler*) {
+                        notif_mngr->close_notification_of_type(NotificationType::SignDetected);
+                        m_layers_slider->auto_color_change();
+                        return true;
+                    });
+
+                notif_mngr->set_in_preview(true);
+
+                break;
+            }
+        }
+    }
 
     m_layers_slider_sizer->Show((size_t)0);
     Layout();

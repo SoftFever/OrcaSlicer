@@ -93,6 +93,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SavePresetDialog.cpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
+    GUI/GUI_Factories.cpp
+    GUI/GUI_Factories.hpp
     GUI/GUI_ObjectList.cpp
     GUI/GUI_ObjectList.hpp
     GUI/GUI_ObjectManipulation.cpp
@@ -207,6 +209,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Bonjour.hpp
     Utils/PresetUpdater.cpp
     Utils/PresetUpdater.hpp
+    Utils/Platform.cpp
+    Utils/Platform.hpp
     Utils/Process.cpp
     Utils/Process.hpp
     Utils/Profile.hpp

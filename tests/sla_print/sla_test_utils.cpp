@@ -88,9 +88,9 @@ void test_supports(const std::string          &obj_filename,
     REQUIRE_FALSE(mesh.empty());
     
     if (hollowingcfg.enabled) {
-        auto inside = sla::generate_interior(mesh, hollowingcfg);
-        REQUIRE(inside);
-        mesh.merge(*inside);
+        sla::InteriorPtr interior = sla::generate_interior(mesh, hollowingcfg);
+        REQUIRE(interior);
+        mesh.merge(sla::get_mesh(*interior));
         mesh.require_shared_vertices();
     }
     

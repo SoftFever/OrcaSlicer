@@ -25,23 +25,27 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id) {
 const t_field& OptionsGroup::build_field(const t_config_option_key& id, const ConfigOptionDef& opt) {
     // Check the gui_type field first, fall through
     // is the normal type.
-    if (opt.gui_type == "select") {
-    } else if (opt.gui_type == "select_open") {
+    switch (opt.gui_type) {
+    case ConfigOptionDef::GUIType::select_open:
         m_fields.emplace(id, Choice::Create<Choice>(this->ctrl_parent(), opt, id));
-    } else if (opt.gui_type == "color") {
+        break;
+    case ConfigOptionDef::GUIType::color:
         m_fields.emplace(id, ColourPicker::Create<ColourPicker>(this->ctrl_parent(), opt, id));
-    } else if (opt.gui_type == "f_enum_open" ||
-                opt.gui_type == "i_enum_open" ||
-                opt.gui_type == "i_enum_closed") {
+        break;
+    case ConfigOptionDef::GUIType::f_enum_open:
+    case ConfigOptionDef::GUIType::i_enum_open:
         m_fields.emplace(id, Choice::Create<Choice>(this->ctrl_parent(), opt, id));
-    } else if (opt.gui_type == "slider") {
+        break;
+    case ConfigOptionDef::GUIType::slider:
         m_fields.emplace(id, SliderCtrl::Create<SliderCtrl>(this->ctrl_parent(), opt, id));
-    } else if (opt.gui_type == "i_spin") { // Spinctrl
-    } else if (opt.gui_type == "legend") { // StaticText
+        break;
+    case ConfigOptionDef::GUIType::legend: // StaticText
         m_fields.emplace(id, StaticText::Create<StaticText>(this->ctrl_parent(), opt, id));
-    } else if (opt.gui_type == "one_string") {
+        break;
+    case ConfigOptionDef::GUIType::one_string:
         m_fields.emplace(id, TextCtrl::Create<TextCtrl>(this->ctrl_parent(), opt, id));
-    } else {
+        break;
+    default:
         switch (opt.type) {
             case coFloatOrPercent:
             case coFloat:
@@ -122,7 +126,7 @@ bool OptionsGroup::is_legend_line()
 {
 	if (m_lines.size() == 1) {
 		const std::vector<Option>& option_set = m_lines.front().get_options();
-		return !option_set.empty() && option_set.front().opt.gui_type == "legend";
+		return !option_set.empty() && option_set.front().opt.gui_type == ConfigOptionDef::GUIType::legend;
 	}
 	return false;
 }
@@ -213,7 +217,7 @@ void OptionsGroup::activate_line(Line& line)
     }
 
 	auto option_set = line.get_options();
-	bool is_legend_line = option_set.front().opt.gui_type == "legend";
+	bool is_legend_line = option_set.front().opt.gui_type == ConfigOptionDef::GUIType::legend;
 
     if (!custom_ctrl && m_use_custom_ctrl) {
         custom_ctrl = new OG_CustomCtrl(is_legend_line || !staticbox ? this->parent() : static_cast<wxWindow*>(this->stb), this);

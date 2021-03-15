@@ -18,31 +18,25 @@ unsigned int PrintRegion::extruder(FlowRole role) const
     return extruder;
 }
 
-Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const
+Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_height, bool first_layer) const
 {
     ConfigOptionFloatOrPercent config_width;
-    if (width != -1) {
-        // use the supplied custom width, if any
-        config_width.value = width;
-        config_width.percent = false;
+    // Get extrusion width from configuration.
+    // (might be an absolute value, or a percent value, or zero for auto)
+    if (first_layer && m_print->config().first_layer_extrusion_width.value > 0) {
+        config_width = m_print->config().first_layer_extrusion_width;
+    } else if (role == frExternalPerimeter) {
+        config_width = m_config.external_perimeter_extrusion_width;
+    } else if (role == frPerimeter) {
+        config_width = m_config.perimeter_extrusion_width;
+    } else if (role == frInfill) {
+        config_width = m_config.infill_extrusion_width;
+    } else if (role == frSolidInfill) {
+        config_width = m_config.solid_infill_extrusion_width;
+    } else if (role == frTopSolidInfill) {
+        config_width = m_config.top_infill_extrusion_width;
     } else {
-        // otherwise, get extrusion width from configuration
-        // (might be an absolute value, or a percent value, or zero for auto)
-        if (first_layer && m_print->config().first_layer_extrusion_width.value > 0) {
-            config_width = m_print->config().first_layer_extrusion_width;
-        } else if (role == frExternalPerimeter) {
-            config_width = m_config.external_perimeter_extrusion_width;
-        } else if (role == frPerimeter) {
-            config_width = m_config.perimeter_extrusion_width;
-        } else if (role == frInfill) {
-            config_width = m_config.infill_extrusion_width;
-        } else if (role == frSolidInfill) {
-            config_width = m_config.solid_infill_extrusion_width;
-        } else if (role == frTopSolidInfill) {
-            config_width = m_config.top_infill_extrusion_width;
-        } else {
-            throw Slic3r::InvalidArgument("Unknown role");
-        }
+        throw Slic3r::InvalidArgument("Unknown role");
     }
 
     if (config_width.value == 0)
@@ -50,8 +44,8 @@ Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool fir
     
     // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
     // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
-    double nozzle_diameter = m_print->config().nozzle_diameter.get_at(this->extruder(role) - 1);
-    return Flow::new_from_config_width(role, config_width, (float)nozzle_diameter, (float)layer_height, bridge ? (float)m_config.bridge_flow_ratio : 0.0f);
+    auto nozzle_diameter = float(m_print->config().nozzle_diameter.get_at(this->extruder(role) - 1));
+    return Flow::new_from_config_width(role, config_width, nozzle_diameter, float(layer_height));
 }
 
 coordf_t PrintRegion::nozzle_dmr_avg(const PrintConfig &print_config) const
