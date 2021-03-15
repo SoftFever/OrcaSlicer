@@ -69,8 +69,6 @@ int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
     set_current_thread_name("slic3r_main");
-    // Detect the operating system flavor.
-    detect_platform();
 
 #ifdef __WXGTK__
     // On Linux, wxGTK has no support for Wayland, and the app crashes on
@@ -605,6 +603,9 @@ bool CLI::setup(int argc, char **argv)
                 boost::nowide::cerr << "Invalid SLIC3R_LOGLEVEL environment variable: " << loglevel << std::endl;
         }
     }
+
+    // Detect the operating system flavor after SLIC3R_LOGLEVEL is set.
+    detect_platform();
 
 #ifdef WIN32
     // Notify user if blacklisted library is already loaded (Nahimic)
