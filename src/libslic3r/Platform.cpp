@@ -1,6 +1,7 @@
 #include "Platform.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem/operations.hpp>
 
 namespace Slic3r {
 
