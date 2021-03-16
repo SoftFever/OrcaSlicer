@@ -5,6 +5,7 @@
 #include <map>
 
 #include "slic3r/GUI/MeshUtils.hpp"
+#include "libslic3r/SLA/Hollowing.hpp"
 
 namespace Slic3r {
 
@@ -198,6 +199,8 @@ public:
     CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
 #endif // NDEBUG
 
+    const sla::DrainHoles &get_drainholes() const { return m_drainholes; }
+
     const TriangleMesh* get_hollowed_mesh() const;
     const TriangleMesh* get_hollowed_interior() const;
 
@@ -211,6 +214,7 @@ private:
     size_t m_old_hollowing_timestamp = 0;
     int m_print_object_idx = -1;
     int m_print_objects_count = 0;
+    sla::DrainHoles m_drainholes;
 };
 
 
