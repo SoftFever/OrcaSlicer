@@ -225,7 +225,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     SetSize(load_user_data(UDT_SIZE, size) ? wxSize(size[0] * em, size[1] * em) : wxSize(HEIGHT * em, WIDTH * em));
 
     Bind(wxEVT_SIZE, [this, em](wxSizeEvent& evt) {
-        OnSize(evt);
+        OnSize(evt); 
         save_user_data(UDT_SIZE | UDT_POSITION | UDT_COLS);
      });
     
@@ -245,7 +245,6 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
 
         const JobState state = get_state(selected);
         if (state < ST_ERROR) {
-            // TODO: cancel
             GUI::wxGetApp().printhost_job_queue().cancel(selected);
         }
     });
@@ -282,7 +281,7 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     // Both strings are UTF-8 encoded.
     upload_names.emplace_back(job.printhost->get_host(), job.upload_data.upload_path.string());
 
-    wxGetApp().notification_manager()->push_upload_job_notification(this, job_list->GetItemCount(), (float)size_i / 1024 / 1024, job.upload_data.upload_path.string(), job.printhost->get_host());
+    wxGetApp().notification_manager()->push_upload_job_notification(job_list->GetItemCount(), (float)size_i / 1024 / 1024, job.upload_data.upload_path.string(), job.printhost->get_host());
 }
 
 void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
