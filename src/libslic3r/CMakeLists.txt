@@ -219,6 +219,9 @@ add_library(libslic3r STATIC
     SimplifyMeshImpl.hpp
     SimplifyMesh.cpp
     MarchingSquares.hpp
+    Execution/Execution.hpp
+    Execution/ExecutionSeq.hpp
+    Execution/ExecutionTBB.hpp
     Optimize/Optimizer.hpp
     Optimize/NLoptOptimizer.hpp
     Optimize/BruteforceOptimizer.hpp

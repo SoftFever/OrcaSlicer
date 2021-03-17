@@ -106,13 +106,8 @@ template<class C> bool all_of(const C &container)
                        });
 }
 
-template<class T> struct remove_cvref
-{
-    using type =
-        typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-};
-
-template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
+template<class T>
+using remove_cvref_t = std::remove_reference_t<std::remove_cv_t<T>>;
 
 /// Exactly like Matlab https://www.mathworks.com/help/matlab/ref/linspace.html
 template<class T, class I, class = IntegerOnly<I>>
