@@ -9,17 +9,6 @@
 #include "BoundingBox.hpp"
 
 
-// Experimental "Peter's wipe tower" feature was partially implemented, inspired by
-// PJR's idea of alternating two perpendicular wiping directions on a square tower.
-// It is probably never going to be finished, there are multiple remaining issues
-// and there is probably no need to go down this way. m_peters_wipe_tower variable
-// turns this on, maybe it should just be removed. Anyway, the issues are
-// - layer's are not exactly square
-// - variable width for higher levels
-// - make sure it is not too sparse (apply max_bridge_distance and make last wipe longer)
-// - enable enhanced first layer adhesion
-
-
 namespace Slic3r
 {
 
@@ -738,7 +727,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
-		.set_y_shift(m_y_shift + (tool!=(unsigned int)(-1) && (m_current_shape == SHAPE_REVERSED && !m_peters_wipe_tower) ? m_layer_info->depth - m_layer_info->toolchanges_depth(): 0.f))
+        .set_y_shift(m_y_shift + (tool!=(unsigned int)(-1) && (m_current_shape == SHAPE_REVERSED) ? m_layer_info->depth - m_layer_info->toolchanges_depth(): 0.f))
 		.append(";--------------------\n"
 				"; CP TOOLCHANGE START\n")
 		.comment_with_value(" toolchange #", m_num_tool_changes + 1); // the number is zero-based
@@ -773,15 +762,11 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
 
     if (last_change_in_layer) {// draw perimeter line
         writer.set_y_shift(m_y_shift);
-        if (m_peters_wipe_tower)
-            writer.rectangle(Vec2f::Zero(), m_layer_info->depth + 3*m_perimeter_width, m_wipe_tower_depth);
-        else {
-            writer.rectangle(Vec2f::Zero(), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
-            if (layer_finished()) { // no finish_layer will be called, we must wipe the nozzle
-                writer.add_wipe_point(writer.x(), writer.y())
-                      .add_wipe_point(writer.x()> m_wipe_tower_width / 2.f ? 0.f : m_wipe_tower_width, writer.y());
+        writer.rectangle(Vec2f::Zero(), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
+        if (layer_finished()) { // no finish_layer will be called, we must wipe the nozzle
+            writer.add_wipe_point(writer.x(), writer.y())
+                  .add_wipe_point(writer.x()> m_wipe_tower_width / 2.f ? 0.f : m_wipe_tower_width, writer.y());
 
-            }
         }
     }
 
@@ -1141,7 +1126,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
-		.set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED && !m_peters_wipe_tower ? m_layer_info->toolchanges_depth() : 0.f))
+        .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f))
 		.append(";--------------------\n"
 				"; CP EMPTY GRID START\n")
 		.comment_with_value(" layer #", m_num_layer_changes + 1);
@@ -1174,7 +1159,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
     if (m_is_first_layer && m_adhesion) {
         // Extrude a dense infill at the 1st layer to improve 1st layer adhesion of the wipe tower.
         box.expand(-m_perimeter_width/2.f);
-        int nsteps = int(floor((box.lu.y() - box.ld.y()) / (2*m_perimeter_width)));
+        int nsteps = int(std::floor((box.lu.y() - box.ld.y()) / (2*m_perimeter_width)));
         float step   = (box.lu.y() - box.ld.y()) / nsteps;
         writer.travel(box.ld - Vec2f(m_perimeter_width/2.f, m_perimeter_width/2.f));
         if (nsteps >= 0)
@@ -1354,9 +1339,6 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
         plan_tower();
     }
 
-	if (m_peters_wipe_tower)
-			make_wipe_tower_square();
-
     m_layer_info = m_plan.begin();
 
     // we don't know which extruder to start with - we'll set it according to the first toolchange
@@ -1376,12 +1358,9 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
 	for (auto layer : m_plan)
 	{
 		set_layer(layer.z,layer.height,0,layer.z == m_plan.front().z,layer.z == m_plan.back().z);
-		if (m_peters_wipe_tower)
-			m_internal_rotation += 90.f;
-		else
-            m_internal_rotation += 180.f;
+        m_internal_rotation += 180.f;
 
-		if (!m_peters_wipe_tower && m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
+        if (m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
 			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
 
 		for (const auto &toolchange : layer.tool_changes)
@@ -1409,31 +1388,5 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
 		m_is_first_layer = false;
 	}
 }
-
-void WipeTower::make_wipe_tower_square()
-{
-	const float width = m_wipe_tower_width - 3 * m_perimeter_width;
-	const float depth = m_wipe_tower_depth - m_perimeter_width;
-	// area that we actually print into is width*depth
-	float side = sqrt(depth * width);
-
-	m_wipe_tower_width = side + 3 * m_perimeter_width;
-	m_wipe_tower_depth = side + 2 * m_perimeter_width;
-	// For all layers, find how depth changed and update all toolchange depths
-	for (auto &lay : m_plan)
-	{
-		side = sqrt(lay.depth * width);
-		float width_ratio = width / side;
-
-		//lay.extra_spacing = width_ratio;
-		for (auto &tch : lay.tool_changes)
-			tch.required_depth *= width_ratio;
-	}
-
-	plan_tower();				// propagates depth downwards again (width has changed)
-	for (auto& lay : m_plan)	// depths set, now the spacing
-		lay.extra_spacing = lay.depth / lay.toolchanges_depth();
-}
-
 
 } // namespace Slic3r
