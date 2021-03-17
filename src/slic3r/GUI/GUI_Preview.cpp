@@ -1,3 +1,4 @@
+//#include "stdlib.h"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Layer.hpp"
 #include "GUI_Preview.hpp"
@@ -642,10 +643,10 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
         m_layers_slider->SetLayersTimes(m_gcode_result->time_statistics.modes.front().layers_times);
 
     // Suggest the auto color change, if model looks like sign
-    if (ticks_info_from_model.gcodes.empty())
+    if (m_layers_slider->IsNewPrint())
     {
         NotificationManager* notif_mngr = wxGetApp().plater()->get_notification_manager();
-        notif_mngr->close_notification_of_type(NotificationType::SignDetected);
+//        notif_mngr->close_notification_of_type(NotificationType::SignDetected);
 
         const Print& print = wxGetApp().plater()->fff_print();
         double delta_area = scale_(scale_(25)); // equal to 25 mm2
@@ -658,8 +659,8 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
                 continue;
 
             const ExPolygons& bottom = object->get_layer(0)->lslices;
-            if (bottom.size() > 1 || !bottom[0].holes.empty())
-                continue;
+            //if (bottom.size() > 1 || !bottom[0].holes.empty())
+            //    continue;
 
             double bottom_area = area(bottom);
             int i;

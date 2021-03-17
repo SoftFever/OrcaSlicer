@@ -424,6 +424,22 @@ void Control::SetExtruderColors( const std::vector<std::string>& extruder_colors
     m_extruder_colors = extruder_colors;
 }
 
+bool Control::IsNewPrint()
+{
+    if (GUI::wxGetApp().plater()->printer_technology() == ptSLA)
+        return false;
+    const Print& print = GUI::wxGetApp().plater()->fff_print();
+    std::string idxs;
+    for (auto object : print.objects())
+        idxs += std::to_string(object->id().id) + "_";
+
+    if (idxs == m_print_obj_idxs)
+        return false;
+
+    m_print_obj_idxs = idxs;
+    return true;
+}
+
 void Control::get_lower_and_higher_position(int& lower_pos, int& higher_pos)
 {
     const double step = get_scroll_step();

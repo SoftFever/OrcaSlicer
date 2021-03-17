@@ -233,6 +233,8 @@ public:
     void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
     void    SetExtruderColors(const std::vector<std::string>& extruder_colors);
 
+    bool    IsNewPrint();
+
     void set_render_as_disabled(bool value) { m_render_as_disabled = value; }
     bool is_rendering_as_disabled() const { return m_render_as_disabled; }
 
@@ -395,6 +397,7 @@ private:
     TickCodeInfo        m_ticks;
     std::vector<double> m_layers_times;
     std::vector<std::string>    m_extruder_colors;
+    std::string         m_print_obj_idxs;
 
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     std::vector<double> m_alternate_values;
