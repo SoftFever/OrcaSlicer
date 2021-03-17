@@ -1,6 +1,7 @@
 #include "Exception.hpp"
 #include "MeshBoolean.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include "boost/log/trivial.hpp"
 #undef PI
 
 // Include igl first. It defines "L" macro which then clashes with our localization
