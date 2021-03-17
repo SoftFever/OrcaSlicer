@@ -319,7 +319,7 @@ private:
 		void			set_large(bool l);
 		bool			get_large() { return m_is_large; }
 		void			set_print_info(const std::string &info);
-		virtual void	render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width)
+		virtual void	render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width) override
 		{
 			// This notification is always hidden if !large (means side bar is collapsed)
 			if (!get_large() && !is_finished()) 
@@ -348,9 +348,9 @@ private:
 	{
 	public:
 		PlaterWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
-		virtual void close()      { if(is_finished()) return; m_state = EState::Hidden; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
-		void		 real_close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
-		void         show()       { m_state = EState::Unknown; }
+		virtual void close()  override { if(is_finished()) return; m_state = EState::Hidden; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+		void		 real_close()      { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+		void         show()            { m_state = EState::Unknown; }
 	};
 
 	
@@ -365,10 +365,10 @@ private:
 		virtual void count_spaces() override;
 		virtual void render_text(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
-									const float win_pos_x, const float win_pos_y);
+									const float win_pos_x, const float win_pos_y) override;
 		virtual void render_bar(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
-									const float win_pos_x, const float win_pos_y);
+									const float win_pos_x, const float win_pos_y) ;
 		virtual void render_cancel_button(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
 									const float win_pos_x, const float win_pos_y)
@@ -400,16 +400,16 @@ private:
 			m_has_cancel_button = true;
 		}
 		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return "[" + std::to_string(id) + "] " + filename + " -> " + host; }
-		virtual void		set_percentage(float percent);
+		virtual void		set_percentage(float percent) override;
 		void				cancel() { m_uj_state = UploadJobState::PB_CANCELLED; m_has_cancel_button = false; }
 		void				error()  { m_uj_state = UploadJobState::PB_ERROR;     m_has_cancel_button = false; }
 	protected:
 		virtual void render_bar(ImGuiWrapper& imgui,
 								const float win_size_x, const float win_size_y,
-								const float win_pos_x, const float win_pos_y);
+								const float win_pos_x, const float win_pos_y) override;
 		virtual void render_cancel_button(ImGuiWrapper& imgui,
 											const float win_size_x, const float win_size_y,
-											const float win_pos_x, const float win_pos_y);
+											const float win_pos_x, const float win_pos_y) override;
 		// Identifies job in cancel callback
 		int					m_job_id;
 		// Size of uploaded size to be displayed in MB
