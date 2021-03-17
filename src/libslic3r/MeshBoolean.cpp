@@ -150,11 +150,20 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
     }
     
     for (auto &face : cgalmesh.faces()) {
-        auto    vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
-        int     i   = 0;
-        Vec3i trface;
-        for (auto v : vtc) trface(i++) = static_cast<int>(v);
-        facets.emplace_back(trface);
+        auto vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
+
+        int i = 0;
+        Vec3i facet;
+        for (const auto &v : vtc) {
+            if (i > 2) { i = 0; break; }
+            facet(i++) = v;
+        }
+
+        if (i == 3) {
+            facets.emplace_back(facet);
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "CGAL face is not a triangle.";
+        }
     }
     
     TriangleMesh out{points, facets};
