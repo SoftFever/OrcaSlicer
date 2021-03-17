@@ -224,7 +224,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     std::vector<int> size;
     SetSize(load_user_data(UDT_SIZE, size) ? wxSize(size[0] * em, size[1] * em) : wxSize(HEIGHT * em, WIDTH * em));
 
-    Bind(wxEVT_SIZE, [this, em](wxSizeEvent& evt) {
+    Bind(wxEVT_SIZE, [this](wxSizeEvent& evt) {
         OnSize(evt); 
         save_user_data(UDT_SIZE | UDT_POSITION | UDT_COLS);
      });
@@ -233,7 +233,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     if (load_user_data(UDT_POSITION, pos))
         SetPosition(wxPoint(pos[0], pos[1]));
 
-    Bind(wxEVT_MOVE, [this, em](wxMoveEvent& evt) {
+    Bind(wxEVT_MOVE, [this](wxMoveEvent& evt) {
         save_user_data(UDT_SIZE | UDT_POSITION | UDT_COLS);
     });
 
