@@ -665,24 +665,22 @@ Polygons collect_slices_outer(const Layer &layer)
 class SupportGridPattern
 {
 public:
-    // Achtung! The support_polygons need to be trimmed by trimming_polygons, otherwise
-    // the selection by island_samples (see the island_samples() method) will not work!
     SupportGridPattern(
         // Support islands, to be stretched into a grid. Already trimmed with min(lower_layer_offset, m_gap_xy)
-        const Polygons &support_polygons, 
+        const Polygons *support_polygons, 
         // Trimming polygons, to trim the stretched support islands. support_polygons were already trimmed with trimming_polygons.
-        const Polygons &trimming_polygons,
+        const Polygons *trimming_polygons,
         // Grid spacing, given by "support_material_spacing" + m_support_material_flow.spacing()
         coordf_t        support_spacing, 
         coordf_t        support_angle, 
         coordf_t        line_spacing) :
-        m_support_polygons(&support_polygons), m_trimming_polygons(&trimming_polygons),
+        m_support_polygons(support_polygons), m_trimming_polygons(trimming_polygons),
         m_support_spacing(support_spacing), m_support_angle(support_angle)
     {
         if (m_support_angle != 0.) {
             // Create a copy of the rotated contours.
-            m_support_polygons_rotated  = support_polygons;
-            m_trimming_polygons_rotated = trimming_polygons;
+            m_support_polygons_rotated  = *support_polygons;
+            m_trimming_polygons_rotated = *trimming_polygons;
             m_support_polygons  = &m_support_polygons_rotated;
             m_trimming_polygons = &m_trimming_polygons_rotated;
             polygons_rotate(m_support_polygons_rotated, - support_angle);
@@ -695,10 +693,6 @@ public:
         bbox.offset(20);
         // Align the bounding box with the sparse support grid.
         bbox.align_to_grid(grid_resolution);
-
-        // Sample a single point per input support polygon, keep it as a reference to maintain corresponding
-        // polygons if ever these polygons get split into parts by the trimming polygons.
-        m_island_samples = island_samples(*m_support_polygons);
 
 #ifdef SUPPORT_USE_AGG_RASTERIZER
         m_bbox       = bbox;
@@ -755,29 +749,46 @@ public:
     // and trim the extracted polygons by trimming_polygons.
     // Trimming by the trimming_polygons may split the extracted polygons into pieces.
     // Remove all the pieces, which do not contain any of the island_samples.
-    Polygons extract_support(const coord_t offset_in_grid, bool fill_holes)
+    Polygons extract_support(const coord_t offset_in_grid, bool fill_holes
+#ifdef SLIC3R_DEBUG
+        , const char *step_name, int iRun, size_t layer_id, double print_z
+#endif
+        )
     {
 #ifdef SUPPORT_USE_AGG_RASTERIZER
         Polygons support_polygons_simplified = contours_simplified(m_grid_size, m_pixel_size, m_bbox.min, m_grid2, offset_in_grid, fill_holes);
 #else // SUPPORT_USE_AGG_RASTERIZER
-        // Generate islands, so each island may be tested for overlap with m_island_samples.
+        // Generate islands, so each island may be tested for overlap with island_samples.
         assert(std::abs(2 * offset_in_grid) < m_grid.resolution());
         Polygons support_polygons_simplified = m_grid.contours_simplified(offset_in_grid, fill_holes);
 #endif // SUPPORT_USE_AGG_RASTERIZER
 
         ExPolygons islands = diff_ex(support_polygons_simplified, *m_trimming_polygons, false);
 
-        // Extract polygons, which contain some of the m_island_samples.
+        // Extract polygons, which contain some of the island_samples.
         Polygons out;
 #if 0
         out = to_polygons(std::move(islands));
 #else
+
+        // Sample a single point per input support polygon, keep it as a reference to maintain corresponding
+        // polygons if ever these polygons get split into parts by the trimming polygons.
+        // As offset_in_grid may be negative, m_support_polygons may stick slightly outside of islands.
+        // Trim ti with islands.
+        Points samples = island_samples(
+            offset_in_grid > 0 ? 
+                // Expanding, thus m_support_polygons are all inside islands.
+                union_ex(*m_support_polygons) :
+                // Shrinking, thus m_support_polygons may be trimmed a tiny bit by islands.
+                intersection_ex(*m_support_polygons, to_polygons(islands)));
+
+        std::vector<std::pair<Point,bool>> samples_inside;
         for (ExPolygon &island : islands) {
             BoundingBox bbox = get_extents(island.contour);
             // Samples are sorted lexicographically.
-            auto it_lower = std::lower_bound(m_island_samples.begin(), m_island_samples.end(), Point(bbox.min - Point(1, 1)));
-            auto it_upper = std::upper_bound(m_island_samples.begin(), m_island_samples.end(), Point(bbox.max + Point(1, 1)));
-            std::vector<std::pair<Point,bool>> samples_inside;
+            auto it_lower = std::lower_bound(samples.begin(), samples.end(), Point(bbox.min - Point(1, 1)));
+            auto it_upper = std::upper_bound(samples.begin(), samples.end(), Point(bbox.max + Point(1, 1)));
+            samples_inside.clear();
             for (auto it = it_lower; it != it_upper; ++ it)
                 if (bbox.contains(*it))
                     samples_inside.push_back(std::make_pair(*it, false));
@@ -811,9 +822,7 @@ public:
         }
 #endif
 
-    #ifdef SLIC3R_DEBUG
-        static int iRun = 0;
-        ++iRun;
+#ifdef SLIC3R_DEBUG
         BoundingBox bbox = get_extents(*m_trimming_polygons);
         if (! islands.empty())
             bbox.merge(get_extents(islands));
@@ -821,7 +830,7 @@ public:
             bbox.merge(get_extents(out));
         if (!support_polygons_simplified.empty())
             bbox.merge(get_extents(support_polygons_simplified));
-        SVG svg(debug_out_path("extract_support_from_grid_trimmed-%d.svg", iRun).c_str(), bbox);
+        SVG svg(debug_out_path("extract_support_from_grid_trimmed-%s-%d-%d-%lf.svg", step_name, iRun, layer_id, print_z).c_str(), bbox);
         svg.draw(union_ex(support_polygons_simplified), "gray", 0.25f);
         svg.draw(islands, "red", 0.5f);
         svg.draw(union_ex(out), "green", 0.5f);
@@ -829,10 +838,10 @@ public:
         svg.draw_outline(islands, "red", "red", scale_(0.05));
         svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
         svg.draw_outline(union_ex(*m_support_polygons), "blue", "blue", scale_(0.05));
-        for (const Point &pt : m_island_samples)
+        for (const Point &pt : samples)
             svg.draw(pt, "black", coord_t(scale_(0.15)));
         svg.Close();
-    #endif /* SLIC3R_DEBUG */
+#endif /* SLIC3R_DEBUG */
 
         if (m_support_angle != 0.)
             polygons_rotate(out, m_support_angle);
@@ -940,9 +949,6 @@ public:
 		m_grid.set_bbox(bbox);
 		m_grid.create(*m_support_polygons, grid_resolution);
 		m_grid.calculate_sdf();
-		// Sample a single point per input support polygon, keep it as a reference to maintain corresponding
-		// polygons if ever these polygons get split into parts by the trimming polygons.
-		m_island_samples = island_samples(*m_support_polygons);
         return true;
     }
 
@@ -1075,11 +1081,6 @@ private:
         return pts;
     } 
 
-    static Points island_samples(const Polygons &polygons)
-    {
-        return island_samples(union_ex(polygons));
-    }
-
     const Polygons         *m_support_polygons;
     const Polygons         *m_trimming_polygons;
     Polygons                m_support_polygons_rotated;
@@ -1097,10 +1098,6 @@ private:
 #else // SUPPORT_USE_AGG_RASTERIZER
     Slic3r::EdgeGrid::Grid      m_grid;
 #endif // SUPPORT_USE_AGG_RASTERIZER
-
-    // Internal sample points of supporting expolygons. These internal points are used to pick regions corresponding
-    // to the initial supporting regions, after these regions werre grown and possibly split to many by the trimming polygons.
-    Points                  m_island_samples;
 
 #ifdef SLIC3R_DEBUG
     // support for deserialization of m_support_polygons, m_trimming_polygons
@@ -1631,48 +1628,57 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         }
                     }
 
-                    // Achtung! The contact_polygons need to be trimmed by slices_margin_cached, otherwise
-                    // the selection by island_samples (see the SupportGridPattern::island_samples() method) will not work!
                     SupportGridPattern support_grid_pattern(
                         // Support islands, to be stretched into a grid.
-                        contact_polygons, 
+                        &contact_polygons, 
                         // Trimming polygons, to trim the stretched support islands.
-                        slices_margin_cached,
+                        &slices_margin_cached,
                         // Grid resolution.
                         m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
                         Geometry::deg2rad(m_object_config->support_material_angle.value), 
                         m_support_material_flow.spacing());
                     // 1) Contact polygons will be projected down. To keep the interface and base layers from growing, return a contour a tiny bit smaller than the grid cells.
-                    new_layer.contact_polygons = new Polygons(support_grid_pattern.extract_support(-3, true));
+                    new_layer.contact_polygons = new Polygons(support_grid_pattern.extract_support(-3, true
+            #ifdef SLIC3R_DEBUG
+                        , "top_contact_polygons", iRun, layer_id, layer.print_z
+            #endif // SLIC3R_DEBUG
+                        ));
                     // 2) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
                     if (layer_id == 0 || m_slicing_params.soluble_interface) {
                     // if (no_interface_offset == 0.f) {
-                        new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, true);
+                        new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, true
+            #ifdef SLIC3R_DEBUG
+                            , "top_contact_polygons2", iRun, layer_id, layer.print_z
+            #endif // SLIC3R_DEBUG
+                            );
                     } else  {
                         // Reduce the amount of dense interfaces: Do not generate dense interfaces below overhangs with 60% overhang of the extrusions.
                         Polygons dense_interface_polygons = diff(overhang_polygons, 
                             offset2(lower_layer_polygons, - no_interface_offset * 0.5f, no_interface_offset * (0.6f + 0.5f), SUPPORT_SURFACES_OFFSET_PARAMETERS));
                         if (! dense_interface_polygons.empty()) {
                             dense_interface_polygons =
-                                // Achtung! The dense_interface_polygons need to be trimmed by slices_margin_cached, otherwise
-                                // the selection by island_samples (see the SupportGridPattern::island_samples() method) will not work!
                                 diff(
                                     // Regularize the contour.
                                     offset(dense_interface_polygons, no_interface_offset * 0.1f),
                                     slices_margin_cached);
+                            // Support islands, to be stretched into a grid.
+                            //FIXME The regularization of dense_interface_polygons above may stretch dense_interface_polygons outside of the contact polygons,
+                            // thus some dense interface areas may not get supported. Trim the excess with contact_polygons at the following line.
+                            // See for example GH #4874.
+                            Polygons dense_interface_polygons_trimmed = intersection(dense_interface_polygons, *new_layer.contact_polygons);
                             SupportGridPattern support_grid_pattern(
-                                // Support islands, to be stretched into a grid.
-                                //FIXME The regularization of dense_interface_polygons above may stretch dense_interface_polygons outside of the contact polygons,
-                                // thus some dense interface areas may not get supported. Trim the excess with contact_polygons at the following line.
-                                // See for example GH #4874.
-                                intersection(dense_interface_polygons, *new_layer.contact_polygons), 
+                                &dense_interface_polygons_trimmed,
                                 // Trimming polygons, to trim the stretched support islands.
-                                slices_margin_cached,
+                                &slices_margin_cached,
                                 // Grid resolution.
                                 m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
                                 Geometry::deg2rad(m_object_config->support_material_angle.value), 
                                 m_support_material_flow.spacing());
-                            new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, false);
+                            new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, false
+            #ifdef SLIC3R_DEBUG
+                                , "top_contact_polygons3", iRun, layer_id, layer.print_z
+            #endif // SLIC3R_DEBUG
+                                );
                     #ifdef SLIC3R_DEBUG
                             SVG::export_expolygons(debug_out_path("support-top-contacts-final0-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
                                 { { { union_ex(lower_layer_polygons, false) },        { "lower_layer_polygons",       "gray",   0.2f } },
@@ -1848,17 +1854,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                     ] {
                     Polygons top = collect_region_slices_by_type(layer, stTop);
         #ifdef SLIC3R_DEBUG
-                    {
-                        BoundingBox bbox = get_extents(projection_raw);
-                        bbox.merge(get_extents(top));
-                        ::Slic3r::SVG svg(debug_out_path("support-bottom-layers-raw-%d-%lf.svg", iRun, layer.print_z), bbox);
-                        svg.draw(union_ex(top, false), "blue", 0.5f);
-                        svg.draw(union_ex(projection_raw, true), "red", 0.5f);
-                        svg.draw_outline(union_ex(projection_raw, true), "red", "blue", scale_(0.1f));
-                        svg.draw(layer.lslices, "green", 0.5f);
-                        svg.draw(union_ex(polygons_new, true), "magenta", 0.5f);
-                        svg.draw_outline(union_ex(polygons_new, true), "magenta", "magenta", scale_(0.1f));
-                    }
+                    SVG::export_expolygons(debug_out_path("support-bottom-layers-raw-%d-%lf.svg", iRun, layer.print_z),
+                        { { { union_ex(top, false) },                       { "top",            "blue",    0.5f } },
+                          { { union_ex(projection_raw, true) },             { "projection_raw", "magenta", 0.5f } },
+                          { layer.lslices,                                  { "layer.lslices",  "green",   0.5f } },
+                          { { union_ex(polygons_new, true) },               { "polygons_new",   "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
         #endif /* SLIC3R_DEBUG */
 
                     // Now find whether any projection of the contact surfaces above layer.print_z not yet supported by any 
@@ -1929,16 +1929,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                                 if (layer_above.print_z > layer_new.print_z - EPSILON)
                                     break; 
                                 if (! layer_support_areas[layer_id_above].empty()) {
-#ifdef SLIC3R_DEBUG
-                                    {
-                                        BoundingBox bbox = get_extents(touching);
-                                        bbox.merge(get_extents(layer_support_areas[layer_id_above]));
-                                        ::Slic3r::SVG svg(debug_out_path("support-support-areas-raw-before-trimming-%d-with-%f-%lf.svg", iRun, layer.print_z, layer_above.print_z), bbox);
-                                        svg.draw(union_ex(touching, false), "blue", 0.5f);
-                                        svg.draw(union_ex(layer_support_areas[layer_id_above], true), "red", 0.5f);
-                                        svg.draw_outline(union_ex(layer_support_areas[layer_id_above], true), "red", "blue", scale_(0.1f));
-                                    }
-#endif /* SLIC3R_DEBUG */
+                        #ifdef SLIC3R_DEBUG
+                                    SVG::export_expolygons(debug_out_path("support-support-areas-raw-before-trimming-%d-with-%f-%lf.svg", iRun, layer.print_z, layer_above.print_z),
+                                        { { { union_ex(touching, false) },                            { "touching", "blue", 0.5f } },
+                                          { { union_ex(layer_support_areas[layer_id_above], true) },  { "above",    "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+                        #endif /* SLIC3R_DEBUG */
                                     layer_support_areas[layer_id_above] = diff(layer_support_areas[layer_id_above], touching);
 #ifdef SLIC3R_DEBUG
                                     Slic3r::SVG::export_expolygons(
@@ -1952,33 +1947,32 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                 });
 
             Polygons &layer_support_area = layer_support_areas[layer_id];
-            task_group.run([this, &projection, &projection_raw, &layer, &layer_support_area] {
+            task_group.run([this, &projection, &projection_raw, &layer, &layer_support_area
+#ifdef SLIC3R_DEBUG 
+                , layer_id
+#endif /* SLIC3R_DEBUG */
+                ] {
                 // Remove the areas that touched from the projection that will continue on next, lower, top surfaces.
     //            Polygons trimming = union_(to_polygons(layer.slices), touching, true);
                 Polygons trimming = offset(layer.lslices, float(SCALED_EPSILON));
                 projection = diff(projection_raw, trimming, false);
-    #ifdef SLIC3R_DEBUG
-                {
-                    BoundingBox bbox = get_extents(projection_raw);
-                    bbox.merge(get_extents(trimming));
-                    ::Slic3r::SVG svg(debug_out_path("support-support-areas-raw-%d-%lf.svg", iRun, layer.print_z), bbox);
-                    svg.draw(union_ex(trimming, false), "blue", 0.5f);
-                    svg.draw(union_ex(projection, true), "red", 0.5f);
-                    svg.draw_outline(union_ex(projection, true), "red", "blue", scale_(0.1f));
-                }
-    #endif /* SLIC3R_DEBUG */
+        #ifdef SLIC3R_DEBUG
+                    SVG::export_expolygons(debug_out_path("support-support-areas-raw-%d-%lf.svg", iRun, layer.print_z),
+                        { { { union_ex(trimming, false) },   { "trimming",   "blue", 0.5f } },
+                          { { union_ex(projection, true) },  { "projection", "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+        #endif /* SLIC3R_DEBUG */
                 remove_sticks(projection);
                 remove_degenerate(projection);
         #ifdef SLIC3R_DEBUG
-                Slic3r::SVG::export_expolygons(
-                    debug_out_path("support-support-areas-raw-cleaned-%d-%lf.svg", iRun, layer.print_z),
-                    union_ex(projection, false));
+                SVG::export_expolygons(debug_out_path("support-support-areas-raw-cleaned-%d-%lf.svg", iRun, layer.print_z),
+                    { { { union_ex(trimming, false) },       { "trimming",   "blue", 0.5f } },
+                      { { union_ex(projection, false) },     { "projection", "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
         #endif /* SLIC3R_DEBUG */
                 SupportGridPattern support_grid_pattern(
                     // Support islands, to be stretched into a grid.
-                    projection, 
+                    &projection, 
                     // Trimming polygons, to trim the stretched support islands.
-                    trimming,
+                    &trimming,
                     // Grid spacing.
                     m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
                     Geometry::deg2rad(m_object_config->support_material_angle.value),
@@ -1988,10 +1982,14 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                 // to allow a placement of suppot zig-zag snake along the grid lines.
                 task_group_inner.run([this, &support_grid_pattern, &layer_support_area
         #ifdef SLIC3R_DEBUG 
-                    , &layer
+                    , &layer, layer_id
         #endif /* SLIC3R_DEBUG */
                     ] {
-                    layer_support_area = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 25, true);
+                    layer_support_area = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 25, true
+        #ifdef SLIC3R_DEBUG
+                        , "support_area", iRun, layer_id, layer.print_z
+        #endif // SLIC3R_DEBUG
+                        );
         #ifdef SLIC3R_DEBUG
                     Slic3r::SVG::export_expolygons(
                         debug_out_path("support-layer_support_area-gridded-%d-%lf.svg", iRun, layer.print_z),
@@ -2002,26 +2000,25 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                 Polygons projection_new;
                 task_group_inner.run([&projection_new, &support_grid_pattern
         #ifdef SLIC3R_DEBUG 
-                    , &layer, &projection, &trimming
+                    , &layer, layer_id, &projection, &trimming
         #endif /* SLIC3R_DEBUG */
                     ] {
-                    projection_new = support_grid_pattern.extract_support(-5, true);
+                    projection_new = support_grid_pattern.extract_support(-5, true
+        #ifdef SLIC3R_DEBUG
+                        , "support_projection", iRun, layer_id, layer.print_z
+        #endif // SLIC3R_DEBUG
+                        );
         #ifdef SLIC3R_DEBUG
                     Slic3r::SVG::export_expolygons(
                         debug_out_path("support-projection_new-gridded-%d-%lf.svg", iRun, layer.print_z),
                         union_ex(projection_new, false));
         #endif /* SLIC3R_DEBUG */
-#ifdef SLIC3R_DEBUG
-                    {
-                        BoundingBox bbox = get_extents(projection);
-                        bbox.merge(get_extents(projection_new));
-                        bbox.merge(get_extents(trimming));
-                        ::Slic3r::SVG svg(debug_out_path("support-projection_new-gridded-%d-%lf.svg", iRun, layer.print_z), bbox);
-                        svg.draw(union_ex(trimming, false), "gray", 0.5f);
-                        svg.draw(union_ex(projection_new, false), "red", 0.5f);
-                        svg.draw(union_ex(projection, false), "blue", 0.5f);
-                    }
-#endif /* SLIC3R_DEBUG */
+        #ifdef SLIC3R_DEBUG
+                    SVG::export_expolygons(debug_out_path("support-projection_new-gridded-%d-%lf.svg", iRun, layer.print_z),
+                        { { { union_ex(trimming, false) },       { "trimming",       "gray", 0.5f } },
+                          { { union_ex(projection, true) },      { "projection",     "blue", 0.5f } },
+                          { { union_ex(projection_new, true) },  { "projection_new", "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+        #endif /* SLIC3R_DEBUG */
                 });
                 task_group_inner.wait();
                 projection = std::move(projection_new);
