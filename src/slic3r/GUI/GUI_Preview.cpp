@@ -677,12 +677,11 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
                     _u8L("NOTE:") + "\n" + _u8L("Sliced object looks like the sign") + "\n",
                     _u8L("Apply auto color change to print"),
                     [this, notif_mngr](wxEvtHandler*) {
-                        notif_mngr->close_notification_of_type(NotificationType::SignDetected);
                         m_layers_slider->auto_color_change();
                         return true;
                     });
 
-                notif_mngr->set_in_preview(true);
+                notif_mngr->apply_in_preview();
 
                 break;
             }

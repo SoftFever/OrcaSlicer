@@ -1014,7 +1014,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 	auto notification = std::make_unique<NotificationManager::PlaterWarningNotification>(data, m_id_provider, m_evt_handler);
 	push_notification_data(std::move(notification), 0);
 	// dissaper if in preview
-	set_in_preview(m_in_preview);
+	apply_in_preview();
 }
 
 void NotificationManager::close_plater_warning_notification(const std::string& text)

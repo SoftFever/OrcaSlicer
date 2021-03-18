@@ -159,8 +159,10 @@ public:
 	void render_notifications(GLCanvas3D& canvas, float overlay_width);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
-	// Which view is active? Plater or G-code preview? Hide warnings in G-code preview.
+	// Hides warnings in G-code preview. Should be called from plater only when 3d view/ preview is changed
     void set_in_preview(bool preview);
+	// Calls set_in_preview to apply appearing or disappearing of some notificatons;
+	void apply_in_preview() { set_in_preview(m_in_preview); }
 	// Move to left to avoid colision with variable layer height gizmo.
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
 	// perform update_state on each notification and ask for more frames if needed, return true for render needed
