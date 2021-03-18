@@ -9,8 +9,11 @@
 namespace Slic3r {
 
 class SLAPrintObject;
+class TriangleMesh;
 
 namespace sla {
+
+using RotOptimizeStatusCB = std::function<bool(int)>;
 
 /**
   * The function should find the best rotation for SLA upside down printing.
@@ -28,14 +31,13 @@ namespace sla {
   *
   * @return Returns the rotations around each axis (x, y, z)
   */
-Vec2d find_best_rotation(
+Vec2d find_best_misalignment_rotation(
         const SLAPrintObject& modelobj,
         float accuracy = 1.0f,
-        std::function<bool(int)> statuscb = [] (int) { return true; }
+        RotOptimizeStatusCB statuscb = [] (int) { return true; }
         );
 
-double get_model_supportedness(const SLAPrintObject &mesh,
-                               const Transform3f & tr);
+
 
 } // namespace sla
 } // namespace Slic3r

@@ -92,9 +92,9 @@ Transform3f to_transform3f(const XYRotation &rot)
 
 } // namespace
 
-Vec2d find_best_rotation(const SLAPrintObject &   po,
-                         float                    accuracy,
-                         std::function<bool(int)> statuscb)
+Vec2d find_best_misalignment_rotation(const SLAPrintObject &   po,
+                                      float                    accuracy,
+                                      std::function<bool(int)> statuscb)
 {
     static const unsigned MAX_TRIES = 1000;
 
@@ -154,14 +154,6 @@ Vec2d find_best_rotation(const SLAPrintObject &   po,
     std::cout << "Optimization took: " << bench.getElapsedSec() << " seconds" << std::endl;
 
     return {rot[0], rot[1]};
-}
-
-double get_model_supportedness(const SLAPrintObject &po, const Transform3f &tr)
-{
-    TriangleMesh mesh = po.model_object()->raw_mesh();
-    mesh.require_shared_vertices();
-
-    return get_model_supportedness(mesh, tr);
 }
 
 }} // namespace Slic3r::sla

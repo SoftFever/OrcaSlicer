@@ -8,7 +8,28 @@
 
 #include "slic3r/GUI/Plater.hpp"
 
+#include "slic3r/GUI/GUI_App.hpp"
+#include "libslic3r/AppConfig.hpp"
+
 namespace Slic3r { namespace GUI {
+
+void RotoptimizeJob::prepare()
+{
+    std::string accuracy_str =
+        wxGetApp().app_config->get("rotoptimize", "accuracy");
+
+    std::string method_str =
+        wxGetApp().app_config->get("rotoptimize", "method_id");
+
+    if (!accuracy_str.empty())
+        m_accuracy = std::stof(accuracy_str);
+
+    if (!method_str.empty())
+        m_method_id = std::stoi(method_str);
+
+    m_accuracy = std::max(0.f, std::min(m_accuracy, 1.f));
+    m_method_id = std::max(size_t(0), std::min(get_methods_count() - 1, m_method_id));
+}
 
 void RotoptimizeJob::process()
 {
@@ -21,7 +42,7 @@ void RotoptimizeJob::process()
 
     if (!o || !po) return;
 
-    Vec2d r = sla::find_best_rotation(*po, 0.75f, [this](int s) {
+    Vec2d r = Methods[m_method_id].findfn(*po, m_accuracy, [this](int s) {
         if (s > 0 && s < 100)
             update_status(s, _(L("Searching for optimal orientation")));
 

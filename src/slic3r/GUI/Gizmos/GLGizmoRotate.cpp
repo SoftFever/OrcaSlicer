@@ -7,9 +7,10 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
-#include "libslic3r/SLA/Rotfinder.hpp"
+#include "slic3r/GUI/Jobs/RotoptimizeJob.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -204,6 +205,23 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limi
 {
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
         return;
+
+    RotoptimzeWindow popup{m_imgui, m_rotoptimizewin_state, {x, y, bottom_limit}};
+}
+
+void GLGizmoRotate3D::load_rotoptimize_state()
+{
+    std::string accuracy_str =
+        wxGetApp().app_config->get("rotoptimize", "accuracy");
+
+    std::string method_str =
+        wxGetApp().app_config->get("rotoptimize", "method_id");
+
+    if (!accuracy_str.empty())
+        m_rotoptimizewin_state.accuracy = std::stof(accuracy_str);
+
+    if (!method_str.empty())
+        m_rotoptimizewin_state.method_id = std::stoi(method_str);
 }
 
 void GLGizmoRotate::render_circle() const
@@ -436,6 +454,9 @@ GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_fil
     {
         m_gizmos[i].set_group_id(i);
     }
+
+    std::cout << "Load rotopt state" << std::endl;
+    load_rotoptimize_state();
 }
 
 bool GLGizmoRotate3D::on_init()
@@ -490,6 +511,58 @@ void GLGizmoRotate3D::on_render() const
 
     if ((m_hover_id == -1) || (m_hover_id == 2))
         m_gizmos[Z].render();
+}
+
+const char * GLGizmoRotate3D::RotoptimzeWindow::options[RotoptimizeJob::get_methods_count()];
+bool GLGizmoRotate3D::RotoptimzeWindow::options_valid = false;
+
+GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
+                                                    State &          state,
+                                                    const Alignment &alignment)
+    : m_imgui{imgui}
+{
+    imgui->begin(_L("Optimize orientation"), ImGuiWindowFlags_NoMove |
+                                     ImGuiWindowFlags_AlwaysAutoResize |
+                                     ImGuiWindowFlags_NoCollapse);
+
+    // adjust window position to avoid overlap the view toolbar
+    float win_h = ImGui::GetWindowHeight();
+    float x = alignment.x, y = alignment.y;
+    y = std::min(y, alignment.bottom_limit - win_h);
+    ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
+
+    ImGui::PushItemWidth(200.f);
+
+    size_t methods_cnt = RotoptimizeJob::get_methods_count();
+    if (!options_valid) {
+        for (size_t i = 0; i < methods_cnt; ++i)
+            options[i] = RotoptimizeJob::get_method_names()[i].c_str();
+
+        options_valid = true;
+    }
+
+    int citem = state.method_id;
+    if (ImGui::Combo(_L("Choose method").c_str(), &citem, options, methods_cnt) ) {
+        state.method_id = citem;
+        wxGetApp().app_config->set("rotoptimize", "method_id", std::to_string(state.method_id));
+    }
+
+    float accuracy = state.accuracy;
+    if (imgui->slider_float(_L("Accuracy/Speed"), &accuracy, 0.01f, 1.f, "%.1f")) {
+        state.accuracy = accuracy;
+        wxGetApp().app_config->set("rotoptimize", "accuracy", std::to_string(state.accuracy));
+    }
+
+    ImGui::Separator();
+
+    if ( imgui->button(_L("Optimize")) ) {
+        wxGetApp().plater()->optimize_rotation();
+    }
+}
+
+GLGizmoRotate3D::RotoptimzeWindow::~RotoptimzeWindow()
+{
+    m_imgui->end();
 }
 
 } // namespace GUI
