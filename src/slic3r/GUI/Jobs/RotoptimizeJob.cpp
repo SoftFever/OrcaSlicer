@@ -21,13 +21,12 @@ void RotoptimizeJob::process()
 
     if (!o || !po) return;
 
-    Vec2d r = sla::find_best_rotation(*po, 0.75f,
-        [this](unsigned s) {
-            if (s < 100)
-                update_status(int(s), _(L("Searching for optimal orientation")));
-        },
-        [this] () { return was_canceled(); });
+    Vec2d r = sla::find_best_rotation(*po, 0.75f, [this](int s) {
+        if (s > 0 && s < 100)
+            update_status(s, _(L("Searching for optimal orientation")));
 
+        return !was_canceled();
+    });
 
     double mindist = 6.0; // FIXME
 

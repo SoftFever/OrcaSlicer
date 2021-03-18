@@ -92,10 +92,9 @@ Transform3f to_transform3f(const XYRotation &rot)
 
 } // namespace
 
-Vec2d find_best_rotation(const SLAPrintObject &        po,
-                         float                         accuracy,
-                         std::function<void(unsigned)> statuscb,
-                         std::function<bool()>         stopcond)
+Vec2d find_best_rotation(const SLAPrintObject &   po,
+                         float                    accuracy,
+                         std::function<bool(int)> statuscb)
 {
     static const unsigned MAX_TRIES = 1000;
 
@@ -108,7 +107,7 @@ Vec2d find_best_rotation(const SLAPrintObject &        po,
     mesh.require_shared_vertices();
 
     // To keep track of the number of iterations
-    unsigned status = 0;
+    int status = 0;
 
     // The maximum number of iterations
     auto max_tries = unsigned(accuracy * MAX_TRIES);
@@ -118,7 +117,11 @@ Vec2d find_best_rotation(const SLAPrintObject &        po,
 
     auto statusfn = [&statuscb, &status, &max_tries] {
         // report status
-        statuscb(unsigned(++status * 100.0/max_tries) );
+        statuscb(++status * 100.0/max_tries);
+    };
+
+    auto stopcond = [&statuscb] {
+        return ! statuscb(-1);
     };
 
     // Preparing the optimizer.
