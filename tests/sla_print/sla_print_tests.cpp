@@ -248,7 +248,7 @@ TEST_CASE("Test concurrency")
 
     double ref = std::accumulate(vals.begin(), vals.end(), 0.);
 
-    double s = sla::ccr_par::reduce(vals.begin(), vals.end(), 0., std::plus<double>{});
+    double s = execution::accumulate(ex_tbb, vals.begin(), vals.end(), 0.);
 
     REQUIRE(s == Approx(ref));
 }

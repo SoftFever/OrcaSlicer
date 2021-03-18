@@ -10,6 +10,7 @@
 
 namespace Slic3r {
 
+// Borrowed from C++20
 template<class T>
 using remove_cvref_t = std::remove_reference_t<std::remove_cv_t<T>>;
 
@@ -31,7 +32,7 @@ template<class EP, class En = void> struct Traits {};
 template<class EP> using AsTraits = Traits<remove_cvref_t<EP>>;
 
 // Each execution policy should declare two types of mutexes. A a spin lock and
-// a blocking mutex.
+// a blocking mutex. These types should satisfy the BasicLockable concept.
 template<class EP> using SpinningMutex = typename Traits<EP>::SpinningMutex;
 template<class EP> using BlockingMutex = typename Traits<EP>::BlockingMutex;
 
@@ -75,13 +76,12 @@ T reduce(const EP & ep,
 }
 
 // An overload of reduce method to be used with iterators as 'from' and 'to'
-// arguments.
+// arguments. Access functor is omitted here.
 template<class EP,
          class I,
          class MergeFn,
          class T,
-         class = ExecutionPolicyOnly<EP>,
-         class = IteratorOnly<I> >
+         class = ExecutionPolicyOnly<EP> >
 T reduce(const EP &ep,
          I         from,
          I         to,
@@ -91,7 +91,39 @@ T reduce(const EP &ep,
 {
     return reduce(
         ep, from, to, init, std::forward<MergeFn>(mergefn),
-        [](typename I::value_type &i) { return i; }, granularity);
+        [](const auto &i) { return i; }, granularity);
+}
+
+template<class EP,
+         class I,
+         class T,
+         class AccessFn,
+         class = ExecutionPolicyOnly<EP>>
+T accumulate(const EP & ep,
+             I          from,
+             I          to,
+             const T &  init,
+             AccessFn &&accessfn,
+             size_t     granularity = 1)
+{
+    return reduce(ep, from, to, init, std::plus<T>{},
+                  std::forward<AccessFn>(accessfn), granularity);
+}
+
+
+template<class EP,
+         class I,
+         class T,
+         class = ExecutionPolicyOnly<EP> >
+T accumulate(const EP &ep,
+             I         from,
+             I         to,
+             const T & init,
+             size_t    granularity = 1)
+{
+    return reduce(
+        ep, from, to, init, std::plus<T>{}, [](const auto &i) { return i; },
+        granularity);
 }
 
 } // namespace execution_policy
