@@ -328,7 +328,12 @@ double Control::get_double_value(const SelectedSlider& selection)
 
 int Control::get_tick_from_value(double value)
 {
-    auto it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
+    std::vector<double>::iterator it;
+    if (m_is_smart_wipe_tower)
+        it = std::find_if(m_values.begin(), m_values.end(),
+                          [value](const double & val) { return fabs(value - val) <= epsilon(); });
+    else
+        it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
 
     if (it == m_values.end())
         return -1;
@@ -391,6 +396,16 @@ void Control::SetLayersTimes(const std::vector<float>& layers_times)
     m_layers_times[0] = layers_times[0];
     for (size_t i = 1; i < layers_times.size(); i++)
         m_layers_times[i] = m_layers_times[i - 1] + layers_times[i];
+
+    // Erase duplicates values from m_values and save it to the m_layers_values
+    // They will be used for show the correct estimated time for MM print, when "No sparce layer" is enabled
+    // See https://github.com/prusa3d/PrusaSlicer/issues/6232
+    m_is_smart_wipe_tower = m_values.size() != m_layers_times.size();
+    if (m_is_smart_wipe_tower) {
+        m_layers_values = m_values;
+        sort(m_layers_values.begin(), m_layers_values.end());
+        m_layers_values.erase(unique(m_layers_values.begin(), m_layers_values.end()), m_layers_values.end());
+    }
 }
 
 void Control::SetLayersTimes(const std::vector<double>& layers_times)
@@ -511,6 +526,18 @@ void Control::render()
     }
 }
 
+bool Control::is_wipe_tower_layer(int tick) const
+{
+    if (!m_is_smart_wipe_tower || tick >= (int)m_values.size())
+        return false;
+    if (tick == 0 || (tick == (int)m_values.size() - 1 && m_values[tick] > m_values[tick - 1]))
+        return false;
+    if (m_values[tick - 1] == m_values[tick + 1] && m_values[tick] < m_values[tick + 1])
+        return true;
+
+    return false;
+}
+
 void Control::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end)
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
@@ -521,6 +548,11 @@ void Control::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_
     // suppress add tick on first layer
     if (tick == 0)
         return;
+
+    if (is_wipe_tower_layer(tick)) {
+        m_rect_tick_action = wxRect();
+        return;
+    }
 
     wxBitmap* icon = m_focus == fiActionIcon ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
     if (m_ticks.ticks.find(TickCode{tick}) != m_ticks.ticks.end())
@@ -670,6 +702,21 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     if (value >= m_values.size())
         return "ErrVal";
 
+    // When "Print Settings -> Multiple Extruders -> No sparse layer" is enabled, then "Smart" Wipe Tower is used for wiping.
+    // As a result, each layer with tool changes is splited for min 3 parts: first tool, wiping, second tool ...
+    // So, vertical slider have to respect to this case.
+    // see https://github.com/prusa3d/PrusaSlicer/issues/6232.
+    // m_values contains data for all layer's parts,
+    // but m_layers_values contains just unique Z values.
+    // Use this function for correct conversion slider position to number of printed layer
+    auto get_layer_number = [this](int value) {
+        double layer_print_z = m_values[is_wipe_tower_layer(value) ? std::max<int>(value - 1, 0) : value];
+        auto it = std::lower_bound(m_layers_values.begin(), m_layers_values.end(), layer_print_z - epsilon());
+        if (it == m_layers_values.end())
+            return -1;
+        return int(it - m_layers_values.begin());
+    };
+
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     if (m_draw_mode == dmSequentialGCodeView) {
         return (Slic3r::GUI::get_app_config()->get("seq_top_gcode_indices") == "1") ?
@@ -682,15 +729,21 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     else {
         if (label_type == ltEstimatedTime) {
-            return (value < m_layers_times.size()) ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
+            if (m_is_smart_wipe_tower) {
+                int layer_number = get_layer_number(value);
+                return layer_number < 0 ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
+            }
+            return value < m_layers_times.size() ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
         }
         wxString str = m_values.empty() ?
             wxString::Format("%.*f", 2, m_label_koef * value) :
             wxString::Format("%.*f", 2, m_values[value]);
         if (label_type == ltHeight)
             return str;
-        if (label_type == ltHeightWithLayer)
-            return format_wxstr("%1%\n(%2%)", str, m_values.empty() ? value : value + 1);
+        if (label_type == ltHeightWithLayer) {
+            size_t layer_number = m_is_smart_wipe_tower ? (size_t)get_layer_number(value) : (m_values.empty() ? value : value + 1);
+            return format_wxstr("%1%\n(%2%)", str, layer_number);
+        }
     }
 
     return wxEmptyString;
@@ -725,10 +778,17 @@ void Control::draw_tick_text(wxDC& dc, const wxPoint& pos, int tick, LabelType l
             text_pos = wxPoint(std::max(2, pos.x - text_width - 1 - m_thumb_size.x), pos.y - 0.5 * text_height + 1);
     }
 
+    wxColour old_clr = dc.GetTextForeground();
+    const wxPen& pen = is_wipe_tower_layer(tick) && (tick == m_lower_value || tick == m_higher_value) ? DARK_ORANGE_PEN : wxPen(old_clr);
+    dc.SetPen(pen);
+    dc.SetTextForeground(pen.GetColour());
+
     if (label_type == ltEstimatedTime)
         dc.DrawLabel(label, wxRect(text_pos, wxSize(text_width, text_height)), wxALIGN_RIGHT);
     else
         dc.DrawText(label, text_pos);
+
+    dc.SetTextForeground(old_clr);
 }
 
 void Control::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
@@ -1291,6 +1351,8 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (m_focus == fiColorBand)
         return m_mode != SingleExtruder ? "" :
                _L("Edit current color - Right click the colored slider segment");
+    if (m_focus == fiSmartWipeTower)
+        return _L("This is wipe tower layer");
     if (m_draw_mode == dmSlaPrint)
         return ""; // no drawn ticks and no tooltips for them in SlaPrinting mode
 
@@ -1424,8 +1486,14 @@ void Control::OnMotion(wxMouseEvent& event)
         else if (is_point_in_rect(pos, m_rect_higher_thumb))
             m_focus = fiHigherThumb;
         else {
-            m_focus = fiTick;
             tick = get_tick_near_point(pos);
+            if (tick < 0 && m_is_smart_wipe_tower) {
+                tick = get_value_from_position(pos);
+                m_focus = tick > 0 && is_wipe_tower_layer(tick) && (tick == m_lower_value || tick == m_higher_value) ? 
+                          fiSmartWipeTower : fiTick;
+            }
+            else 
+                m_focus = fiTick;
         }
         m_moving_pos = pos;
     }
