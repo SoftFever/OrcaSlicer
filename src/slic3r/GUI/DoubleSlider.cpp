@@ -2022,6 +2022,9 @@ void Control::auto_color_change()
             Layer* layer = object->get_layer(i);
             double cur_area = area(layer->lslices);
 
+            if (cur_area > prev_area)
+                break;
+
             if (prev_area - cur_area > delta_area) {
                 int tick = get_tick_from_value(layer->print_z);
                 if (tick >= 0 && !m_ticks.has_tick(tick)) {
@@ -2035,6 +2038,10 @@ void Control::auto_color_change()
                             extruder = 1;
                     }
                 }
+
+                // allow max 3 auto color changes
+                if (m_ticks.ticks.size() == 3)
+                    break;
             }
 
             prev_area = cur_area;

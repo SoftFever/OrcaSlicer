@@ -1443,7 +1443,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Fuzzy skin (experimental)"));
         Option option = optgroup->get_option("fuzzy_skin");
-        option.opt.width = 30;
+//        option.opt.width = 30;
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line(optgroup->get_option("fuzzy_skin_thickness"));
         optgroup->append_single_option_line(optgroup->get_option("fuzzy_skin_point_dist"));
