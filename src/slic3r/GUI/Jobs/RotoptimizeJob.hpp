@@ -21,7 +21,7 @@ class RotoptimizeJob : public PlaterJob
 
     static inline const FindMethod Methods[] = {
         { L("Best misalignment"), sla::find_best_misalignment_rotation },
-        { L("Least supports"), sla::find_best_misalignment_rotation }
+        { L("Least supports"), sla::find_least_supports_rotation }
     };
 
     size_t m_method_id = 0;

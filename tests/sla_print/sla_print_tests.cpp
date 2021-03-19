@@ -1,6 +1,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <random>
+#include <numeric>
 #include <cstdint>
 
 #include "sla_test_utils.hpp"

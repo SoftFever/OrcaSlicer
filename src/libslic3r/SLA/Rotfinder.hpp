@@ -37,7 +37,11 @@ Vec2d find_best_misalignment_rotation(
         RotOptimizeStatusCB statuscb = [] (int) { return true; }
         );
 
-
+Vec2d find_least_supports_rotation(
+    const SLAPrintObject& modelobj,
+    float accuracy = 1.0f,
+    RotOptimizeStatusCB statuscb = [] (int) { return true; }
+    );
 
 } // namespace sla
 } // namespace Slic3r
