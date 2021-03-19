@@ -212,10 +212,10 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limi
 void GLGizmoRotate3D::load_rotoptimize_state()
 {
     std::string accuracy_str =
-        wxGetApp().app_config->get("rotoptimize", "accuracy");
+        wxGetApp().app_config->get("sla_auto_rotate", "accuracy");
 
     std::string method_str =
-        wxGetApp().app_config->get("rotoptimize", "method_id");
+        wxGetApp().app_config->get("sla_auto_rotate", "method_id");
 
     if (!accuracy_str.empty()) {
         float accuracy = std::stof(accuracy_str);
@@ -550,13 +550,13 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
     int citem = state.method_id;
     if (ImGui::Combo(_L("Choose method").c_str(), &citem, options, methods_cnt) ) {
         state.method_id = citem;
-        wxGetApp().app_config->set("rotoptimize", "method_id", std::to_string(state.method_id));
+        wxGetApp().app_config->set("sla_auto_rotate", "method_id", std::to_string(state.method_id));
     }
 
     float accuracy = state.accuracy;
     if (imgui->slider_float(_L("Accuracy/Speed"), &accuracy, 0.01f, 1.f, "%.1f")) {
         state.accuracy = accuracy;
-        wxGetApp().app_config->set("rotoptimize", "accuracy", std::to_string(state.accuracy));
+        wxGetApp().app_config->set("sla_auto_rotate", "accuracy", std::to_string(state.accuracy));
     }
 
     ImGui::Separator();

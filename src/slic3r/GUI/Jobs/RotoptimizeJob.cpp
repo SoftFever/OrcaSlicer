@@ -16,10 +16,10 @@ namespace Slic3r { namespace GUI {
 void RotoptimizeJob::prepare()
 {
     std::string accuracy_str =
-        wxGetApp().app_config->get("rotoptimize", "accuracy");
+        wxGetApp().app_config->get("sla_auto_rotate", "accuracy");
 
     std::string method_str =
-        wxGetApp().app_config->get("rotoptimize", "method_id");
+        wxGetApp().app_config->get("sla_auto_rotate", "method_id");
 
     if (!accuracy_str.empty())
         m_accuracy = std::stof(accuracy_str);
