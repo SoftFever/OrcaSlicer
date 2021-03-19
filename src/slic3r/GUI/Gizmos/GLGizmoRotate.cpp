@@ -217,11 +217,18 @@ void GLGizmoRotate3D::load_rotoptimize_state()
     std::string method_str =
         wxGetApp().app_config->get("rotoptimize", "method_id");
 
-    if (!accuracy_str.empty())
-        m_rotoptimizewin_state.accuracy = std::stof(accuracy_str);
+    if (!accuracy_str.empty()) {
+        float accuracy = std::stof(accuracy_str);
+        accuracy = std::max(0.f, std::min(accuracy, 1.f));
 
-    if (!method_str.empty())
-        m_rotoptimizewin_state.method_id = std::stoi(method_str);
+        m_rotoptimizewin_state.accuracy = accuracy;
+    }
+
+    if (!method_str.empty()) {
+        int method_id = std::stoi(method_str);
+        if (method_id < int(RotoptimizeJob::get_methods_count()))
+            m_rotoptimizewin_state.method_id = method_id;
+    }
 }
 
 void GLGizmoRotate::render_circle() const
