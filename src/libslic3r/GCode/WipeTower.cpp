@@ -1125,10 +1125,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
-        .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f))
-		.append(";--------------------\n"
-				"; CP EMPTY GRID START\n")
-		.comment_with_value(" layer #", m_num_layer_changes + 1);
+        .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
+
 
 	// Slow down on the 1st layer.
 	float speed_factor = m_is_first_layer ? 0.5f : 1.f;
@@ -1141,16 +1139,14 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                                  m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
     bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
-	box_coordinates box = fill_box;
 
     // inner perimeter of the sparse section, if there is space for it:
-    if (fill_box.lu.y() - fill_box.ld.y() > m_perimeter_width)
-        writer.rectangle(box.ld, box.rd.x()-box.ld.x(), box.ru.y()-box.rd.y(), 2900*speed_factor);
+    if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON)
+        writer.rectangle(fill_box.ld, fill_box.rd.x()-fill_box.ld.x(), fill_box.ru.y()-fill_box.rd.y(), 2900*speed_factor);
 
     // outer perimeter (always):
     writer.rectangle(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)),
                      m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
-
 
     // we are in one of the corners, travel to ld along the perimeter:
     if (writer.x() > fill_box.ld.x()+EPSILON) writer.travel(fill_box.ld.x(),writer.y());
@@ -1158,6 +1154,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 
     if (m_is_first_layer && m_adhesion) {
         // Extrude a dense infill at the 1st layer to improve 1st layer adhesion of the wipe tower.
+        box_coordinates box = fill_box;
         box.expand(-m_perimeter_width/2.f);
         int nsteps = int(std::floor((box.lu.y() - box.ld.y()) / (2*m_perimeter_width)));
         float step   = (box.lu.y() - box.ld.y()) / nsteps;
@@ -1178,7 +1175,10 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
         const float right = fill_box.ru.x() - 2 * m_perimeter_width;
         if (dy > m_perimeter_width)
         {
-            writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f));
+            writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
+                  .append(";--------------------\n"
+                          "; CP EMPTY GRID START\n")
+                  .comment_with_value(" layer #", m_num_layer_changes + 1);
 
             // Is there a soluble filament wiped/rammed at the next layer?
             // If so, the infill should not be sparse.
@@ -1219,16 +1219,15 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                 writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
                       .add_wipe_point(Vec2f(left, writer.y()));
             }
+
+            writer.append("; CP EMPTY GRID END\n"
+                          ";------------------\n\n\n\n\n\n\n");
         }
         else {
             writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
                   .add_wipe_point(Vec2f(right, writer.y()));
         }
     }
-    writer.append("; CP EMPTY GRID END\n"
-                  ";------------------\n\n\n\n\n\n\n");
-
-    m_depth_traversed = m_wipe_tower_depth-m_perimeter_width;
 
 
     // Ask our writer about how much material was consumed.
@@ -1307,22 +1306,59 @@ void WipeTower::save_on_last_wipe()
         if (m_layer_info->tool_changes.size()==0)   // we have no way to save anything on an empty layer
             continue;
 
-        for (const auto &toolchange : m_layer_info->tool_changes)
+        // Which toolchange will finish_layer extrusions be subtracted from?
+        int idx = first_toolchange_to_nonsoluble(m_layer_info->tool_changes);
+
+        for (int i=0; i<int(m_layer_info->tool_changes.size()); ++i) {
+            auto& toolchange = m_layer_info->tool_changes[i];
             tool_change(toolchange.new_tool);
 
-        float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
-        //float length_to_save = 2*(m_wipe_tower_width+m_wipe_tower_depth) + (!layer_finished() ? finish_layer().total_extrusion_length_in_plane() : 0.f);
-        float length_to_save = finish_layer().total_extrusion_length_in_plane();
-        float length_to_wipe = volume_to_length(m_layer_info->tool_changes.back().wipe_volume,
-                              m_perimeter_width,m_layer_info->height)  - m_layer_info->tool_changes.back().first_wipe_line - length_to_save;
+            if (i == idx) {
+                float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
+                float length_to_save = finish_layer().total_extrusion_length_in_plane();
+                float length_to_wipe = volume_to_length(toolchange.wipe_volume,
+                                      m_perimeter_width, m_layer_info->height)  - toolchange.first_wipe_line - length_to_save;
 
-        length_to_wipe = std::max(length_to_wipe,0.f);
-        float depth_to_wipe = m_perimeter_width * (std::floor(length_to_wipe/width) + ( length_to_wipe > 0.f ? 1.f : 0.f ) ) * m_extra_spacing;
+                length_to_wipe = std::max(length_to_wipe,0.f);
+                float depth_to_wipe = m_perimeter_width * (std::floor(length_to_wipe/width) + ( length_to_wipe > 0.f ? 1.f : 0.f ) ) * m_extra_spacing;
 
-        //depth += (int(length_to_extrude / width) + 1) * m_perimeter_width;
-        m_layer_info->tool_changes.back().required_depth = m_layer_info->tool_changes.back().ramming_depth + depth_to_wipe;
+                toolchange.required_depth = toolchange.ramming_depth + depth_to_wipe;
+            }
+        }
     }
 }
+
+
+// Return index of first toolchange that switches to non-soluble extruder
+// ot -1 if there is no such toolchange.
+int WipeTower::first_toolchange_to_nonsoluble(
+        const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const
+{
+    for (size_t idx=0; idx<tool_changes.size(); ++idx)
+        if (! m_filpar[tool_changes[idx].new_tool].is_soluble)
+            return idx;
+    return -1;
+}
+
+static WipeTower::ToolChangeResult merge_tcr(WipeTower::ToolChangeResult& first,
+                                             WipeTower::ToolChangeResult& second)
+{
+    assert(first.new_tool == second.initial_tool);
+    WipeTower::ToolChangeResult out = first;
+    if (first.end_pos != second.start_pos) {
+        char buf[2048];     // Add a travel move from tc1.end_pos to tc2.start_pos.
+        sprintf(buf, "G1 X%.3f Y%.3f F7200\n", second.start_pos.x(), second.start_pos.y());
+        out.gcode += buf;
+    }
+    out.gcode += second.gcode;
+    out.extrusions.insert(out.extrusions.end(), second.extrusions.begin(), second.extrusions.end());
+    out.end_pos = second.end_pos;
+    out.wipe_path = second.wipe_path;
+    out.initial_tool = first.initial_tool;
+    out.new_tool = second.new_tool;
+    return out;
+}
+
 
 // Processes vector m_plan and calls respective functions to generate G-code for the wipe tower
 // Resulting ToolChangeResults are appended into vector "result"
@@ -1364,25 +1400,31 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
         if (m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
 			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
 
-		for (const auto &toolchange : layer.tool_changes)
-            layer_result.emplace_back(tool_change(toolchange.new_tool));
+        int idx = first_toolchange_to_nonsoluble(layer.tool_changes);
+        ToolChangeResult finish_layer_tcr;
 
-		if (! layer_finished()) {
-            auto finish_layer_toolchange = finish_layer();
-            if ( ! layer.tool_changes.empty() ) { // we will merge it to the last toolchange
-                auto& last_toolchange = layer_result.back();
-                if (last_toolchange.end_pos != finish_layer_toolchange.start_pos) {
-                    char buf[2048];     // Add a travel move from tc1.end_pos to tc2.start_pos.
-					sprintf(buf, "G1 X%.3f Y%.3f F7200\n", finish_layer_toolchange.start_pos.x(), finish_layer_toolchange.start_pos.y());
-					last_toolchange.gcode += buf;
-				}
-                last_toolchange.gcode += finish_layer_toolchange.gcode;
-                last_toolchange.extrusions.insert(last_toolchange.extrusions.end(), finish_layer_toolchange.extrusions.begin(), finish_layer_toolchange.extrusions.end());
-                last_toolchange.end_pos = finish_layer_toolchange.end_pos;
-                last_toolchange.wipe_path = finish_layer_toolchange.wipe_path;
-            }
+        if (idx == -1) {
+            // if there is no toolchange switching to non-soluble, finish layer
+            // will be called at the very beginning. That's the last possibility
+            // where a nonsoluble tool can be.
+            finish_layer_tcr = finish_layer();
+        }
+
+        for (int i=0; i<int(layer.tool_changes.size()); ++i) {
+            layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool));
+            if (i == idx) // finish_layer will be called after this toolchange
+                finish_layer_tcr = finish_layer();
+        }
+
+        if (layer_result.empty()) {
+            // there is nothing to merge finish_layer with
+            layer_result.emplace_back(std::move(finish_layer_tcr));
+        }
+        else {
+            if (idx == -1)
+                layer_result[0] = merge_tcr(finish_layer_tcr, layer_result[0]);
             else
-                layer_result.emplace_back(std::move(finish_layer_toolchange));
+                layer_result[idx] = merge_tcr(layer_result[idx], finish_layer_tcr);
         }
 
 		result.emplace_back(std::move(layer_result));

@@ -361,6 +361,11 @@ private:
     // Stores information about used filament length per extruder:
     std::vector<float> m_used_filament_length;
 
+    // Return index of first toolchange that switches to non-soluble extruder
+    // ot -1 if there is no such toolchange.
+    int first_toolchange_to_nonsoluble(
+            const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const;
+
 
 	// Returns gcode for wipe tower brim
 	// sideOnly			-- set to false -- experimental, draw brim on sides of wipe tower
