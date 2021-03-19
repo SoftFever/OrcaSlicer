@@ -455,7 +455,6 @@ GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_fil
         m_gizmos[i].set_group_id(i);
     }
 
-    std::cout << "Load rotopt state" << std::endl;
     load_rotoptimize_state();
 }
 
