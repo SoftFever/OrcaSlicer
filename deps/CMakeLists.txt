@@ -79,6 +79,7 @@ function(prusaslicer_add_cmake_project projectname)
             -DCMAKE_DEBUG_POSTFIX:STRING=d
             -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
             "${_configs_line}"
             ${DEP_CMAKE_OPTS}
@@ -150,6 +151,7 @@ include(OpenCSG/OpenCSG.cmake)
 include(GMP/GMP.cmake)
 include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
+include(NLopt/NLopt.cmake)
 include(wxWidgets/wxWidgets.cmake)
 
 if (NOT "${ZLIB_PKG}" STREQUAL "")
@@ -164,7 +166,7 @@ set(_dep_list
     dep_wxWidgets
     dep_gtest
     dep_cereal
-    dep_nlopt
+    dep_NLopt
     dep_openvdb
     dep_OpenCSG
     dep_CGAL

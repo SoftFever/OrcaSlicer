@@ -47,20 +47,6 @@ ExternalProject_Add(dep_cereal
         ${DEP_CMAKE_OPTS}
 )
 
-ExternalProject_Add(dep_nlopt
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/stevengj/nlopt/archive/v2.5.0.tar.gz"
-    URL_HASH SHA256=c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae
-    CMAKE_ARGS
-        -DBUILD_SHARED_LIBS=OFF
-        -DNLOPT_PYTHON=OFF
-        -DNLOPT_OCTAVE=OFF
-        -DNLOPT_MATLAB=OFF
-        -DNLOPT_GUILE=OFF
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        ${DEP_CMAKE_OPTS}
-)
-
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
     #URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"

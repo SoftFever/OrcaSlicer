@@ -128,27 +128,6 @@ ExternalProject_Add(dep_cereal
     INSTALL_COMMAND ""
 )
 
-ExternalProject_Add(dep_nlopt
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/stevengj/nlopt/archive/v2.5.0.tar.gz"
-    URL_HASH SHA256=c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
-    CMAKE_ARGS
-        -DBUILD_SHARED_LIBS=OFF
-        -DNLOPT_PYTHON=OFF
-        -DNLOPT_OCTAVE=OFF
-        -DNLOPT_MATLAB=OFF
-        -DNLOPT_GUILE=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        -DCMAKE_DEBUG_POSTFIX=d
-        "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-    INSTALL_COMMAND ""
-)
-
-add_debug_dep(dep_nlopt)
-
 if (${DEPS_BITS} EQUAL 32)
     set(DEP_LIBCURL_TARGET "x86")
 else ()
