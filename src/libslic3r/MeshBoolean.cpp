@@ -1,7 +1,6 @@
 #include "Exception.hpp"
 #include "MeshBoolean.hpp"
 #include "libslic3r/TriangleMesh.hpp"
-#include "boost/log/trivial.hpp"
 #undef PI
 
 // Include igl first. It defines "L" macro which then clashes with our localization
@@ -155,16 +154,13 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
 
         int i = 0;
         Vec3i facet;
-        for (const auto &v : vtc) {
+        for (auto v : vtc) {
             if (i > 2) { i = 0; break; }
             facet(i++) = v;
         }
 
-        if (i == 3) {
+        if (i == 3)
             facets.emplace_back(facet);
-        } else {
-            BOOST_LOG_TRIVIAL(error) << "CGAL face is not a triangle.";
-        }
     }
     
     TriangleMesh out{points, facets};
