@@ -1388,7 +1388,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
         // Generate overhang / contact_polygons for non-raft layers.
         const Layer &lower_layer  = *layer.lower_layer;
         const bool   has_enforcer = ! annotations.enforcers_layers.empty() && ! annotations.enforcers_layers[layer_id].empty();
-        float fw;
+        float        fw           = 0;
         for (LayerRegion *layerm : layer.regions()) {
             // Extrusion width accounts for the roundings of the extrudates.
             // It is the maximum widh of the extrudate.
@@ -1849,8 +1849,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;
 
-    const bool   support_auto  = m_object_config->support_material.value && m_object_config->support_material_auto.value;
-
     BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::top_contact_layers() in parallel - start";
     // Determine top contact areas.
     // If generating raft only (no support), only calculate top contact areas for the 0th layer.
@@ -1863,7 +1861,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     contact_out.assign(num_layers * 2, nullptr);
     tbb::spin_mutex layer_storage_mutex;
     tbb::parallel_for(tbb::blocked_range<size_t>(this->has_raft() ? 0 : 1, num_layers),
-        [this, &object, &annotations, support_auto, &layer_storage, &layer_storage_mutex, &contact_out]
+        [this, &object, &annotations, &layer_storage, &layer_storage_mutex, &contact_out]
         (const tbb::blocked_range<size_t>& range) {
             for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) 
             {
@@ -3944,12 +3942,12 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 base_layer.layer = intermediate_layers[idx_layer_intermediate];
 
             if (m_object_config->support_material_interface_layers == 0) {
-                // If no interface layers were requested, we treat the contact layer exactly as a generic base layer.
+                // If no top interface layers were requested, we treat the contact layer exactly as a generic base layer.
                 if (m_support_params.can_merge_support_regions) {
                     if (base_layer.could_merge(top_contact_layer)) 
                         base_layer.merge(std::move(top_contact_layer));
-                    else if (base_layer.empty() && !top_contact_layer.empty() && !top_contact_layer.layer->bridging)
-                        std::swap(base_layer, top_contact_layer);
+                    else if (base_layer.empty())
+                        base_layer = std::move(top_contact_layer);
                 }
             } else {
                 loop_interface_processor.generate(top_contact_layer, m_support_params.support_material_interface_flow);
@@ -3962,8 +3960,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             if ((m_object_config->support_material_interface_layers == 0 || m_object_config->support_material_bottom_interface_layers == 0) && m_support_params.can_merge_support_regions) {
                 if (base_layer.could_merge(bottom_contact_layer))
                     base_layer.merge(std::move(bottom_contact_layer));
-                else if (base_layer.empty() && !bottom_contact_layer.empty() && !bottom_contact_layer.layer->bridging)
-                    std::swap(base_layer, bottom_contact_layer);
+                else if (base_layer.empty() && ! bottom_contact_layer.empty() && ! bottom_contact_layer.layer->bridging)
+                    base_layer = std::move(bottom_contact_layer);
             }
 
 #if 0
@@ -3983,7 +3981,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? bottom_contact_layer : interface_layer);
                 if (layer_ex.empty() || layer_ex.polygons_to_extrude().empty())
                     continue;
-                bool interface_as_base = (&layer_ex == &interface_layer) && m_object_config->support_material_interface_layers.value == 0;
+                bool interface_as_base = m_object_config->support_material_interface_layers.value == 0 || 
+                    (m_object_config->support_material_bottom_interface_layers == 0 && &layer_ex == &bottom_contact_layer);
                 //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
                 auto interface_flow = layer_ex.layer->bridging ?
@@ -3994,21 +3993,22 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                         angles[support_layer_id % angles.size()] :
                         // Use interface angle for the interface layers.
                         interface_angle;
-                filler_interface->spacing = m_support_params.support_material_interface_flow.spacing();
-                filler_interface->link_max_length = coord_t(scale_(filler_interface->spacing * link_max_length_factor / interface_density));
+                double density = interface_as_base ? support_density : interface_density;
+                filler_interface->spacing = interface_as_base ? m_support_params.support_material_flow.spacing() : m_support_params.support_material_interface_flow.spacing();
+                filler_interface->link_max_length = coord_t(scale_(filler_interface->spacing * link_max_length_factor / density));
                 fill_expolygons_generate_paths(
                     // Destination
                     layer_ex.extrusions, 
                     // Regions to fill
                     union_ex(layer_ex.polygons_to_extrude(), true),
                     // Filler and its parameters
-                    filler_interface.get(), float(interface_density),
+                    filler_interface.get(), float(density),
                     // Extrusion parameters
                     erSupportMaterialInterface, interface_flow);
             }
 
             // Base interface layers under soluble interfaces
-            if ( ! base_interface_layer.empty() && ! base_interface_layer.polygons_to_extrude().empty()){ 
+            if ( ! base_interface_layer.empty() && ! base_interface_layer.polygons_to_extrude().empty()) {
                 Fill *filler = filler_base_interface.get();
                 //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
