@@ -94,39 +94,39 @@ ExternalProject_Add(dep_cereal
     INSTALL_COMMAND ""
 )
 
-if (${DEPS_BITS} EQUAL 32)
-    set(DEP_LIBCURL_TARGET "x86")
-else ()
-    set(DEP_LIBCURL_TARGET "x64")
-endif ()
+# if (${DEPS_BITS} EQUAL 32)
+#     set(DEP_LIBCURL_TARGET "x86")
+# else ()
+#     set(DEP_LIBCURL_TARGET "x64")
+# endif ()
 
-ExternalProject_Add(dep_libcurl
-    EXCLUDE_FROM_ALL 1
-    URL "https://curl.haxx.se/download/curl-7.58.0.tar.gz"
-    URL_HASH SHA256=cc245bf9a1a42a45df491501d97d5593392a03f7b4f07b952793518d97666115
-    BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND cd winbuild && nmake /f Makefile.vc mode=static "VC=${DEP_VS_VER}" GEN_PDB=yes DEBUG=no "MACHINE=${DEP_LIBCURL_TARGET}"
-    INSTALL_COMMAND cd builds\\libcurl-*-release-*-winssl
-        && "${CMAKE_COMMAND}" -E copy_directory include "${DESTDIR}\\usr\\local\\include"
-        && "${CMAKE_COMMAND}" -E copy_directory lib "${DESTDIR}\\usr\\local\\lib"
-)
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_libcurl SOURCE_DIR)
-    ExternalProject_Add_Step(dep_libcurl build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND cd winbuild && nmake /f Makefile.vc mode=static "VC=${DEP_VS_VER}" GEN_PDB=yes DEBUG=yes "MACHINE=${DEP_LIBCURL_TARGET}"
-        WORKING_DIRECTORY "${SOURCE_DIR}"
-    )
-    ExternalProject_Add_Step(dep_libcurl install_debug
-        DEPENDEES install
-        COMMAND cd builds\\libcurl-*-debug-*-winssl
-            && "${CMAKE_COMMAND}" -E copy_directory include "${DESTDIR}\\usr\\local\\include"
-            && "${CMAKE_COMMAND}" -E copy_directory lib "${DESTDIR}\\usr\\local\\lib"
-        WORKING_DIRECTORY "${SOURCE_DIR}"
-    )
-endif ()
+# ExternalProject_Add(dep_libcurl
+#     EXCLUDE_FROM_ALL 1
+#     URL "https://curl.haxx.se/download/curl-7.58.0.tar.gz"
+#     URL_HASH SHA256=cc245bf9a1a42a45df491501d97d5593392a03f7b4f07b952793518d97666115
+#     BUILD_IN_SOURCE 1
+#     CONFIGURE_COMMAND ""
+#     BUILD_COMMAND cd winbuild && nmake /f Makefile.vc mode=static "VC=${DEP_VS_VER}" GEN_PDB=yes DEBUG=no "MACHINE=${DEP_LIBCURL_TARGET}"
+#     INSTALL_COMMAND cd builds\\libcurl-*-release-*-winssl
+#         && "${CMAKE_COMMAND}" -E copy_directory include "${DESTDIR}\\usr\\local\\include"
+#         && "${CMAKE_COMMAND}" -E copy_directory lib "${DESTDIR}\\usr\\local\\lib"
+# )
+# if (${DEP_DEBUG})
+#     ExternalProject_Get_Property(dep_libcurl SOURCE_DIR)
+#     ExternalProject_Add_Step(dep_libcurl build_debug
+#         DEPENDEES build
+#         DEPENDERS install
+#         COMMAND cd winbuild && nmake /f Makefile.vc mode=static "VC=${DEP_VS_VER}" GEN_PDB=yes DEBUG=yes "MACHINE=${DEP_LIBCURL_TARGET}"
+#         WORKING_DIRECTORY "${SOURCE_DIR}"
+#     )
+#     ExternalProject_Add_Step(dep_libcurl install_debug
+#         DEPENDEES install
+#         COMMAND cd builds\\libcurl-*-debug-*-winssl
+#             && "${CMAKE_COMMAND}" -E copy_directory include "${DESTDIR}\\usr\\local\\include"
+#             && "${CMAKE_COMMAND}" -E copy_directory lib "${DESTDIR}\\usr\\local\\lib"
+#         WORKING_DIRECTORY "${SOURCE_DIR}"
+#     )
+# endif ()
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1

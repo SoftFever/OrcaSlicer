@@ -153,6 +153,8 @@ include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
 include(NLopt/NLopt.cmake)
 include(TBB/TBB.cmake)
+include(OpenSSL/OpenSSL.cmake)
+include(CURL/CURL.cmake)
 include(wxWidgets/wxWidgets.cmake)
 
 if (NOT "${ZLIB_PKG}" STREQUAL "")
@@ -165,7 +167,7 @@ add_dependencies(dep_openvdb dep_TBB)
 set(_dep_list
     dep_boost
     dep_TBB
-    dep_libcurl
+    dep_CURL
     dep_wxWidgets
     dep_cereal
     dep_NLopt
