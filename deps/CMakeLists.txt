@@ -152,6 +152,7 @@ include(GMP/GMP.cmake)
 include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
 include(NLopt/NLopt.cmake)
+include(TBB/TBB.cmake)
 include(wxWidgets/wxWidgets.cmake)
 
 if (NOT "${ZLIB_PKG}" STREQUAL "")
@@ -159,12 +160,13 @@ if (NOT "${ZLIB_PKG}" STREQUAL "")
     add_dependencies(dep_openexr ${ZLIB_PKG})
 endif ()
 
+add_dependencies(dep_openvdb dep_TBB)
+
 set(_dep_list
     dep_boost
-    dep_tbb
+    dep_TBB
     dep_libcurl
     dep_wxWidgets
-    dep_gtest
     dep_cereal
     dep_NLopt
     dep_openvdb

@@ -81,40 +81,6 @@ ExternalProject_Add(dep_boost
     INSTALL_COMMAND ""   # b2 does that already
 )
 
-ExternalProject_Add(dep_tbb
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/wjakob/tbb/archive/a0dc9bf76d0120f917b641ed095360448cabc85b.tar.gz"
-    URL_HASH SHA256=0545cb6033bd1873fcae3ea304def720a380a88292726943ae3b9b207f322efe
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
-    CMAKE_ARGS
-        -DCMAKE_DEBUG_POSTFIX=_debug
-        -DTBB_BUILD_SHARED=OFF
-        -DTBB_BUILD_TESTS=OFF
-        "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-    INSTALL_COMMAND ""
-)
-
-add_debug_dep(dep_tbb)
-
-# ExternalProject_Add(dep_gtest
-#     EXCLUDE_FROM_ALL 1
-#     URL "https://github.com/google/googletest/archive/release-1.8.1.tar.gz"
-#     URL_HASH SHA256=9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c
-#     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-#     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
-#     CMAKE_ARGS
-#         -DBUILD_GMOCK=OFF
-#         -Dgtest_force_shared_crt=ON
-#         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-#         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-#     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-#     INSTALL_COMMAND ""
-# )
-
-# add_debug_dep(dep_gtest)
-
 ExternalProject_Add(dep_cereal
     EXCLUDE_FROM_ALL 1
     URL "https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz"

@@ -18,25 +18,6 @@ endif ()
 #     message(WARNING "No EXPAT dev package found in system, building static library. Consider installing the system package.")
 # endif ()
 
-ExternalProject_Add(dep_tbb
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/wjakob/tbb/archive/a0dc9bf76d0120f917b641ed095360448cabc85b.tar.gz"
-    URL_HASH SHA256=0545cb6033bd1873fcae3ea304def720a380a88292726943ae3b9b207f322efe
-    CMAKE_ARGS
-        -DTBB_BUILD_SHARED=OFF
-        -DTBB_BUILD_TESTS=OFF
-        -DCMAKE_CXX_FLAGS=${TBB_MINGW_WORKAROUND}
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        ${DEP_CMAKE_OPTS}
-)
-
-ExternalProject_Add(dep_gtest
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/google/googletest/archive/release-1.8.1.tar.gz"
-    URL_HASH SHA256=9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c
-    CMAKE_ARGS -DBUILD_GMOCK=OFF ${DEP_CMAKE_OPTS} -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-)
-
 ExternalProject_Add(dep_cereal
     EXCLUDE_FROM_ALL 1
     URL "https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz"
@@ -96,7 +77,7 @@ ExternalProject_Add(dep_openvdb
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
     GIT_TAG aebaf8d95be5e57fd33949281ec357db4a576c2e #v6.2.1
-    DEPENDS dep_blosc dep_openexr dep_tbb
+    DEPENDS dep_blosc dep_openexr
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         -DCMAKE_DEBUG_POSTFIX=d
