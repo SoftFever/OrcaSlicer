@@ -1029,17 +1029,16 @@ void WipeTower::toolchange_Wipe(
 		m_left_to_right = !m_left_to_right;
 	}
 
-    // this is neither priming nor not the last toolchange on this layer - we are
-    // going back to the model - wipe the nozzle.
-    if (m_layer_info != m_plan.end() && m_current_tool != m_layer_info->tool_changes.back().new_tool) {
+    // We may be going back to the model - wipe the nozzle. If this is followed
+    // by finish_layer, this wipe path will be overwritten.
+    writer.add_wipe_point(writer.x(), writer.y())
+          .add_wipe_point(writer.x(), writer.y() - dy)
+          .add_wipe_point(! m_left_to_right ? m_wipe_tower_width : 0.f, writer.y() - dy);
+
+    if (m_layer_info != m_plan.end() && m_current_tool != m_layer_info->tool_changes.back().new_tool)
         m_left_to_right = !m_left_to_right;
-        writer.add_wipe_point(writer.x(), writer.y())
-              .add_wipe_point(writer.x(), writer.y() - dy)
-              .add_wipe_point(m_left_to_right ? m_wipe_tower_width : 0.f, writer.y() - dy);
 
-    }
-
-	writer.set_extrusion_flow(m_extrusion_flow); // Reset the extrusion flow.
+    writer.set_extrusion_flow(m_extrusion_flow); // Reset the extrusion flow.
 }
 
 
@@ -1071,7 +1070,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                                  m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
     bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
-    box_coordinates wipeTower_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)),
+    box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)),
                         m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
 
     // inner perimeter of the sparse section, if there is space for it:
@@ -1121,9 +1120,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                       .extrude(i%2 ? left : right, y);
                 y = y + spacing;
             }
-            writer.extrude(writer.x(), fill_box.lu.y())
-                  .add_wipe_point(Vec2f(writer.x(), writer.y()))
-                  .add_wipe_point(Vec2f(i%2 ? left : right, writer.y()));
+            writer.extrude(writer.x(), fill_box.lu.y());
         } else {
             // Extrude an inverse U at the left of the region and the sparse infill.
             writer.extrude(fill_box.lu + Vec2f(m_perimeter_width * 2, 0.f), 2900 * speed_factor);
@@ -1135,26 +1132,18 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                 writer.travel(x,writer.y());
                 writer.extrude(x,i%2 ? fill_box.rd.y() : fill_box.ru.y());
             }
-            writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
-                  .add_wipe_point(Vec2f(left, writer.y()));
         }
 
         writer.append("; CP EMPTY GRID END\n"
                       ";------------------\n\n\n\n\n\n\n");
     }
-    else {
-        writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
-              .add_wipe_point(Vec2f(right, writer.y()));
-    }
-    // TODO: - wipe path je potřeba nastavit níž
-    //       - kouknout na wipe_tower_error.3mf
 
     // outer perimeter (always):
-    writer.rectangle(wipeTower_box);
+    writer.rectangle(wt_box);
 
     // brim (first layer only)
     if (first_layer) {
-        box_coordinates box = wipeTower_box;
+        box_coordinates box = wt_box;
         float spacing = m_perimeter_width - m_layer_height*float(1.-M_PI_4);
         // How many perimeters shall the brim have?
         size_t loops_num = (m_wipe_tower_brim_width + spacing/2.f) / spacing;
@@ -1166,8 +1155,18 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 
         // Save actual brim width to be later passed to the Print object, which will use it
         // for skirt calculation and pass it to GLCanvas for precise preview box
-        m_wipe_tower_brim_width_real = wipeTower_box.ld.x() - box.ld.x() + spacing/2.f;
+        m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing/2.f;
+        wt_box = box;
     }
+
+    // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
+    Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd :
+                   (writer.pos() == wt_box.rd ? wt_box.ru :
+                   (writer.pos() == wt_box.ru ? wt_box.lu :
+                    wt_box.ld)));
+    writer.add_wipe_point(writer.pos())
+          .add_wipe_point(target);
+
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
