@@ -387,7 +387,7 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
     Update();
 }
 
-void Control::SetLayersTimes(const std::vector<float>& layers_times)
+void Control::SetLayersTimes(const std::vector<float>& layers_times, float total_time)
 { 
     m_layers_times.clear();
     if (layers_times.empty())
@@ -405,11 +405,18 @@ void Control::SetLayersTimes(const std::vector<float>& layers_times)
         m_layers_values = m_values;
         sort(m_layers_values.begin(), m_layers_values.end());
         m_layers_values.erase(unique(m_layers_values.begin(), m_layers_values.end()), m_layers_values.end());
+
+        // When whipe tower is used to the end of print, there is one layer which is not marked in layers_times
+        // So, add this value from the total print time value
+        if (m_layers_values.size() != m_layers_times.size())
+            for (size_t i = m_layers_times.size(); i < m_layers_values.size(); i++)
+                m_layers_times.push_back(total_time);
     }
 }
 
 void Control::SetLayersTimes(const std::vector<double>& layers_times)
 { 
+    m_is_smart_wipe_tower = false;
     m_layers_times = layers_times;
     for (size_t i = 1; i < m_layers_times.size(); i++)
         m_layers_times[i] += m_layers_times[i - 1];
