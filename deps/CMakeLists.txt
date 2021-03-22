@@ -146,25 +146,30 @@ if (NOT EXPAT_FOUND)
     set(EXPAT_PKG dep_EXPAT)
 endif ()
 
+# The order of includes respects the dependencies between libraries
 include(Cereal/Cereal.cmake)
 include(Qhull/Qhull.cmake)
 include(GLEW/GLEW.cmake)
 include(OpenCSG/OpenCSG.cmake)
+
+include(TBB/TBB.cmake)
+
+include(Blosc/Blosc.cmake)
+include(OpenEXR/OpenEXR.cmake)
+include(OpenVDB/OpenVDB.cmake)
+
 include(GMP/GMP.cmake)
 include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
+
 include(NLopt/NLopt.cmake)
-include(TBB/TBB.cmake)
+
 include(OpenSSL/OpenSSL.cmake)
 include(CURL/CURL.cmake)
+
 include(wxWidgets/wxWidgets.cmake)
 
-if (NOT "${ZLIB_PKG}" STREQUAL "")
-    add_dependencies(dep_blosc ${ZLIB_PKG})
-    add_dependencies(dep_openexr ${ZLIB_PKG})
-endif ()
-
-add_dependencies(dep_openvdb dep_TBB)
+add_dependencies(dep_OpenVDB dep_boost)
 
 set(_dep_list
     dep_boost
@@ -173,7 +178,7 @@ set(_dep_list
     dep_wxWidgets
     dep_Cereal
     dep_NLopt
-    dep_openvdb
+    dep_OpenVDB
     dep_OpenCSG
     dep_CGAL
     ${PNG_PKG}

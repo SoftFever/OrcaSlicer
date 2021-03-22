@@ -156,89 +156,88 @@ endif ()
 
 find_package(Git REQUIRED)
 
-ExternalProject_Add(dep_blosc
-    EXCLUDE_FROM_ALL 1
-    #URL https://github.com/Blosc/c-blosc/archive/v1.17.0.zip
-    #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
-    GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
-    GIT_TAG e63775855294b50820ef44d1b157f4de1cc38d3e #v1.17.0
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
-    CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        -DCMAKE_DEBUG_POSTFIX=d
-        -DBUILD_SHARED=OFF 
-        -DBUILD_STATIC=ON
-        -DBUILD_TESTS=OFF 
-        -DBUILD_BENCHMARKS=OFF 
-        -DPREFER_EXTERNAL_ZLIB=ON
-        -DBLOSC_IS_SUBPROJECT:BOOL=ON
-        -DBLOSC_INSTALL:BOOL=ON
-    PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
-                        ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
-    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-    INSTALL_COMMAND ""
-)
+# ExternalProject_Add(dep_blosc
+#     EXCLUDE_FROM_ALL 1
+#     #URL https://github.com/Blosc/c-blosc/archive/v1.17.0.zip
+#     #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
+#     GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
+#     GIT_TAG e63775855294b50820ef44d1b157f4de1cc38d3e #v1.17.0
+#     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+#     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
+#     CMAKE_ARGS
+#         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+#         -DBUILD_SHARED_LIBS=OFF
+#         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+#         -DCMAKE_DEBUG_POSTFIX=d
+#         -DBUILD_SHARED=OFF 
+#         -DBUILD_STATIC=ON
+#         -DBUILD_TESTS=OFF 
+#         -DBUILD_BENCHMARKS=OFF 
+#         -DPREFER_EXTERNAL_ZLIB=ON
+#         -DBLOSC_IS_SUBPROJECT:BOOL=ON
+#         -DBLOSC_INSTALL:BOOL=ON
+#     PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
+#                         ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
+#     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+#     INSTALL_COMMAND ""
+# )
 
-add_debug_dep(dep_blosc)
+# add_debug_dep(dep_blosc)
 
-ExternalProject_Add(dep_openexr
-    EXCLUDE_FROM_ALL 1
-    GIT_REPOSITORY https://github.com/openexr/openexr.git
-    GIT_TAG eae0e337c9f5117e78114fd05f7a415819df413a #v2.4.0
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
-    CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        -DBUILD_TESTING=OFF 
-        -DPYILMBASE_ENABLE:BOOL=OFF 
-        -DOPENEXR_VIEWERS_ENABLE:BOOL=OFF
-        -DOPENEXR_BUILD_UTILS:BOOL=OFF
-    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-    INSTALL_COMMAND ""
-)
+# ExternalProject_Add(dep_openexr
+#     EXCLUDE_FROM_ALL 1
+#     GIT_REPOSITORY https://github.com/openexr/openexr.git
+#     GIT_TAG eae0e337c9f5117e78114fd05f7a415819df413a #v2.4.0
+#     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+#     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
+#     CMAKE_ARGS
+#         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+#         -DBUILD_SHARED_LIBS=OFF
+#         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+#         -DBUILD_TESTING=OFF 
+#         -DPYILMBASE_ENABLE:BOOL=OFF 
+#         -DOPENEXR_VIEWERS_ENABLE:BOOL=OFF
+#         -DOPENEXR_BUILD_UTILS:BOOL=OFF
+#     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+#     INSTALL_COMMAND ""
+# )
 
-add_debug_dep(dep_openexr)
+# add_debug_dep(dep_openexr)
 
-ExternalProject_Add(dep_openvdb
-    EXCLUDE_FROM_ALL 1
-    #URL https://github.com/AcademySoftwareFoundation/openvdb/archive/v6.2.1.zip
-    #URL_HASH SHA256=dc337399dce8e1c9f21f20e97b1ce7e4933cb0a63bb3b8b734d8fcc464aa0c48
-    GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
-    GIT_TAG  aebaf8d95be5e57fd33949281ec357db4a576c2e #v6.2.1
-    DEPENDS dep_blosc dep_openexr dep_tbb dep_boost
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
-    CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        -DCMAKE_DEBUG_POSTFIX=d
-        -DCMAKE_PREFIX_PATH=${DESTDIR}/usr/local
-        -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        -DOPENVDB_BUILD_PYTHON_MODULE=OFF 
-        -DUSE_BLOSC=ON 
-        -DOPENVDB_CORE_SHARED=OFF 
-        -DOPENVDB_CORE_STATIC=ON 
-        -DTBB_STATIC=ON
-        -DOPENVDB_BUILD_VDB_PRINT=ON
-    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-    PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
-                        ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
-    INSTALL_COMMAND ""
-)
+# ExternalProject_Add(dep_openvdb
+#     EXCLUDE_FROM_ALL 1
+#     #URL https://github.com/AcademySoftwareFoundation/openvdb/archive/v6.2.1.zip
+#     #URL_HASH SHA256=dc337399dce8e1c9f21f20e97b1ce7e4933cb0a63bb3b8b734d8fcc464aa0c48
+#     GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
+#     GIT_TAG  aebaf8d95be5e57fd33949281ec357db4a576c2e #v6.2.1
+#     DEPENDS dep_blosc dep_openexr dep_tbb dep_boost
+#     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+#     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
+#     CMAKE_ARGS
+#         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+#         -DCMAKE_DEBUG_POSTFIX=d
+#         -DCMAKE_PREFIX_PATH=${DESTDIR}/usr/local
+#         -DBUILD_SHARED_LIBS=OFF
+#         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+#         -DOPENVDB_BUILD_PYTHON_MODULE=OFF 
+#         -DUSE_BLOSC=ON 
+#         -DOPENVDB_CORE_SHARED=OFF 
+#         -DOPENVDB_CORE_STATIC=ON 
+#         -DTBB_STATIC=ON
+#         -DOPENVDB_BUILD_VDB_PRINT=ON
+#     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+#     PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
+#                         ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
+#     INSTALL_COMMAND ""
+# )
 
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_openvdb BINARY_DIR)
-    ExternalProject_Add_Step(dep_openvdb build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND ${CMAKE_COMMAND} ../dep_openvdb -DOPENVDB_BUILD_VDB_PRINT=OFF
-        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
-
+# if (${DEP_DEBUG})
+#     ExternalProject_Get_Property(dep_openvdb BINARY_DIR)
+#     ExternalProject_Add_Step(dep_openvdb build_debug
+#         DEPENDEES build
+#         DEPENDERS install
+#         COMMAND ${CMAKE_COMMAND} ../dep_openvdb -DOPENVDB_BUILD_VDB_PRINT=OFF
+#         COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
+#         WORKING_DIRECTORY "${BINARY_DIR}"
+#     )
+# endif ()

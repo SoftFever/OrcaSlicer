@@ -42,50 +42,50 @@ ExternalProject_Add(dep_boost
     INSTALL_COMMAND ""   # b2 does that already
 )
 
-ExternalProject_Add(dep_libcurl
-    EXCLUDE_FROM_ALL 1
-    URL "https://curl.haxx.se/download/curl-7.58.0.tar.gz"
-    URL_HASH SHA256=cc245bf9a1a42a45df491501d97d5593392a03f7b4f07b952793518d97666115
-    BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND ./configure
-        --enable-static
-        --disable-shared
-        "--with-ssl=${DESTDIR}/usr/local"
-        --with-pic
-        --enable-ipv6
-        --enable-versioned-symbols
-        --enable-threaded-resolver
-        --with-darwinssl
-        --without-ssl     # disables OpenSSL
-        --disable-ldap
-        --disable-ldaps
-        --disable-manual
-        --disable-rtsp
-        --disable-dict
-        --disable-telnet
-        --disable-pop3
-        --disable-imap
-        --disable-smb
-        --disable-smtp
-        --disable-gopher
-        --without-gssapi
-        --without-libpsl
-        --without-libidn2
-        --without-gnutls
-        --without-polarssl
-        --without-mbedtls
-        --without-cyassl
-        --without-nss
-        --without-axtls
-        --without-brotli
-        --without-libmetalink
-        --without-libssh
-        --without-libssh2
-        --without-librtmp
-        --without-nghttp2
-        --without-zsh-functions-dir
-    BUILD_COMMAND make "-j${NPROC}"
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-)
-add_dependencies(dep_openvdb dep_boost)
+# ExternalProject_Add(dep_libcurl
+#     EXCLUDE_FROM_ALL 1
+#     URL "https://curl.haxx.se/download/curl-7.58.0.tar.gz"
+#     URL_HASH SHA256=cc245bf9a1a42a45df491501d97d5593392a03f7b4f07b952793518d97666115
+#     BUILD_IN_SOURCE 1
+#     CONFIGURE_COMMAND ./configure
+#         --enable-static
+#         --disable-shared
+#         "--with-ssl=${DESTDIR}/usr/local"
+#         --with-pic
+#         --enable-ipv6
+#         --enable-versioned-symbols
+#         --enable-threaded-resolver
+#         --with-darwinssl
+#         --without-ssl     # disables OpenSSL
+#         --disable-ldap
+#         --disable-ldaps
+#         --disable-manual
+#         --disable-rtsp
+#         --disable-dict
+#         --disable-telnet
+#         --disable-pop3
+#         --disable-imap
+#         --disable-smb
+#         --disable-smtp
+#         --disable-gopher
+#         --without-gssapi
+#         --without-libpsl
+#         --without-libidn2
+#         --without-gnutls
+#         --without-polarssl
+#         --without-mbedtls
+#         --without-cyassl
+#         --without-nss
+#         --without-axtls
+#         --without-brotli
+#         --without-libmetalink
+#         --without-libssh
+#         --without-libssh2
+#         --without-librtmp
+#         --without-nghttp2
+#         --without-zsh-functions-dir
+#     BUILD_COMMAND make "-j${NPROC}"
+#     INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
+# )
 
+# add_dependencies(dep_openvdb dep_boost)

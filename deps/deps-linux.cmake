@@ -100,6 +100,3 @@ ExternalProject_Add(dep_boost
 #     BUILD_COMMAND make "-j${NPROC}"
 #     INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
 # )
-
-add_dependencies(dep_openvdb dep_boost)
-
