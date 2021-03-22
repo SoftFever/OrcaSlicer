@@ -75,8 +75,8 @@ public:
         m_tool_changes(tool_changes),
         m_final_purge(final_purge),
         m_layer_idx(-1),
-        m_tool_change_idx(0),
-        m_brim_done(false) {}
+        m_tool_change_idx(0)
+    {}
 
     std::string prime(GCode &gcodegen);
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
@@ -105,8 +105,6 @@ private:
     // Current layer index.
     int                                                          m_layer_idx;
     int                                                          m_tool_change_idx;
-    bool                                                         m_brim_done;
-    bool                                                         i_have_brim = false;
     double                                                       m_last_wipe_tower_print_z = 0.f;
 };
 

@@ -84,6 +84,37 @@ public:
 		}
 	};
 
+    struct box_coordinates
+    {
+        box_coordinates(float left, float bottom, float width, float height) :
+            ld(left        , bottom         ),
+            lu(left        , bottom + height),
+            rd(left + width, bottom         ),
+            ru(left + width, bottom + height) {}
+        box_coordinates(const Vec2f &pos, float width, float height) : box_coordinates(pos(0), pos(1), width, height) {}
+        void translate(const Vec2f &shift) {
+            ld += shift; lu += shift;
+            rd += shift; ru += shift;
+        }
+        void translate(const float dx, const float dy) { translate(Vec2f(dx, dy)); }
+        void expand(const float offset) {
+            ld += Vec2f(- offset, - offset);
+            lu += Vec2f(- offset,   offset);
+            rd += Vec2f(  offset, - offset);
+            ru += Vec2f(  offset,   offset);
+        }
+        void expand(const float offset_x, const float offset_y) {
+            ld += Vec2f(- offset_x, - offset_y);
+            lu += Vec2f(- offset_x,   offset_y);
+            rd += Vec2f(  offset_x, - offset_y);
+            ru += Vec2f(  offset_x,   offset_y);
+        }
+        Vec2f ld;  // left down
+        Vec2f lu;	// left upper
+        Vec2f rd;	// right lower
+        Vec2f ru;  // right upper
+    };
+
     // Construct ToolChangeResult from current state of WipeTower and WipeTowerWriter.
     // WipeTowerWriter is moved from !
     ToolChangeResult construct_tcr(WipeTowerWriter& writer,
@@ -102,7 +133,7 @@ public:
 
 	// Appends into internal structure m_plan containing info about the future wipe tower
 	// to be used before building begins. The entries must be added ordered in z.
-	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim, float wipe_volume = 0.f);
+    void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, float wipe_volume = 0.f);
 
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<ToolChangeResult>> &result);
@@ -129,8 +160,6 @@ public:
 	{
 		m_z_pos 				= print_z;
 		m_layer_height			= layer_height;
-		m_is_first_layer 		= is_first_layer;
-		m_print_brim = is_first_layer;
 		m_depth_traversed  = 0.f;
         m_current_layer_finished = false;
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
@@ -176,10 +205,7 @@ public:
 
 	// Is the current layer finished?
 	bool 			 layer_finished() const {
-        return m_current_layer_finished;/*( (m_is_first_layer
-                  ? m_wipe_tower_depth - m_perimeter_width
-                  : m_layer_info->depth
-                  ) < m_depth_traversed + WT_EPSILON);*/
+        return m_current_layer_finished;
 	}
 
     std::vector<float> get_used_filament() const { return m_used_filament_length; }
@@ -232,7 +258,6 @@ private:
 	float  m_z_pos 				= 0.f;  // Current Z position.
 	float  m_layer_height 		= 0.f; 	// Current layer height.
 	size_t m_max_color_changes 	= 0; 	// Maximum number of color changes per layer.
-	bool   m_is_first_layer 	= false;// Is this the 1st layer of the print? If so, print the brim around the waste tower.
     int    m_old_temperature    = -1;   // To keep track of what was the last temp that we set (so we don't issue the command when not neccessary)
 
 	// G-code generator parameters.
@@ -299,39 +324,7 @@ private:
     void save_on_last_wipe();
 
 
-	struct box_coordinates
-	{
-		box_coordinates(float left, float bottom, float width, float height) :
-			ld(left        , bottom         ),
-			lu(left        , bottom + height),
-			rd(left + width, bottom         ),
-			ru(left + width, bottom + height) {}
-		box_coordinates(const Vec2f &pos, float width, float height) : box_coordinates(pos(0), pos(1), width, height) {}
-		void translate(const Vec2f &shift) {
-			ld += shift; lu += shift;
-			rd += shift; ru += shift;
-		}
-		void translate(const float dx, const float dy) { translate(Vec2f(dx, dy)); }
-		void expand(const float offset) {
-			ld += Vec2f(- offset, - offset);
-			lu += Vec2f(- offset,   offset);
-			rd += Vec2f(  offset, - offset);
-			ru += Vec2f(  offset,   offset);
-		}
-		void expand(const float offset_x, const float offset_y) {
-			ld += Vec2f(- offset_x, - offset_y);
-			lu += Vec2f(- offset_x,   offset_y);
-			rd += Vec2f(  offset_x, - offset_y);
-			ru += Vec2f(  offset_x,   offset_y);
-		}
-		Vec2f ld;  // left down
-		Vec2f lu;	// left upper 
-		Vec2f rd;	// right lower
-		Vec2f ru;  // right upper
-	};
-
-
-	// to store information about tool changes for a given layer
+    // to store information about tool changes for a given layer
 	struct WipeTowerInfo{
 		struct ToolChange {
             size_t old_tool;
@@ -365,12 +358,6 @@ private:
     // ot -1 if there is no such toolchange.
     int first_toolchange_to_nonsoluble(
             const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const;
-
-
-	// Returns gcode for wipe tower brim
-	// sideOnly			-- set to false -- experimental, draw brim on sides of wipe tower
-	// offset			-- set to 0		-- experimental, offset to replace brim in front / rear of wipe tower
-	ToolChangeResult toolchange_Brim(bool sideOnly = false, float y_offset = 0.f);
 
 	void toolchange_Unload(
 		WipeTowerWriter &writer,
