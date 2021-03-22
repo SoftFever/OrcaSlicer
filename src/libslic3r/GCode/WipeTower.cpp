@@ -717,10 +717,10 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
 		// Otherwise we are going to Unload only. And m_layer_info would be invalid.
 	}
 
-	box_coordinates cleaning_box(
+    box_coordinates cleaning_box(
 		Vec2f(m_perimeter_width / 2.f, m_perimeter_width / 2.f),
 		m_wipe_tower_width - m_perimeter_width,
-        (tool != (unsigned int)(-1) ? /*m_layer_info->depth*/wipe_area+m_depth_traversed-0.5f*m_perimeter_width
+        (tool != (unsigned int)(-1) ? wipe_area+m_depth_traversed-0.5f*m_perimeter_width
                                     : m_wipe_tower_depth-m_perimeter_width));
 
 	WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
@@ -760,7 +760,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
 
     m_depth_traversed += wipe_area;
 
-    if (last_change_in_layer) {// draw perimeter line
+    /*if (last_change_in_layer) {// draw perimeter line
         writer.set_y_shift(m_y_shift);
         writer.rectangle(Vec2f::Zero(), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
         if (layer_finished()) { // no finish_layer will be called, we must wipe the nozzle
@@ -768,7 +768,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
                   .add_wipe_point(writer.x()> m_wipe_tower_width / 2.f ? 0.f : m_wipe_tower_width, writer.y());
 
         }
-    }
+    }*/
 
 	if (m_set_extruder_trimpot)
 		writer.set_extruder_trimpot(550);    // Reset the extruder current to a normal value.
@@ -1116,9 +1116,8 @@ void WipeTower::toolchange_Wipe(
 
 WipeTower::ToolChangeResult WipeTower::finish_layer()
 {
-	// This should only be called if the layer is not finished yet.
-	// Otherwise the caller would likely travel to the wipe tower in vain.
 	assert(! this->layer_finished());
+    m_current_layer_finished = true;
 
     size_t old_tool = m_current_tool;
 
@@ -1134,8 +1133,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 	// Slow down on the 1st layer.
 	float speed_factor = m_is_first_layer ? 0.5f : 1.f;
 	float current_depth = m_layer_info->depth - m_layer_info->toolchanges_depth();
-	box_coordinates fill_box(Vec2f(m_perimeter_width, m_depth_traversed + m_perimeter_width),
-							 m_wipe_tower_width - 2 * m_perimeter_width, current_depth-m_perimeter_width);
+    box_coordinates fill_box(Vec2f(m_perimeter_width, m_layer_info->depth-(current_depth-m_perimeter_width)),
+                             m_wipe_tower_width - 2 * m_perimeter_width, current_depth-m_perimeter_width);
 
 
     writer.set_initial_position((m_left_to_right ? fill_box.ru : fill_box.lu), // so there is never a diagonal travel
@@ -1143,14 +1142,15 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 
     bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
 	box_coordinates box = fill_box;
-    for (int i=0;i<2;++i) {
-        if (! toolchanges_on_layer) {
-            if (i==0) box.expand(m_perimeter_width);
-            else box.expand(-m_perimeter_width);
-        }
-        else i=2;	// only draw the inner perimeter, outer has been already drawn by tool_change(...)
+
+    // inner perimeter of the sparse section, if there is space for it:
+    if (fill_box.lu.y() - fill_box.ld.y() > m_perimeter_width)
         writer.rectangle(box.ld, box.rd.x()-box.ld.x(), box.ru.y()-box.rd.y(), 2900*speed_factor);
-    }
+
+    // outer perimeter (always):
+    writer.rectangle(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)),
+                     m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
+
 
     // we are in one of the corners, travel to ld along the perimeter:
     if (writer.x() > fill_box.ld.x()+EPSILON) writer.travel(fill_box.ld.x(),writer.y());
@@ -1311,7 +1311,8 @@ void WipeTower::save_on_last_wipe()
             tool_change(toolchange.new_tool);
 
         float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
-        float length_to_save = 2*(m_wipe_tower_width+m_wipe_tower_depth) + (!layer_finished() ? finish_layer().total_extrusion_length_in_plane() : 0.f);
+        //float length_to_save = 2*(m_wipe_tower_width+m_wipe_tower_depth) + (!layer_finished() ? finish_layer().total_extrusion_length_in_plane() : 0.f);
+        float length_to_save = finish_layer().total_extrusion_length_in_plane();
         float length_to_wipe = volume_to_length(m_layer_info->tool_changes.back().wipe_volume,
                               m_perimeter_width,m_layer_info->height)  - m_layer_info->tool_changes.back().first_wipe_line - length_to_save;
 

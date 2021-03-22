@@ -132,6 +132,7 @@ public:
 		m_is_first_layer 		= is_first_layer;
 		m_print_brim = is_first_layer;
 		m_depth_traversed  = 0.f;
+        m_current_layer_finished = false;
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
 		if (is_first_layer) {
             this->m_num_layer_changes 	= 0;
@@ -175,7 +176,10 @@ public:
 
 	// Is the current layer finished?
 	bool 			 layer_finished() const {
-		return ( (m_is_first_layer ? m_wipe_tower_depth - m_perimeter_width : m_layer_info->depth) - WT_EPSILON < m_depth_traversed);
+        return m_current_layer_finished;/*( (m_is_first_layer
+                  ? m_wipe_tower_depth - m_perimeter_width
+                  : m_layer_info->depth
+                  ) < m_depth_traversed + WT_EPSILON);*/
 	}
 
     std::vector<float> get_used_filament() const { return m_used_filament_length; }
@@ -268,6 +272,7 @@ private:
     const std::vector<std::vector<float>> wipe_volumes;
 
 	float           m_depth_traversed = 0.f; // Current y position at the wipe tower.
+    bool            m_current_layer_finished = false;
 	bool 			m_left_to_right   = true;
 	float			m_extra_spacing   = 1.f;
 
