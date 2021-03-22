@@ -882,6 +882,8 @@ public:
             float thr = scaled<float>(0.5);
             return smooth_outward(offset(offset_ex(*m_support_polygons, thr), - thr), thr);
         }
+        assert(false);
+        return Polygons();
     }
 
 #if defined(SLIC3R_DEBUG) && ! defined(SUPPORT_USE_AGG_RASTERIZER)

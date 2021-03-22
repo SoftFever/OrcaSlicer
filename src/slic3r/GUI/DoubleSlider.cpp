@@ -742,9 +742,9 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         if (label_type == ltEstimatedTime) {
             if (m_is_smart_wipe_tower) {
                 size_t layer_number = get_layer_number(value);
-                return layer_number == size_t(-1) ? wxEmptyString : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
+                return layer_number == size_t(-1) ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
             }
-            return value < m_layers_times.size() ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : wxEmptyString;
+            return value < m_layers_times.size() ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
         }
         wxString str = m_values.empty() ?
             wxString::Format("%.*f", 2, m_label_koef * value) :
