@@ -337,13 +337,15 @@ namespace Slic3r {
                 std::vector<std::string> filament;
                 std::string printer;
 
-                void reset()
-                {
+                void reset() {
                     print = "";
                     filament = std::vector<std::string>();
                     printer = "";
                 }
             };
+#if ENABLE_GCODE_WINDOW
+            std::string filename;
+#endif // ENABLE_GCODE_WINDOW
             unsigned int id;
             std::vector<MoveVertex> moves;
             Pointfs bed_shape;

@@ -757,8 +757,16 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     m_processor.process_file(path_tmp, true, [print]() { print->throw_if_canceled(); });
     DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
+#if ENABLE_GCODE_WINDOW
+    if (result != nullptr) {
+        *result = std::move(m_processor.extract_result());
+        // set the filename to the correct value
+        result->filename = path;
+    }
+#else
     if (result != nullptr)
         *result = std::move(m_processor.extract_result());
+#endif // ENABLE_GCODE_WINDOW
     BOOST_LOG_TRIVIAL(debug) << "Finished processing gcode, " << log_memory_info();
 
     if (rename_file(path_tmp, path))

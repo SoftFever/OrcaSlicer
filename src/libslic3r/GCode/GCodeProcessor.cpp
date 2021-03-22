@@ -9,6 +9,9 @@
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
+#if ENABLE_GCODE_WINDOW
+#include <boost/filesystem/path.hpp>
+#endif // ENABLE_GCODE_WINDOW
 
 #include <float.h>
 #include <assert.h>
@@ -974,6 +977,9 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
     }
 
     // process gcode
+#if ENABLE_GCODE_WINDOW
+    m_result.filename = filename;
+#endif // ENABLE_GCODE_WINDOW
     m_result.id = ++s_result_id;
     // 1st move must be a dummy move
     m_result.moves.emplace_back(MoveVertex());
