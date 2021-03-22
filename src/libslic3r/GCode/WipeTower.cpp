@@ -556,6 +556,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     m_filpar.push_back(FilamentParameters());
 
     m_filpar[idx].material = config.filament_type.get_at(idx);
+    m_filpar[idx].is_soluble = config.filament_soluble.get_at(idx);
     m_filpar[idx].temperature = config.temperature.get_at(idx);
     m_filpar[idx].first_layer_temperature = config.first_layer_temperature.get_at(idx);
 
@@ -1192,19 +1193,47 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
         const float right = fill_box.ru.x() - 2 * m_perimeter_width;
         if (dy > m_perimeter_width)
         {
-            // Extrude an inverse U at the left of the region.
-            writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
-                  .extrude(fill_box.lu + Vec2f(m_perimeter_width * 2, 0.f), 2900 * speed_factor);
+            writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f));
 
-            const int n = 1+int((right-left)/m_bridging);
-            const float dx = (right-left)/n;
-            for (int i=1;i<=n;++i) {
-                float x=left+dx*i;
-                writer.travel(x,writer.y());
-                writer.extrude(x,i%2 ? fill_box.rd.y() : fill_box.ru.y());
+            // Is there a soluble filament wiped/rammed at the next layer?
+            // If so, the infill should not be sparse.
+            bool solid_infill = m_layer_info+1 == m_plan.end()
+                              ? false
+                              : std::any_of((m_layer_info+1)->tool_changes.begin(),
+                                            (m_layer_info+1)->tool_changes.end(),
+                                       [this](const WipeTowerInfo::ToolChange& tch) {
+                                           return m_filpar[tch.new_tool].is_soluble
+                                               || m_filpar[tch.old_tool].is_soluble;
+                                       });
+
+            if (solid_infill) {
+                const float sparse_factor = 1.5f; // 1=solid, 2=every other line, etc.
+                float y = fill_box.ld.y() + m_perimeter_width;
+                int n = dy / (m_perimeter_width * sparse_factor);
+                float spacing = (dy-m_perimeter_width)/(n-1);
+                int i = 0;
+                for (i=0; i<n; ++i) {
+                    writer.extrude(writer.x(), y, 2900 * speed_factor)
+                          .extrude(i%2 ? left : right, y);
+                    y = y + spacing;
+                }
+                writer.extrude(writer.x(), fill_box.lu.y())
+                      .add_wipe_point(Vec2f(writer.x(), writer.y()))
+                      .add_wipe_point(Vec2f(i%2 ? left : right, writer.y()));
+            } else {
+                // Extrude an inverse U at the left of the region.
+                writer.extrude(fill_box.lu + Vec2f(m_perimeter_width * 2, 0.f), 2900 * speed_factor);
+
+                const int n = 1+int((right-left)/m_bridging);
+                const float dx = (right-left)/n;
+                for (int i=1;i<=n;++i) {
+                    float x=left+dx*i;
+                    writer.travel(x,writer.y());
+                    writer.extrude(x,i%2 ? fill_box.rd.y() : fill_box.ru.y());
+                }
+                writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
+                      .add_wipe_point(Vec2f(left, writer.y()));
             }
-            writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
-                  .add_wipe_point(Vec2f(left, writer.y()));
         }
         else {
             writer.add_wipe_point(Vec2f(writer.x(), writer.y()))
