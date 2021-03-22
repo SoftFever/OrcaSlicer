@@ -146,6 +146,7 @@ if (NOT EXPAT_FOUND)
     set(EXPAT_PKG dep_EXPAT)
 endif ()
 
+include(Cereal/Cereal.cmake)
 include(GLEW/GLEW.cmake)
 include(OpenCSG/OpenCSG.cmake)
 include(GMP/GMP.cmake)
@@ -169,7 +170,7 @@ set(_dep_list
     dep_TBB
     dep_CURL
     dep_wxWidgets
-    dep_cereal
+    dep_Cereal
     dep_NLopt
     dep_openvdb
     dep_OpenCSG

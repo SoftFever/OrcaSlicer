@@ -18,15 +18,15 @@ endif ()
 #     message(WARNING "No EXPAT dev package found in system, building static library. Consider installing the system package.")
 # endif ()
 
-ExternalProject_Add(dep_cereal
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz"
-#    URL_HASH SHA256=c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae
-    CMAKE_ARGS
-        -DJUST_INSTALL_CEREAL=on
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        ${DEP_CMAKE_OPTS}
-)
+# ExternalProject_Add(dep_cereal
+#     EXCLUDE_FROM_ALL 1
+#     URL "https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz"
+# #    URL_HASH SHA256=c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae
+#     CMAKE_ARGS
+#         -DJUST_INSTALL_CEREAL=on
+#         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+#         ${DEP_CMAKE_OPTS}
+# )
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
