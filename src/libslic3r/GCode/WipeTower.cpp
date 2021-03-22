@@ -111,8 +111,10 @@ public:
 
 	WipeTowerWriter& 			 feedrate(float f)
 	{
-		if (f != m_current_feedrate)
+        if (f != m_current_feedrate) {
 			m_gcode += "G1" + set_format_F(f) + "\n";
+            m_current_feedrate = f;
+        }
 		return *this;
 	}
 
@@ -523,9 +525,14 @@ WipeTower::WipeTower(const PrintConfig& config, const std::vector<std::vector<fl
     m_bridging(float(config.wipe_tower_bridging)),
     m_no_sparse_layers(config.wipe_tower_no_sparse_layers),
     m_gcode_flavor(config.gcode_flavor),
+    m_travel_speed(config.travel_speed),
+    m_first_layer_speed(config.get_abs_value("first_layer_speed")),
     m_current_tool(initial_tool),
     wipe_volumes(wiping_matrix)
 {
+    if (m_first_layer_speed == 0.f) // just to make sure autospeed doesn't break it.
+        m_first_layer_speed = 2400.f;
+
     // If this is a single extruder MM printer, we will use all the SE-specific config values.
     // Otherwise, the defaults will be used to turn off the SE stuff.
     if (m_semm) {
@@ -677,7 +684,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
             if (m_set_extruder_trimpot)
                 writer.set_extruder_trimpot(550);
             writer.speed_override_restore()
-                  .feedrate(6000)
+                  .feedrate(m_travel_speed * 60.f)
                   .flush_planner_queue()
                   .reset_extruder()
                   .append("; CP PRIMING END\n"
@@ -762,7 +769,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
 	if (m_set_extruder_trimpot)
 		writer.set_extruder_trimpot(550);    // Reset the extruder current to a normal value.
 	writer.speed_override_restore();
-    writer.feedrate(6000)
+    writer.feedrate(m_travel_speed * 60.f)
           .flush_planner_queue()
           .reset_extruder()
           .append("; CP TOOLCHANGE END\n"
@@ -933,7 +940,10 @@ void WipeTower::toolchange_Change(
     // gcode could have left the extruder somewhere, we cannot just start extruding. We should also inform the
     // postprocessor that we absolutely want to have this in the gcode, even if it thought it is the same as before.
     Vec2f current_pos = writer.pos_rotated();
-    writer.append(std::string("G1 X") + std::to_string(current_pos.x()) +  " Y" + std::to_string(current_pos.y()) + never_skip_tag() + "\n");
+    writer.feedrate(m_travel_speed * 60.f) // see https://github.com/prusa3d/PrusaSlicer/issues/5483
+          .append(std::string("G1 X") + std::to_string(current_pos.x())
+                             +  " Y"  + std::to_string(current_pos.y())
+                             + never_skip_tag() + "\n");
 
     // The toolchange Tn command will be inserted later, only in case that the user does
     // not provide a custom toolchange gcode.

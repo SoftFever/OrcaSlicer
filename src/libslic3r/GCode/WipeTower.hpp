@@ -259,6 +259,8 @@ private:
 	float  m_layer_height 		= 0.f; 	// Current layer height.
 	size_t m_max_color_changes 	= 0; 	// Maximum number of color changes per layer.
     int    m_old_temperature    = -1;   // To keep track of what was the last temp that we set (so we don't issue the command when not neccessary)
+    float  m_travel_speed       = 0.f;
+    float  m_first_layer_speed  = 0.f;
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;
@@ -383,6 +385,6 @@ private:
 
 
 
-}; // namespace Slic3r
+} // namespace Slic3r
 
 #endif // WipeTowerPrusaMM_hpp_ 
