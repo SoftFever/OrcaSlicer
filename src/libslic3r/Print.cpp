@@ -100,7 +100,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_spool_weight",
         "first_layer_acceleration",
         "first_layer_bed_temperature",
-        "first_layer_speed",
         "gcode_comments",
         "gcode_label_objects",
         "infill_acceleration",
@@ -139,7 +138,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "start_filament_gcode",
         "toolchange_gcode",
         "threads",
-        "travel_speed",
         "use_firmware_retraction",
         "use_relative_e_distances",
         "use_volumetric_e",
@@ -210,6 +208,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "cooling_tube_retraction"
             || opt_key == "cooling_tube_length"
             || opt_key == "extra_loading_move"
+            || opt_key == "travel_speed"
+            || opt_key == "first_layer_speed"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirt);

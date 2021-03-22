@@ -526,12 +526,16 @@ WipeTower::WipeTower(const PrintConfig& config, const std::vector<std::vector<fl
     m_no_sparse_layers(config.wipe_tower_no_sparse_layers),
     m_gcode_flavor(config.gcode_flavor),
     m_travel_speed(config.travel_speed),
-    m_first_layer_speed(config.get_abs_value("first_layer_speed")),
     m_current_tool(initial_tool),
     wipe_volumes(wiping_matrix)
 {
+    // Read absolute value of first layer speed, if given as percentage,
+    // it is taken over following default. Speeds from config are not
+    // easily accessible here.
+    const float default_speed = 60.f;
+    m_first_layer_speed = config.get_abs_value("first_layer_speed", default_speed);
     if (m_first_layer_speed == 0.f) // just to make sure autospeed doesn't break it.
-        m_first_layer_speed = 2400.f;
+        m_first_layer_speed = default_speed / 2.f;
 
     // If this is a single extruder MM printer, we will use all the SE-specific config values.
     // Otherwise, the defaults will be used to turn off the SE stuff.
@@ -992,7 +996,6 @@ void WipeTower::toolchange_Wipe(
     bool first_layer = m_layer_info == m_plan.begin();
     writer.set_extrusion_flow(m_extrusion_flow * (first_layer ? 1.18f : 1.f))
 		  .append("; CP TOOLCHANGE WIPE\n");
-    float wipe_coeff = first_layer ? 0.5f : 1.f;
 	const float& xl = cleaning_box.ld.x();
 	const float& xr = cleaning_box.rd.x();
 
@@ -1002,7 +1005,9 @@ void WipeTower::toolchange_Wipe(
 
 	float x_to_wipe = volume_to_length(wipe_volume, m_perimeter_width, m_layer_height);
 	float dy = m_extra_spacing*m_perimeter_width;
-	float wipe_speed = 1600.f;
+
+    const float target_speed = first_layer ? m_first_layer_speed * 60.f : 4800.f;
+    float wipe_speed = 0.33f * target_speed;
 
     // if there is less than 2.5*m_perimeter_width to the edge, advance straightaway (there is likely a blob anyway)
     if ((m_left_to_right ? xr-writer.x() : writer.x()-xl) < 2.5f*m_perimeter_width) {
@@ -1013,17 +1018,17 @@ void WipeTower::toolchange_Wipe(
     // now the wiping itself:
 	for (int i = 0; true; ++i)	{
 		if (i!=0) {
-			if (wipe_speed < 1610.f) wipe_speed = 1800.f;
-			else if (wipe_speed < 1810.f) wipe_speed = 2200.f;
-			else if (wipe_speed < 2210.f) wipe_speed = 4200.f;
-			else wipe_speed = std::min(4800.f, wipe_speed + 50.f);
+            if      (wipe_speed < 0.34f * target_speed) wipe_speed = 0.375f * target_speed;
+            else if (wipe_speed < 0.377 * target_speed) wipe_speed = 0.458f * target_speed;
+            else if (wipe_speed < 0.46f * target_speed) wipe_speed = 0.875f * target_speed;
+            else wipe_speed = std::min(target_speed, wipe_speed + 50.f);
 		}
 
 		float traversed_x = writer.x();
 		if (m_left_to_right)
-            writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5f*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
+            writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5f*m_perimeter_width), writer.y(), wipe_speed);
 		else
-            writer.extrude(xl + (i % 4 == 1 ? 0 : 1.5f*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
+            writer.extrude(xl + (i % 4 == 1 ? 0 : 1.5f*m_perimeter_width), writer.y(), wipe_speed);
 
         if (writer.y()+float(EPSILON) > cleaning_box.lu.y()-0.5f*m_perimeter_width)
             break;		// in case next line would not fit
@@ -1070,7 +1075,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 
 	// Slow down on the 1st layer.
     bool first_layer = m_layer_info == m_plan.begin();
-    float speed_factor = first_layer ? 0.5f : 1.f;
+    float feedrate = first_layer ? m_first_layer_speed * 60.f : 2900.f;
 	float current_depth = m_layer_info->depth - m_layer_info->toolchanges_depth();
     box_coordinates fill_box(Vec2f(m_perimeter_width, m_layer_info->depth-(current_depth-m_perimeter_width)),
                              m_wipe_tower_width - 2 * m_perimeter_width, current_depth-m_perimeter_width);
@@ -1085,7 +1090,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 
     // inner perimeter of the sparse section, if there is space for it:
     if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON)
-        writer.rectangle(fill_box.ld, fill_box.rd.x()-fill_box.ld.x(), fill_box.ru.y()-fill_box.rd.y(), 2900*speed_factor);
+        writer.rectangle(fill_box.ld, fill_box.rd.x()-fill_box.ld.x(), fill_box.ru.y()-fill_box.rd.y(), feedrate);
 
     // we are in one of the corners, travel to ld along the perimeter:
     if (writer.x() > fill_box.ld.x()+EPSILON) writer.travel(fill_box.ld.x(),writer.y());
@@ -1126,14 +1131,14 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
             float spacing = (dy-m_perimeter_width)/(n-1);
             int i=0;
             for (i=0; i<n; ++i) {
-                writer.extrude(writer.x(), y, 2900 * speed_factor)
+                writer.extrude(writer.x(), y, feedrate)
                       .extrude(i%2 ? left : right, y);
                 y = y + spacing;
             }
             writer.extrude(writer.x(), fill_box.lu.y());
         } else {
             // Extrude an inverse U at the left of the region and the sparse infill.
-            writer.extrude(fill_box.lu + Vec2f(m_perimeter_width * 2, 0.f), 2900 * speed_factor);
+            writer.extrude(fill_box.lu + Vec2f(m_perimeter_width * 2, 0.f), feedrate);
 
             const int n = 1+int((right-left)/m_bridging);
             const float dx = (right-left)/n;
@@ -1149,7 +1154,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
     }
 
     // outer perimeter (always):
-    writer.rectangle(wt_box);
+    writer.rectangle(wt_box, feedrate);
 
     // brim (first layer only)
     if (first_layer) {
