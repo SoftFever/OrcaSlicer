@@ -146,6 +146,9 @@ if (NOT EXPAT_FOUND)
     set(EXPAT_PKG dep_EXPAT)
 endif ()
 
+set(DEP_Boost_COMPONENTS system iostreams filesystem thread log locale regex date_time)
+include(Boost/Boost.cmake)
+
 # The order of includes respects the dependencies between libraries
 include(Cereal/Cereal.cmake)
 include(Qhull/Qhull.cmake)
@@ -169,10 +172,8 @@ include(CURL/CURL.cmake)
 
 include(wxWidgets/wxWidgets.cmake)
 
-add_dependencies(dep_OpenVDB dep_boost)
-
 set(_dep_list
-    dep_boost
+    dep_Boost
     dep_TBB
     dep_CURL
     dep_wxWidgets
@@ -192,7 +193,7 @@ if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         EXCLUDE_FROM_ALL ON
         GIT_REPOSITORY "https://github.com/prusa3d/polygon"
         GIT_TAG prusaslicer_gmp
-        DEPENDS dep_boost
+        DEPENDS dep_Boost
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory

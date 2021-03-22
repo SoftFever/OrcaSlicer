@@ -53,33 +53,33 @@ if (${DEP_DEBUG})
 endif ()
 endmacro()
 
-ExternalProject_Add(dep_boost
-    EXCLUDE_FROM_ALL 1
-    URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
-    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
-    BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND bootstrap.bat
-    BUILD_COMMAND b2.exe
-        -j "${NPROC}"
-        --with-system
-        --with-iostreams
-        --with-filesystem
-        --with-thread
-        --with-log
-        --with-locale
-        --with-regex
-        --with-date_time
-        "--prefix=${DESTDIR}/usr/local"
-        "address-model=${DEPS_BITS}"
-        "toolset=${DEP_BOOST_TOOLSET}"
-        link=static
-        variant=release
-        threading=multi
-        boost.locale.icu=off
-        --disable-icu
-        "${DEP_BOOST_DEBUG}" release install
-    INSTALL_COMMAND ""   # b2 does that already
-)
+# ExternalProject_Add(dep_boost
+#     EXCLUDE_FROM_ALL 1
+#     URL "https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz"
+#     URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
+#     BUILD_IN_SOURCE 1
+#     CONFIGURE_COMMAND bootstrap.bat
+#     BUILD_COMMAND b2.exe
+#         -j "${NPROC}"
+#         --with-system
+#         --with-iostreams
+#         --with-filesystem
+#         --with-thread
+#         --with-log
+#         --with-locale
+#         --with-regex
+#         --with-date_time
+#         "--prefix=${DESTDIR}/usr/local"
+#         "address-model=${DEPS_BITS}"
+#         "toolset=${DEP_BOOST_TOOLSET}"
+#         link=static
+#         variant=release
+#         threading=multi
+#         boost.locale.icu=off
+#         --disable-icu
+#         "${DEP_BOOST_DEBUG}" release install
+#     INSTALL_COMMAND ""   # b2 does that already
+# )
 
 # ExternalProject_Add(dep_cereal
 #     EXCLUDE_FROM_ALL 1

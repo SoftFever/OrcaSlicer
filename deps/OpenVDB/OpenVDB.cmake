@@ -9,7 +9,7 @@ endif()
 prusaslicer_add_cmake_project(OpenVDB
     GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
     GIT_TAG aebaf8d95be5e57fd33949281ec357db4a576c2e #v6.2.1
-    DEPENDS dep_TBB dep_Blosc dep_OpenEXR #dep_Boost
+    DEPENDS dep_TBB dep_Blosc dep_OpenEXR dep_Boost
     PATCH_COMMAND       ${GIT_EXECUTABLE} reset --hard && ${GIT_EXECUTABLE} clean -df &&
                         ${GIT_EXECUTABLE} apply --whitespace=nowarn ${CMAKE_CURRENT_LIST_DIR}/openvdb-mods.patch
     CMAKE_ARGS
