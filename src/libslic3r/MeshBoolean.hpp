@@ -27,7 +27,19 @@ namespace cgal {
 struct CGALMesh;
 struct CGALMeshDeleter { void operator()(CGALMesh *ptr); };
 
-std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const TriangleMesh &M);
+std::unique_ptr<CGALMesh, CGALMeshDeleter>
+triangle_mesh_to_cgal(const std::vector<stl_vertex> &V,
+                      const std::vector<stl_triangle_vertex_indices> &F);
+
+inline std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const indexed_triangle_set &M)
+{
+    return triangle_mesh_to_cgal(M.vertices, M.indices);
+}
+inline std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const TriangleMesh &M)
+{
+    return triangle_mesh_to_cgal(M.its);
+}
+
 TriangleMesh cgal_to_triangle_mesh(const CGALMesh &cgalmesh);
     
 // Do boolean mesh difference with CGAL bypassing igl.

@@ -6,6 +6,7 @@
 #include <cstdarg>
 #include <stdio.h>
 
+#include "Platform.hpp"
 #include "Time.hpp"
 
 #ifdef WIN32
@@ -19,9 +20,14 @@
 	#ifdef BSD
 		#include <sys/sysctl.h>
 	#endif
-    #ifdef __APPLE__
+	#ifdef __APPLE__
         #include <mach/mach.h>
     #endif
+    #ifdef __linux__
+       	#include <sys/stat.h>
+       	#include <fcntl.h>
+		#include <sys/sendfile.h>
+	#endif
 #endif
 
 #include <boost/log/core.hpp>
@@ -417,6 +423,140 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 #endif
 }
 
+#ifdef __linux__
+// Copied from boost::filesystem, to support copying a file to a weird filesystem, which does not support changing file attributes,
+// for example ChromeOS Linux integration or FlashAIR WebDAV.
+// Copied and simplified from boost::filesystem::detail::copy_file() with option = overwrite_if_exists and with just the Linux path kept,
+// and only features supported by Linux 3.10 (on our build server with CentOS 7) are kept, namely sendfile with ranges and statx() are not supported.
+bool copy_file_linux(const boost::filesystem::path &from, const boost::filesystem::path &to, boost::system::error_code &ec)
+{
+	using namespace boost::filesystem;
+
+	struct fd_wrapper
+	{
+		int fd { -1 };
+		fd_wrapper() = default;
+		explicit fd_wrapper(int fd) throw() : fd(fd) {}
+		~fd_wrapper() throw() { if (fd >= 0) ::close(fd); }
+	};
+
+	ec.clear();
+  	int err = 0;
+
+  	// Note: Declare fd_wrappers here so that errno is not clobbered by close() that may be called in fd_wrapper destructors
+  	fd_wrapper infile, outfile;
+
+  	while (true) {
+    	infile.fd = ::open(from.c_str(), O_RDONLY | O_CLOEXEC);
+    	if (infile.fd < 0) {
+      		err = errno;
+      		if (err == EINTR)
+        		continue;
+		fail:
+			ec.assign(err, boost::system::system_category());
+  			return false;
+    	}
+    	break;
+  	}
+
+	struct ::stat from_stat;
+	if (::fstat(infile.fd, &from_stat) != 0) {
+		fail_errno:
+		err = errno;
+		goto fail;
+	}
+
+  	const mode_t from_mode = from_stat.st_mode;
+  	if (!S_ISREG(from_mode)) {
+    	err = ENOSYS;
+    	goto fail;
+  	}
+
+  	// Enable writing for the newly created files. Having write permission set is important e.g. for NFS,
+  	// which checks the file permission on the server, even if the client's file descriptor supports writing.
+  	mode_t to_mode = from_mode | S_IWUSR;
+  	int oflag = O_WRONLY | O_CLOEXEC | O_CREAT | O_TRUNC;
+
+	while (true) {
+	  	outfile.fd = ::open(to.c_str(), oflag, to_mode);
+	  	if (outfile.fd < 0) {
+	    	err = errno;
+	    	if (err == EINTR)
+	      		continue;
+	    	goto fail;
+	  	}
+	  	break;
+	}
+
+	struct ::stat to_stat;
+	if (::fstat(outfile.fd, &to_stat) != 0)
+		goto fail_errno;
+
+	to_mode = to_stat.st_mode;
+	if (!S_ISREG(to_mode)) {
+		err = ENOSYS;
+		goto fail;
+	}
+
+	if (from_stat.st_dev == to_stat.st_dev && from_stat.st_ino == to_stat.st_ino) {
+		err = EEXIST;
+		goto fail;
+	}
+
+	//! copy_file implementation that uses sendfile loop. Requires sendfile to support file descriptors.
+	//FIXME Vojtech: This is a copy loop valid for Linux 2.6.33 and newer.
+	// copy_file_data_copy_file_range() supports cross-filesystem copying since 5.3, but Vojtech did not want to polute this
+	// function with that, we don't think the performance gain is worth it for the types of files we are copying,
+	// and our build server based on CentOS 7 with Linux 3.10 does not support that anyways.
+	{
+		// sendfile will not send more than this amount of data in one call
+		constexpr std::size_t max_send_size = 0x7ffff000u;
+		uintmax_t offset = 0u;
+		while (off_t(offset) < from_stat.st_size) {
+			uintmax_t size_left = from_stat.st_size - offset;
+			std::size_t size_to_copy = max_send_size;
+			if (size_left < static_cast<uintmax_t>(max_send_size))
+				size_to_copy = static_cast<std::size_t>(size_left);
+			ssize_t sz = ::sendfile(outfile.fd, infile.fd, nullptr, size_to_copy);
+			if (sz < 0) {
+				err = errno;
+				if (err == EINTR)
+					continue;
+				if (err == 0)
+					break;
+				goto fail; // err already contains the error code
+			}
+			offset += sz;
+		}
+	}
+
+	// If we created a new file with an explicitly added S_IWUSR permission,
+	// we may need to update its mode bits to match the source file.
+	if (to_mode != from_mode && ::fchmod(outfile.fd, from_mode) != 0) {
+		if (platform_flavor() == PlatformFlavor::LinuxOnChromium) {
+			// Ignore that. 9p filesystem does not allow fmod().
+			BOOST_LOG_TRIVIAL(info) << "copy_file_linux() failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message() << 
+				" This may be expected when writing to a 9p filesystem.";
+		} else {
+			// Generic linux. Write out an error to console. At least we may get some feedback.
+			BOOST_LOG_TRIVIAL(error) << "copy_file_linux() failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message();
+		}
+	}
+
+	// Note: Use fsync/fdatasync followed by close to avoid dealing with the possibility of close failing with EINTR.
+	// Even if close fails, including with EINTR, most operating systems (presumably, except HP-UX) will close the
+	// file descriptor upon its return. This means that if an error happens later, when the OS flushes data to the
+	// underlying media, this error will go unnoticed and we have no way to receive it from close. Calling fsync/fdatasync
+	// ensures that all data have been written, and even if close fails for some unfathomable reason, we don't really
+	// care at that point.
+	err = ::fdatasync(outfile.fd);
+	if (err != 0)
+		goto fail_errno;
+
+	return true;
+}
+#endif // __linux__
+
 CopyFileResult copy_file_inner(const std::string& from, const std::string& to, std::string& error_message)
 {
 	const boost::filesystem::path source(from);
@@ -434,7 +574,13 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 	if (ec)
 		BOOST_LOG_TRIVIAL(debug) << "boost::filesystem::permisions before copy error message (this could be irrelevant message based on file system): " << ec.message();
 	ec.clear();
+#ifdef __linux__
+	// We want to allow copying files on Linux to succeed even if changing the file attributes fails.
+	// That may happen when copying on some exotic file system, for example Linux on Chrome.
+	copy_file_linux(source, target, ec);
+#else // __linux__
 	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
+#endif // __linux__
 	if (ec) {
 		error_message = ec.message();
 		return FAIL_COPY_FILE;

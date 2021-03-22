@@ -122,9 +122,10 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
     glsafe(::glTranslated(0.0, 0.0, m_c->selection_info()->get_sla_shift()));
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
-    float render_color[4];
+    std::array<float, 4> render_color;
     const sla::DrainHoles& drain_holes = m_c->selection_info()->model_object()->sla_drain_holes;
     size_t cache_size = drain_holes.size();
+
     for (size_t i = 0; i < cache_size; ++i)
     {
         const sla::DrainHole& drain_hole = drain_holes[i];
@@ -136,26 +137,27 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         // First decide about the color of the point.
         if (picking) {
             std::array<float, 4> color = picking_color_component(i);
-            render_color[0] = color[0];
-            render_color[1] = color[1];
-            render_color[2] = color[2];
-            render_color[3] = color[3];
+
+            render_color = color;
         }
         else {
-            render_color[3] = 1.f;
             if (size_t(m_hover_id) == i) {
-                render_color[0] = 0.f;
-                render_color[1] = 1.0f;
-                render_color[2] = 1.0f;
+                render_color = {0.f, 1.f, 1.f, 1.f};
+            } else if (m_c->hollowed_mesh() &&
+                       i < m_c->hollowed_mesh()->get_drainholes().size() &&
+                       m_c->hollowed_mesh()->get_drainholes()[i].failed) {
+                render_color = {1.f, 0.f, 0.f, .5f};
             }
             else { // neigher hover nor picking
+
                 render_color[0] = point_selected ? 1.0f : 0.7f;
                 render_color[1] = point_selected ? 0.3f : 0.7f;
                 render_color[2] = point_selected ? 0.3f : 0.7f;
                 render_color[3] = 0.5f;
             }
         }
-        glsafe(::glColor4fv(render_color));
+
+        glsafe(::glColor4fv(render_color.data()));
         float render_color_emissive[4] = { 0.5f * render_color[0], 0.5f * render_color[1], 0.5f * render_color[2], 1.f};
         glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
 

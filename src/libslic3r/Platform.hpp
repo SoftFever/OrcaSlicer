@@ -1,8 +1,7 @@
-#ifndef SLIC3R_GUI_Utils_Platform_HPP
-#define SLIC3R_GUI_Utils_Platform_HPP
+#ifndef SLIC3R_Platform_HPP
+#define SLIC3R_Platform_HPP
 
 namespace Slic3r {
-namespace GUI {
 
 enum class Platform
 {
@@ -37,8 +36,6 @@ void 			detect_platform();
 Platform 		platform();
 PlatformFlavor 	platform_flavor();
 
-
-} // namespace GUI
 } // namespace Slic3r
 
-#endif // SLIC3R_GUI_Utils_Platform_HPP
+#endif // SLIC3R_Platform_HPP

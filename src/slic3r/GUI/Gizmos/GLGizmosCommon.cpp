@@ -205,6 +205,7 @@ void HollowedMesh::on_update()
                     m_hollowed_mesh_transformed.reset(new TriangleMesh(backend_mesh));
                     Transform3d trafo_inv = canvas->sla_print()->sla_trafo(*mo).inverse();
                     m_hollowed_mesh_transformed->transform(trafo_inv);
+                    m_drainholes = print_object->model_object()->sla_drain_holes;
                     m_old_hollowing_timestamp = timestamp;
 
                     const TriangleMesh &interior = print_object->hollowed_interior_mesh();
@@ -215,8 +216,9 @@ void HollowedMesh::on_update()
                         m_hollowed_interior_transformed->transform(trafo_inv);
                     }
                 }
-                else
+                else {
                     m_hollowed_mesh_transformed.reset(nullptr);
+                }
             }
         }
         else

@@ -11,6 +11,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <Eigen/Geometry>
+
 #include "Utils.hpp" // for next_highest_power_of_2()
 
 extern "C"
@@ -752,6 +754,83 @@ void get_candidate_idxs(const TreeType& tree, const VectorType& v, std::vector<s
     return;
 }
 
+// Predicate: need to be specialized for intersections of different geomteries
+template<class G> struct Intersecting {};
+
+// Intersection predicate specialization for box-box intersections
+template<class CoordType, int NumD>
+struct Intersecting<Eigen::AlignedBox<CoordType, NumD>> {
+    Eigen::AlignedBox<CoordType, NumD> box;
+
+    Intersecting(const Eigen::AlignedBox<CoordType, NumD> &bb): box{bb} {}
+
+    bool operator() (const typename Tree<NumD, CoordType>::Node &node) const
+    {
+        return box.intersects(node.bbox);
+    }
+};
+
+template<class G> auto intersecting(const G &g) { return Intersecting<G>{g}; }
+
+template<class G> struct Containing {};
+
+// Intersection predicate specialization for box-box intersections
+template<class CoordType, int NumD>
+struct Containing<Eigen::AlignedBox<CoordType, NumD>> {
+    Eigen::AlignedBox<CoordType, NumD> box;
+
+    Containing(const Eigen::AlignedBox<CoordType, NumD> &bb): box{bb} {}
+
+    bool operator() (const typename Tree<NumD, CoordType>::Node &node) const
+    {
+        return box.contains(node.bbox);
+    }
+};
+
+template<class G> auto containing(const G &g) { return Containing<G>{g}; }
+
+namespace detail {
+
+template<int Dims, typename T, typename Pred, typename Fn>
+void traverse_recurse(const Tree<Dims, T> &tree,
+                      size_t               idx,
+                      Pred &&              pred,
+                      Fn &&                callback)
+{
+    assert(tree.node(idx).is_valid());
+
+    if (!pred(tree.node(idx))) return;
+
+    if (tree.node(idx).is_leaf()) {
+        callback(tree.node(idx).idx);
+    } else {
+
+        // call this with left and right node idx:
+        auto trv = [&](size_t idx) {
+            traverse_recurse(tree, idx, std::forward<Pred>(pred),
+                             std::forward<Fn>(callback));
+        };
+
+        // Left / right child node index.
+        trv(Tree<Dims, T>::left_child_idx(idx));
+        trv(Tree<Dims, T>::right_child_idx(idx));
+    }
+}
+
+} // namespace detail
+
+// Tree traversal with a predicate. Example usage:
+// traverse(tree, intersecting(QueryBox), [](size_t face_idx) {
+//      /* ... */
+// });
+template<int Dims, typename T, typename Predicate, typename Fn>
+void traverse(const Tree<Dims, T> &tree, Predicate &&pred, Fn &&callback)
+{
+    if (tree.empty()) return;
+
+    detail::traverse_recurse(tree, size_t(0), std::forward<Predicate>(pred),
+                             std::forward<Fn>(callback));
+}
 
 } // namespace AABBTreeIndirect
 } // namespace Slic3r

@@ -110,33 +110,19 @@ struct CGALMesh { _EpicMesh m; };
 // Converions from and to CGAL mesh
 // /////////////////////////////////////////////////////////////////////////////
 
-template<class _Mesh> void triangle_mesh_to_cgal(const TriangleMesh &M, _Mesh &out)
+template<class _Mesh>
+void triangle_mesh_to_cgal(const std::vector<stl_vertex> &                 V,
+                           const std::vector<stl_triangle_vertex_indices> &F,
+                           _Mesh &out)
 {
-    using Index3 = std::array<size_t, 3>;
-    
-    if (M.empty()) return;
-    
-    std::vector<typename _Mesh::Point> points;
-    std::vector<Index3> indices;
-    points.reserve(M.its.vertices.size());
-    indices.reserve(M.its.indices.size());
-    for (auto &v : M.its.vertices) points.emplace_back(v.x(), v.y(), v.z());
-    for (auto &_f : M.its.indices) {
-        auto f = _f.cast<size_t>();
-        indices.emplace_back(Index3{f(0), f(1), f(2)});
-    }
+    if (F.empty()) return;
 
-    CGALProc::orient_polygon_soup(points, indices);
-    CGALProc::polygon_soup_to_polygon_mesh(points, indices, out);
-    
-    // Number the faces because 'orient_to_bound_a_volume' needs a face <--> index map
-    unsigned index = 0;
-    for (auto face : out.faces()) face = CGAL::SM_Face_index(index++);
-    
-    if(CGAL::is_closed(out))
-        CGALProc::orient_to_bound_a_volume(out);
-    else
-        throw Slic3r::RuntimeError("Mesh not watertight");
+    for (auto &v : V)
+        out.add_vertex(typename _Mesh::Point{v.x(), v.y(), v.z()});
+
+    using VI = typename _Mesh::Vertex_index;
+    for (auto &f : F)
+        out.add_face(VI(f(0)), VI(f(1)), VI(f(2)));
 }
 
 inline Vec3d to_vec3d(const _EpicMesh::Point &v)
@@ -164,22 +150,30 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
     }
     
     for (auto &face : cgalmesh.faces()) {
-        auto    vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
-        int     i   = 0;
-        Vec3i trface;
-        for (auto v : vtc) trface(i++) = static_cast<int>(v);
-        facets.emplace_back(trface);
+        auto vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
+
+        int i = 0;
+        Vec3i facet;
+        for (auto v : vtc) {
+            if (i > 2) { i = 0; break; }
+            facet(i++) = v;
+        }
+
+        if (i == 3)
+            facets.emplace_back(facet);
     }
     
     TriangleMesh out{points, facets};
-    out.require_shared_vertices();
+    out.repair();
     return out;
 }
 
-std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const TriangleMesh &M)
+std::unique_ptr<CGALMesh, CGALMeshDeleter>
+triangle_mesh_to_cgal(const std::vector<stl_vertex> &V,
+                      const std::vector<stl_triangle_vertex_indices> &F)
 {
     std::unique_ptr<CGALMesh, CGALMeshDeleter> out(new CGALMesh{});
-    triangle_mesh_to_cgal(M, out->m);
+    triangle_mesh_to_cgal(V, F, out->m);
     return out;
 }
 
@@ -238,8 +232,8 @@ template<class Op> void _mesh_boolean_do(Op &&op, TriangleMesh &A, const Triangl
 {
     CGALMesh meshA;
     CGALMesh meshB;
-    triangle_mesh_to_cgal(A, meshA.m);
-    triangle_mesh_to_cgal(B, meshB.m);
+    triangle_mesh_to_cgal(A.its.vertices, A.its.indices, meshA.m);
+    triangle_mesh_to_cgal(B.its.vertices, B.its.indices, meshB.m);
     
     _cgal_do(op, meshA, meshB);
     
@@ -264,7 +258,7 @@ void intersect(TriangleMesh &A, const TriangleMesh &B)
 bool does_self_intersect(const TriangleMesh &mesh)
 {
     CGALMesh cgalm;
-    triangle_mesh_to_cgal(mesh, cgalm.m);
+    triangle_mesh_to_cgal(mesh.its.vertices, mesh.its.indices, cgalm.m);
     return CGALProc::does_self_intersect(cgalm.m);
 }
 

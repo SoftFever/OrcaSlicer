@@ -224,8 +224,8 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     std::vector<int> size;
     SetSize(load_user_data(UDT_SIZE, size) ? wxSize(size[0] * em, size[1] * em) : wxSize(HEIGHT * em, WIDTH * em));
 
-    Bind(wxEVT_SIZE, [this, em](wxSizeEvent& evt) {
-        OnSize(evt);
+    Bind(wxEVT_SIZE, [this](wxSizeEvent& evt) {
+        OnSize(evt); 
         save_user_data(UDT_SIZE | UDT_POSITION | UDT_COLS);
      });
     
@@ -233,7 +233,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     if (load_user_data(UDT_POSITION, pos))
         SetPosition(wxPoint(pos[0], pos[1]));
 
-    Bind(wxEVT_MOVE, [this, em](wxMoveEvent& evt) {
+    Bind(wxEVT_MOVE, [this](wxMoveEvent& evt) {
         save_user_data(UDT_SIZE | UDT_POSITION | UDT_COLS);
     });
 
@@ -245,7 +245,6 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
 
         const JobState state = get_state(selected);
         if (state < ST_ERROR) {
-            // TODO: cancel
             GUI::wxGetApp().printhost_job_queue().cancel(selected);
         }
     });
@@ -282,7 +281,7 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     // Both strings are UTF-8 encoded.
     upload_names.emplace_back(job.printhost->get_host(), job.upload_data.upload_path.string());
 
-    //wxGetApp().notification_manager()->push_upload_job_notification(this, job_list->GetItemCount(), 0, job.upload_data.upload_path.string(), job.printhost->get_host());
+    wxGetApp().notification_manager()->push_upload_job_notification(job_list->GetItemCount(), (float)size_i / 1024 / 1024, job.upload_data.upload_path.string(), job.printhost->get_host());
 }
 
 void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -354,7 +353,7 @@ void PrintHostQueueDialog::on_progress(Event &evt)
         wxVariant nm, hst;
         job_list->GetValue(nm, evt.job_id, COL_FILENAME);
         job_list->GetValue(hst, evt.job_id, COL_HOST);
-        wxGetApp().notification_manager()->set_upload_job_notification_percentage(evt.job_id + 1, boost::nowide::narrow(nm.GetString()), boost::nowide::narrow(hst.GetString()), 100 / evt.progress);
+        wxGetApp().notification_manager()->set_upload_job_notification_percentage(evt.job_id + 1, boost::nowide::narrow(nm.GetString()), boost::nowide::narrow(hst.GetString()), evt.progress / 100.f);
     }
 }
 
@@ -409,7 +408,6 @@ void PrintHostQueueDialog::get_active_jobs(std::vector<std::pair<std::string, st
 void PrintHostQueueDialog::save_user_data(int udt)
 {
     const auto em = GetTextExtent("m").x;
-    BOOST_LOG_TRIVIAL(error) << "save" << this->GetSize().x / em << " " << this->GetSize().y / em << " " << this->GetPosition().x << " " << this->GetPosition().y;
     auto *app_config = wxGetApp().app_config;
     if (udt & UserDataType::UDT_SIZE) {
         

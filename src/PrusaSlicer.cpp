@@ -38,6 +38,7 @@
 #include "libslic3r/GCode/PostProcessor.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
+#include "libslic3r/Platform.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -602,6 +603,9 @@ bool CLI::setup(int argc, char **argv)
                 boost::nowide::cerr << "Invalid SLIC3R_LOGLEVEL environment variable: " << loglevel << std::endl;
         }
     }
+
+    // Detect the operating system flavor after SLIC3R_LOGLEVEL is set.
+    detect_platform();
 
 #ifdef WIN32
     // Notify user if blacklisted library is already loaded (Nahimic)

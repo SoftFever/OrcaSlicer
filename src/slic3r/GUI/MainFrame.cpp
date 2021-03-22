@@ -672,7 +672,7 @@ bool MainFrame::is_active_and_shown_tab(Tab* tab)
 
 bool MainFrame::can_start_new_project() const
 {
-    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+    return (m_plater != nullptr) && (!m_plater->get_project_filename(".3mf").IsEmpty() || !m_plater->model().objects.empty());
 }
 
 bool MainFrame::can_save() const
@@ -1217,9 +1217,14 @@ void MainFrame::init_menubar_as_editor()
         append_menu_check_item(viewMenu, wxID_ANY, _L("&Collapse sidebar") + sep + "Shift+" + sep_space + "Tab", _L("Collapse sidebar"),
             [this](wxCommandEvent&) { m_plater->collapse_sidebar(!m_plater->is_sidebar_collapsed()); }, this,
             []() { return true; }, [this]() { return m_plater->is_sidebar_collapsed(); }, this);
+#ifndef __APPLE__
+        // OSX adds its own menu item to toggle fullscreen.
         append_menu_check_item(viewMenu, wxID_ANY, _L("&Full screen") + "\t" + "F11", _L("Full screen"),
-            [this](wxCommandEvent&) { this->ShowFullScreen(!this->IsFullScreen()); }, this,
-            []() { return true; }, [this]() { return this->IsFullScreen(); }, this);
+            [this](wxCommandEvent&) { this->ShowFullScreen(!this->IsFullScreen(), 
+                // wxFULLSCREEN_ALL: wxFULLSCREEN_NOMENUBAR | wxFULLSCREEN_NOTOOLBAR | wxFULLSCREEN_NOSTATUSBAR | wxFULLSCREEN_NOBORDER | wxFULLSCREEN_NOCAPTION
+                wxFULLSCREEN_NOSTATUSBAR | wxFULLSCREEN_NOBORDER | wxFULLSCREEN_NOCAPTION); }, 
+            this, []() { return true; }, [this]() { return this->IsFullScreen(); }, this);
+#endif // __APPLE__
     }
 
     // Help menu

@@ -43,6 +43,7 @@ enum FocusedItem {
     fiActionIcon,
     fiLowerThumb,
     fiHigherThumb,
+    fiSmartWipeTower,
     fiTick
 };
 
@@ -233,6 +234,8 @@ public:
     void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
     void    SetExtruderColors(const std::vector<std::string>& extruder_colors);
 
+    bool    IsNewPrint();
+
     void set_render_as_disabled(bool value) { m_render_as_disabled = value; }
     bool is_rendering_as_disabled() const { return m_render_as_disabled; }
 
@@ -303,6 +306,7 @@ protected:
     void    correct_higher_value();
     void    move_current_thumb(const bool condition);
     void    enter_window(wxMouseEvent& event, const bool enter);
+    bool    is_wipe_tower_layer(int tick) const;
 
 private:
 
@@ -366,6 +370,7 @@ private:
     bool        m_is_focused = false;
     bool        m_force_mode_apply = true;
     bool        m_enable_action_icon = true;
+    bool        m_is_smart_wipe_tower = false; //This flag indicates that for current print is used "smart" wipe tower (Print Settings->Multiple Extruders->No sparse layer is enabled)
 
     DrawMode    m_draw_mode = dmRegular;
 
@@ -394,7 +399,9 @@ private:
     std::vector<double> m_values;
     TickCodeInfo        m_ticks;
     std::vector<double> m_layers_times;
+    std::vector<double> m_layers_values;
     std::vector<std::string>    m_extruder_colors;
+    std::string         m_print_obj_idxs;
 
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     std::vector<double> m_alternate_values;

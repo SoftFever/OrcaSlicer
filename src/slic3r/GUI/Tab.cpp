@@ -1443,7 +1443,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Fuzzy skin (experimental)"));
         Option option = optgroup->get_option("fuzzy_skin");
-        option.opt.width = 30;
+//        option.opt.width = 30;
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line(optgroup->get_option("fuzzy_skin_thickness"));
         optgroup->append_single_option_line(optgroup->get_option("fuzzy_skin_point_dist"));
@@ -3841,7 +3841,7 @@ bool Tab::validate_custom_gcodes()
         assert(opt_group->opt_map().size() == 1);
         std::string key = opt_group->opt_map().begin()->first;
         std::string value = boost::any_cast<std::string>(opt_group->get_value(key));
-        std::string config_value = m_config->opt_string(key);
+        std::string config_value = m_type == Preset::TYPE_FILAMENT ? m_config->opt_string(key, 0u) : m_config->opt_string(key);
         valid &= validate_custom_gcode(opt_group->title, value);
         Field* field = opt_group->get_field(key);
         TextCtrl* text_ctrl = dynamic_cast<TextCtrl*>(field);

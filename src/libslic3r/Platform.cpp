@@ -1,15 +1,9 @@
 #include "Platform.hpp"
 
-
-// For starting another PrusaSlicer instance on OSX.
-// Fails to compile on Windows on the build server.
-
-#include <wx/stdpaths.h>
-
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem/operations.hpp>
 
 namespace Slic3r {
-namespace GUI {
 
 static auto s_platform 		  = Platform::Uninitialized;
 static auto s_platform_flavor = PlatformFlavor::Uninitialized;
@@ -74,5 +68,4 @@ PlatformFlavor platform_flavor()
 	return s_platform_flavor;
 }
 
-} // namespace GUI
 } // namespace Slic3r
