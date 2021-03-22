@@ -5,7 +5,7 @@ ProcessorCount(NPROC)
 set(_cross_arch "")
 set(_cross_comp_prefix_line "")
 if (CMAKE_CROSSCOMPILING)
-    set(_cross_comp_prefix_line "--cross-compile-prefix=${TOOLCHAIN_PREFIX}")
+    set(_cross_comp_prefix_line "--cross-compile-prefix=${TOOLCHAIN_PREFIX}-")
 
     if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64" OR ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
         set(_cross_arch "linux-aarch64")
