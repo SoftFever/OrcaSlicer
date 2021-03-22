@@ -128,23 +128,23 @@ ExternalProject_Add(dep_boost
 #     )
 # endif ()
 
-ExternalProject_Add(dep_qhull
-    EXCLUDE_FROM_ALL 1
-    #URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
-    #URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
-    GIT_REPOSITORY  https://github.com/qhull/qhull.git
-    GIT_TAG         7afedcc73666e46a9f1d74632412ebecf53b1b30 # v7.3.2 plus the mac build patch
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        -DCMAKE_DEBUG_POSTFIX=d
-    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-    INSTALL_COMMAND ""
-)
+# ExternalProject_Add(dep_qhull
+#     EXCLUDE_FROM_ALL 1
+#     #URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
+#     #URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
+#     GIT_REPOSITORY  https://github.com/qhull/qhull.git
+#     GIT_TAG         7afedcc73666e46a9f1d74632412ebecf53b1b30 # v7.3.2 plus the mac build patch
+#     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+#     CMAKE_ARGS
+#         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+#         -DBUILD_SHARED_LIBS=OFF
+#         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+#         -DCMAKE_DEBUG_POSTFIX=d
+#     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+#     INSTALL_COMMAND ""
+# )
 
-add_debug_dep(dep_qhull)
+# add_debug_dep(dep_qhull)
 
 if (${DEPS_BITS} EQUAL 32)
     set(DEP_WXWIDGETS_TARGET "")

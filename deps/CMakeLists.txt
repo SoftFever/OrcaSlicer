@@ -147,6 +147,7 @@ if (NOT EXPAT_FOUND)
 endif ()
 
 include(Cereal/Cereal.cmake)
+include(Qhull/Qhull.cmake)
 include(GLEW/GLEW.cmake)
 include(OpenCSG/OpenCSG.cmake)
 include(GMP/GMP.cmake)
@@ -201,7 +202,7 @@ if (MSVC)
     # Experimental
     #list(APPEND _dep_list "dep_qhull")
 else()
-    list(APPEND _dep_list "dep_qhull")
+    list(APPEND _dep_list "dep_Qhull")
     # Not working, static build has different Eigen
     #list(APPEND _dep_list "dep_libigl")
 endif()
