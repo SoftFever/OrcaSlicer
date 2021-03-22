@@ -169,13 +169,16 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	imgui.set_next_window_pos(win_pos.x, win_pos.y, ImGuiCond_Always, 1.0f, 0.0f);
 	imgui.set_next_window_size(m_window_width, m_window_height, ImGuiCond_Always);
 
-	// find if hovered
-	if (m_state == EState::Hovered) 
-		m_state = EState::Shown;
-
+	
+	// find if hovered FIXME:  do it only in update state?
+	if (m_state == EState::Hovered) {
+		m_state = EState::Unknown;
+		init(); 
+	}
+	
 	if (mouse_pos.x < win_pos.x && mouse_pos.x > win_pos.x - m_window_width && mouse_pos.y > win_pos.y && mouse_pos.y < win_pos.y + m_window_height) {
 		ImGui::SetNextWindowFocus();
-		m_state = EState::Hovered;
+		set_hovered();
 	}
 	
 	// color change based on fading out
@@ -300,8 +303,8 @@ void NotificationManager::PopNotification::init()
 	if (m_lines_count == 3)
 		m_multiline = true;
 	m_notification_start = GLCanvas3D::timestamp_now();
-	//if (m_state != EState::Hidden)
-	//	m_state = EState::Shown;
+	if (m_state == EState::Unknown)
+		m_state = EState::Shown;
 }
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
 { 
@@ -579,9 +582,10 @@ bool NotificationManager::PopNotification::update_state(bool paused, const int64
 	// reset timers - hovered state is set in render 
 	if (m_state == EState::Hovered) { 
 		m_current_fade_opacity = 1.0f;
-		m_notification_start = now;
+		m_state = EState::Unknown;
+		init();
 	// Timers when not fading
-	} else if (m_state != EState::FadingOut && m_data.duration != 0 && !paused) {
+	} else if (m_state != EState::NotFading && m_state != EState::FadingOut && m_data.duration != 0 && !paused) {
 		int64_t up_time = now - m_notification_start;
 		if (up_time >= m_data.duration * 1000) {
 			m_state					= EState::FadingOut;
@@ -787,6 +791,8 @@ void NotificationManager::ProgressBarNotification::init()
 	PopNotification::init();
 	m_lines_count++;
 	m_endlines.push_back(m_endlines.back());
+	if(m_state == EState::Shown)
+		m_state = EState::NotFading;
 }
 void NotificationManager::ProgressBarNotification::count_spaces()
 {
@@ -826,12 +832,19 @@ void NotificationManager::ProgressBarNotification::render_bar(ImGuiWrapper& imgu
 	ImGui::GetWindowDrawList()->AddLine(lineStart, midPoint, IM_COL32((int)(orange_color.x * 255), (int)(orange_color.y * 255), (int)(orange_color.z * 255), (1.0f * 255.f)), m_line_height * 0.2f);
 }
 //------PrintHostUploadNotification----------------
+void NotificationManager::PrintHostUploadNotification::init()
+{
+	ProgressBarNotification::init();
+	if (m_state == EState::NotFading && m_uj_state == UploadJobState::PB_COMPLETED)
+		m_state = EState::Shown;
+}
 void NotificationManager::PrintHostUploadNotification::set_percentage(float percent)
 {
 	m_percentage = percent;
 	if (percent >= 1.0f) {
 		m_uj_state = UploadJobState::PB_COMPLETED;
 		m_has_cancel_button = false;
+		init();
 	} else if (percent < 0.0f) {
 		error();
 	} else {
@@ -1123,7 +1136,7 @@ void NotificationManager::push_exporting_finished_notification(const std::string
 void  NotificationManager::push_upload_job_notification(int id, float filesize, const std::string& filename, const std::string& host, float percentage)
 {
 	std::string text = PrintHostUploadNotification::get_upload_job_text(id, filename, host);
-	NotificationData data{ NotificationType::PrintHostUpload, NotificationLevel::ProgressBarNotification, 0, text };
+	NotificationData data{ NotificationType::PrintHostUpload, NotificationLevel::ProgressBarNotification, 10, text };
 	push_notification_data(std::make_unique<NotificationManager::PrintHostUploadNotification>(data, m_id_provider, m_evt_handler, 0, id, filesize), 0);
 }
 void NotificationManager::set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage)

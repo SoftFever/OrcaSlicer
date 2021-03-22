@@ -207,6 +207,7 @@ private:
 			Unknown,		  // NOT initialized
 			Hidden,
 			Shown,			  // Requesting Render at some time if duration != 0
+			NotFading,		  // Never jumps to state Fading out even if duration says so
 			FadingOut,        // Requesting Render at some time
 			ClosePending,     // Requesting Render
 			Finished,         // Requesting Render
@@ -237,6 +238,7 @@ private:
 		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
 		EState                 get_state()  const { return m_state; }
 		bool				   is_hovered() const { return m_state == EState::Hovered; } 
+		void				   set_hovered() { if (m_state != EState::Finished || m_state != EState::ClosePending || m_state != EState::Hidden || m_state != EState::Unknown) m_state = EState::Hovered; }
 	
 		// Call after every size change
 		virtual void init();
@@ -401,6 +403,7 @@ private:
 		{
 			m_has_cancel_button = true;
 		}
+		virtual void        init() override;
 		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return "[" + std::to_string(id) + "] " + filename + " -> " + host; }
 		virtual void		set_percentage(float percent) override;
 		void				cancel() { m_uj_state = UploadJobState::PB_CANCELLED; m_has_cancel_button = false; }
