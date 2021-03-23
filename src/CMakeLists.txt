@@ -57,6 +57,9 @@ if (SLIC3R_GUI)
 
     include(${wxWidgets_USE_FILE})
 
+    find_package(JPEG QUIET REQUIRED)
+    find_package(TIFF QUIET REQUIRED)
+
     string(REGEX MATCH "wxpng" WX_PNG_BUILTIN ${wxWidgets_LIBRARIES})
     if (NOT WX_PNG_BUILTIN)
         find_package(JPEG QUIET)
@@ -73,6 +76,18 @@ if (SLIC3R_GUI)
             list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX tiff)
             list(APPEND wxWidgets_LIBRARIES ${TIFF_LIBRARIES})
         endif ()
+    endif ()
+
+    string(REGEX MATCH "wxjpeg" WX_JPEG_BUILTIN ${wxWidgets_LIBRARIES})
+    if (TIFF_FOUND AND NOT WX_JPEG_BUILTIN)
+        list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX jpeg)
+        list(APPEND wxWidgets_LIBRARIES ${JPEG_LIBRARIES})
+    endif ()
+
+    string(REGEX MATCH "wxtiff" WX_TIFF_BUILTIN ${wxWidgets_LIBRARIES})
+    if (TIFF_FOUND AND NOT WX_TIFF_BUILTIN)
+        list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX tiff)
+        list(APPEND wxWidgets_LIBRARIES ${TIFF_LIBRARIES})
     endif ()
 
     string(REGEX MATCH "wxjpeg" WX_JPEG_BUILTIN ${wxWidgets_LIBRARIES})
