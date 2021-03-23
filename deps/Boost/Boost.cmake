@@ -121,8 +121,7 @@ set(_install_cmd ${_build_cmd} --prefix=${_prefix} install)
 
 ExternalProject_Add(
     dep_Boost
-    URL "file:///home/quarky/Workspace/prusa3d/PrusaSlicer/deps-src-local/boost_1_70_0.tar.gz" 
-        #"https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz"
+    URL "https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz"
     URL_HASH SHA256=882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
     PATCH_COMMAND ${_patch_command}
