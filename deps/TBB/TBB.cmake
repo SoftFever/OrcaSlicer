@@ -11,7 +11,7 @@ prusaslicer_add_cmake_project(
 )
 
 if (MSVC)
-    add_debug_dep(dep_tbb)
+    add_debug_dep(dep_TBB)
 endif ()
 
 

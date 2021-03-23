@@ -117,15 +117,34 @@ set(_build_cmd ${_build_cmd}
 
 set(_install_cmd ${_build_cmd} --prefix=${_prefix} install)
 
-
-
 ExternalProject_Add(
     dep_Boost
     URL "https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz"
     URL_HASH SHA256=882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9
+    DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
     PATCH_COMMAND ${_patch_command}
     BUILD_COMMAND "${_build_cmd}"
     BUILD_IN_SOURCE    ON
     INSTALL_COMMAND "${_install_cmd}"
 )
+
+if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
+    # Patch the boost::polygon library with a custom one.
+    ExternalProject_Add(dep_boost_polygon
+        EXCLUDE_FROM_ALL ON
+        # GIT_REPOSITORY "https://github.com/prusa3d/polygon"
+        # GIT_TAG prusaslicer_gmp
+        URL https://github.com/prusa3d/polygon/archive/679b55115a1b106d918de8c7adf6ff0478abda1e.zip
+        URL_HASH SHA256=b3f288fcd3cee925753d1352783cefc98a5cab777dd0a5a985493a9b2d931752
+        DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/boost_polygon
+        DEPENDS dep_Boost
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_BINARY_DIR}/dep_boost_polygon-prefix/src/dep_boost_polygon/include/boost/polygon"
+            "${DESTDIR}/usr/local/include/boost/polygon"
+    )
+    # Only override boost::Polygon Voronoi implementation with Vojtech's GMP hacks on 64bit platforms.
+    list(APPEND _dep_list "dep_boost_polygon")
+endif ()

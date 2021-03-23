@@ -6,8 +6,10 @@ else ()
 endif ()
 
 prusaslicer_add_cmake_project(PNG 
-    GIT_REPOSITORY https://github.com/glennrp/libpng.git 
-    GIT_TAG v1.6.35
+    # GIT_REPOSITORY https://github.com/glennrp/libpng.git 
+    # GIT_TAG v1.6.35
+    URL https://github.com/glennrp/libpng/archive/refs/tags/v1.6.35.zip
+    URL_HASH SHA256=3d22d46c566b1761a0e15ea397589b3a5f36ac09b7c785382e6470156c04247f
     DEPENDS ${ZLIB_PKG}
     CMAKE_ARGS
         -DPNG_SHARED=OFF
