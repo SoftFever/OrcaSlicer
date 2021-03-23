@@ -173,6 +173,8 @@ include(NLopt/NLopt.cmake)
 include(OpenSSL/OpenSSL.cmake)
 include(CURL/CURL.cmake)
 
+include(JPEG/JPEG.cmake)
+include(TIFF/TIFF.cmake)
 include(wxWidgets/wxWidgets.cmake)
 
 set(_dep_list

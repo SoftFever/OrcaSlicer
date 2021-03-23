@@ -14,7 +14,7 @@ prusaslicer_add_cmake_project(wxWidgets
     # GIT_TAG tm_cross_compile #${_wx_git_tag}
     URL https://github.com/prusa3d/wxWidgets/archive/refs/heads/tm_cross_compile.zip
     URL_HASH SHA256=592aa716a4e8d609b74cdbd08a943e628f3c32b3ca6e4f76fb5f3d5698898dc1
-    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG}
+    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
         ${_wx_toolkit}
@@ -28,8 +28,8 @@ prusaslicer_add_cmake_project(wxWidgets
         -DwxUSE_ZLIB=sys
         -DwxUSE_REGEX=builtin
         -DwxUSE_LIBXPM=builtin
-        -DwxUSE_LIBJPEG=builtin
-        -DwxUSE_LIBTIFF=builtin
+        -DwxUSE_LIBJPEG=sys
+        -DwxUSE_LIBTIFF=sys
         -DwxUSE_EXPAT=sys
         -DwxUSE_LIBSDL=OFF
         -DwxUSE_XTEST=OFF
