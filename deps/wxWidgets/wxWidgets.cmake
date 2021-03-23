@@ -1,6 +1,5 @@
 set(_wx_git_tag v3.1.4-patched)
 
-# set(_patch_command "")
 set(_wx_toolkit "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_gtk_ver 2)
@@ -13,7 +12,6 @@ endif()
 prusaslicer_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
     GIT_TAG ${_wx_git_tag}
-    # PATCH_COMMAND "${_patch_command}"
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG}
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
@@ -31,6 +29,8 @@ prusaslicer_add_cmake_project(wxWidgets
         -DwxUSE_LIBJPEG=builtin
         -DwxUSE_LIBTIFF=builtin
         -DwxUSE_EXPAT=sys
+        -DwxUSE_LIBSDL=OFF
+        -DwxUSE_XTEST=OFF
 )
 
 if (MSVC)
