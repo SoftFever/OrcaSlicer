@@ -65,6 +65,10 @@ enum SupportMaterialPattern {
     smpRectilinear, smpRectilinearGrid, smpHoneycomb,
 };
 
+enum SupportMaterialStyle {
+    smsGrid, smsSnug,
+};
+
 enum SupportMaterialInterfacePattern {
     smipAuto, smipRectilinear, smipConcentric,
 };
@@ -207,6 +211,15 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialPa
         keys_map["rectilinear"]         = smpRectilinear;
         keys_map["rectilinear-grid"]    = smpRectilinearGrid;
         keys_map["honeycomb"]           = smpHoneycomb;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialStyle>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["grid"]    = smsGrid;
+        keys_map["snug"]    = smsSnug;
     }
     return keys_map;
 }
@@ -519,6 +532,7 @@ public:
     // Spacing between support material lines (the hatching distance).
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
+    ConfigOptionEnum<SupportMaterialStyle> support_material_style;
     ConfigOptionBool                support_material_synchronize_layers;
     // Overhang angle threshold.
     ConfigOptionInt                 support_material_threshold;
@@ -570,6 +584,7 @@ protected:
         OPT_PTR(support_material_interface_pattern);
         OPT_PTR(support_material_spacing);
         OPT_PTR(support_material_speed);
+        OPT_PTR(support_material_style);
         OPT_PTR(support_material_synchronize_layers);
         OPT_PTR(support_material_xy_spacing);
         OPT_PTR(support_material_threshold);

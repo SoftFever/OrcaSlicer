@@ -6,6 +6,7 @@
 #include "Fill/FillBase.hpp"
 #include "Geometry.hpp"
 #include "Point.hpp"
+#include "MutablePolygon.hpp"
 
 #include <cmath>
 #include <memory>
@@ -667,17 +668,19 @@ Polygons collect_slices_outer(const Layer &layer)
 
 struct SupportGridParams {
     SupportGridParams(const PrintObjectConfig &object_config, const Flow &support_material_flow) :
+        style(object_config.support_material_style.value),
         grid_resolution(object_config.support_material_spacing.value + support_material_flow.spacing()),
         support_angle(Geometry::deg2rad(object_config.support_material_angle.value)),
         extrusion_width(support_material_flow.spacing()),
         expansion_to_slice(coord_t(support_material_flow.scaled_spacing() / 2 + 5)),
         expansion_to_propagate(-3) {}
 
-    double      grid_resolution;
-    double      support_angle;
-    double      extrusion_width;
-    coord_t     expansion_to_slice;
-    coord_t     expansion_to_propagate;
+    SupportMaterialStyle    style;
+    double                  grid_resolution;
+    double                  support_angle;
+    double                  extrusion_width;
+    coord_t                 expansion_to_slice;
+    coord_t                 expansion_to_propagate;
 };
 
 class SupportGridPattern
@@ -689,75 +692,88 @@ public:
         // Trimming polygons, to trim the stretched support islands. support_polygons were already trimmed with trimming_polygons.
         const Polygons          *trimming_polygons,
         const SupportGridParams &params) :
+        m_style(params.style),
         m_support_polygons(support_polygons), m_trimming_polygons(trimming_polygons),
         m_support_spacing(params.grid_resolution), m_support_angle(params.support_angle)
     {
-        if (m_support_angle != 0.) {
-            // Create a copy of the rotated contours.
-            m_support_polygons_rotated  = *support_polygons;
-            m_trimming_polygons_rotated = *trimming_polygons;
-            m_support_polygons  = &m_support_polygons_rotated;
-            m_trimming_polygons = &m_trimming_polygons_rotated;
-            polygons_rotate(m_support_polygons_rotated, - params.support_angle);
-            polygons_rotate(m_trimming_polygons_rotated, - params.support_angle);
-        }
-
-        // Resolution of the sparse support grid.
-        coord_t grid_resolution = coord_t(scale_(m_support_spacing));
-        BoundingBox bbox = get_extents(*m_support_polygons);
-        bbox.offset(20);
-        // Align the bounding box with the sparse support grid.
-        bbox.align_to_grid(grid_resolution);
-
-#ifdef SUPPORT_USE_AGG_RASTERIZER
-        m_bbox       = bbox;
-        // Oversample the grid to avoid leaking of supports through or around the object walls.
-        int oversampling = std::min(8, int(scale_(m_support_spacing) / (scale_(params.extrusion_width) + 100)));
-        m_pixel_size = scale_(m_support_spacing / oversampling);
-        assert(scale_(params.extrusion_width) + 20 < m_pixel_size);
-        // Add one empty column / row boundaries.
-        m_bbox.offset(m_pixel_size);
-        // Grid size fitting the support polygons plus one pixel boundary around the polygons.
-        Vec2i grid_size_raw(int(ceil((m_bbox.max.x() - m_bbox.min.x()) / m_pixel_size)),
-                            int(ceil((m_bbox.max.y() - m_bbox.min.y()) / m_pixel_size)));
-        // Overlay macro blocks of (oversampling x oversampling) over the grid.
-        Vec2i grid_blocks((grid_size_raw.x() + oversampling - 1 - 2) / oversampling, 
-                          (grid_size_raw.y() + oversampling - 1 - 2) / oversampling);
-        // and resize the grid to fit the macro blocks + one pixel boundary.
-        m_grid_size = grid_blocks * oversampling + Vec2i(2, 2);
-        assert(m_grid_size.x() >= grid_size_raw.x());
-        assert(m_grid_size.y() >= grid_size_raw.y());
-        m_grid2 = rasterize_polygons(m_grid_size, m_pixel_size, m_bbox.min, *m_support_polygons);
-
-        seed_fill_block(m_grid2, m_grid_size,
-            dilate_trimming_region(rasterize_polygons(m_grid_size, m_pixel_size, m_bbox.min, *m_trimming_polygons), m_grid_size),
-            grid_blocks, oversampling);
-
-#ifdef SLIC3R_DEBUG
+        switch (m_style) {
+        case smsGrid:
         {
-            static int irun;
-            Slic3r::png::write_gray_to_file_scaled(debug_out_path("support-rasterizer-%d.png", irun++), m_grid_size.x(), m_grid_size.y(), m_grid2.data(), 4);
-        }
-#endif // SLIC3R_DEBUG
+            // Prepare the grid data, it will be reused when extracting support structures.
+            if (m_support_angle != 0.) {
+                // Create a copy of the rotated contours.
+                m_support_polygons_rotated  = *support_polygons;
+                m_trimming_polygons_rotated = *trimming_polygons;
+                m_support_polygons  = &m_support_polygons_rotated;
+                m_trimming_polygons = &m_trimming_polygons_rotated;
+                polygons_rotate(m_support_polygons_rotated, - params.support_angle);
+                polygons_rotate(m_trimming_polygons_rotated, - params.support_angle);
+            }
 
-#else // SUPPORT_USE_AGG_RASTERIZER
-        // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
-        m_grid.set_bbox(bbox);
-        m_grid.create(*m_support_polygons, grid_resolution);
-#if 0
-        if (m_grid.has_intersecting_edges()) {
-            // EdgeGrid fails to produce valid signed distance function for self-intersecting polygons.
-            m_support_polygons_rotated = simplify_polygons(*m_support_polygons);
-            m_support_polygons = &m_support_polygons_rotated;
+            // Resolution of the sparse support grid.
+            coord_t grid_resolution = coord_t(scale_(m_support_spacing));
+            BoundingBox bbox = get_extents(*m_support_polygons);
+            bbox.offset(20);
+            // Align the bounding box with the sparse support grid.
+            bbox.align_to_grid(grid_resolution);
+
+    #ifdef SUPPORT_USE_AGG_RASTERIZER
+            m_bbox       = bbox;
+            // Oversample the grid to avoid leaking of supports through or around the object walls.
+            int oversampling = std::min(8, int(scale_(m_support_spacing) / (scale_(params.extrusion_width) + 100)));
+            m_pixel_size = scale_(m_support_spacing / oversampling);
+            assert(scale_(params.extrusion_width) + 20 < m_pixel_size);
+            // Add one empty column / row boundaries.
+            m_bbox.offset(m_pixel_size);
+            // Grid size fitting the support polygons plus one pixel boundary around the polygons.
+            Vec2i grid_size_raw(int(ceil((m_bbox.max.x() - m_bbox.min.x()) / m_pixel_size)),
+                                int(ceil((m_bbox.max.y() - m_bbox.min.y()) / m_pixel_size)));
+            // Overlay macro blocks of (oversampling x oversampling) over the grid.
+            Vec2i grid_blocks((grid_size_raw.x() + oversampling - 1 - 2) / oversampling, 
+                              (grid_size_raw.y() + oversampling - 1 - 2) / oversampling);
+            // and resize the grid to fit the macro blocks + one pixel boundary.
+            m_grid_size = grid_blocks * oversampling + Vec2i(2, 2);
+            assert(m_grid_size.x() >= grid_size_raw.x());
+            assert(m_grid_size.y() >= grid_size_raw.y());
+            m_grid2 = rasterize_polygons(m_grid_size, m_pixel_size, m_bbox.min, *m_support_polygons);
+
+            seed_fill_block(m_grid2, m_grid_size,
+                dilate_trimming_region(rasterize_polygons(m_grid_size, m_pixel_size, m_bbox.min, *m_trimming_polygons), m_grid_size),
+                grid_blocks, oversampling);
+
+    #ifdef SLIC3R_DEBUG
+            {
+                static int irun;
+                Slic3r::png::write_gray_to_file_scaled(debug_out_path("support-rasterizer-%d.png", irun++), m_grid_size.x(), m_grid_size.y(), m_grid2.data(), 4);
+            }
+    #endif // SLIC3R_DEBUG
+
+    #else // SUPPORT_USE_AGG_RASTERIZER
+            // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
             m_grid.set_bbox(bbox);
             m_grid.create(*m_support_polygons, grid_resolution);
-//            assert(! m_grid.has_intersecting_edges());
-            printf("SupportGridPattern: fixing polygons with intersection %s\n",
-                m_grid.has_intersecting_edges() ? "FAILED" : "SUCCEEDED");
+    #if 0
+            if (m_grid.has_intersecting_edges()) {
+                // EdgeGrid fails to produce valid signed distance function for self-intersecting polygons.
+                m_support_polygons_rotated = simplify_polygons(*m_support_polygons);
+                m_support_polygons = &m_support_polygons_rotated;
+                m_grid.set_bbox(bbox);
+                m_grid.create(*m_support_polygons, grid_resolution);
+    //            assert(! m_grid.has_intersecting_edges());
+                printf("SupportGridPattern: fixing polygons with intersection %s\n",
+                    m_grid.has_intersecting_edges() ? "FAILED" : "SUCCEEDED");
+            }
+    #endif
+            m_grid.calculate_sdf();
+    #endif // SUPPORT_USE_AGG_RASTERIZER
+            break;
         }
-#endif
-        m_grid.calculate_sdf();
-#endif // SUPPORT_USE_AGG_RASTERIZER
+
+        case smsSnug:
+        default:
+            // nothing to prepare
+            break;
+        }
     }
 
     // Extract polygons from the grid, offsetted by offset_in_grid,
@@ -770,97 +786,102 @@ public:
 #endif
         )
     {
-#ifdef SUPPORT_USE_AGG_RASTERIZER
-        Polygons support_polygons_simplified = contours_simplified(m_grid_size, m_pixel_size, m_bbox.min, m_grid2, offset_in_grid, fill_holes);
-#else // SUPPORT_USE_AGG_RASTERIZER
-        // Generate islands, so each island may be tested for overlap with island_samples.
-        assert(std::abs(2 * offset_in_grid) < m_grid.resolution());
-        Polygons support_polygons_simplified = m_grid.contours_simplified(offset_in_grid, fill_holes);
-#endif // SUPPORT_USE_AGG_RASTERIZER
+        switch (m_style) {
+        case smsGrid:
+        {
+    #ifdef SUPPORT_USE_AGG_RASTERIZER
+            Polygons support_polygons_simplified = contours_simplified(m_grid_size, m_pixel_size, m_bbox.min, m_grid2, offset_in_grid, fill_holes);
+    #else // SUPPORT_USE_AGG_RASTERIZER
+            // Generate islands, so each island may be tested for overlap with island_samples.
+            assert(std::abs(2 * offset_in_grid) < m_grid.resolution());
+            Polygons support_polygons_simplified = m_grid.contours_simplified(offset_in_grid, fill_holes);
+    #endif // SUPPORT_USE_AGG_RASTERIZER
 
-        ExPolygons islands = diff_ex(support_polygons_simplified, *m_trimming_polygons, false);
+            ExPolygons islands = diff_ex(support_polygons_simplified, *m_trimming_polygons, false);
 
-        // Extract polygons, which contain some of the island_samples.
-        Polygons out;
-#if 0
-        out = to_polygons(std::move(islands));
-#else
+            // Extract polygons, which contain some of the island_samples.
+            Polygons out;
 
-        // Sample a single point per input support polygon, keep it as a reference to maintain corresponding
-        // polygons if ever these polygons get split into parts by the trimming polygons.
-        // As offset_in_grid may be negative, m_support_polygons may stick slightly outside of islands.
-        // Trim ti with islands.
-        Points samples = island_samples(
-            offset_in_grid > 0 ? 
-                // Expanding, thus m_support_polygons are all inside islands.
-                union_ex(*m_support_polygons) :
-                // Shrinking, thus m_support_polygons may be trimmed a tiny bit by islands.
-                intersection_ex(*m_support_polygons, to_polygons(islands)));
+            // Sample a single point per input support polygon, keep it as a reference to maintain corresponding
+            // polygons if ever these polygons get split into parts by the trimming polygons.
+            // As offset_in_grid may be negative, m_support_polygons may stick slightly outside of islands.
+            // Trim ti with islands.
+            Points samples = island_samples(
+                offset_in_grid > 0 ? 
+                    // Expanding, thus m_support_polygons are all inside islands.
+                    union_ex(*m_support_polygons) :
+                    // Shrinking, thus m_support_polygons may be trimmed a tiny bit by islands.
+                    intersection_ex(*m_support_polygons, to_polygons(islands)));
 
-        std::vector<std::pair<Point,bool>> samples_inside;
-        for (ExPolygon &island : islands) {
-            BoundingBox bbox = get_extents(island.contour);
-            // Samples are sorted lexicographically.
-            auto it_lower = std::lower_bound(samples.begin(), samples.end(), Point(bbox.min - Point(1, 1)));
-            auto it_upper = std::upper_bound(samples.begin(), samples.end(), Point(bbox.max + Point(1, 1)));
-            samples_inside.clear();
-            for (auto it = it_lower; it != it_upper; ++ it)
-                if (bbox.contains(*it))
-                    samples_inside.push_back(std::make_pair(*it, false));
-            if (! samples_inside.empty()) {
-                // For all samples_inside count the boundary crossing.
-                for (size_t i_contour = 0; i_contour <= island.holes.size(); ++ i_contour) {
-                    Polygon &contour = (i_contour == 0) ? island.contour : island.holes[i_contour - 1];
-                    Points::const_iterator i = contour.points.begin();
-                    Points::const_iterator j = contour.points.end() - 1;
-                    for (; i != contour.points.end(); j = i ++) {
-                        //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point(1) well.
-                        // Does the ray with y == point(1) intersect this line segment?
-                        for (auto &sample_inside : samples_inside) {
-                            if (((*i)(1) > sample_inside.first(1)) != ((*j)(1) > sample_inside.first(1))) {
-                                double x1 = (double)sample_inside.first(0);
-                                double x2 = (double)(*i)(0) + (double)((*j)(0) - (*i)(0)) * (double)(sample_inside.first(1) - (*i)(1)) / (double)((*j)(1) - (*i)(1));
-                                if (x1 < x2)
-                                    sample_inside.second = !sample_inside.second;
+            std::vector<std::pair<Point,bool>> samples_inside;
+            for (ExPolygon &island : islands) {
+                BoundingBox bbox = get_extents(island.contour);
+                // Samples are sorted lexicographically.
+                auto it_lower = std::lower_bound(samples.begin(), samples.end(), Point(bbox.min - Point(1, 1)));
+                auto it_upper = std::upper_bound(samples.begin(), samples.end(), Point(bbox.max + Point(1, 1)));
+                samples_inside.clear();
+                for (auto it = it_lower; it != it_upper; ++ it)
+                    if (bbox.contains(*it))
+                        samples_inside.push_back(std::make_pair(*it, false));
+                if (! samples_inside.empty()) {
+                    // For all samples_inside count the boundary crossing.
+                    for (size_t i_contour = 0; i_contour <= island.holes.size(); ++ i_contour) {
+                        Polygon &contour = (i_contour == 0) ? island.contour : island.holes[i_contour - 1];
+                        Points::const_iterator i = contour.points.begin();
+                        Points::const_iterator j = contour.points.end() - 1;
+                        for (; i != contour.points.end(); j = i ++) {
+                            //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point(1) well.
+                            // Does the ray with y == point(1) intersect this line segment?
+                            for (auto &sample_inside : samples_inside) {
+                                if (((*i)(1) > sample_inside.first(1)) != ((*j)(1) > sample_inside.first(1))) {
+                                    double x1 = (double)sample_inside.first(0);
+                                    double x2 = (double)(*i)(0) + (double)((*j)(0) - (*i)(0)) * (double)(sample_inside.first(1) - (*i)(1)) / (double)((*j)(1) - (*i)(1));
+                                    if (x1 < x2)
+                                        sample_inside.second = !sample_inside.second;
+                                }
                             }
                         }
                     }
+                    // If any of the sample is inside this island, add this island to the output.
+                    for (auto &sample_inside : samples_inside)
+                        if (sample_inside.second) {
+                            polygons_append(out, std::move(island));
+                            island.clear();
+                            break;
+                        }
                 }
-                // If any of the sample is inside this island, add this island to the output.
-                for (auto &sample_inside : samples_inside)
-                    if (sample_inside.second) {
-                        polygons_append(out, std::move(island));
-                        island.clear();
-                        break;
-                    }
             }
+
+    #ifdef SLIC3R_DEBUG
+            BoundingBox bbox = get_extents(*m_trimming_polygons);
+            if (! islands.empty())
+                bbox.merge(get_extents(islands));
+            if (!out.empty())
+                bbox.merge(get_extents(out));
+            if (!support_polygons_simplified.empty())
+                bbox.merge(get_extents(support_polygons_simplified));
+            SVG svg(debug_out_path("extract_support_from_grid_trimmed-%s-%d-%d-%lf.svg", step_name, iRun, layer_id, print_z).c_str(), bbox);
+            svg.draw(union_ex(support_polygons_simplified), "gray", 0.25f);
+            svg.draw(islands, "red", 0.5f);
+            svg.draw(union_ex(out), "green", 0.5f);
+            svg.draw(union_ex(*m_support_polygons), "blue", 0.5f);
+            svg.draw_outline(islands, "red", "red", scale_(0.05));
+            svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
+            svg.draw_outline(union_ex(*m_support_polygons), "blue", "blue", scale_(0.05));
+            for (const Point &pt : samples)
+                svg.draw(pt, "black", coord_t(scale_(0.15)));
+            svg.Close();
+    #endif /* SLIC3R_DEBUG */
+
+            if (m_support_angle != 0.)
+                polygons_rotate(out, m_support_angle);
+            return out;
         }
-#endif
-
-#ifdef SLIC3R_DEBUG
-        BoundingBox bbox = get_extents(*m_trimming_polygons);
-        if (! islands.empty())
-            bbox.merge(get_extents(islands));
-        if (!out.empty())
-            bbox.merge(get_extents(out));
-        if (!support_polygons_simplified.empty())
-            bbox.merge(get_extents(support_polygons_simplified));
-        SVG svg(debug_out_path("extract_support_from_grid_trimmed-%s-%d-%d-%lf.svg", step_name, iRun, layer_id, print_z).c_str(), bbox);
-        svg.draw(union_ex(support_polygons_simplified), "gray", 0.25f);
-        svg.draw(islands, "red", 0.5f);
-        svg.draw(union_ex(out), "green", 0.5f);
-        svg.draw(union_ex(*m_support_polygons), "blue", 0.5f);
-        svg.draw_outline(islands, "red", "red", scale_(0.05));
-        svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
-        svg.draw_outline(union_ex(*m_support_polygons), "blue", "blue", scale_(0.05));
-        for (const Point &pt : samples)
-            svg.draw(pt, "black", coord_t(scale_(0.15)));
-        svg.Close();
-#endif /* SLIC3R_DEBUG */
-
-        if (m_support_angle != 0.)
-            polygons_rotate(out, m_support_angle);
-        return out;
+        case smsSnug:
+            // Just close the gaps.
+            float thr = scaled<float>(0.5);
+            return smooth_outward(offset(offset_ex(*m_support_polygons, thr), - thr), thr);
+        }
     }
 
 #if defined(SLIC3R_DEBUG) && ! defined(SUPPORT_USE_AGG_RASTERIZER)
@@ -1096,6 +1117,7 @@ private:
         return pts;
     } 
 
+    SupportMaterialStyle    m_style;
     const Polygons         *m_support_polygons;
     const Polygons         *m_trimming_polygons;
     Polygons                m_support_polygons_rotated;
@@ -1525,7 +1547,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                             ClipperLib::jtRound,
                             // round mitter limit
                             scale_(0.05)),
-                        slices_margin_cached);
+                        slices_margin.polygons);
                 }
 #else
                 diff_polygons = diff(diff_polygons, slices_margin.polygons);

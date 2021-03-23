@@ -1224,6 +1224,8 @@ boost::any& Choice::get_value()
 			m_value = static_cast<SupportMaterialPattern>(ret_enum);
         else if (m_opt_id.compare("support_material_interface_pattern") == 0)
             m_value = static_cast<SupportMaterialInterfacePattern>(ret_enum);
+        else if (m_opt_id.compare("support_material_style") == 0)
+            m_value = static_cast<SupportMaterialStyle>(ret_enum);
 		else if (m_opt_id.compare("seam_position") == 0)
 			m_value = static_cast<SeamPosition>(ret_enum);
 		else if (m_opt_id.compare("host_type") == 0)
