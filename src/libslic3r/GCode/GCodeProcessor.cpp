@@ -2572,7 +2572,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
 {
     MoveVertex vertex = {
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-        m_line_id,
+        (type == EMoveType::Color_change || type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) ? m_line_id + 1 : m_line_id,
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         type,
         m_extrusion_role,
