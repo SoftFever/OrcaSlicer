@@ -859,7 +859,7 @@ void NotificationManager::PrintHostUploadNotification::render_bar(ImGuiWrapper& 
 	case Slic3r::GUI::NotificationManager::PrintHostUploadNotification::UploadJobState::PB_PROGRESS:
 	{
 		ProgressBarNotification::render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
-		float uploaded = m_file_size / 100 * m_percentage;
+		float uploaded = m_file_size * m_percentage;
 		std::stringstream stream;
 		stream << std::fixed << std::setprecision(2) << (int)(m_percentage * 100) << "% - " << uploaded << " of " << m_file_size << "MB uploaded";
 		text = stream.str();
