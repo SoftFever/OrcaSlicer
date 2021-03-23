@@ -238,7 +238,7 @@ private:
 		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
 		EState                 get_state()  const { return m_state; }
 		bool				   is_hovered() const { return m_state == EState::Hovered; } 
-		void				   set_hovered() { if (m_state != EState::Finished || m_state != EState::ClosePending || m_state != EState::Hidden || m_state != EState::Unknown) m_state = EState::Hovered; }
+		void				   set_hovered() { if (m_state != EState::Finished && m_state != EState::ClosePending && m_state != EState::Hidden && m_state != EState::Unknown) m_state = EState::Hovered; }
 	
 		// Call after every size change
 		virtual void init();
