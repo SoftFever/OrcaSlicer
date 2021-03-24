@@ -7,14 +7,13 @@ else()
 endif()
 
 prusaslicer_add_cmake_project(Blosc
-    # GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
-    # GIT_TAG e63775855294b50820ef44d1b157f4de1cc38d3e #v1.17.0
-    URL https://github.com/Blosc/c-blosc/archive/refs/tags/v1.17.0.zip
-    URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
+    #URL https://github.com/Blosc/c-blosc/archive/refs/tags/v1.17.0.zip
+    #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
+    URL https://github.com/tamasmeszaros/c-blosc/archive/refs/heads/v1.17.0_tm.zip
+    URL_HASH SHA256=b69a0f8a66e420b3b57e159cc56e3ced803d5de8dbe35dcebb4c54671fdc2e7a
     DEPENDS ${ZLIB_PKG}
-    PATCH_COMMAND       #${GIT_EXECUTABLE} reset --hard && ${GIT_EXECUTABLE} clean -df &&
-                        #${GIT_EXECUTABLE} apply --whitespace=nowarn ${CMAKE_CURRENT_LIST_DIR}/blosc-mods.patch
-                        ${GIT_EXECUTABLE} apply --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/blosc-mods.patch
+    # Patching upstream does not work this way with git version 2.28 installed on mac worker
+    # PATCH_COMMAND  ${GIT_EXECUTABLE} apply --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/blosc-mods.patch
     CMAKE_ARGS
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DBUILD_SHARED=${_build_shared} 
