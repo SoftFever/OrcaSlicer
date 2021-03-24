@@ -535,7 +535,7 @@ Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index 
 	m_opt_map.emplace(opt_id, pair);
 
 	if (m_use_custom_ctrl) // fill group and category values just for options from Settings Tab
-	    wxGetApp().sidebar().get_searcher().add_key(opt_id, title, this->config_category());
+	    wxGetApp().sidebar().get_searcher().add_key(opt_id, static_cast<Preset::Type>(this->config_type()), title, this->config_category());
 
 	return Option(*m_config->def()->get(opt_key), opt_id);
 }

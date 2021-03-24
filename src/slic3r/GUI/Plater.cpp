@@ -992,7 +992,7 @@ void Sidebar::search()
 void Sidebar::jump_to_option(size_t selected)
 {
     const Search::Option& opt = p->searcher.get_option(selected);
-    wxGetApp().get_tab(opt.type)->activate_option(boost::nowide::narrow(opt.opt_key), boost::nowide::narrow(opt.category));
+    wxGetApp().get_tab(opt.type)->activate_option(opt.opt_key(), boost::nowide::narrow(opt.category));
 
     // Switch to the Settings NotePad
 //    wxGetApp().mainframe->select_tab();
@@ -5858,6 +5858,8 @@ void Plater::paste_from_clipboard()
 void Plater::search(bool plater_is_active)
 {
     if (plater_is_active) {
+        if (is_preview_shown())
+            return;
         // plater should be focused for correct navigation inside search window 
         this->SetFocus();
 

@@ -1506,6 +1506,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("raft_expansion");
 
         optgroup = page->new_optgroup(L("Options for support material and raft"));
+        optgroup->append_single_option_line("support_material_style", category_path + "style");
         optgroup->append_single_option_line("support_material_contact_distance", category_path + "contact-z-distance");
         optgroup->append_single_option_line("support_material_bottom_contact_distance", category_path + "contact-z-distance");
         optgroup->append_single_option_line("support_material_pattern", category_path + "pattern");
@@ -1737,7 +1738,7 @@ bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)
 }
 
 static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, const t_config_option_key& opt_key, const boost::any& value) {
-    Tab::validate_custom_gcode(opt_group->title, boost::any_cast<std::string>(value));
+    tab->validate_custom_gcodes_was_shown = !Tab::validate_custom_gcode(opt_group->title, boost::any_cast<std::string>(value));
     tab->update_dirty();
     tab->on_value_change(opt_key, value);
 }
@@ -3801,8 +3802,8 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     {
         Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
         const Search::GroupAndCategory& gc = searcher.get_group_and_category("bed_shape");
-        searcher.add_key("bed_custom_texture", gc.group, gc.category);
-        searcher.add_key("bed_custom_model", gc.group, gc.category);
+        searcher.add_key("bed_custom_texture", m_type, gc.group, gc.category);
+        searcher.add_key("bed_custom_model", m_type, gc.group, gc.category);
     }
 
     return sizer;
@@ -3836,27 +3837,18 @@ bool Tab::validate_custom_gcodes()
     if (m_active_page->title() != L("Custom G-code"))
         return true;
 
+    // When we switch Settings tab after editing of the custom g-code, then warning message could ba already shown after KillFocus event
+    // and then it's no need to show it again
+    if (validate_custom_gcodes_was_shown) {
+        validate_custom_gcodes_was_shown = false;
+        return true;
+    }
+
     bool valid = true;
     for (auto opt_group : m_active_page->m_optgroups) {
         assert(opt_group->opt_map().size() == 1);
         std::string key = opt_group->opt_map().begin()->first;
-        std::string value = boost::any_cast<std::string>(opt_group->get_value(key));
-        std::string config_value = m_type == Preset::TYPE_FILAMENT ? m_config->opt_string(key, 0u) : m_config->opt_string(key);
-        valid &= validate_custom_gcode(opt_group->title, value);
-        Field* field = opt_group->get_field(key);
-        TextCtrl* text_ctrl = dynamic_cast<TextCtrl*>(field);
-        if (text_ctrl != nullptr && text_ctrl->m_on_change != nullptr && !text_ctrl->m_disable_change_event) {
-            Slic3r::GUI::t_change callback = opt_group->m_on_change;
-            // temporary disable the opt_group->m_on_change callback to avoid multiple validations
-            opt_group->m_on_change = nullptr;
-            text_ctrl->m_on_change(key, value);
-            // restore the opt_group->m_on_change callback
-            opt_group->m_on_change = callback;
-
-            update_dirty();
-            on_value_change(key, value);
-        }
-
+        valid &= validate_custom_gcode(opt_group->title, boost::any_cast<std::string>(opt_group->get_value(key)));
         if (!valid)
             break;
     }
@@ -4043,7 +4035,6 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 {
     //! config_ have to be "right"
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(m_parent, title, m_config, true);
-    optgroup->set_config_category(m_title.ToStdString());
     if (noncommon_label_width >= 0)
         optgroup->label_width = noncommon_label_width;
 
@@ -4052,6 +4043,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 #else
     auto tab = parent()->GetParent();// GetParent();
 #endif
+    optgroup->set_config_category_and_type(m_title, static_cast<Tab*>(tab)->type());
     optgroup->m_on_change = [tab](t_config_option_key opt_key, boost::any value) {
         //! This function will be called from OptionGroup.
         //! Using of CallAfter is redundant.

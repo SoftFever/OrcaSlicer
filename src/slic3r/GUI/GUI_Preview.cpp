@@ -639,8 +639,10 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     m_layers_slider->SetDrawMode(sla_print_technology, sequential_print);
     if (sla_print_technology)
         m_layers_slider->SetLayersTimes(plater->sla_print().print_statistics().layers_times);
-    else
-        m_layers_slider->SetLayersTimes(m_gcode_result->time_statistics.modes.front().layers_times);
+    else {
+        auto print_mode_stat = m_gcode_result->time_statistics.modes.front();
+        m_layers_slider->SetLayersTimes(print_mode_stat.layers_times, print_mode_stat.time);
+    }
 
     // Suggest the auto color change, if model looks like sign
     if (m_layers_slider->IsNewPrint())

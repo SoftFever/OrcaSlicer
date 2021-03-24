@@ -198,6 +198,8 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialPattern>(boost::any_cast<SupportMaterialPattern>(value)));
 			else if (opt_key.compare("support_material_interface_pattern") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialInterfacePattern>(boost::any_cast<SupportMaterialInterfacePattern>(value)));
+			else if (opt_key.compare("support_material_style") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialStyle>(boost::any_cast<SupportMaterialStyle>(value)));
 			else if (opt_key.compare("seam_position") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<SeamPosition>(boost::any_cast<SeamPosition>(value)));
 			else if (opt_key.compare("host_type") == 0)

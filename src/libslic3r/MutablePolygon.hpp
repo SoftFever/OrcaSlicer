@@ -85,7 +85,7 @@ public:
         }
 
         void advance_front() {
-            assert(!this->empty());
+            assert(! this->empty());
             if (m_begin == m_end)
                 this->make_empty();
             else
@@ -93,7 +93,7 @@ public:
         }
 
         void retract_back() {
-            assert(!this->empty());
+            assert(! this->empty());
             if (m_begin == m_end)
                 this->make_empty();
             else
@@ -101,13 +101,13 @@ public:
         }
 
         MutablePolygon::iterator remove_front(MutablePolygon::iterator it) {
-            if (m_begin == it)
+            if (! this->empty() && m_begin == it)
                 this->advance_front();
             return it.remove();
         }
 
         MutablePolygon::iterator remove_back(MutablePolygon::iterator it) {
-            if (m_end == it)
+            if (! this->empty() && m_end == it)
                 this->retract_back();
             return it.remove();
         }

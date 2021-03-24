@@ -2419,6 +2419,20 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60));
 
+    def = this->add("support_material_style", coEnum);
+    def->label = L("Style");
+    def->category = L("Support material");
+    def->tooltip = L("Style and shape of the support towers. Projecting the supports into a regular grid "
+                     "will create more stable supports, while snug support towers will save material and reduce "
+                     "object scarring.");
+    def->enum_keys_map = &ConfigOptionEnum<SupportMaterialStyle>::get_enum_values();
+    def->enum_values.push_back("grid");
+    def->enum_values.push_back("snug");
+    def->enum_labels.push_back(L("Grid"));
+    def->enum_labels.push_back(L("Snug"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsGrid));
+
     def = this->add("support_material_synchronize_layers", coBool);
     def->label = L("Synchronize with object layers");
     def->category = L("Support material");

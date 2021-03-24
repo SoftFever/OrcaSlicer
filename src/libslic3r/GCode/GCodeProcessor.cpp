@@ -1581,89 +1581,109 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
 {
     // extrusion roles
 
+    // in older versions the comments did not contain the key 'feature'
+    std::string_view cmt = comment;
+    size_t pos = cmt.find(" feature");
+    if (pos == 0)
+        cmt.remove_prefix(8);
+
     // ; skirt
-    size_t pos = comment.find(" skirt");
+    pos = cmt.find(" skirt");
     if (pos == 0) {
         m_extrusion_role = erSkirt;
         return true;
     }
     
     // ; outer perimeter
-    pos = comment.find(" outer perimeter");
+    pos = cmt.find(" outer perimeter");
     if (pos == 0) {
         m_extrusion_role = erExternalPerimeter;
         return true;
     }
 
     // ; inner perimeter
-    pos = comment.find(" inner perimeter");
+    pos = cmt.find(" inner perimeter");
     if (pos == 0) {
         m_extrusion_role = erPerimeter;
         return true;
     }
 
     // ; gap fill
-    pos = comment.find(" gap fill");
+    pos = cmt.find(" gap fill");
     if (pos == 0) {
         m_extrusion_role = erGapFill;
         return true;
     }
 
     // ; infill
-    pos = comment.find(" infill");
+    pos = cmt.find(" infill");
     if (pos == 0) {
         m_extrusion_role = erInternalInfill;
         return true;
     }
 
     // ; solid layer
-    pos = comment.find(" solid layer");
+    pos = cmt.find(" solid layer");
     if (pos == 0) {
-        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        m_extrusion_role = erSolidInfill;
         return true;
     }
 
     // ; bridge
-    pos = comment.find(" bridge");
+    pos = cmt.find(" bridge");
     if (pos == 0) {
         m_extrusion_role = erBridgeInfill;
         return true;
     }
 
     // ; support
-    pos = comment.find(" support");
+    pos = cmt.find(" support");
     if (pos == 0) {
         m_extrusion_role = erSupportMaterial;
         return true;
     }
 
+    // ; dense support
+    pos = cmt.find(" dense support");
+    if (pos == 0) {
+        m_extrusion_role = erSupportMaterialInterface;
+        return true;
+    }
+
     // ; prime pillar
-    pos = comment.find(" prime pillar");
+    pos = cmt.find(" prime pillar");
     if (pos == 0) {
         m_extrusion_role = erWipeTower;
         return true;
     }
 
     // ; ooze shield
-    pos = comment.find(" ooze shield");
+    pos = cmt.find(" ooze shield");
     if (pos == 0) {
-        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        m_extrusion_role = erNone; // Missing mapping
         return true;
     }
 
     // ; raft
-    pos = comment.find(" raft");
+    pos = cmt.find(" raft");
     if (pos == 0) {
-        m_extrusion_role = erSkirt;
+        m_extrusion_role = erSupportMaterial;
+        return true;
+    }
+
+    // ; internal single extrusion
+    pos = cmt.find(" internal single extrusion");
+    if (pos == 0) {
+        m_extrusion_role = erNone; // Missing mapping
         return true;
     }
 
     // geometry
     // ; tool
     std::string tag = " tool";
-    pos = comment.find(tag);
+    pos = cmt.find(tag);
     if (pos == 0) {
-        const std::string_view data = comment.substr(pos + tag.length());
+        const std::string_view data = cmt.substr(pos + tag.length());
         std::string h_tag = "H";
         size_t h_start = data.find(h_tag);
         size_t h_end = data.find_first_of(' ', h_start);
@@ -1684,10 +1704,10 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
 
     // ; layer
     tag = " layer";
-    pos = comment.find(tag);
+    pos = cmt.find(tag);
     if (pos == 0) {
         // skip lines "; layer end"
-        const std::string_view data = comment.substr(pos + tag.length());
+        const std::string_view data = cmt.substr(pos + tag.length());
         size_t end_start = data.find("end");
         if (end_start == data.npos)
             ++m_layer_id;
@@ -2662,7 +2682,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
 {
     MoveVertex vertex = {
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-        m_line_id,
+        (type == EMoveType::Color_change || type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) ? m_line_id + 1 : m_line_id,
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         type,
         m_extrusion_role,

@@ -25,6 +25,7 @@
 #include <boost/algorithm/string/split.hpp>
 #endif // ENABLE_GCODE_WINDOW
 #include <boost/nowide/cstdio.hpp>
+#include <boost/nowide/fstream.hpp>
 #include <wx/progdlg.h>
 #include <wx/numformatter.h>
 
@@ -3150,7 +3151,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         const Path& path = buffer->paths[path_id];
 #endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
-        if (m_sequential_view.current.last <= sub_path.first.s_id || sub_path.last.s_id <= m_sequential_view.current.first)
+        if (m_sequential_view.current.last < sub_path.first.s_id || sub_path.last.s_id < m_sequential_view.current.first)
             continue;
 
         Color color;

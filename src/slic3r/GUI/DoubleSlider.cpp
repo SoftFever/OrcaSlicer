@@ -387,7 +387,7 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
     Update();
 }
 
-void Control::SetLayersTimes(const std::vector<float>& layers_times)
+void Control::SetLayersTimes(const std::vector<float>& layers_times, float total_time)
 { 
     m_layers_times.clear();
     if (layers_times.empty())
@@ -405,11 +405,18 @@ void Control::SetLayersTimes(const std::vector<float>& layers_times)
         m_layers_values = m_values;
         sort(m_layers_values.begin(), m_layers_values.end());
         m_layers_values.erase(unique(m_layers_values.begin(), m_layers_values.end()), m_layers_values.end());
+
+        // When whipe tower is used to the end of print, there is one layer which is not marked in layers_times
+        // So, add this value from the total print time value
+        if (m_layers_values.size() != m_layers_times.size())
+            for (size_t i = m_layers_times.size(); i < m_layers_values.size(); i++)
+                m_layers_times.push_back(total_time);
     }
 }
 
 void Control::SetLayersTimes(const std::vector<double>& layers_times)
 { 
+    m_is_smart_wipe_tower = false;
     m_layers_times = layers_times;
     for (size_t i = 1; i < m_layers_times.size(); i++)
         m_layers_times[i] += m_layers_times[i - 1];
@@ -652,7 +659,7 @@ void Control::draw_tick_on_mouse_position(wxDC& dc)
     }
 }
 
-static std::string short_and_splitted_time(const std::string& time)
+static wxString short_and_splitted_time(const std::string& time)
 {
     // Parse the dhms time format.
     int days = 0;
@@ -690,7 +697,7 @@ static std::string short_and_splitted_time(const std::string& time)
     }
     else
         ::sprintf(buffer, "%ds", seconds);
-    return buffer;
+    return wxString::FromUTF8(buffer);
 }
 
 wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer*/) const
@@ -712,9 +719,13 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     auto get_layer_number = [this](int value) {
         double layer_print_z = m_values[is_wipe_tower_layer(value) ? std::max<int>(value - 1, 0) : value];
         auto it = std::lower_bound(m_layers_values.begin(), m_layers_values.end(), layer_print_z - epsilon());
-        if (it == m_layers_values.end())
-            return -1;
-        return int(it - m_layers_values.begin());
+        if (it == m_layers_values.end()) {
+            it = std::lower_bound(m_values.begin(), m_values.end(), layer_print_z - epsilon());
+            if (it == m_values.end())
+                return size_t(-1);
+            return m_layers_values.size();
+        }
+        return size_t(it - m_layers_values.begin());
     };
 
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -730,8 +741,8 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     else {
         if (label_type == ltEstimatedTime) {
             if (m_is_smart_wipe_tower) {
-                int layer_number = get_layer_number(value);
-                return layer_number < 0 ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
+                size_t layer_number = get_layer_number(value);
+                return layer_number == size_t(-1) ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
             }
             return value < m_layers_times.size() ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
         }
@@ -741,7 +752,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         if (label_type == ltHeight)
             return str;
         if (label_type == ltHeightWithLayer) {
-            size_t layer_number = m_is_smart_wipe_tower ? (size_t)get_layer_number(value) : (m_values.empty() ? value : value + 1);
+            size_t layer_number = m_is_smart_wipe_tower ? get_layer_number(value) : (m_values.empty() ? value : value + 1);
             return format_wxstr("%1%\n(%2%)", str, layer_number);
         }
     }

@@ -122,7 +122,7 @@ static bool clip_narrow_corner(
         } else {
             assert(backward == Free);
             p02 = it0.prev()->cast<int64_t>();
-            if (cross2(p0 - p2, p02 - p2) > 0)
+            if (cross2(p02 - p2, p0 - p2) > 0)
                 backward = Blocked;
             else {
                 // New clipping edge lenght.
@@ -141,14 +141,37 @@ static bool clip_narrow_corner(
         }
     }
 
+    assert(dist2_current <= shortcut_length2);
+    assert(polygon.size() >= 2);
+    assert(polygon.size() == 2 || forward  == Blocked || forward  == Far);
+    assert(polygon.size() == 2 || backward == Blocked || backward == Far);
+
     if (polygon.size() <= 3) {
         // A hole degenerated to an empty polygon, or a tiny triangle remained.
-        assert(polygon.size() < 3 || (forward == Blocked && backward == Blocked) || (forward == Far && backward == Far));
-        if (polygon.size() < 3 || forward == Far) {
-            assert(polygon.size() < 3 || dist2_current <= shortcut_length2);
+        bool blocked = forward == Blocked || backward == Blocked;
+        assert(polygon.size() < 3 || 
+            // Remaining triangle is CCW oriented. Both sides must be "blocked", but the other side may have not been
+            // updated after the the p02 / p22 became united into a single point.
+            blocked ||
+            // Remaining triangle is concave, however both of its arms are long.
+            (forward == Far && backward == Far));
+#ifndef _NDEBUG
+        if (polygon.size() == 3) {
+            // Verify that the remaining triangle is CCW or CW.
+            p02 = it0.prev()->cast<int64_t>();
+            p22 = it2.next()->cast<int64_t>();
+            assert(p02 == p22);
+            auto orient1 = cross2(p02 - p2, p0 - p2);
+            auto orient2 = cross2(p2 - p0, p22 - p0);
+            assert(orient1 > 0 == blocked);
+            assert(orient2 > 0 == blocked);
+        }
+#endif // _NDEBUG
+        if (polygon.size() < 3 || (forward == Far && backward == Far)) {
             polygon.clear();
         } else {
             // The remaining triangle is CCW oriented, keep it.
+            assert(forward == Blocked || backward == Blocked);
         }
         return true;
     }
@@ -168,7 +191,7 @@ static bool clip_narrow_corner(
     } else if (forward == Blocked || backward == Blocked) {
         // One side is far, the other blocked.
         assert(forward == Far || backward == Far);
-        if (backward == Far) {
+        if (forward == Far) {
             // Sort, so we will clip the 1st edge.
             std::swap(p0,  p2);
             std::swap(p02, p22);
@@ -177,6 +200,10 @@ static bool clip_narrow_corner(
         // Circle intersects a line at two points, however because |p2 - p0| < shortcut_length,
         // only the second intersection is valid. Because |p2 - p02| > shortcut_length, such
         // intersection should always be found on (p0, p02).
+#ifndef NDEBUG
+        auto dfar2 = (p02 - p2).squaredNorm();
+        assert(dfar2 >= shortcut_length2);
+#endif // NDEBUG
         const Vec2d     v = (p02 - p0).cast<double>();
         const Vec2d     d = (p0 - p2).cast<double>();
         const double    a = v.squaredNorm();
@@ -273,15 +300,17 @@ void smooth_outward(MutablePolygon &polygon, coord_t clip_dist_scaled)
                             Point           pt_new = p1 + (t * v2d).cast<coord_t>();
 #ifndef NDEBUG
                             double d2new = (pt_new - (swap ? p2 : p0)).cast<double>().squaredNorm();
-                            assert(std::abs(d2new - clip_dist_scaled2) < sqr(10. * SCALED_EPSILON));
+                            assert(std::abs(d2new - clip_dist_scaled2) < 1e-5 * clip_dist_scaled2);
 #endif // NDEBUG
                             it2.insert(pt_new);
                         } else {
                             // Cut the corner with a line perpendicular to the bisector.
                             double t  = sqrt(0.25 * clip_dist_scaled2 / d2);
-                            assert(t > 0. && t < 1.);
-                            Point  p0 = p1 + (v1d * t).cast<coord_t>();
-                            Point  p2 = p1 + (v2d * (t * lv2 / lv1)).cast<coord_t>();
+                            double t2 = t * lv1 / lv2;
+                            assert(t  > 0. && t  < 1.);
+                            assert(t2 > 0. && t2 < 1.);
+                            Point  p0 = p1 + (v1d * t ).cast<coord_t>();
+                            Point  p2 = p1 + (v2d * t2).cast<coord_t>();
                             if (swap)
                                 std::swap(p0, p2);
                             it2.insert(p2).insert(p0);
