@@ -55,6 +55,8 @@
 #define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_3_1_ALPHA1)
 // Enable showing a imgui window containing gcode in preview
 #define ENABLE_GCODE_WINDOW (1 && ENABLE_2_3_1_ALPHA1)
+// Enable exporting lines M73 for remaining time to next printer stop to gcode
+#define ENABLE_EXTENDED_M73_LINES (1 && ENABLE_VALIDATE_CUSTOM_GCODE)
 
 
 #endif // _prusaslicer_technologies_h_
