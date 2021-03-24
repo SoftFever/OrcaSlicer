@@ -37,24 +37,24 @@
 
 
 //====================
-// 2.3.1.alpha1 techs
+// 2.4.0.alpha0 techs
 //====================
-#define ENABLE_2_3_1_ALPHA1 1
+#define ENABLE_2_4_0_ALPHA0 1
 
 // Enable splitting of vertex buffers used to render toolpaths
-#define ENABLE_SPLITTED_VERTEX_BUFFER (1 && ENABLE_2_3_1_ALPHA1)
+#define ENABLE_SPLITTED_VERTEX_BUFFER (1 && ENABLE_2_4_0_ALPHA0)
 // Enable rendering only starting and final caps for toolpaths
 #define ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS (1 && ENABLE_SPLITTED_VERTEX_BUFFER)
 // Enable reload from disk command for 3mf files
-#define ENABLE_RELOAD_FROM_DISK_FOR_3MF (1 && ENABLE_2_3_1_ALPHA1)
+#define ENABLE_RELOAD_FROM_DISK_FOR_3MF (1 && ENABLE_2_4_0_ALPHA0)
 // Removes obsolete warning texture code
-#define ENABLE_WARNING_TEXTURE_REMOVAL (1 && ENABLE_2_3_1_ALPHA1)
+#define ENABLE_WARNING_TEXTURE_REMOVAL (1 && ENABLE_2_4_0_ALPHA0)
 // Enable showing gcode line numbers in previeww horizontal slider
-#define ENABLE_GCODE_LINES_ID_IN_H_SLIDER (1 && ENABLE_2_3_1_ALPHA1)
+#define ENABLE_GCODE_LINES_ID_IN_H_SLIDER (1 && ENABLE_2_4_0_ALPHA0)
 // Enable validation of custom gcode against gcode processor reserved keywords
-#define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_3_1_ALPHA1)
+#define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_4_0_ALPHA0)
 // Enable showing a imgui window containing gcode in preview
-#define ENABLE_GCODE_WINDOW (1 && ENABLE_2_3_1_ALPHA1)
+#define ENABLE_GCODE_WINDOW (1 && ENABLE_2_4_0_ALPHA0)
 // Enable exporting lines M73 for remaining time to next printer stop to gcode
 #define ENABLE_EXTENDED_M73_LINES (1 && ENABLE_VALIDATE_CUSTOM_GCODE)
 
