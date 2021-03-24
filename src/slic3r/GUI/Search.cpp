@@ -63,24 +63,29 @@ void change_opt_key(std::string& opt_key, DynamicPrintConfig* config, int& cnt)
         opt_key += "#" + std::to_string(0);
 }
 
+static std::string get_key(const std::string& opt_key, Preset::Type type)
+{
+    return std::to_string(int(type)) + ";" + opt_key;
+}
+
 void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type type, ConfigOptionMode mode)
 {
-    auto emplace = [this, type](const std::string opt_key, const wxString& label)
+    auto emplace = [this, type](const std::string key, const wxString& label)
     {
-        const GroupAndCategory& gc = groups_and_categories[opt_key];
+        const GroupAndCategory& gc = groups_and_categories[key];
         if (gc.group.IsEmpty() || gc.category.IsEmpty())
             return;
 
         wxString suffix;
         wxString suffix_local;
         if (gc.category == "Machine limits") {
-            suffix = opt_key.back()=='1' ? L("Stealth") : L("Normal");
+            suffix = key.back()=='1' ? L("Stealth") : L("Normal");
             suffix_local = " " + _(suffix);
             suffix = " " + suffix;
         }
 
         if (!label.IsEmpty())
-            options.emplace_back(Option{ boost::nowide::widen(opt_key), type,
+            options.emplace_back(Option{ boost::nowide::widen(key), type,
                                         (label + suffix).ToStdWstring(), (_(label) + suffix_local).ToStdWstring(),
                                         gc.group.ToStdWstring(), _(gc.group).ToStdWstring(),
                                         gc.category.ToStdWstring(), GUI::Tab::translate_category(gc.category, type).ToStdWstring() });
@@ -108,12 +113,13 @@ void OptionsSearcher::append_options(DynamicPrintConfig* config, Preset::Type ty
 
         wxString label = opt.full_label.empty() ? opt.label : opt.full_label;
 
+        std::string key = get_key(opt_key, type);
         if (cnt == 0)
-            emplace(opt_key, label);
+            emplace(key, label);
         else
             for (int i = 0; i < cnt; ++i)
                 // ! It's very important to use "#". opt_key#n is a real option key used in GroupAndCategory
-                emplace(opt_key + "#" + std::to_string(i), label); 
+                emplace(key + "#" + std::to_string(i), label);
     }
 }
 
@@ -237,10 +243,10 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
         int score2;
         matches.clear();
         fuzzy_match(wsearch, label, score, matches);
-        if (fuzzy_match(wsearch, opt.opt_key, score2, matches2) && score2 > score) {
+        if (fuzzy_match(wsearch, opt.key, score2, matches2) && score2 > score) {
         	for (fts::pos_type &pos : matches2)
         		pos += label.size() + 1;
-        	label += L"(" + opt.opt_key + L")";
+        	label += L"(" + opt.key + L")";
         	append(matches, matches2);
         	score = score2;
         }
@@ -318,9 +324,9 @@ const Option& OptionsSearcher::get_option(size_t pos_in_filter) const
     return options[found[pos_in_filter].option_idx];
 }
 
-const Option& OptionsSearcher::get_option(const std::string& opt_key) const
+const Option& OptionsSearcher::get_option(const std::string& opt_key, Preset::Type type) const
 {
-    auto it = std::lower_bound(options.begin(), options.end(), Option({ boost::nowide::widen(opt_key) }));
+    auto it = std::lower_bound(options.begin(), options.end(), Option({ boost::nowide::widen(get_key(opt_key, type)) }));
     assert(it != options.end());
 
     return options[it - options.begin()];
@@ -342,7 +348,7 @@ static Option create_option(const std::string& opt_key, const wxString& label, P
         category = wxString::Format("%s %d", "Extruder", atoi(opt_idx.c_str()) + 1);
     }
 
-    return Option{ boost::nowide::widen(opt_key), type,
+    return Option{ boost::nowide::widen(get_key(opt_key, type)), type,
                 (label + suffix).ToStdWstring(), (_(label) + suffix_local).ToStdWstring(),
                 gc.group.ToStdWstring(), _(gc.group).ToStdWstring(),
                 gc.category.ToStdWstring(), GUI::Tab::translate_category(category, type).ToStdWstring() };
@@ -350,15 +356,16 @@ static Option create_option(const std::string& opt_key, const wxString& label, P
 
 Option OptionsSearcher::get_option(const std::string& opt_key, const wxString& label, Preset::Type type) const
 {
-    auto it = std::lower_bound(options.begin(), options.end(), Option({ boost::nowide::widen(opt_key) }));
-    if(it->opt_key == boost::nowide::widen(opt_key))
+    std::string key = get_key(opt_key, type);
+    auto it = std::lower_bound(options.begin(), options.end(), Option({ boost::nowide::widen(key) }));
+    if(it->key == boost::nowide::widen(key))
         return options[it - options.begin()];
-    if (groups_and_categories.find(opt_key) == groups_and_categories.end()) {
-        size_t pos = opt_key.find('#');
+    if (groups_and_categories.find(key) == groups_and_categories.end()) {
+        size_t pos = key.find('#');
         if (pos == std::string::npos)
             return options[it - options.begin()];
 
-        std::string zero_opt_key = opt_key.substr(0, pos + 1) + "0";
+        std::string zero_opt_key = key.substr(0, pos + 1) + "0";
 
         if(groups_and_categories.find(zero_opt_key) == groups_and_categories.end())
             return options[it - options.begin()];
@@ -366,16 +373,16 @@ Option OptionsSearcher::get_option(const std::string& opt_key, const wxString& l
         return create_option(opt_key, label, type, groups_and_categories.at(zero_opt_key));
     }
 
-    const GroupAndCategory& gc = groups_and_categories.at(opt_key);
+    const GroupAndCategory& gc = groups_and_categories.at(key);
     if (gc.group.IsEmpty() || gc.category.IsEmpty())
         return options[it - options.begin()];
 
     return create_option(opt_key, label, type, gc);
 }
 
-void OptionsSearcher::add_key(const std::string& opt_key, const wxString& group, const wxString& category)
+void OptionsSearcher::add_key(const std::string& opt_key, Preset::Type type, const wxString& group, const wxString& category)
 {
-    groups_and_categories[opt_key] = GroupAndCategory{group, category};
+    groups_and_categories[get_key(opt_key, type)] = GroupAndCategory{group, category};
 }
 
 

@@ -833,10 +833,10 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
         (*btn)->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { show_info_line(Action::Undef); e.Skip(); });
     };
 
-    const PresetCollection& printers = wxGetApp().preset_bundle->printers;
-    if (dependent_presets && (type == dependent_presets->type() ?
+    const PresetCollection* switched_presets = type == Preset::TYPE_INVALID ? nullptr : wxGetApp().get_tab(type)->get_presets();
+    if (dependent_presets && switched_presets && (type == dependent_presets->type() ?
         dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
-        printers.get_edited_preset().printer_technology() == printers.find_preset(new_selected_preset)->printer_technology()))
+        switched_presets->get_edited_preset().printer_technology() == switched_presets->find_preset(new_selected_preset)->printer_technology()))
         add_btn(&m_transfer_btn, m_move_btn_id, "paste_menu", Action::Transfer, _L("Transfer"));
     add_btn(&m_discard_btn, m_continue_btn_id, dependent_presets ? "switch_presets" : "exit", Action::Discard, _L("Discard"), false);
     add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"));
@@ -1185,7 +1185,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
 void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* presets_)
 {
     Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
-    searcher.sort_options_by_opt_key();
+    searcher.sort_options_by_key();
 
     // list of the presets with unsaved changes
     std::vector<PresetCollection*> presets_list;
@@ -1227,8 +1227,8 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         }
 
         for (const std::string& opt_key : dirty_options) {
-            const Search::Option& option = searcher.get_option(opt_key);
-            if (option.opt_key != boost::nowide::widen(opt_key)) {
+            const Search::Option& option = searcher.get_option(opt_key, type);
+            if (option.opt_key() != opt_key) {
                 // When founded option isn't the correct one.
                 // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
                 // because of they don't exist in searcher
@@ -1239,6 +1239,9 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
                 get_string_value(opt_key, old_config), get_string_value(opt_key, new_config), category_icon_map.at(option.category));
         }
     }
+
+    // Revert sort of searcher back
+    searcher.sort_options_by_label();
 }
 
 void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -1546,7 +1549,7 @@ void DiffPresetDialog::update_presets(Preset::Type type)
 void DiffPresetDialog::update_tree()
 {
     Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
-    searcher.sort_options_by_opt_key();
+    searcher.sort_options_by_key();
 
     m_tree->Clear();
     wxString bottom_info = "";
@@ -1617,7 +1620,7 @@ void DiffPresetDialog::update_tree()
             wxString right_val = get_string_value(opt_key, right_congig);
 
             Search::Option option = searcher.get_option(opt_key, get_full_label(opt_key, left_config), type);
-            if (option.opt_key != boost::nowide::widen(opt_key)) {
+            if (option.opt_key() != opt_key) {
                 // temporary solution, just for testing
                 m_tree->Append(opt_key, type, _L("Undef category"), _L("Undef group"), opt_key, left_val, right_val, "question");
                 // When founded option isn't the correct one.
@@ -1642,6 +1645,9 @@ void DiffPresetDialog::update_tree()
         Fit();
         Refresh();
     }
+
+    // Revert sort of searcher back
+    searcher.sort_options_by_label();
 }
 
 void DiffPresetDialog::on_dpi_changed(const wxRect&)
