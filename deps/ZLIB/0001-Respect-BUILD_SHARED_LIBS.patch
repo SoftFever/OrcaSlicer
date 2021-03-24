@@ -1,17 +1,8 @@
-From 0c64e33bc2e4e7c011f5a64f5d9c7571a434cc86 Mon Sep 17 00:00:00 2001
-From: tamasmeszaros <meszaros.q@gmail.com>
-Date: Sat, 16 Nov 2019 13:43:17 +0100
-Subject: [PATCH] Respect BUILD_SHARED_LIBS
-
----
- CMakeLists.txt | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
-
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 0fe939d..01dfea1 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -183,10 +183,12 @@ if(MINGW)
+Common subdirectories: ../zlib-1.2.11/amiga and ./amiga
+diff -u ../zlib-1.2.11/CMakeLists.txt ./CMakeLists.txt
+--- ../zlib-1.2.11/CMakeLists.txt	2017-01-15 09:29:40.000000000 +0100
++++ ./CMakeLists.txt	2021-03-24 15:24:48.190291072 +0100
+@@ -183,10 +183,12 @@
      set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
  endif(MINGW)
  
@@ -28,7 +19,7 @@ index 0fe939d..01dfea1 100644
  
  if(NOT CYGWIN)
      # This property causes shared libraries on Linux to have the full version
-@@ -201,7 +203,7 @@ endif()
+@@ -201,7 +203,7 @@
  
  if(UNIX)
      # On unix-like platforms the library is almost always called libz
@@ -37,7 +28,7 @@ index 0fe939d..01dfea1 100644
     if(NOT APPLE)
       set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,\"${CMAKE_CURRENT_SOURCE_DIR}/zlib.map\"")
     endif()
-@@ -211,7 +213,7 @@ elseif(BUILD_SHARED_LIBS AND WIN32)
+@@ -211,7 +213,7 @@
  endif()
  
  if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
@@ -46,6 +37,15 @@ index 0fe939d..01dfea1 100644
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
--- 
-2.16.2.windows.1
-
+Common subdirectories: ../zlib-1.2.11/contrib and ./contrib
+Common subdirectories: ../zlib-1.2.11/doc and ./doc
+Common subdirectories: ../zlib-1.2.11/examples and ./examples
+Common subdirectories: ../zlib-1.2.11/msdos and ./msdos
+Common subdirectories: ../zlib-1.2.11/nintendods and ./nintendods
+Common subdirectories: ../zlib-1.2.11/old and ./old
+Common subdirectories: ../zlib-1.2.11/os400 and ./os400
+Common subdirectories: ../zlib-1.2.11/qnx and ./qnx
+Common subdirectories: ../zlib-1.2.11/test and ./test
+Common subdirectories: ../zlib-1.2.11/watcom and ./watcom
+Common subdirectories: ../zlib-1.2.11/win32 and ./win32
+Only in ./: ZLIB.patch

@@ -52,6 +52,9 @@ message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
 
+# The default command line for patching. Only works for newer 
+set(PATCH_CMD ${GIT_EXECUTABLE} apply --verbose --ignore-space-change --whitespace=fix)
+
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
 function(prusaslicer_add_cmake_project projectname)
