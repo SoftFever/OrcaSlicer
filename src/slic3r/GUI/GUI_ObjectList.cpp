@@ -837,7 +837,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
     {
 	    const wxString title = col->GetTitle();
 	    if (title == " ")
-	        toggle_printable_state(item);
+	        toggle_printable_state();
 	    else if (title == _("Editing"))
 	        show_context_menu(evt_context_menu);
 	    else if (title == _("Name"))
@@ -3837,37 +3837,59 @@ void ObjectList::update_printable_state(int obj_idx, int instance_idx)
     m_objects_model->SetPrintableState(printable, obj_idx, instance_idx);
 }
 
-void ObjectList::toggle_printable_state(wxDataViewItem item)
+void ObjectList::toggle_printable_state()
 {
-    const ItemType type = m_objects_model->GetItemType(item);
-    if (!(type&(itObject|itInstance/*|itVolume*/)))
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+
+    wxDataViewItem frst_item = sels[0];
+
+    ItemType type = m_objects_model->GetItemType(frst_item);
+    if (!(type & (itObject | itInstance)))
         return;
 
-    if (type & itObject)
+
+    int obj_idx = m_objects_model->GetObjectIdByItem(frst_item);
+    int inst_idx = type == itObject ? 0 : m_objects_model->GetInstanceIdByItem(frst_item);
+    bool printable = !object(obj_idx)->instances[inst_idx]->printable;
+
+    const wxString snapshot_text =  sels.Count() > 1 ? (printable ? _L("Set Printable group") : _L("Set Unprintable group")) :
+                                    object(obj_idx)->instances.size() == 1 ? from_u8((boost::format("%1% %2%")
+                                        % (printable ? _L("Set Printable") : _L("Set Unprintable"))
+                                        % object(obj_idx)->name).str()) :
+                                    (printable ? _L("Set Printable Instance") : _L("Set Unprintable Instance"));
+    take_snapshot(snapshot_text);
+
+    std::vector<size_t> obj_idxs;
+    for (auto item : sels)
     {
-        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
-        ModelObject* object = (*m_objects)[obj_idx];
+        type = m_objects_model->GetItemType(item);
+        if (!(type & (itObject | itInstance)))
+            continue;
 
-        // get object's printable and change it
-        const bool printable = !m_objects_model->IsPrintable(item);
+        obj_idx = m_objects_model->GetObjectIdByItem(item);
+        ModelObject* obj = object(obj_idx);
 
-        const wxString snapshot_text = from_u8((boost::format("%1% %2%")
-                                                  % (printable ? _(L("Set Printable")) : _(L("Set Unprintable")))
-                                                  % object->name).str());
-        take_snapshot(snapshot_text);
+        obj_idxs.emplace_back(static_cast<size_t>(obj_idx));
 
-        // set printable value for all instances in object
-        for (auto inst : object->instances)
-            inst->printable = printable;
-
-        // update printable state on canvas
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+        // set printable value for selected instance/instances in object
+        if (type == itInstance) {
+            inst_idx = m_objects_model->GetInstanceIdByItem(item);
+            obj->instances[m_objects_model->GetInstanceIdByItem(item)]->printable = printable;
+        }
+        else
+            for (auto inst : obj->instances)
+                inst->printable = printable;
 
         // update printable state in ObjectList
-        m_objects_model->SetObjectPrintableState(printable ? piPrintable : piUnprintable , item);
+        m_objects_model->SetObjectPrintableState(printable ? piPrintable : piUnprintable, item);
     }
-    else
-        wxGetApp().plater()->canvas3D()->get_selection().toggle_instance_printable_state(); 
+
+    sort(obj_idxs.begin(), obj_idxs.end());
+    obj_idxs.erase(unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
+
+    // update printable state on canvas
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 
     // update scene
     wxGetApp().plater()->update();

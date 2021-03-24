@@ -76,6 +76,7 @@ private:
     void        create_object_menu();
     void        create_sla_object_menu();
     void        create_part_menu();
+    void        create_instance_menu();
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_items_add_volume(wxMenu* menu);

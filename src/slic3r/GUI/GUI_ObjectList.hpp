@@ -369,7 +369,7 @@ public:
     void update_after_undo_redo();
     //update printable state for item from objects model
     void update_printable_state(int obj_idx, int instance_idx);
-    void toggle_printable_state(wxDataViewItem item);
+    void toggle_printable_state();
 
     void set_extruder_for_selected_items(const int extruder) const ;
 

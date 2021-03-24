@@ -50,7 +50,7 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
     { L("Layers and Perimeters"), { "layer_height" , "perimeters", "top_solid_layers", "bottom_solid_layers" } },
     { L("Infill")               , { "fill_density", "fill_pattern" } },
     { L("Support material")     , { "support_material", "support_material_auto", "support_material_threshold",
-                                    "support_material_pattern", "support_material_pattern", "support_material_interface_pattern", "support_material_buildplate_only",
+                                    "support_material_pattern", "support_material_interface_pattern", "support_material_buildplate_only",
                                     "support_material_spacing" } },
     { L("Wipe options")         , { "wipe_into_infill", "wipe_into_objects" } }
 };
@@ -581,17 +581,30 @@ wxMenuItem* MenuFactory::append_menu_item_instance_to_object(wxMenu* menu)
 
 wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
 {
-    return append_menu_check_item(menu, wxID_ANY, _L("Printable"), "", [](wxCommandEvent&) {
-        const Selection& selection = plater()->canvas3D()->get_selection();
-        wxDataViewItem item;
-        if (obj_list()->GetSelectedItemsCount() > 1 && selection.is_single_full_object())
-            item = obj_list()->GetModel()->GetItemById(selection.get_object_idx());
-        else
-            item = obj_list()->GetSelection();
+    wxMenuItem* menu_item_printable = append_menu_check_item(menu, wxID_ANY, _L("Printable"), "", 
+        [](wxCommandEvent& ) { obj_list()->toggle_printable_state(); }, menu);
 
-        if (item)
-            obj_list()->toggle_printable_state(item);
-        }, menu);
+    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
+        ObjectList* list = obj_list();
+        wxDataViewItemArray sels;
+        list->GetSelections(sels);
+        wxDataViewItem frst_item = sels[0];
+        ItemType type = list->GetModel()->GetItemType(frst_item);
+        bool check;
+        if (type != itInstance && type != itObject)
+            check = false;
+        else {
+            int obj_idx = list->GetModel()->GetObjectIdByItem(frst_item);
+            int inst_idx = type == itObject ? 0 : list->GetModel()->GetInstanceIdByItem(frst_item);
+            check = list->object(obj_idx)->instances[inst_idx]->printable;
+        }
+            
+        evt.Check(check);
+        plater()->set_current_canvas_as_dirty();
+
+    }, menu_item_printable->GetId());
+
+    return menu_item_printable;
 }
 
 void MenuFactory::append_menu_items_osx(wxMenu* menu)
@@ -800,7 +813,7 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
     append_menu_item_instance_to_object(menu);
     menu->AppendSeparator();
 
-    wxMenuItem* menu_item_printable = append_menu_item_printable(menu);
+    append_menu_item_printable(menu);
     menu->AppendSeparator();
 
     append_menu_item_reload_from_disk(menu);
@@ -810,16 +823,6 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
 
     append_menu_item_fix_through_netfabb(menu);
     append_menu_items_mirror(menu);
-
-    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
-        const Selection& selection = get_selection();
-        int instance_idx = selection.get_instance_idx();
-        evt.Enable(selection.is_single_full_instance() || selection.is_single_full_object());
-        if (instance_idx != -1) {
-            evt.Check(obj_list()->object(selection.get_object_idx())->instances[instance_idx]->printable);
-            plater()->set_current_canvas_as_dirty();//view3D->set_as_dirty();
-        }
-    }, menu_item_printable->GetId());
 }
 
 void MenuFactory::create_object_menu()
@@ -882,6 +885,14 @@ void MenuFactory::create_part_menu()
 
 }
 
+void MenuFactory::create_instance_menu()
+{
+    wxMenu* menu = &m_instance_menu;
+    // create "Instance to Object" menu item
+    append_menu_item_instance_to_object(menu);
+    append_menu_item_printable(menu);
+}
+
 void MenuFactory::init(wxWindow* parent)
 {
     m_parent = parent;
@@ -890,9 +901,7 @@ void MenuFactory::init(wxWindow* parent)
     create_object_menu();
     create_sla_object_menu();
     create_part_menu();
-
-    // create "Instance to Object" menu item
-    append_menu_item_instance_to_object(&m_instance_menu);
+    create_instance_menu();
 }
 
 wxMenu* MenuFactory::default_menu()
@@ -959,6 +968,8 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_merge_to_multipart_object(menu);
     if (extruders_count() > 1)
         append_menu_item_change_extruder(menu);
+    if (list_model()->GetItemType(sels[0]) != itVolume)
+        append_menu_item_printable(menu);
 
     return menu;
 }

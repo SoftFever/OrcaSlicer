@@ -1466,41 +1466,6 @@ std::vector<unsigned int> Selection::get_unselected_volume_idxs_from(const std::
     return idxs;
 }
 
-void Selection::toggle_instance_printable_state()
-{
-    int instance_idx = get_instance_idx();
-    if (instance_idx == -1)
-        return;
-
-    int obj_idx = get_object_idx();
-    if ((0 <= obj_idx) && (obj_idx < (int)m_model->objects.size()))
-    {
-        ModelObject* model_object = m_model->objects[obj_idx];
-        if ((0 <= instance_idx) && (instance_idx < (int)model_object->instances.size()))
-        {
-            ModelInstance* instance = model_object->instances[instance_idx];
-            const bool printable = !instance->printable;
-
-            wxString snapshot_text = model_object->instances.size() == 1 ? from_u8((boost::format("%1% %2%")
-                                         % (printable ? _utf8(L("Set Printable")) : _utf8(L("Set Unprintable")))
-                                         % model_object->name).str()) :
-                                     (printable ? _(L("Set Printable Instance")) : _(L("Set Unprintable Instance")));
-            wxGetApp().plater()->take_snapshot(snapshot_text);
-
-            instance->printable = printable;
-
-            for (GLVolume* volume : *m_volumes)
-            {
-                if ((volume->object_idx() == obj_idx) && (volume->instance_idx() == instance_idx))
-                    volume->printable = instance->printable;
-            }
-
-            wxGetApp().obj_list()->update_printable_state(obj_idx, instance_idx);
-            wxGetApp().plater()->update();
-        }
-    }
-}
-
 void Selection::update_valid()
 {
     m_valid = (m_volumes != nullptr) && (m_model != nullptr);
