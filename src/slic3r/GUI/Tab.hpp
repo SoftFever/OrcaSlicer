@@ -351,6 +351,7 @@ public:
 #if ENABLE_VALIDATE_CUSTOM_GCODE
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
 	bool        validate_custom_gcodes();
+    bool        validate_custom_gcodes_was_shown { false };
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 protected:

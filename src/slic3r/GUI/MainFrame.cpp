@@ -525,7 +525,13 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Hide();
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
-    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
+    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+        Tab* old_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(e.GetOldSelection()));
+        if (old_tab)
+            old_tab->validate_custom_gcodes();
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+
         wxWindow* panel = m_tabpanel->GetCurrentPage();
         Tab* tab = dynamic_cast<Tab*>(panel);
 
@@ -543,19 +549,6 @@ void MainFrame::init_tabpanel()
         else
             select_tab(size_t(0)); // select Plater
     });
-
-#if ENABLE_VALIDATE_CUSTOM_GCODE
-    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& evt) {
-        wxWindow* panel = m_tabpanel->GetCurrentPage();
-        if (panel != nullptr) {
-            Tab* tab = dynamic_cast<Tab*>(panel);
-            if (tab != nullptr)
-                tab->validate_custom_gcodes();
-//            if (tab != nullptr && !tab->validate_custom_gcodes())
-//                evt.Veto();
-        }
-        });
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     m_plater = new Plater(this, this);
     m_plater->Hide();
