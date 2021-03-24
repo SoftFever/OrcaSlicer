@@ -5858,6 +5858,8 @@ void Plater::paste_from_clipboard()
 void Plater::search(bool plater_is_active)
 {
     if (plater_is_active) {
+        if (is_preview_shown())
+            return;
         // plater should be focused for correct navigation inside search window 
         this->SetFocus();
 
