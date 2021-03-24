@@ -7,8 +7,8 @@ else()
 endif()
 
 prusaslicer_add_cmake_project(OpenVDB
-    URL https://github.com/tamasmeszaros/openvdb/archive/refs/tags/v6.2-prusa3d.zip #v6.2.1 patched
-    URL_HASH SHA256=3429d0b6a51298ea2bbdd189c741db0a7d6dbda2388afcce76e1031103d1dafe 
+    URL https://github.com/tamasmeszaros/openvdb/archive/refs/tags/v6.2.1-prusa3d.zip #v6.2.1 patched
+    URL_HASH SHA256=caf9f0c91976722883ff9cb32420ef142af22f7e625fc643b91c23d6e4172f62 
     DEPENDS dep_TBB dep_Blosc dep_OpenEXR dep_Boost
     CMAKE_ARGS
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON 
