@@ -1064,6 +1064,8 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
             config.load_from_gcode_file(filename, false);
             apply_config(config);
         }
+        else if (m_producer == EProducer::Simplify3D)
+            apply_config_simplify3d(filename);
     }
 
     // process gcode
@@ -1180,6 +1182,59 @@ std::vector<float> GCodeProcessor::get_layers_time(PrintEstimatedTimeStatistics:
     return (mode < PrintEstimatedTimeStatistics::ETimeMode::Count) ?
         m_time_processor.machines[static_cast<size_t>(mode)].layers_time :
         std::vector<float>();
+}
+
+void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
+{
+    struct BedSize
+    {
+        double x{ 0.0 };
+        double y{ 0.0 };
+
+        bool is_defined() const { return x > 0.0 && y > 0.0; }
+    };
+
+    BedSize bed_size;
+
+    m_parser.parse_file(filename, [this, &bed_size](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
+        auto extract_float = [](const std::string& cmt, const std::string& key, double& out) {
+            size_t pos = cmt.find(key);
+            if (pos != cmt.npos) {
+                pos = cmt.find(',', pos);
+                if (pos != cmt.npos) {
+                    out = std::stod(cmt.substr(pos + 1));
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        const std::string& comment = line.raw();
+        if (comment.length() > 2 && comment.front() == ';') {
+            if (bed_size.x == 0.0)
+                extract_float(comment, "strokeXoverride", bed_size.x);
+            if (bed_size.y == 0.0)
+                extract_float(comment, "strokeYoverride", bed_size.y);
+
+            // check for early exit
+            if (bed_size.is_defined()) {
+#if ENABLE_VALIDATE_CUSTOM_GCODE
+                m_parser.quit_parsing();
+#else
+                m_parser.quit_parsing_file();
+#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+            }
+        }
+        });
+
+    if (bed_size.is_defined()) {
+        m_result.bed_shape = {
+            { 0.0, 0.0 },
+            { bed_size.x, 0.0 },
+            { bed_size.x, bed_size.y },
+            { 0.0, bed_size.y }
+        };
+    }
 }
 
 void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)

@@ -524,7 +524,6 @@ namespace Slic3r {
         GCodeProcessor();
 
         void apply_config(const PrintConfig& config);
-        void apply_config(const DynamicPrintConfig& config);
         void enable_stealth_time_estimator(bool enabled);
         bool is_stealth_time_estimator_enabled() const {
             return m_time_processor.machines[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)].enabled;
@@ -549,6 +548,8 @@ namespace Slic3r {
         std::vector<float> get_layers_time(PrintEstimatedTimeStatistics::ETimeMode mode) const;
 
     private:
+        void apply_config(const DynamicPrintConfig& config);
+        void apply_config_simplify3d(const std::string& filename);
         void process_gcode_line(const GCodeReader::GCodeLine& line);
 
         // Process tags embedded into comments
