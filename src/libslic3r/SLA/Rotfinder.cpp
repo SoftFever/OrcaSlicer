@@ -6,6 +6,7 @@
 #include <libslic3r/Execution/ExecutionSeq.hpp>
 
 #include <libslic3r/Optimize/BruteforceOptimizer.hpp>
+#include <libslic3r/Optimize/NLoptOptimizer.hpp>
 
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -192,10 +193,10 @@ XYRotation from_transform3f(const Transform3f &tr)
     return {rot3.x(), rot3.y()};
 }
 
-inline bool is_on_floor(const SLAPrintObject &mo)
+inline bool is_on_floor(const SLAPrintObjectConfig &cfg)
 {
-    auto opt_elevation = mo.config().support_object_elevation.getFloat();
-    auto opt_padaround = mo.config().pad_around_object.getBool();
+    auto opt_elevation = cfg.support_object_elevation.getFloat();
+    auto opt_padaround = cfg.pad_around_object.getBool();
 
     return opt_elevation < EPSILON || opt_padaround;
 }
@@ -282,9 +283,8 @@ std::array<double, N> find_min_score(Fn &&fn, It from, It to, StopCond &&stopfn)
 
 } // namespace
 
-Vec2d find_best_misalignment_rotation(const SLAPrintObject & po,
-                                      float                  accuracy,
-                                      RotOptimizeStatusCB    statuscb)
+Vec2d find_best_misalignment_rotation(const ModelObject &      mo,
+                                      const RotOptimizeParams &params)
 {
     static constexpr unsigned MAX_TRIES = 1000;
 
@@ -293,14 +293,16 @@ Vec2d find_best_misalignment_rotation(const SLAPrintObject & po,
 
     // We will use only one instance of this converted mesh to examine different
     // rotations
-    TriangleMesh mesh = po.model_object()->raw_mesh();
+    TriangleMesh mesh = mo.raw_mesh();
     mesh.require_shared_vertices();
 
     // To keep track of the number of iterations
     int status = 0;
 
     // The maximum number of iterations
-    auto max_tries = unsigned(accuracy * MAX_TRIES);
+    auto max_tries = unsigned(params.accuracy() * MAX_TRIES);
+
+    auto &statuscb = params.statuscb();
 
     // call status callback with zero, because we are at the start
     statuscb(status);
@@ -338,9 +340,8 @@ Vec2d find_best_misalignment_rotation(const SLAPrintObject & po,
     return {rot[0], rot[1]};
 }
 
-Vec2d find_least_supports_rotation(const SLAPrintObject &  po,
-                                  float                    accuracy,
-                                  RotOptimizeStatusCB      statuscb)
+Vec2d find_least_supports_rotation(const ModelObject &      mo,
+                                   const RotOptimizeParams &params)
 {
     static const unsigned MAX_TRIES = 1000;
 
@@ -349,14 +350,16 @@ Vec2d find_least_supports_rotation(const SLAPrintObject &  po,
 
     // We will use only one instance of this converted mesh to examine different
     // rotations
-    TriangleMesh mesh = po.model_object()->raw_mesh();
+    TriangleMesh mesh = mo.raw_mesh();
     mesh.require_shared_vertices();
 
     // To keep track of the number of iterations
     unsigned status = 0;
 
     // The maximum number of iterations
-    auto max_tries = unsigned(accuracy * MAX_TRIES);
+    auto max_tries = unsigned(params.accuracy() * MAX_TRIES);
+
+    auto &statuscb = params.statuscb();
 
     // call status callback with zero, because we are at the start
     statuscb(status);
@@ -370,8 +373,14 @@ Vec2d find_least_supports_rotation(const SLAPrintObject &  po,
         return ! statuscb(-1);
     };
 
+    SLAPrintObjectConfig pocfg;
+    if (params.print_config())
+        pocfg.apply(*params.print_config(), true);
+
+    pocfg.apply(mo.config.get());
+
     // Different search methods have to be used depending on the model elevation
-    if (is_on_floor(po)) {
+    if (is_on_floor(pocfg)) {
 
         std::vector<XYRotation> inputs = get_chull_rotations(mesh, max_tries);
         max_tries = inputs.size();

@@ -4,18 +4,16 @@
 #include "PlaterJob.hpp"
 
 #include "libslic3r/SLA/Rotfinder.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 namespace Slic3r {
-
-class SLAPrintObject;
 
 namespace GUI {
 
 class RotoptimizeJob : public PlaterJob
 {
-    using FindFn = std::function<Vec2d(const SLAPrintObject &   po,
-                                       float                    accuracy,
-                                       sla::RotOptimizeStatusCB statuscb)>;
+    using FindFn = std::function<Vec2d(const ModelObject &           mo,
+                                       const sla::RotOptimizeParams &params)>;
 
     struct FindMethod { std::string name; FindFn findfn; };
 
@@ -26,6 +24,9 @@ class RotoptimizeJob : public PlaterJob
 
     size_t m_method_id = 0;
     float  m_accuracy  = 0.75;
+
+    DynamicPrintConfig m_default_print_cfg;
+
 protected:
 
     void prepare() override;

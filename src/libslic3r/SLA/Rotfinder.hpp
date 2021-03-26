@@ -8,12 +8,38 @@
 
 namespace Slic3r {
 
+class ModelObject;
 class SLAPrintObject;
 class TriangleMesh;
+class DynamicPrintConfig;
 
 namespace sla {
 
 using RotOptimizeStatusCB = std::function<bool(int)>;
+
+class RotOptimizeParams {
+    float m_accuracy = 1.;
+    const DynamicPrintConfig *m_print_config = nullptr;
+    RotOptimizeStatusCB m_statuscb = [](int) { return true; };
+
+public:
+
+    RotOptimizeParams &accuracy(float a) { m_accuracy = a; return *this; }
+    RotOptimizeParams &print_config(const DynamicPrintConfig *c)
+    {
+        m_print_config = c;
+        return *this;
+    }
+    RotOptimizeParams &statucb(RotOptimizeStatusCB cb)
+    {
+        m_statuscb = std::move(cb);
+        return *this;
+    }
+
+    float accuracy() const { return m_accuracy; }
+    const DynamicPrintConfig * print_config() const { return m_print_config; }
+    const RotOptimizeStatusCB &statuscb() const { return m_statuscb; }
+};
 
 /**
   * The function should find the best rotation for SLA upside down printing.
@@ -31,17 +57,13 @@ using RotOptimizeStatusCB = std::function<bool(int)>;
   *
   * @return Returns the rotations around each axis (x, y, z)
   */
-Vec2d find_best_misalignment_rotation(
-        const SLAPrintObject& modelobj,
-        float accuracy = 1.0f,
-        RotOptimizeStatusCB statuscb = [] (int) { return true; }
-        );
+Vec2d find_best_misalignment_rotation(const ModelObject &modelobj,
+                                      const RotOptimizeParams & = {});
 
-Vec2d find_least_supports_rotation(
-    const SLAPrintObject& modelobj,
-    float accuracy = 1.0f,
-    RotOptimizeStatusCB statuscb = [] (int) { return true; }
-    );
+Vec2d find_least_supports_rotation(const ModelObject &modelobj,
+                                   const RotOptimizeParams & = {});
+
+double find_Z_fit_to_bed_rotation(const ModelObject &mo, const BoundingBox &bed);
 
 } // namespace sla
 } // namespace Slic3r

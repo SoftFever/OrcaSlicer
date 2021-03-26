@@ -7,6 +7,7 @@
 #include "libslic3r/SLAPrint.hpp"
 
 #include "slic3r/GUI/Plater.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "libslic3r/AppConfig.hpp"
@@ -29,25 +30,32 @@ void RotoptimizeJob::prepare()
 
     m_accuracy = std::max(0.f, std::min(m_accuracy, 1.f));
     m_method_id = std::max(size_t(0), std::min(get_methods_count() - 1, m_method_id));
+
+    m_default_print_cfg = wxGetApp().preset_bundle->full_config();
 }
 
 void RotoptimizeJob::process()
 {
     int obj_idx = m_plater->get_selected_object_idx();
-    if (obj_idx < 0 || int(m_plater->sla_print().objects().size()) <= obj_idx)
+    if (obj_idx < 0)
         return;
     
     ModelObject *o = m_plater->model().objects[size_t(obj_idx)];
-    const SLAPrintObject *po = m_plater->sla_print().objects()[size_t(obj_idx)];
 
-    if (!o || !po) return;
+    if (!o) return;
 
-    Vec2d r = Methods[m_method_id].findfn(*po, m_accuracy, [this](int s) {
-        if (s > 0 && s < 100)
-            update_status(s, _(L("Searching for optimal orientation")));
+    auto params =
+        sla::RotOptimizeParams{}
+            .accuracy(m_accuracy)
+            .print_config(&m_default_print_cfg)
+            .statucb([this](int s) {
+            if (s > 0 && s < 100)
+                update_status(s, _(L("Searching for optimal orientation")));
 
-        return !was_canceled();
-    });
+            return !was_canceled();
+        });
+
+    Vec2d r = Methods[m_method_id].findfn(*o, params);
 
     double mindist = 6.0; // FIXME
 
