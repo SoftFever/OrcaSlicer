@@ -329,7 +329,7 @@ double Control::get_double_value(const SelectedSlider& selection)
 int Control::get_tick_from_value(double value)
 {
     std::vector<double>::iterator it;
-    if (m_is_smart_wipe_tower)
+    if (m_is_wipe_tower)
         it = std::find_if(m_values.begin(), m_values.end(),
                           [value](const double & val) { return fabs(value - val) <= epsilon(); });
     else
@@ -400,8 +400,7 @@ void Control::SetLayersTimes(const std::vector<float>& layers_times, float total
     // Erase duplicates values from m_values and save it to the m_layers_values
     // They will be used for show the correct estimated time for MM print, when "No sparce layer" is enabled
     // See https://github.com/prusa3d/PrusaSlicer/issues/6232
-    m_is_smart_wipe_tower = m_values.size() != m_layers_times.size();
-    if (m_is_smart_wipe_tower) {
+    if (m_is_wipe_tower && m_values.size() != m_layers_times.size()) {
         m_layers_values = m_values;
         sort(m_layers_values.begin(), m_layers_values.end());
         m_layers_values.erase(unique(m_layers_values.begin(), m_layers_values.end()), m_layers_values.end());
@@ -411,12 +410,14 @@ void Control::SetLayersTimes(const std::vector<float>& layers_times, float total
         if (m_layers_values.size() != m_layers_times.size())
             for (size_t i = m_layers_times.size(); i < m_layers_values.size(); i++)
                 m_layers_times.push_back(total_time);
+        Refresh();
+        Update();
     }
 }
 
 void Control::SetLayersTimes(const std::vector<double>& layers_times)
 { 
-    m_is_smart_wipe_tower = false;
+    m_is_wipe_tower = false;
     m_layers_times = layers_times;
     for (size_t i = 1; i < m_layers_times.size(); i++)
         m_layers_times[i] += m_layers_times[i - 1];
@@ -439,6 +440,8 @@ void Control::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, c
     m_only_extruder = only_extruder;
 
     UseDefaultColors(m_mode == SingleExtruder);
+
+    m_is_wipe_tower = m_mode != SingleExtruder;
 }
 
 void Control::SetExtruderColors( const std::vector<std::string>& extruder_colors)
@@ -535,7 +538,7 @@ void Control::render()
 
 bool Control::is_wipe_tower_layer(int tick) const
 {
-    if (!m_is_smart_wipe_tower || tick >= (int)m_values.size())
+    if (!m_is_wipe_tower || tick >= (int)m_values.size())
         return false;
     if (tick == 0 || (tick == (int)m_values.size() - 1 && m_values[tick] > m_values[tick - 1]))
         return false;
@@ -723,9 +726,9 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
             it = std::lower_bound(m_values.begin(), m_values.end(), layer_print_z - epsilon());
             if (it == m_values.end())
                 return size_t(-1);
-            return m_layers_values.size();
+            return size_t(value + 1);
         }
-        return size_t(it - m_layers_values.begin());
+        return size_t(it - m_layers_values.begin()+1);
     };
 
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -740,7 +743,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     else {
         if (label_type == ltEstimatedTime) {
-            if (m_is_smart_wipe_tower) {
+            if (m_is_wipe_tower) {
                 size_t layer_number = get_layer_number(value);
                 return layer_number == size_t(-1) ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
             }
@@ -752,7 +755,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         if (label_type == ltHeight)
             return str;
         if (label_type == ltHeightWithLayer) {
-            size_t layer_number = m_is_smart_wipe_tower ? get_layer_number(value) : (m_values.empty() ? value : value + 1);
+            size_t layer_number = m_is_wipe_tower ? get_layer_number(value) : (m_values.empty() ? value : value + 1);
             return format_wxstr("%1%\n(%2%)", str, layer_number);
         }
     }
@@ -1498,7 +1501,7 @@ void Control::OnMotion(wxMouseEvent& event)
             m_focus = fiHigherThumb;
         else {
             tick = get_tick_near_point(pos);
-            if (tick < 0 && m_is_smart_wipe_tower) {
+            if (tick < 0 && m_is_wipe_tower) {
                 tick = get_value_from_position(pos);
                 m_focus = tick > 0 && is_wipe_tower_layer(tick) && (tick == m_lower_value || tick == m_higher_value) ? 
                           fiSmartWipeTower : fiTick;
