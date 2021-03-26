@@ -125,6 +125,7 @@ public:
 //	void set_slicing_warning_gray(const std::string& text, bool g);
 	// immediately stops showing slicing errors
 	void close_slicing_errors_and_warnings();
+	void close_slicing_error_notification(const std::string& text);
 	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);

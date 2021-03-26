@@ -1072,6 +1072,14 @@ void NotificationManager::close_slicing_errors_and_warnings()
 		}
 	}
 }
+void NotificationManager::close_slicing_error_notification(const std::string& text)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::SlicingError && notification->compare_text(_u8L("ERROR:") + "\n" + text)) {
+			notification->close();
+		}
+	}
+}
 void NotificationManager::push_slicing_complete_notification(int timestamp, bool large)
 {
 	std::string hypertext;
