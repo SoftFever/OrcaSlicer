@@ -63,12 +63,14 @@ double get_misalginment_score(const TriangleMesh &mesh, const Transform3f &tr)
     if (mesh.its.vertices.empty()) return std::nan("");
 
     auto accessfn = [&mesh, &tr](size_t fi) {
-        Vec3f n = normal(get_transformed_triangle(mesh, tr, fi));
+        auto triangle = get_transformed_triangle(mesh, tr, fi);
+        Vec3f U = triangle[1] - triangle[0];
+        Vec3f V = triangle[2] - triangle[0];
+        Vec3f C = U.cross(V);
 
         // We should score against the alignment with the reference planes
-        return scaled<int_fast64_t>(std::abs(n.dot(Vec3f::UnitX())) +
-               std::abs(n.dot(Vec3f::UnitY())) +
-               std::abs(n.dot(Vec3f::UnitZ())));
+        return scaled<int_fast64_t>(std::abs(C.dot(Vec3f::UnitX())) +
+                                    std::abs(C.dot(Vec3f::UnitY())));
     };
 
     size_t facecount = mesh.its.indices.size();
