@@ -54,10 +54,10 @@ public:
         if(conf_.origo_location == BOTTOMLEFT) {
             auto d = static_cast<Coord>(
                 std::round(conf_.height*conf_.mm_in_coord_units) );
-            
+
             auto& contour = shapelike::contour(tsh);
             for(auto& v : contour) setY(v, -getY(v) + d);
-            
+
             auto& holes = shapelike::holes(tsh);
             for(auto& h : holes) for(auto& v : h) setY(v, -getY(v) + d);
             
@@ -80,6 +80,18 @@ public:
             }
             finishLayer();
         }
+    }
+    
+    template<class ItemIt> void writeItems(ItemIt from, ItemIt to) {
+        auto it = from;
+        PackGroup pg;
+        while(it != to) {
+            if(it->binId() == BIN_ID_UNSET) continue;
+            while(pg.size() <= size_t(it->binId())) pg.emplace_back();
+            pg[it->binId()].emplace_back(*it);
+            ++it;
+        }
+        writePackGroup(pg);
     }
 
     void addLayer() {

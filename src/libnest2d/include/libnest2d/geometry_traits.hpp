@@ -47,7 +47,8 @@ using TPoint = typename PointType<remove_cvref_t<Shape>>::Type;
 
 /// Getting the coordinate data type for a geometry class.
 template<class GeomClass> struct CoordType { 
-    using Type = typename CoordType<TPoint<GeomClass>>::Type; 
+    using Type = typename CoordType<TPoint<GeomClass>>::Type;
+    static const constexpr Type MM_IN_COORDS = Type{1};
 };
 
 /// TCoord<GeomType> as shorthand for typename `CoordType<GeomType>::Type`.
