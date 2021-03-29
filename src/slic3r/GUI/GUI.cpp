@@ -177,43 +177,10 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			}
 			break;
 		case coEnum:{
-#if 0
 			auto *opt = opt_def->default_value.get()->clone();
-			opt->setInt(0);
+			opt->setInt(boost::any_cast<int>(value));
 			config.set_key_value(opt_key, opt);
-#else
-			if (opt_key == "top_fill_pattern" ||
-				opt_key == "bottom_fill_pattern" ||
-				opt_key == "fill_pattern")
-				config.set_key_value(opt_key, new ConfigOptionEnum<InfillPattern>(boost::any_cast<InfillPattern>(value)));
-			else if (opt_key.compare("ironing_type") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<IroningType>(boost::any_cast<IroningType>(value))); 
-			else if (opt_key.compare("fuzzy_skin") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<FuzzySkinType>(boost::any_cast<FuzzySkinType>(value))); 
-			else if (opt_key.compare("gcode_flavor") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<GCodeFlavor>(boost::any_cast<GCodeFlavor>(value)));
-			else if (opt_key.compare("machine_limits_usage") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<MachineLimitsUsage>(boost::any_cast<MachineLimitsUsage>(value)));
-			else if (opt_key.compare("support_material_pattern") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialPattern>(boost::any_cast<SupportMaterialPattern>(value)));
-			else if (opt_key.compare("support_material_interface_pattern") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialInterfacePattern>(boost::any_cast<SupportMaterialInterfacePattern>(value)));
-			else if (opt_key.compare("support_material_style") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialStyle>(boost::any_cast<SupportMaterialStyle>(value)));
-			else if (opt_key.compare("seam_position") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<SeamPosition>(boost::any_cast<SeamPosition>(value)));
-			else if (opt_key.compare("host_type") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<PrintHostType>(boost::any_cast<PrintHostType>(value)));
-			else if (opt_key.compare("display_orientation") == 0)
-				config.set_key_value(opt_key, new ConfigOptionEnum<SLADisplayOrientation>(boost::any_cast<SLADisplayOrientation>(value)));
-            else if(opt_key.compare("support_pillar_connection_mode") == 0)
-                config.set_key_value(opt_key, new ConfigOptionEnum<SLAPillarConnectionMode>(boost::any_cast<SLAPillarConnectionMode>(value)));
-            else if(opt_key == "printhost_authorization_type")
-                config.set_key_value(opt_key, new ConfigOptionEnum<AuthorizationType>(boost::any_cast<AuthorizationType>(value)));
-            else if(opt_key == "brim_type")
-                config.set_key_value(opt_key, new ConfigOptionEnum<BrimType>(boost::any_cast<BrimType>(value)));
 			}
-#endif
 			break;
 		case coPoints:{
 			if (opt_key == "bed_shape" || opt_key == "thumbnails") {

@@ -370,7 +370,7 @@ private:
     bool        m_is_focused = false;
     bool        m_force_mode_apply = true;
     bool        m_enable_action_icon = true;
-    bool        m_is_smart_wipe_tower = false; //This flag indicates that for current print is used "smart" wipe tower (Print Settings->Multiple Extruders->No sparse layer is enabled)
+    bool        m_is_wipe_tower = false; //This flag indicates that there is multiple extruder print with wipe tower
 
     DrawMode    m_draw_mode = dmRegular;
 
