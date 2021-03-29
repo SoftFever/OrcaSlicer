@@ -327,8 +327,8 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 		if (m_multiline) {
 			
 			int last_end = 0;
-			float starting_y = m_line_height/2;//10;
-			float shift_y = m_line_height;// -m_line_height / 20;
+			float starting_y = m_line_height/2;
+			float shift_y = m_line_height;
 			for (size_t i = 0; i < m_lines_count; i++) {
 			    std::string line = m_text1.substr(last_end , m_endlines[i] - last_end);
 				if(i < m_lines_count - 1)
@@ -789,8 +789,16 @@ bool NotificationManager::ExportFinishedNotification::on_text_click()
 void NotificationManager::ProgressBarNotification::init()
 {
 	PopNotification::init();
-	m_lines_count++;
-	m_endlines.push_back(m_endlines.back());
+	//m_lines_count++;
+	if(m_lines_count >= 2) {
+		m_lines_count = 3;
+		m_multiline = true;
+		while (m_endlines.size() < 3)
+			m_endlines.push_back(m_endlines.back());
+	} else {
+		m_lines_count = 2;
+		m_endlines.push_back(m_endlines.back());
+	}
 	if(m_state == EState::Shown)
 		m_state = EState::NotFading;
 }
@@ -813,20 +821,36 @@ void NotificationManager::ProgressBarNotification::count_spaces()
 void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
 	// line1 - we do not print any more text than what fits on line 1. Line 2 is bar.
-	ImGui::SetCursorPosX(m_left_indentation);
-	ImGui::SetCursorPosY(win_size_y / 2 - win_size_y / 6 - m_line_height / 2);
-	imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
-	if (m_has_cancel_button)
-	render_cancel_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
-	render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+	if (m_multiline) {
+		// two lines text, one line bar
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(m_line_height / 4);
+		imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(m_line_height + m_line_height / 4);
+		std::string line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0), m_endlines[1] - m_endlines[0] - (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
+		imgui.text(line.c_str());
+		if (m_has_cancel_button)
+			render_cancel_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+		render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+	} else {
+		//one line text, one line bar
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(/*win_size_y / 2 - win_size_y / 6 -*/ m_line_height / 4);
+		imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+		if (m_has_cancel_button)
+			render_cancel_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+		render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+	}
+
 	
 }
 void NotificationManager::ProgressBarNotification::render_bar(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
 	ImVec4 orange_color			= ImVec4(.99f, .313f, .0f, 1.0f);
 	ImVec4 gray_color			= ImVec4(.34f, .34f, .34f, 1.0f);
-	ImVec2 lineEnd				= ImVec2(win_pos_x - m_window_width_offset, win_pos_y + win_size_y / 2 + m_line_height / 4);
-	ImVec2 lineStart			= ImVec2(win_pos_x - win_size_x + m_left_indentation, win_pos_y + win_size_y / 2 + m_line_height / 4);
+	ImVec2 lineEnd				= ImVec2(win_pos_x - m_window_width_offset, win_pos_y + win_size_y / 2 + (m_multiline ? m_line_height / 2 : 0));
+	ImVec2 lineStart			= ImVec2(win_pos_x - win_size_x + m_left_indentation, win_pos_y + win_size_y / 2 + (m_multiline ? m_line_height / 2 : 0));
 	ImVec2 midPoint				= ImVec2(lineStart.x + (lineEnd.x - lineStart.x) * m_percentage, lineStart.y);
 	ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, IM_COL32((int)(gray_color.x * 255), (int)(gray_color.y * 255), (int)(gray_color.z * 255), (1.0f * 255.f)), m_line_height * 0.2f);
 	ImGui::GetWindowDrawList()->AddLine(lineStart, midPoint, IM_COL32((int)(orange_color.x * 255), (int)(orange_color.y * 255), (int)(orange_color.z * 255), (1.0f * 255.f)), m_line_height * 0.2f);
@@ -864,23 +888,23 @@ void NotificationManager::PrintHostUploadNotification::render_bar(ImGuiWrapper& 
 		stream << std::fixed << std::setprecision(2) << (int)(m_percentage * 100) << "% - " << uploaded << " of " << m_file_size << "MB uploaded";
 		text = stream.str();
 		ImGui::SetCursorPosX(m_left_indentation);
-		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 /*- m_line_height / 4 * 3*/);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? 0 : m_line_height / 4));
 		break;
 	}
 	case Slic3r::GUI::NotificationManager::PrintHostUploadNotification::UploadJobState::PB_ERROR:
 		text = _u8L("ERROR");
 		ImGui::SetCursorPosX(m_left_indentation);
-		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? m_line_height / 4 : m_line_height / 2));
 		break;
 	case Slic3r::GUI::NotificationManager::PrintHostUploadNotification::UploadJobState::PB_CANCELLED:
 		text = _u8L("CANCELED");
 		ImGui::SetCursorPosX(m_left_indentation);
-		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? m_line_height / 4 : m_line_height / 2));
 		break;
 	case Slic3r::GUI::NotificationManager::PrintHostUploadNotification::UploadJobState::PB_COMPLETED:
 		text = _u8L("COMPLETED");
 		ImGui::SetCursorPosX(m_left_indentation);
-		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - m_line_height / 2);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? m_line_height / 4 : m_line_height / 2));
 		break;
 	}
 	
