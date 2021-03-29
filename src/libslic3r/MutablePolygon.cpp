@@ -148,6 +148,7 @@ static bool clip_narrow_corner(
 
     if (polygon.size() <= 3) {
         // A hole degenerated to an empty polygon, or a tiny triangle remained.
+#ifndef NDEBUG
         bool blocked = forward == Blocked || backward == Blocked;
         assert(polygon.size() < 3 || 
             // Remaining triangle is CCW oriented. Both sides must be "blocked", but the other side may have not been
@@ -155,7 +156,6 @@ static bool clip_narrow_corner(
             blocked ||
             // Remaining triangle is concave, however both of its arms are long.
             (forward == Far && backward == Far));
-#ifndef _NDEBUG
         if (polygon.size() == 3) {
             // Verify that the remaining triangle is CCW or CW.
             p02 = it0.prev()->cast<int64_t>();
