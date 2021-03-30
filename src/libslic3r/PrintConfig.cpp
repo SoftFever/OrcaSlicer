@@ -3632,7 +3632,7 @@ std::string FullPrintConfig::validate()
         this->gcode_flavor.value != gcfSmoothie &&
         this->gcode_flavor.value != gcfRepRapSprinter &&
         this->gcode_flavor.value != gcfRepRapFirmware &&
-        this->gcode_flavor.value != gcfMarlin &&
+        this->gcode_flavor.value != gcfMarlinLegacy &&
         this->gcode_flavor.value != gcfMarlinFirmware &&
         this->gcode_flavor.value != gcfMachinekit &&
         this->gcode_flavor.value != gcfRepetier)

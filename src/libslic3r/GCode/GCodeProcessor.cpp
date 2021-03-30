@@ -823,7 +823,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_filament_diameters[i] = static_cast<float>(config.filament_diameter.values[i]);
     }
 
-    if (m_flavor == gcfMarlin && config.machine_limits_usage.value != MachineLimitsUsage::Ignore)
+    if (m_flavor == gcfMarlinLegacy && config.machine_limits_usage.value != MachineLimitsUsage::Ignore)
         m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
 
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
@@ -934,7 +934,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    if (m_flavor == gcfMarlin) {
+    if (m_flavor == gcfMarlinLegacy) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
         if (machine_max_acceleration_x != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
@@ -1646,23 +1646,23 @@ bool GCodeProcessor::process_cura_tags(const std::string_view comment)
     if (pos != comment.npos) {
         const std::string_view flavor = comment.substr(pos + tag.length());
         if (flavor == "BFB")
-            m_flavor = gcfMarlin; // << ???????????????????????
+            m_flavor = gcfMarlinLegacy; // << ???????????????????????
         else if (flavor == "Mach3")
             m_flavor = gcfMach3;
         else if (flavor == "Makerbot")
             m_flavor = gcfMakerWare;
         else if (flavor == "UltiGCode")
-            m_flavor = gcfMarlin; // << ???????????????????????
+            m_flavor = gcfMarlinLegacy; // << ???????????????????????
         else if (flavor == "Marlin(Volumetric)")
-            m_flavor = gcfMarlin; // << ???????????????????????
+            m_flavor = gcfMarlinLegacy; // << ???????????????????????
         else if (flavor == "Griffin")
-            m_flavor = gcfMarlin; // << ???????????????????????
+            m_flavor = gcfMarlinLegacy; // << ???????????????????????
         else if (flavor == "Repetier")
             m_flavor = gcfRepetier;
         else if (flavor == "RepRap")
             m_flavor = gcfRepRapFirmware;
         else if (flavor == "Marlin")
-            m_flavor = gcfMarlin;
+            m_flavor = gcfMarlinLegacy;
         else
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown flavor: " << flavor;
 
@@ -2575,7 +2575,7 @@ void GCodeProcessor::process_M203(const GCodeReader::GCodeLine& line)
 
     // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
     // http://smoothieware.org/supported-g-codes
-    float factor = (m_flavor == gcfMarlin || m_flavor == gcfSmoothie) ? 1.0f : MMMIN_TO_MMSEC;
+    float factor = (m_flavor == gcfMarlinLegacy || m_flavor == gcfSmoothie) ? 1.0f : MMMIN_TO_MMSEC;
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
         if (static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i) == PrintEstimatedTimeStatistics::ETimeMode::Normal ||
@@ -2749,7 +2749,7 @@ void GCodeProcessor::process_T(const std::string_view command)
         int eid = 0;
         if (! parse_number(command.substr(1), eid) || eid < 0 || eid > 255) {
             // Specific to the MMU2 V2 (see https://www.help.prusa3d.com/en/article/prusa-specific-g-codes_112173):
-            if (m_flavor == gcfMarlin && (command == "Tx" || command == "Tc" || command == "T?"))
+            if (m_flavor == gcfMarlinLegacy && (command == "Tx" || command == "Tc" || command == "T?"))
                 return;
 
             // T-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools) see https://github.com/prusa3d/PrusaSlicer/issues/5677
