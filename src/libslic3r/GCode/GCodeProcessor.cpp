@@ -372,6 +372,11 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     };
 
 #if ENABLE_EXTENDED_M73_LINES
+    auto time_in_last_minute = [](float time_in_seconds) {
+        assert(time_in_seconds <= 60.0f);
+        return time_in_seconds / 60.0f;
+    };
+
     auto format_line_M73_main = [](const std::string& mask, int percent, int time) {
 #else
     auto format_line_M73 = [](const std::string& mask, int percent, int time) {
@@ -384,9 +389,21 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     };
 
 #if ENABLE_EXTENDED_M73_LINES
-    auto format_line_M73_stop = [](const std::string& mask, int time) {
+    auto format_line_M73_stop_int = [](const std::string& mask, int time) {
         char line_M73[64];
         sprintf(line_M73, mask.c_str(), std::to_string(time).c_str());
+        return std::string(line_M73);
+    };
+
+    auto format_time_float = [](float time) {
+        char time_str[64];
+        sprintf(time_str, "%.2f", time);
+        return std::string(time_str);
+    };
+
+    auto format_line_M73_stop_float = [format_time_float](const std::string& mask, float time) {
+        char line_M73[64];
+        sprintf(line_M73, mask.c_str(), format_time_float(time).c_str());
         return std::string(line_M73);
     };
 #endif // ENABLE_EXTENDED_M73_LINES
@@ -446,7 +463,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                         // export remaining time to next printer stop
                         if (line == reserved_tag(ETags::First_Line_M73_Placeholder) && !machine.stop_times.empty()) {
                             int to_export_stop = time_in_minutes(machine.stop_times.front().elapsed_time);
-                            ret += format_line_M73_stop(machine.line_m73_stop_mask.c_str(), to_export_stop);
+                            ret += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
                             last_exported_stop[i] = to_export_stop;
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                             ++extra_lines_count;
@@ -564,11 +581,42 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                         if (it_stop != machine.stop_times.end()) {
                             int to_export_stop = time_in_minutes(it_stop->elapsed_time - it->elapsed_time);
                             if (last_exported_stop[i] != to_export_stop) {
-                                export_line += format_line_M73_stop(machine.line_m73_stop_mask.c_str(), to_export_stop);
-                                last_exported_stop[i] = to_export_stop;
+                                if (to_export_stop > 0) {
+                                    if (last_exported_stop[i] != to_export_stop) {
+                                        export_line += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
+                                        last_exported_stop[i] = to_export_stop;
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                                ++exported_lines_count;
+                                        ++exported_lines_count;
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                                    }
+                                }
+                                else {
+                                    bool is_last = false;
+                                    auto next_it = it + 1;
+                                    is_last |= (next_it == machine.g1_times_cache.end());
+
+                                    if (next_it != machine.g1_times_cache.end()) {
+                                        auto next_it_stop = std::upper_bound(machine.stop_times.begin(), machine.stop_times.end(), next_it->elapsed_time,
+                                            [](float value, const TimeMachine::StopTime& t) { return value < t.elapsed_time; });
+                                        is_last |= (next_it_stop != it_stop);
+
+                                        std::string time_float_str = format_time_float(time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
+                                        std::string next_time_float_str = format_time_float(time_in_last_minute(it_stop->elapsed_time - next_it->elapsed_time));
+                                        is_last |= (std::stof(time_float_str) > 0.0f && std::stof(next_time_float_str) == 0.0f);
+                                    }
+
+                                    if (is_last) {
+                                        if (std::distance(machine.stop_times.begin(), it_stop) == machine.stop_times.size() - 1)
+                                            export_line += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
+                                        else
+                                            export_line += format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
+
+                                        last_exported_stop[i] = to_export_stop;
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                                        ++exported_lines_count;
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                                    }
+                                }
                             }
                         }
 #endif // ENABLE_EXTENDED_M73_LINES
@@ -2756,7 +2804,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
     m_result.moves.emplace_back(vertex);
 
 #if ENABLE_EXTENDED_M73_LINES
-    // stores stop time markers for later use
+    // stores stop time placeholders for later use
     if (type == EMoveType::Color_change || type == EMoveType::Pause_Print) {
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
             TimeMachine& machine = m_time_processor.machines[i];
