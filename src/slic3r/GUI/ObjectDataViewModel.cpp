@@ -122,7 +122,7 @@ void ObjectDataViewModelNode::set_action_and_extruder_icons()
 
 void ObjectDataViewModelNode::set_extruder_icon()
 {
-    if (m_type & itInstance)
+    if (m_type & (itInstance | itInstanceRoot | itLayerRoot))
         return; // don't set colored bitmap for Instance
 
     int extruder_idx = atoi(m_extruder.c_str());
