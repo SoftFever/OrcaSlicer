@@ -4,6 +4,8 @@
 #include <vector>
 #include <map>
 
+#include <boost/nowide/convert.hpp>
+
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/listctrl.h>
