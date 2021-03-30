@@ -2264,6 +2264,13 @@ void TabPrinter::build_fff()
                         m_use_silent_mode = val;
                     }
                 }
+                if (opt_key == "gcode_flavor") {
+                    bool supports_travel_acceleration = (boost::any_cast<int>(value) == int(gcfMarlinFirmware));
+                    if (supports_travel_acceleration != m_supports_travel_acceleration) {
+                        m_rebuild_kinematics_page = true;
+                        m_supports_travel_acceleration = supports_travel_acceleration;
+                    }
+                }
                 build_unregular_pages();
                 update_dirty();
                 on_value_change(opt_key, value);
@@ -2560,6 +2567,8 @@ PageShp TabPrinter::build_kinematics_page()
         }
         append_option_line(optgroup, "machine_max_acceleration_extruding");
         append_option_line(optgroup, "machine_max_acceleration_retracting");
+        if (m_supports_travel_acceleration)
+            append_option_line(optgroup, "machine_max_acceleration_travel");
 
     optgroup = page->new_optgroup(L("Jerk limits"));
         for (const std::string &axis : axes)	{
@@ -2952,6 +2961,12 @@ void TabPrinter::update_fff()
     if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
         m_rebuild_kinematics_page = true;
         m_use_silent_mode = m_config->opt_bool("silent_mode");
+    }
+
+    bool supports_travel_acceleration = (m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
+    if (m_supports_travel_acceleration != supports_travel_acceleration) {
+        m_rebuild_kinematics_page = true;
+        m_supports_travel_acceleration = supports_travel_acceleration;
     }
 
     toggle_options();

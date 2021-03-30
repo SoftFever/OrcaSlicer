@@ -726,10 +726,12 @@ public:
     ConfigOptionFloats              machine_max_feedrate_y;
     ConfigOptionFloats              machine_max_feedrate_z;
     ConfigOptionFloats              machine_max_feedrate_e;
-    // M204 S... [mm/sec^2]
+
+    // M204 P... R... T...[mm/sec^2]
     ConfigOptionFloats              machine_max_acceleration_extruding;
-    // M204 T... [mm/sec^2]
     ConfigOptionFloats              machine_max_acceleration_retracting;
+    ConfigOptionFloats              machine_max_acceleration_travel;
+
     // M205 X... Y... Z... E... [mm/sec]
     ConfigOptionFloats              machine_max_jerk_x;
     ConfigOptionFloats              machine_max_jerk_y;
@@ -754,6 +756,7 @@ protected:
         OPT_PTR(machine_max_feedrate_e);
         OPT_PTR(machine_max_acceleration_extruding);
         OPT_PTR(machine_max_acceleration_retracting);
+        OPT_PTR(machine_max_acceleration_travel);
         OPT_PTR(machine_max_jerk_x);
         OPT_PTR(machine_max_jerk_y);
         OPT_PTR(machine_max_jerk_z);

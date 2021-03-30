@@ -207,8 +207,12 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
         // M202: Set max travel acceleration
         gcode << "M202 X" << acceleration << " Y" << acceleration;
     } else if (FLAVOR_IS(gcfRepRapFirmware)) {
-	// M204: Set default acceleration
-	gcode << "M204 P" << acceleration;    
+        // M204: Set default acceleration
+        gcode << "M204 P" << acceleration;
+    } else if (FLAVOR_IS(gcfMarlinFirmware)) {
+        // This is new MarlinFirmware with separated print/retraction/travel acceleration.
+        // Use M204 P, we don't want to override travel acc by M204 S (which is deprecated anyway).
+        gcode << "M204 P" << acceleration;
     } else {
         // M204: Set default acceleration
         gcode << "M204 S" << acceleration;

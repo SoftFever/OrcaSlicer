@@ -1571,10 +1571,20 @@ void GCode::print_machine_envelope(FILE *file, Print &print)
             int(print.config().machine_max_feedrate_y.values.front() + 0.5),
             int(print.config().machine_max_feedrate_z.values.front() + 0.5),
             int(print.config().machine_max_feedrate_e.values.front() + 0.5));
+
+        // Now M204 - acceleration. This one is quite hairy thanks to how Marlin guys care about
+        // backwards compatibility: https://github.com/prusa3d/PrusaSlicer/issues/1089
+        // Legacy Marlin should export travel acceleration the same as printing acceleration.
+        // MarlinFirmware has the two separated.
+        int travel_acc = print.config().gcode_flavor == gcfMarlinLegacy
+                       ? int(print.config().machine_max_acceleration_extruding.values.front() + 0.5)
+                       : int(print.config().machine_max_acceleration_travel.values.front() + 0.5);
         fprintf(file, "M204 P%d R%d T%d ; sets acceleration (P, T) and retract acceleration (R), mm/sec^2\n",
             int(print.config().machine_max_acceleration_extruding.values.front() + 0.5),
             int(print.config().machine_max_acceleration_retracting.values.front() + 0.5),
-            int(print.config().machine_max_acceleration_extruding.values.front() + 0.5));
+            travel_acc);
+
+
         fprintf(file, "M205 X%.2lf Y%.2lf Z%.2lf E%.2lf ; sets the jerk limits, mm/sec\n",
             print.config().machine_max_jerk_x.values.front(),
             print.config().machine_max_jerk_y.values.front(),
