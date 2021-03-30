@@ -552,7 +552,7 @@ void NotificationManager::PopNotification::update(const NotificationData& n)
     m_text2          = n.text2;
 	init();
 }
-bool NotificationManager::PopNotification::compare_text(const std::string& text)
+bool NotificationManager::PopNotification::compare_text(const std::string& text) const 
 {
 	std::wstring wt1 = boost::nowide::widen(m_text1);
 	std::wstring wt2 = boost::nowide::widen(text);
@@ -1167,39 +1167,53 @@ void NotificationManager::push_exporting_finished_notification(const std::string
 
 void  NotificationManager::push_upload_job_notification(int id, float filesize, const std::string& filename, const std::string& host, float percentage)
 {
+	// find if upload with same id was not already in notification
+	// done by compare_jon_id not compare_text thus has to be performed here
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::PrintHostUpload && dynamic_cast<PrintHostUploadNotification*>(notification.get())->compare_job_id(id)) {
+			return;
+		}
+	}
 	std::string text = PrintHostUploadNotification::get_upload_job_text(id, filename, host);
 	NotificationData data{ NotificationType::PrintHostUpload, NotificationLevel::ProgressBarNotification, 10, text };
 	push_notification_data(std::make_unique<NotificationManager::PrintHostUploadNotification>(data, m_id_provider, m_evt_handler, 0, id, filesize), 0);
 }
 void NotificationManager::set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage)
 {
-	std::string text = PrintHostUploadNotification::get_upload_job_text(id, filename, host);
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PrintHostUpload && notification->compare_text(text)) {
-			dynamic_cast<PrintHostUploadNotification*>(notification.get())->set_percentage(percentage);
-			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+		if (notification->get_type() == NotificationType::PrintHostUpload) {
+			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
+			if (phun->compare_job_id(id)) {
+				phun->set_percentage(percentage);
+				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				break;
+			}
 		}
 	}
 }
 void NotificationManager::upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host)
 {
-	std::string text = PrintHostUploadNotification::get_upload_job_text(id, filename, host);
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PrintHostUpload && notification->compare_text(text)) {
-			dynamic_cast<PrintHostUploadNotification*>(notification.get())->cancel();
-			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
-			break;
+		if (notification->get_type() == NotificationType::PrintHostUpload) {
+			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
+			if (phun->compare_job_id(id)) {
+				phun->cancel();
+				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				break;
+			}
 		}
 	}
 }
 void NotificationManager::upload_job_notification_show_error(int id, const std::string& filename, const std::string& host)
 {
-	std::string text = PrintHostUploadNotification::get_upload_job_text(id, filename, host);
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PrintHostUpload && notification->compare_text(text)) {
-			dynamic_cast<PrintHostUploadNotification*>(notification.get())->error();
-			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
-			break;
+		if (notification->get_type() == NotificationType::PrintHostUpload) {
+			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
+			if(phun->compare_job_id(id)) {
+				phun->error();
+				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				break;
+			}
 		}
 	}
 }

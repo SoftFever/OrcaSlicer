@@ -232,7 +232,7 @@ private:
 		const NotificationData get_data() const { return m_data; }
 		const bool             is_gray() const { return m_is_gray; }
 		void                   set_gray(bool g) { m_is_gray = g; }
-		bool                   compare_text(const std::string& text);
+		virtual bool           compare_text(const std::string& text) const;
         void                   hide(bool h) { if (is_finished()) return; m_state = h ? EState::Hidden : EState::Unknown; }
 		// sets m_next_render with time of next mandatory rendering. Delta is time since last render.
 		bool                   update_state(bool paused, const int64_t delta);
@@ -405,10 +405,12 @@ private:
 			m_has_cancel_button = true;
 		}
 		virtual void        init() override;
-		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return "[" + std::to_string(id) + "] " + filename + " -> " + host; }
+		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return /*"[" + std::to_string(id) + "] " + */filename + " -> " + host; }
 		virtual void		set_percentage(float percent) override;
 		void				cancel() { m_uj_state = UploadJobState::PB_CANCELLED; m_has_cancel_button = false; }
 		void				error()  { m_uj_state = UploadJobState::PB_ERROR;     m_has_cancel_button = false; }
+		bool				compare_job_id(const int other_id) const { return m_job_id == other_id; }
+		virtual bool		compare_text(const std::string& text) const override { return false; }
 	protected:
 		virtual void render_bar(ImGuiWrapper& imgui,
 								const float win_size_x, const float win_size_y,
