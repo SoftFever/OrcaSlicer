@@ -1103,6 +1103,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("teacup");
     def->enum_values.push_back("makerware");
     def->enum_values.push_back("marlin");
+    def->enum_values.push_back("marlinfirmware");
     def->enum_values.push_back("sailfish");
     def->enum_values.push_back("mach3");
     def->enum_values.push_back("machinekit");
@@ -1113,7 +1114,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("Teacup");
     def->enum_labels.push_back("MakerWare (MakerBot)");
-    def->enum_labels.push_back("Marlin");
+    def->enum_labels.push_back("Marlin (legacy)");
+    def->enum_labels.push_back("Marlin Firmware");
     def->enum_labels.push_back("Sailfish (MakerBot)");
     def->enum_labels.push_back("Mach3/LinuxCNC");
     def->enum_labels.push_back("Machinekit");
@@ -3631,6 +3633,7 @@ std::string FullPrintConfig::validate()
         this->gcode_flavor.value != gcfRepRapSprinter &&
         this->gcode_flavor.value != gcfRepRapFirmware &&
         this->gcode_flavor.value != gcfMarlin &&
+        this->gcode_flavor.value != gcfMarlinFirmware &&
         this->gcode_flavor.value != gcfMachinekit &&
         this->gcode_flavor.value != gcfRepetier)
         return "--use-firmware-retraction is only supported by Marlin, Smoothie, RepRapFirmware, Repetier and Machinekit firmware";

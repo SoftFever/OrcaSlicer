@@ -20,7 +20,8 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     this->config.apply(print_config, true);
     m_extrusion_axis = this->config.get_extrusion_axis();
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
-    m_max_acceleration = std::lrint((print_config.gcode_flavor.value == gcfMarlin && print_config.machine_limits_usage.value == MachineLimitsUsage::EmitToGCode) ?
+    bool is_marlin = print_config.gcode_flavor.value == gcfMarlin || print_config.gcode_flavor.value == gcfMarlinFirmware;
+    m_max_acceleration = std::lrint((is_marlin && print_config.machine_limits_usage.value == MachineLimitsUsage::EmitToGCode) ?
         print_config.machine_max_acceleration_extruding.values.front() : 0);
 }
 
@@ -49,6 +50,7 @@ std::string GCodeWriter::preamble()
     if (FLAVOR_IS(gcfRepRapSprinter) ||
         FLAVOR_IS(gcfRepRapFirmware) ||
         FLAVOR_IS(gcfMarlin) ||
+        FLAVOR_IS(gcfMarlinFirmware) ||
         FLAVOR_IS(gcfTeacup) ||
         FLAVOR_IS(gcfRepetier) ||
         FLAVOR_IS(gcfSmoothie))
