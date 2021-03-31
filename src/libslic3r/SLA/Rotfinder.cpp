@@ -103,8 +103,8 @@ inline double get_supportedness_score(const Facestats &fc)
     // the DOWN vector.
     float phi = 1. - std::acos(fc.normal.dot(DOWN)) / float(PI);
 
-    // Only consider faces that have have slopes below 90 deg:
-    phi = phi * (phi > 0.5);
+    // Only consider faces that have slopes below 90 deg:
+    phi = phi * (phi >= 0.5f);
 
     // Make the huge slopes more significant than the smaller slopes
     phi = phi * phi * phi;
