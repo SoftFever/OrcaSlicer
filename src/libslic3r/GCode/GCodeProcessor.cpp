@@ -606,7 +606,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                                     }
 
                                     if (is_last) {
-                                        if (std::distance(machine.stop_times.begin(), it_stop) == machine.stop_times.size() - 1)
+                                        if (std::distance(machine.stop_times.begin(), it_stop) == static_cast<ptrdiff_t>(machine.stop_times.size() - 1))
                                             export_line += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
                                         else
                                             export_line += format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
