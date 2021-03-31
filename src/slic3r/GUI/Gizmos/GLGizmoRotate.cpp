@@ -553,12 +553,6 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
         wxGetApp().app_config->set("sla_auto_rotate", "method_id", std::to_string(state.method_id));
     }
 
-    float accuracy = state.accuracy;
-    if (imgui->slider_float(_L("Accuracy/Speed"), &accuracy, 0.01f, 1.f, "%.1f")) {
-        state.accuracy = accuracy;
-        wxGetApp().app_config->set("sla_auto_rotate", "accuracy", std::to_string(state.accuracy));
-    }
-
     ImGui::Separator();
 
     if ( imgui->button(_L("Optimize")) ) {
