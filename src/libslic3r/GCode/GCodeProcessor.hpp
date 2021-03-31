@@ -251,6 +251,9 @@ namespace Slic3r {
             float acceleration; // mm/s^2
             // hard limit for the acceleration, to which the firmware will clamp.
             float max_acceleration; // mm/s^2
+            float travel_acceleration; // mm/s^2
+            // hard limit for the travel acceleration, to which the firmware will clamp.
+            float max_travel_acceleration; // mm/s^2
             float extrude_factor_override_percentage;
             float time; // s
 #if ENABLE_EXTENDED_M73_LINES
@@ -668,7 +671,9 @@ namespace Slic3r {
         float get_axis_max_jerk(PrintEstimatedTimeStatistics::ETimeMode mode, Axis axis) const;
         float get_retract_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode) const;
         float get_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode) const;
-        void set_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode, float value);
+        void  set_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode, float value);
+        float get_travel_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode) const;
+        void  set_travel_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode, float value);
         float get_filament_load_time(size_t extruder_id);
         float get_filament_unload_time(size_t extruder_id);
 

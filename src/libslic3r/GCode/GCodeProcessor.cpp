@@ -26,6 +26,7 @@
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
 
 namespace Slic3r {
 
@@ -190,6 +191,8 @@ void GCodeProcessor::TimeMachine::reset()
     enabled = false;
     acceleration = 0.0f;
     max_acceleration = 0.0f;
+    travel_acceleration = 0.0f;
+    max_travel_acceleration = 0.0f;
     extrude_factor_override_percentage = 1.0f;
     time = 0.0f;
 #if ENABLE_EXTENDED_M73_LINES
@@ -842,6 +845,9 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].max_acceleration = max_acceleration;
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+        float max_travel_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_travel, i);
+        m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
+        m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
     }
 
     m_time_processor.export_remaining_time_enabled = config.remaining_times.value;
@@ -1008,6 +1014,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].max_acceleration = max_acceleration;
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+        float max_travel_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_travel, i);
+        m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
+        m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
     }
 
     if (m_time_processor.machine_limits.machine_max_acceleration_x.values.size() > 1)
@@ -2230,9 +2239,11 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         }
 
         // calculates block acceleration
-        float acceleration = is_extrusion_only_move(delta_pos) ?
-            get_retract_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i)) :
-            get_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i));
+        float acceleration = 
+            (type == EMoveType::Travel) ? get_travel_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i)) :
+            (is_extrusion_only_move(delta_pos) ?
+                get_retract_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i)) :
+                get_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i)));
 
         for (unsigned char a = X; a <= E; ++a) {
             float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i), static_cast<Axis>(a));
@@ -2619,11 +2630,9 @@ void GCodeProcessor::process_M204(const GCodeReader::GCodeLine& line)
                     set_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i), value);
                 if (line.has_value('R', value))
                     set_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i, value);
-                if (line.has_value('T', value)) {
+                if (line.has_value('T', value))
                     // Interpret the T value as the travel acceleration in the new Marlin format.
-                    //FIXME Prusa3D firmware currently does not support travel acceleration value independent from the extruding acceleration value.
-                    // set_travel_acceleration(value);
-                }
+                    set_travel_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i), value);
             }
         }
     }
@@ -2891,6 +2900,22 @@ void GCodeProcessor::set_acceleration(PrintEstimatedTimeStatistics::ETimeMode mo
         m_time_processor.machines[id].acceleration = (m_time_processor.machines[id].max_acceleration == 0.0f) ? value :
             // Clamp the acceleration with the maximum.
             std::min(value, m_time_processor.machines[id].max_acceleration);
+    }
+}
+
+float GCodeProcessor::get_travel_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode) const
+{
+    size_t id = static_cast<size_t>(mode);
+    return (id < m_time_processor.machines.size()) ? m_time_processor.machines[id].travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
+}
+
+void GCodeProcessor::set_travel_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode, float value)
+{
+    size_t id = static_cast<size_t>(mode);
+    if (id < m_time_processor.machines.size()) {
+        m_time_processor.machines[id].travel_acceleration = (m_time_processor.machines[id].max_travel_acceleration == 0.0f) ? value :
+            // Clamp the acceleration with the maximum.
+            std::min(value, m_time_processor.machines[id].max_travel_acceleration);
     }
 }
 
