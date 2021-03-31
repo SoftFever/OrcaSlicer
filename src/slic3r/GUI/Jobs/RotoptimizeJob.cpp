@@ -32,36 +32,59 @@ void RotoptimizeJob::prepare()
     m_method_id = std::max(size_t(0), std::min(get_methods_count() - 1, m_method_id));
 
     m_default_print_cfg = wxGetApp().preset_bundle->full_config();
+
+    const auto &sel = m_plater->get_selection().get_content();
+
+    m_selected_object_ids.clear();
+    m_selected_object_ids.reserve(sel.size());
+    for (auto &[obj_idx, ignore] : sel)
+        m_selected_object_ids.emplace_back(obj_idx);
 }
 
 void RotoptimizeJob::process()
 {
-    int obj_idx = m_plater->get_selected_object_idx();
-    if (obj_idx < 0)
-        return;
-    
-    ModelObject *o = m_plater->model().objects[size_t(obj_idx)];
-
-    if (!o) return;
-
+    int prev_status = 0;
     auto params =
         sla::RotOptimizeParams{}
             .accuracy(m_accuracy)
             .print_config(&m_default_print_cfg)
-            .statucb([this](int s) {
+            .statucb([this, &prev_status](int s)
+        {
             if (s > 0 && s < 100)
-                update_status(s, _(L("Searching for optimal orientation")));
+                update_status(prev_status + s / m_selected_object_ids.size(),
+                              _(L("Searching for optimal orientation")));
 
             return !was_canceled();
         });
 
-    Vec2d r = Methods[m_method_id].findfn(*o, params);
 
-    double mindist = 6.0; // FIXME
+    for (ObjRot &objrot : m_selected_object_ids) {
+        ModelObject *o = m_plater->model().objects[size_t(objrot.idx)];
+        if (!o) continue;
 
-    if (!was_canceled()) {
+        if (Methods[m_method_id].findfn)
+            objrot.rot = Methods[m_method_id].findfn(*o, params);
+
+        prev_status += 100 / m_selected_object_ids.size();
+
+        if (was_canceled()) break;
+    }
+
+    update_status(100, was_canceled() ? _(L("Orientation search canceled.")) :
+                                        _(L("Orientation found.")));
+}
+
+void RotoptimizeJob::finalize()
+{
+    if (was_canceled()) return;
+
+    for (const ObjRot &objrot : m_selected_object_ids) {
+        ModelObject *o = m_plater->model().objects[size_t(objrot.idx)];
+        if (!o) continue;
+
         for(ModelInstance * oi : o->instances) {
-            oi->set_rotation({r[X], r[Y], 0.});
+            if (objrot.rot)
+                oi->set_rotation({objrot.rot->x(), objrot.rot->y(), 0.});
 
             auto    trmatrix = oi->get_transformation().get_matrix();
             Polygon trchull  = o->convex_hull_2d(trmatrix);
@@ -77,19 +100,13 @@ void RotoptimizeJob::process()
             oi->set_rotation(rt);
         }
 
-        m_plater->find_new_position(o->instances, scaled(mindist));
-
         // Correct the z offset of the object which was corrupted be
         // the rotation
         o->ensure_on_bed();
+
+//        m_plater->find_new_position(o->instances);
     }
 
-    update_status(100, was_canceled() ? _(L("Orientation search canceled.")) :
-                                        _(L("Orientation found.")));
-}
-
-void RotoptimizeJob::finalize()
-{
     if (!was_canceled())
         m_plater->update();
     

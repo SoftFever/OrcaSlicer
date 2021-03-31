@@ -19,13 +19,24 @@ class RotoptimizeJob : public PlaterJob
 
     static inline const FindMethod Methods[] = {
         { L("Best misalignment"), sla::find_best_misalignment_rotation },
-        { L("Least supports"), sla::find_least_supports_rotation }
+        { L("Least supports"), sla::find_least_supports_rotation },
+        // Just a min area bounding box that is done for all methods anyway.
+        { L("Z axis only"), nullptr }
     };
 
     size_t m_method_id = 0;
     float  m_accuracy  = 0.75;
 
     DynamicPrintConfig m_default_print_cfg;
+
+    struct ObjRot
+    {
+        size_t               idx;
+        std::optional<Vec2d> rot;
+        ObjRot(size_t id): idx{id}, rot{} {}
+    };
+
+    std::vector<ObjRot> m_selected_object_ids;
 
 protected:
 

@@ -78,7 +78,7 @@ void ArrangeJob::prepare_all() {
     for (ModelObject *obj: m_plater->model().objects)
         for (ModelInstance *mi : obj->instances) {
             ArrangePolygons & cont = mi->printable ? m_selected : m_unprintable;
-            cont.emplace_back(get_arrange_poly(PtrWrapper{mi}, m_plater));
+            cont.emplace_back(get_arrange_poly(mi, m_plater));
         }
 
     if (auto wti = get_wipe_tower_arrangepoly(*m_plater))
@@ -111,7 +111,7 @@ void ArrangeJob::prepare_selected() {
         
         for (size_t i = 0; i < inst_sel.size(); ++i) {
             ArrangePolygon &&ap =
-                get_arrange_poly(PtrWrapper{mo->instances[i]}, m_plater);
+                get_arrange_poly(mo->instances[i], m_plater);
 
             ArrangePolygons &cont = mo->instances[i]->printable ?
                         (inst_sel[i] ? m_selected :
@@ -161,12 +161,7 @@ void ArrangeJob::process()
 {
     static const auto arrangestr = _(L("Arranging"));
 
-    const GLCanvas3D::ArrangeSettings &settings =
-        static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
-
-    arrangement::ArrangeParams params;
-    params.allow_rotations  = settings.enable_rotation;
-    params.min_obj_distance = scaled(settings.distance);
+    arrangement::ArrangeParams params = get_arrange_params(m_plater);
 
     auto count = unsigned(m_selected.size() + m_unprintable.size());
     Points bedpts = get_bed_shape(*m_plater->config());
@@ -233,6 +228,25 @@ get_wipe_tower_arrangepoly(const Plater &plater)
 double bed_stride(const Plater *plater) {
     double bedwidth = plater->bed_shape_bb().size().x();
     return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
+}
+
+template<>
+arrangement::ArrangePolygon get_arrange_poly(ModelInstance *inst,
+                                             const Plater * plater)
+{
+    return get_arrange_poly(PtrWrapper{inst}, plater);
+}
+
+arrangement::ArrangeParams get_arrange_params(Plater *p)
+{
+    const GLCanvas3D::ArrangeSettings &settings =
+        static_cast<const GLCanvas3D*>(p->canvas3D())->get_arrange_settings();
+
+    arrangement::ArrangeParams params;
+    params.allow_rotations  = settings.enable_rotation;
+    params.min_obj_distance = scaled(settings.distance);
+
+    return params;
 }
 
 }} // namespace Slic3r::GUI
