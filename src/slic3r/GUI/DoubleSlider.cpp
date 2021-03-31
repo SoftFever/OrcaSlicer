@@ -719,7 +719,9 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     // m_values contains data for all layer's parts,
     // but m_layers_values contains just unique Z values.
     // Use this function for correct conversion slider position to number of printed layer
-    auto get_layer_number = [this](int value) {
+    auto get_layer_number = [this](int value, LabelType label_type) {
+        if (label_type == ltEstimatedTime && m_layers_times.empty())
+            return size_t(-1);
         double layer_print_z = m_values[is_wipe_tower_layer(value) ? std::max<int>(value - 1, 0) : value];
         auto it = std::lower_bound(m_layers_values.begin(), m_layers_values.end(), layer_print_z - epsilon());
         if (it == m_layers_values.end()) {
@@ -744,7 +746,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     else {
         if (label_type == ltEstimatedTime) {
             if (m_is_wipe_tower) {
-                size_t layer_number = get_layer_number(value);
+                size_t layer_number = get_layer_number(value, label_type);
                 return layer_number == size_t(-1) ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
             }
             return value < m_layers_times.size() ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
@@ -755,7 +757,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         if (label_type == ltHeight)
             return str;
         if (label_type == ltHeightWithLayer) {
-            size_t layer_number = m_is_wipe_tower ? get_layer_number(value) : (m_values.empty() ? value : value + 1);
+            size_t layer_number = m_is_wipe_tower ? get_layer_number(value, label_type) : (m_values.empty() ? value : value + 1);
             return format_wxstr("%1%\n(%2%)", str, layer_number);
         }
     }
@@ -2036,7 +2038,7 @@ void Control::auto_color_change()
             Layer* layer = object->get_layer(i);
             double cur_area = area(layer->lslices);
 
-            if (cur_area > prev_area)
+            if (cur_area > prev_area && prev_area - cur_area > scale_(scale_(1)))
                 break;
 
             if (prev_area - cur_area > delta_area) {

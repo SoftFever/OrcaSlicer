@@ -652,24 +652,37 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
 
         //bool is_possible_auto_color_change = false;
         for (auto object : print.objects()) {
-            // bottom layer have to be a biggest, so control relation between bottom lazer and object size
-            const ExPolygons& bottom = object->get_layer(0)->lslices;
-            double bottom_area = area(bottom);
-            if (bottom_area < double(object->size().x()) * double(object->size().y()))
-                continue;
+            double object_x = double(object->size().x());
+            double object_y = double(object->size().y());
 
             // if it's sign, than object have not to be a too height
             double height = object->height();
-            coord_t longer_side = std::max(object->size().x(), object->size().y());
+            coord_t longer_side = std::max(object_x, object_y);
             if (height / longer_side > 0.3)
                 continue;
 
+            const ExPolygons& bottom = object->get_layer(0)->lslices;
+            double bottom_area = area(bottom);
+
             // at least 30% of object's height have to be a solid 
-            int i;
-            for (i = 1; i < int(0.3 * object->layers().size()); i++)
-                if (area(object->get_layer(1)->lslices) != bottom_area)
+            size_t i;
+            for (i = 1; i < size_t(0.3 * object->layers().size()); i++) {
+                double cur_area = area(object->get_layer(i)->lslices);
+                if (cur_area != bottom_area && fabs(cur_area - bottom_area) > scale_(scale_(1)))
                     break;
-            if (i < int(0.3 * object->layers().size()))
+            }
+            if (i < size_t(0.3 * object->layers().size()))
+                continue;
+
+            // bottom layer have to be a biggest, so control relation between bottom layer and object size
+            double prev_area = area(object->get_layer(i)->lslices);
+            for ( i++; i < object->layers().size(); i++) {
+                double cur_area = area(object->get_layer(i)->lslices);
+                if (cur_area > prev_area && prev_area - cur_area > scale_(scale_(1)))
+                    break;
+                prev_area = cur_area;
+            }
+            if (i < object->layers().size())
                 continue;
 
             double top_area = area(object->get_layer(int(object->layers().size()) - 1)->lslices);
