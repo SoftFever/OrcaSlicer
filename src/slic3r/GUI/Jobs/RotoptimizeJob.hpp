@@ -18,7 +18,7 @@ class RotoptimizeJob : public PlaterJob
     struct FindMethod { std::string name; FindFn findfn; };
 
     static inline const FindMethod Methods[] = {
-        { L("Best misalignment"), sla::find_best_misalignment_rotation },
+        { L("Best surface quality"), sla::find_best_misalignment_rotation },
         { L("Least supports"), sla::find_least_supports_rotation },
         // Just a min area bounding box that is done for all methods anyway.
         { L("Z axis only"), nullptr }

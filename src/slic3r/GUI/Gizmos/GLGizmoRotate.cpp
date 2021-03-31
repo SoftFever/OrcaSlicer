@@ -548,7 +548,7 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
     }
 
     int citem = state.method_id;
-    if (ImGui::Combo(_L("Choose method").c_str(), &citem, options, methods_cnt) ) {
+    if (ImGui::Combo(_L("Choose goal").c_str(), &citem, options, methods_cnt) ) {
         state.method_id = citem;
         wxGetApp().app_config->set("sla_auto_rotate", "method_id", std::to_string(state.method_id));
     }
