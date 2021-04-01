@@ -130,6 +130,11 @@ std::size_t nest(Container&& cont,
     return nest<Placer, Selector>(cont.begin(), cont.end(), bin, dist, cfg, ctl);
 }
 
+template<class T = double> enable_if_t<std::is_arithmetic<T>::value, TCoord<PointImpl>> mm(T val = T(1)) 
+{
+    return TCoord<PointImpl>(val * CoordType<PointImpl>::MM_IN_COORDS);
+}
+
 }
 
 #endif // LIBNEST2D_HPP

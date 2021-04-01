@@ -20,59 +20,9 @@
 // temporary
 //#include "../tools/svgtools.hpp"
 
-#ifdef USE_TBB
-#include <tbb/parallel_for.h>
-#elif defined(_OPENMP)
-#include <omp.h>
-#endif
+#include <libnest2d/parallel.hpp>
 
 namespace libnest2d {
-
-namespace __parallel {
-
-using std::function;
-using std::iterator_traits;
-template<class It>
-using TIteratorValue = typename iterator_traits<It>::value_type;
-
-template<class Iterator>
-inline void enumerate(
-        Iterator from, Iterator to,
-        function<void(TIteratorValue<Iterator>, size_t)> fn,
-        std::launch policy = std::launch::deferred | std::launch::async)
-{
-    using TN = size_t;
-    auto iN = to-from;
-    TN N = iN < 0? 0 : TN(iN);
-
-#ifdef USE_TBB
-    if((policy & std::launch::async) == std::launch::async) {
-        tbb::parallel_for<TN>(0, N, [from, fn] (TN n) { fn(*(from + n), n); } );
-    } else {
-        for(TN n = 0; n < N; n++) fn(*(from + n), n);
-    }
-#elif defined(_OPENMP)
-    if((policy & std::launch::async) == std::launch::async) {
-        #pragma omp parallel for
-        for(int n = 0; n < int(N); n++) fn(*(from + n), TN(n));
-    }
-    else {
-        for(TN n = 0; n < N; n++) fn(*(from + n), n);
-    }
-#else
-    std::vector<std::future<void>> rets(N);
-
-    auto it = from;
-    for(TN b = 0; b < N; b++) {
-        rets[b] = std::async(policy, fn, *it++, unsigned(b));
-    }
-
-    for(TN fi = 0; fi < N; ++fi) rets[fi].wait();
-#endif
-}
-
-}
-
 namespace placers {
 
 template<class RawShape>
