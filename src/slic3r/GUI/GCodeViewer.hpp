@@ -89,35 +89,20 @@ class GCodeViewer
         size_t vertex_size_bytes() const { return vertex_size_floats() * sizeof(float); }
 
         size_t position_offset_floats() const { return 0; }
-        size_t position_offset_size() const { return position_offset_floats() * sizeof(float); }
-        size_t position_size_floats() const {
-            switch (format)
-            {
-            case EFormat::Position:
-            case EFormat::PositionNormal3: { return 3; }
-            case EFormat::PositionNormal1: { return 4; }
-            default:                       { return 0; }
-            }
-        }
+        size_t position_offset_bytes() const { return position_offset_floats() * sizeof(float); }
+
+        size_t position_size_floats() const { return 3; }
         size_t position_size_bytes() const { return position_size_floats() * sizeof(float); }
 
-        size_t normal_offset_floats() const {
-            switch (format)
-            {
-            case EFormat::Position:
-            case EFormat::PositionNormal1: { return 0; }
-            case EFormat::PositionNormal3: { return 3; }
-            default:                       { return 0; }
-            }
-        }
-        size_t normal_offset_size() const { return normal_offset_floats() * sizeof(float); }
+        size_t normal_offset_floats() const { return position_size_floats(); }
+        size_t normal_offset_bytes() const { return normal_offset_floats() * sizeof(float); }
+
         size_t normal_size_floats() const {
             switch (format)
             {
-            default:
-            case EFormat::Position:
-            case EFormat::PositionNormal1: { return 0; }
+            case EFormat::PositionNormal1: { return 1; }
             case EFormat::PositionNormal3: { return 3; }
+            default:                       { return 0; }
             }
         }
         size_t normal_size_bytes() const { return normal_size_floats() * sizeof(float); }

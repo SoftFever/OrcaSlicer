@@ -3756,11 +3756,11 @@ void GCodeViewer::render_toolpaths() const
                 const IBuffer& i_buffer = buffer.indices[j];
 
                 glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_size()));
+                glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
                 glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
                 bool has_normals = buffer.vertices.normal_size_floats() > 0;
                 if (has_normals) {
-                    glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_size()));
+                    glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
                     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
                 }
 
@@ -3802,11 +3802,11 @@ void GCodeViewer::render_toolpaths() const
             shader->start_using();
 
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, cap.vbo));
-            glsafe(::glVertexPointer(cap.buffer->vertices.position_size_floats(), GL_FLOAT, cap.buffer->vertices.vertex_size_bytes(), (const void*)cap.buffer->vertices.position_offset_size()));
+            glsafe(::glVertexPointer(cap.buffer->vertices.position_size_floats(), GL_FLOAT, cap.buffer->vertices.vertex_size_bytes(), (const void*)cap.buffer->vertices.position_offset_bytes()));
             glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
             bool has_normals = cap.buffer->vertices.normal_size_floats() > 0;
             if (has_normals) {
-                glsafe(::glNormalPointer(GL_FLOAT, cap.buffer->vertices.vertex_size_bytes(), (const void*)cap.buffer->vertices.normal_offset_size()));
+                glsafe(::glNormalPointer(GL_FLOAT, cap.buffer->vertices.vertex_size_bytes(), (const void*)cap.buffer->vertices.normal_offset_bytes()));
                 glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
             }
 
