@@ -261,6 +261,7 @@ private:
     int    m_old_temperature    = -1;   // To keep track of what was the last temp that we set (so we don't issue the command when not neccessary)
     float  m_travel_speed       = 0.f;
     float  m_first_layer_speed  = 0.f;
+    size_t m_first_layer_idx    = size_t(-1);
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;
@@ -302,6 +303,8 @@ private:
     bool            m_current_layer_finished = false;
 	bool 			m_left_to_right   = true;
 	float			m_extra_spacing   = 1.f;
+
+    bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
 
 	// Calculates extrusion flow needed to produce required line width for given layer height
 	float extrusion_flow(float layer_height = -1.f) const	// negative layer_height - return current m_extrusion_flow

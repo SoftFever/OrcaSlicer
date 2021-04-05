@@ -708,7 +708,6 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
 {
     size_t old_tool = m_current_tool;
-    bool first_layer = m_layer_info == m_plan.begin();
 
     float wipe_area = 0.f;
 	float wipe_volume = 0.f;
@@ -759,7 +758,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (tool != (unsigned int)-1){ 			// This is not the last change.
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material,
-                          first_layer ? m_filpar[tool].first_layer_temperature : m_filpar[tool].temperature);
+                          is_first_layer() ? m_filpar[tool].first_layer_temperature : m_filpar[tool].temperature);
         toolchange_Change(writer, tool, m_filpar[tool].material); // Change the tool, set a speed override for soluble and flex materials.
         toolchange_Load(writer, cleaning_box);
         writer.travel(writer.x(), writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
@@ -795,7 +794,6 @@ void WipeTower::toolchange_Unload(
 	const std::string&		 current_material,
 	const int 				 new_temperature)
 {
-    bool first_layer = m_layer_info == m_plan.begin();
 	float xl = cleaning_box.ld.x() + 1.f * m_perimeter_width;
 	float xr = cleaning_box.rd.x() - 1.f * m_perimeter_width;
 	
@@ -884,7 +882,7 @@ void WipeTower::toolchange_Unload(
     // be already set and there is no need to change anything. Also, the temperature could be changed
     // for wrong extruder.
     if (m_semm) {
-        if (new_temperature != 0 && (new_temperature != m_old_temperature || first_layer) ) { 	// Set the extruder temperature, but don't wait.
+        if (new_temperature != 0 && (new_temperature != m_old_temperature || is_first_layer()) ) { 	// Set the extruder temperature, but don't wait.
             // If the required temperature is the same as last time, don't emit the M104 again (if user adjusted the value, it would be reset)
             // However, always change temperatures on the first layer (this is to avoid issues with priming lines turned off).
             writer.set_extruder_temp(new_temperature, false);
@@ -993,8 +991,7 @@ void WipeTower::toolchange_Wipe(
 	float wipe_volume)
 {
 	// Increase flow on first layer, slow down print.
-    bool first_layer = m_layer_info == m_plan.begin();
-    writer.set_extrusion_flow(m_extrusion_flow * (first_layer ? 1.18f : 1.f))
+    writer.set_extrusion_flow(m_extrusion_flow * (is_first_layer() ? 1.18f : 1.f))
 		  .append("; CP TOOLCHANGE WIPE\n");
 	const float& xl = cleaning_box.ld.x();
 	const float& xr = cleaning_box.rd.x();
@@ -1006,7 +1003,7 @@ void WipeTower::toolchange_Wipe(
 	float x_to_wipe = volume_to_length(wipe_volume, m_perimeter_width, m_layer_height);
 	float dy = m_extra_spacing*m_perimeter_width;
 
-    const float target_speed = first_layer ? m_first_layer_speed * 60.f : 4800.f;
+    const float target_speed = is_first_layer() ? m_first_layer_speed * 60.f : 4800.f;
     float wipe_speed = 0.33f * target_speed;
 
     // if there is less than 2.5*m_perimeter_width to the edge, advance straightaway (there is likely a blob anyway)
@@ -1074,7 +1071,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 
 
 	// Slow down on the 1st layer.
-    bool first_layer = m_layer_info == m_plan.begin();
+    bool first_layer = is_first_layer();
     float feedrate = first_layer ? m_first_layer_speed * 60.f : 2900.f;
 	float current_depth = m_layer_info->depth - m_layer_info->toolchanges_depth();
     box_coordinates fill_box(Vec2f(m_perimeter_width, m_layer_info->depth-(current_depth-m_perimeter_width)),
@@ -1201,11 +1198,14 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
 	if (m_plan.empty() || m_plan.back().z + WT_EPSILON < z_par) // if we moved to a new layer, we'll add it to m_plan first
 		m_plan.push_back(WipeTowerInfo(z_par, layer_height_par));
 
-	if (old_tool==new_tool)	// new layer without toolchanges - we are done
-		return;
+    if (m_first_layer_idx == size_t(-1) && (! m_no_sparse_layers || old_tool != new_tool))
+        m_first_layer_idx = m_plan.size() - 1;
+
+    if (old_tool == new_tool)	// new layer without toolchanges - we are done
+        return;
 
 	// this is an actual toolchange - let's calculate depth to reserve on the wipe tower
-	float depth = 0.f;			
+    float depth = 0.f;
 	float width = m_wipe_tower_width - 3*m_perimeter_width; 
 	float length_to_extrude = volume_to_length(0.25f * std::accumulate(m_filpar[old_tool].ramming_speed.begin(), m_filpar[old_tool].ramming_speed.end(), 0.f),
 										m_perimeter_width * m_filpar[old_tool].ramming_line_width_multiplicator,
