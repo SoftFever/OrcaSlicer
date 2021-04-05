@@ -1950,7 +1950,6 @@ TEST_CASE("Voronoi skeleton", "[VoronoiSkeleton]")
 // Rotation of the polygon solves this problem.
 TEST_CASE("Voronoi missing vertex 1", "[VoronoiMissingVertex1]")
 {
-    REQUIRE(false);
     Polygon poly = {
         { 25000000,  25000000},
         {-25000000,  25000000},
