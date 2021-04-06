@@ -20,7 +20,8 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     this->config.apply(print_config, true);
     m_extrusion_axis = this->config.get_extrusion_axis();
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
-    m_max_acceleration = std::lrint((print_config.gcode_flavor.value == gcfMarlin && print_config.machine_limits_usage.value == MachineLimitsUsage::EmitToGCode) ?
+    bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware;
+    m_max_acceleration = std::lrint((is_marlin && print_config.machine_limits_usage.value == MachineLimitsUsage::EmitToGCode) ?
         print_config.machine_max_acceleration_extruding.values.front() : 0);
 }
 
@@ -48,7 +49,8 @@ std::string GCodeWriter::preamble()
     }
     if (FLAVOR_IS(gcfRepRapSprinter) ||
         FLAVOR_IS(gcfRepRapFirmware) ||
-        FLAVOR_IS(gcfMarlin) ||
+        FLAVOR_IS(gcfMarlinLegacy) ||
+        FLAVOR_IS(gcfMarlinFirmware) ||
         FLAVOR_IS(gcfTeacup) ||
         FLAVOR_IS(gcfRepetier) ||
         FLAVOR_IS(gcfSmoothie))
@@ -205,8 +207,12 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
         // M202: Set max travel acceleration
         gcode << "M202 X" << acceleration << " Y" << acceleration;
     } else if (FLAVOR_IS(gcfRepRapFirmware)) {
-	// M204: Set default acceleration
-	gcode << "M204 P" << acceleration;    
+        // M204: Set default acceleration
+        gcode << "M204 P" << acceleration;
+    } else if (FLAVOR_IS(gcfMarlinFirmware)) {
+        // This is new MarlinFirmware with separated print/retraction/travel acceleration.
+        // Use M204 P, we don't want to override travel acc by M204 S (which is deprecated anyway).
+        gcode << "M204 P" << acceleration;
     } else {
         // M204: Set default acceleration
         gcode << "M204 S" << acceleration;

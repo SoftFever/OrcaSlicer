@@ -342,7 +342,7 @@ public:
 	WipeTowerWriter& speed_override_backup()
     {
         // This is only supported by Prusa at this point (https://github.com/prusa3d/PrusaSlicer/issues/3114)
-        if (m_gcode_flavor == gcfMarlin)
+        if (m_gcode_flavor == gcfMarlinLegacy || m_gcode_flavor == gcfMarlinFirmware)
             m_gcode += "M220 B\n";
 		return *this;
     }
@@ -350,7 +350,7 @@ public:
 	// Let the firmware restore the active speed override value.
 	WipeTowerWriter& speed_override_restore()
 	{
-        if (m_gcode_flavor == gcfMarlin)
+        if (m_gcode_flavor == gcfMarlinLegacy || m_gcode_flavor == gcfMarlinFirmware)
             m_gcode += "M220 R\n";
 		return *this;
     }

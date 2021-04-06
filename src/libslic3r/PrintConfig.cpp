@@ -1103,6 +1103,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("teacup");
     def->enum_values.push_back("makerware");
     def->enum_values.push_back("marlin");
+    def->enum_values.push_back("marlinfirmware");
     def->enum_values.push_back("sailfish");
     def->enum_values.push_back("mach3");
     def->enum_values.push_back("machinekit");
@@ -1113,7 +1114,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("Teacup");
     def->enum_labels.push_back("MakerWare (MakerBot)");
-    def->enum_labels.push_back("Marlin");
+    def->enum_labels.push_back("Marlin (legacy)");
+    def->enum_labels.push_back("Marlin Firmware");
     def->enum_labels.push_back("Sailfish (MakerBot)");
     def->enum_labels.push_back("Mach3/LinuxCNC");
     def->enum_labels.push_back("Machinekit");
@@ -1467,21 +1469,34 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
-    // M204 S... [mm/sec^2]
+    // M204 P... [mm/sec^2]
     def = this->add("machine_max_acceleration_extruding", coFloats);
     def->full_label = L("Maximum acceleration when extruding");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum acceleration when extruding (M204 S)");
+    def->tooltip = L("Maximum acceleration when extruding (M204 P)\n\n"
+                     "Marlin (legacy) firmware flavor will use this also "
+                     "as travel acceleration (M204 T).");
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
+
+
+    // M204 R... [mm/sec^2]
+    def = this->add("machine_max_acceleration_retracting", coFloats);
+    def->full_label = L("Maximum acceleration when retracting");
+    def->category = L("Machine limits");
+    def->tooltip = L("Maximum acceleration when retracting (M204 R)");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     // M204 T... [mm/sec^2]
-    def = this->add("machine_max_acceleration_retracting", coFloats);
-    def->full_label = L("Maximum acceleration when retracting");
+    def = this->add("machine_max_acceleration_travel", coFloats);
+    def->full_label = L("Maximum acceleration for travel moves");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum acceleration when retracting (M204 T)");
+    def->tooltip = L("Maximum acceleration for travel moves (M204 T)");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3630,7 +3645,8 @@ std::string FullPrintConfig::validate()
         this->gcode_flavor.value != gcfSmoothie &&
         this->gcode_flavor.value != gcfRepRapSprinter &&
         this->gcode_flavor.value != gcfRepRapFirmware &&
-        this->gcode_flavor.value != gcfMarlin &&
+        this->gcode_flavor.value != gcfMarlinLegacy &&
+        this->gcode_flavor.value != gcfMarlinFirmware &&
         this->gcode_flavor.value != gcfMachinekit &&
         this->gcode_flavor.value != gcfRepetier)
         return "--use-firmware-retraction is only supported by Marlin, Smoothie, RepRapFirmware, Repetier and Machinekit firmware";

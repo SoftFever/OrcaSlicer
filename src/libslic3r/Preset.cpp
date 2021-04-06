@@ -468,7 +468,7 @@ const std::vector<std::string>& Preset::machine_limits_options()
     static std::vector<std::string> s_opts;
     if (s_opts.empty()) {
         s_opts = {
-			"machine_max_acceleration_extruding", "machine_max_acceleration_retracting",
+            "machine_max_acceleration_extruding", "machine_max_acceleration_retracting", "machine_max_acceleration_travel",
 		    "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
 		    "machine_max_feedrate_x", "machine_max_feedrate_y", "machine_max_feedrate_z", "machine_max_feedrate_e",
 		    "machine_min_extruding_rate", "machine_min_travel_rate",

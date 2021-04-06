@@ -24,7 +24,7 @@
 namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
-    gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
+    gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinLegacy, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
 };
 
@@ -120,7 +120,8 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get
         keys_map["repetier"]        = gcfRepetier;
         keys_map["teacup"]          = gcfTeacup;
         keys_map["makerware"]       = gcfMakerWare;
-        keys_map["marlin"]          = gcfMarlin;
+        keys_map["marlin"]          = gcfMarlinLegacy;
+        keys_map["marlinfirmware"]  = gcfMarlinFirmware;
         keys_map["sailfish"]        = gcfSailfish;
         keys_map["smoothie"]        = gcfSmoothie;
         keys_map["mach3"]           = gcfMach3;
@@ -725,10 +726,12 @@ public:
     ConfigOptionFloats              machine_max_feedrate_y;
     ConfigOptionFloats              machine_max_feedrate_z;
     ConfigOptionFloats              machine_max_feedrate_e;
-    // M204 S... [mm/sec^2]
+
+    // M204 P... R... T...[mm/sec^2]
     ConfigOptionFloats              machine_max_acceleration_extruding;
-    // M204 T... [mm/sec^2]
     ConfigOptionFloats              machine_max_acceleration_retracting;
+    ConfigOptionFloats              machine_max_acceleration_travel;
+
     // M205 X... Y... Z... E... [mm/sec]
     ConfigOptionFloats              machine_max_jerk_x;
     ConfigOptionFloats              machine_max_jerk_y;
@@ -753,6 +756,7 @@ protected:
         OPT_PTR(machine_max_feedrate_e);
         OPT_PTR(machine_max_acceleration_extruding);
         OPT_PTR(machine_max_acceleration_retracting);
+        OPT_PTR(machine_max_acceleration_travel);
         OPT_PTR(machine_max_jerk_x);
         OPT_PTR(machine_max_jerk_y);
         OPT_PTR(machine_max_jerk_z);

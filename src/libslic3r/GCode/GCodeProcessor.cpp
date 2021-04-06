@@ -26,6 +26,7 @@
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
 
 namespace Slic3r {
 
@@ -190,6 +191,8 @@ void GCodeProcessor::TimeMachine::reset()
     enabled = false;
     acceleration = 0.0f;
     max_acceleration = 0.0f;
+    travel_acceleration = 0.0f;
+    max_travel_acceleration = 0.0f;
     extrude_factor_override_percentage = 1.0f;
     time = 0.0f;
 #if ENABLE_EXTENDED_M73_LINES
@@ -823,8 +826,13 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_filament_diameters[i] = static_cast<float>(config.filament_diameter.values[i]);
     }
 
-    if (m_flavor == gcfMarlin && config.machine_limits_usage.value != MachineLimitsUsage::Ignore)
+    if ((m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) && config.machine_limits_usage.value != MachineLimitsUsage::Ignore) {
         m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
+        if (m_flavor == gcfMarlinLegacy) {
+            // Legacy Marlin does not have separate travel acceleration, it uses the 'extruding' value instead.
+            m_time_processor.machine_limits.machine_max_acceleration_travel = m_time_processor.machine_limits.machine_max_acceleration_extruding;
+        }
+    }
 
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
     // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
@@ -842,6 +850,9 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].max_acceleration = max_acceleration;
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+        float max_travel_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_travel, i);
+        m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
+        m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
     }
 
     m_time_processor.export_remaining_time_enabled = config.remaining_times.value;
@@ -934,7 +945,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    if (m_flavor == gcfMarlin) {
+    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
         if (machine_max_acceleration_x != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
@@ -991,6 +1002,15 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         if (machine_max_acceleration_retracting != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_retracting.values = machine_max_acceleration_retracting->values;
 
+
+        // Legacy Marlin does not have separate travel acceleration, it uses the 'extruding' value instead.
+        const ConfigOptionFloats* machine_max_acceleration_travel = config.option<ConfigOptionFloats>(m_flavor == gcfMarlinLegacy
+                                                                                                    ? "machine_max_acceleration_extruding"
+                                                                                                    : "machine_max_acceleration_travel");
+        if (machine_max_acceleration_travel != nullptr)
+            m_time_processor.machine_limits.machine_max_acceleration_travel.values = machine_max_acceleration_travel->values;
+
+
         const ConfigOptionFloats* machine_min_extruding_rate = config.option<ConfigOptionFloats>("machine_min_extruding_rate");
         if (machine_min_extruding_rate != nullptr)
             m_time_processor.machine_limits.machine_min_extruding_rate.values = machine_min_extruding_rate->values;
@@ -1004,6 +1024,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].max_acceleration = max_acceleration;
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+        float max_travel_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_travel, i);
+        m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
+        m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
     }
 
     if (m_time_processor.machine_limits.machine_max_acceleration_x.values.size() > 1)
@@ -1646,23 +1669,23 @@ bool GCodeProcessor::process_cura_tags(const std::string_view comment)
     if (pos != comment.npos) {
         const std::string_view flavor = comment.substr(pos + tag.length());
         if (flavor == "BFB")
-            m_flavor = gcfMarlin; // << ???????????????????????
+            m_flavor = gcfMarlinLegacy; // is this correct ?
         else if (flavor == "Mach3")
             m_flavor = gcfMach3;
         else if (flavor == "Makerbot")
             m_flavor = gcfMakerWare;
         else if (flavor == "UltiGCode")
-            m_flavor = gcfMarlin; // << ???????????????????????
+            m_flavor = gcfMarlinLegacy; // is this correct ?
         else if (flavor == "Marlin(Volumetric)")
-            m_flavor = gcfMarlin; // << ???????????????????????
+            m_flavor = gcfMarlinLegacy; // is this correct ?
         else if (flavor == "Griffin")
-            m_flavor = gcfMarlin; // << ???????????????????????
+            m_flavor = gcfMarlinLegacy; // is this correct ?
         else if (flavor == "Repetier")
             m_flavor = gcfRepetier;
         else if (flavor == "RepRap")
             m_flavor = gcfRepRapFirmware;
         else if (flavor == "Marlin")
-            m_flavor = gcfMarlin;
+            m_flavor = gcfMarlinLegacy;
         else
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown flavor: " << flavor;
 
@@ -2226,9 +2249,11 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         }
 
         // calculates block acceleration
-        float acceleration = is_extrusion_only_move(delta_pos) ?
-            get_retract_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i)) :
-            get_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i));
+        float acceleration = 
+            (type == EMoveType::Travel) ? get_travel_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i)) :
+            (is_extrusion_only_move(delta_pos) ?
+                get_retract_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i)) :
+                get_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i)));
 
         for (unsigned char a = X; a <= E; ++a) {
             float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i), static_cast<Axis>(a));
@@ -2575,7 +2600,7 @@ void GCodeProcessor::process_M203(const GCodeReader::GCodeLine& line)
 
     // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
     // http://smoothieware.org/supported-g-codes
-    float factor = (m_flavor == gcfMarlin || m_flavor == gcfSmoothie) ? 1.0f : MMMIN_TO_MMSEC;
+    float factor = (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfSmoothie) ? 1.0f : MMMIN_TO_MMSEC;
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Count); ++i) {
         if (static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i) == PrintEstimatedTimeStatistics::ETimeMode::Normal ||
@@ -2602,10 +2627,11 @@ void GCodeProcessor::process_M204(const GCodeReader::GCodeLine& line)
         if (static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i) == PrintEstimatedTimeStatistics::ETimeMode::Normal ||
             m_time_processor.machine_envelope_processing_enabled) {
             if (line.has_value('S', value)) {
-                // Legacy acceleration format. This format is used by the legacy Marlin, MK2 or MK3 firmware,
-                // and it is also generated by Slic3r to control acceleration per extrusion type
-                // (there is a separate acceleration settings in Slicer for perimeter, first layer etc).
+                // Legacy acceleration format. This format is used by the legacy Marlin, MK2 or MK3 firmware
+                // It is also generated by PrusaSlicer to control acceleration per extrusion type
+                // (perimeters, first layer etc) when 'Marlin (legacy)' flavor is used.
                 set_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i), value);
+                set_travel_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i), value);
                 if (line.has_value('T', value))
                     set_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i, value);
             }
@@ -2615,11 +2641,9 @@ void GCodeProcessor::process_M204(const GCodeReader::GCodeLine& line)
                     set_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i), value);
                 if (line.has_value('R', value))
                     set_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i, value);
-                if (line.has_value('T', value)) {
+                if (line.has_value('T', value))
                     // Interpret the T value as the travel acceleration in the new Marlin format.
-                    //FIXME Prusa3D firmware currently does not support travel acceleration value independent from the extruding acceleration value.
-                    // set_travel_acceleration(value);
-                }
+                    set_travel_acceleration(static_cast<PrintEstimatedTimeStatistics::ETimeMode>(i), value);
             }
         }
     }
@@ -2749,7 +2773,7 @@ void GCodeProcessor::process_T(const std::string_view command)
         int eid = 0;
         if (! parse_number(command.substr(1), eid) || eid < 0 || eid > 255) {
             // Specific to the MMU2 V2 (see https://www.help.prusa3d.com/en/article/prusa-specific-g-codes_112173):
-            if (m_flavor == gcfMarlin && (command == "Tx" || command == "Tc" || command == "T?"))
+            if ((m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) && (command == "Tx" || command == "Tc" || command == "T?"))
                 return;
 
             // T-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools) see https://github.com/prusa3d/PrusaSlicer/issues/5677
@@ -2887,6 +2911,22 @@ void GCodeProcessor::set_acceleration(PrintEstimatedTimeStatistics::ETimeMode mo
         m_time_processor.machines[id].acceleration = (m_time_processor.machines[id].max_acceleration == 0.0f) ? value :
             // Clamp the acceleration with the maximum.
             std::min(value, m_time_processor.machines[id].max_acceleration);
+    }
+}
+
+float GCodeProcessor::get_travel_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode) const
+{
+    size_t id = static_cast<size_t>(mode);
+    return (id < m_time_processor.machines.size()) ? m_time_processor.machines[id].travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
+}
+
+void GCodeProcessor::set_travel_acceleration(PrintEstimatedTimeStatistics::ETimeMode mode, float value)
+{
+    size_t id = static_cast<size_t>(mode);
+    if (id < m_time_processor.machines.size()) {
+        m_time_processor.machines[id].travel_acceleration = (m_time_processor.machines[id].max_travel_acceleration == 0.0f) ? value :
+            // Clamp the acceleration with the maximum.
+            std::min(value, m_time_processor.machines[id].max_travel_acceleration);
     }
 }
 
