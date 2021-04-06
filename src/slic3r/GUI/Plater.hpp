@@ -128,7 +128,11 @@ public:
     Plater(const Plater &) = delete;
     Plater &operator=(Plater &&) = delete;
     Plater &operator=(const Plater &) = delete;
-    ~Plater();
+    ~Plater() = default;
+
+#if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+    void render_project_state_debug_window() const;
+#endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
     Sidebar& sidebar();
     Model& model();

@@ -1718,6 +1718,11 @@ void GLCanvas3D::render()
     }
 #endif // ENABLE_RENDER_STATISTICS
 
+#if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+    if (wxGetApp().is_editor() && wxGetApp().plater()->is_view3D_shown())
+        wxGetApp().plater()->render_project_state_debug_window();
+#endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+
 #if ENABLE_CAMERA_STATISTICS
     camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS

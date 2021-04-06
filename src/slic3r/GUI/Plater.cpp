@@ -81,6 +81,9 @@
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
 #include "PresetComboBoxes.hpp"
+#if ENABLE_PROJECT_DIRTY_STATE
+#include "ProjectDirtyStateManager.hpp"
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -1434,6 +1437,10 @@ struct Plater::priv
     Preview *preview;
     NotificationManager* notification_manager { nullptr };
 
+#if ENABLE_PROJECT_DIRTY_STATE
+    ProjectDirtyStateManager dirty_state;
+#endif // ENABLE_PROJECT_DIRTY_STATE
+
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
 
@@ -1503,6 +1510,10 @@ struct Plater::priv
 
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
+
+#if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+    void render_project_state_debug_window() const { dirty_state.render_debug_window(); }
+#endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
     enum class UpdateParams {
         FORCE_FULL_SCREEN_REFRESH          = 1,
@@ -4418,9 +4429,9 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
     // Initialization performed in the private c-tor
 }
 
-Plater::~Plater()
-{
-}
+#if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+void Plater::render_project_state_debug_window() const { p->render_project_state_debug_window(); }
+#endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
 Sidebar&        Plater::sidebar()           { return *p->sidebar; }
 Model&          Plater::model()             { return p->model; }
