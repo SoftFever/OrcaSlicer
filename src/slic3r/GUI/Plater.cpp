@@ -1525,14 +1525,18 @@ struct Plater::priv
             MainFrame* mainframe = wxGetApp().mainframe;
             if (mainframe->can_save_as()) {
                 wxMessageDialog dlg(mainframe, _L("Do you want to save the changes to the current project ?"), wxString(SLIC3R_APP_NAME), wxYES_NO | wxCANCEL);
-                if (dlg.ShowModal() == wxID_CANCEL)
+                int res = dlg.ShowModal();
+                if (res == wxID_YES)
+                    mainframe->save_project_as(wxGetApp().plater()->get_project_filename());
+                else if (res == wxID_CANCEL)
                     return false;
-                mainframe->save_project_as(wxGetApp().plater()->get_project_filename());
             }
         }
         return true;
     }
     void reset_project_dirty_after_save() { dirty_state.reset_after_save(); }
+    void reset_project_dirty_initial_presets() { dirty_state.reset_initial_presets(); }
+
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
     void render_project_state_debug_window() const { dirty_state.render_debug_window(); }
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
@@ -4284,8 +4288,13 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     if (printer_technology_changed) {
         // Switching the printer technology when jumping forwards / backwards in time. Switch to the last active printer profile of the other type.
         std::string s_pt = (it_snapshot->snapshot_data.printer_technology == ptFFF) ? "FFF" : "SLA";
+#if ENABLE_PROJECT_DIRTY_STATE
+        if (!wxGetApp().check_and_save_current_preset_changes(format_wxstr(_L(
+            "%1% printer was active at the time the target Undo / Redo snapshot was taken. Switching to %1% printer requires reloading of %1% presets."), s_pt)))
+#else
         if (! wxGetApp().check_unsaved_changes(format_wxstr(_L(
             "%1% printer was active at the time the target Undo / Redo snapshot was taken. Switching to %1% printer requires reloading of %1% presets."), s_pt)))
+#endif // ENABLE_PROJECT_DIRTY_STATE
             // Don't switch the profiles.
             return;
     }
@@ -4466,6 +4475,7 @@ bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
 void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
 bool Plater::save_project_if_dirty() { return p->save_project_if_dirty(); }
 void Plater::reset_project_dirty_after_save() { p->reset_project_dirty_after_save(); }
+void Plater::reset_project_dirty_initial_presets() { p->reset_project_dirty_initial_presets(); }
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 void Plater::render_project_state_debug_window() const { p->render_project_state_debug_window(); }
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
@@ -4490,7 +4500,7 @@ void Plater::new_project()
     take_snapshot(_L("New Project"));
     Plater::SuppressSnapshots suppress(this);
     reset();
-//    reset_project_initial_presets();
+    reset_project_dirty_initial_presets();
     update_project_dirty_from_presets();
 #else
     wxPostEvent(p->view3D->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
@@ -4530,7 +4540,7 @@ void Plater::load_project(const wxString& filename)
 #if ENABLE_PROJECT_DIRTY_STATE
     if (!res.empty()) {
         p->set_project_filename(filename);
-//        reset_project_initial_presets();
+        reset_project_dirty_initial_presets();
         update_project_dirty_from_presets();
     }
 #else

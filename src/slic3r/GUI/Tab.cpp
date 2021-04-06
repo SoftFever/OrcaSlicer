@@ -2113,10 +2113,16 @@ wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticTex
     return sizer;
 }
 
+#if ENABLE_PROJECT_DIRTY_STATE
+bool Tab::saved_preset_is_dirty() const { return m_presets->saved_is_dirty(); }
+void Tab::update_saved_preset_from_current_preset() { m_presets->update_saved_preset_from_current_preset(); }
+bool Tab::current_preset_is_dirty() const { return m_presets->current_is_dirty(); }
+#else
 bool Tab::current_preset_is_dirty()
 {
     return m_presets->current_is_dirty();
 }
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
 void TabPrinter::build()
 {

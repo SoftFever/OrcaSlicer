@@ -135,6 +135,7 @@ public:
     void update_project_dirty_from_presets();
     bool save_project_if_dirty();
     void reset_project_dirty_after_save();
+    void reset_project_dirty_initial_presets();
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
     void render_project_state_debug_window() const;
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW

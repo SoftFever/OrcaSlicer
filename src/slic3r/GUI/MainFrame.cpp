@@ -209,9 +209,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #if ENABLE_PROJECT_DIRTY_STATE
         if (m_plater != nullptr)
             m_plater->save_project_if_dirty();
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
+        if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes()) {
+#else
         if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
+#endif // ENABLE_PROJECT_DIRTY_STATE
             event.Veto();
             return;
         }
@@ -1559,7 +1561,11 @@ void MainFrame::export_config()
 // Load a config file containing a Print, Filament & Printer preset.
 void MainFrame::load_config_file()
 {
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!wxGetApp().check_and_save_current_preset_changes())
+#else
     if (!wxGetApp().check_unsaved_changes())
+#endif // ENABLE_PROJECT_DIRTY_STATE
         return;
     wxFileDialog dlg(this, _L("Select configuration to load:"),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
@@ -1588,7 +1594,11 @@ bool MainFrame::load_config_file(const std::string &path)
 
 void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 {
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!wxGetApp().check_and_save_current_preset_changes())
+#else
     if (!wxGetApp().check_unsaved_changes())
+#endif // ENABLE_PROJECT_DIRTY_STATE
         return;
     // validate current configuration in case it's dirty
     auto err = wxGetApp().preset_bundle->full_config().validate();
@@ -1620,7 +1630,11 @@ void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 // but that behavior was not documented and likely buggy.
 void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool reset_user_profile*/)
 {
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!wxGetApp().check_and_save_current_preset_changes())
+#else
     if (!wxGetApp().check_unsaved_changes())
+#endif // ENABLE_PROJECT_DIRTY_STATE
         return;
     if (file.IsEmpty()) {
         wxFileDialog dlg(this, _L("Select configuration to load:"),

@@ -19,13 +19,30 @@ void ProjectDirtyStateManager::update_from_undo_redo_stack(const Slic3r::UndoRed
 
 void ProjectDirtyStateManager::update_from_presets()
 {
+    m_state.presets = false;
+    std::vector<std::pair<unsigned int, std::string>> selected_presets = wxGetApp().get_selected_presets();
+    for (const auto& [type, name] : selected_presets) {
+        m_state.presets |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
+    }
+    m_state.presets |= wxGetApp().has_unsaved_preset_changes();
     wxGetApp().mainframe->update_title();
 }
 
 void ProjectDirtyStateManager::reset_after_save()
 {
+    reset_initial_presets();
+
     m_state.reset();
     wxGetApp().mainframe->update_title();
+}
+
+void ProjectDirtyStateManager::reset_initial_presets()
+{
+    m_initial_presets = std::array<std::string, Preset::TYPE_COUNT>();
+    std::vector<std::pair<unsigned int, std::string>> selected_presets = wxGetApp().get_selected_presets();
+    for (const auto& [type, name] : selected_presets) {
+        m_initial_presets[type] = name;
+    }
 }
 
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
