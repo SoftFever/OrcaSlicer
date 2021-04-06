@@ -1215,9 +1215,8 @@ void Tab::apply_config_from_cache()
 // to update number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
-    if (wxGetApp().plater() == nullptr) {
+    if (wxGetApp().plater() == nullptr)
         return;
-    }
 
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
@@ -1235,6 +1234,10 @@ void Tab::on_presets_changed()
     // clear m_dependent_tabs after first update from select_preset()
     // to avoid needless preset loading from update() function
     m_dependent_tabs.clear();
+
+#if ENABLE_PROJECT_DIRTY_STATE
+    wxGetApp().plater()->update_project_dirty_from_presets();
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)

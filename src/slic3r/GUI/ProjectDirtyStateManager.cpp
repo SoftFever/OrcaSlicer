@@ -2,11 +2,31 @@
 #include "ProjectDirtyStateManager.hpp"
 #include "ImGuiWrapper.hpp"
 #include "GUI_App.hpp"
+#include "MainFrame.hpp"
 
 #if ENABLE_PROJECT_DIRTY_STATE
 
 namespace Slic3r {
 namespace GUI {
+
+void ProjectDirtyStateManager::update_from_undo_redo_stack(const Slic3r::UndoRedo::Stack& main_stack, const Slic3r::UndoRedo::Stack& active_stack)
+{
+    if (!wxGetApp().initialized())
+        return;
+
+    wxGetApp().mainframe->update_title();
+}
+
+void ProjectDirtyStateManager::update_from_presets()
+{
+    wxGetApp().mainframe->update_title();
+}
+
+void ProjectDirtyStateManager::reset_after_save()
+{
+    m_state.reset();
+    wxGetApp().mainframe->update_title();
+}
 
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 void ProjectDirtyStateManager::render_debug_window() const

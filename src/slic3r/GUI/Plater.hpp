@@ -130,9 +130,15 @@ public:
     Plater &operator=(const Plater &) = delete;
     ~Plater() = default;
 
+#if ENABLE_PROJECT_DIRTY_STATE
+    bool is_project_dirty() const;
+    void update_project_dirty_from_presets();
+    bool save_project_if_dirty();
+    void reset_project_dirty_after_save();
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
     void render_project_state_debug_window() const;
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
     Sidebar& sidebar();
     Model& model();
@@ -201,7 +207,11 @@ public:
     void export_gcode(bool prefer_removable);
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
+#if ENABLE_PROJECT_DIRTY_STATE
+    bool export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
+#else
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
+#endif // ENABLE_PROJECT_DIRTY_STATE
     void reload_from_disk();
     void reload_all_from_disk();
     bool has_toolpaths_to_export() const;

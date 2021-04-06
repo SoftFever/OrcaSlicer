@@ -904,6 +904,14 @@ bool GUI_App::on_init_inner()
     }
     else
         load_current_presets();
+
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (plater_ != nullptr) {
+//        plater_->reset_project_initial_presets();
+        plater_->update_project_dirty_from_presets();
+    }
+#endif // ENABLE_PROJECT_DIRTY_STATE
+
     mainframe->Show(true);
 
     obj_list()->set_min_height();
