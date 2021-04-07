@@ -132,7 +132,8 @@ SLAImportJob::~SLAImportJob() = default;
 void SLAImportJob::process()
 {
     auto progr = [this](int s) {
-        if (s < 100) update_status(int(s), _(L("Importing SLA archive")));
+        if (s < 100)
+            update_status(int(s), _(L("Importing SLA archive")));
         return !was_canceled();
     };
     
