@@ -242,6 +242,9 @@ public:
     // For the memory statistics. 
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
     void clear_undo_redo_stack_main();
+#if ENABLE_PROJECT_DIRTY_STATE
+    const Slic3r::UndoRedo::Stack& undo_redo_stack_active() const;
+#endif // ENABLE_PROJECT_DIRTY_STATE
     // Enter / leave the Gizmos specific Undo / Redo stack. To be used by the SLA support point editing gizmo.
     void enter_gizmos_stack();
     void leave_gizmos_stack();

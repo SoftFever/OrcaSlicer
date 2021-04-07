@@ -6190,6 +6190,9 @@ bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
+#if ENABLE_PROJECT_DIRTY_STATE
+const UndoRedo::Stack& Plater::undo_redo_stack_active() const { return p->undo_redo_stack(); }
+#endif // ENABLE_PROJECT_DIRTY_STATE
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }
