@@ -178,7 +178,7 @@ void SLAImportJob::prepare()
     if (dlg.ShowModal() == wxID_OK) {
         auto path = dlg.get_path();
         auto nm = wxFileName(path);
-        p->path = !nm.Exists(wxFILE_EXISTS_REGULAR) ? "" : path.ToUTF8();
+        p->path = !nm.Exists(wxFILE_EXISTS_REGULAR) ? "" : nm.GetFullPath();
         p->sel  = dlg.get_selection();
         p->win  = dlg.get_marchsq_windowsize();
     } else {
