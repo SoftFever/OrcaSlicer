@@ -87,7 +87,7 @@ PNGBuffer read_png(const mz_zip_archive_file_stat &entry,
 }
 
 ArchiveData extract_sla_archive(const std::string &zipfname,
-                                 const std::string &exclude)
+                                const std::string &exclude)
 {
     ArchiveData arch;
 

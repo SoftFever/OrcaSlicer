@@ -29,9 +29,10 @@ namespace Slic3r { namespace GUI {
 class Job : public wxEvtHandler
 {
     int               m_range = 100;
+    int               m_thread_evt_id = wxID_ANY;
     boost::thread     m_thread;
     std::atomic<bool> m_running{false}, m_canceled{false};
-    bool              m_finalized = false;
+    bool              m_finalized = false, m_finalizing = false;
     std::shared_ptr<ProgressIndicator> m_progress;
     std::exception_ptr                 m_worker_error = nullptr;
     
