@@ -29,7 +29,7 @@ static const UndoRedo::Snapshot* get_active_snapshot(const UndoRedo::Stack& stac
     const size_t active_snapshot_time = stack.active_snapshot_time();
     const auto it = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(active_snapshot_time));
     const int idx = it - snapshots.begin() - 1;
-    const Slic3r::UndoRedo::Snapshot* ret = (0 < idx && (size_t)idx < snapshots.size() - 1) ?
+    const Slic3r::UndoRedo::Snapshot* ret = (0 <= idx && (size_t)idx < snapshots.size() - 1) ?
         &snapshots[idx] : nullptr;
 
     assert(ret != nullptr);
@@ -39,7 +39,9 @@ static const UndoRedo::Snapshot* get_active_snapshot(const UndoRedo::Stack& stac
 
 static const UndoRedo::Snapshot* get_last_valid_snapshot(EStackType type, const UndoRedo::Stack& stack) {
     auto skip_main = [](const UndoRedo::Snapshot& snapshot) {
-        return boost::starts_with(snapshot.name, _utf8("Selection"));
+        return boost::starts_with(snapshot.name, _utf8("Selection")) ||
+            boost::starts_with(snapshot.name, _utf8("Entering")) ||
+            boost::starts_with(snapshot.name, _utf8("Leaving"));
     };
 
     const UndoRedo::Snapshot* snapshot = get_active_snapshot(stack);
@@ -90,15 +92,12 @@ void ProjectDirtyStateManager::reset_after_save()
         const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(main_stack);
         const UndoRedo::Snapshot* valid_snapshot = get_last_valid_snapshot(EStackType::Main, main_stack);
 
-//        std::cout << "SAVE - active: " << active_snapshot->timestamp << " - " << active_snapshot->name << "\n";
-//        std::cout << "SAVE - valid: " << valid_snapshot->timestamp << " - " << valid_snapshot->name << "\n";
-
         m_last_save.main = valid_snapshot->timestamp;
     }
     else {
         const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(active_stack);
+        const UndoRedo::Snapshot* valid_snapshot = get_last_valid_snapshot(EStackType::Main, main_stack);
 
-//        std::cout << "SAVE - active: " << active_snapshot->timestamp << " - " << active_snapshot->name << "\n";
     }
 
     wxGetApp().mainframe->update_title();
@@ -147,18 +146,12 @@ void ProjectDirtyStateManager::update_from_undo_redo_main_stack(const Slic3r::Un
     m_state.plater = false;
 
     const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(stack);
-
-//    std::cout << "UPDATE - active: " << active_snapshot->timestamp << " - " << active_snapshot->name << "\n";
-
     if (active_snapshot->name == _utf8("New Project") ||
         active_snapshot->name == _utf8("Reset Project") ||
         boost::starts_with(active_snapshot->name, _utf8("Load Project:")))
         return;
 
     const UndoRedo::Snapshot* valid_snapshot = get_last_valid_snapshot(EStackType::Main, stack);
-
-//    std::cout << "UPDATE - valid: " << valid_snapshot->timestamp << " - " << valid_snapshot->name << "\n";
-
     m_state.plater = valid_snapshot->timestamp != m_last_save.main;
 }
 
@@ -167,9 +160,6 @@ void ProjectDirtyStateManager::update_from_undo_redo_gizmo_stack(const Slic3r::U
     m_state.current_gizmo = false;
 
     const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(stack);
-
-//    std::cout << "UPDATE - active: " << active_snapshot->timestamp << " - " << active_snapshot->name << "\n";
-
     if (active_snapshot->name == "Gizmos-Initial")
         return;
 
