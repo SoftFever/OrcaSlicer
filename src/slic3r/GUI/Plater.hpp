@@ -258,7 +258,7 @@ public:
     BoundingBoxf bed_shape_bb() const;
     
     void arrange();
-    void find_new_position(const ModelInstancePtrs  &instances, coord_t min_d);
+    void find_new_position(const ModelInstancePtrs  &instances);
 
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();
