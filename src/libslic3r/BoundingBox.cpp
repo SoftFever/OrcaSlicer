@@ -225,24 +225,11 @@ BoundingBox3Base<PointClass>::max_size() const
 template coordf_t BoundingBox3Base<Vec3f>::max_size() const;
 template coordf_t BoundingBox3Base<Vec3d>::max_size() const;
 
-// Align a coordinate to a grid. The coordinate may be negative,
-// the aligned value will never be bigger than the original one.
-static inline coord_t _align_to_grid(const coord_t coord, const coord_t spacing) {
-    // Current C++ standard defines the result of integer division to be rounded to zero,
-    // for both positive and negative numbers. Here we want to round down for negative
-    // numbers as well.
-    coord_t aligned = (coord < 0) ?
-            ((coord - spacing + 1) / spacing) * spacing :
-            (coord / spacing) * spacing;
-    assert(aligned <= coord);
-    return aligned;
-}
-
 void BoundingBox::align_to_grid(const coord_t cell_size)
 {
     if (this->defined) {
-        min(0) = _align_to_grid(min(0), cell_size);
-        min(1) = _align_to_grid(min(1), cell_size);
+        min(0) = Slic3r::align_to_grid(min(0), cell_size);
+        min(1) = Slic3r::align_to_grid(min(1), cell_size);
     }
 }
 

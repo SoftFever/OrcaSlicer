@@ -133,26 +133,10 @@ public:
     static void connect_infill(Polylines &&infill_ordered, const Polygons &boundary, const BoundingBox& bbox, Polylines &polylines_out, const double spacing, const FillParams &params);
     static void connect_infill(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary, const BoundingBox &bbox, Polylines &polylines_out, double spacing, const FillParams &params);
 
-    static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
+    static void connect_base_support(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary_src, const BoundingBox &bbox, Polylines &polylines_out, const double spacing, const FillParams &params);
+    static void connect_base_support(Polylines &&infill_ordered, const Polygons &boundary_src, const BoundingBox &bbox, Polylines &polylines_out, const double spacing, const FillParams &params);
 
-    // Align a coordinate to a grid. The coordinate may be negative,
-    // the aligned value will never be bigger than the original one.
-    static coord_t _align_to_grid(const coord_t coord, const coord_t spacing) {
-        // Current C++ standard defines the result of integer division to be rounded to zero,
-        // for both positive and negative numbers. Here we want to round down for negative
-        // numbers as well.
-        coord_t aligned = (coord < 0) ?
-        		((coord - spacing + 1) / spacing) * spacing :
-        		(coord / spacing) * spacing;
-        assert(aligned <= coord);
-        return aligned;
-    }
-    static Point   _align_to_grid(Point   coord, Point   spacing) 
-        { return Point(_align_to_grid(coord(0), spacing(0)), _align_to_grid(coord(1), spacing(1))); }
-    static coord_t _align_to_grid(coord_t coord, coord_t spacing, coord_t base) 
-        { return base + _align_to_grid(coord - base, spacing); }
-    static Point   _align_to_grid(Point   coord, Point   spacing, Point   base)
-        { return Point(_align_to_grid(coord(0), spacing(0), base(0)), _align_to_grid(coord(1), spacing(1), base(1))); }
+    static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
 };
 
 } // namespace Slic3r

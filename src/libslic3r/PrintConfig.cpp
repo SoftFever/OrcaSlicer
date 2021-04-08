@@ -1814,8 +1814,8 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support material");
     def->tooltip = L("Density of the first raft or support layer.");
     def->sidetext = L("%");
-    def->min = 0;
-    def->max = 150;
+    def->min = 10;
+    def->max = 100;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionPercent(90));
 

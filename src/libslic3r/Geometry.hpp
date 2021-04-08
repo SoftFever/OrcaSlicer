@@ -299,20 +299,23 @@ bool liang_barsky_line_clipping(
 
 // Ugly named variant, that accepts the squared line 
 // Don't call me with a nearly zero length vector!
+// sympy: 
+// factor(solve([a * x + b * y + c, x**2 + y**2 - r**2], [x, y])[0])
+// factor(solve([a * x + b * y + c, x**2 + y**2 - r**2], [x, y])[1])
 template<typename T>
 int ray_circle_intersections_r2_lv2_c(T r2, T a, T b, T lv2, T c, std::pair<Eigen::Matrix<T, 2, 1, Eigen::DontAlign>, Eigen::Matrix<T, 2, 1, Eigen::DontAlign>> &out)
 {
-    T x0 = - a * c / lv2;
-    T y0 = - b * c / lv2;
-    T d = r2 - c * c / lv2;
-    if (d < T(0))
+    T x0 = - a * c;
+    T y0 = - b * c;
+    T d2 = r2 * lv2 - c * c;
+    if (d2 < T(0))
         return 0;
-    T mult = sqrt(d / lv2);
-    out.first.x() = x0 + b * mult;
-    out.first.y() = y0 - a * mult;
-    out.second.x() = x0 - b * mult;
-    out.second.y() = y0 + a * mult;
-    return mult == T(0) ? 1 : 2;
+    T d = sqrt(d2);
+    out.first.x() = (x0 + b * d) / lv2;
+    out.first.y() = (y0 - a * d) / lv2;
+    out.second.x() = (x0 - b * d) / lv2;
+    out.second.y() = (y0 + a * d) / lv2;
+    return d == T(0) ? 1 : 2;
 }
 template<typename T>
 int ray_circle_intersections(T r, T a, T b, T c, std::pair<Eigen::Matrix<T, 2, 1, Eigen::DontAlign>, Eigen::Matrix<T, 2, 1, Eigen::DontAlign>> &out)

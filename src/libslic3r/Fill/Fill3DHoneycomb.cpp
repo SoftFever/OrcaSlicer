@@ -147,7 +147,7 @@ void Fill3DHoneycomb::_fill_surface_single(
     // align bounding box to a multiple of our honeycomb grid module
     // (a module is 2*$distance since one $distance half-module is 
     // growing while the other $distance half-module is shrinking)
-    bb.merge(_align_to_grid(bb.min, Point(2*distance, 2*distance)));
+    bb.merge(align_to_grid(bb.min, Point(2*distance, 2*distance)));
     
     // generate pattern
     Polylines   polylines = makeGrid(

@@ -31,7 +31,7 @@ void FillLine::_fill_surface_single(
     } else {
         // extend bounding box so that our pattern will be aligned with other layers
         // Transform the reference point to the rotated coordinate system.
-        bounding_box.merge(_align_to_grid(
+        bounding_box.merge(align_to_grid(
             bounding_box.min, 
             Point(this->_line_spacing, this->_line_spacing), 
             direction.second.rotated(- direction.first)));

@@ -1607,7 +1607,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         height   = layer.lower_layer->height;
         bottom_z = (layer_id == 1) ? slicing_params.object_print_z_min : layer.lower_layer->lower_layer->print_z;
     } else {
-        print_z  = layer.bottom_z() - slicing_params.gap_object_support;
+        print_z  = layer.bottom_z() - slicing_params.gap_support_object;
         bottom_z = print_z;
         height   = 0.;
         // Ignore this contact area if it's too low.
@@ -3166,7 +3166,7 @@ static inline void fill_expolygons_with_sheath_generate_paths(
         extrusion_entities_append_paths(out, polylines, erSupportMaterial, flow.mm3_per_mm(), flow.width(), flow.height());
         // Fill in the rest.
         fill_expolygons_generate_paths(out, offset_ex(expoly, float(-0.4 * spacing)), filler, fill_params, density, role, flow);
-        if (no_sort)
+        if (no_sort && ! eec->empty())
             dst.emplace_back(eec.release());
     }
 }
@@ -3174,8 +3174,13 @@ static inline void fill_expolygons_with_sheath_generate_paths(
 // Support layers, partially processed.
 struct MyLayerExtruded
 {
-    MyLayerExtruded() : layer(nullptr), m_polygons_to_extrude(nullptr) {}
-    ~MyLayerExtruded() { delete m_polygons_to_extrude; m_polygons_to_extrude = nullptr; }
+    MyLayerExtruded& operator=(MyLayerExtruded &&rhs) {
+        this->layer = rhs.layer;
+        this->extrusions = std::move(rhs.extrusions);
+        this->m_polygons_to_extrude = std::move(m_polygons_to_extrude);
+        rhs.layer = nullptr;
+        return *this;
+    }
 
     bool empty() const {
         return layer == nullptr || layer->polygons.empty();
@@ -3183,7 +3188,7 @@ struct MyLayerExtruded
 
     void set_polygons_to_extrude(Polygons &&polygons) { 
         if (m_polygons_to_extrude == nullptr) 
-            m_polygons_to_extrude = new Polygons(std::move(polygons)); 
+            m_polygons_to_extrude = std::make_unique<Polygons>(std::move(polygons));
         else
             *m_polygons_to_extrude = std::move(polygons);
     }
@@ -3204,12 +3209,11 @@ struct MyLayerExtruded
             if (m_polygons_to_extrude == nullptr) {
                 // This layer has no extrusions generated yet, if it has no m_polygons_to_extrude (its area to extrude was not reduced yet).
                 assert(this->extrusions.empty());
-                m_polygons_to_extrude = new Polygons(this->layer->polygons);
+                m_polygons_to_extrude = std::make_unique<Polygons>(this->layer->polygons);
             }
             Slic3r::polygons_append(*m_polygons_to_extrude, std::move(*other.m_polygons_to_extrude));
             *m_polygons_to_extrude = union_(*m_polygons_to_extrude, true);
-            delete other.m_polygons_to_extrude;
-            other.m_polygons_to_extrude = nullptr;
+            other.m_polygons_to_extrude.reset();
         } else if (m_polygons_to_extrude != nullptr) {
             assert(other.m_polygons_to_extrude == nullptr);
             // The other layer has no extrusions generated yet, if it has no m_polygons_to_extrude (its area to extrude was not reduced yet).
@@ -3232,12 +3236,14 @@ struct MyLayerExtruded
     }
 
     // The source layer. It carries the height and extrusion type (bridging / non bridging, extrusion height).
-    PrintObjectSupportMaterial::MyLayer  *layer;
+    PrintObjectSupportMaterial::MyLayer  *layer { nullptr };
     // Collect extrusions. They will be exported sorted by the bottom height.
     ExtrusionEntitiesPtr                  extrusions;
+
+private:
     // In case the extrusions are non-empty, m_polygons_to_extrude may contain the rest areas yet to be filled by additional support.
     // This is useful mainly for the loop interfaces, which are generated before the zig-zag infills.
-    Polygons                             *m_polygons_to_extrude;
+    std::unique_ptr<Polygons>             m_polygons_to_extrude;
 };
 
 typedef std::vector<MyLayerExtruded*> MyLayerExtrudedPtrs;
@@ -3763,7 +3769,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     // Prepare fillers.
     SupportMaterialPattern  support_pattern = m_object_config->support_material_pattern;
     bool                    with_sheath     = m_object_config->support_material_with_sheath;
-    InfillPattern           infill_pattern = (support_pattern == smpHoneycomb ? ipHoneycomb : ipRectilinear);
+    InfillPattern           infill_pattern = (support_pattern == smpHoneycomb ? ipHoneycomb : ipSupportBase);
     std::vector<float>      angles;
     angles.push_back(base_angle);
 
@@ -3900,7 +3906,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             std::stable_sort(this->nonempty.begin(), this->nonempty.end(), [](const LayerCacheItem &lc1, const LayerCacheItem &lc2) { return lc1.layer_extruded->layer->height > lc2.layer_extruded->layer->height; });
         }
     };
-    std::vector<LayerCache>             layer_caches(support_layers.size(), LayerCache());
+    std::vector<LayerCache>             layer_caches(support_layers.size());
 
 
     const auto fill_type_interface  = 
@@ -4152,6 +4158,27 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             }
         }
     });
+
+#ifndef NDEBUG
+    struct Test {
+        static bool verify_nonempty(const ExtrusionEntityCollection *collection) {
+            for (const ExtrusionEntity *ee : collection->entities) {
+                if (const ExtrusionPath *path = dynamic_cast<const ExtrusionPath*>(ee))
+                    assert(! path->empty());
+                else if (const ExtrusionMultiPath *multipath = dynamic_cast<const ExtrusionMultiPath*>(ee))
+                    assert(! multipath->empty());
+                else if (const ExtrusionEntityCollection *eecol = dynamic_cast<const ExtrusionEntityCollection*>(ee)) {
+                    assert(! eecol->empty());
+                    return verify_nonempty(eecol);
+                } else
+                    assert(false);
+            }
+            return true;
+        }
+    };
+    for (const SupportLayer *support_layer : support_layers)
+    assert(Test::verify_nonempty(&support_layer->support_fills));
+#endif // NDEBUG
 }
 
 /*
