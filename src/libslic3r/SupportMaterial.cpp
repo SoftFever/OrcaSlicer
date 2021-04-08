@@ -2898,9 +2898,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
             //FIXME misusing contact_polygons for support columns.
             new_layer.contact_polygons = std::make_unique<Polygons>(columns);
         }
-    } else if (columns_base != nullptr) {
+    } else {
+        if (columns_base != nullptr) {
         // Expand the bases of the support columns in the 1st layer.
-        {
             Polygons &raft     = columns_base->polygons;
             Polygons  trimming = offset(m_object->layers().front()->lslices, (float)scale_(m_support_params.gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS);
             if (inflate_factor_1st_layer > SCALED_EPSILON) {
@@ -2911,11 +2911,12 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
                     raft = diff(offset(raft, step), trimming);
             } else
                 raft = diff(raft, trimming);
+            if (contacts != nullptr)
+                columns_base->polygons = diff(columns_base->polygons, interface_polygons);
         }
-        if (contacts != nullptr)
-            columns_base->polygons = diff(columns_base->polygons, interface_polygons);
         if (! brim.empty()) {
-            columns_base->polygons = diff(columns_base->polygons, brim);
+            if (columns_base)
+                columns_base->polygons = diff(columns_base->polygons, brim);
             if (contacts)
                 contacts->polygons = diff(contacts->polygons, brim);
             if (interfaces)
