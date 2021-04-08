@@ -1093,7 +1093,8 @@ void SLAPrint::Steps::rasterize()
     if(canceled()) return;
 
     // Print all the layers in parallel
-    m_print->m_printer->draw_layers(m_print->m_printer_input.size(), lvlfn);
+    m_print->m_printer->draw_layers(m_print->m_printer_input.size(), lvlfn,
+                                    [this]() { return canceled(); }, ex_tbb);
 }
 
 std::string SLAPrint::Steps::label(SLAPrintObjectStep step)
