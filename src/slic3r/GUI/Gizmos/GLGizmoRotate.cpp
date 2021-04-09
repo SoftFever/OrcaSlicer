@@ -30,7 +30,6 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent, "", -1)
     , m_axis(axis)
     , m_angle(0.0)
-    , m_quadric(nullptr)
     , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
     , m_snap_coarse_in_radius(0.0f)
@@ -44,7 +43,6 @@ GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
     : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
-    , m_quadric(nullptr)
     , m_center(other.m_center)
     , m_radius(other.m_radius)
     , m_snap_coarse_in_radius(other.m_snap_coarse_in_radius)
@@ -52,9 +50,6 @@ GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
     , m_snap_fine_in_radius(other.m_snap_fine_in_radius)
     , m_snap_fine_out_radius(other.m_snap_fine_out_radius)
 {
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 }
 
 
@@ -329,9 +324,6 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-    if (m_quadric == nullptr)
-        return;
-
     float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
     double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 

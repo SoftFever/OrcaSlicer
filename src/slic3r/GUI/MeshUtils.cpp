@@ -9,6 +9,8 @@
 
 #include <GL/glew.h>
 
+#include <igl/unproject.h>
+
 
 namespace Slic3r {
 namespace GUI {
@@ -122,14 +124,16 @@ Vec3f MeshRaycaster::get_triangle_normal(size_t facet_idx) const
 void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
                                         Vec3d& point, Vec3d& direction) const
 {
-    const std::array<int, 4>& viewport = camera.get_viewport();
-    const Transform3d& model_mat = camera.get_view_matrix();
-    const Transform3d& proj_mat = camera.get_projection_matrix();
+    Matrix4d modelview = camera.get_view_matrix().matrix();
+    Matrix4d projection= camera.get_projection_matrix().matrix();
+    Vec4i viewport(camera.get_viewport().data());
 
     Vec3d pt1;
     Vec3d pt2;
-    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 0., model_mat.data(), proj_mat.data(), viewport.data(), &pt1(0), &pt1(1), &pt1(2));
-    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 1., model_mat.data(), proj_mat.data(), viewport.data(), &pt2(0), &pt2(1), &pt2(2));
+    igl::unproject(Vec3d(mouse_pos(0), viewport[3] - mouse_pos(1), 0.),
+                   modelview, projection, viewport, pt1);
+    igl::unproject(Vec3d(mouse_pos(0), viewport[3] - mouse_pos(1), 1.),
+                   modelview, projection, viewport, pt2);
 
     Transform3d inv = trafo.inverse();
     pt1 = inv * pt1;
