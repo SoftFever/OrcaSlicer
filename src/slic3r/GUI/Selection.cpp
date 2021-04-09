@@ -115,20 +115,8 @@ Selection::Selection()
     , m_scale_factor(1.0f)
 {
     this->set_bounding_boxes_dirty();
-#if ENABLE_RENDER_SELECTION_CENTER
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
-#endif // ENABLE_RENDER_SELECTION_CENTER
 }
 
-#if ENABLE_RENDER_SELECTION_CENTER
-Selection::~Selection()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
-}
-#endif // ENABLE_RENDER_SELECTION_CENTER
 
 void Selection::set_volumes(GLVolumePtrs* volumes)
 {
@@ -141,6 +129,11 @@ bool Selection::init()
 {
     m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
+
+#if ENABLE_RENDER_SELECTION_CENTER
+    m_vbo_sphere.init_from(make_sphere(0.75, 2*PI/24));
+#endif // ENABLE_RENDER_SELECTION_CENTER
+
     return true;
 }
 
@@ -1177,6 +1170,7 @@ void Selection::render(float scale_factor) const
 void Selection::render_center(bool gizmo_is_dragging) const
 {
     if (!m_valid || is_empty() || m_quadric == nullptr)
+    if (!m_valid || is_empty())
         return;
 
     const Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
@@ -1188,7 +1182,7 @@ void Selection::render_center(bool gizmo_is_dragging) const
     glsafe(::glColor3f(1.0f, 1.0f, 1.0f));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(center(0), center(1), center(2)));
-    glsafe(::gluSphere(m_quadric, 0.75, 32, 32));
+    m_vbo_sphere.render();
     glsafe(::glPopMatrix());
 
     glsafe(::glDisable(GL_LIGHTING));
