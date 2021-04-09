@@ -2187,7 +2187,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     }
 
-    if (type == EMoveType::Extrude && (m_extrusion_role == erCustom || m_width == 0.0f || m_height == 0.0f))
+    if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f))
         type = EMoveType::Travel;
 
     // time estimate section
