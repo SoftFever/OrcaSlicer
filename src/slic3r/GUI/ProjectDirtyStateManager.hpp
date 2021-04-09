@@ -18,16 +18,18 @@ class ProjectDirtyStateManager
         bool plater{ false };
         bool presets{ false };
         bool current_gizmo{ false };
+        std::vector<std::string> gizmos;
 
-        bool is_dirty() const { return plater || presets || current_gizmo; }
+        bool is_dirty() const { return plater || presets || current_gizmo || !gizmos.empty(); }
         void reset() {
             plater = false;
             presets = false;
             current_gizmo = false;
+            gizmos.clear();
         }
     };
 
-    struct Timestamps
+    struct LastSaveTimestamps
     {
         size_t main{ 0 };
         size_t gizmo{ 0 };
@@ -39,7 +41,7 @@ class ProjectDirtyStateManager
     };
 
     DirtyState m_state;
-    Timestamps m_last_save;
+    LastSaveTimestamps m_last_save;
 
     // keeps track of initial selected presets
     std::array<std::string, Preset::TYPE_COUNT> m_initial_presets;
