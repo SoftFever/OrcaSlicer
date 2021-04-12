@@ -672,6 +672,7 @@ struct SupportGridParams {
         grid_resolution(object_config.support_material_spacing.value + support_material_flow.spacing()),
         support_angle(Geometry::deg2rad(object_config.support_material_angle.value)),
         extrusion_width(support_material_flow.spacing()),
+        support_material_closing_radius(object_config.support_material_closing_radius.value),
         expansion_to_slice(coord_t(support_material_flow.scaled_spacing() / 2 + 5)),
         expansion_to_propagate(-3) {}
 
@@ -679,6 +680,7 @@ struct SupportGridParams {
     double                  grid_resolution;
     double                  support_angle;
     double                  extrusion_width;
+    double                  support_material_closing_radius;
     coord_t                 expansion_to_slice;
     coord_t                 expansion_to_propagate;
 };
@@ -694,7 +696,9 @@ public:
         const SupportGridParams &params) :
         m_style(params.style),
         m_support_polygons(support_polygons), m_trimming_polygons(trimming_polygons),
-        m_support_spacing(params.grid_resolution), m_support_angle(params.support_angle)
+        m_support_spacing(params.grid_resolution), m_support_angle(params.support_angle),
+        m_extrusion_width(params.extrusion_width),
+        m_support_material_closing_radius(params.support_material_closing_radius)
     {
         switch (m_style) {
         case smsGrid:
@@ -878,9 +882,10 @@ public:
             return out;
         }
         case smsSnug:
-            // Just close the gaps.
-            float thr = scaled<float>(0.5);
-            return smooth_outward(offset(offset_ex(*m_support_polygons, thr), - thr), thr);
+            // Merge the support polygons by applying morphological closing and inwards smoothing.
+            auto closing_distance   = scaled<float>(m_support_material_closing_radius);
+            auto smoothing_distance = scaled<float>(m_extrusion_width);
+            return smooth_outward(offset(offset_ex(*m_support_polygons, closing_distance), - closing_distance), smoothing_distance);
         }
         assert(false);
         return Polygons();
@@ -1128,6 +1133,9 @@ private:
     coordf_t                m_support_angle;
     // X spacing of the support lines parallel with the Y axis.
     coordf_t                m_support_spacing;
+    coordf_t                m_extrusion_width;
+    // For snug supports: Morphological closing of support areas.
+    coordf_t                m_support_material_closing_radius;
 
 #ifdef SUPPORT_USE_AGG_RASTERIZER
     Vec2i                       m_grid_size;

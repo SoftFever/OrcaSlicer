@@ -530,6 +530,8 @@ public:
     ConfigOptionFloatOrPercent      support_material_interface_speed;
     ConfigOptionEnum<SupportMaterialPattern> support_material_pattern;
     ConfigOptionEnum<SupportMaterialInterfacePattern> support_material_interface_pattern;
+    // Morphological closing of support areas. Only used for "sung" supports.
+    ConfigOptionFloat               support_material_closing_radius;
     // Spacing between support material lines (the hatching distance).
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
@@ -579,6 +581,7 @@ protected:
         OPT_PTR(support_material_interface_extruder);
         OPT_PTR(support_material_interface_layers);
         OPT_PTR(support_material_bottom_interface_layers);
+        OPT_PTR(support_material_closing_radius);
         OPT_PTR(support_material_interface_spacing);
         OPT_PTR(support_material_interface_speed);
         OPT_PTR(support_material_pattern);
