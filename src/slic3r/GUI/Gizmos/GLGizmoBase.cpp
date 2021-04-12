@@ -24,10 +24,7 @@ GLGizmoBase::Grabber::Grabber()
     , dragging(false)
     , enabled(true)
 {
-    color[0] = 1.0f;
-    color[1] = 1.0f;
-    color[2] = 1.0f;
-    color[3] = 1.0f;
+    color = { 1.0f, 1.0f, 1.0f, 1.0f };
     TriangleMesh cube = make_cube(1., 1., 1.);
     cube.translate(Vec3f(-0.5, -0.5, -0.5));
     VBOCube.init_from(cube);
@@ -35,18 +32,18 @@ GLGizmoBase::Grabber::Grabber()
 
 void GLGizmoBase::Grabber::render(bool hover, float size) const
 {
-    float render_color[4];
+    std::array<float, 4> render_color;
     if (hover)
     {
-        render_color[0] = 1.0f - color[0];
-        render_color[1] = 1.0f - color[1];
-        render_color[2] = 1.0f - color[2];
+        render_color[0] = (1.0f - color[0]);
+        render_color[1] = (1.0f - color[1]);
+        render_color[2] = (1.0f - color[2]);
         render_color[3] = color[3];
     }
     else
-        ::memcpy((void*)render_color, (const void*)color, 4 * sizeof(float));
+        render_color = color;
 
-    render(size, render_color, true);
+    render(size, render_color, false);
 }
 
 float GLGizmoBase::Grabber::get_half_size(float size) const
@@ -59,14 +56,18 @@ float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
     return get_half_size(size) * DraggingScaleFactor;
 }
 
-void GLGizmoBase::Grabber::render(float size, const float* render_color, bool use_lighting) const
+void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render_color, bool picking) const
 {
     float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
 
-    if (use_lighting)
+    if (! picking)
         glsafe(::glEnable(GL_LIGHTING));
 
-    glsafe(::glColor4fv(render_color));
+    GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_current_shader();
+    if (shader)
+        shader->set_uniform("uniform_color", render_color);
+    else
+        glsafe(::glColor4fv(render_color.data())); // picking
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(center(0), center(1), center(2)));
@@ -77,7 +78,7 @@ void GLGizmoBase::Grabber::render(float size, const float* render_color, bool us
     VBOCube.render();
     glsafe(::glPopMatrix());
 
-    if (use_lighting)
+    if (! picking)
         glsafe(::glDisable(GL_LIGHTING));
 }
 
@@ -188,11 +189,18 @@ void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 
 void GLGizmoBase::render_grabbers(float size) const
 {
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    if (! shader)
+        return;
+    shader->start_using();
+    shader->set_uniform("emission_factor", 0.1);
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
         if (m_grabbers[i].enabled)
             m_grabbers[i].render((m_hover_id == i), size);
     }
+    shader->set_uniform("emission_factor", 0.);
+    shader->stop_using();
 }
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
@@ -204,10 +212,7 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
         if (m_grabbers[i].enabled)
         {
             std::array<float, 4> color = picking_color_component(i);
-            m_grabbers[i].color[0] = color[0];
-            m_grabbers[i].color[1] = color[1];
-            m_grabbers[i].color[2] = color[2];
-            m_grabbers[i].color[3] = color[3];
+            m_grabbers[i].color = color;
             m_grabbers[i].render_for_picking(mean_size);
         }
     }

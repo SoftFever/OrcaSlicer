@@ -121,7 +121,12 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_shader("gouraud_light");
     if (shader)
         shader->start_using();
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+    ScopeGuard guard([shader]() {
+        if (shader) {
+            shader->set_uniform("emission_factor", 0.);
+            shader->stop_using();
+        }
+    });
 
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
@@ -162,8 +167,10 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
                     render_color = { 0.5f, 0.5f, 0.5f, 1.f };
             }
         }
-        if (shader && ! picking)
+        if (shader && ! picking) {
             shader->set_uniform("uniform_color", render_color);
+            shader->set_uniform("emission_factor", 0.5);
+        }
         else // picking
             glsafe(::glColor4fv(render_color.data()));
 
@@ -219,8 +226,10 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[1] = 0.7f;
         render_color[2] = 0.7f;
         render_color[3] = 0.7f;
-        if (shader)
+        if (shader) {
             shader->set_uniform("uniform_color", render_color);
+            shader->set_uniform("emission_factor", 0.5);
+        }
         for (const sla::DrainHole& drain_hole : m_c->selection_info()->model_object()->sla_drain_holes) {
             if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
                 continue;

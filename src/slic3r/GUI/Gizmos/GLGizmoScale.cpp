@@ -173,20 +173,20 @@ void GLGizmoScale3D::on_render() const
     // x axis
     m_grabbers[0].center = m_transform * Vec3d(m_box.min(0), center(1), center(2)) - offset_x;
     m_grabbers[1].center = m_transform * Vec3d(m_box.max(0), center(1), center(2)) + offset_x;
-    ::memcpy((void*)m_grabbers[0].color, (ctrl_down && (m_hover_id == 1)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 4 * sizeof(float));
-    ::memcpy((void*)m_grabbers[1].color, (ctrl_down && (m_hover_id == 0)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color.data(), (ctrl_down && (m_hover_id == 1)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[1].color.data(), (ctrl_down && (m_hover_id == 0)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 4 * sizeof(float));
 
     // y axis
     m_grabbers[2].center = m_transform * Vec3d(center(0), m_box.min(1), center(2)) - offset_y;
     m_grabbers[3].center = m_transform * Vec3d(center(0), m_box.max(1), center(2)) + offset_y;
-    ::memcpy((void*)m_grabbers[2].color, (ctrl_down && (m_hover_id == 3)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 4 * sizeof(float));
-    ::memcpy((void*)m_grabbers[3].color, (ctrl_down && (m_hover_id == 2)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[2].color.data(), (ctrl_down && (m_hover_id == 3)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[3].color.data(), (ctrl_down && (m_hover_id == 2)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 4 * sizeof(float));
 
     // z axis
     m_grabbers[4].center = m_transform * Vec3d(center(0), center(1), m_box.min(2)) - offset_z;
     m_grabbers[5].center = m_transform * Vec3d(center(0), center(1), m_box.max(2)) + offset_z;
-    ::memcpy((void*)m_grabbers[4].color, (ctrl_down && (m_hover_id == 5)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 4 * sizeof(float));
-    ::memcpy((void*)m_grabbers[5].color, (ctrl_down && (m_hover_id == 4)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[4].color.data(), (ctrl_down && (m_hover_id == 5)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[5].color.data(), (ctrl_down && (m_hover_id == 4)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 4 * sizeof(float));
 
     // uniform
     m_grabbers[6].center = m_transform * Vec3d(m_box.min(0), m_box.min(1), center(2)) - offset_x - offset_y;
@@ -195,7 +195,7 @@ void GLGizmoScale3D::on_render() const
     m_grabbers[9].center = m_transform * Vec3d(m_box.min(0), m_box.max(1), center(2)) - offset_x + offset_y;
     for (int i = 6; i < 10; ++i)
     {
-        ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 4 * sizeof(float));
+        ::memcpy((void*)m_grabbers[i].color.data(), (const void*)m_highlight_color, 4 * sizeof(float));
     }
 
     // sets grabbers orientation
@@ -215,17 +215,17 @@ void GLGizmoScale3D::on_render() const
         // draw connections
         if (m_grabbers[0].enabled && m_grabbers[1].enabled)
         {
-            glsafe(::glColor4fv(m_grabbers[0].color));
+            glsafe(::glColor4fv(m_grabbers[0].color.data()));
             render_grabbers_connection(0, 1);
         }
         if (m_grabbers[2].enabled && m_grabbers[3].enabled)
         {
-            glsafe(::glColor4fv(m_grabbers[2].color));
+            glsafe(::glColor4fv(m_grabbers[2].color.data()));
             render_grabbers_connection(2, 3);
         }
         if (m_grabbers[4].enabled && m_grabbers[5].enabled)
         {
-            glsafe(::glColor4fv(m_grabbers[4].color));
+            glsafe(::glColor4fv(m_grabbers[4].color.data()));
             render_grabbers_connection(4, 5);
         }
         glsafe(::glColor4fv(m_base_color));
@@ -239,7 +239,7 @@ void GLGizmoScale3D::on_render() const
     else if ((m_hover_id == 0) || (m_hover_id == 1))
     {
         // draw connection
-        glsafe(::glColor4fv(m_grabbers[0].color));
+        glsafe(::glColor4fv(m_grabbers[0].color.data()));
         render_grabbers_connection(0, 1);
         // draw grabbers
         m_grabbers[0].render(true, grabber_mean_size);
@@ -248,7 +248,7 @@ void GLGizmoScale3D::on_render() const
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
         // draw connection
-        glsafe(::glColor4fv(m_grabbers[2].color));
+        glsafe(::glColor4fv(m_grabbers[2].color.data()));
         render_grabbers_connection(2, 3);
         // draw grabbers
         m_grabbers[2].render(true, grabber_mean_size);
@@ -257,7 +257,7 @@ void GLGizmoScale3D::on_render() const
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
         // draw connection
-        glsafe(::glColor4fv(m_grabbers[4].color));
+        glsafe(::glColor4fv(m_grabbers[4].color.data()));
         render_grabbers_connection(4, 5);
         // draw grabbers
         m_grabbers[4].render(true, grabber_mean_size);

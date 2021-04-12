@@ -318,7 +318,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
 
-    ::memcpy((void*)m_grabbers[0].color, (const void*)m_highlight_color, 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color.data(), (const void*)m_highlight_color, 4 * sizeof(float));
     render_grabbers(box);
 }
 
@@ -327,8 +327,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
     double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 
-    float color[4];
-    ::memcpy((void*)color, (const void*)m_grabbers[0].color, 4 * sizeof(float));
+    std::array<float, 4> color = m_grabbers[0].color;
     if (!picking && (m_hover_id != -1))
     {
         color[0] = 1.0f - color[0];
@@ -339,7 +338,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     if (!picking)
         glsafe(::glEnable(GL_LIGHTING));
 
-    glsafe(::glColor4fv(color));
+    glsafe(::glColor4fv(color.data()));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));

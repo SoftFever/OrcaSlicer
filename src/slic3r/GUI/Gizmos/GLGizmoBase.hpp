@@ -9,9 +9,6 @@
 #include <cereal/archives/binary.hpp>
 
 class wxWindow;
-class GLUquadric;
-typedef class GLUquadric GLUquadricObj;
-
 
 namespace Slic3r {
 
@@ -53,20 +50,20 @@ protected:
 
         Vec3d center;
         Vec3d angles;
-        float color[4];
+        std::array<float, 4> color;
         bool enabled;
         bool dragging;
 
         Grabber();
 
         void render(bool hover, float size) const;
-        void render_for_picking(float size) const { render(size, color, false); }
+        void render_for_picking(float size) const { render(size, color, true); }
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
 
     private:
-        void render(float size, const float* render_color, bool use_lighting) const;
+        void render(float size, const std::array<float, 4>& render_color, bool picking) const;
     };
 
 public:

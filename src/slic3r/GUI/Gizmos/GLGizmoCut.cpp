@@ -133,7 +133,7 @@ void GLGizmoCut::on_render() const
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
 
-    std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_grabbers[0].color);
+    m_grabbers[0].color = GrabberColor;
     m_grabbers[0].render(m_hover_id == 0, (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
 }
 
