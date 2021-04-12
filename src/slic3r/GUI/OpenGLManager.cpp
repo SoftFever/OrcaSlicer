@@ -252,7 +252,7 @@ bool OpenGLManager::init_gl()
         	message += _L("You may need to update your graphics card driver.");
 #ifdef _WIN32
             message += "\n";
-        	message += _L("As a workaround, you may run PrusaSlicer with a software rendered 3D graphics by running prusa-slicer.exe with the --sw_renderer parameter.");
+            message += _L("As a workaround, you may run PrusaSlicer with a software rendered 3D graphics by running prusa-slicer.exe with the --sw-renderer parameter.");
 #endif
         	wxMessageBox(message, wxString("PrusaSlicer - ") + _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);
         }
