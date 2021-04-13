@@ -40,7 +40,7 @@ void BridgeDetector::initialize()
     this->angle = -1.;
 
     // Outset our bridge by an arbitrary amout; we'll use this outer margin for detecting anchors.
-    Polygons grown = offset(to_polygons(this->expolygons), float(this->spacing));
+    Polygons grown = offset(this->expolygons, float(this->spacing));
     
     // Detect possible anchoring edges of this bridging region.
     // Detect what edges lie on lower slices by turning bridge contour and holes

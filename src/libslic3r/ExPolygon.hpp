@@ -217,6 +217,28 @@ inline Polygons to_polygons(const ExPolygons &src)
     return polygons;
 }
 
+inline ConstPolygonPtrs to_polygon_ptrs(const ExPolygon &src)
+{
+    ConstPolygonPtrs polygons;
+    polygons.reserve(src.holes.size() + 1);
+    polygons.emplace_back(&src.contour);
+    for (const Polygon &hole : src.holes)
+        polygons.emplace_back(&hole);
+    return polygons;
+}
+
+inline ConstPolygonPtrs to_polygon_ptrs(const ExPolygons &src)
+{
+    ConstPolygonPtrs polygons;
+    polygons.reserve(number_polygons(src));
+    for (const ExPolygon &expoly : src) {
+        polygons.emplace_back(&expoly.contour);
+        for (const Polygon &hole : expoly.holes)
+            polygons.emplace_back(&hole);
+    }
+    return polygons;
+}
+
 inline Polygons to_polygons(ExPolygon &&src)
 {
     Polygons polygons;
