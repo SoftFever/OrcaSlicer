@@ -57,6 +57,7 @@ err:
 }
 #endif /* CLIPPER_UTILS_DEBUG */
 
+#ifdef CLIPPERUTILS_OFFSET_SCALE
 void scaleClipperPolygon(ClipperLib::Path &polygon)
 {
     CLIPPERUTILS_PROFILE_FUNC();
@@ -98,6 +99,7 @@ void unscaleClipperPolygons(ClipperLib::Paths &polygons)
             pit->Y >>= CLIPPER_OFFSET_POWER_OF_2;
         }
 }
+#endif // CLIPPERUTILS_OFFSET_SCALE
 
 //-----------------------------------------------------------
 // legacy code from Clipper documentation
@@ -222,8 +224,10 @@ ClipperLib::Paths Slic3rMultiPoints_to_ClipperPaths(const Polylines &input)
 
 ClipperLib::Paths _offset(ClipperLib::Paths &&input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit)
 {
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     // scale input
     scaleClipperPolygons(input);
+#endif // CLIPPERUTILS_OFFSET_SCALE
     
     // perform offset
     ClipperLib::ClipperOffset co;
@@ -231,14 +235,20 @@ ClipperLib::Paths _offset(ClipperLib::Paths &&input, ClipperLib::EndType endType
         co.ArcTolerance = miterLimit;
     else
         co.MiterLimit = miterLimit;
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     float delta_scaled = delta * float(CLIPPER_OFFSET_SCALE);
+#else // CLIPPERUTILS_OFFSET_SCALE
+    float delta_scaled = delta;
+#endif // CLIPPERUTILS_OFFSET_SCALE
     co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
     co.AddPaths(input, joinType, endType);
     ClipperLib::Paths retval;
     co.Execute(retval, delta_scaled);
     
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     // unscale output
     unscaleClipperPolygons(retval);
+#endif // CLIPPERUTILS_OFFSET_SCALE
     return retval;
 }
 
@@ -257,14 +267,24 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygon &expolygon, const float delta,
 {
 //    printf("new ExPolygon offset\n");
     // 1) Offset the outer contour.
-    const float delta_scaled = delta * float(CLIPPER_OFFSET_SCALE);
+#ifdef CLIPPERUTILS_OFFSET_SCALE
+    float delta_scaled = delta * float(CLIPPER_OFFSET_SCALE);
+#else // CLIPPERUTILS_OFFSET_SCALE
+    float delta_scaled = delta;
+#endif // CLIPPERUTILS_OFFSET_SCALE
     ClipperLib::Paths contours;
     {
         ClipperLib::Path input = Slic3rMultiPoint_to_ClipperPath(expolygon.contour);
+#ifdef CLIPPERUTILS_OFFSET_SCALE
         scaleClipperPolygon(input);
+#endif // CLIPPERUTILS_OFFSET_SCALE
         ClipperLib::ClipperOffset co;
         if (joinType == jtRound)
+#ifdef CLIPPERUTILS_OFFSET_SCALE
             co.ArcTolerance = miterLimit * double(CLIPPER_OFFSET_SCALE);
+#else // CLIPPERUTILS_OFFSET_SCALE
+            co.ArcTolerance = miterLimit;
+#endif // CLIPPERUTILS_OFFSET_SCALE
         else
             co.MiterLimit = miterLimit;
         co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
@@ -278,17 +298,23 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygon &expolygon, const float delta,
         holes.reserve(expolygon.holes.size());
         for (Polygons::const_iterator it_hole = expolygon.holes.begin(); it_hole != expolygon.holes.end(); ++ it_hole) {
             ClipperLib::Path input = Slic3rMultiPoint_to_ClipperPath_reversed(*it_hole);
+#ifdef CLIPPERUTILS_OFFSET_SCALE
             scaleClipperPolygon(input);
+#endif // CLIPPERUTILS_OFFSET_SCALE
             ClipperLib::ClipperOffset co;
             if (joinType == jtRound)
+#ifdef CLIPPERUTILS_OFFSET_SCALE
                 co.ArcTolerance = miterLimit * double(CLIPPER_OFFSET_SCALE);
+#else // CLIPPERUTILS_OFFSET_SCALE
+                co.ArcTolerance = miterLimit;
+#endif // CLIPPERUTILS_OFFSET_SCALE
             else
                 co.MiterLimit = miterLimit;
             co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
             co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
             ClipperLib::Paths out;
             co.Execute(out, - delta_scaled);
-            holes.insert(holes.end(), out.begin(), out.end());
+            append(holes, std::move(out));
         }
     }
 
@@ -305,7 +331,9 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygon &expolygon, const float delta,
     }
     
     // 4) Unscale the output.
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     unscaleClipperPolygons(output);
+#endif // CLIPPERUTILS_OFFSET_SCALE
     return output;
 }
 
@@ -315,7 +343,11 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygon &expolygon, const float delta,
 ClipperLib::Paths _offset(const Slic3r::ExPolygons &expolygons, const float delta,
     ClipperLib::JoinType joinType, double miterLimit)
 {
-    const float delta_scaled = delta * float(CLIPPER_OFFSET_SCALE);
+#ifdef CLIPPERUTILS_OFFSET_SCALE
+    float delta_scaled = delta * float(CLIPPER_OFFSET_SCALE);
+#else // CLIPPERUTILS_OFFSET_SCALE
+    float delta_scaled = delta;
+#endif // CLIPPERUTILS_OFFSET_SCALE
     // Offsetted ExPolygons before they are united.
     ClipperLib::Paths contours_cummulative;
     contours_cummulative.reserve(expolygons.size());
@@ -327,10 +359,16 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygons &expolygons, const float delt
         ClipperLib::Paths contours;
         {
             ClipperLib::Path input = Slic3rMultiPoint_to_ClipperPath(it_expoly->contour);
+#ifdef CLIPPERUTILS_OFFSET_SCALE
             scaleClipperPolygon(input);
+#endif // CLIPPERUTILS_OFFSET_SCALE
             ClipperLib::ClipperOffset co;
             if (joinType == jtRound)
+#ifdef CLIPPERUTILS_OFFSET_SCALE
                 co.ArcTolerance = miterLimit * double(CLIPPER_OFFSET_SCALE);
+#else // CLIPPERUTILS_OFFSET_SCALE
+                co.ArcTolerance = miterLimit;
+#endif // CLIPPERUTILS_OFFSET_SCALE
             else
                 co.MiterLimit = miterLimit;
             co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
@@ -351,10 +389,16 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygons &expolygons, const float delt
             {
                 for (Polygons::const_iterator it_hole = it_expoly->holes.begin(); it_hole != it_expoly->holes.end(); ++ it_hole) {
                     ClipperLib::Path input = Slic3rMultiPoint_to_ClipperPath_reversed(*it_hole);
+#ifdef CLIPPERUTILS_OFFSET_SCALE
                     scaleClipperPolygon(input);
+#endif // CLIPPERUTILS_OFFSET_SCALE
                     ClipperLib::ClipperOffset co;
                     if (joinType == jtRound)
+#ifdef CLIPPERUTILS_OFFSET_SCALE
                         co.ArcTolerance = miterLimit * double(CLIPPER_OFFSET_SCALE);
+#else // CLIPPERUTILS_OFFSET_SCALE
+                        co.ArcTolerance = miterLimit;
+#endif // CLIPPERUTILS_OFFSET_SCALE
                     else
                         co.MiterLimit = miterLimit;
                     co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
@@ -413,8 +457,10 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygons &expolygons, const float delt
         output = std::move(contours_cummulative);
     }
     
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     // 4) Unscale the output.
     unscaleClipperPolygons(output);
+#endif // CLIPPERUTILS_OFFSET_SCALE    
     return output;
 }
 
@@ -425,8 +471,10 @@ _offset2(const Polygons &polygons, const float delta1, const float delta2,
     // read input
     ClipperLib::Paths input = Slic3rMultiPoints_to_ClipperPaths(polygons);
     
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     // scale input
     scaleClipperPolygons(input);
+#endif // CLIPPERUTILS_OFFSET_SCALE
     
     // prepare ClipperOffset object
     ClipperLib::ClipperOffset co;
@@ -435,8 +483,13 @@ _offset2(const Polygons &polygons, const float delta1, const float delta2,
     } else {
         co.MiterLimit = miterLimit;
     }
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     float delta_scaled1 = delta1 * float(CLIPPER_OFFSET_SCALE);
     float delta_scaled2 = delta2 * float(CLIPPER_OFFSET_SCALE);
+#else // CLIPPERUTILS_OFFSET_SCALE
+    float delta_scaled1 = delta1;
+    float delta_scaled2 = delta2;
+#endif // CLIPPERUTILS_OFFSET_SCALE
     co.ShortestEdgeLength = double(std::max(std::abs(delta_scaled1), std::abs(delta_scaled2)) * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR);
     
     // perform first offset
@@ -450,8 +503,10 @@ _offset2(const Polygons &polygons, const float delta1, const float delta2,
     ClipperLib::Paths retval;
     co.Execute(retval, delta_scaled2);
     
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     // unscale output
     unscaleClipperPolygons(retval);
+#endif // CLIPPERUTILS_OFFSET_SCALE
     return retval;
 }
 
@@ -789,8 +844,10 @@ void safety_offset(ClipperLib::Paths* paths)
 {
     CLIPPERUTILS_PROFILE_FUNC();
 
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     // scale input
     scaleClipperPolygons(*paths);
+#endif // CLIPPERUTILS_OFFSET_SCALE
     
     // perform offset (delta = scale 1e-05)
     ClipperLib::ClipperOffset co;
@@ -816,7 +873,11 @@ void safety_offset(ClipperLib::Paths* paths)
             CLIPPERUTILS_PROFILE_BLOCK(safety_offset_Execute);
             // offset outside by 10um
             ClipperLib::Paths out_this;
+#ifdef CLIPPERUTILS_OFFSET_SCALE
             co.Execute(out_this, ccw ? 10.f * float(CLIPPER_OFFSET_SCALE) : -10.f * float(CLIPPER_OFFSET_SCALE));
+#else // CLIPPERUTILS_OFFSET_SCALE
+            co.Execute(out_this, ccw ? 10.f : -10.f);
+#endif // CLIPPERUTILS_OFFSET_SCALE
             if (! ccw) {
                 // Reverse the resulting contours once again.
                 for (ClipperLib::Paths::iterator it = out_this.begin(); it != out_this.end(); ++ it)
@@ -830,8 +891,10 @@ void safety_offset(ClipperLib::Paths* paths)
     }
     *paths = std::move(out);
     
+#ifdef CLIPPERUTILS_OFFSET_SCALE
     // unscale output
     unscaleClipperPolygons(*paths);
+#endif // CLIPPERUTILS_OFFSET_SCALE
 }
 
 Polygons top_level_islands(const Slic3r::Polygons &polygons)
@@ -925,8 +988,10 @@ ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::v
 
 		// Add a new point to the output, scale by CLIPPER_OFFSET_SCALE and round to ClipperLib::cInt.
 		auto   add_offset_point = [&out](Vec2d pt) {
+#ifdef CLIPPERUTILS_OFFSET_SCALE
 			pt *= double(CLIPPER_OFFSET_SCALE);
-			pt += Vec2d(0.5 - (pt.x() < 0), 0.5 - (pt.y() < 0));
+#endif // CLIPPERUTILS_OFFSET_SCALE
+            pt += Vec2d(0.5 - (pt.x() < 0), 0.5 - (pt.y() < 0));
 			out.emplace_back(ClipperLib::cInt(pt.x()), ClipperLib::cInt(pt.y()));
 		};
 
@@ -1075,8 +1140,10 @@ Polygons variable_offset_inner(const ExPolygon &expoly, const std::vector<std::v
 		clipper.Execute(ClipperLib::ctDifference, output, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
 	}
 
+#ifdef CLIPPERUTILS_OFFSET_SCALE
 	// 4) Unscale the output.
 	unscaleClipperPolygons(output);
+#endif // CLIPPERUTILS_OFFSET_SCALE
 	return ClipperPaths_to_Slic3rPolygons(output);
 }
 
@@ -1119,8 +1186,10 @@ for (const std::vector<float>& ds : deltas)
 		clipper.Execute(ClipperLib::ctDifference, output, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
 	}
 
+#ifdef CLIPPERUTILS_OFFSET_SCALE
 	// 4) Unscale the output.
 	unscaleClipperPolygons(output);
+#endif // CLIPPERUTILS_OFFSET_SCALE
 	return ClipperPaths_to_Slic3rPolygons(output);
 }
 
@@ -1152,7 +1221,9 @@ for (const std::vector<float>& ds : deltas)
 #endif /* NDEBUG */
 
 	// 3) Subtract holes from the contours.
+#ifdef CLIPPERUTILS_OFFSET_SCALE
 	unscaleClipperPolygons(contours);
+#endif // CLIPPERUTILS_OFFSET_SCALE
 	ExPolygons output;
 	if (holes.empty()) {
 		output.reserve(contours.size());
@@ -1160,7 +1231,9 @@ for (const std::vector<float>& ds : deltas)
 			output.emplace_back(ClipperPath_to_Slic3rPolygon(path));
 	} else {
 		ClipperLib::Clipper clipper;
+#ifdef CLIPPERUTILS_OFFSET_SCALE
 		unscaleClipperPolygons(holes);
+#endif // CLIPPERUTILS_OFFSET_SCALE
 		clipper.AddPaths(contours, ClipperLib::ptSubject, true);
 		clipper.AddPaths(holes, ClipperLib::ptClip, true);
 	    ClipperLib::PolyTree polytree;
@@ -1200,7 +1273,9 @@ ExPolygons variable_offset_inner_ex(const ExPolygon &expoly, const std::vector<s
 #endif /* NDEBUG */
 
 	// 3) Subtract holes from the contours.
+#ifdef CLIPPERUTILS_OFFSET_SCALE
 	unscaleClipperPolygons(contours);
+#endif // CLIPPERUTILS_OFFSET_SCALE    
 	ExPolygons output;
 	if (holes.empty()) {
 		output.reserve(contours.size());
@@ -1208,7 +1283,9 @@ ExPolygons variable_offset_inner_ex(const ExPolygon &expoly, const std::vector<s
 			output.emplace_back(ClipperPath_to_Slic3rPolygon(path));
 	} else {
 		ClipperLib::Clipper clipper;
+#ifdef CLIPPERUTILS_OFFSET_SCALE
 		unscaleClipperPolygons(holes);
+#endif // CLIPPERUTILS_OFFSET_SCALE        
 		clipper.AddPaths(contours, ClipperLib::ptSubject, true);
 		clipper.AddPaths(holes, ClipperLib::ptClip, true);
 	    ClipperLib::PolyTree polytree;
