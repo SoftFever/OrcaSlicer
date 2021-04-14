@@ -131,7 +131,7 @@ Slic3r::Polygon ClipperPath_to_Slic3rPolygon(const ClipperLib::Path &input)
 {
     Polygon retval;
     for (ClipperLib::Path::const_iterator pit = input.begin(); pit != input.end(); ++pit)
-        retval.points.emplace_back(pit->X, pit->Y);
+        retval.points.emplace_back(pit->x(), pit->y());
     return retval;
 }
 
@@ -139,7 +139,7 @@ Slic3r::Polyline ClipperPath_to_Slic3rPolyline(const ClipperLib::Path &input)
 {
     Polyline retval;
     for (ClipperLib::Path::const_iterator pit = input.begin(); pit != input.end(); ++pit)
-        retval.points.emplace_back(pit->X, pit->Y);
+        retval.points.emplace_back(pit->x(), pit->y());
     return retval;
 }
 
@@ -752,7 +752,7 @@ ClipperLib::PolyNodes order_nodes(const ClipperLib::PolyNodes &nodes)
     
     for (const ClipperLib::PolyNode *node : nodes)
         ordering_points.emplace_back(
-            Point(node->Contour.front().X, node->Contour.front().Y));
+            Point(node->Contour.front().x(), node->Contour.front().y()));
 
     // perform the ordering
     ClipperLib::PolyNodes ordered_nodes =
@@ -777,7 +777,7 @@ static void traverse_pt_outside_in(const ClipperLib::PolyNodes &nodes, Polygons 
     Points ordering_points;
     ordering_points.reserve(nodes.size());
     for (const ClipperLib::PolyNode *node : nodes)
-        ordering_points.emplace_back(node->Contour.front().X, node->Contour.front().Y);
+        ordering_points.emplace_back(node->Contour.front().x(), node->Contour.front().y());
 
     // Perform the ordering, push results recursively.
     //FIXME pass the last point to chain_clipper_polynodes?

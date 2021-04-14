@@ -56,8 +56,8 @@ template<class Tout = double, class = FloatingOnly<Tout>, int...EigenArgs>
 inline constexpr Eigen::Matrix<Tout, 2, EigenArgs...> unscaled(
     const ClipperLib::IntPoint &v) noexcept
 {
-    return Eigen::Matrix<Tout, 2, EigenArgs...>{unscaled<Tout>(v.X),
-                                                unscaled<Tout>(v.Y)};
+    return Eigen::Matrix<Tout, 2, EigenArgs...>{unscaled<Tout>(v.x()),
+                                                unscaled<Tout>(v.y())};
 }
 
 namespace arrangement {
@@ -644,7 +644,7 @@ void arrange(ArrangePolygons &      arrangables,
     
     for(size_t i = 0; i < items.size(); ++i) {
         clppr::IntPoint tr = items[i].translation();
-        arrangables[i].translation = {coord_t(tr.X), coord_t(tr.Y)};
+        arrangables[i].translation = {coord_t(tr.x()), coord_t(tr.y())};
         arrangables[i].rotation    = items[i].rotation();
         arrangables[i].bed_idx     = items[i].binId();
     }

@@ -26,7 +26,7 @@ namespace Slic3r {
 			pt.Y += CLIPPER_OFFSET_SCALE_ROUNDING_DELTA;
 			pt.X >>= CLIPPER_OFFSET_POWER_OF_2;
 			pt.Y >>= CLIPPER_OFFSET_POWER_OF_2;
-			out.emplace_back(coord_t(pt.X), coord_t(pt.Y));
+			out.emplace_back(coord_t(pt.x()), coord_t(pt.y()));
 		}
 		return out;
 	}

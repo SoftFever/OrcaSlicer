@@ -806,8 +806,8 @@ static ClipperPolygons get_all_polygons(const SliceRecord& record, SliceOrigin o
             }
 
             if(is_lefthanded) {
-                for(auto& p : poly.Contour) p.X = -p.X;
-                for(auto& h : poly.Holes) for(auto& p : h) p.X = -p.X;
+                for(auto& p : poly.Contour) p.x() = -p.x();
+                for(auto& h : poly.Holes) for(auto& p : h) p.x() = -p.x();
             }
 
             sl::rotate(poly, double(instances[i].rotation));

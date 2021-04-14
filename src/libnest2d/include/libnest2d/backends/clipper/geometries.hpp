@@ -46,25 +46,25 @@ namespace pointlike {
 // Tell libnest2d how to extract the X coord from a ClipperPoint object
 template<> inline ClipperLib::cInt x(const PointImpl& p)
 {
-    return p.X;
+    return p.x();
 }
 
 // Tell libnest2d how to extract the Y coord from a ClipperPoint object
 template<> inline ClipperLib::cInt y(const PointImpl& p)
 {
-    return p.Y;
+    return p.y();
 }
 
 // Tell libnest2d how to extract the X coord from a ClipperPoint object
 template<> inline ClipperLib::cInt& x(PointImpl& p)
 {
-    return p.X;
+    return p.x();
 }
 
 // Tell libnest2d how to extract the Y coord from a ClipperPoint object
 template<> inline ClipperLib::cInt& y(PointImpl& p)
 {
-    return p.Y;
+    return p.y();
 }
 
 }
@@ -144,7 +144,7 @@ template<> inline std::string toString(const PolygonImpl& sh)
 
     ss << "Contour {\n";
     for(auto p : sh.Contour) {
-        ss << "\t" << p.X << " " << p.Y << "\n";
+        ss << "\t" << p.x() << " " << p.y() << "\n";
     }
     ss << "}\n";
 
@@ -152,7 +152,7 @@ template<> inline std::string toString(const PolygonImpl& sh)
         ss << "Holes {\n";
         for(auto p : h)  {
             ss << "\t{\n";
-            ss << "\t\t" << p.X << " " << p.Y << "\n";
+            ss << "\t\t" << p.x() << " " << p.y() << "\n";
             ss << "\t}\n";
         }
         ss << "}\n";
@@ -238,14 +238,14 @@ inline void rotate(PolygonImpl& sh, const Radians& rads)
 
     for(auto& p : sh.Contour) {
         p = {
-                static_cast<Coord>(p.X * cosa - p.Y * sina),
-                static_cast<Coord>(p.X * sina + p.Y * cosa)
+                static_cast<Coord>(p.x() * cosa - p.y() * sina),
+                static_cast<Coord>(p.x() * sina + p.y() * cosa)
             };
     }
     for(auto& hole : sh.Holes) for(auto& p : hole) {
         p = {
-                static_cast<Coord>(p.X * cosa - p.Y * sina),
-                static_cast<Coord>(p.X * sina + p.Y * cosa)
+                static_cast<Coord>(p.x() * cosa - p.y() * sina),
+                static_cast<Coord>(p.x() * sina + p.y() * cosa)
             };
     }
 }
@@ -277,7 +277,7 @@ inline TMultiShape<PolygonImpl> clipper_execute(
         if(!poly.Contour.empty() ) {
             auto front_p = poly.Contour.front();
             auto &back_p  = poly.Contour.back();
-            if(front_p.X != back_p.X || front_p.Y != back_p.X) 
+            if(front_p.x() != back_p.x() || front_p.y() != back_p.x()) 
                 poly.Contour.emplace_back(front_p);
         }
 
@@ -294,7 +294,7 @@ inline TMultiShape<PolygonImpl> clipper_execute(
         if(!poly.Contour.empty() ) {
             auto front_p = poly.Contour.front();
             auto &back_p  = poly.Contour.back();
-            if(front_p.X != back_p.X || front_p.Y != back_p.X) 
+            if(front_p.x() != back_p.x() || front_p.y() != back_p.x()) 
                 poly.Contour.emplace_back(front_p);
         }
 

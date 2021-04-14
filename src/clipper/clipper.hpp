@@ -37,6 +37,8 @@
 #include <inttypes.h>
 #include <functional>
 
+#include <Eigen/Geometry> 
+
 #define CLIPPER_VERSION "6.2.6"
 
 //use_xyz: adds a Z member to IntPoint. Adds a minor cost to perfomance.
@@ -88,6 +90,16 @@ enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
   static constexpr cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
 #endif // CLIPPERLIB_INT32
 
+#if 1
+using IntPoint = Eigen::Matrix<cInt, 
+#ifdef use_xyz
+  3
+#else // use_xyz
+  2
+#endif // use_xyz
+  , 1, Eigen::DontAlign>;
+using DoublePoint = Eigen::Matrix<double, 2, 1, Eigen::DontAlign>;
+#else
 struct IntPoint {
   cInt X;
   cInt Y;
@@ -107,10 +119,18 @@ struct IntPoint {
     return a.X != b.X  || a.Y != b.Y; 
   }
 };
+struct DoublePoint
+{
+  double X;
+  double Y;
+  DoublePoint(double x = 0, double y = 0) : X(x), Y(y) {}
+  DoublePoint(IntPoint ip) : X((double)ip.x()), Y((double)ip.y()) {}
+};
+#endif
 //------------------------------------------------------------------------------
 
-typedef std::vector< IntPoint > Path;
-typedef std::vector< Path > Paths;
+typedef std::vector<IntPoint> Path;
+typedef std::vector<Path> Paths;
 
 inline Path& operator <<(Path& poly, const IntPoint& p) {poly.push_back(p); return poly;}
 inline Paths& operator <<(Paths& polys, const Path& p) {polys.push_back(p); return polys;}
@@ -119,13 +139,6 @@ std::ostream& operator <<(std::ostream &s, const IntPoint &p);
 std::ostream& operator <<(std::ostream &s, const Path &p);
 std::ostream& operator <<(std::ostream &s, const Paths &p);
 
-struct DoublePoint
-{
-  double X;
-  double Y;
-  DoublePoint(double x = 0, double y = 0) : X(x), Y(y) {}
-  DoublePoint(IntPoint ip) : X((double)ip.X), Y((double)ip.Y) {}
-};
 //------------------------------------------------------------------------------
 
 #ifdef use_xyz

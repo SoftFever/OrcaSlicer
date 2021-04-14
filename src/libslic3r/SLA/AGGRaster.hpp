@@ -77,8 +77,8 @@ protected:
     double getPx(const Point &p) { return p(0) * m_pxdim_scaled.w_mm; }
     double getPy(const Point &p) { return p(1) * m_pxdim_scaled.h_mm; }
     agg::path_storage to_path(const Polygon &poly) { return to_path(poly.points); }
-    double getPx(const ClipperLib::IntPoint &p) { return p.X * m_pxdim_scaled.w_mm; }
-    double getPy(const ClipperLib::IntPoint& p) { return p.Y * m_pxdim_scaled.h_mm; }
+    double getPx(const ClipperLib::IntPoint &p) { return p.x() * m_pxdim_scaled.w_mm; }
+    double getPy(const ClipperLib::IntPoint& p) { return p.y() * m_pxdim_scaled.h_mm; }
     
     template<class PointVec> agg::path_storage _to_path(const PointVec& v)
     {

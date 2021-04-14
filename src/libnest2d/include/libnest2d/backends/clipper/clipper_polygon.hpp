@@ -23,10 +23,12 @@ struct Polygon {
         Contour(std::move(cont)), Holes(std::move(holes)) {}
 };
 
+#if 0
 inline IntPoint& operator +=(IntPoint& p, const IntPoint& pa ) {
     // This could be done with SIMD
-    p.X += pa.X;
-    p.Y += pa.Y;
+
+    p.x() += pa.x();
+    p.y() += pa.y();
     return p;
 }
 
@@ -37,15 +39,15 @@ inline IntPoint operator+(const IntPoint& p1, const IntPoint& p2) {
 }
 
 inline IntPoint& operator -=(IntPoint& p, const IntPoint& pa ) {
-    p.X -= pa.X;
-    p.Y -= pa.Y;
+    p.x() -= pa.x();
+    p.y() -= pa.y();
     return p;
 }
 
 inline IntPoint operator -(const IntPoint& p ) {
     IntPoint ret = p;
-    ret.X = -ret.X;
-    ret.Y = -ret.Y;
+    ret.x() = -ret.x();
+    ret.y() = -ret.y();
     return ret;
 }
 
@@ -56,8 +58,8 @@ inline IntPoint operator-(const IntPoint& p1, const IntPoint& p2) {
 }
 
 inline IntPoint& operator *=(IntPoint& p, const IntPoint& pa ) {
-    p.X *= pa.X;
-    p.Y *= pa.Y;
+    p.x() *= pa.x();
+    p.y() *= pa.y();
     return p;
 }
 
@@ -66,6 +68,7 @@ inline IntPoint operator*(const IntPoint& p1, const IntPoint& p2) {
     ret *= p2;
     return ret;
 }
+#endif
 
 }
 

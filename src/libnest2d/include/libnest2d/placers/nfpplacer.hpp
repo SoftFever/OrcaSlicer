@@ -250,8 +250,8 @@ template<class RawShape> class EdgeCache {
         Vertex ret = edge.first();
 
         // Get the point on the edge which lies in ed distance from the start
-        ret += { static_cast<Coord>(std::round(ed*std::cos(angle))),
-                 static_cast<Coord>(std::round(ed*std::sin(angle))) };
+        ret += Vertex(static_cast<Coord>(std::round(ed*std::cos(angle))),
+                      static_cast<Coord>(std::round(ed*std::sin(angle))));
 
         return ret;
     }
@@ -344,7 +344,8 @@ inline void correctNfpPosition(nfp::NfpResult<RawShape>& nfp,
     auto dtouch = touch_sh - touch_other;
     auto top_other = orbiter.rightmostTopVertex() + dtouch;
     auto dnfp = top_other - nfp.second; // nfp.second is the nfp reference point
-    shapelike::translate(nfp.first, dnfp);
+    //FIXME the explicit type conversion ClipperLib::IntPoint()
+    shapelike::translate(nfp.first, ClipperLib::IntPoint(dnfp));
 }
 
 template<class RawShape>
@@ -473,7 +474,8 @@ public:
         auto bbin = sl::boundingBox(bin);
         auto d =  bbch.center() - bbin.center();
         auto chullcpy = chull;
-        sl::translate(chullcpy, d);
+        //FIXME the explicit type conversion ClipperLib::IntPoint()
+        sl::translate(chullcpy, ClipperLib::IntPoint(d));
         return sl::isInside(chullcpy, bin) ? -1.0 : 1.0;
     }
 
@@ -724,8 +726,7 @@ private:
                 auto rawobjfunc = [_objfunc, iv, startpos]
                         (Vertex v, Item& itm)
                 {
-                    auto d = v - iv;
-                    d += startpos;
+                    auto d = (v - iv) + startpos;
                     itm.translation(d);
                     return _objfunc(itm);
                 };
@@ -742,8 +743,7 @@ private:
                         &item, &bin, &iv, &startpos] (const Optimum& o)
                 {
                     auto v = getNfpPoint(o);
-                    auto d = v - iv;
-                    d += startpos;
+                    auto d = (v - iv) + startpos;
                     item.translation(d);
 
                     merged_pile.emplace_back(item.transformedShape());
@@ -877,8 +877,7 @@ private:
                 }
 
                 if( best_score < global_score ) {
-                    auto d = getNfpPoint(optimum) - iv;
-                    d += startpos;
+                    auto d = (getNfpPoint(optimum) - iv) + startpos;
                     final_tr = d;
                     final_rot = initial_rot + rot;
                     can_pack = true;

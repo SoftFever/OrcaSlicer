@@ -140,15 +140,15 @@ TEST_CASE("boundingCircle", "[Geometry]") {
     PolygonImpl p = {{{0, 10}, {10, 0}, {0, -10}, {0, 10}}, {}};
     Circle c = boundingCircle(p);
 
-    REQUIRE(c.center().X == 0);
-    REQUIRE(c.center().Y == 0);
+    REQUIRE(c.center().x() == 0);
+    REQUIRE(c.center().y() == 0);
     REQUIRE(c.radius() == Approx(10));
 
     shapelike::translate(p, PointImpl{10, 10});
     c = boundingCircle(p);
 
-    REQUIRE(c.center().X == 10);
-    REQUIRE(c.center().Y == 10);
+    REQUIRE(c.center().x() == 10);
+    REQUIRE(c.center().y() == 10);
     REQUIRE(c.radius() == Approx(10));
 
     auto parts = prusaParts();
@@ -616,7 +616,7 @@ TEST_CASE("EmptyItemShouldBeUntouched", "[Nesting]") {
 
     std::vector<Item> items;
     items.emplace_back(Item{});   // Emplace empty item
-    items.emplace_back(Item{0, 200, 0});   // Emplace zero area item
+    items.emplace_back(Item{ { 0, 0} , { 200, 0 }, { 0, 0 } });   // Emplace zero area item
 
     size_t bins = libnest2d::nest(items, bin);
 
@@ -661,12 +661,12 @@ TEST_CASE("Items can be preloaded", "[Nesting]") {
         REQUIRE(bins == 1);
 
         REQUIRE(fixed_rect.binId() == 0);
-        REQUIRE(fixed_rect.translation().X == bin.center().X);
-        REQUIRE(fixed_rect.translation().Y == bin.center().Y);
+        REQUIRE(fixed_rect.translation().x() == bin.center().x());
+        REQUIRE(fixed_rect.translation().y() == bin.center().y());
 
         REQUIRE(movable_rect.binId() == 0);
-        REQUIRE(movable_rect.translation().X != bin.center().X);
-        REQUIRE(movable_rect.translation().Y != bin.center().Y);
+        REQUIRE(movable_rect.translation().x() != bin.center().x());
+        REQUIRE(movable_rect.translation().y() != bin.center().y());
     }
 
     SECTION("Preloaded Item should not affect free bins") {
@@ -677,14 +677,14 @@ TEST_CASE("Items can be preloaded", "[Nesting]") {
         REQUIRE(bins == 2);
 
         REQUIRE(fixed_rect.binId() == 1);
-        REQUIRE(fixed_rect.translation().X == bin.center().X);
-        REQUIRE(fixed_rect.translation().Y == bin.center().Y);
+        REQUIRE(fixed_rect.translation().x() == bin.center().x());
+        REQUIRE(fixed_rect.translation().y() == bin.center().y());
 
         REQUIRE(movable_rect.binId() == 0);
 
         auto bb = movable_rect.boundingBox();
-        REQUIRE(bb.center().X == bin.center().X);
-        REQUIRE(bb.center().Y == bin.center().Y);
+        REQUIRE(bb.center().x() == bin.center().x());
+        REQUIRE(bb.center().y() == bin.center().y());
     }
 }
 
