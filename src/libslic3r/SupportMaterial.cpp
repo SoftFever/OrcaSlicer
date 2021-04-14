@@ -3186,7 +3186,7 @@ struct MyLayerExtruded
     MyLayerExtruded& operator=(MyLayerExtruded &&rhs) {
         this->layer = rhs.layer;
         this->extrusions = std::move(rhs.extrusions);
-        this->m_polygons_to_extrude = std::move(m_polygons_to_extrude);
+        this->m_polygons_to_extrude = std::move(rhs.m_polygons_to_extrude);
         rhs.layer = nullptr;
         return *this;
     }
