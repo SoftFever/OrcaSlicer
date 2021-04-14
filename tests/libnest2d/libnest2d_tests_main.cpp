@@ -1171,7 +1171,7 @@ TEST_CASE("Test for biggest bounding box area", "[Nesting], [NestKernels]")
 
     pconfig.object_function = [&pile_box](const Item &item) -> double {
         Box b = sl::boundingBox(item.boundingBox(), pile_box);
-        double area = b.area<double>() / (W * W);
+        double area = b.area<double>() / (double(W) * W);
         return -area;
     };
     
@@ -1187,5 +1187,5 @@ TEST_CASE("Test for biggest bounding box area", "[Nesting], [NestKernels]")
     
     // Here the result shall be a stairway of boxes
     REQUIRE(pile.size() == N);
-    REQUIRE(bb.area() == N * N * W * W);
+    REQUIRE(bb.area() == double(N) * N * W * W);
 }
