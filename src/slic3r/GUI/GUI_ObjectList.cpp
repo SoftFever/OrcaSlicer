@@ -1543,6 +1543,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
         m_objects_model->DeleteWarningIcon(m_objects_model->GetParent(item));
 
     m_objects_model->Delete(item);
+    update_info_items(obj_idx);
 }
 
 void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
@@ -2118,20 +2119,32 @@ void ObjectList::part_selection_changed()
     {
         if (item)
         {
-            if (m_objects_model->GetParent(item) == wxDataViewItem(nullptr)) {
-                obj_idx = m_objects_model->GetIdByItem(item);
+            const ItemType type = m_objects_model->GetItemType(item);
+            const wxDataViewItem parent = m_objects_model->GetParent(item);
+            const ItemType parent_type = m_objects_model->GetItemType(parent);
+            obj_idx = m_objects_model->GetObjectIdByItem(item);
+
+            if (parent == wxDataViewItem(nullptr)
+             || type == itInfo) {
                 og_name = _(L("Object manipulation"));
                 m_config = &(*m_objects)[obj_idx]->config;
                 update_and_show_manipulations = true;
+
+                if (type == itInfo) {
+                    Unselect(item);
+                    assert(parent_type == itObject);
+                    Select(parent);
+                    InfoItemType info_type = m_objects_model->GetInfoItemType(item);
+                    GLGizmosManager::EType gizmo_type =
+                        info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports
+                                                                  : GLGizmosManager::EType::Seam;
+                    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
+                    if (gizmos_mgr.get_current_type() != gizmo_type)
+                        gizmos_mgr.open_gizmo(gizmo_type);
+                }
             }
             else {
-                obj_idx = m_objects_model->GetObjectIdByItem(item);
-                
-                const ItemType type = m_objects_model->GetItemType(item);
                 if (type & itSettings) {
-                    const auto parent = m_objects_model->GetParent(item);
-                    const ItemType parent_type = m_objects_model->GetItemType(parent);
-
                     if (parent_type & itObject) {
                         og_name = _(L("Object Settings to modify"));
                         m_config = &(*m_objects)[obj_idx]->config;
@@ -2243,6 +2256,38 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
     return ret;
 }
 
+
+void ObjectList::update_info_items(size_t obj_idx)
+{
+    const ModelObject* model_object = (*m_objects)[obj_idx];
+    wxDataViewItem item_obj = m_objects_model->GetItemById(obj_idx);
+    assert(item_obj.IsOk());
+
+    for (InfoItemType type : {InfoItemType::CustomSupports, InfoItemType::CustomSeam}) {
+        wxDataViewItem item = m_objects_model->GetInfoItemByType(item_obj, type);
+        bool shows = item.IsOk();
+        bool should_show = printer_technology() == ptFFF
+                        && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
+                                       [type](const ModelVolume* mv) {
+                                           return ! (type == InfoItemType::CustomSupports
+                                                     ? mv->supported_facets.empty()
+                                                     : mv->seam_facets.empty());
+                                       });
+
+        if (! shows && should_show) {
+            m_objects_model->AddInfoChild(item_obj, type);
+            Expand(item_obj);
+        }
+        else if (shows && ! should_show) {
+            Unselect(item);
+            m_objects_model->Delete(item);
+            Select(item_obj);
+        }
+    }
+}
+
+
+
 void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
 {
     auto model_object = (*m_objects)[obj_idx];
@@ -2250,6 +2295,8 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     const auto item = m_objects_model->Add(item_name,
                       model_object->config.has("extruder") ? model_object->config.extruder() : 0,
                       get_mesh_errors_count(obj_idx) > 0);
+
+    update_info_items(obj_idx);
 
     // add volumes to the object
     if (model_object->volumes.size() > 1) {
@@ -3029,7 +3076,7 @@ void ObjectList::update_selections_on_canvas()
 
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
-        if (m_objects_model->GetItemType(item) & (itSettings | itInstanceRoot | itLayerRoot | itLayer))
+        if (m_objects_model->GetItemType(item) & (itSettings | itInstanceRoot | itLayerRoot | itLayer | itInfo))
             add_to_selection(m_objects_model->GetParent(item), selection, instance_idx, mode);
         else
             add_to_selection(item, selection, instance_idx, mode);
@@ -3442,6 +3489,9 @@ void ObjectList::update_object_list_by_printer_technology()
     m_objects_model->GetChildren(wxDataViewItem(nullptr), object_items);
 
     for (auto& object_item : object_items) {
+        // update custom supports info
+        update_info_items(m_objects_model->GetObjectIdByItem(object_item));
+
         // Update Settings Item for object
         update_settings_item_and_selection(object_item, sel);
 
