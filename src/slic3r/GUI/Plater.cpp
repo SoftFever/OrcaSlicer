@@ -4245,7 +4245,7 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     this->undo_redo_stack().release_least_recently_used();
 
 #if ENABLE_PROJECT_DIRTY_STATE
-    dirty_state.update_from_undo_redo_stack(undo_redo_stack_main(), undo_redo_stack());
+    dirty_state.update_from_undo_redo_stack(ProjectDirtyStateManager::UpdateType::TakeSnapshot, undo_redo_stack_main(), undo_redo_stack());
 #endif // ENABLE_PROJECT_DIRTY_STATE
 
     // Save the last active preset name of a particular printer technology.
@@ -4385,7 +4385,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     }
 
 #if ENABLE_PROJECT_DIRTY_STATE
-    dirty_state.update_from_undo_redo_stack(undo_redo_stack_main(), undo_redo_stack());
+    dirty_state.update_from_undo_redo_stack(ProjectDirtyStateManager::UpdateType::UndoRedoTo, undo_redo_stack_main(), undo_redo_stack());
 #endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
