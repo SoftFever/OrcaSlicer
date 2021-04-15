@@ -220,7 +220,9 @@ inline NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
         auto next = std::next(first);
 
         while(next != sl::cend(sh)) {
-            edgelist.emplace_back(*(first), *(next));
+            if (pl::magnsq(*next - *first) > 0)
+                edgelist.emplace_back(*(first), *(next));
+
             ++first; ++next;
         }
     }
@@ -230,7 +232,9 @@ inline NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
         auto next = std::next(first);
 
         while(next != sl::cend(other)) {
-            edgelist.emplace_back(*(next), *(first));
+            if (pl::magnsq(*next - *first) > 0)
+                edgelist.emplace_back(*(next), *(first));
+
             ++first; ++next;
         }
     }

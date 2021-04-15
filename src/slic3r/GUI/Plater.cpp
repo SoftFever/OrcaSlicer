@@ -2407,6 +2407,29 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
+#if ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
+        for (size_t i = 0; i < object->instances.size(); ++i) {
+            ModelInstance* instance = object->instances[i];
+            const Vec3d size = object->instance_bounding_box(i).size();
+            const Vec3d ratio = size.cwiseQuotient(bed_size);
+            const double max_ratio = std::max(ratio(0), ratio(1));
+            if (max_ratio > 10000) {
+                // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
+                // so scale down the mesh
+                double inv = 1. / max_ratio;
+                object->scale_mesh_after_creation(inv * Vec3d::Ones());
+                object->origin_translation = Vec3d::Zero();
+                object->center_around_origin();
+                scaled_down = true;
+                break;
+            }
+            else if (max_ratio > 5) {
+                const Vec3d inverse = 1.0 / max_ratio * Vec3d::Ones();
+                instance->set_scaling_factor(inverse.cwiseProduct(instance->get_scaling_factor()));
+                scaled_down = true;
+            }
+        }
+#else
         const Vec3d size = object->bounding_box().size();
         const Vec3d ratio = size.cwiseQuotient(bed_size);
         const double max_ratio = std::max(ratio(0), ratio(1));
@@ -2425,6 +2448,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             }
             scaled_down = true;
         }
+#endif // ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
 
         object->ensure_on_bed();
     }
