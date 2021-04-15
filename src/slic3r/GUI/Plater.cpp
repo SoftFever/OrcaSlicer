@@ -2425,7 +2425,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             }
             else if (max_ratio > 5) {
                 const Vec3d inverse = 1.0 / max_ratio * Vec3d::Ones();
-                instance->set_scaling_factor(inverse);
+                instance->set_scaling_factor(inverse.cwiseProduct(instance->get_scaling_factor()));
                 scaled_down = true;
             }
         }
