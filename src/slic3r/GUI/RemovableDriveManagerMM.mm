@@ -80,7 +80,9 @@ static void unmount_callback(DADiskRef disk, DADissenterRef dissenter, void *con
                 NSLog(@"-%@",(CFStringRef)deviceModelKey);
             */
             if (mediaEjectableKey != nullptr) {
-                BOOL op = ejectable && (CFEqual(deviceProtocolName, CFSTR("USB")) || CFEqual(deviceModelKey, CFSTR("SD Card Reader"))  || CFEqual(deviceProtocolName, CFSTR("Secure Digital")));
+                BOOL op = ejectable && 
+                    ( (deviceProtocolName != nullptr && (CFEqual(deviceProtocolName, CFSTR("USB")) || CFEqual(deviceProtocolName, CFSTR("Secure Digital")))) || 
+                      (deviceModelKey     != nullptr && CFEqual(deviceModelKey, CFSTR("SD Card Reader"))) );
                 //!CFEqual(deviceModelKey, CFSTR("Disk Image"));
                 if (op)
                     [result addObject:volURL.path];
