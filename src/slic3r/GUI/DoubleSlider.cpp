@@ -2165,7 +2165,7 @@ static std::string get_custom_code(const std::string& code_in, double height)
         if (dlg.ShowModal() != wxID_OK)
             return "";
 
-        value = dlg.GetValue().ToStdString();
+        value = into_u8(dlg.GetValue());
         valid = GUI::Tab::validate_custom_gcode("Custom G-code", value);
     } while (!valid);
     return value;
@@ -2173,7 +2173,7 @@ static std::string get_custom_code(const std::string& code_in, double height)
     if (dlg.ShowModal() != wxID_OK)
         return "";
 
-    return dlg.GetValue().ToStdString();
+    return into_u8(dlg.GetValue());
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
 }
 
