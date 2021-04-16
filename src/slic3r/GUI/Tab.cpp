@@ -1545,6 +1545,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Speed for non-print moves"));
         optgroup->append_single_option_line("travel_speed");
+        optgroup->append_single_option_line("travel_speed_z");
 
         optgroup = page->new_optgroup(L("Modifiers"));
         optgroup->append_single_option_line("first_layer_speed");

@@ -370,7 +370,7 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     
     std::ostringstream gcode;
     gcode << "G1 Z" << XYZF_NUM(z)
-          <<   " F" << XYZF_NUM(this->config.travel_speed.value * 60.0);
+          <<   " F" << XYZF_NUM(this->config.travel_speed_z.value * 60.0);
     COMMENT(comment);
     gcode << "\n";
     return gcode.str();
