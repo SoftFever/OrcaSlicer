@@ -330,28 +330,28 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
     far_z += FrustrumZMargin;
 
     // ensure min size
-    if (far_z - near_z < FrustrumMinZRange)
-    {
+    if (far_z - near_z < FrustrumMinZRange) {
         double mid_z = 0.5 * (near_z + far_z);
         double half_size = 0.5 * FrustrumMinZRange;
         near_z = mid_z - half_size;
         far_z = mid_z + half_size;
     }
 
-    if (near_z < FrustrumMinNearZ)
-    {
-        float delta = FrustrumMinNearZ - near_z;
+    if (near_z < FrustrumMinNearZ) {
+        double delta = FrustrumMinNearZ - near_z;
         set_distance(m_distance + delta);
         near_z += delta;
         far_z += delta;
     }
-    else if ((near_z > 2.0 * FrustrumMinNearZ) && (m_distance > DefaultDistance))
-    {
-        float delta = m_distance - DefaultDistance;
-        set_distance(DefaultDistance);
-        near_z -= delta;
-        far_z -= delta;
-    }
+// The following is commented out because it causes flickering of the 3D scene GUI
+// when the bounding box of the scene gets large enough
+// We need to introduce some smarter code to move the camera back and forth in such case
+//    else if (near_z > 2.0 * FrustrumMinNearZ && m_distance > DefaultDistance) {
+//        float delta = m_distance - DefaultDistance;
+//        set_distance(DefaultDistance);
+//        near_z -= delta;
+//        far_z -= delta;
+//    }
 
     return ret;
 }
