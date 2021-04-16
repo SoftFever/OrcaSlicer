@@ -26,7 +26,7 @@ struct Camera
         Num_types
     };
 
-    bool requires_zoom_to_bed;
+    bool requires_zoom_to_bed{ false };
 
 private:
     EType m_type{ Perspective };
@@ -48,13 +48,13 @@ private:
     BoundingBoxf3 m_scene_box;
 
 public:
-    Camera();
+    Camera() { set_default_orientation(); }
 
     EType get_type() const { return m_type; }
     std::string get_type_as_string() const;
     void set_type(EType type);
     // valid values for type: "0" -> ortho, "1" -> perspective
-    void set_type(const std::string& type);
+    void set_type(const std::string& type) { set_type((type == "1") ? Perspective : Ortho); }
     void select_next_type();
 
     void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
@@ -67,7 +67,7 @@ public:
 
     double get_zoom() const { return m_zoom; }
     double get_inv_zoom() const { assert(m_zoom != 0.0); return 1.0 / m_zoom; }
-    void update_zoom(double delta_zoom);
+    void update_zoom(double delta_zoom) { set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * 0.1)); }
     void set_zoom(double zoom);
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
@@ -127,7 +127,7 @@ public:
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
 
     double max_zoom() const { return 250.0; }
-    double min_zoom() const;
+    double min_zoom() const { return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box); }
 
 private:
     // returns tight values for nearZ and farZ plane around the given bounding box
