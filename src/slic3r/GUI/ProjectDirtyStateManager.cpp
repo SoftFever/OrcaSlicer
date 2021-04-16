@@ -259,7 +259,7 @@ void ProjectDirtyStateManager::render_debug_window() const
 
     if (ImGui::CollapsingHeader("Last save timestamps", ImGuiTreeNodeFlags_DefaultOpen)) {
         append_int_item("Main:", m_last_save.main);
-        append_int_item("Gizmo:", m_last_save.gizmo);
+        append_int_item("Current gizmo:", m_last_save.gizmo);
     }
 
     if (ImGui::CollapsingHeader("Main snapshots", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -278,6 +278,10 @@ void ProjectDirtyStateManager::render_debug_window() const
                 if (&snapshot == last_saveable_snapshot) {
                     ImGui::SameLine();
                     imgui.text_colored(color(active), " (S)");
+                }
+                if (m_last_save.main > 0 && m_last_save.main == snapshot.timestamp) {
+                    ImGui::SameLine();
+                    imgui.text_colored(color(active), " (LS)");
                 }
             }
         }
@@ -307,10 +311,10 @@ void ProjectDirtyStateManager::update_from_undo_redo_main_stack(UpdateType type,
 {
     m_state.plater = false;
 
-    const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(stack);
-
     if (type == UpdateType::TakeSnapshot)
         m_state.gizmos.remove_obsolete_used(stack);
+
+    const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(stack);
 
     if (active_snapshot->name == _utf8("New Project") ||
         active_snapshot->name == _utf8("Reset Project") ||
@@ -319,6 +323,18 @@ void ProjectDirtyStateManager::update_from_undo_redo_main_stack(UpdateType type,
 
     size_t search_timestamp = 0;
     if (boost::starts_with(active_snapshot->name, _utf8("Entering"))) {
+        if (type == UpdateType::UndoRedoTo) {
+            std::string topmost_redo;
+            wxGetApp().plater()->undo_redo_topmost_string_getter(false, topmost_redo);
+            if (boost::starts_with(topmost_redo, _utf8("Leaving"))) {
+                const std::vector<UndoRedo::Snapshot>& snapshots = stack.snapshots();
+                const UndoRedo::Snapshot* leaving_snapshot = &(*std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(active_snapshot->timestamp + 1)));
+                if (m_state.gizmos.is_used_and_modified(*leaving_snapshot)) {
+                    m_state.plater = (leaving_snapshot != nullptr && leaving_snapshot->timestamp != m_last_save.main);
+                    return;
+                }
+            }
+        }
         m_state.gizmos.current = false;
         m_last_save.gizmo = 0;
         search_timestamp = m_last_save.main;
