@@ -123,7 +123,7 @@ double Camera::get_fov() const
 void Camera::apply_viewport(int x, int y, unsigned int w, unsigned int h) const
 {
     glsafe(::glViewport(0, 0, w, h));
-    glsafe(::glGetIntegerv(GL_VIEWPORT, m_viewport.data()));
+    glsafe(::glGetIntegerv(GL_VIEWPORT, const_cast<std::array<int, 4>*>(&m_viewport)->data()));
 }
 
 void Camera::apply_view_matrix() const
@@ -139,16 +139,17 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     double h = 0.0;
 
     double old_distance = m_distance;
-    m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+    std::pair<double, double>* frustrum_zs = const_cast<std::pair<double, double>*>(&m_frustrum_zs);
+    *frustrum_zs = calc_tight_frustrum_zs_around(box);
     if (m_distance != old_distance)
         // the camera has been moved re-apply view matrix
         apply_view_matrix();
 
     if (near_z > 0.0)
-        m_frustrum_zs.first = std::max(std::min(m_frustrum_zs.first, near_z), FrustrumMinNearZ);
+        frustrum_zs->first = std::max(std::min(frustrum_zs->first, near_z), FrustrumMinNearZ);
 
     if (far_z > 0.0)
-        m_frustrum_zs.second = std::max(m_frustrum_zs.second, far_z);
+        frustrum_zs->second = std::max(frustrum_zs->second, far_z);
 
     w = 0.5 * (double)m_viewport[2];
     h = 0.5 * (double)m_viewport[3];
@@ -162,16 +163,16 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     default:
     case Ortho:
     {
-        m_gui_scale = 1.0;
+        *const_cast<double*>(&m_gui_scale) = 1.0;
         break;
     }
     case Perspective:
     {
         // scale near plane to keep w and h constant on the plane at z = m_distance
-        double scale = m_frustrum_zs.first / m_distance;
+        double scale = frustrum_zs->first / m_distance;
         w *= scale;
         h *= scale;
-        m_gui_scale = scale;
+        *const_cast<double*>(&m_gui_scale) = scale;
         break;
     }
     }
@@ -184,17 +185,17 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     default:
     case Ortho:
     {
-        glsafe(::glOrtho(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        glsafe(::glOrtho(-w, w, -h, h, frustrum_zs->first, frustrum_zs->second));
         break;
     }
     case Perspective:
     {
-        glsafe(::glFrustum(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        glsafe(::glFrustum(-w, w, -h, h, frustrum_zs->first, frustrum_zs->second));
         break;
     }
     }
 
-    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, m_projection_matrix.data()));
+    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, const_cast<Transform3d*>(&m_projection_matrix)->data()));
     glsafe(::glMatrixMode(GL_MODELVIEW));
 }
 
@@ -202,8 +203,7 @@ void Camera::zoom_to_box(const BoundingBoxf3& box, double margin_factor)
 {
     // Calculate the zoom factor needed to adjust the view around the given box.
     double zoom = calc_zoom_to_bounding_box_factor(box, margin_factor);
-    if (zoom > 0.0)
-    {
+    if (zoom > 0.0) {
         m_zoom = zoom;
         // center view around box center
         set_target(box.center());
@@ -470,7 +470,7 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
     double dx = margin_factor * (max_x - min_x);
     double dy = margin_factor * (max_y - min_y);
 
-    if ((dx <= 0.0) || (dy <= 0.0))
+    if (dx <= 0.0 || dy <= 0.0)
         return -1.0f;
 
     return std::min((double)m_viewport[2] / dx, (double)m_viewport[3] / dy);
@@ -478,10 +478,9 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
 
 void Camera::set_distance(double distance) const
 {
-    if (m_distance != distance)
-    {
-        m_view_matrix.translate((distance - m_distance) * get_dir_forward());
-        m_distance = distance;
+    if (m_distance != distance) {
+        const_cast<Transform3d*>(&m_view_matrix)->translate((distance - m_distance) * get_dir_forward());
+        *const_cast<double*>(&m_distance) = distance;
     }
 }
 

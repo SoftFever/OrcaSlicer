@@ -35,15 +35,15 @@ private:
     float m_zenit{ 45.0f };
     double m_zoom{ 1.0 };
     // Distance between camera position and camera target measured along the camera Z axis
-    mutable double m_distance{ DefaultDistance };
-    mutable double m_gui_scale{ 1.0 };
+    double m_distance{ DefaultDistance };
+    double m_gui_scale{ 1.0 };
 
-    mutable std::array<int, 4> m_viewport;
-    mutable Transform3d m_view_matrix{ Transform3d::Identity() };
+    std::array<int, 4> m_viewport;
+    Transform3d m_view_matrix{ Transform3d::Identity() };
     // We are calculating the rotation part of the m_view_matrix from m_view_rotation.
-    mutable Eigen::Quaterniond m_view_rotation{ 1.0, 0.0, 0.0, 0.0 };
-    mutable Transform3d m_projection_matrix{ Transform3d::Identity() };
-    mutable std::pair<double, double> m_frustrum_zs;
+    Eigen::Quaterniond m_view_rotation{ 1.0, 0.0, 0.0, 0.0 };
+    Transform3d m_projection_matrix{ Transform3d::Identity() };
+    std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
 
@@ -119,8 +119,7 @@ public:
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
 
     // forces camera right vector to be parallel to XY plane
-    void recover_from_free_camera()
-    {
+    void recover_from_free_camera() {
         if (std::abs(get_dir_right()(2)) > EPSILON)
             look_at(get_position(), m_target, Vec3d::UnitZ());
     }
