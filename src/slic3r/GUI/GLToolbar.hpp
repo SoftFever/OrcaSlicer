@@ -233,10 +233,10 @@ private:
     EType m_type;
     std::string m_name;
     bool m_enabled;
-    mutable GLTexture m_icons_texture;
-    mutable bool m_icons_texture_dirty;
+    GLTexture m_icons_texture;
+    bool m_icons_texture_dirty;
     BackgroundTexture m_background_texture;
-    mutable Layout m_layout;
+    Layout m_layout;
 
     ItemsList m_items;
 
