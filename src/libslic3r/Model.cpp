@@ -2081,8 +2081,10 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
 
 bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new) {
     assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
-    assert(mo.volumes.size() == mo_new.volumes.size());
-    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    // FIXME Lukas H.: Because of adding another mesh modifiers when slicing, then assert triggered and possible crash. It requires changing the integration of MMU segmentation.
+//    assert(mo.volumes.size() == mo_new.volumes.size());
+//    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    for (size_t i=0; i<std::min(mo.volumes.size(), mo_new.volumes.size()); ++i) {
         if (! mo_new.volumes[i]->supported_facets.timestamp_matches(mo.volumes[i]->supported_facets))
             return true;
     }
@@ -2091,8 +2093,10 @@ bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject
 
 bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo_new) {
     assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
-    assert(mo.volumes.size() == mo_new.volumes.size());
-    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    // FIXME Lukas H.: Because of adding another mesh modifiers when slicing, then assert triggered and possible crash. It requires changing the integration of MMU segmentation.
+//    assert(mo.volumes.size() == mo_new.volumes.size());
+//    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    for (size_t i=0; i<std::min(mo.volumes.size(), mo_new.volumes.size()); ++i) {
         if (! mo_new.volumes[i]->seam_facets.timestamp_matches(mo.volumes[i]->seam_facets))
             return true;
     }
@@ -2101,8 +2105,10 @@ bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo
 
 bool model_mmu_segmentation_data_changed(const ModelObject& mo, const ModelObject& mo_new) {
     assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
-    assert(mo.volumes.size() == mo_new.volumes.size());
-    for (size_t i=0; i<mo_new.volumes.size(); ++i) {
+    // FIXME Lukas H.: Because of adding another mesh modifiers when slicing, then assert triggered and possible crash. It requires changing the integration of MMU segmentation.
+//    assert(mo.volumes.size() == mo_new.volumes.size());
+//    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    for (size_t i=0; i<std::min(mo.volumes.size(), mo_new.volumes.size()); ++i) {
         if (! mo_new.volumes[i]->mmu_segmentation_facets.timestamp_matches(mo.volumes[i]->mmu_segmentation_facets))
             return true;
     }

@@ -487,6 +487,7 @@ enum class ModelVolumeType : int {
     PARAMETER_MODIFIER,
     SUPPORT_ENFORCER,
     SUPPORT_BLOCKER,
+    MMU_SEGMENTATION
 };
 
 enum class EnforcerBlockerType : int8_t {
@@ -600,6 +601,7 @@ public:
 	bool                is_support_enforcer()   const { return m_type == ModelVolumeType::SUPPORT_ENFORCER; }
 	bool                is_support_blocker()    const { return m_type == ModelVolumeType::SUPPORT_BLOCKER; }
 	bool                is_support_modifier()   const { return m_type == ModelVolumeType::SUPPORT_BLOCKER || m_type == ModelVolumeType::SUPPORT_ENFORCER; }
+    bool                is_mmu_segmentation()   const { return m_type == ModelVolumeType::MMU_SEGMENTATION; }
     t_model_material_id material_id() const { return m_material_id; }
     void                set_material_id(t_model_material_id material_id);
     ModelMaterial*      material() const;
@@ -681,6 +683,9 @@ public:
         this->mmu_segmentation_facets.set_new_unique_id();
     }
 
+    const std::vector<ExPolygons> &get_mmu_segmentation_expolygons() const { return m_mmu_segmentation_expolygons; }
+    void                           set_mmu_segmentation_expolygons(const std::vector<ExPolygons> &expoly) { m_mmu_segmentation_expolygons = expoly; }
+
 protected:
 	friend class Print;
     friend class SLAPrint;
@@ -705,6 +710,8 @@ private:
     // The convex hull of this model's mesh.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     Geometry::Transformation        	m_transformation;
+    // List of segmented regions (ExPolygons) indexed by extruder index
+    std::vector<ExPolygons>             m_mmu_segmentation_expolygons;
 
     // flag to optimize the checking if the volume is splittable
     //     -1   ->   is unknown value (before first cheking)
@@ -744,7 +751,8 @@ private:
         ObjectBase(other),
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
         config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
-        supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets)
+        supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets),
+        m_mmu_segmentation_expolygons(other.m_mmu_segmentation_expolygons)
     {
 		assert(this->id().valid()); 
         assert(this->config.id().valid()); 

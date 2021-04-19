@@ -892,6 +892,15 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             }
         } else if (model_custom_seam_data_changed(model_object, model_object_new)) {
             update_apply_status(this->invalidate_step(psGCodeExport));
+        } else if (!print_diff.empty() || model_mmu_segmentation_data_changed(model_object, model_object_new)) {
+            this->call_cancel_callback();
+            update_apply_status(false);
+            update_apply_status(this->invalidate_all_steps());
+            auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
+            for (auto it = range.first; it != range.second; ++ it)
+                update_apply_status(it->print_object->invalidate_all_steps());
+            // FIXME Lukas H.: Temporary solution to force update regions after change regions size or repainting.
+            model_volume_list_update_supports(model_object, model_object_new);
         }
         if (! model_parts_differ && ! modifiers_differ) {
             // Synchronize Object's config.
