@@ -4182,6 +4182,21 @@ static void remove_multiple_edges_in_vertices(MMU_Graph &graph, const std::vecto
     }
 }
 
+static void cut_segmented_layers(const LayerPtrs &layers, std::vector<std::vector<std::pair<ExPolygon, size_t>>> &segmented_regions, const float cut_width) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, segmented_regions.size()),[&](const tbb::blocked_range<size_t>& range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+            std::vector<std::pair<ExPolygon, size_t>> segmented_regions_cuts;
+            for (const std::pair<ExPolygon, size_t> &colored_expoly : segmented_regions[layer_idx]) {
+                ExPolygons cut_colored_expoly = diff_ex({colored_expoly.first}, offset_ex(layers[layer_idx]->lslices, cut_width));
+                for (const ExPolygon &expoly : cut_colored_expoly) {
+                    segmented_regions_cuts.emplace_back(expoly, colored_expoly.second);
+                }
+            }
+            segmented_regions[layer_idx] = segmented_regions_cuts;
+        }
+    }); // end of parallel_for
+}
+
 std::vector<std::vector<std::pair<ExPolygon, size_t>>> PrintObject::mmu_segmentation_by_painting()
 {
     std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions(this->layers().size());
@@ -4308,6 +4323,9 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> PrintObject::mmu_segmenta
             }
         }
     }); // end of parallel_for
+
+    if(m_print->config().mmu_segmented_region_max_width > 0.f)
+        cut_segmented_layers(m_layers, segmented_regions, float(-scale_(m_print->config().mmu_segmented_region_max_width)));
 
     return segmented_regions;
 }

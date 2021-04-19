@@ -962,6 +962,7 @@ public:
     ConfigOptionFloat               max_print_height;
     ConfigOptionFloats              min_print_speed;
     ConfigOptionFloat               min_skirt_length;
+    ConfigOptionFloat               mmu_segmented_region_max_width;
     ConfigOptionString              notes;
     ConfigOptionFloats              nozzle_diameter;
     ConfigOptionBool                only_retract_when_crossing_perimeters;
@@ -1037,6 +1038,7 @@ protected:
         OPT_PTR(max_print_height);
         OPT_PTR(min_print_speed);
         OPT_PTR(min_skirt_length);
+        OPT_PTR(mmu_segmented_region_max_width);
         OPT_PTR(notes);
         OPT_PTR(nozzle_diameter);
         OPT_PTR(only_retract_when_crossing_perimeters);
