@@ -508,6 +508,7 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
     m_layer_height_profile.clear();
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    wxGetApp().obj_list()->update_info_items(last_object_id);
 }
 
 void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor)
@@ -517,6 +518,7 @@ void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas
     const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    wxGetApp().obj_list()->update_info_items(last_object_id);
 }
 
 void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params)
@@ -526,6 +528,7 @@ void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, 
     const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    wxGetApp().obj_list()->update_info_items(last_object_id);
 }
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
@@ -565,6 +568,7 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
             wxGetApp().plater()->take_snapshot(_(L("Variable layer height - Manual edit")));
             const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
 			canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+            wxGetApp().obj_list()->update_info_items(last_object_id);
         }
     }
     m_layer_height_profile_modified = false;

@@ -2138,12 +2138,15 @@ void ObjectList::part_selection_changed()
 
                 if (type == itInfo) {
                     InfoItemType info_type = m_objects_model->GetInfoItemType(item);
-                    GLGizmosManager::EType gizmo_type =
-                        info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports
-                                                                  : GLGizmosManager::EType::Seam;
-                    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
-                    if (gizmos_mgr.get_current_type() != gizmo_type)
-                        gizmos_mgr.open_gizmo(gizmo_type);
+                    if (info_type != InfoItemType::VariableLayerHeight) {
+                        GLGizmosManager::EType gizmo_type =
+                            info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports
+                                                                      : GLGizmosManager::EType::Seam;
+                        GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
+                        if (gizmos_mgr.get_current_type() != gizmo_type)
+                            gizmos_mgr.open_gizmo(gizmo_type);
+                    } else
+                        wxGetApp().plater()->toggle_layers_editing(true);
                 }
             }
             else {
@@ -2266,16 +2269,30 @@ void ObjectList::update_info_items(size_t obj_idx)
     wxDataViewItem item_obj = m_objects_model->GetItemById(obj_idx);
     assert(item_obj.IsOk());
 
-    for (InfoItemType type : {InfoItemType::CustomSupports, InfoItemType::CustomSeam}) {
+    for (InfoItemType type : {InfoItemType::CustomSupports,
+                              InfoItemType::CustomSeam,
+                              InfoItemType::VariableLayerHeight}) {
         wxDataViewItem item = m_objects_model->GetInfoItemByType(item_obj, type);
         bool shows = item.IsOk();
-        bool should_show = printer_technology() == ptFFF
-                        && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
-                                       [type](const ModelVolume* mv) {
-                                           return ! (type == InfoItemType::CustomSupports
-                                                     ? mv->supported_facets.empty()
-                                                     : mv->seam_facets.empty());
-                                       });
+        bool should_show = false;
+
+        switch (type) {
+        case InfoItemType::CustomSupports :
+        case InfoItemType::CustomSeam :
+            should_show = printer_technology() == ptFFF
+                       && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
+                                      [type](const ModelVolume* mv) {
+                                          return ! (type == InfoItemType::CustomSupports
+                                                          ? mv->supported_facets.empty()
+                                                          : mv->seam_facets.empty());
+                                      });
+            break;
+
+        case InfoItemType::VariableLayerHeight :
+            should_show = printer_technology() == ptFFF
+                       && ! model_object->layer_height_profile.empty();
+            break;
+        }
 
         if (! shows && should_show) {
             m_objects_model->AddInfoChild(item_obj, type);

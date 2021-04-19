@@ -191,6 +191,7 @@ public:
     bool is_selection_empty() const;
     void scale_selection_to_fit_print_volume();
     void convert_unit(ConversionType conv_type);
+    void toggle_layers_editing(bool enable);
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 
