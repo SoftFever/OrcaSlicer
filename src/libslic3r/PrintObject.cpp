@@ -4197,6 +4197,244 @@ static void cut_segmented_layers(const LayerPtrs &layers, std::vector<std::vecto
     }); // end of parallel_for
 }
 
+std::vector<std::vector<ExPolygons>> PrintObject::mmu_segmentation_top_and_bottom_layers()
+{
+    std::vector<std::vector<ExPolygons>> triangles_by_color(3);
+    triangles_by_color.assign(3, std::vector<ExPolygons>(m_layers.size()));
+    for (const ModelVolume *mv : this->model_object()->volumes) {
+        for (const auto &params : {std::make_pair(EnforcerBlockerType::NONE, 0), std::make_pair(EnforcerBlockerType::ENFORCER, 1),
+                                   std::make_pair(EnforcerBlockerType::BLOCKER, 2)}) {
+            const indexed_triangle_set custom_facets = mv->mmu_segmentation_facets.get_facets(*mv, params.first);
+            if (!mv->is_model_part() || custom_facets.indices.empty())
+                continue;
+
+            const Transform3f tr = this->trafo().cast<float>() * mv->get_matrix().cast<float>();
+            for (size_t facet_idx = 0; facet_idx < custom_facets.indices.size(); ++facet_idx) {
+                float min_z = std::numeric_limits<float>::max();
+                float max_z = std::numeric_limits<float>::lowest();
+
+                std::array<Vec3f, 3> facet;
+                Points               projected_facet(3);
+                for (int p_idx = 0; p_idx < 3; ++p_idx) {
+                    facet[p_idx] = tr * custom_facets.vertices[custom_facets.indices[facet_idx](p_idx)];
+                    max_z        = std::max(max_z, facet[p_idx].z());
+                    min_z        = std::min(min_z, facet[p_idx].z());
+                }
+
+                // Sort the vertices by z-axis for simplification of projected_facet on slices
+                std::sort(facet.begin(), facet.end(), [](const Vec3f &p1, const Vec3f &p2) { return p1.z() < p2.z(); });
+
+                for (int p_idx = 0; p_idx < 3; ++p_idx) {
+                    projected_facet[p_idx] = Point(scale_(facet[p_idx].x()), scale_(facet[p_idx].y()));
+                    projected_facet[p_idx] = projected_facet[p_idx] - this->center_offset();
+                }
+
+                ExPolygon triangle = ExPolygon(projected_facet);
+
+                // Find lowest slice not below the triangle.
+                auto first_layer = std::upper_bound(m_layers.begin(), m_layers.end(), float(min_z - EPSILON),
+                                                    [](float z, const Layer *l1) { return z < l1->slice_z + l1->height * 0.5; });
+                auto last_layer  = std::upper_bound(m_layers.begin(), m_layers.end(), float(max_z - EPSILON),
+                                                   [](float z, const Layer *l1) { return z < l1->slice_z + l1->height * 0.5; });
+
+                if (last_layer == m_layers.end())
+                    --last_layer;
+
+                if (first_layer == m_layers.end() || (first_layer != m_layers.begin() && facet[0].z() < (*first_layer)->print_z - EPSILON))
+                    --first_layer;
+
+                for (auto layer_it = first_layer; (layer_it != (last_layer + 1) && layer_it != m_layers.end()); ++layer_it) {
+                    size_t layer_idx = layer_it - m_layers.begin();
+                    triangles_by_color[params.second][layer_idx].emplace_back(triangle);
+                }
+            }
+        }
+    }
+
+    auto get_extrusion_width = [&m_layers = std::as_const(m_layers)](const size_t layer_idx) -> float {
+        auto extrusion_width_it = std::max_element(m_layers[layer_idx]->m_regions.begin(), m_layers[layer_idx]->m_regions.end(),
+                                                   [](const LayerRegion *l1, const LayerRegion *l2) {
+                                                       return l1->region()->config().perimeter_extrusion_width <
+                                                              l2->region()->config().perimeter_extrusion_width;
+                                                   });
+        assert(extrusion_width_it != m_layers[layer_idx]->m_regions.end());
+        return float((*extrusion_width_it)->region()->config().perimeter_extrusion_width);
+    };
+
+    auto get_top_solid_layers = [&m_layers = std::as_const(m_layers)](const size_t layer_idx) -> int {
+        auto top_solid_layer_it = std::max_element(m_layers[layer_idx]->m_regions.begin(), m_layers[layer_idx]->m_regions.end(),
+                                                   [](const LayerRegion *l1, const LayerRegion *l2) {
+                                                       return l1->region()->config().top_solid_layers < l2->region()->config().top_solid_layers;
+                                                   });
+        assert(top_solid_layer_it != m_layers[layer_idx]->m_regions.end());
+        return (*top_solid_layer_it)->region()->config().top_solid_layers;
+    };
+
+    auto get_bottom_solid_layers = [&m_layers = std::as_const(m_layers)](const size_t layer_idx) -> int {
+        auto top_bottom_layer_it = std::max_element(m_layers[layer_idx]->m_regions.begin(), m_layers[layer_idx]->m_regions.end(),
+                                                    [](const LayerRegion *l1, const LayerRegion *l2) {
+                                                        return l1->region()->config().bottom_solid_layers < l2->region()->config().bottom_solid_layers;
+                                                    });
+        assert(top_bottom_layer_it != m_layers[layer_idx]->m_regions.end());
+        return (*top_bottom_layer_it)->region()->config().bottom_solid_layers;
+    };
+
+    std::vector<ExPolygons> top_layers(m_layers.size());
+    top_layers.back() = m_layers.back()->lslices;
+    tbb::parallel_for(tbb::blocked_range<size_t>(1, m_layers.size()), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+            float extrusion_width     = 0.1f * float(scale_(get_extrusion_width(layer_idx)));
+            top_layers[layer_idx - 1] = diff_ex(m_layers[layer_idx - 1]->lslices, offset_ex(m_layers[layer_idx]->lslices, extrusion_width));
+        }
+    }); // end of parallel_for
+
+    std::vector<ExPolygons> bottom_layers(m_layers.size());
+    bottom_layers.front() = m_layers.front()->lslices;
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size() - 1), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+            float extrusion_width        = 0.1f * float(scale_(get_extrusion_width(layer_idx)));
+            bottom_layers[layer_idx + 1] = diff_ex(m_layers[layer_idx + 1]->lslices, offset_ex(m_layers[layer_idx]->lslices, extrusion_width));
+        }
+    }); // end of parallel_for
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+            float extrusion_width = 0.1f * float(scale_(get_extrusion_width(layer_idx)));
+            for (std::vector<ExPolygons> &triangles : triangles_by_color) {
+                if (!triangles[layer_idx].empty() && (!top_layers[layer_idx].empty() || !bottom_layers[layer_idx].empty())) {
+                    ExPolygons connected = union_ex(offset_ex(triangles[layer_idx], float(10 * SCALED_EPSILON)));
+                    triangles[layer_idx] = union_ex(offset_ex(offset_ex(connected, -extrusion_width / 1), extrusion_width / 1));
+                } else {
+                    triangles[layer_idx].clear();
+                }
+            }
+        }
+    }); // end of parallel_for
+
+    std::vector<std::vector<ExPolygons>> triangles_by_color_bottom(3);
+    std::vector<std::vector<ExPolygons>> triangles_by_color_top(3);
+    triangles_by_color_bottom.assign(3, std::vector<ExPolygons>(m_layers.size()));
+    triangles_by_color_top.assign(3, std::vector<ExPolygons>(m_layers.size()));
+
+    for (size_t layer_idx = 0; layer_idx < this->layers().size(); ++layer_idx) {
+        BOOST_LOG_TRIVIAL(debug) << "MMU segmentation of top layer: " << layer_idx;
+        float      extrusion_width  = scale_(get_extrusion_width(layer_idx));
+        int        top_solid_layers = get_top_solid_layers(layer_idx);
+        ExPolygons top_expolygon    = top_layers[layer_idx];
+        if (top_expolygon.empty())
+            continue;
+
+        for (size_t color_idx = 0; color_idx < triangles_by_color.size(); ++color_idx) {
+            if (triangles_by_color[color_idx][layer_idx].empty())
+                continue;
+            ExPolygons intersection_poly = intersection_ex(triangles_by_color[color_idx][layer_idx], top_expolygon);
+            if (!intersection_poly.empty()) {
+                triangles_by_color_top[color_idx][layer_idx].insert(triangles_by_color_top[color_idx][layer_idx].end(), intersection_poly.begin(),
+                                                                    intersection_poly.end());
+                for (int last_idx = int(layer_idx) - 1; last_idx >= std::max(int(layer_idx - top_solid_layers), int(0)); --last_idx) {
+                    float offset_value = float(layer_idx - last_idx) * (-1.0f) * extrusion_width;
+                    if (offset_ex(top_expolygon, offset_value).empty())
+                        continue;
+                    ExPolygons layer_slices_trimmed = m_layers[last_idx]->lslices;
+
+                    for (int last_idx_1 = last_idx; last_idx_1 < int(layer_idx); ++last_idx_1) {
+                        layer_slices_trimmed = intersection_ex(layer_slices_trimmed, m_layers[last_idx_1 + 1]->lslices);
+                    }
+
+                    ExPolygons offset_e            = offset_ex(layer_slices_trimmed, offset_value);
+                    ExPolygons intersection_poly_2 = intersection_ex(triangles_by_color_top[color_idx][layer_idx], offset_e);
+                    triangles_by_color_top[color_idx][last_idx].insert(triangles_by_color_top[color_idx][last_idx].end(), intersection_poly_2.begin(),
+                                                                       intersection_poly_2.end());
+                }
+            }
+        }
+    }
+
+    for (size_t layer_idx = 0; layer_idx < this->layers().size(); ++layer_idx) {
+        BOOST_LOG_TRIVIAL(debug) << "MMU segmentation of bottom layer: " << layer_idx;
+        float      extrusion_width     = scale_(get_extrusion_width(layer_idx));
+        int        bottom_solid_layers = get_bottom_solid_layers(layer_idx);
+        ExPolygons bottom_expolygon    = bottom_layers[layer_idx];
+        if (bottom_expolygon.empty())
+            continue;
+
+        for (size_t color_idx = 0; color_idx < triangles_by_color.size(); ++color_idx) {
+            if (triangles_by_color[color_idx][layer_idx].empty())
+                continue;
+
+            ExPolygons intersection_poly = intersection_ex(triangles_by_color[color_idx][layer_idx], bottom_expolygon);
+            if (!intersection_poly.empty()) {
+                triangles_by_color_bottom[color_idx][layer_idx].insert(triangles_by_color_bottom[color_idx][layer_idx].end(), intersection_poly.begin(),
+                                                                       intersection_poly.end());
+                for (size_t last_idx = layer_idx + 1; last_idx < std::min(layer_idx + bottom_solid_layers, m_layers.size()); ++last_idx) {
+                    float offset_value = float(last_idx - layer_idx) * (-1.0f) * extrusion_width;
+                    if (offset_ex(bottom_expolygon, offset_value).empty())
+                        continue;
+                    ExPolygons layer_slices_trimmed = m_layers[last_idx]->lslices;
+
+                    for (int last_idx_1 = int(last_idx); last_idx_1 > int(layer_idx); --last_idx_1) {
+                        layer_slices_trimmed = intersection_ex(layer_slices_trimmed, offset_ex(m_layers[last_idx_1 - 1]->lslices, offset_value));
+                    }
+
+                    ExPolygons offset_e            = offset_ex(layer_slices_trimmed, offset_value);
+                    ExPolygons intersection_poly_2 = intersection_ex(triangles_by_color_bottom[color_idx][layer_idx], offset_e);
+                    triangles_by_color_bottom[color_idx][last_idx].insert(triangles_by_color_bottom[color_idx][last_idx].end(), intersection_poly_2.begin(),
+                                                                          intersection_poly_2.end());
+                }
+            }
+        }
+    }
+
+    std::vector<std::vector<ExPolygons>> triangles_by_color_merged(3);
+    triangles_by_color_merged.assign(3, std::vector<ExPolygons>(m_layers.size()));
+    for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++layer_idx) {
+        for (size_t color_idx = 0; color_idx < triangles_by_color_merged.size(); ++color_idx) {
+            triangles_by_color_merged[color_idx][layer_idx].insert(triangles_by_color_merged[color_idx][layer_idx].end(),
+                                                                   triangles_by_color_bottom[color_idx][layer_idx].begin(),
+                                                                   triangles_by_color_bottom[color_idx][layer_idx].end());
+            triangles_by_color_merged[color_idx][layer_idx].insert(triangles_by_color_merged[color_idx][layer_idx].end(),
+                                                                   triangles_by_color_top[color_idx][layer_idx].begin(),
+                                                                   triangles_by_color_top[color_idx][layer_idx].end());
+            triangles_by_color_merged[color_idx][layer_idx] = union_ex(triangles_by_color_merged[color_idx][layer_idx]);
+        }
+
+        // Cut all colors for cases when two colors are overlapping
+        for (size_t color_idx = 1; color_idx < triangles_by_color_merged.size(); ++color_idx) {
+            triangles_by_color_merged[color_idx][layer_idx] = diff_ex(triangles_by_color_merged[color_idx][layer_idx],
+                                                                      triangles_by_color_merged[color_idx - 1][layer_idx]);
+        }
+    }
+
+    return triangles_by_color_merged;
+}
+
+static std::vector<std::vector<std::pair<ExPolygon, size_t>>> merge_segmented_layers(
+    const std::vector<std::vector<std::pair<ExPolygon, size_t>>> &segmented_regions, const std::vector<std::vector<ExPolygons>> &top_and_bottom_layers)
+{
+    std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions_merged(segmented_regions.size());
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, segmented_regions.size()), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+            BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - merging region: " << layer_idx;
+            for (const std::pair<ExPolygon, size_t> &colored_expoly : segmented_regions[layer_idx]) {
+                ExPolygons cut_colored_expoly = {colored_expoly.first};
+                for (const std::vector<ExPolygons> &top_and_bottom_layer : top_and_bottom_layers)
+                    cut_colored_expoly = diff_ex(cut_colored_expoly, top_and_bottom_layer[layer_idx]);
+                for (ExPolygon &ex_poly : cut_colored_expoly)
+                    segmented_regions_merged[layer_idx].emplace_back(ex_poly, colored_expoly.second);
+
+            }
+
+            for (size_t color_idx = 0; color_idx < top_and_bottom_layers.size(); ++color_idx) {
+                ExPolygons top_and_bottom_expoly = top_and_bottom_layers[color_idx][layer_idx];
+                for (const ExPolygon &expoly : top_and_bottom_expoly) { segmented_regions_merged[layer_idx].emplace_back(expoly, color_idx); }
+            }
+        }
+    }); // end of parallel_for
+
+    return segmented_regions_merged;
+}
+
 std::vector<std::vector<std::pair<ExPolygon, size_t>>> PrintObject::mmu_segmentation_by_painting()
 {
     std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions(this->layers().size());
@@ -4327,7 +4565,10 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> PrintObject::mmu_segmenta
     if(m_print->config().mmu_segmented_region_max_width > 0.f)
         cut_segmented_layers(m_layers, segmented_regions, float(-scale_(m_print->config().mmu_segmented_region_max_width)));
 
-    return segmented_regions;
+//    return segmented_regions;
+    std::vector<std::vector<ExPolygons>>                   top_and_bottom_layers    = mmu_segmentation_top_and_bottom_layers();
+    std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions_merged = merge_segmented_layers(segmented_regions, top_and_bottom_layers);
+    return segmented_regions_merged;
 }
 // --------------------MMU_END----------------------
 
