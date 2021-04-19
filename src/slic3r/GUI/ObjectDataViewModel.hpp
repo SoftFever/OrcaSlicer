@@ -49,7 +49,8 @@ enum class InfoItemType
 {
     Undef,
     CustomSupports,
-    CustomSeam
+    CustomSeam,
+    VariableLayerHeight
 };
 
 class ObjectDataViewModelNode;

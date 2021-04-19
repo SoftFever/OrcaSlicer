@@ -4967,6 +4967,12 @@ void Plater::convert_unit(ConversionType conv_type)
     }
 }
 
+void Plater::toggle_layers_editing(bool enable)
+{
+    if (canvas3D()->is_layers_editing_enabled() != enable)
+        wxPostEvent(canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+}
+
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
 {
     wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
