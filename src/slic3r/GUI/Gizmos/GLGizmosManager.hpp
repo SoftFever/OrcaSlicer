@@ -68,6 +68,7 @@ public:
         SlaSupports,
         FdmSupports,
         Seam,
+        MmuSegmentation,
         Undefined
     };
 

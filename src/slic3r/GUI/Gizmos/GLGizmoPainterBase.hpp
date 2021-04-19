@@ -25,7 +25,8 @@ struct Camera;
 
 enum class PainterGizmoType {
     FDM_SUPPORTS,
-    SEAM
+    SEAM,
+    MMU_SEGMENTATION
 };
 
 

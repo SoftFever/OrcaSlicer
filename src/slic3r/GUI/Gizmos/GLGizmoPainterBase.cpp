@@ -37,7 +37,7 @@ void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
     if (activate && ! m_internal_stack_active) {
         wxString str = get_painter_type() == PainterGizmoType::FDM_SUPPORTS
                            ? _L("Entering Paint-on supports")
-                           : _L("Entering Seam painting");
+                           : (get_painter_type() == PainterGizmoType::MMU_SEGMENTATION ? _L("Entering MMU segmentation") : _L("Entering Seam painting"));
         Plater::TakeSnapshot(wxGetApp().plater(), str);
         wxGetApp().plater()->enter_gizmos_stack();
         m_internal_stack_active = true;
@@ -45,7 +45,7 @@ void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
     if (! activate && m_internal_stack_active) {
         wxString str = get_painter_type() == PainterGizmoType::SEAM
                            ? _L("Leaving Seam painting")
-                           : _L("Leaving Paint-on supports");
+                           : (get_painter_type() == PainterGizmoType::MMU_SEGMENTATION ? _L("Leaving MMU segmentation") : _L("Leaving Paint-on supports"));
         wxGetApp().plater()->leave_gizmos_stack();
         Plater::TakeSnapshot(wxGetApp().plater(), str);
         m_internal_stack_active = false;
