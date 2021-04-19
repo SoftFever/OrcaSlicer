@@ -1525,14 +1525,20 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     if (type == itUndef)
         return;
 
+    wxDataViewItem parent = m_objects_model->GetParent(item);
+
     if (type & itSettings)
-        del_settings_from_config(m_objects_model->GetParent(item));
+        del_settings_from_config(parent);
     else if (type & itInstanceRoot && obj_idx != -1)
         del_instances_from_object(obj_idx);
     else if (type & itLayerRoot && obj_idx != -1)
         del_layers_from_object(obj_idx);
     else if (type & itLayer && obj_idx != -1)
         del_layer_from_object(obj_idx, m_objects_model->GetLayerRangeByItem(item));
+    else if (type & itInfo && obj_idx != -1) {
+        Unselect(item);
+        Select(parent);
+    }
     else if (idx == -1)
         return;
     else if (!del_subobject_from_object(obj_idx, idx, type))
@@ -1540,7 +1546,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
 
     // If last volume item with warning was deleted, unmark object item
     if (type & itVolume && (*m_objects)[obj_idx]->get_mesh_errors_count() == 0)
-        m_objects_model->DeleteWarningIcon(m_objects_model->GetParent(item));
+        m_objects_model->DeleteWarningIcon(parent);
 
     m_objects_model->Delete(item);
     update_info_items(obj_idx);
@@ -2131,9 +2137,6 @@ void ObjectList::part_selection_changed()
                 update_and_show_manipulations = true;
 
                 if (type == itInfo) {
-                    Unselect(item);
-                    assert(parent_type == itObject);
-                    Select(parent);
                     InfoItemType info_type = m_objects_model->GetInfoItemType(item);
                     GLGizmosManager::EType gizmo_type =
                         info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports

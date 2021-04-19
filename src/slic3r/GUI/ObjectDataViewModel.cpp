@@ -377,13 +377,7 @@ wxDataViewItem ObjectDataViewModel::AddSettingsChild(const wxDataViewItem &paren
 
     const auto node = new ObjectDataViewModelNode(root, itSettings);
 
-    // In case there are some info items, append after them.
-    size_t i = 0;
-    for (i = 0; i<root->GetChildCount(); ++i)
-        if (root->GetNthChild(i)->GetType() != itInfo)
-            break;
-
-    root->Insert(node, i);
+    root->Insert(node, 0);
     // notify control
     const wxDataViewItem child((void*)node);
     ItemAdded(parent_item, child);
