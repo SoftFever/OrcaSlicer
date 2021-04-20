@@ -74,7 +74,7 @@ private:
 
 public:
     bool is_dirty() const { return m_state.is_dirty(); }
-    void update_from_undo_redo_stack(UpdateType type, const Slic3r::UndoRedo::Stack& main_stack, const Slic3r::UndoRedo::Stack& active_stack);
+    void update_from_undo_redo_stack(UpdateType type);
     void update_from_presets();
     void reset_after_save();
     void reset_initial_presets();

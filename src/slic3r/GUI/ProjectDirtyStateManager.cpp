@@ -24,6 +24,7 @@ enum class EStackType
     Gizmo
 };
 
+// returns the current active snapshot (the topmost snapshot in the undo part of the stack) in the given stack
 static const UndoRedo::Snapshot* get_active_snapshot(const UndoRedo::Stack& stack) {
     const std::vector<UndoRedo::Snapshot>& snapshots = stack.snapshots();
     const size_t active_snapshot_time = stack.active_snapshot_time();
@@ -33,30 +34,32 @@ static const UndoRedo::Snapshot* get_active_snapshot(const UndoRedo::Stack& stac
         &snapshots[idx] : nullptr;
 
     assert(ret != nullptr);
-
     return ret;
 }
 
+// returns the last saveable snapshot (the topmost snapshot in the undo part of the stack that can be saved) in the given stack
 static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, const UndoRedo::Stack& stack,
     const ProjectDirtyStateManager::DirtyState::Gizmos& gizmos, size_t last_save_main) {
-    auto is_gizmo_with_modifications = [&gizmos, &stack](const UndoRedo::Snapshot& snapshot) {
-        if (boost::starts_with(snapshot.name, _utf8("Entering"))) {
-            if (gizmos.current)
-                return true;
 
-            std::string topmost_redo;
-            wxGetApp().plater()->undo_redo_topmost_string_getter(false, topmost_redo);
-            if (boost::starts_with(topmost_redo, _utf8("Leaving"))) {
-                const std::vector<UndoRedo::Snapshot>& snapshots = stack.snapshots();
-                const UndoRedo::Snapshot* leaving_snapshot = &(*std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(snapshot.timestamp + 1)));
-                if (gizmos.is_used_and_modified(*leaving_snapshot))
+    // returns true if the given snapshot is not saveable
+    auto skip_main = [&gizmos, last_save_main, &stack](const UndoRedo::Snapshot& snapshot) {
+        auto is_gizmo_with_modifications = [&gizmos, &stack](const UndoRedo::Snapshot& snapshot) {
+            if (boost::starts_with(snapshot.name, _utf8("Entering"))) {
+                if (gizmos.current)
                     return true;
-            }
-        }
-        return false;
-    };
 
-    auto skip_main = [&gizmos, last_save_main, is_gizmo_with_modifications](const UndoRedo::Snapshot& snapshot) {
+                std::string topmost_redo;
+                wxGetApp().plater()->undo_redo_topmost_string_getter(false, topmost_redo);
+                if (boost::starts_with(topmost_redo, _utf8("Leaving"))) {
+                    const std::vector<UndoRedo::Snapshot>& snapshots = stack.snapshots();
+                    const UndoRedo::Snapshot* leaving_snapshot = &(*std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(snapshot.timestamp + 1)));
+                    if (gizmos.is_used_and_modified(*leaving_snapshot))
+                        return true;
+                }
+            }
+            return false;
+        };
+
         if (snapshot.name == _utf8("New Project"))
             return true;
         else if (snapshot.name == _utf8("Reset Project"))
@@ -77,7 +80,8 @@ static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, con
         return false;
     };
 
-    auto skip_gizmo = [&gizmos](const UndoRedo::Snapshot& snapshot) {
+    // returns true if the given snapshot is not saveable
+    auto skip_gizmo = [](const UndoRedo::Snapshot& snapshot) {
         // put here any needed condition to skip the snapshot
         return false;
     };
@@ -90,15 +94,18 @@ static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, con
         curr = &(*std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(curr->timestamp - shift)));
         shift = (curr == temp) ? shift + 1 : 1;
     }
-    if (boost::starts_with(curr->name, _utf8("Entering")) && last_save_main == curr->timestamp + 1) {
-        std::string topmost_redo;
-        wxGetApp().plater()->undo_redo_topmost_string_getter(false, topmost_redo);
-        if (boost::starts_with(topmost_redo, _utf8("Leaving")))
-            curr = &(*std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(curr->timestamp + 1)));
+    if (type == EStackType::Main) {
+        if (boost::starts_with(curr->name, _utf8("Entering")) && last_save_main == curr->timestamp + 1) {
+            std::string topmost_redo;
+            wxGetApp().plater()->undo_redo_topmost_string_getter(false, topmost_redo);
+            if (boost::starts_with(topmost_redo, _utf8("Leaving")))
+                curr = &(*std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(curr->timestamp + 1)));
+        }
     }
     return curr->timestamp > 0 ? curr : nullptr;
 }
 
+// returns the name of the gizmo contained in the given string
 static std::string extract_gizmo_name(const std::string& s) {
     static const std::array<std::string, 2> prefixes = { _utf8("Entering"), _utf8("Leaving") };
 
@@ -150,6 +157,7 @@ bool ProjectDirtyStateManager::DirtyState::Gizmos::any_used_modified() const
 }
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
+// returns true if the given snapshot is contained in any of the gizmos caches
 bool ProjectDirtyStateManager::DirtyState::Gizmos::is_used_and_modified(const UndoRedo::Snapshot& snapshot) const
 {
     for (auto& [name, gizmo] : used) {
@@ -166,10 +174,14 @@ void ProjectDirtyStateManager::DirtyState::Gizmos::reset()
     used.clear();
 }
 
-void ProjectDirtyStateManager::update_from_undo_redo_stack(UpdateType type, const Slic3r::UndoRedo::Stack& main_stack, const Slic3r::UndoRedo::Stack& active_stack)
+void ProjectDirtyStateManager::update_from_undo_redo_stack(UpdateType type)
 {
     if (!wxGetApp().initialized())
         return;
+
+    const Plater* plater = wxGetApp().plater();
+    const UndoRedo::Stack& main_stack = plater->undo_redo_stack_main();
+    const UndoRedo::Stack& active_stack = plater->undo_redo_stack_active();
 
     if (&main_stack == &active_stack)
         update_from_undo_redo_main_stack(type, main_stack);
@@ -197,13 +209,11 @@ void ProjectDirtyStateManager::reset_after_save()
     const UndoRedo::Stack& active_stack = plater->undo_redo_stack_active();
 
     if (&main_stack == &active_stack) {
-        const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(main_stack);
         const UndoRedo::Snapshot* saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, main_stack, m_state.gizmos, m_last_save.main);
         assert(saveable_snapshot != nullptr);
         m_last_save.main = saveable_snapshot->timestamp;
     }
     else {
-        const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(active_stack);
         const UndoRedo::Snapshot* main_active_snapshot = get_active_snapshot(main_stack);
         if (boost::starts_with(main_active_snapshot->name, _utf8("Entering"))) {
             if (m_state.gizmos.current)
@@ -233,7 +243,7 @@ void ProjectDirtyStateManager::render_debug_window() const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     auto color = [](bool value) {
-        return value ? ImVec4(1.0f, 0.49f, 0.216f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return value ? ImVec4(1.0f, 0.49f, 0.216f, 1.0f) /* orange */: ImVec4(1.0f, 1.0f, 1.0f, 1.0f) /* white */;
     };
     auto bool_to_text = [](bool value) {
         return value ? "true" : "false";
@@ -392,10 +402,8 @@ void ProjectDirtyStateManager::update_from_undo_redo_gizmo_stack(UpdateType type
     m_state.gizmos.current = false;
 
     const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(stack);
-    if (active_snapshot->name == "Gizmos-Initial") {
-        m_state.gizmos.current = (m_last_save.gizmo != 0);
+    if (active_snapshot->name == "Gizmos-Initial")
         return;
-    }
 
     const UndoRedo::Snapshot* last_saveable_snapshot = get_last_saveable_snapshot(EStackType::Gizmo, stack, m_state.gizmos, m_last_save.main);
     m_state.gizmos.current = (last_saveable_snapshot != nullptr && last_saveable_snapshot->timestamp != m_last_save.gizmo);
