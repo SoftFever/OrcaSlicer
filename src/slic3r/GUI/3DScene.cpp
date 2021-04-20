@@ -421,20 +421,24 @@ const BoundingBoxf3& GLVolume::transformed_bounding_box() const
     const BoundingBoxf3& box = bounding_box();
     assert(box.defined || box.min(0) >= box.max(0) || box.min(1) >= box.max(1) || box.min(2) >= box.max(2));
 
-    if (m_transformed_bounding_box_dirty)
-    {
-        m_transformed_bounding_box = box.transformed(world_matrix());
-        m_transformed_bounding_box_dirty = false;
+    BoundingBoxf3* transformed_bounding_box = const_cast<BoundingBoxf3*>(&m_transformed_bounding_box);
+    bool* transformed_bounding_box_dirty = const_cast<bool*>(&m_transformed_bounding_box_dirty);
+    if (*transformed_bounding_box_dirty) {
+        *transformed_bounding_box = box.transformed(world_matrix());
+        *transformed_bounding_box_dirty = false;
     }
-
-    return m_transformed_bounding_box;
+    return *transformed_bounding_box;
 }
 
 const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 {
-	if (m_transformed_convex_hull_bounding_box_dirty)
-		m_transformed_convex_hull_bounding_box = this->transformed_convex_hull_bounding_box(world_matrix());
-    return m_transformed_convex_hull_bounding_box;
+    BoundingBoxf3* transformed_convex_hull_bounding_box = const_cast<BoundingBoxf3*>(&m_transformed_convex_hull_bounding_box);
+    bool* transformed_convex_hull_bounding_box_dirty = const_cast<bool*>(&m_transformed_convex_hull_bounding_box_dirty);
+    if (*transformed_convex_hull_bounding_box_dirty) {
+        *transformed_convex_hull_bounding_box = this->transformed_convex_hull_bounding_box(world_matrix());
+        *transformed_convex_hull_bounding_box_dirty = false;
+    }
+    return *transformed_convex_hull_bounding_box;
 }
 
 BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &trafo) const
@@ -795,7 +799,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     glsafe(::glDisable(GL_BLEND));
 }
 
-bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state)
+bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state) const
 {
     if (config == nullptr)
         return false;
@@ -805,7 +809,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         return false;
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-    BoundingBoxf3 print_volume(Vec3d(unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config->opt_float("max_print_height")));
+    BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0 }, { unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config->opt_float("max_print_height") });
     // Allow the objects to protrude below the print bed
     print_volume.min(2) = -1e10;
     print_volume.min(0) -= BedEpsilon;
@@ -817,9 +821,8 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 
     bool contained_min_one = false;
 
-    for (GLVolume* volume : this->volumes)
-    {
-        if ((volume == nullptr) || volume->is_modifier || (volume->is_wipe_tower && !volume->shader_outside_printer_detection_enabled) || ((volume->composite_id.volume_id < 0) && !volume->shader_outside_printer_detection_enabled))
+    for (GLVolume* volume : this->volumes) {
+        if (volume == nullptr || volume->is_modifier || (volume->is_wipe_tower && !volume->shader_outside_printer_detection_enabled) || (volume->composite_id.volume_id < 0 && !volume->shader_outside_printer_detection_enabled))
             continue;
 
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
@@ -832,10 +835,10 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         if (contained)
             contained_min_one = true;
 
-        if ((state == ModelInstancePVS_Inside) && volume->is_outside)
+        if (state == ModelInstancePVS_Inside && volume->is_outside)
             state = ModelInstancePVS_Fully_Outside;
 
-        if ((state == ModelInstancePVS_Fully_Outside) && volume->is_outside && print_volume.intersects(bb))
+        if (state == ModelInstancePVS_Fully_Outside && volume->is_outside && print_volume.intersects(bb))
             state = ModelInstancePVS_Partly_Outside;
     }
 
@@ -845,7 +848,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     return contained_min_one;
 }
 
-bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, bool& partlyOut, bool& fullyOut)
+bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, bool& partlyOut, bool& fullyOut) const
 {
     if (config == nullptr)
         return false;
@@ -867,9 +870,8 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, b
 
     partlyOut = false;
     fullyOut = false;
-    for (GLVolume* volume : this->volumes)
-    {
-        if ((volume == nullptr) || volume->is_modifier || (volume->is_wipe_tower && !volume->shader_outside_printer_detection_enabled) || ((volume->composite_id.volume_id < 0) && !volume->shader_outside_printer_detection_enabled))
+    for (GLVolume* volume : this->volumes) {
+        if (volume == nullptr || volume->is_modifier || (volume->is_wipe_tower && !volume->shader_outside_printer_detection_enabled) || (volume->composite_id.volume_id < 0 && !volume->shader_outside_printer_detection_enabled))
             continue;
 
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
