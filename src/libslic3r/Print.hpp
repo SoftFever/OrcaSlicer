@@ -240,11 +240,6 @@ public:
     // Helpers to project custom facets on slices
     void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<ExPolygons>& expolys) const;
 
-    // Returns MMU segmentation based on painting in MMU segmentation gizmo
-    std::vector<std::vector<std::pair<ExPolygon, size_t>>> mmu_segmentation_by_painting();
-    // Returns MMU segmentation of top and bottom layers based on painting in MMU segmentation gizmo
-    std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bottom_layers();
-
 private:
     // to be called from Print only.
     friend class Print;
