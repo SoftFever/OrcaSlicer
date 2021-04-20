@@ -90,22 +90,24 @@ float OpenGLManager::GLInfo::get_max_anisotropy() const
 
 void OpenGLManager::GLInfo::detect() const
 {
-    m_version = gl_get_string_safe(GL_VERSION, "N/A");
-    m_glsl_version = gl_get_string_safe(GL_SHADING_LANGUAGE_VERSION, "N/A");
-    m_vendor = gl_get_string_safe(GL_VENDOR, "N/A");
-    m_renderer = gl_get_string_safe(GL_RENDERER, "N/A");
+    *const_cast<std::string*>(&m_version) = gl_get_string_safe(GL_VERSION, "N/A");
+    *const_cast<std::string*>(&m_glsl_version) = gl_get_string_safe(GL_SHADING_LANGUAGE_VERSION, "N/A");
+    *const_cast<std::string*>(&m_vendor) = gl_get_string_safe(GL_VENDOR, "N/A");
+    *const_cast<std::string*>(&m_renderer) = gl_get_string_safe(GL_RENDERER, "N/A");
 
-    glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_max_tex_size));
+    int* max_tex_size = const_cast<int*>(&m_max_tex_size);
+    glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, max_tex_size));
 
-    m_max_tex_size /= 2;
+    *max_tex_size /= 2;
 
     if (Slic3r::total_physical_memory() / (1024 * 1024 * 1024) < 6)
-        m_max_tex_size /= 2;
+        *max_tex_size /= 2;
 
-    if (GLEW_EXT_texture_filter_anisotropic)
-        glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_max_anisotropy));
-
-    m_detected = true;
+    if (GLEW_EXT_texture_filter_anisotropic) {
+        float* max_anisotropy = const_cast<float*>(&m_max_anisotropy);
+        glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
+    }
+    *const_cast<bool*>(&m_detected) = true;
 }
 
 static bool version_greater_or_equal_to(const std::string& version, unsigned int major, unsigned int minor)
@@ -174,19 +176,16 @@ std::string OpenGLManager::GLInfo::to_string(bool format_as_html, bool extension
     out << b_start << "Renderer:     " << b_end << m_renderer << line_end;
     out << b_start << "GLSL version: " << b_end << m_glsl_version << line_end;
 
-    if (extensions)
-    {
+    if (extensions) {
         std::vector<std::string> extensions_list;
         std::string extensions_str = gl_get_string_safe(GL_EXTENSIONS, "");
         boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_off);
 
-        if (!extensions_list.empty())
-        {
+        if (!extensions_list.empty()) {
             out << h2_start << "Installed extensions:" << h2_end << line_end;
 
             std::sort(extensions_list.begin(), extensions_list.end());
-            for (const std::string& ext : extensions_list)
-            {
+            for (const std::string& ext : extensions_list) {
                 out << ext << line_end;
             }
         }
@@ -304,8 +303,7 @@ wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
     	0
     };
 
-    if (s_multisample == EMultisampleState::Unknown)
-    {
+    if (s_multisample == EMultisampleState::Unknown) {
         detect_multisample(attribList);
 //        // debug output
 //        std::cout << "Multisample " << (can_multisample() ? "enabled" : "disabled") << std::endl;
