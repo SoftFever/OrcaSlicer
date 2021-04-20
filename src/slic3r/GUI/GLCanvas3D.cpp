@@ -6314,31 +6314,47 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
 #if ENABLE_WARNING_TEXTURE_REMOVAL
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
+    enum ErrorType{
+        PLATER_WARNING,
+        PLATER_ERROR,
+        SLICING_ERROR
+    };
     std::string text;
-    bool error = false;
+    ErrorType error = ErrorType::PLATER_WARNING;
     switch (warning) {
     case EWarning::ObjectOutside:      text = _u8L("An object outside the print area was detected."); break;
-    case EWarning::ToolpathOutside:    text = _u8L("A toolpath outside the print area was detected."); error = true; break;
-    case EWarning::SlaSupportsOutside: text = _u8L("SLA supports outside the print area were detected."); error = true; break;
+    case EWarning::ToolpathOutside:    text = _u8L("A toolpath outside the print area was detected."); error = ErrorType::SLICING_ERROR; break;
+    case EWarning::SlaSupportsOutside: text = _u8L("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Some objects are not visible."); break;
     case EWarning::ObjectClashed:
         text = _u8L("An object outside the print area was detected.\n"
             "Resolve the current problem to continue slicing.");
-        error = true;
+        error = ErrorType::PLATER_ERROR;
         break;
 }
     auto& notification_manager = *wxGetApp().plater()->get_notification_manager();
-    if (state) {
-        if (error)
-            notification_manager.push_plater_error_notification(text);
-        else
+    switch (error)
+    {
+    case PLATER_WARNING:
+        if (state)
             notification_manager.push_plater_warning_notification(text);
-    }
-    else {
-        if (error)
-            notification_manager.close_plater_error_notification(text);
         else
             notification_manager.close_plater_warning_notification(text);
+        break;
+    case PLATER_ERROR:
+        if (state)
+            notification_manager.push_plater_error_notification(text);
+        else
+            notification_manager.close_plater_error_notification(text);
+        break;
+    case SLICING_ERROR:
+        if (state)
+            notification_manager.push_slicing_error_notification(text);
+        else
+            notification_manager.close_slicing_error_notification(text);
+        break;
+    default:
+        break;
     }
 }
 #else
