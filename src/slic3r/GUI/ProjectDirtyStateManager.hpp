@@ -39,6 +39,7 @@ public:
             bool any_used_modified() const;
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
             bool is_used_and_modified(const UndoRedo::Snapshot& snapshot) const;
+            void reset();
         };
 
         bool plater{ false };

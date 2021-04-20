@@ -37,7 +37,8 @@ static const UndoRedo::Snapshot* get_active_snapshot(const UndoRedo::Stack& stac
     return ret;
 }
 
-static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, const UndoRedo::Stack& stack, const ProjectDirtyStateManager::DirtyState::Gizmos& gizmos) {
+static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, const UndoRedo::Stack& stack,
+    const ProjectDirtyStateManager::DirtyState::Gizmos& gizmos, size_t last_save_main) {
     auto is_gizmo_with_modifications = [&gizmos, &stack](const UndoRedo::Snapshot& snapshot) {
         if (boost::starts_with(snapshot.name, _utf8("Entering"))) {
             if (gizmos.current)
@@ -55,7 +56,7 @@ static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, con
         return false;
     };
 
-    auto skip_main = [&gizmos, is_gizmo_with_modifications](const UndoRedo::Snapshot& snapshot) {
+    auto skip_main = [&gizmos, last_save_main, is_gizmo_with_modifications](const UndoRedo::Snapshot& snapshot) {
         if (snapshot.name == _utf8("New Project"))
             return true;
         else if (snapshot.name == _utf8("Reset Project"))
@@ -65,11 +66,11 @@ static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, con
         else if (boost::starts_with(snapshot.name, _utf8("Selection")))
             return true;
         else if (boost::starts_with(snapshot.name, _utf8("Entering"))) {
-            if (!is_gizmo_with_modifications(snapshot))
+            if (last_save_main != snapshot.timestamp + 1 && !is_gizmo_with_modifications(snapshot))
                 return true;
         }
         else if (boost::starts_with(snapshot.name, _utf8("Leaving"))) {
-            if (!gizmos.is_used_and_modified(snapshot))
+            if (last_save_main != snapshot.timestamp && !gizmos.is_used_and_modified(snapshot))
                 return true;
         }
         
@@ -88,6 +89,12 @@ static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, con
         const UndoRedo::Snapshot* temp = curr;
         curr = &(*std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(curr->timestamp - shift)));
         shift = (curr == temp) ? shift + 1 : 1;
+    }
+    if (boost::starts_with(curr->name, _utf8("Entering")) && last_save_main == curr->timestamp + 1) {
+        std::string topmost_redo;
+        wxGetApp().plater()->undo_redo_topmost_string_getter(false, topmost_redo);
+        if (boost::starts_with(topmost_redo, _utf8("Leaving")))
+            curr = &(*std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(curr->timestamp + 1)));
     }
     return curr->timestamp > 0 ? curr : nullptr;
 }
@@ -154,6 +161,11 @@ bool ProjectDirtyStateManager::DirtyState::Gizmos::is_used_and_modified(const Un
     return false;
 }
 
+void ProjectDirtyStateManager::DirtyState::Gizmos::reset()
+{
+    used.clear();
+}
+
 void ProjectDirtyStateManager::update_from_undo_redo_stack(UpdateType type, const Slic3r::UndoRedo::Stack& main_stack, const Slic3r::UndoRedo::Stack& active_stack)
 {
     if (!wxGetApp().initialized())
@@ -186,20 +198,18 @@ void ProjectDirtyStateManager::reset_after_save()
 
     if (&main_stack == &active_stack) {
         const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(main_stack);
-        const UndoRedo::Snapshot* saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, main_stack, m_state.gizmos);
+        const UndoRedo::Snapshot* saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, main_stack, m_state.gizmos, m_last_save.main);
         assert(saveable_snapshot != nullptr);
         m_last_save.main = saveable_snapshot->timestamp;
     }
     else {
         const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(active_stack);
-        const UndoRedo::Snapshot* saveable_snapshot = get_last_saveable_snapshot(EStackType::Gizmo, active_stack, m_state.gizmos);
         const UndoRedo::Snapshot* main_active_snapshot = get_active_snapshot(main_stack);
         if (boost::starts_with(main_active_snapshot->name, _utf8("Entering"))) {
-            if (m_state.gizmos.current) {
-                m_last_save.main = main_active_snapshot->timestamp;
-            }
+            if (m_state.gizmos.current)
+                m_last_save.main = main_active_snapshot->timestamp + 1;
         }
-
+        const UndoRedo::Snapshot* saveable_snapshot = get_last_saveable_snapshot(EStackType::Gizmo, active_stack, m_state.gizmos, m_last_save.main);
         m_last_save.gizmo = saveable_snapshot->timestamp;
     }
 
@@ -262,27 +272,43 @@ void ProjectDirtyStateManager::render_debug_window() const
         append_int_item("Current gizmo:", m_last_save.gizmo);
     }
 
+    const UndoRedo::Stack& main_stack = wxGetApp().plater()->undo_redo_stack_main();
+    const UndoRedo::Snapshot* main_active_snapshot = get_active_snapshot(main_stack);
+    const UndoRedo::Snapshot* main_last_saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, main_stack, m_state.gizmos, m_last_save.main);
+    const std::vector<UndoRedo::Snapshot>& main_snapshots = main_stack.snapshots();
+
     if (ImGui::CollapsingHeader("Main snapshots", ImGuiTreeNodeFlags_DefaultOpen)) {
-        const UndoRedo::Stack& stack = wxGetApp().plater()->undo_redo_stack_main();
-        const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(stack);
-        append_snapshot_item("Active:", active_snapshot);
-        const UndoRedo::Snapshot* last_saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, stack, m_state.gizmos);
-        append_snapshot_item("Last saveable:", last_saveable_snapshot);
-        if (ImGui::CollapsingHeader("Main undo/redo stack", ImGuiTreeNodeFlags_DefaultOpen)) {
-            const std::vector<UndoRedo::Snapshot>& snapshots = stack.snapshots();
-            for (const UndoRedo::Snapshot& snapshot : snapshots) {
-                bool active = active_snapshot->timestamp == snapshot.timestamp;
+        append_snapshot_item("Active:", main_active_snapshot);
+        append_snapshot_item("Last saveable:", main_last_saveable_snapshot);
+    }
+
+    if (ImGui::CollapsingHeader("Main undo/redo stack", ImGuiTreeNodeFlags_DefaultOpen)) {
+        for (const UndoRedo::Snapshot& snapshot : main_snapshots) {
+            bool active = main_active_snapshot->timestamp == snapshot.timestamp;
+            imgui.text_colored(color(active), snapshot.name);
+            ImGui::SameLine(150);
+            imgui.text_colored(color(active), " (" + std::to_string(snapshot.timestamp) + ")");
+            if (&snapshot == main_last_saveable_snapshot) {
+                ImGui::SameLine();
+                imgui.text_colored(color(active), " (S)");
+            }
+            if (m_last_save.main > 0 && m_last_save.main == snapshot.timestamp) {
+                ImGui::SameLine();
+                imgui.text_colored(color(active), " (LS)");
+            }
+        }
+    }
+
+    const UndoRedo::Stack& active_stack = wxGetApp().plater()->undo_redo_stack_active();
+    if (&active_stack != &main_stack) {
+        if (ImGui::CollapsingHeader("Gizmo undo/redo stack", ImGuiTreeNodeFlags_DefaultOpen)) {
+            const UndoRedo::Snapshot* active_active_snapshot = get_active_snapshot(active_stack);
+            const std::vector<UndoRedo::Snapshot>& active_snapshots = active_stack.snapshots();
+            for (const UndoRedo::Snapshot& snapshot : active_snapshots) {
+                bool active = active_active_snapshot->timestamp == snapshot.timestamp;
                 imgui.text_colored(color(active), snapshot.name);
                 ImGui::SameLine(150);
                 imgui.text_colored(color(active), " (" + std::to_string(snapshot.timestamp) + ")");
-                if (&snapshot == last_saveable_snapshot) {
-                    ImGui::SameLine();
-                    imgui.text_colored(color(active), " (S)");
-                }
-                if (m_last_save.main > 0 && m_last_save.main == snapshot.timestamp) {
-                    ImGui::SameLine();
-                    imgui.text_colored(color(active), " (LS)");
-                }
             }
         }
     }
@@ -293,9 +319,13 @@ void ProjectDirtyStateManager::render_debug_window() const
             for (const auto& [name, gizmo] : m_state.gizmos.used) {
                 if (!gizmo.modified_timestamps.empty()) {
                     if (ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-                        for (size_t i : gizmo.modified_timestamps) {
-                            imgui.text(std::to_string(i));
+                        std::string modified_timestamps;
+                        for (size_t i = 0; i < gizmo.modified_timestamps.size(); ++i) {
+                            if (i > 0)
+                                modified_timestamps += " | ";
+                            modified_timestamps += std::to_string(gizmo.modified_timestamps[i]);
                         }
+                        imgui.text(modified_timestamps);
                     }
                 }
             }
@@ -311,11 +341,17 @@ void ProjectDirtyStateManager::update_from_undo_redo_main_stack(UpdateType type,
 {
     m_state.plater = false;
 
-    if (type == UpdateType::TakeSnapshot)
+    if (type == UpdateType::TakeSnapshot) {
+        if (m_last_save.main != 0) {
+            const std::vector<UndoRedo::Snapshot>& snapshots = stack.snapshots();
+            auto snapshot_it = std::find_if(snapshots.begin(), snapshots.end(), [this](const Slic3r::UndoRedo::Snapshot& snapshot) { return snapshot.timestamp == m_last_save.main; });
+            if (snapshot_it == snapshots.end())
+                m_last_save.main = 0;
+        }
         m_state.gizmos.remove_obsolete_used(stack);
+    }
 
     const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(stack);
-
     if (active_snapshot->name == _utf8("New Project") ||
         active_snapshot->name == _utf8("Reset Project") ||
         boost::starts_with(active_snapshot->name, _utf8("Load Project:")))
@@ -347,7 +383,7 @@ void ProjectDirtyStateManager::update_from_undo_redo_main_stack(UpdateType type,
         search_timestamp = m_last_save.main;
     }
 
-    const UndoRedo::Snapshot* last_saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, stack, m_state.gizmos);
+    const UndoRedo::Snapshot* last_saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, stack, m_state.gizmos, m_last_save.main);
     m_state.plater = (last_saveable_snapshot != nullptr && last_saveable_snapshot->timestamp != m_last_save.main);
 }
 
@@ -361,7 +397,7 @@ void ProjectDirtyStateManager::update_from_undo_redo_gizmo_stack(UpdateType type
         return;
     }
 
-    const UndoRedo::Snapshot* last_saveable_snapshot = get_last_saveable_snapshot(EStackType::Gizmo, stack, m_state.gizmos);
+    const UndoRedo::Snapshot* last_saveable_snapshot = get_last_saveable_snapshot(EStackType::Gizmo, stack, m_state.gizmos, m_last_save.main);
     m_state.gizmos.current = (last_saveable_snapshot != nullptr && last_saveable_snapshot->timestamp != m_last_save.gizmo);
 }
 
