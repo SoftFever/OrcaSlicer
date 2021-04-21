@@ -19,6 +19,8 @@ protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
 
+    bool on_is_selectable() const override;
+
 private:
     bool on_init() override;
 

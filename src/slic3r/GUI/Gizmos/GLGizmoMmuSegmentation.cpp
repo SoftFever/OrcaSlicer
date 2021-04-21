@@ -7,6 +7,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 
 #include <GL/glew.h>
@@ -32,7 +33,11 @@ std::string GLGizmoMmuSegmentation::on_get_name() const
     return (_L("MMU painting") + " [N]").ToUTF8().data();
 }
 
-
+bool GLGizmoMmuSegmentation::on_is_selectable() const
+{
+    return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF
+            && wxGetApp().get_mode() != comSimple && wxGetApp().extruders_cnt() > 1);
+}
 
 bool GLGizmoMmuSegmentation::on_init()
 {
