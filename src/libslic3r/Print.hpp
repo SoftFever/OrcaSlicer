@@ -407,7 +407,7 @@ struct PrintStatistics
     double                          total_weight;
     double                          total_wipe_tower_cost;
     double                          total_wipe_tower_filament;
-    std::map<size_t, float>         filament_stats;
+    std::map<size_t, double>        filament_stats;
 
     // Config with the filled in print statistics.
     DynamicConfig           config() const;

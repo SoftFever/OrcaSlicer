@@ -105,7 +105,7 @@ _constant()
     SV* filament_stats()
         %code%{
             HV* hv = newHV();
-            for (std::map<size_t,float>::const_iterator it = THIS->print_statistics().filament_stats.begin(); it != THIS->print_statistics().filament_stats.end(); ++it) {
+            for (std::map<size_t,double>::const_iterator it = THIS->print_statistics().filament_stats.begin(); it != THIS->print_statistics().filament_stats.end(); ++it) {
                 // stringify extruder_id
                 std::ostringstream ss;
                 ss << it->first;

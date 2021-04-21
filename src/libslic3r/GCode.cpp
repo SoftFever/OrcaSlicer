@@ -614,9 +614,44 @@ namespace DoExport {
     static void update_print_estimated_times_stats(const GCodeProcessor& processor, PrintStatistics& print_statistics)
     {
         const GCodeProcessor::Result& result = processor.get_result();
-        print_statistics.estimated_normal_print_time = get_time_dhms(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time);
+        print_statistics.estimated_normal_print_time = get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
         print_statistics.estimated_silent_print_time = processor.is_stealth_time_estimator_enabled() ?
-            get_time_dhms(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)].time) : "N/A";
+            get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].time) : "N/A";
+    }
+
+    static void update_print_estimated_stats(const GCodeProcessor& processor, const std::vector<Extruder>& extruders, PrintStatistics& print_statistics)
+    {
+        const GCodeProcessor::Result& result = processor.get_result();
+        print_statistics.estimated_normal_print_time = get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
+        print_statistics.estimated_silent_print_time = processor.is_stealth_time_estimator_enabled() ?
+            get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].time) : "N/A";
+
+        // update filament statictics
+        double total_extruded_volume = 0.0;
+        double total_used_filament   = 0.0;
+        double total_weight          = 0.0;
+        double total_cost            = 0.0;
+        for (auto volume : result.print_statistics.volumes_per_extruder) {
+            total_extruded_volume += volume.second;
+
+            size_t extruder_id = volume.first;
+            auto extruder = std::find_if(extruders.begin(), extruders.end(), [extruder_id](const Extruder& extr) { return extr.id() == extruder_id; });
+            if (extruder == extruders.end())
+                continue;
+
+            double s = PI * sqr(0.5* extruder->filament_diameter());
+            double weight = volume.second * extruder->filament_density() * 0.001;
+            total_used_filament += volume.second/s;
+            total_weight        += weight;
+            total_cost          += weight * extruder->filament_cost() * 0.001;
+        }
+
+        print_statistics.total_extruded_volume = total_extruded_volume;
+        print_statistics.total_used_filament   = total_used_filament;
+        print_statistics.total_weight          = total_weight;
+        print_statistics.total_cost            = total_cost;
+
+        print_statistics.filament_stats = result.print_statistics.volumes_per_extruder;
     }
 
 #if ENABLE_VALIDATE_CUSTOM_GCODE
@@ -754,7 +789,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     m_processor.process_file(path_tmp, true, [print]() { print->throw_if_canceled(); });
-    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
+//    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
+    DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
 #if ENABLE_GCODE_WINDOW
     if (result != nullptr) {
         *result = std::move(m_processor.extract_result());
@@ -957,7 +993,6 @@ namespace DoExport {
 	                dst.first += buf;
 	                ++ dst.second;
 	            };
-	            print_statistics.filament_stats.insert(std::pair<size_t, float>{extruder.id(), (float)used_filament});
 	            append(out_filament_used_mm,  "%.2lf", used_filament);
 	            append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
 	            if (filament_weight > 0.) {
