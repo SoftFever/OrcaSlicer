@@ -45,7 +45,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     // layer_height shouldn't be equal to zero
     if (config->opt_float("layer_height") < EPSILON)
     {
-        const wxString msg_text = _(L("Zero layer height is not valid.\n\nThe layer height will be reset to 0.01."));
+        const wxString msg_text = _(L("Layer height is not valid.\n\nThe layer height will be reset to 0.01."));
         wxMessageDialog dialog(nullptr, msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
@@ -55,9 +55,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    if (fabs(config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value - 0) < EPSILON)
+    if (config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value < EPSILON)
     {
-        const wxString msg_text = _(L("Zero first layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
+        const wxString msg_text = _(L("First layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
         wxMessageDialog dialog(nullptr, msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;

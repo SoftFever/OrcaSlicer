@@ -1464,7 +1464,8 @@ std::string Print::validate(std::string* warning) const
             }
 
             // validate first_layer_height
-            double first_layer_height = object->config().get_abs_value("first_layer_height");
+            assert(! m_config.first_layer_height.percent);
+            double first_layer_height = m_config.first_layer_height.value;
             double first_layer_min_nozzle_diameter;
             if (object->has_raft()) {
                 // if we have raft layers, only support material extruder is used on first layer
@@ -1561,9 +1562,8 @@ BoundingBox Print::total_bounding_box() const
 
 double Print::skirt_first_layer_height() const
 {
-    if (m_objects.empty()) 
-        throw Slic3r::InvalidArgument("skirt_first_layer_height() can't be called without PrintObjects");
-    return m_objects.front()->config().get_abs_value("first_layer_height");
+    assert(! m_config.first_layer_height.percent);
+    return m_config.first_layer_height.value;
 }
 
 Flow Print::brim_flow() const
