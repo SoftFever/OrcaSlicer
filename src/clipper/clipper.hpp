@@ -41,8 +41,8 @@
 
 #define CLIPPER_VERSION "6.2.6"
 
-//use_xyz: adds a Z member to IntPoint. Adds a minor cost to perfomance.
-//#define use_xyz
+//CLIPPERLIB_USE_XYZ: adds a Z member to IntPoint. Adds a minor cost to perfomance.
+//#define CLIPPERLIB_USE_XYZ
 
 //use_lines: Enables line clipping. Adds a very minor cost to performance.
 #define use_lines
@@ -59,11 +59,15 @@
 #include <functional>
 #include <queue>
 
-#ifdef use_xyz
-namespace ClipperLib_Z {
-#else /* use_xyz */
-namespace ClipperLib {
-#endif /* use_xyz */
+#ifdef CLIPPERLIB_NAMESPACE_PREFIX
+  namespace CLIPPERLIB_NAMESPACE_PREFIX {
+#endif // CLIPPERLIB_NAMESPACE_PREFIX
+
+#ifdef CLIPPERLIB_USE_XYZ
+  namespace ClipperLib_Z {
+#else
+  namespace ClipperLib {
+#endif
 
 enum ClipType { ctIntersection, ctUnion, ctDifference, ctXor };
 enum PolyType { ptSubject, ptClip };
@@ -90,43 +94,20 @@ enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
   static constexpr cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
 #endif // CLIPPERLIB_INT32
 
-#if 1
+#ifdef CLIPPERLIB_INTPOINT_TYPE
+using IntPoint = CLIPPERLIB_INTPOINT_TYPE;
+#else // CLIPPERLIB_INTPOINT_TYPE
 using IntPoint = Eigen::Matrix<cInt, 
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
   3
-#else // use_xyz
+#else // CLIPPERLIB_USE_XYZ
   2
-#endif // use_xyz
+#endif // CLIPPERLIB_USE_XYZ
   , 1, Eigen::DontAlign>;
-using DoublePoint = Eigen::Matrix<double, 2, 1, Eigen::DontAlign>;
-#else
-struct IntPoint {
-  cInt X;
-  cInt Y;
-#ifdef use_xyz
-  cInt Z;
-  IntPoint(cInt x = 0, cInt y = 0, cInt z = 0): X(x), Y(y), Z(z) {};
-#else
-  IntPoint(cInt x = 0, cInt y = 0): X(x), Y(y) {};
-#endif
+#endif // CLIPPERLIB_INTPOINT_TYPE
 
-  friend inline bool operator== (const IntPoint& a, const IntPoint& b)
-  {
-    return a.X == b.X && a.Y == b.Y;
-  }
-  friend inline bool operator!= (const IntPoint& a, const IntPoint& b)
-  {
-    return a.X != b.X  || a.Y != b.Y; 
-  }
-};
-struct DoublePoint
-{
-  double X;
-  double Y;
-  DoublePoint(double x = 0, double y = 0) : X(x), Y(y) {}
-  DoublePoint(IntPoint ip) : X((double)ip.x()), Y((double)ip.y()) {}
-};
-#endif
+using DoublePoint = Eigen::Matrix<double, 2, 1, Eigen::DontAlign>;
+
 //------------------------------------------------------------------------------
 
 typedef std::vector<IntPoint> Path;
@@ -141,7 +122,7 @@ std::ostream& operator <<(std::ostream &s, const Paths &p);
 
 //------------------------------------------------------------------------------
 
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
 typedef std::function<void(const IntPoint& e1bot, const IntPoint& e1top, const IntPoint& e2bot, const IntPoint& e2top, IntPoint& pt)> ZFillCallback;
 #endif
 
@@ -282,11 +263,11 @@ enum EdgeSide { esLeft = 1, esRight = 2};
   };
 
   // Point of an output polygon.
-  // 36B on 64bit system without use_xyz.
+  // 36B on 64bit system without CLIPPERLIB_USE_XYZ.
   struct OutPt {
     // 4B
     int       Idx;
-    // 16B without use_xyz / 24B with use_xyz
+    // 16B without CLIPPERLIB_USE_XYZ / 24B with CLIPPERLIB_USE_XYZ
     IntPoint  Pt;
     // 4B on 32bit system, 8B on 64bit system
     OutPt    *Next;
@@ -381,7 +362,7 @@ public:
   bool StrictlySimple() const {return m_StrictSimple;};
   void StrictlySimple(bool value) {m_StrictSimple = value;};
   //set the callback function for z value filling on intersections (otherwise Z is 0)
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
   void ZFillFunction(ZFillCallback zFillFunc) { m_ZFill = zFillFunc; }
 #endif
 protected:
@@ -414,7 +395,7 @@ private:
   // Does the result go to a PolyTree or Paths?
   bool                  m_UsingPolyTree; 
   bool                  m_StrictSimple;
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
   ZFillCallback         m_ZFill; //custom callback 
 #endif
   void SetWindingCount(TEdge& edge) const;
@@ -467,7 +448,7 @@ private:
   void DoSimplePolygons();
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec) const;
   void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec) const;
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
   void SetZ(IntPoint& pt, TEdge& e1, TEdge& e2);
 #endif
 };
@@ -519,6 +500,8 @@ class clipperException : public std::exception
 
 } //ClipperLib namespace
 
+#ifdef CLIPPERLIB_NAMESPACE_PREFIX
+} // namespace CLIPPERLIB_NAMESPACE_PREFIX
+#endif // CLIPPERLIB_NAMESPACE_PREFIX
+
 #endif //clipper_hpp
-
-

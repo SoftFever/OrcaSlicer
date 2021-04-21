@@ -114,7 +114,7 @@
 #include <cereal/types/base_class.hpp>
 
 #include <clipper/clipper_z.hpp>
-#include <clipper/clipper.hpp>
+#include "clipper.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
@@ -128,8 +128,6 @@
 
 #include "libslic3r.h"
 #include "libslic3r_version.h"
-
-#include "clipper.hpp"
 
 #include <Shiny/Shiny.h>
 

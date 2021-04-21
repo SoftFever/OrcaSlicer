@@ -54,7 +54,7 @@ namespace Slic3r {
 
 template<class Tout = double, class = FloatingOnly<Tout>, int...EigenArgs>
 inline constexpr Eigen::Matrix<Tout, 2, EigenArgs...> unscaled(
-    const ClipperLib::IntPoint &v) noexcept
+    const Slic3r::ClipperLib::IntPoint &v) noexcept
 {
     return Eigen::Matrix<Tout, 2, EigenArgs...>{unscaled<Tout>(v.x()),
                                                 unscaled<Tout>(v.y())};
@@ -616,7 +616,7 @@ void arrange(ArrangePolygons &      arrangables,
              const BedT &           bed,
              const ArrangeParams &  params)
 {
-    namespace clppr = ClipperLib;
+    namespace clppr = Slic3r::ClipperLib;
     
     std::vector<Item> items, fixeditems;
     items.reserve(arrangables.size());

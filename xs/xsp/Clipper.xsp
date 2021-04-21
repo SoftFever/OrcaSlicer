@@ -2,7 +2,6 @@
 
 %{
 #include <xsinit.h>
-#include "clipper.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 %}
 

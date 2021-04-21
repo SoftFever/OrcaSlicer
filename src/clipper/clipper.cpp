@@ -61,11 +61,15 @@
 	#define CLIPPERLIB_PROFILE_BLOCK(name)
 #endif
 
-#ifdef use_xyz
+#ifdef CLIPPERLIB_NAMESPACE_PREFIX
+namespace CLIPPERLIB_NAMESPACE_PREFIX {
+#endif // CLIPPERLIB_NAMESPACE_PREFIX
+
+#ifdef CLIPPERLIB_USE_XYZ
 namespace ClipperLib_Z {
-#else /* use_xyz */
+#else /* CLIPPERLIB_USE_XYZ */
 namespace ClipperLib {
-#endif /* use_xyz */
+#endif /* CLIPPERLIB_USE_XYZ */
 
 static double const pi = 3.141592653589793238;
 static double const two_pi = pi *2;
@@ -335,7 +339,7 @@ inline cInt TopX(TEdge &edge, const cInt currentY)
 
 void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
 {
-#ifdef use_xyz  
+#ifdef CLIPPERLIB_USE_XYZ  
   ip.z() = 0;
 #endif
 
@@ -467,7 +471,7 @@ inline void ReverseHorizontal(TEdge &e)
   //progression of the bounds - ie so their xbots will align with the
   //adjoining lower edge. [Helpful in the ProcessHorizontal() method.]
   std::swap(e.Top.x(), e.Bot.x());
-#ifdef use_xyz  
+#ifdef CLIPPERLIB_USE_XYZ  
   std::swap(e.Top.z(), e.Bot.z());
 #endif
 }
@@ -1073,7 +1077,7 @@ Clipper::Clipper(int initOptions) :
   m_StrictSimple = ((initOptions & ioStrictlySimple) != 0);
   m_PreserveCollinear = ((initOptions & ioPreserveCollinear) != 0);
   m_HasOpenPaths = false;
-#ifdef use_xyz  
+#ifdef CLIPPERLIB_USE_XYZ  
   m_ZFill = 0;
 #endif
 }
@@ -1637,7 +1641,7 @@ void Clipper::DeleteFromSEL(TEdge *e)
 }
 //------------------------------------------------------------------------------
 
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
 void Clipper::SetZ(IntPoint& pt, TEdge& e1, TEdge& e2)
 {
   if (pt.z() != 0 || !m_ZFill) return;
@@ -1655,7 +1659,7 @@ void Clipper::IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &Pt)
   bool e1Contributing = ( e1->OutIdx >= 0 );
   bool e2Contributing = ( e2->OutIdx >= 0 );
 
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
         SetZ(Pt, *e1, *e2);
 #endif
 
@@ -2641,7 +2645,7 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
           (ePrev->Curr.x() == e->Curr.x()) && (ePrev->WindDelta != 0))
         {
           IntPoint pt = e->Curr;
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
           SetZ(pt, *ePrev, *e);
 #endif
           OutPt* op = AddOutPt(ePrev, pt);
@@ -4204,3 +4208,7 @@ std::ostream& operator <<(std::ostream &s, const Paths &p)
 //------------------------------------------------------------------------------
 
 } //ClipperLib namespace
+
+#ifdef CLIPPERLIB_NAMESPACE_PREFIX
+} // namespace CLIPPERLIB_NAMESPACE_PREFIX
+#endif // CLIPPERLIB_NAMESPACE_PREFIX

@@ -1152,7 +1152,7 @@ template<class It> MultiPolygon merged_pile(It from, It to, int bin_id)
 
 TEST_CASE("Test for bed center distance optimization", "[Nesting], [NestKernels]")
 {
-    static const constexpr ClipperLib::cInt W = 10000000;
+    static const constexpr Slic3r::ClipperLib::cInt W = 10000000;
     
     // Get the input items and define the bin.
     std::vector<RectangleItem> input(9, {W, W});
@@ -1187,7 +1187,7 @@ TEST_CASE("Test for bed center distance optimization", "[Nesting], [NestKernels]
 
 TEST_CASE("Test for biggest bounding box area", "[Nesting], [NestKernels]")
 {
-    static const constexpr ClipperLib::cInt W = 10000000;
+    static const constexpr Slic3r::ClipperLib::cInt W = 10000000;
     static const constexpr size_t N = 100;
     
     // Get the input items and define the bin.
