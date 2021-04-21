@@ -72,6 +72,7 @@ template<> struct ShapeTag<Slic3r::Point>   { using Type = PointTag; };
 
 template<> struct ShapeTag<std::vector<Slic3r::Vec2crd>> { using Type = PathTag; };
 template<> struct ShapeTag<Slic3r::Polygon> { using Type = PathTag; };
+template<> struct ShapeTag<Slic3r::Points>  { using Type = PathTag; };
 template<> struct ShapeTag<Slic3r::ExPolygon> { using Type = PolygonTag; };
 template<> struct ShapeTag<Slic3r::ExPolygons> { using Type = MultiPolygonTag; };
 
@@ -105,7 +106,17 @@ struct OrientationType<Slic3r::Polygon> {
 };
 
 template<>
+struct OrientationType<Slic3r::Points> {
+    static const constexpr Orientation Value = Orientation::COUNTER_CLOCKWISE;
+};
+
+template<>
 struct ClosureType<Slic3r::Polygon> {
+    static const constexpr Closure Value = Closure::OPEN;
+};
+
+template<>
+struct ClosureType<Slic3r::Points> {
     static const constexpr Closure Value = Closure::OPEN;
 };
 

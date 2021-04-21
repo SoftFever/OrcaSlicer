@@ -12,10 +12,8 @@
 #include "ClipperUtils.hpp"
 #include "Tesselate.hpp"
 #include "ExPolygonCollection.hpp"
+#include "MinAreaBoundingBox.hpp"
 #include "libslic3r.h"
-
-#include "libnest2d/backends/libslic3r/geometries.hpp"
-#include "libnest2d/utils/rotcalipers.hpp"
 
 #include <iostream>
 #include <random>
@@ -554,7 +552,7 @@ void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure
 
     if (flags & icfIsNew) {
         auto chull = ExPolygonCollection{islands}.convex_hull();
-        auto rotbox = libnest2d::minAreaBoundingBox(chull);
+        auto rotbox = MinAreaBoundigBox{chull, MinAreaBoundigBox::pcConvex};
         Vec2d bbdim = {unscaled(rotbox.width()), unscaled(rotbox.height())};
 
         if (bbdim.x() > bbdim.y()) std::swap(bbdim.x(), bbdim.y());
