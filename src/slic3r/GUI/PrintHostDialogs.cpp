@@ -13,6 +13,7 @@
 #include <wx/dataview.h>
 #include <wx/wupdlock.h>
 #include <wx/debug.h>
+#include <wx/msgdlg.h>
 
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
