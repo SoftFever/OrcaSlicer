@@ -128,22 +128,32 @@ template<class S> struct ContourType<DefaultMultiShape<S>> {
     using Type = typename ContourType<S>::Type;
 };
 
-enum class Orientation {
-    CLOCKWISE,
-    COUNTER_CLOCKWISE
-};
+enum class Orientation { CLOCKWISE, COUNTER_CLOCKWISE };
 
 template<class S>
 struct OrientationType {
 
     // Default Polygon orientation that the library expects
-    static const Orientation Value = Orientation::CLOCKWISE;
+    static const constexpr Orientation Value = Orientation::CLOCKWISE;
 };
 
-template<class T> inline /*constexpr*/ bool is_clockwise() { 
+template<class T> inline constexpr bool is_clockwise() {
     return OrientationType<TContour<T>>::Value == Orientation::CLOCKWISE; 
 }
 
+template<class T>
+inline const constexpr Orientation OrientationTypeV =
+    OrientationType<TContour<T>>::Value;
+
+enum class Closure { OPEN, CLOSED };
+
+template<class S> struct ClosureType {
+    static const constexpr Closure Value = Closure::CLOSED;
+};
+
+template<class T>
+inline const constexpr Closure ClosureTypeV =
+    ClosureType<TContour<T>>::Value;
 
 /**
  * \brief A point pair base class for other point pairs (segment, box, ...).
@@ -587,9 +597,9 @@ inline void reserve(RawPath& p, size_t vertex_capacity, const PathTag&)
 }
 
 template<class S, class...Args>
-inline void addVertex(S& sh, const PathTag&, Args...args)
+inline void addVertex(S& sh, const PathTag&, const TPoint<S> &p)
 {
-    sh.emplace_back(std::forward<Args>(args)...);
+    sh.emplace_back(p);
 }
 
 template<class S, class Fn>
@@ -841,9 +851,9 @@ template<class P> auto rbegin(P& p) -> decltype(_backward(end(p)))
     return _backward(end(p));
 }
 
-template<class P> auto rcbegin(const P& p) -> decltype(_backward(end(p)))
+template<class P> auto rcbegin(const P& p) -> decltype(_backward(cend(p)))
 {
-    return _backward(end(p));
+    return _backward(cend(p));
 }
 
 template<class P> auto rend(P& p) -> decltype(_backward(begin(p)))
@@ -873,16 +883,16 @@ inline void reserve(T& sh, size_t vertex_capacity) {
     reserve(sh, vertex_capacity, Tag<T>());
 }
 
-template<class S, class...Args>
-inline void addVertex(S& sh, const PolygonTag&, Args...args)
+template<class S>
+inline void addVertex(S& sh, const PolygonTag&, const TPoint<S> &p)
 {
-    addVertex(contour(sh), PathTag(), std::forward<Args>(args)...);
+    addVertex(contour(sh), PathTag(), p);
 }
 
-template<class S, class...Args> // Tag dispatcher
-inline void addVertex(S& sh, Args...args)
+template<class S> // Tag dispatcher
+inline void addVertex(S& sh, const TPoint<S> &p)
 {
-    addVertex(sh, Tag<S>(), std::forward<Args>(args)...);
+    addVertex(sh, Tag<S>(), p);
 }
 
 template<class S>

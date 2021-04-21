@@ -28,7 +28,7 @@ inline void buildPolygon(const EdgeList& edgelist,
 
     auto& rsh = sl::contour(rpoly);
 
-    sl::reserve(rsh, 2*edgelist.size());
+    sl::reserve(rsh, 2 * edgelist.size());
 
     // Add the two vertices from the first edge into the final polygon.
     sl::addVertex(rsh, edgelist.front().first());
@@ -57,7 +57,6 @@ inline void buildPolygon(const EdgeList& edgelist,
 
         tmp = std::next(tmp);
     }
-
 }
 
 template<class Container, class Iterator = typename Container::iterator>
@@ -214,15 +213,24 @@ inline NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
     // Reserve the needed memory
     edgelist.reserve(cap);
     sl::reserve(rsh, static_cast<unsigned long>(cap));
+    auto add_edge = [&edgelist](const Vertex &v1, const Vertex &v2) {
+        Edge e{v1, v2};
+        if (e.sqlength() > 0)
+            edgelist.emplace_back(e);
+    };
 
     { // place all edges from sh into edgelist
         auto first = sl::cbegin(sh);
         auto next = std::next(first);
 
         while(next != sl::cend(sh)) {
-            edgelist.emplace_back(*(first), *(next));
+            add_edge(*(first), *(next));
+
             ++first; ++next;
         }
+
+        if constexpr (ClosureTypeV<RawShape> == Closure::OPEN)
+            add_edge(*sl::rcbegin(sh), *sl::cbegin(sh));
     }
 
     { // place all edges from other into edgelist
@@ -230,15 +238,19 @@ inline NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
         auto next = std::next(first);
 
         while(next != sl::cend(other)) {
-            edgelist.emplace_back(*(next), *(first));
+            add_edge(*(next), *(first));
+
             ++first; ++next;
         }
+
+        if constexpr (ClosureTypeV<RawShape> == Closure::OPEN)
+            add_edge(*sl::cbegin(other), *sl::rcbegin(other));
     }
    
-    std::sort(edgelist.begin(), edgelist.end(), 
-              [](const Edge& e1, const Edge& e2) 
+    std::sort(edgelist.begin(), edgelist.end(),
+              [](const Edge& e1, const Edge& e2)
     {
-        Vertex ax(1, 0); // Unit vector for the X axis
+        const Vertex ax(1, 0); // Unit vector for the X axis
         
         // get cectors from the edges
         Vertex p1 = e1.second() - e1.first();
@@ -284,12 +296,18 @@ inline NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
             // If Ratio is an actual rational type, there is no precision loss
             auto pcos1 = Ratio(lcos[0]) / lsq1 * sign * lcos[0];
             auto pcos2 = Ratio(lcos[1]) / lsq2 * sign * lcos[1];
-            
-            return q[0] < 2 ? pcos1 < pcos2 : pcos1 > pcos2;
+
+            if constexpr (is_clockwise<RawShape>())
+                return q[0] < 2 ? pcos1 < pcos2 : pcos1 > pcos2;
+            else
+                return q[0] < 2 ? pcos1 > pcos2 : pcos1 < pcos2;
         }
         
         // If in different quadrants, compare the quadrant indices only.
-        return q[0] > q[1];
+        if constexpr (is_clockwise<RawShape>())
+            return q[0] > q[1];
+        else
+            return q[0] < q[1];
     });
 
     __nfp::buildPolygon(edgelist, rsh, top_nfp);

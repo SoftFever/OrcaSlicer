@@ -14,7 +14,7 @@
 #include "ExPolygonCollection.hpp"
 #include "libslic3r.h"
 
-#include "libnest2d/backends/clipper/geometries.hpp"
+#include "libnest2d/backends/libslic3r/geometries.hpp"
 #include "libnest2d/utils/rotcalipers.hpp"
 
 #include <iostream>
@@ -400,7 +400,7 @@ std::vector<Vec2f> sample_expolygon(const ExPolygons &expolys, float samples_per
 void sample_expolygon_boundary(const ExPolygon &   expoly,
                                float               samples_per_mm,
                                std::vector<Vec2f> &out,
-                               std::mt19937 &      rng)
+                               std::mt19937 &      /*rng*/)
 {
     double  point_stepping_scaled = scale_(1.f) / samples_per_mm;
     for (size_t i_contour = 0; i_contour <= expoly.holes.size(); ++ i_contour) {
@@ -553,8 +553,7 @@ void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure
 //    auto bb = get_extents(islands);
 
     if (flags & icfIsNew) {
-        auto chull_ex = ExPolygonCollection{islands}.convex_hull();
-        auto chull = Slic3rMultiPoint_to_ClipperPath(chull_ex);
+        auto chull = ExPolygonCollection{islands}.convex_hull();
         auto rotbox = libnest2d::minAreaBoundingBox(chull);
         Vec2d bbdim = {unscaled(rotbox.width()), unscaled(rotbox.height())};
 

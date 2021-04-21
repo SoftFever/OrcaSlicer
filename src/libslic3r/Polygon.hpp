@@ -72,6 +72,16 @@ public:
     // Projection of a point onto the polygon.
     Point point_projection(const Point &point) const;
     std::vector<float> parameter_by_length() const;
+
+    using iterator = Points::iterator;
+    using const_iterator = Points::const_iterator;
+
+    inline auto begin()        { return points.begin(); }
+    inline auto begin()  const { return points.begin(); }
+    inline auto end()          { return points.end();   }
+    inline auto end()    const { return points.end();   }
+    inline auto cbegin() const { return points.begin(); }
+    inline auto cend()   const { return points.end();   }
 };
 
 inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
@@ -89,6 +99,8 @@ inline double total_length(const Polygons &polylines) {
         total += it->length();
     return total;
 }
+
+inline double area(const Polygon &poly) { return poly.area(); }
 
 inline double area(const Polygons &polys)
 {

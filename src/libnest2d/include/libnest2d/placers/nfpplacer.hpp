@@ -344,8 +344,7 @@ inline void correctNfpPosition(nfp::NfpResult<RawShape>& nfp,
     auto dtouch = touch_sh - touch_other;
     auto top_other = orbiter.rightmostTopVertex() + dtouch;
     auto dnfp = top_other - nfp.second; // nfp.second is the nfp reference point
-    //FIXME the explicit type conversion ClipperLib::IntPoint()
-    shapelike::translate(nfp.first, ClipperLib::IntPoint(dnfp));
+    shapelike::translate(nfp.first, dnfp);
 }
 
 template<class RawShape>
@@ -474,8 +473,7 @@ public:
         auto bbin = sl::boundingBox(bin);
         auto d =  bbch.center() - bbin.center();
         auto chullcpy = chull;
-        //FIXME the explicit type conversion ClipperLib::IntPoint()
-        sl::translate(chullcpy, ClipperLib::IntPoint(d));
+        sl::translate(chullcpy, d);
         return sl::isInside(chullcpy, bin) ? -1.0 : 1.0;
     }
 

@@ -7,6 +7,10 @@
 #include <libnest2d/backends/clipper/geometries.hpp>
 #endif
 
+#ifdef LIBNEST2D_GEOMETRIES_libslic3r
+#include <libnest2d/backends/libslic3r/geometries.hpp>
+#endif
+
 #ifdef LIBNEST2D_OPTIMIZER_nlopt
 // We include the stock optimizers for local and global optimization
 #include <libnest2d/optimizers/nlopt/subplex.hpp>     // Local subplex for NfpPlacer
