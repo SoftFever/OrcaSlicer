@@ -14,9 +14,12 @@ SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
 	    { "nozzle_diameter", "0.6;0.6;0.6;0.6" },
 	    { "temperature", "357;359;363;378" }
 	});
-    // To test the "first_layer_extrusion_width" over "first_layer_heigth" over "layer_height" chain.
-    config.option<ConfigOptionFloatOrPercent>("first_layer_height")->value = 150.;
-    config.option<ConfigOptionFloatOrPercent>("first_layer_height")->percent = true;
+    // To test the "first_layer_extrusion_width" over "first_layer_heigth".
+    // "first_layer_heigth" over "layer_height" is no more supported after first_layer_height was moved from PrintObjectConfig to PrintConfig.
+//  config.option<ConfigOptionFloatOrPercent>("first_layer_height")->value = 150.;
+//  config.option<ConfigOptionFloatOrPercent>("first_layer_height")->percent = true;
+    config.option<ConfigOptionFloatOrPercent>("first_layer_height")->value = 1.5 * config.opt_float("layer_height");
+    config.option<ConfigOptionFloatOrPercent>("first_layer_height")->percent = false;
     // To let the PlaceholderParser throw when referencing first_layer_speed if it is set to percent, as the PlaceholderParser does not know
     // a percent to what.
     config.option<ConfigOptionFloatOrPercent>("first_layer_speed")->value = 50.;
@@ -50,7 +53,7 @@ SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
     SECTION("math: int(-13.4)") { REQUIRE(parser.process("{int(-13.4)}") == "-13"); }
 
     // Test the "coFloatOrPercent" and "xxx_extrusion_width" substitutions.
-    // first_layer_extrusion_width ratio_over first_layer_heigth ratio_over layer_height
+    // first_layer_extrusion_width ratio_over first_layer_heigth.
     SECTION("perimeter_extrusion_width") { REQUIRE(std::stod(parser.process("{perimeter_extrusion_width}")) == Approx(0.67500001192092896)); }
     SECTION("first_layer_extrusion_width") { REQUIRE(std::stod(parser.process("{first_layer_extrusion_width}")) == Approx(0.9)); }
     SECTION("support_material_xy_spacing") { REQUIRE(std::stod(parser.process("{support_material_xy_spacing}")) == Approx(0.3375)); }
