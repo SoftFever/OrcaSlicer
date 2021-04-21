@@ -89,18 +89,11 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 
 	if (opt->percent) {
 		auto opt_key_layer_height = first_layer ? "first_layer_height" : "layer_height";
-    	auto opt_layer_height = config.option(opt_key_layer_height);
+        auto opt_layer_height = config.option(opt_key_layer_height);
     	if (opt_layer_height == nullptr)
     		throw_on_missing_variable(opt_key, opt_key_layer_height);
-    	double layer_height = opt_layer_height->getFloat();
-    	if (first_layer && static_cast<const ConfigOptionFloatOrPercent*>(opt_layer_height)->percent) {
-    		// first_layer_height depends on layer_height.
-	    	opt_layer_height = config.option("layer_height");
-	    	if (opt_layer_height == nullptr)
-	    		throw_on_missing_variable(opt_key, "layer_height");
-	    	layer_height *= 0.01 * opt_layer_height->getFloat();
-    	}
-		return opt->get_abs_value(layer_height);
+        assert(! first_layer || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_layer_height)->percent);
+		return opt->get_abs_value(opt_layer_height->getFloat());
 	}
 
 	if (opt->value == 0.) {
