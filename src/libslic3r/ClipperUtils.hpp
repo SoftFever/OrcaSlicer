@@ -12,17 +12,23 @@ using ClipperLib::jtMiter;
 using ClipperLib::jtRound;
 using ClipperLib::jtSquare;
 
-// Factor to convert from coord_t (which is int32) to an int64 type used by the Clipper library
-// for general offsetting (the offset(), offset2(), offset_ex() functions) and for the safety offset,
-// which is optionally executed by other functions (union, intersection, diff).
-// This scaling (cca 130t) is applied over the usual SCALING_FACTOR.
-// By the way, is the scalling for offset needed at all?
-// The reason to apply this scaling may be to match the resolution of the double mantissa.
-#define CLIPPER_OFFSET_POWER_OF_2 17
-// 2^17=131072
-#define CLIPPER_OFFSET_SCALE (1 << CLIPPER_OFFSET_POWER_OF_2)
-#define CLIPPER_OFFSET_SCALE_ROUNDING_DELTA ((1 << (CLIPPER_OFFSET_POWER_OF_2 - 1)) - 1)
-#define CLIPPER_MAX_COORD_UNSCALED (ClipperLib::hiRange / CLIPPER_OFFSET_SCALE)
+#define CLIPPERUTILS_UNSAFE_OFFSET
+
+// #define CLIPPERUTILS_OFFSET_SCALE
+
+#ifdef CLIPPERUTILS_OFFSET_SCALE
+    // Factor to convert from coord_t (which is int32) to an int64 type used by the Clipper library
+    // for general offsetting (the offset(), offset2(), offset_ex() functions) and for the safety offset,
+    // which is optionally executed by other functions (union, intersection, diff).
+    // This scaling (cca 130t) is applied over the usual SCALING_FACTOR.
+    // By the way, is the scalling for offset needed at all?
+    // The reason to apply this scaling may be to match the resolution of the double mantissa.
+    #define CLIPPER_OFFSET_POWER_OF_2 17
+    // 2^17=131072
+    #define CLIPPER_OFFSET_SCALE (1 << CLIPPER_OFFSET_POWER_OF_2)
+    #define CLIPPER_OFFSET_SCALE_ROUNDING_DELTA ((1 << (CLIPPER_OFFSET_POWER_OF_2 - 1)) - 1)
+    #define CLIPPER_MAX_COORD_UNSCALED (ClipperLib::hiRange / CLIPPER_OFFSET_SCALE)
+#endif // CLIPPERUTILS_OFFSET_SCALE
 
 namespace Slic3r {
 
@@ -47,8 +53,11 @@ ClipperLib::Paths _offset(ClipperLib::Path &&input, ClipperLib::EndType endType,
 ClipperLib::Paths _offset(ClipperLib::Paths &&input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit);
 inline Slic3r::Polygons offset(const Slic3r::Polygon &polygon, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter,  double miterLimit = 3)
     { return ClipperPaths_to_Slic3rPolygons(_offset(Slic3rMultiPoint_to_ClipperPath(polygon), ClipperLib::etClosedPolygon, delta, joinType, miterLimit)); }
+
+#ifdef CLIPPERUTILS_UNSAFE_OFFSET
 inline Slic3r::Polygons offset(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miterLimit = 3)
     { return ClipperPaths_to_Slic3rPolygons(_offset(Slic3rMultiPoints_to_ClipperPaths(polygons), ClipperLib::etClosedPolygon, delta, joinType, miterLimit)); }
+#endif // CLIPPERUTILS_UNSAFE_OFFSET
 
 // offset Polylines
 inline Slic3r::Polygons offset(const Slic3r::Polyline &polyline, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtSquare, double miterLimit = 3)
@@ -65,13 +74,18 @@ inline Slic3r::Polygons offset(const Slic3r::ExPolygons &expolygons, const float
     { return ClipperPaths_to_Slic3rPolygons(_offset(expolygons, delta, joinType, miterLimit)); }
 inline Slic3r::ExPolygons offset_ex(const Slic3r::Polygon &polygon, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miterLimit = 3)
     { return ClipperPaths_to_Slic3rExPolygons(_offset(Slic3rMultiPoint_to_ClipperPath(polygon), ClipperLib::etClosedPolygon, delta, joinType, miterLimit)); }    
+
+#ifdef CLIPPERUTILS_UNSAFE_OFFSET
 inline Slic3r::ExPolygons offset_ex(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miterLimit = 3)
     { return ClipperPaths_to_Slic3rExPolygons(_offset(Slic3rMultiPoints_to_ClipperPaths(polygons), ClipperLib::etClosedPolygon, delta, joinType, miterLimit)); }
+#endif // CLIPPERUTILS_UNSAFE_OFFSET
+
 inline Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygon &expolygon, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miterLimit = 3)
     { return ClipperPaths_to_Slic3rExPolygons(_offset(expolygon, delta, joinType, miterLimit)); }
 inline Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygons &expolygons, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miterLimit = 3)
     { return ClipperPaths_to_Slic3rExPolygons(_offset(expolygons, delta, joinType, miterLimit)); }
 
+#ifdef CLIPPERUTILS_UNSAFE_OFFSET
 ClipperLib::Paths _offset2(const Slic3r::Polygons &polygons, const float delta1,
     const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
@@ -81,6 +95,8 @@ Slic3r::Polygons offset2(const Slic3r::Polygons &polygons, const float delta1,
 Slic3r::ExPolygons offset2_ex(const Slic3r::Polygons &polygons, const float delta1,
     const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
+#endif // CLIPPERUTILS_UNSAFE_OFFSET
+
 Slic3r::ExPolygons offset2_ex(const Slic3r::ExPolygons &expolygons, const float delta1,
     const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
@@ -319,6 +335,7 @@ void safety_offset(ClipperLib::Paths* paths);
 
 Polygons top_level_islands(const Slic3r::Polygons &polygons);
 
+ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::vector<float> &deltas, double miter_limit);
 Polygons  variable_offset_inner(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
 Polygons  variable_offset_outer(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
 ExPolygons variable_offset_outer_ex(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);

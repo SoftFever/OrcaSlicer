@@ -113,7 +113,7 @@ void Bed3D::Axes::render() const
         glsafe(::glPopMatrix());
     };
 
-    m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
+    const_cast<GLModel*>(&m_arrow)->init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
@@ -141,13 +141,6 @@ void Bed3D::Axes::render() const
     shader->stop_using();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
-}
-
-Bed3D::Bed3D()
-    : m_type(Custom)
-    , m_vbo_id(0)
-    , m_scale_factor(1.0f)
-{
 }
 
 bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
@@ -193,7 +186,7 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
 
     ExPolygon poly;
     for (const Vec2d& p : m_shape) {
-        poly.contour.append(Point(scale_(p(0)), scale_(p(1))));
+        poly.contour.append({ scale_(p(0)), scale_(p(1)) });
     }
 
     calc_triangles(poly);
@@ -228,7 +221,8 @@ Point Bed3D::point_projection(const Point& point) const
 void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor,
                    bool show_axes, bool show_texture) const
 {
-    m_scale_factor = scale_factor;
+    float* factor = const_cast<float*>(&m_scale_factor);
+    *factor = scale_factor;
 
     if (show_axes)
         render_axes();
@@ -247,22 +241,24 @@ void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
 void Bed3D::calc_bounding_boxes() const
 {
-    m_bounding_box = BoundingBoxf3();
+    BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
+    *bounding_box = BoundingBoxf3();
     for (const Vec2d& p : m_shape) {
-        m_bounding_box.merge(Vec3d(p(0), p(1), 0.0));
+        bounding_box->merge({ p(0), p(1), 0.0 });
     }
 
-    m_extended_bounding_box = m_bounding_box;
+    BoundingBoxf3* extended_bounding_box = const_cast<BoundingBoxf3*>(&m_extended_bounding_box);
+    *extended_bounding_box = m_bounding_box;
 
     // extend to contain axes
-    m_extended_bounding_box.merge(m_axes.get_origin() + m_axes.get_total_length() * Vec3d::Ones());
-    m_extended_bounding_box.merge(m_extended_bounding_box.min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, m_extended_bounding_box.max(2)));
+    extended_bounding_box->merge(m_axes.get_origin() + m_axes.get_total_length() * Vec3d::Ones());
+    extended_bounding_box->merge(extended_bounding_box->min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, extended_bounding_box->max(2)));
 
     // extend to contain model, if any
     BoundingBoxf3 model_bb = m_model.get_bounding_box();
     if (model_bb.defined) {
         model_bb.translate(m_model_offset);
-        m_extended_bounding_box.merge(model_bb);
+        extended_bounding_box->merge(model_bb);
     }
 }
 
@@ -339,21 +335,24 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom, bool show_texture) co
 
 void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
 {
+    GLTexture* texture = const_cast<GLTexture*>(&m_texture);
+    GLTexture* temp_texture = const_cast<GLTexture*>(&m_temp_texture);
+
     if (m_texture_filename.empty()) {
-        m_texture.reset();
+        texture->reset();
         render_default(bottom);
         return;
     }
 
-    if ((m_texture.get_id() == 0) || (m_texture.get_source() != m_texture_filename)) {
-        m_texture.reset();
+    if (texture->get_id() == 0 || texture->get_source() != m_texture_filename) {
+        texture->reset();
 
         if (boost::algorithm::iends_with(m_texture_filename, ".svg")) {
             // use higher resolution images if graphic card and opengl version allow
             GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-            if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_texture_filename)) {
+            if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
                 // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-                if (!m_temp_texture.load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
+                if (!temp_texture->load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
                     render_default(bottom);
                     return;
                 }
@@ -361,15 +360,15 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             }
 
             // starts generating the main texture, compression will run asynchronously
-            if (!m_texture.load_from_svg_file(m_texture_filename, true, true, true, max_tex_size)) {
+            if (!texture->load_from_svg_file(m_texture_filename, true, true, true, max_tex_size)) {
                 render_default(bottom);
                 return;
             }
         } 
         else if (boost::algorithm::iends_with(m_texture_filename, ".png")) {
             // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-            if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_texture_filename)) {
-                if (!m_temp_texture.load_from_file(m_texture_filename, false, GLTexture::None, false)) {
+            if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
+                if (!temp_texture->load_from_file(m_texture_filename, false, GLTexture::None, false)) {
                     render_default(bottom);
                     return;
                 }
@@ -377,7 +376,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             }
 
             // starts generating the main texture, compression will run asynchronously
-            if (!m_texture.load_from_file(m_texture_filename, true, GLTexture::MultiThreaded, true)) {
+            if (!texture->load_from_file(m_texture_filename, true, GLTexture::MultiThreaded, true)) {
                 render_default(bottom);
                 return;
             }
@@ -387,13 +386,13 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             return;
         }
     }
-    else if (m_texture.unsent_compressed_data_available()) {
+    else if (texture->unsent_compressed_data_available()) {
         // sends to gpu the already available compressed levels of the main texture
-        m_texture.send_compressed_data_to_gpu();
+        texture->send_compressed_data_to_gpu();
 
         // the temporary texture is not needed anymore, reset it
-        if (m_temp_texture.get_id() != 0)
-            m_temp_texture.reset();
+        if (temp_texture->get_id() != 0)
+            temp_texture->reset();
 
         canvas.request_extra_frame();
 
@@ -406,9 +405,11 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             shader->set_uniform("transparent_background", bottom);
             shader->set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
 
-            if (m_vbo_id == 0) {
-                glsafe(::glGenBuffers(1, &m_vbo_id));
-                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
+            unsigned int* vbo_id = const_cast<unsigned int*>(&m_vbo_id);
+
+            if (*vbo_id == 0) {
+                glsafe(::glGenBuffers(1, vbo_id));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id));
                 glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW));
                 glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
             }
@@ -428,12 +429,12 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
 
             // show the temporary texture while no compressed data is available
-            GLuint tex_id = (GLuint)m_temp_texture.get_id();
+            GLuint tex_id = (GLuint)temp_texture->get_id();
             if (tex_id == 0)
-                tex_id = (GLuint)m_texture.get_id();
+                tex_id = (GLuint)texture->get_id();
 
             glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id));
 
             if (position_id != -1) {
                 glsafe(::glEnableVertexAttribArray(position_id));
@@ -471,24 +472,26 @@ void Bed3D::render_model() const
     if (m_model_filename.empty())
         return;
 
-    if ((m_model.get_filename() != m_model_filename) && m_model.init_from_file(m_model_filename)) {
+    GLModel* model = const_cast<GLModel*>(&m_model);
+
+    if (model->get_filename() != m_model_filename && model->init_from_file(m_model_filename)) {
         // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
         Vec3d shift = m_bounding_box.center();
         shift(2) = -0.03;
-        m_model_offset = shift;
+        *const_cast<Vec3d*>(&m_model_offset) = shift;
 
         // update extended bounding box
         calc_bounding_boxes();
     }
 
-    if (!m_model.get_filename().empty()) {
+    if (!model->get_filename().empty()) {
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
             shader->set_uniform("uniform_color", m_model_color);
             ::glPushMatrix();
             ::glTranslated(m_model_offset(0), m_model_offset(1), m_model_offset(2));
-            m_model.render();
+            model->render();
             ::glPopMatrix();
             shader->stop_using();
         }
@@ -511,7 +514,7 @@ void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture) co
 
 void Bed3D::render_default(bool bottom) const
 {
-    m_texture.reset();
+    const_cast<GLTexture*>(&m_texture)->reset();
 
     unsigned int triangles_vcount = m_triangles.get_vertices_count();
     if (triangles_vcount > 0) {

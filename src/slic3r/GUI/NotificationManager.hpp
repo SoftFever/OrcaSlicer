@@ -125,6 +125,7 @@ public:
 //	void set_slicing_warning_gray(const std::string& text, bool g);
 	// immediately stops showing slicing errors
 	void close_slicing_errors_and_warnings();
+	void close_slicing_error_notification(const std::string& text);
 	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
@@ -207,6 +208,7 @@ private:
 			Unknown,		  // NOT initialized
 			Hidden,
 			Shown,			  // Requesting Render at some time if duration != 0
+			NotFading,		  // Never jumps to state Fading out even if duration says so
 			FadingOut,        // Requesting Render at some time
 			ClosePending,     // Requesting Render
 			Finished,         // Requesting Render
@@ -230,18 +232,17 @@ private:
 		const NotificationData get_data() const { return m_data; }
 		const bool             is_gray() const { return m_is_gray; }
 		void                   set_gray(bool g) { m_is_gray = g; }
-		bool                   compare_text(const std::string& text);
+		virtual bool           compare_text(const std::string& text) const;
         void                   hide(bool h) { if (is_finished()) return; m_state = h ? EState::Hidden : EState::Unknown; }
 		// sets m_next_render with time of next mandatory rendering. Delta is time since last render.
 		bool                   update_state(bool paused, const int64_t delta);
 		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
 		EState                 get_state()  const { return m_state; }
 		bool				   is_hovered() const { return m_state == EState::Hovered; } 
-	
+		void				   set_hovered() { if (m_state != EState::Finished && m_state != EState::ClosePending && m_state != EState::Hidden && m_state != EState::Unknown) m_state = EState::Hovered; }
+	protected:
 		// Call after every size change
 		virtual void init();
-		// Part of init() 
-		virtual void count_spaces();
 		// Calculetes correct size but not se it in imgui!
 		virtual void set_next_window_size(ImGuiWrapper& imgui);
 		virtual void render_text(ImGuiWrapper& imgui,
@@ -255,13 +256,20 @@ private:
 		                              const std::string text,
 		                              bool more = false);
 		// Left sign could be error or warning sign
-		void         render_left_sign(ImGuiWrapper& imgui);
+		virtual void render_left_sign(ImGuiWrapper& imgui);
 		virtual void render_minimize_button(ImGuiWrapper& imgui,
 			                                const float win_pos_x, const float win_pos_y);
 		// Hypertext action, returns true if notification should close.
 		// Action is stored in NotificationData::callback as std::function<bool(wxEvtHandler*)>
 		virtual bool on_text_click();
-	protected:
+	
+		// Part of init(), counts horizontal spacing like left indentation 
+		virtual void count_spaces();
+		// Part of init(), counts end lines
+		virtual void count_lines();
+		// returns true if PopStyleColor should be called later to pop this push
+		virtual bool push_background_color();
+
 		const NotificationData m_data;
 		// For reusing ImGUI windows.
 		NotificationIDProvider &m_id_provider;
@@ -364,7 +372,8 @@ private:
 		virtual void set_percentage(float percent) { m_percentage = percent; }
 	protected:
 		virtual void init() override;
-		virtual void count_spaces() override;
+		virtual void count_lines() override;
+		
 		virtual void render_text(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
 									const float win_pos_x, const float win_pos_y) override;
@@ -375,6 +384,8 @@ private:
 									const float win_size_x, const float win_size_y,
 									const float win_pos_x, const float win_pos_y)
 		{}
+		virtual void render_minimize_button(ImGuiWrapper& imgui,
+			const float win_pos_x, const float win_pos_y) override {}
 		float				m_percentage;
 		
 		bool				m_has_cancel_button {false};
@@ -401,17 +412,23 @@ private:
 		{
 			m_has_cancel_button = true;
 		}
-		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return "[" + std::to_string(id) + "] " + filename + " -> " + host; }
+		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return /*"[" + std::to_string(id) + "] " + */filename + " -> " + host; }
 		virtual void		set_percentage(float percent) override;
 		void				cancel() { m_uj_state = UploadJobState::PB_CANCELLED; m_has_cancel_button = false; }
-		void				error()  { m_uj_state = UploadJobState::PB_ERROR;     m_has_cancel_button = false; }
+		void				error()  { m_uj_state = UploadJobState::PB_ERROR;     m_has_cancel_button = false; init(); }
+		bool				compare_job_id(const int other_id) const { return m_job_id == other_id; }
+		virtual bool		compare_text(const std::string& text) const override { return false; }
 	protected:
+		virtual void        init() override;
+		virtual void count_spaces() override;
+		virtual bool push_background_color() override;
 		virtual void render_bar(ImGuiWrapper& imgui,
 								const float win_size_x, const float win_size_y,
 								const float win_pos_x, const float win_pos_y) override;
 		virtual void render_cancel_button(ImGuiWrapper& imgui,
 											const float win_size_x, const float win_size_y,
 											const float win_pos_x, const float win_pos_y) override;
+		virtual void render_left_sign(ImGuiWrapper& imgui) override;
 		// Identifies job in cancel callback
 		int					m_job_id;
 		// Size of uploaded size to be displayed in MB

@@ -26,7 +26,7 @@ struct Camera
         Num_types
     };
 
-    bool requires_zoom_to_bed;
+    bool requires_zoom_to_bed{ false };
 
 private:
     EType m_type{ Perspective };
@@ -35,26 +35,26 @@ private:
     float m_zenit{ 45.0f };
     double m_zoom{ 1.0 };
     // Distance between camera position and camera target measured along the camera Z axis
-    mutable double m_distance{ DefaultDistance };
-    mutable double m_gui_scale{ 1.0 };
+    double m_distance{ DefaultDistance };
+    double m_gui_scale{ 1.0 };
 
-    mutable std::array<int, 4> m_viewport;
-    mutable Transform3d m_view_matrix{ Transform3d::Identity() };
+    std::array<int, 4> m_viewport;
+    Transform3d m_view_matrix{ Transform3d::Identity() };
     // We are calculating the rotation part of the m_view_matrix from m_view_rotation.
-    mutable Eigen::Quaterniond m_view_rotation{ 1.0, 0.0, 0.0, 0.0 };
-    mutable Transform3d m_projection_matrix{ Transform3d::Identity() };
-    mutable std::pair<double, double> m_frustrum_zs;
+    Eigen::Quaterniond m_view_rotation{ 1.0, 0.0, 0.0, 0.0 };
+    Transform3d m_projection_matrix{ Transform3d::Identity() };
+    std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
 
 public:
-    Camera();
+    Camera() { set_default_orientation(); }
 
     EType get_type() const { return m_type; }
     std::string get_type_as_string() const;
     void set_type(EType type);
     // valid values for type: "0" -> ortho, "1" -> perspective
-    void set_type(const std::string& type);
+    void set_type(const std::string& type) { set_type((type == "1") ? Perspective : Ortho); }
     void select_next_type();
 
     void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
@@ -67,7 +67,7 @@ public:
 
     double get_zoom() const { return m_zoom; }
     double get_inv_zoom() const { assert(m_zoom != 0.0); return 1.0 / m_zoom; }
-    void update_zoom(double delta_zoom);
+    void update_zoom(double delta_zoom) { set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * 0.1)); }
     void set_zoom(double zoom);
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
@@ -119,8 +119,7 @@ public:
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
 
     // forces camera right vector to be parallel to XY plane
-    void recover_from_free_camera()
-    {
+    void recover_from_free_camera() {
         if (std::abs(get_dir_right()(2)) > EPSILON)
             look_at(get_position(), m_target, Vec3d::UnitZ());
     }
@@ -128,7 +127,7 @@ public:
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
 
     double max_zoom() const { return 250.0; }
-    double min_zoom() const;
+    double min_zoom() const { return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box); }
 
 private:
     // returns tight values for nearZ and farZ plane around the given bounding box

@@ -18,7 +18,7 @@ include("deps-unix-common.cmake")
 
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
-    URL "https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz"
+    URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
     URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./bootstrap.sh
@@ -87,5 +87,5 @@ ExternalProject_Add(dep_libcurl
     BUILD_COMMAND make "-j${NPROC}"
     INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
 )
-
 add_dependencies(dep_openvdb dep_boost)
+

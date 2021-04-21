@@ -287,6 +287,11 @@ bool Poly2ContainsPoly1(OutPt *OutPt1, OutPt *OutPt2)
 }
 //----------------------------------------------------------------------
 
+#ifdef CLIPPERLIB_INT32
+inline bool SlopesEqual(const cInt dx1, const cInt dy1, const cInt dx2, const cInt dy2, bool /* UseFullInt64Range */) {
+  return int64_t(dy1) * int64_t(dx2) == int64_t(dx1) * int64_t(dy2);
+}
+#else
 inline bool SlopesEqual(const cInt dx1, const cInt dy1, const cInt dx2, const cInt dy2, bool UseFullInt64Range) {
   return (UseFullInt64Range) ?
     // |dx1| < 2^63, |dx2| < 2^63 etc,
@@ -296,6 +301,8 @@ inline bool SlopesEqual(const cInt dx1, const cInt dy1, const cInt dx2, const cI
     // therefore the following computation could be done with 64bit arithmetics. 
     dy1 * dx2 == dx1 * dy2;
 }
+#endif
+
 inline bool SlopesEqual(const TEdge &e1, const TEdge &e2, bool UseFullInt64Range)
   { return SlopesEqual(e1.Delta.X, e1.Delta.Y, e2.Delta.X, e2.Delta.Y, UseFullInt64Range); }
 inline bool SlopesEqual(const IntPoint &pt1, const IntPoint &pt2, const IntPoint &pt3, bool UseFullInt64Range)
@@ -363,8 +370,8 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
   } 
   else 
   {
-    b1 = Edge1.Bot.X - Edge1.Bot.Y * Edge1.Dx;
-    b2 = Edge2.Bot.X - Edge2.Bot.Y * Edge2.Dx;
+    b1 = double(Edge1.Bot.X) - double(Edge1.Bot.Y) * Edge1.Dx;
+    b2 = double(Edge2.Bot.X) - double(Edge2.Bot.Y) * Edge2.Dx;
     double q = (b2-b1) / (Edge1.Dx - Edge2.Dx);
     ip.Y = Round(q);
     ip.X = (std::fabs(Edge1.Dx) < std::fabs(Edge2.Dx)) ? 
@@ -569,6 +576,7 @@ bool HorzSegmentsOverlap(cInt seg1a, cInt seg1b, cInt seg2a, cInt seg2b)
 // ClipperBase class methods ...
 //------------------------------------------------------------------------------
 
+#ifndef CLIPPERLIB_INT32
 // Called from ClipperBase::AddPath() to verify the scale of the input polygon coordinates.
 inline void RangeTest(const IntPoint& Pt, bool& useFullRange)
 {
@@ -583,6 +591,7 @@ inline void RangeTest(const IntPoint& Pt, bool& useFullRange)
     RangeTest(Pt, useFullRange);
   }
 }
+#endif // CLIPPERLIB_INT32
 //------------------------------------------------------------------------------
 
 // Called from ClipperBase::AddPath() to construct the Local Minima List.
@@ -805,13 +814,17 @@ bool ClipperBase::AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, b
   try
   {
     edges[1].Curr = pg[1];
+#ifndef CLIPPERLIB_INT32
     RangeTest(pg[0], m_UseFullRange);
     RangeTest(pg[highI], m_UseFullRange);
+#endif // CLIPPERLIB_INT32
     InitEdge(&edges[0], &edges[1], &edges[highI], pg[0]);
     InitEdge(&edges[highI], &edges[0], &edges[highI-1], pg[highI]);
     for (int i = highI - 1; i >= 1; --i)
     {
+#ifndef CLIPPERLIB_INT32
       RangeTest(pg[i], m_UseFullRange);
+#endif // CLIPPERLIB_INT32
       InitEdge(&edges[i], &edges[i+1], &edges[i-1], pg[i]);
     }
   }
@@ -967,7 +980,9 @@ void ClipperBase::Clear()
   CLIPPERLIB_PROFILE_FUNC();
   m_MinimaList.clear();
   m_edges.clear();
+#ifndef CLIPPERLIB_INT32
   m_UseFullRange = false;
+#endif // CLIPPERLIB_INT32
   m_HasOpenPaths = false;
 }
 //------------------------------------------------------------------------------
@@ -3322,9 +3337,9 @@ DoublePoint GetUnitNormal(const IntPoint &pt1, const IntPoint &pt2)
   if(pt2.X == pt1.X && pt2.Y == pt1.Y) 
     return DoublePoint(0, 0);
 
-  double Dx = (double)(pt2.X - pt1.X);
-  double dy = (double)(pt2.Y - pt1.Y);
-  double f = 1 *1.0/ std::sqrt( Dx*Dx + dy*dy );
+  double Dx = double(pt2.X - pt1.X);
+  double dy = double(pt2.Y - pt1.Y);
+  double f = 1.0 / std::sqrt( Dx*Dx + dy*dy );
   Dx *= f;
   dy *= f;
   return DoublePoint(dy, -Dx);
@@ -3530,8 +3545,9 @@ void ClipperOffset::DoOffset(double delta)
   }
 
   //see offset_triginometry3.svg in the documentation folder ...
-  if (MiterLimit > 2) m_miterLim = 2/(MiterLimit * MiterLimit);
-  else m_miterLim = 0.5;
+  m_miterLim = (MiterLimit > 2) ? 
+    2. / (MiterLimit * MiterLimit) :
+    0.5;
 
   double y;
   if (ArcTolerance <= 0.0) y = def_arc_tolerance;
@@ -3633,11 +3649,9 @@ void ClipperOffset::DoOffset(double delta)
       if (node.m_endtype == etOpenButt)
       {
         int j = len - 1;
-        pt1 = IntPoint(Round(m_srcPoly[j].X + m_normals[j].X *
-          delta), Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
+        pt1 = IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * delta), Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
         m_destPoly.push_back(pt1);
-        pt1 = IntPoint(Round(m_srcPoly[j].X - m_normals[j].X *
-          delta), Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
+        pt1 = IntPoint(Round(m_srcPoly[j].X - m_normals[j].X * delta), Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
         m_destPoly.push_back(pt1);
       }
       else
@@ -3662,11 +3676,9 @@ void ClipperOffset::DoOffset(double delta)
 
       if (node.m_endtype == etOpenButt)
       {
-        pt1 = IntPoint(Round(m_srcPoly[0].X - m_normals[0].X * delta),
-          Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
+        pt1 = IntPoint(Round(m_srcPoly[0].X - m_normals[0].X * delta), Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
         m_destPoly.push_back(pt1);
-        pt1 = IntPoint(Round(m_srcPoly[0].X + m_normals[0].X * delta),
-          Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
+        pt1 = IntPoint(Round(m_srcPoly[0].X + m_normals[0].X * delta), Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
         m_destPoly.push_back(pt1);
       }
       else
@@ -3753,7 +3765,7 @@ void ClipperOffset::DoRound(int j, int k)
 {
   double a = std::atan2(m_sinA,
   m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y);
-  int steps = std::max((int)Round(m_StepsPerRad * std::fabs(a)), 1);
+  auto steps = std::max<int>(Round(m_StepsPerRad * std::fabs(a)), 1);
 
   double X = m_normals[k].X, Y = m_normals[k].Y, X2;
   for (int i = 0; i < steps; ++i)
@@ -3885,8 +3897,8 @@ void SimplifyPolygons(Paths &polys, PolyFillType fillType)
 
 inline double DistanceSqrd(const IntPoint& pt1, const IntPoint& pt2)
 {
-  double Dx = ((double)pt1.X - pt2.X);
-  double dy = ((double)pt1.Y - pt2.Y);
+  auto Dx = double(pt1.X - pt2.X);
+  auto dy = double(pt1.Y - pt2.Y);
   return (Dx*Dx + dy*dy);
 }
 //------------------------------------------------------------------------------
@@ -3937,8 +3949,8 @@ bool SlopesNearCollinear(const IntPoint& pt1,
 
 bool PointsAreClose(IntPoint pt1, IntPoint pt2, double distSqrd)
 {
-    double Dx = (double)pt1.X - pt2.X;
-    double dy = (double)pt1.Y - pt2.Y;
+    auto Dx = double(pt1.X - pt2.X);
+    auto dy = double(pt1.Y - pt2.Y);
     return ((Dx * Dx) + (dy * dy) <= distSqrd);
 }
 //------------------------------------------------------------------------------

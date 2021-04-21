@@ -13,6 +13,7 @@
 #include <wx/dataview.h>
 #include <wx/wupdlock.h>
 #include <wx/debug.h>
+#include <wx/msgdlg.h>
 
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
@@ -68,8 +69,10 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
             combo_groups->SetValue(recent_group);
     }
 
-    btn_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL));
-
+    auto* szr = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+    auto* btn_ok = szr->GetAffirmativeButton();
+    btn_sizer->Add(szr);
+    
     wxString recent_path = from_u8(app_config->get("recent", CONFIG_KEY_PATH));
     if (recent_path.Length() > 0 && recent_path[recent_path.Length() - 1] != '/') {
         recent_path += '/';
@@ -82,6 +85,20 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
     txt_filename->SetValue(recent_path);
     txt_filename->SetFocus();
     
+    wxString suffix = recent_path.substr(recent_path.find_last_of('.'));
+
+    btn_ok->Bind(wxEVT_BUTTON, [this, suffix](wxCommandEvent&) {
+        wxString path = txt_filename->GetValue();
+        // .gcode suffix control
+        if (!path.Lower().EndsWith(suffix.Lower()))
+        {
+            wxMessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
+            if (msg_wingow.ShowModal() == wxID_NO)
+                return;
+        }
+        EndDialog(wxID_OK);
+        });
+
     Fit();
     CenterOnParent();
 

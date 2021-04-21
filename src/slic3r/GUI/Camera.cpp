@@ -21,12 +21,6 @@ double Camera::FrustrumMinNearZ = 100.0;
 double Camera::FrustrumZMargin = 10.0;
 double Camera::MaxFovDeg = 60.0;
 
-Camera::Camera()
-    : requires_zoom_to_bed(false)
-{
-    set_default_orientation();
-}
-
 std::string Camera::get_type_as_string() const
 {
     switch (m_type)
@@ -49,11 +43,6 @@ void Camera::set_type(EType type)
     }
 }
 
-void Camera::set_type(const std::string& type)
-{
-    set_type((type == "1") ? Perspective : Ortho);
-}
-
 void Camera::select_next_type()
 {
     unsigned char next = (unsigned char)m_type + 1;
@@ -65,24 +54,18 @@ void Camera::select_next_type()
 
 void Camera::set_target(const Vec3d& target)
 {
-    Vec3d new_target = validate_target(target);
-    Vec3d new_displacement = new_target - m_target;
-    if (!new_displacement.isApprox(Vec3d::Zero()))
-    {
+    const Vec3d new_target = validate_target(target);
+    const Vec3d new_displacement = new_target - m_target;
+    if (!new_displacement.isApprox(Vec3d::Zero())) {
         m_target = new_target;
         m_view_matrix.translate(-new_displacement);
     }
 }
 
-void Camera::update_zoom(double delta_zoom)
-{
-    set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * 0.1));
-}
-
 void Camera::set_zoom(double zoom)
 {
     // Don't allow to zoom too far outside the scene.
-    double zoom_min = min_zoom();
+    const double zoom_min = min_zoom();
     if (zoom_min > 0.0)
         zoom = std::max(zoom, zoom_min);
 
@@ -123,7 +106,7 @@ double Camera::get_fov() const
 void Camera::apply_viewport(int x, int y, unsigned int w, unsigned int h) const
 {
     glsafe(::glViewport(0, 0, w, h));
-    glsafe(::glGetIntegerv(GL_VIEWPORT, m_viewport.data()));
+    glsafe(::glGetIntegerv(GL_VIEWPORT, const_cast<std::array<int, 4>*>(&m_viewport)->data()));
 }
 
 void Camera::apply_view_matrix() const
@@ -138,22 +121,23 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     double w = 0.0;
     double h = 0.0;
 
-    double old_distance = m_distance;
-    m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+    const double old_distance = m_distance;
+    std::pair<double, double>* frustrum_zs = const_cast<std::pair<double, double>*>(&m_frustrum_zs);
+    *frustrum_zs = calc_tight_frustrum_zs_around(box);
     if (m_distance != old_distance)
         // the camera has been moved re-apply view matrix
         apply_view_matrix();
 
     if (near_z > 0.0)
-        m_frustrum_zs.first = std::max(std::min(m_frustrum_zs.first, near_z), FrustrumMinNearZ);
+        frustrum_zs->first = std::max(std::min(frustrum_zs->first, near_z), FrustrumMinNearZ);
 
     if (far_z > 0.0)
-        m_frustrum_zs.second = std::max(m_frustrum_zs.second, far_z);
+        frustrum_zs->second = std::max(frustrum_zs->second, far_z);
 
     w = 0.5 * (double)m_viewport[2];
     h = 0.5 * (double)m_viewport[3];
 
-    double inv_zoom = get_inv_zoom();
+    const double inv_zoom = get_inv_zoom();
     w *= inv_zoom;
     h *= inv_zoom;
 
@@ -162,16 +146,16 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     default:
     case Ortho:
     {
-        m_gui_scale = 1.0;
+        *const_cast<double*>(&m_gui_scale) = 1.0;
         break;
     }
     case Perspective:
     {
         // scale near plane to keep w and h constant on the plane at z = m_distance
-        double scale = m_frustrum_zs.first / m_distance;
+        const double scale = frustrum_zs->first / m_distance;
         w *= scale;
         h *= scale;
-        m_gui_scale = scale;
+        *const_cast<double*>(&m_gui_scale) = scale;
         break;
     }
     }
@@ -184,26 +168,25 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     default:
     case Ortho:
     {
-        glsafe(::glOrtho(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        glsafe(::glOrtho(-w, w, -h, h, frustrum_zs->first, frustrum_zs->second));
         break;
     }
     case Perspective:
     {
-        glsafe(::glFrustum(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        glsafe(::glFrustum(-w, w, -h, h, frustrum_zs->first, frustrum_zs->second));
         break;
     }
     }
 
-    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, m_projection_matrix.data()));
+    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, const_cast<Transform3d*>(&m_projection_matrix)->data()));
     glsafe(::glMatrixMode(GL_MODELVIEW));
 }
 
 void Camera::zoom_to_box(const BoundingBoxf3& box, double margin_factor)
 {
     // Calculate the zoom factor needed to adjust the view around the given box.
-    double zoom = calc_zoom_to_bounding_box_factor(box, margin_factor);
-    if (zoom > 0.0)
-    {
+    const double zoom = calc_zoom_to_bounding_box_factor(box, margin_factor);
+    if (zoom > 0.0) {
         m_zoom = zoom;
         // center view around box center
         set_target(box.center());
@@ -213,9 +196,8 @@ void Camera::zoom_to_box(const BoundingBoxf3& box, double margin_factor)
 void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor)
 {
     Vec3d center;
-    double zoom = calc_zoom_to_volumes_factor(volumes, center, margin_factor);
-    if (zoom > 0.0)
-    {
+    const double zoom = calc_zoom_to_volumes_factor(volumes, center, margin_factor);
+    if (zoom > 0.0) {
         m_zoom = zoom;
         // center view around the calculated center
         set_target(center);
@@ -289,8 +271,8 @@ void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, b
         }
     }
 
-    Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
-    auto rot_z = Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ());
+    const Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
+    const auto rot_z = Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ());
     m_view_rotation *= rot_z * Eigen::AngleAxisd(delta_zenit_rad, rot_z.inverse() * get_dir_right());
     m_view_rotation.normalize();
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (- m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
@@ -299,20 +281,15 @@ void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, b
 // Virtual trackball, rotate around an axis, where the eucledian norm of the axis gives the rotation angle in radians.
 void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 {
-    double angle = rotation_rad.norm();
+    const double angle = rotation_rad.norm();
     if (std::abs(angle) > EPSILON) {
-	    Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
-	    Vec3d axis        = m_view_rotation.conjugate() * rotation_rad.normalized();
+        const Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
+        const Vec3d axis = m_view_rotation.conjugate() * rotation_rad.normalized();
         m_view_rotation *= Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis));
         m_view_rotation.normalize();
 	    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
 	    update_zenit();
 	}
-}
-
-double Camera::min_zoom() const
-{
-    return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box);
 }
 
 std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const
@@ -321,7 +298,7 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
     auto& [near_z, far_z] = ret;
 
     // box in eye space
-    BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
+    const BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
     near_z = -eye_box.max(2);
     far_z = -eye_box.min(2);
 
@@ -330,73 +307,71 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
     far_z += FrustrumZMargin;
 
     // ensure min size
-    if (far_z - near_z < FrustrumMinZRange)
-    {
-        double mid_z = 0.5 * (near_z + far_z);
-        double half_size = 0.5 * FrustrumMinZRange;
+    if (far_z - near_z < FrustrumMinZRange) {
+        const double mid_z = 0.5 * (near_z + far_z);
+        const double half_size = 0.5 * FrustrumMinZRange;
         near_z = mid_z - half_size;
         far_z = mid_z + half_size;
     }
 
-    if (near_z < FrustrumMinNearZ)
-    {
-        float delta = FrustrumMinNearZ - near_z;
+    if (near_z < FrustrumMinNearZ) {
+        const double delta = FrustrumMinNearZ - near_z;
         set_distance(m_distance + delta);
         near_z += delta;
         far_z += delta;
     }
-    else if ((near_z > 2.0 * FrustrumMinNearZ) && (m_distance > DefaultDistance))
-    {
-        float delta = m_distance - DefaultDistance;
-        set_distance(DefaultDistance);
-        near_z -= delta;
-        far_z -= delta;
-    }
+// The following is commented out because it causes flickering of the 3D scene GUI
+// when the bounding box of the scene gets large enough
+// We need to introduce some smarter code to move the camera back and forth in such case
+//    else if (near_z > 2.0 * FrustrumMinNearZ && m_distance > DefaultDistance) {
+//        float delta = m_distance - DefaultDistance;
+//        set_distance(DefaultDistance);
+//        near_z -= delta;
+//        far_z -= delta;
+//    }
 
     return ret;
 }
 
 double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double margin_factor) const
 {
-    double max_bb_size = box.max_size();
+    const double max_bb_size = box.max_size();
     if (max_bb_size == 0.0)
         return -1.0;
 
     // project the box vertices on a plane perpendicular to the camera forward axis
     // then calculates the vertices coordinate on this plane along the camera xy axes
 
-    Vec3d right = get_dir_right();
-    Vec3d up = get_dir_up();
-    Vec3d forward = get_dir_forward();
-
-    Vec3d bb_center = box.center();
+    const Vec3d right = get_dir_right();
+    const Vec3d up = get_dir_up();
+    const Vec3d forward = get_dir_forward();
+    const Vec3d bb_center = box.center();
 
     // box vertices in world space
-    std::vector<Vec3d> vertices;
-    vertices.reserve(8);
-    vertices.push_back(box.min);
-    vertices.emplace_back(box.max(0), box.min(1), box.min(2));
-    vertices.emplace_back(box.max(0), box.max(1), box.min(2));
-    vertices.emplace_back(box.min(0), box.max(1), box.min(2));
-    vertices.emplace_back(box.min(0), box.min(1), box.max(2));
-    vertices.emplace_back(box.max(0), box.min(1), box.max(2));
-    vertices.push_back(box.max);
-    vertices.emplace_back(box.min(0), box.max(1), box.max(2));
+    const std::vector<Vec3d> vertices = {
+        box.min,
+        { box.max(0), box.min(1), box.min(2) },
+        { box.max(0), box.max(1), box.min(2) },
+        { box.min(0), box.max(1), box.min(2) },
+        { box.min(0), box.min(1), box.max(2) },
+        { box.max(0), box.min(1), box.max(2) },
+        box.max,
+        { box.min(0), box.max(1), box.max(2) }
+    };
 
     double min_x = DBL_MAX;
     double min_y = DBL_MAX;
     double max_x = -DBL_MAX;
     double max_y = -DBL_MAX;
 
-    for (const Vec3d& v : vertices)
-    {
+    for (const Vec3d& v : vertices) {
         // project vertex on the plane perpendicular to camera forward axis
-        Vec3d pos = v - bb_center;
-        Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
+        const Vec3d pos = v - bb_center;
+        const Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
 
         // calculates vertex coordinate along camera xy axes
-        double x_on_plane = proj_on_plane.dot(right);
-        double y_on_plane = proj_on_plane.dot(up);
+        const double x_on_plane = proj_on_plane.dot(right);
+        const double y_on_plane = proj_on_plane.dot(up);
 
         min_x = std::min(min_x, x_on_plane);
         min_y = std::min(min_y, y_on_plane);
@@ -406,7 +381,7 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double
 
     double dx = max_x - min_x;
     double dy = max_y - min_y;
-    if ((dx <= 0.0) || (dy <= 0.0))
+    if (dx <= 0.0 || dy <= 0.0)
         return -1.0f;
 
     dx *= margin_factor;
@@ -423,13 +398,12 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
     // project the volumes vertices on a plane perpendicular to the camera forward axis
     // then calculates the vertices coordinate on this plane along the camera xy axes
 
-    Vec3d right = get_dir_right();
-    Vec3d up = get_dir_up();
-    Vec3d forward = get_dir_forward();
+    const Vec3d right = get_dir_right();
+    const Vec3d up = get_dir_up();
+    const Vec3d forward = get_dir_forward();
 
     BoundingBoxf3 box;
-    for (const GLVolume* volume : volumes)
-    {
+    for (const GLVolume* volume : volumes) {
         box.merge(volume->transformed_bounding_box());
     }
     center = box.center();
@@ -439,24 +413,22 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
     double max_x = -DBL_MAX;
     double max_y = -DBL_MAX;
 
-    for (const GLVolume* volume : volumes)
-    {
+    for (const GLVolume* volume : volumes) {
         const Transform3d& transform = volume->world_matrix();
         const TriangleMesh* hull = volume->convex_hull();
         if (hull == nullptr)
             continue;
 
-        for (const Vec3f& vertex : hull->its.vertices)
-        {
-            Vec3d v = transform * vertex.cast<double>();
+        for (const Vec3f& vertex : hull->its.vertices) {
+            const Vec3d v = transform * vertex.cast<double>();
 
             // project vertex on the plane perpendicular to camera forward axis
-            Vec3d pos = v - center;
-            Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
+            const Vec3d pos = v - center;
+            const Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
 
             // calculates vertex coordinate along camera xy axes
-            double x_on_plane = proj_on_plane.dot(right);
-            double y_on_plane = proj_on_plane.dot(up);
+            const double x_on_plane = proj_on_plane.dot(right);
+            const double y_on_plane = proj_on_plane.dot(up);
 
             min_x = std::min(min_x, x_on_plane);
             min_y = std::min(min_y, y_on_plane);
@@ -467,10 +439,10 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
 
     center += 0.5 * (max_x + min_x) * right + 0.5 * (max_y + min_y) * up;
 
-    double dx = margin_factor * (max_x - min_x);
-    double dy = margin_factor * (max_y - min_y);
+    const double dx = margin_factor * (max_x - min_x);
+    const double dy = margin_factor * (max_y - min_y);
 
-    if ((dx <= 0.0) || (dy <= 0.0))
+    if (dx <= 0.0 || dy <= 0.0)
         return -1.0f;
 
     return std::min((double)m_viewport[2] / dx, (double)m_viewport[3] / dy);
@@ -478,22 +450,21 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
 
 void Camera::set_distance(double distance) const
 {
-    if (m_distance != distance)
-    {
-        m_view_matrix.translate((distance - m_distance) * get_dir_forward());
-        m_distance = distance;
+    if (m_distance != distance) {
+        const_cast<Transform3d*>(&m_view_matrix)->translate((distance - m_distance) * get_dir_forward());
+        *const_cast<double*>(&m_distance) = distance;
     }
 }
 
 void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up)
 {
-    Vec3d unit_z = (position - target).normalized();
-    Vec3d unit_x = up.cross(unit_z).normalized();
-    Vec3d unit_y = unit_z.cross(unit_x).normalized();
+    const Vec3d unit_z = (position - target).normalized();
+    const Vec3d unit_x = up.cross(unit_z).normalized();
+    const Vec3d unit_y = unit_z.cross(unit_x).normalized();
 
     m_target = target;
     m_distance = (position - target).norm();
-    Vec3d new_position = m_target + m_distance * unit_z;
+    const Vec3d new_position = m_target + m_distance * unit_z;
 
     m_view_matrix(0, 0) = unit_x(0);
     m_view_matrix(0, 1) = unit_x(1);
@@ -525,10 +496,10 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
 void Camera::set_default_orientation()
 {
     m_zenit = 45.0f;
-    double theta_rad = Geometry::deg2rad(-(double)m_zenit);
-    double phi_rad = Geometry::deg2rad(45.0);
-    double sin_theta = ::sin(theta_rad);
-    Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
+    const double theta_rad = Geometry::deg2rad(-(double)m_zenit);
+    const double phi_rad = Geometry::deg2rad(45.0);
+    const double sin_theta = ::sin(theta_rad);
+    const Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
     m_view_rotation = Eigen::AngleAxisd(theta_rad, Vec3d::UnitX()) * Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ());
     m_view_rotation.normalize();
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (- camera_pos), m_view_rotation, Vec3d(1., 1., 1.));
@@ -543,9 +514,9 @@ Vec3d Camera::validate_target(const Vec3d& target) const
     test_box.scale(ScaleFactor);
     test_box.translate(m_scene_box.center());
 
-    return Vec3d(std::clamp(target(0), test_box.min(0), test_box.max(0)),
-        std::clamp(target(1), test_box.min(1), test_box.max(1)),
-        std::clamp(target(2), test_box.min(2), test_box.max(2)));
+    return { std::clamp(target(0), test_box.min(0), test_box.max(0)),
+             std::clamp(target(1), test_box.min(1), test_box.max(1)),
+             std::clamp(target(2), test_box.min(2), test_box.max(2)) };
 }
 
 void Camera::update_zenit()

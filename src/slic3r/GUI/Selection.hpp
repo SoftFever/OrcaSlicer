@@ -206,14 +206,14 @@ private:
     IndicesList m_list;
     Cache m_cache;
     Clipboard m_clipboard;
-    mutable BoundingBoxf3 m_bounding_box;
-    mutable bool m_bounding_box_dirty;
+    BoundingBoxf3 m_bounding_box;
+    bool m_bounding_box_dirty;
     // Bounding box of a selection, with no instance scaling applied. This bounding box
     // is useful for absolute scaling of tilted objects in world coordinate space.
-    mutable BoundingBoxf3 m_unscaled_instance_bounding_box;
-    mutable bool m_unscaled_instance_bounding_box_dirty;
-    mutable BoundingBoxf3 m_scaled_instance_bounding_box;
-    mutable bool m_scaled_instance_bounding_box_dirty;
+    BoundingBoxf3 m_unscaled_instance_bounding_box;
+    bool m_unscaled_instance_bounding_box_dirty;
+    BoundingBoxf3 m_scaled_instance_bounding_box;
+    bool m_scaled_instance_bounding_box_dirty;
 
 #if ENABLE_RENDER_SELECTION_CENTER
     GLUquadricObj* m_quadric;
@@ -222,7 +222,7 @@ private:
     GLModel m_arrow;
     GLModel m_curved_arrow;
 
-    mutable float m_scale_factor;
+    float m_scale_factor;
 
 public:
     Selection();

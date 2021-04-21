@@ -238,13 +238,14 @@ Flow support_material_flow(const PrintObject *object, float layer_height)
 
 Flow support_material_1st_layer_flow(const PrintObject *object, float layer_height)
 {
-    const auto &width = (object->print()->config().first_layer_extrusion_width.value > 0) ? object->print()->config().first_layer_extrusion_width : object->config().support_material_extrusion_width;
+    const PrintConfig &print_config = object->print()->config();
+    const auto &width = (print_config.first_layer_extrusion_width.value > 0) ? print_config.first_layer_extrusion_width : object->config().support_material_extrusion_width;
     return Flow::new_from_config_width(
         frSupportMaterial,
         // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
         (width.value > 0) ? width : object->config().extrusion_width,
-        float(object->print()->config().nozzle_diameter.get_at(object->config().support_material_extruder-1)),
-        (layer_height > 0.f) ? layer_height : float(object->config().first_layer_height.get_abs_value(object->config().layer_height.value)));
+        float(print_config.nozzle_diameter.get_at(object->config().support_material_extruder-1)),
+        (layer_height > 0.f) ? layer_height : float(print_config.first_layer_height.get_abs_value(object->config().layer_height.value)));
 }
 
 Flow support_material_interface_flow(const PrintObject *object, float layer_height)

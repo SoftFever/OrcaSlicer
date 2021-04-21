@@ -47,6 +47,19 @@ void ObjectDataViewModelNode::init_container()
 static constexpr char LayerRootIcon[]   = "edit_layers_all";
 static constexpr char LayerIcon[]       = "edit_layers_some";
 static constexpr char WarningIcon[]     = "exclamation";
+static constexpr char InfoIcon[]        = "info";
+
+ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const InfoItemType info_type) :
+    m_parent(parent),
+    m_type(itInfo),
+    m_extruder(wxEmptyString)
+{
+    m_name = info_type == InfoItemType::CustomSupports ? _L("Paint-on supports")
+           : info_type == InfoItemType::CustomSeam     ? _L("Paint-on seam")
+                                                       : _L("Variable layer height");
+    m_info_item_type = info_type;
+}
+
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type) :
     m_parent(parent),
@@ -69,6 +82,8 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
         m_bmp = create_scaled_bitmap(LayerRootIcon);    // FIXME: pass window ptr
         m_name = _(L("Layers"));
     }
+    else if (type == itInfo)
+        assert(false);
 
     if (type & (itInstanceRoot | itLayerRoot))
         init_container();
@@ -250,6 +265,7 @@ ObjectDataViewModel::ObjectDataViewModel()
 
     m_volume_bmps = MenuFactory::get_volume_bitmaps();
     m_warning_bmp = create_scaled_bitmap(WarningIcon);
+    m_info_bmp    = create_scaled_bitmap(InfoIcon);
 }
 
 ObjectDataViewModel::~ObjectDataViewModel()
@@ -330,12 +346,37 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 	return child;
 }
 
+wxDataViewItem ObjectDataViewModel::AddInfoChild(const wxDataViewItem &parent_item, InfoItemType info_type)
+{
+    ObjectDataViewModelNode *root = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());
+    if (!root) return wxDataViewItem(0);
+
+    const auto node = new ObjectDataViewModelNode(root, info_type);
+
+    // The new item should be added according to its order in InfoItemType.
+    // Find last info item with lower index and append after it.
+    const auto& children = root->GetChildren();
+    int idx = -1;
+    for (int i=0; i<int(children.size()); ++i) {
+        if (children[i]->GetType() == itInfo && int(children[i]->GetInfoItemType()) < int(info_type) )
+            idx = i;
+    }
+
+    root->Insert(node, idx+1);
+    node->SetBitmap(m_info_bmp);
+    // notify control
+    const wxDataViewItem child((void*)node);
+    ItemAdded(parent_item, child);
+    return child;
+}
+
 wxDataViewItem ObjectDataViewModel::AddSettingsChild(const wxDataViewItem &parent_item)
 {
     ObjectDataViewModelNode *root = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());
     if (!root) return wxDataViewItem(0);
 
     const auto node = new ObjectDataViewModelNode(root, itSettings);
+
     root->Insert(node, 0);
     // notify control
     const wxDataViewItem child((void*)node);
@@ -1379,6 +1420,14 @@ ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item) const
     return node->m_type < 0 ? itUndef : node->m_type;
 }
 
+InfoItemType ObjectDataViewModel::GetInfoItemType(const wxDataViewItem &item) const
+{
+    if (!item.IsOk())
+        return InfoItemType::Undef;
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    return node->m_info_item_type;
+}
+
 wxDataViewItem ObjectDataViewModel::GetItemByType(const wxDataViewItem &parent_item, ItemType type) const 
 {
     if (!parent_item.IsOk())
@@ -1409,6 +1458,21 @@ wxDataViewItem ObjectDataViewModel::GetInstanceRootItem(const wxDataViewItem &it
 wxDataViewItem ObjectDataViewModel::GetLayerRootItem(const wxDataViewItem &item) const
 {
     return GetItemByType(item, itLayerRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::GetInfoItemByType(const wxDataViewItem &parent_item, InfoItemType type) const
+{
+    if (! parent_item.IsOk())
+        return wxDataViewItem(0);
+
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());
+    for (size_t i = 0; i < node->GetChildCount(); i++) {
+        const ObjectDataViewModelNode* child_node = node->GetNthChild(i);
+        if (child_node->m_type == itInfo && child_node->m_info_item_type == type)
+            return wxDataViewItem((void*)child_node);
+    }
+
+    return wxDataViewItem(0); // not found
 }
 
 bool ObjectDataViewModel::IsSettingsItem(const wxDataViewItem &item) const

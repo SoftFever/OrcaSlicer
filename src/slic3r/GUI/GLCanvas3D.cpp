@@ -508,6 +508,7 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
     m_layer_height_profile.clear();
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    wxGetApp().obj_list()->update_info_items(last_object_id);
 }
 
 void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor)
@@ -517,6 +518,7 @@ void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas
     const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    wxGetApp().obj_list()->update_info_items(last_object_id);
 }
 
 void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params)
@@ -526,6 +528,7 @@ void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, 
     const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    wxGetApp().obj_list()->update_info_items(last_object_id);
 }
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
@@ -565,6 +568,7 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
             wxGetApp().plater()->take_snapshot(_(L("Variable layer height - Manual edit")));
             const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
 			canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+            wxGetApp().obj_list()->update_info_items(last_object_id);
         }
     }
     m_layer_height_profile_modified = false;
@@ -3524,7 +3528,7 @@ Vec2d GLCanvas3D::get_local_mouse_position() const
 void GLCanvas3D::set_tooltip(const std::string& tooltip) const
 {
     if (m_canvas != nullptr)
-        m_tooltip.set_text(tooltip);
+        const_cast<Tooltip*>(&m_tooltip)->set_text(tooltip);
 }
 
 void GLCanvas3D::do_move(const std::string& snapshot_type)
@@ -3541,22 +3545,19 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
 
     Selection::EMode selection_mode = m_selection.get_mode();
 
-    for (const GLVolume* v : m_volumes.volumes)
-    {
+    for (const GLVolume* v : m_volumes.volumes) {
         int object_idx = v->object_idx();
         int instance_idx = v->instance_idx();
         int volume_idx = v->volume_idx();
 
         std::pair<int, int> done_id(object_idx, instance_idx);
 
-        if ((0 <= object_idx) && (object_idx < (int)m_model->objects.size()))
-        {
+        if (0 <= object_idx && object_idx < (int)m_model->objects.size()) {
             done.insert(done_id);
 
             // Move instances/volumes
             ModelObject* model_object = m_model->objects[object_idx];
-            if (model_object != nullptr)
-            {
+            if (model_object != nullptr) {
                 if (selection_mode == Selection::Instance)
                     model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                 else if (selection_mode == Selection::Volume)
@@ -3572,8 +3573,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
     }
 
     // Fixes sinking/flying instances
-    for (const std::pair<int, int>& i : done)
-    {
+    for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
         m_selection.translate(i.first, i.second, shift);
@@ -3932,13 +3932,13 @@ bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
 	em *= m_retina_helper->get_scale_factor();
 #endif
 
-    if (imgui->undo_redo_list(ImVec2(18 * em, 26 * em), is_undo, &string_getter, hovered, selected, m_mouse_wheel))
-        m_imgui_undo_redo_hovered_pos = hovered;
+    int* mouse_wheel = const_cast<int*>(&m_mouse_wheel);
+    if (imgui->undo_redo_list(ImVec2(18 * em, 26 * em), is_undo, &string_getter, hovered, selected, *mouse_wheel))
+        *const_cast<int*>(&m_imgui_undo_redo_hovered_pos) = hovered;
     else
-        m_imgui_undo_redo_hovered_pos = -1;
+        *const_cast<int*>(&m_imgui_undo_redo_hovered_pos) = -1;
 
-    if (selected >= 0)
-    {
+    if (selected >= 0) {
         is_undo ? wxGetApp().plater()->undo_to(selected) : wxGetApp().plater()->redo_to(selected);
         action_taken = true;
     }
@@ -3979,9 +3979,10 @@ bool GLCanvas3D::_render_search_list(float pos_x) const
     char *s = new char[255];
     strcpy(s, search_line.empty() ? _u8L("Enter a search term").c_str() : search_line.c_str());
 
-    imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s, 
-                       sidebar.get_searcher().view_params,
-                       selected, edited, m_mouse_wheel, wxGetApp().is_localized());
+    int* mouse_wheel = const_cast<int*>(&m_mouse_wheel);
+    imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s,
+        sidebar.get_searcher().view_params,
+        selected, edited, *mouse_wheel, wxGetApp().is_localized());
 
     search_line = s;
     delete [] s;
@@ -4840,8 +4841,10 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass() const
 {
+    std::vector<int>* hover_volume_idxs = const_cast<std::vector<int>*>(&m_hover_volume_idxs);
+
     if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
-        m_hover_volume_idxs.clear();
+        hover_volume_idxs->clear();
 
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
@@ -4856,9 +4859,10 @@ void GLCanvas3D::_picking_pass() const
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        m_camera_clipping_plane = m_gizmos.get_clipping_plane();
-        if (m_camera_clipping_plane.is_active()) {
-            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
+        ClippingPlane* camera_clipping_plane = const_cast<ClippingPlane*>(&m_camera_clipping_plane);
+        *camera_clipping_plane = m_gizmos.get_clipping_plane();
+        if (camera_clipping_plane->is_active()) {
+            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)camera_clipping_plane->get_data());
             ::glEnable(GL_CLIP_PLANE0);
         }
         _render_volumes_for_picking();
@@ -4884,11 +4888,11 @@ void GLCanvas3D::_picking_pass() const
         if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
             // do not add the volume id if any gizmo is active and CTRL is pressed
             if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
-                m_hover_volume_idxs.emplace_back(volume_id);
-            m_gizmos.set_hover_id(-1);
+                hover_volume_idxs->emplace_back(volume_id);
+            const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
         }
         else
-            m_gizmos.set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
+            const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
 
         _update_volumes_hover_state();
     }
@@ -4896,12 +4900,11 @@ void GLCanvas3D::_picking_pass() const
 
 void GLCanvas3D::_rectangular_selection_picking_pass() const
 {
-    m_gizmos.set_hover_id(-1);
+    const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
 
     std::set<int> idxs;
 
-    if (m_picking_enabled)
-    {
+    if (m_picking_enabled) {
         if (m_multisample_allowed)
         	// This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
             glsafe(::glDisable(GL_MULTISAMPLE));
@@ -4922,8 +4925,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
 
         int left = (int)m_rectangle_selection.get_left();
         int top = get_canvas_size().get_height() - (int)m_rectangle_selection.get_top();
-        if ((left >= 0) && (top >= 0))
-        {
+        if (left >= 0 && top >= 0) {
 #define USE_PARALLEL 1
 #if USE_PARALLEL
             struct Pixel
@@ -4943,7 +4945,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
                 for (size_t i = range.begin(); i < range.end(); ++i)
                 	if (frame[i].valid()) {
                     	int volume_id = frame[i].id();
-                    	if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size())) {
+                    	if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
                         	mutex.lock();
                         	idxs.insert(volume_id);
                         	mutex.unlock();
@@ -4958,14 +4960,14 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
             {
                 int px_id = 4 * i;
                 int volume_id = frame[px_id] + (frame[px_id + 1] << 8) + (frame[px_id + 2] << 16);
-                if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
+                if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size())
                     idxs.insert(volume_id);
             }
 #endif // USE_PARALLEL
         }
     }
 
-    m_hover_volume_idxs.assign(idxs.begin(), idxs.end());
+    const_cast<std::vector<int>*>(&m_hover_volume_idxs)->assign(idxs.begin(), idxs.end());
     _update_volumes_hover_state();
 }
 
@@ -5059,7 +5061,9 @@ void GLCanvas3D::_render_objects() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_camera_clipping_plane = m_gizmos.get_clipping_plane();
+    ClippingPlane* camera_clipping_plane = const_cast<ClippingPlane*>(&m_camera_clipping_plane);
+    GLVolumeCollection* volumes = const_cast<GLVolumeCollection*>(&m_volumes);
+    *camera_clipping_plane = m_gizmos.get_clipping_plane();
 
     if (m_picking_enabled) {
         // Update the layer editing selection to the first object selected, update the current object maximum Z.
@@ -5067,17 +5071,17 @@ void GLCanvas3D::_render_objects() const
 
         if (m_config != nullptr) {
             const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
-            m_volumes.set_print_box((float)bed_bb.min(0) - BedEpsilon, (float)bed_bb.min(1) - BedEpsilon, 0.0f, (float)bed_bb.max(0) + BedEpsilon, (float)bed_bb.max(1) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
-            m_volumes.check_outside_state(m_config, nullptr);
+            volumes->set_print_box((float)bed_bb.min(0) - BedEpsilon, (float)bed_bb.min(1) - BedEpsilon, 0.0f, (float)bed_bb.max(0) + BedEpsilon, (float)bed_bb.max(1) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
+            volumes->check_outside_state(m_config, nullptr);
         }
     }
 
     if (m_use_clipping_planes)
-        m_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
+        volumes->set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
     else
-        m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
+        volumes->set_z_range(-FLT_MAX, FLT_MAX);
 
-    m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
+    volumes->set_clipping_plane(camera_clipping_plane->get_data());
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     if (shader != nullptr) {
@@ -5085,16 +5089,16 @@ void GLCanvas3D::_render_objects() const
 
         if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
             int object_id = m_layers_editing.last_object_id;
-            m_volumes.render(GLVolumeCollection::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
+            volumes->render(GLVolumeCollection::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
                 // Which volume to paint without the layer height profile shader?
                 return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
                 });
             // Let LayersEditing handle rendering of the active object using the layer height profile shader.
-            m_layers_editing.render_volumes(*this, this->m_volumes);
+            m_layers_editing.render_volumes(*this, *volumes);
         } else {
-        // do not cull backfaces to show broken geometry, if any
-        m_volumes.render(GLVolumeCollection::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
-            return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+            // do not cull backfaces to show broken geometry, if any
+            volumes->render(GLVolumeCollection::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
+                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
             });
         }
 
@@ -5112,11 +5116,11 @@ void GLCanvas3D::_render_objects() const
             }
         }
 
-        m_volumes.render(GLVolumeCollection::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
+        volumes->render(GLVolumeCollection::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
         shader->stop_using();
     }
 
-    m_camera_clipping_plane = ClippingPlane::ClipsNothing();
+    *camera_clipping_plane = ClippingPlane::ClipsNothing();
 }
 
 void GLCanvas3D::_render_gcode() const
@@ -5157,13 +5161,13 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
     GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
 #if ENABLE_RETINA_GL
     const float sc = m_retina_helper->get_scale_factor() * scale;
-    m_main_toolbar.set_scale(sc);
-    m_undoredo_toolbar.set_scale(sc);
+    const_cast<GLToolbar*>(&m_main_toolbar)->set_scale(sc);
+    const_cast<GLToolbar*>(&m_undoredo_toolbar)->set_scale(sc);
     collapse_toolbar.set_scale(sc);
     size *= m_retina_helper->get_scale_factor();
 #else
-    m_main_toolbar.set_icons_size(size);
-    m_undoredo_toolbar.set_icons_size(size);
+    const_cast<GLToolbar*>(&m_main_toolbar)->set_icons_size(size);
+    const_cast<GLToolbar*>(&m_undoredo_toolbar)->set_icons_size(size);
     collapse_toolbar.set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
@@ -5211,13 +5215,13 @@ void GLCanvas3D::_render_overlays() const
     // to correctly place them
 #if ENABLE_RETINA_GL
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(/*true*/);
-    m_main_toolbar.set_scale(scale);
-    m_undoredo_toolbar.set_scale(scale);
+    const_cast<GLToolbar*>(&m_main_toolbar)->set_scale(scale);
+    const_cast<GLToolbar*>(&m_undoredo_toolbar)->set_scale(scale);
     wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
 #else
     const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
-    m_main_toolbar.set_icons_size(size);
-    m_undoredo_toolbar.set_icons_size(size);
+    const_cast<GLToolbar*>(&m_main_toolbar)->set_icons_size(size);
+    const_cast<GLToolbar*>(&m_undoredo_toolbar)->set_icons_size(size);
     wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
@@ -5292,12 +5296,12 @@ void GLCanvas3D::_render_gizmos_overlay() const
 #if ENABLE_RETINA_GL
 //     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor()*wxGetApp().toolbar_icon_scale();
-    m_gizmos.set_overlay_scale(scale); //! #ys_FIXME_experiment
+    const_cast<GLGizmosManager*>(&m_gizmos)->set_overlay_scale(scale); //! #ys_FIXME_experiment
 #else
 //     m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
 //     m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);
-    const float size = int(GLGizmosManager::Default_Icons_Size*wxGetApp().toolbar_icon_scale());
-    m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
+    const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    const_cast<GLGizmosManager*>(&m_gizmos)->set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
 
     m_gizmos.render_overlay();
@@ -5316,8 +5320,9 @@ void GLCanvas3D::_render_main_toolbar() const
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     float left = -0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
 
-    m_main_toolbar.set_position(top, left);
-    m_main_toolbar.render(*this);
+    GLToolbar* main_toolbar = const_cast<GLToolbar*>(&m_main_toolbar);
+    main_toolbar->set_position(top, left);
+    main_toolbar->render(*this);
 }
 
 void GLCanvas3D::_render_undoredo_toolbar() const
@@ -5332,8 +5337,10 @@ void GLCanvas3D::_render_undoredo_toolbar() const
     const GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     float left = (m_main_toolbar.get_width() - 0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar_width)) * inv_zoom;
-    m_undoredo_toolbar.set_position(top, left);
-    m_undoredo_toolbar.render(*this);
+
+    GLToolbar* undoredo_toolbar = const_cast<GLToolbar*>(&m_undoredo_toolbar);
+    undoredo_toolbar->set_position(top, left);
+    undoredo_toolbar->render(*this);
 }
 
 void GLCanvas3D::_render_collapse_toolbar() const
@@ -5424,20 +5431,21 @@ void GLCanvas3D::_render_sla_slices() const
         if (!obj->is_step_done(slaposSliceSupports))
             continue;
 
-        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
-        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top    = m_sla_caps[1].triangles.find(i);
+        SlaCap* sla_caps = const_cast<SlaCap*>(m_sla_caps);
+        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = sla_caps[0].triangles.find(i);
+        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top = sla_caps[1].triangles.find(i);
         {
-			if (it_caps_bottom == m_sla_caps[0].triangles.end())
-				it_caps_bottom = m_sla_caps[0].triangles.emplace(i, SlaCap::Triangles()).first;
-            if (! m_sla_caps[0].matches(clip_min_z)) {
-				m_sla_caps[0].z = clip_min_z;
+            if (it_caps_bottom == sla_caps[0].triangles.end())
+                it_caps_bottom = sla_caps[0].triangles.emplace(i, SlaCap::Triangles()).first;
+            if (!sla_caps[0].matches(clip_min_z)) {
+                sla_caps[0].z = clip_min_z;
                 it_caps_bottom->second.object.clear();
                 it_caps_bottom->second.supports.clear();
             }
-            if (it_caps_top == m_sla_caps[1].triangles.end())
-				it_caps_top = m_sla_caps[1].triangles.emplace(i, SlaCap::Triangles()).first;
-            if (! m_sla_caps[1].matches(clip_max_z)) {
-				m_sla_caps[1].z = clip_max_z;
+            if (it_caps_top == sla_caps[1].triangles.end())
+                it_caps_top = sla_caps[1].triangles.emplace(i, SlaCap::Triangles()).first;
+            if (!sla_caps[1].matches(clip_max_z)) {
+                sla_caps[1].z = clip_max_z;
                 it_caps_top->second.object.clear();
                 it_caps_top->second.supports.clear();
             }
@@ -5543,7 +5551,7 @@ void GLCanvas3D::_update_volumes_hover_state() const
 
     if (alt_pressed && (shift_pressed || ctrl_pressed)) {
         // illegal combinations of keys
-        m_hover_volume_idxs.clear();
+        const_cast<std::vector<int>*>(&m_hover_volume_idxs)->clear();
         return;
     }
 
@@ -5567,7 +5575,7 @@ void GLCanvas3D::_update_volumes_hover_state() const
 
     if (hover_modifiers_only && !hover_from_single_instance) {
         // do not allow to select volumes from different instances
-        m_hover_volume_idxs.clear();
+        const_cast<std::vector<int>*>(&m_hover_volume_idxs)->clear();
         return;
     }
 
@@ -5588,23 +5596,15 @@ void GLCanvas3D::_update_volumes_hover_state() const
                 (deselect && !m_selection.is_single_full_instance() && (volume.object_idx() == m_selection.get_object_idx()) && (volume.instance_idx() == m_selection.get_instance_idx()))
                 );
 
-            if (as_volume) {
-                if (deselect)
-                    volume.hover = GLVolume::HS_Deselect;
-                else
-                    volume.hover = GLVolume::HS_Select;
-            }
+            if (as_volume)
+                volume.hover = deselect ? GLVolume::HS_Deselect : GLVolume::HS_Select;
             else {
                 int object_idx = volume.object_idx();
                 int instance_idx = volume.instance_idx();
 
                 for (GLVolume* v : m_volumes.volumes) {
-                    if (v->object_idx() == object_idx && v->instance_idx() == instance_idx) {
-                        if (deselect)
-                            v->hover = GLVolume::HS_Deselect;
-                        else
-                            v->hover = GLVolume::HS_Select;
-                    }
+                    if (v->object_idx() == object_idx && v->instance_idx() == instance_idx)
+                        v->hover = deselect ? GLVolume::HS_Deselect : GLVolume::HS_Select;
                 }
             }
         }
@@ -6311,31 +6311,47 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
 #if ENABLE_WARNING_TEXTURE_REMOVAL
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
+    enum ErrorType{
+        PLATER_WARNING,
+        PLATER_ERROR,
+        SLICING_ERROR
+    };
     std::string text;
-    bool error = false;
+    ErrorType error = ErrorType::PLATER_WARNING;
     switch (warning) {
     case EWarning::ObjectOutside:      text = _u8L("An object outside the print area was detected."); break;
-    case EWarning::ToolpathOutside:    text = _u8L("A toolpath outside the print area was detected."); error = true; break;
-    case EWarning::SlaSupportsOutside: text = _u8L("SLA supports outside the print area were detected."); error = true; break;
+    case EWarning::ToolpathOutside:    text = _u8L("A toolpath outside the print area was detected."); error = ErrorType::SLICING_ERROR; break;
+    case EWarning::SlaSupportsOutside: text = _u8L("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Some objects are not visible."); break;
     case EWarning::ObjectClashed:
         text = _u8L("An object outside the print area was detected.\n"
             "Resolve the current problem to continue slicing.");
-        error = true;
+        error = ErrorType::PLATER_ERROR;
         break;
 }
     auto& notification_manager = *wxGetApp().plater()->get_notification_manager();
-    if (state) {
-        if (error)
-            notification_manager.push_plater_error_notification(text);
-        else
+    switch (error)
+    {
+    case PLATER_WARNING:
+        if (state)
             notification_manager.push_plater_warning_notification(text);
-    }
-    else {
-        if (error)
-            notification_manager.close_plater_error_notification(text);
         else
             notification_manager.close_plater_warning_notification(text);
+        break;
+    case PLATER_ERROR:
+        if (state)
+            notification_manager.push_plater_error_notification(text);
+        else
+            notification_manager.close_plater_error_notification(text);
+        break;
+    case SLICING_ERROR:
+        if (state)
+            notification_manager.push_slicing_error_notification(text);
+        else
+            notification_manager.close_slicing_error_notification(text);
+        break;
+    default:
+        break;
     }
 }
 #else

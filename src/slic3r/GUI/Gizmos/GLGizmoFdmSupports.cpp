@@ -7,6 +7,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GUI_ObjectList.hpp"
 
 
 #include <GL/glew.h>
@@ -316,8 +317,12 @@ void GLGizmoFdmSupports::update_model_object() const
         updated |= mv->supported_facets.set(*m_triangle_selectors[idx].get());
     }
 
-    if (updated)
+    if (updated) {
+        const ModelObjectPtrs& mos = wxGetApp().model().objects;
+        wxGetApp().obj_list()->update_info_items(std::find(mos.begin(), mos.end(), mo) - mos.begin());
+
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    }
 }
 
 

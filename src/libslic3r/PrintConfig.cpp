@@ -995,10 +995,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("First layer height");
     def->category = L("Layers and Perimeters");
     def->tooltip = L("When printing with very low layer heights, you might still want to print a thicker "
-                   "bottom layer to improve adhesion and tolerance for non perfect build plates. "
-                   "This can be expressed as an absolute value or as a percentage (for example: 150%) "
-                   "over the default layer height.");
-    def->sidetext = L("mm or %");
+                   "bottom layer to improve adhesion and tolerance for non perfect build plates.");
+    def->sidetext = L("mm");
     def->ratio_over = "layer_height";
     def->set_default_value(new ConfigOptionFloatOrPercent(0.35, false));
 
@@ -2366,6 +2364,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(-1));
 
+    def = this->add("support_material_closing_radius", coFloat);
+    def->label = L("Closing radius");
+    def->category = L("Support material");
+    def->tooltip = L("For snug supports, the support regions will be merged using morphological closing operation."
+                     " Gaps smaller than the closing radius will be filled in.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2));
+
     def = this->add("support_material_interface_spacing", coFloat);
     def->label = L("Interface pattern spacing");
     def->category = L("Support material");
@@ -3618,7 +3626,7 @@ std::string FullPrintConfig::validate()
         return "--layer-height must be a multiple of print resolution";
 
     // --first-layer-height
-    if (this->get_abs_value("first_layer_height") <= 0)
+    if (first_layer_height.value <= 0)
         return "Invalid value for --first-layer-height";
 
     // --filament-diameter

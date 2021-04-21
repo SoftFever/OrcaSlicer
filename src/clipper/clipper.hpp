@@ -71,12 +71,22 @@ enum PolyType { ptSubject, ptClip };
 //see http://glprogramming.com/red/chapter11.html
 enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 
+// If defined, Clipper will work with 32bit signed int coordinates to reduce memory
+// consumption and to speed up exact orientation predicate calculation.
+// In that case, coordinates and their differences (vectors of the coordinates) have to fit int32_t.
+#define CLIPPERLIB_INT32
+
 // Point coordinate type
-typedef int64_t cInt;
-// Maximum cInt value to allow a cross product calculation using 32bit expressions.
-static cInt const loRange = 0x3FFFFFFF;
-// Maximum allowed cInt value.
-static cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
+#ifdef CLIPPERLIB_INT32
+  // Coordinates and their differences (vectors of the coordinates) have to fit int32_t.
+  typedef int32_t cInt;
+#else
+  typedef int64_t cInt;
+  // Maximum cInt value to allow a cross product calculation using 32bit expressions.
+  static constexpr cInt const loRange = 0x3FFFFFFF; // 0x3FFFFFFF = 1 073 741 823
+  // Maximum allowed cInt value.
+  static constexpr cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
+#endif // CLIPPERLIB_INT32
 
 struct IntPoint {
   cInt X;
@@ -289,7 +299,11 @@ enum EdgeSide { esLeft = 1, esRight = 2};
 class ClipperBase
 {
 public:
-  ClipperBase() : m_UseFullRange(false), m_HasOpenPaths(false) {}
+  ClipperBase() : 
+#ifndef CLIPPERLIB_INT32
+    m_UseFullRange(false), 
+#endif // CLIPPERLIB_INT32
+    m_HasOpenPaths(false) {}
   ~ClipperBase() { Clear(); }
   bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
   bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
@@ -310,9 +324,14 @@ protected:
   // Local minima (Y, left edge, right edge) sorted by ascending Y.
   std::vector<LocalMinimum> m_MinimaList;
 
+#ifdef CLIPPERLIB_INT32
+  static constexpr const bool m_UseFullRange = false;
+#else // CLIPPERLIB_INT32
   // True if the input polygons have abs values higher than loRange, but lower than hiRange.
   // False if the input polygons have abs values lower or equal to loRange.
   bool              m_UseFullRange;
+#endif // CLIPPERLIB_INT32
+
   // A vector of edges per each input path.
   std::vector<std::vector<TEdge>> m_edges;
   // Don't remove intermediate vertices of a collinear sequence of points.

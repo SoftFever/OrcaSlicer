@@ -496,7 +496,6 @@ public:
     ConfigOptionBool                dont_support_bridges;
     ConfigOptionFloat               elefant_foot_compensation;
     ConfigOptionFloatOrPercent      extrusion_width;
-    ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionBool                infill_only_where_needed;
     // Force the generation of solid shells between adjacent materials/volumes.
     ConfigOptionBool                interface_shells;
@@ -530,6 +529,8 @@ public:
     ConfigOptionFloatOrPercent      support_material_interface_speed;
     ConfigOptionEnum<SupportMaterialPattern> support_material_pattern;
     ConfigOptionEnum<SupportMaterialInterfacePattern> support_material_interface_pattern;
+    // Morphological closing of support areas. Only used for "sung" supports.
+    ConfigOptionFloat               support_material_closing_radius;
     // Spacing between support material lines (the hatching distance).
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
@@ -553,7 +554,6 @@ protected:
         OPT_PTR(dont_support_bridges);
         OPT_PTR(elefant_foot_compensation);
         OPT_PTR(extrusion_width);
-        OPT_PTR(first_layer_height);
         OPT_PTR(infill_only_where_needed);
         OPT_PTR(interface_shells);
         OPT_PTR(layer_height);
@@ -579,6 +579,7 @@ protected:
         OPT_PTR(support_material_interface_extruder);
         OPT_PTR(support_material_interface_layers);
         OPT_PTR(support_material_bottom_interface_layers);
+        OPT_PTR(support_material_closing_radius);
         OPT_PTR(support_material_interface_spacing);
         OPT_PTR(support_material_interface_speed);
         OPT_PTR(support_material_pattern);
@@ -947,6 +948,7 @@ public:
     ConfigOptionFloat               first_layer_acceleration;
     ConfigOptionInts                first_layer_bed_temperature;
     ConfigOptionFloatOrPercent      first_layer_extrusion_width;
+    ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionFloatOrPercent      first_layer_speed;
     ConfigOptionInts                first_layer_temperature;
     ConfigOptionInts                full_fan_speed_layer;
@@ -1022,6 +1024,7 @@ protected:
         OPT_PTR(first_layer_acceleration);
         OPT_PTR(first_layer_bed_temperature);
         OPT_PTR(first_layer_extrusion_width);
+        OPT_PTR(first_layer_height);
         OPT_PTR(first_layer_speed);
         OPT_PTR(first_layer_temperature);
         OPT_PTR(full_fan_speed_layer);

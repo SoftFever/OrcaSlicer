@@ -267,15 +267,15 @@ private:
     // Shift in z required by sla supports+pad
     double        		  m_sla_shift_z;
     // Bounding box of this volume, in unscaled coordinates.
-    mutable BoundingBoxf3 m_transformed_bounding_box;
+    BoundingBoxf3 m_transformed_bounding_box;
     // Whether or not is needed to recalculate the transformed bounding box.
-    mutable bool          m_transformed_bounding_box_dirty;
+    bool          m_transformed_bounding_box_dirty;
     // Convex hull of the volume, if any.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     // Bounding box of this volume, in unscaled coordinates.
-    mutable BoundingBoxf3 m_transformed_convex_hull_bounding_box;
+    BoundingBoxf3 m_transformed_convex_hull_bounding_box;
     // Whether or not is needed to recalculate the transformed convex hull bounding box.
-    mutable bool          m_transformed_convex_hull_bounding_box_dirty;
+    bool          m_transformed_convex_hull_bounding_box_dirty;
 
 public:
     // Color of the triangles / quads held by this volume.
@@ -568,8 +568,8 @@ public:
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
-    bool check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state);
-    bool check_outside_state(const DynamicPrintConfig* config, bool& partlyOut, bool& fullyOut);
+    bool check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state) const;
+    bool check_outside_state(const DynamicPrintConfig* config, bool& partlyOut, bool& fullyOut) const;
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);
