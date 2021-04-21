@@ -3572,12 +3572,25 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             wipe_tower_origin = v->get_volume_offset();
     }
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // Fixes flying instances
+#else
     // Fixes sinking/flying instances
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
+#if ENABLE_ALLOW_NEGATIVE_Z
+        double shift_z = m->get_instance_min_z(i.second);
+        if (shift_z > 0.0) {
+            Vec3d shift(0.0, 0.0, -shift_z);
+#else
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+#endif // ENABLE_ALLOW_NEGATIVE_Z
         m_selection.translate(i.first, i.second, shift);
         m->translate_instance(i.second, shift);
+#if ENABLE_ALLOW_NEGATIVE_Z
+        }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
     if (object_moved)
