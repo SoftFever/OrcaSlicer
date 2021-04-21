@@ -995,10 +995,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("First layer height");
     def->category = L("Layers and Perimeters");
     def->tooltip = L("When printing with very low layer heights, you might still want to print a thicker "
-                   "bottom layer to improve adhesion and tolerance for non perfect build plates. "
-                   "This can be expressed as an absolute value or as a percentage (for example: 150%) "
-                   "over the default layer height.");
-    def->sidetext = L("mm or %");
+                   "bottom layer to improve adhesion and tolerance for non perfect build plates.");
+    def->sidetext = L("mm");
     def->ratio_over = "layer_height";
     def->set_default_value(new ConfigOptionFloatOrPercent(0.35, false));
 
@@ -3628,7 +3626,7 @@ std::string FullPrintConfig::validate()
         return "--layer-height must be a multiple of print resolution";
 
     // --first-layer-height
-    if (this->get_abs_value("first_layer_height") <= 0)
+    if (first_layer_height.value <= 0)
         return "Invalid value for --first-layer-height";
 
     // --filament-diameter

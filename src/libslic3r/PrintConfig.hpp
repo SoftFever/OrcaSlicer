@@ -496,7 +496,6 @@ public:
     ConfigOptionBool                dont_support_bridges;
     ConfigOptionFloat               elefant_foot_compensation;
     ConfigOptionFloatOrPercent      extrusion_width;
-    ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionBool                infill_only_where_needed;
     // Force the generation of solid shells between adjacent materials/volumes.
     ConfigOptionBool                interface_shells;
@@ -555,7 +554,6 @@ protected:
         OPT_PTR(dont_support_bridges);
         OPT_PTR(elefant_foot_compensation);
         OPT_PTR(extrusion_width);
-        OPT_PTR(first_layer_height);
         OPT_PTR(infill_only_where_needed);
         OPT_PTR(interface_shells);
         OPT_PTR(layer_height);
@@ -950,6 +948,7 @@ public:
     ConfigOptionFloat               first_layer_acceleration;
     ConfigOptionInts                first_layer_bed_temperature;
     ConfigOptionFloatOrPercent      first_layer_extrusion_width;
+    ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionFloatOrPercent      first_layer_speed;
     ConfigOptionInts                first_layer_temperature;
     ConfigOptionInts                full_fan_speed_layer;
@@ -1025,6 +1024,7 @@ protected:
         OPT_PTR(first_layer_acceleration);
         OPT_PTR(first_layer_bed_temperature);
         OPT_PTR(first_layer_extrusion_width);
+        OPT_PTR(first_layer_height);
         OPT_PTR(first_layer_speed);
         OPT_PTR(first_layer_temperature);
         OPT_PTR(full_fan_speed_layer);
