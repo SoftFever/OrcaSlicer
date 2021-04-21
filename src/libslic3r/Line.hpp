@@ -4,6 +4,8 @@
 #include "libslic3r.h"
 #include "Point.hpp"
 
+#include <type_traits>
+
 namespace Slic3r {
 
 class BoundingBox;
@@ -20,12 +22,28 @@ Linef3 transform(const Linef3& line, const Transform3d& t);
 
 namespace line_alg {
 
+template<class L, class En = void> struct Traits {
+    static constexpr int Dim = L::Dim;
+    using Scalar = typename L::Scalar;
+
+    static Vec<Dim, Scalar>& get_a(L &l) { return l.a; }
+    static Vec<Dim, Scalar>& get_b(L &l) { return l.b; }
+    static const Vec<Dim, Scalar>& get_a(const L &l) { return l.a; }
+    static const Vec<Dim, Scalar>& get_b(const L &l) { return l.b; }
+};
+
+template<class L> const constexpr int Dim = Traits<remove_cvref_t<L>>::Dim;
+template<class L> using Scalar = typename Traits<remove_cvref_t<L>>::Scalar;
+
+template<class L> auto get_a(L &&l) { return Traits<remove_cvref_t<L>>::get_a(l); }
+template<class L> auto get_b(L &&l) { return Traits<remove_cvref_t<L>>::get_b(l); }
+
 // Distance to the closest point of line.
-template<class L, class T, int N>
-double distance_to_squared(const L &line, const Vec<N, T> &point)
+template<class L>
+double distance_to_squared(const L &line, const Vec<Dim<L>, Scalar<L>> &point)
 {
-    const Vec<N, double>  v  = (line.b - line.a).template cast<double>();
-    const Vec<N, double>  va = (point  - line.a).template cast<double>();
+    const Vec<Dim<L>, double>  v  = (get_b(line) - get_a(line)).template cast<double>();
+    const Vec<Dim<L>, double>  va = (point  - get_a(line)).template cast<double>();
     const double  l2 = v.squaredNorm();  // avoid a sqrt
     if (l2 == 0.0)
         // a == b case
@@ -35,12 +53,12 @@ double distance_to_squared(const L &line, const Vec<N, T> &point)
     // It falls where t = [(this-a) . (b-a)] / |b-a|^2
     const double t = va.dot(v) / l2;
     if (t < 0.0)      return va.squaredNorm();  // beyond the 'a' end of the segment
-    else if (t > 1.0) return (point - line.b).template cast<double>().squaredNorm();  // beyond the 'b' end of the segment
+    else if (t > 1.0) return (point - get_b(line)).template cast<double>().squaredNorm();  // beyond the 'b' end of the segment
     return (t * v - va).squaredNorm();
 }
 
-template<class L, class T, int N>
-double distance_to(const L &line, const Vec<N, T> &point)
+template<class L>
+double distance_to(const L &line, const Vec<Dim<L>, Scalar<L>> &point)
 {
     return std::sqrt(distance_to_squared(line, point));
 }
@@ -84,6 +102,9 @@ public:
 
     Point a;
     Point b;
+
+    static const constexpr int Dim = 2;
+    using Scalar = Point::Scalar;
 };
 
 class ThickLine : public Line
@@ -107,6 +128,9 @@ public:
 
     Vec3crd a;
     Vec3crd b;
+
+    static const constexpr int Dim = 3;
+    using Scalar = Vec3crd::Scalar;
 };
 
 class Linef
@@ -117,6 +141,9 @@ public:
 
     Vec2d a;
     Vec2d b;
+
+    static const constexpr int Dim = 2;
+    using Scalar = Vec2d::Scalar;
 };
 
 class Linef3
@@ -133,6 +160,9 @@ public:
 
     Vec3d a;
     Vec3d b;
+
+    static const constexpr int Dim = 3;
+    using Scalar = Vec3d::Scalar;
 };
 
 BoundingBox get_extents(const Lines &lines);
