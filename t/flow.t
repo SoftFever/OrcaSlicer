@@ -21,7 +21,7 @@ use Slic3r::Test;
     $config->set('fill_density', 0.4);
     $config->set('bottom_solid_layers', 1);
     $config->set('first_layer_extrusion_width', 2);
-    $config->set('first_layer_height', '100%');
+    $config->set('first_layer_height', $config->layer_height);
     $config->set('filament_diameter', [ 3.0 ]);
     $config->set('nozzle_diameter', [ 0.5 ]);
     
