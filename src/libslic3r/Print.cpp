@@ -1066,7 +1066,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 assert(it_status->status != ModelObjectStatus::Deleted);
                 layer_ranges = &it_status->layer_ranges;
             }
-            if (region_id < print_object->region_volumes.size()) {
+            if (region_id < print_object->num_regions()) {
                 for (const std::pair<t_layer_height_range, int> &volume_and_range : print_object->region_volumes[region_id]) {
                     const ModelVolume        &volume             = *print_object->model_object()->volumes[volume_and_range.second];
                     const DynamicPrintConfig *layer_range_config = layer_ranges->config(volume_and_range.first);
@@ -1106,7 +1106,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             if (! diff.empty()) {
                 // Stop the background process before assigning new configuration to the regions.
                 for (PrintObject *print_object : m_objects)
-                    if (region_id < print_object->region_volumes.size() && ! print_object->region_volumes[region_id].empty())
+                    if (print_object->has_region(region_id))
                         update_apply_status(print_object->invalidate_state_by_config_options(region.config(), this_region_config, diff));
                 region.config_apply_only(this_region_config, diff, false);
             }
@@ -1169,7 +1169,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         region_id = regions_in_object[idx_region_in_object ++];
                     // Assign volume to a region.
     				if (fresh) {
-    					if ((size_t)region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
+    					if (! print_object.has_region(size_t(region_id)))
     						++ m_regions[region_id]->m_refcnt;
     					print_object.add_region_volume(region_id, volume_id, it_range->first);
     				}
@@ -1506,7 +1506,7 @@ std::string Print::validate(std::string* warning) const
             if ((object->has_support() || object->has_raft()) && ! validate_extrusion_width(object->config(), "support_material_extrusion_width", layer_height, err_msg))
             	return err_msg;
             for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" })
-				for (size_t i = 0; i < object->region_volumes.size(); ++ i)
+				for (size_t i = 0; i < object->num_regions(); ++ i)
             		if (! object->region_volumes[i].empty() && ! validate_extrusion_width(this->get_region(i)->config(), opt_key, layer_height, err_msg))
 		            	return err_msg;
         }

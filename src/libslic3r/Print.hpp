@@ -177,6 +177,8 @@ public:
 
     bool                         has_brim() const       { return this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.; }
 
+    size_t                       num_regions() const    { return this->region_volumes.size(); }
+    bool                         has_region(size_t i) const { return i < this->region_volumes.size() && ! this->region_volumes[i].empty(); }
 
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id, const t_layer_height_range &layer_range) {
@@ -471,6 +473,7 @@ public:
         return (it == m_objects.end()) ? nullptr : *it;
     }
     ConstPrintRegionPtrsAdaptor regions() const { return ConstPrintRegionPtrsAdaptor(&m_regions); }
+    size_t                      num_regions() const { return m_regions.size(); }
     // How many of PrintObject::copies() over all print objects are there?
     // If zero, then the print is empty and the print shall not be executed.
     unsigned int                num_object_instances() const;

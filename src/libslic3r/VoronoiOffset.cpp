@@ -41,7 +41,7 @@ namespace detail {
 			// Degenerate to a single closest point.
 			t = - b / (2. * a);
 			assert(t >= - EPSILON && t <= 1. + EPSILON);
-			return Slic3r::clamp(0., 1., t);
+			return std::clamp(t, 0., 1.);
 		} else {
 			u = sqrt(u);
 			out.first = 2;
@@ -1142,7 +1142,7 @@ std::vector<Vec2d> edge_offset_contour_intersections(
 #endif // NDEBUG
                 if (! bisector || (dmin != dmax && offset_distance >= dmin)) {
                     double t = (offset_distance - dmin) / (dmax - dmin);
-                    t = clamp(0., 1., t);
+                    t = std::clamp(t, 0., 1.);
                     if (d1 < d0) {
                         out[edge_idx2] = Slic3r::lerp(vertex_point(v1), vertex_point(v0), t);
                         // mark visited

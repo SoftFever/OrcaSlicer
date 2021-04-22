@@ -796,7 +796,7 @@ namespace DoExport {
 	    // get the minimum cross-section used in the print
 	    std::vector<double> mm3_per_mm;
 	    for (auto object : print.objects()) {
-	        for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
+	        for (size_t region_id = 0; region_id < object->num_regions(); ++ region_id) {
 	            const PrintRegion* region = print.regions()[region_id];
 	            for (auto layer : object->layers()) {
 	                const LayerRegion* layerm = layer->regions()[region_id];

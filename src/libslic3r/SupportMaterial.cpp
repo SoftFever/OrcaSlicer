@@ -347,8 +347,8 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     coordf_t external_perimeter_width = 0.;
     size_t   num_nonempty_regions = 0;
     coordf_t bridge_flow_ratio = 0;
-    for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id)
-        if (! object->region_volumes[region_id].empty()) {
+    for (size_t region_id = 0; region_id < object->num_regions(); ++ region_id)
+        if (object->has_region(region_id)) {
             ++ num_nonempty_regions;
             const PrintRegion &region = *object->print()->get_region(region_id);
             external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));

@@ -620,7 +620,7 @@ static std::vector<float> contour_distance(const EdgeGrid::Grid     &grid,
                     const Vec2d  v        = (segment.second - segment.first).cast<double>();
                     const Vec2d  va       = (this->point - segment.first).cast<double>();
                     const double l2       = v.squaredNorm(); // avoid a sqrt
-                    const double t        = (l2 == 0.0) ? 0. : clamp(0., 1., va.dot(v) / l2);
+                    const double t        = (l2 == 0.0) ? 0. : std::clamp(va.dot(v) / l2, 0., 1.);
                     // Closest point from this->point to the segment.
                     const Vec2d  foot     = segment.first.cast<double>() + t * v;
                     const Vec2d  bisector = foot - this->point.cast<double>();
