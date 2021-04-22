@@ -1714,7 +1714,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             // for the gcode viewer we need to take in account all moves to correctly size the printbed
             m_paths_bounding_box.merge(move.position.cast<double>());
         else {
+#if ENABLE_START_GCODE_VISUALIZATION
             if (move.type == EMoveType::Extrude && move.extrusion_role != erCustom && move.width != 0.0f && move.height != 0.0f)
+#else
+            if (move.type == EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
+#endif // ENABLE_START_GCODE_VISUALIZATION
                 m_paths_bounding_box.merge(move.position.cast<double>());
         }
     }
