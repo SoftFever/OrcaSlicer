@@ -75,13 +75,6 @@ public:
 
     using iterator = Points::iterator;
     using const_iterator = Points::const_iterator;
-
-    inline auto begin()        { return points.begin(); }
-    inline auto begin()  const { return points.begin(); }
-    inline auto end()          { return points.end();   }
-    inline auto end()    const { return points.end();   }
-    inline auto cbegin() const { return points.begin(); }
-    inline auto cend()   const { return points.end();   }
 };
 
 inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
