@@ -1430,11 +1430,9 @@ double ModelObject::get_min_z() const
 {
     if (instances.empty())
         return 0.0;
-    else
-    {
+    else {
         double min_z = DBL_MAX;
-        for (size_t i = 0; i < instances.size(); ++i)
-        {
+        for (size_t i = 0; i < instances.size(); ++i) {
             min_z = std::min(min_z, get_instance_min_z(i));
         }
         return min_z;
@@ -1445,15 +1443,14 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
 {
     double min_z = DBL_MAX;
 
-    ModelInstance* inst = instances[instance_idx];
+    const ModelInstance* inst = instances[instance_idx];
     const Transform3d& mi = inst->get_matrix(true);
 
-    for (const ModelVolume* v : volumes)
-    {
+    for (const ModelVolume* v : volumes) {
         if (!v->is_model_part())
             continue;
 
-        Transform3d mv = mi * v->get_matrix();
+        const Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
 		for (const stl_facet &facet : hull.stl.facet_start)
 			for (int i = 0; i < 3; ++ i)
