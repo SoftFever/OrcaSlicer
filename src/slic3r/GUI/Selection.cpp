@@ -866,12 +866,10 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     if (!m_valid)
         return;
 
-    for (unsigned int i : m_list)
-    {
+    for (unsigned int i : m_list) {
         GLVolume &volume = *(*m_volumes)[i];
         if (is_single_full_instance()) {
-            if (transformation_type.relative())
-            {
+            if (transformation_type.relative()) {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_instance_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
@@ -881,8 +879,7 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 
                 volume.set_instance_scaling_factor(new_scale);
             }
-            else
-            {
+            else {
                 if (transformation_type.world() && (std::abs(scale.x() - scale.y()) > EPSILON || std::abs(scale.x() - scale.z()) > EPSILON)) {
                     // Non-uniform scaling. Transform the scaling factors into the local coordinate system.
                     // This is only possible, if the instance rotation is mulitples of ninety degrees.
@@ -895,11 +892,9 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
         }
         else if (is_single_volume() || is_single_modifier())
             volume.set_volume_scaling_factor(scale);
-        else
-        {
+        else {
             Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
-            if (m_mode == Instance)
-            {
+            if (m_mode == Instance) {
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_instance_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
@@ -908,13 +903,11 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 
                 volume.set_instance_scaling_factor(new_scale);
             }
-            else if (m_mode == Volume)
-            {
+            else if (m_mode == Volume) {
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_volume_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
-                if (transformation_type.joint())
-                {
+                if (transformation_type.joint()) {
                     Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
                     volume.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
                 }
@@ -930,34 +923,34 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
+#if !ENABLE_ALLOW_NEGATIVE_Z
     ensure_on_bed();
+#endif // !ENABLE_ALLOW_NEGATIVE_Z
 
     this->set_bounding_boxes_dirty();
 }
 
 void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
 {
-    if (is_empty() || (m_mode == Volume))
+    if (is_empty() || m_mode == Volume)
         return;
 
     // adds 1/100th of a mm on all sides to avoid false out of print volume detections due to floating-point roundings
     Vec3d box_size = get_bounding_box().size() + 0.01 * Vec3d::Ones();
 
     const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config.option("bed_shape"));
-    if (opt != nullptr)
-    {
+    if (opt != nullptr) {
         BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-        BoundingBoxf3 print_volume(Vec3d(unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config.opt_float("max_print_height")));
+        BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0 }, { unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config.opt_float("max_print_height") });
         Vec3d print_volume_size = print_volume.size();
         double sx = (box_size(0) != 0.0) ? print_volume_size(0) / box_size(0) : 0.0;
         double sy = (box_size(1) != 0.0) ? print_volume_size(1) / box_size(1) : 0.0;
         double sz = (box_size(2) != 0.0) ? print_volume_size(2) / box_size(2) : 0.0;
-        if ((sx != 0.0) && (sy != 0.0) && (sz != 0.0))
+        if (sx != 0.0 && sy != 0.0 && sz != 0.0)
         {
             double s = std::min(sx, std::min(sy, sz));
-            if (s != 1.0)
-            {
-                wxGetApp().plater()->take_snapshot(_(L("Scale To Fit")));
+            if (s != 1.0) {
+                wxGetApp().plater()->take_snapshot(_L("Scale To Fit"));
 
                 TransformationType type;
                 type.set_world();
@@ -987,8 +980,7 @@ void Selection::mirror(Axis axis)
 
     bool single_full_instance = is_single_full_instance();
 
-    for (unsigned int i : m_list)
-    {
+    for (unsigned int i : m_list) {
         if (single_full_instance)
             (*m_volumes)[i]->set_instance_mirror(axis, -(*m_volumes)[i]->get_instance_mirror(axis));
         else if (m_mode == Volume)
@@ -1010,8 +1002,7 @@ void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
     if (!m_valid)
         return;
 
-    for (unsigned int i : m_list)
-    {
+    for (unsigned int i : m_list) {
         GLVolume* v = (*m_volumes)[i];
         if (v->object_idx() == (int)object_idx)
             v->set_instance_offset(v->get_instance_offset() + displacement);
@@ -1020,8 +1011,7 @@ void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
     std::set<unsigned int> done;  // prevent processing volumes twice
     done.insert(m_list.begin(), m_list.end());
 
-    for (unsigned int i : m_list)
-    {
+    for (unsigned int i : m_list) {
         if (done.size() == m_volumes->size())
             break;
 
@@ -1030,8 +1020,7 @@ void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
             continue;
 
         // Process unselected volumes of the object.
-        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
-        {
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j) {
             if (done.size() == m_volumes->size())
                 break;
 
@@ -1055,18 +1044,16 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
     if (!m_valid)
         return;
 
-    for (unsigned int i : m_list)
-    {
+    for (unsigned int i : m_list) {
         GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() == (int)object_idx) && (v->instance_idx() == (int)instance_idx))
+        if (v->object_idx() == (int)object_idx && v->instance_idx() == (int)instance_idx)
             v->set_instance_offset(v->get_instance_offset() + displacement);
     }
 
     std::set<unsigned int> done;  // prevent processing volumes twice
     done.insert(m_list.begin(), m_list.end());
 
-    for (unsigned int i : m_list)
-    {
+    for (unsigned int i : m_list) {
         if (done.size() == m_volumes->size())
             break;
 
@@ -1075,8 +1062,7 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
             continue;
 
         // Process unselected volumes of the object.
-        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
-        {
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j) {
             if (done.size() == m_volumes->size())
                 break;
 
@@ -1084,7 +1070,7 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
                 continue;
 
             GLVolume* v = (*m_volumes)[j];
-            if ((v->object_idx() != object_idx) || (v->instance_idx() != (int)instance_idx))
+            if (v->object_idx() != object_idx || v->instance_idx() != (int)instance_idx)
                 continue;
 
             v->set_instance_offset(v->get_instance_offset() + displacement);

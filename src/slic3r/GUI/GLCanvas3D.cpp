@@ -3660,10 +3660,13 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
 #if ENABLE_ALLOW_NEGATIVE_Z
+        double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if (min_zs.empty() || min_zs.find({i.first, i.second})->second >= 0.0) {
+        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= 0.0 || shift_z > 0.0) {
+            Vec3d shift(0.0, 0.0, -shift_z);
+#else
+        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
 #endif // ENABLE_ALLOW_NEGATIVE_Z
-            Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
 #if ENABLE_ALLOW_NEGATIVE_Z
@@ -3685,14 +3688,26 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // stores current min_z of instances
+    std::map<std::pair<int, int>, double> min_zs;
+    if (!snapshot_type.empty()) {
+        for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
+            const ModelObject* obj = m_model->objects[i];
+            for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
+                min_zs[{ i, j }] = obj->instance_bounding_box(j).min(2);
+            }
+        }
+    }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
     Selection::EMode selection_mode = m_selection.get_mode();
 
-    for (const GLVolume* v : m_volumes.volumes)
-    {
+    for (const GLVolume* v : m_volumes.volumes) {
         int object_idx = v->object_idx();
-        if ((object_idx < 0) || ((int)m_model->objects.size() <= object_idx))
+        if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
         int instance_idx = v->instance_idx();
@@ -3702,15 +3717,12 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
 
         // Rotate instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
-        if (model_object != nullptr)
-        {
-            if (selection_mode == Selection::Instance)
-            {
+        if (model_object != nullptr) {
+            if (selection_mode == Selection::Instance) {
                 model_object->instances[instance_idx]->set_scaling_factor(v->get_instance_scaling_factor());
                 model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
             }
-            else if (selection_mode == Selection::Volume)
-            {
+            else if (selection_mode == Selection::Volume) {
                 model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                 model_object->volumes[volume_idx]->set_scaling_factor(v->get_volume_scaling_factor());
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
@@ -3720,16 +3732,25 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     }
 
     // Fixes sinking/flying instances
-    for (const std::pair<int, int>& i : done)
-    {
+    for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
+#if ENABLE_ALLOW_NEGATIVE_Z
+        double shift_z = m->get_instance_min_z(i.second);
+        // leave sinking instances as sinking
+        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= 0.0 || shift_z > 0.0) {
+            Vec3d shift(0.0, 0.0, -shift_z);
+#else
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+#endif // ENABLE_ALLOW_NEGATIVE_Z
         m_selection.translate(i.first, i.second, shift);
         m->translate_instance(i.second, shift);
+#if ENABLE_ALLOW_NEGATIVE_Z
+        }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
     if (!done.empty())
-        post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
+        post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_SCALED));
 
     m_dirty = true;
 }
