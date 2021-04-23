@@ -17,42 +17,42 @@ class BoundingBox;
 class Line;
 class MultiPoint;
 class Point;
-typedef Point Vector;
+using Vector = Point;
 
 // Eigen types, to replace the Slic3r's own types in the future.
 // Vector types with a fixed point coordinate base type.
-typedef Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign> Vec2crd;
-typedef Eigen::Matrix<coord_t,  3, 1, Eigen::DontAlign> Vec3crd;
-typedef Eigen::Matrix<int,      2, 1, Eigen::DontAlign> Vec2i;
-typedef Eigen::Matrix<int,      3, 1, Eigen::DontAlign> Vec3i;
-typedef Eigen::Matrix<int32_t,  2, 1, Eigen::DontAlign> Vec2i32;
-typedef Eigen::Matrix<int64_t,  2, 1, Eigen::DontAlign> Vec2i64;
-typedef Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign> Vec3i32;
-typedef Eigen::Matrix<int64_t,  3, 1, Eigen::DontAlign> Vec3i64;
+using Vec2crd = Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign>;
+using Vec3crd = Eigen::Matrix<coord_t,  3, 1, Eigen::DontAlign>;
+using Vec2i   = Eigen::Matrix<int,      2, 1, Eigen::DontAlign>;
+using Vec3i   = Eigen::Matrix<int,      3, 1, Eigen::DontAlign>;
+using Vec2i32 = Eigen::Matrix<int32_t,  2, 1, Eigen::DontAlign>;
+using Vec2i64 = Eigen::Matrix<int64_t,  2, 1, Eigen::DontAlign>;
+using Vec3i32 = Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign>;
+using Vec3i64 = Eigen::Matrix<int64_t,  3, 1, Eigen::DontAlign>;
 
 // Vector types with a double coordinate base type.
-typedef Eigen::Matrix<float,    2, 1, Eigen::DontAlign> Vec2f;
-typedef Eigen::Matrix<float,    3, 1, Eigen::DontAlign> Vec3f;
-typedef Eigen::Matrix<double,   2, 1, Eigen::DontAlign> Vec2d;
-typedef Eigen::Matrix<double,   3, 1, Eigen::DontAlign> Vec3d;
+using Vec2f   = Eigen::Matrix<float,    2, 1, Eigen::DontAlign>;
+using Vec3f   = Eigen::Matrix<float,    3, 1, Eigen::DontAlign>;
+using Vec2d   = Eigen::Matrix<double,   2, 1, Eigen::DontAlign>;
+using Vec3d   = Eigen::Matrix<double,   3, 1, Eigen::DontAlign>;
 
-typedef std::vector<Point>                              Points;
-typedef std::vector<Point*>                             PointPtrs;
-typedef std::vector<const Point*>                       PointConstPtrs;
-typedef std::vector<Vec3crd>                            Points3;
-typedef std::vector<Vec2d>                              Pointfs;
-typedef std::vector<Vec2d>                              Vec2ds;
-typedef std::vector<Vec3d>                              Pointf3s;
+using Points         = std::vector<Point>;
+using PointPtrs      = std::vector<Point*>;
+using PointConstPtrs = std::vector<const Point*>;
+using Points3        = std::vector<Vec3crd>;
+using Pointfs        = std::vector<Vec2d>;
+using Vec2ds         = std::vector<Vec2d>;
+using Pointf3s       = std::vector<Vec3d>;
 
-typedef Eigen::Matrix<float,  2, 2, Eigen::DontAlign> Matrix2f;
-typedef Eigen::Matrix<double, 2, 2, Eigen::DontAlign> Matrix2d;
-typedef Eigen::Matrix<float,  3, 3, Eigen::DontAlign> Matrix3f;
-typedef Eigen::Matrix<double, 3, 3, Eigen::DontAlign> Matrix3d;
+using Matrix2f       = Eigen::Matrix<float,  2, 2, Eigen::DontAlign>;
+using Matrix2d       = Eigen::Matrix<double, 2, 2, Eigen::DontAlign>;
+using Matrix3f       = Eigen::Matrix<float,  3, 3, Eigen::DontAlign>;
+using Matrix3d       = Eigen::Matrix<double, 3, 3, Eigen::DontAlign>;
 
-typedef Eigen::Transform<float,  2, Eigen::Affine, Eigen::DontAlign> Transform2f;
-typedef Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign> Transform2d;
-typedef Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign> Transform3f;
-typedef Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign> Transform3d;
+using Transform2f    = Eigen::Transform<float,  2, Eigen::Affine, Eigen::DontAlign>;
+using Transform2d    = Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign>;
+using Transform3f    = Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign>;
+using Transform3d    = Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign>;
 
 inline bool operator<(const Vec2d &lhs, const Vec2d &rhs) { return lhs(0) < rhs(0) || (lhs(0) == rhs(0) && lhs(1) < rhs(1)); }
 
@@ -101,7 +101,7 @@ template<int N, class T> using Vec = Eigen::Matrix<T,  N, 1, Eigen::DontAlign, N
 class Point : public Vec2crd
 {
 public:
-    typedef coord_t coord_type;
+    using coord_type = coord_t;
 
     Point() : Vec2crd(0, 0) {}
     Point(int32_t x, int32_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
@@ -337,7 +337,7 @@ public:
     }
 
 private:
-    typedef typename std::unordered_multimap<Vec2crd, ValueType, PointHash> map_type;
+    using map_type = typename std::unordered_multimap<Vec2crd, ValueType, PointHash>;
     PointAccessor m_point_accessor;
     map_type m_map;
     coord_t  m_search_radius;
@@ -439,11 +439,11 @@ inline Point   align_to_grid(Point   coord, Point   spacing, Point   base)
 #include <boost/polygon/polygon.hpp>
 namespace boost { namespace polygon {
     template <>
-    struct geometry_concept<Slic3r::Point> { typedef point_concept type; };
+    struct geometry_concept<Slic3r::Point> { using type = point_concept; };
    
     template <>
     struct point_traits<Slic3r::Point> {
-        typedef coord_t coordinate_type;
+        using coordinate_type = coord_t;
     
         static inline coordinate_type get(const Slic3r::Point& point, orientation_2d orient) {
             return static_cast<coordinate_type>(point((orient == HORIZONTAL) ? 0 : 1));
@@ -452,7 +452,7 @@ namespace boost { namespace polygon {
     
     template <>
     struct point_mutable_traits<Slic3r::Point> {
-        typedef coord_t coordinate_type;
+        using coordinate_type = coord_t;
         static inline void set(Slic3r::Point& point, orientation_2d orient, coord_t value) {
             point((orient == HORIZONTAL) ? 0 : 1) = value;
         }

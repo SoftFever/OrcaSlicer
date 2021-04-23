@@ -79,9 +79,9 @@ Polyline::rotate(angle, center_sv)
         THIS->rotate(angle, center);
 
 Polygons
-Polyline::grow(delta, joinType = ClipperLib::jtSquare, miterLimit = 3)
+Polyline::grow(delta, joinType = Slic3r::ClipperLib::jtSquare, miterLimit = 3)
     const float             delta
-    ClipperLib::JoinType    joinType
+    Slic3r::ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
         RETVAL = offset(*THIS, delta, joinType, miterLimit);

@@ -4,7 +4,6 @@
 #include <libslic3r/SLA/RasterBase.hpp>
 #include "libslic3r/ExPolygon.hpp"
 #include "libslic3r/MTUtils.hpp"
-#include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
 // For rasterizing
 #include <agg/agg_basics.h>
@@ -21,10 +20,7 @@
 namespace Slic3r {
 
 inline const Polygon& contour(const ExPolygon& p) { return p.contour; }
-inline const ClipperLib::Path& contour(const ClipperLib::Polygon& p) { return p.Contour; }
-
 inline const Polygons& holes(const ExPolygon& p) { return p.holes; }
-inline const ClipperLib::Paths& holes(const ClipperLib::Polygon& p) { return p.Holes; }
 
 namespace sla {
 
@@ -77,8 +73,6 @@ protected:
     double getPx(const Point &p) { return p(0) * m_pxdim_scaled.w_mm; }
     double getPy(const Point &p) { return p(1) * m_pxdim_scaled.h_mm; }
     agg::path_storage to_path(const Polygon &poly) { return to_path(poly.points); }
-    double getPx(const ClipperLib::IntPoint &p) { return p.X * m_pxdim_scaled.w_mm; }
-    double getPy(const ClipperLib::IntPoint& p) { return p.Y * m_pxdim_scaled.h_mm; }
     
     template<class PointVec> agg::path_storage _to_path(const PointVec& v)
     {
@@ -168,7 +162,6 @@ public:
     }
     
     void draw(const ExPolygon &poly) override { _draw(poly); }
-    void draw(const ClipperLib::Polygon &poly) override { _draw(poly); }
     
     EncodedRaster encode(RasterEncoder encoder) const override
     {

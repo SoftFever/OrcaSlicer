@@ -78,7 +78,7 @@ static ConstPrintObjectPtrs get_top_level_objects_with_brim(const Print &print)
     // Assign the maximum Z from four points. This values is valid index of the island
     clipper.ZFillFunction([](const ClipperLib_Z::IntPoint &e1bot, const ClipperLib_Z::IntPoint &e1top, const ClipperLib_Z::IntPoint &e2bot,
                              const ClipperLib_Z::IntPoint &e2top, ClipperLib_Z::IntPoint &pt) {
-        pt.Z = std::max(std::max(e1bot.Z, e1top.Z), std::max(e2bot.Z, e2top.Z));
+        pt.z() = std::max(std::max(e1bot.z(), e1top.z()), std::max(e2bot.z(), e2top.z()));
     });
     // Add islands
     clipper.AddPaths(islands_clip, ClipperLib_Z::ptSubject, true);
@@ -90,9 +90,9 @@ static ConstPrintObjectPtrs get_top_level_objects_with_brim(const Print &print)
     ConstPrintObjectPtrs       top_level_objects_with_brim;
     for (int i = 0; i < islands_polytree.ChildCount(); ++i) {
         for (const ClipperLib_Z::IntPoint &point : islands_polytree.Childs[i]->Contour) {
-            if (point.Z != 0 && processed_objects_idx.find(island_to_object[point.Z - 1]->id().id) == processed_objects_idx.end()) {
-                top_level_objects_with_brim.emplace_back(island_to_object[point.Z - 1]);
-                processed_objects_idx.insert(island_to_object[point.Z - 1]->id().id);
+            if (point.z() != 0 && processed_objects_idx.find(island_to_object[point.z() - 1]->id().id) == processed_objects_idx.end()) {
+                top_level_objects_with_brim.emplace_back(island_to_object[point.z() - 1]);
+                processed_objects_idx.insert(island_to_object[point.z() - 1]->id().id);
             }
         }
     }
@@ -456,7 +456,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 			clipper.ZFillFunction([](const ClipperLib_Z::IntPoint& e1bot, const ClipperLib_Z::IntPoint& e1top, const ClipperLib_Z::IntPoint& e2bot, const ClipperLib_Z::IntPoint& e2top, ClipperLib_Z::IntPoint& pt) {
 				// Assign a valid input loop identifier. Such an identifier is strictly positive, the next line is safe even in case one side of a segment
 				// hat the Z coordinate not set to the contour coordinate.
-				pt.Z = std::max(std::max(e1bot.Z, e1top.Z), std::max(e2bot.Z, e2top.Z));
+				pt.z() = std::max(std::max(e1bot.z(), e1top.z()), std::max(e2bot.z(), e2top.z()));
 			});
 			// add polygons
 			clipper.AddPaths(input_clip, ClipperLib_Z::ptSubject, false);
@@ -474,8 +474,8 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 			for (const ClipperLib_Z::Path &path : loops_trimmed) {
 				size_t input_idx = 0;
 				for (const ClipperLib_Z::IntPoint &pt : path)
-					if (pt.Z > 0) {
-						input_idx = (size_t)pt.Z;
+					if (pt.z() > 0) {
+						input_idx = (size_t)pt.z();
 						break;
 					}
 				assert(input_idx != 0);
@@ -492,14 +492,14 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 				size_t j = i + 1;
                 for (; j < loops_trimmed_order.size() && loops_trimmed_order[i].second == loops_trimmed_order[j].second; ++ j) ;
                 const ClipperLib_Z::Path &first_path = *loops_trimmed_order[i].first;
-				if (i + 1 == j && first_path.size() > 3 && first_path.front().X == first_path.back().X && first_path.front().Y == first_path.back().Y) {
+				if (i + 1 == j && first_path.size() > 3 && first_path.front().x() == first_path.back().x() && first_path.front().y() == first_path.back().y()) {
 					auto *loop = new ExtrusionLoop();
                     brim.entities.emplace_back(loop);
 					loop->paths.emplace_back(erSkirt, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height()));
 		            Points &points = loop->paths.front().polyline.points;
 		            points.reserve(first_path.size());
 		            for (const ClipperLib_Z::IntPoint &pt : first_path)
-		            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
+		            	points.emplace_back(coord_t(pt.x()), coord_t(pt.y()));
 		            i = j;
 				} else {
 			    	//FIXME The path chaining here may not be optimal.
@@ -511,7 +511,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 			            Points &points = static_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
 			            points.reserve(path.size());
 			            for (const ClipperLib_Z::IntPoint &pt : path)
-			            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
+			            	points.emplace_back(coord_t(pt.x()), coord_t(pt.y()));
 		           	}
 		           	chain_and_reorder_extrusion_entities(this_loop_trimmed.entities, &last_pt);
                     brim.entities.reserve(brim.entities.size() + this_loop_trimmed.entities.size());

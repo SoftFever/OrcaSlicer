@@ -23,6 +23,8 @@ add_library(libslic3r STATIC
     BridgeDetector.hpp
     Brim.cpp
     Brim.hpp
+    clipper.cpp
+    clipper.hpp
     ClipperUtils.cpp
     ClipperUtils.hpp
     Config.cpp

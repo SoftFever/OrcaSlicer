@@ -22,12 +22,14 @@
 #pragma warning(pop)
 #endif // _MSC_VER
 
-namespace ClipperLib {
-class PolyNode;
-using PolyNodes = std::vector<PolyNode*>;
-}
+namespace Slic3r { 
 
-namespace Slic3r { namespace Geometry {
+    namespace ClipperLib {
+        class PolyNode;
+        using PolyNodes = std::vector<PolyNode*>;
+    }
+
+namespace Geometry {
 
 // Generic result of an orientation predicate.
 enum Orientation
@@ -530,6 +532,6 @@ inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
     return is_rotation_ninety_degrees(rotation.x()) && is_rotation_ninety_degrees(rotation.y()) && is_rotation_ninety_degrees(rotation.z());
 }
 
-} }
+} } // namespace Slicer::Geometry
 
 #endif

@@ -85,7 +85,7 @@ Surface::polygons()
 Surfaces
 Surface::offset(delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
     const float             delta
-    ClipperLib::JoinType    joinType
+    Slic3r::ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
         surfaces_append(RETVAL, offset_ex(THIS->expolygon, delta, joinType, miterLimit), *THIS);

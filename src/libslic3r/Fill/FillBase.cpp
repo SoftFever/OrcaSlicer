@@ -595,7 +595,6 @@ static inline bool line_rounded_thick_segment_collision(
         // Very short line vector. Just test whether the center point is inside the offset line.
         Vec2d lpt = 0.5 * (line_a + line_b);
         if (segment_l > SCALED_EPSILON) {
-            struct Linef { Vec2d a, b; };
             intersects = line_alg::distance_to_squared(Linef{ segment_a, segment_b }, lpt) < offset2;
         } else
             intersects = (0.5 * (segment_a + segment_b) - lpt).squaredNorm() < offset2;
@@ -1196,8 +1195,6 @@ static inline void mark_boundary_segments_overlapping_infill(
     // Spacing (width) of the infill lines.
     const double                                            spacing)
 {
-    struct Linef { Vec2d a; Vec2d b; };
-
     for (ContourIntersectionPoint &cp : graph.map_infill_end_point_to_boundary) {
         const Points                &contour         = graph.boundary[cp.contour_idx];
         const std::vector<double>   &contour_params  = graph.boundary_params[cp.contour_idx];
@@ -2003,9 +2000,8 @@ static double evaluate_support_arch_cost(const Polyline &pl)
 
     double dmax = 0;
     // Maximum distance in Y axis out of the (ymin, ymax) band and from the (front, back) line.
-    struct Linef { Vec2d a, b; };
     Linef line { front.cast<double>(), back.cast<double>() };
-    for (const Point pt : pl.points)
+    for (const Point &pt : pl.points)
         dmax = std::max<double>(std::max(dmax, line_alg::distance_to(line, Vec2d(pt.cast<double>()))), std::max(pt.y() - ymax, ymin - pt.y()));
     return dmax;
 }

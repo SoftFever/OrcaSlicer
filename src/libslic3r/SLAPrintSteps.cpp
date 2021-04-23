@@ -16,9 +16,6 @@
 
 #include <libslic3r/ClipperUtils.hpp>
 
-// For geometry algorithms with native Clipper types (no copies and conversions)
-#include <libnest2d/backends/clipper/geometries.hpp>
-
 #include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
@@ -717,55 +714,49 @@ void SLAPrint::Steps::slice_supports(SLAPrintObject &po) {
     report_status(-2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
 }
 
-using ClipperPoint  = ClipperLib::IntPoint;
-using ClipperPolygon = ClipperLib::Polygon; // see clipper_polygon.hpp in libnest2d
-using ClipperPolygons = std::vector<ClipperPolygon>;
+//static ClipperPolygons polyunion(const ClipperPolygons &subjects)
+//{
+//    ClipperLib::Clipper clipper;
 
-static ClipperPolygons polyunion(const ClipperPolygons &subjects)
-{
-    ClipperLib::Clipper clipper;
+//    bool closed = true;
 
-    bool closed = true;
+//    for(auto& path : subjects) {
+//        clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
+//        clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
+//    }
 
-    for(auto& path : subjects) {
-        clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
-        clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
-    }
+//    auto mode = ClipperLib::pftPositive;
 
-    auto mode = ClipperLib::pftPositive;
+//    return libnest2d::clipper_execute(clipper, ClipperLib::ctUnion, mode, mode);
+//}
 
-    return libnest2d::clipper_execute(clipper, ClipperLib::ctUnion, mode, mode);
-}
+//static ClipperPolygons polydiff(const ClipperPolygons &subjects, const ClipperPolygons& clips)
+//{
+//    ClipperLib::Clipper clipper;
 
-static ClipperPolygons polydiff(const ClipperPolygons &subjects, const ClipperPolygons& clips)
-{
-    ClipperLib::Clipper clipper;
+//    bool closed = true;
 
-    bool closed = true;
+//    for(auto& path : subjects) {
+//        clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
+//        clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
+//    }
 
-    for(auto& path : subjects) {
-        clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
-        clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
-    }
+//    for(auto& path : clips) {
+//        clipper.AddPath(path.Contour, ClipperLib::ptClip, closed);
+//        clipper.AddPaths(path.Holes, ClipperLib::ptClip, closed);
+//    }
 
-    for(auto& path : clips) {
-        clipper.AddPath(path.Contour, ClipperLib::ptClip, closed);
-        clipper.AddPaths(path.Holes, ClipperLib::ptClip, closed);
-    }
+//    auto mode = ClipperLib::pftPositive;
 
-    auto mode = ClipperLib::pftPositive;
-
-    return libnest2d::clipper_execute(clipper, ClipperLib::ctDifference, mode, mode);
-}
+//    return libnest2d::clipper_execute(clipper, ClipperLib::ctDifference, mode, mode);
+//}
 
 // get polygons for all instances in the object
-static ClipperPolygons get_all_polygons(const SliceRecord& record, SliceOrigin o)
+static ExPolygons get_all_polygons(const SliceRecord& record, SliceOrigin o)
 {
-    namespace sl = libnest2d::sl;
-
     if (!record.print_obj()) return {};
 
-    ClipperPolygons polygons;
+    ExPolygons polygons;
     auto &input_polygons = record.get_slice(o);
     auto &instances = record.print_obj()->instances();
     bool is_lefthanded = record.print_obj()->is_left_handed();
@@ -776,43 +767,42 @@ static ClipperPolygons get_all_polygons(const SliceRecord& record, SliceOrigin o
 
         for (size_t i = 0; i < instances.size(); ++i)
         {
-            ClipperPolygon poly;
+            ExPolygon poly;
 
             // We need to reverse if is_lefthanded is true but
             bool needreverse = is_lefthanded;
 
             // should be a move
-            poly.Contour.reserve(polygon.contour.size() + 1);
+            poly.contour.points.reserve(polygon.contour.size() + 1);
 
             auto& cntr = polygon.contour.points;
             if(needreverse)
                 for(auto it = cntr.rbegin(); it != cntr.rend(); ++it)
-                    poly.Contour.emplace_back(it->x(), it->y());
+                    poly.contour.points.emplace_back(it->x(), it->y());
             else
                 for(auto& p : cntr)
-                    poly.Contour.emplace_back(p.x(), p.y());
+                    poly.contour.points.emplace_back(p.x(), p.y());
 
             for(auto& h : polygon.holes) {
-                poly.Holes.emplace_back();
-                auto& hole = poly.Holes.back();
-                hole.reserve(h.points.size() + 1);
+                poly.holes.emplace_back();
+                auto& hole = poly.holes.back();
+                hole.points.reserve(h.points.size() + 1);
 
                 if(needreverse)
                     for(auto it = h.points.rbegin(); it != h.points.rend(); ++it)
-                        hole.emplace_back(it->x(), it->y());
+                        hole.points.emplace_back(it->x(), it->y());
                 else
                     for(auto& p : h.points)
-                        hole.emplace_back(p.x(), p.y());
+                        hole.points.emplace_back(p.x(), p.y());
             }
 
             if(is_lefthanded) {
-                for(auto& p : poly.Contour) p.X = -p.X;
-                for(auto& h : poly.Holes) for(auto& p : h) p.X = -p.X;
+                for(auto& p : poly.contour) p.x() = -p.x();
+                for(auto& h : poly.holes) for(auto& p : h) p.x() = -p.x();
             }
 
-            sl::rotate(poly, double(instances[i].rotation));
-            sl::translate(poly, ClipperPoint{instances[i].shift.x(),
-                                             instances[i].shift.y()});
+            poly.rotate(double(instances[i].rotation));
+            poly.translate(Point{instances[i].shift.x(), instances[i].shift.y()});
 
             polygons.emplace_back(std::move(poly));
         }
@@ -878,9 +868,6 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
 
     print_statistics.clear();
 
-    // libnest calculates positive area for clockwise polygons, Slic3r is in counter-clockwise
-    auto areafn = [](const ClipperPolygon& poly) { return - libnest2d::sl::area(poly); };
-
     const double area_fill = printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
     const double fast_tilt = printer_config.fast_tilt_time.getFloat();// 5.0;
     const double slow_tilt = printer_config.slow_tilt_time.getFloat();// 8.0;
@@ -913,7 +900,7 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
     // Going to parallel:
     auto printlayerfn = [this,
             // functions and read only vars
-            areafn, area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
+            area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
 
             // write vars
             &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers,
@@ -931,8 +918,8 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
 
         // Calculation of the consumed material
 
-        ClipperPolygons model_polygons;
-        ClipperPolygons supports_polygons;
+        ExPolygons model_polygons;
+        ExPolygons supports_polygons;
 
         size_t c = std::accumulate(layer.slices().begin(),
                                    layer.slices().end(),
@@ -954,44 +941,44 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
 
         for(const SliceRecord& record : layer.slices()) {
 
-            ClipperPolygons modelslices = get_all_polygons(record, soModel);
-            for(ClipperPolygon& p_tmp : modelslices) model_polygons.emplace_back(std::move(p_tmp));
+            ExPolygons modelslices = get_all_polygons(record, soModel);
+            for(ExPolygon& p_tmp : modelslices) model_polygons.emplace_back(std::move(p_tmp));
 
-            ClipperPolygons supportslices = get_all_polygons(record, soSupport);
-            for(ClipperPolygon& p_tmp : supportslices) supports_polygons.emplace_back(std::move(p_tmp));
+            ExPolygons supportslices = get_all_polygons(record, soSupport);
+            for(ExPolygon& p_tmp : supportslices) supports_polygons.emplace_back(std::move(p_tmp));
 
         }
 
-        model_polygons = polyunion(model_polygons);
+        model_polygons = union_ex(model_polygons);
         double layer_model_area = 0;
-        for (const ClipperPolygon& polygon : model_polygons)
-            layer_model_area += areafn(polygon);
+        for (const ExPolygon& polygon : model_polygons)
+            layer_model_area += area(polygon);
 
         if (layer_model_area < 0 || layer_model_area > 0) {
             Lock lck(mutex); models_volume += layer_model_area * l_height;
         }
 
         if(!supports_polygons.empty()) {
-            if(model_polygons.empty()) supports_polygons = polyunion(supports_polygons);
-            else supports_polygons = polydiff(supports_polygons, model_polygons);
+            if(model_polygons.empty()) supports_polygons = union_ex(supports_polygons);
+            else supports_polygons = diff_ex(supports_polygons, model_polygons);
             // allegedly, union of subject is done withing the diff according to the pftPositive polyFillType
         }
 
         double layer_support_area = 0;
-        for (const ClipperPolygon& polygon : supports_polygons)
-            layer_support_area += areafn(polygon);
+        for (const ExPolygon& polygon : supports_polygons)
+            layer_support_area += area(polygon);
 
         if (layer_support_area < 0 || layer_support_area > 0) {
             Lock lck(mutex); supports_volume += layer_support_area * l_height;
         }
 
         // Here we can save the expensively calculated polygons for printing
-        ClipperPolygons trslices;
+        ExPolygons trslices;
         trslices.reserve(model_polygons.size() + supports_polygons.size());
-        for(ClipperPolygon& poly : model_polygons) trslices.emplace_back(std::move(poly));
-        for(ClipperPolygon& poly : supports_polygons) trslices.emplace_back(std::move(poly));
+        for(ExPolygon& poly : model_polygons) trslices.emplace_back(std::move(poly));
+        for(ExPolygon& poly : supports_polygons) trslices.emplace_back(std::move(poly));
 
-        layer.transformed_slices(polyunion(trslices));
+        layer.transformed_slices(union_ex(trslices));
 
         // Calculation of the slow and fast layers to the future controlling those values on FW
 
@@ -1074,7 +1061,7 @@ void SLAPrint::Steps::rasterize()
         PrintLayer& printlayer = m_print->m_printer_input[idx];
         if(canceled()) return;
 
-        for (const ClipperLib::Polygon& poly : printlayer.transformed_slices())
+        for (const ExPolygon& poly : printlayer.transformed_slices())
             raster.draw(poly);
 
         // Status indication guarded with the spinlock
