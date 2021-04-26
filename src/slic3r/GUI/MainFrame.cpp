@@ -1483,10 +1483,10 @@ void MainFrame::repair_stl()
         output_file = dlg.GetPath();
     }
 
-    auto tmesh = new Slic3r::TriangleMesh();
-    tmesh->ReadSTLFile(input_file.ToUTF8().data());
-    tmesh->repair();
-    tmesh->WriteOBJFile(output_file.ToUTF8().data());
+    Slic3r::TriangleMesh tmesh;
+    tmesh.ReadSTLFile(input_file.ToUTF8().data());
+    tmesh.repair();
+    tmesh.WriteOBJFile(output_file.ToUTF8().data());
     Slic3r::GUI::show_info(this, L("Your file was repaired."), L("Repair"));
 }
 
