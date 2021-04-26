@@ -599,8 +599,8 @@ std::map<int, std::vector<bool>> TriangleSelector::serialize() const
                 if (3 <= int(tr.get_state()) && int(tr.get_state()) <= 15) {
                     data.insert(data.end(), {true, true});
                     for (size_t bit_idx = 0; bit_idx < 4; ++bit_idx) {
-                        size_t bit_mask = 0b0001 << bit_idx;
-                        data.push_back(int(tr.get_state()) - 3 & bit_mask);
+                        size_t bit_mask = uint64_t(0b0001) << bit_idx;
+                        data.push_back((int(tr.get_state()) - 3) & bit_mask);
                     }
                 } else {
                     data.push_back(int(tr.get_state()) & 0b01);
