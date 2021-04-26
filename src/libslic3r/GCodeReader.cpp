@@ -13,13 +13,13 @@ namespace Slic3r {
 void GCodeReader::apply_config(const GCodeConfig &config)
 {
     m_config = config;
-    m_extrusion_axis = m_config.get_extrusion_axis()[0];
+    m_extrusion_axis = get_extrusion_axis(m_config)[0];
 }
 
 void GCodeReader::apply_config(const DynamicPrintConfig &config)
 {
     m_config.apply(config, true);
-    m_extrusion_axis = m_config.get_extrusion_axis()[0];
+    m_extrusion_axis = get_extrusion_axis(m_config)[0];
 }
 
 const char* GCodeReader::parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command)
