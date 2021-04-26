@@ -277,7 +277,8 @@ private:
     // Bed properties
     enum {
         RectangularBed,
-        CircularBed
+        CircularBed,
+        CustomBed
     } m_bed_shape;
     float m_bed_width; // width of the bed bounding box
     Vec2f m_bed_bottom_left; // bottom-left corner coordinates (for rectangular beds)
