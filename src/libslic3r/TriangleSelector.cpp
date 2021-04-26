@@ -550,8 +550,9 @@ indexed_triangle_set TriangleSelector::get_facets(EnforcerBlockerType state) con
 std::map<int, std::vector<bool>> TriangleSelector::serialize() const
 {
     // Each original triangle of the mesh is assigned a number encoding its state
-    // or how it is split. Each triangle is encoded by 4 bits (xxyy):
-    // leaf triangle: xx = EnforcerBlockerType, yy = 0
+    // or how it is split. Each triangle is encoded by 4 bits (xxyy) or 8 bits (zzzzxxyy):
+    // leaf triangle: xx = EnforcerBlockerType (Only values 0, 1, and 2. Value 3 is used as an indicator for additional 4 bits.), yy = 0
+    // leaf triangle: xx = 0b11, yy = 0b00, zzzz = EnforcerBlockerType (subtracted by 3)
     // non-leaf:      xx = special side, yy = number of split sides
     // These are bitwise appended and formed into one 64-bit integer.
 
@@ -594,9 +595,17 @@ std::map<int, std::vector<bool>> TriangleSelector::serialize() const
                     serialize_recursive(tr.children[child_idx]);
             } else {
                 // In case this is leaf, we better save information about its state.
-                assert(int(tr.get_state()) <= 3);
-                data.push_back(int(tr.get_state()) & 0b01);
-                data.push_back(int(tr.get_state()) & 0b10);
+                assert(int(tr.get_state()) <= 15);
+                if (3 <= int(tr.get_state()) && int(tr.get_state()) <= 15) {
+                    data.insert(data.end(), {true, true});
+                    for (size_t bit_idx = 0; bit_idx < 4; ++bit_idx) {
+                        size_t bit_mask = 0b0001 << bit_idx;
+                        data.push_back(int(tr.get_state()) - 3 & bit_mask);
+                    }
+                } else {
+                    data.push_back(int(tr.get_state()) & 0b01);
+                    data.push_back(int(tr.get_state()) & 0b10);
+                }
                 ++stored_triangles;
             }
         };
@@ -614,7 +623,7 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
     for (const auto& [triangle_id, code] : data) {
         assert(triangle_id < int(m_triangles.size()));
         assert(! code.empty());
-        int processed_triangles = 0;
+        int processed_nibbles = 0;
         struct ProcessingInfo {
             int facet_id = 0;
             int processed_children = 0;
@@ -626,18 +635,26 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
 
         while (true) {
             // Read next triangle info.
-            int next_code = 0;
-            for (int i=3; i>=0; --i) {
-                next_code = next_code << 1;
-                next_code |= int(code[4 * processed_triangles + i]);
-            }
-            ++processed_triangles;
+            std::array<int, 2> next_code{};
+            for(size_t nibble_idx = 0; nibble_idx < 2; ++nibble_idx) {
+                assert(nibble_idx < 2);
+                if(nibble_idx >= 1 && (next_code[0] >> 2) != 0b11)
+                    break;
 
-            int num_of_split_sides = (next_code & 0b11);
+                for (int i = 3; i >= 0; --i) {
+                    next_code[nibble_idx] = next_code[nibble_idx] << 1;
+                    next_code[nibble_idx] |= int(code[4 * processed_nibbles + i]);
+                }
+
+                ++processed_nibbles;
+            }
+
+            int num_of_split_sides = (next_code[0] & 0b11);
             int num_of_children = num_of_split_sides != 0 ? num_of_split_sides + 1 : 0;
             bool is_split = num_of_children != 0;
-            EnforcerBlockerType state = EnforcerBlockerType(next_code >> 2);
-            int special_side = (next_code >> 2);
+            // Value of the second nibble was subtracted by 3, so it is added back.
+            EnforcerBlockerType state = EnforcerBlockerType(next_code[0] >> 2 == 0b11 ? next_code[1] + 3 : next_code[0] >> 2);
+            int special_side = (next_code[0] >> 2);
 
             // Take care of the first iteration separately, so handling of the others is simpler.
             if (parents.empty()) {

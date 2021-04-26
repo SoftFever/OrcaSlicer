@@ -1918,7 +1918,8 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     size_t region_count_before_change = this->num_regions();
     std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions = multi_material_segmentation_by_painting(*this);
     // Skip region with default extruder
-    for (size_t region_idx = 1; region_idx < 3; ++region_idx) {
+    const size_t num_extruders = this->print()->config().nozzle_diameter.size();
+    for (size_t region_idx = 1; region_idx < num_extruders; ++region_idx) {
         std::vector<ExPolygons> c_layers(m_layers.size());
         for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++layer_idx) {
             for(const std::pair<ExPolygon, size_t> &colored_polygon : segmented_regions[layer_idx]) {
