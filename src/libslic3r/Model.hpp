@@ -289,8 +289,6 @@ public:
     TriangleMesh raw_mesh() const;
     // The same as above, but producing a lightweight indexed_triangle_set.
     indexed_triangle_set raw_indexed_triangle_set() const;
-    // Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
-    TriangleMesh full_raw_mesh() const;
     // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
     // This bounding box is only used for the actual slicing.
     const BoundingBoxf3& raw_bounding_box() const;
