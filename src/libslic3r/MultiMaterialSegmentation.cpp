@@ -795,7 +795,7 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
         if (edge_it->cell()->source_index() > edge_it->twin()->cell()->source_index() || edge_it->color())
             continue;
 
-        if (edge_it->is_infinite()) {
+        if (edge_it->is_infinite() && (edge_it->vertex0() != nullptr || edge_it->vertex1() != nullptr)) {
             // Infinite edge is leading through a point on the counter, but there are no Voronoi vertices.
             // So we could fix this case by computing the intersection between the contour line and infinity edge.
             std::vector<Voronoi::Internal::point_type> samples;
