@@ -318,7 +318,7 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
         case erIroning                      : return L("Ironing");
         case erBridgeInfill                 : return L("Bridge infill");
         case erGapFill                      : return L("Gap fill");
-        case erSkirt                        : return L("Skirt");
+        case erSkirt                        : return L("Skirt/Brim");
         case erSupportMaterial              : return L("Support material");
         case erSupportMaterialInterface     : return L("Support material interface");
         case erWipeTower                    : return L("Wipe tower");
@@ -349,7 +349,7 @@ ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
         return erBridgeInfill;
     else if (role == L("Gap fill"))
         return erGapFill;
-    else if (role == L("Skirt"))
+    else if (role == L("Skirt/Brim"))
         return erSkirt;
     else if (role == L("Support material"))
         return erSupportMaterial;
