@@ -12,6 +12,9 @@
 #include <vector>
 #include <string>
 #include <string_view>
+#if ENABLE_SEAMS_VISUALIZATION
+#include <optional>
+#endif // ENABLE_SEAMS_VISUALIZATION
 
 namespace Slic3r {
 
@@ -20,6 +23,9 @@ namespace Slic3r {
         Noop,
         Retract,
         Unretract,
+#if ENABLE_SEAMS_VISUALIZATION
+        Seam,
+#endif // ENABLE_SEAMS_VISUALIZATION
         Tool_change,
         Color_change,
         Pause_Print,
@@ -370,8 +376,7 @@ namespace Slic3r {
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
             int64_t time{ 0 };
-            void reset()
-            {
+            void reset() {
                 time = 0;
                 moves = std::vector<MoveVertex>();
                 bed_shape = Pointfs();
@@ -380,8 +385,7 @@ namespace Slic3r {
                 settings_ids.reset();
             }
 #else
-            void reset()
-            {
+            void reset() {
                 moves = std::vector<MoveVertex>();
                 bed_shape = Pointfs();
                 extruder_colors = std::vector<std::string>();
@@ -390,6 +394,29 @@ namespace Slic3r {
             }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         };
+
+#if ENABLE_SEAMS_VISUALIZATION
+        class SeamsDetector
+        {
+            bool m_active{ false };
+            std::optional<Vec3f> m_first_vertex;
+
+        public:
+            void activate(bool active) {
+                if (m_active != active) {
+                    m_active = active;
+                    if (m_active)
+                        m_first_vertex.reset();
+                }
+            }
+
+            std::optional<Vec3f> get_first_vertex() const { return m_first_vertex; }
+            void set_first_vertex(const Vec3f& vertex) { m_first_vertex = vertex; }
+
+            bool is_active() const { return m_active; }
+            bool has_first_vertex() const { return m_first_vertex.has_value(); }
+        };
+#endif // ENABLE_SEAMS_VISUALIZATION
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         struct DataChecker
@@ -476,6 +503,9 @@ namespace Slic3r {
 
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         unsigned int m_line_id;
+#if ENABLE_SEAMS_VISUALIZATION
+        unsigned int m_last_line_id;
+#endif // ENABLE_SEAMS_VISUALIZATION
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         float m_feedrate; // mm/s
         float m_width; // mm
@@ -494,6 +524,9 @@ namespace Slic3r {
         unsigned int m_layer_id;
         CpColor m_cp_color;
         bool m_use_volumetric_e;
+#if ENABLE_SEAMS_VISUALIZATION
+        SeamsDetector m_seams_detector;
+#endif // ENABLE_SEAMS_VISUALIZATION
 
         enum class EProducer
         {
