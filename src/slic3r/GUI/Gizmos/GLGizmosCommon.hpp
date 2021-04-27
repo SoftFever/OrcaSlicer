@@ -32,7 +32,8 @@ enum class SLAGizmoEventType : unsigned char {
     ManualEditing,
     MouseWheelUp,
     MouseWheelDown,
-    ResetClippingPlane
+    ResetClippingPlane,
+    Moving
 };
 
 

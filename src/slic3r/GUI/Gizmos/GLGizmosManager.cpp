@@ -522,9 +522,11 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     bool control_down = evt.CmdDown();
 
     // mouse anywhere
-    if (evt.Moving())
+    if (evt.Moving()) {
         m_tooltip = update_hover_state(mouse_pos);
-    else if (evt.LeftUp()) {
+        if (m_current == MmuSegmentation)
+            gizmo_event(SLAGizmoEventType::Moving, mouse_pos, evt.ShiftDown(), evt.AltDown());
+    } else if (evt.LeftUp()) {
         if (m_mouse_capture.left) {
             processed = true;
             m_mouse_capture.left = false;

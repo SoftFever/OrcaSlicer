@@ -36,7 +36,7 @@ void TriangleSelector::Triangle::set_division(int sides_to_split, int special_si
 void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
                                     const Vec3f& source, float radius,
                                     CursorType cursor_type, EnforcerBlockerType new_state,
-                                    const Transform3d& trafo)
+                                    const Transform3d& trafo, bool triangle_splitting)
 {
     assert(facet_start < m_orig_size_indices);
 
@@ -59,7 +59,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
     while (facet_idx < int(facets_to_check.size())) {
         int facet = facets_to_check[facet_idx];
         if (! visited[facet]) {
-            if (select_triangle(facet, new_state)) {
+            if (select_triangle(facet, new_state, false, triangle_splitting)) {
                 // add neighboring facets to list to be proccessed later
                 for (int n=0; n<3; ++n) {
                     int neighbor_idx = m_mesh->stl.neighbors_start[facet].neighbor[n];
@@ -73,13 +73,56 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
     }
 }
 
+void TriangleSelector::seed_fill_select_triangles(const Vec3f& hit, int facet_start, float seed_fill_angle)
+{
+    this->seed_fill_unselect_all_triangles();
 
+    std::vector<bool> visited(m_triangles.size(), false);
+    std::queue<size_t> facet_queue;
+    facet_queue.push(facet_start);
+
+    // Check if neighbour_facet_idx is satisfies angle in seed_fill_angle and append it to facet_queue if it do.
+    auto check_angle_and_append = [this, &facet_queue](const size_t facet_idx, const size_t neighbour_facet_idx, const float seed_fill_angle) -> void {
+        double dot_product       = m_triangles[neighbour_facet_idx].normal.dot(m_triangles[facet_idx].normal);
+        dot_product              = std::clamp(dot_product, 0., 1.);
+        double facet_angle_limit = cos(Geometry::deg2rad(seed_fill_angle));
+        if ((dot_product + EPSILON) >= facet_angle_limit)
+            facet_queue.push(neighbour_facet_idx);
+    };
+
+    while(!facet_queue.empty()) {
+        size_t current_facet = facet_queue.front();
+        facet_queue.pop();
+
+        if (!visited[current_facet]) {
+            if (!m_triangles[current_facet].is_split())
+                m_triangles[current_facet].select_by_seed_fill();
+
+            if (m_triangles[current_facet].is_split())
+                for (int split_triangle_idx = 0; split_triangle_idx <= m_triangles[current_facet].number_of_split_sides(); ++split_triangle_idx) {
+                    assert(split_triangle_idx < int(m_triangles[current_facet].children.size()));
+                    assert(m_triangles[current_facet].children[split_triangle_idx] < int(m_triangles.size()));
+
+                    if (!visited[m_triangles[current_facet].children[split_triangle_idx]])
+                        check_angle_and_append(current_facet, m_triangles[current_facet].children[split_triangle_idx], seed_fill_angle);
+                }
+
+            if (int(current_facet) < m_orig_size_indices)
+                for (int neighbor_idx : m_mesh->stl.neighbors_start[current_facet].neighbor) {
+                    assert(neighbor_idx >= 0);
+                    if (neighbor_idx >= 0 && !visited[neighbor_idx])
+                        check_angle_and_append(current_facet, neighbor_idx, seed_fill_angle);
+                }
+        }
+        visited[current_facet] = true;
+    }
+}
 
 // Selects either the whole triangle (discarding any children it had), or divides
 // the triangle recursively, selecting just subtriangles truly inside the circle.
 // This is done by an actual recursive call. Returns false if the triangle is
 // outside the cursor.
-bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, bool recursive_call)
+bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, bool recursive_call, bool triangle_splitting)
 {
     assert(facet_idx < int(m_triangles.size()));
 
@@ -108,7 +151,10 @@ bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, 
             return true;
         }
 
-        split_triangle(facet_idx);
+        if(triangle_splitting)
+            split_triangle(facet_idx);
+        else if(!m_triangles[facet_idx].is_split())
+            m_triangles[facet_idx].set_state(type);
         tr = &m_triangles[facet_idx]; // might have been invalidated
 
 
@@ -118,7 +164,7 @@ bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, 
                 assert(i < int(tr->children.size()));
                 assert(tr->children[i] < int(m_triangles.size()));
 
-                select_triangle(tr->children[i], type, true);
+                select_triangle(tr->children[i], type, true, triangle_splitting);
                 tr = &m_triangles[facet_idx]; // might have been invalidated
             }
         }
@@ -710,6 +756,18 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
     }
 }
 
+void TriangleSelector::seed_fill_unselect_all_triangles() {
+    for (Triangle &triangle : m_triangles)
+        if (!triangle.is_split())
+            triangle.unselect_by_seed_fill();
+}
+
+void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_state)
+{
+    for (Triangle &triangle : m_triangles)
+        if (!triangle.is_split() && triangle.is_selected_by_seed_fill())
+            triangle.set_state(new_state);
+}
 
 TriangleSelector::Cursor::Cursor(
         const Vec3f& center_, const Vec3f& source_, float radius_world,

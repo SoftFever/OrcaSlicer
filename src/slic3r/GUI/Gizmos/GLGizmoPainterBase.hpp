@@ -48,6 +48,7 @@ public:
 private:
     GLIndexedVertexArray m_iva_enforcers;
     GLIndexedVertexArray m_iva_blockers;
+    GLIndexedVertexArray m_iva_seed_fill;
     std::array<GLIndexedVertexArray, 3> m_varrays;
 };
 
@@ -95,6 +96,9 @@ protected:
 
     TriangleSelector::CursorType m_cursor_type = TriangleSelector::SPHERE;
 
+    bool  m_triangle_splitting_enabled = true;
+    bool  m_seed_fill_enabled          = false;
+    float m_seed_fill_angle            = 0.f;
 
 private:
     bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;

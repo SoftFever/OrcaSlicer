@@ -143,11 +143,12 @@ void GLGizmoPainterBase::render_cursor() const
     if (m_rr.mesh_id == -1)
         return;
 
-
-    if (m_cursor_type == TriangleSelector::SPHERE)
-        render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
-    else
-        render_cursor_circle();
+    if (!m_seed_fill_enabled) {
+        if (m_cursor_type == TriangleSelector::SPHERE)
+            render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
+        else
+            render_cursor_circle();
+    }
 }
 
 
@@ -351,11 +352,47 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
 
             assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-            m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, m_rr.facet, camera_pos,
-                                       m_cursor_radius, m_cursor_type, new_state, trafo_matrix);
+            if (m_seed_fill_enabled)
+                m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
+            else
+                m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, m_rr.facet, camera_pos, m_cursor_radius, m_cursor_type,
+                                                                 new_state, trafo_matrix, m_triangle_splitting_enabled);
             m_last_mouse_click = mouse_position;
         }
 
+        return true;
+    }
+
+    if (action == SLAGizmoEventType::Moving && m_seed_fill_enabled) {
+        if (m_triangle_selectors.empty())
+            return false;
+
+        const Camera &       camera         = wxGetApp().plater()->get_camera();
+        const Selection &    selection      = m_parent.get_selection();
+        const ModelObject *  mo             = m_c->selection_info()->model_object();
+        const ModelInstance *mi             = mo->instances[selection.get_instance_idx()];
+        const Transform3d &  instance_trafo = mi->get_transformation().get_matrix();
+
+        // Precalculate transformations of individual meshes.
+        std::vector<Transform3d> trafo_matrices;
+        for (const ModelVolume *mv : mo->volumes)
+            if (mv->is_model_part())
+                trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
+
+        // Now "click" into all the prepared points and spill paint around them.
+        update_raycast_cache(mouse_position, camera, trafo_matrices);
+
+        if (m_rr.mesh_id == -1) {
+            // Clean selected by seed fill for all triangles
+            for (auto &triangle_selector : m_triangle_selectors)
+                triangle_selector->seed_fill_unselect_all_triangles();
+
+            // In case we have no valid hit, we can return.
+            return false;
+        }
+
+        assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
+        m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, m_rr.facet, m_seed_fill_angle);
         return true;
     }
 
@@ -521,12 +558,14 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
 {
     int enf_cnt = 0;
     int blc_cnt = 0;
+    int seed_fill_cnt = 0;
 
     m_iva_enforcers.release_geometry();
     m_iva_blockers.release_geometry();
+    m_iva_seed_fill.release_geometry();
 
     for (const Triangle& tr : m_triangles) {
-        if (! tr.valid || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE)
+        if (!tr.valid || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE || tr.is_selected_by_seed_fill())
             continue;
 
         GLIndexedVertexArray& va = tr.get_state() == EnforcerBlockerType::ENFORCER
@@ -543,17 +582,32 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
                              double(tr.normal[0]),
                              double(tr.normal[1]),
                              double(tr.normal[2]));
-        va.push_triangle(cnt,
-                         cnt+1,
-                         cnt+2);
+        va.push_triangle(cnt, cnt + 1, cnt + 2);
         cnt += 3;
+    }
+
+    for (const Triangle &tr : m_triangles) {
+        if (!tr.valid || tr.is_split() || !tr.is_selected_by_seed_fill())
+            continue;
+
+        for (int i = 0; i < 3; ++i)
+            m_iva_seed_fill.push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
+                                          double(m_vertices[tr.verts_idxs[i]].v[1]),
+                                          double(m_vertices[tr.verts_idxs[i]].v[2]),
+                                          double(tr.normal[0]),
+                                          double(tr.normal[1]),
+                                          double(tr.normal[2]));
+        m_iva_seed_fill.push_triangle(seed_fill_cnt, seed_fill_cnt + 1, seed_fill_cnt + 2);
+        seed_fill_cnt += 3;
     }
 
     m_iva_enforcers.finalize_geometry(true);
     m_iva_blockers.finalize_geometry(true);
+    m_iva_seed_fill.finalize_geometry(true);
 
     bool render_enf = m_iva_enforcers.has_VBOs();
     bool render_blc = m_iva_blockers.has_VBOs();
+    bool render_seed_fill = m_iva_seed_fill.has_VBOs();
 
     auto* shader = wxGetApp().get_shader("gouraud");
     if (! shader)
@@ -573,6 +627,12 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
         std::array<float, 4> color = { 1.f, 0.44f, 0.44f, 1.f };
         shader->set_uniform("uniform_color", color);
         m_iva_blockers.render();
+    }
+
+    if (render_seed_fill) {
+        std::array<float, 4> color = { 0.f, 1.00f, 0.44f, 1.f };
+        shader->set_uniform("uniform_color", color);
+        m_iva_seed_fill.render();
     }
 
 
