@@ -349,7 +349,7 @@ ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
         return erBridgeInfill;
     else if (role == L("Gap fill"))
         return erGapFill;
-    else if (role == L("Skirt/Brim"))
+    else if (role == L("Skirt") || role == L("Skirt/Brim")) // "Skirt" is for backward compatibility with 2.3.1 and earlier
         return erSkirt;
     else if (role == L("Support material"))
         return erSupportMaterial;
