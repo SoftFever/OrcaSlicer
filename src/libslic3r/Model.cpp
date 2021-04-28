@@ -954,30 +954,39 @@ void ModelObject::center_around_origin(bool include_modifiers)
 {
     // calculate the displacements needed to 
     // center this object around the origin
-    BoundingBoxf3 bb = include_modifiers ? full_raw_mesh_bounding_box() : raw_mesh_bounding_box();
+    const BoundingBoxf3 bb = include_modifiers ? full_raw_mesh_bounding_box() : raw_mesh_bounding_box();
 
     // Shift is the vector from the center of the bounding box to the origin
-    Vec3d shift = -bb.center();
+    const Vec3d shift = -bb.center();
 
     this->translate(shift);
     this->origin_translation += shift;
 }
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+void ModelObject::ensure_on_bed(bool allow_negative_z)
+{
+    const double min_z = get_min_z();
+    if (!allow_negative_z || min_z > 0.0)
+        translate_instances({ 0.0, 0.0, -min_z });
+}
+#else
 void ModelObject::ensure_on_bed()
 {
-    translate_instances(Vec3d(0.0, 0.0, -get_min_z()));
+    translate_instances({ 0.0, 0.0, -get_min_z() });
 }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
 void ModelObject::translate_instances(const Vec3d& vector)
 {
-    for (size_t i = 0; i < instances.size(); ++i)
-    {
+    for (size_t i = 0; i < instances.size(); ++i) {
         translate_instance(i, vector);
     }
 }
 
 void ModelObject::translate_instance(size_t instance_idx, const Vec3d& vector)
 {
+    assert(instance_idx < instances.size());
     ModelInstance* i = instances[instance_idx];
     i->set_offset(i->get_offset() + vector);
     invalidate_bounding_box();
@@ -985,8 +994,7 @@ void ModelObject::translate_instance(size_t instance_idx, const Vec3d& vector)
 
 void ModelObject::translate(double x, double y, double z)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->translate(x, y, z);
     }
 
@@ -996,8 +1004,7 @@ void ModelObject::translate(double x, double y, double z)
 
 void ModelObject::scale(const Vec3d &versor)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->scale(versor);
     }
     this->invalidate_bounding_box();
@@ -1005,41 +1012,34 @@ void ModelObject::scale(const Vec3d &versor)
 
 void ModelObject::rotate(double angle, Axis axis)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->rotate(angle, axis);
     }
-
     center_around_origin();
     this->invalidate_bounding_box();
 }
 
 void ModelObject::rotate(double angle, const Vec3d& axis)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->rotate(angle, axis);
     }
-
     center_around_origin();
     this->invalidate_bounding_box();
 }
 
 void ModelObject::mirror(Axis axis)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->mirror(axis);
     }
-
     this->invalidate_bounding_box();
 }
 
 // This method could only be called before the meshes of this ModelVolumes are not shared!
 void ModelObject::scale_mesh_after_creation(const Vec3d &versor)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->scale_geometry_after_creation(versor);
         v->set_offset(versor.cwiseProduct(v->get_offset()));
     }

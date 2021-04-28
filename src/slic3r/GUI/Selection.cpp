@@ -672,24 +672,20 @@ void Selection::translate(const Vec3d& displacement, bool local)
 
     EMode translation_type = m_mode;
 
-    for (unsigned int i : m_list)
-    {
-        if ((m_mode == Volume) || (*m_volumes)[i]->is_wipe_tower)
+    for (unsigned int i : m_list) {
+        if (m_mode == Volume || (*m_volumes)[i]->is_wipe_tower)
         {
             if (local)
                 (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
-            else
-            {
+            else {
                 Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
                 (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
             }
         }
-        else if (m_mode == Instance)
-        {
+        else if (m_mode == Instance) {
             if (is_from_fully_selected_instance(i))
                 (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
-            else
-            {
+            else {
                 Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
                 (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
                 translation_type = Volume;
@@ -2153,10 +2149,8 @@ void Selection::ensure_on_bed()
     typedef std::map<std::pair<int, int>, double> InstancesToZMap;
     InstancesToZMap instances_min_z;
 
-    for (GLVolume* volume : *m_volumes)
-    {
-        if (!volume->is_wipe_tower && !volume->is_modifier)
-        {
+    for (GLVolume* volume : *m_volumes) {
+        if (!volume->is_wipe_tower && !volume->is_modifier) {
             double min_z = volume->transformed_convex_hull_bounding_box().min(2);
             std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
             InstancesToZMap::iterator it = instances_min_z.find(instance);
@@ -2167,8 +2161,7 @@ void Selection::ensure_on_bed()
         }
     }
 
-    for (GLVolume* volume : *m_volumes)
-    {
+    for (GLVolume* volume : *m_volumes) {
         std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
         InstancesToZMap::iterator it = instances_min_z.find(instance);
         if (it != instances_min_z.end())

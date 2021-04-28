@@ -5805,7 +5805,11 @@ void Plater::changed_object(int obj_idx)
         return;
     // recenter and re - align to Z = 0
     auto model_object = p->model.objects[obj_idx];
+#if ENABLE_ALLOW_NEGATIVE_Z
+    model_object->ensure_on_bed(true);
+#else
     model_object->ensure_on_bed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     if (this->p->printer_technology == ptSLA) {
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data, update the 3D scene.
@@ -5823,8 +5827,7 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     if (object_idxs.empty())
         return;
 
-    for (size_t obj_idx : object_idxs)
-    {
+    for (size_t obj_idx : object_idxs) {
         if (obj_idx < p->model.objects.size())
             // recenter and re - align to Z = 0
             p->model.objects[obj_idx]->ensure_on_bed();

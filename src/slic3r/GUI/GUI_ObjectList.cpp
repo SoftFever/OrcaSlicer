@@ -2113,18 +2113,15 @@ void ObjectList::part_selection_changed()
 
     const auto item = GetSelection();
 
-    if ( multiple_selection() || (item && m_objects_model->GetItemType(item) == itInstanceRoot ))
-    {
-        og_name = _(L("Group manipulation"));
+    if ( multiple_selection() || (item && m_objects_model->GetItemType(item) == itInstanceRoot )) {
+        og_name = _L("Group manipulation");
 
         const Selection& selection = scene_selection();
         // don't show manipulation panel for case of all Object's parts selection 
         update_and_show_manipulations = !selection.is_single_full_instance();
     }
-    else
-    {
-        if (item)
-        {
+    else {
+        if (item) {
             const ItemType type = m_objects_model->GetItemType(item);
             const wxDataViewItem parent = m_objects_model->GetParent(item);
             const ItemType parent_type = m_objects_model->GetItemType(parent);
@@ -2132,7 +2129,7 @@ void ObjectList::part_selection_changed()
 
             if (parent == wxDataViewItem(nullptr)
              || type == itInfo) {
-                og_name = _(L("Object manipulation"));
+                og_name = _L("Object manipulation");
                 m_config = &(*m_objects)[obj_idx]->config;
                 update_and_show_manipulations = true;
 
@@ -2152,35 +2149,35 @@ void ObjectList::part_selection_changed()
             else {
                 if (type & itSettings) {
                     if (parent_type & itObject) {
-                        og_name = _(L("Object Settings to modify"));
+                        og_name = _L("Object Settings to modify");
                         m_config = &(*m_objects)[obj_idx]->config;
                     }
                     else if (parent_type & itVolume) {
-                        og_name = _(L("Part Settings to modify"));
+                        og_name = _L("Part Settings to modify");
                         volume_id = m_objects_model->GetVolumeIdByItem(parent);
                         m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     }
                     else if (parent_type & itLayer) {
-                        og_name = _(L("Layer range Settings to modify"));
+                        og_name = _L("Layer range Settings to modify");
                         m_config = &get_item_config(parent);
                     }
                     update_and_show_settings = true;
                 }
                 else if (type & itVolume) {
-                    og_name = _(L("Part manipulation"));
+                    og_name = _L("Part manipulation");
                     volume_id = m_objects_model->GetVolumeIdByItem(item);
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_manipulations = true;
                 }
                 else if (type & itInstance) {
-                    og_name = _(L("Instance manipulation"));
+                    og_name = _L("Instance manipulation");
                     update_and_show_manipulations = true;
 
                     // fill m_config by object's values
                     m_config = &(*m_objects)[obj_idx]->config;
                 }
                 else if (type & (itLayerRoot|itLayer)) {
-                    og_name = type & itLayerRoot ? _(L("Height ranges")) : _(L("Settings for height range"));
+                    og_name = type & itLayerRoot ? _L("Height ranges") : _L("Settings for height range");
                     update_and_show_layers = true;
 
                     if (type & itLayer)
@@ -2815,7 +2812,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     const int obj_idx = m_selected_object_id;
     if (obj_idx < 0) return false;
 
-    take_snapshot(_(L("Edit Height Range")));
+    take_snapshot(_L("Edit Height Range"));
 
     const ItemType sel_type = m_objects_model->GetItemType(GetSelection());
 
