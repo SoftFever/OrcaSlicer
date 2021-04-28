@@ -1217,7 +1217,7 @@ void Selection::render_center(bool gizmo_is_dragging) const
     if (!m_valid || is_empty() || m_quadric == nullptr)
         return;
 
-    Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
+    const Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
@@ -1286,7 +1286,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field) const
         } else {
             glsafe(::glTranslated(center(0), center(1), center(2)));
             if (requires_local_axes()) {
-                Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+                const Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                 glsafe(::glMultMatrixd(orient_matrix.data()));
             }
         }
@@ -1976,7 +1976,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     if (pos == std::string::npos)
         return;
 
-    double min_z = std::stod(field.substr(pos + 1));
+    const double min_z = std::stod(field.substr(pos + 1));
 
     // extract type
     field = field.substr(0, pos);
@@ -1984,7 +1984,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     if (pos == std::string::npos)
         return;
 
-    int type = std::stoi(field.substr(pos + 1));
+    const int type = std::stoi(field.substr(pos + 1));
 
     const BoundingBoxf3& box = get_bounding_box();
 
@@ -1995,8 +1995,8 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
 
     // view dependend order of rendering to keep correct transparency
     bool camera_on_top = wxGetApp().plater()->get_camera().is_looking_downward();
-    float z1 = camera_on_top ? min_z : max_z;
-    float z2 = camera_on_top ? max_z : min_z;
+    const float z1 = camera_on_top ? min_z : max_z;
+    const float z2 = camera_on_top ? max_z : min_z;
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
@@ -2004,7 +2004,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     ::glBegin(GL_QUADS);
-    if ((camera_on_top && (type == 1)) || (!camera_on_top && (type == 2)))
+    if ((camera_on_top && type == 1) || (!camera_on_top && type == 2))
         ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
     else
         ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
@@ -2015,7 +2015,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glEnd());
 
     ::glBegin(GL_QUADS);
-    if ((camera_on_top && (type == 2)) || (!camera_on_top && (type == 1)))
+    if ((camera_on_top && type == 2) || (!camera_on_top && type == 1))
         ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
     else
         ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
