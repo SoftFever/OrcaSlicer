@@ -135,27 +135,9 @@ void Size::set_scale_factor(int scale_factor)
     m_scale_factor = scale_factor;
 }
 
-GLCanvas3D::LayersEditing::LayersEditing()
-    : m_enabled(false)
-    , m_z_texture_id(0)
-    , m_model_object(nullptr)
-    , m_object_max_z(0.f)
-    , m_slicing_parameters(nullptr)
-    , m_layer_height_profile_modified(false)
-    , m_adaptive_quality(0.5f)
-    , state(Unknown)
-    , band_width(2.0f)
-    , strength(0.005f)
-    , last_object_id(-1)
-    , last_z(0.0f)
-    , last_action(LAYER_HEIGHT_EDIT_ACTION_INCREASE)
-{
-}
-
 GLCanvas3D::LayersEditing::~LayersEditing()
 {
-    if (m_z_texture_id != 0)
-    {
+    if (m_z_texture_id != 0) {
         glsafe(::glDeleteTextures(1, &m_z_texture_id));
         m_z_texture_id = 0;
     }
@@ -219,7 +201,7 @@ void GLCanvas3D::LayersEditing::set_enabled(bool enabled)
     m_enabled = is_allowed() && enabled;
 }
 
-float GLCanvas3D::LayersEditing::s_overelay_window_width;
+float GLCanvas3D::LayersEditing::s_overlay_window_width;
 
 void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 {
@@ -303,7 +285,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
 
-    GLCanvas3D::LayersEditing::s_overelay_window_width = ImGui::GetWindowSize().x /*+ (float)m_layers_texture.width/4*/;
+    GLCanvas3D::LayersEditing::s_overlay_window_width = ImGui::GetWindowSize().x /*+ (float)m_layers_texture.width/4*/;
     imgui.end();
 
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
@@ -320,7 +302,7 @@ float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
     float t = rect.get_top();
     float b = rect.get_bottom();
 
-    return ((rect.get_left() <= x) && (x <= rect.get_right()) && (t <= y) && (y <= b)) ?
+    return (rect.get_left() <= x && x <= rect.get_right() && t <= y && y <= b) ?
         // Inside the bar.
         (b - y - 1.0f) / (b - t - 1.0f) :
         // Outside the bar.
@@ -330,7 +312,7 @@ float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
 bool GLCanvas3D::LayersEditing::bar_rect_contains(const GLCanvas3D& canvas, float x, float y)
 {
     const Rect& rect = get_bar_rect_screen(canvas);
-    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
+    return rect.get_left() <= x && x <= rect.get_right() && rect.get_top() <= y && y <= rect.get_bottom();
 }
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
@@ -339,7 +321,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
     float w = (float)cnv_size.get_width();
     float h = (float)cnv_size.get_height();
 
-    return Rect(w - thickness_bar_width(canvas), 0.0f, w, h);
+    return { w - thickness_bar_width(canvas), 0.0f, w, h };
 }
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
@@ -348,7 +330,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
-    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
+    return { (half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom };
 }
 
 bool GLCanvas3D::LayersEditing::is_initialized() const
@@ -565,7 +547,7 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
 {
     if (last_object_id >= 0) {
         if (m_layer_height_profile_modified) {
-            wxGetApp().plater()->take_snapshot(_(L("Variable layer height - Manual edit")));
+            wxGetApp().plater()->take_snapshot(_L("Variable layer height - Manual edit"));
             const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
 			canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
             wxGetApp().obj_list()->update_info_items(last_object_id);
