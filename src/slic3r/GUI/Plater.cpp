@@ -1555,7 +1555,11 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
+#if ENABLE_ALLOW_NEGATIVE_Z
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false);
+#else
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     wxString get_export_file(GUI::FileType file_type);
 
     const Selection& get_selection() const;
@@ -2303,11 +2307,19 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     return obj_idxs;
             }
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+            for (ModelObject* model_object : model.objects) {
+                if (!type_3mf && !type_zip_amf)
+                    model_object->center_around_origin(false);
+                model_object->ensure_on_bed(is_project_file);
+            }
+#else
             for (ModelObject* model_object : model.objects) {
                 if (!type_3mf && !type_zip_amf)
                     model_object->center_around_origin(false);
                 model_object->ensure_on_bed();
             }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
             // check multi-part object adding for the SLA-printing
             if (printer_technology == ptSLA) {
@@ -2321,7 +2333,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             if (one_by_one) {
+#if ENABLE_ALLOW_NEGATIVE_Z
+                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
+#else
                 auto loaded_idxs = load_model_objects(model.objects);
+#endif // ENABLE_ALLOW_NEGATIVE_Z
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
@@ -2373,7 +2389,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 // #define AUTOPLACEMENT_ON_LOAD
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z)
+#else
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
@@ -2450,7 +2470,11 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         }
 #endif // ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+        object->ensure_on_bed(allow_negative_z);
+#else
         object->ensure_on_bed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
