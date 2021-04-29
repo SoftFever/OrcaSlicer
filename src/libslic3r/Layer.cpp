@@ -185,7 +185,7 @@ void Layer::make_perimeters()
 	                }
 	                // merge the surfaces assigned to each group
 	                for (std::pair<const unsigned short,Surfaces> &surfaces_with_extra_perimeters : slices)
-	                    new_slices.append(union_ex(surfaces_with_extra_perimeters.second, true), surfaces_with_extra_perimeters.second.front());
+	                    new_slices.append(offset_ex(to_expolygons(surfaces_with_extra_perimeters.second), 10.f), surfaces_with_extra_perimeters.second.front());
 	            }
 	            
 	            // make perimeters
