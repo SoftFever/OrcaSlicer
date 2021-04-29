@@ -357,10 +357,14 @@ void TriangleMesh::transform(const Transform3d& t, bool fix_left_handed)
     its_transform(its, t);
 	if (fix_left_handed && t.matrix().block(0, 0, 3, 3).determinant() < 0.) {
 		// Left handed transformation is being applied. It is a good idea to flip the faces and their normals.
-		this->repair(false);
-		stl_reverse_all_facets(&stl);
-		this->its.clear();
-		this->require_shared_vertices();
+        // As for the assert: the repair function would fix the normals, reversing would
+        // break them again. The caller should provide a mesh that does not need repair.
+        // The repair call is left here so things don't break more than they were.
+        assert(this->repaired);
+        this->repair(false);
+        stl_reverse_all_facets(&stl);
+        this->its.clear();
+        this->require_shared_vertices();
 	}
 }
 
@@ -369,11 +373,12 @@ void TriangleMesh::transform(const Matrix3d& m, bool fix_left_handed)
     stl_transform(&stl, m);
     its_transform(its, m);
     if (fix_left_handed && m.determinant() < 0.) {
-        // Left handed transformation is being applied. It is a good idea to flip the faces and their normals.
+        // See comments in function above.
+        assert(this->repaired);
         this->repair(false);
         stl_reverse_all_facets(&stl);
-		this->its.clear();
-		this->require_shared_vertices();
+        this->its.clear();
+        this->require_shared_vertices();
     }
 }
 

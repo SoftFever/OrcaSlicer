@@ -1,7 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "GLCanvas3D.hpp"
 
-#include "admesh/stl.h"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
@@ -1682,8 +1681,10 @@ void GLCanvas3D::render()
     if (m_picking_enabled)
         m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<coord_t>());
 
-    _render_current_gizmo();
+    // sidebar hints need to be rendered before the gizmos because the depth buffer
+    // could be invalidated by the following gizmo render methods
     _render_selection_sidebar_hints();
+    _render_current_gizmo();
 #if ENABLE_RENDER_PICKING_PASS
     }
 #endif // ENABLE_RENDER_PICKING_PASS

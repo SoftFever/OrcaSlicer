@@ -833,18 +833,6 @@ indexed_triangle_set ModelObject::raw_indexed_triangle_set() const
     return out;
 }
 
-// Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
-TriangleMesh ModelObject::full_raw_mesh() const
-{
-    TriangleMesh mesh;
-    for (const ModelVolume *v : this->volumes)
-    {
-        TriangleMesh vol_mesh(v->mesh());
-        vol_mesh.transform(v->get_matrix());
-        mesh.merge(vol_mesh);
-    }
-    return mesh;
-}
 
 const BoundingBoxf3& ModelObject::raw_mesh_bounding_box() const
 {

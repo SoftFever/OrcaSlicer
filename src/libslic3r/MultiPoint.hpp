@@ -84,6 +84,13 @@ public:
 
     static Points _douglas_peucker(const Points &points, const double tolerance);
     static Points visivalingam(const Points& pts, const double& tolerance);
+
+    inline auto begin()        { return points.begin(); }
+    inline auto begin()  const { return points.begin(); }
+    inline auto end()          { return points.end();   }
+    inline auto end()    const { return points.end();   }
+    inline auto cbegin() const { return points.begin(); }
+    inline auto cend()   const { return points.end();   }
 };
 
 class MultiPoint3

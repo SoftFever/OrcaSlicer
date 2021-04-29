@@ -250,8 +250,8 @@ template<class RawShape> class EdgeCache {
         Vertex ret = edge.first();
 
         // Get the point on the edge which lies in ed distance from the start
-        ret += { static_cast<Coord>(std::round(ed*std::cos(angle))),
-                 static_cast<Coord>(std::round(ed*std::sin(angle))) };
+        ret += Vertex(static_cast<Coord>(std::round(ed*std::cos(angle))),
+                      static_cast<Coord>(std::round(ed*std::sin(angle))));
 
         return ret;
     }
@@ -724,8 +724,7 @@ private:
                 auto rawobjfunc = [_objfunc, iv, startpos]
                         (Vertex v, Item& itm)
                 {
-                    auto d = v - iv;
-                    d += startpos;
+                    auto d = (v - iv) + startpos;
                     itm.translation(d);
                     return _objfunc(itm);
                 };
@@ -742,8 +741,7 @@ private:
                         &item, &bin, &iv, &startpos] (const Optimum& o)
                 {
                     auto v = getNfpPoint(o);
-                    auto d = v - iv;
-                    d += startpos;
+                    auto d = (v - iv) + startpos;
                     item.translation(d);
 
                     merged_pile.emplace_back(item.transformedShape());
@@ -877,8 +875,7 @@ private:
                 }
 
                 if( best_score < global_score ) {
-                    auto d = getNfpPoint(optimum) - iv;
-                    d += startpos;
+                    auto d = (getNfpPoint(optimum) - iv) + startpos;
                     final_tr = d;
                     final_rot = initial_rot + rot;
                     can_pack = true;

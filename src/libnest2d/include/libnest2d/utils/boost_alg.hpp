@@ -19,7 +19,7 @@
 #pragma warning(pop)
 #endif
 // this should be removed to not confuse the compiler
-// #include <libnest2d.h>
+// #include "../libnest2d.hpp"
 
 namespace bp2d {
 
@@ -30,6 +30,10 @@ using libnest2d::PolygonImpl;
 using libnest2d::PathImpl;
 using libnest2d::Orientation;
 using libnest2d::OrientationType;
+using libnest2d::OrientationTypeV;
+using libnest2d::ClosureType;
+using libnest2d::Closure;
+using libnest2d::ClosureTypeV;
 using libnest2d::getX;
 using libnest2d::getY;
 using libnest2d::setX;
@@ -213,8 +217,15 @@ struct ToBoostOrienation<bp2d::Orientation::COUNTER_CLOCKWISE> {
     static const order_selector Value = counterclockwise;
 };
 
-static const bp2d::Orientation RealOrientation =
-        bp2d::OrientationType<bp2d::PolygonImpl>::Value;
+template<bp2d::Closure> struct ToBoostClosure {};
+
+template<> struct ToBoostClosure<bp2d::Closure::OPEN> {
+    static const constexpr closure_selector Value = closure_selector::open;
+};
+
+template<> struct ToBoostClosure<bp2d::Closure::CLOSED> {
+    static const constexpr closure_selector Value = closure_selector::closed;
+};
 
 // Ring implementation /////////////////////////////////////////////////////////
 
@@ -225,12 +236,13 @@ template<> struct tag<bp2d::PathImpl> {
 
 template<> struct point_order<bp2d::PathImpl> {
     static const order_selector value =
-            ToBoostOrienation<RealOrientation>::Value;
+        ToBoostOrienation<bp2d::OrientationTypeV<bp2d::PathImpl>>::Value;
 };
 
 // All our Paths should be closed for the bin packing application
 template<> struct closure<bp2d::PathImpl> {
-    static const closure_selector value = closed;
+    static const constexpr closure_selector value =
+        ToBoostClosure< bp2d::ClosureTypeV<bp2d::PathImpl> >::Value;
 };
 
 // Polygon implementation //////////////////////////////////////////////////////

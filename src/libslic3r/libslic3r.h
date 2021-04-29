@@ -308,6 +308,10 @@ IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
     return ret;
 }
 
+// Borrowed from C++20
+template<class T>
+using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
+
 } // namespace Slic3r
 
 #endif

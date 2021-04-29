@@ -108,7 +108,7 @@
     std::string get_extrusion_axis()
         %code{%
             if (GCodeConfig* config = dynamic_cast<GCodeConfig*>(THIS)) {
-                RETVAL = config->get_extrusion_axis();
+                RETVAL = get_extrusion_axis(*config);
             } else {
                 CONFESS("This StaticConfig object does not provide get_extrusion_axis()");
             }

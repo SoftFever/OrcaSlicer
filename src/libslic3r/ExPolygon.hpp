@@ -360,6 +360,8 @@ extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons);
 extern bool        remove_sticks(ExPolygon &poly);
 extern void 	   keep_largest_contour_only(ExPolygons &polygons);
 
+inline double area(const ExPolygon &poly) { return poly.area(); }
+
 inline double area(const ExPolygons &polys)
 {
     double s = 0.;

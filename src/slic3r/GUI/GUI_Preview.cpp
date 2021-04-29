@@ -235,7 +235,7 @@ bool Preview::init(wxWindow* parent, Model* model)
         _L("Ironing") + "|1|" +
         _L("Bridge infill") + "|1|" +
         _L("Gap fill") + "|1|" +
-        _L("Skirt") + "|1|" +
+        _L("Skirt/Brim") + "|1|" +
         _L("Support material") + "|1|" +
         _L("Support material interface") + "|1|" +
         _L("Wipe tower") + "|1|" +

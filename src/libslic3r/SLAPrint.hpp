@@ -9,7 +9,6 @@
 #include "Point.hpp"
 #include "MTUtils.hpp"
 #include "Zipper.hpp"
-#include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
 namespace Slic3r {
 
@@ -483,7 +482,7 @@ public:
         // The collection of slice records for the current level.
         std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
 
-        std::vector<ClipperLib::Polygon> m_transformed_slices;
+        ExPolygons m_transformed_slices;
 
         template<class Container> void transformed_slices(Container&& c)
         {
@@ -507,7 +506,7 @@ public:
 
         auto slices() const -> const decltype (m_slices)& { return m_slices; }
 
-        const std::vector<ClipperLib::Polygon> & transformed_slices() const {
+        const ExPolygons & transformed_slices() const {
             return m_transformed_slices;
         }
     };

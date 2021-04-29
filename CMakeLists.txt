@@ -268,8 +268,6 @@ set(LIBDIR_BIN ${CMAKE_CURRENT_BINARY_DIR}/src)
 include_directories(${LIBDIR})
 # For generated header files
 include_directories(${LIBDIR_BIN}/platform)
-# For libslic3r.h
-include_directories(${LIBDIR}/clipper)
 
 if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
