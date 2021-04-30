@@ -10,7 +10,7 @@
 
 #include <cereal/types/vector.hpp>
 
-
+class GLGizmoMmuSegmentation;
 
 
 namespace Slic3r {
@@ -37,7 +37,7 @@ public:
 
     // Render current selection. Transformation matrices are supposed
     // to be already set.
-    void render(ImGuiWrapper* imgui = nullptr);
+    virtual void render(ImGuiWrapper* imgui = nullptr);
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
@@ -48,8 +48,9 @@ public:
 private:
     GLIndexedVertexArray m_iva_enforcers;
     GLIndexedVertexArray m_iva_blockers;
-    GLIndexedVertexArray m_iva_seed_fill;
     std::array<GLIndexedVertexArray, 3> m_varrays;
+protected:
+    GLIndexedVertexArray m_iva_seed_fill;
 };
 
 
@@ -68,7 +69,7 @@ public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoPainterBase() override {}
     void set_painter_gizmo_data(const Selection& selection);
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+    virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
     // Following function renders the triangles and cursor. Having this separated
     // from usual on_render method allows to render them before transparent objects,
@@ -146,6 +147,8 @@ protected:
     void on_load(cereal::BinaryInputArchive& ar) override;
     void on_save(cereal::BinaryOutputArchive& ar) const override {}
     CommonGizmosDataID on_get_requirements() const override;
+
+    friend class GLGizmoMmuSegmentation;
 };
 
 

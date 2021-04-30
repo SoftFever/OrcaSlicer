@@ -3,9 +3,23 @@
 
 #include "GLGizmoPainterBase.hpp"
 
-namespace Slic3r {
+namespace Slic3r::GUI {
 
-namespace GUI {
+class TriangleSelectorMmuGui : public TriangleSelectorGUI {
+public:
+    explicit TriangleSelectorMmuGui(const TriangleMesh& mesh, size_t extruder_count, const std::vector<std::array<uint8_t, 3>> &colors)
+        : TriangleSelectorGUI(mesh), m_colors(colors) {
+        m_iva_colors = std::vector<GLIndexedVertexArray>(extruder_count);
+    }
+
+    // Render current selection. Transformation matrices are supposed
+    // to be already set.
+    virtual void render(ImGuiWrapper* imgui = nullptr);
+
+private:
+    const std::vector<std::array<uint8_t, 3>> &m_colors;
+    std::vector<GLIndexedVertexArray> m_iva_colors;
+};
 
 class GLGizmoMmuSegmentation : public GLGizmoPainterBase
 {
@@ -15,11 +29,18 @@ public:
 
     void render_painter_gizmo() const override;
 
+    virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
+
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
 
     bool on_is_selectable() const override;
+
+    size_t                              m_first_selected_extruder_idx  = 0;
+    size_t                              m_second_selected_extruder_idx = 1;
+    std::vector<std::string>            m_extruders_names;
+    std::vector<std::array<uint8_t, 3>> m_extruders_colors;
 
 private:
     bool on_init() override;
@@ -36,9 +57,6 @@ private:
     std::map<std::string, wxString> m_desc;
 };
 
-
-
-} // namespace GUI
 } // namespace Slic3r
 
 
