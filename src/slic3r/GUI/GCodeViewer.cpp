@@ -4051,14 +4051,23 @@ void GCodeViewer::render_legend() const
     if (!m_legend_enabled)
         return;
 
+#if ENABLE_SCROLLABLE_LEGEND
+    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+#endif // ENABLE_SCROLLABLE_LEGEND
+
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(0.0f, 0.0f, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
+#if ENABLE_SCROLLABLE_LEGEND
+    float child_height = 0.2222f * static_cast<float>(cnv_size.get_height());
+    imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
+#else
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
+#endif // ENABLE_SCROLLABLE_LEGEND
 
     enum class EItemType : unsigned char
     {
@@ -4069,94 +4078,106 @@ void GCodeViewer::render_legend() const
     };
 
     const PrintEstimatedTimeStatistics::Mode& time_mode = m_time_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
+#if ENABLE_SCROLLABLE_LEGEND
+    bool show_estimated_time = time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
+        (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()));
+#endif // ENABLE_SCROLLABLE_LEGEND
 
     float icon_size = ImGui::GetTextLineHeight();
     float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
 
+#if ENABLE_SCROLLABLE_LEGEND
+    auto append_item = [this, icon_size, percent_bar_size, &imgui](EItemType type, const Color& color, const std::string& label,
+#else
     auto append_item = [this, draw_list, icon_size, percent_bar_size, &imgui](EItemType type, const Color& color, const std::string& label,
+#endif // ENABLE_SCROLLABLE_LEGEND
         bool visible = true, const std::string& time = "", float percent = 0.0f, float max_percent = 0.0f, const std::array<float, 2>& offsets = { 0.0f, 0.0f },
         std::function<void()> callback = nullptr) {
-            if (!visible)
-                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
-            ImVec2 pos = ImGui::GetCursorScreenPos();
-            switch (type) {
-            default:
-            case EItemType::Rect: {
-                draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                    ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
-                break;
-            }
-            case EItemType::Circle: {
-                ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-                if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120") {
-                    draw_list->AddCircleFilled(center, 0.5f * icon_size,
-                        ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                    float radius = 0.5f * icon_size;
-                    draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-                    radius = 0.5f * icon_size * 0.01f * 33.0f;
-                    draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                }
-                else
-                    draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+        if (!visible)
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-                break;
-            }
-            case EItemType::Hexagon: {
-                ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-                draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
-                break;
-            }
-            case EItemType::Line: {
-                draw_list->AddLine({ pos.x + 1, pos.y + icon_size - 1 }, { pos.x + icon_size - 1, pos.y + 1 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
-                break;
-            }
-            }
-
-            // draw text
-            ImGui::Dummy({ icon_size, icon_size });
-            ImGui::SameLine();
-            if (callback != nullptr) {
-                if (ImGui::MenuItem(label.c_str()))
-                    callback();
-                else {
-                    // show tooltip
-                    if (ImGui::IsItemHovered()) {
-                        if (!visible)
-                            ImGui::PopStyleVar();
-                        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                        ImGui::BeginTooltip();
-                        imgui.text(visible ? _u8L("Click to hide") : _u8L("Click to show"));
-                        ImGui::EndTooltip();
-                        ImGui::PopStyleColor();
-                        if (!visible)
-                            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
-
-                        // to avoid the tooltip to change size when moving the mouse
-                        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-                        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-                    }
-                }
-
-                if (!time.empty()) {
-                    ImGui::SameLine(offsets[0]);
-                    imgui.text(time);
-                    ImGui::SameLine(offsets[1]);
-                    pos = ImGui::GetCursorScreenPos();
-                    float width = std::max(1.0f, percent_bar_size * percent / max_percent);
-                    draw_list->AddRectFilled({ pos.x, pos.y + 2.0f }, { pos.x + width, pos.y + icon_size - 2.0f },
-                        ImGui::GetColorU32(ImGuiWrapper::COL_ORANGE_LIGHT));
-                    ImGui::Dummy({ percent_bar_size, icon_size });
-                    ImGui::SameLine();
-                    char buf[64];
-                    ::sprintf(buf, "%.1f%%", 100.0f * percent);
-                    ImGui::TextUnformatted((percent > 0.0f) ? buf : "");
-                }
+#if ENABLE_SCROLLABLE_LEGEND
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+#endif // ENABLE_SCROLLABLE_LEGEND
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+        switch (type) {
+        default:
+        case EItemType::Rect: {
+            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+            break;
+        }
+        case EItemType::Circle: {
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+            if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120") {
+                draw_list->AddCircleFilled(center, 0.5f * icon_size,
+                    ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+                float radius = 0.5f * icon_size;
+                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+                radius = 0.5f * icon_size * 0.01f * 33.0f;
+                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
             }
             else
-                imgui.text(label);
+                draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 
-            if (!visible)
-                ImGui::PopStyleVar();
+            break;
+        }
+        case EItemType::Hexagon: {
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+            break;
+        }
+        case EItemType::Line: {
+            draw_list->AddLine({ pos.x + 1, pos.y + icon_size - 1 }, { pos.x + icon_size - 1, pos.y + 1 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
+            break;
+        }
+        }
+
+        // draw text
+        ImGui::Dummy({ icon_size, icon_size });
+        ImGui::SameLine();
+        if (callback != nullptr) {
+            if (ImGui::MenuItem(label.c_str()))
+                callback();
+            else {
+                // show tooltip
+                if (ImGui::IsItemHovered()) {
+                    if (!visible)
+                        ImGui::PopStyleVar();
+                    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+                    ImGui::BeginTooltip();
+                    imgui.text(visible ? _u8L("Click to hide") : _u8L("Click to show"));
+                    ImGui::EndTooltip();
+                    ImGui::PopStyleColor();
+                    if (!visible)
+                        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
+
+                    // to avoid the tooltip to change size when moving the mouse
+                    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+                    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                }
+            }
+
+            if (!time.empty()) {
+                ImGui::SameLine(offsets[0]);
+                imgui.text(time);
+                ImGui::SameLine(offsets[1]);
+                pos = ImGui::GetCursorScreenPos();
+                float width = std::max(1.0f, percent_bar_size * percent / max_percent);
+                draw_list->AddRectFilled({ pos.x, pos.y + 2.0f }, { pos.x + width, pos.y + icon_size - 2.0f },
+                    ImGui::GetColorU32(ImGuiWrapper::COL_ORANGE_LIGHT));
+                ImGui::Dummy({ percent_bar_size, icon_size });
+                ImGui::SameLine();
+                char buf[64];
+                ::sprintf(buf, "%.1f%%", 100.0f * percent);
+                ImGui::TextUnformatted((percent > 0.0f) ? buf : "");
+            }
+        }
+        else
+            imgui.text(label);
+
+        if (!visible)
+            ImGui::PopStyleVar();
     };
 
     auto append_range = [append_item](const Extrusions::Range& range, unsigned int decimals) {
@@ -4254,7 +4275,7 @@ void GCodeViewer::render_legend() const
         return _u8L("from") + " " + std::string(buf1) + " " + _u8L("to") + " " + std::string(buf2) + " " + _u8L("mm");
     };
 
-    auto role_time_and_percent = [ time_mode](ExtrusionRole role) {
+    auto role_time_and_percent = [time_mode](ExtrusionRole role) {
         auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
         return (it != time_mode.roles_times.end()) ? std::make_pair(it->second, it->second / time_mode.time) : std::make_pair(0.0f, 0.0f);
     };
@@ -4341,57 +4362,65 @@ void GCodeViewer::render_legend() const
     }
     case EViewType::ColorPrint:
     {
-        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
-        if (m_extruders_count == 1) { // single extruder use case
-            std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
-            const int items_cnt = static_cast<int>(cp_values.size());
-            if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                append_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default color"));
-            }
-            else {
-                for (int i = items_cnt; i >= 0; --i) {
-                    // create label for color change item
-                    if (i == 0) {
-                        append_item(EItemType::Rect, m_tool_colors[0], upto_label(cp_values.front().second.first));
-                        break;
-                    }
-                    else if (i == items_cnt) {
-                        append_item(EItemType::Rect, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second));
-                        continue;
-                    }
-                    append_item(EItemType::Rect, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
-                }
-            }
-        }
-        else { // multi extruder use case
-            // shows only extruders actually used
-            for (unsigned char i : m_extruder_ids) {
-                std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
+#if ENABLE_SCROLLABLE_LEGEND
+        // add scrollable region
+        if (ImGui::BeginChild("color_prints", { -1.0f, child_height }, false)) {
+#endif // ENABLE_SCROLLABLE_LEGEND
+            const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+            if (m_extruders_count == 1) { // single extruder use case
+                std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                    append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
+                    append_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default color"));
                 }
                 else {
-                    for (int j = items_cnt; j >= 0; --j) {
+                    for (int i = items_cnt; i >= 0; --i) {
                         // create label for color change item
-                        std::string label = _u8L("Extruder") + " " + std::to_string(i + 1);
-                        if (j == 0) {
-                            label += " " + upto_label(cp_values.front().second.first);
-                            append_item(EItemType::Rect, m_tool_colors[i], label);
+                        if (i == 0) {
+                            append_item(EItemType::Rect, m_tool_colors[0], upto_label(cp_values.front().second.first));
                             break;
                         }
-                        else if (j == items_cnt) {
-                            label += " " + above_label(cp_values[j - 1].second.second);
-                            append_item(EItemType::Rect, cp_values[j - 1].first, label);
+                        else if (i == items_cnt) {
+                            append_item(EItemType::Rect, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second));
                             continue;
                         }
-
-                        label += " " + fromto_label(cp_values[j - 1].second.second, cp_values[j].second.first);
-                        append_item(EItemType::Rect, cp_values[j - 1].first, label);
+                        append_item(EItemType::Rect, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
                     }
                 }
             }
+            else { // multi extruder use case
+                // shows only extruders actually used
+                for (unsigned char i : m_extruder_ids) {
+                    std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
+                    const int items_cnt = static_cast<int>(cp_values.size());
+                    if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
+                        append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
+                    }
+                    else {
+                        for (int j = items_cnt; j >= 0; --j) {
+                            // create label for color change item
+                            std::string label = _u8L("Extruder") + " " + std::to_string(i + 1);
+                            if (j == 0) {
+                                label += " " + upto_label(cp_values.front().second.first);
+                                append_item(EItemType::Rect, m_tool_colors[i], label);
+                                break;
+                            }
+                            else if (j == items_cnt) {
+                                label += " " + above_label(cp_values[j - 1].second.second);
+                                append_item(EItemType::Rect, cp_values[j - 1].first, label);
+                                continue;
+                            }
+
+                            label += " " + fromto_label(cp_values[j - 1].second.second, cp_values[j].second.first);
+                            append_item(EItemType::Rect, cp_values[j - 1].first, label);
+                        }
+                    }
+                }
+            }
+#if ENABLE_SCROLLABLE_LEGEND
         }
+        ImGui::EndChild();
+#endif // ENABLE_SCROLLABLE_LEGEND
 
         break;
     }
@@ -4517,26 +4546,35 @@ void GCodeViewer::render_legend() const
             offsets = calculate_offsets(labels, times, { _u8L("Event"), _u8L("Remaining time") }, 2.0f * icon_size);
 
             ImGui::Spacing();
-            append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration") }, offsets);
-            for (const PartialTime& item : partial_times) {
-                switch (item.type)
-                {
-                case PartialTime::EType::Print: {
-                    append_print(item.color1, offsets, item.times);
-                    break;
+                append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration") }, offsets);
+#if ENABLE_SCROLLABLE_LEGEND
+                // add scrollable region
+                if (ImGui::BeginChild("events", { -1.0f, child_height }, false)) {
+#endif // ENABLE_SCROLLABLE_LEGEND
+                    for (const PartialTime& item : partial_times) {
+                    switch (item.type)
+                    {
+                    case PartialTime::EType::Print: {
+                        append_print(item.color1, offsets, item.times);
+                        break;
+                    }
+                    case PartialTime::EType::Pause: {
+                        imgui.text(_u8L("Pause"));
+                        ImGui::SameLine(offsets[0]);
+                        imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
+                        break;
+                    }
+                    case PartialTime::EType::ColorChange: {
+                        append_color_change(item.color1, item.color2, offsets, item.times);
+                        break;
+                    }
+                    }
                 }
-                case PartialTime::EType::Pause: {
-                    imgui.text(_u8L("Pause"));
-                    ImGui::SameLine(offsets[0]);
-                    imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
-                    break;
-                }
-                case PartialTime::EType::ColorChange: {
-                    append_color_change(item.color1, item.color2, offsets, item.times);
-                    break;
-                }
-                }
+#if ENABLE_SCROLLABLE_LEGEND
             }
+            ImGui::EndChild();
+#endif // ENABLE_SCROLLABLE_LEGEND
+
         }
     }
 
@@ -4680,10 +4718,14 @@ void GCodeViewer::render_legend() const
     }
 
     // total estimated printing time section
+#if ENABLE_SCROLLABLE_LEGEND
+    if (show_estimated_time) {
+#else
     if (time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
         (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()))) {
 
         ImGui::Spacing();
+#endif // ENABLE_SCROLLABLE_LEGEND
         ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Separator, { 1.0f, 1.0f, 1.0f, 1.0f });
         ImGui::Separator();

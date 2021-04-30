@@ -4780,14 +4780,26 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     if (m_canvas == nullptr && m_context == nullptr)
         return;
 
+#if ENABLE_SCROLLABLE_LEGEND
+    const std::array<unsigned int, 2> new_size = { w, h };
+    if (m_old_size == new_size)
+        return;
+
+    m_old_size = new_size;
+#endif // ENABLE_SCROLLABLE_LEGEND
+
     auto *imgui = wxGetApp().imgui();
-    imgui->set_display_size((float)w, (float)h);
+    imgui->set_display_size(static_cast<float>(w), static_cast<float>(h));
     const float font_size = 1.5f * wxGetApp().em_unit();
 #if ENABLE_RETINA_GL
     imgui->set_scaling(font_size, 1.0f, m_retina_helper->get_scale_factor());
 #else
     imgui->set_scaling(font_size, m_canvas->GetContentScaleFactor(), 1.0f);
 #endif
+
+#if ENABLE_SCROLLABLE_LEGEND
+    this->request_extra_frame();
+#endif // ENABLE_SCROLLABLE_LEGEND
 
     // ensures that this canvas is current
     _set_current();
@@ -4829,8 +4841,7 @@ void GLCanvas3D::_update_camera_zoom(double zoom)
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
 {
-    if (_is_shown_on_screen())
-    {
+    if (_is_shown_on_screen()) {
         const Size& cnv_size = get_canvas_size();
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
 
