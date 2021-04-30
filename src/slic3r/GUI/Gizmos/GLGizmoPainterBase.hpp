@@ -10,7 +10,6 @@
 
 #include <cereal/types/vector.hpp>
 
-class GLGizmoMmuSegmentation;
 
 
 namespace Slic3r {
@@ -22,6 +21,7 @@ namespace GUI {
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
 struct Camera;
+class GLGizmoMmuSegmentation;
 
 enum class PainterGizmoType {
     FDM_SUPPORTS,
@@ -148,7 +148,7 @@ protected:
     void on_save(cereal::BinaryOutputArchive& ar) const override {}
     CommonGizmosDataID on_get_requirements() const override;
 
-    friend class GLGizmoMmuSegmentation;
+    friend class ::Slic3r::GUI::GLGizmoMmuSegmentation;
 };
 
 
