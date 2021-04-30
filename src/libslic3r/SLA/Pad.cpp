@@ -179,10 +179,10 @@ PadSkeleton divide_blueprint(const ExPolygons &bp)
     ret.outer.reserve(size_t(ptree.Total()));
 
     for (ClipperLib::PolyTree::PolyNode *node : ptree.Childs) {
-        ExPolygon poly(ClipperPath_to_Slic3rPolygon(node->Contour));
+        ExPolygon poly;
+        poly.contour.points = std::move(node->Contour);
         for (ClipperLib::PolyTree::PolyNode *child : node->Childs) {
-            poly.holes.emplace_back(
-                ClipperPath_to_Slic3rPolygon(child->Contour));
+            poly.holes.emplace_back(std::move(child->Contour));
 
             traverse_pt(child->Childs, &ret.inner);
         }
@@ -342,18 +342,18 @@ public:
 template<class...Args>
 ExPolygon offset_contour_only(const ExPolygon &poly, coord_t delta, Args...args)
 {
-    ExPolygons tmp = offset_ex(poly.contour, float(delta), args...);
+    Polygons tmp = offset(poly.contour, float(delta), args...);
 
     if (tmp.empty()) return {};
 
     Polygons holes = poly.holes;
     for (auto &h : holes) h.reverse();
 
-    tmp = diff_ex(to_polygons(tmp), holes);
+    ExPolygons tmp2 = diff_ex(tmp, holes);
 
-    if (tmp.empty()) return {};
+    if (tmp2.empty()) return {};
 
-    return tmp.front();
+    return std::move(tmp2.front());
 }
 
 bool add_cavity(Contour3D &pad, ExPolygon &top_poly, const PadConfig3D &cfg,

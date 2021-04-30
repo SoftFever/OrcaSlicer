@@ -42,9 +42,10 @@ Point ConcaveHull::centroid(const Points &pp)
 
 // As it shows, the current offset_ex in ClipperUtils hangs if used in jtRound
 // mode
-static ClipperLib::Paths fast_offset(const ClipperLib::Paths &paths,
-                                     coord_t                  delta,
-                                     ClipperLib::JoinType     jointype)
+template<typename PolygonsProvider>
+static ClipperLib::Paths fast_offset(PolygonsProvider             &&paths,
+                                     coord_t                        delta,
+                                     ClipperLib::JoinType           jointype)
 {
     using ClipperLib::ClipperOffset;
     using ClipperLib::etClosedPolygon;
@@ -61,7 +62,7 @@ static ClipperLib::Paths fast_offset(const ClipperLib::Paths &paths,
             return {};
         }
 
-    offs.AddPaths(paths, jointype, etClosedPolygon);
+    offs.AddPaths(std::forward<PolygonsProvider>(paths), jointype, etClosedPolygon);
 
     Paths result;
     offs.Execute(result, static_cast<double>(delta));
@@ -157,11 +158,9 @@ ExPolygons ConcaveHull::to_expolygons() const
 
 ExPolygons offset_waffle_style_ex(const ConcaveHull &hull, coord_t delta)
 {
-    ClipperLib::Paths paths = Slic3rMultiPoints_to_ClipperPaths(hull.polygons());
-    paths = fast_offset(paths, 2 * delta, ClipperLib::jtRound);
-    paths = fast_offset(paths, -delta, ClipperLib::jtRound);
-    ExPolygons ret = ClipperPaths_to_Slic3rExPolygons(paths);
-    for (ExPolygon &p : ret) p.holes = {};
+    ExPolygons ret = ClipperPaths_to_Slic3rExPolygons(
+        fast_offset(fast_offset(ClipperUtils::PolygonsProvider(hull.polygons()), 2 * delta, ClipperLib::jtRound), -delta, ClipperLib::jtRound));
+    for (ExPolygon &p : ret) p.holes.clear();
     return ret;
 }
 

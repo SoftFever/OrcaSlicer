@@ -222,6 +222,24 @@ inline Polylines to_polylines(Polygons &&polys)
     return polylines;
 }
 
+inline Polygons to_polygons(const std::vector<Points> &paths)
+{
+    Polygons out;
+    out.reserve(paths.size());
+    for (const Points &path : paths)
+        out.emplace_back(path);
+    return out;
+}
+
+inline Polygons to_polygons(std::vector<Points> &&paths)
+{
+    Polygons out;
+    out.reserve(paths.size());
+    for (const Points &path : paths)
+        out.emplace_back(std::move(path));
+    return out;
+}
+
 } // Slic3r
 
 // start Boost

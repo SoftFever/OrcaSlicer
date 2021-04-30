@@ -83,8 +83,8 @@ inline bool operator!=(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.
 inline size_t number_polygons(const ExPolygons &expolys)
 {
     size_t n_polygons = 0;
-    for (ExPolygons::const_iterator it = expolys.begin(); it != expolys.end(); ++ it)
-        n_polygons += it->holes.size() + 1;
+    for (const ExPolygon &ex : expolys)
+        n_polygons += ex.holes.size() + 1;
     return n_polygons;
 }
 
