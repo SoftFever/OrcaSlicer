@@ -61,6 +61,8 @@
 #define ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG (1 && ENABLE_2_4_0_ALPHA0)
 // Enable visualization of start gcode as regular toolpaths
 #define ENABLE_START_GCODE_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
+// Enable visualization of seams in preview
+#define ENABLE_SEAMS_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
 
 
 #endif // _prusaslicer_technologies_h_

@@ -250,6 +250,9 @@ bool Preview::init(wxWindow* parent, Model* model)
         get_option_type_string(OptionType::Wipe) + "|0|" +
         get_option_type_string(OptionType::Retractions) + "|0|" +
         get_option_type_string(OptionType::Unretractions) + "|0|" +
+#if ENABLE_SEAMS_VISUALIZATION
+        get_option_type_string(OptionType::Seams) + "|0|" +
+#endif // ENABLE_SEAMS_VISUALIZATION
         get_option_type_string(OptionType::ToolChanges) + "|0|" +
         get_option_type_string(OptionType::ColorChanges) + "|0|" +
         get_option_type_string(OptionType::PausePrints) + "|0|" +
@@ -1008,6 +1011,9 @@ wxString Preview::get_option_type_string(OptionType type) const
     case OptionType::Wipe:          { return _L("Wipe"); }
     case OptionType::Retractions:   { return _L("Retractions"); }
     case OptionType::Unretractions: { return _L("Deretractions"); }
+#if ENABLE_SEAMS_VISUALIZATION
+    case OptionType::Seams:         { return _L("Seams"); }
+#endif // ENABLE_SEAMS_VISUALIZATION
     case OptionType::ToolChanges:   { return _L("Tool changes"); }
     case OptionType::ColorChanges:  { return _L("Color changes"); }
     case OptionType::PausePrints:   { return _L("Print pauses"); }
