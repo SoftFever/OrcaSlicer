@@ -1624,13 +1624,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             const std::array<IBufferType, 8> first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { 0, 1, 2, 3, 4, 5, 6, 7 });
             const std::array<IBufferType, 8> non_first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { -4, 0, -2, 1, 2, 3, 4, 5 });
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
-
+            bool is_first_segment = (last_path.vertices_count() == 1);
+            if (is_first_segment || vbuffer_size == 0) {
+#else
             if (last_path.vertices_count() == 1 || vbuffer_size == 0) {
+#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
                 // 1st segment or restart into a new vertex buffer
                 // ===============================================
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
-                if (last_path.vertices_count() == 1)
+                if (is_first_segment)
                     // starting cap triangles
                     append_starting_cap_triangles(indices, first_seg_v_offsets);
 #endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
@@ -1708,7 +1710,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             if (next != nullptr && (curr.type != next->type || !last_path.matches(*next)))
                 // ending cap triangles
-                append_ending_cap_triangles(indices, non_first_seg_v_offsets);
+                append_ending_cap_triangles(indices, is_first_segment ? first_seg_v_offsets : non_first_seg_v_offsets);
 #endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
             last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
@@ -1743,7 +1745,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             // for the gcode viewer we need to take in account all moves to correctly size the printbed
             m_paths_bounding_box.merge(move.position.cast<double>());
         else {
+#if ENABLE_START_GCODE_VISUALIZATION
+            if (move.type == EMoveType::Extrude && move.extrusion_role != erCustom && move.width != 0.0f && move.height != 0.0f)
+#else
             if (move.type == EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
+#endif // ENABLE_START_GCODE_VISUALIZATION
                 m_paths_bounding_box.merge(move.position.cast<double>());
         }
     }

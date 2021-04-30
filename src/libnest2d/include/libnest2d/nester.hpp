@@ -96,7 +96,7 @@ public:
      * @return The orientation type identifier for the _Item type.
      */
     static BP2D_CONSTEXPR Orientation orientation() {
-        return OrientationType<RawShape>::Value;
+        return OrientationType<TContour<RawShape>>::Value;
     }
 
     /**
@@ -446,44 +446,32 @@ private:
     }
 };
 
+template<class Sh> Sh create_rect(TCoord<Sh> width, TCoord<Sh> height)
+{
+    auto sh = sl::create<Sh>(
+        {{0, 0}, {0, height}, {width, height}, {width, 0}});
+
+    if constexpr (ClosureTypeV<Sh> == Closure::CLOSED)
+        sl::addVertex(sh, {0, 0});
+
+    if constexpr (OrientationTypeV<Sh> == Orientation::COUNTER_CLOCKWISE)
+        std::reverse(sl::begin(sh), sl::end(sh));
+
+    return sh;
+}
+
 /**
  * \brief Subclass of _Item for regular rectangle items.
  */
-template<class RawShape>
-class _Rectangle: public _Item<RawShape> {
-    using _Item<RawShape>::vertex;
+template<class Sh>
+class _Rectangle: public _Item<Sh> {
+    using _Item<Sh>::vertex;
     using TO = Orientation;
 public:
 
-    using Unit = TCoord<TPoint<RawShape>>;
+    using Unit = TCoord<Sh>;
 
-    template<TO o = OrientationType<RawShape>::Value>
-    inline _Rectangle(Unit width, Unit height,
-                      // disable this ctor if o != CLOCKWISE
-                      enable_if_t< o == TO::CLOCKWISE, int> = 0 ):
-        _Item<RawShape>( sl::create<RawShape>( {
-                                                        {0, 0},
-                                                        {0, height},
-                                                        {width, height},
-                                                        {width, 0},
-                                                        {0, 0}
-                                                      } ))
-    {
-    }
-
-    template<TO o = OrientationType<RawShape>::Value>
-    inline _Rectangle(Unit width, Unit height,
-                      // disable this ctor if o != COUNTER_CLOCKWISE
-                      enable_if_t< o == TO::COUNTER_CLOCKWISE, int> = 0 ):
-        _Item<RawShape>( sl::create<RawShape>( {
-                                                        {0, 0},
-                                                        {width, 0},
-                                                        {width, height},
-                                                        {0, height},
-                                                        {0, 0}
-                                                      } ))
-    {
-    }
+    inline _Rectangle(Unit w, Unit h): _Item<Sh>{create_rect<Sh>(w, h)} {}
 
     inline Unit width() const BP2D_NOEXCEPT {
         return getX(vertex(2));

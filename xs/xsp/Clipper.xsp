@@ -2,7 +2,6 @@
 
 %{
 #include <xsinit.h>
-#include "clipper.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 %}
 
@@ -21,10 +20,10 @@ _constant()
   OUTPUT: RETVAL
 
 Polygons
-offset(polygons, delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset(polygons, delta, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta
-    ClipperLib::JoinType    joinType
+    Slic3r::ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
         RETVAL = offset(polygons, delta, joinType, miterLimit);
@@ -32,10 +31,10 @@ offset(polygons, delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
         RETVAL
 
 ExPolygons
-offset_ex(polygons, delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset_ex(polygons, delta, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta
-    ClipperLib::JoinType    joinType
+    Slic3r::ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
         RETVAL = offset_ex(polygons, delta, joinType, miterLimit);
@@ -43,11 +42,11 @@ offset_ex(polygons, delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
         RETVAL
 
 Polygons
-offset2(polygons, delta1, delta2, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset2(polygons, delta1, delta2, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta1
     const float             delta2
-    ClipperLib::JoinType    joinType
+    Slic3r::ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
         RETVAL = offset2(polygons, delta1, delta2, joinType, miterLimit);
@@ -55,11 +54,11 @@ offset2(polygons, delta1, delta2, joinType = ClipperLib::jtMiter, miterLimit = 3
         RETVAL
 
 ExPolygons
-offset2_ex(polygons, delta1, delta2, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset2_ex(polygons, delta1, delta2, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta1
     const float             delta2
-    ClipperLib::JoinType    joinType
+    Slic3r::ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
         RETVAL = offset2_ex(polygons, delta1, delta2, joinType, miterLimit);

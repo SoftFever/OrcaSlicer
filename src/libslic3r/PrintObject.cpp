@@ -2207,6 +2207,7 @@ std::vector<ExPolygons> PrintObject::slice_volumes(
             TriangleMesh vol_mesh(model_volume.mesh());
             vol_mesh.transform(model_volume.get_matrix(), true);
             mesh.merge(vol_mesh);
+            mesh.repair(false);
         }
         if (mesh.stl.stats.number_of_facets > 0) {
             mesh.transform(m_trafo, true);

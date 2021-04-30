@@ -18,7 +18,7 @@ use Slic3r::Test;
 if (0) {
     my $config = Slic3r::Config::new_from_defaults;
     $config->set('layer_height', 0.2);
-    $config->set('first_layer_height', '100%');
+    $config->set('first_layer_height', $config->layer_height);
     $config->set('extrusion_width', 0.5);
     $config->set('first_layer_extrusion_width', '200%'); # check this one too
     $config->set('skirts', 0);

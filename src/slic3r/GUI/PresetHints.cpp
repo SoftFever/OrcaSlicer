@@ -86,7 +86,8 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
 
     // Print config values
     double layer_height                     = print_config.opt_float("layer_height");
-    double first_layer_height               = print_config.get_abs_value("first_layer_height", layer_height);
+    assert(! print_config.option<ConfigOptionFloatOrPercent>("first_layer_height")->percent);
+    double first_layer_height               = print_config.opt_float("first_layer_height");
     double support_material_speed           = print_config.opt_float("support_material_speed");
     double support_material_interface_speed = print_config.get_abs_value("support_material_interface_speed", support_material_speed);
     double bridge_speed                     = print_config.opt_float("bridge_speed");

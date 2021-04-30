@@ -296,6 +296,13 @@ void Preset::normalize(DynamicPrintConfig &config)
         if (auto *gap_fill_enabled = config.option<ConfigOptionBool>("gap_fill_enabled", false); gap_fill_enabled)
             gap_fill_enabled->value = false;
     }
+    if (auto *first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height", false); first_layer_height && first_layer_height->percent)
+        if (const auto *layer_height = config.option<ConfigOptionFloat>("layer_height", false); layer_height) {
+            // Legacy conversion - first_layer_height moved from PrintObject setting to a Print setting, thus we are getting rid of the dependency
+            // of first_layer_height on PrintObject specific layer_height. Covert the first layer heigth to an absolute value.
+            first_layer_height->value   = first_layer_height->get_abs_value(layer_height->value);
+            first_layer_height->percent = false;
+        }
 }
 
 std::string Preset::remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config)

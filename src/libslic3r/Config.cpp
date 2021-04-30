@@ -471,8 +471,8 @@ bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src,
 {
     t_config_option_key opt_key = opt_key_src;
     std::string         value   = value_src;
-    // Both opt_key and value may be modified by _handle_legacy().
-    // If the opt_key is no more valid in this version of Slic3r, opt_key is cleared by _handle_legacy().
+    // Both opt_key and value may be modified by handle_legacy().
+    // If the opt_key is no more valid in this version of Slic3r, opt_key is cleared by handle_legacy().
     this->handle_legacy(opt_key, value);
     if (opt_key.empty())
         // Ignore the option.

@@ -29,7 +29,7 @@ SCENARIO("SupportMaterial: support_layers_z and contact_distance", "[SupportMate
 	{
         ConstSupportLayerPtrsAdaptor support_layers = print.objects().front()->support_layers();
 
-		first_support_layer_height_ok = support_layers.front()->print_z == print.default_object_config().first_layer_height.value;
+		first_support_layer_height_ok = support_layers.front()->print_z == print.config().first_layer_height.value;
 
 		layer_height_minimum_ok = true;
 		layer_height_maximum_ok = true;

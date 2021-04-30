@@ -10,10 +10,6 @@
 
 namespace Slic3r {
 
-// Borrowed from C++20
-template<class T>
-using remove_cvref_t = std::remove_reference_t<std::remove_cv_t<T>>;
-
 // Override for valid execution policies
 template<class EP> struct IsExecutionPolicy_ : public std::false_type {};
 

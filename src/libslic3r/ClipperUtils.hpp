@@ -8,9 +8,9 @@
 #include "Surface.hpp"
 
 // import these wherever we're included
-using ClipperLib::jtMiter;
-using ClipperLib::jtRound;
-using ClipperLib::jtSquare;
+using Slic3r::ClipperLib::jtMiter;
+using Slic3r::ClipperLib::jtRound;
+using Slic3r::ClipperLib::jtSquare;
 
 #define CLIPPERUTILS_UNSAFE_OFFSET
 

@@ -365,44 +365,50 @@ protected:
         // the additional vertices for maintaning min object distance
         sl::reserve(rsh, finish-start+4);
 
-        /*auto addOthers = [&rsh, finish, start, &item](){
+        auto addOthers_ = [&rsh, finish, start, &item](){
             for(size_t i = start+1; i < finish; i++)
                 sl::addVertex(rsh, item.vertex(i));
-        };*/
+        };
 
-        auto reverseAddOthers = [&rsh, finish, start, &item](){
+        auto reverseAddOthers_ = [&rsh, finish, start, &item](){
             for(auto i = finish-1; i > start; i--)
-                sl::addVertex(rsh, item.vertex(
-                                         static_cast<unsigned long>(i)));
+                sl::addVertex(rsh, item.vertex(static_cast<unsigned long>(i)));
+        };
+
+        auto addOthers = [&addOthers_, &reverseAddOthers_]() {
+            if constexpr (!is_clockwise<RawShape>())
+                addOthers_();
+            else
+                reverseAddOthers_();
         };
 
         // Final polygon construction...
-
-        static_assert(OrientationType<RawShape>::Value ==
-                      Orientation::CLOCKWISE,
-                      "Counter clockwise toWallPoly() Unimplemented!");
 
         // Clockwise polygon construction
 
         sl::addVertex(rsh, topleft_vertex);
 
-        if(dir == Dir::LEFT) reverseAddOthers();
+        if(dir == Dir::LEFT) addOthers();
         else {
-            sl::addVertex(rsh, getX(topleft_vertex), 0);
-            sl::addVertex(rsh, getX(bottomleft_vertex), 0);
+            sl::addVertex(rsh, {getX(topleft_vertex), 0});
+            sl::addVertex(rsh, {getX(bottomleft_vertex), 0});
         }
 
         sl::addVertex(rsh, bottomleft_vertex);
 
         if(dir == Dir::LEFT) {
-            sl::addVertex(rsh, 0, getY(bottomleft_vertex));
-            sl::addVertex(rsh, 0, getY(topleft_vertex));
+            sl::addVertex(rsh, {0, getY(bottomleft_vertex)});
+            sl::addVertex(rsh, {0, getY(topleft_vertex)});
         }
-        else reverseAddOthers();
+        else addOthers();
 
 
         // Close the polygon
-        sl::addVertex(rsh, topleft_vertex);
+        if constexpr (ClosureTypeV<RawShape> == Closure::CLOSED)
+            sl::addVertex(rsh, topleft_vertex);
+
+        if constexpr (!is_clockwise<RawShape>())
+            std::reverse(rsh.begin(), rsh.end());
 
         return ret;
     }

@@ -857,6 +857,12 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     m_time_processor.export_remaining_time_enabled = config.remaining_times.value;
     m_use_volumetric_e = config.use_volumetric_e;
+
+#if ENABLE_START_GCODE_VISUALIZATION
+    const ConfigOptionFloatOrPercent* first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height");
+    if (first_layer_height != nullptr)
+        m_first_layer_height = std::abs(first_layer_height->value);
+#endif // ENABLE_START_GCODE_VISUALIZATION
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -1035,6 +1041,12 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionBool* use_volumetric_e = config.option<ConfigOptionBool>("use_volumetric_e");
     if (use_volumetric_e != nullptr)
         m_use_volumetric_e = use_volumetric_e->value;
+
+#if ENABLE_START_GCODE_VISUALIZATION
+    const ConfigOptionFloatOrPercent* first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height");
+    if (first_layer_height != nullptr)
+        m_first_layer_height = std::abs(first_layer_height->value);
+#endif // ENABLE_START_GCODE_VISUALIZATION
 }
 
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
@@ -1085,6 +1097,10 @@ void GCodeProcessor::reset()
 
     m_filament_diameters = std::vector<float>(Min_Extruder_Count, 1.75f);
     m_extruded_last_z = 0.0f;
+#if ENABLE_START_GCODE_VISUALIZATION
+    m_first_layer_height = 0.0f;
+    m_processing_start_custom_gcode = false;
+#endif // ENABLE_START_GCODE_VISUALIZATION
     m_g1_line_id = 0;
     m_layer_id = 0;
     m_cp_color.reset();
@@ -1450,6 +1466,9 @@ void GCodeProcessor::process_tags(const std::string_view comment)
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
 #endif // ENABLE_SEAMS_VISUALIZATION
+#if ENABLE_START_GCODE_VISUALIZATION
+        m_processing_start_custom_gcode = (m_extrusion_role == erCustom && m_g1_line_id == 0);
+#endif // ENABLE_START_GCODE_VISUALIZATION
         return;
     }
 
@@ -2194,7 +2213,11 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     }
 
+#if ENABLE_START_GCODE_VISUALIZATION
+    if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f))
+#else
     if (type == EMoveType::Extrude && (m_extrusion_role == erCustom || m_width == 0.0f || m_height == 0.0f))
+#endif // ENABLE_START_GCODE_VISUALIZATION
         type = EMoveType::Travel;
 
     // time estimate section
@@ -2310,13 +2333,13 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
                 // Calculate the jerk depending on whether the axis is coasting in the same direction or reversing a direction.
                 float jerk =
                     (v_exit > v_entry) ?
-                    (((v_entry > 0.0f) || (v_exit < 0.0f)) ?
+                    ((v_entry > 0.0f || v_exit < 0.0f) ?
                         // coasting
                         (v_exit - v_entry) :
                         // axis reversal
                         std::max(v_exit, -v_entry)) :
                     // v_exit <= v_entry
-                    (((v_entry < 0.0f) || (v_exit > 0.0f)) ?
+                    ((v_entry < 0.0f || v_exit > 0.0f) ?
                         // coasting
                         (v_entry - v_exit) :
                         // axis reversal
@@ -2337,7 +2360,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             float vmax_junction_threshold = vmax_junction * 0.99f;
 
             // Not coasting. The machine will stop and start the movements anyway, better to start the segment from start.
-            if ((prev.safe_feedrate > vmax_junction_threshold) && (curr.safe_feedrate > vmax_junction_threshold))
+            if (prev.safe_feedrate > vmax_junction_threshold && curr.safe_feedrate > vmax_junction_threshold)
                 vmax_junction = curr.safe_feedrate;
         }
 
@@ -2857,7 +2880,11 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
         m_extrusion_role,
         m_extruder_id,
         m_cp_color.current,
+#if ENABLE_START_GCODE_VISUALIZATION
+        Vec3f(m_end_position[X], m_end_position[Y], m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
+#else
         Vec3f(m_end_position[X], m_end_position[Y], m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
+#endif // ENABLE_START_GCODE_VISUALIZATION
         m_end_position[E] - m_start_position[E],
         m_feedrate,
         m_width,
