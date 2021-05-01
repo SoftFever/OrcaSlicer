@@ -4061,7 +4061,9 @@ void GCodeViewer::render_legend() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
 #if ENABLE_SCROLLABLE_LEGEND
-    float child_height = 0.2222f * static_cast<float>(cnv_size.get_height());
+    float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
+    float child_height = 0.3333f * max_height;
+    ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
 #else
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
