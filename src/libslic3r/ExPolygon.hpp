@@ -360,6 +360,9 @@ extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons);
 extern bool        remove_sticks(ExPolygon &poly);
 extern void 	   keep_largest_contour_only(ExPolygons &polygons);
 
+// Removes all expolygons smaller than min_area and also removes all holes smaller than min_area
+extern bool        remove_small_and_small_holes(ExPolygons &expolygons, double min_area);
+
 inline double area(const ExPolygons &polys)
 {
     double s = 0.;

@@ -372,6 +372,27 @@ bool remove_sticks(ExPolygon &poly)
     return remove_sticks(poly.contour) || remove_sticks(poly.holes);
 }
 
+bool remove_small_and_small_holes(ExPolygons &expolygons, double min_area)
+{
+    bool   modified = false;
+    size_t free_idx = 0;
+    for (size_t expoly_idx = 0; expoly_idx < expolygons.size(); ++expoly_idx) {
+        if (std::abs(expolygons[expoly_idx].area()) >= min_area) {
+            // Expolygon is big enough, so also check all its holes
+            modified |= remove_small(expolygons[expoly_idx].holes, min_area);
+            if (free_idx < expoly_idx) {
+                std::swap(expolygons[expoly_idx].contour, expolygons[free_idx].contour);
+                std::swap(expolygons[expoly_idx].holes, expolygons[free_idx].holes);
+            }
+            ++free_idx;
+        } else
+            modified = true;
+    }
+    if (free_idx < expolygons.size())
+        expolygons.erase(expolygons.begin() + free_idx, expolygons.end());
+    return modified;
+}
+
 void keep_largest_contour_only(ExPolygons &polygons)
 {
 	if (polygons.size() > 1) {

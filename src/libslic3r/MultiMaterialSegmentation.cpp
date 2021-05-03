@@ -1357,13 +1357,27 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
     std::vector<std::vector<PaintedLine>>                  painted_lines(print_object.layers().size());
     std::vector<EdgeGrid::Grid>                            edge_grids(print_object.layers().size());
     const ConstLayerPtrsAdaptor                            layers = print_object.layers();
+    std::vector<Polygons>                                  input_polygons(layers.size());
+
+    // Merge all regions and remove small holes
+    for(size_t layer_idx = 0; layer_idx < layers.size(); layer_idx += 1) {
+        ExPolygons ex_polygons;
+        for (LayerRegion *region : layers[layer_idx]->regions())
+            for (const Surface &surface : region->slices.surfaces)
+                Slic3r::append(ex_polygons, offset_ex(surface.expolygon, SCALED_EPSILON));
+        // All expolygons are expanded by SCALED_EPSILON, merged, and then shrunk again by SCALED_EPSILON
+        // to ensure that very close polygons will be merged.
+        ex_polygons = union_ex(ex_polygons);
+        // Remove all expolygons and holes with an area less than 0.01mm^2
+        remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(0.1f)));
+        input_polygons[layer_idx] = to_polygons(union_ex(offset_ex(ex_polygons, -SCALED_EPSILON)));
+    }
 
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
-        const Layer *layer = layers[layer_idx];
-        BoundingBox  bbox(get_extents(layer->lslices));
+        BoundingBox  bbox(get_extents(input_polygons[layer_idx]));
         bbox.offset(SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
-        edge_grids[layer_idx].create(layer->lslices, coord_t(scale_(10.)));
+        edge_grids[layer_idx].create(input_polygons[layer_idx], coord_t(scale_(10.)));
     }
 
     for (const ModelVolume *mv : print_object.model_object()->volumes) {
@@ -1453,11 +1467,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             std::vector<PaintedLine> &painted_lines_single = painted_lines[layer_idx];
 
             if (!painted_lines_single.empty()) {
-                Polygons original_polygons;
-                for (const Slic3r::EdgeGrid::Contour &contour : edge_grids[layer_idx].contours())
-                    original_polygons.emplace_back(Points(contour.begin(), contour.end()));
-
-                std::vector<std::vector<ColoredLine>> color_poly = colorize_polygons(original_polygons, painted_lines_single);
+                std::vector<std::vector<ColoredLine>> color_poly = colorize_polygons(input_polygons[layer_idx], painted_lines_single);
                 MMU_Graph                             graph      = build_graph(layer_idx, color_poly);
                 remove_multiple_edges_in_vertices(graph, color_poly);
                 graph.remove_nodes_with_one_arc();

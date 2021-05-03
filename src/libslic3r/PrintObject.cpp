@@ -1906,15 +1906,6 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
 
     // --------------------MMU_SEGMENTATION_BEGIN----------------------
 
-    // Temporary fix for not assigned lslices
-    for(size_t layer_idx = 0; layer_idx < m_layers.size(); layer_idx += 1) {
-        ExPolygons ex_polygons;
-        for (LayerRegion *region : this->m_layers[layer_idx]->regions())
-            for (const Surface &surface : region->slices.surfaces)
-                ex_polygons.emplace_back(surface.expolygon);
-        this->m_layers[layer_idx]->lslices = union_ex(ex_polygons);
-    }
-
     size_t region_count_before_change = this->num_regions();
     std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions = multi_material_segmentation_by_painting(*this);
     // Skip region with default extruder
