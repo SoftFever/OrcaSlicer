@@ -3183,6 +3183,10 @@ void Plater::priv::reload_from_disk()
             ModelObject* old_model_object = model.objects[sel_v.object_idx];
             ModelVolume* old_volume = old_model_object->volumes[sel_v.volume_idx];
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+            bool sinking = old_model_object->bounding_box().min.z() < 0.0;
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
             bool has_source = !old_volume->source.input_file.empty() && boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
             bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
             if (has_source || has_name) {
@@ -3237,7 +3241,10 @@ void Plater::priv::reload_from_disk()
                     new_volume->seam_facets.assign(old_volume->seam_facets);
                     std::swap(old_model_object->volumes[sel_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
-                    old_model_object->ensure_on_bed();
+#if ENABLE_ALLOW_NEGATIVE_Z
+                    if (!sinking)
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+                        old_model_object->ensure_on_bed();
 
                     sla::reproject_points_and_holes(old_model_object);
                 }
