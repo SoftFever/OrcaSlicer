@@ -1387,7 +1387,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             ExPolygons ex_polygons;
             for (LayerRegion *region : layers[layer_idx]->regions())
                 for (const Surface &surface : region->slices.surfaces)
-                    Slic3r::append(ex_polygons, offset_ex(surface.expolygon, SCALED_EPSILON));
+                    Slic3r::append(ex_polygons, offset_ex(surface.expolygon, float(SCALED_EPSILON)));
             // All expolygons are expanded by SCALED_EPSILON, merged, and then shrunk again by SCALED_EPSILON
             // to ensure that very close polygons will be merged.
             ex_polygons = union_ex(ex_polygons);
@@ -1400,7 +1400,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             // Such close points sometimes caused that the Voronoi diagram has self-intersecting edges around these vertices.
             // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
             // Calling expolygons_simplify fixed these issues.
-            input_polygons[layer_idx] = simplify_polygons(to_polygons(expolygons_simplify(offset_ex(ex_polygons, -SCALED_EPSILON), SCALED_EPSILON)));
+            input_polygons[layer_idx] = simplify_polygons(to_polygons(expolygons_simplify(offset_ex(ex_polygons, float(-SCALED_EPSILON)), SCALED_EPSILON)));
         }
     }); // end of parallel_for
 
