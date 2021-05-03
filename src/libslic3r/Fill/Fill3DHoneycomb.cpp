@@ -162,7 +162,7 @@ void Fill3DHoneycomb::_fill_surface_single(
 		pl.translate(bb.min);
 
     // clip pattern to boundaries, chain the clipped polylines
-    polylines = intersection_pl(polylines, to_polygons(expolygon));
+    polylines = intersection_pl(polylines, expolygon);
 
     // connect lines if needed
     if (params.dont_connect() || polylines.size() <= 1)

@@ -186,7 +186,7 @@ void PrintObject::make_perimeters()
                     m_print->throw_if_canceled();
                     LayerRegion &layerm                     = *m_layers[layer_idx]->m_regions[region_id];
                     const LayerRegion &upper_layerm         = *m_layers[layer_idx+1]->m_regions[region_id];
-                    const Polygons upper_layerm_polygons    = upper_layerm.slices;
+                    const Polygons upper_layerm_polygons    = to_polygons(upper_layerm.slices.surfaces);
                     // Filter upper layer polygons in intersection_ppl by their bounding boxes?
                     // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
                     const double total_loop_length      = total_length(upper_layerm_polygons);
@@ -809,19 +809,14 @@ void PrintObject::detect_surfaces_type()
                     // collapse very narrow parts (using the safety offset in the diff is not enough)
                     float        offset = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
 
-                    Polygons     layerm_slices_surfaces = to_polygons(layerm->slices.surfaces);
-
                     // find top surfaces (difference between current surfaces
                     // of current layer and upper one)
                     Surfaces top;
                     if (upper_layer) {
-                        Polygons upper_slices = interface_shells ? 
-                            to_polygons(upper_layer->m_regions[idx_region]->slices.surfaces) : 
-                            to_polygons(upper_layer->lslices);
-                        surfaces_append(top,
-                            //FIXME implement offset2_ex working over ExPolygons, that should be a bit more efficient than calling offset_ex twice.
-                            offset_ex(offset_ex(diff_ex(layerm_slices_surfaces, upper_slices, true), -offset), offset),
-                            stTop);
+                        ExPolygons upper_slices = interface_shells ? 
+                            diff_ex(layerm->slices.surfaces, upper_layer->m_regions[idx_region]->slices.surfaces, true) :
+                            diff_ex(layerm->slices.surfaces, upper_layer->lslices, true);
+                        surfaces_append(top, offset2_ex(upper_slices, -offset, offset), stTop);
                     } else {
                         // if no upper layer, all surfaces of this one are solid
                         // we clone surfaces because we're going to clear the slices collection
@@ -839,14 +834,14 @@ void PrintObject::detect_surfaces_type()
                             to_polygons(lower_layer->get_region(idx_region)->slices.surfaces) : 
                             to_polygons(lower_layer->slices);
                         surfaces_append(bottom,
-                            offset2_ex(diff(layerm_slices_surfaces, lower_slices, true), -offset, offset),
+                            offset2_ex(diff(layerm->slices.surfaces, lower_slices, true), -offset, offset),
                             surface_type_bottom_other);
 #else
                         // Any surface lying on the void is a true bottom bridge (an overhang)
                         surfaces_append(
                             bottom,
                             offset2_ex(
-                                diff(layerm_slices_surfaces, to_polygons(lower_layer->lslices), true), 
+                                diff_ex(layerm->slices.surfaces, lower_layer->lslices, true), 
                                 -offset, offset),
                             surface_type_bottom_other);
                         // if user requested internal shells, we need to identify surfaces
@@ -857,10 +852,10 @@ void PrintObject::detect_surfaces_type()
                             surfaces_append(
                                 bottom,
                                 offset2_ex(
-                                    diff(
-                                        intersection(layerm_slices_surfaces, to_polygons(lower_layer->lslices)), // supported
-                                        to_polygons(lower_layer->m_regions[idx_region]->slices.surfaces), 
-                                        true), 
+                                    diff_ex(
+                                        intersection(layerm->slices.surfaces, lower_layer->lslices), // supported
+                                        lower_layer->m_regions[idx_region]->slices.surfaces,
+                                        true),
                                     -offset, offset),
                                 stBottom);
                         }
@@ -883,7 +878,7 @@ void PrintObject::detect_surfaces_type()
                         Polygons top_polygons = to_polygons(std::move(top));
                         top.clear();
                         surfaces_append(top,
-                            diff_ex(top_polygons, to_polygons(bottom), false),
+                            diff_ex(top_polygons, bottom, false),
                             stTop);
                     }
 
@@ -900,15 +895,18 @@ void PrintObject::detect_surfaces_type()
                     
                     // save surfaces to layer
                     Surfaces &surfaces_out = interface_shells ? surfaces_new[idx_layer] : layerm->slices.surfaces;
-                    surfaces_out.clear();
+                    Surfaces  surfaces_backup;
+                    if (! interface_shells) {
+                        surfaces_backup = std::move(surfaces_out);
+                        surfaces_out.clear();
+                    }
+                    const Surfaces &surfaces_prev = interface_shells ? layerm->slices.surfaces : surfaces_backup;
 
                     // find internal surfaces (difference between top/bottom surfaces and others)
                     {
                         Polygons topbottom = to_polygons(top);
                         polygons_append(topbottom, to_polygons(bottom));
-                        surfaces_append(surfaces_out,
-                            diff_ex(layerm_slices_surfaces, topbottom, false),
-                            stInternal);
+                        surfaces_append(surfaces_out, diff_ex(surfaces_prev, topbottom, false), stInternal);
                     }
 
                     surfaces_append(surfaces_out, std::move(top));
@@ -1012,7 +1010,7 @@ void PrintObject::process_external_surfaces()
 		                			// Shrink the holes, let the layer above expand slightly inside the unsupported areas.
 		                			polygons_append(voids, offset(surface.expolygon, unsupported_width));
 		                }
-		                surfaces_covered[layer_idx] = diff(to_polygons(this->m_layers[layer_idx]->lslices), voids);
+		                surfaces_covered[layer_idx] = diff(this->m_layers[layer_idx]->lslices, voids);
 	            	}
 	        }
 	    );
@@ -1107,11 +1105,11 @@ void PrintObject::discover_vertical_shells()
                         LayerRegion &layerm                       = *layer.m_regions[idx_region];
                         float        min_perimeter_infill_spacing = float(layerm.flow(frSolidInfill).scaled_spacing()) * 1.05f;
                         // Top surfaces.
-                        append(cache.top_surfaces, offset(to_expolygons(layerm.slices.filter_by_type(stTop)), min_perimeter_infill_spacing));
-                        append(cache.top_surfaces, offset(to_expolygons(layerm.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing));
+                        append(cache.top_surfaces, offset(layerm.slices.filter_by_type(stTop), min_perimeter_infill_spacing));
+                        append(cache.top_surfaces, offset(layerm.fill_surfaces.filter_by_type(stTop), min_perimeter_infill_spacing));
                         // Bottom surfaces.
-                        append(cache.bottom_surfaces, offset(to_expolygons(layerm.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing));
-                        append(cache.bottom_surfaces, offset(to_expolygons(layerm.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing));
+                        append(cache.bottom_surfaces, offset(layerm.slices.filter_by_types(surfaces_bottom, 2), min_perimeter_infill_spacing));
+                        append(cache.bottom_surfaces, offset(layerm.fill_surfaces.filter_by_types(surfaces_bottom, 2), min_perimeter_infill_spacing));
                         // Calculate the maximum perimeter offset as if the slice was extruded with a single extruder only.
                         // First find the maxium number of perimeters per region slice.
                         unsigned int perimeters = 0;
@@ -1181,11 +1179,11 @@ void PrintObject::discover_vertical_shells()
                         float        min_perimeter_infill_spacing = float(layerm.flow(frSolidInfill).scaled_spacing()) * 1.05f;
                         // Top surfaces.
                         auto &cache = cache_top_botom_regions[idx_layer];
-                        cache.top_surfaces = offset(to_expolygons(layerm.slices.filter_by_type(stTop)), min_perimeter_infill_spacing);
-                        append(cache.top_surfaces, offset(to_expolygons(layerm.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing));
+                        cache.top_surfaces = offset(layerm.slices.filter_by_type(stTop), min_perimeter_infill_spacing);
+                        append(cache.top_surfaces, offset(layerm.fill_surfaces.filter_by_type(stTop), min_perimeter_infill_spacing));
                         // Bottom surfaces.
-                        cache.bottom_surfaces = offset(to_expolygons(layerm.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
-                        append(cache.bottom_surfaces, offset(to_expolygons(layerm.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing));
+                        cache.bottom_surfaces = offset(layerm.slices.filter_by_types(surfaces_bottom, 2), min_perimeter_infill_spacing);
+                        append(cache.bottom_surfaces, offset(layerm.fill_surfaces.filter_by_types(surfaces_bottom, 2), min_perimeter_infill_spacing));
                         // Holes over all regions. Only collect them once, they are valid for all idx_region iterations.
                         if (cache.holes.empty()) {
                             for (size_t idx_region = 0; idx_region < layer.regions().size(); ++ idx_region)
@@ -1407,16 +1405,8 @@ void PrintObject::discover_vertical_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
                     // Trim the internal & internalvoid by the shell.
-                    Slic3r::ExPolygons new_internal = diff_ex(
-                        to_polygons(layerm->fill_surfaces.filter_by_type(stInternal)),
-                        shell,
-                        false
-                    );
-                    Slic3r::ExPolygons new_internal_void = diff_ex(
-                        to_polygons(layerm->fill_surfaces.filter_by_type(stInternalVoid)),
-                        shell,
-                        false
-                    );
+                    Slic3r::ExPolygons new_internal = diff_ex(layerm->fill_surfaces.filter_by_type(stInternal), shell);
+                    Slic3r::ExPolygons new_internal_void = diff_ex(layerm->fill_surfaces.filter_by_type(stInternalVoid), shell);
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                     {
@@ -1521,8 +1511,8 @@ void PrintObject::bridge_over_infill()
             #endif
             
             // compute the remaning internal solid surfaces as difference
-            ExPolygons not_to_bridge = diff_ex(internal_solid, to_polygons(to_bridge), true);
-            to_bridge = intersection_ex(to_polygons(to_bridge), internal_solid, true);
+            ExPolygons not_to_bridge = diff_ex(internal_solid, to_bridge, true);
+            to_bridge = intersection_ex(to_bridge, internal_solid, true);
             // build the new collection of fill_surfaces
             layerm->fill_surfaces.remove_type(stInternalSolid);
             for (ExPolygon &ex : to_bridge)
@@ -1875,7 +1865,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
 	                                slices = offset_ex(std::move(slices), delta);
 	                            if (! processed.empty())
 	                                // Trim by the slices of already processed regions.
-	                                slices = diff_ex(to_polygons(std::move(slices)), processed);
+	                                slices = diff_ex(slices, processed);
 	                            if (size_t(&sliced_volume - &sliced_volumes.front()) + 1 < sliced_volumes.size())
 	                                // Collect the already processed regions to trim the to be processed regions.
 	                                polygons_append(processed, slices);
@@ -1926,12 +1916,11 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
                             LayerRegion *other_layerm = layer->m_regions[other_region_id];
                             if (layerm == nullptr || other_layerm == nullptr || other_layerm->slices.empty() || expolygons_by_layer[layer_id].empty())
                                 continue;
-                            Polygons other_slices = to_polygons(other_layerm->slices);
-                            ExPolygons my_parts = intersection_ex(other_slices, to_polygons(expolygons_by_layer[layer_id]));
+                            ExPolygons my_parts = intersection_ex(other_layerm->slices.surfaces, expolygons_by_layer[layer_id]);
                             if (my_parts.empty())
                                 continue;
                             // Remove such parts from original region.
-                            other_layerm->slices.set(diff_ex(other_slices, to_polygons(my_parts)), stInternal);
+                            other_layerm->slices.set(diff_ex(other_layerm->slices.surfaces, my_parts), stInternal);
                             // Append new parts to our region.
                             layerm->slices.append(std::move(my_parts), stInternal);
                         }
@@ -2018,7 +2007,7 @@ end:
 	            					slices = offset_ex(std::move(slices), xy_compensation_scaled);
 	                            if (region_id > 0 && clip)
 	                                // Trim by the slices of already processed regions.
-	                                slices = diff_ex(to_polygons(std::move(slices)), processed);
+	                                slices = diff_ex(slices, processed);
 	                            if (clip && (region_id + 1 < layer->m_regions.size()))
 	                                // Collect the already processed regions to trim the to be processed regions.
 	                                polygons_append(processed, slices);
@@ -2649,10 +2638,7 @@ void PrintObject::discover_horizontal_shells()
                     neighbor_layerm->fill_surfaces.set(internal_solid, stInternalSolid);
                     // subtract intersections from layer surfaces to get resulting internal surfaces
                     Polygons polygons_internal = to_polygons(std::move(internal_solid));
-                    ExPolygons internal = diff_ex(
-                        to_polygons(backup.filter_by_type(stInternal)),
-                        polygons_internal,
-                        true);
+                    ExPolygons internal = diff_ex(backup.filter_by_type(stInternal), polygons_internal, true);
                     // assign resulting internal surfaces to layer
                     neighbor_layerm->fill_surfaces.append(internal, stInternal);
                     polygons_append(polygons_internal, to_polygons(std::move(internal)));
@@ -2663,7 +2649,7 @@ void PrintObject::discover_horizontal_shells()
                     backup.group(&top_bottom_groups);
                     for (SurfacesPtr &group : top_bottom_groups)
                         neighbor_layerm->fill_surfaces.append(
-                            diff_ex(to_polygons(group), polygons_internal),
+                            diff_ex(group, polygons_internal),
                             // Use an existing surface as a template, it carries the bridge angle etc.
                             *group.front());
                 }
@@ -2742,10 +2728,7 @@ void PrintObject::combine_infill()
             ExPolygons intersection = to_expolygons(layerms.front()->fill_surfaces.filter_by_type(stInternal));
             // Start looping from the second layer and intersect the current intersection with it.
             for (size_t i = 1; i < layerms.size(); ++ i)
-                intersection = intersection_ex(
-                    to_polygons(intersection),
-                    to_polygons(layerms[i]->fill_surfaces.filter_by_type(stInternal)),
-                    false);
+                intersection = intersection_ex(layerms[i]->fill_surfaces.filter_by_type(stInternal), intersection);
             double area_threshold = layerms.front()->infill_area_threshold();
             if (! intersection.empty() && area_threshold > 0.)
                 intersection.erase(std::remove_if(intersection.begin(), intersection.end(), 
@@ -2774,7 +2757,7 @@ void PrintObject::combine_infill()
             for (ExPolygon &expoly : intersection)
                 polygons_append(intersection_with_clearance, offset(expoly, clearance_offset));
             for (LayerRegion *layerm : layerms) {
-                Polygons internal = to_polygons(layerm->fill_surfaces.filter_by_type(stInternal));
+                Polygons internal = to_polygons(std::move(layerm->fill_surfaces.filter_by_type(stInternal)));
                 layerm->fill_surfaces.remove_type(stInternal);
                 layerm->fill_surfaces.append(diff_ex(internal, intersection_with_clearance, false), stInternal);
                 if (layerm == layerms.back()) {

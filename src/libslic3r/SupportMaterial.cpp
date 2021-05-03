@@ -815,7 +815,7 @@ public:
                     // Expanding, thus m_support_polygons are all inside islands.
                     union_ex(*m_support_polygons) :
                     // Shrinking, thus m_support_polygons may be trimmed a tiny bit by islands.
-                    intersection_ex(*m_support_polygons, to_polygons(islands)));
+                    intersection_ex(*m_support_polygons, islands));
 
             std::vector<std::pair<Point,bool>> samples_inside;
             for (ExPolygon &island : islands) {
@@ -932,7 +932,7 @@ public:
     }
 
     // Deserialization constructor
-	bool deserialize_(const std::string &path, int which = -1)
+    bool deserialize_(const std::string &path, int which = -1)
     {
         FILE *file = ::fopen(path.c_str(), "rb");
         if (file == nullptr)
@@ -961,7 +961,7 @@ public:
                 poly.points.emplace_back(Point(x * scale, y * scale));
             }
             if (which == -1 || which == i)
-				m_support_polygons_deserialized.emplace_back(std::move(poly));
+                m_support_polygons_deserialized.emplace_back(std::move(poly));
             printf("Polygon %d, area: %lf\n", i, area(poly.points));
         }
         ::fread(&n_polygons, 4, 1, file);
@@ -984,14 +984,14 @@ public:
         m_support_polygons_deserialized = simplify_polygons(m_support_polygons_deserialized, false);
         //m_support_polygons_deserialized = to_polygons(union_ex(m_support_polygons_deserialized, false));
 
-		// Create an EdgeGrid, initialize it with projection, initialize signed distance field.
-		coord_t grid_resolution = coord_t(scale_(m_support_spacing));
-		BoundingBox bbox = get_extents(*m_support_polygons);
+        // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
+        coord_t grid_resolution = coord_t(scale_(m_support_spacing));
+        BoundingBox bbox = get_extents(*m_support_polygons);
         bbox.offset(20);
-		bbox.align_to_grid(grid_resolution);
-		m_grid.set_bbox(bbox);
-		m_grid.create(*m_support_polygons, grid_resolution);
-		m_grid.calculate_sdf();
+        bbox.align_to_grid(grid_resolution);
+        m_grid.set_bbox(bbox);
+        m_grid.create(*m_support_polygons, grid_resolution);
+        m_grid.calculate_sdf();
         return true;
     }
 
@@ -1285,7 +1285,7 @@ namespace SupportMaterialInternal {
                     // Is the straight perimeter segment supported at both sides?
                     Point pts[2]       = { polyline.first_point(), polyline.last_point() };
                     bool  supported[2] = { false, false };
-					for (size_t i = 0; i < lower_layer.lslices.size() && ! (supported[0] && supported[1]); ++ i)
+                    for (size_t i = 0; i < lower_layer.lslices.size() && ! (supported[0] && supported[1]); ++ i)
                         for (int j = 0; j < 2; ++ j)
                             if (! supported[j] && lower_layer.lslices_bboxes[i].contains(pts[j]) && lower_layer.lslices[i].contains(pts[j]))
                                 supported[j] = true;
@@ -1437,7 +1437,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     0.5f * fw);
             // Overhang polygons for this layer and region.
             Polygons diff_polygons;
-            Polygons layerm_polygons = to_polygons(layerm->slices);
+            Polygons layerm_polygons = to_polygons(layerm->slices.surfaces);
             if (lower_layer_offset == 0.f) {
                 // Support everything.
                 diff_polygons = diff(layerm_polygons, lower_layer_polygons);
@@ -1469,13 +1469,13 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                         diff_polygons = diff(diff_polygons, annotations.buildplate_covered[layer_id]);
                     }
                     if (! diff_polygons.empty()) {
-    	                // Offset the support regions back to a full overhang, restrict them to the full overhang.
-    	                // This is done to increase size of the supporting columns below, as they are calculated by 
-    	                // propagating these contact surfaces downwards.
-    	                diff_polygons = diff(
-    	                    intersection(offset(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), 
-    	                    lower_layer_polygons);
-    				}
+                        // Offset the support regions back to a full overhang, restrict them to the full overhang.
+                        // This is done to increase size of the supporting columns below, as they are calculated by 
+                        // propagating these contact surfaces downwards.
+                        diff_polygons = diff(
+                            intersection(offset(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), 
+                            lower_layer_polygons);
+                    }
                 }
             }
 
@@ -1489,7 +1489,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                 // Subtracting them as they are may leave unwanted narrow
                 // residues of diff_polygons that would then be supported.
                 diff_polygons = diff(diff_polygons,
-                    offset(union_(to_polygons(std::move(annotations.blockers_layers[layer_id]))), float(1000.*SCALED_EPSILON)));
+                    offset(union_(annotations.blockers_layers[layer_id]), float(1000.*SCALED_EPSILON)));
             }
 
             #ifdef SLIC3R_DEBUG
@@ -1538,7 +1538,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     slices_margin.offset = slices_margin_offset;
                     slices_margin.polygons = (slices_margin_offset == 0.f) ?
                         lower_layer_polygons :
-                        offset2(to_polygons(lower_layer.lslices), - no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                        offset2(lower_layer.lslices, - no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                     if (buildplate_only && ! annotations.buildplate_covered[layer_id].empty()) {
                         if (has_enforcer)
                             // Make a backup of trimming polygons before enforcing "on build plate only".
@@ -1569,9 +1569,9 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
         if (has_enforcer) {
             // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
 #ifdef SLIC3R_DEBUG
-            ExPolygons enforcers_united = union_ex(to_polygons(annotations.enforcers_layers[layer_id]), false);
+            ExPolygons enforcers_united = union_ex(annotations.enforcers_layers[layer_id]);
 #endif // SLIC3R_DEBUG
-            enforcer_polygons = diff(intersection(to_polygons(layer.lslices), to_polygons(std::move(annotations.enforcers_layers[layer_id]))),
+            enforcer_polygons = diff(intersection(layer.lslices, annotations.enforcers_layers[layer_id]),
                 // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
                 offset(lower_layer_polygons, 0.05f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS));
 #ifdef SLIC3R_DEBUG
@@ -2772,8 +2772,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                                 break;
                             some_region_overlaps = true;
                             polygons_append(polygons_trimming, 
-                                offset(to_expolygons(region->fill_surfaces.filter_by_type(stBottomBridge)), 
-                                       gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                                offset(region->fill_surfaces.filter_by_type(stBottomBridge), gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                             if (region->region()->config().overhangs.value)
                                 // Add bridging perimeters.
                                 SupportMaterialInternal::collect_bridging_perimeter_areas(region->perimeters, gap_xy_scaled, polygons_trimming);
@@ -3093,8 +3092,8 @@ static inline void fill_expolygon_generate_paths(
     Polylines polylines;
     try {
         polylines = filler->fill_surface(&surface, fill_params);
-	} catch (InfillFailedException &) {
-	}
+    } catch (InfillFailedException &) {
+    }
     extrusion_entities_append_paths(
         dst,
         std::move(polylines),

@@ -196,7 +196,7 @@ protected:
     // between the raft and the object first layer.
     SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
         Layer(id, object, height, print_z, slice_z) {}
-    virtual ~SupportLayer() {}
+    virtual ~SupportLayer() = default;
 };
 
 }

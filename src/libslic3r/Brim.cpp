@@ -156,7 +156,7 @@ static ExPolygons top_level_outer_brim_area(const Print &print, const ConstPrint
         }
     }
 
-    return diff_ex(to_polygons(std::move(brim_area)), no_brim_area);
+    return diff_ex(brim_area, no_brim_area);
 }
 
 static ExPolygons inner_brim_area(const Print &print, const ConstPrintObjectPtrs &top_level_objects_with_brim, const float no_brim_offset)
