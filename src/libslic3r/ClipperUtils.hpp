@@ -32,11 +32,11 @@ namespace ClipperUtils {
     public:
         struct iterator : public PathsProviderIteratorBase {
         public:
-            constexpr const Points& operator*() { assert(false); return s_empty_points; }
+            const Points& operator*() { assert(false); return s_empty_points; }
             // all iterators point to end.
             constexpr bool operator==(const iterator &rhs) const { return true; }
             constexpr bool operator!=(const iterator &rhs) const { return false; }
-            constexpr const Points& operator++(int) { assert(false); return s_empty_points; }
+            const Points& operator++(int) { assert(false); return s_empty_points; }
             constexpr iterator& operator++() { assert(false); return *this; }
         };
 
