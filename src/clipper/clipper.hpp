@@ -192,15 +192,6 @@ inline bool Orientation(const Path &poly) { return Area(poly) >= 0; }
 int PointInPolygon(const IntPoint &pt, const Path &path);
 
 Paths SimplifyPolygon(const Path &in_poly, PolyFillType fillType = pftEvenOdd);
-template<typename PathsProvider>
-inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = pftEvenOdd) {
-    Clipper c;
-    c.StrictlySimple(true);
-    c.AddPaths(std::forward<PathsProvider>(in_polys), ptSubject, true);
-    Paths out;
-    c.Execute(ctUnion, out, fillType, fillType);
-    return out;
-}
 
 void CleanPolygon(const Path& in_poly, Path& out_poly, double distance = 1.415);
 void CleanPolygon(Path& poly, double distance = 1.415);
@@ -559,6 +550,16 @@ class clipperException : public std::exception
     std::string m_descr;
 };
 //------------------------------------------------------------------------------
+
+template<typename PathsProvider>
+inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = pftEvenOdd) {
+    Clipper c;
+    c.StrictlySimple(true);
+    c.AddPaths(std::forward<PathsProvider>(in_polys), ptSubject, true);
+    Paths out;
+    c.Execute(ctUnion, out, fillType, fillType);
+    return out;
+}
 
 } //ClipperLib namespace
 
