@@ -169,11 +169,18 @@ void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
 void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 {
     const ModelObject *model_object_new = (object_id >= 0) ? model.objects[object_id] : nullptr;
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // Maximum height of an object changes when the object gets rotated or scaled.
+    // Changing maximum height of an object will invalidate the layer heigth editing profile.
+    // m_model_object->bounding_box() is cached, therefore it is cheap even if this method is called frequently.
+    const float new_max_z = (model_object_new == nullptr) ? 0.0f : static_cast<float>(model_object_new->bounding_box().max.z());
+#else
     // Maximum height of an object changes when the object gets rotated or scaled.
     // Changing maximum height of an object will invalidate the layer heigth editing profile.
     // m_model_object->raw_bounding_box() is cached, therefore it is cheap even if this method is called frequently.
 	float new_max_z = (model_object_new == nullptr) ? 0.f : model_object_new->raw_bounding_box().size().z();
-	if (m_model_object != model_object_new || this->last_object_id != object_id || m_object_max_z != new_max_z ||
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+    if (m_model_object != model_object_new || this->last_object_id != object_id || m_object_max_z != new_max_z ||
         (model_object_new != nullptr && m_model_object->id() != model_object_new->id())) {
         m_layer_height_profile.clear();
         m_layer_height_profile_modified = false;
@@ -348,11 +355,12 @@ std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) con
 
             float h = 0.0f;
             for (size_t i = m_layer_height_profile.size() - 2; i >= 2; i -= 2) {
-                float zi = m_layer_height_profile[i];
-                float zi_1 = m_layer_height_profile[i - 2];
+                const float zi = static_cast<float>(m_layer_height_profile[i]);
+                const float zi_1 = static_cast<float>(m_layer_height_profile[i - 2]);
                 if (zi_1 <= z && z <= zi) {
                     float dz = zi - zi_1;
-                    h = (dz != 0.0f) ? lerp(m_layer_height_profile[i - 1], m_layer_height_profile[i + 1], (z - zi_1) / dz) : m_layer_height_profile[i + 1];
+                    h = (dz != 0.0f) ? static_cast<float>(lerp(m_layer_height_profile[i - 1], m_layer_height_profile[i + 1], (z - zi_1) / dz)) :
+                        static_cast<float>(m_layer_height_profile[i + 1]);
                     break;
                 }
             }
@@ -381,10 +389,10 @@ void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
 
     // Render the color bar
-    float l = bar_rect.get_left();
-    float r = bar_rect.get_right();
-    float t = bar_rect.get_top();
-    float b = bar_rect.get_bottom();
+    const float l = bar_rect.get_left();
+    const float r = bar_rect.get_right();
+    const float t = bar_rect.get_top();
+    const float b = bar_rect.get_bottom();
 
     ::glBegin(GL_QUADS);
     ::glNormal3f(0.0f, 0.0f, 1.0f);
@@ -560,7 +568,7 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 {
 	if (m_slicing_parameters == nullptr) {
 		m_slicing_parameters = new SlicingParameters();
-    	*m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z);
+        *m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z);
     }
 }
 
@@ -3574,6 +3582,13 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         }
 #endif // ENABLE_ALLOW_NEGATIVE_Z
     }
+
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // if the selection is not valid to allow for layer editing after the move, we need to turn off the tool if it is running
+    // similar to void Plater::priv::selection_changed()
+    if (!wxGetApp().plater()->can_layers_editing() && is_layers_editing_enabled())
+        post_event(SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     if (object_moved)
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));

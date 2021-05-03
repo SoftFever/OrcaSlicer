@@ -169,7 +169,7 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
 
     if (!already_contained || needs_reset)
     {
-        wxGetApp().plater()->take_snapshot(_(L("Selection-Add")));
+        wxGetApp().plater()->take_snapshot(_L("Selection-Add"));
 
         if (needs_reset)
             clear();
@@ -210,7 +210,7 @@ void Selection::remove(unsigned int volume_idx)
     if (!contains_volume(volume_idx))
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove")));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Remove"));
 
     GLVolume* volume = (*m_volumes)[volume_idx];
 
@@ -242,7 +242,7 @@ void Selection::add_object(unsigned int object_idx, bool as_single_selection)
         (as_single_selection && matches(volume_idxs)))
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Object")));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Add Object"));
 
     // resets the current list if needed
     if (as_single_selection)
@@ -261,7 +261,7 @@ void Selection::remove_object(unsigned int object_idx)
     if (!m_valid)
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove Object")));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Remove Object"));
 
     do_remove_object(object_idx);
 
@@ -274,12 +274,12 @@ void Selection::add_instance(unsigned int object_idx, unsigned int instance_idx,
     if (!m_valid)
         return;
 
-    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_instance(object_idx, instance_idx);
+    const std::vector<unsigned int> volume_idxs = get_volume_idxs_from_instance(object_idx, instance_idx);
     if ((!as_single_selection && contains_all_volumes(volume_idxs)) ||
         (as_single_selection && matches(volume_idxs)))
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Instance")));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Add Instance"));
 
     // resets the current list if needed
     if (as_single_selection)
@@ -298,7 +298,7 @@ void Selection::remove_instance(unsigned int object_idx, unsigned int instance_i
     if (!m_valid)
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove Instance")));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Remove Instance"));
 
     do_remove_instance(object_idx, instance_idx);
 

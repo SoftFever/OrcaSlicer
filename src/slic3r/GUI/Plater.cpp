@@ -2630,11 +2630,8 @@ int Plater::priv::get_selected_volume_idx() const
 void Plater::priv::selection_changed()
 {
     // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
-    bool enable_layer_editing = layers_height_allowed();
-    if (!enable_layer_editing && view3D->is_layers_editing_enabled()) {
-        SimpleEvent evt(EVT_GLTOOLBAR_LAYERSEDITING);
-        on_action_layersediting(evt);
-    }
+    if (!layers_height_allowed() && view3D->is_layers_editing_enabled())
+        on_action_layersediting(SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
 
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     view3D->render();
@@ -4024,7 +4021,7 @@ void Plater::priv::reset_gcode_toolpaths()
 bool Plater::priv::can_set_instance_to_object() const
 {
     const int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->instances.size() > 1;
 }
 
 bool Plater::priv::can_split(bool to_objects) const
@@ -4038,7 +4035,12 @@ bool Plater::priv::layers_height_allowed() const
         return false;
 
     int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
+#if ENABLE_ALLOW_NEGATIVE_Z
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > 0.0 &&
+        config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
+#else
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 }
 
 bool Plater::priv::can_mirror() const
