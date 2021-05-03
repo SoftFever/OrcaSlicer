@@ -694,6 +694,24 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
     const Points             points         = to_points(color_poly_tmp);
     const Lines              lines          = to_lines(color_poly_tmp);
 
+    // The algorithm adds edges to the graph that are between two different colors.
+    // If a polygon is colored entirely with one color, we need to add at least one edge from that polygon artificially.
+    // Adding this edge is necessary for cases where the expolygon has an outer contour colored whole with one color
+    // and a hole colored with a different color. If an edge wasn't added to the graph,
+    // the entire expolygon would be colored with single random color instead of two different.
+    std::vector<bool>        force_edge_adding(color_poly.size());
+
+    // For each polygon, check if it is all colored with the same color. If it is, we need to force adding one edge to it.
+    for (const std::vector<ColoredLine> &c_poly : color_poly) {
+        bool force_edge = true;
+        for (const ColoredLine &c_line : c_poly)
+            if (c_line.color != c_poly.front().color) {
+                force_edge = false;
+                break;
+            }
+        force_edge_adding[&c_poly - &color_poly.front()] = force_edge;
+    }
+
     boost::polygon::construct_voronoi(lines_colored.begin(), lines_colored.end(), &vd);
     MMU_Graph graph;
     for (const Point &point : points)
@@ -861,23 +879,27 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
 
                 if (graph.is_vertex_on_contour(edge_it->vertex0())) {
                     if (is_point_closer_to_beginning_of_line(contour_line, v0)) {
-                        if (!has_same_color(contour_line_prev, colored_line) && points_inside(contour_line_prev.line, contour_line, v1)) {
+                        if ((!has_same_color(contour_line_prev, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, v1)) {
                             graph.append_edge(from_idx, to_idx);
+                            force_edge_adding[colored_line.poly_idx] = false;
                         }
                     } else {
-                        if (!has_same_color(contour_line_next, colored_line) && points_inside(contour_line, contour_line_next.line, v1)) {
+                        if ((!has_same_color(contour_line_next, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, v1)) {
                             graph.append_edge(from_idx, to_idx);
+                            force_edge_adding[colored_line.poly_idx] = false;
                         }
                     }
                 } else {
                     assert(graph.is_vertex_on_contour(edge_it->vertex1()));
                     if (is_point_closer_to_beginning_of_line(contour_line, v1)) {
-                        if (!has_same_color(contour_line_prev, colored_line) && points_inside(contour_line_prev.line, contour_line, v0)) {
+                        if ((!has_same_color(contour_line_prev, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, v0)) {
                             graph.append_edge(from_idx, to_idx);
+                            force_edge_adding[colored_line.poly_idx] = false;
                         }
                     } else {
-                        if (!has_same_color(contour_line_next, colored_line) && points_inside(contour_line, contour_line_next.line, v0)) {
+                        if ((!has_same_color(contour_line_next, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, v0)) {
                             graph.append_edge(from_idx, to_idx);
+                            force_edge_adding[colored_line.poly_idx] = false;
                         }
                     }
                 }
