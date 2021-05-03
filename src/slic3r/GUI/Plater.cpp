@@ -2630,8 +2630,10 @@ int Plater::priv::get_selected_volume_idx() const
 void Plater::priv::selection_changed()
 {
     // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
-    if (!layers_height_allowed() && view3D->is_layers_editing_enabled())
-        on_action_layersediting(SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+    if (!layers_height_allowed() && view3D->is_layers_editing_enabled()) {
+        SimpleEvent evt(EVT_GLTOOLBAR_LAYERSEDITING);
+        on_action_layersediting(evt);
+    }
 
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     view3D->render();
@@ -3069,21 +3071,19 @@ void Plater::priv::reload_from_disk()
         int volume_idx;
 
         // operators needed by std::algorithms
-        bool operator < (const SelectedVolume& other) const { return (object_idx < other.object_idx) || ((object_idx == other.object_idx) && (volume_idx < other.volume_idx)); }
-        bool operator == (const SelectedVolume& other) const { return (object_idx == other.object_idx) && (volume_idx == other.volume_idx); }
+        bool operator < (const SelectedVolume& other) const { return object_idx < other.object_idx || (object_idx == other.object_idx && volume_idx < other.volume_idx); }
+        bool operator == (const SelectedVolume& other) const { return object_idx == other.object_idx && volume_idx == other.volume_idx; }
     };
     std::vector<SelectedVolume> selected_volumes;
 
     // collects selected ModelVolumes
     const std::set<unsigned int>& selected_volumes_idxs = selection.get_volume_idxs();
-    for (unsigned int idx : selected_volumes_idxs)
-    {
+    for (unsigned int idx : selected_volumes_idxs) {
         const GLVolume* v = selection.get_volume(idx);
         int v_idx = v->volume_idx();
-        if (v_idx >= 0)
-        {
+        if (v_idx >= 0) {
             int o_idx = v->object_idx();
-            if ((0 <= o_idx) && (o_idx < (int)model.objects.size()))
+            if (0 <= o_idx && o_idx < (int)model.objects.size())
                 selected_volumes.push_back({ o_idx, v_idx });
         }
     }
@@ -3093,13 +3093,11 @@ void Plater::priv::reload_from_disk()
     // collects paths of files to load
     std::vector<fs::path> input_paths;
     std::vector<fs::path> missing_input_paths;
-    for (const SelectedVolume& v : selected_volumes)
-    {
+    for (const SelectedVolume& v : selected_volumes) {
         const ModelObject* object = model.objects[v.object_idx];
         const ModelVolume* volume = object->volumes[v.volume_idx];
 
-        if (!volume->source.input_file.empty())
-        {
+        if (!volume->source.input_file.empty()) {
             if (fs::exists(volume->source.input_file))
                 input_paths.push_back(volume->source.input_file);
             else
@@ -3112,8 +3110,7 @@ void Plater::priv::reload_from_disk()
     std::sort(missing_input_paths.begin(), missing_input_paths.end());
     missing_input_paths.erase(std::unique(missing_input_paths.begin(), missing_input_paths.end()), missing_input_paths.end());
 
-    while (!missing_input_paths.empty())
-    {
+    while (!missing_input_paths.empty()) {
         // ask user to select the missing file
         fs::path search = missing_input_paths.back();
         wxString title = _L("Please select the file to reload");
@@ -3127,21 +3124,18 @@ void Plater::priv::reload_from_disk()
 
         std::string sel_filename_path = dialog.GetPath().ToUTF8().data();
         std::string sel_filename = fs::path(sel_filename_path).filename().string();
-        if (boost::algorithm::iequals(search.filename().string(), sel_filename))
-        {
+        if (boost::algorithm::iequals(search.filename().string(), sel_filename)) {
             input_paths.push_back(sel_filename_path);
             missing_input_paths.pop_back();
 
             fs::path sel_path = fs::path(sel_filename_path).remove_filename().string();
 
             std::vector<fs::path>::iterator it = missing_input_paths.begin();
-            while (it != missing_input_paths.end())
-            {
+            while (it != missing_input_paths.end()) {
                 // try to use the path of the selected file with all remaining missing files
                 fs::path repathed_filename = sel_path;
                 repathed_filename /= it->filename();
-                if (fs::exists(repathed_filename))
-                {
+                if (fs::exists(repathed_filename)) {
                     input_paths.push_back(repathed_filename.string());
                     it = missing_input_paths.erase(it);
                 }
@@ -3149,8 +3143,7 @@ void Plater::priv::reload_from_disk()
                     ++it;
             }
         }
-        else
-        {
+        else {
             wxString message = _L("It is not allowed to change the file to reload") + " (" + from_u8(search.filename().string()) + ").\n" + _L("Do you want to retry") + " ?";
             wxMessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() != wxID_YES)
@@ -3164,8 +3157,7 @@ void Plater::priv::reload_from_disk()
     std::vector<wxString> fail_list;
 
     // load one file at a time
-    for (size_t i = 0; i < input_paths.size(); ++i)
-    {
+    for (size_t i = 0; i < input_paths.size(); ++i) {
         const auto& path = input_paths[i].string();
 
         wxBusyCursor wait;
@@ -3175,8 +3167,7 @@ void Plater::priv::reload_from_disk()
         try
         {
             new_model = Model::read_from_file(path, nullptr, true, false);
-            for (ModelObject* model_object : new_model.objects)
-            {
+            for (ModelObject* model_object : new_model.objects) {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
             }
@@ -3188,34 +3179,27 @@ void Plater::priv::reload_from_disk()
         }
 
         // update the selected volumes whose source is the current file
-        for (const SelectedVolume& sel_v : selected_volumes)
-        {
+        for (const SelectedVolume& sel_v : selected_volumes) {
             ModelObject* old_model_object = model.objects[sel_v.object_idx];
             ModelVolume* old_volume = old_model_object->volumes[sel_v.volume_idx];
 
             bool has_source = !old_volume->source.input_file.empty() && boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
             bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
-            if (has_source || has_name)
-            {
+            if (has_source || has_name) {
                 int new_volume_idx = -1;
                 int new_object_idx = -1;
-                if (has_source)
-                {
+                if (has_source) {
                     // take idxs from source
                     new_volume_idx = old_volume->source.volume_idx;
                     new_object_idx = old_volume->source.object_idx;
                 }
-                else
-                {
+                else {
                     // take idxs from the 1st matching volume
-                    for (size_t o = 0; o < new_model.objects.size(); ++o)
-                    {
+                    for (size_t o = 0; o < new_model.objects.size(); ++o) {
                         ModelObject* obj = new_model.objects[o];
                         bool found = false;
-                        for (size_t v = 0; v < obj->volumes.size(); ++v)
-                        {
-                            if (obj->volumes[v]->name == old_volume->name)
-                            {
+                        for (size_t v = 0; v < obj->volumes.size(); ++v) {
+                            if (obj->volumes[v]->name == old_volume->name) {
                                 new_volume_idx = (int)v;
                                 new_object_idx = (int)o;
                                 found = true;
@@ -3227,19 +3211,16 @@ void Plater::priv::reload_from_disk()
                     }
                 }
 
-                if ((new_object_idx < 0) && ((int)new_model.objects.size() <= new_object_idx))
-                {
+                if (new_object_idx < 0 && (int)new_model.objects.size() <= new_object_idx) {
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
                     continue;
                 }
                 ModelObject* new_model_object = new_model.objects[new_object_idx];
-                if ((new_volume_idx < 0) && ((int)new_model.objects.size() <= new_volume_idx))
-                {
+                if (new_volume_idx < 0 && (int)new_model.objects.size() <= new_volume_idx) {
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
                     continue;
                 }
-                if (new_volume_idx < (int)new_model_object->volumes.size())
-                {
+                if (new_volume_idx < (int)new_model_object->volumes.size()) {
                     old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
                     ModelVolume* new_volume = old_model_object->volumes.back();
                     new_volume->set_new_unique_id();
@@ -3264,11 +3245,9 @@ void Plater::priv::reload_from_disk()
         }
     }
 
-    if (!fail_list.empty())
-    {
+    if (!fail_list.empty()) {
         wxString message = _L("Unable to reload:") + "\n";
-        for (const wxString& s : fail_list)
-        {
+        for (const wxString& s : fail_list) {
             message += s + "\n";
         }
         wxMessageDialog dlg(q, message, _L("Error during reload"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
@@ -3279,8 +3258,7 @@ void Plater::priv::reload_from_disk()
     update();
 
     // new GLVolumes have been created at this point, so update their printable state
-    for (size_t i = 0; i < model.objects.size(); ++i)
-    {
+    for (size_t i = 0; i < model.objects.size(); ++i) {
         view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
     }
 }
@@ -3300,8 +3278,7 @@ void Plater::priv::reload_all_from_disk()
     reload_from_disk();
     // restore previous selection
     selection.clear();
-    for (unsigned int idx : curr_idxs)
-    {
+    for (unsigned int idx : curr_idxs) {
         selection.add(idx, false);
     }
 }
