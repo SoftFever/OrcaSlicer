@@ -8,6 +8,7 @@
 #include <functional>
 #include <limits>
 #include <cassert>
+#include <optional>
 
 namespace Slic3r { namespace opt {
 

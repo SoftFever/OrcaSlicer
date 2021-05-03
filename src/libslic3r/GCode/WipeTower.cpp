@@ -639,9 +639,11 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 
     float prime_section_width = std::min(0.9f * m_bed_width / tools.size(), 60.f);
     box_coordinates cleaning_box(Vec2f(0.02f * m_bed_width, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
-    // In case of a circular bed, place it so it goes across the diameter and hope it will fit
-    if (m_bed_shape == CircularBed)
-        cleaning_box.translate(-m_bed_width/2 + m_bed_width * 0.03f, -m_bed_width * 0.12f);
+    if (m_bed_shape == CircularBed) {
+        cleaning_box = box_coordinates(Vec2f(0.f, 0.f), prime_section_width, 100.f);
+        float total_width_half = tools.size() * prime_section_width / 2.f;
+        cleaning_box.translate(-total_width_half, -std::sqrt(std::max(0.f, std::pow(m_bed_width/2, 2.f) - std::pow(1.05f * total_width_half, 2.f))));
+    }
     else
         cleaning_box.translate(m_bed_bottom_left);
 
