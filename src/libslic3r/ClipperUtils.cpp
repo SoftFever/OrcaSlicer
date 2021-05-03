@@ -63,7 +63,7 @@ namespace ClipperUtils {
 static ExPolygons PolyTreeToExPolygons(ClipperLib::PolyTree &&polytree)
 {
     struct Inner {
-        static void PolyTreeToExPolygonsRecursive(ClipperLib::PolyNode &polynode, ExPolygons *expolygons)
+        static void PolyTreeToExPolygonsRecursive(ClipperLib::PolyNode &&polynode, ExPolygons *expolygons)
         {  
             size_t cnt = expolygons->size();
             expolygons->resize(cnt + 1);
@@ -73,7 +73,7 @@ static ExPolygons PolyTreeToExPolygons(ClipperLib::PolyTree &&polytree)
                 (*expolygons)[cnt].holes[i].points = std::move(polynode.Childs[i]->Contour);
                 // Add outer polygons contained by (nested within) holes.
                 for (int j = 0; j < polynode.Childs[i]->ChildCount(); ++ j)
-                    PolyTreeToExPolygonsRecursive(*polynode.Childs[i]->Childs[j], expolygons);
+                    PolyTreeToExPolygonsRecursive(std::move(*polynode.Childs[i]->Childs[j]), expolygons);
             }
         }
 
