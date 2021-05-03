@@ -355,7 +355,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             if (m_seed_fill_enabled)
                 m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
             else
-                m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, m_rr.facet, camera_pos, m_cursor_radius, m_cursor_type,
+                m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
                                                                  new_state, trafo_matrix, m_triangle_splitting_enabled);
             m_last_mouse_click = mouse_position;
         }
@@ -392,7 +392,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
 
         assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-        m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, m_rr.facet, m_seed_fill_angle);
+        m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
         return true;
     }
 

@@ -1,8 +1,5 @@
 #include "GLGizmoMmuSegmentation.hpp"
 
-#include "libslic3r/Model.hpp"
-
-//#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
@@ -10,6 +7,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Model.hpp"
 
 
 #include <GL/glew.h>
@@ -210,7 +208,7 @@ bool GLGizmoMmuSegmentation::gizmo_event(SLAGizmoEventType action, const Vec2d& 
             if (m_seed_fill_enabled)
                 m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
             else
-                m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, m_rr.facet, camera_pos, m_cursor_radius, m_cursor_type,
+                m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
                                                                  new_state, trafo_matrix, m_triangle_splitting_enabled);
             m_last_mouse_click = mouse_position;
         }
@@ -247,7 +245,7 @@ bool GLGizmoMmuSegmentation::gizmo_event(SLAGizmoEventType action, const Vec2d& 
         }
 
         assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-        m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, m_rr.facet, m_seed_fill_angle);
+        m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
         return true;
     }
 
@@ -277,7 +275,7 @@ bool GLGizmoMmuSegmentation::gizmo_event(SLAGizmoEventType action, const Vec2d& 
         }
 
         activate_internal_undo_redo_stack(true);
-        Plater::TakeSnapshot(wxGetApp().plater(), action_name);
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), action_name);
         update_model_object();
 
         m_button_down = Button::None;
@@ -303,7 +301,7 @@ static void render_extruders_combo(const std::string                         &la
     ImVec2 combo_pos = ImGui::GetCursorScreenPos();
     if (ImGui::BeginCombo(label.c_str(), "")) {
         for (size_t extruder_idx = 0; extruder_idx < extruders.size(); ++extruder_idx) {
-            ImGui::PushID(extruder_idx);
+            ImGui::PushID(int(extruder_idx));
             ImVec2 start_position = ImGui::GetCursorScreenPos();
 
             if (ImGui::Selectable("", extruder_idx == selection_idx))
@@ -439,7 +437,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::Separator();
 
     if (m_imgui->button(m_desc.at("remove_all"))) {
-        Plater::TakeSnapshot(wxGetApp().plater(), wxString(_L("Reset selection")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), wxString(_L("Reset selection")));
         ModelObject *mo  = m_c->selection_info()->model_object();
         int          idx = -1;
         for (ModelVolume *mv : mo->volumes) {
@@ -515,7 +513,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    float clp_dist = m_c->object_clipper()->get_position();
+    auto clp_dist = float(m_c->object_clipper()->get_position());
     if (ImGui::SliderFloat("  ", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
     if (ImGui::IsItemHovered()) {
@@ -632,14 +630,15 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
 
     for (size_t color_idx = 0; color_idx < m_iva_colors.size(); ++color_idx) {
         if (render_colors[color_idx]) {
-            std::array<float, 4> color = {m_colors[color_idx][0] / 255.0f, m_colors[color_idx][1] / 255.0f, m_colors[color_idx][2] / 255.0f, 1.f};
+            std::array<float, 4> color = {float(m_colors[color_idx][0]) / 255.0f, float(m_colors[color_idx][1]) / 255.0f,
+                                          float(m_colors[color_idx][2]) / 255.0f, 1.f};
             shader->set_uniform("uniform_color", color);
             m_iva_colors[color_idx].render();
         }
     }
 
     if (render_seed_fill) {
-        std::array<float, 4> color = {0.f, 1.00f, 0.44f, 1.f};
+        std::array<float, 4> color = {0.f, 1.f, 0.44f, 1.f};
         shader->set_uniform("uniform_color", color);
         m_iva_seed_fill.render();
     }

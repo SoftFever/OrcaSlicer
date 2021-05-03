@@ -699,7 +699,7 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
             int num_of_children = num_of_split_sides != 0 ? num_of_split_sides + 1 : 0;
             bool is_split = num_of_children != 0;
             // Value of the second nibble was subtracted by 3, so it is added back.
-            EnforcerBlockerType state = EnforcerBlockerType(next_code[0] >> 2 == 0b11 ? next_code[1] + 3 : next_code[0] >> 2);
+            auto state = EnforcerBlockerType(next_code[0] >> 2 == 0b11 ? next_code[1] + 3 : next_code[0] >> 2);
             int special_side = (next_code[0] >> 2);
 
             // Take care of the first iteration separately, so handling of the others is simpler.

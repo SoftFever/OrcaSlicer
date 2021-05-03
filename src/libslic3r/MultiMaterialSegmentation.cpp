@@ -6,7 +6,7 @@
 #include "VoronoiVisualUtils.hpp"
 
 #include <utility>
-#include <float.h>
+#include <cfloat>
 #include <unordered_set>
 
 #include <boost/log/trivial.hpp>
@@ -28,7 +28,7 @@ struct ColoredLine {
 }
 
 #include <boost/polygon/polygon.hpp>
-namespace boost { namespace polygon {
+namespace boost::polygon {
 template <>
 struct geometry_concept<Slic3r::ColoredLine> { typedef segment_concept type; };
 
@@ -37,11 +37,11 @@ struct segment_traits<Slic3r::ColoredLine> {
     typedef coord_t coordinate_type;
     typedef Slic3r::Point point_type;
 
-    static inline point_type get(const Slic3r::ColoredLine& line, direction_1d dir) {
+    static inline point_type get(const Slic3r::ColoredLine& line, const direction_1d& dir) {
         return dir.to_int() ? line.line.b : line.line.a;
     }
 };
-} }
+}
 
 namespace Slic3r {
 
@@ -1471,7 +1471,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
                     visitor.reset();
                     visitor.line_to_test.a = line_start;
                     visitor.line_to_test.b = line_end;
-                    visitor.color          = extruder_idx;
+                    visitor.color          = int(extruder_idx);
                     edge_grids[layer_idx].visit_cells_intersecting_line(line_start, line_end, visitor);
 
                     append(painted_lines[layer_idx], std::move(painted_line_tmp));

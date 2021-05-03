@@ -14,7 +14,7 @@ public:
 
     // Render current selection. Transformation matrices are supposed
     // to be already set.
-    virtual void render(ImGuiWrapper* imgui = nullptr);
+    void render(ImGuiWrapper* imgui) override;
 
 private:
     const std::vector<std::array<uint8_t, 3>> &m_colors;
@@ -29,7 +29,7 @@ public:
 
     void render_painter_gizmo() const override;
 
-    virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
 
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
