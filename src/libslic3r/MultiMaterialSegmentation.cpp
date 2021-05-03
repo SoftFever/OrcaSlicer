@@ -1370,7 +1370,14 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
         ex_polygons = union_ex(ex_polygons);
         // Remove all expolygons and holes with an area less than 0.01mm^2
         remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(0.1f)));
-        input_polygons[layer_idx] = to_polygons(union_ex(offset_ex(ex_polygons, -SCALED_EPSILON)));
+        // Occasionally, some input polygons contained self-intersections that caused problems with Voronoi diagrams
+        // and consequently with the extraction of colored segments by function extract_colored_segments.
+        // Calling simplify_polygons removes these self-intersections.
+        // Also, occasionally input polygons contained several points very close together (distance between points is 1 or so).
+        // Such close points sometimes caused that the Voronoi diagram has self-intersecting edges around these vertices.
+        // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
+        // Calling expolygons_simplify fixed these issues.
+        input_polygons[layer_idx] = simplify_polygons(to_polygons(expolygons_simplify(offset_ex(ex_polygons, -SCALED_EPSILON), SCALED_EPSILON)));
     }
 
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
