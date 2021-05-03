@@ -57,6 +57,7 @@ err:
 #endif /* CLIPPER_UTILS_DEBUG */
 
 namespace ClipperUtils {
+    Points EmptyPathsProvider::s_empty_points;
     Points SinglePathProvider::s_end;
 }
 
@@ -141,16 +142,6 @@ static ClipperLib::Paths safety_offset(PathsProvider &&paths)
         append(out, std::move(out_this));
     }
     return out;
-}
-
-static ClipperLib::Paths safety_offset(const ClipperLib::Paths &paths)
-{
-    return safety_offset<const ClipperLib::Paths&>(paths);
-}
-
-static void safety_offset(ClipperLib::Paths *paths)
-{
-    *paths = safety_offset(*paths);
 }
 
 template<typename PathsProvider>

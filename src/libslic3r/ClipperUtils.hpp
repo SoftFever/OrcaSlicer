@@ -32,11 +32,11 @@ namespace ClipperUtils {
     public:
         struct iterator : public PathsProviderIteratorBase {
         public:
-            constexpr const Points& operator*() { assert(false); return *static_cast<Points*>(nullptr); }
+            constexpr const Points& operator*() { assert(false); return s_empty_points; }
             // all iterators point to end.
             constexpr bool operator==(const iterator &rhs) const { return true; }
             constexpr bool operator!=(const iterator &rhs) const { return false; }
-            constexpr const Points& operator++(int) { assert(false); return *static_cast<Points*>(nullptr); }
+            constexpr const Points& operator++(int) { assert(false); return s_empty_points; }
             constexpr iterator& operator++() { assert(false); return *this; }
         };
 
@@ -46,6 +46,8 @@ namespace ClipperUtils {
         static constexpr iterator cbegin() throw() { return cend(); }
         static constexpr iterator begin()  throw() { return cend(); }
         static constexpr size_t   size()   throw() { return 0; }
+
+        static Points &s_empty_points;
     };
 
     class SinglePathProvider {
@@ -158,7 +160,7 @@ namespace ClipperUtils {
             }
         private:
             ExPolygons::const_iterator  m_it_expolygon;
-            int                         m_idx_contour;
+            size_t                      m_idx_contour;
         };
 
         iterator cbegin() const { return iterator(m_expolygons.cbegin()); }
@@ -199,7 +201,7 @@ namespace ClipperUtils {
             }
         private:
             Surfaces::const_iterator  m_it_surface;
-            int                       m_idx_contour;
+            size_t                    m_idx_contour;
         };
 
         iterator cbegin() const { return iterator(m_surfaces.cbegin()); }
@@ -240,7 +242,7 @@ namespace ClipperUtils {
             }
         private:
             SurfacesPtr::const_iterator  m_it_surface;
-            int                          m_idx_contour;
+            size_t                       m_idx_contour;
         };
 
         iterator cbegin() const { return iterator(m_surfaces.cbegin()); }
