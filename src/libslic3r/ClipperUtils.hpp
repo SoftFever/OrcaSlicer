@@ -47,7 +47,7 @@ namespace ClipperUtils {
         static constexpr iterator begin()  throw() { return cend(); }
         static constexpr size_t   size()   throw() { return 0; }
 
-        static Points &s_empty_points;
+        static Points s_empty_points;
     };
 
     class SinglePathProvider {
