@@ -1360,25 +1360,27 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
     std::vector<Polygons>                                  input_polygons(layers.size());
 
     // Merge all regions and remove small holes
-    for(size_t layer_idx = 0; layer_idx < layers.size(); layer_idx += 1) {
-        ExPolygons ex_polygons;
-        for (LayerRegion *region : layers[layer_idx]->regions())
-            for (const Surface &surface : region->slices.surfaces)
-                Slic3r::append(ex_polygons, offset_ex(surface.expolygon, SCALED_EPSILON));
-        // All expolygons are expanded by SCALED_EPSILON, merged, and then shrunk again by SCALED_EPSILON
-        // to ensure that very close polygons will be merged.
-        ex_polygons = union_ex(ex_polygons);
-        // Remove all expolygons and holes with an area less than 0.01mm^2
-        remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(0.1f)));
-        // Occasionally, some input polygons contained self-intersections that caused problems with Voronoi diagrams
-        // and consequently with the extraction of colored segments by function extract_colored_segments.
-        // Calling simplify_polygons removes these self-intersections.
-        // Also, occasionally input polygons contained several points very close together (distance between points is 1 or so).
-        // Such close points sometimes caused that the Voronoi diagram has self-intersecting edges around these vertices.
-        // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
-        // Calling expolygons_simplify fixed these issues.
-        input_polygons[layer_idx] = simplify_polygons(to_polygons(expolygons_simplify(offset_ex(ex_polygons, -SCALED_EPSILON), SCALED_EPSILON)));
-    }
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, layers.size()), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+            ExPolygons ex_polygons;
+            for (LayerRegion *region : layers[layer_idx]->regions())
+                for (const Surface &surface : region->slices.surfaces)
+                    Slic3r::append(ex_polygons, offset_ex(surface.expolygon, SCALED_EPSILON));
+            // All expolygons are expanded by SCALED_EPSILON, merged, and then shrunk again by SCALED_EPSILON
+            // to ensure that very close polygons will be merged.
+            ex_polygons = union_ex(ex_polygons);
+            // Remove all expolygons and holes with an area less than 0.01mm^2
+            remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(0.1f)));
+            // Occasionally, some input polygons contained self-intersections that caused problems with Voronoi diagrams
+            // and consequently with the extraction of colored segments by function extract_colored_segments.
+            // Calling simplify_polygons removes these self-intersections.
+            // Also, occasionally input polygons contained several points very close together (distance between points is 1 or so).
+            // Such close points sometimes caused that the Voronoi diagram has self-intersecting edges around these vertices.
+            // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
+            // Calling expolygons_simplify fixed these issues.
+            input_polygons[layer_idx] = simplify_polygons(to_polygons(expolygons_simplify(offset_ex(ex_polygons, -SCALED_EPSILON), SCALED_EPSILON)));
+        }
+    }); // end of parallel_for
 
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
         BoundingBox  bbox(get_extents(input_polygons[layer_idx]));
