@@ -70,7 +70,7 @@ double Polygon::area() const
 
 bool Polygon::is_counter_clockwise() const
 {
-    return ClipperLib::Orientation(Slic3rMultiPoint_to_ClipperPath(*this));
+    return ClipperLib::Orientation(this->points);
 }
 
 bool Polygon::is_clockwise() const

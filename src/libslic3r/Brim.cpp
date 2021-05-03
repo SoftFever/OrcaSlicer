@@ -139,7 +139,7 @@ static ExPolygons top_level_outer_brim_area(const Print &print, const ConstPrint
         Polygons   no_brim_area_object;
         for (const ExPolygon &ex_poly : object->layers().front()->lslices) {
             if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) && is_top_outer_brim)
-                append(brim_area_object, diff_ex(offset_ex(ex_poly.contour, brim_width + brim_offset), offset_ex(ex_poly.contour, brim_offset)));
+                append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_offset), offset(ex_poly.contour, brim_offset)));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
                 append(no_brim_area_object, offset(ex_poly.holes, -no_brim_offset));
@@ -156,7 +156,7 @@ static ExPolygons top_level_outer_brim_area(const Print &print, const ConstPrint
         }
     }
 
-    return diff_ex(to_polygons(std::move(brim_area)), no_brim_area);
+    return diff_ex(brim_area, no_brim_area);
 }
 
 static ExPolygons inner_brim_area(const Print &print, const ConstPrintObjectPtrs &top_level_objects_with_brim, const float no_brim_offset)
@@ -183,14 +183,14 @@ static ExPolygons inner_brim_area(const Print &print, const ConstPrintObjectPtrs
                 if (top_outer_brim)
                     no_brim_area_object.emplace_back(ex_poly);
                 else
-                    append(brim_area_object, diff_ex(offset_ex(ex_poly.contour, brim_width + brim_offset), offset_ex(ex_poly.contour, brim_offset)));
+                    append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_offset), offset(ex_poly.contour, brim_offset)));
             }
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
                 append(brim_area_object, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, offset_ex(ex_poly.contour, no_brim_offset));
+                append(no_brim_area_object, to_expolygons(offset(ex_poly.contour, no_brim_offset)));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
                 append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset));
@@ -317,7 +317,7 @@ static void make_inner_brim(const Print &print, const ConstPrintObjectPtrs &top_
         islands_ex = offset_ex(islands_ex, -float(flow.scaled_spacing()), jtSquare);
     }
 
-    loops = union_pt_chained_outside_in(loops, false);
+    loops = union_pt_chained_outside_in(loops);
     std::reverse(loops.begin(), loops.end());
     extrusion_entities_append_loops(brim.entities, std::move(loops), erSkirt, float(flow.mm3_per_mm()),
                                     float(flow.width()), float(print.skirt_first_layer_height()));
@@ -342,7 +342,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
             poly.douglas_peucker(SCALED_RESOLUTION);
         polygons_append(loops, offset(islands, -0.5f * float(flow.scaled_spacing())));
     }
-    loops = union_pt_chained_outside_in(loops, false);
+    loops = union_pt_chained_outside_in(loops);
 
     std::vector<Polylines> loops_pl_by_levels;
     {

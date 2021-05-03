@@ -759,48 +759,6 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
   return result;
 }
 
-bool ClipperBase::AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed)
-{
-  CLIPPERLIB_PROFILE_FUNC();
-  std::vector<int> num_edges(ppg.size(), 0);
-  int num_edges_total = 0;
-  for (size_t i = 0; i < ppg.size(); ++ i) {
-    const Path &pg = ppg[i];
-    // Remove duplicate end point from a closed input path.
-    // Remove duplicate points from the end of the input path.
-    int highI = (int)pg.size() -1;
-    if (Closed) 
-      while (highI > 0 && (pg[highI] == pg[0])) 
-        --highI;
-    while (highI > 0 && (pg[highI] == pg[highI -1])) 
-      --highI;
-    if ((Closed && highI < 2) || (!Closed && highI < 1))
-      highI = -1;
-    num_edges[i] = highI + 1;
-    num_edges_total += highI + 1;
-  }
-  if (num_edges_total == 0)
-    return false;
-
-  // Allocate a new edge array.
-  std::vector<TEdge> edges(num_edges_total);
-  // Fill in the edge array.
-  bool result = false;
-  TEdge *p_edge = edges.data();
-  for (Paths::size_type i = 0; i < ppg.size(); ++i)
-    if (num_edges[i]) {
-      bool res = AddPathInternal(ppg[i], num_edges[i] - 1, PolyTyp, Closed, p_edge);
-      if (res) {
-        p_edge += num_edges[i];
-        result = true;
-      }
-    }
-  if (result)
-    // At least some edges were generated. Remember the edge array.
-    m_edges.emplace_back(std::move(edges));
-  return result;
-}
-
 bool ClipperBase::AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, bool Closed, TEdge* edges)
 {
   CLIPPERLIB_PROFILE_FUNC();
@@ -1103,7 +1061,7 @@ bool Clipper::Execute(ClipType clipType, Paths &solution,
   CLIPPERLIB_PROFILE_FUNC();
   if (m_HasOpenPaths)
     throw clipperException("Error: PolyTree struct is needed for open path clipping.");
-  solution.resize(0);
+  solution.clear();
   m_SubjFillType = subjFillType;
   m_ClipFillType = clipFillType;
   m_ClipType = clipType;
@@ -3426,13 +3384,6 @@ void ClipperOffset::AddPath(const Path& path, JoinType joinType, EndType endType
 }
 //------------------------------------------------------------------------------
 
-void ClipperOffset::AddPaths(const Paths& paths, JoinType joinType, EndType endType)
-{
-  for (const Path &path : paths)
-    AddPath(path, joinType, endType);
-}
-//------------------------------------------------------------------------------
-
 void ClipperOffset::FixOrientations()
 {
   //fixup orientations of all closed paths if the orientation of the
@@ -3875,28 +3826,16 @@ void ReversePaths(Paths& p)
 }
 //------------------------------------------------------------------------------
 
-void SimplifyPolygon(const Path &in_poly, Paths &out_polys, PolyFillType fillType)
+Paths SimplifyPolygon(const Path &in_poly, PolyFillType fillType)
 {
   Clipper c;
   c.StrictlySimple(true);
   c.AddPath(in_poly, ptSubject, true);
-  c.Execute(ctUnion, out_polys, fillType, fillType);
+  Paths out; 
+  c.Execute(ctUnion, out, fillType, fillType);
+  return out;
 }
-//------------------------------------------------------------------------------
 
-void SimplifyPolygons(const Paths &in_polys, Paths &out_polys, PolyFillType fillType)
-{
-  Clipper c;
-  c.StrictlySimple(true);
-  c.AddPaths(in_polys, ptSubject, true);
-  c.Execute(ctUnion, out_polys, fillType, fillType);
-}
-//------------------------------------------------------------------------------
-
-void SimplifyPolygons(Paths &polys, PolyFillType fillType)
-{
-  SimplifyPolygons(polys, polys, fillType);
-}
 //------------------------------------------------------------------------------
 
 inline double DistanceSqrd(const IntPoint& pt1, const IntPoint& pt2)

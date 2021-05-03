@@ -22,7 +22,7 @@ SCENARIO("Various Clipper operations - xs/t/11_clipper.t", "[ClipperUtils]") {
             THEN("offset matches") {
                 REQUIRE(result == Polygons { 
                     { { 205, 205 }, { 95, 205 }, { 95, 95 }, { 205, 95 }, },
-                    { { 145, 145 }, { 145, 155 }, { 155, 155 }, { 155, 145 } } });
+                    { { 155, 145 }, { 145, 145 }, { 145, 155 }, { 155, 155 } } });
             }
         }
         WHEN("offset_ex") {
@@ -56,7 +56,7 @@ SCENARIO("Various Clipper operations - xs/t/11_clipper.t", "[ClipperUtils]") {
     }
     GIVEN("square and hole") {
         WHEN("diff_ex") {
-            ExPolygons result = Slic3r::diff_ex({ square }, { hole_in_square });
+            ExPolygons result = Slic3r::diff_ex(Polygons{ square }, Polygons{ hole_in_square });
             THEN("hole is created") {
                 REQUIRE(result.size() == 1);
                 REQUIRE(square_with_hole.area() == result.front().area());
@@ -77,7 +77,7 @@ SCENARIO("Various Clipper operations - xs/t/11_clipper.t", "[ClipperUtils]") {
             }
         }
         WHEN("diff_pl") {
-            Polylines result = Slic3r::diff_pl({ polyline }, { square, hole_in_square });
+            Polylines result = Slic3r::diff_pl({ polyline }, Polygons{ square, hole_in_square });
             THEN("correct number of result lines") {
                 REQUIRE(result.size() == 3);
             }
@@ -180,7 +180,7 @@ SCENARIO("Various Clipper operations - t/clipper.t", "[ClipperUtils]") {
         // CW oriented contour
         Slic3r::Polygon   hole_in_square { { 14, 14 }, { 14, 16 }, { 16, 16 }, { 16, 14 } };
         WHEN("intersection_ex with another square") {
-            ExPolygons intersection = Slic3r::intersection_ex({ square, hole_in_square }, { square2 });
+            ExPolygons intersection = Slic3r::intersection_ex(Polygons{ square, hole_in_square }, Polygons{ square2 });
             THEN("intersection area matches (hole is preserved)") {
                 ExPolygon match({ { 20, 18 }, { 10, 18 }, { 10, 12 }, { 20, 12 } },
                                 { { 14, 16 }, { 16, 16 }, { 16, 14 }, { 14, 14 } });
@@ -203,7 +203,7 @@ SCENARIO("Various Clipper operations - t/clipper.t", "[ClipperUtils]") {
             }
         }
         WHEN("diff_ex with another square") {
-			ExPolygons diff = Slic3r::diff_ex({ square, square2 }, { hole });
+			ExPolygons diff = Slic3r::diff_ex(Polygons{ square, square2 }, Polygons{ hole });
             THEN("difference of a cw from two ccw is a contour with one hole") {
                 REQUIRE(diff.size() == 1);
                 REQUIRE(diff.front().area() == Approx(ExPolygon({ {40, 40}, {0, 40}, {0, 0}, {40, 0} }, { {15, 25}, {25, 25}, {25, 15}, {15, 15} }).area()));
@@ -214,7 +214,7 @@ SCENARIO("Various Clipper operations - t/clipper.t", "[ClipperUtils]") {
         Slic3r::Polygon  square { { 10, 10 }, { 20, 10 }, { 20, 20 }, { 10, 20 } };
         Slic3r::Polyline square_pl = square.split_at_first_point();
         WHEN("no-op diff_pl") {
-            Slic3r::Polylines res = Slic3r::diff_pl({ square_pl }, {});
+            Slic3r::Polylines res = Slic3r::diff_pl({ square_pl }, Polygons{});
             THEN("returns the right number of polylines") {
                 REQUIRE(res.size() == 1);
             }

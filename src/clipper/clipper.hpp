@@ -191,9 +191,7 @@ double Area(const Path &poly);
 inline bool Orientation(const Path &poly) { return Area(poly) >= 0; }
 int PointInPolygon(const IntPoint &pt, const Path &path);
 
-void SimplifyPolygon(const Path &in_poly, Paths &out_polys, PolyFillType fillType = pftEvenOdd);
-void SimplifyPolygons(const Paths &in_polys, Paths &out_polys, PolyFillType fillType = pftEvenOdd);
-void SimplifyPolygons(Paths &polys, PolyFillType fillType = pftEvenOdd);
+Paths SimplifyPolygon(const Path &in_poly, PolyFillType fillType = pftEvenOdd);
 
 void CleanPolygon(const Path& in_poly, Path& out_poly, double distance = 1.415);
 void CleanPolygon(Path& poly, double distance = 1.415);
@@ -300,7 +298,58 @@ public:
     m_HasOpenPaths(false) {}
   ~ClipperBase() { Clear(); }
   bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
-  bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
+
+  template<typename PathsProvider>
+  bool AddPaths(PathsProvider &&paths_provider, PolyType PolyTyp, bool Closed)
+  {
+    size_t num_paths = paths_provider.size();
+    if (num_paths == 0)
+        return false;
+    if (num_paths == 1)
+        return AddPath(*paths_provider.begin(), PolyTyp, Closed);
+
+    std::vector<int> num_edges(num_paths, 0);
+    int num_edges_total = 0;
+    size_t i = 0;
+    for (const Path &pg : paths_provider) {
+      // Remove duplicate end point from a closed input path.
+      // Remove duplicate points from the end of the input path.
+      int highI = (int)pg.size() -1;
+      if (Closed) 
+        while (highI > 0 && (pg[highI] == pg[0])) 
+          --highI;
+      while (highI > 0 && (pg[highI] == pg[highI -1])) 
+        --highI;
+      if ((Closed && highI < 2) || (!Closed && highI < 1))
+        highI = -1;
+      num_edges[i ++] = highI + 1;
+      num_edges_total += highI + 1;
+    }
+    if (num_edges_total == 0)
+      return false;
+
+    // Allocate a new edge array.
+    std::vector<TEdge> edges(num_edges_total);
+    // Fill in the edge array.
+    bool result = false;
+    TEdge *p_edge = edges.data();
+    i = 0;
+    for (const Path &pg : paths_provider) {
+      if (num_edges[i]) {
+        bool res = AddPathInternal(pg, num_edges[i] - 1, PolyTyp, Closed, p_edge);
+        if (res) {
+          p_edge += num_edges[i];
+          result = true;
+        }
+      }
+      ++ i;
+    }
+    if (result)
+      // At least some edges were generated. Remember the edge array.
+      m_edges.emplace_back(std::move(edges));
+    return result;
+  }
+
   void Clear();
   IntRect GetBounds();
   // By default, when three or more vertices are collinear in input polygons (subject or clip), the Clipper object removes the 'inner' vertices before clipping.
@@ -461,7 +510,11 @@ public:
     MiterLimit(miterLimit), ArcTolerance(roundPrecision), ShortestEdgeLength(shortestEdgeLength), m_lowest(-1, 0) {}
   ~ClipperOffset() { Clear(); }
   void AddPath(const Path& path, JoinType joinType, EndType endType);
-  void AddPaths(const Paths& paths, JoinType joinType, EndType endType);
+  template<typename PathsProvider>
+  void AddPaths(PathsProvider &&paths, JoinType joinType, EndType endType) {
+    for (const Path &path : paths)
+      AddPath(path, joinType, endType);
+  }
   void Execute(Paths& solution, double delta);
   void Execute(PolyTree& solution, double delta);
   void Clear();
@@ -497,6 +550,16 @@ class clipperException : public std::exception
     std::string m_descr;
 };
 //------------------------------------------------------------------------------
+
+template<typename PathsProvider>
+inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = pftEvenOdd) {
+    Clipper c;
+    c.StrictlySimple(true);
+    c.AddPaths(std::forward<PathsProvider>(in_polys), ptSubject, true);
+    Paths out;
+    c.Execute(ctUnion, out, fillType, fillType);
+    return out;
+}
 
 } //ClipperLib namespace
 

@@ -179,9 +179,8 @@ static std::vector<SupportPointGenerator::MyLayer> make_layers(
               }
           }
           if (! top.islands_below.empty()) {
-              Polygons top_polygons    = to_polygons(*top.polygon);
               Polygons bottom_polygons = top.polygons_below();
-              top.overhangs = diff_ex(top_polygons, bottom_polygons);
+              top.overhangs = diff_ex(*top.polygon, bottom_polygons);
               if (! top.overhangs.empty()) {
 
                   // Produce 2 bands around the island, a safe band for dangling overhangs
@@ -191,7 +190,7 @@ static std::vector<SupportPointGenerator::MyLayer> make_layers(
                   auto overh_mask = offset(bottom_polygons, slope_offset, ClipperLib::jtSquare);
 
                   // Absolutely hopeless overhangs are those outside the unsafe band
-                  top.overhangs = diff_ex(top_polygons, overh_mask);
+                  top.overhangs = diff_ex(*top.polygon, overh_mask);
 
                   // Now cut out the supported core from the safe band
                   // and cut the safe band from the unsafe band to get distinct
@@ -199,8 +198,8 @@ static std::vector<SupportPointGenerator::MyLayer> make_layers(
                   overh_mask = diff(overh_mask, dangl_mask);
                   dangl_mask = diff(dangl_mask, bottom_polygons);
 
-                  top.dangling_areas = intersection_ex(top_polygons, dangl_mask);
-                  top.overhangs_slopes = intersection_ex(top_polygons, overh_mask);
+                  top.dangling_areas = intersection_ex(*top.polygon, dangl_mask);
+                  top.overhangs_slopes = intersection_ex(*top.polygon, overh_mask);
 
                   top.overhangs_area = 0.f;
                   std::vector<std::pair<ExPolygon*, float>> expolys_with_areas;

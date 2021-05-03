@@ -1804,9 +1804,9 @@ void TriangleMeshSlicer::make_expolygons(const Polygons &loops, const float clos
     
     // append to the supplied collection
     if (safety_offset > 0)
-        expolygons_append(*slices, offset2_ex(union_ex(loops, false), +safety_offset, -safety_offset));
+        expolygons_append(*slices, offset2_ex(union_ex(loops), +safety_offset, -safety_offset));
     else
-        expolygons_append(*slices, union_ex(loops, false));
+        expolygons_append(*slices, union_ex(loops));
 }
 
 void TriangleMeshSlicer::make_expolygons(std::vector<IntersectionLine> &lines, const float closing_radius, ExPolygons* slices) const
