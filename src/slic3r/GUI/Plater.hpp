@@ -202,6 +202,7 @@ public:
     bool is_selection_empty() const;
     void scale_selection_to_fit_print_volume();
     void convert_unit(ConversionType conv_type);
+    void toggle_layers_editing(bool enable);
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 
@@ -276,7 +277,7 @@ public:
     BoundingBoxf bed_shape_bb() const;
     
     void arrange();
-    void find_new_position(const ModelInstancePtrs  &instances, coord_t min_d);
+    void find_new_position(const ModelInstancePtrs  &instances);
 
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();

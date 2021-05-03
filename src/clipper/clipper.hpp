@@ -37,10 +37,12 @@
 #include <inttypes.h>
 #include <functional>
 
+#include <Eigen/Geometry> 
+
 #define CLIPPER_VERSION "6.2.6"
 
-//use_xyz: adds a Z member to IntPoint. Adds a minor cost to perfomance.
-//#define use_xyz
+//CLIPPERLIB_USE_XYZ: adds a Z member to IntPoint. Adds a minor cost to perfomance.
+//#define CLIPPERLIB_USE_XYZ
 
 //use_lines: Enables line clipping. Adds a very minor cost to performance.
 #define use_lines
@@ -57,11 +59,15 @@
 #include <functional>
 #include <queue>
 
-#ifdef use_xyz
-namespace ClipperLib_Z {
-#else /* use_xyz */
-namespace ClipperLib {
-#endif /* use_xyz */
+#ifdef CLIPPERLIB_NAMESPACE_PREFIX
+  namespace CLIPPERLIB_NAMESPACE_PREFIX {
+#endif // CLIPPERLIB_NAMESPACE_PREFIX
+
+#ifdef CLIPPERLIB_USE_XYZ
+  namespace ClipperLib_Z {
+#else
+  namespace ClipperLib {
+#endif
 
 enum ClipType { ctIntersection, ctUnion, ctDifference, ctXor };
 enum PolyType { ptSubject, ptClip };
@@ -71,36 +77,41 @@ enum PolyType { ptSubject, ptClip };
 //see http://glprogramming.com/red/chapter11.html
 enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 
+// If defined, Clipper will work with 32bit signed int coordinates to reduce memory
+// consumption and to speed up exact orientation predicate calculation.
+// In that case, coordinates and their differences (vectors of the coordinates) have to fit int32_t.
+#define CLIPPERLIB_INT32
+
 // Point coordinate type
-typedef int64_t cInt;
-// Maximum cInt value to allow a cross product calculation using 32bit expressions.
-static cInt const loRange = 0x3FFFFFFF;
-// Maximum allowed cInt value.
-static cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
-
-struct IntPoint {
-  cInt X;
-  cInt Y;
-#ifdef use_xyz
-  cInt Z;
-  IntPoint(cInt x = 0, cInt y = 0, cInt z = 0): X(x), Y(y), Z(z) {};
+#ifdef CLIPPERLIB_INT32
+  // Coordinates and their differences (vectors of the coordinates) have to fit int32_t.
+  typedef int32_t cInt;
 #else
-  IntPoint(cInt x = 0, cInt y = 0): X(x), Y(y) {};
-#endif
+  typedef int64_t cInt;
+  // Maximum cInt value to allow a cross product calculation using 32bit expressions.
+  static constexpr cInt const loRange = 0x3FFFFFFF; // 0x3FFFFFFF = 1 073 741 823
+  // Maximum allowed cInt value.
+  static constexpr cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
+#endif // CLIPPERLIB_INT32
 
-  friend inline bool operator== (const IntPoint& a, const IntPoint& b)
-  {
-    return a.X == b.X && a.Y == b.Y;
-  }
-  friend inline bool operator!= (const IntPoint& a, const IntPoint& b)
-  {
-    return a.X != b.X  || a.Y != b.Y; 
-  }
-};
+#ifdef CLIPPERLIB_INTPOINT_TYPE
+using IntPoint = CLIPPERLIB_INTPOINT_TYPE;
+#else // CLIPPERLIB_INTPOINT_TYPE
+using IntPoint = Eigen::Matrix<cInt, 
+#ifdef CLIPPERLIB_USE_XYZ
+  3
+#else // CLIPPERLIB_USE_XYZ
+  2
+#endif // CLIPPERLIB_USE_XYZ
+  , 1, Eigen::DontAlign>;
+#endif // CLIPPERLIB_INTPOINT_TYPE
+
+using DoublePoint = Eigen::Matrix<double, 2, 1, Eigen::DontAlign>;
+
 //------------------------------------------------------------------------------
 
-typedef std::vector< IntPoint > Path;
-typedef std::vector< Path > Paths;
+typedef std::vector<IntPoint> Path;
+typedef std::vector<Path> Paths;
 
 inline Path& operator <<(Path& poly, const IntPoint& p) {poly.push_back(p); return poly;}
 inline Paths& operator <<(Paths& polys, const Path& p) {polys.push_back(p); return polys;}
@@ -109,16 +120,9 @@ std::ostream& operator <<(std::ostream &s, const IntPoint &p);
 std::ostream& operator <<(std::ostream &s, const Path &p);
 std::ostream& operator <<(std::ostream &s, const Paths &p);
 
-struct DoublePoint
-{
-  double X;
-  double Y;
-  DoublePoint(double x = 0, double y = 0) : X(x), Y(y) {}
-  DoublePoint(IntPoint ip) : X((double)ip.X), Y((double)ip.Y) {}
-};
 //------------------------------------------------------------------------------
 
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
 typedef std::function<void(const IntPoint& e1bot, const IntPoint& e1top, const IntPoint& e2bot, const IntPoint& e2top, IntPoint& pt)> ZFillCallback;
 #endif
 
@@ -187,9 +191,7 @@ double Area(const Path &poly);
 inline bool Orientation(const Path &poly) { return Area(poly) >= 0; }
 int PointInPolygon(const IntPoint &pt, const Path &path);
 
-void SimplifyPolygon(const Path &in_poly, Paths &out_polys, PolyFillType fillType = pftEvenOdd);
-void SimplifyPolygons(const Paths &in_polys, Paths &out_polys, PolyFillType fillType = pftEvenOdd);
-void SimplifyPolygons(Paths &polys, PolyFillType fillType = pftEvenOdd);
+Paths SimplifyPolygon(const Path &in_poly, PolyFillType fillType = pftEvenOdd);
 
 void CleanPolygon(const Path& in_poly, Path& out_poly, double distance = 1.415);
 void CleanPolygon(Path& poly, double distance = 1.415);
@@ -259,11 +261,11 @@ enum EdgeSide { esLeft = 1, esRight = 2};
   };
 
   // Point of an output polygon.
-  // 36B on 64bit system without use_xyz.
+  // 36B on 64bit system without CLIPPERLIB_USE_XYZ.
   struct OutPt {
     // 4B
     int       Idx;
-    // 16B without use_xyz / 24B with use_xyz
+    // 16B without CLIPPERLIB_USE_XYZ / 24B with CLIPPERLIB_USE_XYZ
     IntPoint  Pt;
     // 4B on 32bit system, 8B on 64bit system
     OutPt    *Next;
@@ -289,10 +291,65 @@ enum EdgeSide { esLeft = 1, esRight = 2};
 class ClipperBase
 {
 public:
-  ClipperBase() : m_UseFullRange(false), m_HasOpenPaths(false) {}
+  ClipperBase() : 
+#ifndef CLIPPERLIB_INT32
+    m_UseFullRange(false), 
+#endif // CLIPPERLIB_INT32
+    m_HasOpenPaths(false) {}
   ~ClipperBase() { Clear(); }
   bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
-  bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
+
+  template<typename PathsProvider>
+  bool AddPaths(PathsProvider &&paths_provider, PolyType PolyTyp, bool Closed)
+  {
+    size_t num_paths = paths_provider.size();
+    if (num_paths == 0)
+        return false;
+    if (num_paths == 1)
+        return AddPath(*paths_provider.begin(), PolyTyp, Closed);
+
+    std::vector<int> num_edges(num_paths, 0);
+    int num_edges_total = 0;
+    size_t i = 0;
+    for (const Path &pg : paths_provider) {
+      // Remove duplicate end point from a closed input path.
+      // Remove duplicate points from the end of the input path.
+      int highI = (int)pg.size() -1;
+      if (Closed) 
+        while (highI > 0 && (pg[highI] == pg[0])) 
+          --highI;
+      while (highI > 0 && (pg[highI] == pg[highI -1])) 
+        --highI;
+      if ((Closed && highI < 2) || (!Closed && highI < 1))
+        highI = -1;
+      num_edges[i ++] = highI + 1;
+      num_edges_total += highI + 1;
+    }
+    if (num_edges_total == 0)
+      return false;
+
+    // Allocate a new edge array.
+    std::vector<TEdge> edges(num_edges_total);
+    // Fill in the edge array.
+    bool result = false;
+    TEdge *p_edge = edges.data();
+    i = 0;
+    for (const Path &pg : paths_provider) {
+      if (num_edges[i]) {
+        bool res = AddPathInternal(pg, num_edges[i] - 1, PolyTyp, Closed, p_edge);
+        if (res) {
+          p_edge += num_edges[i];
+          result = true;
+        }
+      }
+      ++ i;
+    }
+    if (result)
+      // At least some edges were generated. Remember the edge array.
+      m_edges.emplace_back(std::move(edges));
+    return result;
+  }
+
   void Clear();
   IntRect GetBounds();
   // By default, when three or more vertices are collinear in input polygons (subject or clip), the Clipper object removes the 'inner' vertices before clipping.
@@ -310,9 +367,14 @@ protected:
   // Local minima (Y, left edge, right edge) sorted by ascending Y.
   std::vector<LocalMinimum> m_MinimaList;
 
+#ifdef CLIPPERLIB_INT32
+  static constexpr const bool m_UseFullRange = false;
+#else // CLIPPERLIB_INT32
   // True if the input polygons have abs values higher than loRange, but lower than hiRange.
   // False if the input polygons have abs values lower or equal to loRange.
   bool              m_UseFullRange;
+#endif // CLIPPERLIB_INT32
+
   // A vector of edges per each input path.
   std::vector<std::vector<TEdge>> m_edges;
   // Don't remove intermediate vertices of a collinear sequence of points.
@@ -349,7 +411,7 @@ public:
   bool StrictlySimple() const {return m_StrictSimple;};
   void StrictlySimple(bool value) {m_StrictSimple = value;};
   //set the callback function for z value filling on intersections (otherwise Z is 0)
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
   void ZFillFunction(ZFillCallback zFillFunc) { m_ZFill = zFillFunc; }
 #endif
 protected:
@@ -382,7 +444,7 @@ private:
   // Does the result go to a PolyTree or Paths?
   bool                  m_UsingPolyTree; 
   bool                  m_StrictSimple;
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
   ZFillCallback         m_ZFill; //custom callback 
 #endif
   void SetWindingCount(TEdge& edge) const;
@@ -435,7 +497,7 @@ private:
   void DoSimplePolygons();
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec) const;
   void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec) const;
-#ifdef use_xyz
+#ifdef CLIPPERLIB_USE_XYZ
   void SetZ(IntPoint& pt, TEdge& e1, TEdge& e2);
 #endif
 };
@@ -448,7 +510,11 @@ public:
     MiterLimit(miterLimit), ArcTolerance(roundPrecision), ShortestEdgeLength(shortestEdgeLength), m_lowest(-1, 0) {}
   ~ClipperOffset() { Clear(); }
   void AddPath(const Path& path, JoinType joinType, EndType endType);
-  void AddPaths(const Paths& paths, JoinType joinType, EndType endType);
+  template<typename PathsProvider>
+  void AddPaths(PathsProvider &&paths, JoinType joinType, EndType endType) {
+    for (const Path &path : paths)
+      AddPath(path, joinType, endType);
+  }
   void Execute(Paths& solution, double delta);
   void Execute(PolyTree& solution, double delta);
   void Clear();
@@ -485,8 +551,20 @@ class clipperException : public std::exception
 };
 //------------------------------------------------------------------------------
 
+template<typename PathsProvider>
+inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = pftEvenOdd) {
+    Clipper c;
+    c.StrictlySimple(true);
+    c.AddPaths(std::forward<PathsProvider>(in_polys), ptSubject, true);
+    Paths out;
+    c.Execute(ctUnion, out, fillType, fillType);
+    return out;
+}
+
 } //ClipperLib namespace
 
+#ifdef CLIPPERLIB_NAMESPACE_PREFIX
+} // namespace CLIPPERLIB_NAMESPACE_PREFIX
+#endif // CLIPPERLIB_NAMESPACE_PREFIX
+
 #endif //clipper_hpp
-
-

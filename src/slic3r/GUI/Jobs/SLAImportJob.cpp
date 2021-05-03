@@ -132,7 +132,8 @@ SLAImportJob::~SLAImportJob() = default;
 void SLAImportJob::process()
 {
     auto progr = [this](int s) {
-        if (s < 100) update_status(int(s), _(L("Importing SLA archive")));
+        if (s < 100)
+            update_status(int(s), _(L("Importing SLA archive")));
         return !was_canceled();
     };
     
@@ -178,7 +179,7 @@ void SLAImportJob::prepare()
     if (dlg.ShowModal() == wxID_OK) {
         auto path = dlg.get_path();
         auto nm = wxFileName(path);
-        p->path = !nm.Exists(wxFILE_EXISTS_REGULAR) ? "" : path.ToUTF8();
+        p->path = !nm.Exists(wxFILE_EXISTS_REGULAR) ? "" : nm.GetFullPath();
         p->sel  = dlg.get_selection();
         p->win  = dlg.get_marchsq_windowsize();
     } else {

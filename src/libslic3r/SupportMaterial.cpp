@@ -672,6 +672,7 @@ struct SupportGridParams {
         grid_resolution(object_config.support_material_spacing.value + support_material_flow.spacing()),
         support_angle(Geometry::deg2rad(object_config.support_material_angle.value)),
         extrusion_width(support_material_flow.spacing()),
+        support_material_closing_radius(object_config.support_material_closing_radius.value),
         expansion_to_slice(coord_t(support_material_flow.scaled_spacing() / 2 + 5)),
         expansion_to_propagate(-3) {}
 
@@ -679,6 +680,7 @@ struct SupportGridParams {
     double                  grid_resolution;
     double                  support_angle;
     double                  extrusion_width;
+    double                  support_material_closing_radius;
     coord_t                 expansion_to_slice;
     coord_t                 expansion_to_propagate;
 };
@@ -694,7 +696,9 @@ public:
         const SupportGridParams &params) :
         m_style(params.style),
         m_support_polygons(support_polygons), m_trimming_polygons(trimming_polygons),
-        m_support_spacing(params.grid_resolution), m_support_angle(params.support_angle)
+        m_support_spacing(params.grid_resolution), m_support_angle(params.support_angle),
+        m_extrusion_width(params.extrusion_width),
+        m_support_material_closing_radius(params.support_material_closing_radius)
     {
         switch (m_style) {
         case smsGrid:
@@ -811,7 +815,7 @@ public:
                     // Expanding, thus m_support_polygons are all inside islands.
                     union_ex(*m_support_polygons) :
                     // Shrinking, thus m_support_polygons may be trimmed a tiny bit by islands.
-                    intersection_ex(*m_support_polygons, to_polygons(islands)));
+                    intersection_ex(*m_support_polygons, islands));
 
             std::vector<std::pair<Point,bool>> samples_inside;
             for (ExPolygon &island : islands) {
@@ -878,9 +882,10 @@ public:
             return out;
         }
         case smsSnug:
-            // Just close the gaps.
-            float thr = scaled<float>(0.5);
-            return smooth_outward(offset(offset_ex(*m_support_polygons, thr), - thr), thr);
+            // Merge the support polygons by applying morphological closing and inwards smoothing.
+            auto closing_distance   = scaled<float>(m_support_material_closing_radius);
+            auto smoothing_distance = scaled<float>(m_extrusion_width);
+            return smooth_outward(offset(offset_ex(*m_support_polygons, closing_distance), - closing_distance), smoothing_distance);
         }
         assert(false);
         return Polygons();
@@ -927,7 +932,7 @@ public:
     }
 
     // Deserialization constructor
-	bool deserialize_(const std::string &path, int which = -1)
+    bool deserialize_(const std::string &path, int which = -1)
     {
         FILE *file = ::fopen(path.c_str(), "rb");
         if (file == nullptr)
@@ -956,7 +961,7 @@ public:
                 poly.points.emplace_back(Point(x * scale, y * scale));
             }
             if (which == -1 || which == i)
-				m_support_polygons_deserialized.emplace_back(std::move(poly));
+                m_support_polygons_deserialized.emplace_back(std::move(poly));
             printf("Polygon %d, area: %lf\n", i, area(poly.points));
         }
         ::fread(&n_polygons, 4, 1, file);
@@ -979,14 +984,14 @@ public:
         m_support_polygons_deserialized = simplify_polygons(m_support_polygons_deserialized, false);
         //m_support_polygons_deserialized = to_polygons(union_ex(m_support_polygons_deserialized, false));
 
-		// Create an EdgeGrid, initialize it with projection, initialize signed distance field.
-		coord_t grid_resolution = coord_t(scale_(m_support_spacing));
-		BoundingBox bbox = get_extents(*m_support_polygons);
+        // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
+        coord_t grid_resolution = coord_t(scale_(m_support_spacing));
+        BoundingBox bbox = get_extents(*m_support_polygons);
         bbox.offset(20);
-		bbox.align_to_grid(grid_resolution);
-		m_grid.set_bbox(bbox);
-		m_grid.create(*m_support_polygons, grid_resolution);
-		m_grid.calculate_sdf();
+        bbox.align_to_grid(grid_resolution);
+        m_grid.set_bbox(bbox);
+        m_grid.create(*m_support_polygons, grid_resolution);
+        m_grid.calculate_sdf();
         return true;
     }
 
@@ -1128,6 +1133,9 @@ private:
     coordf_t                m_support_angle;
     // X spacing of the support lines parallel with the Y axis.
     coordf_t                m_support_spacing;
+    coordf_t                m_extrusion_width;
+    // For snug supports: Morphological closing of support areas.
+    coordf_t                m_support_material_closing_radius;
 
 #ifdef SUPPORT_USE_AGG_RASTERIZER
     Vec2i                       m_grid_size;
@@ -1277,7 +1285,7 @@ namespace SupportMaterialInternal {
                     // Is the straight perimeter segment supported at both sides?
                     Point pts[2]       = { polyline.first_point(), polyline.last_point() };
                     bool  supported[2] = { false, false };
-					for (size_t i = 0; i < lower_layer.lslices.size() && ! (supported[0] && supported[1]); ++ i)
+                    for (size_t i = 0; i < lower_layer.lslices.size() && ! (supported[0] && supported[1]); ++ i)
                         for (int j = 0; j < 2; ++ j)
                             if (! supported[j] && lower_layer.lslices_bboxes[i].contains(pts[j]) && lower_layer.lslices[i].contains(pts[j]))
                                 supported[j] = true;
@@ -1429,7 +1437,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     0.5f * fw);
             // Overhang polygons for this layer and region.
             Polygons diff_polygons;
-            Polygons layerm_polygons = to_polygons(layerm->slices);
+            Polygons layerm_polygons = to_polygons(layerm->slices.surfaces);
             if (lower_layer_offset == 0.f) {
                 // Support everything.
                 diff_polygons = diff(layerm_polygons, lower_layer_polygons);
@@ -1461,13 +1469,13 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                         diff_polygons = diff(diff_polygons, annotations.buildplate_covered[layer_id]);
                     }
                     if (! diff_polygons.empty()) {
-    	                // Offset the support regions back to a full overhang, restrict them to the full overhang.
-    	                // This is done to increase size of the supporting columns below, as they are calculated by 
-    	                // propagating these contact surfaces downwards.
-    	                diff_polygons = diff(
-    	                    intersection(offset(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), 
-    	                    lower_layer_polygons);
-    				}
+                        // Offset the support regions back to a full overhang, restrict them to the full overhang.
+                        // This is done to increase size of the supporting columns below, as they are calculated by 
+                        // propagating these contact surfaces downwards.
+                        diff_polygons = diff(
+                            intersection(offset(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), 
+                            lower_layer_polygons);
+                    }
                 }
             }
 
@@ -1481,7 +1489,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                 // Subtracting them as they are may leave unwanted narrow
                 // residues of diff_polygons that would then be supported.
                 diff_polygons = diff(diff_polygons,
-                    offset(union_(to_polygons(std::move(annotations.blockers_layers[layer_id]))), float(1000.*SCALED_EPSILON)));
+                    offset(union_(annotations.blockers_layers[layer_id]), float(1000.*SCALED_EPSILON)));
             }
 
             #ifdef SLIC3R_DEBUG
@@ -1530,7 +1538,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     slices_margin.offset = slices_margin_offset;
                     slices_margin.polygons = (slices_margin_offset == 0.f) ?
                         lower_layer_polygons :
-                        offset2(to_polygons(lower_layer.lslices), - no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                        offset2(lower_layer.lslices, - no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                     if (buildplate_only && ! annotations.buildplate_covered[layer_id].empty()) {
                         if (has_enforcer)
                             // Make a backup of trimming polygons before enforcing "on build plate only".
@@ -1561,9 +1569,9 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
         if (has_enforcer) {
             // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
 #ifdef SLIC3R_DEBUG
-            ExPolygons enforcers_united = union_ex(to_polygons(annotations.enforcers_layers[layer_id]), false);
+            ExPolygons enforcers_united = union_ex(annotations.enforcers_layers[layer_id]);
 #endif // SLIC3R_DEBUG
-            enforcer_polygons = diff(intersection(to_polygons(layer.lslices), to_polygons(std::move(annotations.enforcers_layers[layer_id]))),
+            enforcer_polygons = diff(intersection(layer.lslices, annotations.enforcers_layers[layer_id]),
                 // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
                 offset(lower_layer_polygons, 0.05f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS));
 #ifdef SLIC3R_DEBUG
@@ -1607,7 +1615,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         height   = layer.lower_layer->height;
         bottom_z = (layer_id == 1) ? slicing_params.object_print_z_min : layer.lower_layer->lower_layer->print_z;
     } else {
-        print_z  = layer.bottom_z() - slicing_params.gap_object_support;
+        print_z  = layer.bottom_z() - slicing_params.gap_support_object;
         bottom_z = print_z;
         height   = 0.;
         // Ignore this contact area if it's too low.
@@ -2764,8 +2772,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                                 break;
                             some_region_overlaps = true;
                             polygons_append(polygons_trimming, 
-                                offset(to_expolygons(region->fill_surfaces.filter_by_type(stBottomBridge)), 
-                                       gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                                offset(region->fill_surfaces.filter_by_type(stBottomBridge), gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                             if (region->region()->config().overhangs.value)
                                 // Add bridging perimeters.
                                 SupportMaterialInternal::collect_bridging_perimeter_areas(region->perimeters, gap_xy_scaled, polygons_trimming);
@@ -2898,9 +2905,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
             //FIXME misusing contact_polygons for support columns.
             new_layer.contact_polygons = std::make_unique<Polygons>(columns);
         }
-    } else if (columns_base != nullptr) {
+    } else {
+        if (columns_base != nullptr) {
         // Expand the bases of the support columns in the 1st layer.
-        {
             Polygons &raft     = columns_base->polygons;
             Polygons  trimming = offset(m_object->layers().front()->lslices, (float)scale_(m_support_params.gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS);
             if (inflate_factor_1st_layer > SCALED_EPSILON) {
@@ -2911,11 +2918,12 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
                     raft = diff(offset(raft, step), trimming);
             } else
                 raft = diff(raft, trimming);
+            if (contacts != nullptr)
+                columns_base->polygons = diff(columns_base->polygons, interface_polygons);
         }
-        if (contacts != nullptr)
-            columns_base->polygons = diff(columns_base->polygons, interface_polygons);
         if (! brim.empty()) {
-            columns_base->polygons = diff(columns_base->polygons, brim);
+            if (columns_base)
+                columns_base->polygons = diff(columns_base->polygons, brim);
             if (contacts)
                 contacts->polygons = diff(contacts->polygons, brim);
             if (interfaces)
@@ -3084,8 +3092,8 @@ static inline void fill_expolygon_generate_paths(
     Polylines polylines;
     try {
         polylines = filler->fill_surface(&surface, fill_params);
-	} catch (InfillFailedException &) {
-	}
+    } catch (InfillFailedException &) {
+    }
     extrusion_entities_append_paths(
         dst,
         std::move(polylines),
@@ -3166,7 +3174,7 @@ static inline void fill_expolygons_with_sheath_generate_paths(
         extrusion_entities_append_paths(out, polylines, erSupportMaterial, flow.mm3_per_mm(), flow.width(), flow.height());
         // Fill in the rest.
         fill_expolygons_generate_paths(out, offset_ex(expoly, float(-0.4 * spacing)), filler, fill_params, density, role, flow);
-        if (no_sort)
+        if (no_sort && ! eec->empty())
             dst.emplace_back(eec.release());
     }
 }
@@ -3174,8 +3182,13 @@ static inline void fill_expolygons_with_sheath_generate_paths(
 // Support layers, partially processed.
 struct MyLayerExtruded
 {
-    MyLayerExtruded() : layer(nullptr), m_polygons_to_extrude(nullptr) {}
-    ~MyLayerExtruded() { delete m_polygons_to_extrude; m_polygons_to_extrude = nullptr; }
+    MyLayerExtruded& operator=(MyLayerExtruded &&rhs) {
+        this->layer = rhs.layer;
+        this->extrusions = std::move(rhs.extrusions);
+        this->m_polygons_to_extrude = std::move(rhs.m_polygons_to_extrude);
+        rhs.layer = nullptr;
+        return *this;
+    }
 
     bool empty() const {
         return layer == nullptr || layer->polygons.empty();
@@ -3183,7 +3196,7 @@ struct MyLayerExtruded
 
     void set_polygons_to_extrude(Polygons &&polygons) { 
         if (m_polygons_to_extrude == nullptr) 
-            m_polygons_to_extrude = new Polygons(std::move(polygons)); 
+            m_polygons_to_extrude = std::make_unique<Polygons>(std::move(polygons));
         else
             *m_polygons_to_extrude = std::move(polygons);
     }
@@ -3204,12 +3217,11 @@ struct MyLayerExtruded
             if (m_polygons_to_extrude == nullptr) {
                 // This layer has no extrusions generated yet, if it has no m_polygons_to_extrude (its area to extrude was not reduced yet).
                 assert(this->extrusions.empty());
-                m_polygons_to_extrude = new Polygons(this->layer->polygons);
+                m_polygons_to_extrude = std::make_unique<Polygons>(this->layer->polygons);
             }
             Slic3r::polygons_append(*m_polygons_to_extrude, std::move(*other.m_polygons_to_extrude));
             *m_polygons_to_extrude = union_(*m_polygons_to_extrude, true);
-            delete other.m_polygons_to_extrude;
-            other.m_polygons_to_extrude = nullptr;
+            other.m_polygons_to_extrude.reset();
         } else if (m_polygons_to_extrude != nullptr) {
             assert(other.m_polygons_to_extrude == nullptr);
             // The other layer has no extrusions generated yet, if it has no m_polygons_to_extrude (its area to extrude was not reduced yet).
@@ -3232,12 +3244,14 @@ struct MyLayerExtruded
     }
 
     // The source layer. It carries the height and extrusion type (bridging / non bridging, extrusion height).
-    PrintObjectSupportMaterial::MyLayer  *layer;
+    PrintObjectSupportMaterial::MyLayer  *layer { nullptr };
     // Collect extrusions. They will be exported sorted by the bottom height.
     ExtrusionEntitiesPtr                  extrusions;
+
+private:
     // In case the extrusions are non-empty, m_polygons_to_extrude may contain the rest areas yet to be filled by additional support.
     // This is useful mainly for the loop interfaces, which are generated before the zig-zag infills.
-    Polygons                             *m_polygons_to_extrude;
+    std::unique_ptr<Polygons>             m_polygons_to_extrude;
 };
 
 typedef std::vector<MyLayerExtruded*> MyLayerExtrudedPtrs;
@@ -3763,7 +3777,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     // Prepare fillers.
     SupportMaterialPattern  support_pattern = m_object_config->support_material_pattern;
     bool                    with_sheath     = m_object_config->support_material_with_sheath;
-    InfillPattern           infill_pattern = (support_pattern == smpHoneycomb ? ipHoneycomb : ipRectilinear);
+    InfillPattern           infill_pattern = (support_pattern == smpHoneycomb ? ipHoneycomb : ipSupportBase);
     std::vector<float>      angles;
     angles.push_back(base_angle);
 
@@ -3900,7 +3914,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             std::stable_sort(this->nonempty.begin(), this->nonempty.end(), [](const LayerCacheItem &lc1, const LayerCacheItem &lc2) { return lc1.layer_extruded->layer->height > lc2.layer_extruded->layer->height; });
         }
     };
-    std::vector<LayerCache>             layer_caches(support_layers.size(), LayerCache());
+    std::vector<LayerCache>             layer_caches(support_layers.size());
 
 
     const auto fill_type_interface  = 
@@ -4152,6 +4166,27 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             }
         }
     });
+
+#ifndef NDEBUG
+    struct Test {
+        static bool verify_nonempty(const ExtrusionEntityCollection *collection) {
+            for (const ExtrusionEntity *ee : collection->entities) {
+                if (const ExtrusionPath *path = dynamic_cast<const ExtrusionPath*>(ee))
+                    assert(! path->empty());
+                else if (const ExtrusionMultiPath *multipath = dynamic_cast<const ExtrusionMultiPath*>(ee))
+                    assert(! multipath->empty());
+                else if (const ExtrusionEntityCollection *eecol = dynamic_cast<const ExtrusionEntityCollection*>(ee)) {
+                    assert(! eecol->empty());
+                    return verify_nonempty(eecol);
+                } else
+                    assert(false);
+            }
+            return true;
+        }
+    };
+    for (const SupportLayer *support_layer : support_layers)
+    assert(Test::verify_nonempty(&support_layer->support_fills));
+#endif // NDEBUG
 }
 
 /*

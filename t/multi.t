@@ -181,7 +181,7 @@ use Slic3r::Test;
     my $config = Slic3r::Config::new_from_defaults;
     $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('layer_height', 0.4);
-    $config->set('first_layer_height', '100%');
+    $config->set('first_layer_height', $config->layer_height);
     $config->set('skirts', 0);
     my $print = Slic3r::Test::init_print($model, config => $config);
     

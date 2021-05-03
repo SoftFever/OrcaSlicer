@@ -83,8 +83,8 @@ inline bool operator!=(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.
 inline size_t number_polygons(const ExPolygons &expolys)
 {
     size_t n_polygons = 0;
-    for (ExPolygons::const_iterator it = expolys.begin(); it != expolys.end(); ++ it)
-        n_polygons += it->holes.size() + 1;
+    for (const ExPolygon &ex : expolys)
+        n_polygons += ex.holes.size() + 1;
     return n_polygons;
 }
 
@@ -217,6 +217,28 @@ inline Polygons to_polygons(const ExPolygons &src)
     return polygons;
 }
 
+inline ConstPolygonPtrs to_polygon_ptrs(const ExPolygon &src)
+{
+    ConstPolygonPtrs polygons;
+    polygons.reserve(src.holes.size() + 1);
+    polygons.emplace_back(&src.contour);
+    for (const Polygon &hole : src.holes)
+        polygons.emplace_back(&hole);
+    return polygons;
+}
+
+inline ConstPolygonPtrs to_polygon_ptrs(const ExPolygons &src)
+{
+    ConstPolygonPtrs polygons;
+    polygons.reserve(number_polygons(src));
+    for (const ExPolygon &expoly : src) {
+        polygons.emplace_back(&expoly.contour);
+        for (const Polygon &hole : expoly.holes)
+            polygons.emplace_back(&hole);
+    }
+    return polygons;
+}
+
 inline Polygons to_polygons(ExPolygon &&src)
 {
     Polygons polygons;
@@ -337,6 +359,8 @@ extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons);
 
 extern bool        remove_sticks(ExPolygon &poly);
 extern void 	   keep_largest_contour_only(ExPolygons &polygons);
+
+inline double area(const ExPolygon &poly) { return poly.area(); }
 
 inline double area(const ExPolygons &polys)
 {

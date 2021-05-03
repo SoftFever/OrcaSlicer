@@ -2,6 +2,7 @@
 #define slic3r_GLGizmoRotate_hpp_
 
 #include "GLGizmoBase.hpp"
+#include "../Jobs/RotoptimizeJob.hpp"
 
 
 namespace Slic3r {
@@ -136,6 +137,39 @@ protected:
     }
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
+
+private:
+
+    class RotoptimzeWindow {
+        ImGuiWrapper *m_imgui = nullptr;
+
+        static const char * options [];
+        static bool options_valid;
+
+    public:
+
+        struct State {
+            float  accuracy  = 1.f;
+            int    method_id = 0;
+        };
+
+        struct Alignment { float x, y, bottom_limit; };
+
+        RotoptimzeWindow(ImGuiWrapper *   imgui,
+                         State &          state,
+                         const Alignment &bottom_limit);
+
+        ~RotoptimzeWindow();
+
+        RotoptimzeWindow(const RotoptimzeWindow&) = delete;
+        RotoptimzeWindow(RotoptimzeWindow &&) = delete;
+        RotoptimzeWindow& operator=(const RotoptimzeWindow &) = delete;
+        RotoptimzeWindow& operator=(RotoptimzeWindow &&) = delete;
+    };
+
+    RotoptimzeWindow::State m_rotoptimizewin_state = {};
+
+    void load_rotoptimize_state();
 };
 
 } // namespace GUI

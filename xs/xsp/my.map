@@ -211,8 +211,8 @@ FlowRole     T_UV
 PrintStep     T_UV
 PrintObjectStep     T_UV
 SurfaceType     T_UV
-ClipperLib::JoinType		T_UV
-ClipperLib::PolyFillType		T_UV
+Slic3r::ClipperLib::JoinType		T_UV
+Slic3r::ClipperLib::PolyFillType		T_UV
 
 # we return these types whenever we want the items to be cloned
 Points          T_ARRAYREF

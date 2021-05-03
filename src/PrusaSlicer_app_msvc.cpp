@@ -217,6 +217,11 @@ int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, 
 int wmain(int argc, wchar_t **argv)
 {
 #endif
+    // Allow the asserts to open message box, such message box allows to ignore the assert and continue with the application.
+    // Without this call, the seemingly same message box is being opened by the abort() function, but that is too late and
+    // the application will be killed even if "Ignore" button is pressed.
+    _set_error_mode(_OUT_TO_MSGBOX);
+
     std::vector<wchar_t*> argv_extended;
     argv_extended.emplace_back(argv[0]);
 

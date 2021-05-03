@@ -51,6 +51,9 @@ void PreferencesDialog::build()
 	auto app_config = get_app_config();
 
 	wxNotebook* tabs = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+#ifdef __WXMSW__
+    tabs->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
 
 	// Add "General" tab
 	m_optgroup_general = create_options_tab(_L("General"), tabs);

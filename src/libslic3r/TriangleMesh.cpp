@@ -357,10 +357,14 @@ void TriangleMesh::transform(const Transform3d& t, bool fix_left_handed)
     its_transform(its, t);
 	if (fix_left_handed && t.matrix().block(0, 0, 3, 3).determinant() < 0.) {
 		// Left handed transformation is being applied. It is a good idea to flip the faces and their normals.
-		this->repair(false);
-		stl_reverse_all_facets(&stl);
-		this->its.clear();
-		this->require_shared_vertices();
+        // As for the assert: the repair function would fix the normals, reversing would
+        // break them again. The caller should provide a mesh that does not need repair.
+        // The repair call is left here so things don't break more than they were.
+        assert(this->repaired);
+        this->repair(false);
+        stl_reverse_all_facets(&stl);
+        this->its.clear();
+        this->require_shared_vertices();
 	}
 }
 
@@ -369,11 +373,12 @@ void TriangleMesh::transform(const Matrix3d& m, bool fix_left_handed)
     stl_transform(&stl, m);
     its_transform(its, m);
     if (fix_left_handed && m.determinant() < 0.) {
-        // Left handed transformation is being applied. It is a good idea to flip the faces and their normals.
+        // See comments in function above.
+        assert(this->repaired);
         this->repair(false);
         stl_reverse_all_facets(&stl);
-		this->its.clear();
-		this->require_shared_vertices();
+        this->its.clear();
+        this->require_shared_vertices();
     }
 }
 
@@ -511,20 +516,22 @@ void TriangleMesh::merge(const TriangleMesh &mesh)
 //FIXME This could be extremely slow! Use it for tiny meshes only!
 ExPolygons TriangleMesh::horizontal_projection() const
 {
-    Polygons pp;
-    pp.reserve(this->stl.stats.number_of_facets);
+    ClipperLib::Paths   paths;
+    Polygon             p;
+    p.points.assign(3, Point());
+    auto                delta = scaled<float>(0.01);
+    std::vector<float>  deltas { delta, delta, delta };
+    paths.reserve(this->stl.stats.number_of_facets);
 	for (const stl_facet &facet : this->stl.facet_start) {
-        Polygon p;
-        p.points.resize(3);
         p.points[0] = Point::new_scale(facet.vertex[0](0), facet.vertex[0](1));
         p.points[1] = Point::new_scale(facet.vertex[1](0), facet.vertex[1](1));
         p.points[2] = Point::new_scale(facet.vertex[2](0), facet.vertex[2](1));
-        p.make_counter_clockwise();  // do this after scaling, as winding order might change while doing that
-        pp.emplace_back(p);
+        p.make_counter_clockwise();
+        paths.emplace_back(mittered_offset_path_scaled(p.points, deltas, 3.));
     }
     
     // the offset factor was tuned using groovemount.stl
-    return union_ex(offset(pp, scale_(0.01)), true);
+    return ClipperPaths_to_Slic3rExPolygons(paths);
 }
 
 // 2D convex hull of a 3D mesh projected into the Z=0 plane.
@@ -1797,9 +1804,9 @@ void TriangleMeshSlicer::make_expolygons(const Polygons &loops, const float clos
     
     // append to the supplied collection
     if (safety_offset > 0)
-        expolygons_append(*slices, offset2_ex(union_(loops, false), +safety_offset, -safety_offset));
+        expolygons_append(*slices, offset2_ex(union_ex(loops), +safety_offset, -safety_offset));
     else
-        expolygons_append(*slices, union_ex(loops, false));
+        expolygons_append(*slices, union_ex(loops));
 }
 
 void TriangleMeshSlicer::make_expolygons(std::vector<IntersectionLine> &lines, const float closing_radius, ExPolygons* slices) const

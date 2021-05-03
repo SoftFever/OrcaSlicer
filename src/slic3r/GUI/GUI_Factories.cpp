@@ -858,10 +858,6 @@ void MenuFactory::create_sla_object_menu()
         []() { return plater()->can_split(true); }, m_parent);
 
     m_sla_object_menu.AppendSeparator();
-
-    // Add the automatic rotation sub-menu
-    append_menu_item(&m_sla_object_menu, wxID_ANY, _L("Optimize orientation"), _L("Optimize the rotation of the object for better print results."),
-        [](wxCommandEvent&) { plater()->optimize_rotation(); });
 }
 
 void MenuFactory::create_part_menu()

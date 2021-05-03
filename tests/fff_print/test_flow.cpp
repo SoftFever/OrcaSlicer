@@ -24,7 +24,7 @@ SCENARIO("Extrusion width specifics", "[Flow]") {
 			{ "skirts",				1 },
 			{ "perimeters",			3 },
 			{ "fill_density",		"40%" },
-			{ "first_layer_height", "100%" }
+			{ "first_layer_height", 0.3 }
 			});
 
         WHEN("first layer width set to 2mm") {

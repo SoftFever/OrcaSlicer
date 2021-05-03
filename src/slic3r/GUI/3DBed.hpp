@@ -48,7 +48,7 @@ class Bed3D
     private:
         Vec3d m_origin{ Vec3d::Zero() };
         float m_stem_length{ DefaultStemLength };
-        mutable GLModel m_arrow;
+        GLModel m_arrow;
 
     public:
         const Vec3d& get_origin() const { return m_origin; }
@@ -67,28 +67,28 @@ public:
     };
 
 private:
-    EType m_type;
+    EType m_type{ Custom };
     Pointfs m_shape;
     std::string m_texture_filename;
     std::string m_model_filename;
-    mutable BoundingBoxf3 m_bounding_box;
-    mutable BoundingBoxf3 m_extended_bounding_box;
+    BoundingBoxf3 m_bounding_box;
+    BoundingBoxf3 m_extended_bounding_box;
     Polygon m_polygon;
     GeometryBuffer m_triangles;
     GeometryBuffer m_gridlines;
-    mutable GLTexture m_texture;
-    mutable GLModel m_model;
-    mutable Vec3d m_model_offset{ Vec3d::Zero() };
-    std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
+    GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
-    mutable GLTexture m_temp_texture;
-    mutable unsigned int m_vbo_id;
+    GLTexture m_temp_texture;
+    GLModel m_model;
+    Vec3d m_model_offset{ Vec3d::Zero() };
+    std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
+    unsigned int m_vbo_id{ 0 };
     Axes m_axes;
 
-    mutable float m_scale_factor;
+    float m_scale_factor{ 1.0f };
 
 public:
-    Bed3D();
+    Bed3D() = default;
     ~Bed3D() { reset(); }
 
     EType get_type() const { return m_type; }

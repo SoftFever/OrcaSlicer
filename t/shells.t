@@ -84,7 +84,7 @@ use Slic3r::Test;
 {
     my $config = Slic3r::Config::new_from_defaults;
     $config->set('layer_height', 0.3);
-    $config->set('first_layer_height', '100%');
+    $config->set('first_layer_height', $config->layer_height);
     $config->set('bottom_solid_layers', 0);
     $config->set('top_solid_layers', 3);
     $config->set('cooling', [ 0 ]);
@@ -119,7 +119,7 @@ use Slic3r::Test;
     $config->set('cooling', [ 0 ]);             # prevent speed alteration
     $config->set('first_layer_speed', '100%');  # prevent speed alteration
     $config->set('layer_height', 0.4);
-    $config->set('first_layer_height', '100%');
+    $config->set('first_layer_height', $config->layer_height);
     $config->set('extrusion_width', 0.55);
     $config->set('bottom_solid_layers', 3);
     $config->set('top_solid_layers', 0);
@@ -142,7 +142,7 @@ use Slic3r::Test;
     $config->set('cooling', [ 0 ]);             # prevent speed alteration
     $config->set('first_layer_speed', '100%');  # prevent speed alteration
     $config->set('layer_height', 0.4);
-    $config->set('first_layer_height', '100%');
+    $config->set('first_layer_height', $config->layer_height);
     $config->set('bottom_solid_layers', 3);
     $config->set('top_solid_layers', 3);
     $config->set('solid_infill_speed', 99);
@@ -170,7 +170,7 @@ use Slic3r::Test;
     $config->set('spiral_vase', 1);
     $config->set('bottom_solid_layers', 0);
     $config->set('skirts', 0);
-    $config->set('first_layer_height', '100%');
+    $config->set('first_layer_height', $config->layer_height);
     $config->set('start_gcode', '');
     $config->set('temperature', [200]);
     $config->set('first_layer_temperature', [205]);
@@ -231,8 +231,8 @@ use Slic3r::Test;
     $config->set('bottom_solid_layers', 0);
     $config->set('retract_layer_change', [0]);
     $config->set('skirts', 0);
-    $config->set('first_layer_height', '100%');
     $config->set('layer_height', 0.4);
+    $config->set('first_layer_height', $config->layer_height);
     $config->set('start_gcode', '');
 #    $config->set('use_relative_e_distances', 1);
     $config->validate;
@@ -310,7 +310,7 @@ use Slic3r::Test;
 #    $config->set('spiral_vase', 1);
 #    $config->set('bottom_solid_layers', 0);
 #    $config->set('skirts', 0);
-#    $config->set('first_layer_height', '100%');
+#    $config->set('first_layer_height', $config->layer_height);
 #    $config->set('start_gcode', '');
 #    
 #    my $print = Slic3r::Test::init_print('two_hollow_squares', config => $config);

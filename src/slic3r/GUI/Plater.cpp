@@ -967,6 +967,10 @@ void Sidebar::msw_rescale()
 
 void Sidebar::sys_color_changed()
 {
+#ifdef __WXMSW__
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
+
     for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*>{  p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
@@ -975,6 +979,7 @@ void Sidebar::sys_color_changed()
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 
+    p->object_list->msw_rescale();
     p->object_list->sys_color_changed();
     p->object_manipulation->sys_color_changed();
     p->object_layers->sys_color_changed();
@@ -2439,6 +2444,29 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
+#if ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
+        for (size_t i = 0; i < object->instances.size(); ++i) {
+            ModelInstance* instance = object->instances[i];
+            const Vec3d size = object->instance_bounding_box(i).size();
+            const Vec3d ratio = size.cwiseQuotient(bed_size);
+            const double max_ratio = std::max(ratio(0), ratio(1));
+            if (max_ratio > 10000) {
+                // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
+                // so scale down the mesh
+                double inv = 1. / max_ratio;
+                object->scale_mesh_after_creation(inv * Vec3d::Ones());
+                object->origin_translation = Vec3d::Zero();
+                object->center_around_origin();
+                scaled_down = true;
+                break;
+            }
+            else if (max_ratio > 5) {
+                const Vec3d inverse = 1.0 / max_ratio * Vec3d::Ones();
+                instance->set_scaling_factor(inverse.cwiseProduct(instance->get_scaling_factor()));
+                scaled_down = true;
+            }
+        }
+#else
         const Vec3d size = object->bounding_box().size();
         const Vec3d ratio = size.cwiseQuotient(bed_size);
         const double max_ratio = std::max(ratio(0), ratio(1));
@@ -2457,6 +2485,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             }
             scaled_down = true;
         }
+#endif // ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
 
         object->ensure_on_bed();
     }
@@ -2701,32 +2730,36 @@ void Plater::priv::mirror(Axis axis)
     view3D->mirror_selection(axis);
 }
 
-void Plater::find_new_position(const ModelInstancePtrs &instances,
-                                     coord_t min_d)
+void Plater::find_new_position(const ModelInstancePtrs &instances)
 {
     arrangement::ArrangePolygons movable, fixed;
+    arrangement::ArrangeParams arr_params = get_arrange_params(this);
     
     for (const ModelObject *mo : p->model.objects)
-        for (const ModelInstance *inst : mo->instances) {
+        for (ModelInstance *inst : mo->instances) {
             auto it = std::find(instances.begin(), instances.end(), inst);
-            auto arrpoly = inst->get_arrange_polygon();
+            auto arrpoly = get_arrange_poly(inst, this);
 
             if (it == instances.end())
                 fixed.emplace_back(std::move(arrpoly));
-            else
+            else {
+                arrpoly.setter = [it](const arrangement::ArrangePolygon &p) {
+                    if (p.is_arranged() && p.bed_idx == 0) {
+                        Vec2d t = p.translation.cast<double>();
+                        (*it)->apply_arrange_result(t, p.rotation);
+                    }
+                };
                 movable.emplace_back(std::move(arrpoly));
+            }
         }
     
     if (auto wt = get_wipe_tower_arrangepoly(*this))
         fixed.emplace_back(*wt);
     
-    arrangement::arrange(movable, fixed, get_bed_shape(*config()),
-                         arrangement::ArrangeParams{min_d});
+    arrangement::arrange(movable, fixed, get_bed_shape(*config()), arr_params);
 
-    for (size_t i = 0; i < instances.size(); ++i)
-        if (movable[i].bed_idx == 0)
-            instances[i]->apply_arrange_result(movable[i].translation.cast<double>(),
-                                               movable[i].rotation);
+    for (auto & m : movable)
+        m.apply();
 }
 
 void Plater::priv::split_object()
@@ -5024,6 +5057,12 @@ void Plater::convert_unit(ConversionType conv_type)
     }
 }
 
+void Plater::toggle_layers_editing(bool enable)
+{
+    if (canvas3D()->is_layers_editing_enabled() != enable)
+        wxPostEvent(canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+}
+
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
 {
     wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
@@ -5136,6 +5175,30 @@ void Plater::export_stl(bool extended, bool selection_only)
     if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
         return;
 
+    // Following lambda generates a combined mesh for export with normals pointing outwards.
+    auto mesh_to_export = [](const ModelObject* mo, bool instances) -> TriangleMesh {
+        TriangleMesh mesh;
+        for (const ModelVolume *v : mo->volumes)
+            if (v->is_model_part()) {
+                TriangleMesh vol_mesh(v->mesh());
+                vol_mesh.repair();
+                vol_mesh.transform(v->get_matrix(), true);
+                mesh.merge(vol_mesh);
+            }
+        mesh.repair();
+        if (instances) {
+            TriangleMesh vols_mesh(mesh);
+            mesh = TriangleMesh();
+            for (const ModelInstance *i : mo->instances) {
+                TriangleMesh m = vols_mesh;
+                m.transform(i->get_matrix(), true);
+                mesh.merge(m);
+            }
+        }
+        mesh.repair();
+        return mesh;
+    };
+
     TriangleMesh mesh;
     if (p->printer_technology == ptFFF) {
         if (selection_only) {
@@ -5143,20 +5206,21 @@ void Plater::export_stl(bool extended, bool selection_only)
             if (selection.get_mode() == Selection::Instance)
             {
                 if (selection.is_single_full_object())
-                    mesh = model_object->mesh();
+                    mesh = mesh_to_export(model_object, true);
                 else
-                    mesh = model_object->full_raw_mesh();
+                    mesh = mesh_to_export(model_object, false);
             }
             else
             {
                 const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
                 mesh = model_object->volumes[volume->volume_idx()]->mesh();
-                mesh.transform(volume->get_volume_transformation().get_matrix());
+                mesh.transform(volume->get_volume_transformation().get_matrix(), true);
                 mesh.translate(-model_object->origin_translation.cast<float>());
             }
         }
         else {
-            mesh = p->model.mesh();
+            for (const ModelObject *o : p->model.objects)
+                mesh.merge(mesh_to_export(o, true));
         }
     }
     else

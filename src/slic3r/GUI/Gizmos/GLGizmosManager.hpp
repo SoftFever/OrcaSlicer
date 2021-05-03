@@ -171,6 +171,7 @@ public:
     void refresh_on_off_state();
     void reset_all_states();
     bool is_serializing() const { return m_serializing; }
+    bool open_gizmo(EType type);
 
     void set_hover_id(int id);
     void enable_grabber(EType type, unsigned int id, bool enable);
@@ -228,6 +229,7 @@ public:
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
     int get_selectable_icons_cnt() const { return get_selectable_idxs().size(); }
+    int get_shortcut_key(GLGizmosManager::EType) const;
 
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;

@@ -166,7 +166,7 @@ void FillGyroid::_fill_surface_single(
     coord_t     distance = coord_t(scale_(this->spacing) / density_adjusted);
 
     // align bounding box to a multiple of our grid module
-    bb.merge(_align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
+    bb.merge(align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
 
     // generate pattern
     Polylines polylines = make_gyroid_waves(
@@ -180,7 +180,7 @@ void FillGyroid::_fill_surface_single(
 	for (Polyline &pl : polylines)
 		pl.translate(bb.min);
 
-	polylines = intersection_pl(polylines, to_polygons(expolygon));
+	polylines = intersection_pl(polylines, expolygon);
 
     if (! polylines.empty()) {
 		// Remove very small bits, but be careful to not remove infill lines connecting thin walls!

@@ -1368,7 +1368,7 @@ void Filler::_fill_surface_single(
         all_polylines.reserve(lines.size());
         std::transform(lines.begin(), lines.end(), std::back_inserter(all_polylines), [](const Line& l) { return Polyline{ l.a, l.b }; });
         // Crop all polylines
-        all_polylines = intersection_pl(std::move(all_polylines), to_polygons(expolygon));
+        all_polylines = intersection_pl(std::move(all_polylines), expolygon);
 #endif
     }
 

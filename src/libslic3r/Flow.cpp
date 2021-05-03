@@ -89,18 +89,11 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 
 	if (opt->percent) {
 		auto opt_key_layer_height = first_layer ? "first_layer_height" : "layer_height";
-    	auto opt_layer_height = config.option(opt_key_layer_height);
+        auto opt_layer_height = config.option(opt_key_layer_height);
     	if (opt_layer_height == nullptr)
     		throw_on_missing_variable(opt_key, opt_key_layer_height);
-    	double layer_height = opt_layer_height->getFloat();
-    	if (first_layer && static_cast<const ConfigOptionFloatOrPercent*>(opt_layer_height)->percent) {
-    		// first_layer_height depends on layer_height.
-	    	opt_layer_height = config.option("layer_height");
-	    	if (opt_layer_height == nullptr)
-	    		throw_on_missing_variable(opt_key, "layer_height");
-	    	layer_height *= 0.01 * opt_layer_height->getFloat();
-    	}
-		return opt->get_abs_value(layer_height);
+        assert(! first_layer || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_layer_height)->percent);
+		return opt->get_abs_value(opt_layer_height->getFloat());
 	}
 
 	if (opt->value == 0.) {
@@ -238,13 +231,14 @@ Flow support_material_flow(const PrintObject *object, float layer_height)
 
 Flow support_material_1st_layer_flow(const PrintObject *object, float layer_height)
 {
-    const auto &width = (object->print()->config().first_layer_extrusion_width.value > 0) ? object->print()->config().first_layer_extrusion_width : object->config().support_material_extrusion_width;
+    const PrintConfig &print_config = object->print()->config();
+    const auto &width = (print_config.first_layer_extrusion_width.value > 0) ? print_config.first_layer_extrusion_width : object->config().support_material_extrusion_width;
     return Flow::new_from_config_width(
         frSupportMaterial,
         // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
         (width.value > 0) ? width : object->config().extrusion_width,
-        float(object->print()->config().nozzle_diameter.get_at(object->config().support_material_extruder-1)),
-        (layer_height > 0.f) ? layer_height : float(object->config().first_layer_height.get_abs_value(object->config().layer_height.value)));
+        float(print_config.nozzle_diameter.get_at(object->config().support_material_extruder-1)),
+        (layer_height > 0.f) ? layer_height : float(print_config.first_layer_height.get_abs_value(object->config().layer_height.value)));
 }
 
 Flow support_material_interface_flow(const PrintObject *object, float layer_height)

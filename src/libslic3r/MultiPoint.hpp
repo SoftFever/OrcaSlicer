@@ -64,6 +64,7 @@ public:
     bool has_duplicate_points() const;
     // Remove exact duplicates, return true if any duplicate has been removed.
     bool remove_duplicate_points();
+    void clear() { this->points.clear(); }
     void append(const Point &point) { this->points.push_back(point); }
     void append(const Points &src) { this->append(src.begin(), src.end()); }
     void append(const Points::const_iterator &begin, const Points::const_iterator &end) { this->points.insert(this->points.end(), begin, end); }
@@ -83,6 +84,13 @@ public:
 
     static Points _douglas_peucker(const Points &points, const double tolerance);
     static Points visivalingam(const Points& pts, const double& tolerance);
+
+    inline auto begin()        { return points.begin(); }
+    inline auto begin()  const { return points.begin(); }
+    inline auto end()          { return points.end();   }
+    inline auto end()    const { return points.end();   }
+    inline auto cbegin() const { return points.begin(); }
+    inline auto cend()   const { return points.end();   }
 };
 
 class MultiPoint3

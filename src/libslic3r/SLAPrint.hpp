@@ -9,7 +9,6 @@
 #include "Point.hpp"
 #include "MTUtils.hpp"
 #include "Zipper.hpp"
-#include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
 namespace Slic3r {
 
@@ -390,16 +389,25 @@ public:
     virtual void apply(const SLAPrinterConfig &cfg) = 0;
     
     // Fn have to be thread safe: void(sla::RasterBase& raster, size_t lyrid);
-    template<class Fn> void draw_layers(size_t layer_num, Fn &&drawfn)
+    template<class Fn, class CancelFn, class EP = ExecutionTBB>
+    void draw_layers(
+        size_t     layer_num,
+        Fn &&      drawfn,
+        CancelFn cancelfn = []() { return false; },
+        const EP & ep       = {})
     {
         m_layers.resize(layer_num);
-        sla::ccr::for_each(size_t(0), m_layers.size(),
-                           [this, &drawfn] (size_t idx) {
-                               sla::EncodedRaster& enc = m_layers[idx];
-                               auto rst = create_raster();
-                               drawfn(*rst, idx);
-                               enc = rst->encode(get_encoder());
-                           });
+        execution::for_each(
+            ep, size_t(0), m_layers.size(),
+            [this, &drawfn, &cancelfn](size_t idx) {
+                if (cancelfn()) return;
+
+                sla::EncodedRaster &enc = m_layers[idx];
+                auto                rst = create_raster();
+                drawfn(*rst, idx);
+                enc = rst->encode(get_encoder());
+            },
+            execution::max_concurrency(ep));
     }
 };
 
@@ -474,7 +482,7 @@ public:
         // The collection of slice records for the current level.
         std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
 
-        std::vector<ClipperLib::Polygon> m_transformed_slices;
+        ExPolygons m_transformed_slices;
 
         template<class Container> void transformed_slices(Container&& c)
         {
@@ -498,7 +506,7 @@ public:
 
         auto slices() const -> const decltype (m_slices)& { return m_slices; }
 
-        const std::vector<ClipperLib::Polygon> & transformed_slices() const {
+        const ExPolygons & transformed_slices() const {
             return m_transformed_slices;
         }
     };

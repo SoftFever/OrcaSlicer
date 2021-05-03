@@ -24,7 +24,7 @@ void GUI::Job::run(std::exception_ptr &eptr)
 
 void GUI::Job::update_status(int st, const wxString &msg)
 {
-    auto evt = new wxThreadEvent();
+    auto evt = new wxThreadEvent(wxEVT_THREAD, m_thread_evt_id);
     evt->SetInt(st);
     evt->SetString(msg);
     wxQueueEvent(this, evt);
@@ -33,7 +33,11 @@ void GUI::Job::update_status(int st, const wxString &msg)
 GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
     : m_progress(std::move(pri))
 {
-    Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {            
+    m_thread_evt_id = wxNewId();
+
+    Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
+        if (m_finalizing)  return;
+
         auto msg = evt.GetString();
         if (!msg.empty() && !m_worker_error)
             m_progress->set_status_text(msg.ToUTF8().data());
@@ -53,13 +57,27 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
                 m_progress->set_progress(m_range);
                 on_exception(m_worker_error);
             }
-            else
+            else {
+                // This is an RAII solution to remember that finalization is
+                // running. The run method calls update_status(status_range(), "")
+                // at the end, which queues up a call to this handler in all cases.
+                // If process also calls update_status with maxed out status arg
+                // it will call this handler twice. It is not a problem unless
+                // yield is called inside the finilize() method, which would
+                // jump out of finalize and call this handler again.
+                struct Finalizing {
+                    bool &flag;
+                    Finalizing (bool &f): flag(f) { flag = true; }
+                    ~Finalizing() { flag = false; }
+                } fin(m_finalizing);
+
                 finalize();
+            }
 
             // dont do finalization again for the same process
             m_finalized = true;
         }
-    });
+    }, m_thread_evt_id);
 }
 
 void GUI::Job::start()
@@ -76,7 +94,8 @@ void GUI::Job::start()
         m_progress->set_cancel_callback(
                     [this]() { m_canceled.store(true); });
         
-        m_finalized = false;
+        m_finalized  = false;
+        m_finalizing = false;
         
         // Changing cursor to busy
         wxBeginBusyCursor();

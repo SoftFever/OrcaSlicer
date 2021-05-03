@@ -296,6 +296,13 @@ void Preset::normalize(DynamicPrintConfig &config)
         if (auto *gap_fill_enabled = config.option<ConfigOptionBool>("gap_fill_enabled", false); gap_fill_enabled)
             gap_fill_enabled->value = false;
     }
+    if (auto *first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height", false); first_layer_height && first_layer_height->percent)
+        if (const auto *layer_height = config.option<ConfigOptionFloat>("layer_height", false); layer_height) {
+            // Legacy conversion - first_layer_height moved from PrintObject setting to a Print setting, thus we are getting rid of the dependency
+            // of first_layer_height on PrintObject specific layer_height. Covert the first layer heigth to an absolute value.
+            first_layer_height->value   = first_layer_height->get_abs_value(layer_height->value);
+            first_layer_height->percent = false;
+        }
 }
 
 std::string Preset::remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config)
@@ -427,7 +434,7 @@ const std::vector<std::string>& Preset::print_options()
         "bridge_acceleration", "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height", "draft_shield",
         "min_skirt_length", "brim_width", "brim_offset", "brim_type", "support_material", "support_material_auto", "support_material_threshold", "support_material_enforce_layers",
         "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
-        "support_material_pattern", "support_material_with_sheath", "support_material_spacing", "support_material_style",
+        "support_material_pattern", "support_material_with_sheath", "support_material_spacing", "support_material_closing_radius", "support_material_style",
         "support_material_synchronize_layers", "support_material_angle", "support_material_interface_layers", "support_material_bottom_interface_layers",
         "support_material_interface_pattern", "support_material_interface_spacing", "support_material_interface_contact_loops", 
         "support_material_contact_distance", "support_material_bottom_contact_distance",
@@ -468,7 +475,7 @@ const std::vector<std::string>& Preset::machine_limits_options()
     static std::vector<std::string> s_opts;
     if (s_opts.empty()) {
         s_opts = {
-			"machine_max_acceleration_extruding", "machine_max_acceleration_retracting",
+            "machine_max_acceleration_extruding", "machine_max_acceleration_retracting", "machine_max_acceleration_travel",
 		    "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
 		    "machine_max_feedrate_x", "machine_max_feedrate_y", "machine_max_feedrate_z", "machine_max_feedrate_e",
 		    "machine_min_extruding_rate", "machine_min_travel_rate",

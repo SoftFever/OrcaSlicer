@@ -22,14 +22,14 @@ public:
 
     class GLInfo
     {
-        mutable bool m_detected{ false };
-        mutable int m_max_tex_size{ 0 };
-        mutable float m_max_anisotropy{ 0.0f };
+        bool m_detected{ false };
+        int m_max_tex_size{ 0 };
+        float m_max_anisotropy{ 0.0f };
 
-        mutable std::string m_version;
-        mutable std::string m_glsl_version;
-        mutable std::string m_vendor;
-        mutable std::string m_renderer;
+        std::string m_version;
+        std::string m_glsl_version;
+        std::string m_vendor;
+        std::string m_renderer;
 
     public:
         GLInfo() = default;

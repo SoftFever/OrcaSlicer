@@ -124,6 +124,24 @@ inline Lines to_lines(const Polylines &polys)
     return lines;
 }
 
+inline Polylines to_polylines(const std::vector<Points> &paths)
+{
+    Polylines out;
+    out.reserve(paths.size());
+    for (const Points &path : paths)
+        out.emplace_back(path);
+    return out;
+}
+
+inline Polylines to_polylines(std::vector<Points> &&paths)
+{
+    Polylines out;
+    out.reserve(paths.size());
+    for (const Points &path : paths)
+        out.emplace_back(std::move(path));
+    return out;
+}
+
 inline void polylines_append(Polylines &dst, const Polylines &src) 
 { 
     dst.insert(dst.end(), src.begin(), src.end());

@@ -11,8 +11,6 @@
 #include <libslic3r/ExPolygon.hpp>
 #include <libslic3r/SLA/Concurrency.hpp>
 
-namespace ClipperLib { struct Polygon; }
-
 namespace Slic3r {
 
 template<class T> using uqptr = std::unique_ptr<T>;
@@ -92,7 +90,6 @@ public:
     
     /// Draw a polygon with holes.
     virtual void draw(const ExPolygon& poly) = 0;
-    virtual void draw(const ClipperLib::Polygon& poly) = 0;
     
     /// Get the resolution of the raster.
     virtual Resolution resolution() const = 0;

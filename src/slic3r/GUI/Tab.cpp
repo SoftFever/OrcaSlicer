@@ -1002,7 +1002,9 @@ void Tab::sys_color_changed()
     for (ScalableBitmap& bmp : m_scaled_icons_list)
         m_icons->Add(bmp.bmp());
     m_treectrl->AssignImageList(m_icons);
-
+#ifdef __WXMSW__
+    m_treectrl->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
     // Colors for ui "decoration"
     update_label_colours();
 
@@ -1516,6 +1518,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_material_with_sheath", category_path + "with-sheath-around-the-support");
         optgroup->append_single_option_line("support_material_spacing", category_path + "pattern-spacing-0-inf");
         optgroup->append_single_option_line("support_material_angle", category_path + "pattern-angle");
+        optgroup->append_single_option_line("support_material_closing_radius", category_path + "pattern-angle");
         optgroup->append_single_option_line("support_material_interface_layers", category_path + "interface-layers");
         optgroup->append_single_option_line("support_material_bottom_interface_layers", category_path + "interface-layers");
         optgroup->append_single_option_line("support_material_interface_pattern", category_path + "interface-pattern");
@@ -2273,6 +2276,13 @@ void TabPrinter::build_fff()
                         m_use_silent_mode = val;
                     }
                 }
+                if (opt_key == "gcode_flavor") {
+                    bool supports_travel_acceleration = (boost::any_cast<int>(value) == int(gcfMarlinFirmware));
+                    if (supports_travel_acceleration != m_supports_travel_acceleration) {
+                        m_rebuild_kinematics_page = true;
+                        m_supports_travel_acceleration = supports_travel_acceleration;
+                    }
+                }
                 build_unregular_pages();
                 update_dirty();
                 on_value_change(opt_key, value);
@@ -2569,6 +2579,8 @@ PageShp TabPrinter::build_kinematics_page()
         }
         append_option_line(optgroup, "machine_max_acceleration_extruding");
         append_option_line(optgroup, "machine_max_acceleration_retracting");
+        if (m_supports_travel_acceleration)
+            append_option_line(optgroup, "machine_max_acceleration_travel");
 
     optgroup = page->new_optgroup(L("Jerk limits"));
         for (const std::string &axis : axes)	{
@@ -2591,7 +2603,8 @@ PageShp TabPrinter::build_kinematics_page()
 void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
 {
     size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
-    bool		is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
+    auto        flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+    bool		is_marlin_flavor = (flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware);
 
     /* ! Freeze/Thaw in this function is needed to avoid call OnPaint() for erased pages
      * and be cause of application crash, when try to change Preset in moment,
@@ -2861,7 +2874,8 @@ void TabPrinter::toggle_options()
     if (m_active_page->title() == "General") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
 
-        bool is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
+        auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+        bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
         toggle_option("silent_mode", is_marlin_flavor);
     }
@@ -2929,7 +2943,8 @@ void TabPrinter::toggle_options()
     }
 
     if (m_active_page->title() == "Machine limits" && m_machine_limits_description_line) {
-        assert(m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin);
+        assert(m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinLegacy
+            || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
 		const auto *machine_limits_usage = m_config->option<ConfigOptionEnum<MachineLimitsUsage>>("machine_limits_usage");
 		bool enabled = machine_limits_usage->value != MachineLimitsUsage::Ignore;
         bool silent_mode = m_config->opt_bool("silent_mode");
@@ -2958,6 +2973,12 @@ void TabPrinter::update_fff()
     if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
         m_rebuild_kinematics_page = true;
         m_use_silent_mode = m_config->opt_bool("silent_mode");
+    }
+
+    bool supports_travel_acceleration = (m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
+    if (m_supports_travel_acceleration != supports_travel_acceleration) {
+        m_rebuild_kinematics_page = true;
+        m_supports_travel_acceleration = supports_travel_acceleration;
     }
 
     toggle_options();

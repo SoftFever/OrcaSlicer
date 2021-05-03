@@ -349,9 +349,7 @@ void PerimeterGenerator::process()
                         coord_t min_width = coord_t(scale_(this->ext_perimeter_flow.nozzle_diameter() / 3));
                         ExPolygons expp = offset2_ex(
                             // medial axis requires non-overlapping geometry
-                            diff_ex(to_polygons(last),
-                                    offset(offsets, float(ext_perimeter_width / 2.)),
-                                    true),
+                            diff_ex(last, offset(offsets, float(ext_perimeter_width / 2.)), true),
                             - float(min_width / 2.), float(min_width / 2.));
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
                         for (ExPolygon &ex : expp)
@@ -514,7 +512,7 @@ void PerimeterGenerator::process()
                     and use zigzag).  */
                 //FIXME Vojtech: This grows by a rounded extrusion width, not by line spacing,
                 // therefore it may cover the area, but no the volume.
-                last = diff_ex(to_polygons(last), gap_fill.polygons_covered_by_width(10.f));
+                last = diff_ex(last, gap_fill.polygons_covered_by_width(10.f));
 				this->gap_fill->append(std::move(gap_fill.entities));
 			}
         }

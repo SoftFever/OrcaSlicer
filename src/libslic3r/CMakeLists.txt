@@ -23,6 +23,8 @@ add_library(libslic3r STATIC
     BridgeDetector.hpp
     Brim.cpp
     Brim.hpp
+    clipper.cpp
+    clipper.hpp
     ClipperUtils.cpp
     ClipperUtils.hpp
     Config.cpp
@@ -219,6 +221,9 @@ add_library(libslic3r STATIC
     SimplifyMeshImpl.hpp
     SimplifyMesh.cpp
     MarchingSquares.hpp
+    Execution/Execution.hpp
+    Execution/ExecutionSeq.hpp
+    Execution/ExecutionTBB.hpp
     Optimize/Optimizer.hpp
     Optimize/NLoptOptimizer.hpp
     Optimize/BruteforceOptimizer.hpp

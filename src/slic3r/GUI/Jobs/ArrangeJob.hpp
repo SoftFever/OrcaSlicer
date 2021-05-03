@@ -4,7 +4,11 @@
 #include "PlaterJob.hpp"
 #include "libslic3r/Arrange.hpp"
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r {
+
+class ModelInstance;
+
+namespace GUI {
 
 class ArrangeJob : public PlaterJob
 {
@@ -89,6 +93,11 @@ arrangement::ArrangePolygon get_arrange_poly(T obj, const Plater *plater)
     return ap;
 }
 
+template<>
+arrangement::ArrangePolygon get_arrange_poly(ModelInstance *inst,
+                                             const Plater * plater);
+
+arrangement::ArrangeParams get_arrange_params(Plater *p);
 
 }} // namespace Slic3r::GUI
 

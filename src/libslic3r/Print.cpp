@@ -100,7 +100,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_spool_weight",
         "first_layer_acceleration",
         "first_layer_bed_temperature",
-        "first_layer_speed",
         "gcode_comments",
         "gcode_label_objects",
         "infill_acceleration",
@@ -139,7 +138,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "start_filament_gcode",
         "toolchange_gcode",
         "threads",
-        "travel_speed",
         "use_firmware_retraction",
         "use_relative_e_distances",
         "use_volumetric_e",
@@ -182,7 +180,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "complete_objects"
             || opt_key == "filament_type"
-            || opt_key == "filament_soluble"
             || opt_key == "first_layer_temperature"
             || opt_key == "filament_loading_speed"
             || opt_key == "filament_loading_speed_start"
@@ -210,9 +207,17 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "cooling_tube_retraction"
             || opt_key == "cooling_tube_length"
             || opt_key == "extra_loading_move"
+            || opt_key == "travel_speed"
+            || opt_key == "first_layer_speed"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirt);
+        } else if (opt_key == "filament_soluble") {
+            steps.emplace_back(psWipeTower);
+            // Soluble support interface / non-soluble base interface produces non-soluble interface layers below soluble interface layers.
+            // Thus switching between soluble / non-soluble interface layer material may require recalculation of supports.
+            //FIXME Killing supports on any change of "filament_soluble" is rough. We should check for each object whether that is necessary.
+            osteps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "first_layer_extrusion_width" 
             || opt_key == "min_layer_height"
@@ -1293,7 +1298,7 @@ std::string Print::validate(std::string* warning) const
         }
 
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
-            m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
+            m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
@@ -1459,7 +1464,8 @@ std::string Print::validate(std::string* warning) const
             }
 
             // validate first_layer_height
-            double first_layer_height = object->config().get_abs_value("first_layer_height");
+            assert(! m_config.first_layer_height.percent);
+            double first_layer_height = m_config.first_layer_height.value;
             double first_layer_min_nozzle_diameter;
             if (object->has_raft()) {
                 // if we have raft layers, only support material extruder is used on first layer
@@ -1556,9 +1562,8 @@ BoundingBox Print::total_bounding_box() const
 
 double Print::skirt_first_layer_height() const
 {
-    if (m_objects.empty()) 
-        throw Slic3r::InvalidArgument("skirt_first_layer_height() can't be called without PrintObjects");
-    return m_objects.front()->config().get_abs_value("first_layer_height");
+    assert(! m_config.first_layer_height.percent);
+    return m_config.first_layer_height.value;
 }
 
 Flow Print::brim_flow() const
@@ -1987,9 +1992,7 @@ void Print::_make_wipe_tower()
 
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
-
-        wipe_tower.set_extruder(
-            i, m_config);
+        wipe_tower.set_extruder(i, m_config);
 
     m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
         wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
@@ -2015,8 +2018,8 @@ void Print::_make_wipe_tower()
                     volume_to_wipe += (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 
                     // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
-                    wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id,
-                                               first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back(), volume_to_wipe);
+                    wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height,
+                                               current_extruder_id, extruder_id, volume_to_wipe);
                     current_extruder_id = extruder_id;
                 }
             }

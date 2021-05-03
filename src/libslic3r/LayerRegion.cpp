@@ -49,19 +49,17 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     // in place. However we're now only using its boundaries (which are invariant)
     // so we're safe. This guarantees idempotence of prepare_infill() also in case
     // that combine_infill() turns some fill_surface into VOID surfaces.
-//    Polygons fill_boundaries = to_polygons(std::move(this->fill_surfaces));
-    Polygons fill_boundaries = to_polygons(this->fill_expolygons);
     // Collect polygons per surface type.
-    std::vector<Polygons> polygons_by_surface;
-    polygons_by_surface.assign(size_t(stCount), Polygons());
+    std::vector<SurfacesPtr> by_surface;
+    by_surface.assign(size_t(stCount), SurfacesPtr());
     for (Surface &surface : this->slices.surfaces)
-        polygons_append(polygons_by_surface[(size_t)surface.surface_type], surface.expolygon);
+        by_surface[size_t(surface.surface_type)].emplace_back(&surface);
     // Trim surfaces by the fill_boundaries.
     this->fill_surfaces.surfaces.clear();
     for (size_t surface_type = 0; surface_type < size_t(stCount); ++ surface_type) {
-        const Polygons &polygons = polygons_by_surface[surface_type];
-        if (! polygons.empty())
-            this->fill_surfaces.append(intersection_ex(polygons, fill_boundaries), SurfaceType(surface_type));
+        const SurfacesPtr &this_surfaces = by_surface[surface_type];
+        if (! this_surfaces.empty())
+            this->fill_surfaces.append(intersection_ex(this_surfaces, this->fill_expolygons), SurfaceType(surface_type));
     }
 }
 
@@ -216,12 +214,12 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                         break;
                     }
                 // Grown by 3mm.
-                Polygons polys = offset(to_polygons(bridges[i].expolygon), margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                Polygons polys = offset(bridges[i].expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
                 if (idx_island == -1) {
 				    BOOST_LOG_TRIVIAL(trace) << "Bridge did not fall into the source region!";
                 } else {
                     // Found an island, to which this bridge region belongs. Trim it,
-                    polys = intersection(polys, to_polygons(fill_boundaries_ex[idx_island]));
+                    polys = intersection(polys, fill_boundaries_ex[idx_island]);
                 }
                 bridge_bboxes.push_back(get_extents(polys));
                 bridges_grown.push_back(std::move(polys));
@@ -325,11 +323,11 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             if (s1.empty())
                 continue;
             Polygons polys;
-            polygons_append(polys, std::move(s1));
+            polygons_append(polys, to_polygons(std::move(s1)));
             for (size_t j = i + 1; j < top.size(); ++ j) {
                 Surface &s2 = top[j];
                 if (! s2.empty() && surfaces_could_merge(s1, s2)) {
-                    polygons_append(polys, std::move(s2));
+                    polygons_append(polys, to_polygons(std::move(s2)));
                     s2.clear();
                 }
             }
@@ -351,11 +349,11 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
         if (s1.empty())
             continue;
         Polygons polys;
-        polygons_append(polys, std::move(s1));
+        polygons_append(polys, to_polygons(std::move(s1)));
         for (size_t j = i + 1; j < internal.size(); ++ j) {
             Surface &s2 = internal[j];
             if (! s2.empty() && surfaces_could_merge(s1, s2)) {
-                polygons_append(polys, std::move(s2));
+                polygons_append(polys, to_polygons(std::move(s2)));
                 s2.clear();
             }
         }
@@ -423,7 +421,7 @@ void LayerRegion::trim_surfaces(const Polygons &trimming_polygons)
     for (const Surface &surface : this->slices.surfaces)
         assert(surface.surface_type == stInternal);
 #endif /* NDEBUG */
-	this->slices.set(intersection_ex(to_polygons(std::move(this->slices.surfaces)), trimming_polygons, false), stInternal);
+	this->slices.set(intersection_ex(this->slices.surfaces, trimming_polygons), stInternal);
 }
 
 void LayerRegion::elephant_foot_compensation_step(const float elephant_foot_compensation_perimeter_step, const Polygons &trimming_polygons)
@@ -432,10 +430,9 @@ void LayerRegion::elephant_foot_compensation_step(const float elephant_foot_comp
     for (const Surface &surface : this->slices.surfaces)
         assert(surface.surface_type == stInternal);
 #endif /* NDEBUG */
-    ExPolygons slices_expolygons = to_expolygons(std::move(this->slices.surfaces));
-    Polygons   slices_polygons   = to_polygons(slices_expolygons);
-    Polygons   tmp               = intersection(slices_polygons, trimming_polygons, false);
-    append(tmp, diff(slices_polygons, offset(offset_ex(slices_expolygons, -elephant_foot_compensation_perimeter_step), elephant_foot_compensation_perimeter_step)));
+    ExPolygons surfaces = to_expolygons(std::move(this->slices.surfaces));
+    Polygons tmp = intersection(surfaces, trimming_polygons);
+    append(tmp, diff(surfaces, offset(offset_ex(surfaces, -elephant_foot_compensation_perimeter_step), elephant_foot_compensation_perimeter_step)));
     this->slices.set(union_ex(tmp), stInternal);
 }
 

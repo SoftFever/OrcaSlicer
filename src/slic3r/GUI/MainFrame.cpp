@@ -535,6 +535,10 @@ void MainFrame::init_tabpanel()
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
     m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 #endif
+#if wxCHECK_VERSION(3,1,3)
+    if (wxSystemSettings::GetAppearance().IsDark())
+        m_tabpanel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
     m_tabpanel->Hide();
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
@@ -877,6 +881,9 @@ void MainFrame::on_sys_color_changed()
 
     // update label colors in respect to the system mode
     wxGetApp().init_label_colours();
+#ifdef __WXMSW__
+    m_tabpanel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
 
     // update Plater
     wxGetApp().plater()->sys_color_changed();
@@ -1526,10 +1533,10 @@ void MainFrame::repair_stl()
         output_file = dlg.GetPath();
     }
 
-    auto tmesh = new Slic3r::TriangleMesh();
-    tmesh->ReadSTLFile(input_file.ToUTF8().data());
-    tmesh->repair();
-    tmesh->WriteOBJFile(output_file.ToUTF8().data());
+    Slic3r::TriangleMesh tmesh;
+    tmesh.ReadSTLFile(input_file.ToUTF8().data());
+    tmesh.repair();
+    tmesh.WriteOBJFile(output_file.ToUTF8().data());
     Slic3r::GUI::show_info(this, L("Your file was repaired."), L("Repair"));
 }
 
