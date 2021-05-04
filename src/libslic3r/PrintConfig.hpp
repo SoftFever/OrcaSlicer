@@ -111,178 +111,27 @@ enum BrimType {
     btOuterAndInner,
 };
 
-template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["FFF"]             = ptFFF;
-        keys_map["SLA"]             = ptSLA;
-    }
-    return keys_map;
-}
+#define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
+    template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
+    template<> const t_config_enum_values& ConfigOptionEnum<NAME>::get_enum_values();
 
-template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["reprap"]          = gcfRepRapSprinter;
-        keys_map["reprapfirmware"]  = gcfRepRapFirmware;
-        keys_map["repetier"]        = gcfRepetier;
-        keys_map["teacup"]          = gcfTeacup;
-        keys_map["makerware"]       = gcfMakerWare;
-        keys_map["marlin"]          = gcfMarlinLegacy;
-        keys_map["marlinfirmware"]  = gcfMarlinFirmware;
-        keys_map["sailfish"]        = gcfSailfish;
-        keys_map["smoothie"]        = gcfSmoothie;
-        keys_map["mach3"]           = gcfMach3;
-        keys_map["machinekit"]      = gcfMachinekit;
-        keys_map["no-extrusion"]    = gcfNoExtrusion;
-    }
-    return keys_map;
-}
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrinterTechnology)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeFlavor)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(MachineLimitsUsage)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialInterfacePattern)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
 
-template<> inline const t_config_enum_values& ConfigOptionEnum<MachineLimitsUsage>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["emit_to_gcode"]       = int(MachineLimitsUsage::EmitToGCode);
-        keys_map["time_estimate_only"]  = int(MachineLimitsUsage::TimeEstimateOnly);
-        keys_map["ignore"]              = int(MachineLimitsUsage::Ignore);
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["octoprint"]       = htOctoPrint;
-        keys_map["duet"]            = htDuet;
-        keys_map["flashair"]        = htFlashAir;
-        keys_map["astrobox"]        = htAstroBox;
-        keys_map["repetier"]        = htRepetier;
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<AuthorizationType>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["key"]             = atKeyPassword;
-        keys_map["user"]            = atUserPassword;
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<FuzzySkinType>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["none"]                 = int(FuzzySkinType::None);
-        keys_map["external"]             = int(FuzzySkinType::External);
-        keys_map["all"]                  = int(FuzzySkinType::All);
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["rectilinear"]         = ipRectilinear;
-        keys_map["monotonic"]           = ipMonotonic;
-        keys_map["alignedrectilinear"]  = ipAlignedRectilinear;
-        keys_map["grid"]                = ipGrid;
-        keys_map["triangles"]           = ipTriangles;
-        keys_map["stars"]               = ipStars;
-        keys_map["cubic"]               = ipCubic;
-        keys_map["line"]                = ipLine;
-        keys_map["concentric"]          = ipConcentric;
-        keys_map["honeycomb"]           = ipHoneycomb;
-        keys_map["3dhoneycomb"]         = ip3DHoneycomb;
-        keys_map["gyroid"]              = ipGyroid;
-        keys_map["hilbertcurve"]        = ipHilbertCurve;
-        keys_map["archimedeanchords"]   = ipArchimedeanChords;
-        keys_map["octagramspiral"]      = ipOctagramSpiral;
-        keys_map["adaptivecubic"]       = ipAdaptiveCubic;
-        keys_map["supportcubic"]        = ipSupportCubic;
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<IroningType>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["top"]                 = int(IroningType::TopSurfaces);
-        keys_map["topmost"]             = int(IroningType::TopmostOnly);
-        keys_map["solid"]               = int(IroningType::AllSolid);
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["rectilinear"]         = smpRectilinear;
-        keys_map["rectilinear-grid"]    = smpRectilinearGrid;
-        keys_map["honeycomb"]           = smpHoneycomb;
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialStyle>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["grid"]    = smsGrid;
-        keys_map["snug"]    = smsSnug;
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialInterfacePattern>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["auto"]                = smipAuto;
-        keys_map["rectilinear"]         = smipRectilinear;
-        keys_map["concentric"]          = smipConcentric;
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<SeamPosition>::get_enum_values() {
-    static t_config_enum_values keys_map;
-    if (keys_map.empty()) {
-        keys_map["random"]              = spRandom;
-        keys_map["nearest"]             = spNearest;
-        keys_map["aligned"]             = spAligned;
-        keys_map["rear"]                = spRear;
-    }
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<SLADisplayOrientation>::get_enum_values() {
-    static const t_config_enum_values keys_map = {
-        { "landscape", sladoLandscape},
-        { "portrait",  sladoPortrait}
-    };
-
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<SLAPillarConnectionMode>::get_enum_values() {
-    static const t_config_enum_values keys_map = {
-        {"zigzag", slapcmZigZag},
-        {"cross", slapcmCross},
-        {"dynamic", slapcmDynamic}
-    };
-
-    return keys_map;
-}
-
-template<> inline const t_config_enum_values& ConfigOptionEnum<BrimType>::get_enum_values() {
-    static const t_config_enum_values keys_map = {
-        {"no_brim", btNoBrim},
-        {"outer_only", btOuterOnly},
-        {"inner_only", btInnerOnly},
-        {"outer_and_inner", btOuterAndInner}
-    };
-
-    return keys_map;
-}
+#undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
 // Does not store the actual values, but defines default values.
@@ -459,10 +308,12 @@ public: \
     /* Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store. */ \
     t_config_option_keys     keys() const override { return s_cache_##CLASS_NAME.keys(); } \
     const t_config_option_keys& keys_ref() const override { return s_cache_##CLASS_NAME.keys(); } \
-    static const CLASS_NAME& defaults() { initialize_cache(); return s_cache_##CLASS_NAME.defaults(); } \
+    static const CLASS_NAME& defaults() { assert(s_cache_##CLASS_NAME.initialized()); return s_cache_##CLASS_NAME.defaults(); } \
 private: \
+    friend int print_config_static_initializer(); \
     static void initialize_cache() \
     { \
+        assert(! s_cache_##CLASS_NAME.initialized()); \
         if (! s_cache_##CLASS_NAME.initialized()) { \
             CLASS_NAME *inst = new CLASS_NAME(1); \
             inst->initialize(s_cache_##CLASS_NAME, (const char*)inst); \
@@ -476,7 +327,7 @@ private: \
     STATIC_PRINT_CONFIG_CACHE_BASE(CLASS_NAME) \
 public: \
     /* Public default constructor will initialize the key/option cache and the default object copy if needed. */ \
-    CLASS_NAME() { initialize_cache(); *this = s_cache_##CLASS_NAME.defaults(); } \
+    CLASS_NAME() { assert(s_cache_##CLASS_NAME.initialized()); *this = s_cache_##CLASS_NAME.defaults(); } \
 protected: \
     /* Protected constructor to be called when compounded. */ \
     CLASS_NAME(int) {}
@@ -534,7 +385,7 @@ protected: \
 #define PRINT_CONFIG_CLASS_DERIVED_DEFINE1(CLASS_NAME, CLASSES_PARENTS_TUPLE, PARAMETER_DEFINITION, PARAMETER_REGISTRATION, PARAMETER_HASHES, PARAMETER_EQUALS) \
 class CLASS_NAME : PRINT_CONFIG_CLASS_DERIVED_CLASS_LIST(CLASSES_PARENTS_TUPLE) { \
     STATIC_PRINT_CONFIG_CACHE_DERIVED(CLASS_NAME) \
-    CLASS_NAME() : PRINT_CONFIG_CLASS_DERIVED_INITIALIZER(CLASSES_PARENTS_TUPLE, 0) { initialize_cache(); *this = s_cache_##CLASS_NAME.defaults(); } \
+    CLASS_NAME() : PRINT_CONFIG_CLASS_DERIVED_INITIALIZER(CLASSES_PARENTS_TUPLE, 0) { assert(s_cache_##CLASS_NAME.initialized()); *this = s_cache_##CLASS_NAME.defaults(); } \
 public: \
     PARAMETER_DEFINITION \
     size_t hash() const throw() \
