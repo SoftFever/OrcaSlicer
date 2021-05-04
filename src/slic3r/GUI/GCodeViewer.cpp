@@ -4052,7 +4052,7 @@ void GCodeViewer::render_legend() const
         return;
 
 #if ENABLE_SCROLLABLE_LEGEND
-    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+    const Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
 #endif // ENABLE_SCROLLABLE_LEGEND
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -4061,8 +4061,8 @@ void GCodeViewer::render_legend() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
 #if ENABLE_SCROLLABLE_LEGEND
-    float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
-    float child_height = 0.3333f * max_height;
+    const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
+    const float child_height = 0.3333f * max_height;
     ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
 #else
@@ -4085,8 +4085,8 @@ void GCodeViewer::render_legend() const
         (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()));
 #endif // ENABLE_SCROLLABLE_LEGEND
 
-    float icon_size = ImGui::GetTextLineHeight();
-    float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
+    const float icon_size = ImGui::GetTextLineHeight();
+    const float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
 
 #if ENABLE_SCROLLABLE_LEGEND
     auto append_item = [this, icon_size, percent_bar_size, &imgui](EItemType type, const Color& color, const std::string& label,
@@ -4114,7 +4114,7 @@ void GCodeViewer::render_legend() const
             if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120") {
                 draw_list->AddCircleFilled(center, 0.5f * icon_size,
                     ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                float radius = 0.5f * icon_size;
+                const float radius = 0.5f * icon_size;
                 draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
                 radius = 0.5f * icon_size * 0.01f * 33.0f;
                 draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
@@ -4165,7 +4165,7 @@ void GCodeViewer::render_legend() const
                 imgui.text(time);
                 ImGui::SameLine(offsets[1]);
                 pos = ImGui::GetCursorScreenPos();
-                float width = std::max(1.0f, percent_bar_size * percent / max_percent);
+                const float width = std::max(1.0f, percent_bar_size * percent / max_percent);
                 draw_list->AddRectFilled({ pos.x, pos.y + 2.0f }, { pos.x + width, pos.y + icon_size - 2.0f },
                     ImGui::GetColorU32(ImGuiWrapper::COL_ORANGE_LIGHT));
                 ImGui::Dummy({ percent_bar_size, icon_size });
@@ -4197,7 +4197,7 @@ void GCodeViewer::render_legend() const
             append_range_item(0, range.min, decimals);
         }
         else {
-            float step_size = range.step_size();
+            const float step_size = range.step_size();
             for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
                 append_range_item(i, range.min + static_cast<float>(i) * step_size, decimals);
             }
@@ -4246,8 +4246,8 @@ void GCodeViewer::render_legend() const
             if (lower_b == zs.end())
                 continue;
 
-            double current_z = *lower_b;
-            double previous_z = (lower_b == zs.begin()) ? 0.0 : *(--lower_b);
+            const double current_z = *lower_b;
+            const double previous_z = (lower_b == zs.begin()) ? 0.0 : *(--lower_b);
 
             // to avoid duplicate values, check adding values
             if (ret.empty() || !(ret.back().second.first == previous_z && ret.back().second.second == current_z))
@@ -4333,7 +4333,7 @@ void GCodeViewer::render_legend() const
             ExtrusionRole role = m_roles[i];
             if (role >= erCount)
                 continue;
-            bool visible = is_visible(role);
+            const bool visible = is_visible(role);
             append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], labels[i],
                 visible, times[i], percents[i], max_percent, offsets, [this, role, visible]() {
                     Extrusions* extrusions = const_cast<Extrusions*>(&m_extrusions);
@@ -4365,63 +4365,73 @@ void GCodeViewer::render_legend() const
     case EViewType::ColorPrint:
     {
 #if ENABLE_SCROLLABLE_LEGEND
-        // add scrollable region
-        if (ImGui::BeginChild("color_prints", { -1.0f, child_height }, false)) {
+        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+        size_t total_items = 1;
+        for (unsigned char i : m_extruder_ids) {
+            total_items += color_print_ranges(i, custom_gcode_per_print_z).size();
+        }
+
+        const bool need_scrollable = static_cast<float>(total_items) * (icon_size + ImGui::GetStyle().ItemSpacing.y) > child_height;
+
+        // add scrollable region, if needed
+        if (need_scrollable)
+            ImGui::BeginChild("color_prints", { -1.0f, child_height }, false);
+#else
+        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
 #endif // ENABLE_SCROLLABLE_LEGEND
-            const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
-            if (m_extruders_count == 1) { // single extruder use case
-                std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
+        if (m_extruders_count == 1) { // single extruder use case
+            const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
+            const int items_cnt = static_cast<int>(cp_values.size());
+            if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
+                append_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default color"));
+            }
+            else {
+                for (int i = items_cnt; i >= 0; --i) {
+                    // create label for color change item
+                    if (i == 0) {
+                        append_item(EItemType::Rect, m_tool_colors[0], upto_label(cp_values.front().second.first));
+                        break;
+                    }
+                    else if (i == items_cnt) {
+                        append_item(EItemType::Rect, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second));
+                        continue;
+                    }
+                    append_item(EItemType::Rect, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
+                }
+            }
+        }
+        else { // multi extruder use case
+            // shows only extruders actually used
+            for (unsigned char i : m_extruder_ids) {
+                const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                    append_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default color"));
+                    append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
                 }
                 else {
-                    for (int i = items_cnt; i >= 0; --i) {
+                    for (int j = items_cnt; j >= 0; --j) {
                         // create label for color change item
-                        if (i == 0) {
-                            append_item(EItemType::Rect, m_tool_colors[0], upto_label(cp_values.front().second.first));
+                        std::string label = _u8L("Extruder") + " " + std::to_string(i + 1);
+                        if (j == 0) {
+                            label += " " + upto_label(cp_values.front().second.first);
+                            append_item(EItemType::Rect, m_tool_colors[i], label);
                             break;
                         }
-                        else if (i == items_cnt) {
-                            append_item(EItemType::Rect, cp_values[i - 1].first, above_label(cp_values[i - 1].second.second));
+                        else if (j == items_cnt) {
+                            label += " " + above_label(cp_values[j - 1].second.second);
+                            append_item(EItemType::Rect, cp_values[j - 1].first, label);
                             continue;
                         }
-                        append_item(EItemType::Rect, cp_values[i - 1].first, fromto_label(cp_values[i - 1].second.second, cp_values[i].second.first));
-                    }
-                }
-            }
-            else { // multi extruder use case
-                // shows only extruders actually used
-                for (unsigned char i : m_extruder_ids) {
-                    std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
-                    const int items_cnt = static_cast<int>(cp_values.size());
-                    if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                        append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
-                    }
-                    else {
-                        for (int j = items_cnt; j >= 0; --j) {
-                            // create label for color change item
-                            std::string label = _u8L("Extruder") + " " + std::to_string(i + 1);
-                            if (j == 0) {
-                                label += " " + upto_label(cp_values.front().second.first);
-                                append_item(EItemType::Rect, m_tool_colors[i], label);
-                                break;
-                            }
-                            else if (j == items_cnt) {
-                                label += " " + above_label(cp_values[j - 1].second.second);
-                                append_item(EItemType::Rect, cp_values[j - 1].first, label);
-                                continue;
-                            }
 
-                            label += " " + fromto_label(cp_values[j - 1].second.second, cp_values[j].second.first);
-                            append_item(EItemType::Rect, cp_values[j - 1].first, label);
-                        }
+                        label += " " + fromto_label(cp_values[j - 1].second.second, cp_values[j].second.first);
+                        append_item(EItemType::Rect, cp_values[j - 1].first, label);
                     }
                 }
             }
-#if ENABLE_SCROLLABLE_LEGEND
         }
-        ImGui::EndChild();
+#if ENABLE_SCROLLABLE_LEGEND
+        if (need_scrollable)
+            ImGui::EndChild();
 #endif // ENABLE_SCROLLABLE_LEGEND
 
         break;
@@ -4548,35 +4558,37 @@ void GCodeViewer::render_legend() const
             offsets = calculate_offsets(labels, times, { _u8L("Event"), _u8L("Remaining time") }, 2.0f * icon_size);
 
             ImGui::Spacing();
-                append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration") }, offsets);
+            append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration") }, offsets);
 #if ENABLE_SCROLLABLE_LEGEND
+            const bool need_scrollable = static_cast<float>(partial_times.size()) * (icon_size + ImGui::GetStyle().ItemSpacing.y) > child_height;
+            if (need_scrollable)
                 // add scrollable region
-                if (ImGui::BeginChild("events", { -1.0f, child_height }, false)) {
+                ImGui::BeginChild("events", { -1.0f, child_height }, false);
 #endif // ENABLE_SCROLLABLE_LEGEND
-                    for (const PartialTime& item : partial_times) {
-                    switch (item.type)
-                    {
-                    case PartialTime::EType::Print: {
-                        append_print(item.color1, offsets, item.times);
-                        break;
-                    }
-                    case PartialTime::EType::Pause: {
-                        imgui.text(_u8L("Pause"));
-                        ImGui::SameLine(offsets[0]);
-                        imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
-                        break;
-                    }
-                    case PartialTime::EType::ColorChange: {
-                        append_color_change(item.color1, item.color2, offsets, item.times);
-                        break;
-                    }
-                    }
+            for (const PartialTime& item : partial_times) {
+                switch (item.type)
+                {
+                case PartialTime::EType::Print: {
+                    append_print(item.color1, offsets, item.times);
+                    break;
                 }
-#if ENABLE_SCROLLABLE_LEGEND
+                case PartialTime::EType::Pause: {
+                    imgui.text(_u8L("Pause"));
+                    ImGui::SameLine(offsets[0]);
+                    imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
+                    break;
+                }
+                case PartialTime::EType::ColorChange: {
+                    append_color_change(item.color1, item.color2, offsets, item.times);
+                    break;
+                }
+                }
             }
-            ImGui::EndChild();
-#endif // ENABLE_SCROLLABLE_LEGEND
 
+#if ENABLE_SCROLLABLE_LEGEND
+            if (need_scrollable)
+                ImGui::EndChild();
+#endif // ENABLE_SCROLLABLE_LEGEND
         }
     }
 
