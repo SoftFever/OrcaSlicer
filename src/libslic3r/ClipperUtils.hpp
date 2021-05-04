@@ -37,7 +37,7 @@ namespace ClipperUtils {
             constexpr bool operator==(const iterator &rhs) const { return true; }
             constexpr bool operator!=(const iterator &rhs) const { return false; }
             const Points& operator++(int) { assert(false); return s_empty_points; }
-            constexpr iterator& operator++() { assert(false); return *this; }
+            const iterator& operator++() { assert(false); return *this; }
         };
 
         constexpr EmptyPathsProvider() {}
