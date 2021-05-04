@@ -463,7 +463,7 @@ TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
 }
 
 
-void TriangleSelector::reset()
+void TriangleSelector::reset(const EnforcerBlockerType reset_state)
 {
     if (m_orig_size_indices != 0) // unless this is run from constructor
         garbage_collect();
@@ -474,7 +474,7 @@ void TriangleSelector::reset()
     for (size_t i=0; i<m_mesh->its.indices.size(); ++i) {
         const stl_triangle_vertex_indices& ind = m_mesh->its.indices[i];
         const Vec3f& normal = m_mesh->stl.facet_start[i].normal;
-        push_triangle(ind[0], ind[1], ind[2], normal);
+        push_triangle(ind[0], ind[1], ind[2], normal, reset_state);
     }
     m_orig_size_vertices = m_vertices.size();
     m_orig_size_indices = m_triangles.size();
@@ -500,13 +500,13 @@ void TriangleSelector::set_edge_limit(float edge_limit)
 
 
 
-void TriangleSelector::push_triangle(int a, int b, int c, const Vec3f& normal)
+void TriangleSelector::push_triangle(int a, int b, int c, const Vec3f& normal, const EnforcerBlockerType state)
 {
     for (int i : {a, b, c}) {
         assert(i >= 0 && i < int(m_vertices.size()));
         ++m_vertices[i].ref_cnt;
     }
-    m_triangles.emplace_back(a, b, c, normal);
+    m_triangles.emplace_back(a, b, c, normal, state);
 }
 
 
@@ -663,9 +663,9 @@ std::map<int, std::vector<bool>> TriangleSelector::serialize() const
     return out;
 }
 
-void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data)
+void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data, const EnforcerBlockerType init_state)
 {
-    reset(); // dump any current state
+    reset(init_state); // dump any current state
     for (const auto& [triangle_id, code] : data) {
         assert(triangle_id < int(m_triangles.size()));
         assert(! code.empty());

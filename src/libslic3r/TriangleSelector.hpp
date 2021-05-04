@@ -49,7 +49,7 @@ public:
     void set_facet(int facet_idx, EnforcerBlockerType state);
 
     // Clear everything and make the tree empty.
-    void reset();
+    void reset(const EnforcerBlockerType reset_state = EnforcerBlockerType{0});
 
     // Remove all unnecessary data.
     void garbage_collect();
@@ -59,7 +59,7 @@ public:
     std::map<int, std::vector<bool>> serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::map<int, std::vector<bool>> data);
+    void deserialize(const std::map<int, std::vector<bool>> data, const EnforcerBlockerType init_state = EnforcerBlockerType{0});
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();
@@ -73,10 +73,10 @@ protected:
     public:
         // Use TriangleSelector::push_triangle to create a new triangle.
         // It increments/decrements reference counter on vertices.
-        Triangle(int a, int b, int c, const Vec3f& normal_)
+        Triangle(int a, int b, int c, const Vec3f& normal_, const EnforcerBlockerType init_state)
             : verts_idxs{a, b, c},
               normal{normal_},
-              state{EnforcerBlockerType(0)},
+              state{init_state},
               number_of_splits{0},
               special_side_idx{0},
               old_number_of_splits{0}
@@ -178,7 +178,7 @@ protected:
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
     bool is_pointer_in_triangle(int facet_idx) const;
     bool is_edge_inside_cursor(int facet_idx) const;
-    void push_triangle(int a, int b, int c, const Vec3f& normal);
+    void push_triangle(int a, int b, int c, const Vec3f &normal, const EnforcerBlockerType state = EnforcerBlockerType{0});
     void perform_split(int facet_idx, EnforcerBlockerType old_state);
 };
 

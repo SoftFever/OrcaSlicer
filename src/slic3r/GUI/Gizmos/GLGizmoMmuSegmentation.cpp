@@ -299,7 +299,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
     if (m_state != On)
         return;
 
-    size_t prev_extruders_count = m_original_extruders_colors.size();
+    int prev_extruders_count = m_original_extruders_colors.size();
     if (prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors) {
         this->init_extruders_data();
         // Reinitialize triangle selectors because of change of extruder count need also change the size of GLIndexedVertexArray
@@ -465,7 +465,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         for (ModelVolume *mv : mo->volumes) {
             if (mv->is_model_part()) {
                 ++idx;
-                m_triangle_selectors[idx]->reset(EnforcerBlockerType(mv->extruder_id()));
+                size_t extruder_id = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
+                m_triangle_selectors[idx]->reset(EnforcerBlockerType(extruder_id));
             }
         }
 
@@ -576,8 +577,9 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
         // This mesh does not account for the possible Z up SLA offset.
         const TriangleMesh *mesh = &mv->mesh();
 
+        size_t extruder_id = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
         m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorMmuGui>(*mesh, m_modified_extruders_colors));
-        m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data());
+        m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data(), EnforcerBlockerType(extruder_id));
     }
 }
 
@@ -602,8 +604,7 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
 
     for (size_t color_idx = 0; color_idx < m_iva_colors.size(); ++color_idx) {
         for (const Triangle &tr : m_triangles) {
-            if (!tr.valid || tr.is_split() || /*tr.get_state() == EnforcerBlockerType::NONE ||*/ tr.is_selected_by_seed_fill() ||
-                tr.get_state() != EnforcerBlockerType(color_idx))
+            if (!tr.valid || tr.is_split() || tr.is_selected_by_seed_fill() || tr.get_state() != EnforcerBlockerType(color_idx))
                 continue;
 
             for (int i = 0; i < 3; ++i)
