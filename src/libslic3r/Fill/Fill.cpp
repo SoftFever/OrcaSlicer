@@ -160,11 +160,9 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            params.anchor_length = 1000.f;
 					params.anchor_length_max = 1000.f;
 		        } else {
-		            // it's internal infill, so we can calculate a generic flow spacing 
-		            // for all layers, for avoiding the ugly effect of
-		            // misaligned infill on first layer because of different extrusion width and
-		            // layer height
-		            params.spacing = layerm.flow(frInfill, layer.object()->config().layer_height).spacing();
+					// Internal infill. Calculating infill line spacing independent of the current layer height and 1st layer status,
+					// so that internall infill will be aligned over all layers of the current region.
+		            params.spacing = layerm.region()->flow(*layer.object(), frInfill, layer.object()->config().layer_height, false).spacing();
 		            // Anchor a sparse infill to inner perimeters with the following anchor length:
 			        params.anchor_length = float(region_config.infill_anchor);
 					if (region_config.infill_anchor.percent)
