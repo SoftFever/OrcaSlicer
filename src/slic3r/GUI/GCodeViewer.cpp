@@ -4114,7 +4114,7 @@ void GCodeViewer::render_legend() const
             if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120") {
                 draw_list->AddCircleFilled(center, 0.5f * icon_size,
                     ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                const float radius = 0.5f * icon_size;
+                float radius = 0.5f * icon_size;
                 draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
                 radius = 0.5f * icon_size * 0.01f * 33.0f;
                 draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
@@ -4565,6 +4565,7 @@ void GCodeViewer::render_legend() const
                 // add scrollable region
                 ImGui::BeginChild("events", { -1.0f, child_height }, false);
 #endif // ENABLE_SCROLLABLE_LEGEND
+
             for (const PartialTime& item : partial_times) {
                 switch (item.type)
                 {
