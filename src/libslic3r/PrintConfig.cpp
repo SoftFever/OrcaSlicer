@@ -3942,7 +3942,7 @@ std::string validate(const FullPrintConfig &cfg)
 #define PRINT_CONFIG_CACHE_ELEMENT_INITIALIZATION(r, data, CLASS_NAME) Slic3r::CLASS_NAME::initialize_cache();
 #define PRINT_CONFIG_CACHE_INITIALIZE(CLASSES_SEQ) \
     BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CACHE_ELEMENT_DEFINITION, _, BOOST_PP_TUPLE_TO_SEQ(CLASSES_SEQ)) \
-    static int print_config_static_initializer() { \
+    int print_config_static_initializer() { \
         /* Putting a trace here to avoid the compiler to optimize out this function. */ \
         BOOST_LOG_TRIVIAL(trace) << "Initializing StaticPrintConfigs"; \
         BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CACHE_ELEMENT_INITIALIZATION, _, BOOST_PP_TUPLE_TO_SEQ(CLASSES_SEQ)) \
