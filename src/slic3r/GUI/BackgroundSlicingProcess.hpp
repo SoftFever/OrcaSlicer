@@ -212,6 +212,23 @@ private:
 	std::condition_variable		m_condition;
 	State 						m_state = STATE_INITIAL;
 
+	// For executing tasks from the background thread on UI thread synchronously (waiting for result) using wxWidgets CallAfter().
+	// When the background proces is canceled, the UITask has to be invalidated as well, so that it will not be
+	// executed on the UI thread referencing invalid data.
+    struct UITask {
+        enum State {
+            Planned,
+            Finished,
+            Canceled,
+        };
+        State  					state = Planned;
+        std::mutex 				mutex;
+    	std::condition_variable	condition;
+    };
+    // Only one UI task may be planned by the background thread to be executed on the UI thread, as the background
+    // thread is blocking until the UI thread calculation finishes.
+    std::shared_ptr<UITask> 	m_ui_task;
+
     PrintState<BackgroundSlicingProcessStep, bspsCount>   	m_step_state;
     mutable tbb::mutex                      				m_step_state_mutex;
 	bool                set_step_started(BackgroundSlicingProcessStep step);
@@ -222,6 +239,12 @@ private:
     // If the background processing stop was requested, throw CanceledException.
     void                throw_if_canceled() const { if (m_print->canceled()) throw CanceledException(); }
     void                prepare_upload();
+    // To be executed at the background thread.
+	ThumbnailsList		render_thumbnails(const ThumbnailsParams &params);
+	// Execute task from background thread on the UI thread synchronously. Returns true if processed, false if cancelled before executing the task.
+	bool 				execute_ui_task(std::function<void()> task);
+	// To be called from inside m_mutex to cancel a planned UI task.
+	static void			cancel_ui_task(std::shared_ptr<BackgroundSlicingProcess::UITask> task);
 
 	// wxWidgets command ID to be sent to the plater to inform that the slicing is finished, and the G-code export will continue.
 	int 						m_event_slicing_completed_id 	= 0;
