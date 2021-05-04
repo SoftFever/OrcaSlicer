@@ -7,9 +7,9 @@ namespace Slic3r::GUI {
 
 class TriangleSelectorMmuGui : public TriangleSelectorGUI {
 public:
-    explicit TriangleSelectorMmuGui(const TriangleMesh& mesh, size_t extruder_count, const std::vector<std::array<uint8_t, 3>> &colors)
+    explicit TriangleSelectorMmuGui(const TriangleMesh& mesh, const std::vector<std::array<uint8_t, 3>> &colors)
         : TriangleSelectorGUI(mesh), m_colors(colors) {
-        m_iva_colors = std::vector<GLIndexedVertexArray>(extruder_count);
+        m_iva_colors = std::vector<GLIndexedVertexArray>(colors.size());
     }
 
     // Render current selection. Transformation matrices are supposed
@@ -31,6 +31,8 @@ public:
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
 
+    virtual void set_painter_gizmo_data(const Selection& selection) override;
+
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
@@ -39,8 +41,9 @@ protected:
 
     size_t                              m_first_selected_extruder_idx  = 0;
     size_t                              m_second_selected_extruder_idx = 1;
-    std::vector<std::string>            m_extruders_names;
-    std::vector<std::array<uint8_t, 3>> m_extruders_colors;
+    std::vector<std::string>            m_original_extruders_names;
+    std::vector<std::array<uint8_t, 3>> m_original_extruders_colors;
+    std::vector<std::array<uint8_t, 3>> m_modified_extruders_colors;
 
 private:
     bool on_init() override;
@@ -51,6 +54,9 @@ private:
     void on_opening() override {}
     void on_shutdown() override;
     PainterGizmoType get_painter_type() const override;
+
+    void init_model_triangle_selectors();
+    void init_extruders_data();
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
