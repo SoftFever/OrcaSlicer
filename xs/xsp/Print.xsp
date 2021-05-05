@@ -37,9 +37,6 @@ _constant()
 %name{Slic3r::Print::Object} class PrintObject {
     // owned by Print, no constructor/destructor
 
-    int region_count()
-        %code%{ RETVAL = THIS->print()->regions().size(); %};
-
     Ref<Print> print();
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()
@@ -99,10 +96,6 @@ _constant()
 
     PrintRegionPtrs* regions()
         %code%{ RETVAL = const_cast<PrintRegionPtrs*>(&THIS->print_regions_mutable()); %};
-    Ref<PrintRegion> get_region(int idx)
-        %code%{ RETVAL = THIS->print_regions_mutable()[idx]; %};
-    size_t region_count()
-        %code%{ RETVAL = THIS->regions().size(); %};
     
     bool step_done(PrintStep step)
         %code%{ RETVAL = THIS->is_step_done(step); %};
