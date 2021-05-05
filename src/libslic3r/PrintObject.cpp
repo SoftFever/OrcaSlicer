@@ -814,8 +814,8 @@ void PrintObject::detect_surfaces_type()
                     Surfaces top;
                     if (upper_layer) {
                         ExPolygons upper_slices = interface_shells ? 
-                            diff_ex(layerm->slices.surfaces, upper_layer->m_regions[idx_region]->slices.surfaces, true) :
-                            diff_ex(layerm->slices.surfaces, upper_layer->lslices, true);
+                            diff_ex(layerm->slices.surfaces, upper_layer->m_regions[idx_region]->slices.surfaces, ApplySafetyOffset::Yes) :
+                            diff_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
                         surfaces_append(top, offset2_ex(upper_slices, -offset, offset), stTop);
                     } else {
                         // if no upper layer, all surfaces of this one are solid
@@ -841,7 +841,7 @@ void PrintObject::detect_surfaces_type()
                         surfaces_append(
                             bottom,
                             offset2_ex(
-                                diff_ex(layerm->slices.surfaces, lower_layer->lslices, true), 
+                                diff_ex(layerm->slices.surfaces, lower_layer->lslices, ApplySafetyOffset::Yes),
                                 -offset, offset),
                             surface_type_bottom_other);
                         // if user requested internal shells, we need to identify surfaces
@@ -855,7 +855,7 @@ void PrintObject::detect_surfaces_type()
                                     diff_ex(
                                         intersection(layerm->slices.surfaces, lower_layer->lslices), // supported
                                         lower_layer->m_regions[idx_region]->slices.surfaces,
-                                        true),
+                                        ApplySafetyOffset::Yes),
                                     -offset, offset),
                                 stBottom);
                         }
@@ -877,9 +877,7 @@ void PrintObject::detect_surfaces_type()
         //                    if $Slic3r::debug;
                         Polygons top_polygons = to_polygons(std::move(top));
                         top.clear();
-                        surfaces_append(top,
-                            diff_ex(top_polygons, bottom, false),
-                            stTop);
+                        surfaces_append(top, diff_ex(top_polygons, bottom), stTop);
                     }
 
         #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -906,7 +904,7 @@ void PrintObject::detect_surfaces_type()
                     {
                         Polygons topbottom = to_polygons(top);
                         polygons_append(topbottom, to_polygons(bottom));
-                        surfaces_append(surfaces_out, diff_ex(surfaces_prev, topbottom, false), stInternal);
+                        surfaces_append(surfaces_out, diff_ex(surfaces_prev, topbottom), stInternal);
                     }
 
                     surfaces_append(surfaces_out, std::move(top));
@@ -1127,8 +1125,8 @@ void PrintObject::discover_vertical_shells()
                         polygons_append(cache.holes, to_polygons(layerm.fill_expolygons));
                     }
                     // Save some computing time by reducing the number of polygons.
-                    cache.top_surfaces    = union_(cache.top_surfaces,    false);
-                    cache.bottom_surfaces = union_(cache.bottom_surfaces, false);
+                    cache.top_surfaces    = union_(cache.top_surfaces);
+                    cache.bottom_surfaces = union_(cache.bottom_surfaces);
                     // For a multi-material print, simulate perimeter / infill split as if only a single extruder has been used for the whole print.
                     if (perimeter_offset > 0.) {
                         // The layer.lslices are forced to merge by expanding them first.
@@ -1143,7 +1141,7 @@ void PrintObject::discover_vertical_shells()
                         }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                     }
-                    cache.holes = union_(cache.holes, false);
+                    cache.holes = union_(cache.holes);
                 }
             });
         m_print->throw_if_canceled();
@@ -1267,7 +1265,7 @@ void PrintObject::discover_vertical_shells()
 		                            polygons_append(shell, cache.top_surfaces);
 		                            // Running the union_ using the Clipper library piece by piece is cheaper 
 		                            // than running the union_ all at once.
-	                               shell = union_(shell, false);
+	                               shell = union_(shell);
 	                           }
 	                        }
 	                    }
@@ -1286,7 +1284,7 @@ void PrintObject::discover_vertical_shells()
 		                            polygons_append(shell, cache.bottom_surfaces);
 		                            // Running the union_ using the Clipper library piece by piece is cheaper 
 		                            // than running the union_ all at once.
-		                            shell = union_(shell, false);
+		                            shell = union_(shell);
 		                        }
 	                        }
 	                    }
@@ -1306,7 +1304,7 @@ void PrintObject::discover_vertical_shells()
                         }
 #endif
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-                        shell_ex = union_ex(shell, true);
+                        shell_ex = union_safety_offset_ex(shell);
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                     }
 
@@ -1352,7 +1350,7 @@ void PrintObject::discover_vertical_shells()
                     // Trim the shells region by the internal & internal void surfaces.
                     const SurfaceType surfaceTypesInternal[] = { stInternal, stInternalVoid, stInternalSolid };
                     const Polygons    polygonsInternal = to_polygons(layerm->fill_surfaces.filter_by_types(surfaceTypesInternal, 3));
-                    shell = intersection(shell, polygonsInternal, true);
+                    shell = intersection(shell, polygonsInternal, ApplySafetyOffset::Yes);
                     polygons_append(shell, diff(polygonsInternal, holes));
                     if (shell.empty())
                         continue;
@@ -1390,14 +1388,14 @@ void PrintObject::discover_vertical_shells()
                         polygons_append(shell, intersection(offset(too_narrow, margin), polygonsInternal));
                     }
 #endif
-                    ExPolygons new_internal_solid = intersection_ex(polygonsInternal, shell, false);
+                    ExPolygons new_internal_solid = intersection_ex(polygonsInternal, shell);
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                     {
                         Slic3r::SVG svg(debug_out_path("discover_vertical_shells-regularized-%d.svg", debug_idx), get_extents(shell_before));
                         // Source shell.
-                        svg.draw(union_ex(shell_before, true));
+                        svg.draw(union_safety_offset_ex(shell_before));
                         // Shell trimmed to the internal surfaces.
-                        svg.draw_outline(union_ex(shell, true), "black", "blue", scale_(0.05));
+                        svg.draw_outline(union_safety_offset_ex(shell), "black", "blue", scale_(0.05));
                         // Regularized infill region.
                         svg.draw_outline(new_internal_solid, "red", "magenta", scale_(0.05));
                         svg.Close();  
@@ -1511,8 +1509,8 @@ void PrintObject::bridge_over_infill()
             #endif
             
             // compute the remaning internal solid surfaces as difference
-            ExPolygons not_to_bridge = diff_ex(internal_solid, to_bridge, true);
-            to_bridge = intersection_ex(to_bridge, internal_solid, true);
+            ExPolygons not_to_bridge = diff_ex(internal_solid, to_bridge, ApplySafetyOffset::Yes);
+            to_bridge = intersection_ex(to_bridge, internal_solid, ApplySafetyOffset::Yes);
             // build the new collection of fill_surfaces
             layerm->fill_surfaces.remove_type(stInternalSolid);
             for (ExPolygon &ex : to_bridge)
@@ -2339,7 +2337,7 @@ std::string PrintObject::_fix_slicing_errors()
                     if (lower_surfaces)
                         for (const auto &surface : *lower_surfaces)
                             polygons_append(holes, surface.expolygon.holes);
-                    layerm->slices.set(diff_ex(union_(outer), holes, false), stInternal);
+                    layerm->slices.set(diff_ex(union_(outer), holes), stInternal);
                 }
                 // Update layer slices after repairing the single regions.
                 layer->make_slices();
@@ -2460,8 +2458,8 @@ void PrintObject::clip_fill_surfaces()
                 if (surface.surface_type == stInternal || surface.surface_type == stInternalVoid)
                     polygons_append(internal, std::move(surface.expolygon));
             layerm->fill_surfaces.remove_types(internal_surface_types, 2);
-            layerm->fill_surfaces.append(intersection_ex(internal, upper_internal, true), stInternal);
-            layerm->fill_surfaces.append(diff_ex        (internal, upper_internal, true), stInternalVoid);
+            layerm->fill_surfaces.append(intersection_ex(internal, upper_internal, ApplySafetyOffset::Yes), stInternal);
+            layerm->fill_surfaces.append(diff_ex        (internal, upper_internal, ApplySafetyOffset::Yes), stInternalVoid);
             // If there are voids it means that our internal infill is not adjacent to
             // perimeters. In this case it would be nice to add a loop around infill to
             // make it more robust and nicer. TODO.
@@ -2558,7 +2556,7 @@ void PrintObject::discover_horizontal_shells()
                         for (const Surface &surface : neighbor_layerm->fill_surfaces.surfaces)
                             if (surface.surface_type == stInternal || surface.surface_type == stInternalSolid)
                                 polygons_append(internal, to_polygons(surface.expolygon));
-                        new_internal_solid = intersection(solid, internal, true);
+                        new_internal_solid = intersection(solid, internal, ApplySafetyOffset::Yes);
                     }
                     if (new_internal_solid.empty()) {
                         // No internal solid needed on this layer. In order to decide whether to continue
@@ -2585,8 +2583,7 @@ void PrintObject::discover_horizontal_shells()
                         float margin = float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
                         Polygons too_narrow = diff(
                             new_internal_solid, 
-                            offset2(new_internal_solid, -margin, +margin, jtMiter, 5), 
-                            true);
+                            offset2(new_internal_solid, -margin, +margin + ClipperSafetyOffset, jtMiter, 5));
                         // Trim the regularized region by the original region.
                         if (! too_narrow.empty())
                             new_internal_solid = solid = diff(new_internal_solid, too_narrow);
@@ -2605,8 +2602,7 @@ void PrintObject::discover_horizontal_shells()
                         // have the same angle, so the next shell would be grown even more and so on.
                         Polygons too_narrow = diff(
                             new_internal_solid,
-                            offset2(new_internal_solid, -margin, +margin, ClipperLib::jtMiter, 5),
-                            true);
+                            offset2(new_internal_solid, -margin, +margin + ClipperSafetyOffset, ClipperLib::jtMiter, 5));
                         if (! too_narrow.empty()) {
                             // grow the collapsing parts and add the extra area to  the neighbor layer 
                             // as well as to our original surfaces so that we support this 
@@ -2634,12 +2630,12 @@ void PrintObject::discover_horizontal_shells()
                     // and new ones
                     SurfaceCollection backup = std::move(neighbor_layerm->fill_surfaces);
                     polygons_append(new_internal_solid, to_polygons(backup.filter_by_type(stInternalSolid)));
-                    ExPolygons internal_solid = union_ex(new_internal_solid, false);
+                    ExPolygons internal_solid = union_ex(new_internal_solid);
                     // assign new internal-solid surfaces to layer
                     neighbor_layerm->fill_surfaces.set(internal_solid, stInternalSolid);
                     // subtract intersections from layer surfaces to get resulting internal surfaces
                     Polygons polygons_internal = to_polygons(std::move(internal_solid));
-                    ExPolygons internal = diff_ex(backup.filter_by_type(stInternal), polygons_internal, true);
+                    ExPolygons internal = diff_ex(backup.filter_by_type(stInternal), polygons_internal, ApplySafetyOffset::Yes);
                     // assign resulting internal surfaces to layer
                     neighbor_layerm->fill_surfaces.append(internal, stInternal);
                     polygons_append(polygons_internal, to_polygons(std::move(internal)));
@@ -2760,7 +2756,7 @@ void PrintObject::combine_infill()
             for (LayerRegion *layerm : layerms) {
                 Polygons internal = to_polygons(std::move(layerm->fill_surfaces.filter_by_type(stInternal)));
                 layerm->fill_surfaces.remove_type(stInternal);
-                layerm->fill_surfaces.append(diff_ex(internal, intersection_with_clearance, false), stInternal);
+                layerm->fill_surfaces.append(diff_ex(internal, intersection_with_clearance), stInternal);
                 if (layerm == layerms.back()) {
                     // Apply surfaces back with adjusted depth to the uppermost layer.
                     Surface templ(stInternal, ExPolygon());
@@ -2772,7 +2768,7 @@ void PrintObject::combine_infill()
                 } else {
                     // Save void surfaces.
                     layerm->fill_surfaces.append(
-                        intersection_ex(internal, intersection_with_clearance, false),
+                        intersection_ex(internal, intersection_with_clearance),
                         stInternalVoid);
                 }
             }

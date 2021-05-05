@@ -801,7 +801,7 @@ public:
             Polygons support_polygons_simplified = m_grid.contours_simplified(offset_in_grid, fill_holes);
     #endif // SUPPORT_USE_AGG_RASTERIZER
 
-            ExPolygons islands = diff_ex(support_polygons_simplified, *m_trimming_polygons, false);
+            ExPolygons islands = diff_ex(support_polygons_simplified, *m_trimming_polygons);
 
             // Extract polygons, which contain some of the island_samples.
             Polygons out;
@@ -1307,7 +1307,7 @@ namespace SupportMaterialInternal {
                 // Offset unsupported edges into polygons.
                 offset(layerm->unsupported_bridge_edges, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS));
         // Remove bridged areas from the supported areas.
-        contact_polygons = diff(contact_polygons, bridges, true);
+        contact_polygons = diff(contact_polygons, bridges, ApplySafetyOffset::Yes);
 
         #ifdef SLIC3R_DEBUG
             static int iRun = 0;
@@ -1338,7 +1338,7 @@ std::vector<Polygons> PrintObjectSupportMaterial::buildplate_covered(const Print
             Polygons &covered = buildplate_covered[layer_id];
             covered = buildplate_covered[layer_id - 1];
             polygons_append(covered, offset(lower_layer.lslices, scale_(0.01)));
-            covered = union_(covered, false); // don't apply the safety offset.
+            covered = union_(covered);
         }
         BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::buildplate_covered() - end";
     }
@@ -1981,7 +1981,7 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
     if (top.empty())
         return nullptr;
 
-    Polygons touching = intersection(top, supports_projected, false);
+    Polygons touching = intersection(top, supports_projected);
     if (touching.empty())
         return nullptr;
 
@@ -2080,7 +2080,7 @@ static inline std::pair<Polygons, Polygons> project_support_to_grid(const Layer 
     // Remove the areas that touched from the projection that will continue on next, lower, top surfaces.
 //            Polygons trimming = union_(to_polygons(layer.slices), touching, true);
     Polygons trimming = layer_buildplate_covered ? std::move(*layer_buildplate_covered) : offset(layer.lslices, float(SCALED_EPSILON));
-    Polygons overhangs_projection = diff(overhangs, trimming, false);
+    Polygons overhangs_projection = diff(overhangs, trimming);
 
 #ifdef SLIC3R_DEBUG
     SVG::export_expolygons(debug_out_path("support-support-areas-%s-raw-%d-%lf.svg", debug_name, iRun, layer.print_z),
@@ -2685,7 +2685,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
                     layer_intermediate.polygons = diff(
                         polygons_new,
                         polygons_trimming,
-                        true); // safety offset to merge the touching source polygons
+                        ApplySafetyOffset::Yes); // safety offset to merge the touching source polygons
                 layer_intermediate.layer_type = sltBase;
 
         #if 0
@@ -2988,9 +2988,9 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
             layer_new.bridging   = intermediate_layer.bridging;
             // Merge top into bottom, unite them with a safety offset.
             append(bottom, std::move(top));
-            layer_new.polygons   = intersection(union_(std::move(bottom), true), intermediate_layer.polygons);
+            layer_new.polygons   = intersection(union_safety_offset(std::move(bottom)), intermediate_layer.polygons);
             // Subtract the interface from the base regions.
-            intermediate_layer.polygons = diff(intermediate_layer.polygons, layer_new.polygons, false);
+            intermediate_layer.polygons = diff(intermediate_layer.polygons, layer_new.polygons);
             if (subtract)
                 // Trim the base interface layer with the interface layer.
                 layer_new.polygons = diff(std::move(layer_new.polygons), *subtract);
@@ -3220,21 +3220,21 @@ struct MyLayerExtruded
                 m_polygons_to_extrude = std::make_unique<Polygons>(this->layer->polygons);
             }
             Slic3r::polygons_append(*m_polygons_to_extrude, std::move(*other.m_polygons_to_extrude));
-            *m_polygons_to_extrude = union_(*m_polygons_to_extrude, true);
+            *m_polygons_to_extrude = union_safety_offset(*m_polygons_to_extrude);
             other.m_polygons_to_extrude.reset();
         } else if (m_polygons_to_extrude != nullptr) {
             assert(other.m_polygons_to_extrude == nullptr);
             // The other layer has no extrusions generated yet, if it has no m_polygons_to_extrude (its area to extrude was not reduced yet).
             assert(other.extrusions.empty());
             Slic3r::polygons_append(*m_polygons_to_extrude, other.layer->polygons);
-            *m_polygons_to_extrude = union_(*m_polygons_to_extrude, true);
+            *m_polygons_to_extrude = union_safety_offset(*m_polygons_to_extrude);
         }
         // 2) Merge the extrusions.
         this->extrusions.insert(this->extrusions.end(), other.extrusions.begin(), other.extrusions.end());
         other.extrusions.clear();
         // 3) Merge the infill polygons.
         Slic3r::polygons_append(this->layer->polygons, std::move(other.layer->polygons));
-        this->layer->polygons = union_(this->layer->polygons, true);
+        this->layer->polygons = union_safety_offset(this->layer->polygons);
         other.layer->polygons.clear();
     }
 
@@ -3614,8 +3614,8 @@ void modulate_extrusion_by_overlapping_layers(
         const PrintObjectSupportMaterial::MyLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
         ExtrusionPathFragment &frag = path_fragments[i_overlapping_layer];
         Polygons polygons_trimming = offset(union_ex(overlapping_layer.polygons), float(scale_(0.5*extrusion_width)));
-        frag.polylines = intersection_pl(path_fragments.back().polylines, polygons_trimming, false);
-        path_fragments.back().polylines = diff_pl(path_fragments.back().polylines, polygons_trimming, false);
+        frag.polylines = intersection_pl(path_fragments.back().polylines, polygons_trimming);
+        path_fragments.back().polylines = diff_pl(path_fragments.back().polylines, polygons_trimming);
         // Adjust the extrusion parameters for a reduced layer height and a non-bridging flow (nozzle_dmr = -1, does not matter).
         assert(this_layer.print_z > overlapping_layer.print_z);
         frag.height = float(this_layer.print_z - overlapping_layer.print_z);
@@ -4038,7 +4038,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     // Destination
                     layer_ex.extrusions, 
                     // Regions to fill
-                    union_ex(layer_ex.polygons_to_extrude(), true),
+                    union_safety_offset_ex(layer_ex.polygons_to_extrude()),
                     // Filler and its parameters
                     filler_interface.get(), float(density),
                     // Extrusion parameters
@@ -4060,7 +4060,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     base_interface_layer.extrusions, 
                     //base_layer_interface.extrusions,
                     // Regions to fill
-                    union_ex(base_interface_layer.polygons_to_extrude(), true),
+                    union_safety_offset_ex(base_interface_layer.polygons_to_extrude()),
                     // Filler and its parameters
                     filler, float(interface_density),
                     // Extrusion parameters

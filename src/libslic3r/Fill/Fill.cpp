@@ -211,7 +211,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					Polygons polys = to_polygons(std::move(fill.expolygons));
 		            // Make a union of polygons, use a safety offset, subtract the preceding polygons.
 				    // Bridges are processed first (see SurfaceFill::operator<())
-		            fill.expolygons = all_polygons.empty() ? union_ex(polys, true) : diff_ex(polys, all_polygons, true);
+		            fill.expolygons = all_polygons.empty() ? union_safety_offset_ex(polys) : diff_ex(polys, all_polygons, ApplySafetyOffset::Yes);
 					append(all_polygons, std::move(polys));
 				} else if (&fill != &surface_fills.back())
 					append(all_polygons, to_polygons(fill.expolygons));
@@ -252,12 +252,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        // Corners of infill regions, which would not be filled with an extrusion path with a radius of distance_between_surfaces/2
 	        Polygons collapsed = diff(
 	            surfaces_polygons,
-	            offset2(surfaces_polygons, (float)-distance_between_surfaces/2, (float)+distance_between_surfaces/2),
-	            true);
+	            offset2(surfaces_polygons, (float)-distance_between_surfaces/2, (float)+distance_between_surfaces/2 + ClipperSafetyOffset));
 	        //FIXME why the voids are added to collapsed here? First it is expensive, second the result may lead to some unwanted regions being
 	        // added if two offsetted void regions merge.
 	        // polygons_append(voids, collapsed);
-	        ExPolygons extensions = intersection_ex(offset(collapsed, (float)distance_between_surfaces), voids, true);
+	        ExPolygons extensions = intersection_ex(offset(collapsed, (float)distance_between_surfaces), voids, ApplySafetyOffset::Yes);
 	        // Now find an internal infill SurfaceFill to add these extrusions to.
 	        SurfaceFill *internal_solid_fill = nullptr;
 			unsigned int region_id = 0;
@@ -594,7 +593,7 @@ void Layer::make_ironing()
 				// For IroningType::AllSolid only:
 				// Add solid infill areas for layers, that contain some non-ironable infil (sparse infill, bridge infill).
 				append(infills, to_polygons(std::move(ironing_areas)));
-				ironing_areas = union_ex(infills, true);
+				ironing_areas = union_safety_offset_ex(infills);
 			}
 		}
 

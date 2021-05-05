@@ -178,11 +178,11 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 
     if (bridges.empty())
     {
-        fill_boundaries = union_(fill_boundaries, true);
+        fill_boundaries = union_safety_offset(fill_boundaries);
     } else
     {
         // 1) Calculate the inflated bridge regions, each constrained to its island.
-        ExPolygons               fill_boundaries_ex = union_ex(fill_boundaries, true);
+        ExPolygons               fill_boundaries_ex = union_safety_offset_ex(fill_boundaries);
         std::vector<Polygons>    bridges_grown;
         std::vector<BoundingBox> bridge_bboxes;
 
@@ -237,7 +237,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             for (size_t j = i + 1; j < bridges.size(); ++ j) {
                 if (! bridge_bboxes[i].overlap(bridge_bboxes[j]))
                     continue;
-                if (intersection(bridges_grown[i], bridges_grown[j], false).empty())
+                if (intersection(bridges_grown[i], bridges_grown[j]).empty())
                     continue;
                 // The two bridge regions intersect. Give them the same group id.
                 if (bridge_group[j] != size_t(-1)) {
@@ -297,7 +297,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 					bridges[idx_last].bridge_angle = custom_angle;
 				}
                 // without safety offset, artifacts are generated (GH #2494)
-                surfaces_append(bottom, union_ex(grown, true), bridges[idx_last]);
+                surfaces_append(bottom, union_safety_offset_ex(grown), bridges[idx_last]);
             }
 
             fill_boundaries = to_polygons(fill_boundaries_ex);
@@ -337,7 +337,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             surfaces_append(
                 new_surfaces,
                 // Don't use a safety offset as fill_boundaries were already united using the safety offset.
-                intersection_ex(polys, fill_boundaries, false),
+                intersection_ex(polys, fill_boundaries),
                 s1);
         }
     }
