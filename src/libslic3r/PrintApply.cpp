@@ -7,7 +7,8 @@ namespace Slic3r {
 // in the exact order and with the same IDs.
 // It is expected, that the model_object_dst already contains the non-support volumes of model_object_new in the correct order.
 // Friend to ModelVolume to allow copying.
-static void model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_new)
+// static is not accepted by gcc if declared as a friend of ModelObject.
+/* static */ void model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_new)
 {
     typedef std::pair<const ModelVolume*, bool> ModelVolumeWithStatus;
     std::vector<ModelVolumeWithStatus> old_volumes;
