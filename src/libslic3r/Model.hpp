@@ -680,6 +680,7 @@ protected:
     friend class SLAPrint;
     friend class Model;
 	friend class ModelObject;
+    friend static void model_volume_list_update_supports(ModelObject& model_object_dst, const ModelObject& model_object_new);
 
 	// Copies IDs of both the ModelVolume and its config.
 	explicit ModelVolume(const ModelVolume &rhs) = default;

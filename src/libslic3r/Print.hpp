@@ -509,12 +509,6 @@ protected:
     bool                invalidate_step(PrintStep step);
 
 private:
-	void 				config_diffs(
-		const DynamicPrintConfig &new_full_config, 
-		t_config_option_keys &print_diff, t_config_option_keys &object_diff, t_config_option_keys &region_diff, 
-		t_config_option_keys &full_config_diff, 
-		DynamicPrintConfig &filament_overrides) const;
-
     bool                invalidate_state_by_config_options(const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys);
 
     void                _make_skirt();
@@ -525,9 +519,6 @@ private:
     Polygons            first_layer_islands() const;
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
     std::vector<Point>  first_layer_wipe_tower_corners() const;
-
-    // Declared here to have access to Model / ModelObject / ModelInstance
-    static void         model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src);
 
     PrintConfig                             m_config;
     PrintObjectConfig                       m_default_object_config;
