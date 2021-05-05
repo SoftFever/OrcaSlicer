@@ -129,7 +129,7 @@ private:
         TransformCache m_instance;
 
     public:
-        VolumeCache() {}
+        VolumeCache() = default;
         VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform);
 
         const Vec3d& get_volume_position() const { return m_volume.position; }
