@@ -99,12 +99,12 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 
 const PrintRegion& PrintObject::printing_region(size_t idx) const throw() 
 { 
-    return *m_print->get_print_region(idx);
+    return m_print->get_print_region(idx);
 }
 
-std::vector<const PrintRegion*> PrintObject::all_regions() const
+std::vector<std::reference_wrapper<const PrintRegion>> PrintObject::all_regions() const
 {
-    std::vector<const PrintRegion*> out;
+    std::vector<std::reference_wrapper<const PrintRegion>> out;
     out.reserve(m_region_volumes.size());
     for (size_t i = 0; i < m_region_volumes.size(); ++ i)
         if (! m_region_volumes[i].empty())
@@ -1010,7 +1010,7 @@ void PrintObject::process_external_surfaces()
 		                m_print->throw_if_canceled();
 		                Polygons voids;
 		                for (const LayerRegion *layerm : m_layers[layer_idx]->regions()) {
-		                	if (layerm->region()->config().fill_density.value == 0.)
+		                	if (layerm->region().config().fill_density.value == 0.)
 		                		for (const Surface &surface : layerm->fill_surfaces.surfaces)
 		                			// Shrink the holes, let the layer above expand slightly inside the unsupported areas.
 		                			polygons_append(voids, offset(surface.expolygon, unsupported_width));
@@ -1120,7 +1120,7 @@ void PrintObject::discover_vertical_shells()
                         unsigned int perimeters = 0;
                         for (Surface &s : layerm.slices.surfaces)
                             perimeters = std::max<unsigned int>(perimeters, s.extra_perimeters);
-                        perimeters += layerm.region()->config().perimeters.value;
+                        perimeters += layerm.region().config().perimeters.value;
                         // Then calculate the infill offset.
                         if (perimeters > 0) {
                             Flow extflow = layerm.flow(frExternalPerimeter);
@@ -1216,7 +1216,7 @@ void PrintObject::discover_vertical_shells()
 
                     Layer       	        *layer          = m_layers[idx_layer];
                     LayerRegion 	        *layerm         = layer->m_regions[idx_region];
-                    const PrintRegionConfig &region_config  = layerm->region()->config();
+                    const PrintRegionConfig &region_config  = layerm->region().config();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                     layerm->export_region_slices_to_svg_debug("4_discover_vertical_shells-initial");
@@ -1680,8 +1680,8 @@ std::vector<unsigned int> PrintObject::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(this->all_regions().size() * 3);
-    for (const PrintRegion *region : this->all_regions())
-        region->collect_object_printing_extruders(*this->print(), extruders);
+    for (const PrintRegion &region : this->all_regions())
+        region.collect_object_printing_extruders(*this->print(), extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -1750,7 +1750,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
             }
             // Make sure all layers contain layer region objects for all regions.
             for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id)
-                layer->add_region(this->print()->get_print_region(region_id));
+                layer->add_region(&this->print()->get_print_region(region_id));
             prev = layer;
         }
     }
@@ -1799,7 +1799,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
             if (spiral_vase) {
                 // Slice the bottom layers with SlicingMode::Regular.
                 // This needs to be in sync with LayerRegion::make_perimeters() spiral_vase!
-                const PrintRegionConfig &config = this->print()->get_print_region(region_id)->config();
+                const PrintRegionConfig &config = this->print()->get_print_region(region_id).config();
                 slicing_mode_normal_below_layer = size_t(config.bottom_solid_layers.value);
                 for (; slicing_mode_normal_below_layer < slice_zs.size() && slice_zs[slicing_mode_normal_below_layer] < config.bottom_solid_min_thickness - EPSILON;
                     ++ slicing_mode_normal_below_layer);
@@ -2462,7 +2462,7 @@ void PrintObject::clip_fill_surfaces()
         upper_internal = intersection(overhangs, lower_layer_internal_surfaces);
         // Apply new internal infill to regions.
         for (LayerRegion *layerm : lower_layer->m_regions) {
-            if (layerm->region()->config().fill_density.value == 0)
+            if (layerm->region().config().fill_density.value == 0)
                 continue;
             SurfaceType internal_surface_types[] = { stInternal, stInternalVoid };
             Polygons internal;
@@ -2492,7 +2492,7 @@ void PrintObject::discover_horizontal_shells()
             m_print->throw_if_canceled();
             Layer 					*layer  = m_layers[i];
             LayerRegion             *layerm = layer->regions()[region_id];
-            const PrintRegionConfig &region_config = layerm->region()->config();
+            const PrintRegionConfig &region_config = layerm->region().config();
             if (region_config.solid_infill_every_layers.value > 0 && region_config.fill_density.value > 0 &&
                 (i % region_config.solid_infill_every_layers) == 0) {
                 // Insert a solid internal layer. Mark stInternal surfaces as stInternalSolid or stInternalBridge.

@@ -15,6 +15,9 @@
 
 #include "libslic3r.h"
 
+#include <functional>
+#include <set>
+
 namespace Slic3r {
 
 class Print;
@@ -59,12 +62,13 @@ class PrintRegion
 {
 public:
     PrintRegion() : m_refcnt(0) {}
-    PrintRegion(const PrintRegionConfig &config) : m_refcnt(0), m_config(config) {}
+    PrintRegion(const PrintRegionConfig &config) : m_refcnt(0), m_config(config), m_config_hash(config.hash()) {}
     ~PrintRegion() = default;
 
 // Methods NOT modifying the PrintRegion's state:
 public:
-    const PrintRegionConfig&    config() const { return m_config; }
+    const PrintRegionConfig&    config() const throw() { return m_config; }
+    size_t                      config_hash() const throw() { return m_config_hash; }
 	// 1-based extruder identifier for this region and role.
 	unsigned int 				extruder(FlowRole role) const;
     Flow                        flow(const PrintObject &object, FlowRole role, double layer_height, bool first_layer = false) const;
@@ -79,10 +83,10 @@ public:
 
 // Methods modifying the PrintRegion's state:
 public:
-    void                        set_config(const PrintRegionConfig &config) { m_config = config; }
-    void                        set_config(PrintRegionConfig &&config) { m_config = std::move(config); }
+    void                        set_config(const PrintRegionConfig &config) { m_config = config; m_config_hash = m_config.hash(); }
+    void                        set_config(PrintRegionConfig &&config) { m_config = std::move(config); m_config_hash = m_config.hash(); }
     void                        config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
-                                        { this->m_config.apply_only(other, keys, ignore_nonexistent); }
+                                        { m_config.apply_only(other, keys, ignore_nonexistent); m_config_hash = m_config.hash(); }
 
 protected:
     friend Print;
@@ -90,7 +94,11 @@ protected:
 
 private:
     PrintRegionConfig  m_config;
+    size_t             m_config_hash;
 };
+
+inline bool operator==(const PrintRegion &lhs, const PrintRegion &rhs) { return lhs.config_hash() == rhs.config_hash() && lhs.config() == rhs.config(); }
+inline bool operator!=(const PrintRegion &lhs, const PrintRegion &rhs) { return ! (lhs == rhs); }
 
 template<typename T>
 class ConstVectorOfPtrsAdaptor {
@@ -219,7 +227,7 @@ public:
     size_t                      num_printing_regions() const throw() { return m_region_volumes.size(); }
     const PrintRegion&          printing_region(size_t idx) const throw();
     //FIXME returing all possible regions before slicing, thus some of the regions may not be slicing at the end.
-    std::vector<const PrintRegion*> all_regions() const;
+    std::vector<std::reference_wrapper<const PrintRegion>> all_regions() const;
 
     bool                        has_support()           const { return m_config.support_material || m_config.support_material_enforce_layers > 0; }
     bool                        has_raft()              const { return m_config.raft_layers > 0; }
@@ -295,6 +303,7 @@ private:
     // This is the adjustment of the  the Object's coordinate system towards PrintObject's coordinate system.
     Point                                   m_center_offset;
 
+    std::set<PrintRegion>                   m_map_regions;
     // vector of (layer height ranges and vectors of volume ids), indexed by region_id
     std::vector<std::vector<std::pair<t_layer_height_range, int>>> m_region_volumes;
 
@@ -504,12 +513,12 @@ public:
 
     // Accessed by SupportMaterial
     size_t                      num_print_regions() const throw() { return m_print_regions.size(); }
-    const PrintRegion*          get_print_region(size_t idx) const  { return m_print_regions[idx]; }
+    const PrintRegion&          get_print_region(size_t idx) const  { return *m_print_regions[idx]; }
     const ToolOrdering&         get_tool_ordering() const { return m_wipe_tower_data.tool_ordering; }   // #ys_FIXME just for testing
 
 protected:
     // methods for handling regions
-    PrintRegion*        get_print_region(size_t idx)        { return m_print_regions[idx]; }
+    PrintRegion&        get_print_region(size_t idx)        { return *m_print_regions[idx]; }
     PrintRegion*        add_print_region();
     PrintRegion*        add_print_region(const PrintRegionConfig &config);
 

@@ -275,8 +275,8 @@ std::vector<unsigned int> Print::object_extruders() const
     std::vector<unsigned int> extruders;
     extruders.reserve(m_print_regions.size() * m_objects.size() * 3);
     for (const PrintObject *object : m_objects)
-		for (const auto *region : object->all_regions())
-        	region->collect_object_printing_extruders(*this, extruders);
+		for (const PrintRegion &region : object->all_regions())
+        	region.collect_object_printing_extruders(*this, extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -661,8 +661,8 @@ std::string Print::validate(std::string* warning) const
             if ((object->has_support() || object->has_raft()) && ! validate_extrusion_width(object->config(), "support_material_extrusion_width", layer_height, err_msg))
             	return err_msg;
             for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" })
-				for (const PrintRegion *region : object->all_regions())
-            		if (! validate_extrusion_width(region->config(), opt_key, layer_height, err_msg))
+				for (const PrintRegion &region : object->all_regions())
+            		if (! validate_extrusion_width(region.config(), opt_key, layer_height, err_msg))
 		            	return err_msg;
         }
     }

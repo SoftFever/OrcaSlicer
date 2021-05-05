@@ -227,7 +227,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             const LayerRegion *layerm = (region_id < layer->regions().size()) ? layer->regions()[region_id] : nullptr;
             if (layerm == nullptr)
                 continue;
-            const PrintRegion &region = *layerm->region();
+            const PrintRegion &region = layerm->region();
 
             if (! layerm->perimeters.entities.empty()) {
                 bool something_nonoverriddable = true;

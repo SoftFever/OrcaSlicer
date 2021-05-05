@@ -1113,7 +1113,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     assert(! print.config().first_layer_height.percent);
     const double       first_layer_height   = print.config().first_layer_height.value;
     for (size_t region_id = 0; region_id < print.num_print_regions(); ++ region_id) {
-        const PrintRegion &region = *print.get_print_region(region_id);
+        const PrintRegion &region = print.get_print_region(region_id);
         _write_format(file, "; external perimeters extrusion width = %.2fmm\n", region.flow(*first_object, frExternalPerimeter, layer_height).width());
         _write_format(file, "; perimeters extrusion width = %.2fmm\n",          region.flow(*first_object, frPerimeter,         layer_height).width());
         _write_format(file, "; infill extrusion width = %.2fmm\n",              region.flow(*first_object, frInfill,            layer_height).width());
@@ -1936,7 +1936,7 @@ void GCode::process_layer(
         bool enable = (layer.id() > 0 || !print.has_brim()) && (layer.id() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt());
         if (enable) {
             for (const LayerRegion *layer_region : layer.regions())
-                if (size_t(layer_region->region()->config().bottom_solid_layers.value) > layer.id() ||
+                if (size_t(layer_region->region().config().bottom_solid_layers.value) > layer.id() ||
                     layer_region->perimeters.items_count() > 1u ||
                     layer_region->fills.items_count() > 0) {
                     enable = false;
@@ -2110,7 +2110,7 @@ void GCode::process_layer(
                 const LayerRegion *layerm = layer.regions()[region_id];
                 if (layerm == nullptr)
                     continue;
-                const PrintRegion &region = *layerm->region();
+                const PrintRegion &region = layerm->region();
 
                 // Now we must process perimeters and infills and create islands of extrusions in by_region std::map.
                 // It is also necessary to save which extrusions are part of MM wiping and which are not.
@@ -2571,7 +2571,7 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.perimeters.empty()) {
-            m_config.apply(print.get_print_region(&region - &by_region.front())->config());
+            m_config.apply(print.get_print_region(&region - &by_region.front()).config());
             for (const ExtrusionEntity *ee : region.perimeters)
                 gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
         }
@@ -2592,7 +2592,7 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
                 if ((ee->role() == erIroning) == ironing)
                     extrusions.emplace_back(ee);
             if (! extrusions.empty()) {
-                m_config.apply(print.get_print_region(&region - &by_region.front())->config());
+                m_config.apply(print.get_print_region(&region - &by_region.front()).config());
                 chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
                 for (const ExtrusionEntity *fill : extrusions) {
                     auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
