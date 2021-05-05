@@ -291,13 +291,13 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
         double          extrusion_width;
     };
     std::vector<RegionFillData> region_fill_data;
-    region_fill_data.reserve(print_object.print()->regions().size());
+    region_fill_data.reserve(print_object.num_printing_regions());
     bool                       build_octree                   = false;
     const std::vector<double> &nozzle_diameters               = print_object.print()->config().nozzle_diameter.values;
     double                     max_nozzle_diameter            = *std::max_element(nozzle_diameters.begin(), nozzle_diameters.end());
     double                     default_infill_extrusion_width = Flow::auto_extrusion_width(FlowRole::frInfill, float(max_nozzle_diameter));
-    for (const PrintRegion *region : print_object.print()->regions()) {
-        const PrintRegionConfig &config                 = region->config();
+    for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {
+        const PrintRegionConfig &config                 = print_object.printing_region(region_id).config();
         bool                     nonempty               = config.fill_density > 0;
         bool                     has_adaptive_infill    = nonempty && config.fill_pattern == ipAdaptiveCubic;
         bool                     has_support_infill     = nonempty && config.fill_pattern == ipSupportCubic;

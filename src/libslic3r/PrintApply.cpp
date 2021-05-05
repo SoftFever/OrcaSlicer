@@ -383,9 +383,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 			delete object;
         }
         m_objects.clear();
-        for (PrintRegion *region : m_regions)
+        for (PrintRegion *region : m_print_regions)
             delete region;
-        m_regions.clear();
+        m_print_regions.clear();
         m_model.assign_copy(model);
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
@@ -682,21 +682,21 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     // 5) Synchronize configs of ModelVolumes, synchronize AMF / 3MF materials (and their configs), refresh PrintRegions.
     // Update reference counts of regions from the remaining PrintObjects and their volumes.
     // Regions with zero references could and should be reused.
-    for (PrintRegion *region : m_regions)
+    for (PrintRegion *region : m_print_regions)
         region->m_refcnt = 0;
     for (PrintObject *print_object : m_objects) {
         int idx_region = 0;
-        for (const auto &volumes : print_object->region_volumes) {
+        for (const auto &volumes : print_object->m_region_volumes) {
             if (! volumes.empty())
-				++ m_regions[idx_region]->m_refcnt;
+				++ m_print_regions[idx_region]->m_refcnt;
             ++ idx_region;
         }
     }
 
     // All regions now have distinct settings.
     // Check whether applying the new region config defaults we'd get different regions.
-    for (size_t region_id = 0; region_id < m_regions.size(); ++ region_id) {
-        PrintRegion       &region = *m_regions[region_id];
+    for (size_t region_id = 0; region_id < m_print_regions.size(); ++ region_id) {
+        PrintRegion       &region = *m_print_regions[region_id];
         PrintRegionConfig  this_region_config;
         bool               this_region_config_set = false;
         for (PrintObject *print_object : m_objects) {
@@ -707,8 +707,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 assert(it_status->status != ModelObjectStatus::Deleted);
                 layer_ranges = &it_status->layer_ranges;
             }
-            if (region_id < print_object->region_volumes.size()) {
-                for (const std::pair<t_layer_height_range, int> &volume_and_range : print_object->region_volumes[region_id]) {
+            if (region_id < print_object->m_region_volumes.size()) {
+                for (const std::pair<t_layer_height_range, int> &volume_and_range : print_object->m_region_volumes[region_id]) {
                     const ModelVolume        &volume             = *print_object->model_object()->volumes[volume_and_range.second];
                     const DynamicPrintConfig *layer_range_config = layer_ranges->config(volume_and_range.first);
                     if (this_region_config_set) {
@@ -721,7 +721,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                     } else {
                         this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, layer_range_config, volume, num_extruders);
 						for (size_t i = 0; i < region_id; ++ i) {
-							const PrintRegion &region_other = *m_regions[i];
+							const PrintRegion &region_other = *m_print_regions[i];
 							if (region_other.m_refcnt != 0 && region_other.config().equals(this_region_config))
 								// Regions were merged. Reset this print_object.
 								goto print_object_end;
@@ -735,19 +735,19 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             update_apply_status(print_object->invalidate_all_steps());
             // Decrease the references to regions from this volume.
             int ireg = 0;
-            for (const std::vector<std::pair<t_layer_height_range, int>> &volumes : print_object->region_volumes) {
+            for (const std::vector<std::pair<t_layer_height_range, int>> &volumes : print_object->m_region_volumes) {
                 if (! volumes.empty())
-                    -- m_regions[ireg]->m_refcnt;
+                    -- m_print_regions[ireg]->m_refcnt;
                 ++ ireg;
             }
-            print_object->region_volumes.clear();
+            print_object->m_region_volumes.clear();
         }
         if (this_region_config_set) {
             t_config_option_keys diff = region.config().diff(this_region_config);
             if (! diff.empty()) {
                 // Stop the background process before assigning new configuration to the regions.
                 for (PrintObject *print_object : m_objects)
-                    if (region_id < print_object->region_volumes.size() && ! print_object->region_volumes[region_id].empty())
+                    if (region_id < print_object->m_region_volumes.size() && ! print_object->m_region_volumes[region_id].empty())
                         update_apply_status(print_object->invalidate_state_by_config_options(region.config(), this_region_config, diff));
                 region.config_apply_only(this_region_config, diff, false);
             }
@@ -769,7 +769,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         regions_in_object.reserve(64);
         for (size_t i = idx_print_object; i < m_objects.size() && m_objects[i]->model_object() == &model_object; ++ i) {
             PrintObject &print_object = *m_objects[i];
-			bool         fresh = print_object.region_volumes.empty();
+			bool         fresh = print_object.m_region_volumes.empty();
             unsigned int volume_id = 0;
             unsigned int idx_region_in_object = 0;
             for (const ModelVolume *volume : model_object.volumes) {
@@ -786,11 +786,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         PrintRegionConfig config = PrintObject::region_config_from_model_volume(m_default_region_config, it_range->second, *volume, num_extruders);
                         // Find an existing print region with the same config.
     					int idx_empty_slot = -1;
-    					for (int i = 0; i < (int)m_regions.size(); ++ i) {
-    						if (m_regions[i]->m_refcnt == 0) {
+    					for (int i = 0; i < int(m_print_regions.size()); ++ i) {
+    						if (m_print_regions[i]->m_refcnt == 0) {
                                 if (idx_empty_slot == -1)
                                     idx_empty_slot = i;
-                            } else if (config.equals(m_regions[i]->config())) {
+                            } else if (config.equals(m_print_regions[i]->config())) {
                                 region_id = i;
                                 break;
                             }
@@ -798,11 +798,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         // If no region exists with the same config, create a new one.
     					if (region_id == -1) {
     						if (idx_empty_slot == -1) {
-    							region_id = (int)m_regions.size();
-    							this->add_region(config);
+    							region_id = int(m_print_regions.size());
+    							this->add_print_region(config);
     						} else {
     							region_id = idx_empty_slot;
-                                m_regions[region_id]->set_config(std::move(config));
+                                m_print_regions[region_id]->set_config(std::move(config));
     						}
                         }
                         regions_in_object.emplace_back(region_id);
@@ -810,8 +810,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         region_id = regions_in_object[idx_region_in_object ++];
                     // Assign volume to a region.
     				if (fresh) {
-    					if ((size_t)region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
-    						++ m_regions[region_id]->m_refcnt;
+    					if ((size_t)region_id >= print_object.m_region_volumes.size() || print_object.m_region_volumes[region_id].empty())
+    						++ m_print_regions[region_id]->m_refcnt;
     					print_object.add_region_volume(region_id, volume_id, it_range->first);
     				}
                 }

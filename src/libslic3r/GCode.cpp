@@ -796,19 +796,19 @@ namespace DoExport {
 	    // get the minimum cross-section used in the print
 	    std::vector<double> mm3_per_mm;
 	    for (auto object : print.objects()) {
-	        for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
-	            const PrintRegion* region = print.regions()[region_id];
+	        for (size_t region_id = 0; region_id < object->num_printing_regions(); ++ region_id) {
+	            const PrintRegion &region = object->printing_region(region_id);
 	            for (auto layer : object->layers()) {
 	                const LayerRegion* layerm = layer->regions()[region_id];
-	                if (region->config().get_abs_value("perimeter_speed") == 0 ||
-	                    region->config().get_abs_value("small_perimeter_speed") == 0 ||
-	                    region->config().get_abs_value("external_perimeter_speed") == 0 ||
-	                    region->config().get_abs_value("bridge_speed") == 0)
+	                if (region.config().get_abs_value("perimeter_speed") == 0 ||
+	                    region.config().get_abs_value("small_perimeter_speed") == 0 ||
+	                    region.config().get_abs_value("external_perimeter_speed") == 0 ||
+	                    region.config().get_abs_value("bridge_speed") == 0)
 	                    mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
-	                if (region->config().get_abs_value("infill_speed") == 0 ||
-	                    region->config().get_abs_value("solid_infill_speed") == 0 ||
-	                    region->config().get_abs_value("top_solid_infill_speed") == 0 ||
-                        region->config().get_abs_value("bridge_speed") == 0)
+	                if (region.config().get_abs_value("infill_speed") == 0 ||
+	                    region.config().get_abs_value("solid_infill_speed") == 0 ||
+	                    region.config().get_abs_value("top_solid_infill_speed") == 0 ||
+                        region.config().get_abs_value("bridge_speed") == 0)
                     {
                         // Minimal volumetric flow should not be calculated over ironing extrusions.
                         // Use following lambda instead of the built-it method.
@@ -1112,16 +1112,17 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     const double       layer_height         = first_object->config().layer_height.value;
     assert(! print.config().first_layer_height.percent);
     const double       first_layer_height   = print.config().first_layer_height.value;
-    for (const PrintRegion* region : print.regions()) {
-        _write_format(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(*first_object, frExternalPerimeter, layer_height).width());
-        _write_format(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(*first_object, frPerimeter,         layer_height).width());
-        _write_format(file, "; infill extrusion width = %.2fmm\n",              region->flow(*first_object, frInfill,            layer_height).width());
-        _write_format(file, "; solid infill extrusion width = %.2fmm\n",        region->flow(*first_object, frSolidInfill,       layer_height).width());
-        _write_format(file, "; top infill extrusion width = %.2fmm\n",          region->flow(*first_object, frTopSolidInfill,    layer_height).width());
+    for (size_t region_id = 0; region_id < print.num_print_regions(); ++ region_id) {
+        const PrintRegion &region = *print.get_print_region(region_id);
+        _write_format(file, "; external perimeters extrusion width = %.2fmm\n", region.flow(*first_object, frExternalPerimeter, layer_height).width());
+        _write_format(file, "; perimeters extrusion width = %.2fmm\n",          region.flow(*first_object, frPerimeter,         layer_height).width());
+        _write_format(file, "; infill extrusion width = %.2fmm\n",              region.flow(*first_object, frInfill,            layer_height).width());
+        _write_format(file, "; solid infill extrusion width = %.2fmm\n",        region.flow(*first_object, frSolidInfill,       layer_height).width());
+        _write_format(file, "; top infill extrusion width = %.2fmm\n",          region.flow(*first_object, frTopSolidInfill,    layer_height).width());
         if (print.has_support_material())
             _write_format(file, "; support material extrusion width = %.2fmm\n", support_material_flow(first_object).width());
         if (print.config().first_layer_extrusion_width.value > 0)
-            _write_format(file, "; first layer extrusion width = %.2fmm\n",   region->flow(*first_object, frPerimeter, first_layer_height, true).width());
+            _write_format(file, "; first layer extrusion width = %.2fmm\n",   region.flow(*first_object, frPerimeter, first_layer_height, true).width());
         _write_format(file, "\n");
     }
     print.throw_if_canceled();
@@ -2109,7 +2110,7 @@ void GCode::process_layer(
                 const LayerRegion *layerm = layer.regions()[region_id];
                 if (layerm == nullptr)
                     continue;
-                const PrintRegion &region = *print.regions()[region_id];
+                const PrintRegion &region = *layerm->region();
 
                 // Now we must process perimeters and infills and create islands of extrusions in by_region std::map.
                 // It is also necessary to save which extrusions are part of MM wiping and which are not.
@@ -2167,7 +2168,7 @@ void GCode::process_layer(
                                     // extrusions->first_point fits inside ith slice
                                     point_inside_surface(island_idx, extrusions->first_point())) {
                                     if (islands[island_idx].by_region.empty())
-                                        islands[island_idx].by_region.assign(print.regions().size(), ObjectByExtruder::Island::Region());
+                                        islands[island_idx].by_region.assign(print.num_print_regions(), ObjectByExtruder::Island::Region());
                                     islands[island_idx].by_region[region_id].append(entity_type, extrusions, entity_overrides);
                                     break;
                                 }
@@ -2570,7 +2571,7 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.perimeters.empty()) {
-            m_config.apply(print.regions()[&region - &by_region.front()]->config());
+            m_config.apply(print.get_print_region(&region - &by_region.front())->config());
             for (const ExtrusionEntity *ee : region.perimeters)
                 gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
         }
@@ -2591,7 +2592,7 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
                 if ((ee->role() == erIroning) == ironing)
                     extrusions.emplace_back(ee);
             if (! extrusions.empty()) {
-                m_config.apply(print.regions()[&region - &by_region.front()]->config());
+                m_config.apply(print.get_print_region(&region - &by_region.front())->config());
                 chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
                 for (const ExtrusionEntity *fill : extrusions) {
                     auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);

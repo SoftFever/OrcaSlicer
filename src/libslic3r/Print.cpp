@@ -39,22 +39,22 @@ void Print::clear()
 	for (PrintObject *object : m_objects)
 		delete object;
 	m_objects.clear();
-    for (PrintRegion *region : m_regions)
+    for (PrintRegion *region : m_print_regions)
         delete region;
-    m_regions.clear();
+    m_print_regions.clear();
     m_model.clear_objects();
 }
 
-PrintRegion* Print::add_region()
+PrintRegion* Print::add_print_region()
 {
-    m_regions.emplace_back(new PrintRegion());
-    return m_regions.back();
+    m_print_regions.emplace_back(new PrintRegion());
+    return m_print_regions.back();
 }
 
-PrintRegion* Print::add_region(const PrintRegionConfig &config)
+PrintRegion* Print::add_print_region(const PrintRegionConfig &config)
 {
-    m_regions.emplace_back(new PrintRegion(config));
-    return m_regions.back();
+    m_print_regions.emplace_back(new PrintRegion(config));
+    return m_print_regions.back();
 }
 
 // Called by Print::apply().
@@ -273,15 +273,10 @@ bool Print::is_step_done(PrintObjectStep step) const
 std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
-    extruders.reserve(m_regions.size() * 3);
-    std::vector<unsigned char> region_used(m_regions.size(), false);
+    extruders.reserve(m_print_regions.size() * m_objects.size() * 3);
     for (const PrintObject *object : m_objects)
-		for (const std::vector<std::pair<t_layer_height_range, int>> &volumes_per_region : object->region_volumes)
-        	if (! volumes_per_region.empty())
-        		region_used[&volumes_per_region - &object->region_volumes.front()] = true;
-    for (size_t idx_region = 0; idx_region < m_regions.size(); ++ idx_region)
-    	if (region_used[idx_region])
-        	m_regions[idx_region]->collect_object_printing_extruders(*this, extruders);
+		for (const auto *region : object->all_regions())
+        	region->collect_object_printing_extruders(*this, extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -451,11 +446,7 @@ std::string Print::validate(std::string* warning) const
             return L("Only a single object may be printed at a time in Spiral Vase mode. "
                      "Either remove all but the last object, or enable sequential mode by \"complete_objects\".");
         assert(m_objects.size() == 1);
-        size_t num_regions = 0;
-        for (const std::vector<std::pair<t_layer_height_range, int>> &volumes_per_region : m_objects.front()->region_volumes)
-        	if (! volumes_per_region.empty())
-        		++ num_regions;
-        if (num_regions > 1)
+        if (m_objects.front()->all_regions().size() > 1)
             return L("The Spiral Vase option can only be used when printing single material objects.");
     }
 
@@ -670,8 +661,8 @@ std::string Print::validate(std::string* warning) const
             if ((object->has_support() || object->has_raft()) && ! validate_extrusion_width(object->config(), "support_material_extrusion_width", layer_height, err_msg))
             	return err_msg;
             for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" })
-				for (size_t i = 0; i < object->region_volumes.size(); ++ i)
-            		if (! object->region_volumes[i].empty() && ! validate_extrusion_width(this->get_region(i)->config(), opt_key, layer_height, err_msg))
+				for (const PrintRegion *region : object->all_regions())
+            		if (! validate_extrusion_width(region->config(), opt_key, layer_height, err_msg))
 		            	return err_msg;
         }
     }
@@ -746,7 +737,7 @@ Flow Print::brim_flow() const
 {
     ConfigOptionFloatOrPercent width = m_config.first_layer_extrusion_width;
     if (width.value == 0) 
-        width = m_regions.front()->config().perimeter_extrusion_width;
+        width = m_print_regions.front()->config().perimeter_extrusion_width;
     if (width.value == 0) 
         width = m_objects.front()->config().extrusion_width;
     
@@ -758,7 +749,7 @@ Flow Print::brim_flow() const
     return Flow::new_from_config_width(
         frPerimeter,
 		width,
-        (float)m_config.nozzle_diameter.get_at(m_regions.front()->config().perimeter_extruder-1),
+        (float)m_config.nozzle_diameter.get_at(m_print_regions.front()->config().perimeter_extruder-1),
 		(float)this->skirt_first_layer_height());
 }
 
@@ -766,7 +757,7 @@ Flow Print::skirt_flow() const
 {
     ConfigOptionFloatOrPercent width = m_config.first_layer_extrusion_width;
     if (width.value == 0) 
-        width = m_regions.front()->config().perimeter_extrusion_width;
+        width = m_print_regions.front()->config().perimeter_extrusion_width;
     if (width.value == 0)
         width = m_objects.front()->config().extrusion_width;
     

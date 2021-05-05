@@ -98,9 +98,9 @@ _constant()
         %code%{ RETVAL = THIS->objects().size(); %};
 
     PrintRegionPtrs* regions()
-        %code%{ RETVAL = const_cast<PrintRegionPtrs*>(&THIS->regions_mutable()); %};
+        %code%{ RETVAL = const_cast<PrintRegionPtrs*>(&THIS->print_regions_mutable()); %};
     Ref<PrintRegion> get_region(int idx)
-        %code%{ RETVAL = THIS->regions_mutable()[idx]; %};
+        %code%{ RETVAL = THIS->print_regions_mutable()[idx]; %};
     size_t region_count()
         %code%{ RETVAL = THIS->regions().size(); %};
     

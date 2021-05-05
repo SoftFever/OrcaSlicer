@@ -345,17 +345,14 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     // Evaluate the XY gap between the object outer perimeters and the support structures.
     // Evaluate the XY gap between the object outer perimeters and the support structures.
     coordf_t external_perimeter_width = 0.;
-    size_t   num_nonempty_regions = 0;
     coordf_t bridge_flow_ratio = 0;
-    for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id)
-        if (! object->region_volumes[region_id].empty()) {
-            ++ num_nonempty_regions;
-            const PrintRegion &region = *object->print()->get_region(region_id);
-            external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));
-            bridge_flow_ratio += region.config().bridge_flow_ratio;
-        }
+    for (size_t region_id = 0; region_id < object->num_printing_regions(); ++ region_id) {
+        const PrintRegion &region = object->printing_region(region_id);
+        external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));
+        bridge_flow_ratio += region.config().bridge_flow_ratio;
+    }
     m_support_params.gap_xy = m_object_config->support_material_xy_spacing.get_abs_value(external_perimeter_width);
-    bridge_flow_ratio /= num_nonempty_regions;
+    bridge_flow_ratio /= object->num_printing_regions();
 
     m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! m_object_config->thick_bridges ?
         m_support_params.support_material_interface_flow.with_flow_ratio(bridge_flow_ratio) :

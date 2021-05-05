@@ -97,6 +97,21 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
     return status;
 }
 
+const PrintRegion& PrintObject::printing_region(size_t idx) const throw() 
+{ 
+    return *m_print->get_print_region(idx);
+}
+
+std::vector<const PrintRegion*> PrintObject::all_regions() const
+{
+    std::vector<const PrintRegion*> out;
+    out.reserve(m_region_volumes.size());
+    for (size_t i = 0; i < m_region_volumes.size(); ++ i)
+        if (! m_region_volumes[i].empty())
+            out.emplace_back(m_print->get_print_region(i));
+    return out;
+}
+
 // Called by make_perimeters()
 // 1) Decides Z positions of the layers,
 // 2) Initializes layers and their regions
@@ -173,8 +188,8 @@ void PrintObject::make_perimeters()
     // but we don't generate any extra perimeter if fill density is zero, as they would be floating
     // inside the object - infill_only_where_needed should be the method of choice for printing
     // hollow objects
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
-        const PrintRegion &region = *m_print->regions()[region_id];
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+        const PrintRegion &region = this->printing_region(region_id);
         if (! region.config().extra_perimeters || region.config().perimeters == 0 || region.config().fill_density == 0 || this->layer_count() < 2)
             continue;
 
@@ -294,7 +309,7 @@ void PrintObject::prepare_infill()
 
     // Debugging output.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
             LayerRegion *layerm = layer->m_regions[region_id];
             layerm->export_region_slices_to_svg_debug("6_discover_vertical_shells-final");
@@ -313,7 +328,7 @@ void PrintObject::prepare_infill()
     m_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
             LayerRegion *layerm = layer->m_regions[region_id];
             layerm->export_region_slices_to_svg_debug("7_discover_horizontal_shells-final");
@@ -332,7 +347,7 @@ void PrintObject::prepare_infill()
     m_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
             LayerRegion *layerm = layer->m_regions[region_id];
             layerm->export_region_slices_to_svg_debug("8_clip_surfaces-final");
@@ -351,7 +366,7 @@ void PrintObject::prepare_infill()
     m_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
             LayerRegion *layerm = layer->m_regions[region_id];
             layerm->export_region_slices_to_svg_debug("9_prepare_infill-final");
@@ -736,17 +751,9 @@ bool PrintObject::invalidate_all_steps()
 	// First call the "invalidate" functions, which may cancel background processing.
     bool result = Inherited::invalidate_all_steps() | m_print->invalidate_all_steps();
 	// Then reset some of the depending values.
-	this->m_slicing_params.valid = false;
-	this->region_volumes.clear();
+	m_slicing_params.valid = false;
+	m_region_volumes.clear();
 	return result;
-}
-
-static const PrintRegion* first_printing_region(const PrintObject &print_object)
-{
-    for (size_t idx_region = 0; idx_region < print_object.region_volumes.size(); ++ idx_region)
-    	if (!print_object.region_volumes.empty())
-    		return print_object.print()->regions()[idx_region];
-    return nullptr;
 }
 
 // This function analyzes slices of a region (SurfaceCollection slices).
@@ -769,9 +776,9 @@ void PrintObject::detect_surfaces_type()
     // should be visible.
     bool spiral_vase      = this->print()->config().spiral_vase.value;
     bool interface_shells = ! spiral_vase && m_config.interface_shells.value;
-    size_t num_layers     = spiral_vase ? std::min(size_t(first_printing_region(*this)->config().bottom_solid_layers), m_layers.size()) : m_layers.size();
+    size_t num_layers     = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_solid_layers), m_layers.size()) : m_layers.size();
 
-    for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region) {
+    for (size_t idx_region = 0; idx_region < this->num_printing_regions(); ++ idx_region) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - start";
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (Layer *layer : m_layers)
@@ -966,8 +973,8 @@ void PrintObject::process_external_surfaces()
     // Is there any printing region, that has zero infill? If so, then we don't want the expansion to be performed over the complete voids, but only
     // over voids, which are supported by the layer below.
     bool 				  has_voids = false;
-	for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id)
-		if (! this->region_volumes.empty() && this->print()->regions()[region_id]->config().fill_density == 0) {
+	for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id)
+		if (this->printing_region(region_id).config().fill_density == 0) {
 			has_voids = true;
 			break;
 		}
@@ -1016,7 +1023,7 @@ void PrintObject::process_external_surfaces()
 	    BOOST_LOG_TRIVIAL(debug) << "Collecting surfaces covered with extrusions in parallel - end";
 	}
 
-	for (size_t region_id = 0; region_id < this->region_volumes.size(); ++region_id) {
+	for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
         BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -1024,7 +1031,7 @@ void PrintObject::process_external_surfaces()
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
                     // BOOST_LOG_TRIVIAL(trace) << "Processing external surface, layer" << m_layers[layer_idx]->print_z;
-                    m_layers[layer_idx]->get_region((int)region_id)->process_external_surfaces(
+                    m_layers[layer_idx]->get_region(int(region_id))->process_external_surfaces(
                     	(layer_idx == 0) ? nullptr : m_layers[layer_idx - 1],
                     	(layer_idx == 0 || surfaces_covered.empty() || surfaces_covered[layer_idx - 1].empty()) ? nullptr : &surfaces_covered[layer_idx - 1]);
                 }
@@ -1049,7 +1056,7 @@ void PrintObject::discover_vertical_shells()
         Polygons    holes;
     };
     bool     spiral_vase      = this->print()->config().spiral_vase.value;
-    size_t   num_layers       = spiral_vase ? std::min(size_t(first_printing_region(*this)->config().bottom_solid_layers), m_layers.size()) : m_layers.size();
+    size_t   num_layers       = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_solid_layers), m_layers.size()) : m_layers.size();
     coordf_t min_layer_height = this->slicing_parameters().min_layer_height;
     // Does this region possibly produce more than 1 top or bottom layer?
     auto has_extra_layers_fn = [min_layer_height](const PrintRegionConfig &config) {
@@ -1064,14 +1071,14 @@ void PrintObject::discover_vertical_shells()
 	    	   num_extra_layers(config.bottom_solid_layers, config.bottom_solid_min_thickness) > 0;
     };
     std::vector<DiscoverVerticalShellsCacheEntry> cache_top_botom_regions(num_layers, DiscoverVerticalShellsCacheEntry());
-    bool top_bottom_surfaces_all_regions = this->region_volumes.size() > 1 && ! m_config.interface_shells.value;
+    bool top_bottom_surfaces_all_regions = this->num_printing_regions() > 1 && ! m_config.interface_shells.value;
     if (top_bottom_surfaces_all_regions) {
         // This is a multi-material print and interface_shells are disabled, meaning that the vertical shell thickness
         // is calculated over all materials.
         // Is the "ensure vertical wall thickness" applicable to any region?
         bool has_extra_layers = false;
-        for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++idx_region) {
-            const PrintRegionConfig &config = m_print->get_region(idx_region)->config();
+        for (size_t idx_region = 0; idx_region < this->num_printing_regions(); ++idx_region) {
+            const PrintRegionConfig &config = this->printing_region(idx_region).config();
             if (config.ensure_vertical_shell_thickness.value && has_extra_layers_fn(config)) {
                 has_extra_layers = true;
                 break;
@@ -1087,7 +1094,7 @@ void PrintObject::discover_vertical_shells()
             tbb::blocked_range<size_t>(0, num_layers, grain_size),
             [this, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
                 const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
-                const size_t num_regions = this->region_volumes.size();
+                const size_t num_regions = this->num_printing_regions();
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
                     const Layer                      &layer = *m_layers[idx_layer];
@@ -1148,10 +1155,10 @@ void PrintObject::discover_vertical_shells()
         BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - end : cache top / bottom";
     }
 
-    for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region) {
+    for (size_t idx_region = 0; idx_region < this->num_printing_regions(); ++ idx_region) {
         PROFILE_BLOCK(discover_vertical_shells_region);
 
-        const PrintRegion &region = *m_print->get_region(idx_region);
+        const PrintRegion &region = this->printing_region(idx_region);
         if (! region.config().ensure_vertical_shell_thickness.value)
             // This region will be handled by discover_horizontal_shells().
             continue;
@@ -1445,8 +1452,8 @@ void PrintObject::bridge_over_infill()
 {
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill..." << log_memory_info();
 
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
-        const PrintRegion &region = *m_print->regions()[region_id];
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+        const PrintRegion &region = this->printing_region(region_id);
         
         // skip bridging in case there are no voids
         if (region.config().fill_density.value == 100)
@@ -1672,10 +1679,9 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 std::vector<unsigned int> PrintObject::object_extruders() const
 {
     std::vector<unsigned int> extruders;
-    extruders.reserve(this->region_volumes.size() * 3);    
-    for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region)
-        if (! this->region_volumes[idx_region].empty())
-            m_print->get_region(idx_region)->collect_object_printing_extruders(*this->print(), extruders);
+    extruders.reserve(this->all_regions().size() * 3);
+    for (const PrintRegion *region : this->all_regions())
+        region->collect_object_printing_extruders(*this->print(), extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -1743,8 +1749,8 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
                 layer->lower_layer = prev;
             }
             // Make sure all layers contain layer region objects for all regions.
-            for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id)
-                layer->add_region(this->print()->get_region(region_id));
+            for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id)
+                layer->add_region(this->print()->get_print_region(region_id));
             prev = layer;
         }
     }
@@ -1754,9 +1760,9 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     bool 			 has_z_ranges  = false;
 	size_t           num_volumes   = 0;
     size_t           num_modifiers = 0;
-    for (int region_id = 0; region_id < (int)this->region_volumes.size(); ++ region_id) {
+    for (int region_id = 0; region_id < int(m_region_volumes.size()); ++ region_id) {
 		int last_volume_id = -1;
-        for (const std::pair<t_layer_height_range, int> &volume_and_range : this->region_volumes[region_id]) {
+        for (const std::pair<t_layer_height_range, int> &volume_and_range : m_region_volumes[region_id]) {
 			const int		   volume_id    = volume_and_range.second;
 			const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
             if (model_volume->is_model_part()) {
@@ -1786,14 +1792,14 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     if (! has_z_ranges && (! m_config.clip_multipart_objects.value || all_volumes_single_region >= 0)) {
         // Cheap path: Slice regions without mutual clipping.
         // The cheap path is possible if no clipping is allowed or if slicing volumes of just a single region.
-        for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
+        for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id) {
             BOOST_LOG_TRIVIAL(debug) << "Slicing objects - region " << region_id;
             // slicing in parallel
             size_t slicing_mode_normal_below_layer = 0;
             if (spiral_vase) {
                 // Slice the bottom layers with SlicingMode::Regular.
                 // This needs to be in sync with LayerRegion::make_perimeters() spiral_vase!
-                const PrintRegionConfig &config = this->print()->regions()[region_id]->config();
+                const PrintRegionConfig &config = this->print()->get_print_region(region_id)->config();
                 slicing_mode_normal_below_layer = size_t(config.bottom_solid_layers.value);
                 for (; slicing_mode_normal_below_layer < slice_zs.size() && slice_zs[slicing_mode_normal_below_layer] < config.bottom_solid_min_thickness - EPSILON;
                     ++ slicing_mode_normal_below_layer);
@@ -1819,8 +1825,8 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
         };
         std::vector<SlicedVolume> sliced_volumes;
         sliced_volumes.reserve(num_volumes);
-		for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
-			const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = this->region_volumes[region_id];
+		for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id) {
+			const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = m_region_volumes[region_id];
 			for (size_t i = 0; i < volumes_and_ranges.size(); ) {
 				int 			   volume_id    = volumes_and_ranges[i].second;
 				const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
@@ -1871,7 +1877,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
 	                        }
                     }
                     // Collect and union volumes of a single region.
-                    for (int region_id = 0; region_id < (int)this->region_volumes.size(); ++ region_id) {
+                    for (int region_id = 0; region_id < int(m_region_volumes.size()); ++ region_id) {
                         ExPolygons expolygons;
                         size_t     num_volumes = 0;
                         for (SlicedVolume &sliced_volume : sliced_volumes)
@@ -1892,8 +1898,8 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     }
 
     // Slice all modifier volumes.
-    if (this->region_volumes.size() > 1) {
-        for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
+    if (m_region_volumes.size() > 1) {
+        for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id) {
             BOOST_LOG_TRIVIAL(debug) << "Slicing modifier volumes - region " << region_id;
             // slicing in parallel
             std::vector<ExPolygons> expolygons_by_layer = this->slice_modifiers(region_id, slice_zs);
@@ -1906,7 +1912,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
                 tbb::blocked_range<size_t>(0, m_layers.size()),
 				[this, &expolygons_by_layer, region_id](const tbb::blocked_range<size_t>& range) {
                     for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
-                        for (size_t other_region_id = 0; other_region_id < this->region_volumes.size(); ++ other_region_id) {
+                        for (size_t other_region_id = 0; other_region_id < m_region_volumes.size(); ++ other_region_id) {
                             if (region_id == other_region_id)
                                 continue;
                             Layer       *layer = m_layers[layer_id];
@@ -2046,8 +2052,8 @@ end:
 std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below) const
 {
 	std::vector<const ModelVolume*> volumes;
-    if (region_id < this->region_volumes.size()) {
-		for (const std::pair<t_layer_height_range, int> &volume_and_range : this->region_volumes[region_id]) {
+    if (region_id < m_region_volumes.size()) {
+		for (const std::pair<t_layer_height_range, int> &volume_and_range : m_region_volumes[region_id]) {
 			const ModelVolume *volume = this->model_object()->volumes[volume_and_range.second];
 			if (volume->is_model_part())
 				volumes.emplace_back(volume);
@@ -2060,10 +2066,10 @@ std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::v
 std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std::vector<float> &slice_zs) const
 {
 	std::vector<ExPolygons> out;
-    if (region_id < this->region_volumes.size())
+    if (region_id < m_region_volumes.size())
     {
 		std::vector<std::vector<t_layer_height_range>> volume_ranges;
-		const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = this->region_volumes[region_id];
+		const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = m_region_volumes[region_id];
 		volume_ranges.reserve(volumes_and_ranges.size());
 		for (size_t i = 0; i < volumes_and_ranges.size(); ) {
 			int 			   volume_id    = volumes_and_ranges[i].second;
@@ -2098,7 +2104,7 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 			if (equal_ranges && volume_ranges.front().size() == 1 && volume_ranges.front().front() == t_layer_height_range(0, DBL_MAX)) {
 				// No modifier in this region was split to layer spans.
 				std::vector<const ModelVolume*> volumes;
-				for (const std::pair<t_layer_height_range, int> &volume_and_range : this->region_volumes[region_id]) {
+				for (const std::pair<t_layer_height_range, int> &volume_and_range : m_region_volumes[region_id]) {
 					const ModelVolume *volume = this->model_object()->volumes[volume_and_range.second];
 					if (volume->is_modifier())
 						volumes.emplace_back(volume);
@@ -2107,8 +2113,8 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 			} else {
 				// Some modifier in this region was split to layer spans.
 				std::vector<char> merge;
-				for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
-					const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = this->region_volumes[region_id];
+				for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id) {
+					const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = m_region_volumes[region_id];
 					for (size_t i = 0; i < volumes_and_ranges.size(); ) {
 						int 			   volume_id    = volumes_and_ranges[i].second;
 						const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
@@ -2395,9 +2401,15 @@ void PrintObject::simplify_slices(double distance)
 // fill_surfaces but we only turn them into VOID surfaces, thus preserving the boundaries.
 void PrintObject::clip_fill_surfaces()
 {
-    if (! m_config.infill_only_where_needed.value ||
-        ! std::any_of(this->print()->regions().begin(), this->print()->regions().end(), 
-            [](const PrintRegion *region) { return region->config().fill_density > 0; }))
+    if (! m_config.infill_only_where_needed.value)
+        return;
+    bool has_infill = false;
+    for (size_t i = 0; i < this->num_printing_regions(); ++ i)
+        if (this->printing_region(i).config().fill_density > 0) {
+            has_infill = true;
+            break;
+        }
+    if (! has_infill)
         return;
 
     // We only want infill under ceilings; this is almost like an
@@ -2475,7 +2487,7 @@ void PrintObject::discover_horizontal_shells()
 {
     BOOST_LOG_TRIVIAL(trace) << "discover_horizontal_shells()";
     
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (size_t i = 0; i < m_layers.size(); ++ i) {
             m_print->throw_if_canceled();
             Layer 					*layer  = m_layers[i];
@@ -2656,7 +2668,7 @@ void PrintObject::discover_horizontal_shells()
     } // for each region
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
             const LayerRegion *layerm = layer->m_regions[region_id];
             layerm->export_region_slices_to_svg_debug("5_discover_horizontal_shells");
@@ -2672,16 +2684,16 @@ void PrintObject::discover_horizontal_shells()
 void PrintObject::combine_infill()
 {
     // Work on each region separately.
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
-        const PrintRegion *region = this->print()->regions()[region_id];
-        const size_t every = region->config().infill_every_layers.value;
-        if (every < 2 || region->config().fill_density == 0.)
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+        const PrintRegion &region = this->printing_region(region_id);
+        const size_t every = region.config().infill_every_layers.value;
+        if (every < 2 || region.config().fill_density == 0.)
             continue;
         // Limit the number of combined layers to the maximum height allowed by this regions' nozzle.
         //FIXME limit the layer height to max_layer_height
         double nozzle_diameter = std::min(
-            this->print()->config().nozzle_diameter.get_at(region->config().infill_extruder.value - 1),
-            this->print()->config().nozzle_diameter.get_at(region->config().solid_infill_extruder.value - 1));
+            this->print()->config().nozzle_diameter.get_at(region.config().infill_extruder.value - 1),
+            this->print()->config().nozzle_diameter.get_at(region.config().solid_infill_extruder.value - 1));
         // define the combinations
         std::vector<size_t> combine(m_layers.size(), 0);
         {
@@ -2745,11 +2757,11 @@ void PrintObject::combine_infill()
                 0.5f * layerms.back()->flow(frPerimeter).scaled_width() +
              // Because fill areas for rectilinear and honeycomb are grown 
              // later to overlap perimeters, we need to counteract that too.
-                ((region->config().fill_pattern == ipRectilinear   ||
-                  region->config().fill_pattern == ipMonotonic     ||
-                  region->config().fill_pattern == ipGrid          ||
-                  region->config().fill_pattern == ipLine          ||
-                  region->config().fill_pattern == ipHoneycomb) ? 1.5f : 0.5f) * 
+                ((region.config().fill_pattern == ipRectilinear   ||
+                  region.config().fill_pattern == ipMonotonic     ||
+                  region.config().fill_pattern == ipGrid          ||
+                  region.config().fill_pattern == ipLine          ||
+                  region.config().fill_pattern == ipHoneycomb) ? 1.5f : 0.5f) * 
                     layerms.back()->flow(frSolidInfill).scaled_width();
             for (ExPolygon &expoly : intersection)
                 polygons_append(intersection_with_clearance, offset(expoly, clearance_offset));
