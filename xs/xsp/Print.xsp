@@ -32,7 +32,6 @@ _constant()
 
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config(); %};
-    Ref<Print> print();
 };
 
 %name{Slic3r::Print::Object} class PrintObject {
