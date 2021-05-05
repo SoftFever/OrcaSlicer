@@ -210,8 +210,7 @@ void ProjectDirtyStateManager::reset_after_save()
 
     if (&main_stack == &active_stack) {
         const UndoRedo::Snapshot* saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, main_stack, m_state.gizmos, m_last_save.main);
-        assert(saveable_snapshot != nullptr);
-        m_last_save.main = saveable_snapshot->timestamp;
+        m_last_save.main = (saveable_snapshot != nullptr) ? saveable_snapshot->timestamp : 0;
     }
     else {
         const UndoRedo::Snapshot* main_active_snapshot = get_active_snapshot(main_stack);
