@@ -456,7 +456,7 @@ bool test_if_solid_surface_filled(const ExPolygon& expolygon, double flow_spacin
     });
 
 	// Shrink the initial expolygon a bit, this simulates the infill / perimeter overlap that we usually apply.
-    ExPolygons uncovered = diff_ex(offset(expolygon, - float(0.2 * scale_(flow_spacing))), grown_paths, true);
+    ExPolygons uncovered = diff_ex(offset(expolygon, - float(0.2 * scale_(flow_spacing))), grown_paths, ApplySafetyOffset::Yes);
 
     // ignore very small dots
     const double scaled_flow_spacing = std::pow(scale_(flow_spacing), 2);
