@@ -47,13 +47,13 @@ void Print::clear()
 
 PrintRegion* Print::add_region()
 {
-    m_regions.emplace_back(new PrintRegion(this));
+    m_regions.emplace_back(new PrintRegion());
     return m_regions.back();
 }
 
 PrintRegion* Print::add_region(const PrintRegionConfig &config)
 {
-    m_regions.emplace_back(new PrintRegion(this, config));
+    m_regions.emplace_back(new PrintRegion(config));
     return m_regions.back();
 }
 
@@ -281,7 +281,7 @@ std::vector<unsigned int> Print::object_extruders() const
         		region_used[&volumes_per_region - &object->region_volumes.front()] = true;
     for (size_t idx_region = 0; idx_region < m_regions.size(); ++ idx_region)
     	if (region_used[idx_region])
-        	m_regions[idx_region]->collect_object_printing_extruders(extruders);
+        	m_regions[idx_region]->collect_object_printing_extruders(*this, extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }

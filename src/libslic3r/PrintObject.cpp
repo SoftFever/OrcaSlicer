@@ -1675,7 +1675,7 @@ std::vector<unsigned int> PrintObject::object_extruders() const
     extruders.reserve(this->region_volumes.size() * 3);    
     for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region)
         if (! this->region_volumes[idx_region].empty())
-            m_print->get_region(idx_region)->collect_object_printing_extruders(extruders);
+            m_print->get_region(idx_region)->collect_object_printing_extruders(*this->print(), extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }
