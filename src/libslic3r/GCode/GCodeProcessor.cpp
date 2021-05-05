@@ -1,6 +1,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "GCodeProcessor.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -465,9 +466,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     };
 
     auto format_time_float = [](float time) {
-        char time_str[64];
-        sprintf(time_str, "%.2f", time);
-        return std::string(time_str);
+        return Slic3r::float_to_string_decimal_point(time, 2);
     };
 
     auto format_line_M73_stop_float = [format_time_float](const std::string& mask, float time) {

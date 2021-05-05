@@ -1457,7 +1457,7 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
     config.set_key_value("filament_diameter", opt_filam);
 
     auto set_extrusion_width = [&config, opt_nozzle](const char *key, double dmr) {
-        char buf[64];
+        char buf[64]; // locales don't matter here (sprintf/atof)
         sprintf(buf, "%.2lf", dmr * opt_nozzle->values.front() / 0.4);
         config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf), false));
     };
