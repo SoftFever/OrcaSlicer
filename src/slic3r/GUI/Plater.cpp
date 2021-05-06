@@ -5816,7 +5816,11 @@ void Plater::changed_object(int obj_idx)
     // recenter and re - align to Z = 0
     auto model_object = p->model.objects[obj_idx];
 #if ENABLE_ALLOW_NEGATIVE_Z
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+    model_object->ensure_on_bed(this->p->printer_technology != ptSLA);
+#else
     model_object->ensure_on_bed(true);
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 #else
     model_object->ensure_on_bed();
 #endif // ENABLE_ALLOW_NEGATIVE_Z

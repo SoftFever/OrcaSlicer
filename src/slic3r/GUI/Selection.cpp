@@ -12,6 +12,9 @@
 #include "Plater.hpp"
 
 #include "libslic3r/Model.hpp"
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+#include "libslic3r/PresetBundle.hpp"
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 
 #include <GL/glew.h>
 
@@ -893,10 +896,11 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     else if (m_mode == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
-
-#if !ENABLE_ALLOW_NEGATIVE_Z
-    ensure_on_bed();
-#endif // !ENABLE_ALLOW_NEGATIVE_Z
+    
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
+        ensure_on_bed();
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 
     this->set_bounding_boxes_dirty();
 }
@@ -2059,7 +2063,10 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
                 // z only rotation -> synch instance z
                 // The X,Y rotations should be synchronized from start to end of the rotation.
                 assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
-                v->set_instance_offset(Z, volume->get_instance_offset().z());
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+                if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+                    v->set_instance_offset(Z, volume->get_instance_offset().z());
                 break;
 #else
                 // z only rotation -> keep instance z

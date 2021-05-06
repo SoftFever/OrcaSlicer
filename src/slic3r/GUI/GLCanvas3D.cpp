@@ -3571,7 +3571,11 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         ModelObject* m = m_model->objects[i.first];
 #if ENABLE_ALLOW_NEGATIVE_Z
         double shift_z = m->get_instance_min_z(i.second);
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+        if (m_process->current_printer_technology() == ptSLA || shift_z > 0.0) {
+#else
         if (shift_z > 0.0) {
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
             Vec3d shift(0.0, 0.0, -shift_z);
 #else
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));

@@ -23,6 +23,9 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+#include "libslic3r/PresetBundle.hpp"
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -521,7 +524,11 @@ bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(
 #if ENABLE_ALLOW_NEGATIVE_Z
 bool GLVolume::is_sinking() const
 {
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+    if (is_modifier || GUI::wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
+#else
     if (is_modifier)
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
         return false;
     const BoundingBoxf3& box = transformed_convex_hull_bounding_box();
     return box.min(2) < -EPSILON && box.max(2) >= -EPSILON;
