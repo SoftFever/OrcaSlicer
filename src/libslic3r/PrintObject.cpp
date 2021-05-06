@@ -772,11 +772,11 @@ void PrintObject::detect_surfaces_type()
     bool interface_shells = ! spiral_vase && m_config.interface_shells.value;
     size_t num_layers     = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_solid_layers), m_layers.size()) : m_layers.size();
 
-    for (size_t idx_region = 0; idx_region < this->num_printing_regions(); ++ idx_region) {
-        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - start";
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " in parallel - start";
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (Layer *layer : m_layers)
-            layer->m_regions[idx_region]->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-initial");
+            layer->m_regions[region_id]->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-initial");
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
         // If interface shells are allowed, the region->surfaces cannot be overwritten as they may be used by other threads.
@@ -792,7 +792,7 @@ void PrintObject::detect_surfaces_type()
             		((num_layers > 1) ? num_layers - 1 : num_layers) :
             		// In non-spiral vase mode, go over all layers.
             		m_layers.size()),
-            [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
+            [this, region_id, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
                 // the support from the print.
                 SurfaceType surface_type_bottom_other =
@@ -800,9 +800,9 @@ void PrintObject::detect_surfaces_type()
                     stBottom : stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
-                    // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region << " and layer " << layer->print_z;
+                    // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << region_id << " and layer " << layer->print_z;
                     Layer       *layer  = m_layers[idx_layer];
-                    LayerRegion *layerm = layer->m_regions[idx_region];
+                    LayerRegion *layerm = layer->m_regions[region_id];
                     // comparison happens against the *full* slices (considering all regions)
                     // unless internal shells are requested
                     Layer       *upper_layer = (idx_layer + 1 < this->layer_count()) ? m_layers[idx_layer + 1] : nullptr;
@@ -815,7 +815,7 @@ void PrintObject::detect_surfaces_type()
                     Surfaces top;
                     if (upper_layer) {
                         ExPolygons upper_slices = interface_shells ? 
-                            diff_ex(layerm->slices.surfaces, upper_layer->m_regions[idx_region]->slices.surfaces, ApplySafetyOffset::Yes) :
+                            diff_ex(layerm->slices.surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
                             diff_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
                         surfaces_append(top, offset2_ex(upper_slices, -offset, offset), stTop);
                     } else {
@@ -832,7 +832,7 @@ void PrintObject::detect_surfaces_type()
 #if 0
                         //FIXME Why is this branch failing t\multi.t ?
                         Polygons lower_slices = interface_shells ? 
-                            to_polygons(lower_layer->get_region(idx_region)->slices.surfaces) : 
+                            to_polygons(lower_layer->get_region(region_id)->slices.surfaces) : 
                             to_polygons(lower_layer->slices);
                         surfaces_append(bottom,
                             offset2_ex(diff(layerm->slices.surfaces, lower_slices, true), -offset, offset),
@@ -855,7 +855,7 @@ void PrintObject::detect_surfaces_type()
                                 offset2_ex(
                                     diff_ex(
                                         intersection(layerm->slices.surfaces, lower_layer->lslices), // supported
-                                        lower_layer->m_regions[idx_region]->slices.surfaces,
+                                        lower_layer->m_regions[region_id]->slices.surfaces,
                                         ApplySafetyOffset::Yes),
                                     -offset, offset),
                                 stBottom);
@@ -888,7 +888,7 @@ void PrintObject::detect_surfaces_type()
                         expolygons_with_attributes.emplace_back(std::make_pair(union_ex(top),                           SVG::ExPolygonAttributes("green")));
                         expolygons_with_attributes.emplace_back(std::make_pair(union_ex(bottom),                        SVG::ExPolygonAttributes("brown")));
                         expolygons_with_attributes.emplace_back(std::make_pair(to_expolygons(layerm->slices.surfaces),  SVG::ExPolygonAttributes("black")));
-                        SVG::export_expolygons(debug_out_path("1_detect_surfaces_type_%d_region%d-layer_%f.svg", iRun ++, idx_region, layer->print_z).c_str(), expolygons_with_attributes);
+                        SVG::export_expolygons(debug_out_path("1_detect_surfaces_type_%d_region%d-layer_%f.svg", iRun ++, region_id, layer->print_z).c_str(), expolygons_with_attributes);
                     }
         #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                     
@@ -925,25 +925,25 @@ void PrintObject::detect_surfaces_type()
         if (interface_shells) {
             // Move surfaces_new to layerm->slices.surfaces
             for (size_t idx_layer = 0; idx_layer < num_layers; ++ idx_layer)
-                m_layers[idx_layer]->m_regions[idx_region]->slices.surfaces = std::move(surfaces_new[idx_layer]);
+                m_layers[idx_layer]->m_regions[region_id]->slices.surfaces = std::move(surfaces_new[idx_layer]);
         }
 
         if (spiral_vase) {
         	if (num_layers > 1)
 	        	// Turn the last bottom layer infill to a top infill, so it will be extruded with a proper pattern.
-	        	m_layers[num_layers - 1]->m_regions[idx_region]->slices.set_type(stTop);
+	        	m_layers[num_layers - 1]->m_regions[region_id]->slices.set_type(stTop);
 	        for (size_t i = num_layers; i < m_layers.size(); ++ i)
-	        	m_layers[i]->m_regions[idx_region]->slices.set_type(stInternal);
+	        	m_layers[i]->m_regions[region_id]->slices.set_type(stInternal);
         }
 
-        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " - clipping in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - start";
         // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this, idx_region](const tbb::blocked_range<size_t>& range) {
+            [this, region_id](const tbb::blocked_range<size_t>& range) {
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
-                    LayerRegion *layerm = m_layers[idx_layer]->m_regions[idx_region];
+                    LayerRegion *layerm = m_layers[idx_layer]->m_regions[region_id];
                     layerm->slices_to_fill_surfaces_clipped();
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                     layerm->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-final");
@@ -951,7 +951,7 @@ void PrintObject::detect_surfaces_type()
                 } // for each layer of a region
             });
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " - clipping in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - end";
     } // for each this->print->region_count
 
     // Mark the object to have the region slices classified (typed, which also means they are split based on whether they are supported, bridging, top layers etc.)
@@ -1071,8 +1071,8 @@ void PrintObject::discover_vertical_shells()
         // is calculated over all materials.
         // Is the "ensure vertical wall thickness" applicable to any region?
         bool has_extra_layers = false;
-        for (size_t idx_region = 0; idx_region < this->num_printing_regions(); ++idx_region) {
-            const PrintRegionConfig &config = this->printing_region(idx_region).config();
+        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+            const PrintRegionConfig &config = this->printing_region(region_id).config();
             if (config.ensure_vertical_shell_thickness.value && has_extra_layers_fn(config)) {
                 has_extra_layers = true;
                 break;
@@ -1100,8 +1100,8 @@ void PrintObject::discover_vertical_shells()
                     static size_t debug_idx = 0;
                     ++ debug_idx;
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-                    for (size_t idx_region = 0; idx_region < num_regions; ++ idx_region) {
-                        LayerRegion &layerm                       = *layer.m_regions[idx_region];
+                    for (size_t region_id = 0; region_id < num_regions; ++ region_id) {
+                        LayerRegion &layerm                       = *layer.m_regions[region_id];
                         float        min_perimeter_infill_spacing = float(layerm.flow(frSolidInfill).scaled_spacing()) * 1.05f;
                         // Top surfaces.
                         append(cache.top_surfaces, offset(layerm.slices.filter_by_type(stTop), min_perimeter_infill_spacing));
@@ -1149,10 +1149,10 @@ void PrintObject::discover_vertical_shells()
         BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - end : cache top / bottom";
     }
 
-    for (size_t idx_region = 0; idx_region < this->num_printing_regions(); ++ idx_region) {
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         PROFILE_BLOCK(discover_vertical_shells_region);
 
-        const PrintRegion &region = this->printing_region(idx_region);
+        const PrintRegion &region = this->printing_region(region_id);
         if (! region.config().ensure_vertical_shell_thickness.value)
             // This region will be handled by discover_horizontal_shells().
             continue;
@@ -1166,15 +1166,15 @@ void PrintObject::discover_vertical_shells()
         if (! top_bottom_surfaces_all_regions) {
             // This is either a single material print, or a multi-material print and interface_shells are enabled, meaning that the vertical shell thickness
             // is calculated over a single material.
-            BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - start : cache top / bottom";
+            BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - start : cache top / bottom";
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, num_layers, grain_size),
-                [this, idx_region, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
+                [this, region_id, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
                     const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                     for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                         m_print->throw_if_canceled();
                         Layer       &layer                        = *m_layers[idx_layer];
-                        LayerRegion &layerm                       = *layer.m_regions[idx_region];
+                        LayerRegion &layerm                       = *layer.m_regions[region_id];
                         float        min_perimeter_infill_spacing = float(layerm.flow(frSolidInfill).scaled_spacing()) * 1.05f;
                         // Top surfaces.
                         auto &cache = cache_top_botom_regions[idx_layer];
@@ -1183,21 +1183,21 @@ void PrintObject::discover_vertical_shells()
                         // Bottom surfaces.
                         cache.bottom_surfaces = offset(layerm.slices.filter_by_types(surfaces_bottom, 2), min_perimeter_infill_spacing);
                         append(cache.bottom_surfaces, offset(layerm.fill_surfaces.filter_by_types(surfaces_bottom, 2), min_perimeter_infill_spacing));
-                        // Holes over all regions. Only collect them once, they are valid for all idx_region iterations.
+                        // Holes over all regions. Only collect them once, they are valid for all region_id iterations.
                         if (cache.holes.empty()) {
-                            for (size_t idx_region = 0; idx_region < layer.regions().size(); ++ idx_region)
-                                polygons_append(cache.holes, to_polygons(layer.regions()[idx_region]->fill_expolygons));
+                            for (size_t region_id = 0; region_id < layer.regions().size(); ++ region_id)
+                                polygons_append(cache.holes, to_polygons(layer.regions()[region_id]->fill_expolygons));
                         }
                     }
                 });
             m_print->throw_if_canceled();
-            BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - end : cache top / bottom";
+            BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - end : cache top / bottom";
         }
 
-        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - start : ensure vertical wall thickness";
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - start : ensure vertical wall thickness";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, num_layers, grain_size),
-            [this, idx_region, &cache_top_botom_regions]
+            [this, region_id, &cache_top_botom_regions]
             (const tbb::blocked_range<size_t>& range) {
                 // printf("discover_vertical_shells from %d to %d\n", range.begin(), range.end());
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
@@ -1209,7 +1209,7 @@ void PrintObject::discover_vertical_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
                     Layer       	        *layer          = m_layers[idx_layer];
-                    LayerRegion 	        *layerm         = layer->m_regions[idx_region];
+                    LayerRegion 	        *layerm         = layer->m_regions[region_id];
                     const PrintRegionConfig &region_config  = layerm->region().config();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -1424,11 +1424,11 @@ void PrintObject::discover_vertical_shells()
                 } // for each layer
             });
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - end";
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
 		for (size_t idx_layer = 0; idx_layer < m_layers.size(); ++idx_layer) {
-			LayerRegion *layerm = m_layers[idx_layer]->get_region(idx_region);
+			LayerRegion *layerm = m_layers[idx_layer]->get_region(region_id);
 			layerm->export_region_slices_to_svg_debug("4_discover_vertical_shells-final");
 			layerm->export_region_fill_surfaces_to_svg_debug("4_discover_vertical_shells-final");
 		}
@@ -1663,6 +1663,7 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 						object_extruders);
 		}
     sort_remove_duplicates(object_extruders);
+    //FIXME add painting extruders
 
     if (object_max_z <= 0.f)
         object_max_z = (float)model_object.raw_bounding_box().size().z();

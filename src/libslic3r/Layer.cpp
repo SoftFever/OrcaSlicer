@@ -27,7 +27,7 @@ bool Layer::empty() const
     return true;
 }
 
-LayerRegion* Layer::add_region(PrintRegion* print_region)
+LayerRegion* Layer::add_region(const PrintRegion *print_region)
 {
     m_regions.emplace_back(new LayerRegion(this, print_region));
     return m_regions.back();

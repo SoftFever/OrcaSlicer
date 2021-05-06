@@ -413,10 +413,12 @@ static inline bool sequential_print_vertical_clearance_valid(const Print &print)
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 std::string Print::validate(std::string* warning) const
 {
+    std::vector<unsigned int> extruders = this->extruders();
+
     if (m_objects.empty())
         return L("All objects are outside of the print volume.");
 
-    if (extruders().empty())
+    if (extruders.empty())
         return L("The supplied settings will cause an empty print.");
 
     if (m_config.complete_objects) {
@@ -442,9 +444,9 @@ std::string Print::validate(std::string* warning) const
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         // Make sure all extruders use same diameter filament and have the same nozzle diameter
         // EPSILON comparison is used for nozzles and 10 % tolerance is used for filaments
-        double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders().front());
-        double first_filament_diam = m_config.filament_diameter.get_at(extruders().front());
-        for (const auto& extruder_idx : extruders()) {
+        double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders.front());
+        double first_filament_diam = m_config.filament_diameter.get_at(extruders.front());
+        for (const auto& extruder_idx : extruders) {
             double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
             double filament_diam = m_config.filament_diameter.get_at(extruder_idx);
             if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam
@@ -462,7 +464,7 @@ std::string Print::validate(std::string* warning) const
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
         if (m_config.use_volumetric_e)
             return L("The Wipe Tower currently does not support volumetric E (use_volumetric_e=0).");
-        if (m_config.complete_objects && extruders().size() > 1)
+        if (m_config.complete_objects && extruders.size() > 1)
             return L("The Wipe Tower is currently not supported for multimaterial sequential prints.");
         
         if (m_objects.size() > 1) {
@@ -542,8 +544,6 @@ std::string Print::validate(std::string* warning) const
     }
     
 	{
-		std::vector<unsigned int> extruders = this->extruders();
-
 		// Find the smallest used nozzle diameter and the number of unique nozzle diameters.
 		double min_nozzle_diameter = std::numeric_limits<double>::max();
 		double max_nozzle_diameter = 0;
