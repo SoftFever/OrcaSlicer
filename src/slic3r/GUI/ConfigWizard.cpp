@@ -26,14 +26,17 @@
 #include <wx/wupdlock.h>
 #include <wx/debug.h>
 
+#include "libslic3r/Platform.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "DesktopIntegrationDialog.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
+#include "format.hpp"
 
 #if defined(__linux__) && defined(__WXGTK3__)
 #define wxLinux_gtk3 true
@@ -450,7 +453,6 @@ void ConfigWizardPage::append_spacer(int space)
     content->AddSpacer(space);
 }
 
-
 // Wizard pages
 
 PageWelcome::PageWelcome(ConfigWizard *parent)
@@ -469,9 +471,21 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
     , cbox_reset(append(
         new wxCheckBox(this, wxID_ANY, _L("Remove user profiles (a snapshot will be taken beforehand)"))
     ))
+    , cbox_integrate(append(
+        new wxCheckBox(this, wxID_ANY, _L("Perform desktop integration (This will set shortcuts to PrusaSlicer to this Appimage executable)."))
+    ))
 {
     welcome_text->Hide();
     cbox_reset->Hide();
+#ifdef __linux__
+    if (!DesktopIntegrationDialog::is_integrated())
+        cbox_integrate->Show(true);
+    else
+        cbox_integrate->Hide();
+#else
+    cbox_integrate->Hide();
+#endif
+    
 }
 
 void PageWelcome::set_run_reason(ConfigWizard::RunReason run_reason)
@@ -479,6 +493,14 @@ void PageWelcome::set_run_reason(ConfigWizard::RunReason run_reason)
     const bool data_empty = run_reason == ConfigWizard::RR_DATA_EMPTY;
     welcome_text->Show(data_empty);
     cbox_reset->Show(!data_empty);
+#ifdef __linux__
+    if (!DesktopIntegrationDialog::is_integrated())
+        cbox_integrate->Show(true);
+    else
+        cbox_integrate->Hide();
+#else
+    cbox_integrate->Hide();
+#endif
 }
 
 
@@ -2373,6 +2395,12 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         }
     }
 
+#ifdef __linux__
+    // Desktop integration on Linux
+    if (page_welcome->integrate_desktop()) 
+        DesktopIntegrationDialog::perform_desktop_integration();
+#endif
+
     // Decide whether to create snapshot based on run_reason and the reset profile checkbox
     bool snapshot = true;
     Snapshot::Reason snapshot_reason = Snapshot::SNAPSHOT_UPGRADE;
@@ -2490,7 +2518,6 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     // Update the selections from the compatibilty.
     preset_bundle->export_selections(*app_config);
 }
-
 void ConfigWizard::priv::update_presets_in_config(const std::string& section, const std::string& alias_key, bool add)
 {
     const PresetAliases& aliases = section == AppConfig::SECTION_FILAMENTS ? aliases_fff : aliases_sla;
