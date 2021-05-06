@@ -152,6 +152,34 @@ struct PrintInstance
 
 typedef std::vector<PrintInstance> PrintInstances;
 
+// Region and its volumes (printing volumes or modifier volumes)
+struct PrintRegionVolumes
+{
+    // Single volume + Z range assigned to a region.
+    struct VolumeWithZRange {
+        // Z range to slice this ModelVolume over.
+        t_layer_height_range         layer_height_range;
+        // Index of a ModelVolume inside its parent ModelObject.
+        int                          volume_idx;
+    };
+
+    // Overriding one region with some other extruder, producing another region.
+    // The region is owned by PrintObject::m_all_regions.
+    struct ExtruderOverride {
+        unsigned int                 extruder;
+//        const PrintRegion           *region;
+    };
+
+    // The region is owned by PrintObject::m_all_regions.
+//    const PrintRegion               *region;
+    // Possible overrides of the default region extruder.
+    std::vector<ExtruderOverride>    overrides;
+    // List of ModelVolume indices and layer ranges of thereof.
+    std::vector<VolumeWithZRange>    volumes;
+    // Is this region printing in any layer?
+//    bool                             printing { false };
+};
+
 class PrintObject : public PrintObjectBaseWithState<Print, PrintObjectStep, posCount>
 {
 private: // Prevents erroneous use by other classes.
@@ -186,7 +214,7 @@ public:
     void add_region_volume(unsigned int region_id, int volume_id, const t_layer_height_range &layer_range) {
         if (region_id >= m_region_volumes.size())
 			m_region_volumes.resize(region_id + 1);
-        m_region_volumes[region_id].emplace_back(layer_range, volume_id);
+        m_region_volumes[region_id].volumes.push_back({ layer_range, volume_id });
     }
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
@@ -305,9 +333,9 @@ private:
     // This is the adjustment of the  the Object's coordinate system towards PrintObject's coordinate system.
     Point                                   m_center_offset;
 
-    std::vector<std::unique_ptr<PrintRegion>>                      m_all_regions;
+    std::vector<std::unique_ptr<PrintRegion>> m_all_regions;
     // vector of (layer height ranges and vectors of volume ids), indexed by region_id
-    std::vector<std::vector<std::pair<t_layer_height_range, int>>> m_region_volumes;
+    std::vector<PrintRegionVolumes>         m_region_volumes;
 
     SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;
@@ -513,15 +541,11 @@ public:
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 
-    // Accessed by SupportMaterial
     size_t                      num_print_regions() const throw() { return m_print_regions.size(); }
     const PrintRegion&          get_print_region(size_t idx) const  { return *m_print_regions[idx]; }
-    const ToolOrdering&         get_tool_ordering() const { return m_wipe_tower_data.tool_ordering; }   // #ys_FIXME just for testing
+    const ToolOrdering&         get_tool_ordering() const { return m_wipe_tower_data.tool_ordering; }
 
 protected:
-    // methods for handling regions
-    PrintRegion&        get_print_region(size_t idx)        { return *m_print_regions[idx]; }
-
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
 

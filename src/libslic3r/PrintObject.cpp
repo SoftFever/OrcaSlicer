@@ -1757,14 +1757,13 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     size_t           num_modifiers = 0;
     for (int region_id = 0; region_id < int(m_region_volumes.size()); ++ region_id) {
 		int last_volume_id = -1;
-        for (const std::pair<t_layer_height_range, int> &volume_and_range : m_region_volumes[region_id]) {
-			const int		   volume_id    = volume_and_range.second;
-			const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
+        for (const PrintRegionVolumes::VolumeWithZRange &volume_w_zrange : m_region_volumes[region_id].volumes) {
+			const ModelVolume *model_volume = this->model_object()->volumes[volume_w_zrange.volume_idx];
             if (model_volume->is_model_part()) {
-				if (last_volume_id == volume_id) {
+				if (last_volume_id == volume_w_zrange.volume_idx) {
 					has_z_ranges = true;
 				} else {
-					last_volume_id = volume_id;
+					last_volume_id = volume_w_zrange.volume_idx;
 					if (all_volumes_single_region == -2)
 						// first model volume met
 						all_volumes_single_region = region_id;
@@ -1821,21 +1820,21 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
         std::vector<SlicedVolume> sliced_volumes;
         sliced_volumes.reserve(num_volumes);
 		for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id) {
-			const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = m_region_volumes[region_id];
-			for (size_t i = 0; i < volumes_and_ranges.size(); ) {
-				int 			   volume_id    = volumes_and_ranges[i].second;
+			const PrintRegionVolumes &volumes_and_ranges = m_region_volumes[region_id];
+			for (size_t i = 0; i < volumes_and_ranges.volumes.size(); ) {
+				int 			   volume_id    = volumes_and_ranges.volumes[i].volume_idx;
 				const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
 				if (model_volume->is_model_part()) {
 					BOOST_LOG_TRIVIAL(debug) << "Slicing objects - volume " << volume_id;
 					// Find the ranges of this volume. Ranges in volumes_and_ranges must not overlap for a single volume.
 					std::vector<t_layer_height_range> ranges;
-					ranges.emplace_back(volumes_and_ranges[i].first);
+					ranges.emplace_back(volumes_and_ranges.volumes[i].layer_height_range);
 					size_t j = i + 1;
-					for (; j < volumes_and_ranges.size() && volume_id == volumes_and_ranges[j].second; ++ j)
-						if (! ranges.empty() && std::abs(ranges.back().second - volumes_and_ranges[j].first.first) < EPSILON)
-							ranges.back().second = volumes_and_ranges[j].first.second;
+					for (; j < volumes_and_ranges.volumes.size() && volume_id == volumes_and_ranges.volumes[j].volume_idx; ++ j)
+						if (! ranges.empty() && std::abs(ranges.back().second - volumes_and_ranges.volumes[j].layer_height_range.first) < EPSILON)
+							ranges.back().second = volumes_and_ranges.volumes[j].layer_height_range.second;
 						else
-							ranges.emplace_back(volumes_and_ranges[j].first);
+							ranges.emplace_back(volumes_and_ranges.volumes[j].layer_height_range);
                     // slicing in parallel
 					sliced_volumes.emplace_back(volume_id, (int)region_id, this->slice_volume(slice_zs, ranges, slicing_mode, *model_volume));
 					i = j;
@@ -2048,8 +2047,8 @@ std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::v
 {
 	std::vector<const ModelVolume*> volumes;
     if (region_id < m_region_volumes.size()) {
-		for (const std::pair<t_layer_height_range, int> &volume_and_range : m_region_volumes[region_id]) {
-			const ModelVolume *volume = this->model_object()->volumes[volume_and_range.second];
+		for (const PrintRegionVolumes::VolumeWithZRange &volume_w_zrange : m_region_volumes[region_id].volumes) {
+			const ModelVolume *volume = this->model_object()->volumes[volume_w_zrange.volume_idx];
 			if (volume->is_model_part())
 				volumes.emplace_back(volume);
 		}
@@ -2057,27 +2056,27 @@ std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::v
 	return this->slice_volumes(z, mode, slicing_mode_normal_below_layer, mode_below, volumes);
 }
 
-// Z ranges are not applicable to modifier meshes, therefore a single volume will be found in volume_and_range at most once.
+// Z ranges are not applicable to modifier meshes, therefore a single volume will be found in volume_w_zrange at most once.
 std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std::vector<float> &slice_zs) const
 {
 	std::vector<ExPolygons> out;
     if (region_id < m_region_volumes.size())
     {
 		std::vector<std::vector<t_layer_height_range>> volume_ranges;
-		const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = m_region_volumes[region_id];
-		volume_ranges.reserve(volumes_and_ranges.size());
-		for (size_t i = 0; i < volumes_and_ranges.size(); ) {
-			int 			   volume_id    = volumes_and_ranges[i].second;
+		const PrintRegionVolumes &volumes_and_ranges = m_region_volumes[region_id];
+		volume_ranges.reserve(volumes_and_ranges.volumes.size());
+		for (size_t i = 0; i < volumes_and_ranges.volumes.size(); ) {
+			int 			   volume_id    = volumes_and_ranges.volumes[i].volume_idx;
 			const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
 			if (model_volume->is_modifier()) {
 				std::vector<t_layer_height_range> ranges;
-				ranges.emplace_back(volumes_and_ranges[i].first);
+				ranges.emplace_back(volumes_and_ranges.volumes[i].layer_height_range);
 				size_t j = i + 1;
-				for (; j < volumes_and_ranges.size() && volume_id == volumes_and_ranges[j].second; ++ j) {
-					if (! ranges.empty() && std::abs(ranges.back().second - volumes_and_ranges[j].first.first) < EPSILON)
-						ranges.back().second = volumes_and_ranges[j].first.second;
+				for (; j < volumes_and_ranges.volumes.size() && volume_id == volumes_and_ranges.volumes[j].volume_idx; ++ j) {
+					if (! ranges.empty() && std::abs(ranges.back().second - volumes_and_ranges.volumes[j].layer_height_range.first) < EPSILON)
+						ranges.back().second = volumes_and_ranges.volumes[j].layer_height_range.second;
 					else
-						ranges.emplace_back(volumes_and_ranges[j].first);
+						ranges.emplace_back(volumes_and_ranges.volumes[j].layer_height_range);
 				}
 				volume_ranges.emplace_back(std::move(ranges));
 				i = j;
@@ -2099,8 +2098,8 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 			if (equal_ranges && volume_ranges.front().size() == 1 && volume_ranges.front().front() == t_layer_height_range(0, DBL_MAX)) {
 				// No modifier in this region was split to layer spans.
 				std::vector<const ModelVolume*> volumes;
-				for (const std::pair<t_layer_height_range, int> &volume_and_range : m_region_volumes[region_id]) {
-					const ModelVolume *volume = this->model_object()->volumes[volume_and_range.second];
+				for (const PrintRegionVolumes::VolumeWithZRange &volume_w_zrange : m_region_volumes[region_id].volumes) {
+					const ModelVolume *volume = this->model_object()->volumes[volume_w_zrange.volume_idx];
 					if (volume->is_modifier())
 						volumes.emplace_back(volume);
 				}
@@ -2109,18 +2108,18 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 				// Some modifier in this region was split to layer spans.
 				std::vector<char> merge;
 				for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id) {
-					const std::vector<std::pair<t_layer_height_range, int>> &volumes_and_ranges = m_region_volumes[region_id];
-					for (size_t i = 0; i < volumes_and_ranges.size(); ) {
-						int 			   volume_id    = volumes_and_ranges[i].second;
+					const PrintRegionVolumes &volumes_and_ranges = m_region_volumes[region_id];
+					for (size_t i = 0; i < volumes_and_ranges.volumes.size(); ) {
+						int 			   volume_id    = volumes_and_ranges.volumes[i].volume_idx;
 						const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
 						if (model_volume->is_modifier()) {
 							BOOST_LOG_TRIVIAL(debug) << "Slicing modifiers - volume " << volume_id;
 							// Find the ranges of this volume. Ranges in volumes_and_ranges must not overlap for a single volume.
 							std::vector<t_layer_height_range> ranges;
-							ranges.emplace_back(volumes_and_ranges[i].first);
+							ranges.emplace_back(volumes_and_ranges.volumes[i].layer_height_range);
 							size_t j = i + 1;
-							for (; j < volumes_and_ranges.size() && volume_id == volumes_and_ranges[j].second; ++ j)
-								ranges.emplace_back(volumes_and_ranges[j].first);
+							for (; j < volumes_and_ranges.volumes.size() && volume_id == volumes_and_ranges.volumes[j].volume_idx; ++ j)
+								ranges.emplace_back(volumes_and_ranges.volumes[j].layer_height_range);
 			                // slicing in parallel
 			                std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, SlicingMode::Regular, *model_volume);
                             // Variable this_slices could be empty if no value of slice_zs is within any of the ranges of this volume.

@@ -694,9 +694,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             PrintRegion       &region = *print_object->m_all_regions[region_id];
             PrintRegionConfig  region_config;
             bool               region_config_set = false;
-            for (const std::pair<t_layer_height_range, int> &volume_and_range : print_object->m_region_volumes[region_id]) {
-                const ModelVolume        &volume             = *print_object->model_object()->volumes[volume_and_range.second];
-                const DynamicPrintConfig *layer_range_config = layer_ranges->config(volume_and_range.first);
+            for (const PrintRegionVolumes::VolumeWithZRange &volume_w_zrange : print_object->m_region_volumes[region_id].volumes) {
+                const ModelVolume        &volume             = *print_object->model_object()->volumes[volume_w_zrange.volume_idx];
+                const DynamicPrintConfig *layer_range_config = layer_ranges->config(volume_w_zrange.layer_height_range);
                 PrintRegionConfig         this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, layer_range_config, volume, num_extruders);
                 if (region_config_set) {
                     if (this_region_config != region_config) {
