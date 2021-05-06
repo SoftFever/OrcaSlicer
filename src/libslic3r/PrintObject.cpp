@@ -97,18 +97,12 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
     return status;
 }
 
-const PrintRegion& PrintObject::printing_region(size_t idx) const throw() 
-{ 
-    return m_print->get_print_region(idx);
-}
-
 std::vector<std::reference_wrapper<const PrintRegion>> PrintObject::all_regions() const
 {
     std::vector<std::reference_wrapper<const PrintRegion>> out;
-    out.reserve(m_region_volumes.size());
-    for (size_t i = 0; i < m_region_volumes.size(); ++ i)
-        if (! m_region_volumes[i].empty())
-            out.emplace_back(m_print->get_print_region(i));
+    out.reserve(m_all_regions.size());
+    for (size_t i = 0; i < m_all_regions.size(); ++ i)
+        out.emplace_back(*m_all_regions[i]);
     return out;
 }
 

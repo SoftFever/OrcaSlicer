@@ -61,14 +61,19 @@ enum PrintObjectStep {
 class PrintRegion
 {
 public:
-    PrintRegion() : m_refcnt(0) {}
-    PrintRegion(const PrintRegionConfig &config) : m_refcnt(0), m_config(config), m_config_hash(config.hash()) {}
+    PrintRegion() = default;
+    PrintRegion(const PrintRegionConfig &config);
+    PrintRegion(const PrintRegionConfig &config, const size_t config_hash) : m_config(config), m_config_hash(config_hash) {}
+    PrintRegion(PrintRegionConfig &&config);
+    PrintRegion(PrintRegionConfig &&config, const size_t config_hash) : m_config(std::move(config)), m_config_hash(config_hash) {}
     ~PrintRegion() = default;
 
 // Methods NOT modifying the PrintRegion's state:
 public:
     const PrintRegionConfig&    config() const throw() { return m_config; }
     size_t                      config_hash() const throw() { return m_config_hash; }
+    // Identifier of this PrintRegion in the list of Print::m_print_regions.
+    int                         print_region_id() const throw() { return m_print_region_id; }
 	// 1-based extruder identifier for this region and role.
 	unsigned int 				extruder(FlowRole role) const;
     Flow                        flow(const PrintObject &object, FlowRole role, double layer_height, bool first_layer = false) const;
@@ -87,14 +92,11 @@ public:
     void                        set_config(PrintRegionConfig &&config) { m_config = std::move(config); m_config_hash = m_config.hash(); }
     void                        config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
                                         { m_config.apply_only(other, keys, ignore_nonexistent); m_config_hash = m_config.hash(); }
-
-protected:
-    friend Print;
-    size_t             m_refcnt;
-
 private:
+    friend Print;
     PrintRegionConfig  m_config;
     size_t             m_config_hash;
+    int                m_print_region_id = -1;
 };
 
 inline bool operator==(const PrintRegion &lhs, const PrintRegion &rhs) { return lhs.config_hash() == rhs.config_hash() && lhs.config() == rhs.config(); }
@@ -224,8 +226,8 @@ public:
     const SlicingParameters&    slicing_parameters() const { return m_slicing_params; }
     static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z);
 
-    size_t                      num_printing_regions() const throw() { return m_region_volumes.size(); }
-    const PrintRegion&          printing_region(size_t idx) const throw();
+    size_t                      num_printing_regions() const throw() { return m_all_regions.size(); }
+    const PrintRegion&          printing_region(size_t idx) const throw() { return *m_all_regions[idx]; }
     //FIXME returing all possible regions before slicing, thus some of the regions may not be slicing at the end.
     std::vector<std::reference_wrapper<const PrintRegion>> all_regions() const;
 
@@ -303,7 +305,7 @@ private:
     // This is the adjustment of the  the Object's coordinate system towards PrintObject's coordinate system.
     Point                                   m_center_offset;
 
-    std::set<PrintRegion>                   m_map_regions;
+    std::vector<std::unique_ptr<PrintRegion>>                      m_all_regions;
     // vector of (layer height ranges and vectors of volume ids), indexed by region_id
     std::vector<std::vector<std::pair<t_layer_height_range, int>>> m_region_volumes;
 
@@ -519,8 +521,6 @@ public:
 protected:
     // methods for handling regions
     PrintRegion&        get_print_region(size_t idx)        { return *m_print_regions[idx]; }
-    PrintRegion*        add_print_region();
-    PrintRegion*        add_print_region(const PrintRegionConfig &config);
 
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);

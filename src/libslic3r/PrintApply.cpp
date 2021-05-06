@@ -383,9 +383,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 			delete object;
         }
         m_objects.clear();
-        for (PrintRegion *region : m_print_regions)
-            delete region;
-        m_print_regions.clear();
         m_model.assign_copy(model);
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
@@ -598,6 +595,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     }
 
     // 4) Generate PrintObjects from ModelObjects and their instances.
+    bool print_regions_reshuffled = false;
     {
         PrintObjectPtrs print_objects_new;
         print_objects_new.reserve(std::max(m_objects.size(), m_model.objects.size()));
@@ -675,87 +673,72 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				update_apply_status(this->invalidate_steps({ psSkirt, psBrim, psWipeTower, psGCodeExport }));
 			if (new_objects)
 	            update_apply_status(false);
+            print_regions_reshuffled = true;
         }
         print_object_status.clear();
     }
 
-    // 5) Synchronize configs of ModelVolumes, synchronize AMF / 3MF materials (and their configs), refresh PrintRegions.
-    // Update reference counts of regions from the remaining PrintObjects and their volumes.
-    // Regions with zero references could and should be reused.
-    for (PrintRegion *region : m_print_regions)
-        region->m_refcnt = 0;
-    for (PrintObject *print_object : m_objects) {
-        int idx_region = 0;
-        for (const auto &volumes : print_object->m_region_volumes) {
-            if (! volumes.empty())
-				++ m_print_regions[idx_region]->m_refcnt;
-            ++ idx_region;
-        }
-    }
-
     // All regions now have distinct settings.
     // Check whether applying the new region config defaults we'd get different regions.
-    for (size_t region_id = 0; region_id < m_print_regions.size(); ++ region_id) {
-        PrintRegion       &region = *m_print_regions[region_id];
-        PrintRegionConfig  this_region_config;
-        bool               this_region_config_set = false;
-        for (PrintObject *print_object : m_objects) {
-            const LayerRanges *layer_ranges;
-            {
-                auto it_status = model_object_status.find(ModelObjectStatus(print_object->model_object()->id()));
-                assert(it_status != model_object_status.end());
-                assert(it_status->status != ModelObjectStatus::Deleted);
-                layer_ranges = &it_status->layer_ranges;
-            }
-            if (region_id < print_object->m_region_volumes.size()) {
-                for (const std::pair<t_layer_height_range, int> &volume_and_range : print_object->m_region_volumes[region_id]) {
-                    const ModelVolume        &volume             = *print_object->model_object()->volumes[volume_and_range.second];
-                    const DynamicPrintConfig *layer_range_config = layer_ranges->config(volume_and_range.first);
-                    if (this_region_config_set) {
-                        // If the new config for this volume differs from the other
-                        // volume configs currently associated to this region, it means
-                        // the region subdivision does not make sense anymore.
-                        if (! this_region_config.equals(PrintObject::region_config_from_model_volume(m_default_region_config, layer_range_config, volume, num_extruders)))
-                            // Regions were split. Reset this print_object.
-                            goto print_object_end;
-                    } else {
-                        this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, layer_range_config, volume, num_extruders);
-						for (size_t i = 0; i < region_id; ++ i) {
-							const PrintRegion &region_other = *m_print_regions[i];
-							if (region_other.m_refcnt != 0 && region_other.config().equals(this_region_config))
-								// Regions were merged. Reset this print_object.
-								goto print_object_end;
-						}
-                        this_region_config_set = true;
+    for (PrintObject *print_object : m_objects) {
+        const LayerRanges *layer_ranges;
+        {
+            auto it_status = model_object_status.find(ModelObjectStatus(print_object->model_object()->id()));
+            assert(it_status != model_object_status.end());
+            assert(it_status->status != ModelObjectStatus::Deleted);
+            layer_ranges = &it_status->layer_ranges;
+        }
+        bool some_object_region_modified = false;
+        bool regions_merged              = false;
+        for (size_t region_id = 0; region_id < print_object->m_region_volumes.size(); ++ region_id) {
+            PrintRegion       &region = *print_object->m_all_regions[region_id];
+            PrintRegionConfig  region_config;
+            bool               region_config_set = false;
+            for (const std::pair<t_layer_height_range, int> &volume_and_range : print_object->m_region_volumes[region_id]) {
+                const ModelVolume        &volume             = *print_object->model_object()->volumes[volume_and_range.second];
+                const DynamicPrintConfig *layer_range_config = layer_ranges->config(volume_and_range.first);
+                PrintRegionConfig         this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, layer_range_config, volume, num_extruders);
+                if (region_config_set) {
+                    if (this_region_config != region_config) {
+                        regions_merged = true;
+                        break;
                     }
+                } else {
+                    region_config = std::move(this_region_config);
+                    region_config_set = true;
                 }
             }
-            continue;
-        print_object_end:
-            update_apply_status(print_object->invalidate_all_steps());
-            // Decrease the references to regions from this volume.
-            int ireg = 0;
-            for (const std::vector<std::pair<t_layer_height_range, int>> &volumes : print_object->m_region_volumes) {
-                if (! volumes.empty())
-                    -- m_print_regions[ireg]->m_refcnt;
-                ++ ireg;
-            }
-            print_object->m_region_volumes.clear();
-        }
-        if (this_region_config_set) {
-            t_config_option_keys diff = region.config().diff(this_region_config);
-            if (! diff.empty()) {
+            if (regions_merged)
+                break;
+            size_t region_config_hash = region_config.hash();
+            bool   modified           = region.config_hash() != region_config_hash || region.config() != region_config;
+            some_object_region_modified |= modified;
+            if (some_object_region_modified)
+                // Verify whether this region was not merged with some other region.
+    			for (size_t i = 0; i < region_id; ++ i) {
+    				const PrintRegion &region_other = *print_object->m_all_regions[i];
+    				if (region_other.config_hash() == region_config_hash && region_other.config() == region_config) {
+    					// Regions were merged. Reset this print_object.
+                        regions_merged = true;
+                        break;
+                    }
+    			}
+            if (modified) {
                 // Stop the background process before assigning new configuration to the regions.
-                for (PrintObject *print_object : m_objects)
-                    if (region_id < print_object->m_region_volumes.size() && ! print_object->m_region_volumes[region_id].empty())
-                        update_apply_status(print_object->invalidate_state_by_config_options(region.config(), this_region_config, diff));
-                region.config_apply_only(this_region_config, diff, false);
+                t_config_option_keys diff = region.config().diff(region_config);
+                update_apply_status(print_object->invalidate_state_by_config_options(region.config(), region_config, diff));
+                region.config_apply_only(region_config, diff, false);
             }
+        }
+        if (regions_merged) {
+            // Two regions of a single object were either split or merged. This invalidates the whole slicing.
+            update_apply_status(print_object->invalidate_all_steps());
+            print_object->m_region_volumes.clear();
         }
     }
 
     // Possibly add new regions for the newly added or resetted PrintObjects.
-    for (size_t idx_print_object = 0; idx_print_object < m_objects.size(); ++ idx_print_object) {
+    for (size_t idx_print_object = 0; idx_print_object < m_objects.size();) {
         PrintObject        &print_object0 = *m_objects[idx_print_object];
         const ModelObject  &model_object  = *print_object0.model_object();
         const LayerRanges *layer_ranges;
@@ -765,59 +748,64 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             assert(it_status->status != ModelObjectStatus::Deleted);
             layer_ranges = &it_status->layer_ranges;
         }
-        std::vector<int>   regions_in_object;
-        regions_in_object.reserve(64);
-        for (size_t i = idx_print_object; i < m_objects.size() && m_objects[i]->model_object() == &model_object; ++ i) {
-            PrintObject &print_object = *m_objects[i];
-			bool         fresh = print_object.m_region_volumes.empty();
+        if (print_object0.m_region_volumes.empty()) {
+            // Fresh or completely invalidated print_object. Assign regions.
             unsigned int volume_id = 0;
-            unsigned int idx_region_in_object = 0;
             for (const ModelVolume *volume : model_object.volumes) {
                 if (! volume->is_model_part() && ! volume->is_modifier()) {
-					++ volume_id;
-					continue;
-				}
+                    ++ volume_id;
+                    continue;
+                }
                 // Filter the layer ranges, so they do not overlap and they contain at least a single layer.
                 // Now insert a volume with a layer range to its own region.
                 for (auto it_range = layer_ranges->begin(); it_range != layer_ranges->end(); ++ it_range) {
                     int region_id = -1;
-                    if (&print_object == &print_object0) {
-                        // Get the config applied to this volume.
-                        PrintRegionConfig config = PrintObject::region_config_from_model_volume(m_default_region_config, it_range->second, *volume, num_extruders);
-                        // Find an existing print region with the same config.
-    					int idx_empty_slot = -1;
-    					for (int i = 0; i < int(m_print_regions.size()); ++ i) {
-    						if (m_print_regions[i]->m_refcnt == 0) {
-                                if (idx_empty_slot == -1)
-                                    idx_empty_slot = i;
-                            } else if (config.equals(m_print_regions[i]->config())) {
-                                region_id = i;
-                                break;
-                            }
-    					}
-                        // If no region exists with the same config, create a new one.
-    					if (region_id == -1) {
-    						if (idx_empty_slot == -1) {
-    							region_id = int(m_print_regions.size());
-    							this->add_print_region(config);
-    						} else {
-    							region_id = idx_empty_slot;
-                                m_print_regions[region_id]->set_config(std::move(config));
-    						}
+                    // Get the config applied to this volume.
+                    PrintRegionConfig config = PrintObject::region_config_from_model_volume(m_default_region_config, it_range->second, *volume, num_extruders);
+                    size_t            hash   = config.hash();
+                    for (size_t i = 0; i < print_object0.m_all_regions.size(); ++ i)
+                        if (hash == print_object0.m_all_regions[i]->config_hash() && config == *print_object0.m_all_regions[i]) {
+                            region_id = int(i);
+                            break;
                         }
-                        regions_in_object.emplace_back(region_id);
-                    } else
-                        region_id = regions_in_object[idx_region_in_object ++];
-                    // Assign volume to a region.
-    				if (fresh) {
-    					if ((size_t)region_id >= print_object.m_region_volumes.size() || print_object.m_region_volumes[region_id].empty())
-    						++ m_print_regions[region_id]->m_refcnt;
-    					print_object.add_region_volume(region_id, volume_id, it_range->first);
-    				}
+                    // If no region exists with the same config, create a new one.
+                    if (region_id == -1) {
+                        region_id = int(print_object0.m_all_regions.size());
+                        print_object0.m_all_regions.emplace_back(std::make_unique<PrintRegion>(std::move(config), hash));
+                    }
+                    print_object0.add_region_volume(region_id, volume_id, it_range->first);
                 }
-				++ volume_id;
-			}
+                ++ volume_id;
+            }
+            print_regions_reshuffled = true;
         }
+        for (++ idx_print_object; idx_print_object < m_objects.size() && m_objects[idx_print_object]->model_object() == &model_object; ++ idx_print_object) {
+            PrintObject &print_object = *m_objects[idx_print_object];
+            if (print_object.m_region_volumes.empty()) {
+                // Copy region volumes and regions from print_object0.
+                print_object.m_region_volumes = print_object0.m_region_volumes;
+                print_object.m_all_regions.reserve(print_object0.m_all_regions.size());
+                for (const std::unique_ptr<Slic3r::PrintRegion> &region : print_object0.m_all_regions)
+                    print_object.m_all_regions.emplace_back(std::make_unique<PrintRegion>(*region));
+                print_regions_reshuffled = true;
+            }
+        }
+    }
+
+    if (print_regions_reshuffled) {
+        // Update Print::m_print_regions from objects.
+        struct cmp { bool operator() (const PrintRegion *l, const PrintRegion *r) const { return l->config_hash() == r->config_hash() && l->config() == r->config(); } };
+        std::set<const PrintRegion*, cmp> region_set;
+        m_print_regions.clear();
+        for (PrintObject *print_object : m_objects)
+            for (std::unique_ptr<Slic3r::PrintRegion> &print_region : print_object->m_all_regions)
+                if (auto it = region_set.find(print_region.get()); it == region_set.end()) {
+                    int print_region_id = int(m_print_regions.size());
+                    m_print_regions.emplace_back(print_region.get());
+                    print_region->m_print_region_id = print_region_id;
+                } else {
+                    print_region->m_print_region_id = (*it)->print_region_id();
+                }
     }
 
     // Update SlicingParameters for each object where the SlicingParameters is not valid.

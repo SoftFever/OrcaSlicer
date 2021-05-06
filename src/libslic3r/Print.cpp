@@ -31,6 +31,9 @@ namespace Slic3r {
 template class PrintState<PrintStep, psCount>;
 template class PrintState<PrintObjectStep, posCount>;
 
+PrintRegion::PrintRegion(const PrintRegionConfig &config) : PrintRegion(config, config.hash()) {}
+PrintRegion::PrintRegion(PrintRegionConfig &&config) : PrintRegion(std::move(config), config.hash()) {}
+
 void Print::clear() 
 {
 	tbb::mutex::scoped_lock lock(this->state_mutex());
@@ -39,22 +42,8 @@ void Print::clear()
 	for (PrintObject *object : m_objects)
 		delete object;
 	m_objects.clear();
-    for (PrintRegion *region : m_print_regions)
-        delete region;
     m_print_regions.clear();
     m_model.clear_objects();
-}
-
-PrintRegion* Print::add_print_region()
-{
-    m_print_regions.emplace_back(new PrintRegion());
-    return m_print_regions.back();
-}
-
-PrintRegion* Print::add_print_region(const PrintRegionConfig &config)
-{
-    m_print_regions.emplace_back(new PrintRegion(config));
-    return m_print_regions.back();
 }
 
 // Called by Print::apply().
