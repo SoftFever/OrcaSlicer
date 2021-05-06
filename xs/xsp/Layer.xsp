@@ -10,7 +10,8 @@
     // owned by Layer, no constructor/destructor
 
     Ref<Layer> layer();
-    Ref<PrintRegion> region();
+    Ref<PrintRegion> region()
+        %code%{ RETVAL = &THIS->region(); %};
 
     Ref<SurfaceCollection> slices()
         %code%{ RETVAL = &THIS->slices; %};
