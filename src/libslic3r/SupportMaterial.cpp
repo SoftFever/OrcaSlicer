@@ -361,7 +361,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_support_params.can_merge_support_regions = m_object_config->support_material_extruder.value == m_object_config->support_material_interface_extruder.value;
     if (!m_support_params.can_merge_support_regions && (m_object_config->support_material_extruder.value == 0 || m_object_config->support_material_interface_extruder.value == 0)) {
         // One of the support extruders is of "don't care" type.
-        auto object_extruders = m_object->print()->object_extruders();
+        auto object_extruders = m_object->object_extruders();
         if (object_extruders.size() == 1 &&
             *object_extruders.begin() == std::max<unsigned int>(m_object_config->support_material_extruder.value, m_object_config->support_material_interface_extruder.value))
             // Object is printed with the same extruder as the support.
@@ -2764,7 +2764,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                         const Layer &object_layer = *object.layers()[i];
                         bool some_region_overlaps = false;
                         for (LayerRegion *region : object_layer.regions()) {
-                            coordf_t bridging_height = region->region().bridging_height_avg(*this->m_print_config);
+                            coordf_t bridging_height = region->region().bridging_height_avg(*m_print_config);
                             if (object_layer.print_z - bridging_height > support_layer.print_z + gap_extra_above - EPSILON)
                                 break;
                             some_region_overlaps = true;
@@ -3182,7 +3182,7 @@ struct MyLayerExtruded
     MyLayerExtruded& operator=(MyLayerExtruded &&rhs) {
         this->layer = rhs.layer;
         this->extrusions = std::move(rhs.extrusions);
-        this->m_polygons_to_extrude = std::move(rhs.m_polygons_to_extrude);
+        m_polygons_to_extrude = std::move(rhs.m_polygons_to_extrude);
         rhs.layer = nullptr;
         return *this;
     }

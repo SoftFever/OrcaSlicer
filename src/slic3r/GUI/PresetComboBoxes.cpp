@@ -134,7 +134,7 @@ void PresetComboBox::OnSelect(wxCommandEvent& evt)
 
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
     if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX)
-        this->SetSelection(this->m_last_selected);
+        this->SetSelection(m_last_selected);
     else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
         m_last_selected = selected_item;
         on_selection_changed(selected_item);
@@ -698,7 +698,7 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
 
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
     if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
-        this->SetSelection(this->m_last_selected);
+        this->SetSelection(m_last_selected);
         evt.StopPropagation();
         if (marker == LABEL_ITEM_MARKER)
             return;
@@ -715,8 +715,8 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
         }
         return;
     }
-    else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || this->m_last_selected != selected_item || m_collection->current_is_dirty())
-        this->m_last_selected = selected_item;
+    else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || m_last_selected != selected_item || m_collection->current_is_dirty())
+        m_last_selected = selected_item;
         
     evt.Skip();
 }
@@ -973,7 +973,7 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
 
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
     if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
-        this->SetSelection(this->m_last_selected);
+        this->SetSelection(m_last_selected);
         if (marker == LABEL_ITEM_WIZARD_PRINTERS)
             wxTheApp->CallAfter([this]() {
             wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);

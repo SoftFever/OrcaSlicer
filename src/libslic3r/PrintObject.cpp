@@ -725,10 +725,10 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     } else if (step == posSlice) {
 		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial });
 		invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
-        this->m_slicing_params.valid = false;
+        m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
-        this->m_slicing_params.valid = false;
+        m_slicing_params.valid = false;
     }
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
@@ -1009,7 +1009,7 @@ void PrintObject::process_external_surfaces()
 		                			// Shrink the holes, let the layer above expand slightly inside the unsupported areas.
 		                			polygons_append(voids, offset(surface.expolygon, unsupported_width));
 		                }
-		                surfaces_covered[layer_idx] = diff(this->m_layers[layer_idx]->lslices, voids);
+		                surfaces_covered[layer_idx] = diff(m_layers[layer_idx]->lslices, voids);
 	            	}
 	        }
 	    );

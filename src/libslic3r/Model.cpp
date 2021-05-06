@@ -1813,7 +1813,7 @@ void ModelVolume::transform_this_mesh(const Transform3d &mesh_trafo, bool fix_le
 	this->set_mesh(std::move(mesh));
     TriangleMesh convex_hull = this->get_convex_hull();
     convex_hull.transform(mesh_trafo, fix_left_handed);
-    this->m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
+    m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
     // Let the rest of the application know that the geometry changed, so the meshes have to be reloaded.
     this->set_new_unique_id();
 }
@@ -1825,7 +1825,7 @@ void ModelVolume::transform_this_mesh(const Matrix3d &matrix, bool fix_left_hand
 	this->set_mesh(std::move(mesh));
     TriangleMesh convex_hull = this->get_convex_hull();
     convex_hull.transform(matrix, fix_left_handed);
-    this->m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
+    m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
     // Let the rest of the application know that the geometry changed, so the meshes have to be reloaded.
     this->set_new_unique_id();
 }

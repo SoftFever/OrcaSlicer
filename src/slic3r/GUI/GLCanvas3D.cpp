@@ -3157,7 +3157,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     if (m_gizmos.on_mouse(evt)) {
-        if (wxWindow::FindFocus() != this->m_canvas)
+        if (wxWindow::FindFocus() != m_canvas)
             // Grab keyboard focus for input in gizmo dialogs.
             m_canvas->SetFocus();
 
@@ -3180,7 +3180,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_move_start_threshold_position_2D_as_invalid();
     }
 
-    if (evt.ButtonDown() && wxWindow::FindFocus() != this->m_canvas)
+    if (evt.ButtonDown() && wxWindow::FindFocus() != m_canvas)
         // Grab keyboard focus on any mouse click event.
         m_canvas->SetFocus();
 
@@ -6201,7 +6201,7 @@ void GLCanvas3D::_load_sla_shells()
 #else
         v.indexed_vertex_array.load_mesh(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.finalize_geometry(this->m_initialized);
+        v.indexed_vertex_array.finalize_geometry(m_initialized);
         v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
         v.composite_id.volume_id = volume_id;
         v.set_instance_offset(unscale(instance.shift.x(), instance.shift.y(), 0));

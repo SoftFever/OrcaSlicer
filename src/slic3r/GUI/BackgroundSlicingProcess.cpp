@@ -361,7 +361,7 @@ bool BackgroundSlicingProcess::stop()
 	// m_print->state_mutex() shall NOT be held. Unfortunately there is no interface to test for it.
 	std::unique_lock<std::mutex> lck(m_mutex);
 	if (m_state == STATE_INITIAL) {
-//		this->m_export_path.clear();
+//		m_export_path.clear();
 		return false;
 	}
 //	assert(this->running());
@@ -379,7 +379,7 @@ bool BackgroundSlicingProcess::stop()
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
 	}
-//	this->m_export_path.clear();
+//	m_export_path.clear();
 	return true;
 }
 
@@ -496,7 +496,7 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
 	Print::ApplyStatus invalidated = m_print->apply(model, config);
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
-		!this->m_fff_print->is_step_done(psGCodeExport)) {
+		!m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.
 		// Let the G-code preview UI know that the final G-code preview is not valid.
 		// In addition, this early memory deallocation reduces memory footprint.
@@ -621,7 +621,7 @@ ThumbnailsList BackgroundSlicingProcess::render_thumbnails(const ThumbnailsParam
 {
 	ThumbnailsList thumbnails;
 	if (m_thumbnail_cb)
-		this->execute_ui_task([this, &params, &thumbnails](){ thumbnails = this->m_thumbnail_cb(params); });
+		this->execute_ui_task([this, &params, &thumbnails](){ thumbnails = m_thumbnail_cb(params); });
 	return thumbnails;
 }
 

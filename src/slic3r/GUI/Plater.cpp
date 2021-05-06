@@ -1588,8 +1588,8 @@ struct Plater::priv
     void redo();
     void undo_redo_to(size_t time_to_load);
 
-    void suppress_snapshots()   { this->m_prevent_snapshots++; }
-    void allow_snapshots()      { this->m_prevent_snapshots--; }
+    void suppress_snapshots()   { m_prevent_snapshots++; }
+    void allow_snapshots()      { m_prevent_snapshots--; }
 
     void process_validation_warning(const std::string& warning) const;
 
@@ -4198,9 +4198,9 @@ int Plater::priv::get_active_snapshot_index()
 
 void Plater::priv::take_snapshot(const std::string& snapshot_name)
 {
-    if (this->m_prevent_snapshots > 0)
+    if (m_prevent_snapshots > 0)
         return;
-    assert(this->m_prevent_snapshots >= 0);
+    assert(m_prevent_snapshots >= 0);
     UndoRedo::SnapshotData snapshot_data;
     snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())

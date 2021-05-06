@@ -115,7 +115,6 @@ _constant()
                 RETVAL = newRV_noinc((SV*)hv);
             }
         %};
-    double max_allowed_layer_height() const;
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object);
     std::string output_filepath(std::string path = "")
