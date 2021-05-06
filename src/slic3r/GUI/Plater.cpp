@@ -5722,7 +5722,7 @@ wxString Plater::get_project_filename(const wxString& extension) const
 
 void Plater::set_project_filename(const wxString& filename)
 {
-    return p->set_project_filename(filename);
+    p->set_project_filename(filename);
 }
 
 bool Plater::is_export_gcode_scheduled() const

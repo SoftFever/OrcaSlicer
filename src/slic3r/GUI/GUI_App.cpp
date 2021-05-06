@@ -11,6 +11,7 @@
 #include <exception>
 #include <cstdlib>
 #include <regex>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
@@ -633,8 +634,17 @@ void GUI_App::post_init()
             //FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
             this->mainframe->load_config_file(this->init_params->load_configs.back());
         // If loading a 3MF file, the config is loaded from the last one.
-        if (! this->init_params->input_files.empty())
-            this->plater()->load_files(this->init_params->input_files, true, true);
+        if (!this->init_params->input_files.empty()) {
+            const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files, true, true);
+            if (!res.empty() && this->init_params->input_files.size() == 1) {
+                // Update application titlebar when opening a project file
+                const std::string& filename = this->init_params->input_files.front();
+                if (boost::algorithm::iends_with(filename, ".amf") ||
+                    boost::algorithm::iends_with(filename, ".amf.xml") ||
+                    boost::algorithm::iends_with(filename, ".3mf"))
+                    this->plater()->set_project_filename(filename);
+            }
+        }
         if (! this->init_params->extra_config.empty())
             this->mainframe->load_config(this->init_params->extra_config);
     }
