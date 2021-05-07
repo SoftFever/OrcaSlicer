@@ -210,7 +210,15 @@ public:
     void            update_mode();
 
     void            add_config_menu(wxMenuBar *menu);
-    bool            check_unsaved_changes(const wxString &header = wxString());
+#if ENABLE_PROJECT_DIRTY_STATE
+    bool            has_unsaved_preset_changes() const;
+    bool            has_current_preset_changes() const;
+    void            update_saved_preset_from_current_preset();
+    std::vector<std::pair<unsigned int, std::string>> get_selected_presets() const;
+    bool            check_and_save_current_preset_changes(const wxString& header = wxString());
+#else
+    bool            check_unsaved_changes(const wxString& header = wxString());
+#endif // ENABLE_PROJECT_DIRTY_STATE
     bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
     void            load_current_presets(bool check_printer_presets = true);

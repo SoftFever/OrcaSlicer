@@ -488,8 +488,7 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
 
     int i=0;
     const char* item_text;
-    while (items_getter(is_undo, i, &item_text))
-    {
+    while (items_getter(is_undo, i, &item_text)) {
         ImGui::Selectable(item_text, i < hovered);
 
         if (ImGui::IsItemHovered()) {
