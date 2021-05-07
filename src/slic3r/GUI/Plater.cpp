@@ -5796,6 +5796,14 @@ bool Plater::set_printer_technology(PrinterTechnology printer_technology)
     //FIXME for SLA synchronize
     //p->background_process.apply(Model)!
 
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+    if (printer_technology == ptSLA) {
+        for (ModelObject* model_object : p->model.objects) {
+            model_object->ensure_on_bed();
+        }
+    }
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+
     p->label_btn_export = printer_technology == ptFFF ? L("Export G-code") : L("Export");
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
 
