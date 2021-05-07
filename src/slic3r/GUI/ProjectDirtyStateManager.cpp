@@ -133,13 +133,13 @@ void ProjectDirtyStateManager::DirtyState::Gizmos::add_used(const UndoRedo::Snap
 void ProjectDirtyStateManager::DirtyState::Gizmos::remove_obsolete_used(const Slic3r::UndoRedo::Stack& main_stack)
 {
     const std::vector<UndoRedo::Snapshot>& snapshots = main_stack.snapshots();
-    for (auto& [name, gizmo] : used) {
-        auto it = gizmo.modified_timestamps.begin();
-        while (it != gizmo.modified_timestamps.end()) {
+    for (auto& item : used) {
+        auto it = item.second.modified_timestamps.begin();
+        while (it != item.second.modified_timestamps.end()) {
             size_t timestamp = *it;
             auto snapshot_it = std::find_if(snapshots.begin(), snapshots.end(), [timestamp](const Slic3r::UndoRedo::Snapshot& snapshot) { return snapshot.timestamp == timestamp; });
             if (snapshot_it == snapshots.end())
-                it = gizmo.modified_timestamps.erase(it);
+                it = item.second.modified_timestamps.erase(it);
             else
                 ++it;
         }
@@ -160,8 +160,8 @@ bool ProjectDirtyStateManager::DirtyState::Gizmos::any_used_modified() const
 // returns true if the given snapshot is contained in any of the gizmos caches
 bool ProjectDirtyStateManager::DirtyState::Gizmos::is_used_and_modified(const UndoRedo::Snapshot& snapshot) const
 {
-    for (auto& [name, gizmo] : used) {
-        for (size_t i : gizmo.modified_timestamps) {
+    for (const auto& item : used) {
+        for (size_t i : item.second.modified_timestamps) {
             if (i == snapshot.timestamp)
                 return true;
         }
@@ -366,7 +366,6 @@ void ProjectDirtyStateManager::update_from_undo_redo_main_stack(UpdateType type,
         boost::starts_with(active_snapshot->name, _utf8("Load Project:")))
         return;
 
-    size_t search_timestamp = 0;
     if (boost::starts_with(active_snapshot->name, _utf8("Entering"))) {
         if (type == UpdateType::UndoRedoTo) {
             std::string topmost_redo;
@@ -382,14 +381,12 @@ void ProjectDirtyStateManager::update_from_undo_redo_main_stack(UpdateType type,
         }
         m_state.gizmos.current = false;
         m_last_save.gizmo = 0;
-        search_timestamp = m_last_save.main;
     }
     else if (boost::starts_with(active_snapshot->name, _utf8("Leaving"))) {
         if (m_state.gizmos.current)
             m_state.gizmos.add_used(*active_snapshot);
         m_state.gizmos.current = false;
         m_last_save.gizmo = 0;
-        search_timestamp = m_last_save.main;
     }
 
     const UndoRedo::Snapshot* last_saveable_snapshot = get_last_saveable_snapshot(EStackType::Main, stack, m_state.gizmos, m_last_save.main);
