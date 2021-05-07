@@ -155,17 +155,19 @@ void Polygon::triangulate_convex(Polygons* polygons) const
 // center of mass
 Point Polygon::centroid() const
 {
-    double area_temp = this->area();
-    double x_temp = 0;
-    double y_temp = 0;
-    
-    Polyline polyline = this->split_at_first_point();
-    for (Points::const_iterator point = polyline.points.begin(); point != polyline.points.end() - 1; ++point) {
-        x_temp += (double)( point->x() + (point+1)->x() ) * ( (double)point->x()*(point+1)->y() - (double)(point+1)->x()*point->y() );
-        y_temp += (double)( point->y() + (point+1)->y() ) * ( (double)point->x()*(point+1)->y() - (double)(point+1)->x()*point->y() );
+    double area_sum = 0.;
+    Vec2d  c(0., 0.);
+    if (points.size() >= 3) {
+        Vec2d p1 = points.back().cast<double>();
+        for (const Point &p : points) {
+            Vec2d p2 = p.cast<double>();
+            double a = cross2(p1, p2);
+            area_sum += a;
+            c += (p1 + p2) * a;
+            p1 = p2;
+        }
     }
-    
-    return Point(x_temp/(6*area_temp), y_temp/(6*area_temp));
+    return Point(Vec2d(c / (3. * area_sum)));
 }
 
 // find all concave vertices (i.e. having an internal angle greater than the supplied angle)
