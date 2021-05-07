@@ -45,7 +45,6 @@ public:
     bool run(RunReason reason, StartPage start_page = SP_WELCOME);
 
     static const wxString& name(const bool from_menu = false);
-
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override ;
 
