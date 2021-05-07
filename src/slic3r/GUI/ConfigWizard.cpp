@@ -33,6 +33,7 @@
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "Field.hpp"
 #include "DesktopIntegrationDialog.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
@@ -1383,20 +1384,39 @@ void PageBedShape::apply_custom_config(DynamicPrintConfig &config)
     config.set_key_value("bed_custom_model", new ConfigOptionString(custom_model));
 }
 
+static void focus_event(wxFocusEvent& e, wxTextCtrl* ctrl, double def_value) 
+{
+    e.Skip();
+    wxString str = ctrl->GetValue();
+    // Replace the first occurence of comma in decimal number.
+    bool was_replace = str.Replace(",", ".", false) > 0;
+    double val = 0.0;
+    if (!str.ToCDouble(&val)) {
+        if (val == 0.0)
+            val = def_value;
+        ctrl->SetValue(double_to_string(val));
+        show_error(nullptr, _L("Invalid numeric input."));
+        ctrl->SetFocus();
+    }
+    else if (was_replace)
+        ctrl->SetValue(double_to_string(val));
+}
+
 PageDiameters::PageDiameters(ConfigWizard *parent)
     : ConfigWizardPage(parent, _L("Filament and Nozzle Diameters"), _L("Print Diameters"), 1)
-    , spin_nozzle(new wxSpinCtrlDouble(this, wxID_ANY))
-    , spin_filam(new wxSpinCtrlDouble(this, wxID_ANY))
+    , diam_nozzle(new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(Field::def_width_thinner() * wxGetApp().em_unit(), wxDefaultCoord)))
+    , diam_filam (new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(Field::def_width_thinner() * wxGetApp().em_unit(), wxDefaultCoord)))
 {
-    spin_nozzle->SetDigits(2);
-    spin_nozzle->SetIncrement(0.1);
     auto *default_nozzle = print_config_def.get("nozzle_diameter")->get_default_value<ConfigOptionFloats>();
-    spin_nozzle->SetValue(default_nozzle != nullptr && default_nozzle->size() > 0 ? default_nozzle->get_at(0) : 0.5);
+    wxString value = double_to_string(default_nozzle != nullptr && default_nozzle->size() > 0 ? default_nozzle->get_at(0) : 0.5);
+    diam_nozzle->SetValue(value);
 
-    spin_filam->SetDigits(2);
-    spin_filam->SetIncrement(0.25);
     auto *default_filam = print_config_def.get("filament_diameter")->get_default_value<ConfigOptionFloats>();
-    spin_filam->SetValue(default_filam != nullptr && default_filam->size() > 0 ? default_filam->get_at(0) : 3.0);
+    value = double_to_string(default_filam != nullptr && default_filam->size() > 0 ? default_filam->get_at(0) : 3.0);
+    diam_filam->SetValue(value);
+
+    diam_nozzle->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) { focus_event(e, diam_nozzle, 0.5); }, diam_nozzle->GetId());
+    diam_filam ->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) { focus_event(e, diam_filam , 3.0); }, diam_filam->GetId());
 
     append_text(_L("Enter the diameter of your printer's hot end nozzle."));
 
@@ -1405,7 +1425,7 @@ PageDiameters::PageDiameters(ConfigWizard *parent)
     auto *unit_nozzle = new wxStaticText(this, wxID_ANY, _L("mm"));
     sizer_nozzle->AddGrowableCol(0, 1);
     sizer_nozzle->Add(text_nozzle, 0, wxALIGN_CENTRE_VERTICAL);
-    sizer_nozzle->Add(spin_nozzle);
+    sizer_nozzle->Add(diam_nozzle);
     sizer_nozzle->Add(unit_nozzle, 0, wxALIGN_CENTRE_VERTICAL);
     append(sizer_nozzle);
 
@@ -1419,16 +1439,21 @@ PageDiameters::PageDiameters(ConfigWizard *parent)
     auto *unit_filam = new wxStaticText(this, wxID_ANY, _L("mm"));
     sizer_filam->AddGrowableCol(0, 1);
     sizer_filam->Add(text_filam, 0, wxALIGN_CENTRE_VERTICAL);
-    sizer_filam->Add(spin_filam);
+    sizer_filam->Add(diam_filam);
     sizer_filam->Add(unit_filam, 0, wxALIGN_CENTRE_VERTICAL);
     append(sizer_filam);
 }
 
 void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
 {
-    auto *opt_nozzle = new ConfigOptionFloats(1, spin_nozzle->GetValue());
+    double val = 0.0;
+    diam_nozzle->GetValue().ToCDouble(&val);
+    auto *opt_nozzle = new ConfigOptionFloats(1, val);
     config.set_key_value("nozzle_diameter", opt_nozzle);
-    auto *opt_filam = new ConfigOptionFloats(1, spin_filam->GetValue());
+
+    val = 0.0;
+    diam_filam->GetValue().ToCDouble(&val);
+    auto * opt_filam = new ConfigOptionFloats(1, val);
     config.set_key_value("filament_diameter", opt_filam);
 
     auto set_extrusion_width = [&config, opt_nozzle](const char *key, double dmr) {
