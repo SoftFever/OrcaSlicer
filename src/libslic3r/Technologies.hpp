@@ -59,6 +59,8 @@
 #define ENABLE_EXTENDED_M73_LINES (1 && ENABLE_VALIDATE_CUSTOM_GCODE)
 // Enable a modified version of automatic downscale on load of objects too big
 #define ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG (1 && ENABLE_2_4_0_ALPHA0)
+// Enable scrollable legend in preview
+#define ENABLE_SCROLLABLE_LEGEND (1 && ENABLE_2_4_0_ALPHA0)
 // Enable visualization of start gcode as regular toolpaths
 #define ENABLE_START_GCODE_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
 // Enable visualization of seams in preview

@@ -940,7 +940,7 @@ void Tab::update_visibility()
         page->update_visibility(m_mode, page.get() == m_active_page);
     rebuild_page_tree();
 
-    if (this->m_type == Preset::TYPE_SLA_PRINT)
+    if (m_type == Preset::TYPE_SLA_PRINT)
         update_description_lines();
 
     Layout();
@@ -3150,8 +3150,8 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
     if (preset_name.empty()) {
         if (delete_current) {
             // Find an alternate preset to be selected after the current preset is deleted.
-            const std::deque<Preset> &presets 		= this->m_presets->get_presets();
-            size_t    				  idx_current   = this->m_presets->get_idx_selected();
+            const std::deque<Preset> &presets 		= m_presets->get_presets();
+            size_t    				  idx_current   = m_presets->get_idx_selected();
             // Find the next visible preset.
             size_t 				      idx_new       = idx_current + 1;
             if (idx_new < presets.size())

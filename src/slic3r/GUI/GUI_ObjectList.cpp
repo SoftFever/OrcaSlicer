@@ -2476,28 +2476,22 @@ void ObjectList::unselect_objects()
     m_prevent_list_events = false;
 }
 
-void ObjectList::select_current_object(int idx)
+void ObjectList::select_object_item(bool is_msr_gizmo)
 {
-    m_prevent_list_events = true;
-    UnselectAll();
-    if (idx >= 0)
-        Select(m_objects_model->GetItemById(idx));
-    part_selection_changed();
-    m_prevent_list_events = false;
-}
+    if (wxDataViewItem item = GetSelection()) {
+        ItemType type = m_objects_model->GetItemType(item);
+        bool is_volume_item = type == itVolume || type == itSettings && m_objects_model->GetItemType(m_objects_model->GetParent(item)) == itVolume;
+        if (is_msr_gizmo && is_volume_item || type == itObject)
+            return;
 
-void ObjectList::select_current_volume(int idx, int vol_idx)
-{
-    if (vol_idx < 0) {
-        select_current_object(idx);
-        return;
+        if (wxDataViewItem obj_item = m_objects_model->GetTopParent(item)) {
+            m_prevent_list_events = true;
+            UnselectAll();
+            Select(obj_item);
+            part_selection_changed();
+            m_prevent_list_events = false;
+        }
     }
-    m_prevent_list_events = true;
-    UnselectAll();
-    if (idx >= 0)
-        Select(m_objects_model->GetItemByVolumeId(idx, vol_idx));
-    part_selection_changed();
-    m_prevent_list_events = false;
 }
 
 static void update_selection(wxDataViewItemArray& sels, ObjectList::SELECTION_MODE mode, ObjectDataViewModel* model)

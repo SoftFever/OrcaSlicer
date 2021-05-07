@@ -82,7 +82,13 @@ enum class NotificationType
     // Notification emitted by Print::validate
     PrintValidateWarning,
     // Notification telling user to quit SLA supports manual editing
-    QuitSLAManualMode
+    QuitSLAManualMode,
+    // Desktop integration basic info
+    DesktopIntegrationSuccess,
+    DesktopIntegrationFail,
+    UndoDesktopIntegrationSuccess,
+    UndoDesktopIntegrationFail
+
 };
 
 class NotificationManager
@@ -514,6 +520,14 @@ private:
 				 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
 		{NotificationType::EmptyAutoColorChange, NotificationLevel::RegularNotification, 10,  
 			_u8L("This model doesn't allow to automatically add the color changes") },
+		{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotification, 10,  
+			_u8L("Desktop integration was successful.") },
+		{NotificationType::DesktopIntegrationFail, NotificationLevel::WarningNotification, 10,  
+			_u8L("Desktop integration failed.") },
+		{NotificationType::UndoDesktopIntegrationSuccess, NotificationLevel::RegularNotification, 10,  
+			_u8L("Undo desktop integration was successful.") },
+		{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotification, 10,  
+			_u8L("Undo desktop integration failed.") },
 		//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
 		//{NotificationType::LoadingFailed, NotificationLevel::RegularNotification, 20,  _u8L("Loading of model has Failed") },
 		//{NotificationType::DeviceEjected, NotificationLevel::RegularNotification, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification

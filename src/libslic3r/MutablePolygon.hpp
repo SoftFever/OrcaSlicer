@@ -52,7 +52,7 @@ public:
         PointType*      operator->() const { return &m_data->at(m_idx).point; }
         MutablePolygon& polygon() const { assert(this->valid()); return *m_data; }
         IndexType       size()    const { assert(this->valid()); return m_data->size(); }
-        iterator&       remove()        { this->m_idx = m_data->remove(*this).m_idx; return *this; }
+        iterator&       remove()        { m_idx = m_data->remove(*this).m_idx; return *this; }
         iterator        insert(const PointType pt) const { return m_data->insert(*this, pt); }
     private:
         iterator(MutablePolygon *data, IndexType idx) : m_data(data), m_idx(idx) {}
@@ -162,10 +162,10 @@ public:
         return out;
     };
 
-    bool            empty()  const { return this->m_size == 0; }
-    size_t          size()   const { return this->m_size; }
-    size_t          capacity() const { return this->m_data.capacity(); }
-    bool            valid()  const { return this->m_size >= 3; }
+    bool            empty()  const { return m_size == 0; }
+    size_t          size()   const { return m_size; }
+    size_t          capacity() const { return m_data.capacity(); }
+    bool            valid()  const { return m_size >= 3; }
     void            clear()        { m_data.clear(); m_size = 0; m_head = IndexType(-1); m_head_free = IndexType(-1); }
 
     iterator        begin()        { return { this, m_head }; }

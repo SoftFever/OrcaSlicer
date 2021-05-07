@@ -474,6 +474,10 @@ private:
     Model* m_model;
     BackgroundSlicingProcess *m_process;
 
+#if ENABLE_SCROLLABLE_LEGEND
+    std::array<unsigned int, 2> m_old_size{ 0, 0 };
+#endif // ENABLE_SCROLLABLE_LEGEND
+
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;

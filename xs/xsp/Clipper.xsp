@@ -41,18 +41,6 @@ offset_ex(polygons, delta, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 
     OUTPUT:
         RETVAL
 
-Polygons
-offset2(polygons, delta1, delta2, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 3)
-    Polygons                polygons
-    const float             delta1
-    const float             delta2
-    Slic3r::ClipperLib::JoinType    joinType
-    double                  miterLimit
-    CODE:
-        RETVAL = offset2(polygons, delta1, delta2, joinType, miterLimit);
-    OUTPUT:
-        RETVAL
-
 ExPolygons
 offset2_ex(polygons, delta1, delta2, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
@@ -71,7 +59,7 @@ diff(subject, clip, safety_offset = false)
     Polygons    clip
     bool        safety_offset
     CODE:
-        RETVAL = diff(subject, clip, safety_offset);
+        RETVAL = diff(subject, clip, safety_offset ? ApplySafetyOffset::Yes : ApplySafetyOffset::No);
     OUTPUT:
         RETVAL
 
@@ -81,7 +69,7 @@ diff_ex(subject, clip, safety_offset = false)
     Polygons    clip
     bool        safety_offset
     CODE:
-        RETVAL = diff_ex(subject, clip, safety_offset);
+        RETVAL = diff_ex(subject, clip, safety_offset ? ApplySafetyOffset::Yes : ApplySafetyOffset::No);
     OUTPUT:
         RETVAL
 
@@ -100,7 +88,7 @@ intersection(subject, clip, safety_offset = false)
     Polygons                    clip
     bool                        safety_offset
     CODE:
-        RETVAL = intersection(subject, clip, safety_offset);
+        RETVAL = intersection(subject, clip, safety_offset ? ApplySafetyOffset::Yes : ApplySafetyOffset::No);
     OUTPUT:
         RETVAL
 
@@ -110,7 +98,7 @@ intersection_ex(subject, clip, safety_offset = false)
     Polygons                    clip
     bool                        safety_offset
     CODE:
-        RETVAL = intersection_ex(subject, clip, safety_offset);
+        RETVAL = intersection_ex(subject, clip, safety_offset ? ApplySafetyOffset::Yes : ApplySafetyOffset::No);
     OUTPUT:
         RETVAL
 
@@ -128,7 +116,7 @@ union(subject, safety_offset = false)
     Polygons    subject
     bool        safety_offset
     CODE:
-        RETVAL = union_(subject, safety_offset);
+        RETVAL = safety_offset ? union_safety_offset(subject) : union_(subject);
     OUTPUT:
         RETVAL
 
@@ -137,7 +125,7 @@ union_ex(subject, safety_offset = false)
     Polygons                    subject
     bool                        safety_offset
     CODE:
-        RETVAL = union_ex(subject, safety_offset);
+        RETVAL = safety_offset ? union_safety_offset_ex(subject) : union_ex(subject);
     OUTPUT:
         RETVAL
 

@@ -228,7 +228,7 @@ public:
 	int config_type() const throw() { return m_config_type; }
 	const t_opt_map&   opt_map() const throw() { return m_opt_map; }
 
-	void 		set_config_category_and_type(const wxString &category, int type) { this->m_config_category = category; this->m_config_type = type; }
+	void 		set_config_category_and_type(const wxString &category, int type) { m_config_category = category; m_config_type = type; }
     void        set_config(DynamicPrintConfig* config) { m_config = config; m_modelconfig = nullptr; }
 	Option		get_option(const std::string& opt_key, int opt_index = -1);
 	Line		create_single_option_line(const std::string& title, const wxString& path = wxEmptyString, int idx = -1) /*const*/{

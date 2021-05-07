@@ -58,7 +58,7 @@ void BridgeDetector::initialize()
     
     // detect anchors as intersection between our bridge expolygon and the lower slices
     // safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some edges
-    this->_anchor_regions = intersection_ex(grown, to_polygons(this->lower_slices), true);
+    this->_anchor_regions = intersection_ex(grown, union_safety_offset(this->lower_slices));
     
     /*
     if (0) {

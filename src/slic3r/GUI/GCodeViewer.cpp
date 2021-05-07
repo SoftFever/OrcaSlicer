@@ -17,6 +17,7 @@
 #include "GLCanvas3D.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
+#include "GUI_ObjectManipulation.hpp"
 #include <imgui/imgui_internal.h>
 
 #include <GL/glew.h>
@@ -687,13 +688,13 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
         wxGetApp().plater()->set_bed_shape(bed_shape, texture, model, gcode_result.bed_shape.empty());
     }
 
-    m_time_statistics = gcode_result.time_statistics;
+    m_print_statistics = gcode_result.print_statistics;
 
-    if (m_time_estimate_mode != PrintEstimatedTimeStatistics::ETimeMode::Normal) {
-        float time = m_time_statistics.modes[static_cast<size_t>(m_time_estimate_mode)].time;
+    if (m_time_estimate_mode != PrintEstimatedStatistics::ETimeMode::Normal) {
+        float time = m_print_statistics.modes[static_cast<size_t>(m_time_estimate_mode)].time;
         if (time == 0.0f ||
-            short_time(get_time_dhms(time)) == short_time(get_time_dhms(m_time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time)))
-            m_time_estimate_mode = PrintEstimatedTimeStatistics::ETimeMode::Normal;
+            short_time(get_time_dhms(time)) == short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time)))
+            m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
     }
 }
 
@@ -788,7 +789,7 @@ void GCodeViewer::reset()
     m_layers.reset();
     m_layers_z_range = { 0, 0 };
     m_roles = std::vector<ExtrusionRole>();
-    m_time_statistics.reset();
+    m_print_statistics.reset();
 #if ENABLE_GCODE_WINDOW
     m_sequential_view.gcode_window.reset();
 #endif // ENABLE_GCODE_WINDOW
@@ -4051,14 +4052,25 @@ void GCodeViewer::render_legend() const
     if (!m_legend_enabled)
         return;
 
+#if ENABLE_SCROLLABLE_LEGEND
+    const Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+#endif // ENABLE_SCROLLABLE_LEGEND
+
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(0.0f, 0.0f, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
+#if ENABLE_SCROLLABLE_LEGEND
+    const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
+    const float child_height = 0.3333f * max_height;
+    ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });
+    imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
+#else
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
+#endif // ENABLE_SCROLLABLE_LEGEND
 
     enum class EItemType : unsigned char
     {
@@ -4068,95 +4080,126 @@ void GCodeViewer::render_legend() const
         Line
     };
 
-    const PrintEstimatedTimeStatistics::Mode& time_mode = m_time_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
+    const PrintEstimatedStatistics::Mode& time_mode = m_print_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
+#if ENABLE_SCROLLABLE_LEGEND
+    bool show_estimated_time = time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
+        (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()));
+#endif // ENABLE_SCROLLABLE_LEGEND
 
-    float icon_size = ImGui::GetTextLineHeight();
-    float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
+    const float icon_size = ImGui::GetTextLineHeight();
+    const float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
 
-    auto append_item = [this, draw_list, icon_size, percent_bar_size, &imgui](EItemType type, const Color& color, const std::string& label,
-        bool visible = true, const std::string& time = "", float percent = 0.0f, float max_percent = 0.0f, const std::array<float, 2>& offsets = { 0.0f, 0.0f },
+    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+
+#if ENABLE_SCROLLABLE_LEGEND
+    auto append_item = [this, icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color& color, const std::string& label,
+#else
+    auto append_item = [this, draw_list, icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color& color, const std::string& label,
+#endif // ENABLE_SCROLLABLE_LEGEND
+        bool visible = true, const std::string& time = "", float percent = 0.0f, float max_percent = 0.0f, const std::array<float, 4>& offsets = { 0.0f, 0.0f, 0.0f, 0.0f },
+        double used_filament_m = 0.0, double used_filament_g = 0.0,
         std::function<void()> callback = nullptr) {
-            if (!visible)
-                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
-            ImVec2 pos = ImGui::GetCursorScreenPos();
-            switch (type) {
-            default:
-            case EItemType::Rect: {
-                draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                    ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
-                break;
-            }
-            case EItemType::Circle: {
-                ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-                if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120") {
-                    draw_list->AddCircleFilled(center, 0.5f * icon_size,
-                        ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                    float radius = 0.5f * icon_size;
-                    draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
-                    radius = 0.5f * icon_size * 0.01f * 33.0f;
-                    draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
-                }
-                else
-                    draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+        if (!visible)
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-                break;
-            }
-            case EItemType::Hexagon: {
-                ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
-                draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
-                break;
-            }
-            case EItemType::Line: {
-                draw_list->AddLine({ pos.x + 1, pos.y + icon_size - 1 }, { pos.x + icon_size - 1, pos.y + 1 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
-                break;
-            }
-            }
-
-            // draw text
-            ImGui::Dummy({ icon_size, icon_size });
-            ImGui::SameLine();
-            if (callback != nullptr) {
-                if (ImGui::MenuItem(label.c_str()))
-                    callback();
-                else {
-                    // show tooltip
-                    if (ImGui::IsItemHovered()) {
-                        if (!visible)
-                            ImGui::PopStyleVar();
-                        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-                        ImGui::BeginTooltip();
-                        imgui.text(visible ? _u8L("Click to hide") : _u8L("Click to show"));
-                        ImGui::EndTooltip();
-                        ImGui::PopStyleColor();
-                        if (!visible)
-                            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
-
-                        // to avoid the tooltip to change size when moving the mouse
-                        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-                        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-                    }
-                }
-
-                if (!time.empty()) {
-                    ImGui::SameLine(offsets[0]);
-                    imgui.text(time);
-                    ImGui::SameLine(offsets[1]);
-                    pos = ImGui::GetCursorScreenPos();
-                    float width = std::max(1.0f, percent_bar_size * percent / max_percent);
-                    draw_list->AddRectFilled({ pos.x, pos.y + 2.0f }, { pos.x + width, pos.y + icon_size - 2.0f },
-                        ImGui::GetColorU32(ImGuiWrapper::COL_ORANGE_LIGHT));
-                    ImGui::Dummy({ percent_bar_size, icon_size });
-                    ImGui::SameLine();
-                    char buf[64];
-                    ::sprintf(buf, "%.1f%%", 100.0f * percent);
-                    ImGui::TextUnformatted((percent > 0.0f) ? buf : "");
-                }
+#if ENABLE_SCROLLABLE_LEGEND
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+#endif // ENABLE_SCROLLABLE_LEGEND
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+        switch (type) {
+        default:
+        case EItemType::Rect: {
+            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+            break;
+        }
+        case EItemType::Circle: {
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+            if (m_buffers[buffer_id(EMoveType::Retract)].shader == "options_120") {
+                draw_list->AddCircleFilled(center, 0.5f * icon_size,
+                    ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
+                float radius = 0.5f * icon_size;
+                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+                radius = 0.5f * icon_size * 0.01f * 33.0f;
+                draw_list->AddCircleFilled(center, radius, ImGui::GetColorU32({ 0.5f * color[0], 0.5f * color[1], 0.5f * color[2], 1.0f }), 16);
             }
             else
-                imgui.text(label);
+                draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
 
-            if (!visible)
-                ImGui::PopStyleVar();
+            break;
+        }
+        case EItemType::Hexagon: {
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+            break;
+        }
+        case EItemType::Line: {
+            draw_list->AddLine({ pos.x + 1, pos.y + icon_size - 1 }, { pos.x + icon_size - 1, pos.y + 1 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
+            break;
+        }
+        }
+
+        // draw text
+        ImGui::Dummy({ icon_size, icon_size });
+        ImGui::SameLine();
+        if (callback != nullptr) {
+            if (ImGui::MenuItem(label.c_str()))
+                callback();
+            else {
+                // show tooltip
+                if (ImGui::IsItemHovered()) {
+                    if (!visible)
+                        ImGui::PopStyleVar();
+                    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+                    ImGui::BeginTooltip();
+                    imgui.text(visible ? _u8L("Click to hide") : _u8L("Click to show"));
+                    ImGui::EndTooltip();
+                    ImGui::PopStyleColor();
+                    if (!visible)
+                        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
+
+                    // to avoid the tooltip to change size when moving the mouse
+                    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+                    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                }
+            }
+
+            if (!time.empty()) {
+                ImGui::SameLine(offsets[0]);
+                imgui.text(time);
+                ImGui::SameLine(offsets[1]);
+                pos = ImGui::GetCursorScreenPos();
+                const float width = std::max(1.0f, percent_bar_size * percent / max_percent);
+                draw_list->AddRectFilled({ pos.x, pos.y + 2.0f }, { pos.x + width, pos.y + icon_size - 2.0f },
+                    ImGui::GetColorU32(ImGuiWrapper::COL_ORANGE_LIGHT));
+                ImGui::Dummy({ percent_bar_size, icon_size });
+                ImGui::SameLine();
+                char buf[64];
+                ::sprintf(buf, "%.1f%%", 100.0f * percent);
+                ImGui::TextUnformatted((percent > 0.0f) ? buf : "");
+                ImGui::SameLine(offsets[2]);
+                ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", used_filament_m);
+                imgui.text(buf);
+                ImGui::SameLine(offsets[3]);
+                ::sprintf(buf, "%.2f g", used_filament_g);
+                imgui.text(buf);
+            }
+        }
+        else {
+            imgui.text(label);
+            if (used_filament_m > 0.0) {
+                char buf[64];
+                ImGui::SameLine(offsets[0]);
+                ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", used_filament_m);
+                imgui.text(buf);
+                ImGui::SameLine(offsets[1]);
+                ::sprintf(buf, "%.2f g", used_filament_g);
+                imgui.text(buf);
+            }
+        }
+
+        if (!visible)
+            ImGui::PopStyleVar();
     };
 
     auto append_range = [append_item](const Extrusions::Range& range, unsigned int decimals) {
@@ -4174,19 +4217,20 @@ void GCodeViewer::render_legend() const
             append_range_item(0, range.min, decimals);
         }
         else {
-            float step_size = range.step_size();
+            const float step_size = range.step_size();
             for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
                 append_range_item(i, range.min + static_cast<float>(i) * step_size, decimals);
             }
         }
     };
 
-    auto append_headers = [&imgui](const std::array<std::string, 3>& texts, const std::array<float, 2>& offsets) {
-        imgui.text(texts[0]);
-        ImGui::SameLine(offsets[0]);
-        imgui.text(texts[1]);
-        ImGui::SameLine(offsets[1]);
-        imgui.text(texts[2]);
+    auto append_headers = [&imgui](const std::array<std::string, 5>& texts, const std::array<float, 4>& offsets) {
+        size_t i = 0;
+        for (; i < offsets.size(); i++) {
+            imgui.text(texts[i]);
+            ImGui::SameLine(offsets[i]);
+        }
+        imgui.text(texts[i]);
         ImGui::Separator();
     };
 
@@ -4199,11 +4243,12 @@ void GCodeViewer::render_legend() const
     };
 
     auto calculate_offsets = [max_width](const std::vector<std::string>& labels, const std::vector<std::string>& times,
-        const std::array<std::string, 2>& titles, float extra_size = 0.0f) {
+        const std::array<std::string, 4>& titles, float extra_size = 0.0f) {
             const ImGuiStyle& style = ImGui::GetStyle();
-            std::array<float, 2> ret = { 0.0f, 0.0f };
+            std::array<float, 4> ret = { 0.0f, 0.0f, 0.0f, 0.0f };
             ret[0] = max_width(labels, titles[0], extra_size) + 3.0f * style.ItemSpacing.x;
-            ret[1] = ret[0] + max_width(times, titles[1]) + style.ItemSpacing.x;
+            for (size_t i = 1; i < titles.size(); i++)
+                ret[i] = ret[i-1] + max_width(times, titles[i]) + style.ItemSpacing.x;
             return ret;
     };
 
@@ -4223,8 +4268,8 @@ void GCodeViewer::render_legend() const
             if (lower_b == zs.end())
                 continue;
 
-            double current_z = *lower_b;
-            double previous_z = (lower_b == zs.begin()) ? 0.0 : *(--lower_b);
+            const double current_z = *lower_b;
+            const double previous_z = (lower_b == zs.begin()) ? 0.0 : *(--lower_b);
 
             // to avoid duplicate values, check adding values
             if (ret.empty() || !(ret.back().second.first == previous_z && ret.back().second.second == current_z))
@@ -4254,16 +4299,27 @@ void GCodeViewer::render_legend() const
         return _u8L("from") + " " + std::string(buf1) + " " + _u8L("to") + " " + std::string(buf2) + " " + _u8L("mm");
     };
 
-    auto role_time_and_percent = [ time_mode](ExtrusionRole role) {
+    auto role_time_and_percent = [time_mode](ExtrusionRole role) {
         auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
         return (it != time_mode.roles_times.end()) ? std::make_pair(it->second, it->second / time_mode.time) : std::make_pair(0.0f, 0.0f);
     };
 
+    auto used_filament_per_role = [this, imperial_units](ExtrusionRole role) {
+        auto it = m_print_statistics.used_filaments_per_role.find(role);
+        if (it == m_print_statistics.used_filaments_per_role.end())
+            return std::make_pair(0.0, 0.0);
+
+        double koef = imperial_units ? 1000.0 / ObjectManipulation::in_to_mm : 1.0;
+        return std::make_pair(it->second.first * koef, it->second.second);
+    };
+
     // data used to properly align items in columns when showing time
-    std::array<float, 2> offsets = { 0.0f, 0.0f };
+    std::array<float, 4> offsets = { 0.0f, 0.0f, 0.0f, 0.0f };
     std::vector<std::string> labels;
     std::vector<std::string> times;
     std::vector<float> percents;
+    std::vector<double> used_filaments_m;
+    std::vector<double> used_filaments_g;
     float max_percent = 0.0f;
 
     if (m_view_type == EViewType::FeatureType) {
@@ -4276,10 +4332,73 @@ void GCodeViewer::render_legend() const
                 times.push_back((time > 0.0f) ? short_time(get_time_dhms(time)) : "");
                 percents.push_back(percent);
                 max_percent = std::max(max_percent, percent);
+                auto [used_filament_m, used_filament_g] = used_filament_per_role(role);
+                used_filaments_m.push_back(used_filament_m);
+                used_filaments_g.push_back(used_filament_g);
             }
         }
 
-        offsets = calculate_offsets(labels, times, { _u8L("Feature type"), _u8L("Time") }, icon_size);
+        std::string longest_percentage_string;
+        for (double item : percents) {
+            char buffer[64];
+            ::sprintf(buffer, "%.2f %%", item);
+            if (::strlen(buffer) > longest_percentage_string.length())
+                longest_percentage_string = buffer;
+        }
+        longest_percentage_string += "            ";
+        if (_u8L("Percentage").length() > longest_percentage_string.length())
+            longest_percentage_string = _u8L("Percentage");
+
+        std::string longest_used_filament_string;
+        for (double item : used_filaments_m) {
+            char buffer[64];
+            ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", item);
+            if (::strlen(buffer) > longest_used_filament_string.length())
+                longest_used_filament_string = buffer;
+        }
+
+        offsets = calculate_offsets(labels, times, { _u8L("Feature type"), _u8L("Time"), longest_percentage_string, longest_used_filament_string }, icon_size);
+    }
+
+    // get used filament (meters and grams) from used volume in respect to the active extruder
+    auto get_used_filament_from_volume = [imperial_units](double volume, int extruder_id) {
+        const std::vector<std::string>& filament_presets = wxGetApp().preset_bundle->filament_presets;
+        const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
+
+        double koef = imperial_units ? 1.0/ObjectManipulation::in_to_mm : 0.001;
+
+        std::pair<double, double>  ret = { 0.0, 0.0 };
+        if (const Preset* filament_preset = filaments.find_preset(filament_presets[extruder_id], false)) {
+            double filament_radius = 0.5 * filament_preset->config.opt_float("filament_diameter", 0);
+            double s = PI * sqr(filament_radius);
+            ret.first = volume / s * koef;
+            double filament_density = filament_preset->config.opt_float("filament_density", 0);
+            ret.second = volume * filament_density * 0.001;
+        }
+        return ret;
+    };
+
+    if (m_view_type == EViewType::Tool) {
+        // calculate used filaments data
+        for (size_t extruder_id : m_extruder_ids) {
+            if (m_print_statistics.volumes_per_extruder.find(extruder_id) == m_print_statistics.volumes_per_extruder.end())
+                continue;
+            double volume = m_print_statistics.volumes_per_extruder.at(extruder_id);
+
+            auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, extruder_id);
+            used_filaments_m.push_back(used_filament_m);
+            used_filaments_g.push_back(used_filament_g);
+        }
+
+        std::string longest_used_filament_string;
+        for (double item : used_filaments_m) {
+            char buffer[64];
+            ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", item);
+            if (::strlen(buffer) > longest_used_filament_string.length())
+                longest_used_filament_string = buffer;
+        }
+
+        offsets = calculate_offsets(labels, times, { "Extruder NNN", longest_used_filament_string }, icon_size);
     }
 
     // extrusion paths section -> title
@@ -4287,7 +4406,7 @@ void GCodeViewer::render_legend() const
     {
     case EViewType::FeatureType:
     {
-        append_headers({ _u8L("Feature type"), _u8L("Time"), _u8L("Percentage") }, offsets);
+        append_headers({ _u8L("Feature type"), _u8L("Time"), _u8L("Percentage"), _u8L("Used filament") }, offsets);
         break;
     }
     case EViewType::Height:         { imgui.title(_u8L("Height (mm)")); break; }
@@ -4296,7 +4415,11 @@ void GCodeViewer::render_legend() const
     case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
     case EViewType::Temperature:    { imgui.title(_u8L("Temperature (°C)")); break; }
     case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
-    case EViewType::Tool:           { imgui.title(_u8L("Tool")); break; }
+    case EViewType::Tool:
+    {
+        append_headers({ _u8L("Tool"), _u8L("Used filament") }, offsets);
+        break;
+    }
     case EViewType::ColorPrint:     { imgui.title(_u8L("Color Print")); break; }
     default: { break; }
     }
@@ -4310,9 +4433,9 @@ void GCodeViewer::render_legend() const
             ExtrusionRole role = m_roles[i];
             if (role >= erCount)
                 continue;
-            bool visible = is_visible(role);
+            const bool visible = is_visible(role);
             append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], labels[i],
-                visible, times[i], percents[i], max_percent, offsets, [this, role, visible]() {
+                visible, times[i], percents[i], max_percent, offsets, used_filaments_m[i], used_filaments_g[i], [this, role, visible]() {
                     Extrusions* extrusions = const_cast<Extrusions*>(&m_extrusions);
                     extrusions->role_visibility_flags = visible ? extrusions->role_visibility_flags & ~(1 << role) : extrusions->role_visibility_flags | (1 << role);
                     // update buffers' render paths
@@ -4334,16 +4457,33 @@ void GCodeViewer::render_legend() const
     case EViewType::Tool:
     {
         // shows only extruders actually used
-        for (unsigned char i : m_extruder_ids) {
-            append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1));
+        size_t i = 0;
+        for (unsigned char extruder_id : m_extruder_ids) {
+            append_item(EItemType::Rect, m_tool_colors[extruder_id], _u8L("Extruder") + " " + std::to_string(extruder_id + 1), 
+                        true, "", 0.0f, 0.0f, offsets, used_filaments_m[i], used_filaments_g[i]);
+            i++;
         }
         break;
     }
     case EViewType::ColorPrint:
     {
+#if ENABLE_SCROLLABLE_LEGEND
         const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+        size_t total_items = 1;
+        for (unsigned char i : m_extruder_ids) {
+            total_items += color_print_ranges(i, custom_gcode_per_print_z).size();
+        }
+
+        const bool need_scrollable = static_cast<float>(total_items) * (icon_size + ImGui::GetStyle().ItemSpacing.y) > child_height;
+
+        // add scrollable region, if needed
+        if (need_scrollable)
+            ImGui::BeginChild("color_prints", { -1.0f, child_height }, false);
+#else
+        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+#endif // ENABLE_SCROLLABLE_LEGEND
         if (m_extruders_count == 1) { // single extruder use case
-            std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
+            const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
             const int items_cnt = static_cast<int>(cp_values.size());
             if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
                 append_item(EItemType::Rect, m_tool_colors.front(), _u8L("Default color"));
@@ -4366,7 +4506,7 @@ void GCodeViewer::render_legend() const
         else { // multi extruder use case
             // shows only extruders actually used
             for (unsigned char i : m_extruder_ids) {
-                std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
+                const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
                     append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
@@ -4392,6 +4532,10 @@ void GCodeViewer::render_legend() const
                 }
             }
         }
+#if ENABLE_SCROLLABLE_LEGEND
+        if (need_scrollable)
+            ImGui::EndChild();
+#endif // ENABLE_SCROLLABLE_LEGEND
 
         break;
     }
@@ -4417,10 +4561,11 @@ void GCodeViewer::render_legend() const
             Color color1;
             Color color2;
             Times times;
+            std::pair<double, double> used_filament {0.0f, 0.0f};
         };
         using PartialTimes = std::vector<PartialTime>;
 
-        auto generate_partial_times = [this](const TimesList& times) {
+        auto generate_partial_times = [this, get_used_filament_from_volume](const TimesList& times, const std::vector<double>& used_filaments) {
             PartialTimes items;
 
             std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
@@ -4430,6 +4575,7 @@ void GCodeViewer::render_legend() const
                 last_color[i] = m_tool_colors[i];
             }
             int last_extruder_id = 1;
+            int color_change_idx = 0;
             for (const auto& time_rec : times) {
                 switch (time_rec.first)
                 {
@@ -4445,14 +4591,14 @@ void GCodeViewer::render_legend() const
                 case CustomGCode::ColorChange: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], it->extruder-1) });
                         items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], decode_color(it->color), time_rec.second });
                         last_color[it->extruder - 1] = decode_color(it->color);
                         last_extruder_id = it->extruder;
                         custom_gcode_per_print_z.erase(it);
                     }
                     else
-                        items.push_back({ PartialTime::EType::Print, last_extruder_id, last_color[last_extruder_id - 1], Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, last_extruder_id, last_color[last_extruder_id - 1], Color(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], last_extruder_id -1) });
 
                     break;
                 }
@@ -4463,7 +4609,7 @@ void GCodeViewer::render_legend() const
             return items;
         };
 
-        auto append_color_change = [&imgui](const Color& color1, const Color& color2, const std::array<float, 2>& offsets, const Times& times) {
+        auto append_color_change = [&imgui](const Color& color1, const Color& color2, const std::array<float, 4>& offsets, const Times& times) {
             imgui.text(_u8L("Color change"));
             ImGui::SameLine();
 
@@ -4482,7 +4628,7 @@ void GCodeViewer::render_legend() const
             imgui.text(short_time(get_time_dhms(times.second - times.first)));
         };
 
-        auto append_print = [&imgui](const Color& color, const std::array<float, 2>& offsets, const Times& times) {
+        auto append_print = [&imgui, imperial_units](const Color& color, const std::array<float, 4>& offsets, const Times& times, std::pair<double, double> used_filament) {
             imgui.text(_u8L("Print"));
             ImGui::SameLine();
 
@@ -4498,9 +4644,19 @@ void GCodeViewer::render_legend() const
             imgui.text(short_time(get_time_dhms(times.second)));
             ImGui::SameLine(offsets[1]);
             imgui.text(short_time(get_time_dhms(times.first)));
+            if (used_filament.first > 0.0f) {
+                char buffer[64];
+                ImGui::SameLine(offsets[2]);
+                ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", used_filament.first);
+                imgui.text(buffer);
+
+                ImGui::SameLine(offsets[3]);
+                ::sprintf(buffer, "%.2f g", used_filament.second);
+                imgui.text(buffer);
+            }
         };
 
-        PartialTimes partial_times = generate_partial_times(time_mode.custom_gcode_times);
+        PartialTimes partial_times = generate_partial_times(time_mode.custom_gcode_times, m_print_statistics.volumes_per_color_change);
         if (!partial_times.empty()) {
             labels.clear();
             times.clear();
@@ -4514,15 +4670,34 @@ void GCodeViewer::render_legend() const
                 }
                 times.push_back(short_time(get_time_dhms(item.times.second)));
             }
-            offsets = calculate_offsets(labels, times, { _u8L("Event"), _u8L("Remaining time") }, 2.0f * icon_size);
+
+
+            std::string longest_used_filament_string;
+            for (const PartialTime& item : partial_times) {
+                if (item.used_filament.first > 0.0f) {
+                    char buffer[64];
+                    ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", item.used_filament.first);
+                    if (::strlen(buffer) > longest_used_filament_string.length())
+                        longest_used_filament_string = buffer;
+                }
+            }
+
+            offsets = calculate_offsets(labels, times, { _u8L("Event"), _u8L("Remaining time"), _u8L("Duration"), longest_used_filament_string }, 2.0f * icon_size);
 
             ImGui::Spacing();
-            append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration") }, offsets);
+            append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration"), _u8L("Used filament") }, offsets);
+#if ENABLE_SCROLLABLE_LEGEND
+            const bool need_scrollable = static_cast<float>(partial_times.size()) * (icon_size + ImGui::GetStyle().ItemSpacing.y) > child_height;
+            if (need_scrollable)
+                // add scrollable region
+                ImGui::BeginChild("events", { -1.0f, child_height }, false);
+#endif // ENABLE_SCROLLABLE_LEGEND
+
             for (const PartialTime& item : partial_times) {
                 switch (item.type)
                 {
                 case PartialTime::EType::Print: {
-                    append_print(item.color1, offsets, item.times);
+                    append_print(item.color1, offsets, item.times, item.used_filament);
                     break;
                 }
                 case PartialTime::EType::Pause: {
@@ -4537,6 +4712,11 @@ void GCodeViewer::render_legend() const
                 }
                 }
             }
+
+#if ENABLE_SCROLLABLE_LEGEND
+            if (need_scrollable)
+                ImGui::EndChild();
+#endif // ENABLE_SCROLLABLE_LEGEND
         }
     }
 
@@ -4680,10 +4860,14 @@ void GCodeViewer::render_legend() const
     }
 
     // total estimated printing time section
+#if ENABLE_SCROLLABLE_LEGEND
+    if (show_estimated_time) {
+#else
     if (time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
         (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()))) {
 
         ImGui::Spacing();
+#endif // ENABLE_SCROLLABLE_LEGEND
         ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Separator, { 1.0f, 1.0f, 1.0f, 1.0f });
         ImGui::Separator();
@@ -4693,12 +4877,12 @@ void GCodeViewer::render_legend() const
         ImGui::AlignTextToFramePadding();
         switch (m_time_estimate_mode)
         {
-        case PrintEstimatedTimeStatistics::ETimeMode::Normal:
+        case PrintEstimatedStatistics::ETimeMode::Normal:
         {
             imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Normal mode") + "]:");
             break;
         }
-        case PrintEstimatedTimeStatistics::ETimeMode::Stealth:
+        case PrintEstimatedStatistics::ETimeMode::Stealth:
         {
             imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Stealth mode") + "]:");
             break;
@@ -4708,18 +4892,18 @@ void GCodeViewer::render_legend() const
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(time_mode.time)));
 
-        auto show_mode_button = [this, &imgui](const wxString& label, PrintEstimatedTimeStatistics::ETimeMode mode) {
+        auto show_mode_button = [this, &imgui](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
             bool show = false;
-            for (size_t i = 0; i < m_time_statistics.modes.size(); ++i) {
+            for (size_t i = 0; i < m_print_statistics.modes.size(); ++i) {
                 if (i != static_cast<size_t>(mode) &&
-                    short_time(get_time_dhms(m_time_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_time_statistics.modes[i].time))) {
+                    short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_print_statistics.modes[i].time))) {
                     show = true;
                     break;
                 }
             }
-            if (show && m_time_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
+            if (show && m_print_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
                 if (imgui.button(label)) {
-                    *const_cast<PrintEstimatedTimeStatistics::ETimeMode*>(&m_time_estimate_mode) = mode;
+                    *const_cast<PrintEstimatedStatistics::ETimeMode*>(&m_time_estimate_mode) = mode;
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
                 }
@@ -4727,12 +4911,12 @@ void GCodeViewer::render_legend() const
         };
 
         switch (m_time_estimate_mode) {
-        case PrintEstimatedTimeStatistics::ETimeMode::Normal: {
-            show_mode_button(_L("Show stealth mode"), PrintEstimatedTimeStatistics::ETimeMode::Stealth);
+        case PrintEstimatedStatistics::ETimeMode::Normal: {
+            show_mode_button(_L("Show stealth mode"), PrintEstimatedStatistics::ETimeMode::Stealth);
             break;
         }
-        case PrintEstimatedTimeStatistics::ETimeMode::Stealth: {
-            show_mode_button(_L("Show normal mode"), PrintEstimatedTimeStatistics::ETimeMode::Normal);
+        case PrintEstimatedStatistics::ETimeMode::Stealth: {
+            show_mode_button(_L("Show normal mode"), PrintEstimatedStatistics::ETimeMode::Normal);
             break;
         }
         default : { assert(false); break; }

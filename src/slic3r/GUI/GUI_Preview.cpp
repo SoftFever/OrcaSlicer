@@ -643,7 +643,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     if (sla_print_technology)
         m_layers_slider->SetLayersTimes(plater->sla_print().print_statistics().layers_times);
     else {
-        auto print_mode_stat = m_gcode_result->time_statistics.modes.front();
+        auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
         m_layers_slider->SetLayersTimes(print_mode_stat.layers_times, print_mode_stat.time);
     }
 

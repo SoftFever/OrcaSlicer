@@ -163,6 +163,7 @@ add_library(libslic3r STATIC
     AppConfig.hpp
     Print.cpp
     Print.hpp
+    PrintApply.cpp
     PrintBase.cpp
     PrintBase.hpp
     PrintConfig.cpp

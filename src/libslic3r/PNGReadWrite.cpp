@@ -103,6 +103,7 @@ bool decode_png(IStream &in_buf, ImageGreyscale &out_img)
 // Down to earth function to store a packed RGB image to file. Mostly useful for debugging purposes.
 // Based on https://www.lemoda.net/c/write-png/
 // png_color_type is PNG_COLOR_TYPE_RGB or PNG_COLOR_TYPE_GRAY
+//FIXME maybe better to use tdefl_write_image_to_png_file_in_memory() instead?
 static bool write_rgb_or_gray_to_file(const char *file_name_utf8, size_t width, size_t height, int png_color_type, const uint8_t *data)
 {
     bool         result       = false;

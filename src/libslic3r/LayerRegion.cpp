@@ -27,13 +27,14 @@ Flow LayerRegion::flow(FlowRole role, double layer_height) const
 
 Flow LayerRegion::bridging_flow(FlowRole role) const
 {
-    const PrintRegion       &region         = *this->region();
+    const PrintRegion       &region         = this->region();
     const PrintRegionConfig &region_config  = region.config();
-    if (this->layer()->object()->config().thick_bridges) {
+    const PrintObject       &print_object   = *this->layer()->object();
+    if (print_object.config().thick_bridges) {
         // The old Slic3r way (different from all other slicers): Use rounded extrusions.
         // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
         // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
-        auto nozzle_diameter = float(region.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
+        auto nozzle_diameter = float(print_object.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
         // Applies default bridge spacing.
         return Flow::bridging_flow(float(sqrt(region_config.bridge_flow_ratio)) * nozzle_diameter, nozzle_diameter);
     } else {
@@ -69,7 +70,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     this->thin_fills.clear();
 
     const PrintConfig       &print_config  = this->layer()->object()->print()->config();
-    const PrintRegionConfig &region_config = this->region()->config();
+    const PrintRegionConfig &region_config = this->region().config();
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
     bool spiral_vase = print_config.spiral_vase &&
         //FIXME account for raft layers.
@@ -110,7 +111,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
 
 void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered)
 {
-    const bool      has_infill = this->region()->config().fill_density.value > 0.;
+    const bool      has_infill = this->region().config().fill_density.value > 0.;
     const float		margin 	   = float(scale_(EXTERNAL_INFILL_MARGIN));
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -178,11 +179,11 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 
     if (bridges.empty())
     {
-        fill_boundaries = union_(fill_boundaries, true);
+        fill_boundaries = union_safety_offset(fill_boundaries);
     } else
     {
         // 1) Calculate the inflated bridge regions, each constrained to its island.
-        ExPolygons               fill_boundaries_ex = union_ex(fill_boundaries, true);
+        ExPolygons               fill_boundaries_ex = union_safety_offset_ex(fill_boundaries);
         std::vector<Polygons>    bridges_grown;
         std::vector<BoundingBox> bridge_bboxes;
 
@@ -237,7 +238,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             for (size_t j = i + 1; j < bridges.size(); ++ j) {
                 if (! bridge_bboxes[i].overlap(bridge_bboxes[j]))
                     continue;
-                if (intersection(bridges_grown[i], bridges_grown[j], false).empty())
+                if (intersection(bridges_grown[i], bridges_grown[j]).empty())
                     continue;
                 // The two bridge regions intersect. Give them the same group id.
                 if (bridge_group[j] != size_t(-1)) {
@@ -284,7 +285,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer %zu:\n", this->layer()->id());
                 #endif
-				double custom_angle = Geometry::deg2rad(this->region()->config().bridge_angle.value);
+				double custom_angle = Geometry::deg2rad(this->region().config().bridge_angle.value);
 				if (bd.detect_angle(custom_angle)) {
                     bridges[idx_last].bridge_angle = bd.angle;
                     if (this->layer()->object()->has_support()) {
@@ -297,7 +298,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 					bridges[idx_last].bridge_angle = custom_angle;
 				}
                 // without safety offset, artifacts are generated (GH #2494)
-                surfaces_append(bottom, union_ex(grown, true), bridges[idx_last]);
+                surfaces_append(bottom, union_safety_offset_ex(grown), bridges[idx_last]);
             }
 
             fill_boundaries = to_polygons(fill_boundaries_ex);
@@ -337,7 +338,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             surfaces_append(
                 new_surfaces,
                 // Don't use a safety offset as fill_boundaries were already united using the safety offset.
-                intersection_ex(polys, fill_boundaries, false),
+                intersection_ex(polys, fill_boundaries),
                 s1);
         }
     }
@@ -383,21 +384,21 @@ void LayerRegion::prepare_fill_surfaces()
     bool spiral_vase = this->layer()->object()->print()->config().spiral_vase;
 
     // if no solid layers are requested, turn top/bottom surfaces to internal
-    if (! spiral_vase && this->region()->config().top_solid_layers == 0) {
+    if (! spiral_vase && this->region().config().top_solid_layers == 0) {
         for (Surface &surface : this->fill_surfaces.surfaces)
             if (surface.is_top())
                 surface.surface_type = this->layer()->object()->config().infill_only_where_needed ? stInternalVoid : stInternal;
     }
-    if (this->region()->config().bottom_solid_layers == 0) {
+    if (this->region().config().bottom_solid_layers == 0) {
         for (Surface &surface : this->fill_surfaces.surfaces)
             if (surface.is_bottom()) // (surface.surface_type == stBottom)
                 surface.surface_type = stInternal;
     }
 
     // turn too small internal regions into solid regions according to the user setting
-    if (! spiral_vase && this->region()->config().fill_density.value > 0) {
+    if (! spiral_vase && this->region().config().fill_density.value > 0) {
         // scaling an area requires two calls!
-        double min_area = scale_(scale_(this->region()->config().solid_infill_below_area.value));
+        double min_area = scale_(scale_(this->region().config().solid_infill_below_area.value));
         for (Surface &surface : this->fill_surfaces.surfaces)
             if (surface.surface_type == stInternal && surface.area() <= min_area)
                 surface.surface_type = stInternalSolid;

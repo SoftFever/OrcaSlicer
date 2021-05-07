@@ -47,7 +47,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="1.43643"
-     id="line3904" />
+     id="line3904"
+     style="stroke-width:1.433;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="284.16177"
      y1="0.71821773"
@@ -58,7 +59,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="1.43643"
-     id="line3906" />
+     id="line3906"
+     style="stroke-width:1.433;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="709.37"
      y1="595.97998"
@@ -69,7 +71,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="1.43721"
-     id="line3908" />
+     id="line3908"
+     style="stroke-width:1.42;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5751973"
      y1="581.81"
@@ -157,7 +160,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="1.42"
-     id="line3924" />
+     id="line3924"
+     style="stroke-width:1.433;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="425.91"
      y1="522.6958"
@@ -168,7 +172,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="1.56809"
-     id="line3926" />
+     id="line3926"
+     style="stroke-width:1.433;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="567.64"
      y1="0.71"
@@ -179,7 +184,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="1.42"
-     id="line3928" />
+     id="line3928"
+     style="stroke-width:1.433;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="567.64"
      y1="522.54"
@@ -201,7 +207,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="1.67028"
-     id="line3932" />
+     id="line3932"
+     style="stroke-width:1.42;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="85.751411"
      y1="0.71221673"
@@ -301,7 +308,7 @@
      stroke-linejoin="round"
      stroke-width="1.01196"
      id="line3950"
-     style="stroke-width:0.37;stroke-miterlimit:4;stroke-dasharray:none" />
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="29.062216"
      y1="0.71221673"
@@ -334,7 +341,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3956" />
+     id="line3956"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="496.76999"
@@ -345,7 +353,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3958" />
+     id="line3958"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="525.12"
@@ -356,7 +365,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3960" />
+     id="line3960"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="553.46002"
@@ -378,7 +388,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3964" />
+     id="line3964"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="383.39001"
@@ -389,7 +400,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3966" />
+     id="line3966"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="355.04001"
@@ -400,7 +412,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3968" />
+     id="line3968"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="326.69"
@@ -411,7 +424,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3970" />
+     id="line3970"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="270"
@@ -422,7 +436,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3972" />
+     id="line3972"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="241.64999"
@@ -433,7 +448,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3974" />
+     id="line3974"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="213.31"
@@ -444,7 +460,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3976" />
+     id="line3976"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="184.96001"
@@ -455,7 +472,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3978" />
+     id="line3978"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="128.27"
@@ -466,7 +484,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3980" />
+     id="line3980"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="99.919998"
@@ -477,7 +496,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3982" />
+     id="line3982"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="71.57"
@@ -488,7 +508,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3984" />
+     id="line3984"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="1.5130315"
      y1="43.23"
@@ -499,7 +520,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.373374"
-     id="line3986" />
+     id="line3986"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="369.21"
      y1="0.71"
@@ -510,7 +532,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line3988" />
+     id="line3988"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="369.23022"
      y1="522.56018"
@@ -521,7 +544,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.410452"
-     id="line3990" />
+     id="line3990"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="397.56"
      y1="0.71"
@@ -532,7 +556,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line3992" />
+     id="line3992"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="397.53976"
      y1="522.56018"
@@ -543,7 +568,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.410452"
-     id="line3994" />
+     id="line3994"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="454.25"
      y1="0.71"
@@ -554,7 +580,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line3996" />
+     id="line3996"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="454.27066"
      y1="522.56067"
@@ -565,7 +592,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.411333"
-     id="line3998" />
+     id="line3998"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="482.6"
      y1="0.71"
@@ -576,7 +604,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line4000" />
+     id="line4000"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="482.6069"
      y1="522.56067"
@@ -587,7 +616,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.411333"
-     id="line4002" />
+     id="line4002"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="510.94"
      y1="0.71"
@@ -598,7 +628,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line4004" />
+     id="line4004"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="510.93311"
      y1="522.56067"
@@ -609,7 +640,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.411333"
-     id="line4006" />
+     id="line4006"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="539.29"
      y1="0.71"
@@ -620,7 +652,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line4008" />
+     id="line4008"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="539.26929"
      y1="522.56067"
@@ -631,7 +664,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.411333"
-     id="line4010" />
+     id="line4010"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="595.98"
      y1="0.71"
@@ -642,7 +676,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line4012" />
+     id="line4012"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="624.33"
      y1="0.71"
@@ -653,7 +688,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line4014" />
+     id="line4014"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="652.68"
      y1="0.71"
@@ -665,7 +701,7 @@
      stroke-linejoin="round"
      stroke-width="0.37"
      id="line4016"
-     style="stroke-width:0.37;stroke-miterlimit:4;stroke-dasharray:none" />
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="652.68"
      y1="522.54"
@@ -676,7 +712,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line4018" />
+     id="line4018"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="652.64496"
      y1="548.34503"
@@ -687,7 +724,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.440087"
-     id="line4020" />
+     id="line4020"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="624.33"
      y1="522.54"
@@ -698,7 +736,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line4022" />
+     id="line4022"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="624.33002"
      y1="548.34503"
@@ -709,7 +748,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.440087"
-     id="line4024" />
+     id="line4024"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="595.98"
      y1="522.54"
@@ -720,7 +760,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.37"
-     id="line4026" />
+     id="line4026"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <line
      x1="596.01501"
      y1="548.34503"
@@ -731,7 +772,8 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      stroke-width="0.440087"
-     id="line4028" />
+     id="line4028"
+     style="stroke-width:0.374;stroke-miterlimit:4;stroke-dasharray:none" />
   <path
      d="M377.71,502.59a8,8,0,0,1,3.44.72,7.6,7.6,0,0,1,2.58,1.95,8.78,8.78,0,0,1,1.62,2.85,10.85,10.85,0,0,1,0,6.94,8.67,8.67,0,0,1-1.62,2.85,7.45,7.45,0,0,1-2.58,1.94,8.71,8.71,0,0,1-6.89,0,7.64,7.64,0,0,1-2.58-1.94,8.67,8.67,0,0,1-1.62-2.85,11,11,0,0,1,0-6.94,8.78,8.78,0,0,1,1.62-2.85,7.8,7.8,0,0,1,2.58-1.95A8,8,0,0,1,377.71,502.59Zm0,2.45a4.94,4.94,0,0,0-2.37.55,4.7,4.7,0,0,0-1.62,1.48,6.87,6.87,0,0,0-.92,2.1,9.75,9.75,0,0,0,0,4.8,6.87,6.87,0,0,0,.92,2.1,4.7,4.7,0,0,0,1.62,1.48,4.94,4.94,0,0,0,2.37.55,4.87,4.87,0,0,0,2.36-.55,4.7,4.7,0,0,0,1.62-1.48,6.64,6.64,0,0,0,.92-2.1,9.45,9.45,0,0,0,0-4.8,6.64,6.64,0,0,0-.92-2.1,4.7,4.7,0,0,0-1.62-1.48A4.87,4.87,0,0,0,377.71,505Z"
      transform="translate(0.14 0.14)"

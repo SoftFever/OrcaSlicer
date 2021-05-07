@@ -1079,7 +1079,7 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
 size_t PresetCollection::first_visible_idx() const
 {
     size_t idx = m_default_suppressed ? m_num_default_presets : 0;
-    for (; idx < this->m_presets.size(); ++ idx)
+    for (; idx < m_presets.size(); ++ idx)
         if (m_presets[idx].is_visible)
             break;
     if (idx == m_presets.size())
@@ -1294,7 +1294,7 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
                 assert(it != new_vendors.end());
                 preset.vendor = &it->second;
             }
-            this->m_presets.emplace(it, std::move(preset));
+            m_presets.emplace(it, std::move(preset));
         } else
             duplicates.emplace_back(std::move(preset.name));
     }

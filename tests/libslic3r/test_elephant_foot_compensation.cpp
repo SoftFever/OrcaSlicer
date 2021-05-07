@@ -15,22 +15,6 @@ using namespace Slic3r;
 
 namespace Slic3r {
 	ClipperLib::Path mittered_offset_path_scaled(const Points& contour, const std::vector<float>& deltas, double miter_limit);
-
-#if 0
-	static Points mittered_offset_path_scaled_points(const Points& contour, const std::vector<float>& deltas, double miter_limit)
-	{
-		Points out;
-		ClipperLib::Path scaled = mittered_offset_path_scaled(contour, deltas, miter_limit);
-		for (ClipperLib::IntPoint& pt : scaled) {
-			pt.X += CLIPPER_OFFSET_SCALE_ROUNDING_DELTA;
-			pt.Y += CLIPPER_OFFSET_SCALE_ROUNDING_DELTA;
-			pt.X >>= CLIPPER_OFFSET_POWER_OF_2;
-			pt.Y >>= CLIPPER_OFFSET_POWER_OF_2;
-			out.emplace_back(coord_t(pt.x()), coord_t(pt.y()));
-		}
-		return out;
-	}
-#endif
 }
 
 static ExPolygon spirograph_gear_1mm()

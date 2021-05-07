@@ -1390,22 +1390,7 @@ public:
     }
 
     // Map from an enum name to an enum integer value.
-    static const t_config_enum_names& get_enum_names() 
-    {
-        static t_config_enum_names names;
-        if (names.empty()) {
-            // Initialize the map.
-            const t_config_enum_values &enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
-            int cnt = 0;
-            for (const auto& kvp : enum_keys_map)
-                cnt = std::max(cnt, kvp.second);
-            cnt += 1;
-            names.assign(cnt, "");
-            for (const auto& kvp : enum_keys_map)
-                names[kvp.second] = kvp.first;
-        }
-        return names;
-    }
+    static const t_config_enum_names& get_enum_names();
     // Map from an enum name to an enum integer value.
     static const t_config_enum_values& get_enum_values();
 

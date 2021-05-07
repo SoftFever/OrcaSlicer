@@ -78,6 +78,9 @@ public:
     bool is_closed() const { return this->points.front() == this->points.back(); }
 };
 
+inline bool operator==(const Polyline &lhs, const Polyline &rhs) { return lhs.points == rhs.points; }
+inline bool operator!=(const Polyline &lhs, const Polyline &rhs) { return lhs.points != rhs.points; }
+
 // Don't use this class in production code, it is used exclusively by the Perl binding for unit tests!
 #ifdef PERL_UCHAR_MIN
 class PolylineCollection

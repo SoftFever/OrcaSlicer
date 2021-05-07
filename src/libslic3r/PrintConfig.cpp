@@ -7,6 +7,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/thread.hpp>
 
 #include <float.h>
@@ -17,6 +18,152 @@ namespace Slic3r {
 //! return same string
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
+
+static t_config_enum_names enum_names_from_keys_map(const t_config_enum_values &enum_keys_map)
+{
+    t_config_enum_names names;
+    int cnt = 0;
+    for (const auto& kvp : enum_keys_map)
+        cnt = std::max(cnt, kvp.second);
+    cnt += 1;
+    names.assign(cnt, "");
+    for (const auto& kvp : enum_keys_map)
+        names[kvp.second] = kvp.first;
+    return names;
+}
+
+#define CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NAME) \
+    static t_config_enum_names s_keys_names_##NAME = enum_names_from_keys_map(s_keys_map_##NAME); \
+    template<> const t_config_enum_values& ConfigOptionEnum<NAME>::get_enum_values() { return s_keys_map_##NAME; } \
+    template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names() { return s_keys_names_##NAME; }
+
+static t_config_enum_values s_keys_map_PrinterTechnology {
+    { "FFF",            ptFFF },
+    { "SLA",            ptSLA }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrinterTechnology)
+
+static t_config_enum_values s_keys_map_GCodeFlavor {
+    { "reprap",         gcfRepRapSprinter },
+    { "reprapfirmware", gcfRepRapFirmware },
+    { "repetier",       gcfRepetier },
+    { "teacup",         gcfTeacup },
+    { "makerware",      gcfMakerWare },
+    { "marlin",         gcfMarlinLegacy },
+    { "marlinfirmware", gcfMarlinFirmware },
+    { "sailfish",       gcfSailfish },
+    { "smoothie",       gcfSmoothie },
+    { "mach3",          gcfMach3 },
+    { "machinekit",     gcfMachinekit },
+    { "no-extrusion",   gcfNoExtrusion }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
+
+static t_config_enum_values s_keys_map_MachineLimitsUsage {
+    { "emit_to_gcode",      int(MachineLimitsUsage::EmitToGCode) },
+    { "time_estimate_only", int(MachineLimitsUsage::TimeEstimateOnly) },
+    { "ignore",             int(MachineLimitsUsage::Ignore) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(MachineLimitsUsage)
+
+static t_config_enum_values s_keys_map_PrintHostType {
+    { "octoprint",      htOctoPrint },
+    { "duet",           htDuet },
+    { "flashair",       htFlashAir },
+    { "astrobox",       htAstroBox },
+    { "repetier",       htRepetier }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
+
+static t_config_enum_values s_keys_map_AuthorizationType {
+    { "key",            atKeyPassword },
+    { "user",           atUserPassword }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AuthorizationType)
+
+static t_config_enum_values s_keys_map_FuzzySkinType {
+    { "none",           int(FuzzySkinType::None) },
+    { "external",       int(FuzzySkinType::External) },
+    { "all",            int(FuzzySkinType::All) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinType)
+
+static t_config_enum_values s_keys_map_InfillPattern {
+    { "rectilinear",        ipRectilinear },
+    { "monotonic",          ipMonotonic },
+    { "alignedrectilinear", ipAlignedRectilinear },
+    { "grid",               ipGrid },
+    { "triangles",          ipTriangles },
+    { "stars",              ipStars },
+    { "cubic",              ipCubic },
+    { "line",               ipLine },
+    { "concentric",         ipConcentric },
+    { "honeycomb",          ipHoneycomb },
+    { "3dhoneycomb",        ip3DHoneycomb },
+    { "gyroid",             ipGyroid },
+    { "hilbertcurve",       ipHilbertCurve },
+    { "archimedeanchords",  ipArchimedeanChords },
+    { "octagramspiral",     ipOctagramSpiral },
+    { "adaptivecubic",      ipAdaptiveCubic },
+    { "supportcubic",       ipSupportCubic }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
+
+static t_config_enum_values s_keys_map_IroningType {
+    { "top",            int(IroningType::TopSurfaces) },
+    { "topmost",        int(IroningType::TopmostOnly) },
+    { "solid",          int(IroningType::AllSolid) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(IroningType)
+
+static t_config_enum_values s_keys_map_SupportMaterialPattern {
+    { "rectilinear",        smpRectilinear },
+    { "rectilinear-grid",   smpRectilinearGrid },
+    { "honeycomb",          smpHoneycomb }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialPattern)
+
+static t_config_enum_values s_keys_map_SupportMaterialStyle {
+    { "grid",           smsGrid },
+    { "snug",           smsSnug }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
+
+static t_config_enum_values s_keys_map_SupportMaterialInterfacePattern {
+    { "auto",           smipAuto },
+    { "rectilinear",    smipRectilinear },
+    { "concentric",     smipConcentric }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
+
+static t_config_enum_values s_keys_map_SeamPosition {
+    { "random",         spRandom },
+    { "nearest",        spNearest },
+    { "aligned",        spAligned },
+    { "rear",           spRear }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamPosition)
+
+static const t_config_enum_values s_keys_map_SLADisplayOrientation = {
+    { "landscape",      sladoLandscape},
+    { "portrait",       sladoPortrait}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SLADisplayOrientation)
+
+static const t_config_enum_values s_keys_map_SLAPillarConnectionMode = {
+    {"zigzag",          slapcmZigZag},
+    {"cross",           slapcmCross},
+    {"dynamic",         slapcmDynamic}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SLAPillarConnectionMode)
+
+static const t_config_enum_values s_keys_map_BrimType = {
+    {"no_brim",         btNoBrim},
+    {"outer_only",      btOuterOnly},
+    {"inner_only",      btInnerOnly},
+    {"outer_and_inner", btOuterAndInner}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -3790,19 +3937,21 @@ std::string validate(const FullPrintConfig &cfg)
     return "";
 }
 
-// Declare the static caches for each StaticPrintConfig derived class.
-StaticPrintConfig::StaticCache<class Slic3r::PrintObjectConfig> PrintObjectConfig::s_cache_PrintObjectConfig;
-StaticPrintConfig::StaticCache<class Slic3r::PrintRegionConfig> PrintRegionConfig::s_cache_PrintRegionConfig;
-StaticPrintConfig::StaticCache<class Slic3r::MachineEnvelopeConfig> MachineEnvelopeConfig::s_cache_MachineEnvelopeConfig;
-StaticPrintConfig::StaticCache<class Slic3r::GCodeConfig>       GCodeConfig::s_cache_GCodeConfig;
-StaticPrintConfig::StaticCache<class Slic3r::PrintConfig>       PrintConfig::s_cache_PrintConfig;
-StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig::s_cache_FullPrintConfig;
-
-StaticPrintConfig::StaticCache<class Slic3r::SLAMaterialConfig>     SLAMaterialConfig::s_cache_SLAMaterialConfig;
-StaticPrintConfig::StaticCache<class Slic3r::SLAPrintConfig>        SLAPrintConfig::s_cache_SLAPrintConfig;
-StaticPrintConfig::StaticCache<class Slic3r::SLAPrintObjectConfig>  SLAPrintObjectConfig::s_cache_SLAPrintObjectConfig;
-StaticPrintConfig::StaticCache<class Slic3r::SLAPrinterConfig>      SLAPrinterConfig::s_cache_SLAPrinterConfig;
-StaticPrintConfig::StaticCache<class Slic3r::SLAFullPrintConfig>    SLAFullPrintConfig::s_cache_SLAFullPrintConfig;
+// Declare and initialize static caches of StaticPrintConfig derived classes.
+#define PRINT_CONFIG_CACHE_ELEMENT_DEFINITION(r, data, CLASS_NAME) StaticPrintConfig::StaticCache<class Slic3r::CLASS_NAME> BOOST_PP_CAT(CLASS_NAME::s_cache_, CLASS_NAME);
+#define PRINT_CONFIG_CACHE_ELEMENT_INITIALIZATION(r, data, CLASS_NAME) Slic3r::CLASS_NAME::initialize_cache();
+#define PRINT_CONFIG_CACHE_INITIALIZE(CLASSES_SEQ) \
+    BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CACHE_ELEMENT_DEFINITION, _, BOOST_PP_TUPLE_TO_SEQ(CLASSES_SEQ)) \
+    int print_config_static_initializer() { \
+        /* Putting a trace here to avoid the compiler to optimize out this function. */ \
+        BOOST_LOG_TRIVIAL(trace) << "Initializing StaticPrintConfigs"; \
+        BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CACHE_ELEMENT_INITIALIZATION, _, BOOST_PP_TUPLE_TO_SEQ(CLASSES_SEQ)) \
+        return 1; \
+    }
+PRINT_CONFIG_CACHE_INITIALIZE((
+    PrintObjectConfig, PrintRegionConfig, MachineEnvelopeConfig, GCodeConfig, PrintConfig, FullPrintConfig, 
+    SLAMaterialConfig, SLAPrintConfig, SLAPrintObjectConfig, SLAPrinterConfig, SLAFullPrintConfig))
+static int print_config_static_initialized = print_config_static_initializer();
 
 CLIActionsConfigDef::CLIActionsConfigDef()
 {
