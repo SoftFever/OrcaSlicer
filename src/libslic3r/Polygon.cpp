@@ -153,6 +153,7 @@ void Polygon::triangulate_convex(Polygons* polygons) const
 }
 
 // center of mass
+// source: https://en.wikipedia.org/wiki/Centroid
 Point Polygon::centroid() const
 {
     double area_sum = 0.;
