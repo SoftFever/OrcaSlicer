@@ -69,7 +69,7 @@
 // Enable project dirty state manager
 #define ENABLE_PROJECT_DIRTY_STATE (1 && ENABLE_2_4_0_ALPHA0)
 // Enable project dirty state manager debug window
-#define ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW (1 && ENABLE_PROJECT_DIRTY_STATE)
+#define ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW (0 && ENABLE_PROJECT_DIRTY_STATE)
 
 
 #endif // _prusaslicer_technologies_h_
