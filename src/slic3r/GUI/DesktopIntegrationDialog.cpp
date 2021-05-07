@@ -390,43 +390,6 @@ DesktopIntegrationDialog::DesktopIntegrationDialog(wxWindow *parent)
 	vbox->Add(btn_szr, 0, wxALIGN_CENTER);
 
     SetSizerAndFit(vbox);
-
-
-/*
-    //boldfont.SetWeight(wxFONTWEIGHT_BOLD);
-
-    //this->SetFont(wxGetApp().normal_font());
-
-	auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
-	auto *rightsizer = new wxBoxSizer(wxVERTICAL);
-
-	auto *headtext = new wxStaticText(this, wxID_ANY, headline);
-	headtext->SetFont(boldfont);
-    headtext->Wrap(50*wxGetApp().em_unit());
-	rightsizer->Add(headtext);
-	rightsizer->AddSpacer(VERT_SPACING);
-
-	rightsizer->Add(content_sizer, 1, wxEXPAND);
-
-	if (button_id != wxID_NONE) {
-		auto *button = new wxButton(this, button_id);
-		button->SetFocus();
-		btn_sizer->Add(button);
-	}
-
-	rightsizer->Add(btn_sizer, 0, wxALIGN_RIGHT);
-
-	if (! bitmap.IsOk()) {
-		bitmap = create_scaled_bitmap("PrusaSlicer_192px.png", this, 192);
-	}
-
-	logo = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
-
-	topsizer->Add(logo, 0, wxALL, BORDER);
-	topsizer->Add(rightsizer, 1, wxALL | wxEXPAND, BORDER);
-
-	SetSizerAndFit(topsizer);
-	*/
 }
 
 DesktopIntegrationDialog::~DesktopIntegrationDialog()

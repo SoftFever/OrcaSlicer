@@ -472,7 +472,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
         new wxCheckBox(this, wxID_ANY, _L("Remove user profiles (a snapshot will be taken beforehand)"))
     ))
     , cbox_integrate(append(
-        new wxCheckBox(this, wxID_ANY, _L("Perform desktop integration (This will set shortcuts to PrusaSlicer to this Appimage executable)."))
+        new wxCheckBox(this, wxID_ANY, _L("Perform desktop integration (Sets this binary to be searchable by the system)."))
     ))
 {
     welcome_text->Hide();
