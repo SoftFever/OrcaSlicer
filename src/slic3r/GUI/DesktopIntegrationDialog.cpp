@@ -8,6 +8,12 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Platform.hpp"
 
+#include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
+
+#include <wx/filename.h>
+#include <wx/stattext.h>
+
 namespace Slic3r {
 namespace GUI {
 
