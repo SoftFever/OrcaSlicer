@@ -353,12 +353,14 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 			std::string line;
 
 			for (size_t i = 0; i < m_lines_count; i++) {
-				if (m_text1.size() > m_endlines[i]) {
+				line.clear();
+				ImGui::SetCursorPosX(x_offset);
+				ImGui::SetCursorPosY(starting_y + i * shift_y);
+				if (m_endlines.size() > i && m_text1.size() >= m_endlines[i]) {
 					line = m_text1.substr(last_end, m_endlines[i] - last_end);
-					if (i < m_lines_count - 1)
-						last_end = m_endlines[i] + (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
-					ImGui::SetCursorPosX(x_offset);
-					ImGui::SetCursorPosY(starting_y + i * shift_y);
+					last_end = m_endlines[i];
+					if (m_text1.size() > m_endlines[i])
+						last_end += (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
 					imgui.text(line.c_str());
 				}
 			}
@@ -376,20 +378,20 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 				imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
 			}
 			// line2
-			if (m_text1.size() > m_endlines[0]) {
-				std::string line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0), m_endlines[1] - m_endlines[0] - (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
+			std::string line;
+			ImGui::SetCursorPosX(x_offset);
+			ImGui::SetCursorPosY(win_size.y / 2 + win_size.y / 6 - m_line_height / 2);
+			if (m_text1.size() >= m_endlines[1]) {
+				line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0), m_endlines[1] - m_endlines[0] - (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
 				if (ImGui::CalcTextSize(line.c_str()).x > m_window_width - m_window_width_offset - ImGui::CalcTextSize((".." + _u8L("More")).c_str()).x) {
 					line = line.substr(0, line.length() - 6);
 					line += "..";
 				} else
 					line += "  ";
-				ImGui::SetCursorPosX(x_offset);
-				ImGui::SetCursorPosY(win_size.y / 2 + win_size.y / 6 - m_line_height / 2);
 				imgui.text(line.c_str());
-				// "More" hypertext
-				render_hypertext(imgui, x_offset + ImGui::CalcTextSize(line.c_str()).x, win_size.y / 2 + win_size.y / 6 - m_line_height / 2, _u8L("More"), true);
 			}
-			
+			// "More" hypertext
+			render_hypertext(imgui, x_offset + ImGui::CalcTextSize(line.c_str()).x, win_size.y / 2 + win_size.y / 6 - m_line_height / 2, _u8L("More"), true);			
 		}
 	} else {
 		//text 1
@@ -397,17 +399,17 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 		float cursor_x = x_offset;
 		if(m_lines_count > 1) {
 			// line1
-			if (m_text1.length() >= m_endlines[0]) {
+			if (m_text1.length() >= m_endlines[0]) { // could be equal than substr takes whole string
 				ImGui::SetCursorPosX(x_offset);
 				ImGui::SetCursorPosY(win_size.y / 2 - win_size.y / 6 - m_line_height / 2);
 				imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
 			}
 			// line2
-			if (m_text1.length() > m_endlines[0]) {
+			ImGui::SetCursorPosX(x_offset);
+			cursor_y = win_size.y / 2 + win_size.y / 6 - m_line_height / 2;
+			ImGui::SetCursorPosY(cursor_y);
+			if (m_text1.length() > m_endlines[0]) { // must be greater otherwise theres nothing to show and m_text1[m_endlines[0]] is beyond last letter
 				std::string line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
-				cursor_y = win_size.y / 2 + win_size.y / 6 - m_line_height / 2;
-				ImGui::SetCursorPosX(x_offset);
-				ImGui::SetCursorPosY(cursor_y);
 				imgui.text(line.c_str());
 				cursor_x = x_offset + ImGui::CalcTextSize(line.c_str()).x;
 			}
@@ -730,8 +732,9 @@ void NotificationManager::ExportFinishedNotification::render_text(ImGuiWrapper& 
 	for (size_t i = 0; i < m_lines_count; i++) {
 		if (m_text1.size() >= m_endlines[i]) {
 			std::string line = m_text1.substr(last_end, m_endlines[i] - last_end);
-			if (i < m_lines_count - 1)
-				last_end = m_endlines[i] + (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
+			last_end = m_endlines[i];
+			if (m_text1.size() > m_endlines[i])
+				last_end += (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
 			ImGui::SetCursorPosX(x_offset);
 			ImGui::SetCursorPosY(starting_y + i * shift_y);
 			imgui.text(line.c_str());
