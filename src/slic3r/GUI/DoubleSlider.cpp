@@ -575,7 +575,10 @@ void Control::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_
     else
         is_horizontal() ? y_draw = pt_beg.y - m_tick_icon_dim-2 : x_draw = pt_end.x + 3;
 
-    dc.DrawBitmap(*icon, x_draw, y_draw);
+    if (m_draw_mode == dmSequentialFffPrint)
+        dc.DrawBitmap(create_scaled_bitmap("colorchange_add", nullptr, 16, true), x_draw, y_draw);
+    else
+        dc.DrawBitmap(*icon, x_draw, y_draw);
 
     //update rect of the tick action icon
     m_rect_tick_action = wxRect(x_draw, y_draw, m_tick_icon_dim, m_tick_icon_dim);
@@ -591,7 +594,7 @@ void Control::draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, const Selec
         dc.DrawLine(pt_beg, pt_end);
 
         //draw action icon
-        if (m_draw_mode == dmRegular)
+        if (m_draw_mode == dmRegular || m_draw_mode == dmSequentialFffPrint)
             draw_action_icon(dc, pt_beg, pt_end);
     }
 }
@@ -1377,6 +1380,10 @@ wxString Control::get_tooltip(int tick/*=-1*/)
 
     if (tick_code_it == m_ticks.ticks.end() && m_focus == fiActionIcon)    // tick doesn't exist
     {
+        if (m_draw_mode == dmSequentialFffPrint)
+            return   _L("The sequential print is on.\n"
+                        "It's impossible to apply any custom G-code for objects printing sequentually.\n");
+
         // Show mode as a first string of tooltop
         tooltip = "    " + _L("Print mode") + ": ";
         tooltip += (m_mode == SingleExtruder ? SingleExtruderMode :
