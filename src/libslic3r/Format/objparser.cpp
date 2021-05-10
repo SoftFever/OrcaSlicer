@@ -17,7 +17,7 @@ static bool obj_parseline(const char *line, ObjData &data)
 	if (*line == 0)
 		return true;
 
-    assert(is_decimal_separator_point());
+    assert(Slic3r::is_decimal_separator_point());
 
 	// Ignore whitespaces at the beginning of the line.
 	//FIXME is this a good idea?
