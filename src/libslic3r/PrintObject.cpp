@@ -1745,7 +1745,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
             }
             // Make sure all layers contain layer region objects for all regions.
             for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id)
-                layer->add_region(&this->print()->get_print_region(region_id));
+                layer->add_region(&this->printing_region(region_id));
             prev = layer;
         }
     }
@@ -1793,7 +1793,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
             if (spiral_vase) {
                 // Slice the bottom layers with SlicingMode::Regular.
                 // This needs to be in sync with LayerRegion::make_perimeters() spiral_vase!
-                const PrintRegionConfig &config = this->print()->get_print_region(region_id).config();
+                const PrintRegionConfig &config = this->printing_region(region_id).config();
                 slicing_mode_normal_below_layer = size_t(config.bottom_solid_layers.value);
                 for (; slicing_mode_normal_below_layer < slice_zs.size() && slice_zs[slicing_mode_normal_below_layer] < config.bottom_solid_min_thickness - EPSILON;
                     ++ slicing_mode_normal_below_layer);
