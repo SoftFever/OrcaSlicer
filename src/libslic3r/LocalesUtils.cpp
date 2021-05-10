@@ -24,7 +24,7 @@ CNumericLocalesSetter::CNumericLocalesSetter()
 CNumericLocalesSetter::~CNumericLocalesSetter()
 {
 #ifdef _WIN32
-    std::setlocale(LC_NUMERIC, m_orig_numeric_locale)
+    std::setlocale(LC_NUMERIC, m_orig_numeric_locale.data());
 #else
     uselocale(m_original_locale);
     freelocale(m_new_locale);
