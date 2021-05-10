@@ -1215,8 +1215,8 @@ boost::any& Choice::get_value()
 	return m_value;
 }
 
-void Choice::enable()  { dynamic_cast<choice_ctrl*>(window)->Enable(); };
-void Choice::disable() { dynamic_cast<choice_ctrl*>(window)->Disable(); };
+void Choice::enable()  { dynamic_cast<choice_ctrl*>(window)->Enable(); }
+void Choice::disable() { dynamic_cast<choice_ctrl*>(window)->Disable(); }
 
 void Choice::msw_rescale()
 {

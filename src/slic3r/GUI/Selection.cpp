@@ -11,6 +11,7 @@
 #include "Camera.hpp"
 #include "Plater.hpp"
 
+#include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Model.hpp"
 #if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 #include "libslic3r/PresetBundle.hpp"
@@ -1927,7 +1928,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     if (pos == std::string::npos)
         return;
 
-    double max_z = std::stod(field.substr(pos + 1));
+    double max_z = string_to_double_decimal_point(field.substr(pos + 1));
 
     // extract min_z
     field = field.substr(0, pos);
@@ -1935,7 +1936,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     if (pos == std::string::npos)
         return;
 
-    const double min_z = std::stod(field.substr(pos + 1));
+    const double min_z = string_to_double_decimal_point(field.substr(pos + 1));
 
     // extract type
     field = field.substr(0, pos);

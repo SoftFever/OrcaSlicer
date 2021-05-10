@@ -13,6 +13,6 @@ extern bool load_amf(const char* path, DynamicPrintConfig* config, Model* model,
 // The model could be modified during the export process if meshes are not repaired or have no shared vertices
 extern bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources);
 
-}; // namespace Slic3r
+} // namespace Slic3r
 
 #endif /* slic3r_Format_AMF_hpp_ */

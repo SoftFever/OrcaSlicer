@@ -1,5 +1,6 @@
 #include "LocalesUtils.hpp"
 
+#include <stdexcept>
 
 namespace Slic3r {
 
@@ -37,6 +38,22 @@ bool is_decimal_separator_point()
     char str[5] = "";
     sprintf(str, "%.1f", 0.5f);
     return str[1] == '.';
+}
+
+
+double string_to_double_decimal_point(const std::string& str, size_t* pos /* = nullptr*/)
+{
+    double out;
+    std::istringstream stream(str);
+    if (! (stream >> out))
+        throw std::invalid_argument("string_to_double_decimal_point conversion failed.");
+    if (pos) {
+        if (stream.eof())
+            *pos = str.size();
+        else
+            *pos = stream.tellg();
+    }
+    return out;
 }
 
 std::string float_to_string_decimal_point(double value, int precision/* = -1*/)

@@ -2,6 +2,8 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 
+#include "libslic3r/LocalesUtils.hpp"
+
 #include <string>
 
 #include <boost/algorithm/string.hpp>
@@ -113,7 +115,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				str.pop_back();
 				percent = true;
 			}
-			double val = stod(str);
+            double val = string_to_double_decimal_point(str);
 			config.set_key_value(opt_key, new ConfigOptionFloatOrPercent(val, percent));
 			break;}
 		case coPercent:
