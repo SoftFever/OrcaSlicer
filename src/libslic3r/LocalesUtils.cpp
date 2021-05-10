@@ -66,10 +66,10 @@ std::string float_to_string_decimal_point(double value, int precision/* = -1*/)
     return buf.str();
 }
 
-std::string float_to_string_decimal_point(float value, int precision/* = -1*/)
-{
-    return float_to_string_decimal_point(double(value), precision);
-}
+//std::string float_to_string_decimal_point(float value, int precision/* = -1*/)
+//{
+//    return float_to_string_decimal_point(double(value), precision);
+//}
 
 
 } // namespace Slic3r

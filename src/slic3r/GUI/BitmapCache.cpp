@@ -266,7 +266,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
                                            "-h" + std::to_string(target_height) : 
                                            "-w" + std::to_string(target_width))
-                                         + (m_scale != 1.0f ? "-s" + std::to_string(m_scale) : "")
+                                         + (m_scale != 1.0f ? "-s" + float_to_string_decimal_point(m_scale) : "")
                                          + (grayscale ? "-gs" : "");
 
     /* For the Dark mode of any platform, we should draw icons in respect to OS background

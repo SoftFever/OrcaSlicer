@@ -196,6 +196,6 @@ private:
 	bool                                                        m_legacy_datadir;
 };
 
-}; // namespace Slic3r
+} // namespace Slic3r
 
 #endif /* slic3r_AppConfig_hpp_ */

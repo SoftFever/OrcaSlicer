@@ -39,7 +39,7 @@ bool is_decimal_separator_point();
 // to be sure that decimal point is used as a separator.
 // (We use user C locales and "C" C++ locales in most of the code.)
 std::string float_to_string_decimal_point(double value, int precision = -1);
-std::string float_to_string_decimal_point(float value,  int precision = -1);
+//std::string float_to_string_decimal_point(float value,  int precision = -1);
 double string_to_double_decimal_point(const std::string& str, size_t* pos = nullptr);
 
 } // namespace Slic3r
