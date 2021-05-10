@@ -604,278 +604,6 @@ GLCanvas3D::Mouse::Mouse()
 {
 }
 
-#if !ENABLE_WARNING_TEXTURE_REMOVAL
-const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 120, 120, 120 };//{ 9, 91, 134 };
-const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
-
-GLCanvas3D::WarningTexture::WarningTexture()
-    : GUI::GLTexture()
-    , m_original_width(0)
-    , m_original_height(0)
-{
-}
-
-void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool state, const GLCanvas3D& canvas)
-{
-    // Since we have NotificationsManager.hpp the warning textures are no loger needed.
-    // However i have left the infrastructure here and only commented the rendering.
-    // The  plater warning / error notifications are added and closed from here.
-
-    std::string text;
-    bool error = false;
-    switch (warning) {
-    case ObjectOutside: text = _u8L("An object outside the print area was detected."); break;
-    case ToolpathOutside: text = _u8L("A toolpath outside the print area was detected."); error = true; break;
-    case SlaSupportsOutside: text = _u8L("SLA supports outside the print area were detected."); error = true; break;
-    case SomethingNotShown: text = _u8L("Some objects are not visible."); break;
-    case ObjectClashed:
-        text = _u8L( "An object outside the print area was detected.\n"
-                  "Resolve the current problem to continue slicing.");
-        error = true;
-        break;
-    }
-    BOOST_LOG_TRIVIAL(error) << state << " : " << text ;
-    auto &notification_manager = *wxGetApp().plater()->get_notification_manager();
-    if (state) {
-        if(error)
-            notification_manager.push_plater_error_notification(text);
-        else
-            notification_manager.push_plater_warning_notification(text);
-    } else {
-        if (error)
-            notification_manager.close_plater_error_notification(text);
-        else
-            notification_manager.close_plater_warning_notification(text);
-    }
-
-    /*
-    auto it = std::find(m_warnings.begin(), m_warnings.end(), warning);
-
-    if (state) {
-        if (it != m_warnings.end()) // this warning is already set to be shown
-            return;
-
-        m_warnings.push_back(warning);
-        std::sort(m_warnings.begin(), m_warnings.end());
-    }
-    else {
-        if (it == m_warnings.end()) // deactivating something that is not active is an easy task
-            return;
-
-        m_warnings.erase(it);
-        if (m_warnings.empty()) { // nothing remains to be shown
-            reset();
-            m_msg_text = "";// save information for rescaling
-            return;
-        }
-    }
-
-    // Look at the end of our vector and generate proper texture.
-    std::string text;
-    bool red_colored = false;
-    switch (m_warnings.back()) {
-        case ObjectOutside      : text = L("An object outside the print area was detected"); break;
-        case ToolpathOutside    : text = L("A toolpath outside the print area was detected"); break;
-        case SlaSupportsOutside : text = L("SLA supports outside the print area were detected"); break;
-        case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
-        case ObjectClashed: {
-            text = L("An object outside the print area was detected\n"
-                     "Resolve the current problem to continue slicing");
-            red_colored = true;
-            break;
-        }
-    }
-
-    generate(text, canvas, true, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
-
-    // save information for rescaling
-    m_msg_text = text;
-    m_is_colored_red = red_colored;
-	*/
-}
-
-
-#ifdef __WXMSW__
-static bool is_font_cleartype(const wxFont &font)
-{
-    // Native font description: on MSW, it is a version number plus the content of LOGFONT, separated by semicolon.
-    wxString font_desc = font.GetNativeFontInfoDesc();
-    // Find the quality field.
-    wxString sep(";");
-    size_t startpos = 0;
-    for (size_t i = 0; i < 12; ++ i)
-        startpos = font_desc.find(sep, startpos + 1);
-    ++ startpos;
-    size_t endpos = font_desc.find(sep, startpos);
-    int quality = wxAtoi(font_desc(startpos, endpos - startpos));
-    return quality == CLEARTYPE_QUALITY;
-}
-
-// ClearType produces renders, which are difficult to convert into an alpha blended OpenGL texture.
-// Therefore it is better to disable it, though Vojtech found out, that the font returned with ClearType
-// disabled is signifcantly thicker than the default ClearType font.
-// This function modifies the font provided.
-static void msw_disable_cleartype(wxFont &font)
-{
-    // Native font description: on MSW, it is a version number plus the content of LOGFONT, separated by semicolon.
-    wxString font_desc = font.GetNativeFontInfoDesc();
-    // Find the quality field.
-    wxString sep(";");
-    size_t startpos_weight = 0;
-    for (size_t i = 0; i < 5; ++ i)
-        startpos_weight = font_desc.find(sep, startpos_weight + 1);
-    ++ startpos_weight;
-    size_t endpos_weight = font_desc.find(sep, startpos_weight);
-    // Parse the weight field.
-    unsigned int weight = wxAtoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
-    size_t startpos = endpos_weight;
-    for (size_t i = 0; i < 6; ++ i)
-        startpos = font_desc.find(sep, startpos + 1);
-    ++ startpos;
-    size_t endpos = font_desc.find(sep, startpos);
-    int quality = wxAtoi(font_desc(startpos, endpos - startpos));
-    if (quality == CLEARTYPE_QUALITY) {
-        // Replace the weight with a smaller value to compensate the weight of non ClearType font.
-        wxString sweight    = std::to_string(weight * 2 / 4);
-        size_t   len_weight = endpos_weight - startpos_weight;
-        wxString squality   = std::to_string(ANTIALIASED_QUALITY);
-        font_desc.replace(startpos_weight, len_weight, sweight);
-        font_desc.replace(startpos + sweight.size() - len_weight, endpos - startpos, squality);
-        font.SetNativeFontInfo(font_desc);
-        wxString font_desc2 = font.GetNativeFontInfoDesc();
-    }
-    wxString font_desc2 = font.GetNativeFontInfoDesc();
-}
-#endif /* __WXMSW__ */
-
-bool GLCanvas3D::WarningTexture::generate(const std::string& msg_utf8, const GLCanvas3D& canvas, bool compress, bool red_colored/* = false*/)
-{
-    reset();
-
-    if (msg_utf8.empty())
-        return false;
-
-    wxString msg = _(msg_utf8);
-
-    wxMemoryDC memDC;
-
-#ifdef __WXMSW__
-    // set scaled application normal font as default font 
-    wxFont font = wxGetApp().normal_font();
-#else
-    // select default font
-    const float scale = canvas.get_canvas_size().get_scale_factor();
-#if ENABLE_RETINA_GL
-    // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
-    // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
-    // https://github.com/prusa3d/PrusaSlicer/issues/3916
-    if (scale <= 0.0f)
-        return false;
-#endif
-    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
-#endif
-
-    font.MakeLarger();
-    font.MakeBold();
-    memDC.SetFont(font);
-
-    // calculates texture size
-    wxCoord w, h;
-    memDC.GetMultiLineTextExtent(msg, &w, &h);
-
-    m_original_width = (int)w;
-    m_original_height = (int)h;
-    m_width = (int)next_highest_power_of_2((uint32_t)w);
-	m_height = (int)next_highest_power_of_2((uint32_t)h);
-
-    // generates bitmap
-    wxBitmap bitmap(m_width, m_height);
-
-    memDC.SelectObject(bitmap);
-    memDC.SetBackground(wxBrush(*wxBLACK));
-    memDC.Clear();
-
-    // draw message
-    memDC.SetTextForeground(*wxRED);
-	memDC.DrawLabel(msg, wxRect(0,0, m_original_width, m_original_height), wxALIGN_CENTER);
-
-    memDC.SelectObject(wxNullBitmap);
-
-    // Convert the bitmap into a linear data ready to be loaded into the GPU.
-    wxImage image = bitmap.ConvertToImage();
-
-    // prepare buffer
-    std::vector<unsigned char> data(4 * m_width * m_height, 0);
-    const unsigned char *src = image.GetData();
-    for (int h = 0; h < m_height; ++h) {
-        unsigned char* dst = data.data() + 4 * h * m_width;
-        for (int w = 0; w < m_width; ++w) {
-            *dst++ = 255;
-            if (red_colored) {
-                *dst++ = 72; // 204
-                *dst++ = 65; // 204
-            } else {
-                *dst++ = 255;
-                *dst++ = 255;
-            }
-			*dst++ = (unsigned char)std::min<int>(255, *src);
-            src += 3;
-        }
-    }
-
-    // sends buffer to gpu
-    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-    glsafe(::glGenTextures(1, &m_id));
-    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
-    if (compress && GLEW_EXT_texture_compression_s3tc)
-        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-    else
-        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
-    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-
-    return true;
-}
-
-void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
-{
-    if (m_warnings.empty())
-        return;
-
-    if (m_id > 0 && m_original_width > 0 && m_original_height > 0 && m_width > 0 && m_height > 0) {
-        const Size& cnv_size = canvas.get_canvas_size();
-        float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
-        float left = (-0.5f * (float)m_original_width) * inv_zoom;
-        float top = (-0.5f * (float)cnv_size.get_height() + (float)m_original_height + 2.0f) * inv_zoom;
-        float right = left + (float)m_original_width * inv_zoom;
-        float bottom = top - (float)m_original_height * inv_zoom;
-
-        float uv_left = 0.0f;
-        float uv_top = 0.0f;
-        float uv_right = (float)m_original_width / (float)m_width;
-        float uv_bottom = (float)m_original_height / (float)m_height;
-
-        GLTexture::Quad_UVs uvs;
-        uvs.left_top = { uv_left, uv_top };
-        uvs.left_bottom = { uv_left, uv_bottom };
-        uvs.right_bottom = { uv_right, uv_bottom };
-        uvs.right_top = { uv_right, uv_top };
-
-        GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
-    }
-}
-
-void GLCanvas3D::WarningTexture::msw_rescale(const GLCanvas3D& canvas)
-{
-    if (m_msg_text.empty())
-        return;
-
-    generate(m_msg_text, canvas, true, m_is_colored_red);
-}
-#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
-
 void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_instances) const
 {
     if (!m_enabled || !is_shown())
@@ -1294,11 +1022,7 @@ void GLCanvas3D::reset_volumes()
     m_volumes.clear();
     m_dirty = true;
 
-#if ENABLE_WARNING_TEXTURE_REMOVAL
     _set_warning_notification(EWarning::ObjectOutside, false);
-#else
-    _set_warning_texture(WarningTexture::ObjectOutside, false);
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 }
 
 int GLCanvas3D::check_volumes_outside_state() const
@@ -1352,19 +1076,11 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
     if (visible && !mo)
         toggle_sla_auxiliaries_visibility(true, mo, instance_idx);
 
-#if ENABLE_WARNING_TEXTURE_REMOVAL
     if (!mo && !visible && !m_model->objects.empty() && (m_model->objects.size() > 1 || m_model->objects.front()->instances.size() > 1))
         _set_warning_notification(EWarning::SomethingNotShown, true);
 
     if (!mo && visible)
         _set_warning_notification(EWarning::SomethingNotShown, false);
-#else
-    if (!mo && !visible && !m_model->objects.empty() && (m_model->objects.size() > 1 || m_model->objects.front()->instances.size() > 1))
-        _set_warning_texture(WarningTexture::SomethingNotShown, true);
-
-    if (!mo && visible)
-        _set_warning_texture(WarningTexture::SomethingNotShown, false);
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 }
 
 void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx)
@@ -2241,31 +1957,18 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         bool fullyOut = false;
         const bool contained_min_one = m_volumes.check_outside_state(m_config, partlyOut, fullyOut);
 
-#if ENABLE_WARNING_TEXTURE_REMOVAL
         _set_warning_notification(EWarning::ObjectClashed, partlyOut);
         _set_warning_notification(EWarning::ObjectOutside, fullyOut);
         if (printer_technology != ptSLA || !contained_min_one)
             _set_warning_notification(EWarning::SlaSupportsOutside, false);
-#else
-        _set_warning_texture(WarningTexture::ObjectClashed, partlyOut);
-        _set_warning_texture(WarningTexture::ObjectOutside, fullyOut);
-        if(printer_technology != ptSLA || !contained_min_one)
-            _set_warning_texture(WarningTexture::SlaSupportsOutside, false);
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
                                contained_min_one && !m_model->objects.empty() && !partlyOut));
     }
     else {
-#if ENABLE_WARNING_TEXTURE_REMOVAL
         _set_warning_notification(EWarning::ObjectOutside, false);
         _set_warning_notification(EWarning::ObjectClashed, false);
         _set_warning_notification(EWarning::SlaSupportsOutside, false);
-#else
-        _set_warning_texture(WarningTexture::ObjectOutside, false);
-        _set_warning_texture(WarningTexture::ObjectClashed, false);
-        _set_warning_texture(WarningTexture::SlaSupportsOutside, false);
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 
@@ -2308,11 +2011,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
 
     if (wxGetApp().is_editor()) {
         m_gcode_viewer.update_shells_color_by_extruder(m_config);
-#if ENABLE_WARNING_TEXTURE_REMOVAL
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
-#else
-        _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
     }
 }
 
@@ -2339,11 +2038,7 @@ void GLCanvas3D::load_sla_preview()
 	    this->reset_volumes();
         _load_sla_shells();
         _update_sla_shells_outside_state();
-#if ENABLE_WARNING_TEXTURE_REMOVAL
         _set_warning_notification_if_needed(EWarning::SlaSupportsOutside);
-#else
-        _show_warning_texture_if_needed(WarningTexture::SlaSupportsOutside);
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
     }
 }
 
@@ -2364,11 +2059,7 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
         _load_print_object_toolpaths(*object, str_tool_colors, color_print_values);
 
     _update_toolpath_volumes_outside_state();
-#if ENABLE_WARNING_TEXTURE_REMOVAL
     _set_warning_notification_if_needed(EWarning::ToolpathOutside);
-#else
-    _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 }
 
 void GLCanvas3D::bind_event_handlers()
@@ -3916,9 +3607,6 @@ void GLCanvas3D::set_cursor(ECursorType type)
 
 void GLCanvas3D::msw_rescale()
 {
-#if !ENABLE_WARNING_TEXTURE_REMOVAL
-    m_warning_texture.msw_rescale(*this);
-#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
 }
 
 void GLCanvas3D::update_tooltip_for_settings_item_in_main_toolbar()
@@ -5270,9 +4958,6 @@ void GLCanvas3D::_render_overlays() const
     _check_and_update_toolbar_icon_scale();
 
     _render_gizmos_overlay();
-#if !ENABLE_WARNING_TEXTURE_REMOVAL
-    _render_warning_texture();
-#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
 
     // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
     // to correctly place them
@@ -5309,13 +4994,6 @@ void GLCanvas3D::_render_overlays() const
 
     glsafe(::glPopMatrix());
 }
-
-#if !ENABLE_WARNING_TEXTURE_REMOVAL
-void GLCanvas3D::_render_warning_texture() const
-{
-    m_warning_texture.render(*this);
-}
-#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
 
 void GLCanvas3D::_render_volumes_for_picking() const
 {
@@ -6313,7 +5991,6 @@ void GLCanvas3D::_update_sla_shells_outside_state()
     }
 }
 
-#if ENABLE_WARNING_TEXTURE_REMOVAL
 void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
 {
     _set_current();
@@ -6330,24 +6007,6 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
     }
     _set_warning_notification(warning, show);
 }
-#else
-void GLCanvas3D::_show_warning_texture_if_needed(WarningTexture::Warning warning)
-{
-    _set_current();
-    bool show = false;
-    if (!m_volumes.empty())
-        show = _is_any_volume_outside();
-    else {
-        if (wxGetApp().is_editor()) {
-            BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
-            const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
-            if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)
-                show = !test_volume.contains(paths_volume);
-        }
-    }
-    _set_warning_texture(warning, show);
-}
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)
 {
@@ -6371,7 +6030,6 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
     return output;
 }
 
-#if ENABLE_WARNING_TEXTURE_REMOVAL
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
     enum ErrorType{
@@ -6417,12 +6075,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     }
 }
-#else
-void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)
-{
-    m_warning_texture.activate(warning, state, *this);
-}
-#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
 
 bool GLCanvas3D::_is_any_volume_outside() const
 {
