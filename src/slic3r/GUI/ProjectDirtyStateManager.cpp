@@ -180,6 +180,9 @@ void ProjectDirtyStateManager::update_from_undo_redo_stack(UpdateType type)
         return;
 
     const Plater* plater = wxGetApp().plater();
+    if (plater == nullptr)
+        return;
+
     const UndoRedo::Stack& main_stack = plater->undo_redo_stack_main();
     const UndoRedo::Stack& active_stack = plater->undo_redo_stack_active();
 
