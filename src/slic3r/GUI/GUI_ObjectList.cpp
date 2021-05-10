@@ -3909,6 +3909,8 @@ void ObjectList::toggle_printable_state()
 {
     wxDataViewItemArray sels;
     GetSelections(sels);
+    if (sels.IsEmpty())
+        return;
 
     wxDataViewItem frst_item = sels[0];
 
