@@ -49,7 +49,7 @@ use Slic3r::Test qw(_eq);
     $config->set('first_layer_height', 0.2);
     ok $test->(), "absolute first layer height";
 
-    $config->set('first_layer_height', '60%');
+    $config->set('first_layer_height', 0.6 * $config->layer_height);
     ok $test->(), "relative first layer height";
 
     $config->set('z_offset', 0.9);

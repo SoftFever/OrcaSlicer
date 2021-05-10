@@ -12,11 +12,10 @@ class SurfaceCollection
 public:
     Surfaces surfaces;
     
-    SurfaceCollection() {};
-    SurfaceCollection(const Surfaces &surfaces) : surfaces(surfaces) {};
+    SurfaceCollection() = default;
+    SurfaceCollection(const Surfaces& surfaces) : surfaces(surfaces) {};
     SurfaceCollection(Surfaces &&surfaces) : surfaces(std::move(surfaces)) {};
-    operator Polygons() const;
-    operator ExPolygons() const;
+
     void simplify(double tolerance);
     void group(std::vector<SurfacesPtr> *retval);
     template <class T> bool any_internal_contains(const T &item) const {

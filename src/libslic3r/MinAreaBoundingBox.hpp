@@ -26,12 +26,8 @@ public:
     };
    
     // Constructors with various types of geometry data used in Slic3r.
-    // If the convexity is known apriory, pcConvex can be used to skip 
-    // convex hull calculation. It is very important that the input polygons
-    // do NOT have any collinear points (except for the first and the last 
-    // vertex being the same -- meaning a closed polygon for boost)
-    // To make sure this constraint is satisfied, you can call 
-    // remove_collinear_points on the input polygon before handing over here)
+    // If the convexity is known apriory, pcConvex can be used to skip
+    // convex hull calculation.
     explicit MinAreaBoundigBox(const Polygon&, PolygonLevel = pcSimple);
     explicit MinAreaBoundigBox(const ExPolygon&, PolygonLevel = pcSimple);
     explicit MinAreaBoundigBox(const Points&, PolygonLevel = pcSimple);

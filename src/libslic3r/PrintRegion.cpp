@@ -20,11 +20,12 @@ unsigned int PrintRegion::extruder(FlowRole role) const
 
 Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_height, bool first_layer) const
 {
-    ConfigOptionFloatOrPercent config_width;
+    const PrintConfig          &print_config = object.print()->config();
+    ConfigOptionFloatOrPercent  config_width;
     // Get extrusion width from configuration.
     // (might be an absolute value, or a percent value, or zero for auto)
-    if (first_layer && m_print->config().first_layer_extrusion_width.value > 0) {
-        config_width = m_print->config().first_layer_extrusion_width;
+    if (first_layer && print_config.first_layer_extrusion_width.value > 0) {
+        config_width = print_config.first_layer_extrusion_width;
     } else if (role == frExternalPerimeter) {
         config_width = m_config.external_perimeter_extrusion_width;
     } else if (role == frPerimeter) {
@@ -44,7 +45,7 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
     
     // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
     // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
-    auto nozzle_diameter = float(m_print->config().nozzle_diameter.get_at(this->extruder(role) - 1));
+    auto nozzle_diameter = float(print_config.nozzle_diameter.get_at(this->extruder(role) - 1));
     return Flow::new_from_config_width(role, config_width, nozzle_diameter, float(layer_height));
 }
 
@@ -76,17 +77,17 @@ void PrintRegion::collect_object_printing_extruders(const PrintConfig &print_con
     	emplace_extruder(region_config.solid_infill_extruder);
 }
 
-void PrintRegion::collect_object_printing_extruders(std::vector<unsigned int> &object_extruders) const
+void PrintRegion::collect_object_printing_extruders(const Print &print, std::vector<unsigned int> &object_extruders) const
 {
     // PrintRegion, if used by some PrintObject, shall have all the extruders set to an existing printer extruder.
     // If not, then there must be something wrong with the Print::apply() function.
 #ifndef NDEBUG
-    auto num_extruders = (int)print()->config().nozzle_diameter.size();
+    auto num_extruders = int(print.config().nozzle_diameter.size());
     assert(this->config().perimeter_extruder    <= num_extruders);
     assert(this->config().infill_extruder       <= num_extruders);
     assert(this->config().solid_infill_extruder <= num_extruders);
 #endif
-    collect_object_printing_extruders(print()->config(), this->config(), print()->has_brim(), object_extruders);
+    collect_object_printing_extruders(print.config(), this->config(), print.has_brim(), object_extruders);
 }
 
 }

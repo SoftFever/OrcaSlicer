@@ -27,7 +27,7 @@ bool Layer::empty() const
     return true;
 }
 
-LayerRegion* Layer::add_region(PrintRegion* print_region)
+LayerRegion* Layer::add_region(const PrintRegion *print_region)
 {
     m_regions.emplace_back(new LayerRegion(this, print_region));
     return m_regions.back();
@@ -39,11 +39,11 @@ void Layer::make_slices()
     ExPolygons slices;
     if (m_regions.size() == 1) {
         // optimization: if we only have one region, take its slices
-        slices = m_regions.front()->slices;
+        slices = to_expolygons(m_regions.front()->slices.surfaces);
     } else {
         Polygons slices_p;
         for (LayerRegion *layerm : m_regions)
-            polygons_append(slices_p, to_polygons(layerm->slices));
+            polygons_append(slices_p, to_polygons(layerm->slices.surfaces));
         slices = union_ex(slices_p);
     }
     
@@ -102,10 +102,10 @@ ExPolygons Layer::merged(float offset_scaled) const
     }
     Polygons polygons;
 	for (LayerRegion *layerm : m_regions) {
-		const PrintRegionConfig &config = layerm->region()->config();
+		const PrintRegionConfig &config = layerm->region().config();
 		// Our users learned to bend Slic3r to produce empty volumes to act as subtracters. Only add the region if it is non-empty.
 		if (config.bottom_solid_layers > 0 || config.top_solid_layers > 0 || config.fill_density > 0. || config.perimeters > 0)
-			append(polygons, offset(to_expolygons(layerm->slices.surfaces), offset_scaled));
+			append(polygons, offset(layerm->slices.surfaces, offset_scaled));
 	}
     ExPolygons out = union_ex(polygons);
 	if (offset_scaled2 != 0.f)
@@ -134,7 +134,7 @@ void Layer::make_perimeters()
 	            continue;
 	        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
 	        done[region_id] = true;
-	        const PrintRegionConfig &config = (*layerm)->region()->config();
+	        const PrintRegionConfig &config = (*layerm)->region().config();
 	        
 	        // find compatible regions
 	        LayerRegionPtrs layerms;
@@ -142,7 +142,7 @@ void Layer::make_perimeters()
 	        for (LayerRegionPtrs::const_iterator it = layerm + 1; it != m_regions.end(); ++it)
 	            if (! (*it)->slices.empty()) {
 		            LayerRegion* other_layerm = *it;
-		            const PrintRegionConfig &other_config = other_layerm->region()->config();
+		            const PrintRegionConfig &other_config = other_layerm->region().config();
 		            if (config.perimeter_extruder             == other_config.perimeter_extruder
 		                && config.perimeters                  == other_config.perimeters
 		                && config.perimeter_speed             == other_config.perimeter_speed
@@ -180,12 +180,12 @@ void Layer::make_perimeters()
 	                for (LayerRegion *layerm : layerms) {
 	                    for (Surface &surface : layerm->slices.surfaces)
 	                        slices[surface.extra_perimeters].emplace_back(surface);
-	                    if (layerm->region()->config().fill_density > layerm_config->region()->config().fill_density)
+	                    if (layerm->region().config().fill_density > layerm_config->region().config().fill_density)
 	                    	layerm_config = layerm;
 	                }
 	                // merge the surfaces assigned to each group
 	                for (std::pair<const unsigned short,Surfaces> &surfaces_with_extra_perimeters : slices)
-	                    new_slices.append(union_ex(surfaces_with_extra_perimeters.second, true), surfaces_with_extra_perimeters.second.front());
+	                    new_slices.append(offset_ex(surfaces_with_extra_perimeters.second, ClipperSafetyOffset), surfaces_with_extra_perimeters.second.front());
 	            }
 	            
 	            // make perimeters
@@ -196,7 +196,7 @@ void Layer::make_perimeters()
 	            if (!fill_surfaces.surfaces.empty()) { 
 	                for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
 	                    // Separate the fill surfaces.
-	                    ExPolygons expp = intersection_ex(to_polygons(fill_surfaces), (*l)->slices);
+	                    ExPolygons expp = intersection_ex(fill_surfaces.surfaces, (*l)->slices.surfaces);
 	                    (*l)->fill_expolygons = expp;
 	                    (*l)->fill_surfaces.set(std::move(expp), fill_surfaces.surfaces.front());
 	                }

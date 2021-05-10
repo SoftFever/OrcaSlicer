@@ -273,8 +273,8 @@ std::string SVG::get_path_d(const ClipperLib::Path &path, double scale, bool clo
     std::ostringstream d;
     d << "M ";
     for (ClipperLib::Path::const_iterator p = path.begin(); p != path.end(); ++p) {
-        d << to_svg_x(scale * p->X - origin(0)) << " ";
-        d << to_svg_y(scale * p->Y - origin(1)) << " ";
+        d << to_svg_x(scale * p->x() - origin(0)) << " ";
+        d << to_svg_y(scale * p->y() - origin(1)) << " ";
     }
     if (closed) d << "z";
     return d.str();

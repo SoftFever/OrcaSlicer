@@ -58,7 +58,7 @@ void BridgeDetector::initialize()
     
     // detect anchors as intersection between our bridge expolygon and the lower slices
     // safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some edges
-    this->_anchor_regions = intersection_ex(grown, to_polygons(this->lower_slices), true);
+    this->_anchor_regions = intersection_ex(grown, union_safety_offset(this->lower_slices));
     
     /*
     if (0) {
@@ -227,29 +227,33 @@ void ExPolygon::get_trapezoids(ExPolygon clone, Polygons* polygons, double angle
 // This algorithm may return more trapezoids than necessary
 // (i.e. it may break a single trapezoid in several because
 // other parts of the object have x coordinates in the middle)
-static void get_trapezoids2(const ExPolygon &expoly, Polygons* polygons)
+static void get_trapezoids2(const ExPolygon& expoly, Polygons* polygons)
 {
     Polygons     src_polygons = to_polygons(expoly);
     // get all points of this ExPolygon
-    const Points pp           = to_points(src_polygons);
-    
+    const Points pp = to_points(src_polygons);
+
     // build our bounding box
     BoundingBox bb(pp);
-    
+
     // get all x coordinates
     std::vector<coord_t> xx;
     xx.reserve(pp.size());
     for (Points::const_iterator p = pp.begin(); p != pp.end(); ++p)
         xx.push_back(p->x());
     std::sort(xx.begin(), xx.end());
-    
+
     // find trapezoids by looping from first to next-to-last coordinate
+    Polygons rectangle;
+    rectangle.emplace_back(Polygon());
     for (std::vector<coord_t>::const_iterator x = xx.begin(); x != xx.end()-1; ++x) {
         coord_t next_x = *(x + 1);
-        if (*x != next_x)
+        if (*x != next_x) {
             // intersect with rectangle
             // append results to return value
-            polygons_append(*polygons, intersection({ { { *x, bb.min.y() }, { next_x, bb.min.y() }, { next_x, bb.max.y() }, { *x, bb.max.y() } } }, src_polygons));
+            rectangle.front() = { { *x, bb.min.y() }, { next_x, bb.min.y() }, { next_x, bb.max.y() }, { *x, bb.max.y() } };
+            polygons_append(*polygons, intersection(rectangle, src_polygons));
+        }
     }
 }
 
@@ -302,7 +306,7 @@ Polygons BridgeDetector::coverage(double angle) const
         covered = union_(covered);
         // Intersect trapezoids with actual bridge area to remove extra margins and append it to result.
         polygons_rotate(covered, -(PI/2.0 - angle));
-    	covered = intersection(covered, to_polygons(this->expolygons));
+    	covered = intersection(this->expolygons, covered);
 #if 0
         {
             my @lines = map @{$_->lines}, @$trapezoids;

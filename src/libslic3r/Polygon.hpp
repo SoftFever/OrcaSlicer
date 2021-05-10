@@ -72,6 +72,9 @@ public:
     // Projection of a point onto the polygon.
     Point point_projection(const Point &point) const;
     std::vector<float> parameter_by_length() const;
+
+    using iterator = Points::iterator;
+    using const_iterator = Points::const_iterator;
 };
 
 inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
@@ -89,6 +92,8 @@ inline double total_length(const Polygons &polylines) {
         total += it->length();
     return total;
 }
+
+inline double area(const Polygon &poly) { return poly.area(); }
 
 inline double area(const Polygons &polys)
 {
@@ -215,6 +220,24 @@ inline Polylines to_polylines(Polygons &&polys)
     }
     assert(idx == polylines.size());
     return polylines;
+}
+
+inline Polygons to_polygons(const std::vector<Points> &paths)
+{
+    Polygons out;
+    out.reserve(paths.size());
+    for (const Points &path : paths)
+        out.emplace_back(path);
+    return out;
+}
+
+inline Polygons to_polygons(std::vector<Points> &&paths)
+{
+    Polygons out;
+    out.reserve(paths.size());
+    for (const Points &path : paths)
+        out.emplace_back(std::move(path));
+    return out;
 }
 
 } // Slic3r

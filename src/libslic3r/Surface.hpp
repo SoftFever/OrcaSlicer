@@ -90,7 +90,6 @@ public:
         return *this;
     }
 
-	operator Polygons()  const { return this->expolygon; }
 	double area() 		 const { return this->expolygon.area(); }
     bool   empty() 		 const { return expolygon.empty(); }
     void   clear() 			   { expolygon.clear(); }
@@ -106,6 +105,16 @@ public:
 
 typedef std::vector<Surface> Surfaces;
 typedef std::vector<Surface*> SurfacesPtr;
+
+inline Polygons to_polygons(const Surface &surface)
+{
+    return to_polygons(surface.expolygon);
+}
+
+inline Polygons to_polygons(Surface &&surface)
+{
+    return to_polygons(std::move(surface.expolygon));
+}
 
 inline Polygons to_polygons(const Surfaces &src)
 {

@@ -33,18 +33,16 @@ void FillPlanePath::_fill_surface_single(
         coord_t(ceil(coordf_t(bounding_box.max.x()) / distance_between_lines)),
         coord_t(ceil(coordf_t(bounding_box.max.y()) / distance_between_lines)));
 
-    Polylines polylines;
     if (pts.size() >= 2) {
         // Convert points to a polyline, upscale.
-        polylines.push_back(Polyline());
-        Polyline &polyline = polylines.back();
+        Polylines polylines(1, Polyline());
+        Polyline &polyline = polylines.front();
         polyline.points.reserve(pts.size());
         for (const Vec2d &pt : pts)
-            polyline.points.push_back(Point(
-                coord_t(floor(pt.x() * distance_between_lines + 0.5)), 
-                coord_t(floor(pt.y() * distance_between_lines + 0.5))));
-//      intersection(polylines_src, offset((Polygons)expolygon, scale_(0.02)), &polylines);
-        polylines = intersection_pl(std::move(polylines), to_polygons(expolygon));
+            polyline.points.emplace_back(
+                coord_t(floor(pt.x() * distance_between_lines + 0.5)),
+                coord_t(floor(pt.y() * distance_between_lines + 0.5)));
+        polylines = intersection_pl(polylines, expolygon);
         Polylines chained;
         if (params.dont_connect() || params.density > 0.5 || polylines.size() <= 1)
             chained = chain_polylines(std::move(polylines));

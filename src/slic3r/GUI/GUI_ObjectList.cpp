@@ -7,6 +7,9 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "Plater.hpp"
+#if ENABLE_PROJECT_DIRTY_STATE
+#include "MainFrame.hpp"
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
 #include "OptionsGroup.hpp"
 #include "Tab.hpp"
@@ -1457,12 +1460,15 @@ void ObjectList::load_shape_object(const std::string& type_name)
     if (obj_idx < 0)
         return;
 
-    take_snapshot(_(L("Add Shape")));
+    take_snapshot(_L("Add Shape"));
 
     // Create mesh
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
-    load_mesh_object(mesh, _(L("Shape")) + "-" + _(type_name));
+    load_mesh_object(mesh, _L("Shape") + "-" + _(type_name));
+#if ENABLE_PROJECT_DIRTY_STATE
+    wxGetApp().mainframe->update_title();
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
@@ -2467,28 +2473,22 @@ void ObjectList::unselect_objects()
     m_prevent_list_events = false;
 }
 
-void ObjectList::select_current_object(int idx)
+void ObjectList::select_object_item(bool is_msr_gizmo)
 {
-    m_prevent_list_events = true;
-    UnselectAll();
-    if (idx >= 0)
-        Select(m_objects_model->GetItemById(idx));
-    part_selection_changed();
-    m_prevent_list_events = false;
-}
+    if (wxDataViewItem item = GetSelection()) {
+        ItemType type = m_objects_model->GetItemType(item);
+        bool is_volume_item = type == itVolume || type == itSettings && m_objects_model->GetItemType(m_objects_model->GetParent(item)) == itVolume;
+        if (is_msr_gizmo && is_volume_item || type == itObject)
+            return;
 
-void ObjectList::select_current_volume(int idx, int vol_idx)
-{
-    if (vol_idx < 0) {
-        select_current_object(idx);
-        return;
+        if (wxDataViewItem obj_item = m_objects_model->GetTopParent(item)) {
+            m_prevent_list_events = true;
+            UnselectAll();
+            Select(obj_item);
+            part_selection_changed();
+            m_prevent_list_events = false;
+        }
     }
-    m_prevent_list_events = true;
-    UnselectAll();
-    if (idx >= 0)
-        Select(m_objects_model->GetItemByVolumeId(idx, vol_idx));
-    part_selection_changed();
-    m_prevent_list_events = false;
 }
 
 static void update_selection(wxDataViewItemArray& sels, ObjectList::SELECTION_MODE mode, ObjectDataViewModel* model)
@@ -2893,7 +2893,8 @@ void ObjectList::update_selections()
     {
         const auto item = GetSelection();
         if (selection.is_single_full_object()) {
-            if (m_objects_model->GetItemType(m_objects_model->GetParent(item)) & itObject)
+            if (m_objects_model->GetItemType(m_objects_model->GetParent(item)) & itObject &&
+                m_objects_model->GetObjectIdByItem(item) == selection.get_object_idx() )
                 return;
             sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
         }

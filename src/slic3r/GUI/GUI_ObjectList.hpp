@@ -291,10 +291,9 @@ public:
     // #ys_FIXME_to_delete
     // Unselect all objects in the list on c++ side
     void unselect_objects();
-    // Select current object in the list on c++ side
-    void select_current_object(int idx);
-    // Select current volume in the list on c++ side
-    void select_current_volume(int idx, int vol_idx);
+    // Select object item in the ObjectList, when some gizmo is activated
+    // "is_msr_gizmo" indicates if Move/Scale/Rotate gizmo was activated
+    void select_object_item(bool is_msr_gizmo);
 
     // Remove objects/sub-object from the list
     void remove();

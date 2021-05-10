@@ -755,7 +755,7 @@ namespace UndoRedo {
 
 template<typename T> std::shared_ptr<const T>& 	ImmutableObjectHistory<T>::shared_ptr(StackImpl &stack)
 {
-	if (m_shared_object.get() == nullptr && ! this->m_serialized.empty()) {
+	if (m_shared_object.get() == nullptr && ! m_serialized.empty()) {
 		// Deserialize the object.
 		std::istringstream iss(m_serialized);
 		{
@@ -897,7 +897,7 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
     this->load_mutable_object<Slic3r::GUI::GLGizmosManager>(gizmos.id(), gizmos);
     // Sort the volumes so that we may use binary search.
 	std::sort(m_selection.volumes_and_instances.begin(), m_selection.volumes_and_instances.end());
-	this->m_active_snapshot_time = timestamp;
+	m_active_snapshot_time = timestamp;
 	assert(this->valid());
 }
 

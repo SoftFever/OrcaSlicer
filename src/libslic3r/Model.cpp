@@ -833,18 +833,6 @@ indexed_triangle_set ModelObject::raw_indexed_triangle_set() const
     return out;
 }
 
-// Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
-TriangleMesh ModelObject::full_raw_mesh() const
-{
-    TriangleMesh mesh;
-    for (const ModelVolume *v : this->volumes)
-    {
-        TriangleMesh vol_mesh(v->mesh());
-        vol_mesh.transform(v->get_matrix());
-        mesh.merge(vol_mesh);
-    }
-    return mesh;
-}
 
 const BoundingBoxf3& ModelObject::raw_mesh_bounding_box() const
 {
@@ -1822,7 +1810,7 @@ void ModelVolume::transform_this_mesh(const Transform3d &mesh_trafo, bool fix_le
 	this->set_mesh(std::move(mesh));
     TriangleMesh convex_hull = this->get_convex_hull();
     convex_hull.transform(mesh_trafo, fix_left_handed);
-    this->m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
+    m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
     // Let the rest of the application know that the geometry changed, so the meshes have to be reloaded.
     this->set_new_unique_id();
 }
@@ -1834,7 +1822,7 @@ void ModelVolume::transform_this_mesh(const Matrix3d &matrix, bool fix_left_hand
 	this->set_mesh(std::move(mesh));
     TriangleMesh convex_hull = this->get_convex_hull();
     convex_hull.transform(matrix, fix_left_handed);
-    this->m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
+    m_convex_hull = std::make_shared<TriangleMesh>(std::move(convex_hull));
     // Let the rest of the application know that the geometry changed, so the meshes have to be reloaded.
     this->set_new_unique_id();
 }

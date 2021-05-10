@@ -78,6 +78,9 @@ public:
     bool is_closed() const { return this->points.front() == this->points.back(); }
 };
 
+inline bool operator==(const Polyline &lhs, const Polyline &rhs) { return lhs.points == rhs.points; }
+inline bool operator!=(const Polyline &lhs, const Polyline &rhs) { return lhs.points != rhs.points; }
+
 // Don't use this class in production code, it is used exclusively by the Perl binding for unit tests!
 #ifdef PERL_UCHAR_MIN
 class PolylineCollection
@@ -122,6 +125,24 @@ inline Lines to_lines(const Polylines &polys)
             lines.push_back(Line(*it, *(it + 1)));
     }
     return lines;
+}
+
+inline Polylines to_polylines(const std::vector<Points> &paths)
+{
+    Polylines out;
+    out.reserve(paths.size());
+    for (const Points &path : paths)
+        out.emplace_back(path);
+    return out;
+}
+
+inline Polylines to_polylines(std::vector<Points> &&paths)
+{
+    Polylines out;
+    out.reserve(paths.size());
+    for (const Points &path : paths)
+        out.emplace_back(std::move(path));
+    return out;
 }
 
 inline void polylines_append(Polylines &dst, const Polylines &src) 

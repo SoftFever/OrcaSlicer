@@ -1,7 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "GLCanvas3D.hpp"
 
-#include "admesh/stl.h"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
@@ -1672,8 +1671,10 @@ void GLCanvas3D::render()
     if (m_picking_enabled)
         m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<coord_t>());
 
-    _render_current_gizmo();
+    // sidebar hints need to be rendered before the gizmos because the depth buffer
+    // could be invalidated by the following gizmo render methods
     _render_selection_sidebar_hints();
+    _render_current_gizmo();
 #if ENABLE_RENDER_PICKING_PASS
     }
 #endif // ENABLE_RENDER_PICKING_PASS
@@ -1711,6 +1712,11 @@ void GLCanvas3D::render()
         imgui.end();
     }
 #endif // ENABLE_RENDER_STATISTICS
+
+#if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+    if (wxGetApp().is_editor() && wxGetApp().plater()->is_view3D_shown())
+        wxGetApp().plater()->render_project_state_debug_window();
+#endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
 #if ENABLE_CAMERA_STATISTICS
     camera.debug_render();
@@ -3146,7 +3152,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     if (m_gizmos.on_mouse(evt)) {
-        if (wxWindow::FindFocus() != this->m_canvas)
+        if (wxWindow::FindFocus() != m_canvas)
             // Grab keyboard focus for input in gizmo dialogs.
             m_canvas->SetFocus();
 
@@ -3169,7 +3175,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_move_start_threshold_position_2D_as_invalid();
     }
 
-    if (evt.ButtonDown() && wxWindow::FindFocus() != this->m_canvas)
+    if (evt.ButtonDown() && wxWindow::FindFocus() != m_canvas)
         // Grab keyboard focus on any mouse click event.
         m_canvas->SetFocus();
 
@@ -4829,14 +4835,26 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     if (m_canvas == nullptr && m_context == nullptr)
         return;
 
+#if ENABLE_SCROLLABLE_LEGEND
+    const std::array<unsigned int, 2> new_size = { w, h };
+    if (m_old_size == new_size)
+        return;
+
+    m_old_size = new_size;
+#endif // ENABLE_SCROLLABLE_LEGEND
+
     auto *imgui = wxGetApp().imgui();
-    imgui->set_display_size((float)w, (float)h);
+    imgui->set_display_size(static_cast<float>(w), static_cast<float>(h));
     const float font_size = 1.5f * wxGetApp().em_unit();
 #if ENABLE_RETINA_GL
     imgui->set_scaling(font_size, 1.0f, m_retina_helper->get_scale_factor());
 #else
     imgui->set_scaling(font_size, m_canvas->GetContentScaleFactor(), 1.0f);
 #endif
+
+#if ENABLE_SCROLLABLE_LEGEND
+    this->request_extra_frame();
+#endif // ENABLE_SCROLLABLE_LEGEND
 
     // ensures that this canvas is current
     _set_current();
@@ -4878,8 +4896,7 @@ void GLCanvas3D::_update_camera_zoom(double zoom)
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
 {
-    if (_is_shown_on_screen())
-    {
+    if (_is_shown_on_screen()) {
         const Size& cnv_size = get_canvas_size();
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
 
@@ -5048,8 +5065,9 @@ void GLCanvas3D::_render_background() const
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
         else {
-            BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
-            use_error_color &= (test_volume.radius() > 0.0) ? !test_volume.contains(m_gcode_viewer.get_paths_bounding_box()) : false;
+            const BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+            const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
+            use_error_color &= (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0) ? !test_volume.contains(paths_volume) : false;
         }
     }
 
@@ -5983,7 +6001,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 {
                     if (layerm->slices.surfaces.empty())
                         continue;
-                    const PrintRegionConfig& cfg = layerm->region()->config();
+                    const PrintRegionConfig& cfg = layerm->region().config();
                     if (cfg.perimeter_extruder.value    == m_selected_extruder ||
                         cfg.infill_extruder.value       == m_selected_extruder ||
                         cfg.solid_infill_extruder.value == m_selected_extruder ) {
@@ -6006,7 +6024,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 for (const LayerRegion *layerm : layer->regions()) {
                     if (is_selected_separate_extruder)
                     {
-                        const PrintRegionConfig& cfg = layerm->region()->config();
+                        const PrintRegionConfig& cfg = layerm->region().config();
                         if (cfg.perimeter_extruder.value    != m_selected_extruder ||
                             cfg.infill_extruder.value       != m_selected_extruder ||
                             cfg.solid_infill_extruder.value != m_selected_extruder)
@@ -6014,7 +6032,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     }
                     if (ctxt.has_perimeters)
                         _3DScene::extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy,
-                        	volume(idx_layer, layerm->region()->config().perimeter_extruder.value, 0));
+                        	volume(idx_layer, layerm->region().config().perimeter_extruder.value, 0));
                     if (ctxt.has_infill) {
                         for (const ExtrusionEntity *ee : layerm->fills.entities) {
                             // fill represents infill extrusions of a single island.
@@ -6023,8 +6041,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                                 _3DScene::extrusionentity_to_verts(*fill, float(layer->print_z), copy,
 	                                volume(idx_layer, 
 		                                is_solid_infill(fill->entities.front()->role()) ?
-			                                layerm->region()->config().solid_infill_extruder :
-			                                layerm->region()->config().infill_extruder,
+			                                layerm->region().config().solid_infill_extruder :
+			                                layerm->region().config().infill_extruder,
 		                                1));
                         }
                     }
@@ -6249,7 +6267,7 @@ void GLCanvas3D::_load_sla_shells()
 #else
         v.indexed_vertex_array.load_mesh(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.finalize_geometry(this->m_initialized);
+        v.indexed_vertex_array.finalize_geometry(m_initialized);
         v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
         v.composite_id.volume_id = volume_id;
         v.set_instance_offset(unscale(instance.shift.x(), instance.shift.y(), 0));

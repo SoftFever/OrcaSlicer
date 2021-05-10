@@ -500,9 +500,9 @@ WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
     ToolChangeResult result;
     result.priming      = priming;
     result.initial_tool = int(old_tool);
-    result.new_tool     = int(this->m_current_tool);
-    result.print_z      = this->m_z_pos;
-    result.layer_height = this->m_layer_height;
+    result.new_tool     = int(m_current_tool);
+    result.print_z      = m_z_pos;
+    result.layer_height = m_layer_height;
     result.elapsed_time = writer.elapsed_time();
     result.start_pos    = writer.start_pos_rotated();
     result.end_pos      = priming ? writer.pos() : writer.pos_rotated();
@@ -546,10 +546,24 @@ WipeTower::WipeTower(const PrintConfig& config, const std::vector<std::vector<fl
         m_extra_loading_move      = float(config.extra_loading_move);
         m_set_extruder_trimpot    = config.high_current_on_filament_swap;
     }
-    // Calculate where the priming lines should be - very naive test not detecting parallelograms or custom shapes
+    // Calculate where the priming lines should be - very naive test not detecting parallelograms etc.
     const std::vector<Vec2d>& bed_points = config.bed_shape.values;
+    BoundingBoxf bb(bed_points);
+    m_bed_width = float(bb.size().x());
     m_bed_shape = (bed_points.size() == 4 ? RectangularBed : CircularBed);
-    m_bed_width = float(BoundingBoxf(bed_points).size().x());
+
+    if (m_bed_shape == CircularBed) {
+        // this may still be a custom bed, check that the points are roughly on a circle
+        double r2 = std::pow(m_bed_width/2., 2.);
+        double lim2 = std::pow(m_bed_width/10., 2.);
+        Vec2d center = bb.center();
+        for (const Vec2d& pt : bed_points)
+            if (std::abs(std::pow(pt.x()-center.x(), 2.) + std::pow(pt.y()-center.y(), 2.) - r2) > lim2) {
+                m_bed_shape = CustomBed;
+                break;
+            }
+    }
+
     m_bed_bottom_left = m_bed_shape == RectangularBed
                   ? Vec2f(bed_points.front().x(), bed_points.front().y())
                   : Vec2f::Zero();
@@ -616,7 +630,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
     bool 						/*last_wipe_inside_wipe_tower*/)
 {
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
-	this->m_current_tool 		= tools.front();
+	m_current_tool 		= tools.front();
     
     // The Prusa i3 MK2 has a working space of [0, -2.2] to [250, 210].
     // Due to the XYZ calibration, this working space may shrink slightly from all directions,
@@ -625,10 +639,12 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 
     float prime_section_width = std::min(0.9f * m_bed_width / tools.size(), 60.f);
     box_coordinates cleaning_box(Vec2f(0.02f * m_bed_width, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
-    // In case of a circular bed, place it so it goes across the diameter and hope it will fit
-    if (m_bed_shape == CircularBed)
-        cleaning_box.translate(-m_bed_width/2 + m_bed_width * 0.03f, -m_bed_width * 0.12f);
-    if (m_bed_shape == RectangularBed)
+    if (m_bed_shape == CircularBed) {
+        cleaning_box = box_coordinates(Vec2f(0.f, 0.f), prime_section_width, 100.f);
+        float total_width_half = tools.size() * prime_section_width / 2.f;
+        cleaning_box.translate(-total_width_half, -std::sqrt(std::max(0.f, std::pow(m_bed_width/2, 2.f) - std::pow(1.05f * total_width_half, 2.f))));
+    }
+    else
         cleaning_box.translate(m_bed_bottom_left);
 
     std::vector<ToolChangeResult> results;

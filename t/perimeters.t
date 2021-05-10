@@ -395,8 +395,8 @@ use Slic3r::Test;
         return scalar keys %z_with_bridges;
     };
     ok $test->(Slic3r::Test::init_print('V', config => $config)) == 1,
-        'no overhangs printed with bridge speed';  # except for the first internal solid layers above void
-    ok $test->(Slic3r::Test::init_print('V', config => $config, scale_xyz => [3,1,1])) > 1,
+        'no overhangs printed with bridge speed';  # except for the two internal solid layers above void
+    ok $test->(Slic3r::Test::init_print('V', config => $config, scale_xyz => [3,1,1])) > 2,
         'overhangs printed with bridge speed';
 }
 

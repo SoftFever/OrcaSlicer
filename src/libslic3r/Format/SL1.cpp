@@ -248,7 +248,7 @@ std::vector<ExPolygons> extract_slices_from_sla_archive(
     {
         double          incr, val, prev;
         bool            stop = false;
-        tbb::spin_mutex mutex;
+        tbb::spin_mutex mutex = {};
     } st {100. / slices.size(), 0., 0.};
 
     tbb::parallel_for(size_t(0), arch.images.size(),
@@ -371,6 +371,13 @@ void fill_iniconf(ConfMap &m, const SLAPrint &print)
     m["numSlow"]      = std::to_string(stats.slow_layers_count);
     m["numFast"]      = std::to_string(stats.fast_layers_count);
     m["printTime"]    = std::to_string(stats.estimated_print_time);
+
+    bool hollow_en = false;
+    auto it = print.objects().begin();
+    while (!hollow_en && it != print.objects().end())
+        hollow_en = (*it++)->config().hollowing_enable;
+
+    m["hollow"] = hollow_en ? "1" : "0";
     
     m["action"] = "print";
 }

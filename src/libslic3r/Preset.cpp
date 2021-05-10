@@ -296,6 +296,13 @@ void Preset::normalize(DynamicPrintConfig &config)
         if (auto *gap_fill_enabled = config.option<ConfigOptionBool>("gap_fill_enabled", false); gap_fill_enabled)
             gap_fill_enabled->value = false;
     }
+    if (auto *first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height", false); first_layer_height && first_layer_height->percent)
+        if (const auto *layer_height = config.option<ConfigOptionFloat>("layer_height", false); layer_height) {
+            // Legacy conversion - first_layer_height moved from PrintObject setting to a Print setting, thus we are getting rid of the dependency
+            // of first_layer_height on PrintObject specific layer_height. Covert the first layer heigth to an absolute value.
+            first_layer_height->value   = first_layer_height->get_abs_value(layer_height->value);
+            first_layer_height->percent = false;
+        }
 }
 
 std::string Preset::remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config)
@@ -617,11 +624,17 @@ const std::vector<std::string>& Preset::sla_printer_options()
 PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &default_name) :
     m_type(type),
     m_edited_preset(type, "", false),
+#if ENABLE_PROJECT_DIRTY_STATE
+    m_saved_preset(type, "", false),
+#endif // ENABLE_PROJECT_DIRTY_STATE
     m_idx_selected(0)
 {
     // Insert just the default preset.
     this->add_default_preset(keys, defaults, default_name);
     m_edited_preset.config.apply(m_presets.front().config);
+#if ENABLE_PROJECT_DIRTY_STATE
+    update_saved_preset_from_current_preset();
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void PresetCollection::reset(bool delete_files)
@@ -798,7 +811,10 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             // The source config may contain keys from many possible preset types. Just copy those that relate to this preset.
             this->get_edited_preset().config.apply_only(combined_config, keys, true);
             this->update_dirty();
-            assert(this->get_edited_preset().is_dirty);
+#if ENABLE_PROJECT_DIRTY_STATE
+            update_saved_preset_from_current_preset();
+#endif // ENABLE_PROJECT_DIRTY_STATE
+                assert(this->get_edited_preset().is_dirty);
             return std::make_pair(&(*it), this->get_edited_preset().is_dirty);
         }
         if (inherits.empty()) {
@@ -1063,7 +1079,7 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
 size_t PresetCollection::first_visible_idx() const
 {
     size_t idx = m_default_suppressed ? m_num_default_presets : 0;
-    for (; idx < this->m_presets.size(); ++ idx)
+    for (; idx < m_presets.size(); ++ idx)
         if (m_presets[idx].is_visible)
             break;
     if (idx == m_presets.size())
@@ -1208,6 +1224,9 @@ Preset& PresetCollection::select_preset(size_t idx)
         idx = first_visible_idx();
     m_idx_selected = idx;
     m_edited_preset = m_presets[idx];
+#if ENABLE_PROJECT_DIRTY_STATE
+    update_saved_preset_from_current_preset();
+#endif // ENABLE_PROJECT_DIRTY_STATE
     bool default_visible = ! m_default_suppressed || m_idx_selected < m_num_default_presets;
     for (size_t i = 0; i < m_num_default_presets; ++i)
         m_presets[i].is_visible = default_visible;
@@ -1275,7 +1294,7 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
                 assert(it != new_vendors.end());
                 preset.vendor = &it->second;
             }
-            this->m_presets.emplace(it, std::move(preset));
+            m_presets.emplace(it, std::move(preset));
         } else
             duplicates.emplace_back(std::move(preset.name));
     }

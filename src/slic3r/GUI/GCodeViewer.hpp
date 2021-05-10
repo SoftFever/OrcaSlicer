@@ -46,6 +46,9 @@ class GCodeViewer
     {
         Retractions,
         Unretractions,
+#if ENABLE_SEAMS_VISUALIZATION
+        Seams,
+#endif // ENABLE_SEAMS_VISUALIZATION
         ToolChanges,
         ColorChanges,
         PausePrints,
@@ -693,8 +696,8 @@ private:
     Shells m_shells;
     EViewType m_view_type{ EViewType::FeatureType };
     bool m_legend_enabled{ true };
-    PrintEstimatedTimeStatistics m_time_statistics;
-    PrintEstimatedTimeStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedTimeStatistics::ETimeMode::Normal };
+    PrintEstimatedStatistics m_print_statistics;
+    PrintEstimatedStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedStatistics::ETimeMode::Normal };
 #if ENABLE_GCODE_VIEWER_STATISTICS
     Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

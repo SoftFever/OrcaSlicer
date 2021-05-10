@@ -81,6 +81,9 @@
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
 #include "PresetComboBoxes.hpp"
+#if ENABLE_PROJECT_DIRTY_STATE
+#include "ProjectDirtyStateManager.hpp"
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -976,7 +979,6 @@ void Sidebar::sys_color_changed()
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 
-    p->frequently_changed_parameters->msw_rescale();
     p->object_list->msw_rescale();
     p->object_list->sys_color_changed();
     p->object_manipulation->sys_color_changed();
@@ -1173,10 +1175,10 @@ void Sidebar::update_sliced_info_sizer()
                 new_label += format_wxstr(":\n    - %1%\n    - %2%", _L("objects"), _L("wipe tower"));
 
             wxString info_text = is_wipe_tower ?
-                                wxString::Format("%.2f \n%.2f \n%.2f", ps.total_used_filament / /*1000*/koef,
-                                                (ps.total_used_filament - ps.total_wipe_tower_filament) / /*1000*/koef,
-                                                ps.total_wipe_tower_filament / /*1000*/koef) :
-                                wxString::Format("%.2f", ps.total_used_filament / /*1000*/koef);
+                                wxString::Format("%.2f \n%.2f \n%.2f", ps.total_used_filament / koef,
+                                                (ps.total_used_filament - ps.total_wipe_tower_filament) / koef,
+                                                ps.total_wipe_tower_filament / koef) :
+                                wxString::Format("%.2f", ps.total_used_filament / koef);
             p->sliced_info->SetTextAndShow(siFilament_m,    info_text,      new_label);
 
             koef = imperial_units ? pow(ObjectManipulation::mm_to_in, 3) : 1.0f;
@@ -1204,7 +1206,7 @@ void Sidebar::update_sliced_info_sizer()
                             filament_weight = ps.total_weight;
                         else {
                             double filament_density = filament_preset->config.opt_float("filament_density", 0);
-                            filament_weight = filament.second * filament_density * 2.4052f * 0.001; // assumes 1.75mm filament diameter;
+                            filament_weight = filament.second * filament_density/* *2.4052f*/ * 0.001; // assumes 1.75mm filament diameter;
 
                             new_label += "\n    - " + format_wxstr(_L("Filament at extruder %1%"), filament.first + 1);
                             info_text += wxString::Format("\n%.2f", filament_weight);
@@ -1358,7 +1360,8 @@ void Sidebar::update_ui_from_settings()
     update_sliced_info_sizer();
     // update Cut gizmo, if it's open
     p->plater->canvas3D()->update_gizmos_on_off_state();
-    p->plater->canvas3D()->request_extra_frame();
+    p->plater->set_current_canvas_as_dirty();
+    p->plater->get_current_canvas3D()->request_extra_frame();
 }
 
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
@@ -1396,7 +1399,13 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     this->MSWUpdateDragImageOnLeave();
 #endif // WIN32
 
+#if ENABLE_PROJECT_DIRTY_STATE
+    bool res = (m_plater != nullptr) ? m_plater->load_files(filenames) : false;
+    wxGetApp().mainframe->update_title();
+    return res;
+#else
     return (m_plater != nullptr) ? m_plater->load_files(filenames) : false;
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 // State to manage showing after export notifications and device ejecting
@@ -1439,6 +1448,10 @@ struct Plater::priv
     GLToolbar collapse_toolbar;
     Preview *preview;
     NotificationManager* notification_manager { nullptr };
+
+#if ENABLE_PROJECT_DIRTY_STATE
+    ProjectDirtyStateManager dirty_state;
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
@@ -1509,6 +1522,31 @@ struct Plater::priv
 
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
+
+#if ENABLE_PROJECT_DIRTY_STATE
+    bool is_project_dirty() const { return dirty_state.is_dirty(); }
+    void update_project_dirty_from_presets() { dirty_state.update_from_presets(); }
+    bool save_project_if_dirty() {
+        if (dirty_state.is_dirty()) {
+            MainFrame* mainframe = wxGetApp().mainframe;
+            if (mainframe->can_save_as()) {
+                wxMessageDialog dlg(mainframe, _L("Do you want to save the changes to the current project ?"), wxString(SLIC3R_APP_NAME), wxYES_NO | wxCANCEL);
+                int res = dlg.ShowModal();
+                if (res == wxID_YES)
+                    mainframe->save_project_as(wxGetApp().plater()->get_project_filename());
+                else if (res == wxID_CANCEL)
+                    return false;
+            }
+        }
+        return true;
+    }
+    void reset_project_dirty_after_save() { dirty_state.reset_after_save(); }
+    void reset_project_dirty_initial_presets() { dirty_state.reset_initial_presets(); }
+
+#if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+    void render_project_state_debug_window() const { dirty_state.render_debug_window(); }
+#endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
     enum class UpdateParams {
         FORCE_FULL_SCREEN_REFRESH          = 1,
@@ -1593,8 +1631,8 @@ struct Plater::priv
     void redo();
     void undo_redo_to(size_t time_to_load);
 
-    void suppress_snapshots()   { this->m_prevent_snapshots++; }
-    void allow_snapshots()      { this->m_prevent_snapshots--; }
+    void suppress_snapshots()   { m_prevent_snapshots++; }
+    void allow_snapshots()      { m_prevent_snapshots--; }
 
     void process_validation_warning(const std::string& warning) const;
 
@@ -1689,7 +1727,7 @@ struct Plater::priv
     bool can_split(bool to_objects) const;
 
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
-    void generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
+    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params);
 
     void bring_instance_forward() const;
 
@@ -1765,15 +1803,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_result(&gcode_result);
-    background_process.set_thumbnail_cb([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
-        {
-            std::packaged_task<void(ThumbnailsList&, const Vec2ds&, bool, bool, bool, bool)> task([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) {
-                generate_thumbnails(thumbnails, sizes, printable_only, parts_only, show_bed, transparent_background);
-                });
-            std::future<void> result = task.get_future();
-            wxTheApp->CallAfter([&]() { task(thumbnails, sizes, printable_only, parts_only, show_bed, transparent_background); });
-            result.wait();
-        });
+    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params); });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
 	background_process.set_export_began_event(EVT_EXPORT_BEGAN);
@@ -3818,17 +3848,17 @@ void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsig
     view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, show_bed, transparent_background);
 }
 
-void Plater::priv::generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
+ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params)
 {
-    thumbnails.clear();
-    for (const Vec2d& size : sizes)
-    {
+    ThumbnailsList thumbnails;
+    for (const Vec2d& size : params.sizes) {
         thumbnails.push_back(ThumbnailData());
         Point isize(size); // round to ints
-        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), printable_only, parts_only, show_bed, transparent_background);
+        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params.printable_only, params.parts_only, params.show_bed, params.transparent_background);
         if (!thumbnails.back().is_valid())
             thumbnails.pop_back();
     }
+    return thumbnails;
 }
 
 wxString Plater::priv::get_project_filename(const wxString& extension) const
@@ -4217,9 +4247,9 @@ int Plater::priv::get_active_snapshot_index()
 
 void Plater::priv::take_snapshot(const std::string& snapshot_name)
 {
-    if (this->m_prevent_snapshots > 0)
+    if (m_prevent_snapshots > 0)
         return;
-    assert(this->m_prevent_snapshots >= 0);
+    assert(m_prevent_snapshots >= 0);
     UndoRedo::SnapshotData snapshot_data;
     snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
@@ -4249,6 +4279,11 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     }
     this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), snapshot_data);
     this->undo_redo_stack().release_least_recently_used();
+
+#if ENABLE_PROJECT_DIRTY_STATE
+    dirty_state.update_from_undo_redo_stack(ProjectDirtyStateManager::UpdateType::TakeSnapshot);
+#endif // ENABLE_PROJECT_DIRTY_STATE
+
     // Save the last active preset name of a particular printer technology.
     ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
     BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot taken: " << snapshot_name << ", Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack().memsize()) << log_memory_info();
@@ -4289,8 +4324,13 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     if (printer_technology_changed) {
         // Switching the printer technology when jumping forwards / backwards in time. Switch to the last active printer profile of the other type.
         std::string s_pt = (it_snapshot->snapshot_data.printer_technology == ptFFF) ? "FFF" : "SLA";
+#if ENABLE_PROJECT_DIRTY_STATE
+        if (!wxGetApp().check_and_save_current_preset_changes(format_wxstr(_L(
+            "%1% printer was active at the time the target Undo / Redo snapshot was taken. Switching to %1% printer requires reloading of %1% presets."), s_pt)))
+#else
         if (! wxGetApp().check_unsaved_changes(format_wxstr(_L(
             "%1% printer was active at the time the target Undo / Redo snapshot was taken. Switching to %1% printer requires reloading of %1% presets."), s_pt)))
+#endif // ENABLE_PROJECT_DIRTY_STATE
             // Don't switch the profiles.
             return;
     }
@@ -4379,6 +4419,10 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
         if (! view3D->is_layers_editing_enabled() && this->layers_height_allowed() && new_variable_layer_editing_active)
             view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     }
+
+#if ENABLE_PROJECT_DIRTY_STATE
+    dirty_state.update_from_undo_redo_stack(ProjectDirtyStateManager::UpdateType::UndoRedoTo);
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
@@ -4462,9 +4506,16 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
     // Initialization performed in the private c-tor
 }
 
-Plater::~Plater()
-{
-}
+#if ENABLE_PROJECT_DIRTY_STATE
+bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
+void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
+bool Plater::save_project_if_dirty() { return p->save_project_if_dirty(); }
+void Plater::reset_project_dirty_after_save() { p->reset_project_dirty_after_save(); }
+void Plater::reset_project_dirty_initial_presets() { p->reset_project_dirty_initial_presets(); }
+#if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+void Plater::render_project_state_debug_window() const { p->render_project_state_debug_window(); }
+#endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
 Sidebar&        Plater::sidebar()           { return *p->sidebar; }
 Model&          Plater::model()             { return p->model; }
@@ -4475,12 +4526,30 @@ SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
 void Plater::new_project()
 {
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!p->save_project_if_dirty())
+        return;
+#endif // ENABLE_PROJECT_DIRTY_STATE
+
     p->select_view_3D("3D");
+#if ENABLE_PROJECT_DIRTY_STATE
+    take_snapshot(_L("New Project"));
+    Plater::SuppressSnapshots suppress(this);
+    reset();
+    reset_project_dirty_initial_presets();
+    update_project_dirty_from_presets();
+#else
     wxPostEvent(p->view3D->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::load_project()
 {
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!p->save_project_if_dirty())
+        return;
+#endif // ENABLE_PROJECT_DIRTY_STATE
+
     // Ask user for a project file name.
     wxString input_file;
     wxGetApp().load_project(this, input_file);
@@ -4504,8 +4573,16 @@ void Plater::load_project(const wxString& filename)
     std::vector<size_t> res = load_files(input_paths);
 
     // if res is empty no data has been loaded
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!res.empty()) {
+        p->set_project_filename(filename);
+        reset_project_dirty_initial_presets();
+        update_project_dirty_from_presets();
+    }
+#else
     if (!res.empty())
         p->set_project_filename(filename);
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::add_model(bool imperial_units/* = false*/)
@@ -4536,7 +4613,13 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
+#if ENABLE_PROJECT_DIRTY_STATE
+    std::vector<size_t> res = load_files(paths, true, false, imperial_units);
+    if (!res.empty())
+        wxGetApp().mainframe->update_title();
+#else
     load_files(paths, true, false, imperial_units);
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::import_sl1_archive()
@@ -5095,6 +5178,30 @@ void Plater::export_stl(bool extended, bool selection_only)
     if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
         return;
 
+    // Following lambda generates a combined mesh for export with normals pointing outwards.
+    auto mesh_to_export = [](const ModelObject* mo, bool instances) -> TriangleMesh {
+        TriangleMesh mesh;
+        for (const ModelVolume *v : mo->volumes)
+            if (v->is_model_part()) {
+                TriangleMesh vol_mesh(v->mesh());
+                vol_mesh.repair();
+                vol_mesh.transform(v->get_matrix(), true);
+                mesh.merge(vol_mesh);
+            }
+        mesh.repair();
+        if (instances) {
+            TriangleMesh vols_mesh(mesh);
+            mesh = TriangleMesh();
+            for (const ModelInstance *i : mo->instances) {
+                TriangleMesh m = vols_mesh;
+                m.transform(i->get_matrix(), true);
+                mesh.merge(m);
+            }
+        }
+        mesh.repair();
+        return mesh;
+    };
+
     TriangleMesh mesh;
     if (p->printer_technology == ptFFF) {
         if (selection_only) {
@@ -5102,20 +5209,21 @@ void Plater::export_stl(bool extended, bool selection_only)
             if (selection.get_mode() == Selection::Instance)
             {
                 if (selection.is_single_full_object())
-                    mesh = model_object->mesh();
+                    mesh = mesh_to_export(model_object, true);
                 else
-                    mesh = model_object->full_raw_mesh();
+                    mesh = mesh_to_export(model_object, false);
             }
             else
             {
                 const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
                 mesh = model_object->volumes[volume->volume_idx()]->mesh();
-                mesh.transform(volume->get_volume_transformation().get_matrix());
+                mesh.transform(volume->get_volume_transformation().get_matrix(), true);
                 mesh.translate(-model_object->origin_translation.cast<float>());
             }
         }
         else {
-            mesh = p->model.mesh();
+            for (const ModelObject *o : p->model.objects)
+                mesh.merge(mesh_to_export(o, true));
         }
     }
     else
@@ -5226,24 +5334,39 @@ void Plater::export_amf()
     }
 }
 
+#if ENABLE_PROJECT_DIRTY_STATE
+bool Plater::export_3mf(const boost::filesystem::path& output_path)
+#else
 void Plater::export_3mf(const boost::filesystem::path& output_path)
+#endif // ENABLE_PROJECT_DIRTY_STATE
 {
     if (p->model.objects.empty()
      || canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
+#if ENABLE_PROJECT_DIRTY_STATE
+        return false;
+#else
         return;
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
     wxString path;
     bool export_config = true;
-    if (output_path.empty())
-    {
+    if (output_path.empty()) {
         path = p->get_export_file(FT_3MF);
+#if ENABLE_PROJECT_DIRTY_STATE
+        if (path.empty()) { return false; }
+#else
         if (path.empty()) { return; }
+#endif // ENABLE_PROJECT_DIRTY_STATE
     }
     else
         path = from_path(output_path);
 
     if (!path.Lower().EndsWith(".3mf"))
+#if ENABLE_PROJECT_DIRTY_STATE
+        return false;
+#else
         return;
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
@@ -5251,6 +5374,19 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
     ThumbnailData thumbnail_data;
     p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true);
+#if ENABLE_PROJECT_DIRTY_STATE
+    bool ret = Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data);
+    if (ret) {
+        // Success
+        p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
+        p->set_project_filename(path);
+    }
+    else {
+        // Failure
+        p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
+    }
+    return ret;
+#else
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data)) {
         // Success
         p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
@@ -5260,6 +5396,7 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
         // Failure
         p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
     }
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::reload_from_disk()
@@ -5716,7 +5853,7 @@ wxString Plater::get_project_filename(const wxString& extension) const
 
 void Plater::set_project_filename(const wxString& filename)
 {
-    return p->set_project_filename(filename);
+    p->set_project_filename(filename);
 }
 
 bool Plater::is_export_gcode_scheduled() const
@@ -6143,6 +6280,9 @@ bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
+#if ENABLE_PROJECT_DIRTY_STATE
+const UndoRedo::Stack& Plater::undo_redo_stack_active() const { return p->undo_redo_stack(); }
+#endif // ENABLE_PROJECT_DIRTY_STATE
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }

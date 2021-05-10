@@ -611,12 +611,47 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
 
 // free functions called by GCode::do_export()
 namespace DoExport {
-    static void update_print_estimated_times_stats(const GCodeProcessor& processor, PrintStatistics& print_statistics)
+//    static void update_print_estimated_times_stats(const GCodeProcessor& processor, PrintStatistics& print_statistics)
+//    {
+//        const GCodeProcessor::Result& result = processor.get_result();
+//        print_statistics.estimated_normal_print_time = get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
+//        print_statistics.estimated_silent_print_time = processor.is_stealth_time_estimator_enabled() ?
+//            get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].time) : "N/A";
+//    }
+
+    static void update_print_estimated_stats(const GCodeProcessor& processor, const std::vector<Extruder>& extruders, PrintStatistics& print_statistics)
     {
         const GCodeProcessor::Result& result = processor.get_result();
-        print_statistics.estimated_normal_print_time = get_time_dhms(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time);
+        print_statistics.estimated_normal_print_time = get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
         print_statistics.estimated_silent_print_time = processor.is_stealth_time_estimator_enabled() ?
-            get_time_dhms(result.time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Stealth)].time) : "N/A";
+            get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].time) : "N/A";
+
+        // update filament statictics
+        double total_extruded_volume = 0.0;
+        double total_used_filament   = 0.0;
+        double total_weight          = 0.0;
+        double total_cost            = 0.0;
+        for (auto volume : result.print_statistics.volumes_per_extruder) {
+            total_extruded_volume += volume.second;
+
+            size_t extruder_id = volume.first;
+            auto extruder = std::find_if(extruders.begin(), extruders.end(), [extruder_id](const Extruder& extr) { return extr.id() == extruder_id; });
+            if (extruder == extruders.end())
+                continue;
+
+            double s = PI * sqr(0.5* extruder->filament_diameter());
+            double weight = volume.second * extruder->filament_density() * 0.001;
+            total_used_filament += volume.second/s;
+            total_weight        += weight;
+            total_cost          += weight * extruder->filament_cost() * 0.001;
+        }
+
+        print_statistics.total_extruded_volume = total_extruded_volume;
+        print_statistics.total_used_filament   = total_used_filament;
+        print_statistics.total_weight          = total_weight;
+        print_statistics.total_cost            = total_cost;
+
+        print_statistics.filament_stats = result.print_statistics.volumes_per_extruder;
     }
 
 #if ENABLE_VALIDATE_CUSTOM_GCODE
@@ -754,7 +789,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     m_processor.process_file(path_tmp, true, [print]() { print->throw_if_canceled(); });
-    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
+//    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
+    DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
 #if ENABLE_GCODE_WINDOW
     if (result != nullptr) {
         *result = std::move(m_processor.extract_result());
@@ -796,19 +832,19 @@ namespace DoExport {
 	    // get the minimum cross-section used in the print
 	    std::vector<double> mm3_per_mm;
 	    for (auto object : print.objects()) {
-	        for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
-	            const PrintRegion* region = print.regions()[region_id];
+	        for (size_t region_id = 0; region_id < object->num_printing_regions(); ++ region_id) {
+	            const PrintRegion &region = object->printing_region(region_id);
 	            for (auto layer : object->layers()) {
 	                const LayerRegion* layerm = layer->regions()[region_id];
-	                if (region->config().get_abs_value("perimeter_speed") == 0 ||
-	                    region->config().get_abs_value("small_perimeter_speed") == 0 ||
-	                    region->config().get_abs_value("external_perimeter_speed") == 0 ||
-	                    region->config().get_abs_value("bridge_speed") == 0)
+	                if (region.config().get_abs_value("perimeter_speed") == 0 ||
+	                    region.config().get_abs_value("small_perimeter_speed") == 0 ||
+	                    region.config().get_abs_value("external_perimeter_speed") == 0 ||
+	                    region.config().get_abs_value("bridge_speed") == 0)
 	                    mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
-	                if (region->config().get_abs_value("infill_speed") == 0 ||
-	                    region->config().get_abs_value("solid_infill_speed") == 0 ||
-	                    region->config().get_abs_value("top_solid_infill_speed") == 0 ||
-                        region->config().get_abs_value("bridge_speed") == 0)
+	                if (region.config().get_abs_value("infill_speed") == 0 ||
+	                    region.config().get_abs_value("solid_infill_speed") == 0 ||
+	                    region.config().get_abs_value("top_solid_infill_speed") == 0 ||
+                        region.config().get_abs_value("bridge_speed") == 0)
                     {
                         // Minimal volumetric flow should not be calculated over ironing extrusions.
                         // Use following lambda instead of the built-it method.
@@ -887,8 +923,7 @@ namespace DoExport {
 	    if (thumbnail_cb != nullptr)
 	    {
 	        const size_t max_row_length = 78;
-	        ThumbnailsList thumbnails;
-	        thumbnail_cb(thumbnails, sizes, true, true, true, true);
+	        ThumbnailsList thumbnails = thumbnail_cb(ThumbnailsParams{ sizes, true, true, true, true });
 	        for (const ThumbnailData& data : thumbnails)
 	        {
 	            if (data.is_valid())
@@ -958,7 +993,6 @@ namespace DoExport {
 	                dst.first += buf;
 	                ++ dst.second;
 	            };
-	            print_statistics.filament_stats.insert(std::pair<size_t, float>{extruder.id(), (float)used_filament});
 	            append(out_filament_used_mm,  "%.2lf", used_filament);
 	            append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
 	            if (filament_weight > 0.) {
@@ -1111,17 +1145,19 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();
     const double       layer_height         = first_object->config().layer_height.value;
-    const double       first_layer_height   = first_object->config().first_layer_height.get_abs_value(layer_height);
-    for (const PrintRegion* region : print.regions()) {
-        _write_format(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(*first_object, frExternalPerimeter, layer_height).width());
-        _write_format(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(*first_object, frPerimeter,         layer_height).width());
-        _write_format(file, "; infill extrusion width = %.2fmm\n",              region->flow(*first_object, frInfill,            layer_height).width());
-        _write_format(file, "; solid infill extrusion width = %.2fmm\n",        region->flow(*first_object, frSolidInfill,       layer_height).width());
-        _write_format(file, "; top infill extrusion width = %.2fmm\n",          region->flow(*first_object, frTopSolidInfill,    layer_height).width());
+    assert(! print.config().first_layer_height.percent);
+    const double       first_layer_height   = print.config().first_layer_height.value;
+    for (size_t region_id = 0; region_id < print.num_print_regions(); ++ region_id) {
+        const PrintRegion &region = print.get_print_region(region_id);
+        _write_format(file, "; external perimeters extrusion width = %.2fmm\n", region.flow(*first_object, frExternalPerimeter, layer_height).width());
+        _write_format(file, "; perimeters extrusion width = %.2fmm\n",          region.flow(*first_object, frPerimeter,         layer_height).width());
+        _write_format(file, "; infill extrusion width = %.2fmm\n",              region.flow(*first_object, frInfill,            layer_height).width());
+        _write_format(file, "; solid infill extrusion width = %.2fmm\n",        region.flow(*first_object, frSolidInfill,       layer_height).width());
+        _write_format(file, "; top infill extrusion width = %.2fmm\n",          region.flow(*first_object, frTopSolidInfill,    layer_height).width());
         if (print.has_support_material())
             _write_format(file, "; support material extrusion width = %.2fmm\n", support_material_flow(first_object).width());
         if (print.config().first_layer_extrusion_width.value > 0)
-            _write_format(file, "; first layer extrusion width = %.2fmm\n",   region->flow(*first_object, frPerimeter, first_layer_height, true).width());
+            _write_format(file, "; first layer extrusion width = %.2fmm\n",   region.flow(*first_object, frPerimeter, first_layer_height, true).width());
         _write_format(file, "\n");
     }
     print.throw_if_canceled();
@@ -1935,7 +1971,7 @@ void GCode::process_layer(
         bool enable = (layer.id() > 0 || !print.has_brim()) && (layer.id() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt());
         if (enable) {
             for (const LayerRegion *layer_region : layer.regions())
-                if (size_t(layer_region->region()->config().bottom_solid_layers.value) > layer.id() ||
+                if (size_t(layer_region->region().config().bottom_solid_layers.value) > layer.id() ||
                     layer_region->perimeters.items_count() > 1u ||
                     layer_region->fills.items_count() > 0) {
                     enable = false;
@@ -2109,7 +2145,9 @@ void GCode::process_layer(
                 const LayerRegion *layerm = layer.regions()[region_id];
                 if (layerm == nullptr)
                     continue;
-                const PrintRegion &region = *print.regions()[region_id];
+                // PrintObjects own the PrintRegions, thus the pointer to PrintRegion would be unique to a PrintObject, they would not
+                // identify the content of PrintRegion accross the whole print uniquely. Translate to a Print specific PrintRegion.
+                const PrintRegion &region = print.get_print_region(layerm->region().print_region_id());
 
                 // Now we must process perimeters and infills and create islands of extrusions in by_region std::map.
                 // It is also necessary to save which extrusions are part of MM wiping and which are not.
@@ -2167,8 +2205,8 @@ void GCode::process_layer(
                                     // extrusions->first_point fits inside ith slice
                                     point_inside_surface(island_idx, extrusions->first_point())) {
                                     if (islands[island_idx].by_region.empty())
-                                        islands[island_idx].by_region.assign(print.regions().size(), ObjectByExtruder::Island::Region());
-                                    islands[island_idx].by_region[region_id].append(entity_type, extrusions, entity_overrides);
+                                        islands[island_idx].by_region.assign(print.num_print_regions(), ObjectByExtruder::Island::Region());
+                                    islands[island_idx].by_region[region.print_region_id()].append(entity_type, extrusions, entity_overrides);
                                     break;
                                 }
                             }
@@ -2570,7 +2608,7 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.perimeters.empty()) {
-            m_config.apply(print.regions()[&region - &by_region.front()]->config());
+            m_config.apply(print.get_print_region(&region - &by_region.front()).config());
             for (const ExtrusionEntity *ee : region.perimeters)
                 gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
         }
@@ -2591,7 +2629,7 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
                 if ((ee->role() == erIroning) == ironing)
                     extrusions.emplace_back(ee);
             if (! extrusions.empty()) {
-                m_config.apply(print.regions()[&region - &by_region.front()]->config());
+                m_config.apply(print.get_print_region(&region - &by_region.front()).config());
                 chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
                 for (const ExtrusionEntity *fill : extrusions) {
                     auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);

@@ -76,6 +76,7 @@ enum ConfigMenuIDs {
     ConfigMenuSnapshots,
     ConfigMenuTakeSnapshot,
     ConfigMenuUpdate,
+    ConfigMenuDesktopIntegration,
     ConfigMenuPreferences,
     ConfigMenuModeSimple,
     ConfigMenuModeAdvanced,
@@ -209,7 +210,15 @@ public:
     void            update_mode();
 
     void            add_config_menu(wxMenuBar *menu);
-    bool            check_unsaved_changes(const wxString &header = wxString());
+#if ENABLE_PROJECT_DIRTY_STATE
+    bool            has_unsaved_preset_changes() const;
+    bool            has_current_preset_changes() const;
+    void            update_saved_preset_from_current_preset();
+    std::vector<std::pair<unsigned int, std::string>> get_selected_presets() const;
+    bool            check_and_save_current_preset_changes(const wxString& header = wxString());
+#else
+    bool            check_unsaved_changes(const wxString& header = wxString());
+#endif // ENABLE_PROJECT_DIRTY_STATE
     bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
     void            load_current_presets(bool check_printer_presets = true);
@@ -268,6 +277,7 @@ public:
 
     void            open_web_page_localized(const std::string &http_address);
     bool            run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage start_page = ConfigWizard::SP_WELCOME);
+    void            show_desktop_integration_dialog();
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
     // temporary and debug only -> extract thumbnails from selected gcode and save them as png files

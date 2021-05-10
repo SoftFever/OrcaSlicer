@@ -180,7 +180,7 @@ void FillGyroid::_fill_surface_single(
 	for (Polyline &pl : polylines)
 		pl.translate(bb.min);
 
-	polylines = intersection_pl(polylines, to_polygons(expolygon));
+	polylines = intersection_pl(polylines, expolygon);
 
     if (! polylines.empty()) {
 		// Remove very small bits, but be careful to not remove infill lines connecting thin walls!

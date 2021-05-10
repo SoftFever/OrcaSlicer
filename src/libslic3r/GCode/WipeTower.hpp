@@ -164,10 +164,9 @@ public:
         m_current_layer_finished = false;
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
 		if (is_first_layer) {
-            this->m_num_layer_changes 	= 0;
-            this->m_num_tool_changes 	= 0;
-        }
-        else
+            m_num_layer_changes = 0;
+            m_num_tool_changes 	= 0;
+        } else
             ++ m_num_layer_changes;
 		
 		// Calculate extrusion flow from desired line width, nozzle diameter, filament diameter and layer_height:
@@ -277,7 +276,8 @@ private:
     // Bed properties
     enum {
         RectangularBed,
-        CircularBed
+        CircularBed,
+        CustomBed
     } m_bed_shape;
     float m_bed_width; // width of the bed bounding box
     Vec2f m_bed_bottom_left; // bottom-left corner coordinates (for rectangular beds)

@@ -145,7 +145,7 @@ void BackgroundSlicingProcess::process_fff()
 	// Passing the timestamp 
 	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
-	m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, m_thumbnail_cb);
+	m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
@@ -221,21 +221,14 @@ void BackgroundSlicingProcess::process_sla()
 
             const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
 
+            ThumbnailsList thumbnails = this->render_thumbnails(
+            	ThumbnailsParams{current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true});
+
             Zipper zipper(export_path);
-            m_sla_archive.export_print(zipper, *m_sla_print);
-
-            if (m_thumbnail_cb != nullptr)
-            {
-                ThumbnailsList thumbnails;
-                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true);
-//                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, true, true); // renders also supports and pad
-                for (const ThumbnailData& data : thumbnails)
-                {
-                    if (data.is_valid())
-                        write_thumbnail(zipper, data);
-                }
-            }
-
+            m_sla_archive.export_print(zipper, *m_sla_print);																											         // true, false, true, true); // renders also supports and pad
+			for (const ThumbnailData& data : thumbnails)
+                if (data.is_valid())
+                    write_thumbnail(zipper, data);
             zipper.finalize();
 
             m_print->set_status(100, (boost::format(_utf8(L("Masked SLA file exported to %1%"))) % export_path).str());
@@ -362,16 +355,19 @@ bool BackgroundSlicingProcess::start()
 	return true;
 }
 
+// To be called on the UI thread.
 bool BackgroundSlicingProcess::stop()
 {
 	// m_print->state_mutex() shall NOT be held. Unfortunately there is no interface to test for it.
 	std::unique_lock<std::mutex> lck(m_mutex);
 	if (m_state == STATE_INITIAL) {
-//		this->m_export_path.clear();
+//		m_export_path.clear();
 		return false;
 	}
 //	assert(this->running());
 	if (m_state == STATE_STARTED || m_state == STATE_RUNNING) {
+		// Cancel any task planned by the background thread on UI thread.
+		cancel_ui_task(m_ui_task);
 		m_print->cancel();
 		// Wait until the background processing stops by being canceled.
 		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
@@ -383,7 +379,7 @@ bool BackgroundSlicingProcess::stop()
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
 	}
-//	this->m_export_path.clear();
+//	m_export_path.clear();
 	return true;
 }
 
@@ -396,7 +392,7 @@ bool BackgroundSlicingProcess::reset()
 	return stopped;
 }
 
-// To be called by Print::apply() through the Print::m_cancel_callback to stop the background
+// To be called by Print::apply() on the UI thread through the Print::m_cancel_callback to stop the background
 // processing before changing any data of running or finalized milestones.
 // This function shall not trigger any UI update through the wxWidgets event.
 void BackgroundSlicingProcess::stop_internal()
@@ -408,6 +404,8 @@ void BackgroundSlicingProcess::stop_internal()
 	std::unique_lock<std::mutex> lck(m_mutex);
 	assert(m_state == STATE_STARTED || m_state == STATE_RUNNING || m_state == STATE_FINISHED || m_state == STATE_CANCELED);
 	if (m_state == STATE_STARTED || m_state == STATE_RUNNING) {
+		// Cancel any task planned by the background thread on UI thread.
+		cancel_ui_task(m_ui_task);
 		// At this point of time the worker thread may be blocking on m_print->state_mutex().
 		// Set the print state to canceled before unlocking the state_mutex(), so when the worker thread wakes up,
 		// it throws the CanceledException().
@@ -422,6 +420,60 @@ void BackgroundSlicingProcess::stop_internal()
 	// In the "Canceled" state. Reset the state to "Idle".
 	m_state = STATE_IDLE;
 	m_print->set_cancel_callback([](){});
+}
+
+// Execute task from background thread on the UI thread. Returns true if processed, false if cancelled. 
+bool BackgroundSlicingProcess::execute_ui_task(std::function<void()> task)
+{
+	bool running = false;
+	if (m_mutex.try_lock()) {
+		// Cancellation is either not in process, or already canceled and waiting for us to finish.
+		// There must be no UI task planned.
+		assert(! m_ui_task);
+		if (! m_print->canceled()) {
+			running = true;
+			m_ui_task = std::make_shared<UITask>();
+		}
+		m_mutex.unlock();
+	} else {
+		// Cancellation is in process.
+	}
+
+	bool result = false;
+	if (running) {
+		std::shared_ptr<UITask> ctx = m_ui_task;
+		GUI::wxGetApp().mainframe->m_plater->CallAfter([task, ctx]() {
+			// Running on the UI thread, thus ctx->state does not need to be guarded with mutex against ::cancel_ui_task().
+			assert(ctx->state == UITask::Planned || ctx->state == UITask::Canceled);
+			if (ctx->state == UITask::Planned) {
+				task();
+				std::unique_lock<std::mutex> lck(ctx->mutex);
+	    		ctx->state = UITask::Finished;
+	    	}
+	    	// Wake up the worker thread from the UI thread.
+    		ctx->condition.notify_all();
+	    });
+
+	    {
+			std::unique_lock<std::mutex> lock(ctx->mutex);
+	    	ctx->condition.wait(lock, [&ctx]{ return ctx->state == UITask::Finished || ctx->state == UITask::Canceled; });
+	    }
+	    result = ctx->state == UITask::Finished;
+		m_ui_task.reset();
+	}
+
+	return result;
+}
+
+// To be called on the UI thread from ::stop() and ::stop_internal().
+void BackgroundSlicingProcess::cancel_ui_task(std::shared_ptr<UITask> task)
+{
+	if (task) {
+		std::unique_lock<std::mutex> lck(task->mutex);
+		task->state = UITask::Canceled;
+		lck.unlock();
+		task->condition.notify_all();
+	}
 }
 
 bool BackgroundSlicingProcess::empty() const
@@ -444,7 +496,7 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
 	Print::ApplyStatus invalidated = m_print->apply(model, config);
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
-		!this->m_fff_print->is_step_done(psGCodeExport)) {
+		!m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.
 		// Let the G-code preview UI know that the final G-code preview is not valid.
 		// In addition, this early memory deallocation reduces memory footprint.
@@ -546,19 +598,14 @@ void BackgroundSlicingProcess::prepare_upload()
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
         
+        ThumbnailsList thumbnails = this->render_thumbnails(
+        	ThumbnailsParams{current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true});
+																												 // true, false, true, true); // renders also supports and pad
         Zipper zipper{source_path.string()};
         m_sla_archive.export_print(zipper, *m_sla_print, m_upload_job.upload_data.upload_path.string());
-        if (m_thumbnail_cb != nullptr)
-        {
-            ThumbnailsList thumbnails;
-            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true);
-//            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, true, true); // renders also supports and pad
-            for (const ThumbnailData& data : thumbnails)
-            {
-                if (data.is_valid())
-                    write_thumbnail(zipper, data);
-            }
-        }
+        for (const ThumbnailData& data : thumbnails)
+	        if (data.is_valid())
+	            write_thumbnail(zipper, data);
         zipper.finalize();
     }
 
@@ -567,6 +614,15 @@ void BackgroundSlicingProcess::prepare_upload()
 	m_upload_job.upload_data.source_path = std::move(source_path);
 
 	GUI::wxGetApp().printhost_job_queue().enqueue(std::move(m_upload_job));
+}
+
+// Executed by the background thread, to start a task on the UI thread.
+ThumbnailsList BackgroundSlicingProcess::render_thumbnails(const ThumbnailsParams &params)
+{
+	ThumbnailsList thumbnails;
+	if (m_thumbnail_cb)
+		this->execute_ui_task([this, &params, &thumbnails](){ thumbnails = m_thumbnail_cb(params); });
+	return thumbnails;
 }
 
 }; // namespace Slic3r
