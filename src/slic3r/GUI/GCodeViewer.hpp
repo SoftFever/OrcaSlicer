@@ -23,17 +23,11 @@ namespace GUI {
 
 class GCodeViewer
 {
-#if ENABLE_SPLITTED_VERTEX_BUFFER
     using IBufferType = unsigned short;
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
     using Color = std::array<float, 3>;
     using VertexBuffer = std::vector<float>;
-#if ENABLE_SPLITTED_VERTEX_BUFFER
     using MultiVertexBuffer = std::vector<VertexBuffer>;
     using IndexBuffer = std::vector<IBufferType>;
-#else
-    using IndexBuffer = std::vector<unsigned int>;
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
     using MultiIndexBuffer = std::vector<IndexBuffer>;
 
     static const std::vector<Color> Extrusion_Role_Colors;
@@ -69,24 +63,17 @@ class GCodeViewer
         };
 
         EFormat format{ EFormat::Position };
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         // vbos id
         std::vector<unsigned int> vbos;
         // sizes of the buffers, in bytes, used in export to obj
         std::vector<size_t> sizes;
-#else
-        // vbo id
-        unsigned int id{ 0 };
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
         // count of vertices, updated after data are sent to gpu
         size_t count{ 0 };
 
         size_t data_size_bytes() const { return count * vertex_size_bytes(); }
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         // We set 65536 as max count of vertices inside a vertex buffer to allow
         // to use unsigned short in place of unsigned int for indices in the index buffer, to save memory
         size_t max_size_bytes() const { return 65536 * vertex_size_bytes(); }
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
         size_t vertex_size_floats() const { return position_size_floats() + normal_size_floats(); }
         size_t vertex_size_bytes() const { return vertex_size_floats() * sizeof(float); }
@@ -116,15 +103,10 @@ class GCodeViewer
     // ibo buffer containing indices data (for lines/triangles) used to render a specific toolpath type
     struct IBuffer
     {
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         // id of the associated vertex buffer
         unsigned int vbo{ 0 };
         // ibo id
         unsigned int ibo{ 0 };
-#else
-        // ibo id
-        unsigned int id{ 0 };
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
         // count of indices, updated after data are sent to gpu
         size_t count{ 0 };
 
@@ -148,7 +130,6 @@ class GCodeViewer
             Vec3f position{ Vec3f::Zero() };
         };
 
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         struct Sub_Path
         {
             Endpoint first;
@@ -158,14 +139,9 @@ class GCodeViewer
                 return first.s_id <= s_id && s_id <= last.s_id;
             }
         };
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
         EMoveType type{ EMoveType::Noop };
         ExtrusionRole role{ erNone };
-#if !ENABLE_SPLITTED_VERTEX_BUFFER
-        Endpoint first;
-        Endpoint last;
-#endif // !ENABLE_SPLITTED_VERTEX_BUFFER
         float delta_extruder{ 0.0f };
         float height{ 0.0f };
         float width{ 0.0f };
@@ -175,12 +151,9 @@ class GCodeViewer
         float volumetric_rate{ 0.0f };
         unsigned char extruder_id{ 0 };
         unsigned char cp_color_id{ 0 };
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         std::vector<Sub_Path> sub_paths;
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
         bool matches(const GCodeProcessor::MoveVertex& move) const;
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         size_t vertices_count() const {
             return sub_paths.empty() ? 0 : sub_paths.back().last.s_id - sub_paths.front().first.s_id + 1;
         }
@@ -202,10 +175,6 @@ class GCodeViewer
             Endpoint endpoint = { b_id, i_id, s_id, move.position };
             sub_paths.push_back({ endpoint , endpoint });
         }
-#else
-        size_t vertices_count() const { return last.s_id - first.s_id + 1; }
-        bool contains(size_t id) const { return first.s_id <= id && id <= last.s_id; }
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
     };
 
     // Used to batch the indices needed to render the paths
@@ -295,7 +264,6 @@ class GCodeViewer
         // s_id index of first vertex contained in this->vertices
         void add_path(const GCodeProcessor::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id);
 
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         unsigned int max_vertices_per_segment() const {
             switch (render_primitive_type)
             {
@@ -308,7 +276,6 @@ class GCodeViewer
 
         size_t max_vertices_per_segment_size_floats() const { return vertices.vertex_size_floats() * static_cast<size_t>(max_vertices_per_segment()); }
         size_t max_vertices_per_segment_size_bytes() const { return max_vertices_per_segment_size_floats() * sizeof(float); }
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
         unsigned int indices_per_segment() const {
             switch (render_primitive_type)
             {
@@ -322,9 +289,7 @@ class GCodeViewer
             default:                             { return 0; }
             }
         }
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         size_t indices_per_segment_size_bytes() const { return static_cast<size_t>(indices_per_segment() * sizeof(IBufferType)); }
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         unsigned int max_indices_per_segment() const {
             switch (render_primitive_type)
@@ -338,24 +303,9 @@ class GCodeViewer
         size_t max_indices_per_segment_size_bytes() const { return max_indices_per_segment() * sizeof(IBufferType); }
 #endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         bool has_data() const {
             return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
         }
-#else
-        unsigned int start_segment_vertex_offset() const { return 0; }
-        unsigned int end_segment_vertex_offset() const {
-            switch (render_primitive_type)
-            {
-            case ERenderPrimitiveType::Point: { return 0; }
-            case ERenderPrimitiveType::Line: { return 1; }
-            case ERenderPrimitiveType::Triangle: { return 36; } // 1st vertex of 13th triangle
-            default: { return 0; }
-            }
-        }
-
-        bool has_data() const { return vertices.id != 0 && !indices.empty() && indices.front().id != 0; }
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
     };
 
     // helper to render shells
@@ -434,11 +384,9 @@ class GCodeViewer
             size_t first{ 0 };
             size_t last{ 0 };
 
-#if ENABLE_SPLITTED_VERTEX_BUFFER
             bool operator == (const Endpoints& other) const {
                 return first == other.first && last == other.last;
             }
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
         };
 
     private:
@@ -464,7 +412,6 @@ class GCodeViewer
         double get_z_at(unsigned int id) const { return (id < m_zs.size()) ? m_zs[id] : 0.0; }
         Endpoints get_endpoints_at(unsigned int id) const { return (id < m_endpoints.size()) ? m_endpoints[id] : Endpoints(); }
 
-#if ENABLE_SPLITTED_VERTEX_BUFFER
         bool operator != (const Layers& other) const {
             if (m_zs != other.m_zs)
                 return true;
@@ -473,7 +420,6 @@ class GCodeViewer
 
             return false;
         }
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
     };
 
 #if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
@@ -722,9 +668,7 @@ public:
     void render() const;
 
     bool has_data() const { return !m_roles.empty(); }
-#if ENABLE_SPLITTED_VERTEX_BUFFER
     bool can_export_toolpaths() const;
-#endif // ENABLE_SPLITTED_VERTEX_BUFFER
 
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
