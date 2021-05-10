@@ -134,27 +134,9 @@ void Size::set_scale_factor(int scale_factor)
     m_scale_factor = scale_factor;
 }
 
-GLCanvas3D::LayersEditing::LayersEditing()
-    : m_enabled(false)
-    , m_z_texture_id(0)
-    , m_model_object(nullptr)
-    , m_object_max_z(0.f)
-    , m_slicing_parameters(nullptr)
-    , m_layer_height_profile_modified(false)
-    , m_adaptive_quality(0.5f)
-    , state(Unknown)
-    , band_width(2.0f)
-    , strength(0.005f)
-    , last_object_id(-1)
-    , last_z(0.0f)
-    , last_action(LAYER_HEIGHT_EDIT_ACTION_INCREASE)
-{
-}
-
 GLCanvas3D::LayersEditing::~LayersEditing()
 {
-    if (m_z_texture_id != 0)
-    {
+    if (m_z_texture_id != 0) {
         glsafe(::glDeleteTextures(1, &m_z_texture_id));
         m_z_texture_id = 0;
     }
@@ -186,11 +168,18 @@ void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
 void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 {
     const ModelObject *model_object_new = (object_id >= 0) ? model.objects[object_id] : nullptr;
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // Maximum height of an object changes when the object gets rotated or scaled.
+    // Changing maximum height of an object will invalidate the layer heigth editing profile.
+    // m_model_object->bounding_box() is cached, therefore it is cheap even if this method is called frequently.
+    const float new_max_z = (model_object_new == nullptr) ? 0.0f : static_cast<float>(model_object_new->bounding_box().max.z());
+#else
     // Maximum height of an object changes when the object gets rotated or scaled.
     // Changing maximum height of an object will invalidate the layer heigth editing profile.
     // m_model_object->raw_bounding_box() is cached, therefore it is cheap even if this method is called frequently.
 	float new_max_z = (model_object_new == nullptr) ? 0.f : model_object_new->raw_bounding_box().size().z();
-	if (m_model_object != model_object_new || this->last_object_id != object_id || m_object_max_z != new_max_z ||
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+    if (m_model_object != model_object_new || this->last_object_id != object_id || m_object_max_z != new_max_z ||
         (model_object_new != nullptr && m_model_object->id() != model_object_new->id())) {
         m_layer_height_profile.clear();
         m_layer_height_profile_modified = false;
@@ -218,7 +207,7 @@ void GLCanvas3D::LayersEditing::set_enabled(bool enabled)
     m_enabled = is_allowed() && enabled;
 }
 
-float GLCanvas3D::LayersEditing::s_overelay_window_width;
+float GLCanvas3D::LayersEditing::s_overlay_window_width;
 
 void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 {
@@ -302,7 +291,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
 
-    GLCanvas3D::LayersEditing::s_overelay_window_width = ImGui::GetWindowSize().x /*+ (float)m_layers_texture.width/4*/;
+    GLCanvas3D::LayersEditing::s_overlay_window_width = ImGui::GetWindowSize().x /*+ (float)m_layers_texture.width/4*/;
     imgui.end();
 
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
@@ -319,7 +308,7 @@ float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
     float t = rect.get_top();
     float b = rect.get_bottom();
 
-    return ((rect.get_left() <= x) && (x <= rect.get_right()) && (t <= y) && (y <= b)) ?
+    return (rect.get_left() <= x && x <= rect.get_right() && t <= y && y <= b) ?
         // Inside the bar.
         (b - y - 1.0f) / (b - t - 1.0f) :
         // Outside the bar.
@@ -329,7 +318,7 @@ float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
 bool GLCanvas3D::LayersEditing::bar_rect_contains(const GLCanvas3D& canvas, float x, float y)
 {
     const Rect& rect = get_bar_rect_screen(canvas);
-    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
+    return rect.get_left() <= x && x <= rect.get_right() && rect.get_top() <= y && y <= rect.get_bottom();
 }
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
@@ -338,7 +327,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
     float w = (float)cnv_size.get_width();
     float h = (float)cnv_size.get_height();
 
-    return Rect(w - thickness_bar_width(canvas), 0.0f, w, h);
+    return { w - thickness_bar_width(canvas), 0.0f, w, h };
 }
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
@@ -347,7 +336,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
-    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
+    return { (half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom };
 }
 
 bool GLCanvas3D::LayersEditing::is_initialized() const
@@ -365,11 +354,12 @@ std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) con
 
             float h = 0.0f;
             for (size_t i = m_layer_height_profile.size() - 2; i >= 2; i -= 2) {
-                float zi = m_layer_height_profile[i];
-                float zi_1 = m_layer_height_profile[i - 2];
+                const float zi = static_cast<float>(m_layer_height_profile[i]);
+                const float zi_1 = static_cast<float>(m_layer_height_profile[i - 2]);
                 if (zi_1 <= z && z <= zi) {
                     float dz = zi - zi_1;
-                    h = (dz != 0.0f) ? lerp(m_layer_height_profile[i - 1], m_layer_height_profile[i + 1], (z - zi_1) / dz) : m_layer_height_profile[i + 1];
+                    h = (dz != 0.0f) ? static_cast<float>(lerp(m_layer_height_profile[i - 1], m_layer_height_profile[i + 1], (z - zi_1) / dz)) :
+                        static_cast<float>(m_layer_height_profile[i + 1]);
                     break;
                 }
             }
@@ -398,10 +388,10 @@ void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
 
     // Render the color bar
-    float l = bar_rect.get_left();
-    float r = bar_rect.get_right();
-    float t = bar_rect.get_top();
-    float b = bar_rect.get_bottom();
+    const float l = bar_rect.get_left();
+    const float r = bar_rect.get_right();
+    const float t = bar_rect.get_top();
+    const float b = bar_rect.get_bottom();
 
     ::glBegin(GL_QUADS);
     ::glNormal3f(0.0f, 0.0f, 1.0f);
@@ -564,7 +554,7 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
 {
     if (last_object_id >= 0) {
         if (m_layer_height_profile_modified) {
-            wxGetApp().plater()->take_snapshot(_(L("Variable layer height - Manual edit")));
+            wxGetApp().plater()->take_snapshot(_L("Variable layer height - Manual edit"));
             const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
 			canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
             wxGetApp().obj_list()->update_info_items(last_object_id);
@@ -577,7 +567,7 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 {
 	if (m_slicing_parameters == nullptr) {
 		m_slicing_parameters = new SlicingParameters();
-    	*m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z);
+        *m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z);
     }
 }
 
@@ -1961,7 +1951,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     m_reload_delayed = !m_canvas->IsShown() && !refresh_immediately && !force_full_scene_refresh;
 
-    PrinterTechnology printer_technology = m_process->current_printer_technology();
+    PrinterTechnology printer_technology = current_printer_technology();
     int               volume_idx_wipe_tower_old = -1;
 
     // Release invalidated volumes to conserve GPU memory in case of delayed refresh (see m_reload_delayed).
@@ -3578,13 +3568,37 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             wipe_tower_origin = v->get_volume_offset();
     }
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // Fixes flying instances
+#else
     // Fixes sinking/flying instances
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
+#if ENABLE_ALLOW_NEGATIVE_Z
+        double shift_z = m->get_instance_min_z(i.second);
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+        if (current_printer_technology() == ptSLA || shift_z > 0.0) {
+#else
+        if (shift_z > 0.0) {
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+            Vec3d shift(0.0, 0.0, -shift_z);
+#else
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+#endif // ENABLE_ALLOW_NEGATIVE_Z
         m_selection.translate(i.first, i.second, shift);
         m->translate_instance(i.second, shift);
+#if ENABLE_ALLOW_NEGATIVE_Z
+        }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
+
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // if the selection is not valid to allow for layer editing after the move, we need to turn off the tool if it is running
+    // similar to void Plater::priv::selection_changed()
+    if (!wxGetApp().plater()->can_layers_editing() && is_layers_editing_enabled())
+        post_event(SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     if (object_moved)
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
@@ -3603,18 +3617,30 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // stores current min_z of instances
+    std::map<std::pair<int, int>, double> min_zs;
+    if (!snapshot_type.empty()) {
+        for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
+            const ModelObject* obj = m_model->objects[i];
+            for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
+                min_zs[{ i, j }] = obj->instance_bounding_box(j).min(2);
+            }
+        }
+    }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
     Selection::EMode selection_mode = m_selection.get_mode();
 
-    for (const GLVolume* v : m_volumes.volumes)
-    {
+    for (const GLVolume* v : m_volumes.volumes) {
         int object_idx = v->object_idx();
         if (object_idx == 1000) { // the wipe tower
             Vec3d offset = v->get_volume_offset();
             post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3d(offset(0), offset(1), v->get_volume_rotation()(2))));
         }
-        if ((object_idx < 0) || ((int)m_model->objects.size() <= object_idx))
+        if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
         int instance_idx = v->instance_idx();
@@ -3624,15 +3650,12 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
 
         // Rotate instances/volumes.
         ModelObject* model_object = m_model->objects[object_idx];
-        if (model_object != nullptr)
-        {
-            if (selection_mode == Selection::Instance)
-            {
+        if (model_object != nullptr) {
+            if (selection_mode == Selection::Instance) {
                 model_object->instances[instance_idx]->set_rotation(v->get_instance_rotation());
                 model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
             }
-            else if (selection_mode == Selection::Volume)
-            {
+            else if (selection_mode == Selection::Volume) {
                 model_object->volumes[volume_idx]->set_rotation(v->get_volume_rotation());
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
             }
@@ -3641,12 +3664,21 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     }
 
     // Fixes sinking/flying instances
-    for (const std::pair<int, int>& i : done)
-    {
+    for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
+#if ENABLE_ALLOW_NEGATIVE_Z
+        double shift_z = m->get_instance_min_z(i.second);
+        // leave sinking instances as sinking
+        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= 0.0 || shift_z > 0.0) {
+            Vec3d shift(0.0, 0.0, -shift_z);
+#else
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
-        m_selection.translate(i.first, i.second, shift);
-        m->translate_instance(i.second, shift);
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+            m_selection.translate(i.first, i.second, shift);
+            m->translate_instance(i.second, shift);
+#if ENABLE_ALLOW_NEGATIVE_Z
+        }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
     if (!done.empty())
@@ -3663,14 +3695,26 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // stores current min_z of instances
+    std::map<std::pair<int, int>, double> min_zs;
+    if (!snapshot_type.empty()) {
+        for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
+            const ModelObject* obj = m_model->objects[i];
+            for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
+                min_zs[{ i, j }] = obj->instance_bounding_box(j).min(2);
+            }
+        }
+    }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
     Selection::EMode selection_mode = m_selection.get_mode();
 
-    for (const GLVolume* v : m_volumes.volumes)
-    {
+    for (const GLVolume* v : m_volumes.volumes) {
         int object_idx = v->object_idx();
-        if ((object_idx < 0) || ((int)m_model->objects.size() <= object_idx))
+        if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
         int instance_idx = v->instance_idx();
@@ -3680,15 +3724,12 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
 
         // Rotate instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
-        if (model_object != nullptr)
-        {
-            if (selection_mode == Selection::Instance)
-            {
+        if (model_object != nullptr) {
+            if (selection_mode == Selection::Instance) {
                 model_object->instances[instance_idx]->set_scaling_factor(v->get_instance_scaling_factor());
                 model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
             }
-            else if (selection_mode == Selection::Volume)
-            {
+            else if (selection_mode == Selection::Volume) {
                 model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                 model_object->volumes[volume_idx]->set_scaling_factor(v->get_volume_scaling_factor());
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
@@ -3698,16 +3739,25 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     }
 
     // Fixes sinking/flying instances
-    for (const std::pair<int, int>& i : done)
-    {
+    for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
+#if ENABLE_ALLOW_NEGATIVE_Z
+        double shift_z = m->get_instance_min_z(i.second);
+        // leave sinking instances as sinking
+        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= 0.0 || shift_z > 0.0) {
+            Vec3d shift(0.0, 0.0, -shift_z);
+#else
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+#endif // ENABLE_ALLOW_NEGATIVE_Z
         m_selection.translate(i.first, i.second, shift);
         m->translate_instance(i.second, shift);
+#if ENABLE_ALLOW_NEGATIVE_Z
+        }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
     if (!done.empty())
-        post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
+        post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_SCALED));
 
     m_dirty = true;
 }
@@ -3875,7 +3925,7 @@ void GLCanvas3D::update_tooltip_for_settings_item_in_main_toolbar()
 {
     std::string new_tooltip = _u8L("Switch to Settings") + 
                              "\n" + "[" + GUI::shortkey_ctrl_prefix() + "2] - " + _u8L("Print Settings Tab")    + 
-                             "\n" + "[" + GUI::shortkey_ctrl_prefix() + "3] - " + (m_process->current_printer_technology() == ptFFF ? _u8L("Filament Settings Tab") : _u8L("Material Settings Tab")) +
+                             "\n" + "[" + GUI::shortkey_ctrl_prefix() + "3] - " + (current_printer_technology() == ptFFF ? _u8L("Filament Settings Tab") : _u8L("Material Settings Tab")) +
                              "\n" + "[" + GUI::shortkey_ctrl_prefix() + "4] - " + _u8L("Printer Settings Tab") ;
 
     m_main_toolbar.set_tooltip(get_main_toolbar_item_id("settings"), new_tooltip);
@@ -4029,7 +4079,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     ArrangeSettings &settings_out = get_arrange_settings();
 
     auto &appcfg = wxGetApp().app_config;
-    PrinterTechnology ptech = m_process->current_printer_technology();
+    PrinterTechnology ptech = current_printer_technology();
 
     bool settings_changed = false;
     float dist_min = 0.f;
@@ -4596,7 +4646,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.name = "settings";
     item.icon_filename = "settings.svg";
     item.tooltip = _u8L("Switch to Settings") + "\n" + "[" + GUI::shortkey_ctrl_prefix() + "2] - " + _u8L("Print Settings Tab")    + 
-                                                "\n" + "[" + GUI::shortkey_ctrl_prefix() + "3] - " + (m_process->current_printer_technology() == ptFFF ? _u8L("Filament Settings Tab") : _u8L("Material Settings Tab")) +
+                                                "\n" + "[" + GUI::shortkey_ctrl_prefix() + "3] - " + (current_printer_technology() == ptFFF ? _u8L("Filament Settings Tab") : _u8L("Material Settings Tab")) +
                                                 "\n" + "[" + GUI::shortkey_ctrl_prefix() + "4] - " + _u8L("Printer Settings Tab") ;
     item.sprite_id = 10;
     item.enabling_callback    = GLToolbarItem::Default_Enabling_Callback;
@@ -4638,7 +4688,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.sprite_id = 12;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool {
-        bool res = m_process->current_printer_technology() == ptFFF;
+        bool res = current_printer_technology() == ptFFF;
         // turns off if changing printer technology
         if (!res && m_main_toolbar.is_item_visible("layersediting") && m_main_toolbar.is_item_pressed("layersediting"))
             force_main_toolbar_left_action(get_main_toolbar_item_id("layersediting"));

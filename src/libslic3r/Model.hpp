@@ -306,7 +306,11 @@ public:
 
     void center_around_origin(bool include_modifiers = true);
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    void ensure_on_bed(bool allow_negative_z = false);
+#else
     void ensure_on_bed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     void translate_instances(const Vec3d& vector);
     void translate_instance(size_t instance_idx, const Vec3d& vector);
     void translate(const Vec3d &vector) { this->translate(vector(0), vector(1), vector(2)); }

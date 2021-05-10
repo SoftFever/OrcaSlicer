@@ -154,53 +154,50 @@ class GLCanvas3D
         static const float THICKNESS_BAR_WIDTH;
     private:
 
-        bool                        m_enabled;
-        unsigned int                m_z_texture_id;
+        bool                        m_enabled{ false };
+        unsigned int                m_z_texture_id{ 0 };
         // Not owned by LayersEditing.
-        const DynamicPrintConfig   *m_config;
+        const DynamicPrintConfig   *m_config{ nullptr };
         // ModelObject for the currently selected object (Model::objects[last_object_id]).
-        const ModelObject          *m_model_object;
+        const ModelObject          *m_model_object{ nullptr };
         // Maximum z of the currently selected object (Model::objects[last_object_id]).
-        float                       m_object_max_z;
+        float                       m_object_max_z{ 0.0f };
         // Owned by LayersEditing.
-        SlicingParameters          *m_slicing_parameters;
+        SlicingParameters           *m_slicing_parameters{ nullptr };
         std::vector<double>         m_layer_height_profile;
-        bool                        m_layer_height_profile_modified;
+        bool                        m_layer_height_profile_modified{ false };
 
-        mutable float               m_adaptive_quality;
+        mutable float               m_adaptive_quality{ 0.5f };
         mutable HeightProfileSmoothingParams m_smooth_params;
         
-        static float                s_overelay_window_width;
+        static float                s_overlay_window_width;
 
-        class LayersTexture
+        struct LayersTexture
         {
-        public:
-            LayersTexture() : width(0), height(0), levels(0), cells(0), valid(false) {}
-
             // Texture data
             std::vector<char>   data;
             // Width of the texture, top level.
-            size_t              width;
+            size_t              width{ 0 };
             // Height of the texture, top level.
-            size_t              height;
+            size_t              height{ 0 };
             // For how many levels of detail is the data allocated?
-            size_t              levels;
+            size_t              levels{ 0 };
             // Number of texture cells allocated for the height texture.
-            size_t              cells;
+            size_t              cells{ 0 };
             // Does it need to be refreshed?
-            bool                valid;
+            bool                valid{ false };
         };
         LayersTexture   m_layers_texture;
 
     public:
-        EState state;
-        float band_width;
-        float strength;
-        int last_object_id;
-        float last_z;
-        LayerHeightEditActionType last_action;
+        EState state{ Unknown };
+        float band_width{ 2.0f };
+        float strength{ 0.005f };
+        int last_object_id{ -1 };
+        float last_z{ 0.0f };
+        LayerHeightEditActionType last_action{ LAYER_HEIGHT_EDIT_ACTION_INCREASE };
 
-        LayersEditing();
+        LayersEditing() = default;
         ~LayersEditing();
 
         void init();
@@ -226,7 +223,7 @@ class GLCanvas3D
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
         static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
-        static float get_overlay_window_width() { return LayersEditing::s_overelay_window_width; }
+        static float get_overlay_window_width() { return LayersEditing::s_overlay_window_width; }
 
         float object_max_z() const { return m_object_max_z; }
 

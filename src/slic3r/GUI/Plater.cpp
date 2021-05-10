@@ -1593,7 +1593,11 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
+#if ENABLE_ALLOW_NEGATIVE_Z
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false);
+#else
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     wxString get_export_file(GUI::FileType file_type);
 
     const Selection& get_selection() const;
@@ -2333,11 +2337,19 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     return obj_idxs;
             }
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+            for (ModelObject* model_object : model.objects) {
+                if (!type_3mf && !type_zip_amf)
+                    model_object->center_around_origin(false);
+                model_object->ensure_on_bed(is_project_file);
+            }
+#else
             for (ModelObject* model_object : model.objects) {
                 if (!type_3mf && !type_zip_amf)
                     model_object->center_around_origin(false);
                 model_object->ensure_on_bed();
             }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
             // check multi-part object adding for the SLA-printing
             if (printer_technology == ptSLA) {
@@ -2351,7 +2363,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             if (one_by_one) {
+#if ENABLE_ALLOW_NEGATIVE_Z
+                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
+#else
                 auto loaded_idxs = load_model_objects(model.objects);
+#endif // ENABLE_ALLOW_NEGATIVE_Z
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
@@ -2403,7 +2419,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 // #define AUTOPLACEMENT_ON_LOAD
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z)
+#else
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
@@ -2480,7 +2500,11 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         }
 #endif // ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+        object->ensure_on_bed(allow_negative_z);
+#else
         object->ensure_on_bed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
@@ -2636,8 +2660,7 @@ int Plater::priv::get_selected_volume_idx() const
 void Plater::priv::selection_changed()
 {
     // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
-    bool enable_layer_editing = layers_height_allowed();
-    if (!enable_layer_editing && view3D->is_layers_editing_enabled()) {
+    if (!layers_height_allowed() && view3D->is_layers_editing_enabled()) {
         SimpleEvent evt(EVT_GLTOOLBAR_LAYERSEDITING);
         on_action_layersediting(evt);
     }
@@ -3078,21 +3101,19 @@ void Plater::priv::reload_from_disk()
         int volume_idx;
 
         // operators needed by std::algorithms
-        bool operator < (const SelectedVolume& other) const { return (object_idx < other.object_idx) || ((object_idx == other.object_idx) && (volume_idx < other.volume_idx)); }
-        bool operator == (const SelectedVolume& other) const { return (object_idx == other.object_idx) && (volume_idx == other.volume_idx); }
+        bool operator < (const SelectedVolume& other) const { return object_idx < other.object_idx || (object_idx == other.object_idx && volume_idx < other.volume_idx); }
+        bool operator == (const SelectedVolume& other) const { return object_idx == other.object_idx && volume_idx == other.volume_idx; }
     };
     std::vector<SelectedVolume> selected_volumes;
 
     // collects selected ModelVolumes
     const std::set<unsigned int>& selected_volumes_idxs = selection.get_volume_idxs();
-    for (unsigned int idx : selected_volumes_idxs)
-    {
+    for (unsigned int idx : selected_volumes_idxs) {
         const GLVolume* v = selection.get_volume(idx);
         int v_idx = v->volume_idx();
-        if (v_idx >= 0)
-        {
+        if (v_idx >= 0) {
             int o_idx = v->object_idx();
-            if ((0 <= o_idx) && (o_idx < (int)model.objects.size()))
+            if (0 <= o_idx && o_idx < (int)model.objects.size())
                 selected_volumes.push_back({ o_idx, v_idx });
         }
     }
@@ -3102,13 +3123,11 @@ void Plater::priv::reload_from_disk()
     // collects paths of files to load
     std::vector<fs::path> input_paths;
     std::vector<fs::path> missing_input_paths;
-    for (const SelectedVolume& v : selected_volumes)
-    {
+    for (const SelectedVolume& v : selected_volumes) {
         const ModelObject* object = model.objects[v.object_idx];
         const ModelVolume* volume = object->volumes[v.volume_idx];
 
-        if (!volume->source.input_file.empty())
-        {
+        if (!volume->source.input_file.empty()) {
             if (fs::exists(volume->source.input_file))
                 input_paths.push_back(volume->source.input_file);
             else
@@ -3121,8 +3140,7 @@ void Plater::priv::reload_from_disk()
     std::sort(missing_input_paths.begin(), missing_input_paths.end());
     missing_input_paths.erase(std::unique(missing_input_paths.begin(), missing_input_paths.end()), missing_input_paths.end());
 
-    while (!missing_input_paths.empty())
-    {
+    while (!missing_input_paths.empty()) {
         // ask user to select the missing file
         fs::path search = missing_input_paths.back();
         wxString title = _L("Please select the file to reload");
@@ -3136,21 +3154,18 @@ void Plater::priv::reload_from_disk()
 
         std::string sel_filename_path = dialog.GetPath().ToUTF8().data();
         std::string sel_filename = fs::path(sel_filename_path).filename().string();
-        if (boost::algorithm::iequals(search.filename().string(), sel_filename))
-        {
+        if (boost::algorithm::iequals(search.filename().string(), sel_filename)) {
             input_paths.push_back(sel_filename_path);
             missing_input_paths.pop_back();
 
             fs::path sel_path = fs::path(sel_filename_path).remove_filename().string();
 
             std::vector<fs::path>::iterator it = missing_input_paths.begin();
-            while (it != missing_input_paths.end())
-            {
+            while (it != missing_input_paths.end()) {
                 // try to use the path of the selected file with all remaining missing files
                 fs::path repathed_filename = sel_path;
                 repathed_filename /= it->filename();
-                if (fs::exists(repathed_filename))
-                {
+                if (fs::exists(repathed_filename)) {
                     input_paths.push_back(repathed_filename.string());
                     it = missing_input_paths.erase(it);
                 }
@@ -3158,8 +3173,7 @@ void Plater::priv::reload_from_disk()
                     ++it;
             }
         }
-        else
-        {
+        else {
             wxString message = _L("It is not allowed to change the file to reload") + " (" + from_u8(search.filename().string()) + ").\n" + _L("Do you want to retry") + " ?";
             wxMessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() != wxID_YES)
@@ -3173,8 +3187,7 @@ void Plater::priv::reload_from_disk()
     std::vector<wxString> fail_list;
 
     // load one file at a time
-    for (size_t i = 0; i < input_paths.size(); ++i)
-    {
+    for (size_t i = 0; i < input_paths.size(); ++i) {
         const auto& path = input_paths[i].string();
 
         wxBusyCursor wait;
@@ -3184,8 +3197,7 @@ void Plater::priv::reload_from_disk()
         try
         {
             new_model = Model::read_from_file(path, nullptr, true, false);
-            for (ModelObject* model_object : new_model.objects)
-            {
+            for (ModelObject* model_object : new_model.objects) {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
             }
@@ -3197,34 +3209,31 @@ void Plater::priv::reload_from_disk()
         }
 
         // update the selected volumes whose source is the current file
-        for (const SelectedVolume& sel_v : selected_volumes)
-        {
+        for (const SelectedVolume& sel_v : selected_volumes) {
             ModelObject* old_model_object = model.objects[sel_v.object_idx];
             ModelVolume* old_volume = old_model_object->volumes[sel_v.volume_idx];
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+            bool sinking = old_model_object->bounding_box().min.z() < 0.0;
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
             bool has_source = !old_volume->source.input_file.empty() && boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
             bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
-            if (has_source || has_name)
-            {
+            if (has_source || has_name) {
                 int new_volume_idx = -1;
                 int new_object_idx = -1;
-                if (has_source)
-                {
+                if (has_source) {
                     // take idxs from source
                     new_volume_idx = old_volume->source.volume_idx;
                     new_object_idx = old_volume->source.object_idx;
                 }
-                else
-                {
+                else {
                     // take idxs from the 1st matching volume
-                    for (size_t o = 0; o < new_model.objects.size(); ++o)
-                    {
+                    for (size_t o = 0; o < new_model.objects.size(); ++o) {
                         ModelObject* obj = new_model.objects[o];
                         bool found = false;
-                        for (size_t v = 0; v < obj->volumes.size(); ++v)
-                        {
-                            if (obj->volumes[v]->name == old_volume->name)
-                            {
+                        for (size_t v = 0; v < obj->volumes.size(); ++v) {
+                            if (obj->volumes[v]->name == old_volume->name) {
                                 new_volume_idx = (int)v;
                                 new_object_idx = (int)o;
                                 found = true;
@@ -3236,19 +3245,16 @@ void Plater::priv::reload_from_disk()
                     }
                 }
 
-                if ((new_object_idx < 0) && ((int)new_model.objects.size() <= new_object_idx))
-                {
+                if (new_object_idx < 0 && (int)new_model.objects.size() <= new_object_idx) {
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
                     continue;
                 }
                 ModelObject* new_model_object = new_model.objects[new_object_idx];
-                if ((new_volume_idx < 0) && ((int)new_model.objects.size() <= new_volume_idx))
-                {
+                if (new_volume_idx < 0 && (int)new_model.objects.size() <= new_volume_idx) {
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
                     continue;
                 }
-                if (new_volume_idx < (int)new_model_object->volumes.size())
-                {
+                if (new_volume_idx < (int)new_model_object->volumes.size()) {
                     old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
                     ModelVolume* new_volume = old_model_object->volumes.back();
                     new_volume->set_new_unique_id();
@@ -3265,7 +3271,10 @@ void Plater::priv::reload_from_disk()
                     new_volume->seam_facets.assign(old_volume->seam_facets);
                     std::swap(old_model_object->volumes[sel_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
-                    old_model_object->ensure_on_bed();
+#if ENABLE_ALLOW_NEGATIVE_Z
+                    if (!sinking)
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+                        old_model_object->ensure_on_bed();
 
                     sla::reproject_points_and_holes(old_model_object);
                 }
@@ -3273,11 +3282,9 @@ void Plater::priv::reload_from_disk()
         }
     }
 
-    if (!fail_list.empty())
-    {
+    if (!fail_list.empty()) {
         wxString message = _L("Unable to reload:") + "\n";
-        for (const wxString& s : fail_list)
-        {
+        for (const wxString& s : fail_list) {
             message += s + "\n";
         }
         wxMessageDialog dlg(q, message, _L("Error during reload"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
@@ -3288,8 +3295,7 @@ void Plater::priv::reload_from_disk()
     update();
 
     // new GLVolumes have been created at this point, so update their printable state
-    for (size_t i = 0; i < model.objects.size(); ++i)
-    {
+    for (size_t i = 0; i < model.objects.size(); ++i) {
         view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
     }
 }
@@ -3309,8 +3315,7 @@ void Plater::priv::reload_all_from_disk()
     reload_from_disk();
     // restore previous selection
     selection.clear();
-    for (unsigned int idx : curr_idxs)
-    {
+    for (unsigned int idx : curr_idxs) {
         selection.add(idx, false);
     }
 }
@@ -4030,7 +4035,7 @@ void Plater::priv::reset_gcode_toolpaths()
 bool Plater::priv::can_set_instance_to_object() const
 {
     const int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->instances.size() > 1;
 }
 
 bool Plater::priv::can_split(bool to_objects) const
@@ -4044,7 +4049,12 @@ bool Plater::priv::layers_height_allowed() const
         return false;
 
     int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
+#if ENABLE_ALLOW_NEGATIVE_Z
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > 0.0 &&
+        config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
+#else
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 }
 
 bool Plater::priv::can_mirror() const
@@ -5923,6 +5933,14 @@ bool Plater::set_printer_technology(PrinterTechnology printer_technology)
     //FIXME for SLA synchronize
     //p->background_process.apply(Model)!
 
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+    if (printer_technology == ptSLA) {
+        for (ModelObject* model_object : p->model.objects) {
+            model_object->ensure_on_bed();
+        }
+    }
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+
     p->label_btn_export = printer_technology == ptFFF ? L("Export G-code") : L("Export");
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
 
@@ -5942,7 +5960,15 @@ void Plater::changed_object(int obj_idx)
         return;
     // recenter and re - align to Z = 0
     auto model_object = p->model.objects[obj_idx];
+#if ENABLE_ALLOW_NEGATIVE_Z
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+    model_object->ensure_on_bed(this->p->printer_technology != ptSLA);
+#else
+    model_object->ensure_on_bed(true);
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+#else
     model_object->ensure_on_bed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     if (this->p->printer_technology == ptSLA) {
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data, update the 3D scene.
@@ -5960,11 +5986,18 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     if (object_idxs.empty())
         return;
 
-    for (size_t obj_idx : object_idxs)
-    {
+    for (size_t obj_idx : object_idxs) {
+#if ENABLE_ALLOW_NEGATIVE_Z
+        if (obj_idx < p->model.objects.size()) {
+            if (p->model.objects[obj_idx]->bounding_box().min.z() >= 0.0)
+                // re - align to Z = 0
+                p->model.objects[obj_idx]->ensure_on_bed();
+        }
+#else
         if (obj_idx < p->model.objects.size())
             // recenter and re - align to Z = 0
             p->model.objects[obj_idx]->ensure_on_bed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
     if (this->p->printer_technology == ptSLA) {
         // Update the SLAPrint from the current Model, so that the reload_scene()
