@@ -109,7 +109,11 @@ void KBShortcutsDialog::fill_shortcuts()
             { "0-6", L("Camera view") },
             { "E", L("Show/Hide object/instance labels") },
             // Configuration
+#ifdef __APPLE__
+            { ctrl + ",", L("Preferences") },
+#else
             { ctrl + "P", L("Preferences") },
+#endif
             // Help
             { "?", L("Show keyboard shortcuts list") }
         };
@@ -150,7 +154,12 @@ void KBShortcutsDialog::fill_shortcuts()
 #ifdef _WIN32
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog, if enabled") },
 #else
+#ifdef __APPLE__
+            { ctrl + "Shift+M", L("Show/Hide 3Dconnexion devices settings dialog") },
+            { ctrl + "M", L("Minimize application") },
+#else
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#endif // __APPLE__
 #endif // _WIN32
 #if ENABLE_RENDER_PICKING_PASS
             // Don't localize debugging texts.
@@ -171,6 +180,20 @@ void KBShortcutsDialog::fill_shortcuts()
         };
 
         m_full_shortcuts.push_back({ { _L("Gizmos"), _L("The following shortcuts are applicable when the specified gizmo is active") }, gizmos_shortcuts });
+
+        Shortcuts object_list_shortcuts = {
+#if defined (__linux__)
+            { alt + "P", L("Set selected items as Ptrintable/Unprintable") },
+            { alt + "0", L("Set default extruder for the selected items") },
+            { alt + "1-9", L("Set extruder number for the selected items") },
+#else
+            { "P", L("Set selected items as Ptrintable/Unprintable") },
+            { "0", L("Set default extruder for the selected items") },
+            { "1-9", L("Set extruder number for the selected items") },
+#endif
+        };
+
+        m_full_shortcuts.push_back({ { _L("Objects List"), "" }, object_list_shortcuts });
     }
     else {
         Shortcuts commands_shortcuts = {

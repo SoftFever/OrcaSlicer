@@ -390,7 +390,6 @@ private:
 	void OnEditingStarted(wxDataViewEvent &event);
 #endif /* __WXMSW__ */
     void OnEditingDone(wxDataViewEvent &event);
-    void extruder_selection();
 };
 
 

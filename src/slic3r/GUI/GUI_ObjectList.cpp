@@ -146,18 +146,28 @@ ObjectList::ObjectList(wxWindow* parent) :
 //    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
     {
         // Accelerators
-        wxAcceleratorEntry entries[10];
-        entries[0].Set(wxACCEL_CTRL, (int) 'C',    wxID_COPY);
-        entries[1].Set(wxACCEL_CTRL, (int) 'X',    wxID_CUT);
-        entries[2].Set(wxACCEL_CTRL, (int) 'V',    wxID_PASTE);
-        entries[3].Set(wxACCEL_CTRL, (int) 'A',    wxID_SELECTALL);
-        entries[4].Set(wxACCEL_CTRL, (int) 'Z',    wxID_UNDO);
-        entries[5].Set(wxACCEL_CTRL, (int) 'Y',    wxID_REDO);
+        wxAcceleratorEntry entries[33];
+        entries[0].Set(wxACCEL_CTRL, (int)'C', wxID_COPY);
+        entries[1].Set(wxACCEL_CTRL, (int)'X', wxID_CUT);
+        entries[2].Set(wxACCEL_CTRL, (int)'V', wxID_PASTE);
+        entries[3].Set(wxACCEL_CTRL, (int)'A', wxID_SELECTALL);
+        entries[4].Set(wxACCEL_CTRL, (int)'Z', wxID_UNDO);
+        entries[5].Set(wxACCEL_CTRL, (int)'Y', wxID_REDO);
         entries[6].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
-        entries[7].Set(wxACCEL_NORMAL, WXK_BACK,   wxID_DELETE);
-        entries[8].Set(wxACCEL_NORMAL, int('+'),   wxID_ADD);
-        entries[9].Set(wxACCEL_NORMAL, int('-'),   wxID_REMOVE);
-        wxAcceleratorTable accel(10, entries);
+        entries[7].Set(wxACCEL_NORMAL, WXK_BACK, wxID_DELETE);
+        entries[8].Set(wxACCEL_NORMAL, int('+'), wxID_ADD);
+        entries[9].Set(wxACCEL_NORMAL, WXK_NUMPAD_ADD, wxID_ADD);
+        entries[10].Set(wxACCEL_NORMAL, int('-'), wxID_REMOVE);
+        entries[11].Set(wxACCEL_NORMAL, WXK_NUMPAD_SUBTRACT, wxID_REMOVE);
+        entries[12].Set(wxACCEL_NORMAL, int('p'), wxID_PRINT);
+
+        int numbers_cnt = 1;
+        for (auto char_number : { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) {
+            entries[12 + numbers_cnt].Set(wxACCEL_NORMAL, int(char_number), wxID_LAST + numbers_cnt);
+            entries[22 + numbers_cnt].Set(wxACCEL_NORMAL, WXK_NUMPAD0 + numbers_cnt - 1, wxID_LAST + numbers_cnt);
+            numbers_cnt++;
+        }
+        wxAcceleratorTable accel(33, entries);
         SetAcceleratorTable(accel);
 
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->copy();                      }, wxID_COPY);
@@ -168,6 +178,13 @@ ObjectList::ObjectList(wxWindow* parent) :
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->redo();                    	}, wxID_REDO);
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->increase_instances();        }, wxID_ADD);
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->decrease_instances();        }, wxID_REMOVE);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->toggle_printable_state();    }, wxID_PRINT);
+        
+        for (int i = 0; i < 10; i++)
+            this->Bind(wxEVT_MENU, [this, i](wxCommandEvent &evt) {
+                if (extruders_count() > 1 && i <= extruders_count())
+                    this->set_extruder_for_selected_items(i);
+            }, wxID_LAST+i+1);
     }
 #else //__WXOSX__
     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
@@ -1034,6 +1051,20 @@ void ObjectList::key_event(wxKeyEvent& event)
         increase_instances();
     else if (event.GetUnicodeKey() == '-')
         decrease_instances();
+    else if (event.GetUnicodeKey() == 'p')
+        toggle_printable_state();
+    else if (extruders_count() > 1) {
+        std::vector<wxChar> numbers = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        wxChar key_char = event.GetUnicodeKey();
+        if (std::find(numbers.begin(), numbers.end(), key_char) != numbers.end()) {
+            long extruder_number;
+            if (wxNumberFormatter::FromString(wxString(key_char), &extruder_number) &&
+                extruders_count() >= extruder_number)
+                set_extruder_for_selected_items(int(extruder_number));
+        }
+        else
+            event.Skip();
+    }
     else
         event.Skip();
 }
@@ -3790,33 +3821,6 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
         plater->set_current_canvas_as_dirty();
 }
 
-void ObjectList::extruder_selection()
-{
-    wxArrayString choices;
-    choices.Add(_(L("default")));
-    for (int i = 1; i <= extruders_count(); ++i)
-        choices.Add(wxString::Format("%d", i));
-
-    const wxString& selected_extruder = wxGetSingleChoice(_(L("Select extruder number:")),
-                                                          _(L("This extruder will be set for selected items")),
-                                                          choices, 0, this);
-    if (selected_extruder.IsEmpty())
-        return;
-
-    const int extruder_num = selected_extruder == _(L("default")) ? 0 : atoi(selected_extruder.c_str());
-
-//          /* Another variant for an extruder selection */
-//     extruder_num = wxGetNumberFromUser(_(L("Attention!!! \n"
-//                                              "It's a possibile to set an extruder number \n"
-//                                              "for whole Object(s) and/or object Part(s), \n"
-//                                              "not for an Instance. ")), 
-//                                          _(L("Enter extruder number:")),
-//                                          _(L("This extruder will be set for selected items")), 
-//                                          1, 1, 5, this);
-
-    set_extruder_for_selected_items(extruder_num);
-}
-
 void ObjectList::set_extruder_for_selected_items(const int extruder) const 
 {
     wxDataViewItemArray sels;
@@ -3923,10 +3927,10 @@ void ObjectList::toggle_printable_state()
     int inst_idx = type == itObject ? 0 : m_objects_model->GetInstanceIdByItem(frst_item);
     bool printable = !object(obj_idx)->instances[inst_idx]->printable;
 
-    const wxString snapshot_text =  sels.Count() > 1 ? (printable ? _L("Set Printable group") : _L("Set Unprintable group")) :
-                                    object(obj_idx)->instances.size() == 1 ? from_u8((boost::format("%1% %2%")
-                                        % (printable ? _L("Set Printable") : _L("Set Unprintable"))
-                                        % object(obj_idx)->name).str()) :
+    const wxString snapshot_text =  sels.Count() > 1 ? 
+                                    (printable ? _L("Set Printable group") : _L("Set Unprintable group")) :
+                                    object(obj_idx)->instances.size() == 1 ? 
+                                    format_wxstr("%1% %2%", (printable ? _L("Set Printable") : _L("Set Unprintable")), from_u8(object(obj_idx)->name)) :
                                     (printable ? _L("Set Printable Instance") : _L("Set Unprintable Instance"));
     take_snapshot(snapshot_text);
 

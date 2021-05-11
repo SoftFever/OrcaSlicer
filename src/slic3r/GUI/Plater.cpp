@@ -2797,10 +2797,11 @@ void Plater::priv::split_object()
         Slic3r::GUI::warning_catcher(q, _L("The selected object couldn't be split because it contains only one solid part."));
     else
     {
-        if (current_model_object->volumes.size() != new_objects.size())
+        // If we splited object which is contain some parts/modifiers then all non-solid parts (modifiers) were deleted
+        if (current_model_object->volumes.size() > 1 && current_model_object->volumes.size() != new_objects.size())
             notification_manager->push_notification(NotificationType::CustomNotification,
                 NotificationManager::NotificationLevel::RegularNotification,
-                _u8L("All non-solid parts (modifiers) was deleted"));
+                _u8L("All non-solid parts (modifiers) were deleted"));
 
         Plater::TakeSnapshot snapshot(q, _L("Split to Objects"));
 
