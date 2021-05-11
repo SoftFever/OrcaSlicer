@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable rendering only starting and final caps for toolpaths
-#define ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS (1 && ENABLE_2_4_0_ALPHA0)
 // Enable reload from disk command for 3mf files
 #define ENABLE_RELOAD_FROM_DISK_FOR_3MF (1 && ENABLE_2_4_0_ALPHA0)
 // Enable showing gcode line numbers in preview horizontal slider

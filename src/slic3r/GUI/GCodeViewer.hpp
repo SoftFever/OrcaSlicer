@@ -180,10 +180,8 @@ class GCodeViewer
     // Used to batch the indices needed to render the paths
     struct RenderPath
     {
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         // Index of the parent tbuffer
         unsigned char               tbuffer_id;
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         // Render path property
         Color                       color;
         // Index of the buffer in TBuffer::indices
@@ -193,7 +191,6 @@ class GCodeViewer
         unsigned int                path_id;
         std::vector<unsigned int>   sizes;
         std::vector<size_t>         offsets; // use size_t because we need an unsigned integer whose size matches pointer's size (used in the call glMultiDrawElements())
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         bool contains(size_t offset) const {
             for (size_t i = 0; i < offsets.size(); ++i) {
                 if (offsets[i] <= offset && offset <= offsets[i] + static_cast<size_t>(sizes[i] * sizeof(IBufferType)))
@@ -201,7 +198,6 @@ class GCodeViewer
             }
             return false;
         }
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
     };
 //    // for unordered_set implementation of render_paths
 //    struct RenderPathPropertyHash {
@@ -213,10 +209,8 @@ class GCodeViewer
 //    };
     struct RenderPathPropertyLower {
         bool operator() (const RenderPath &l, const RenderPath &r) const {
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             if (l.tbuffer_id < r.tbuffer_id)
                 return true;
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             for (int i = 0; i < 3; ++i) {
                 if (l.color[i] < r.color[i])
                     return true;
@@ -228,11 +222,7 @@ class GCodeViewer
     };
     struct RenderPathPropertyEqual {
         bool operator() (const RenderPath &l, const RenderPath &r) const {
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             return l.tbuffer_id == r.tbuffer_id && l.ibuffer_id == r.ibuffer_id && l.color == r.color;
-#else
-            return l.color == r.color && l.ibuffer_id == r.ibuffer_id;
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         }
     };
 
@@ -281,16 +271,11 @@ class GCodeViewer
             {
             case ERenderPrimitiveType::Point:    { return 1; }
             case ERenderPrimitiveType::Line:     { return 2; }
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             case ERenderPrimitiveType::Triangle: { return 30; } // 3 indices x 10 triangles
-#else
-            case ERenderPrimitiveType::Triangle: { return 42; } // 3 indices x 14 triangles
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             default:                             { return 0; }
             }
         }
         size_t indices_per_segment_size_bytes() const { return static_cast<size_t>(indices_per_segment() * sizeof(IBufferType)); }
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         unsigned int max_indices_per_segment() const {
             switch (render_primitive_type)
             {
@@ -301,7 +286,6 @@ class GCodeViewer
             }
         }
         size_t max_indices_per_segment_size_bytes() const { return max_indices_per_segment() * sizeof(IBufferType); }
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
         bool has_data() const {
             return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
@@ -422,7 +406,6 @@ class GCodeViewer
         }
     };
 
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
     // used to render the toolpath caps of the current sequential range
     // (i.e. when sliding on the horizontal slider)
     struct SequentialRangeCap
@@ -437,7 +420,6 @@ class GCodeViewer
         void reset();
         size_t indices_count() const { return 6; }
     };
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     struct Statistics
@@ -454,9 +436,7 @@ class GCodeViewer
         int64_t gl_multi_points_calls_count{ 0 };
         int64_t gl_multi_lines_calls_count{ 0 };
         int64_t gl_multi_triangles_calls_count{ 0 };
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         int64_t gl_triangles_calls_count{ 0 };
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         // memory
         int64_t results_size{ 0 };
         int64_t total_vertices_gpu_size{ 0 };
@@ -493,9 +473,7 @@ class GCodeViewer
             gl_multi_points_calls_count = 0;
             gl_multi_lines_calls_count = 0;
             gl_multi_triangles_calls_count = 0;
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
             gl_triangles_calls_count = 0;
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
         }
 
         void reset_sizes() {
@@ -649,9 +627,7 @@ private:
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
     GCodeProcessor::Result::SettingsIds m_settings_ids;
-#if ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
     std::array<SequentialRangeCap, 2> m_sequential_range_caps;
-#endif // ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS
 
 public:
     GCodeViewer();
