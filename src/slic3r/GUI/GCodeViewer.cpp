@@ -241,6 +241,9 @@ void GCodeViewer::SequentialRangeCap::reset() {
 void GCodeViewer::SequentialView::Marker::init()
 {
     m_model.init_from(stilized_arrow(16, 2.0f, 4.0f, 1.0f, 8.0f));
+#if ENABLE_SEQUENTIAL_LIMITS
+    m_model.set_color(-1, { 1.0f, 1.0f, 1.0f, 0.5f });
+#endif // ENABLE_SEQUENTIAL_LIMITS
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
@@ -262,7 +265,9 @@ void GCodeViewer::SequentialView::Marker::render() const
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     shader->start_using();
+#if !ENABLE_SEQUENTIAL_LIMITS
     shader->set_uniform("uniform_color", m_color);
+#endif // !ENABLE_SEQUENTIAL_LIMITS
 
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixf(m_world_transform.data()));

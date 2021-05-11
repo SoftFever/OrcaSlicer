@@ -502,6 +502,10 @@ public:
     const PrintRegion*  get_region(size_t idx) const  { return m_regions[idx]; }
     const ToolOrdering& get_tool_ordering() const { return m_wipe_tower_data.tool_ordering; }   // #ys_FIXME just for testing
 
+#if ENABLE_SEQUENTIAL_LIMITS
+    static bool sequential_print_horizontal_clearance_valid(const Print& print, Polygons* polygons = nullptr);
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
 protected:
     // methods for handling regions
     PrintRegion*        get_region(size_t idx)        { return m_regions[idx]; }

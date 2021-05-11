@@ -1069,6 +1069,80 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     ImGui::PopStyleVar(2);
 }
 
+#if ENABLE_SEQUENTIAL_LIMITS
+void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
+{
+    m_model.reset();
+    if (polygons.empty())
+        return;
+
+    size_t triangles_count = 0;
+    for (const Polygon& poly : polygons) {
+        triangles_count += poly.points.size() - 2;
+    }
+    size_t vertices_count = 3 * triangles_count;
+
+    GLModel::InitializationData data;
+    GLModel::InitializationData::Entity entity;
+    entity.type = GLModel::PrimitiveType::Triangles;
+    entity.color = { 0.3333f, 0.3333f, 0.3333f, 1.0f };
+    entity.positions.reserve(vertices_count);
+    entity.normals.reserve(vertices_count);
+    entity.indices.reserve(vertices_count);
+
+    for (const Polygon& poly : polygons) {
+        std::vector<Vec3d> triangulation = triangulate_expolygon_3d(ExPolygon(poly), false);
+        for (const Vec3d& v : triangulation) {
+            entity.positions.emplace_back(v.cast<float>());
+            entity.normals.emplace_back(Vec3f::UnitZ());
+            size_t positions_count = entity.positions.size();
+            if (positions_count % 3 == 0) {
+                entity.indices.emplace_back(positions_count - 3);
+                entity.indices.emplace_back(positions_count - 2);
+                entity.indices.emplace_back(positions_count - 1);
+            }
+        }
+    }
+
+    data.entities.emplace_back(entity);
+
+    for (const Polygon& poly : polygons) {
+        GLModel::InitializationData::Entity ent;
+        ent.type = GLModel::PrimitiveType::LineLoop;
+        ent.color = { 1.0f, 1.0f, 0.0f, 1.0f };
+        ent.positions.reserve(poly.points.size());
+        ent.indices.reserve(poly.points.size());
+        unsigned int id_count = 0;
+        for (const Point& p : poly.points) {
+            ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.0f);
+            ent.normals.emplace_back(Vec3f::UnitZ());
+            ent.indices.emplace_back(id_count++);
+        }
+
+        data.entities.emplace_back(ent);
+    }
+
+    m_model.init_from(data);
+}
+
+void GLCanvas3D::SequentialPrintClearance::render() const
+{
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr)
+        return;
+
+    shader->start_using();
+
+    glsafe(::glDisable(GL_CULL_FACE));
+
+    m_model.render();
+
+    glsafe(::glEnable(GL_CULL_FACE));
+
+    shader->stop_using();
+}
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
 float GLCanvas3D::Slope::s_window_width;
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
@@ -1669,6 +1743,9 @@ void GLCanvas3D::render()
         _render_gcode();
     _render_sla_slices();
     _render_selection();
+#if ENABLE_SEQUENTIAL_LIMITS
+    _render_sequential_clearance();
+#endif // ENABLE_SEQUENTIAL_LIMITS
     _render_bed(!camera.is_looking_downward(), true);
 
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -2204,7 +2281,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("wipe_tower"))->value;
         bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
 
-        if ((extruders_count > 1) && wt && !co) {
+        if (extruders_count > 1 && wt && !co) {
             // Height of a print (Show at least a slab)
             double height = std::max(m_model->bounding_box().max(2), 10.0);
 
@@ -5139,6 +5216,13 @@ void GLCanvas3D::_render_selection() const
     if (!m_gizmos.is_running())
         m_selection.render(scale_factor);
 }
+
+#if ENABLE_SEQUENTIAL_LIMITS
+void GLCanvas3D::_render_sequential_clearance() const
+{
+    m_sequential_print_clearance.render();
+}
+#endif // ENABLE_SEQUENTIAL_LIMITS
 
 #if ENABLE_RENDER_SELECTION_CENTER
 void GLCanvas3D::_render_selection_center() const

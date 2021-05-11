@@ -26,8 +26,6 @@ static const float DEFAULT_HIGHLIGHT_COLOR[4] = { 1.0f, 0.38f, 0.0f, 1.0f };
 static const float AXES_COLOR[][4] = { { 0.75f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.75f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.75f, 1.0f } };
 static const float CONSTRAINED_COLOR[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
-
-
 class ImGuiWrapper;
 class GLCanvas3D;
 enum class CommonGizmosDataID;

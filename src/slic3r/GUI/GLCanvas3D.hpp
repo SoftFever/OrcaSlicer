@@ -541,6 +541,19 @@ private:
 
     void load_arrange_settings();
 
+#if ENABLE_SEQUENTIAL_LIMITS
+    class SequentialPrintClearance
+    {
+        GLModel m_model;
+
+    public:
+        void set(const Polygons& polygons);
+        void render() const;
+    };
+
+    SequentialPrintClearance m_sequential_print_clearance;
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();
@@ -782,6 +795,12 @@ public:
 #endif
     }
 
+#if ENABLE_SEQUENTIAL_LIMITS
+    void set_sequential_print_clearance(const Polygons& polygons) {
+        m_sequential_print_clearance.set(polygons);
+    }
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -808,6 +827,9 @@ private:
     void _render_objects() const;
     void _render_gcode() const;
     void _render_selection() const;
+#if ENABLE_SEQUENTIAL_LIMITS
+    void _render_sequential_clearance() const;
+#endif // ENABLE_SEQUENTIAL_LIMITS
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER

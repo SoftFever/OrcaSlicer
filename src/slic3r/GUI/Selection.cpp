@@ -18,7 +18,11 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
 
+#if ENABLE_SEQUENTIAL_LIMITS
+static const std::array<float, 4> UNIFORM_SCALE_COLOR = { 0.923f, 0.504f, 0.264f, 1.0f };
+#else
 static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
+#endif // ENABLE_SEQUENTIAL_LIMITS
 
 namespace Slic3r {
 namespace GUI {
@@ -1869,8 +1873,31 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
     glsafe(::glEnd());
 }
 
+#if ENABLE_SEQUENTIAL_LIMITS
+static std::array<float, 4> get_color(Axis axis)
+{
+    return { AXES_COLOR[axis][0], AXES_COLOR[axis][1], AXES_COLOR[axis][2], AXES_COLOR[axis][3] };
+};
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
 {
+#if ENABLE_SEQUENTIAL_LIMITS
+    if (boost::ends_with(sidebar_field, "x")) {
+        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
+        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(X));
+        m_arrow.render();
+    }
+    else if (boost::ends_with(sidebar_field, "y")) {
+        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Y));
+        m_arrow.render();
+    }
+    else if (boost::ends_with(sidebar_field, "z")) {
+        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
+        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Z));
+        m_arrow.render();
+    }
+#else
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
@@ -1889,10 +1916,33 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
         m_arrow.render();
     }
+#endif // ENABLE_SEQUENTIAL_LIMITS
 }
 
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
 {
+#if ENABLE_SEQUENTIAL_LIMITS
+    auto render_sidebar_rotation_hint = [this]() {
+        m_curved_arrow.render();
+        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+        m_curved_arrow.render();
+    };
+
+    if (boost::ends_with(sidebar_field, "x")) {
+        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
+        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(X));
+        render_sidebar_rotation_hint();
+    }
+    else if (boost::ends_with(sidebar_field, "y")) {
+        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
+        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Y));
+        render_sidebar_rotation_hint();
+    }
+    else if (boost::ends_with(sidebar_field, "z")) {
+        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Z));
+        render_sidebar_rotation_hint();
+    }
+#else
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
@@ -1917,6 +1967,7 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
         set_color(Z);
         render_sidebar_rotation_hint();
     }
+#endif // ENABLE_SEQUENTIAL_LIMITS
 }
 
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
@@ -1924,9 +1975,13 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
     bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
 
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
+#if ENABLE_SEQUENTIAL_LIMITS
+        const_cast<GLModel*>(&m_arrow)->set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
+#else
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
             shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
+#endif // ENABLE_SEQUENTIAL_LIMITS
 
         glsafe(::glTranslated(0.0, 5.0, 0.0));
         m_arrow.render();

@@ -63,6 +63,8 @@
 #define ENABLE_START_GCODE_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
 // Enable visualization of seams in preview
 #define ENABLE_SEAMS_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
+// Enable visualization of objects clearance for sequential prints
+#define ENABLE_SEQUENTIAL_LIMITS (1 && ENABLE_2_4_0_ALPHA0)
 
 
 #endif // _prusaslicer_technologies_h_

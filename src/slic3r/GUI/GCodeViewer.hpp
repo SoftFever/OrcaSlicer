@@ -581,7 +581,9 @@ public:
             Vec3f m_world_position;
             Transform3f m_world_transform;
             float m_z_offset{ 0.5f };
+#if !ENABLE_SEQUENTIAL_LIMITS
             std::array<float, 4> m_color{ 1.0f, 1.0f, 1.0f, 0.5f };
+#endif // !ENABLE_SEQUENTIAL_LIMITS
             bool m_visible{ true };
 
         public:
@@ -590,7 +592,9 @@ public:
             const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
 
             void set_world_position(const Vec3f& position);
+#if !ENABLE_SEQUENTIAL_LIMITS
             void set_color(const std::array<float, 4>& color) { m_color = color; }
+#endif // !ENABLE_SEQUENTIAL_LIMITS
 
             bool is_visible() const { return m_visible; }
             void set_visible(bool visible) { m_visible = visible; }
