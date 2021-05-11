@@ -64,7 +64,7 @@ static const UndoRedo::Snapshot* get_last_saveable_snapshot(EStackType type, con
             return true;
         else if (snapshot.name == _utf8("Reset Project"))
             return true;
-        else if (boost::starts_with(snapshot.name, _utf8("Load Project:")))
+        else if (boost::starts_with(snapshot.name, _utf8("Load Project")))
             return true;
         else if (boost::starts_with(snapshot.name, _utf8("Selection")))
             return true;
@@ -366,7 +366,7 @@ void ProjectDirtyStateManager::update_from_undo_redo_main_stack(UpdateType type,
     const UndoRedo::Snapshot* active_snapshot = get_active_snapshot(stack);
     if (active_snapshot->name == _utf8("New Project") ||
         active_snapshot->name == _utf8("Reset Project") ||
-        boost::starts_with(active_snapshot->name, _utf8("Load Project:")))
+        boost::starts_with(active_snapshot->name, _utf8("Load Project")))
         return;
 
     if (boost::starts_with(active_snapshot->name, _utf8("Entering"))) {
