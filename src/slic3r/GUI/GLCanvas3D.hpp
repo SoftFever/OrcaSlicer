@@ -357,7 +357,6 @@ class GLCanvas3D
     {
         bool m_enabled{ false };
         GLVolumeCollection& m_volumes;
-        static float s_window_width;
     public:
         Slope(GLVolumeCollection& volumes) : m_volumes(volumes) {}
 
@@ -368,7 +367,6 @@ class GLCanvas3D
         void set_normal_angle(float angle_in_deg) const {
             m_volumes.set_slope_normal_z(-::cos(Geometry::deg2rad(90.0f - angle_in_deg)));
         }
-        static float get_window_width() { return s_window_width; };
     };
 
     class RenderTimer : public wxTimer {
