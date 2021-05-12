@@ -424,7 +424,10 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             }
 
             glsafe(::glEnable(GL_DEPTH_TEST));
-            glsafe(::glDepthMask(GL_FALSE));
+#if ENABLE_SEQUENTIAL_LIMITS
+            if (bottom)
+#endif // ENABLE_SEQUENTIAL_LIMITS
+                glsafe(::glDepthMask(GL_FALSE));
 
             glsafe(::glEnable(GL_BLEND));
             glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -469,7 +472,10 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
                 glsafe(::glFrontFace(GL_CCW));
 
             glsafe(::glDisable(GL_BLEND));
-            glsafe(::glDepthMask(GL_TRUE));
+#if ENABLE_SEQUENTIAL_LIMITS
+            if (bottom)
+#endif // ENABLE_SEQUENTIAL_LIMITS
+                glsafe(::glDepthMask(GL_TRUE));
 
             shader->stop_using();
         }

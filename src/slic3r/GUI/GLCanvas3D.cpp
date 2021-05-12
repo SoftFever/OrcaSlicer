@@ -1085,13 +1085,14 @@ void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
     GLModel::InitializationData data;
     GLModel::InitializationData::Entity entity;
     entity.type = GLModel::PrimitiveType::Triangles;
-    entity.color = { 0.3333f, 0.3333f, 0.3333f, 1.0f };
+    entity.color = { 0.3333f, 0.0f, 0.0f, 0.5f };
     entity.positions.reserve(vertices_count);
     entity.normals.reserve(vertices_count);
     entity.indices.reserve(vertices_count);
 
-    for (const Polygon& poly : polygons) {
-        std::vector<Vec3d> triangulation = triangulate_expolygon_3d(ExPolygon(poly), false);
+    ExPolygons polygons_union = union_ex(polygons);
+    for (const ExPolygon& poly : polygons_union) {
+        std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly, false);
         for (const Vec3d& v : triangulation) {
             entity.positions.emplace_back(v.cast<float>());
             entity.normals.emplace_back(Vec3f::UnitZ());
@@ -1109,7 +1110,7 @@ void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
     for (const Polygon& poly : polygons) {
         GLModel::InitializationData::Entity ent;
         ent.type = GLModel::PrimitiveType::LineLoop;
-        ent.color = { 1.0f, 1.0f, 0.0f, 1.0f };
+        ent.color = { 1.0f, 0.0f, 0.0f, 1.0f };
         ent.positions.reserve(poly.points.size());
         ent.indices.reserve(poly.points.size());
         unsigned int id_count = 0;
@@ -1133,11 +1134,16 @@ void GLCanvas3D::SequentialPrintClearance::render() const
 
     shader->start_using();
 
+    glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     m_model.render();
 
+    glsafe(::glDisable(GL_BLEND));
     glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
     shader->stop_using();
 }
@@ -1743,11 +1749,10 @@ void GLCanvas3D::render()
         _render_gcode();
     _render_sla_slices();
     _render_selection();
+    _render_bed(!camera.is_looking_downward(), true);
 #if ENABLE_SEQUENTIAL_LIMITS
     _render_sequential_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
-    _render_bed(!camera.is_looking_downward(), true);
-
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
 #endif // ENABLE_RENDER_SELECTION_CENTER
