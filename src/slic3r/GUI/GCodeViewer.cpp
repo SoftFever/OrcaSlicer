@@ -3395,27 +3395,27 @@ void GCodeViewer::render_legend() const
         ImGui::Spacing();
 #endif // ENABLE_SCROLLABLE_LEGEND
         ImGui::Spacing();
-        ImGui::PushStyleColor(ImGuiCol_Separator, { 1.0f, 1.0f, 1.0f, 1.0f });
-        ImGui::Separator();
-        ImGui::PopStyleColor();
-        ImGui::Spacing();
-
-        ImGui::AlignTextToFramePadding();
+        std::string time_title = _u8L("Estimated printing times");
         switch (m_time_estimate_mode)
         {
-        case PrintEstimatedStatistics::ETimeMode::Normal:
-        {
-            imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Normal mode") + "]:");
-            break;
+        case PrintEstimatedStatistics::ETimeMode::Normal:  { time_title += " [" + _u8L("Normal mode") + "]:"; break; }
+        case PrintEstimatedStatistics::ETimeMode::Stealth: { time_title += " [" + _u8L("Stealth mode") + "]:"; break; }
+        default: { assert(false); break; }
         }
-        case PrintEstimatedStatistics::ETimeMode::Stealth:
-        {
-            imgui.text(_u8L("Estimated printing time") + " [" + _u8L("Stealth mode") + "]:");
-            break;
-        }
-        default : { assert(false); break; }
-        }
-        ImGui::SameLine();
+
+        imgui.title(time_title);
+
+        std::string first_str = _u8L("First layer");
+        std::string total_str = _u8L("Total");
+
+        float max_len = 10.0f + ImGui::GetStyle().ItemSpacing.x + std::max(ImGui::CalcTextSize(first_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x);
+
+        imgui.text(first_str + ":");
+        ImGui::SameLine(max_len);
+        imgui.text(short_time(get_time_dhms(time_mode.layers_times.front())));
+
+        imgui.text(total_str + ":");
+        ImGui::SameLine(max_len);
         imgui.text(short_time(get_time_dhms(time_mode.time)));
 
         auto show_mode_button = [this, &imgui](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
