@@ -544,7 +544,8 @@ private:
 #if ENABLE_SEQUENTIAL_LIMITS
     class SequentialPrintClearance
     {
-        GLModel m_model;
+        GLModel m_fill;
+        GLModel m_perimeter;
 
     public:
         void set(const Polygons& polygons);

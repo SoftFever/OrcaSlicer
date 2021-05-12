@@ -1072,7 +1072,8 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 #if ENABLE_SEQUENTIAL_LIMITS
 void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
 {
-    m_model.reset();
+    m_perimeter.reset();
+    m_fill.reset();
     if (polygons.empty())
         return;
 
@@ -1082,7 +1083,7 @@ void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
     }
     size_t vertices_count = 3 * triangles_count;
 
-    GLModel::InitializationData data;
+    GLModel::InitializationData fill_data;
     GLModel::InitializationData::Entity entity;
     entity.type = GLModel::PrimitiveType::Triangles;
     entity.color = { 0.3333f, 0.0f, 0.0f, 0.5f };
@@ -1105,25 +1106,27 @@ void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
         }
     }
 
-    data.entities.emplace_back(entity);
+    fill_data.entities.emplace_back(entity);
+    m_fill.init_from(fill_data);
 
+    GLModel::InitializationData perimeter_data;
     for (const Polygon& poly : polygons) {
         GLModel::InitializationData::Entity ent;
         ent.type = GLModel::PrimitiveType::LineLoop;
-        ent.color = { 1.0f, 0.0f, 0.0f, 1.0f };
+        ent.color = { 1.0f, 0.0f, 0.0f, 0.5f };
         ent.positions.reserve(poly.points.size());
         ent.indices.reserve(poly.points.size());
         unsigned int id_count = 0;
         for (const Point& p : poly.points) {
-            ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.0f);
+            ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f);
             ent.normals.emplace_back(Vec3f::UnitZ());
             ent.indices.emplace_back(id_count++);
         }
 
-        data.entities.emplace_back(ent);
+        perimeter_data.entities.emplace_back(ent);
     }
 
-    m_model.init_from(data);
+    m_perimeter.init_from(perimeter_data);
 }
 
 void GLCanvas3D::SequentialPrintClearance::render() const
@@ -1139,7 +1142,8 @@ void GLCanvas3D::SequentialPrintClearance::render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    m_model.render();
+    m_perimeter.render();
+    m_fill.render();
 
     glsafe(::glDisable(GL_BLEND));
     glsafe(::glEnable(GL_CULL_FACE));
