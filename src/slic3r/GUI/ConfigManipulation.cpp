@@ -91,6 +91,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
         auto answer = dialog.ShowModal();
+        bool support = true;
         if (!is_global_config || answer == wxID_YES) {
             new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
             new_conf.set_key_value("top_solid_layers", new ConfigOptionInt(0));
@@ -100,13 +101,17 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
             new_conf.set_key_value("thin_walls", new ConfigOptionBool(false));            
             fill_density = 0;
+            support = false;
         }
         else {
             new_conf.set_key_value("spiral_vase", new ConfigOptionBool(false));
         }
         apply(config, &new_conf);
-        if (cb_value_change)
+        if (cb_value_change) {
             cb_value_change("fill_density", fill_density);
+            if (!support)
+                cb_value_change("support_material", false);
+        }
     }
 
     if (config->opt_bool("wipe_tower") && config->opt_bool("support_material") &&
