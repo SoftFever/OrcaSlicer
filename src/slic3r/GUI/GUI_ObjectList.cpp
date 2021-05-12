@@ -21,6 +21,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
+#include <wx/numformatter.h>
 
 #include "slic3r/Utils/FixModelByWin10.hpp"
 
