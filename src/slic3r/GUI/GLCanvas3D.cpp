@@ -1755,7 +1755,10 @@ void GLCanvas3D::render()
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
 #if ENABLE_SEQUENTIAL_LIMITS
-    _render_sequential_clearance();
+    if (!m_mouse.dragging || m_mouse.drag.move_volume_idx == -1)
+        _render_sequential_clearance();
+    else
+        set_sequential_print_clearance(Polygons());
 #endif // ENABLE_SEQUENTIAL_LIMITS
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
