@@ -1202,8 +1202,9 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
 {
 	Polygons convex_hulls_other;
 #if ENABLE_SEQUENTIAL_LIMITS
+    if (polygons != nullptr)
+        polygons->clear();
     std::vector<size_t> intersecting_idxs;
-    bool intersection_detected = false;
 #endif // ENABLE_SEQUENTIAL_LIMITS
 
 	std::map<ObjectID, Polygon> map_model_object_to_convex_hull;
@@ -1240,14 +1241,14 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
 	        // Convert the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
 	        convex_hull.translate(instance.shift - print_object->center_offset());
 #if ENABLE_SEQUENTIAL_LIMITS
+            // if output needed, collect indices (inside convex_hulls_other) of intersecting hulls
             for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
                 if (!intersection((Polygons)convex_hulls_other[i], (Polygons)convex_hull).empty()) {
                     if (polygons == nullptr)
                         return false;
                     else {
-                        intersection_detected = true;
-                        intersecting_idxs.push_back(i);
-                        intersecting_idxs.push_back(convex_hulls_other.size());
+                        intersecting_idxs.emplace_back(i);
+                        intersecting_idxs.emplace_back(convex_hulls_other.size());
                     }
                 }
             }
@@ -1260,15 +1261,13 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
 	}
 
 #if ENABLE_SEQUENTIAL_LIMITS
-    if (intersection_detected) {
-        assert(polygons != nullptr);
-
+    if (!intersecting_idxs.empty()) {
+        // use collected indices (inside convex_hulls_other) to update output
         std::sort(intersecting_idxs.begin(), intersecting_idxs.end());
         intersecting_idxs.erase(std::unique(intersecting_idxs.begin(), intersecting_idxs.end()), intersecting_idxs.end());
         for (size_t i : intersecting_idxs) {
             polygons->emplace_back(std::move(convex_hulls_other[i]));
         }
-
         return false;
     }
 #endif // ENABLE_SEQUENTIAL_LIMITS
