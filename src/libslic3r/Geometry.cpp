@@ -1083,8 +1083,7 @@ MedialAxis::process_edge_neighbors(const VD::edge_type* edge, ThickPolyline* pol
     }
 }
 
-bool
-MedialAxis::validate_edge(const VD::edge_type* edge)
+bool MedialAxis::validate_edge(const VD::edge_type* edge)
 {
     // prevent overflows and detect almost-infinite edges
 #ifndef CLIPPERLIB_INT32

@@ -24,7 +24,7 @@ void main()
     float z_texture_col = object_z_row - z_texture_row;
     float z_blend = 0.25 * cos(min(M_PI, abs(M_PI * (object_z - z_cursor) * 1.8 / z_cursor_band_width))) + 0.25;
     // Calculate level of detail from the object Z coordinate.
-    // This makes the slowly sloping surfaces to be show with high detail (with stripes),
+    // This makes the slowly sloping surfaces to be shown with high detail (with stripes),
     // and the vertical surfaces to be shown with low detail (no stripes)
     float z_in_cells = object_z_row * 190.;
     // Gradient of Z projected on the screen.
@@ -32,9 +32,10 @@ void main()
     float dy_vtc = dFdy(z_in_cells);
     float lod = clamp(0.5 * log2(max(dx_vtc * dx_vtc, dy_vtc * dy_vtc)), 0., 1.);
     // Sample the Z texture. Texture coordinates are normalized to <0, 1>.
-    vec4 color = mix(texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row + 0.5    )), -10000.),
-                     texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row * 2. + 1.)),  10000.), lod);
-            
+    vec4 color = vec4(0.25, 0.25, 0.25, 1.0);
+    if (z_texture_row >= 0.0)
+        color = mix(texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row + 0.5    )), -10000.),
+                    texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row * 2. + 1.)),  10000.), lod);            
     // Mix the final color.
-    gl_FragColor = vec4(intensity.y, intensity.y, intensity.y, 1.0) +  intensity.x * mix(color, vec4(1.0, 1.0, 0.0, 1.0), z_blend);
+    gl_FragColor = vec4(vec3(intensity.y), 1.0) +  intensity.x * mix(color, vec4(1.0, 1.0, 0.0, 1.0), z_blend);
 }

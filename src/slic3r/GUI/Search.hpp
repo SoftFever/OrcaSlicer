@@ -53,7 +53,7 @@ struct Option {
     std::wstring    category;
     std::wstring    category_local;
 
-    std::string     opt_key() const { return boost::nowide::narrow(key).substr(2); }
+    std::string     opt_key() const;
 };
 
 struct FoundOption {

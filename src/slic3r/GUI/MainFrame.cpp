@@ -206,7 +206,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
+#if ENABLE_PROJECT_DIRTY_STATE
+        if (m_plater != nullptr)
+            m_plater->save_project_if_dirty();
+
+        if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes()) {
+#else
         if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
+#endif // ENABLE_PROJECT_DIRTY_STATE
             event.Veto();
             return;
         }
@@ -487,8 +494,14 @@ void MainFrame::update_title()
         // m_plater->get_project_filename() produces file name including path, but excluding extension.
         // Don't try to remove the extension, it would remove part of the file name after the last dot!
         wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
+#if ENABLE_PROJECT_DIRTY_STATE
+        wxString dirty_marker = (!m_plater->model().objects.empty() && m_plater->is_project_dirty()) ? "*" : "";
+        if (!dirty_marker.empty() || !project.empty())
+            title = dirty_marker + project + " - ";
+#else
         if (!project.empty())
             title += (project + " - ");
+#endif // ENABLE_PROJECT_DIRTY_STATE
     }
 
     std::string build_id = wxGetApp().is_editor() ? SLIC3R_BUILD_ID : GCODEVIEWER_BUILD_ID;
@@ -531,9 +544,12 @@ void MainFrame::init_tabpanel()
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #if ENABLE_VALIDATE_CUSTOM_GCODE
-        Tab* old_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(e.GetOldSelection()));
-        if (old_tab)
-            old_tab->validate_custom_gcodes();
+        if (int old_selection = e.GetOldSelection();
+            old_selection != wxNOT_FOUND && old_selection < m_tabpanel->GetPageCount()) {
+            Tab* old_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(old_selection));
+            if (old_tab)
+                old_tab->validate_custom_gcodes();
+        }
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
         wxWindow* panel = m_tabpanel->GetCurrentPage();
@@ -672,10 +688,36 @@ bool MainFrame::can_start_new_project() const
     return (m_plater != nullptr) && (!m_plater->get_project_filename(".3mf").IsEmpty() || !m_plater->model().objects.empty());
 }
 
+#if ENABLE_PROJECT_DIRTY_STATE
+bool MainFrame::can_save() const
+{
+    return (m_plater != nullptr) && !m_plater->model().objects.empty() && !m_plater->get_project_filename().empty() && m_plater->is_project_dirty();
+}
+
+bool MainFrame::can_save_as() const
+{
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+}
+
+void MainFrame::save_project()
+{
+    save_project_as(m_plater->get_project_filename(".3mf"));
+}
+
+void MainFrame::save_project_as(const wxString& filename)
+{
+    bool ret = (m_plater != nullptr) ? m_plater->export_3mf(into_path(filename)) : false;
+    if (ret) {
+//        wxGetApp().update_saved_preset_from_current_preset();
+        m_plater->reset_project_dirty_after_save();
+    }
+}
+#else
 bool MainFrame::can_save() const
 {
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
 bool MainFrame::can_export_model() const
 {
@@ -984,16 +1026,27 @@ void MainFrame::init_menubar_as_editor()
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_recent_projects.GetCount() > 0); }, recent_projects_submenu->GetId());
 
+#if ENABLE_PROJECT_DIRTY_STATE
+        append_menu_item(fileMenu, wxID_ANY, _L("&Save Project") + "\tCtrl+S", _L("Save current project file"),
+            [this](wxCommandEvent&) { save_project(); }, "save", nullptr,
+            [this](){return m_plater != nullptr && can_save(); }, this);
+#else
         append_menu_item(fileMenu, wxID_ANY, _L("&Save Project") + "\tCtrl+S", _L("Save current project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename(".3mf"))); }, "save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
+#endif // ENABLE_PROJECT_DIRTY_STATE
 #ifdef __APPLE__
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project &as") + dots + "\tCtrl+Shift+S", _L("Save current project file as"),
 #else
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project &as") + dots + "\tCtrl+Alt+S", _L("Save current project file as"),
 #endif // __APPLE__
+#if ENABLE_PROJECT_DIRTY_STATE
+            [this](wxCommandEvent&) { save_project_as(); }, "save", nullptr,
+            [this](){return m_plater != nullptr && can_save_as(); }, this);
+#else
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, "save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
         fileMenu->AppendSeparator();
 
@@ -1518,7 +1571,11 @@ void MainFrame::export_config()
 // Load a config file containing a Print, Filament & Printer preset.
 void MainFrame::load_config_file()
 {
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!wxGetApp().check_and_save_current_preset_changes())
+#else
     if (!wxGetApp().check_unsaved_changes())
+#endif // ENABLE_PROJECT_DIRTY_STATE
         return;
     wxFileDialog dlg(this, _L("Select configuration to load:"),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
@@ -1547,7 +1604,11 @@ bool MainFrame::load_config_file(const std::string &path)
 
 void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 {
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!wxGetApp().check_and_save_current_preset_changes())
+#else
     if (!wxGetApp().check_unsaved_changes())
+#endif // ENABLE_PROJECT_DIRTY_STATE
         return;
     // validate current configuration in case it's dirty
     auto err = wxGetApp().preset_bundle->full_config().validate();
@@ -1579,7 +1640,11 @@ void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 // but that behavior was not documented and likely buggy.
 void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool reset_user_profile*/)
 {
+#if ENABLE_PROJECT_DIRTY_STATE
+    if (!wxGetApp().check_and_save_current_preset_changes())
+#else
     if (!wxGetApp().check_unsaved_changes())
+#endif // ENABLE_PROJECT_DIRTY_STATE
         return;
     if (file.IsEmpty()) {
         wxFileDialog dlg(this, _L("Select configuration to load:"),

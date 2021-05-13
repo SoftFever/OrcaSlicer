@@ -453,6 +453,11 @@ public:
     bool                is_sla_support() const;
     bool                is_sla_pad() const;
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    bool                is_sinking() const;
+    bool                is_below_printbed() const;
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     // Return an estimate of the memory consumed by this class.
     size_t 				cpu_memory_used() const { 
     	//FIXME what to do wih m_convex_hull?

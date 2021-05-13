@@ -41,15 +41,9 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable splitting of vertex buffers used to render toolpaths
-#define ENABLE_SPLITTED_VERTEX_BUFFER (1 && ENABLE_2_4_0_ALPHA0)
-// Enable rendering only starting and final caps for toolpaths
-#define ENABLE_REDUCED_TOOLPATHS_SEGMENT_CAPS (1 && ENABLE_SPLITTED_VERTEX_BUFFER)
 // Enable reload from disk command for 3mf files
 #define ENABLE_RELOAD_FROM_DISK_FOR_3MF (1 && ENABLE_2_4_0_ALPHA0)
-// Removes obsolete warning texture code
-#define ENABLE_WARNING_TEXTURE_REMOVAL (1 && ENABLE_2_4_0_ALPHA0)
-// Enable showing gcode line numbers in previeww horizontal slider
+// Enable showing gcode line numbers in preview horizontal slider
 #define ENABLE_GCODE_LINES_ID_IN_H_SLIDER (1 && ENABLE_2_4_0_ALPHA0)
 // Enable validation of custom gcode against gcode processor reserved keywords
 #define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_4_0_ALPHA0)
@@ -59,10 +53,19 @@
 #define ENABLE_EXTENDED_M73_LINES (1 && ENABLE_VALIDATE_CUSTOM_GCODE)
 // Enable a modified version of automatic downscale on load of objects too big
 #define ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG (1 && ENABLE_2_4_0_ALPHA0)
+// Enable scrollable legend in preview
+#define ENABLE_SCROLLABLE_LEGEND (1 && ENABLE_2_4_0_ALPHA0)
 // Enable visualization of start gcode as regular toolpaths
 #define ENABLE_START_GCODE_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
 // Enable visualization of seams in preview
 #define ENABLE_SEAMS_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
+// Enable project dirty state manager
+#define ENABLE_PROJECT_DIRTY_STATE (1 && ENABLE_2_4_0_ALPHA0)
+// Enable project dirty state manager debug window
+#define ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW (0 && ENABLE_PROJECT_DIRTY_STATE)
+// Enable to push object instances under the bed
+#define ENABLE_ALLOW_NEGATIVE_Z (1 && ENABLE_2_4_0_ALPHA0)
+#define DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA (1 && ENABLE_ALLOW_NEGATIVE_Z)
 // Enable visualization of objects clearance for sequential prints
 #define ENABLE_SEQUENTIAL_LIMITS (1 && ENABLE_2_4_0_ALPHA0)
 

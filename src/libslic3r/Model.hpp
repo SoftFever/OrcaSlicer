@@ -180,8 +180,8 @@ private:
 class LayerHeightProfile final : public ObjectWithTimestamp {
 public:
     // Assign the content if the timestamp differs, don't assign an ObjectID.
-    void assign(const LayerHeightProfile &rhs) { if (! this->timestamp_matches(rhs)) { this->m_data = rhs.m_data; this->copy_timestamp(rhs); } }
-    void assign(LayerHeightProfile &&rhs) { if (! this->timestamp_matches(rhs)) { this->m_data = std::move(rhs.m_data); this->copy_timestamp(rhs); } }
+    void assign(const LayerHeightProfile &rhs) { if (! this->timestamp_matches(rhs)) { m_data = rhs.m_data; this->copy_timestamp(rhs); } }
+    void assign(LayerHeightProfile &&rhs) { if (! this->timestamp_matches(rhs)) { m_data = std::move(rhs.m_data); this->copy_timestamp(rhs); } }
 
     std::vector<coordf_t> get() const throw() { return m_data; }
     bool                  empty() const throw() { return m_data.empty(); }
@@ -306,7 +306,11 @@ public:
 
     void center_around_origin(bool include_modifiers = true);
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    void ensure_on_bed(bool allow_negative_z = false);
+#else
     void ensure_on_bed();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     void translate_instances(const Vec3d& vector);
     void translate_instance(size_t instance_idx, const Vec3d& vector);
     void translate(const Vec3d &vector) { this->translate(vector(0), vector(1), vector(2)); }
@@ -504,8 +508,8 @@ enum class ConversionType : int {
 class FacetsAnnotation final : public ObjectWithTimestamp {
 public:
     // Assign the content if the timestamp differs, don't assign an ObjectID.
-    void assign(const FacetsAnnotation& rhs) { if (! this->timestamp_matches(rhs)) { this->m_data = rhs.m_data; this->copy_timestamp(rhs); } }
-    void assign(FacetsAnnotation&& rhs) { if (! this->timestamp_matches(rhs)) { this->m_data = std::move(rhs.m_data); this->copy_timestamp(rhs); } }
+    void assign(const FacetsAnnotation& rhs) { if (! this->timestamp_matches(rhs)) { m_data = rhs.m_data; this->copy_timestamp(rhs); } }
+    void assign(FacetsAnnotation&& rhs) { if (! this->timestamp_matches(rhs)) { m_data = std::move(rhs.m_data); this->copy_timestamp(rhs); } }
     const std::map<int, std::vector<bool>>& get_data() const throw() { return m_data; }
     bool set(const TriangleSelector& selector);
     indexed_triangle_set get_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
@@ -680,6 +684,7 @@ protected:
     friend class SLAPrint;
     friend class Model;
 	friend class ModelObject;
+    friend void model_volume_list_update_supports(ModelObject& model_object_dst, const ModelObject& model_object_new);
 
 	// Copies IDs of both the ModelVolume and its config.
 	explicit ModelVolume(const ModelVolume &rhs) = default;

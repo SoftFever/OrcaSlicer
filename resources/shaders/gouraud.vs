@@ -41,7 +41,7 @@ uniform vec2 z_range;
 // Clipping plane - general orientation. Used by the SLA gizmo.
 uniform vec4 clipping_plane;
 
-// x = tainted, y = specular;
+// x = diffuse, y = specular;
 varying vec2 intensity;
 
 varying vec3 delta_box_min;
@@ -49,6 +49,8 @@ varying vec3 delta_box_max;
 
 varying vec3 clipping_planes_dots;
 
+varying vec4 model_pos;
+varying float world_pos_z;
 varying float world_normal_z;
 varying vec3 eye_normal;
 
@@ -69,12 +71,16 @@ void main()
     NdotL = max(dot(eye_normal, LIGHT_FRONT_DIR), 0.0);
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
+    model_pos = gl_Vertex;
+    // Point in homogenous coordinates.
+    vec4 world_pos = print_box.volume_world_matrix * gl_Vertex;
+    world_pos_z = world_pos.z;
+
     // compute deltas for out of print volume detection (world coordinates)
     if (print_box.actived)
     {
-        vec3 v = (print_box.volume_world_matrix * gl_Vertex).xyz;
-        delta_box_min = v - print_box.min;
-        delta_box_max = v - print_box.max;
+        delta_box_min = world_pos.xyz - print_box.min;
+        delta_box_max = world_pos.xyz - print_box.max;
     }
     else
     {
@@ -86,8 +92,6 @@ void main()
 	world_normal_z = slope.actived ? (normalize(slope.volume_world_normal_matrix * gl_Normal)).z : 0.0;
 
     gl_Position = ftransform();
-    // Point in homogenous coordinates.
-    vec4 world_pos = print_box.volume_world_matrix * gl_Vertex;
     // Fill in the scalars for fragment shader clipping. Fragments with any of these components lower than zero are discarded.
     clipping_planes_dots = vec3(dot(world_pos, clipping_plane), world_pos.z - z_range.x, z_range.y - world_pos.z);
 }

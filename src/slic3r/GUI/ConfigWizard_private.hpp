@@ -227,10 +227,12 @@ struct PageWelcome: ConfigWizardPage
 {
     wxStaticText *welcome_text;
     wxCheckBox *cbox_reset;
+    wxCheckBox *cbox_integrate;
 
     PageWelcome(ConfigWizard *parent);
 
     bool reset_user_profile() const { return cbox_reset != nullptr ? cbox_reset->GetValue() : false; }
+    bool integrate_desktop() const { return cbox_integrate != nullptr ? cbox_integrate->GetValue() : false; }
 
     virtual void set_run_reason(ConfigWizard::RunReason run_reason) override;
 };
@@ -449,8 +451,8 @@ struct PageBedShape: ConfigWizardPage
 
 struct PageDiameters: ConfigWizardPage
 {
-    wxSpinCtrlDouble *spin_nozzle;
-    wxSpinCtrlDouble *spin_filam;
+    wxTextCtrl *diam_nozzle;
+    wxTextCtrl *diam_filam;
 
     PageDiameters(ConfigWizard *parent);
     virtual void apply_custom_config(DynamicPrintConfig &config);
@@ -615,7 +617,9 @@ struct ConfigWizard::priv
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
     // #ys_FIXME_alise
     void update_presets_in_config(const std::string& section, const std::string& alias_key, bool add);
-
+#ifdef __linux__
+    void perform_desktop_integration() const;
+#endif
     bool check_fff_selected();        // Used to decide whether to display Filaments page
     bool check_sla_selected();        // Used to decide whether to display SLA Materials page
 

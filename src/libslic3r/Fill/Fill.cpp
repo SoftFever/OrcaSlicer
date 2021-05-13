@@ -122,10 +122,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        if (surface.surface_type == stInternalVoid)
 	        	has_internal_voids = true;
 	        else {
-		        const PrintRegionConfig &region_config = layerm.region()->config();
+		        const PrintRegionConfig &region_config = layerm.region().config();
 		        FlowRole extrusion_role = surface.is_top() ? frTopSolidInfill : (surface.is_solid() ? frSolidInfill : frInfill);
 		        bool     is_bridge 	    = layer.id() > 0 && surface.is_bridge();
-		        params.extruder 	 = layerm.region()->extruder(extrusion_role);
+		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.fill_pattern.value;
 		        params.density       = float(region_config.fill_density);
 
@@ -162,7 +162,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        } else {
 					// Internal infill. Calculating infill line spacing independent of the current layer height and 1st layer status,
 					// so that internall infill will be aligned over all layers of the current region.
-		            params.spacing = layerm.region()->flow(*layer.object(), frInfill, layer.object()->config().layer_height, false).spacing();
+		            params.spacing = layerm.region().flow(*layer.object(), frInfill, layer.object()->config().layer_height, false).spacing();
 		            // Anchor a sparse infill to inner perimeters with the following anchor length:
 			        params.anchor_length = float(region_config.infill_anchor);
 					if (region_config.infill_anchor.percent)
@@ -274,11 +274,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        	}
 	        if (internal_solid_fill == nullptr) {
 	        	// Produce another solid fill.
-		        params.extruder 	 = layerm.region()->extruder(frSolidInfill);
-	            params.pattern 		 = layerm.region()->config().top_fill_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
+		        params.extruder 	 = layerm.region().extruder(frSolidInfill);
+	            params.pattern 		 = layerm.region().config().top_fill_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erInternalInfill;
-		        params.angle 		= float(Geometry::deg2rad(layerm.region()->config().fill_angle.value));
+		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().fill_angle.value));
 		        // calculate the actual flow we'll be using for this infill
 				params.flow = layerm.flow(frSolidInfill);
 		        params.spacing = params.flow.spacing();	        
@@ -501,7 +501,7 @@ void Layer::make_ironing()
 	for (LayerRegion *layerm : m_regions)
 		if (! layerm->slices.empty()) {
 			IroningParams ironing_params;
-			const PrintRegionConfig &config = layerm->region()->config();
+			const PrintRegionConfig &config = layerm->region().config();
 			if (config.ironing && 
 				(config.ironing_type == IroningType::AllSolid ||
 				 	(config.top_solid_layers > 0 && 
@@ -556,7 +556,7 @@ void Layer::make_ironing()
 			Polygons infills;
 			for (size_t k = i; k < j; ++ k) {
 				const IroningParams		 &ironing_params  = by_extruder[k];
-				const PrintRegionConfig  &region_config   = ironing_params.layerm->region()->config();
+				const PrintRegionConfig  &region_config   = ironing_params.layerm->region().config();
 				bool					  iron_everything = region_config.ironing_type == IroningType::AllSolid;
 				bool					  iron_completely = iron_everything;
 				if (iron_everything) {

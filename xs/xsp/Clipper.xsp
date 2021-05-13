@@ -41,18 +41,6 @@ offset_ex(polygons, delta, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 
     OUTPUT:
         RETVAL
 
-Polygons
-offset2(polygons, delta1, delta2, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 3)
-    Polygons                polygons
-    const float             delta1
-    const float             delta2
-    Slic3r::ClipperLib::JoinType    joinType
-    double                  miterLimit
-    CODE:
-        RETVAL = offset2(polygons, delta1, delta2, joinType, miterLimit);
-    OUTPUT:
-        RETVAL
-
 ExPolygons
 offset2_ex(polygons, delta1, delta2, joinType = Slic3r::ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons

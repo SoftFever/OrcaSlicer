@@ -121,8 +121,8 @@ protected:
         if(!std::isnan(rel_diff)) nlopt_set_ftol_rel(nl.ptr, rel_diff);
         if(!std::isnan(stopval))  nlopt_set_stopval(nl.ptr, stopval);
 
-        if(this->m_stopcr.max_iterations() > 0)
-            nlopt_set_maxeval(nl.ptr, this->m_stopcr.max_iterations());
+        if(m_stopcr.max_iterations() > 0)
+            nlopt_set_maxeval(nl.ptr, m_stopcr.max_iterations());
     }
 
     template<class Fn, size_t N>

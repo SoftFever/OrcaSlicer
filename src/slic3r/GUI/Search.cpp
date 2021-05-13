@@ -7,6 +7,7 @@
 #include <boost/nowide/convert.hpp>
 
 #include "wx/dataview.h"
+#include "wx/numformatter.h"
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -43,6 +44,11 @@ static char marker_by_type(Preset::Type type, PrinterTechnology pt)
     default:
         return ' ';
 	}
+}
+
+std::string Option::opt_key() const
+{
+    return boost::nowide::narrow(key).substr(2);
 }
 
 void FoundOption::get_marked_label_and_tooltip(const char** label_, const char** tooltip_) const

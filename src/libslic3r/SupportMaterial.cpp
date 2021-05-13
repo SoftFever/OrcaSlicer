@@ -345,17 +345,14 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     // Evaluate the XY gap between the object outer perimeters and the support structures.
     // Evaluate the XY gap between the object outer perimeters and the support structures.
     coordf_t external_perimeter_width = 0.;
-    size_t   num_nonempty_regions = 0;
     coordf_t bridge_flow_ratio = 0;
-    for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id)
-        if (! object->region_volumes[region_id].empty()) {
-            ++ num_nonempty_regions;
-            const PrintRegion &region = *object->print()->get_region(region_id);
-            external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));
-            bridge_flow_ratio += region.config().bridge_flow_ratio;
-        }
+    for (size_t region_id = 0; region_id < object->num_printing_regions(); ++ region_id) {
+        const PrintRegion &region = object->printing_region(region_id);
+        external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));
+        bridge_flow_ratio += region.config().bridge_flow_ratio;
+    }
     m_support_params.gap_xy = m_object_config->support_material_xy_spacing.get_abs_value(external_perimeter_width);
-    bridge_flow_ratio /= num_nonempty_regions;
+    bridge_flow_ratio /= object->num_printing_regions();
 
     m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! m_object_config->thick_bridges ?
         m_support_params.support_material_interface_flow.with_flow_ratio(bridge_flow_ratio) :
@@ -364,7 +361,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_support_params.can_merge_support_regions = m_object_config->support_material_extruder.value == m_object_config->support_material_interface_extruder.value;
     if (!m_support_params.can_merge_support_regions && (m_object_config->support_material_extruder.value == 0 || m_object_config->support_material_interface_extruder.value == 0)) {
         // One of the support extruders is of "don't care" type.
-        auto object_extruders = m_object->print()->object_extruders();
+        auto object_extruders = m_object->object_extruders();
         if (object_extruders.size() == 1 &&
             *object_extruders.begin() == std::max<unsigned int>(m_object_config->support_material_extruder.value, m_object_config->support_material_interface_extruder.value))
             // Object is printed with the same extruder as the support.
@@ -1254,7 +1251,7 @@ namespace SupportMaterialInternal {
             // Surface supporting this layer, expanded by 0.5 * nozzle_diameter, as we consider this kind of overhang to be sufficiently supported.
             Polygons lower_grown_slices = offset(lower_layer_polygons, 
                 //FIXME to mimic the decision in the perimeter generator, we should use half the external perimeter width.
-                0.5f * float(scale_(print_config.nozzle_diameter.get_at(layerm->region()->config().perimeter_extruder-1))),
+                0.5f * float(scale_(print_config.nozzle_diameter.get_at(layerm->region().config().perimeter_extruder-1))),
                 SUPPORT_SURFACES_OFFSET_PARAMETERS);
             // Collect perimeters of this layer.
             //FIXME split_at_first_point() could split a bridge mid-way
@@ -1640,7 +1637,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         if (object_config.thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
             coordf_t bridging_height = 0.;
             for (const LayerRegion* region : layer.regions())
-                bridging_height += region->region()->bridging_height_avg(print_config);
+                bridging_height += region->region().bridging_height_avg(print_config);
             bridging_height /= coordf_t(layer.regions().size());
             coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
             if (bridging_print_z >= slicing_params.first_print_layer_height - EPSILON) {
@@ -2767,13 +2764,13 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                         const Layer &object_layer = *object.layers()[i];
                         bool some_region_overlaps = false;
                         for (LayerRegion *region : object_layer.regions()) {
-                            coordf_t bridging_height = region->region()->bridging_height_avg(*this->m_print_config);
+                            coordf_t bridging_height = region->region().bridging_height_avg(*m_print_config);
                             if (object_layer.print_z - bridging_height > support_layer.print_z + gap_extra_above - EPSILON)
                                 break;
                             some_region_overlaps = true;
                             polygons_append(polygons_trimming, 
                                 offset(region->fill_surfaces.filter_by_type(stBottomBridge), gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-                            if (region->region()->config().overhangs.value)
+                            if (region->region().config().overhangs.value)
                                 // Add bridging perimeters.
                                 SupportMaterialInternal::collect_bridging_perimeter_areas(region->perimeters, gap_xy_scaled, polygons_trimming);
                         }
@@ -3185,7 +3182,7 @@ struct MyLayerExtruded
     MyLayerExtruded& operator=(MyLayerExtruded &&rhs) {
         this->layer = rhs.layer;
         this->extrusions = std::move(rhs.extrusions);
-        this->m_polygons_to_extrude = std::move(rhs.m_polygons_to_extrude);
+        m_polygons_to_extrude = std::move(rhs.m_polygons_to_extrude);
         rhs.layer = nullptr;
         return *this;
     }

@@ -254,7 +254,7 @@ void NotificationManager::PopNotification::count_spaces()
  
 void NotificationManager::PopNotification::count_lines()
 {
-	std::string text		= m_text1 + " " + m_hypertext;
+	std::string text		= m_text1;
 	size_t      last_end	= 0;
 	m_lines_count			= 0;
 
@@ -302,6 +302,14 @@ void NotificationManager::PopNotification::count_lines()
 		}
 		m_lines_count++;
 	}
+	// hypertext calculation
+	if (!m_hypertext.empty()) {
+		int prev_end = m_endlines.size() > 1 ? m_endlines[m_endlines.size() - 2] : 0;
+		if (ImGui::CalcTextSize((text.substr(prev_end, last_end - prev_end) + m_hypertext).c_str()).x > m_window_width - m_window_width_offset) {
+			m_endlines.push_back(last_end);
+			m_lines_count++;
+		}
+	}
 }
 
 void NotificationManager::PopNotification::init()
@@ -312,7 +320,7 @@ void NotificationManager::PopNotification::init()
 
 	count_spaces();
 	count_lines();
-	
+
 	if (m_lines_count == 3)
 		m_multiline = true;
 	m_notification_start = GLCanvas3D::timestamp_now();
@@ -342,39 +350,48 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 			int last_end = 0;
 			float starting_y = m_line_height/2;
 			float shift_y = m_line_height;
+			std::string line;
+
 			for (size_t i = 0; i < m_lines_count; i++) {
-			    std::string line = m_text1.substr(last_end , m_endlines[i] - last_end);
-				if(i < m_lines_count - 1)
-					last_end = m_endlines[i] + (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
+				line.clear();
 				ImGui::SetCursorPosX(x_offset);
 				ImGui::SetCursorPosY(starting_y + i * shift_y);
-				imgui.text(line.c_str());
+				if (m_endlines.size() > i && m_text1.size() >= m_endlines[i]) {
+					line = m_text1.substr(last_end, m_endlines[i] - last_end);
+					last_end = m_endlines[i];
+					if (m_text1.size() > m_endlines[i])
+						last_end += (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
+					imgui.text(line.c_str());
+				}
 			}
 			//hyperlink text
-			if (!m_hypertext.empty())
-			{
-				render_hypertext(imgui, x_offset + ImGui::CalcTextSize(m_text1.substr(m_endlines[m_lines_count - 2] + 1, m_endlines[m_lines_count - 1] - m_endlines[m_lines_count - 2] - 1).c_str()).x, starting_y + (m_lines_count - 1) * shift_y, m_hypertext);
+			if (!m_hypertext.empty()) {
+				render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + " ").c_str()).x, starting_y + (m_lines_count - 1) * shift_y, m_hypertext);
 			}
 			
 			
 		} else {
 			// line1
-			ImGui::SetCursorPosX(x_offset);
-			ImGui::SetCursorPosY(win_size.y / 2 - win_size.y / 6 - m_line_height / 2);
-			imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+			if (m_text1.size() >= m_endlines[0]) {
+				ImGui::SetCursorPosX(x_offset);
+				ImGui::SetCursorPosY(win_size.y / 2 - win_size.y / 6 - m_line_height / 2);
+				imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+			}
 			// line2
-			std::string line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0), m_endlines[1] - m_endlines[0] - (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
-			if (ImGui::CalcTextSize(line.c_str()).x > m_window_width - m_window_width_offset - ImGui::CalcTextSize((".." + _u8L("More")).c_str()).x)
-			{
-				line = line.substr(0, line.length() - 6);
-				line += "..";
-			}else
-				line += "  ";
+			std::string line;
 			ImGui::SetCursorPosX(x_offset);
 			ImGui::SetCursorPosY(win_size.y / 2 + win_size.y / 6 - m_line_height / 2);
-			imgui.text(line.c_str());
+			if (m_text1.size() >= m_endlines[1]) {
+				line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0), m_endlines[1] - m_endlines[0] - (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
+				if (ImGui::CalcTextSize(line.c_str()).x > m_window_width - m_window_width_offset - ImGui::CalcTextSize((".." + _u8L("More")).c_str()).x) {
+					line = line.substr(0, line.length() - 6);
+					line += "..";
+				} else
+					line += "  ";
+				imgui.text(line.c_str());
+			}
 			// "More" hypertext
-			render_hypertext(imgui, x_offset + ImGui::CalcTextSize(line.c_str()).x, win_size.y / 2 + win_size.y / 6 - m_line_height / 2, _u8L("More"), true);
+			render_hypertext(imgui, x_offset + ImGui::CalcTextSize(line.c_str()).x, win_size.y / 2 + win_size.y / 6 - m_line_height / 2, _u8L("More"), true);			
 		}
 	} else {
 		//text 1
@@ -382,15 +399,17 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 		float cursor_x = x_offset;
 		if(m_lines_count > 1) {
 			// line1
-			ImGui::SetCursorPosX(x_offset);
-			ImGui::SetCursorPosY(win_size.y / 2 - win_size.y / 6 - m_line_height / 2);
-			imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
-			// line2
-			if (m_text1.length() > m_endlines[0]) {
-				std::string line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
-				cursor_y = win_size.y / 2 + win_size.y / 6 - m_line_height / 2;
+			if (m_text1.length() >= m_endlines[0]) { // could be equal than substr takes whole string
 				ImGui::SetCursorPosX(x_offset);
-				ImGui::SetCursorPosY(cursor_y);
+				ImGui::SetCursorPosY(win_size.y / 2 - win_size.y / 6 - m_line_height / 2);
+				imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+			}
+			// line2
+			ImGui::SetCursorPosX(x_offset);
+			cursor_y = win_size.y / 2 + win_size.y / 6 - m_line_height / 2;
+			ImGui::SetCursorPosY(cursor_y);
+			if (m_text1.length() > m_endlines[0]) { // must be greater otherwise theres nothing to show and m_text1[m_endlines[0]] is beyond last letter
+				std::string line = m_text1.substr(m_endlines[0] + (m_text1[m_endlines[0]] == '\n' || m_text1[m_endlines[0]] == ' ' ? 1 : 0));
 				imgui.text(line.c_str());
 				cursor_x = x_offset + ImGui::CalcTextSize(line.c_str()).x;
 			}
@@ -401,8 +420,7 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 			cursor_x = x_offset + ImGui::CalcTextSize(m_text1.c_str()).x;
 		}
 		//hyperlink text
-		if (!m_hypertext.empty())
-		{
+		if (!m_hypertext.empty()) {
 			render_hypertext(imgui, cursor_x + 4, cursor_y, m_hypertext);
 		}
 
@@ -712,15 +730,18 @@ void NotificationManager::ExportFinishedNotification::render_text(ImGuiWrapper& 
 	float starting_y = m_line_height / 2;//10;
 	float shift_y = m_line_height;// -m_line_height / 20;
 	for (size_t i = 0; i < m_lines_count; i++) {
-		std::string line = m_text1.substr(last_end, m_endlines[i] - last_end);
-		if (i < m_lines_count - 1)
-			last_end = m_endlines[i] + (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
-		ImGui::SetCursorPosX(x_offset);
-		ImGui::SetCursorPosY(starting_y + i * shift_y);
-		imgui.text(line.c_str());
-		//hyperlink text
-		if ( i == 0 )  {
-			render_hypertext(imgui, x_offset + ImGui::CalcTextSize(m_text1.substr(0, last_end).c_str()).x + ImGui::CalcTextSize("   ").x, starting_y, _u8L("Open Folder."));
+		if (m_text1.size() >= m_endlines[i]) {
+			std::string line = m_text1.substr(last_end, m_endlines[i] - last_end);
+			last_end = m_endlines[i];
+			if (m_text1.size() > m_endlines[i])
+				last_end += (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
+			ImGui::SetCursorPosX(x_offset);
+			ImGui::SetCursorPosY(starting_y + i * shift_y);
+			imgui.text(line.c_str());
+			//hyperlink text
+			if ( i == 0 )  {
+				render_hypertext(imgui, x_offset + ImGui::CalcTextSize(line.c_str()).x + ImGui::CalcTextSize("   ").x, starting_y, _u8L("Open Folder."));
+			}
 		}
 	}
 

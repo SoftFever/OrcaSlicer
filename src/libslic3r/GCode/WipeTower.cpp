@@ -500,9 +500,9 @@ WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
     ToolChangeResult result;
     result.priming      = priming;
     result.initial_tool = int(old_tool);
-    result.new_tool     = int(this->m_current_tool);
-    result.print_z      = this->m_z_pos;
-    result.layer_height = this->m_layer_height;
+    result.new_tool     = int(m_current_tool);
+    result.print_z      = m_z_pos;
+    result.layer_height = m_layer_height;
     result.elapsed_time = writer.elapsed_time();
     result.start_pos    = writer.start_pos_rotated();
     result.end_pos      = priming ? writer.pos() : writer.pos_rotated();
@@ -630,7 +630,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
     bool 						/*last_wipe_inside_wipe_tower*/)
 {
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
-	this->m_current_tool 		= tools.front();
+	m_current_tool 		= tools.front();
     
     // The Prusa i3 MK2 has a working space of [0, -2.2] to [250, 210].
     // Due to the XYZ calibration, this working space may shrink slightly from all directions,
