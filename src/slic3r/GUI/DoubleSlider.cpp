@@ -326,10 +326,10 @@ double Control::get_double_value(const SelectedSlider& selection)
     return m_values[selection == ssLower ? m_lower_value : m_higher_value];
 }
 
-int Control::get_tick_from_value(double value)
+int Control::get_tick_from_value(double value, bool force_lower_bound/* = false*/)
 {
     std::vector<double>::iterator it;
-    if (m_is_wipe_tower)
+    if (m_is_wipe_tower && !force_lower_bound)
         it = std::find_if(m_values.begin(), m_values.end(),
                           [value](const double & val) { return fabs(value - val) <= epsilon(); });
     else
@@ -2395,7 +2395,7 @@ void Control::edit_extruder_sequence()
             extruder = 0;
         if (m_extruders_sequence.is_mm_intervals) {
             value += m_extruders_sequence.interval_by_mm;
-            tick = get_tick_from_value(value);
+            tick = get_tick_from_value(value, true);
             if (tick < 0)
                 break;
         }

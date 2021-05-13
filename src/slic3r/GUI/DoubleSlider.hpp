@@ -322,7 +322,7 @@ private:
     wxSize      get_size() const;
     void        get_size(int* w, int* h) const;
     double      get_double_value(const SelectedSlider& selection);
-    int         get_tick_from_value(double value);
+    int         get_tick_from_value(double value, bool force_lower_bound = false);
     wxString    get_tooltip(int tick = -1);
     int         get_edited_tick_for_position(wxPoint pos, Type type = ColorChange);
 
