@@ -813,7 +813,7 @@ void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
     for (const ExPolygon& poly : polygons_union) {
         std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly, false);
         for (const Vec3d& v : triangulation) {
-            entity.positions.emplace_back(v.cast<float>());
+            entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125)); // add a small positive z to avoid z-fighting
             entity.normals.emplace_back(Vec3f::UnitZ());
             size_t positions_count = entity.positions.size();
             if (positions_count % 3 == 0) {
@@ -836,7 +836,7 @@ void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
         ent.indices.reserve(poly.points.size());
         unsigned int id_count = 0;
         for (const Point& p : poly.points) {
-            ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f);
+            ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f); // add a small positive z to avoid z-fighting
             ent.normals.emplace_back(Vec3f::UnitZ());
             ent.indices.emplace_back(id_count++);
         }
