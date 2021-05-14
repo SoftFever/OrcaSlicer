@@ -813,7 +813,7 @@ void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons)
     for (const ExPolygon& poly : polygons_union) {
         std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly, false);
         for (const Vec3d& v : triangulation) {
-            entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125)); // add a small positive z to avoid z-fighting
+            entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125f)); // add a small positive z to avoid z-fighting
             entity.normals.emplace_back(Vec3f::UnitZ());
             size_t positions_count = entity.positions.size();
             if (positions_count % 3 == 0) {
@@ -1459,7 +1459,9 @@ void GLCanvas3D::render()
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
 #if ENABLE_SEQUENTIAL_LIMITS
-    if ((!m_mouse.dragging || m_mouse.drag.move_volume_idx == -1) && m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined)
+    if ((!m_mouse.dragging || m_mouse.drag.move_volume_idx == -1) &&
+        m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined &&
+        !m_layers_editing.is_enabled())
         _render_sequential_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
 #if ENABLE_RENDER_SELECTION_CENTER
