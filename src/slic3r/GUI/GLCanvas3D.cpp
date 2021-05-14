@@ -1459,10 +1459,8 @@ void GLCanvas3D::render()
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
 #if ENABLE_SEQUENTIAL_LIMITS
-    if (!m_mouse.dragging || m_mouse.drag.move_volume_idx == -1)
+    if ((!m_mouse.dragging || m_mouse.drag.move_volume_idx == -1) && m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined)
         _render_sequential_clearance();
-    else
-        set_sequential_print_clearance(Polygons());
 #endif // ENABLE_SEQUENTIAL_LIMITS
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
@@ -3364,15 +3362,15 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
 #if ENABLE_ALLOW_NEGATIVE_Z
-        double shift_z = m->get_instance_min_z(i.second);
+        const double shift_z = m->get_instance_min_z(i.second);
 #if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
         if (current_printer_technology() == ptSLA || shift_z > 0.0) {
 #else
         if (shift_z > 0.0) {
 #endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
-            Vec3d shift(0.0, 0.0, -shift_z);
+            const Vec3d shift(0.0, 0.0, -shift_z);
 #else
-        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+        const Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
 #endif // ENABLE_ALLOW_NEGATIVE_Z
         m_selection.translate(i.first, i.second, shift);
         m->translate_instance(i.second, shift);
@@ -3393,6 +3391,10 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
 
     if (wipe_tower_origin != Vec3d::Zero())
         post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
+
+#if ENABLE_SEQUENTIAL_LIMITS
+    set_sequential_print_clearance(Polygons());
+#endif // ENABLE_SEQUENTIAL_LIMITS
 
     m_dirty = true;
 }
