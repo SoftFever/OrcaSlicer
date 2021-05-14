@@ -1071,28 +1071,6 @@ std::string GLVolumeCollection::log_memory_info() const
 	return " (GLVolumeCollection RAM: " + format_memsize_MB(this->cpu_memory_used()) + " GPU: " + format_memsize_MB(this->gpu_memory_used()) + " Both: " + format_memsize_MB(this->gpu_memory_used()) + ")";
 }
 
-bool can_export_to_obj(const GLVolume& volume)
-{
-    if (!volume.is_active || !volume.is_extrusion_path)
-        return false;
-
-    bool has_triangles = !volume.indexed_vertex_array.triangle_indices.empty() || (std::min(volume.indexed_vertex_array.triangle_indices_size, volume.tverts_range.second - volume.tverts_range.first) > 0);
-    bool has_quads = !volume.indexed_vertex_array.quad_indices.empty() || (std::min(volume.indexed_vertex_array.quad_indices_size, volume.qverts_range.second - volume.qverts_range.first) > 0);
-
-    return has_triangles || has_quads;
-}
-
-bool GLVolumeCollection::has_toolpaths_to_export() const
-{
-    for (const GLVolume* volume : this->volumes)
-    {
-        if (can_export_to_obj(*volume))
-            return true;
-    }
-
-    return false;
-}
-
 // caller is responsible for supplying NO lines with zero length
 static void thick_lines_to_indexed_vertex_array(
     const Lines                 &lines, 

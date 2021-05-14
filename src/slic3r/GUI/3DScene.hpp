@@ -590,8 +590,6 @@ public:
     // Return CPU, GPU and total memory log line.
     std::string         log_memory_info() const;
 
-    bool                has_toolpaths_to_export() const;
-
 private:
     GLVolumeCollection(const GLVolumeCollection &other);
     GLVolumeCollection& operator=(const GLVolumeCollection &);
