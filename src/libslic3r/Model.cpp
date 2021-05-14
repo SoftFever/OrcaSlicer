@@ -901,13 +901,19 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
 				for (const stl_facet &facet : stl.facet_start)
                     for (size_t j = 0; j < 3; ++ j) {
                         Vec3d p = trafo * facet.vertex[j].cast<double>();
-                        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+#if ENABLE_ALLOW_NEGATIVE_Z
+                        if (p.z() >= 0.0)
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+                            pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                     }
             } else {
                 // Using the shared vertices should be a bit quicker than using the STL faces.
                 for (size_t i = 0; i < its.vertices.size(); ++ i) {
                     Vec3d p = trafo * its.vertices[i].cast<double>();
-                    pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+#if ENABLE_ALLOW_NEGATIVE_Z
+                    if (p.z() >= 0.0)
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+                        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                 }
             }
         }

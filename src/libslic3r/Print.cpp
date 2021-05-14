@@ -371,6 +371,15 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
 	        // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
 	        // which causes that the warning will be showed after arrangement with the
 	        // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
+#if ENABLE_ALLOW_NEGATIVE_Z
+            it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, model_object_id,
+                offset(print_object->model_object()->convex_hull_2d(
+                    Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
+                    // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
+                    // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
+                    float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
+                    jtRound, float(scale_(0.1))).front());
+#else
 	        it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, model_object_id, 
                 offset(print_object->model_object()->convex_hull_2d(
 	                        Geometry::assemble_transform(Vec3d::Zero(), model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
@@ -378,7 +387,8 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
 	                // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
 	                float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
 	                jtRound, float(scale_(0.1))).front());
-	    }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+        }
 	    // Make a copy, so it may be rotated for instances.
 	    Polygon convex_hull0 = it_convex_hull->second;
 		double z_diff = Geometry::rotation_diff_z(model_instance0->get_rotation(), print_object->instances().front().model_instance->get_rotation());
