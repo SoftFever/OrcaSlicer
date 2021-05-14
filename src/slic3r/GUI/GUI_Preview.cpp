@@ -661,31 +661,32 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
             // if it's sign, than object have not to be a too height
             double height = object->height();
             coord_t longer_side = std::max(object_x, object_y);
-            if (height / longer_side > 0.3)
+            auto   num_layers = int(object->layers().size());
+            if (height / longer_side > 0.3 || num_layers < 2)
                 continue;
 
             const ExPolygons& bottom = object->get_layer(0)->lslices;
             double bottom_area = area(bottom);
 
             // at least 30% of object's height have to be a solid 
-            size_t i;
-            for (i = 1; i < size_t(0.3 * object->layers().size()); i++) {
+            int  i;
+            for (i = 1; i < int(0.3 * num_layers); ++ i) {
                 double cur_area = area(object->get_layer(i)->lslices);
                 if (cur_area != bottom_area && fabs(cur_area - bottom_area) > scale_(scale_(1)))
                     break;
             }
-            if (i < size_t(0.3 * object->layers().size()))
+            if (i < size_t(0.3 * num_layers))
                 continue;
 
             // bottom layer have to be a biggest, so control relation between bottom layer and object size
             double prev_area = area(object->get_layer(i)->lslices);
-            for ( i++; i < object->layers().size(); i++) {
+            for ( i++; i < num_layers; i++) {
                 double cur_area = area(object->get_layer(i)->lslices);
                 if (cur_area > prev_area && prev_area - cur_area > scale_(scale_(1)))
                     break;
                 prev_area = cur_area;
             }
-            if (i < object->layers().size())
+            if (i < num_layers)
                 continue;
 
             double top_area = area(object->get_layer(int(object->layers().size()) - 1)->lslices);
