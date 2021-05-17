@@ -1906,8 +1906,13 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
     Transform3d trafo_instance =
+#if ENABLE_ALLOW_NEGATIVE_Z
+        Geometry::assemble_transform(get_offset().z() * Vec3d::UnitZ(), rotation,
+                                     get_scaling_factor(), get_mirror());
+#else
         Geometry::assemble_transform(Vec3d::Zero(), rotation,
                                      get_scaling_factor(), get_mirror());
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     Polygon p = get_object()->convex_hull_2d(trafo_instance);
 
