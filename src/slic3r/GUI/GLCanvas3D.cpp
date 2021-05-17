@@ -2949,6 +2949,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.position = pos.cast<double>();
+
         return;
     }
 
@@ -3147,7 +3148,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     // See GH issue #3816.
                     Camera& camera = wxGetApp().plater()->get_camera();
                     camera.recover_from_free_camera();
-                    camera.rotate_on_sphere(rot.x(), rot.y(), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+                    camera.rotate_on_sphere(rot.x(), rot.y(), current_printer_technology() != ptSLA);
                 }
 
                 m_dirty = true;
@@ -4837,7 +4838,7 @@ void GLCanvas3D::_render_background() const
     bool use_error_color = false;
     if (wxGetApp().is_editor()) {
         use_error_color = m_dynamic_background_enabled &&
-            (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA || !m_volumes.empty());
+        (current_printer_technology() != ptSLA || !m_volumes.empty());
 
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
@@ -5255,7 +5256,7 @@ void GLCanvas3D::_render_camera_target() const
 
 void GLCanvas3D::_render_sla_slices() const
 {
-    if (!m_use_clipping_planes || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+    if (!m_use_clipping_planes || current_printer_technology() != ptSLA)
         return;
 
     const SLAPrint* print = this->sla_print();

@@ -753,6 +753,9 @@ public:
     }
 #endif // ENABLE_SEQUENTIAL_LIMITS
 
+    const Print* fff_print() const;
+    const SLAPrint* sla_print() const;
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -858,10 +861,6 @@ private:
     float get_overlay_window_width() { return LayersEditing::get_overlay_window_width(); }
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
-
-public:
-    const Print* fff_print() const;
-    const SLAPrint* sla_print() const;
 };
 
 } // namespace GUI
