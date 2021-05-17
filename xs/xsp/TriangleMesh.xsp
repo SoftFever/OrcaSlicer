@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/TriangleMeshSlicer.hpp"
 %}
 
 %name{Slic3r::TriangleMesh} class TriangleMesh {
@@ -181,8 +182,7 @@ TriangleMesh::slice(z)
         std::vector<float> z_f = cast<float>(z);
         
         std::vector<ExPolygons> layers;
-        TriangleMeshSlicer mslicer(THIS);
-        mslicer.slice(z_f, SlicingMode::Regular, 0.049f, &layers, [](){});
+        slice_mesh(*THIS, z_f, 0.049f, layers);
         
         AV* layers_av = newAV();
         size_t len = layers.size();

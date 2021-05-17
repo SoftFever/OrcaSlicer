@@ -83,12 +83,6 @@ void SVG::draw(const Lines &lines, std::string stroke, coordf_t stroke_width)
         this->draw(l, stroke, stroke_width);
 }
 
-void SVG::draw(const IntersectionLines &lines, std::string stroke)
-{
-    for (const IntersectionLine &il : lines)
-        this->draw((Line)il, stroke);
-}
-
 void SVG::draw(const ExPolygon &expolygon, std::string fill, const float fill_opacity)
 {
     this->fill = fill;

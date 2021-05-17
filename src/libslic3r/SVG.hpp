@@ -43,8 +43,7 @@ public:
     void draw(const Line &line, std::string stroke = "black", coordf_t stroke_width = 0);
     void draw(const ThickLine &line, const std::string &fill, const std::string &stroke, coordf_t stroke_width = 0);
     void draw(const Lines &lines, std::string stroke = "black", coordf_t stroke_width = 0);
-    void draw(const IntersectionLines &lines, std::string stroke = "black");
-
+    
     void draw(const ExPolygon &expolygon, std::string fill = "grey", const float fill_opacity=1.f);
     void draw_outline(const ExPolygon &polygon, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0);
     void draw(const ExPolygons &expolygons, std::string fill = "grey", const float fill_opacity=1.f);

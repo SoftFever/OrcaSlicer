@@ -13,6 +13,7 @@
 #include <libslic3r/SVG.hpp>
 #include <libslic3r/ClipperUtils.hpp>
 
+#include <libslic3r/TriangleMeshSlicer.hpp>
 #include <libslic3r/TriangulateWall.hpp>
 #include <libslic3r/Tesselate.hpp>
 #include <libslic3r/SlicesToTriangleMesh.hpp>
@@ -320,7 +321,7 @@ static void recreate_object_from_rasters(const std::string &objname, float lh) {
     bb = mesh.bounding_box();
     
     std::vector<ExPolygons> layers;
-    slice_mesh(mesh, grid(float(bb.min.z()) + lh, float(bb.max.z()), lh), layers, 0.f, []{});
+    slice_mesh(mesh, grid(float(bb.min.z()) + lh, float(bb.max.z()), lh), layers);
     
     sla::RasterBase::Resolution res{2560, 1440};
     double                      disp_w = 120.96;

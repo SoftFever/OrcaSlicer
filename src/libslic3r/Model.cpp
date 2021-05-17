@@ -3,6 +3,7 @@
 #include "ModelArrange.hpp"
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
+#include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
 
 #include "Format/AMF.hpp"
