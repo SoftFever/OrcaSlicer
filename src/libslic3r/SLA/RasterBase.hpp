@@ -72,7 +72,8 @@ public:
         size_t width_px = 0;
         size_t height_px = 0;
         
-        Resolution(size_t w = 0, size_t h = 0) : width_px(w), height_px(h) {}
+        Resolution() = default;
+        Resolution(size_t w, size_t h) : width_px(w), height_px(h) {}
         size_t pixels() const { return width_px * height_px; }
     };
     
@@ -81,7 +82,8 @@ public:
         double w_mm = 1.;
         double h_mm = 1.;
         
-        PixelDim(double px_width_mm = 0.0, double px_height_mm = 0.0)
+        PixelDim() = default;
+        PixelDim(double px_width_mm, double px_height_mm)
             : w_mm(px_width_mm), h_mm(px_height_mm)
         {}
     };
