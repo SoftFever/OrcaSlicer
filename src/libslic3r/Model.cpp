@@ -893,6 +893,30 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
     Points pts;
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part()) {
+#if ENABLE_ALLOW_NEGATIVE_Z
+            const Transform3d trafo = trafo_instance * v->get_matrix();
+            const TriangleMesh& hull_3d = v->get_convex_hull();
+            const indexed_triangle_set& its = hull_3d.its;
+            if (its.vertices.empty()) {
+                // Using the STL faces.
+                const stl_file& stl = hull_3d.stl;
+                for (const stl_facet& facet : stl.facet_start) {
+                    for (size_t j = 0; j < 3; ++j) {
+                        const Vec3d p = trafo * facet.vertex[j].cast<double>();
+                        if (p.z() >= 0.0)
+                            pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+                    }
+                }
+            }
+            else {
+                // Using the shared vertices should be a bit quicker than using the STL faces.
+                for (size_t i = 0; i < its.vertices.size(); ++i) {
+                    const Vec3d p = trafo * its.vertices[i].cast<double>();
+                    if (p.z() >= 0.0)
+                        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+                }
+            }
+#else
             Transform3d trafo = trafo_instance * v->get_matrix();
 			const indexed_triangle_set &its = v->mesh().its;
 			if (its.vertices.empty()) {
@@ -901,21 +925,16 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
 				for (const stl_facet &facet : stl.facet_start)
                     for (size_t j = 0; j < 3; ++ j) {
                         Vec3d p = trafo * facet.vertex[j].cast<double>();
-#if ENABLE_ALLOW_NEGATIVE_Z
-                        if (p.z() >= 0.0)
-#endif // ENABLE_ALLOW_NEGATIVE_Z
                             pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                     }
             } else {
                 // Using the shared vertices should be a bit quicker than using the STL faces.
                 for (size_t i = 0; i < its.vertices.size(); ++ i) {
                     Vec3d p = trafo * its.vertices[i].cast<double>();
-#if ENABLE_ALLOW_NEGATIVE_Z
-                    if (p.z() >= 0.0)
-#endif // ENABLE_ALLOW_NEGATIVE_Z
                         pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                 }
             }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
         }
     std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
     pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
