@@ -424,10 +424,13 @@ private:
     struct Ruler {
         double long_step;
         double short_step;
-        int count { 1 }; // > 1 for sequential print
+        std::vector<double> max_values;// max value for each object/instance in sequence print
+                                       // > 1 for sequential print
 
+        void init(const std::vector<double>& values);
         void update(wxWindow* win, const std::vector<double>& values, double scroll_step);
         bool is_ok() { return long_step > 0 && short_step > 0; }
+        size_t count() { return max_values.size(); }
     } m_ruler;
 };
 

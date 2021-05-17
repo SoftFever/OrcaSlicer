@@ -254,7 +254,7 @@ void Control::SetMaxValue(const int max_value)
 void Control::SetSliderValues(const std::vector<double>& values)
 {
     m_values = values;
-    m_ruler.count = std::count(m_values.begin(), m_values.end(), m_values.front());
+    m_ruler.init(m_values);
 }
 
 void Control::draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos)
@@ -1023,8 +1023,23 @@ void Control::draw_colored_band(wxDC& dc)
     }
 }
 
+void Control::Ruler::init(const std::vector<double>& values)
+{
+    max_values.clear();
+    max_values.reserve(std::count(values.begin(), values.end(), values.front()));
+
+    auto it = std::find(values.begin() + 1, values.end(), values.front());
+    while (it != values.end()) {
+        max_values.push_back(*(it - 1));
+        it = std::find(it + 1, values.end(), values.front());
+    }
+    max_values.push_back(*(it - 1));
+}
+
 void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, double scroll_step)
 {
+    if (values.empty())
+        return;
     int DPI = GUI::get_dpi_for_window(win);
     int pixels_per_sm = lround((double)(DPI) * 5.0/25.4);
 
@@ -1035,7 +1050,7 @@ void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, do
 
     int pow = -2;
     int step = 0;
-    auto end_it = count == 1 ? values.end() : values.begin() + lround(values.size() / count);
+    auto end_it = std::find(values.begin() + 1, values.end(), values.front());
 
     while (pow < 3) {
         for (int istep : {1, 2, 5}) {
@@ -1099,7 +1114,7 @@ void Control::draw_ruler(wxDC& dc)
         double short_tick = std::nan("");
         int tick = 0;
         double value = 0.0;
-        int sequence = 0;
+        size_t sequence = 0;
 
         int prev_y_pos = -1;
         wxCoord label_height = dc.GetMultiLineTextExtent("0").y - 2;
@@ -1107,7 +1122,7 @@ void Control::draw_ruler(wxDC& dc)
 
         while (tick <= m_max_value) {
             value += m_ruler.long_step;
-            if (value > m_values.back() && sequence < m_ruler.count) {
+            if (value > m_ruler.max_values[sequence] && sequence < m_ruler.count()) {
                 value = m_ruler.long_step;
                 for (; tick < values_size; tick++)
                     if (m_values[tick] < value)
@@ -1140,7 +1155,7 @@ void Control::draw_ruler(wxDC& dc)
 
             draw_short_ticks(dc, short_tick, tick);
 
-            if (value == m_values.back() && sequence < m_ruler.count) {
+            if (value == m_ruler.max_values[sequence] && sequence < m_ruler.count()) {
                 value = 0.0;
                 sequence++;
                 tick++;
