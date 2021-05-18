@@ -27,7 +27,7 @@ struct MeshSlicingParams
     // Mode to apply below slicing_mode_normal_below_layer. Ignored if slicing_mode_nromal_below_layer == 0.
     SlicingMode   mode_below { SlicingMode::Regular };
     // Transforming faces during the slicing.
-    Transform3f   trafo { Transform3f::Identity() };
+    Transform3d   trafo { Transform3d::Identity() };
 };
 
 struct MeshSlicingParamsEx : public MeshSlicingParams

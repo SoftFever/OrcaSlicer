@@ -77,7 +77,7 @@ void MeshClipper::recalculate_triangles()
 
     // Now do the cutting
     MeshSlicingParamsEx slicing_params;
-    slicing_params.trafo.rotate(Eigen::Quaternion<double, Eigen::DontAlign>::FromTwoVectors(up, Vec3d::UnitZ()).cast<float>());
+    slicing_params.trafo.rotate(Eigen::Quaternion<double, Eigen::DontAlign>::FromTwoVectors(up, Vec3d::UnitZ()));
 
     assert(m_mesh->has_shared_vertices());
     std::vector<ExPolygons> list_of_expolys = slice_mesh_ex(m_mesh->its, std::vector<float>{height_mesh}, slicing_params);
