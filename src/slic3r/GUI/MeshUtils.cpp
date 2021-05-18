@@ -2,6 +2,7 @@
 
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/TriangleMeshSlicer.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 
 #include "slic3r/GUI/Camera.hpp"
@@ -83,16 +84,17 @@ void MeshClipper::recalculate_triangles()
     // Now do the cutting
     std::vector<ExPolygons> list_of_expolys;
     m_tms->set_up_direction(up.cast<float>());
-    m_tms->slice(std::vector<float>{height_mesh}, SlicingMode::Regular, 0.f, &list_of_expolys, [](){});
+    m_tms->slice(std::vector<float>{height_mesh}, MeshSlicingParamsExtended{}, &list_of_expolys);
 
     if (m_negative_mesh && !m_negative_mesh->empty()) {
         TriangleMeshSlicer negative_tms{m_negative_mesh};
         negative_tms.set_up_direction(up.cast<float>());
 
         std::vector<ExPolygons> neg_polys;
-        negative_tms.slice(std::vector<float>{height_mesh}, SlicingMode::Regular, 0.f, &neg_polys, [](){});
+        negative_tms.slice(std::vector<float>{height_mesh}, MeshSlicingParamsExtended{}, &neg_polys);
         list_of_expolys.front() = diff_ex(list_of_expolys.front(), neg_polys.front());
     }
+   
     m_triangles2d = triangulate_expolygons_2f(list_of_expolys[0], m_trafo.get_matrix().matrix().determinant() < 0.);
 
     // Rotate the cut into world coords:

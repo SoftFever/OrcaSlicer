@@ -10,6 +10,7 @@
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
+#include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
 #include "Fill/FillAdaptive.hpp"
 #include "Format/STL.hpp"
@@ -2221,9 +2222,8 @@ std::vector<ExPolygons> PrintObject::slice_volumes(
             auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
             // TriangleMeshSlicer needs shared vertices, also this calls the repair() function.
             mesh.require_shared_vertices();
-            TriangleMeshSlicer mslicer;
-            mslicer.init(&mesh, callback);
-			mslicer.slice(z, mode, slicing_mode_normal_below_layer, mode_below, float(m_config.slice_closing_radius.value), &layers, callback);
+            MeshSlicingParamsExtended params { { mode, slicing_mode_normal_below_layer, mode_below }, float(m_config.slice_closing_radius.value) };
+			slice_mesh(mesh, z, params, layers, callback);
             m_print->throw_if_canceled();
         }
     }
@@ -2245,13 +2245,14 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, S
 	        // apply XY shift
 	        mesh.translate(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0);
 	        // perform actual slicing
-	        TriangleMeshSlicer mslicer;
 	        const Print *print = this->print();
 	        auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
 	        // TriangleMeshSlicer needs the shared vertices.
 	        mesh.require_shared_vertices();
-	        mslicer.init(&mesh, callback);
-	        mslicer.slice(z, mode, float(m_config.slice_closing_radius.value), &layers, callback);
+            MeshSlicingParamsExtended params;
+            params.mode = mode;
+            params.closing_radius = float(m_config.slice_closing_radius.value);
+	        slice_mesh(mesh, z, params, layers, callback);
 	        m_print->throw_if_canceled();
 	    }
 	}

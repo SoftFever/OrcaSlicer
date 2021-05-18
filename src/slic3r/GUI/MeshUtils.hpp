@@ -3,6 +3,7 @@
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/TriangleMeshSlicer.hpp"
 #include "libslic3r/SLA/IndexedMesh.hpp"
 #include "admesh/stl.h"
 
@@ -11,9 +12,6 @@
 #include <cfloat>
 
 namespace Slic3r {
-
-class TriangleMesh;
-class TriangleMeshSlicer;
 
 namespace GUI {
 

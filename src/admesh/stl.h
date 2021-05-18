@@ -135,7 +135,7 @@ struct stl_file {
 	std::vector<stl_facet>     		facet_start;
 	std::vector<stl_neighbors> 		neighbors_start;
 	// Statistics
-	stl_stats     					stats;
+	stl_stats     					      stats;
 };
 
 struct indexed_triangle_set
@@ -149,9 +149,9 @@ struct indexed_triangle_set
 	}
 
 	std::vector<stl_triangle_vertex_indices> 	indices;
-	std::vector<stl_vertex>       				vertices;
+	std::vector<stl_vertex>       				    vertices;
 	//FIXME add normals once we get rid of the stl_file from TriangleMesh completely.
-	//std::vector<stl_normal> 					normals
+	//std::vector<stl_normal> 					      normals
 };
 
 extern bool stl_open(stl_file *stl, const char *file);

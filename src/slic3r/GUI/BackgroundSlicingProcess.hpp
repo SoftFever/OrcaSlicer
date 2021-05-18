@@ -5,6 +5,8 @@
 #include <condition_variable>
 #include <mutex>
 
+#include <boost/thread.hpp>
+
 #include <wx/event.h>
 
 #include "libslic3r/PrintBase.hpp"
