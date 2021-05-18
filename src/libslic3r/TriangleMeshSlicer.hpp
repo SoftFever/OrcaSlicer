@@ -36,7 +36,7 @@ struct MeshSlicingParamsEx : public MeshSlicingParams
     float         closing_radius { 0 };
     // Positive offset applied when creating output expolygons.
     float         extra_offset { 0 };
-    // Resolution for contour simplification.
+    // Resolution for contour simplification, scaled!
     // 0 = don't simplify.
     double        resolution { 0 };
 };

@@ -1057,6 +1057,10 @@ std::vector<Polygons> slice_mesh(
     std::vector<IntersectionLines> lines;
 
     {
+        //FIXME facets_edges is likely not needed and quite costly to calculate.
+        // Instead of edge identifiers, one shall use a sorted pair of edge vertex indices.
+        // However facets_edges assigns a single edge ID to two triangles only, thus when factoring facets_edges out, one will have
+        // to make sure that no code relies on it.
         std::vector<Vec3i>            facets_edges = create_face_neighbors_index(mesh);
         const bool                    identity     = params.trafo.matrix() == Transform3d::Identity().matrix();
         static constexpr const double s            = 1. / SCALING_FACTOR;
@@ -1165,6 +1169,9 @@ std::vector<ExPolygons> slice_mesh_ex(
                 const auto this_mode = layer_id < params.slicing_mode_normal_below_layer ? params.mode_below : params.mode;
                 if (this_mode == MeshSlicingParams::SlicingMode::PositiveLargestContour)
                     keep_largest_contour_only(expolygons);
+                if (params.resolution != 0.)
+                    for (ExPolygon &ex : expolygons)
+                        ex.simplify(params.resolution);
             }
         });
 //    BOOST_LOG_TRIVIAL(debug) << "slice_mesh make_expolygons in parallel - end";
@@ -1199,7 +1206,9 @@ static void triangulate_slice(
     {
         std::vector<int> map_duplicate_vertex(int(its.vertices.size()) - num_original_vertices, -1);
         int i = 0;
+        int k = 0;
         for (; i < int(map_vertex_to_index.size()); ++ i) {
+            map_vertex_to_index[k ++] = map_vertex_to_index[i];
             const Vec2f &ipos = map_vertex_to_index[i].first;
             const int    iidx = map_vertex_to_index[i].second;
             if (iidx >= num_original_vertices)
@@ -1214,6 +1223,7 @@ static void triangulate_slice(
                     map_duplicate_vertex[jidx - num_original_vertices] = iidx;
             }
         }
+        map_vertex_to_index.erase(map_vertex_to_index.begin() + k, map_vertex_to_index.end());
         for (stl_triangle_vertex_indices &f : its.indices)
             for (i = 0; i < 3; ++ i)
                 if (f(i) >= num_original_vertices)

@@ -779,6 +779,69 @@ std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its, 
     return create_face_neighbors_index_impl(its, throw_on_cancel_callback);
 }
 
+// Merge duplicate vertices, return number of vertices removed.
+int its_merge_vertices(indexed_triangle_set &its, bool shrink_to_fit)
+{
+    // 1) Sort indices to vertices lexicographically by coordinates AND vertex index.
+    auto sorted = reserve_vector<int>(its.vertices.size());
+    for (int i = 0; i < int(its.vertices.size()); ++ i)
+        sorted.emplace_back(i);
+    std::sort(sorted.begin(), sorted.end(), [&its](int il, int ir) {
+        const Vec3f &l = its.vertices[il];
+        const Vec3f &r = its.vertices[ir];
+        // Sort lexicographically by coordinates AND vertex index.
+        return l.x() < r.x() || (l.x() == r.x() && (l.y() < r.y() || (l.y() == r.y() && (l.z() < r.z() || (l.z() == r.z() && il < ir)))));
+    });
+
+    // 2) Map duplicate vertices to the one with the lowest vertex index.
+    // The vertex to stay will have a map_vertices[...] == -1 index assigned, the other vertices will point to it.
+    std::vector<int> map_vertices(its.vertices.size(), -1);
+    for (int i = 0; i < int(sorted.size());) {
+        const int    u = sorted[i];
+        const Vec3f &p = its.vertices[u];
+        int j = i;
+        for (++ j; j < int(sorted.size()); ++ j) {
+            const int    v = sorted[j];
+            const Vec3f &q = its.vertices[v];
+            if (p != q)
+                break;
+            assert(v > u);
+            map_vertices[v] = u;
+        }
+        i = j;
+    }
+
+    // 3) Shrink its.vertices, update map_vertices with the new vertex indices.
+    int k = 0;
+    for (int i = 0; i < int(its.vertices.size()); ++ i) {
+        if (map_vertices[i] == -1) {
+            map_vertices[i] = k;
+            if (k < i)
+                its.vertices[k] = its.vertices[i];
+            ++ k;
+        } else {
+            assert(map_vertices[i] < i);
+            map_vertices[i] = map_vertices[map_vertices[i]];
+        }
+    }
+
+    int num_erased = int(its.vertices.size()) - k;
+
+    if (num_erased) {
+        // Shrink the vertices.
+        its.vertices.erase(its.vertices.begin() + k, its.vertices.end());
+        // Remap face indices.
+        for (stl_triangle_vertex_indices &face : its.indices)
+            for (int i = 0; i < 3; ++ i)
+                face(i) = map_vertices[face(i)];
+        // Optionally shrink to fit (reallocate) vertices.
+        if (shrink_to_fit)
+            its.vertices.shrink_to_fit();
+    }
+
+    return num_erased;
+}
+
 int its_remove_degenerate_faces(indexed_triangle_set &its, bool shrink_to_fit)
 {
     int last = 0;
