@@ -1084,6 +1084,8 @@ void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, do
 
 void Control::draw_ruler(wxDC& dc)
 {
+    if (m_values.empty())
+        return;
     m_ruler.update(this->GetParent(), m_values, get_scroll_step());
 
     int height, width;
