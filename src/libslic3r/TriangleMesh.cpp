@@ -615,9 +615,8 @@ std::vector<ExPolygons> TriangleMesh::slice(const std::vector<double> &z)
 {
     // convert doubles to floats
     std::vector<float> z_f(z.begin(), z.end());
-    std::vector<ExPolygons> layers;
-    slice_mesh(*this, z_f, 0.0004f, layers);
-    return layers;
+    assert(this->has_shared_vertices());
+    return slice_mesh_ex(this->its, z_f, 0.0004f);
 }
 
 void TriangleMesh::require_shared_vertices()
@@ -686,11 +685,12 @@ std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangl
     return index;
 }
 
-// Map from a facet edge to a neighbor face index or -1 if no neighbor exists.
+// Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
+// Two neighbor faces share a unique edge identifier even if they are flipped.
 template<typename ThrowOnCancelCallback>
-static inline std::vector<int> create_face_neighbors_index_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
+static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
 {
-    std::vector<int> out(its.indices.size() * 3, -1);
+    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
 
     // Create a mapping from triangle edge into face.
     struct EdgeToFace {
@@ -754,10 +754,10 @@ static inline std::vector<int> create_face_neighbors_index_impl(const indexed_tr
                 }
         }
         // Assign an edge index to the 1st face.
-        out[edge_i.face * 3 + std::abs(edge_i.face_edge) - 1] = num_edges;
+        out[edge_i.face](std::abs(edge_i.face_edge) - 1) = num_edges;
         if (found) {
             EdgeToFace &edge_j = edges_map[j];
-            out[edge_j.face * 3 + std::abs(edge_j.face_edge) - 1] = num_edges;
+            out[edge_j.face](std::abs(edge_j.face_edge) - 1) = num_edges;
             // Mark the edge as connected.
             edge_j.face = -1;
         }
@@ -769,12 +769,12 @@ static inline std::vector<int> create_face_neighbors_index_impl(const indexed_tr
     return out;
 }
 
-std::vector<int> create_face_neighbors_index(const indexed_triangle_set &its)
+std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its)
 {
     return create_face_neighbors_index_impl(its, [](){});
 }
 
-std::vector<int> create_face_neighbors_index(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback)
+std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback)
 {
     return create_face_neighbors_index_impl(its, throw_on_cancel_callback);
 }

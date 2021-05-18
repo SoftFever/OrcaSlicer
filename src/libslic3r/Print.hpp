@@ -8,6 +8,7 @@
 #include "Flow.hpp"
 #include "Point.hpp"
 #include "Slicing.hpp"
+#include "TriangleMeshSlicer.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
 #include "GCode/ThumbnailData.hpp"
@@ -24,7 +25,6 @@ class Print;
 class PrintObject;
 class ModelObject;
 class GCode;
-enum class SlicingMode : uint32_t;
 class Layer;
 class SupportLayer;
 
@@ -345,18 +345,18 @@ private:
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
 
-    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below) const;
-    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const
+    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, MeshSlicingParams::SlicingMode mode, size_t slicing_mode_normal_below_layer, MeshSlicingParams::SlicingMode mode_below) const;
+    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, MeshSlicingParams::SlicingMode mode) const
         { return this->slice_region(region_id, z, mode, 0, mode); }
     std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;
     std::vector<ExPolygons> slice_volumes(
         const std::vector<float> &z, 
-        SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below, 
+        MeshSlicingParams::SlicingMode mode, size_t slicing_mode_normal_below_layer, MeshSlicingParams::SlicingMode mode_below,
         const std::vector<const ModelVolume*> &volumes) const;
-    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const
+    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, MeshSlicingParams::SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const
         { return this->slice_volumes(z, mode, 0, mode, volumes); }
-    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, SlicingMode mode, const ModelVolume &volume) const;
-    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, SlicingMode mode, const ModelVolume &volume) const;
+    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, MeshSlicingParams::SlicingMode mode, const ModelVolume &volume) const;
+    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, MeshSlicingParams::SlicingMode mode, const ModelVolume &volume) const;
 };
 
 struct WipeTowerData

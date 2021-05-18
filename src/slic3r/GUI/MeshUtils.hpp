@@ -3,7 +3,6 @@
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
-#include "libslic3r/TriangleMeshSlicer.hpp"
 #include "libslic3r/SLA/IndexedMesh.hpp"
 #include "admesh/stl.h"
 
@@ -96,7 +95,6 @@ private:
     std::vector<Vec2f> m_triangles2d;
     GLIndexedVertexArray m_vertex_array;
     bool m_triangles_valid = false;
-    std::unique_ptr<TriangleMeshSlicer> m_tms;
 };
 
 

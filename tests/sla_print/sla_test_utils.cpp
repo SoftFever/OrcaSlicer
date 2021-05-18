@@ -102,7 +102,8 @@ void test_supports(const std::string          &obj_filename,
     auto   layer_h = 0.05f;
     
     out.slicegrid = grid(float(gnd), float(zmax), layer_h);
-    slice_mesh(mesh, out.slicegrid, CLOSING_RADIUS, out.model_slices);
+    assert(mesh.has_shared_vertices());
+    out.model_slices = slice_mesh_ex(mesh.its, out.slicegrid, CLOSING_RADIUS);
     sla::cut_drainholes(out.model_slices, out.slicegrid, CLOSING_RADIUS, drainholes, []{});
     
     // Create the special index-triangle mesh with spatial indexing which
@@ -466,10 +467,10 @@ sla::SupportPoints calc_support_pts(
     const sla::SupportPointGenerator::Config &cfg)
 {
     // Prepare the slice grid and the slices
-    std::vector<ExPolygons> slices;
     auto                    bb      = cast<float>(mesh.bounding_box());
     std::vector<float>      heights = grid(bb.min.z(), bb.max.z(), 0.1f);
-    slice_mesh(mesh, heights, CLOSING_RADIUS, slices);
+    assert(mesh.has_shared_vertices());
+    std::vector<ExPolygons> slices  = slice_mesh_ex(mesh.its, heights, CLOSING_RADIUS);
 
     // Prepare the support point calculator
     sla::IndexedMesh emesh{mesh};

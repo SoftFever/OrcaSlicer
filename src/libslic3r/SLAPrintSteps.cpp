@@ -475,7 +475,8 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     float closing_r  = float(po.config().slice_closing_radius.value);
     auto  thr        = [this]() { m_print->throw_if_canceled(); };
     auto &slice_grid = po.m_model_height_levels;
-    slice_mesh(mesh, slice_grid, closing_r, po.m_model_slices, thr);
+    assert(mesh.has_shared_vertices());
+    po.m_model_slices = slice_mesh_ex(mesh.its, slice_grid, closing_r, thr);
 
     sla::Interior *interior = po.m_hollowing_data ?
                                   po.m_hollowing_data->interior.get() :
@@ -485,8 +486,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         TriangleMesh interiormesh = sla::get_mesh(*interior);
         interiormesh.repaired = false;
         interiormesh.repair(true);
-        std::vector<ExPolygons> interior_slices;
-        slice_mesh(interiormesh, slice_grid, closing_r, interior_slices, thr);
+        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh.its, slice_grid, closing_r, thr);
 
         sla::ccr::for_each(size_t(0), interior_slices.size(),
                            [&po, &interior_slices] (size_t i) {

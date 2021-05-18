@@ -478,8 +478,8 @@ void pad_blueprint(const TriangleMesh &      mesh,
 {
     if (mesh.empty()) return;
 
-    auto out = reserve_vector<ExPolygons>(heights.size());
-    slice_mesh(mesh, heights, out, thrfn);
+    assert(mesh.has_shared_vertices());
+    std::vector<ExPolygons> out = slice_mesh_ex(mesh.its, heights, thrfn);
 
     size_t count = 0;
     for(auto& o : out) count += o.size();
