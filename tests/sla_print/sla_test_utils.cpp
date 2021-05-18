@@ -2,6 +2,8 @@
 #include "libslic3r/TriangleMeshSlicer.hpp"
 #include "libslic3r/SLA/AGGRaster.hpp"
 
+#include <iomanip>
+
 void test_support_model_collision(const std::string          &obj_filename,
                                   const sla::SupportTreeConfig   &input_supportcfg,
                                   const sla::HollowingConfig &hollowingcfg,
