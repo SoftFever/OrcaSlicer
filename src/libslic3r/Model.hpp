@@ -482,9 +482,10 @@ private:
 enum class ModelVolumeType : int {
     INVALID = -1,
     MODEL_PART = 0,
+    NEGATIVE_VOLUME,
     PARAMETER_MODIFIER,
-    SUPPORT_ENFORCER,
     SUPPORT_BLOCKER,
+    SUPPORT_ENFORCER,
 };
 
 enum class EnforcerBlockerType : int8_t {
@@ -591,6 +592,7 @@ public:
     ModelVolumeType     type() const { return m_type; }
     void                set_type(const ModelVolumeType t) { m_type = t; }
 	bool                is_model_part()         const { return m_type == ModelVolumeType::MODEL_PART; }
+    bool                is_negative_volume()    const { return m_type == ModelVolumeType::NEGATIVE_VOLUME; }
 	bool                is_modifier()           const { return m_type == ModelVolumeType::PARAMETER_MODIFIER; }
 	bool                is_support_enforcer()   const { return m_type == ModelVolumeType::SUPPORT_ENFORCER; }
 	bool                is_support_blocker()    const { return m_type == ModelVolumeType::SUPPORT_BLOCKER; }
@@ -813,6 +815,16 @@ private:
 	}
 };
 
+inline void model_volumes_sort_by_id(ModelVolumePtrs &model_volumes)
+{
+    std::sort(model_volumes.begin(), model_volumes.end(), [](const ModelVolume *l, const ModelVolume *r) { return l->id() < r->id(); });
+}
+
+inline const ModelVolume* model_volume_find_by_id(const ModelVolumePtrs &model_volumes, const ObjectID id)
+{
+    auto it = lower_bound_by_predicate(model_volumes.begin(), model_volumes.end(), [id](const ModelVolume *mv) { return mv->id() < id; });
+    return it != model_volume.end() && (*it)->id() == id ? *it : nullptr;
+}
 
 enum ModelInstanceEPrintVolumeState : unsigned char
 {

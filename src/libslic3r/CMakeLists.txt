@@ -169,6 +169,7 @@ add_library(libslic3r STATIC
     PrintConfig.cpp
     PrintConfig.hpp
     PrintObject.cpp
+    PrintObjectSlice.cpp
     PrintRegion.cpp
     PNGReadWrite.hpp
     PNGReadWrite.cpp

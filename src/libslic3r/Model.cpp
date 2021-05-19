@@ -1667,6 +1667,8 @@ ModelVolumeType ModelVolume::type_from_string(const std::string &s)
     // New type (supporting the support enforcers & blockers)
     if (s == "ModelPart")
 		return ModelVolumeType::MODEL_PART;
+    if (s == "NegativeVolume")
+        return ModelVolumeType::NEGATIVE_VOLUME;
     if (s == "ParameterModifier")
 		return ModelVolumeType::PARAMETER_MODIFIER;
     if (s == "SupportEnforcer")
@@ -1682,6 +1684,7 @@ std::string ModelVolume::type_to_string(const ModelVolumeType t)
 {
     switch (t) {
 	case ModelVolumeType::MODEL_PART:         return "ModelPart";
+    case ModelVolumeType::NEGATIVE_VOLUME:    return "NegativeVolume";
 	case ModelVolumeType::PARAMETER_MODIFIER: return "ParameterModifier";
 	case ModelVolumeType::SUPPORT_ENFORCER:   return "SupportEnforcer";
 	case ModelVolumeType::SUPPORT_BLOCKER:    return "SupportBlocker";

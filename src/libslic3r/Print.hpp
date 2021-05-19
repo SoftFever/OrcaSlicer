@@ -74,6 +74,7 @@ public:
     size_t                      config_hash() const throw() { return m_config_hash; }
     // Identifier of this PrintRegion in the list of Print::m_print_regions.
     int                         print_region_id() const throw() { return m_print_region_id; }
+    int                         print_object_region_id() const throw() { return m_print_object_region_id; }
 	// 1-based extruder identifier for this region and role.
 	unsigned int 				extruder(FlowRole role) const;
     Flow                        flow(const PrintObject &object, FlowRole role, double layer_height, bool first_layer = false) const;
@@ -96,7 +97,9 @@ private:
     friend Print;
     PrintRegionConfig  m_config;
     size_t             m_config_hash;
-    int                m_print_region_id = -1;
+    int                m_print_region_id { -1 };
+    int                m_print_object_region_id { -1 };
+    int                m_ref_cnt { 0 };
 };
 
 inline bool operator==(const PrintRegion &lhs, const PrintRegion &rhs) { return lhs.config_hash() == rhs.config_hash() && lhs.config() == rhs.config(); }
@@ -152,32 +155,74 @@ struct PrintInstance
 
 typedef std::vector<PrintInstance> PrintInstances;
 
-// Region and its volumes (printing volumes or modifier volumes)
-struct PrintRegionVolumes
+class PrintObjectRegions
 {
-    // Single volume + Z range assigned to a region.
-    struct VolumeWithZRange {
-        // Z range to slice this ModelVolume over.
-        t_layer_height_range         layer_height_range;
-        // Index of a ModelVolume inside its parent ModelObject.
-        int                          volume_idx;
+public:
+    // Bounding box of a ModelVolume transformed into the working space of a PrintObject, possibly
+    // clipped by a layer range modifier.
+    struct VolumeExtents {
+        ObjectID        volume_id;
+        BoundingBoxf    bbox;
     };
 
-    // Overriding one region with some other extruder, producing another region.
-    // The region is owned by PrintObject::m_all_regions.
-    struct ExtruderOverride {
-        unsigned int                 extruder;
-//        const PrintRegion           *region;
+    struct VolumeRegion
+    {
+        // ID of the associated ModelVolume.
+        const ModelVolume   *model_volume { nullptr };
+        // Index of a parent VolumeRegion.
+        int                  parent { -1 };
+        // Pointer to PrintObjectRegions::all_regions, null for a negative volume.
+        PrintRegion         *region { nullptr };
+        // Pointer to VolumeExtents::bbox.
+        const BoundingBoxf  *bbox { nullptr };
+        // To speed up merging of same regions.
+        const VolumeRegion  *prev_same_region { nullptr };
     };
 
-    // The region is owned by PrintObject::m_all_regions.
-//    const PrintRegion               *region;
-    // Possible overrides of the default region extruder.
-    std::vector<ExtruderOverride>    overrides;
-    // List of ModelVolume indices and layer ranges of thereof.
-    std::vector<VolumeWithZRange>    volumes;
-    // Is this region printing in any layer?
-//    bool                             printing { false };
+    struct PaintedRegion
+    {
+        // 1-based extruder identifier.
+        unsigned int     extruder_id;
+        // Index of a parent VolumeRegion.
+        int              parent { -1 };
+        // Pointer to PrintObjectRegions::all_regions.
+        PrintRegion     *region { nullptr };
+    }
+
+    // One slice over the PrintObject (possibly the whole PrintObject) and a list of ModelVolumes and their bounding boxes
+    // possibly clipped by the layer_height_range.
+    struct LayerRangeRegions
+    {
+        t_layer_height_range        layer_height_range;
+        // Config of the layer range, null if there is just a single range with no config override.
+        // Config is owned by the associated ModelObject.
+        const DynamicPrintConfig*   config { nullptr };
+        // Volumes sorted by ModelVolume::id().
+        std::vector<VolumeExtents>  volumes;
+
+        bool has_volume(const ObjectID id) {
+            auto it = lower_bound_by_predicate(this->volumes.begin(), this->volumes.end(), [id](const VolumeExtents &v){ return v.volume_id == id; });
+            return it != this->volumes.end() && it->volume_id == id;
+        }
+
+        // Sorted in the order of their source ModelVolumes, thus reflecting the order of region clipping, modifier overrides etc.
+        std::vector<VolumeRegion>      volume_regions;
+        std::vector<PaintedRegion>     painted_regions;
+    };
+
+    std::vector<std::unique_ptr<PrintRegion>>   all_regions;
+    std::vector<LayerRangeRegions>              layer_ranges;
+    // Transformation of this ModelObject into one of the associated PrintObjects (all PrintObjects derived from a single modelObject differ by a Z rotation only).
+    // This transformation is used to calculate VolumeExtents.
+    Matrix3x3f                                  trafo_bboxes;
+
+    size_t ref_cnt_inc() { ++ this->ref_cnt; }
+    size_t ref_cnt_dec() { if (-- this->ref_cnt == 0) delete *this; }
+
+private:
+    // Number of PrintObjects generated from the same ModelObject and sharing the regions.
+    // ref_cnt could only be modified by the main thread, thus it does not need to be atomic.
+    size_t                                      m_ref_cnt;
 };
 
 class PrintObject : public PrintObjectBaseWithState<Print, PrintObjectStep, posCount>
@@ -270,7 +315,7 @@ public:
     void slice();
 
     // Helpers to slice support enforcer / blocker meshes by the support generator.
-    std::vector<ExPolygons>     slice_support_volumes(const ModelVolumeType &model_volume_type) const;
+    std::vector<ExPolygons>     slice_support_volumes(const ModelVolumeType model_volume_type) const;
     std::vector<ExPolygons>     slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
     std::vector<ExPolygons>     slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
@@ -282,8 +327,8 @@ private:
     friend class Print;
 
 	PrintObject(Print* print, ModelObject* model_object, const Transform3d& trafo, PrintInstances&& instances);
-	~PrintObject() = default;
-
+	~PrintObject() { if (m_shared_regions && -- m_shared_regions->ref_cnt == 0) delete m_shared_regions; }
+ 
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { m_config.apply_only(other, keys, ignore_nonexistent); }
     PrintBase::ApplyStatus  set_instances(PrintInstances &&instances);
@@ -308,9 +353,7 @@ private:
     void ironing();
     void generate_support_material();
 
-    void _slice(const std::vector<coordf_t> &layer_height_profile);
-    std::string _fix_slicing_errors();
-    void simplify_slices(double distance);
+    void slice_volumes();
     // Has any support (not counting the raft).
     void detect_surfaces_type();
     void process_external_surfaces();
@@ -333,9 +376,9 @@ private:
     // This is the adjustment of the  the Object's coordinate system towards PrintObject's coordinate system.
     Point                                   m_center_offset;
 
-    std::vector<std::unique_ptr<PrintRegion>> m_all_regions;
-    // vector of (layer height ranges and vectors of volume ids), indexed by region_id
-    std::vector<PrintRegionVolumes>         m_region_volumes;
+    // Object split into layer ranges and regions with their associated configurations.
+    // Shared among PrintObjects created for the same ModelObject.
+    PrintObjectRegions                      m_shared_regions;
 
     SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;
@@ -344,19 +387,6 @@ private:
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
-
-    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below) const;
-    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode) const
-        { return this->slice_region(region_id, z, mode, 0, mode); }
-    std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;
-    std::vector<ExPolygons> slice_volumes(
-        const std::vector<float> &z, 
-        SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below, 
-        const std::vector<const ModelVolume*> &volumes) const;
-    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, SlicingMode mode, const std::vector<const ModelVolume*> &volumes) const
-        { return this->slice_volumes(z, mode, 0, mode, volumes); }
-    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, SlicingMode mode, const ModelVolume &volume) const;
-    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, SlicingMode mode, const ModelVolume &volume) const;
 };
 
 struct WipeTowerData
