@@ -113,6 +113,9 @@ int its_compactify_vertices(indexed_triangle_set &its, bool shrink_to_fit = true
 // Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
 void its_shrink_to_fit(indexed_triangle_set &its);
 
+Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Matrix3f &m, const float z);
+Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transform3f &t, const float z);
+
 TriangleMesh make_cube(double x, double y, double z);
 
 // Generate a TriangleMesh of a cylinder
