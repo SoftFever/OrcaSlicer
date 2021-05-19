@@ -900,9 +900,8 @@ void its_shrink_to_fit(indexed_triangle_set &its)
 }
 
 template<typename TransformVertex>
-Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const TransformVertex &transform_fn, const float z)
+void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, const TransformVertex &transform_fn, const float z, Points &all_pts)
 {
-    Points all_pts;
     for (const stl_triangle_vertex_indices &tri : its.indices) {
         const Vec3f pts[3] = { transform_fn(its.vertices[tri(0)]), transform_fn(its.vertices[tri(1)]), transform_fn(its.vertices[tri(2)]) };
         int iprev = 3;
@@ -919,6 +918,23 @@ Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transfor
             iprev = iedge;
         }
     }
+}
+
+void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, const Matrix3f &m, const float z, Points &all_pts)
+{
+    return its_collect_mesh_projection_points_above(its, [m](const Vec3f &p){ return m * p; }, z, all_pts);
+}
+
+void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, const Transform3f &t, const float z, Points &all_pts)
+{
+    return its_collect_mesh_projection_points_above(its, [t](const Vec3f &p){ return t * p; }, z, all_pts);
+}
+
+template<typename TransformVertex>
+Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const TransformVertex &transform_fn, const float z)
+{
+    Points all_pts;
+    its_collect_mesh_projection_points_above(its, transform_fn, z, all_pts);
     return Geometry::convex_hull(std::move(all_pts));
 }
 
