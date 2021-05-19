@@ -37,8 +37,12 @@ void RotoptimizeJob::prepare()
 
     m_selected_object_ids.clear();
     m_selected_object_ids.reserve(sel.size());
-    for (auto &[obj_idx, ignore] : sel)
-        m_selected_object_ids.emplace_back(obj_idx);
+
+    for (const auto &s : sel) {
+        int obj_id;
+        std::tie(obj_id, std::ignore) = s;
+        m_selected_object_ids.emplace_back(obj_id);
+    }
 }
 
 void RotoptimizeJob::process()
