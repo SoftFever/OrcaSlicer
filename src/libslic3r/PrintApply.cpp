@@ -921,6 +921,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     ModelObjectStatusDB model_object_status_db;
 
     // 1) Synchronize model objects.
+    bool print_regions_reshuffled = false;
     if (model.id() != m_model.id()) {
         // Kill everything, initialize from scratch.
         // Stop background processing.
@@ -932,6 +933,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 			delete object;
         }
         m_objects.clear();
+        print_regions_reshuffled = true;
         m_model.assign_copy(model);
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status_db.add(*model_object, ModelObjectStatus::New);
@@ -1008,6 +1010,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 }
                 for (ModelObject *model_object : model_objects_old)
                     delete model_object;
+                print_regions_reshuffled = true;
             }
         }
     }
@@ -1124,7 +1127,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     }
 
     // 4) Generate PrintObjects from ModelObjects and their instances.
-    bool print_regions_reshuffled = false;
     {
         PrintObjectPtrs print_objects_new;
         print_objects_new.reserve(std::max(m_objects.size(), m_model.objects.size()));

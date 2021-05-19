@@ -1217,9 +1217,8 @@ void Tab::apply_config_from_cache()
 // to update number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
-    if (wxGetApp().plater() == nullptr) {
+    if (wxGetApp().plater() == nullptr)
         return;
-    }
 
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
@@ -1237,6 +1236,10 @@ void Tab::on_presets_changed()
     // clear m_dependent_tabs after first update from select_preset()
     // to avoid needless preset loading from update() function
     m_dependent_tabs.clear();
+
+#if ENABLE_PROJECT_DIRTY_STATE
+    wxGetApp().plater()->update_project_dirty_from_presets();
+#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
@@ -2113,10 +2116,16 @@ wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticTex
     return sizer;
 }
 
+#if ENABLE_PROJECT_DIRTY_STATE
+bool Tab::saved_preset_is_dirty() const { return m_presets->saved_is_dirty(); }
+void Tab::update_saved_preset_from_current_preset() { m_presets->update_saved_preset_from_current_preset(); }
+bool Tab::current_preset_is_dirty() const { return m_presets->current_is_dirty(); }
+#else
 bool Tab::current_preset_is_dirty()
 {
     return m_presets->current_is_dirty();
 }
+#endif // ENABLE_PROJECT_DIRTY_STATE
 
 void TabPrinter::build()
 {

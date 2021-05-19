@@ -10,6 +10,7 @@
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
+#include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
 #include "Fill/FillAdaptive.hpp"
 #include "Format/STL.hpp"
@@ -1628,9 +1629,15 @@ PrintRegionConfig PrintObject::region_config_from_model_volume(const PrintRegion
 
 void PrintObject::update_slicing_parameters()
 {
+#if ENABLE_ALLOW_NEGATIVE_Z
+    if (!m_slicing_params.valid)
+        m_slicing_params = SlicingParameters::create_from_config(
+            this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders());
+#else
     if (! m_slicing_params.valid)
         m_slicing_params = SlicingParameters::create_from_config(
             this->print()->config(), m_config, unscale<double>(this->height()), this->object_extruders());
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z)
@@ -1692,6 +1699,15 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
         updated = true;
     }
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // Verify the layer_height_profile.
+    if (!layer_height_profile.empty() &&
+        // Must not be of even length.
+        ((layer_height_profile.size() & 1) != 0 ||
+            // Last entry must be at the top of the object.
+            std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_max) > 1e-3))
+        layer_height_profile.clear();
+#else
     // Verify the layer_height_profile.
     if (! layer_height_profile.empty() && 
             // Must not be of even length.
@@ -1699,6 +1715,7 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
             // Last entry must be at the top of the object.
              std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_height()) > 1e-3))
         layer_height_profile.clear();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     if (layer_height_profile.empty()) {
         //layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object.layer_config_ranges, model_object.volumes);
@@ -1745,7 +1762,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
             }
             // Make sure all layers contain layer region objects for all regions.
             for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id)
-                layer->add_region(&this->print()->get_print_region(region_id));
+                layer->add_region(&this->printing_region(region_id));
             prev = layer;
         }
     }
@@ -1782,7 +1799,7 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     bool clipped  = false;
     bool upscaled = false;
     bool spiral_vase  = this->print()->config().spiral_vase;
-    auto slicing_mode = spiral_vase ? SlicingMode::PositiveLargestContour : SlicingMode::Regular;
+    auto slicing_mode = spiral_vase ? MeshSlicingParams::SlicingMode::PositiveLargestContour : MeshSlicingParams::SlicingMode::Regular;
     if (! has_z_ranges && (! m_config.clip_multipart_objects.value || all_volumes_single_region >= 0)) {
         // Cheap path: Slice regions without mutual clipping.
         // The cheap path is possible if no clipping is allowed or if slicing volumes of just a single region.
@@ -1793,12 +1810,12 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
             if (spiral_vase) {
                 // Slice the bottom layers with SlicingMode::Regular.
                 // This needs to be in sync with LayerRegion::make_perimeters() spiral_vase!
-                const PrintRegionConfig &config = this->print()->get_print_region(region_id).config();
+                const PrintRegionConfig &config = this->printing_region(region_id).config();
                 slicing_mode_normal_below_layer = size_t(config.bottom_solid_layers.value);
                 for (; slicing_mode_normal_below_layer < slice_zs.size() && slice_zs[slicing_mode_normal_below_layer] < config.bottom_solid_min_thickness - EPSILON;
                     ++ slicing_mode_normal_below_layer);
             }
-            std::vector<ExPolygons> expolygons_by_layer = this->slice_region(region_id, slice_zs, slicing_mode, slicing_mode_normal_below_layer, SlicingMode::Regular);
+            std::vector<ExPolygons> expolygons_by_layer = this->slice_region(region_id, slice_zs, slicing_mode, slicing_mode_normal_below_layer, MeshSlicingParams::SlicingMode::Regular);
             m_print->throw_if_canceled();
             BOOST_LOG_TRIVIAL(debug) << "Slicing objects - append slices " << region_id << " start";
             for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
@@ -2043,7 +2060,7 @@ end:
 }
 
 // To be used only if there are no layer span specific configurations applied, which would lead to z ranges being generated for this region.
-std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::vector<float> &z, SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below) const
+std::vector<ExPolygons> PrintObject::slice_region(size_t region_id, const std::vector<float> &z, MeshSlicingParams::SlicingMode mode, size_t slicing_mode_normal_below_layer, MeshSlicingParams::SlicingMode mode_below) const
 {
 	std::vector<const ModelVolume*> volumes;
     if (region_id < m_region_volumes.size()) {
@@ -2103,7 +2120,7 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 					if (volume->is_modifier())
 						volumes.emplace_back(volume);
 				}
-				out = this->slice_volumes(slice_zs, SlicingMode::Regular, volumes);
+				out = this->slice_volumes(slice_zs, MeshSlicingParams::SlicingMode::Regular, volumes);
 			} else {
 				// Some modifier in this region was split to layer spans.
 				std::vector<char> merge;
@@ -2121,7 +2138,7 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 							for (; j < volumes_and_ranges.volumes.size() && volume_id == volumes_and_ranges.volumes[j].volume_idx; ++ j)
 								ranges.emplace_back(volumes_and_ranges.volumes[j].layer_height_range);
 			                // slicing in parallel
-			                std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, SlicingMode::Regular, *model_volume);
+			                std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, MeshSlicingParams::SlicingMode::Regular, *model_volume);
                             // Variable this_slices could be empty if no value of slice_zs is within any of the ranges of this volume.
 			                if (out.empty()) {
 			                	out = std::move(this_slices);
@@ -2162,7 +2179,7 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
     zs.reserve(this->layers().size());
     for (const Layer *l : this->layers())
         zs.emplace_back((float)l->slice_z);
-    return this->slice_volumes(zs, SlicingMode::Regular, volumes);
+    return this->slice_volumes(zs, MeshSlicingParams::SlicingMode::Regular, volumes);
 }
 
 //FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
@@ -2177,7 +2194,7 @@ static void fix_mesh_connectivity(TriangleMesh &mesh)
 
 std::vector<ExPolygons> PrintObject::slice_volumes(
     const std::vector<float> &z, 
-    SlicingMode mode, size_t slicing_mode_normal_below_layer, SlicingMode mode_below, 
+    MeshSlicingParams::SlicingMode mode, size_t slicing_mode_normal_below_layer, MeshSlicingParams::SlicingMode mode_below,
     const std::vector<const ModelVolume*> &volumes) const
 {
     std::vector<ExPolygons> layers;
@@ -2202,19 +2219,17 @@ std::vector<ExPolygons> PrintObject::slice_volumes(
             mesh.translate(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0);
             // perform actual slicing
             const Print *print = this->print();
-            auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
             // TriangleMeshSlicer needs shared vertices, also this calls the repair() function.
             mesh.require_shared_vertices();
-            TriangleMeshSlicer mslicer;
-            mslicer.init(&mesh, callback);
-			mslicer.slice(z, mode, slicing_mode_normal_below_layer, mode_below, float(m_config.slice_closing_radius.value), &layers, callback);
+            MeshSlicingParamsEx params { { mode, slicing_mode_normal_below_layer, mode_below }, float(m_config.slice_closing_radius.value) };
+            layers = slice_mesh_ex(mesh.its, z, params, [print]() { print->throw_if_canceled(); });
             m_print->throw_if_canceled();
         }
     }
     return layers;
 }
 
-std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, SlicingMode mode, const ModelVolume &volume) const
+std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, MeshSlicingParams::SlicingMode mode, const ModelVolume &volume) const
 {
     std::vector<ExPolygons> layers;
     if (! z.empty()) {
@@ -2229,13 +2244,13 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, S
 	        // apply XY shift
 	        mesh.translate(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0);
 	        // perform actual slicing
-	        TriangleMeshSlicer mslicer;
 	        const Print *print = this->print();
-	        auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
 	        // TriangleMeshSlicer needs the shared vertices.
 	        mesh.require_shared_vertices();
-	        mslicer.init(&mesh, callback);
-	        mslicer.slice(z, mode, float(m_config.slice_closing_radius.value), &layers, callback);
+            MeshSlicingParamsEx params;
+            params.mode = mode;
+            params.closing_radius = float(m_config.slice_closing_radius.value);
+            layers = slice_mesh_ex(mesh.its, z, params, [print](){ print->throw_if_canceled(); });
 	        m_print->throw_if_canceled();
 	    }
 	}
@@ -2243,7 +2258,7 @@ std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, S
 }
 
 // Filter the zs not inside the ranges. The ranges are closed at the bottom and open at the top, they are sorted lexicographically and non overlapping.
-std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, SlicingMode mode, const ModelVolume &volume) const
+std::vector<ExPolygons> PrintObject::slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, MeshSlicingParams::SlicingMode mode, const ModelVolume &volume) const
 {
 	std::vector<ExPolygons> out;
 	if (! z.empty() && ! ranges.empty()) {

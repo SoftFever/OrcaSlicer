@@ -2,6 +2,7 @@
 
 #include <libslic3r/OpenVDBUtils.hpp>
 #include <libslic3r/TriangleMesh.hpp>
+#include <libslic3r/TriangleMeshSlicer.hpp>
 #include <libslic3r/SLA/Hollowing.hpp>
 #include <libslic3r/SLA/IndexedMesh.hpp>
 #include <libslic3r/ClipperUtils.hpp>
@@ -295,11 +296,8 @@ void cut_drainholes(std::vector<ExPolygons> & obj_slices,
     if (mesh.empty()) return;
     
     mesh.require_shared_vertices();
-    
-    TriangleMeshSlicer slicer(&mesh);
-    
-    std::vector<ExPolygons> hole_slices;
-    slicer.slice(slicegrid, SlicingMode::Regular, closing_radius, &hole_slices, thr);
+ 
+    std::vector<ExPolygons> hole_slices = slice_mesh_ex(mesh.its, slicegrid, closing_radius, thr);
     
     if (obj_slices.size() != hole_slices.size())
         BOOST_LOG_TRIVIAL(warning)

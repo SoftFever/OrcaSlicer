@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/TriangleMeshSlicer.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Model.hpp"
@@ -355,27 +356,25 @@ SCENARIO( "TriangleMeshSlicer: Cut behavior.") {
 		TriangleMesh cube(vertices, facets);
         cube.repair();
         WHEN( "Object is cut at the bottom") {
-            TriangleMesh upper {};
-            TriangleMesh lower {};
-            TriangleMeshSlicer slicer(&cube);
-            slicer.cut(0, &upper, &lower);
+            indexed_triangle_set upper {};
+            indexed_triangle_set lower {};
+            cut_mesh(cube.its, 0, &upper, &lower);
             THEN("Upper mesh has all facets except those belonging to the slicing plane.") {
-                REQUIRE(upper.facets_count() == 12);
+                REQUIRE(upper.indices.size() == 12);
             }
             THEN("Lower mesh has no facets.") {
-                REQUIRE(lower.facets_count() == 0);
+                REQUIRE(lower.indices.size() == 0);
             }
         }
         WHEN( "Object is cut at the center") {
-            TriangleMesh upper {};
-            TriangleMesh lower {};
-            TriangleMeshSlicer slicer(&cube);
-            slicer.cut(10, &upper, &lower);
+            indexed_triangle_set upper {};
+            indexed_triangle_set lower {};
+            cut_mesh(cube.its, 10, &upper, &lower);
             THEN("Upper mesh has 2 external horizontal facets, 3 facets on each side, and 6 facets on the triangulated side (2 + 12 + 6).") {
-                REQUIRE(upper.facets_count() == 2+12+6);
+                REQUIRE(upper.indices.size() == 2+12+6);
             }
             THEN("Lower mesh has 2 external horizontal facets, 3 facets on each side, and 6 facets on the triangulated side (2 + 12 + 6).") {
-                REQUIRE(lower.facets_count() == 2+12+6);
+                REQUIRE(lower.indices.size() == 2+12+6);
             }
         }
     }

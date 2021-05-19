@@ -453,6 +453,11 @@ public:
     bool                is_sla_support() const;
     bool                is_sla_pad() const;
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    bool                is_sinking() const;
+    bool                is_below_printbed() const;
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     // Return an estimate of the memory consumed by this class.
     size_t 				cpu_memory_used() const { 
     	//FIXME what to do wih m_convex_hull?
@@ -584,8 +589,6 @@ public:
     size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
     // Return CPU, GPU and total memory log line.
     std::string         log_memory_info() const;
-
-    bool                has_toolpaths_to_export() const;
 
 private:
     GLVolumeCollection(const GLVolumeCollection &other);

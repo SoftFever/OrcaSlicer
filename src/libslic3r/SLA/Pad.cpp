@@ -2,6 +2,7 @@
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/SLA/BoostAdapter.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
+#include <libslic3r/TriangleMeshSlicer.hpp>
 
 #include "ConcaveHull.hpp"
 
@@ -476,10 +477,9 @@ void pad_blueprint(const TriangleMesh &      mesh,
                    ThrowOnCancel             thrfn)
 {
     if (mesh.empty()) return;
-    TriangleMeshSlicer slicer(&mesh);
 
-    auto out = reserve_vector<ExPolygons>(heights.size());
-    slicer.slice(heights, SlicingMode::Regular, 0.f, &out, thrfn);
+    assert(mesh.has_shared_vertices());
+    std::vector<ExPolygons> out = slice_mesh_ex(mesh.its, heights, thrfn);
 
     size_t count = 0;
     for(auto& o : out) count += o.size();

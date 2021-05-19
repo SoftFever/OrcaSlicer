@@ -6,6 +6,7 @@
 
 #include "sla_test_utils.hpp"
 
+#include <libslic3r/TriangleMeshSlicer.hpp>
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
 #include <libslic3r/SLA/Concurrency.hpp>
 
@@ -48,9 +49,7 @@ TEST_CASE("Support point generator should be deterministic if seeded",
     sla::SupportPointGenerator::Config autogencfg;
     autogencfg.head_diameter = float(2 * supportcfg.head_front_radius_mm);
     sla::SupportPointGenerator point_gen{emesh, autogencfg, [] {}, [](int) {}};
-    
-    TriangleMeshSlicer slicer{&mesh};
-    
+        
     auto   bb      = mesh.bounding_box();
     double zmin    = bb.min.z();
     double zmax    = bb.max.z();
@@ -58,8 +57,8 @@ TEST_CASE("Support point generator should be deterministic if seeded",
     auto   layer_h = 0.05f;
     
     auto slicegrid = grid(float(gnd), float(zmax), layer_h);
-    std::vector<ExPolygons> slices;
-    slicer.slice(slicegrid, SlicingMode::Regular, CLOSING_RADIUS, &slices, []{});
+    assert(mesh.has_shared_vertices());
+    std::vector<ExPolygons> slices = slice_mesh_ex(mesh.its, slicegrid, CLOSING_RADIUS);
     
     point_gen.seed(0);
     point_gen.execute(slices, slicegrid);

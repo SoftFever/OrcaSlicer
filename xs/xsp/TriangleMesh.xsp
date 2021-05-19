@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/TriangleMeshSlicer.hpp"
 %}
 
 %name{Slic3r::TriangleMesh} class TriangleMesh {
@@ -180,9 +181,7 @@ TriangleMesh::slice(z)
         // convert doubles to floats
         std::vector<float> z_f = cast<float>(z);
         
-        std::vector<ExPolygons> layers;
-        TriangleMeshSlicer mslicer(THIS);
-        mslicer.slice(z_f, SlicingMode::Regular, 0.049f, &layers, [](){});
+        std::vector<ExPolygons> layers = slice_mesh_ex(THIS->its, z_f, 0.049f);
         
         AV* layers_av = newAV();
         size_t len = layers.size();
@@ -202,14 +201,18 @@ TriangleMesh::slice(z)
         RETVAL
 
 void
-TriangleMesh::cut(z, upper, lower)
+TriangleMesh::cut(z, upper_mesh, lower_mesh)
     float           z;
-    TriangleMesh*   upper;
-    TriangleMesh*   lower;
+    TriangleMesh*   upper_mesh;
+    TriangleMesh*   lower_mesh;
     CODE:
         THIS->require_shared_vertices(); // TriangleMeshSlicer needs this
-        TriangleMeshSlicer mslicer(THIS);
-        mslicer.cut(z, upper, lower);
+        indexed_triangle_set upper, lower;
+        cut_mesh(THIS->its, z, upper_mesh ? &upper : nullptr, lower_mesh ? &lower : nullptr);
+        if (upper_mesh)
+            *upper_mesh = TriangleMesh(upper);
+        if (lower_mesh)
+            *lower_mesh = TriangleMesh(lower);
 
 std::vector<double>
 TriangleMesh::bb3()

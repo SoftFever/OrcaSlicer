@@ -5,7 +5,6 @@
 #include <admesh/stl.h>
 #include <functional>
 #include <vector>
-#include <boost/thread.hpp>
 #include "BoundingBox.hpp"
 #include "Line.hpp"
 #include "Point.hpp"
@@ -24,7 +23,7 @@ public:
     TriangleMesh() : repaired(false) {}
     TriangleMesh(const Pointf3s &points, const std::vector<Vec3i> &facets);
     explicit TriangleMesh(const indexed_triangle_set &M);
-	void clear() { this->stl.clear(); this->its.clear(); this->repaired = false; }
+    void clear() { this->stl.clear(); this->its.clear(); this->repaired = false; }
     bool ReadSTLFile(const char* input_file) { return stl_open(&stl, input_file); }
     bool write_ascii(const char* output_file) { return stl_write_ascii(&this->stl, output_file, ""); }
     bool write_binary(const char* output_file) { return stl_write_binary(&this->stl, output_file, ""); }
@@ -47,7 +46,7 @@ public:
     void mirror_y() { this->mirror(Y); }
     void mirror_z() { this->mirror(Z); }
     void transform(const Transform3d& t, bool fix_left_handed = false);
-	void transform(const Matrix3d& t, bool fix_left_handed = false);
+    void transform(const Matrix3d& t, bool fix_left_handed = false);
     void align_to_origin();
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split() const;
@@ -62,7 +61,7 @@ public:
     // Return the size of the mesh in coordinates.
     Vec3d size() const { return stl.stats.size.cast<double>(); }
     /// Return the center of the related bounding box.
-	Vec3d center() const { return this->bounding_box().center(); }
+    Vec3d center() const { return this->bounding_box().center(); }
     // Returns the convex hull of this TriangleMesh
     TriangleMesh convex_hull_3d() const;
     // Slice this mesh at the provided Z levels and return the vector
@@ -78,8 +77,8 @@ public:
     size_t memsize() const;
     // Release optional data from the mesh if the object is on the Undo / Redo stack only. Returns the amount of memory released.
     size_t release_optional();
-	// Restore optional data possibly released by release_optional().
-	void restore_optional();
+    // Restore optional data possibly released by release_optional().
+    void restore_optional();
 
     stl_file stl;
     indexed_triangle_set its;
@@ -92,160 +91,27 @@ private:
 // Create an index of faces belonging to each vertex. The returned vector can
 // be indexed with vertex indices and contains a list of face indices for each
 // vertex.
-std::vector< std::vector<size_t> >
-create_neighbor_index(const indexed_triangle_set &its);
+std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangle_set &its);
 
-enum FacetEdgeType { 
-    // A general case, the cutting plane intersect a face at two different edges.
-    feGeneral,
-    // Two vertices are aligned with the cutting plane, the third vertex is below the cutting plane.
-    feTop,
-    // Two vertices are aligned with the cutting plane, the third vertex is above the cutting plane.
-    feBottom,
-    // All three vertices of a face are aligned with the cutting plane.
-    feHorizontal
-};
+// Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
+// Two neighbor faces share a unique edge identifier even if they are flipped.
+// Used for chaining slice lines into polygons.
+std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its);
+std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback);
 
-class IntersectionReference
-{
-public:
-    IntersectionReference() : point_id(-1), edge_id(-1) {}
-    IntersectionReference(int point_id, int edge_id) : point_id(point_id), edge_id(edge_id) {}
-    // Where is this intersection point located? On mesh vertex or mesh edge?
-    // Only one of the following will be set, the other will remain set to -1.
-    // Index of the mesh vertex.
-    int point_id;
-    // Index of the mesh edge.
-    int edge_id;
-};
+// Merge duplicate vertices, return number of vertices removed.
+// This function will happily create non-manifolds if more than two faces share the same vertex position
+// or more than two faces share the same edge position!
+int its_merge_vertices(indexed_triangle_set &its, bool shrink_to_fit = true);
 
-class IntersectionPoint : public Point, public IntersectionReference
-{
-public:
-    IntersectionPoint() {}
-    IntersectionPoint(int point_id, int edge_id, const Point &pt) : IntersectionReference(point_id, edge_id), Point(pt) {}
-    IntersectionPoint(const IntersectionReference &ir, const Point &pt) : IntersectionReference(ir), Point(pt) {}
-    // Inherits coord_t x, y
-};
+// Remove degenerate faces, return number of faces removed.
+int its_remove_degenerate_faces(indexed_triangle_set &its, bool shrink_to_fit = true);
 
-class IntersectionLine : public Line
-{
-public:
-    IntersectionLine() : a_id(-1), b_id(-1), edge_a_id(-1), edge_b_id(-1), edge_type(feGeneral), flags(0) {}
+// Remove vertices, which none of the faces references. Return number of freed vertices.
+int its_compactify_vertices(indexed_triangle_set &its, bool shrink_to_fit = true);
 
-    bool skip() const { return (this->flags & SKIP) != 0; }
-    void set_skip() { this->flags |= SKIP; }
-
-    bool is_seed_candidate() const { return (this->flags & NO_SEED) == 0 && ! this->skip(); }
-    void set_no_seed(bool set) { if (set) this->flags |= NO_SEED; else this->flags &= ~NO_SEED; }
-    
-    // Inherits Point a, b
-    // For each line end point, either {a,b}_id or {a,b}edge_a_id is set, the other is left to -1.
-    // Vertex indices of the line end points.
-    int             a_id;
-    int             b_id;
-    // Source mesh edges of the line end points.
-    int             edge_a_id;
-    int             edge_b_id;
-    // feGeneral, feTop, feBottom, feHorizontal
-    FacetEdgeType   edge_type;
-    // Used by TriangleMeshSlicer::slice() to skip duplicate edges.
-    enum {
-        // Triangle edge added, because it has no neighbor.
-        EDGE0_NO_NEIGHBOR   = 0x001,
-        EDGE1_NO_NEIGHBOR   = 0x002,
-        EDGE2_NO_NEIGHBOR   = 0x004,
-        // Triangle edge added, because it makes a fold with another horizontal edge.
-        EDGE0_FOLD          = 0x010,
-        EDGE1_FOLD          = 0x020,
-        EDGE2_FOLD          = 0x040,
-        // The edge cannot be a seed of a greedy loop extraction (folds are not safe to become seeds).
-        NO_SEED             = 0x100,
-        SKIP                = 0x200,
-    };
-    uint32_t        flags;
-};
-typedef std::vector<IntersectionLine> IntersectionLines;
-typedef std::vector<IntersectionLine*> IntersectionLinePtrs;
-
-enum class SlicingMode : uint32_t {
-	// Regular slicing, maintain all contours and their orientation.
-	Regular,
-	// Maintain all contours, orient all contours CCW, therefore all holes are being closed.
-	Positive,
-	// Orient all contours CCW and keep only the contour with the largest area.
-	// This mode is useful for slicing complex objects in vase mode.
-	PositiveLargestContour,
-};
-
-class TriangleMeshSlicer
-{
-public:
-    typedef std::function<void()> throw_on_cancel_callback_type;
-    TriangleMeshSlicer() : mesh(nullptr) {}
-	TriangleMeshSlicer(const TriangleMesh* mesh) { this->init(mesh, [](){}); }
-    void init(const TriangleMesh *mesh, throw_on_cancel_callback_type throw_on_cancel);
-    void slice(
-        const std::vector<float> &z, SlicingMode mode, size_t alternate_mode_first_n_layers, SlicingMode alternate_mode,
-        std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
-    void slice(const std::vector<float> &z, SlicingMode mode, std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const
-        { return this->slice(z, mode, 0, mode, layers, throw_on_cancel); }
-    void slice(
-        const std::vector<float> &z, SlicingMode mode, size_t alternate_mode_first_n_layers, SlicingMode alternate_mode, const float closing_radius,
-        std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
-    void slice(const std::vector<float> &z, SlicingMode mode, const float closing_radius, 
-        std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const
-        { this->slice(z, mode, 0, mode, closing_radius, layers, throw_on_cancel); }
-    enum FacetSliceType {
-        NoSlice = 0,
-        Slicing = 1,
-        Cutting = 2
-    };
-    FacetSliceType slice_facet(float slice_z, const stl_facet &facet, const int facet_idx,
-        const float min_z, const float max_z, IntersectionLine *line_out) const;
-    void cut(float z, TriangleMesh* upper, TriangleMesh* lower) const;
-    void set_up_direction(const Vec3f& up);
-    
-private:
-    const TriangleMesh      *mesh;
-    // Map from a facet to an edge index.
-    std::vector<int>         facets_edges;
-    // Scaled copy of this->mesh->stl.v_shared
-    std::vector<stl_vertex>  v_scaled_shared;
-    // Quaternion that will be used to rotate every facet before the slicing
-    Eigen::Quaternion<float, Eigen::DontAlign> m_quaternion;
-    // Whether or not the above quaterion should be used
-    bool                     m_use_quaternion = false;
-
-    void _slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const;
-    void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const;
-    void make_expolygons(const Polygons &loops, const float closing_radius, ExPolygons* slices) const;
-    void make_expolygons_simple(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;
-    void make_expolygons(std::vector<IntersectionLine> &lines, const float closing_radius, ExPolygons* slices) const;
-};
-
-inline void slice_mesh(
-    const TriangleMesh &                              mesh,
-    const std::vector<float> &                        z,
-    std::vector<Polygons> &                           layers,
-    TriangleMeshSlicer::throw_on_cancel_callback_type thr = nullptr)
-{
-    if (mesh.empty()) return;
-    TriangleMeshSlicer slicer(&mesh);
-    slicer.slice(z, SlicingMode::Regular, &layers, thr);
-}
-
-inline void slice_mesh(
-    const TriangleMesh &                              mesh,
-    const std::vector<float> &                        z,
-    std::vector<ExPolygons> &                         layers,
-    float                                             closing_radius,
-    TriangleMeshSlicer::throw_on_cancel_callback_type thr = nullptr)
-{
-    if (mesh.empty()) return;
-    TriangleMeshSlicer slicer(&mesh);
-    slicer.slice(z, SlicingMode::Regular, closing_radius, &layers, thr);
-}
+// Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
+void its_shrink_to_fit(indexed_triangle_set &its);
 
 TriangleMesh make_cube(double x, double y, double z);
 
@@ -259,21 +125,21 @@ TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
 // Serialization through the Cereal library
 #include <cereal/access.hpp>
 namespace cereal {
-	template <class Archive> struct specialize<Archive, Slic3r::TriangleMesh, cereal::specialization::non_member_load_save> {};
-	template<class Archive> void load(Archive &archive, Slic3r::TriangleMesh &mesh) {
+    template <class Archive> struct specialize<Archive, Slic3r::TriangleMesh, cereal::specialization::non_member_load_save> {};
+    template<class Archive> void load(Archive &archive, Slic3r::TriangleMesh &mesh) {
         stl_file &stl = mesh.stl;
         stl.stats.type = inmemory;
-		archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
+        archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
         stl_allocate(&stl);
-		archive.loadBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+        archive.loadBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
         stl_get_size(&stl);
         mesh.repair();
-	}
-	template<class Archive> void save(Archive &archive, const Slic3r::TriangleMesh &mesh) {
-		const stl_file& stl = mesh.stl;
-		archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
-		archive.saveBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
-	}
+    }
+    template<class Archive> void save(Archive &archive, const Slic3r::TriangleMesh &mesh) {
+        const stl_file& stl = mesh.stl;
+        archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
+        archive.saveBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+    }
 }
 
 #endif

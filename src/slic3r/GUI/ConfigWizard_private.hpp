@@ -451,8 +451,8 @@ struct PageBedShape: ConfigWizardPage
 
 struct PageDiameters: ConfigWizardPage
 {
-    wxSpinCtrlDouble *spin_nozzle;
-    wxSpinCtrlDouble *spin_filam;
+    wxTextCtrl *diam_nozzle;
+    wxTextCtrl *diam_filam;
 
     PageDiameters(ConfigWizard *parent);
     virtual void apply_custom_config(DynamicPrintConfig &config);

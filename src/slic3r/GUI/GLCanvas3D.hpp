@@ -154,53 +154,50 @@ class GLCanvas3D
         static const float THICKNESS_BAR_WIDTH;
     private:
 
-        bool                        m_enabled;
-        unsigned int                m_z_texture_id;
+        bool                        m_enabled{ false };
+        unsigned int                m_z_texture_id{ 0 };
         // Not owned by LayersEditing.
-        const DynamicPrintConfig   *m_config;
+        const DynamicPrintConfig   *m_config{ nullptr };
         // ModelObject for the currently selected object (Model::objects[last_object_id]).
-        const ModelObject          *m_model_object;
+        const ModelObject          *m_model_object{ nullptr };
         // Maximum z of the currently selected object (Model::objects[last_object_id]).
-        float                       m_object_max_z;
+        float                       m_object_max_z{ 0.0f };
         // Owned by LayersEditing.
-        SlicingParameters          *m_slicing_parameters;
+        SlicingParameters           *m_slicing_parameters{ nullptr };
         std::vector<double>         m_layer_height_profile;
-        bool                        m_layer_height_profile_modified;
+        bool                        m_layer_height_profile_modified{ false };
 
-        mutable float               m_adaptive_quality;
+        mutable float               m_adaptive_quality{ 0.5f };
         mutable HeightProfileSmoothingParams m_smooth_params;
         
-        static float                s_overelay_window_width;
+        static float                s_overlay_window_width;
 
-        class LayersTexture
+        struct LayersTexture
         {
-        public:
-            LayersTexture() : width(0), height(0), levels(0), cells(0), valid(false) {}
-
             // Texture data
             std::vector<char>   data;
             // Width of the texture, top level.
-            size_t              width;
+            size_t              width{ 0 };
             // Height of the texture, top level.
-            size_t              height;
+            size_t              height{ 0 };
             // For how many levels of detail is the data allocated?
-            size_t              levels;
+            size_t              levels{ 0 };
             // Number of texture cells allocated for the height texture.
-            size_t              cells;
+            size_t              cells{ 0 };
             // Does it need to be refreshed?
-            bool                valid;
+            bool                valid{ false };
         };
         LayersTexture   m_layers_texture;
 
     public:
-        EState state;
-        float band_width;
-        float strength;
-        int last_object_id;
-        float last_z;
-        LayerHeightEditActionType last_action;
+        EState state{ Unknown };
+        float band_width{ 2.0f };
+        float strength{ 0.005f };
+        int last_object_id{ -1 };
+        float last_z{ 0.0f };
+        LayerHeightEditActionType last_action{ LAYER_HEIGHT_EDIT_ACTION_INCREASE };
 
-        LayersEditing();
+        LayersEditing() = default;
         ~LayersEditing();
 
         void init();
@@ -226,7 +223,7 @@ class GLCanvas3D
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
         static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
-        static float get_overlay_window_width() { return LayersEditing::s_overelay_window_width; }
+        static float get_overlay_window_width() { return LayersEditing::s_overlay_window_width; }
 
         float object_max_z() const { return m_object_max_z; }
 
@@ -298,7 +295,6 @@ class GLCanvas3D
         bool matches(double z) const { return this->z == z; }
     };
 
-#if ENABLE_WARNING_TEXTURE_REMOVAL
     enum class EWarning {
         ObjectOutside,
         ToolpathOutside,
@@ -306,46 +302,6 @@ class GLCanvas3D
         SomethingNotShown,
         ObjectClashed
     };
-#else
-    class WarningTexture : public GUI::GLTexture
-    {
-    public:
-        WarningTexture();
-
-        enum Warning {
-            ObjectOutside,
-            ToolpathOutside,
-            SlaSupportsOutside,
-            SomethingNotShown,
-            ObjectClashed
-        };
-
-        // Sets a warning of the given type to be active/inactive. If several warnings are active simultaneously,
-        // only the last one is shown (decided by the order in the enum above).
-        void activate(WarningTexture::Warning warning, bool state, const GLCanvas3D& canvas);
-        void render(const GLCanvas3D& canvas) const;
-
-        // function used to get an information for rescaling of the warning
-        void msw_rescale(const GLCanvas3D& canvas);
-
-    private:
-        static const unsigned char Background_Color[3];
-        static const unsigned char Opacity;
-
-        int m_original_width;
-        int m_original_height;
-
-        // information for rescaling of the warning legend
-        std::string     m_msg_text = "";
-        bool            m_is_colored_red{false};
-
-        // Information about which warnings are currently active.
-        std::vector<Warning> m_warnings;
-
-        // Generates the texture with given text.
-        bool generate(const std::string& msg, const GLCanvas3D& canvas, bool compress, bool red_colored = false);
-    };
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 
 #if ENABLE_RENDER_STATISTICS
     class RenderStats
@@ -401,7 +357,6 @@ class GLCanvas3D
     {
         bool m_enabled{ false };
         GLVolumeCollection& m_volumes;
-        static float s_window_width;
     public:
         Slope(GLVolumeCollection& volumes) : m_volumes(volumes) {}
 
@@ -412,7 +367,6 @@ class GLCanvas3D
         void set_normal_angle(float angle_in_deg) const {
             m_volumes.set_slope_normal_z(-::cos(Geometry::deg2rad(90.0f - angle_in_deg)));
         }
-        static float get_window_width() { return s_window_width; };
     };
 
     class RenderTimer : public wxTimer {
@@ -443,9 +397,6 @@ private:
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
     bool m_in_render;
-#if !ENABLE_WARNING_TEXTURE_REMOVAL
-    WarningTexture m_warning_texture;
-#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
     wxTimer m_timer;
     LayersEditing m_layers_editing;
     Mouse m_mouse;
@@ -813,9 +764,6 @@ private:
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _check_and_update_toolbar_icon_scale() const;
     void _render_overlays() const;
-#if !ENABLE_WARNING_TEXTURE_REMOVAL
-    void _render_warning_texture() const;
-#endif // !ENABLE_WARNING_TEXTURE_REMOVAL
     void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
@@ -868,17 +816,10 @@ private:
 	void _load_sla_shells();
     void _update_toolpath_volumes_outside_state();
     void _update_sla_shells_outside_state();
-#if ENABLE_WARNING_TEXTURE_REMOVAL
     void _set_warning_notification_if_needed(EWarning warning);
 
     // generates a warning notification containing the given message
     void _set_warning_notification(EWarning warning, bool state);
-#else
-    void _show_warning_texture_if_needed(WarningTexture::Warning warning);
-
-    // generates a warning texture containing the given message
-    void _set_warning_texture(WarningTexture::Warning warning, bool state);
-#endif // ENABLE_WARNING_TEXTURE_REMOVAL
 
     bool _is_any_volume_outside() const;
 

@@ -12,6 +12,7 @@
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Model.hpp>
+#include <libslic3r/TriangleMeshSlicer.hpp>
 
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
@@ -44,9 +45,8 @@ std::vector<ExPolygons> SupportTree::slice(
 
     if (!sup_mesh.empty()) {
         slices.emplace_back();
-
-        TriangleMeshSlicer sup_slicer(&sup_mesh);
-        sup_slicer.slice(grid, SlicingMode::Regular, cr, &slices.back(), ctl().cancelfn);
+        assert(sup_mesh.has_shared_vertices());
+        slices.back() = slice_mesh_ex(sup_mesh.its, grid, cr, ctl().cancelfn);
     }
 
     if (!pad_mesh.empty()) {
@@ -59,8 +59,8 @@ std::vector<ExPolygons> SupportTree::slice(
         auto padgrid = reserve_vector<float>(size_t(cap > 0 ? cap : 0));
         std::copy(grid.begin(), maxzit, std::back_inserter(padgrid));
 
-        TriangleMeshSlicer pad_slicer(&pad_mesh);
-        pad_slicer.slice(padgrid, SlicingMode::Regular, cr, &slices.back(), ctl().cancelfn);
+        assert(pad_mesh.has_shared_vertices());
+        slices.back() = slice_mesh_ex(pad_mesh.its, padgrid, cr, ctl().cancelfn);
     }
 
     size_t len = grid.size();

@@ -8,6 +8,7 @@
 #include "Flow.hpp"
 #include "Point.hpp"
 #include "Slicing.hpp"
+#include "TriangleMeshSlicer.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
 #include "GCode/ThumbnailData.hpp"
@@ -24,7 +25,6 @@ class Print;
 class PrintObject;
 class ModelObject;
 class GCode;
-enum class SlicingMode : uint32_t;
 class Layer;
 class SupportLayer;
 
@@ -437,7 +437,7 @@ struct PrintStatistics
     double                          total_weight;
     double                          total_wipe_tower_cost;
     double                          total_wipe_tower_filament;
-    std::map<size_t, float>         filament_stats;
+    std::map<size_t, double>        filament_stats;
 
     // Config with the filled in print statistics.
     DynamicConfig           config() const;

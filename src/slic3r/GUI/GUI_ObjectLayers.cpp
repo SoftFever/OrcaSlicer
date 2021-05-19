@@ -142,7 +142,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(editor);
 
-    auto temp = new wxStaticText(m_parent, wxID_ANY, _(L("mm")));
+    auto temp = new wxStaticText(m_parent, wxID_ANY, _L("mm"));
     temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
     temp->SetFont(wxGetApp().normal_font());
     sizer->Add(temp, 0, wxLEFT, wxGetApp().em_unit());
@@ -154,15 +154,14 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     
 void ObjectLayers::create_layers_list()
 {
-    for (const auto &layer : m_object->layer_config_ranges)
-    {
+    for (const auto &layer : m_object->layer_config_ranges) {
         const t_layer_height_range& range = layer.first;
         auto del_btn = new PlusMinusButton(m_parent, m_bmp_delete, range);
-        del_btn->SetToolTip(_(L("Remove layer range")));
+        del_btn->SetToolTip(_L("Remove layer range"));
 
         auto add_btn = new PlusMinusButton(m_parent, m_bmp_add, range);
         wxString tooltip = wxGetApp().obj_list()->can_add_new_range_after_current(range);
-        add_btn->SetToolTip(tooltip.IsEmpty() ? _(L("Add layer range")) : tooltip);
+        add_btn->SetToolTip(tooltip.IsEmpty() ? _L("Add layer range") : tooltip);
         add_btn->Enable(tooltip.IsEmpty());
 
         auto sizer = create_layer(range, del_btn, add_btn);
@@ -242,11 +241,9 @@ void ObjectLayers::msw_rescale()
 
     // rescale edit-boxes
     const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();
-    for (int i = 0; i < cells_cnt; i++)
-    {
+    for (int i = 0; i < cells_cnt; ++i) {
         const wxSizerItem* item = m_grid_sizer->GetItem(i);
-        if (item->IsWindow())
-        {
+        if (item->IsWindow()) {
             LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(item->GetWindow());
             if (editor != nullptr)
                 editor->msw_rescale();
@@ -283,8 +280,7 @@ void ObjectLayers::sys_color_changed()
 
     // rescale edit-boxes
     const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();
-    for (int i = 0; i < cells_cnt; i++)
-    {
+    for (int i = 0; i < cells_cnt; ++i) {
         const wxSizerItem* item = m_grid_sizer->GetItem(i);
         if (item->IsSizer()) {// case when we have editor with buttons
             const std::vector<size_t> btns = {2, 3};  // del_btn, add_btn
@@ -405,11 +401,9 @@ coordf_t LayerRangeEditor::get_value()
     str.Replace(",", ".", false);
     if (str == ".")
         layer_height = 0.0;
-    else
-    {
-        if (!str.ToCDouble(&layer_height) || layer_height < 0.0f)
-        {
-            show_error(m_parent, _(L("Invalid numeric input.")));
+    else {
+        if (!str.ToCDouble(&layer_height) || layer_height < 0.0f) {
+            show_error(m_parent, _L("Invalid numeric input."));
             SetValue(double_to_string(layer_height));
         }
     }

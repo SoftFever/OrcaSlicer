@@ -45,18 +45,18 @@ bool GLGizmoSlaSupports::on_init()
 {
     m_shortcut_key = WXK_CONTROL_L;
 
-    m_desc["head_diameter"]    = _(L("Head diameter")) + ": ";
-    m_desc["lock_supports"]    = _(L("Lock supports under new islands"));
-    m_desc["remove_selected"]  = _(L("Remove selected points"));
-    m_desc["remove_all"]       = _(L("Remove all points"));
-    m_desc["apply_changes"]    = _(L("Apply changes"));
-    m_desc["discard_changes"]  = _(L("Discard changes"));
-    m_desc["minimal_distance"] = _(L("Minimal points distance")) + ": ";
-    m_desc["points_density"]   = _(L("Support points density")) + ": ";
-    m_desc["auto_generate"]    = _(L("Auto-generate points"));
-    m_desc["manual_editing"]   = _(L("Manual editing"));
-    m_desc["clipping_of_view"] = _(L("Clipping of view"))+ ": ";
-    m_desc["reset_direction"]  = _(L("Reset direction"));
+    m_desc["head_diameter"]    = _L("Head diameter") + ": ";
+    m_desc["lock_supports"]    = _L("Lock supports under new islands");
+    m_desc["remove_selected"]  = _L("Remove selected points");
+    m_desc["remove_all"]       = _L("Remove all points");
+    m_desc["apply_changes"]    = _L("Apply changes");
+    m_desc["discard_changes"]  = _L("Discard changes");
+    m_desc["minimal_distance"] = _L("Minimal points distance") + ": ";
+    m_desc["points_density"]   = _L("Support points density") + ": ";
+    m_desc["auto_generate"]    = _L("Auto-generate points");
+    m_desc["manual_editing"]   = _L("Manual editing");
+    m_desc["clipping_of_view"] = _L("Clipping of view")+ ": ";
+    m_desc["reset_direction"]  = _L("Reset direction");
 
     return true;
 }
@@ -372,7 +372,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             if (m_selection_empty) {
                 std::pair<Vec3f, Vec3f> pos_and_normal;
                 if (unproject_on_mesh(mouse_position, pos_and_normal)) { // we got an intersection
-                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add support point")));
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Add support point"));
                     m_editing_cache.emplace_back(sla::SupportPoint(pos_and_normal.first, m_new_point_head_diameter/2.f, false), false, pos_and_normal.second);
                     m_parent.set_as_dirty();
                     m_wait_for_up_event = true;
@@ -512,7 +512,7 @@ void GLGizmoSlaSupports::delete_selected_points(bool force)
         std::abort();
     }
 
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Delete support point")));
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Delete support point"));
 
     for (unsigned int idx=0; idx<m_editing_cache.size(); ++idx) {
         if (m_editing_cache[idx].selected && (!m_editing_cache[idx].support_point.is_new_island || !m_lock_unique_islands || force)) {
@@ -692,7 +692,7 @@ RENDER_AGAIN:
                     cache_entry.support_point.head_front_radius = m_old_point_head_diameter / 2.f;
             float backup = m_new_point_head_diameter;
             m_new_point_head_diameter = m_old_point_head_diameter;
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Change point head diameter")));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Change point head diameter"));
             m_new_point_head_diameter = backup;
             for (auto& cache_entry : m_editing_cache)
                 if (cache_entry.selected)
@@ -760,7 +760,7 @@ RENDER_AGAIN:
         if (slider_released) {
             mo->config.set("support_points_minimal_distance", m_minimal_point_distance_stash);
             mo->config.set("support_points_density_relative", (int)m_density_stash);
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Support parameter change")));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Support parameter change"));
             mo->config.set("support_points_minimal_distance", minimal_point_distance);
             mo->config.set("support_points_density_relative", (int)density);
             wxGetApp().obj_list()->update_and_show_object_settings_item();
@@ -867,9 +867,8 @@ bool GLGizmoSlaSupports::on_is_selectable() const
 
 std::string GLGizmoSlaSupports::on_get_name() const
 {
-    return (_(L("SLA Support Points")) + " [L]").ToUTF8().data();
+    return (_L("SLA Support Points") + " [L]").ToUTF8().data();
 }
-
 
 CommonGizmosDataID GLGizmoSlaSupports::on_get_requirements() const
 {
@@ -895,7 +894,11 @@ void GLGizmoSlaSupports::on_set_state()
             // data are not yet available, the CallAfter will postpone taking the
             // snapshot until they are. No, it does not feel right.
             wxGetApp().CallAfter([]() {
-                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
+#if ENABLE_PROJECT_DIRTY_STATE
+                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Entering SLA gizmo"));
+#else
+                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("SLA gizmo turned on"));
+#endif // ENABLE_PROJECT_DIRTY_STATE
             });
         }
 
@@ -909,8 +912,8 @@ void GLGizmoSlaSupports::on_set_state()
             wxGetApp().CallAfter([this]() {
                 // Following is called through CallAfter, because otherwise there was a problem
                 // on OSX with the wxMessageDialog being shown several times when clicked into.
-                wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually "
-                    "edited support points?")) + "\n",_(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
+                wxMessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
+                    "edited support points?") + "\n",_L("Save changes?"), wxICON_QUESTION | wxYES | wxNO);
                     if (dlg.ShowModal() == wxID_YES)
                         editing_mode_apply_changes();
                     else
@@ -922,7 +925,11 @@ void GLGizmoSlaSupports::on_set_state()
         else {
             // we are actually shutting down
             disable_editing_mode(); // so it is not active next time the gizmo opens
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
+#if ENABLE_PROJECT_DIRTY_STATE
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Leaving SLA gizmo"));
+#else
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("SLA gizmo turned off"));
+#endif // ENABLE_PROJECT_DIRTY_STATE
             m_normal_cache.clear();
             m_old_mo_id = -1;
         }
@@ -953,7 +960,7 @@ void GLGizmoSlaSupports::on_stop_dragging()
          && backup.support_point.pos != m_point_before_drag.support_point.pos) // and it was moved, not just selected
         {
             m_editing_cache[m_hover_id] = m_point_before_drag;
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Move support point")));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Move support point"));
             m_editing_cache[m_hover_id] = backup;
         }
     }
@@ -1046,7 +1053,7 @@ void GLGizmoSlaSupports::editing_mode_apply_changes()
     disable_editing_mode(); // this leaves the editing mode undo/redo stack and must be done before the snapshot is taken
 
     if (unsaved_changes()) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Support points edit")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Support points edit"));
 
         m_normal_cache.clear();
         for (const CacheEntry& ce : m_editing_cache)
@@ -1125,14 +1132,14 @@ void GLGizmoSlaSupports::get_data_from_backend()
 void GLGizmoSlaSupports::auto_generate()
 {
     wxMessageDialog dlg(GUI::wxGetApp().plater(), 
-                        _(L("Autogeneration will erase all manually edited points.")) + "\n\n" +
-                        _(L("Are you sure you want to do it?")) + "\n",
-                        _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
+                        _L("Autogeneration will erase all manually edited points.") + "\n\n" +
+                        _L("Are you sure you want to do it?") + "\n",
+                        _L("Warning"), wxICON_WARNING | wxYES | wxNO);
 
     ModelObject* mo = m_c->selection_info()->model_object();
 
     if (mo->sla_points_status != sla::PointsStatus::UserModified || m_normal_cache.empty() || dlg.ShowModal() == wxID_YES) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Autogenerate support points")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Autogenerate support points"));
         wxGetApp().CallAfter([this]() { reslice_SLA_supports(); });
         mo->sla_points_status = sla::PointsStatus::Generating;
     }
@@ -1180,7 +1187,7 @@ bool GLGizmoSlaSupports::unsaved_changes() const
 }
 
 SlaGizmoHelpDialog::SlaGizmoHelpDialog()
-: wxDialog(nullptr, wxID_ANY, _(L("SLA gizmo keyboard shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+: wxDialog(nullptr, wxID_ANY, _L("SLA gizmo keyboard shortcuts"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     const wxString ctrl = GUI::shortkey_ctrl_prefix();
@@ -1191,7 +1198,7 @@ SlaGizmoHelpDialog::SlaGizmoHelpDialog()
     const wxFont& font = wxGetApp().small_font();
     const wxFont& bold_font = wxGetApp().bold_font();
 
-    auto note_text = new wxStaticText(this, wxID_ANY, _(L("Note: some shortcuts work in (non)editing mode only.")));
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: some shortcuts work in (non)editing mode only."));
     note_text->SetFont(font);
 
     auto vsizer    = new wxBoxSizer(wxVERTICAL);
@@ -1209,21 +1216,21 @@ SlaGizmoHelpDialog::SlaGizmoHelpDialog()
     vsizer->AddSpacer(20);
 
     std::vector<std::pair<wxString, wxString>> shortcuts;
-    shortcuts.push_back(std::make_pair(_(L("Left click")),          _(L("Add point"))));
-    shortcuts.push_back(std::make_pair(_(L("Right click")),         _(L("Remove point"))));
-    shortcuts.push_back(std::make_pair(_(L("Drag")),                _(L("Move point"))));
-    shortcuts.push_back(std::make_pair(ctrl+_(L("Left click")),     _(L("Add point to selection"))));
-    shortcuts.push_back(std::make_pair(alt+_(L("Left click")),      _(L("Remove point from selection"))));
-    shortcuts.push_back(std::make_pair(wxString("Shift+")+_(L("Drag")), _(L("Select by rectangle"))));
-    shortcuts.push_back(std::make_pair(alt+_(L("Drag")),            _(L("Deselect by rectangle"))));
-    shortcuts.push_back(std::make_pair(ctrl+"A",                    _(L("Select all points"))));
-    shortcuts.push_back(std::make_pair("Delete",                    _(L("Remove selected points"))));
-    shortcuts.push_back(std::make_pair(ctrl+_(L("Mouse wheel")),    _(L("Move clipping plane"))));
-    shortcuts.push_back(std::make_pair("R",                         _(L("Reset clipping plane"))));
-    shortcuts.push_back(std::make_pair("Enter",                     _(L("Apply changes"))));
-    shortcuts.push_back(std::make_pair("Esc",                       _(L("Discard changes"))));
-    shortcuts.push_back(std::make_pair("M",                         _(L("Switch to editing mode"))));
-    shortcuts.push_back(std::make_pair("A",                         _(L("Auto-generate points"))));
+    shortcuts.push_back(std::make_pair(_L("Left click"),              _L("Add point")));
+    shortcuts.push_back(std::make_pair(_L("Right click"),             _L("Remove point")));
+    shortcuts.push_back(std::make_pair(_L("Drag"),                    _L("Move point")));
+    shortcuts.push_back(std::make_pair(ctrl+_L("Left click"),         _L("Add point to selection")));
+    shortcuts.push_back(std::make_pair(alt+_L("Left click"),          _L("Remove point from selection")));
+    shortcuts.push_back(std::make_pair(wxString("Shift+")+_L("Drag"), _L("Select by rectangle")));
+    shortcuts.push_back(std::make_pair(alt+_(L("Drag")),              _L("Deselect by rectangle")));
+    shortcuts.push_back(std::make_pair(ctrl+"A",                      _L("Select all points")));
+    shortcuts.push_back(std::make_pair("Delete",                      _L("Remove selected points")));
+    shortcuts.push_back(std::make_pair(ctrl+_L("Mouse wheel"),        _L("Move clipping plane")));
+    shortcuts.push_back(std::make_pair("R",                           _L("Reset clipping plane")));
+    shortcuts.push_back(std::make_pair("Enter",                       _L("Apply changes")));
+    shortcuts.push_back(std::make_pair("Esc",                         _L("Discard changes")));
+    shortcuts.push_back(std::make_pair("M",                           _L("Switch to editing mode")));
+    shortcuts.push_back(std::make_pair("A",                           _L("Auto-generate points")));
 
     for (const auto& pair : shortcuts) {
         auto shortcut = new wxStaticText(this, wxID_ANY, pair.first);

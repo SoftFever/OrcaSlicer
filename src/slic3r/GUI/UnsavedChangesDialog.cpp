@@ -1694,6 +1694,9 @@ void DiffPresetDialog::update_compatibility(const std::string& preset_name, Pres
         technology_changed = old_printer_technology != new_printer_technology;
     }
 
+    // select preset 
+    presets->select_preset_by_name(preset_name, false);
+
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
     // The following method should not discard changes of current print or filament presets on change of a printer profile,
     // if they are compatible with the current printer.

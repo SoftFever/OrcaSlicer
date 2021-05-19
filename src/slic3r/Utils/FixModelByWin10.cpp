@@ -27,6 +27,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include <boost/thread.hpp>
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"

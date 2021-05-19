@@ -26,21 +26,26 @@ const double ObjectManipulation::mm_to_in = 0.0393700787;
 
 // Helper function to be used by drop to bed button. Returns lowest point of this
 // volume in world coordinate system.
-static double get_volume_min_z(const GLVolume* volume)
+static double get_volume_min_z(const GLVolume& volume)
 {
-    const Transform3f& world_matrix = volume->world_matrix().cast<float>();
+#if ENABLE_ALLOW_NEGATIVE_Z
+    return volume.transformed_convex_hull_bounding_box().min.z();
+#else
+    const Transform3f& world_matrix = volume.world_matrix().cast<float>();
 
     // need to get the ModelVolume pointer
-    const ModelObject* mo = wxGetApp().model().objects[volume->composite_id.object_id];
-    const ModelVolume* mv = mo->volumes[volume->composite_id.volume_id];
+    const ModelObject* mo = wxGetApp().model().objects[volume.composite_id.object_id];
+    const ModelVolume* mv = mo->volumes[volume.composite_id.volume_id];
     const TriangleMesh& hull = mv->get_convex_hull();
 
     float min_z = std::numeric_limits<float>::max();
     for (const stl_facet& facet : hull.stl.facet_start) {
-        for (int i = 0; i < 3; ++ i)
+        for (int i = 0; i < 3; ++i)
             min_z = std::min(min_z, Vec3f::UnitZ().dot(world_matrix * facet.vertex[i]));
     }
+
     return min_z;
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 }
 
 
@@ -341,13 +346,27 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
 
             const Geometry::Transformation& instance_trafo = volume->get_instance_transformation();
-            Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(volume));
+            const Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(*volume));
 
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Drop to bed"));
             change_position_value(0, diff.x());
             change_position_value(1, diff.y());
             change_position_value(2, diff.z());
         }
+#if ENABLE_ALLOW_NEGATIVE_Z
+        else if (selection.is_single_full_instance()) {
+            const ModelObjectPtrs& objects = wxGetApp().model().objects;
+            const int idx = selection.get_object_idx();
+            if (0 <= idx && idx < static_cast<int>(objects.size())) {
+                const ModelObject* mo = wxGetApp().model().objects[idx];
+                const double min_z = mo->bounding_box().min.z();
+                if (std::abs(min_z) > EPSILON) {
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Drop to bed"));
+                    change_position_value(2, m_cache.position.z() - min_z);
+                }
+            }
+        }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
         });
     editors_grid_sizer->Add(m_drop_to_bed_button);
 
@@ -671,11 +690,15 @@ void ObjectManipulation::update_reset_buttons_visibility()
         if (selection.is_single_full_instance()) {
             rotation = volume->get_instance_rotation();
             scale = volume->get_instance_scaling_factor();
+#if ENABLE_ALLOW_NEGATIVE_Z
+            min_z = wxGetApp().model().objects[volume->composite_id.object_id]->bounding_box().min.z();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
         }
         else {
             rotation = volume->get_volume_rotation();
             scale = volume->get_volume_scaling_factor();
-            min_z = get_volume_min_z(volume);
+            min_z = get_volume_min_z(*volume);
         }
         show_rotation = !rotation.isApprox(Vec3d::Zero());
         show_scale = !scale.isApprox(Vec3d::Ones());

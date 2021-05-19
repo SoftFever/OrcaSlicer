@@ -322,7 +322,7 @@ private:
     wxSize      get_size() const;
     void        get_size(int* w, int* h) const;
     double      get_double_value(const SelectedSlider& selection);
-    int         get_tick_from_value(double value);
+    int         get_tick_from_value(double value, bool force_lower_bound = false);
     wxString    get_tooltip(int tick = -1);
     int         get_edited_tick_for_position(wxPoint pos, Type type = ColorChange);
 
@@ -424,10 +424,13 @@ private:
     struct Ruler {
         double long_step;
         double short_step;
-        int count { 1 }; // > 1 for sequential print
+        std::vector<double> max_values;// max value for each object/instance in sequence print
+                                       // > 1 for sequential print
 
+        void init(const std::vector<double>& values);
         void update(wxWindow* win, const std::vector<double>& values, double scroll_step);
         bool is_ok() { return long_step > 0 && short_step > 0; }
+        size_t count() { return max_values.size(); }
     } m_ruler;
 };
 

@@ -3,6 +3,7 @@
 #include "ModelArrange.hpp"
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
+#include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
 
 #include "Format/AMF.hpp"
@@ -893,6 +894,30 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
     Points pts;
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part()) {
+#if ENABLE_ALLOW_NEGATIVE_Z
+            const Transform3d trafo = trafo_instance * v->get_matrix();
+            const TriangleMesh& hull_3d = v->get_convex_hull();
+            const indexed_triangle_set& its = hull_3d.its;
+            if (its.vertices.empty()) {
+                // Using the STL faces.
+                const stl_file& stl = hull_3d.stl;
+                for (const stl_facet& facet : stl.facet_start) {
+                    for (size_t j = 0; j < 3; ++j) {
+                        const Vec3d p = trafo * facet.vertex[j].cast<double>();
+                        if (p.z() >= 0.0)
+                            pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+                    }
+                }
+            }
+            else {
+                // Using the shared vertices should be a bit quicker than using the STL faces.
+                for (size_t i = 0; i < its.vertices.size(); ++i) {
+                    const Vec3d p = trafo * its.vertices[i].cast<double>();
+                    if (p.z() >= 0.0)
+                        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+                }
+            }
+#else
             Transform3d trafo = trafo_instance * v->get_matrix();
 			const indexed_triangle_set &its = v->mesh().its;
 			if (its.vertices.empty()) {
@@ -901,15 +926,16 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
 				for (const stl_facet &facet : stl.facet_start)
                     for (size_t j = 0; j < 3; ++ j) {
                         Vec3d p = trafo * facet.vertex[j].cast<double>();
-                        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+                            pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                     }
             } else {
                 // Using the shared vertices should be a bit quicker than using the STL faces.
                 for (size_t i = 0; i < its.vertices.size(); ++ i) {
                     Vec3d p = trafo * its.vertices[i].cast<double>();
-                    pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+                        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                 }
             }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
         }
     std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
     pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
@@ -942,30 +968,39 @@ void ModelObject::center_around_origin(bool include_modifiers)
 {
     // calculate the displacements needed to 
     // center this object around the origin
-    BoundingBoxf3 bb = include_modifiers ? full_raw_mesh_bounding_box() : raw_mesh_bounding_box();
+    const BoundingBoxf3 bb = include_modifiers ? full_raw_mesh_bounding_box() : raw_mesh_bounding_box();
 
     // Shift is the vector from the center of the bounding box to the origin
-    Vec3d shift = -bb.center();
+    const Vec3d shift = -bb.center();
 
     this->translate(shift);
     this->origin_translation += shift;
 }
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+void ModelObject::ensure_on_bed(bool allow_negative_z)
+{
+    const double min_z = get_min_z();
+    if (!allow_negative_z || min_z > 0.0)
+        translate_instances({ 0.0, 0.0, -min_z });
+}
+#else
 void ModelObject::ensure_on_bed()
 {
-    translate_instances(Vec3d(0.0, 0.0, -get_min_z()));
+    translate_instances({ 0.0, 0.0, -get_min_z() });
 }
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
 void ModelObject::translate_instances(const Vec3d& vector)
 {
-    for (size_t i = 0; i < instances.size(); ++i)
-    {
+    for (size_t i = 0; i < instances.size(); ++i) {
         translate_instance(i, vector);
     }
 }
 
 void ModelObject::translate_instance(size_t instance_idx, const Vec3d& vector)
 {
+    assert(instance_idx < instances.size());
     ModelInstance* i = instances[instance_idx];
     i->set_offset(i->get_offset() + vector);
     invalidate_bounding_box();
@@ -973,8 +1008,7 @@ void ModelObject::translate_instance(size_t instance_idx, const Vec3d& vector)
 
 void ModelObject::translate(double x, double y, double z)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->translate(x, y, z);
     }
 
@@ -984,8 +1018,7 @@ void ModelObject::translate(double x, double y, double z)
 
 void ModelObject::scale(const Vec3d &versor)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->scale(versor);
     }
     this->invalidate_bounding_box();
@@ -993,41 +1026,34 @@ void ModelObject::scale(const Vec3d &versor)
 
 void ModelObject::rotate(double angle, Axis axis)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->rotate(angle, axis);
     }
-
     center_around_origin();
     this->invalidate_bounding_box();
 }
 
 void ModelObject::rotate(double angle, const Vec3d& axis)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->rotate(angle, axis);
     }
-
     center_around_origin();
     this->invalidate_bounding_box();
 }
 
 void ModelObject::mirror(Axis axis)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->mirror(axis);
     }
-
     this->invalidate_bounding_box();
 }
 
 // This method could only be called before the meshes of this ModelVolumes are not shared!
 void ModelObject::scale_mesh_after_creation(const Vec3d &versor)
 {
-    for (ModelVolume *v : this->volumes)
-    {
+    for (ModelVolume *v : this->volumes) {
         v->scale_geometry_after_creation(versor);
         v->set_offset(versor.cwiseProduct(v->get_offset()));
     }
@@ -1187,32 +1213,32 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         }
         else if (! volume->mesh().empty()) {
             
-            TriangleMesh upper_mesh, lower_mesh;
-
             // Transform the mesh by the combined transformation matrix.
             // Flip the triangles in case the composite transformation is left handed.
 			TriangleMesh mesh(volume->mesh());
 			mesh.transform(instance_matrix * volume_matrix, true);
 			volume->reset_mesh();
-            
-            mesh.require_shared_vertices();
-            
-            // Perform cut
-            TriangleMeshSlicer tms(&mesh);
-            tms.cut(float(z), &upper_mesh, &lower_mesh);
-
             // Reset volume transformation except for offset
             const Vec3d offset = volume->get_offset();
             volume->set_transformation(Geometry::Transformation());
             volume->set_offset(offset);
 
-            if (keep_upper) {
-                upper_mesh.repair();
-                upper_mesh.reset_repair_stats();
-            }
-            if (keep_lower) {
-                lower_mesh.repair();
-                lower_mesh.reset_repair_stats();
+            // Perform cut
+            TriangleMesh upper_mesh, lower_mesh;
+            {
+                indexed_triangle_set upper_its, lower_its;
+                mesh.require_shared_vertices();
+                cut_mesh(mesh.its, float(z), &upper_its, &lower_its);
+                if (keep_upper) {
+                    upper_mesh = TriangleMesh(upper_its);
+                    upper_mesh.repair();
+                    upper_mesh.reset_repair_stats();
+                }
+                if (keep_lower) {
+                    lower_mesh = TriangleMesh(lower_its);
+                    lower_mesh.repair();
+                    lower_mesh.reset_repair_stats();
+                }
             }
 
             if (keep_upper && upper_mesh.facets_count() > 0) {
@@ -1418,11 +1444,9 @@ double ModelObject::get_min_z() const
 {
     if (instances.empty())
         return 0.0;
-    else
-    {
+    else {
         double min_z = DBL_MAX;
-        for (size_t i = 0; i < instances.size(); ++i)
-        {
+        for (size_t i = 0; i < instances.size(); ++i) {
             min_z = std::min(min_z, get_instance_min_z(i));
         }
         return min_z;
@@ -1433,15 +1457,14 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
 {
     double min_z = DBL_MAX;
 
-    ModelInstance* inst = instances[instance_idx];
+    const ModelInstance* inst = instances[instance_idx];
     const Transform3d& mi = inst->get_matrix(true);
 
-    for (const ModelVolume* v : volumes)
-    {
+    for (const ModelVolume* v : volumes) {
         if (!v->is_model_part())
             continue;
 
-        Transform3d mv = mi * v->get_matrix();
+        const Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
 		for (const stl_facet &facet : hull.stl.facet_start)
 			for (int i = 0; i < 3; ++ i)
@@ -1906,12 +1929,19 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
     Transform3d trafo_instance =
+#if ENABLE_ALLOW_NEGATIVE_Z
+        Geometry::assemble_transform(get_offset().z() * Vec3d::UnitZ(), rotation,
+                                     get_scaling_factor(), get_mirror());
+#else
         Geometry::assemble_transform(Vec3d::Zero(), rotation,
                                      get_scaling_factor(), get_mirror());
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     Polygon p = get_object()->convex_hull_2d(trafo_instance);
 
+#if !ENABLE_ALLOW_NEGATIVE_Z
     assert(!p.points.empty());
+#endif // !ENABLE_ALLOW_NEGATIVE_Z
 
 //    if (!p.points.empty()) {
 //        Polygons pp{p};

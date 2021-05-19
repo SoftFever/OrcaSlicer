@@ -199,6 +199,8 @@ add_library(libslic3r STATIC
     Tesselate.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
+    TriangleMeshSlicer.cpp
+    TriangleMeshSlicer.hpp
     TriangulateWall.hpp
     TriangulateWall.cpp
     utils.cpp

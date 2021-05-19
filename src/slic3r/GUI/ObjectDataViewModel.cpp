@@ -1180,6 +1180,15 @@ int ObjectDataViewModel::GetExtruderNumber(const wxDataViewItem& item) const
 	return atoi(node->m_extruder.c_str());
 }
 
+wxString ObjectDataViewModel::GetColumnType(unsigned int col) const
+{
+    if (col == colName || col == colExtruder)
+        return wxT("DataViewBitmapText");
+    if (col == colPrint || col == colEditing)
+        return wxT("DataViewBitmap");
+    return wxT("string");
+}
+
 void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &item, unsigned int col) const
 {
 	wxASSERT(item.IsOk());

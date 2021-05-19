@@ -12,9 +12,6 @@
 
 namespace Slic3r {
 
-class TriangleMesh;
-class TriangleMeshSlicer;
-
 namespace GUI {
 
 struct Camera;
@@ -98,7 +95,6 @@ private:
     std::vector<Vec2f> m_triangles2d;
     GLIndexedVertexArray m_vertex_array;
     bool m_triangles_valid = false;
-    std::unique_ptr<TriangleMeshSlicer> m_tms;
 };
 
 

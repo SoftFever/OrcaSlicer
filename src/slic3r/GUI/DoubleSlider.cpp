@@ -254,7 +254,7 @@ void Control::SetMaxValue(const int max_value)
 void Control::SetSliderValues(const std::vector<double>& values)
 {
     m_values = values;
-    m_ruler.count = std::count(m_values.begin(), m_values.end(), m_values.front());
+    m_ruler.init(m_values);
 }
 
 void Control::draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos)
@@ -326,10 +326,10 @@ double Control::get_double_value(const SelectedSlider& selection)
     return m_values[selection == ssLower ? m_lower_value : m_higher_value];
 }
 
-int Control::get_tick_from_value(double value)
+int Control::get_tick_from_value(double value, bool force_lower_bound/* = false*/)
 {
     std::vector<double>::iterator it;
-    if (m_is_wipe_tower)
+    if (m_is_wipe_tower && !force_lower_bound)
         it = std::find_if(m_values.begin(), m_values.end(),
                           [value](const double & val) { return fabs(value - val) <= epsilon(); });
     else
@@ -575,7 +575,10 @@ void Control::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_
     else
         is_horizontal() ? y_draw = pt_beg.y - m_tick_icon_dim-2 : x_draw = pt_end.x + 3;
 
-    dc.DrawBitmap(*icon, x_draw, y_draw);
+    if (m_draw_mode == dmSequentialFffPrint)
+        dc.DrawBitmap(create_scaled_bitmap("colorchange_add", nullptr, 16, true), x_draw, y_draw);
+    else
+        dc.DrawBitmap(*icon, x_draw, y_draw);
 
     //update rect of the tick action icon
     m_rect_tick_action = wxRect(x_draw, y_draw, m_tick_icon_dim, m_tick_icon_dim);
@@ -591,7 +594,7 @@ void Control::draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, const Selec
         dc.DrawLine(pt_beg, pt_end);
 
         //draw action icon
-        if (m_draw_mode == dmRegular)
+        if (m_draw_mode == dmRegular || m_draw_mode == dmSequentialFffPrint)
             draw_action_icon(dc, pt_beg, pt_end);
     }
 }
@@ -1020,8 +1023,23 @@ void Control::draw_colored_band(wxDC& dc)
     }
 }
 
+void Control::Ruler::init(const std::vector<double>& values)
+{
+    max_values.clear();
+    max_values.reserve(std::count(values.begin(), values.end(), values.front()));
+
+    auto it = std::find(values.begin() + 1, values.end(), values.front());
+    while (it != values.end()) {
+        max_values.push_back(*(it - 1));
+        it = std::find(it + 1, values.end(), values.front());
+    }
+    max_values.push_back(*(it - 1));
+}
+
 void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, double scroll_step)
 {
+    if (values.empty())
+        return;
     int DPI = GUI::get_dpi_for_window(win);
     int pixels_per_sm = lround((double)(DPI) * 5.0/25.4);
 
@@ -1032,7 +1050,7 @@ void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, do
 
     int pow = -2;
     int step = 0;
-    auto end_it = count == 1 ? values.end() : values.begin() + lround(values.size() / count);
+    auto end_it = std::find(values.begin() + 1, values.end(), values.front());
 
     while (pow < 3) {
         for (int istep : {1, 2, 5}) {
@@ -1066,6 +1084,8 @@ void Control::Ruler::update(wxWindow* win, const std::vector<double>& values, do
 
 void Control::draw_ruler(wxDC& dc)
 {
+    if (m_values.empty())
+        return;
     m_ruler.update(this->GetParent(), m_values, get_scroll_step());
 
     int height, width;
@@ -1096,7 +1116,7 @@ void Control::draw_ruler(wxDC& dc)
         double short_tick = std::nan("");
         int tick = 0;
         double value = 0.0;
-        int sequence = 0;
+        size_t sequence = 0;
 
         int prev_y_pos = -1;
         wxCoord label_height = dc.GetMultiLineTextExtent("0").y - 2;
@@ -1104,7 +1124,7 @@ void Control::draw_ruler(wxDC& dc)
 
         while (tick <= m_max_value) {
             value += m_ruler.long_step;
-            if (value > m_values.back() && sequence < m_ruler.count) {
+            if (value > m_ruler.max_values[sequence] && sequence < m_ruler.count()) {
                 value = m_ruler.long_step;
                 for (; tick < values_size; tick++)
                     if (m_values[tick] < value)
@@ -1137,7 +1157,7 @@ void Control::draw_ruler(wxDC& dc)
 
             draw_short_ticks(dc, short_tick, tick);
 
-            if (value == m_values.back() && sequence < m_ruler.count) {
+            if (value == m_ruler.max_values[sequence] && sequence < m_ruler.count()) {
                 value = 0.0;
                 sequence++;
                 tick++;
@@ -1377,6 +1397,10 @@ wxString Control::get_tooltip(int tick/*=-1*/)
 
     if (tick_code_it == m_ticks.ticks.end() && m_focus == fiActionIcon)    // tick doesn't exist
     {
+        if (m_draw_mode == dmSequentialFffPrint)
+            return   _L("The sequential print is on.\n"
+                        "It's impossible to apply any custom G-code for objects printing sequentually.\n");
+
         // Show mode as a first string of tooltop
         tooltip = "    " + _L("Print mode") + ": ";
         tooltip += (m_mode == SingleExtruder ? SingleExtruderMode :
@@ -2388,7 +2412,7 @@ void Control::edit_extruder_sequence()
             extruder = 0;
         if (m_extruders_sequence.is_mm_intervals) {
             value += m_extruders_sequence.interval_by_mm;
-            tick = get_tick_from_value(value);
+            tick = get_tick_from_value(value, true);
             if (tick < 0)
                 break;
         }

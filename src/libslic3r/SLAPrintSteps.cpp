@@ -3,6 +3,7 @@
 #include <libslic3r/Exception.hpp>
 #include <libslic3r/SLAPrintSteps.hpp>
 #include <libslic3r/MeshBoolean.hpp>
+#include <libslic3r/TriangleMeshSlicer.hpp>
 
 // Need the cylinder method for the the drainholes in hollowing step
 #include <libslic3r/SLA/SupportTreeBuilder.hpp>
@@ -198,7 +199,7 @@ static std::vector<bool> create_exclude_mask(
     std::vector<bool> exclude_mask(its.indices.size(), false);
 
     std::vector< std::vector<size_t> > neighbor_index =
-            create_neighbor_index(its);
+            create_vertex_faces_index(its);
 
     auto exclude_neighbors = [&neighbor_index, &exclude_mask](const Vec3i &face)
     {
@@ -470,13 +471,12 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     for(auto it = slindex_it; it != po.m_slice_index.end(); ++it)
         po.m_model_height_levels.emplace_back(it->slice_level());
 
-    TriangleMeshSlicer slicer(&mesh);
-
     po.m_model_slices.clear();
     float closing_r  = float(po.config().slice_closing_radius.value);
     auto  thr        = [this]() { m_print->throw_if_canceled(); };
     auto &slice_grid = po.m_model_height_levels;
-    slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &po.m_model_slices, thr);
+    assert(mesh.has_shared_vertices());
+    po.m_model_slices = slice_mesh_ex(mesh.its, slice_grid, closing_r, thr);
 
     sla::Interior *interior = po.m_hollowing_data ?
                                   po.m_hollowing_data->interior.get() :
@@ -486,9 +486,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         TriangleMesh interiormesh = sla::get_mesh(*interior);
         interiormesh.repaired = false;
         interiormesh.repair(true);
-        TriangleMeshSlicer interior_slicer(&interiormesh);
-        std::vector<ExPolygons> interior_slices;
-        interior_slicer.slice(slice_grid, SlicingMode::Regular, closing_r, &interior_slices, thr);
+        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh.its, slice_grid, closing_r, thr);
 
         sla::ccr::for_each(size_t(0), interior_slices.size(),
                            [&po, &interior_slices] (size_t i) {
