@@ -1936,7 +1936,9 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 
     Polygon p = get_object()->convex_hull_2d(trafo_instance);
 
+#if !ENABLE_ALLOW_NEGATIVE_Z
     assert(!p.points.empty());
+#endif // !ENABLE_ALLOW_NEGATIVE_Z
 
 //    if (!p.points.empty()) {
 //        Polygons pp{p};
