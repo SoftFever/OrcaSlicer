@@ -675,7 +675,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
                 if (cur_area != bottom_area && fabs(cur_area - bottom_area) > scale_(scale_(1)))
                     break;
             }
-            if (i < size_t(0.3 * num_layers))
+            if (i < int(0.3 * num_layers))
                 continue;
 
             // bottom layer have to be a biggest, so control relation between bottom layer and object size

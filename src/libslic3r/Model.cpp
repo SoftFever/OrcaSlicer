@@ -1213,32 +1213,32 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         }
         else if (! volume->mesh().empty()) {
             
-            TriangleMesh upper_mesh, lower_mesh;
-
             // Transform the mesh by the combined transformation matrix.
             // Flip the triangles in case the composite transformation is left handed.
 			TriangleMesh mesh(volume->mesh());
 			mesh.transform(instance_matrix * volume_matrix, true);
 			volume->reset_mesh();
-            
-            mesh.require_shared_vertices();
-            
-            // Perform cut
-            TriangleMeshSlicer tms(&mesh);
-            tms.cut(float(z), &upper_mesh, &lower_mesh);
-
             // Reset volume transformation except for offset
             const Vec3d offset = volume->get_offset();
             volume->set_transformation(Geometry::Transformation());
             volume->set_offset(offset);
 
-            if (keep_upper) {
-                upper_mesh.repair();
-                upper_mesh.reset_repair_stats();
-            }
-            if (keep_lower) {
-                lower_mesh.repair();
-                lower_mesh.reset_repair_stats();
+            // Perform cut
+            TriangleMesh upper_mesh, lower_mesh;
+            {
+                indexed_triangle_set upper_its, lower_its;
+                mesh.require_shared_vertices();
+                cut_mesh(mesh.its, float(z), &upper_its, &lower_its);
+                if (keep_upper) {
+                    upper_mesh = TriangleMesh(upper_its);
+                    upper_mesh.repair();
+                    upper_mesh.reset_repair_stats();
+                }
+                if (keep_lower) {
+                    lower_mesh = TriangleMesh(lower_its);
+                    lower_mesh.repair();
+                    lower_mesh.reset_repair_stats();
+                }
             }
 
             if (keep_upper && upper_mesh.facets_count() > 0) {
