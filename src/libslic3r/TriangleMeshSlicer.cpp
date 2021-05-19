@@ -1179,6 +1179,7 @@ std::vector<ExPolygons> slice_mesh_ex(
     return layers;
 }
 
+// Remove duplicates of slice_vertices, optionally triangulate the cut.
 static void triangulate_slice(
     indexed_triangle_set    &its, 
     IntersectionLines       &lines, 
@@ -1186,7 +1187,8 @@ static void triangulate_slice(
     // Vertices of the original (unsliced) mesh. Newly added vertices are those on the slice.
     int                      num_original_vertices,
     // Z height of the slice.
-    float                    z)
+    float                    z, 
+    bool                     triangulate)
 {
     sort_remove_duplicates(slice_vertices);
 
@@ -1230,33 +1232,35 @@ static void triangulate_slice(
                     f(i) = map_duplicate_vertex[f(i) - num_original_vertices];
     }
 
-    size_t idx_vertex_new_first = its.vertices.size();
-    Pointf3s triangles = triangulate_expolygons_3d(make_expolygons_simple(lines), z, true);
-    for (size_t i = 0; i < triangles.size(); ) {
-        stl_triangle_vertex_indices facet;
-        for (size_t j = 0; j < 3; ++ j) {
-            Vec3f v = triangles[i ++].cast<float>();
-            auto it = lower_bound_by_predicate(map_vertex_to_index.begin(), map_vertex_to_index.end(), 
-                [&v](const std::pair<Vec2f, int> &l) { return l.first.x() < v.x() || (l.first.x() == v.x() && l.first.y() < v.y()); });
-            int   idx = -1;
-            if (it != map_vertex_to_index.end() && it->first.x() == v.x() && it->first.y() == v.y())
-                idx = it->second;
-            else {
-                // Try to find the vertex in the list of newly added vertices. Those vertices are not matched on the cut and they shall be rare.
-                for (size_t k = idx_vertex_new_first; k < its.vertices.size(); ++ k)
-                    if (its.vertices[k] == v) {
-                        idx = int(k);
-                        break;
+    if (triangulate) {
+        size_t idx_vertex_new_first = its.vertices.size();
+        Pointf3s triangles = triangulate_expolygons_3d(make_expolygons_simple(lines), z, true);
+        for (size_t i = 0; i < triangles.size(); ) {
+            stl_triangle_vertex_indices facet;
+            for (size_t j = 0; j < 3; ++ j) {
+                Vec3f v = triangles[i ++].cast<float>();
+                auto it = lower_bound_by_predicate(map_vertex_to_index.begin(), map_vertex_to_index.end(), 
+                    [&v](const std::pair<Vec2f, int> &l) { return l.first.x() < v.x() || (l.first.x() == v.x() && l.first.y() < v.y()); });
+                int   idx = -1;
+                if (it != map_vertex_to_index.end() && it->first.x() == v.x() && it->first.y() == v.y())
+                    idx = it->second;
+                else {
+                    // Try to find the vertex in the list of newly added vertices. Those vertices are not matched on the cut and they shall be rare.
+                    for (size_t k = idx_vertex_new_first; k < its.vertices.size(); ++ k)
+                        if (its.vertices[k] == v) {
+                            idx = int(k);
+                            break;
+                        }
+                    if (idx == -1) {
+                        idx = int(its.vertices.size());
+                        its.vertices.emplace_back(v);
                     }
-                if (idx == -1) {
-                    idx = int(its.vertices.size());
-                    its.vertices.emplace_back(v);
                 }
+                facet(j) = idx;
             }
-            facet(j) = idx;
+            if (facet(0) != facet(1) && facet(0) != facet(2) && facet(1) != facet(2))
+                its.indices.emplace_back(facet);
         }
-        if (facet(0) != facet(1) && facet(0) != facet(2) && facet(1) != facet(2))
-            its.indices.emplace_back(facet);
     }
 
     // Remove vertices, which are not referenced by any face.
@@ -1266,7 +1270,7 @@ static void triangulate_slice(
     // its_remove_degenerate_faces(its);
 }
 
-void cut_mesh(const indexed_triangle_set &mesh, float z, indexed_triangle_set *upper, indexed_triangle_set *lower)
+void cut_mesh(const indexed_triangle_set &mesh, float z, indexed_triangle_set *upper, indexed_triangle_set *lower, bool triangulate_caps)
 {
     assert(upper || lower);
     if (upper == nullptr && lower == nullptr)
@@ -1413,10 +1417,10 @@ void cut_mesh(const indexed_triangle_set &mesh, float z, indexed_triangle_set *u
     }
     
     if (upper != nullptr)
-        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z);
+        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps);
 
     if (lower != nullptr)
-        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z);
+        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps);
 }
 
 }

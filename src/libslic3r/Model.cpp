@@ -937,31 +937,7 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
             }
 #endif // ENABLE_ALLOW_NEGATIVE_Z
         }
-    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
-    pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
-
-    Polygon hull;
-    int n = (int)pts.size();
-    if (n >= 3) {
-        int k = 0;
-        hull.points.resize(2 * n);
-        // Build lower hull
-        for (int i = 0; i < n; ++ i) {
-            while (k >= 2 && pts[i].ccw(hull[k-2], hull[k-1]) <= 0)
-                -- k;
-            hull[k ++] = pts[i];
-        }
-        // Build upper hull
-        for (int i = n-2, t = k+1; i >= 0; i--) {
-            while (k >= t && pts[i].ccw(hull[k-2], hull[k-1]) <= 0)
-                -- k;
-            hull[k ++] = pts[i];
-        }
-        hull.points.resize(k);
-        assert(hull.points.front() == hull.points.back());
-        hull.points.pop_back();
-    }
-    return hull;
+    return Geometry::convex_hull(std::move(pts));
 }
 
 void ModelObject::center_around_origin(bool include_modifiers)
