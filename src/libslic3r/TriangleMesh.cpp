@@ -902,6 +902,7 @@ void its_shrink_to_fit(indexed_triangle_set &its)
 template<typename TransformVertex>
 void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, const TransformVertex &transform_fn, const float z, Points &all_pts)
 {
+    all_pts.reserve(all_pts.size() + its.indices.size() * 3);
     for (const stl_triangle_vertex_indices &tri : its.indices) {
         const Vec3f pts[3] = { transform_fn(its.vertices[tri(0)]), transform_fn(its.vertices[tri(1)]), transform_fn(its.vertices[tri(2)]) };
         int iprev = 3;
