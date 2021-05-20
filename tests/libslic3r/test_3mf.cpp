@@ -85,3 +85,43 @@ SCENARIO("Export+Import geometry to/from 3mf file cycle", "[3mf]") {
         }
     }
 }
+
+SCENARIO("2D convex hull of sinking object", "[3mf]") {
+    GIVEN("model") {
+        // load a model
+        Model model;
+        std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
+        load_stl(src_file.c_str(), &model);
+        model.add_default_instances();
+
+        WHEN("model is rotated, scaled and set as sinking") {
+            ModelObject* object = model.objects[0];
+            object->center_around_origin(false);
+
+            // set instance's attitude so that it is rotated, scaled and sinking
+            ModelInstance* instance = object->instances[0];
+            instance->set_rotation(Y, -M_PI / 4.0);
+            instance->set_offset(Vec3d::Zero());
+            instance->set_scaling_factor({ 2.0, 2.0, 2.0 });
+
+            // calculate 2D convex hull
+            Polygon hull_2d = object->convex_hull_2d(instance->get_transformation().get_matrix());
+
+            // verify result
+            Points result = {
+                { -4242641, -16299551 },
+                { -4241,    -19502998 },
+                { 66824768, -19502998 },
+                { 66824768, 19502998 },
+                { -4244,    19502998 },
+                { -4242640, -8537523 }
+            };
+            bool res = hull_2d.points == result;
+
+            THEN("2D convex hull should match with reference") {
+                REQUIRE(res);
+            }
+        }
+    }
+}
+
