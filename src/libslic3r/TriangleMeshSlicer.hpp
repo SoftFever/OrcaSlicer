@@ -76,7 +76,8 @@ void                            cut_mesh(
     const indexed_triangle_set      &mesh,
     float                            z,
     indexed_triangle_set            *upper,
-    indexed_triangle_set            *lower);
+    indexed_triangle_set            *lower,
+    bool                             triangulate_caps = true);
 
 }
 

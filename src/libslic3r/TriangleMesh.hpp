@@ -65,7 +65,7 @@ public:
     // Returns the convex hull of this TriangleMesh
     TriangleMesh convex_hull_3d() const;
     // Slice this mesh at the provided Z levels and return the vector
-    std::vector<ExPolygons> slice(const std::vector<double>& z);
+    std::vector<ExPolygons> slice(const std::vector<double>& z) const;
     void reset_repair_stats();
     bool needed_repair() const;
     void require_shared_vertices();
@@ -113,6 +113,11 @@ int its_compactify_vertices(indexed_triangle_set &its, bool shrink_to_fit = true
 // Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
 void its_shrink_to_fit(indexed_triangle_set &its);
 
+// For convex hull calculation: Transform mesh, trim it by the Z plane and collect all vertices. Duplicate vertices will be produced.
+void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, const Matrix3f &m, const float z, Points &all_pts);
+void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, const Transform3f &t, const float z, Points &all_pts);
+
+// Calculate 2D convex hull of a transformed and clipped mesh. Uses the function above.
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Matrix3f &m, const float z);
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transform3f &t, const float z);
 
