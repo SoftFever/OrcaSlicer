@@ -591,7 +591,7 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     m_last_result_id = gcode_result.id;
 
     // release gpu memory, if used
-    reset();
+    reset(); 
 
 #if ENABLE_GCODE_WINDOW
     m_sequential_view.gcode_window.set_filename(gcode_result.filename);
