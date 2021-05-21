@@ -313,15 +313,26 @@ private:
     public:
         sla::SupportTree::UPtr  support_tree_ptr; // the supports
         std::vector<ExPolygons> support_slices;   // sliced supports
+        TriangleMesh tree_mesh, pad_mesh, full_mesh;
         
         inline SupportData(const TriangleMesh &t)
-            : sla::SupportableMesh{t, {}, {}}
+            : sla::SupportableMesh{t.its, {}, {}}
         {}
         
         sla::SupportTree::UPtr &create_support_tree(const sla::JobController &ctl)
         {
             support_tree_ptr = sla::SupportTree::create(*this, ctl);
+            tree_mesh = TriangleMesh{support_tree_ptr->retrieve_mesh(sla::MeshType::Support)};
             return support_tree_ptr;
+        }
+
+        void create_pad(const ExPolygons &blueprint, const sla::PadConfig &pcfg)
+        {
+            if (!support_tree_ptr)
+                return;
+
+            support_tree_ptr->add_pad(blueprint, pcfg);
+            pad_mesh = TriangleMesh{support_tree_ptr->retrieve_mesh(sla::MeshType::Pad)};
         }
     };
     
@@ -569,7 +580,7 @@ sla::PadConfig::EmbedObject builtin_pad_cfg(const SLAPrintObjectConfig& c);
 
 sla::PadConfig make_pad_cfg(const SLAPrintObjectConfig& c);
 
-bool validate_pad(const TriangleMesh &pad, const sla::PadConfig &pcfg);
+bool validate_pad(const indexed_triangle_set &pad, const sla::PadConfig &pcfg);
 
 
 } // namespace Slic3r

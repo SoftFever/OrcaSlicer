@@ -3,7 +3,7 @@
 #include <libslic3r/SLA/SupportTreeBuilder.hpp>
 #include <libslic3r/SLA/SupportTreeBuildsteps.hpp>
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
-#include <libslic3r/SLA/Contour3D.hpp>
+//#include <libslic3r/SLA/Contour3D.hpp>
 
 namespace Slic3r {
 namespace sla {
@@ -23,11 +23,11 @@ Head::Head(double       r_big_mm,
 {
 }
 
-Pad::Pad(const TriangleMesh &support_mesh,
-         const ExPolygons &  model_contours,
-         double              ground_level,
-         const PadConfig &   pcfg,
-         ThrowOnCancel       thr)
+Pad::Pad(const indexed_triangle_set &support_mesh,
+         const ExPolygons &          model_contours,
+         double                      ground_level,
+         const PadConfig &           pcfg,
+         ThrowOnCancel               thr)
     : cfg(pcfg)
     , zlevel(ground_level + pcfg.full_height() - pcfg.required_elevation())
 {
@@ -41,12 +41,14 @@ Pad::Pad(const TriangleMesh &support_mesh,
     pad_blueprint(support_mesh, sup_contours, grid(zstart, zend, 0.1f), thr);
     create_pad(sup_contours, model_contours, tmesh, pcfg);
     
-    tmesh.translate(0, 0, float(zlevel));
-    if (!tmesh.empty()) tmesh.require_shared_vertices();
+    Vec3f offs{.0f, .0f, float(zlevel)};
+    for (auto &p : tmesh.vertices) p += offs;
+
+    its_merge_vertices(tmesh);
 }
 
-const TriangleMesh &SupportTreeBuilder::add_pad(const ExPolygons &modelbase,
-                                                const PadConfig & cfg)
+const indexed_triangle_set &SupportTreeBuilder::add_pad(
+    const ExPolygons &modelbase, const PadConfig &cfg)
 {
     m_pad = Pad{merged_mesh(), modelbase, ground_level, cfg, ctl().cancelfn};
     return m_pad.tmesh;
@@ -120,74 +122,74 @@ void SupportTreeBuilder::add_pillar_base(long pid, double baseheight, double rad
     m_meshcache_valid = false;
 }
 
-const TriangleMesh &SupportTreeBuilder::merged_mesh(size_t steps) const
+const indexed_triangle_set &SupportTreeBuilder::merged_mesh(size_t steps) const
 {
     if (m_meshcache_valid) return m_meshcache;
     
-    Contour3D merged;
+    indexed_triangle_set merged;
     
     for (auto &head : m_heads) {
         if (ctl().stopcondition()) break;
-        if (head.is_valid()) merged.merge(get_mesh(head, steps));
+        if (head.is_valid()) its_merge(merged, get_mesh(head, steps));
     }
     
     for (auto &pill : m_pillars) {
         if (ctl().stopcondition()) break;
-        merged.merge(get_mesh(pill, steps));
+        its_merge(merged, get_mesh(pill, steps));
     }
 
     for (auto &pedest : m_pedestals) {
         if (ctl().stopcondition()) break;
-        merged.merge(get_mesh(pedest, steps));
+        its_merge(merged, get_mesh(pedest, steps));
     }
     
     for (auto &j : m_junctions) {
         if (ctl().stopcondition()) break;
-        merged.merge(get_mesh(j, steps));
+        its_merge(merged, get_mesh(j, steps));
     }
 
     for (auto &bs : m_bridges) {
         if (ctl().stopcondition()) break;
-        merged.merge(get_mesh(bs, steps));
+        its_merge(merged, get_mesh(bs, steps));
     }
     
     for (auto &bs : m_crossbridges) {
         if (ctl().stopcondition()) break;
-        merged.merge(get_mesh(bs, steps));
+        its_merge(merged, get_mesh(bs, steps));
     }
 
     for (auto &bs : m_diffbridges) {
         if (ctl().stopcondition()) break;
-        merged.merge(get_mesh(bs, steps));
+        its_merge(merged, get_mesh(bs, steps));
     }
 
     for (auto &anch : m_anchors) {
         if (ctl().stopcondition()) break;
-        merged.merge(get_mesh(anch, steps));
+        its_merge(merged, get_mesh(anch, steps));
     }
 
     if (ctl().stopcondition()) {
         // In case of failure we have to return an empty mesh
-        m_meshcache = TriangleMesh();
+        m_meshcache = {};
         return m_meshcache;
     }
     
-    m_meshcache = to_triangle_mesh(merged);
+    m_meshcache = merged;
     
     // The mesh will be passed by const-pointer to TriangleMeshSlicer,
     // which will need this.
-    if (!m_meshcache.empty()) m_meshcache.require_shared_vertices();
+    its_merge_vertices(m_meshcache);
     
-    BoundingBoxf3 &&bb = m_meshcache.bounding_box();
-    m_model_height       = bb.max(Z) - bb.min(Z);
-    
+    BoundingBoxf3 bb = bounding_box(m_meshcache);
+    m_model_height   = bb.max(Z) - bb.min(Z);
+
     m_meshcache_valid = true;
     return m_meshcache;
 }
 
 double SupportTreeBuilder::full_height() const
 {
-    if (merged_mesh().empty() && !pad().empty())
+    if (merged_mesh().indices.empty() && !pad().empty())
         return pad().cfg.full_height();
     
     double h = mesh_height();
@@ -195,7 +197,7 @@ double SupportTreeBuilder::full_height() const
     return h;
 }
 
-const TriangleMesh &SupportTreeBuilder::merge_and_cleanup()
+const indexed_triangle_set &SupportTreeBuilder::merge_and_cleanup()
 {
     // in case the mesh is not generated, it should be...
     auto &ret = merged_mesh(); 
@@ -210,7 +212,7 @@ const TriangleMesh &SupportTreeBuilder::merge_and_cleanup()
     return ret;
 }
 
-const TriangleMesh &SupportTreeBuilder::retrieve_mesh(MeshType meshtype) const
+const indexed_triangle_set &SupportTreeBuilder::retrieve_mesh(MeshType meshtype) const
 {
     switch(meshtype) {
     case MeshType::Support: return merged_mesh();

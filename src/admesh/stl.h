@@ -149,9 +149,11 @@ struct indexed_triangle_set
 	}
 
 	std::vector<stl_triangle_vertex_indices> 	indices;
-	std::vector<stl_vertex>       				    vertices;
+    std::vector<stl_vertex>       				    vertices;
 	//FIXME add normals once we get rid of the stl_file from TriangleMesh completely.
 	//std::vector<stl_normal> 					      normals
+
+    bool empty() const { return indices.empty() || vertices.empty(); }
 };
 
 extern bool stl_open(stl_file *stl, const char *file);

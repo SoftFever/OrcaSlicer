@@ -147,10 +147,47 @@ void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, c
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Matrix3f &m, const float z);
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transform3f &t, const float z);
 
+using its_triangle = std::array<stl_vertex, 3>;
+
+inline its_triangle its_triangle_vertices(const indexed_triangle_set &its,
+                                          size_t                      face_id)
+{
+    return {its.vertices[its.indices[face_id](0)],
+            its.vertices[its.indices[face_id](1)],
+            its.vertices[its.indices[face_id](2)]};
+}
+
+inline stl_normal its_unnormalized_normal(const indexed_triangle_set &its,
+                                          size_t                      face_id)
+{
+    its_triangle tri = its_triangle_vertices(its, face_id);
+    return (tri[1] - tri[0]).cross(tri[2] - tri[0]);
+}
+
+void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B);
+void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles);
+void its_merge(indexed_triangle_set &A, const Pointf3s &triangles);
+
 TriangleMesh make_cube(double x, double y, double z);
 TriangleMesh make_cylinder(double r, double h, double fa=(2*PI/360));
 TriangleMesh make_cone(double r, double h, double fa=(2*PI/360));
 TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
+
+inline BoundingBoxf3 bounding_box(const TriangleMesh &m) { return m.bounding_box(); }
+inline BoundingBoxf3 bounding_box(const indexed_triangle_set& its)
+{
+    if (its.vertices.empty())
+        return {};
+
+    Vec3f bmin = its.vertices.front(), bmax = its.vertices.front();
+
+    for (const Vec3f &p : its.vertices) {
+        bmin = p.cwiseMin(bmin);
+        bmax = p.cwiseMax(bmax);
+    }
+
+    return {bmin.cast<double>(), bmax.cast<double>()};
+}
 
 }
 

@@ -15,6 +15,8 @@
   #include "libslic3r/SLA/Hollowing.hpp"
 #endif
 
+struct indexed_triangle_set;
+
 namespace Slic3r {
 
 class TriangleMesh;
@@ -29,7 +31,7 @@ using PointSet = Eigen::MatrixXd;
 class IndexedMesh {
     class AABBImpl;
     
-    const TriangleMesh* m_tm;
+    const indexed_triangle_set* m_tm;
     double m_ground_level = 0, m_gnd_offset = 0;
     
     std::unique_ptr<AABBImpl> m_aabb;
@@ -40,9 +42,12 @@ class IndexedMesh {
     std::vector<DrainHole> m_holes;
 #endif
 
+    template<class M> void init(const M &mesh);
+
 public:
     
-    explicit IndexedMesh(const TriangleMesh&);
+    explicit IndexedMesh(const indexed_triangle_set&);
+    explicit IndexedMesh(const TriangleMesh &mesh);
     
     IndexedMesh(const IndexedMesh& other);
     IndexedMesh& operator=(const IndexedMesh&);
@@ -130,7 +135,7 @@ public:
 
     Vec3d normal_by_face_id(int face_id) const;
 
-    const TriangleMesh * get_triangle_mesh() const { return m_tm; }
+    const indexed_triangle_set * get_triangle_mesh() const { return m_tm; }
 };
 
 // Calculate the normals for the selected points (from 'points' set) on the

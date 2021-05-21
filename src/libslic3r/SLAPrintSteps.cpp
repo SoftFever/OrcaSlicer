@@ -360,7 +360,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         holept.normal += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
         holept.normal.normalize();
         holept.pos += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
-        TriangleMesh m = sla::to_triangle_mesh(holept.to_mesh());
+        TriangleMesh m{holept.to_mesh()};
         m.require_shared_vertices();
 
         part_to_drill.indices.clear();
@@ -667,15 +667,14 @@ void SLAPrint::Steps::generate_pad(SLAPrintObject &po) {
             // we sometimes call it "builtin pad" is enabled so we will
             // get a sample from the bottom of the mesh and use it for pad
             // creation.
-            sla::pad_blueprint(trmesh, bp, float(pad_h),
+            sla::pad_blueprint(trmesh.its, bp, float(pad_h),
                                float(po.m_config.layer_height.getFloat()),
                                [this](){ throw_if_canceled(); });
         }
 
-        po.m_supportdata->support_tree_ptr->add_pad(bp, pcfg);
-        auto &pad_mesh = po.m_supportdata->support_tree_ptr->retrieve_mesh(sla::MeshType::Pad);
+        po.m_supportdata->create_pad(bp, pcfg);
 
-        if (!validate_pad(pad_mesh, pcfg))
+        if (!validate_pad(po.m_supportdata->support_tree_ptr->retrieve_mesh(sla::MeshType::Pad), pcfg))
             throw Slic3r::SlicingError(
                     L("No pad can be generated for this model with the "
                       "current configuration"));

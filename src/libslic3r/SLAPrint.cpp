@@ -109,7 +109,7 @@ sla::PadConfig make_pad_cfg(const SLAPrintObjectConfig& c)
     return pcfg;
 }
 
-bool validate_pad(const TriangleMesh &pad, const sla::PadConfig &pcfg) 
+bool validate_pad(const indexed_triangle_set &pad, const sla::PadConfig &pcfg)
 {
     // An empty pad can only be created if embed_object mode is enabled
     // and the pad is not forced everywhere
@@ -1129,20 +1129,16 @@ TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
 
 const TriangleMesh& SLAPrintObject::support_mesh() const
 {
-    sla::SupportTree::UPtr &stree = m_supportdata->support_tree_ptr;
-    
-    if(m_config.supports_enable.getBool() && m_supportdata && stree)
-        return stree->retrieve_mesh(sla::MeshType::Support);
+    if(m_config.supports_enable.getBool() && m_supportdata)
+        return m_supportdata->tree_mesh;
     
     return EMPTY_MESH;
 }
 
 const TriangleMesh& SLAPrintObject::pad_mesh() const
 {
-    sla::SupportTree::UPtr &stree = m_supportdata->support_tree_ptr;
-    
-    if(m_config.pad_enable.getBool() && m_supportdata && stree)
-        return stree->retrieve_mesh(sla::MeshType::Pad);
+    if(m_config.pad_enable.getBool() && m_supportdata)
+        return m_supportdata->pad_mesh;
 
     return EMPTY_MESH;
 }

@@ -122,9 +122,9 @@ struct SupportableMesh
     IndexedMesh  emesh;
     SupportPoints pts;
     SupportTreeConfig cfg;
-    PadConfig     pad_cfg;
+//    PadConfig     pad_cfg;
 
-    explicit SupportableMesh(const TriangleMesh & trmsh,
+    explicit SupportableMesh(const indexed_triangle_set & trmsh,
                              const SupportPoints &sp,
                              const SupportTreeConfig &c)
         : emesh{trmsh}, pts{sp}, cfg{c}
@@ -149,22 +149,22 @@ public:
 
     virtual ~SupportTree() = default;
 
-    virtual const TriangleMesh &retrieve_mesh(MeshType meshtype) const = 0;
+    virtual const indexed_triangle_set &retrieve_mesh(MeshType meshtype) const = 0;
 
     /// Adding the "pad" under the supports.
     /// modelbase will be used according to the embed_object flag in PoolConfig.
     /// If set, the plate will be interpreted as the model's intrinsic pad. 
     /// Otherwise, the modelbase will be unified with the base plate calculated
     /// from the supports.
-    virtual const TriangleMesh &add_pad(const ExPolygons &modelbase,
-                                        const PadConfig & pcfg) = 0;
-    
+    virtual const indexed_triangle_set &add_pad(const ExPolygons &modelbase,
+                                                const PadConfig & pcfg) = 0;
+
     virtual void remove_pad() = 0;
     
     std::vector<ExPolygons> slice(const std::vector<float> &,
                                   float closing_radius) const;
     
-    void retrieve_full_mesh(TriangleMesh &outmesh) const;
+    void retrieve_full_mesh(indexed_triangle_set &outmesh) const;
     
     const JobController &ctl() const { return m_ctl; }
 };

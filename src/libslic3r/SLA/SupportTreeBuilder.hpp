@@ -3,7 +3,8 @@
 
 #include <libslic3r/SLA/Concurrency.hpp>
 #include <libslic3r/SLA/SupportTree.hpp>
-#include <libslic3r/SLA/Contour3D.hpp>
+//#include <libslic3r/SLA/Contour3D.hpp>
+#include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/Pad.hpp>
 #include <libslic3r/MTUtils.hpp>
 
@@ -187,19 +188,19 @@ struct DiffBridge: public Bridge {
 
 // A wrapper struct around the pad
 struct Pad {
-    TriangleMesh tmesh;
+    indexed_triangle_set tmesh;
     PadConfig cfg;
     double zlevel = 0;
     
     Pad() = default;
-    
-    Pad(const TriangleMesh &support_mesh,
-        const ExPolygons &  model_contours,
-        double              ground_level,
-        const PadConfig &   pcfg,
-        ThrowOnCancel       thr);
-    
-    bool empty() const { return tmesh.facets_count() == 0; }
+
+    Pad(const indexed_triangle_set &support_mesh,
+        const ExPolygons &          model_contours,
+        double                      ground_level,
+        const PadConfig &           pcfg,
+        ThrowOnCancel               thr);
+
+    bool empty() const { return tmesh.indices.size() == 0; }
 };
 
 // This class will hold the support tree meshes with some additional
@@ -232,7 +233,7 @@ class SupportTreeBuilder: public SupportTree {
     
     using Mutex = ccr::SpinningMutex;
     
-    mutable TriangleMesh m_meshcache;
+    mutable indexed_triangle_set m_meshcache;
     mutable Mutex m_mutex;
     mutable bool m_meshcache_valid = false;
     mutable double m_model_height = 0; // the full height of the model
@@ -418,7 +419,7 @@ public:
     const Pad& pad() const { return m_pad; }
     
     // WITHOUT THE PAD!!!
-    const TriangleMesh &merged_mesh(size_t steps = 45) const;
+    const indexed_triangle_set &merged_mesh(size_t steps = 45) const;
     
     // WITH THE PAD
     double full_height() const;
@@ -431,16 +432,16 @@ public:
     }
     
     // Intended to be called after the generation is fully complete
-    const TriangleMesh & merge_and_cleanup();
+    const indexed_triangle_set & merge_and_cleanup();
     
     // Implement SupportTree interface:
 
-    const TriangleMesh &add_pad(const ExPolygons &modelbase,
-                                const PadConfig & pcfg) override;
-    
+    const indexed_triangle_set &add_pad(const ExPolygons &modelbase,
+                                        const PadConfig & pcfg) override;
+
     void remove_pad() override { m_pad = Pad(); }
-    
-    virtual const TriangleMesh &retrieve_mesh(
+
+    virtual const indexed_triangle_set &retrieve_mesh(
         MeshType meshtype = MeshType::Support) const override;
 };
 

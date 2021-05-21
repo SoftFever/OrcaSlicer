@@ -1130,4 +1130,35 @@ TriangleMesh make_sphere(double radius, double fa)
     return mesh;
 }
 
+void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B)
+{
+    auto N   = int(A.vertices.size());
+    auto N_f = A.indices.size();
+
+    A.vertices.insert(A.vertices.end(), B.vertices.begin(), B.vertices.end());
+    A.indices.insert(A.indices.end(), B.indices.begin(), B.indices.end());
+
+    for(size_t n = N_f; n < A.indices.size(); n++)
+        A.indices[n] += Vec3i{N, N, N};
+}
+
+void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles)
+{
+    const size_t offs = A.vertices.size();
+    A.vertices.insert(A.vertices.end(), triangles.begin(), triangles.end());
+    A.indices.reserve(A.indices.size() + A.vertices.size() / 3);
+
+    for(int i = int(offs); i < int(A.vertices.size()); i += 3)
+        A.indices.emplace_back(i, i + 1, i + 2);
+}
+
+void its_merge(indexed_triangle_set &A, const Pointf3s &triangles)
+{
+    auto trianglesf = reserve_vector<Vec3f> (triangles.size());
+    for (auto &t : triangles)
+        trianglesf.emplace_back(t.cast<float>());
+
+    its_merge(A, trianglesf);
+}
+
 }
