@@ -109,11 +109,13 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
                 { -4244,    19502998 },
                 { -4242640, -8537523 }
             };
-            bool res = hull_2d.points.size() == result.size();
-            if (res) {
-                for (size_t i = 0; i < hull_2d.points.size(); ++i) {
-                    res &= hull_2d.points[i].isApprox(result[i]);
-                }
+
+            bool res = hull_2d.points == result;
+
+            std::cout << "hull_2d vertices count: " << hull_2d.points.size() << "\n";
+            std::cout << "hull_2d vertices:\n";
+            for (size_t i = 0; i < hull_2d.points.size(); ++i) {
+                std::cout << hull_2d.points[i].x() << ", " << hull_2d.points[i].y() << "\n";
             }
 
             THEN("2D convex hull should match with reference") {
