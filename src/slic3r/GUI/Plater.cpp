@@ -2939,7 +2939,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             process_validation_warning(warning);
 #if ENABLE_SEQUENTIAL_LIMITS
             if (printer_technology == ptFFF) {
-                view3D->get_canvas3d()->set_sequential_print_clearance(Polygons());
+                view3D->get_canvas3d()->set_sequential_print_clearance(Polygons(), false);
                 view3D->get_canvas3d()->set_as_dirty();
                 view3D->get_canvas3d()->request_extra_frame();
             }
@@ -2955,7 +2955,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
                 Polygons polygons;
                 if (print->config().complete_objects)
                     Print::sequential_print_horizontal_clearance_valid(*print, &polygons);
-                view3D->get_canvas3d()->set_sequential_print_clearance(polygons);
+                view3D->get_canvas3d()->set_sequential_print_clearance(polygons, true);
             }
 #endif // ENABLE_SEQUENTIAL_LIMITS
         }

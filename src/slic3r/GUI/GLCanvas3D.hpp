@@ -501,9 +501,10 @@ private:
     {
         GLModel m_fill;
         GLModel m_perimeter;
+        bool m_render_fill{ true };
 
     public:
-        void set(const Polygons& polygons);
+        void set(const Polygons& polygons, bool fill);
         void render() const;
     };
 
@@ -752,9 +753,8 @@ public:
     }
 
 #if ENABLE_SEQUENTIAL_LIMITS
-    void set_sequential_print_clearance(const Polygons& polygons) {
-        m_sequential_print_clearance.set(polygons);
-    }
+    void set_sequential_print_clearance(const Polygons& polygons, bool fill) { m_sequential_print_clearance.set(polygons, fill); }
+    void update_sequential_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
 
     const Print* fff_print() const;
