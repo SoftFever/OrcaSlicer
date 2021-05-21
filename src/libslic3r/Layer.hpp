@@ -10,6 +10,9 @@
 namespace Slic3r {
 
 class Layer;
+using LayerPtrs = std::vector<Layer*>;
+class LayerRegion;
+using LayerRegionPtrs = std::vector<LayerRegion*>;
 class PrintRegion;
 class PrintObject;
 
@@ -93,9 +96,6 @@ private:
     const PrintRegion *m_region;
 };
 
-
-typedef std::vector<LayerRegion*> LayerRegionPtrs;
-
 class Layer 
 {
 public:
@@ -162,6 +162,8 @@ public:
 
 protected:
     friend class PrintObject;
+    friend std::vector<Layer*> new_layers(PrintObject*, const std::vector<coordf_t>&);
+    friend std::string fix_slicing_errors(LayerPtrs&, const std::function<void()>&);
 
     Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
         upper_layer(nullptr), lower_layer(nullptr), slicing_errors(false),

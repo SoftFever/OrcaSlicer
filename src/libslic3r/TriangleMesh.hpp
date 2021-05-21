@@ -99,6 +99,9 @@ std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangl
 std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its);
 std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback);
 
+// After applying a transformation with negative determinant, flip the faces to keep the transformed mesh volume positive.
+void its_flip_triangles(indexed_triangle_set &its);
+
 // Merge duplicate vertices, return number of vertices removed.
 // This function will happily create non-manifolds if more than two faces share the same vertex position
 // or more than two faces share the same edge position!

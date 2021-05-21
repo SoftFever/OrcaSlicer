@@ -842,6 +842,12 @@ int its_merge_vertices(indexed_triangle_set &its, bool shrink_to_fit)
     return num_erased;
 }
 
+void its_flip_triangles(indexed_triangle_set &its)
+{
+    for (stl_triangle_vertex_indices &face : its.indices)
+        std::swap(face(1), face(2));
+}
+
 int its_remove_degenerate_faces(indexed_triangle_set &its, bool shrink_to_fit)
 {
     int last = 0;

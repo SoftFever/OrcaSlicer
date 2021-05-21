@@ -21,11 +21,11 @@
 
 namespace Slic3r {
 
-class Print;
-class PrintObject;
-class ModelObject;
 class GCode;
 class Layer;
+class ModelObject;
+class Print;
+class PrintObject;
 class SupportLayer;
 
 namespace FillAdaptive {
@@ -95,6 +95,10 @@ public:
                                         { m_config.apply_only(other, keys, ignore_nonexistent); m_config_hash = m_config.hash(); }
 private:
     friend Print;
+    friend void print_region_ref_inc(PrintRegion&);
+    friend void print_region_ref_reset(PrintRegion&);
+    friend int  print_region_ref_cnt(const PrintRegion&);
+
     PrintRegionConfig  m_config;
     size_t             m_config_hash;
     int                m_print_region_id { -1 };
@@ -162,7 +166,7 @@ public:
     // clipped by a layer range modifier.
     struct VolumeExtents {
         ObjectID        volume_id;
-        BoundingBoxf    bbox;
+        BoundingBoxf3   bbox;
     };
 
     struct VolumeRegion
@@ -174,7 +178,7 @@ public:
         // Pointer to PrintObjectRegions::all_regions, null for a negative volume.
         PrintRegion         *region { nullptr };
         // Pointer to VolumeExtents::bbox.
-        const BoundingBoxf  *bbox { nullptr };
+        const BoundingBoxf3 *bbox { nullptr };
         // To speed up merging of same regions.
         const VolumeRegion  *prev_same_region { nullptr };
     };
@@ -187,7 +191,7 @@ public:
         int              parent { -1 };
         // Pointer to PrintObjectRegions::all_regions.
         PrintRegion     *region { nullptr };
-    }
+    };
 
     // One slice over the PrintObject (possibly the whole PrintObject) and a list of ModelVolumes and their bounding boxes
     // possibly clipped by the layer_height_range.
@@ -200,29 +204,35 @@ public:
         // Volumes sorted by ModelVolume::id().
         std::vector<VolumeExtents>  volumes;
 
-        bool has_volume(const ObjectID id) {
-            auto it = lower_bound_by_predicate(this->volumes.begin(), this->volumes.end(), [id](const VolumeExtents &v){ return v.volume_id == id; });
+        // Sorted in the order of their source ModelVolumes, thus reflecting the order of region clipping, modifier overrides etc.
+        std::vector<VolumeRegion>   volume_regions;
+        std::vector<PaintedRegion>  painted_regions;
+
+        bool has_volume(const ObjectID id) const {
+            auto it = lower_bound_by_predicate(this->volumes.begin(), this->volumes.end(), [id](const VolumeExtents& v) { return v.volume_id == id; });
             return it != this->volumes.end() && it->volume_id == id;
         }
-
-        // Sorted in the order of their source ModelVolumes, thus reflecting the order of region clipping, modifier overrides etc.
-        std::vector<VolumeRegion>      volume_regions;
-        std::vector<PaintedRegion>     painted_regions;
     };
 
     std::vector<std::unique_ptr<PrintRegion>>   all_regions;
     std::vector<LayerRangeRegions>              layer_ranges;
     // Transformation of this ModelObject into one of the associated PrintObjects (all PrintObjects derived from a single modelObject differ by a Z rotation only).
     // This transformation is used to calculate VolumeExtents.
-    Matrix3x3f                                  trafo_bboxes;
+    Transform3d                                 trafo_bboxes;
+    std::vector<ObjectID>                       cached_volume_ids;
 
-    size_t ref_cnt_inc() { ++ this->ref_cnt; }
-    size_t ref_cnt_dec() { if (-- this->ref_cnt == 0) delete *this; }
+    size_t ref_cnt_inc() { ++ m_ref_cnt; }
+    size_t ref_cnt_dec() { if (-- m_ref_cnt == 0) delete this; }
+    void   clear() {
+        all_regions.clear();
+        layer_ranges.clear();
+    }
 
 private:
+    friend class PrintObject;
     // Number of PrintObjects generated from the same ModelObject and sharing the regions.
     // ref_cnt could only be modified by the main thread, thus it does not need to be atomic.
-    size_t                                      m_ref_cnt;
+    size_t                                      m_ref_cnt{ 0 };
 };
 
 class PrintObject : public PrintObjectBaseWithState<Print, PrintObjectStep, posCount>
@@ -254,13 +264,6 @@ public:
 
     bool                         has_brim() const       { return this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.; }
 
-
-    // adds region_id, too, if necessary
-    void add_region_volume(unsigned int region_id, int volume_id, const t_layer_height_range &layer_range) {
-        if (region_id >= m_region_volumes.size())
-			m_region_volumes.resize(region_id + 1);
-        m_region_volumes[region_id].volumes.push_back({ layer_range, volume_id });
-    }
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
     // since they have different semantics.
@@ -299,8 +302,8 @@ public:
     const SlicingParameters&    slicing_parameters() const { return m_slicing_params; }
     static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z);
 
-    size_t                      num_printing_regions() const throw() { return m_all_regions.size(); }
-    const PrintRegion&          printing_region(size_t idx) const throw() { return *m_all_regions[idx]; }
+    size_t                      num_printing_regions() const throw() { return m_shared_regions->all_regions.size(); }
+    const PrintRegion&          printing_region(size_t idx) const throw() { return *m_shared_regions->all_regions[idx].get(); }
     //FIXME returing all possible regions before slicing, thus some of the regions may not be slicing at the end.
     std::vector<std::reference_wrapper<const PrintRegion>> all_regions() const;
 
@@ -327,7 +330,7 @@ private:
     friend class Print;
 
 	PrintObject(Print* print, ModelObject* model_object, const Transform3d& trafo, PrintInstances&& instances);
-	~PrintObject() { if (m_shared_regions && -- m_shared_regions->ref_cnt == 0) delete m_shared_regions; }
+	~PrintObject() { if (m_shared_regions && -- m_shared_regions->m_ref_cnt == 0) delete m_shared_regions; }
  
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { m_config.apply_only(other, keys, ignore_nonexistent); }
@@ -344,7 +347,6 @@ private:
     void                    update_slicing_parameters();
 
     static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders);
-    static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders);
 
 private:
     void make_perimeters();
@@ -378,7 +380,7 @@ private:
 
     // Object split into layer ranges and regions with their associated configurations.
     // Shared among PrintObjects created for the same ModelObject.
-    PrintObjectRegions                      m_shared_regions;
+    PrintObjectRegions                     *m_shared_regions;
 
     SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;

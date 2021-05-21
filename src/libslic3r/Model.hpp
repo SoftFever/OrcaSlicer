@@ -827,7 +827,7 @@ inline void model_volumes_sort_by_id(ModelVolumePtrs &model_volumes)
 inline const ModelVolume* model_volume_find_by_id(const ModelVolumePtrs &model_volumes, const ObjectID id)
 {
     auto it = lower_bound_by_predicate(model_volumes.begin(), model_volumes.end(), [id](const ModelVolume *mv) { return mv->id() < id; });
-    return it != model_volume.end() && (*it)->id() == id ? *it : nullptr;
+    return it != model_volumes.end() && (*it)->id() == id ? *it : nullptr;
 }
 
 enum ModelInstanceEPrintVolumeState : unsigned char

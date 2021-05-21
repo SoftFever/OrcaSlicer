@@ -1,5 +1,7 @@
-#include "Print.hpp"
+#include "ElephantFootCompensation.hpp"
 #include "I18N.hpp"
+#include "Layer.hpp"
+#include "Print.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -10,22 +12,21 @@
 
 namespace Slic3r {
 
-static inline LayerPtrs new_layers(
+LayerPtrs new_layers(
     PrintObject                 *print_object,
     // Object layers (pairs of bottom/top Z coordinate), without the raft.
-    const std::vector<coordf_t> &object_layers, 
-    // Reserve object layers for the raft. Last layer of the raft is the contact layer.
-    size_t                       first_layer_id)
+    const std::vector<coordf_t> &object_layers)
 {
     LayerPtrs out;
     out.reserve(object_layers.size());
-    auto id = int(first_layer_id);
-    Layer *prev = nullptr;
+    auto     id   = int(print_object->slicing_parameters().raft_layers());
+    coordf_t zmin = print_object->slicing_parameters().object_print_z_min;
+    Layer   *prev = nullptr;
     for (size_t i_layer = 0; i_layer < object_layers.size(); i_layer += 2) {
         coordf_t lo = object_layers[i_layer];
         coordf_t hi = object_layers[i_layer + 1];
         coordf_t slice_z = 0.5 * (lo + hi);
-        Layer *layer = new Layer(id ++, print_object, hi - lo, hi + m_slicing_params.object_print_z_min, slice_z);
+        Layer *layer = new Layer(id ++, print_object, hi - lo, hi + zmin, slice_z);
         out.emplace_back(layer);
         if (prev != nullptr) {
             prev->upper_layer = layer;
@@ -36,7 +37,7 @@ static inline LayerPtrs new_layers(
     return out;
 }
 
-template<LayerContainer>
+template<typename LayerContainer>
 static inline std::vector<float> zs_from_layers(const LayerContainer &layers)
 {
     std::vector<float> zs;
@@ -47,57 +48,38 @@ static inline std::vector<float> zs_from_layers(const LayerContainer &layers)
 }
 
 //FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
-static void fix_mesh_connectivity(TriangleMesh &mesh)
+// This function will go away once we get rid of admesh from ModelVolume.
+static indexed_triangle_set get_mesh_its_fix_mesh_connectivity(TriangleMesh mesh)
 {
-    auto nr_degenerated = mesh.stl.stats.degenerate_facets;
-    stl_check_facets_exact(&mesh.stl);
-    if (nr_degenerated != mesh.stl.stats.degenerate_facets)
-        // stl_check_facets_exact() removed some newly degenerated faces. Some faces could become degenerate after some mesh transformation.
-        stl_generate_shared_vertices(&mesh.stl, mesh.its);
+    assert(mesh.repaired && mesh.has_shared_vertices());
+    if (mesh.stl.stats.number_of_facets > 0) {
+        assert(mesh.repaired && mesh.has_shared_vertices());
+        auto nr_degenerated = mesh.stl.stats.degenerate_facets;
+        stl_check_facets_exact(&mesh.stl);
+        if (nr_degenerated != mesh.stl.stats.degenerate_facets)
+            // stl_check_facets_exact() removed some newly degenerated faces. Some faces could become degenerate after some mesh transformation.
+            stl_generate_shared_vertices(&mesh.stl, mesh.its);
+    } else
+        mesh.its.clear();
+    return std::move(mesh.its);
 }
-
-struct SliceVolumeParams
-{
-    const SlicingMode   mode { SlicingMode::Regular };
-    // For vase mode: below this layer a different slicing mode will be used to produce a single contour.
-    // 0 = ignore.
-    const size_t        slicing_mode_normal_below_layer { 0 };
-    // Mode to apply below slicing_mode_normal_below_layer. Ignored if slicing_mode_nromal_below_layer == 0.
-    const SlicingMode   mode_below { SlicingMode::Regular };
-
-    // Morphological closing operation when creating output expolygons.
-    const float         closing_radius { 0 };
-    // Positive offset applied when creating output expolygons.
-    const float         extra_offset { 0 };
-    // Resolution for contour simplification.
-    // 0 = don't simplify.
-    const double        resolution { 0 };
-
-    // Transformation of the object owning the ModelVolume.
-    Transform3d         object_trafo;
-};
 
 // Slice single triangle mesh.
 static std::vector<ExPolygons> slice_volume(
-    const ModelVolume                                         &volume,
-    const std::vector<float>                                  &z, 
-    const SliceVolumeParams                                   &params,
-    const TriangleMeshSlicer::throw_on_cancel_callback_type   &throw_on_cancel_callback)
+    const ModelVolume             &volume,
+    const std::vector<float>      &zs, 
+    const MeshSlicingParamsEx     &params,
+    const std::function<void()>   &throw_on_cancel_callback)
 {
     std::vector<ExPolygons> layers;
-    if (! z.empty()) {
-        TriangleMesh mesh(volume.mesh());
-        mesh.transform(params.object_trafo * volume.get_matrix(), true);
-        if (mesh.repaired)
-            fix_mesh_connectivity(mesh);
-        if (mesh.stl.stats.number_of_facets > 0) {
-            // perform actual slicing
-            TriangleMeshSlicer mesh_slicer;
-            // TriangleMeshSlicer needs the shared vertices.
-            mesh.require_shared_vertices();
-            mesh_slicer.init(&mesh, throw_on_cancel_callback);
-            //FIXME simplify contours
-            mesh_slicer.slice(z, mode, params.slicing_mode_normal_below_layer, params.mode_below, params.closing_radius, params.extra_offset, &layers, throw_on_cancel_callback);
+    if (! zs.empty()) {
+        indexed_triangle_set its = get_mesh_its_fix_mesh_connectivity(volume.mesh());
+        if (its.indices.size() > 0) {
+            MeshSlicingParamsEx params2 { params };
+            params2.trafo = params2.trafo * volume.get_matrix();
+            if (params2.trafo.rotation().determinant() < 0.)
+                its_flip_triangles(its);
+            layers = slice_mesh_ex(its, zs, params, throw_on_cancel_callback);
             throw_on_cancel_callback();
         }
     }
@@ -107,11 +89,11 @@ static std::vector<ExPolygons> slice_volume(
 // Slice single triangle mesh.
 // Filter the zs not inside the ranges. The ranges are closed at the bottom and open at the top, they are sorted lexicographically and non overlapping.
 static std::vector<ExPolygons> slice_volume(
-    const ModelVolume                                       &volume,
-    const std::vector<float>                                &z,
-    const std::vector<t_layer_height_range>                 &ranges,
-    const SliceVolumeParams                                 &params,
-    const TriangleMeshSlicer::throw_on_cancel_callback_type &throw_on_cancel_callback)
+    const ModelVolume                           &volume,
+    const std::vector<float>                    &z,
+    const std::vector<t_layer_height_range>     &ranges,
+    const MeshSlicingParamsEx                   &params,
+    const std::function<void()>                 &throw_on_cancel_callback)
 {
     std::vector<ExPolygons> out;
     if (! z.empty() && ! ranges.empty()) {
@@ -161,14 +143,14 @@ static inline bool model_volume_needs_slicing(const ModelVolume &mv)
 // Apply closing radius.
 // Apply positive XY compensation to ModelVolumeType::MODEL_PART and ModelVolumeType::PARAMETER_MODIFIER, not to ModelVolumeType::NEGATIVE_VOLUME.
 // Apply contour simplification.
-static std::vector<VolumeSlices> slice_volumes(
+static std::vector<VolumeSlices> slice_volumes_inner(
     const PrintConfig                                        &print_config,
     const PrintObjectConfig                                  &print_object_config,
     const Transform3d                                        &object_trafo,
     ModelVolumePtrs                                           model_volumes,
-    const std::vector<PrintObjectRegions::LayerRangeRegions> &layer_ranges;
+    const std::vector<PrintObjectRegions::LayerRangeRegions> &layer_ranges,
     const std::vector<float>                                 &zs,
-    const TriangleMeshSlicer::throw_on_cancel_callback_type  &throw_on_cancel_callback)
+    const std::function<void()>                              &throw_on_cancel_callback)
 {
     model_volumes_sort_by_id(model_volumes);
 
@@ -179,32 +161,32 @@ static std::vector<VolumeSlices> slice_volumes(
     if (layer_ranges.size() > 1)
         slicing_ranges.reserve(layer_ranges.size());
 
-    SliceVolumeParams params_base;
+    MeshSlicingParamsEx params_base;
     params_base.closing_radius = float(print_object_config.slice_closing_radius.value);
     params_base.extra_offset   = 0;
-    params_base.object_trafo   = object_trafo;
-    params_base.resolution     = print_config.resolution;
+    params_base.trafo          = object_trafo;
+    params_base.resolution     = scaled<double>(print_config.resolution.value);
 
     const float extra_offset = print_object_config.xy_size_compensation > 0 ? float(print_object_config.xy_size_compensation.value) : 0.f;
 
     for (const ModelVolume *model_volume : model_volumes)
         if (model_volume_needs_slicing(*model_volume)) {
-            SliceVolumeParams params { params_base };
+            MeshSlicingParamsEx params { params_base };
             if (! model_volume->is_negative_volume())
-                params.extra_offset = extra_ofset;
+                params.extra_offset = extra_offset;
             if (layer_ranges.size() == 1) {
-                if (const PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges.front(); layer_range.has_volume(model_volume->id())) {
+                if (const PrintObjectRegions::LayerRangeRegions &layer_range = layer_ranges.front(); layer_range.has_volume(model_volume->id())) {
                     if (model_volume->is_model_part() && print_config.spiral_vase) {
-                        auto it = std::find_first(layer_range.volume_regions.begin(), layer_range.volume_regions.end(), 
+                        auto it = std::find_if(layer_range.volume_regions.begin(), layer_range.volume_regions.end(), 
                             [model_volume](const auto &slice){ return model_volume == slice.model_volume; });
-                        params.mode = SlicingMode::PositiveLargestContour;
+                        params.mode = MeshSlicingParams::SlicingMode::PositiveLargestContour;
                         // Slice the bottom layers with SlicingMode::Regular.
                         // This needs to be in sync with LayerRegion::make_perimeters() spiral_vase!
-                        params.mode_below = SlicingMode::Regular;
+                        params.mode_below = MeshSlicingParams::SlicingMode::Regular;
                         const PrintRegionConfig &region_config = it->region->config();
-                        slicing_mode_normal_below_layer = size_t(region_config.bottom_solid_layers.value);
-                        for (; slicing_mode_normal_below_layer < zs.size() && zs[slicing_mode_normal_below_layer] < region_config.bottom_solid_min_thickness - EPSILON;
-                            ++ slicing_mode_normal_below_layer);
+                        params.slicing_mode_normal_below_layer = size_t(region_config.bottom_solid_layers.value);
+                        for (; params.slicing_mode_normal_below_layer < zs.size() && zs[params.slicing_mode_normal_below_layer] < region_config.bottom_solid_min_thickness - EPSILON;
+                            ++ params.slicing_mode_normal_below_layer);
                     }
                     out.push_back({
                         model_volume->id(), 
@@ -212,7 +194,7 @@ static std::vector<VolumeSlices> slice_volumes(
                     });
                 }
             } else {
-                assert(! spiral_vase);
+                assert(! print_config.spiral_vase);
                 slicing_ranges.clear();
                 for (const PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges)
                     if (layer_range.has_volume(model_volume->id()))
@@ -249,7 +231,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
     // If clipping is disabled, then ExPolygons produced by different volumes will never be merged, thus they will be allowed to overlap.
     // It is up to the model designer to handle these overlaps.
     const bool                                                clip_multipart_objects,
-    const TriangleMeshSlicer::throw_on_cancel_callback_type  &throw_on_cancel_callback)
+    const std::function<void()>                              &throw_on_cancel_callback)
 {
     model_volumes_sort_by_id(model_volumes);
 
@@ -263,13 +245,13 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             for (; z_idx < zs.size() && zs[z_idx] < layer_range.layer_height_range.first; ++ z_idx) ;
             if (layer_range.volume_regions.empty()) {
             } else if (layer_range.volume_regions.size() == 1) {
-                const ModelVolume *model_volume = layer_range.volume_regions.model_volume;
+                const ModelVolume *model_volume = layer_range.volume_regions.front().model_volume;
                 assert(model_volume != nullptr);
                 if (model_volume->is_model_part()) {
                     VolumeSlices &slices_src = volume_slices_find_by_id(volume_slices, model_volume->id());
                     auto         &slices_dst = slices_by_region[layer_range.volume_regions.front().region->print_object_region_id()];
                     for (; z_idx < zs.size() && zs[z_idx] < layer_range.layer_height_range.second; ++ z_idx)
-                        slices_dst[z_idx] = std::move(slices_src[z_idx]);
+                        slices_dst[z_idx] = std::move(slices_src.slices[z_idx]);
                 }
             } else {
                 zs_complex.reserve(zs.size());
@@ -279,14 +261,14 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     bool  complex                    = false;
                     for (int idx_region = 0; idx_region < int(layer_range.volume_regions.size()); ++ idx_region) {
                         const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_region];
-                        if (region.bbox.min().z() >= z && region.bbox.max().z() <= z) {
+                        if (region.bbox->min.z() >= z && region.bbox->max.z() <= z) {
                             if (idx_first_printable_region == -1 && region.model_volume->is_model_part())
                                 idx_first_printable_region = idx_region;
                             else if (idx_first_printable_region != -1) {
                                 // Test for overlap with some other region.
                                 for (int idx_region2 = idx_first_printable_region; idx_region2 < idx_region; ++ idx_region2) {
                                     const PrintObjectRegions::VolumeRegion &region2 = layer_range.volume_regions[idx_region2];
-                                    if (region2.bbox.min().z() >= z && region2.bbox.max().z() <= z && overlap_in_xy(*region.bbox, *region2.bbox)) {
+                                    if (region2.bbox->min.z() >= z && region2.bbox->max.z() <= z && overlap_in_xy(*region.bbox, *region2.bbox)) {
                                         complex = true;
                                         break;
                                     }
@@ -312,15 +294,15 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             VolumeSlices*   volume_slices;
             int             prev_same_region { -1 };
         };
-        std::vector<std::vector<SliceEntry>> layer_ranges_regions_to_slices(print_object_regions.layer_ranges.size(), std::vector<VolumeSlices*>());
+        std::vector<std::vector<SliceEntry>> layer_ranges_regions_to_slices(print_object_regions.layer_ranges.size(), std::vector<SliceEntry>());
         std::vector<int>                     last_volume_idx_of_region;
-        for (PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges) {
+        for (const PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges) {
             std::vector<SliceEntry> &layer_range_regions_to_slices = layer_ranges_regions_to_slices[&layer_range - print_object_regions.layer_ranges.data()];
             layer_range_regions_to_slices.reserve(layer_range.volume_regions.size());
-            last_volume_idx_of_region.assign(print_object_regions.layer_ranges.all_regions.size(), -1);
-            for (PrintObjectRegions::VolumeRegion &region : layer_range.volume_regions) {
+            last_volume_idx_of_region.assign(print_object_regions.all_regions.size(), -1);
+            for (const PrintObjectRegions::VolumeRegion &region : layer_range.volume_regions) {
                 int region_id = region.region->print_object_region_id();
-                layer_range_regions_to_slices.emplace_back({ &volume_slices_find_by_id(volume_slices, region.model_volume->id()), last_volume_idx_of_region[region_id] });
+                layer_range_regions_to_slices.emplace_back(&volume_slices_find_by_id(volume_slices, region.model_volume->id()), last_volume_idx_of_region[region_id]);
                 last_volume_idx_of_region[region_id] = &region - layer_range.volume_regions.data();
             }
         }
@@ -328,9 +310,9 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             tbb::blocked_range<size_t>(0, zs_complex.size()),
             [&slices_by_region, &model_volumes, &print_object_regions, &zs_complex, &layer_ranges_regions_to_slices, clip_multipart_objects, &throw_on_cancel_callback]
                 (const tbb::blocked_range<size_t> &range) {
-                float z = zs_complex[*range.begin()];
-                it_layer_range = lower_bound_by_predicate(print_object_regions.layer_ranges.begin(), print_object_regions.layer_ranges.end(), 
-                    [z](const PrintObjectRegions::LayerRangeRegions &lr){ lr.layer_height_range.first < z; });
+                float z = zs_complex[range.begin()];
+                auto it_layer_range = lower_bound_by_predicate(print_object_regions.layer_ranges.begin(), print_object_regions.layer_ranges.end(), 
+                    [z](const PrintObjectRegions::LayerRangeRegions &lr){ return lr.layer_height_range.first < z; });
                 assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first >= z && z < it_layer_range->layer_height_range.second);
                 // Per volume_regions slices at this Z height.
                 struct RegionSlice { 
@@ -351,13 +333,13 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first >= z && z < it_layer_range->layer_height_range.second);
                     const PrintObjectRegions::LayerRangeRegions &layer_range = *it_layer_range;
                     {
-                        SliceEntry &layer_range_regions_to_slices = layer_ranges_regions_to_slices[it_layer_range - print_object_regions.layer_ranges.begin()];
+                        std::vector<SliceEntry> &layer_range_regions_to_slices = layer_ranges_regions_to_slices[it_layer_range - print_object_regions.layer_ranges.begin()];
                         // Per volume_regions slices at thiz Z height.
                         temp_slices.clear();
                         temp_slices.reserve(layer_range.volume_regions.size());
-                        for (VolumeSlices *slices : layer_range_regions_to_slices.volume_slices) {
-                            const PrintRegion *region = layer_range.volume_regions[i].region;
-                            temp_slices.push_back({ std::move(slices->slices[idx_z]), region ? region->print_object_region_id() : -1, slices->volume_id });
+                        for (SliceEntry &slices : layer_range_regions_to_slices) {
+                            const PrintObjectRegions::VolumeRegion &volume_region = layer_range.volume_regions[&slices - layer_range_regions_to_slices.data()];
+                            temp_slices.push_back({ std::move(slices.volume_slices->slices[idx_z]), volume_region.region ? volume_region.region->print_object_region_id() : -1, volume_region.model_volume->id() });
                         }
                     }
                     for (int idx_region = 0; idx_region < int(layer_range.volume_regions.size()); ++ idx_region)
@@ -365,16 +347,16 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                             const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_region];
                             if (region.model_volume->is_modifier()) {
                                 assert(region.parent > -1);
-                                bool next_region_same_modifier = idx_region + 1 < temp_slices.size() && layer_range.volume_regions[idx_region + 1]->model_volume == region.model_volume;
+                                bool next_region_same_modifier = idx_region + 1 < temp_slices.size() && layer_range.volume_regions[idx_region + 1].model_volume == region.model_volume;
                                 if (next_region_same_modifier)
                                     temp_slices[idx_region + 1] = std::move(temp_slices[idx_region]);
-                                ExPolygons &parent_slice = temp_slices[region.parent];
-                                ExPolygons &this_slice   = temp_slices[idx_region];
+                                RegionSlice &parent_slice = temp_slices[region.parent];
+                                RegionSlice &this_slice   = temp_slices[idx_region];
                                 if (parent_slice.empty())
-                                    this_slice.clear();
+                                    this_slice.expolygons.clear();
                                 else {
-                                    ExPolygons &source_slice = temp_slices[idx_region + int(next_region_same_modifier)];
-                                    this_slice = intersection_ex(parent_slice, source_slice);
+                                    RegionSlice &source_slice = temp_slices[idx_region + int(next_region_same_modifier)];
+                                    this_slice.expolygons = intersection_ex(parent_slice.expolygons, source_slice.expolygons);
                                 }
                             } else if ((region.model_volume->is_model_part() && clip_multipart_objects) || region.model_volume->is_negative_volume()) {
                                 // Clip every non-zero region preceding it.
@@ -382,15 +364,14 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                     if (! temp_slices[idx_region2].empty()) {
                                         if (const PrintObjectRegions::VolumeRegion &region2 = layer_range.volume_regions[idx_region]; 
                                             ! region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
-                                            temp_slices[idx_region] = diff_ex(temp_slices[idx_region], temp_slices[idx_region2]);
+                                            temp_slices[idx_region].expolygons = diff_ex(temp_slices[idx_region].expolygons, temp_slices[idx_region2].expolygons);
                                     }
                             }
                         }
-                    }
                     // Sort by region_id, push empty slices to the end.
                     std::sort(temp_slices.begin(), temp_slices.end());
                     // Remove the empty slices.
-                    temp_slices.erase(temp_slices.begin(), std::find_first(temp_slices.begin(), temp_slices.end(), [](const auto &slice){ return slice.empty(); }));
+                    temp_slices.erase(std::find_if(temp_slices.begin(), temp_slices.end(), [](const auto &slice) { return slice.empty(); }), temp_slices.end());
                     // Merge slices and store them to the output.
                     for (int i = 0; i < temp_slices.size();) {
                         // Find a range of temp_slices with the same region_id.
@@ -411,15 +392,15 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                 }
                         if (merged)
                             expolygons = offset_ex(offset_ex(expolygons, float(scale_(EPSILON))), -float(scale_(EPSILON)));
-                        slices_by_region[temp_slices[i].region_id][z_idx] = std::move(expolygons);
+                        slices_by_region[temp_slices[i].region_id][idx_z] = std::move(expolygons);
                         i = j;
                     }
-                    
+                }
             });
-        }
     }
 }
 
+#if 0
 // Z ranges are not applicable to modifier meshes, therefore a single volume will be found in volume_w_zrange at most once.
 std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std::vector<float> &slice_zs) const
 {
@@ -467,7 +448,7 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
                     if (volume->is_modifier())
                         volumes.emplace_back(volume);
                 }
-                out = this->slice_volumes(slice_zs, SlicingMode::Regular, volumes);
+                out = this->slice_volumes(slice_zs, MeshSlicingParams::SlicingMode::Regular, volumes);
             } else {
                 // Some modifier in this region was split to layer spans.
                 std::vector<char> merge;
@@ -485,7 +466,7 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
                             for (; j < volumes_and_ranges.volumes.size() && volume_id == volumes_and_ranges.volumes[j].volume_idx; ++ j)
                                 ranges.emplace_back(volumes_and_ranges.volumes[j].layer_height_range);
                             // slicing in parallel
-                            std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, SlicingMode::Regular, *model_volume);
+                            std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, MeshSlicingParams::SlicingMode::Regular, *model_volume);
                             // Variable this_slices could be empty if no value of slice_zs is within any of the ranges of this volume.
                             if (out.empty()) {
                                 out = std::move(this_slices);
@@ -515,41 +496,42 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 
     return out;
 }
+#endif
 
-std::string PrintObject::_fix_slicing_errors()
+std::string fix_slicing_errors(LayerPtrs &layers, const std::function<void()> &throw_if_canceled)
 {
     // Collect layers with slicing errors.
     // These layers will be fixed in parallel.
     std::vector<size_t> buggy_layers;
-    buggy_layers.reserve(m_layers.size());
-    for (size_t idx_layer = 0; idx_layer < m_layers.size(); ++ idx_layer)
-        if (m_layers[idx_layer]->slicing_errors)
+    buggy_layers.reserve(layers.size());
+    for (size_t idx_layer = 0; idx_layer < layers.size(); ++ idx_layer)
+        if (layers[idx_layer]->slicing_errors)
             buggy_layers.push_back(idx_layer);
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - begin";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, buggy_layers.size()),
-        [this, &buggy_layers](const tbb::blocked_range<size_t>& range) {
+        [&layers, &throw_if_canceled, &buggy_layers](const tbb::blocked_range<size_t>& range) {
             for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
-                m_print->throw_if_canceled();
+                throw_if_canceled();
                 size_t idx_layer = buggy_layers[buggy_layer_idx];
-                Layer *layer     = m_layers[idx_layer];
+                Layer *layer     = layers[idx_layer];
                 assert(layer->slicing_errors);
                 // Try to repair the layer surfaces by merging all contours and all holes from neighbor layers.
                 // BOOST_LOG_TRIVIAL(trace) << "Attempting to repair layer" << idx_layer;
-                for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id) {
-                    LayerRegion *layerm = layer->m_regions[region_id];
+                for (size_t region_id = 0; region_id < layer->region_count(); ++ region_id) {
+                    LayerRegion *layerm = layer->get_region(region_id);
                     // Find the first valid layer below / above the current layer.
                     const Surfaces *upper_surfaces = nullptr;
                     const Surfaces *lower_surfaces = nullptr;
-                    for (size_t j = idx_layer + 1; j < m_layers.size(); ++ j)
-                        if (! m_layers[j]->slicing_errors) {
-                            upper_surfaces = &m_layers[j]->regions()[region_id]->slices.surfaces;
+                    for (size_t j = idx_layer + 1; j < layers.size(); ++ j)
+                        if (! layers[j]->slicing_errors) {
+                            upper_surfaces = &layers[j]->regions()[region_id]->slices.surfaces;
                             break;
                         }
                     for (int j = int(idx_layer) - 1; j >= 0; -- j)
-                        if (! m_layers[j]->slicing_errors) {
-                            lower_surfaces = &m_layers[j]->regions()[region_id]->slices.surfaces;
+                        if (! layers[j]->slicing_errors) {
+                            lower_surfaces = &layers[j]->regions()[region_id]->slices.surfaces;
                             break;
                         }
                     // Collect outer contours and holes from the valid layers above & below.
@@ -582,46 +564,21 @@ std::string PrintObject::_fix_slicing_errors()
                 layer->make_slices();
             }
         });
-    m_print->throw_if_canceled();
+    throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - end";
 
     // remove empty layers from bottom
-    while (! m_layers.empty() && (m_layers.front()->lslices.empty() || m_layers.front()->empty())) {
-        delete m_layers.front();
-        m_layers.erase(m_layers.begin());
-        m_layers.front()->lower_layer = nullptr;
-        for (size_t i = 0; i < m_layers.size(); ++ i)
-            m_layers[i]->set_id(m_layers[i]->id() - 1);
+    while (! layers.empty() && (layers.front()->lslices.empty() || layers.front()->empty())) {
+        delete layers.front();
+        layers.erase(layers.begin());
+        layers.front()->lower_layer = nullptr;
+        for (size_t i = 0; i < layers.size(); ++ i)
+            layers[i]->set_id(layers[i]->id() - 1);
     }
 
     return buggy_layers.empty() ? "" :
         "The model has overlapping or self-intersecting facets. I tried to repair it, "
         "however you might want to check the results or repair the input file and retry.\n";
-}
-
-// Simplify the sliced model, if "resolution" configuration parameter > 0.
-// The simplification is problematic, because it simplifies the slices independent from each other,
-// which makes the simplified discretization visible on the object surface.
-void PrintObject::simplify_slices(double distance)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - begin";
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, m_layers.size()),
-        [this, distance](const tbb::blocked_range<size_t>& range) {
-            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                m_print->throw_if_canceled();
-                Layer *layer = m_layers[layer_idx];
-                for (size_t region_idx = 0; region_idx < layer->m_regions.size(); ++ region_idx)
-                    layer->m_regions[region_idx]->slices.simplify(distance);
-                {
-                    ExPolygons simplified;
-                    for (const ExPolygon &expoly : layer->lslices)
-                        expoly.simplify(distance, &simplified);
-                    layer->lslices = std::move(simplified);
-                }
-            }
-        });
-    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - end";
 }
 
 // Called by make_perimeters()
@@ -642,12 +599,12 @@ void PrintObject::slice()
     m_print->throw_if_canceled();
     m_typed_slices = false;
     this->clear_layers();
-    m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile), m_slicing_params.raft_layers());
-    this->_slice();
+    m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
+    this->slice_volumes();
     m_print->throw_if_canceled();
     // Fix the model.
     //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
-    std::string warning = this->_fix_slicing_errors();
+    std::string warning = fix_slicing_errors(m_layers, [this](){ m_print->throw_if_canceled(); });
     m_print->throw_if_canceled();
     if (! warning.empty())
         BOOST_LOG_TRIVIAL(info) << warning;
@@ -682,16 +639,17 @@ void PrintObject::slice()
 void PrintObject::slice_volumes()
 {
     BOOST_LOG_TRIVIAL(info) << "Slicing volumes..." << log_memory_info();
-
-    bool   spiral_vase                = this->print()->config().spiral_vase;
-    auto   throw_on_cancel_callback   = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
+    const Print* print                      = this->print();
+    const bool   spiral_vase                = print->config().spiral_vase;
+    const auto   throw_on_cancel_callback   = std::function<void()>([print](){ print->throw_if_canceled(); });
 
     std::vector<float>                   slice_zs      = zs_from_layers(m_layers);
-
-    std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs,
-        slice_volumes(
-            this->print()->config(), this->config(),
-            this->model_object()->volumes, m_shared_regions->layer_ranges, m_center_offset, slice_zs, SlicingMode::Regular, spiral_vase, throw_on_cancel_callback),
+    Transform3d                          trafo         = this->trafo();
+    trafo.pretranslate(Vec3d(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0));
+    std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
+        slice_volumes_inner(
+            print->config(), this->config(), trafo,
+            this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs, throw_on_cancel_callback),
         m_config.clip_multipart_objects,
         throw_on_cancel_callback);
 
@@ -702,6 +660,7 @@ void PrintObject::slice_volumes()
     }
     region_slices.clear();
     
+#if 0
         // Second clip the volumes in the order they are presented at the user interface.
         BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - parallel clipping - start";
         tbb::parallel_for(
@@ -750,7 +709,8 @@ void PrintObject::slice_volumes()
         clipped  = true;
         upscaled = m_config.xy_size_compensation.value > 0 && num_modifiers == 0;
     }
-    
+#endif
+
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - removing top empty layers";
     while (! m_layers.empty()) {
         const Layer *layer = m_layers.back();
@@ -864,9 +824,9 @@ void PrintObject::slice_volumes()
 
 std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType model_volume_type) const
 {
-    size_t it_volume     = this->model_object()->volumes.begin();
-    size_t it_volume_end = this->model_object()->volumes.end();
-    for (; it_volume->type() != model_volume_type && it_volume != it_volume_end; ++ it_volume) ;
+    auto it_volume     = this->model_object()->volumes.begin();
+    auto it_volume_end = this->model_object()->volumes.end();
+    for (; (*it_volume)->type() != model_volume_type && it_volume != it_volume_end; ++ it_volume) ;
     std::vector<ExPolygons> slices;
     if (it_volume != it_volume_end) {
         // Found at least a single support volume of model_volume_type.
@@ -874,10 +834,10 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
         std::vector<char>  merge_layers;
         bool               merge = false;
         const Print       *print = this->print();
-        auto               throw_on_cancel_callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
-        for (; it_volume != it_volume_end; ++ it_volume; it_volume != it_volume_end)
-            if (it_volume->type() == model_volume_type) {
-                std::vector<ExPolygons> slices2 = slice_volume(*(*it_volume), zs, SlicingMode::Regular, throw_on_cancel_callback);
+        auto               throw_on_cancel_callback = std::function<void()>([print](){ print->throw_if_canceled(); });
+        for (; it_volume != it_volume_end; ++ it_volume)
+            if ((*it_volume)->type() == model_volume_type) {
+                std::vector<ExPolygons> slices2 = slice_volume(*(*it_volume), zs, MeshSlicingParamsEx{}, throw_on_cancel_callback);
                 if (slices.empty())
                     slices = std::move(slices2);
                 else if (! slices2.empty()) {
@@ -896,7 +856,7 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
             }
         if (merge) {
             std::vector<ExPolygons*> to_merge;
-            to_merge.reserve(zs);
+            to_merge.reserve(zs.size());
             for (size_t i = 0; i < zs.size(); ++ i)
                 if (merge_layers[i])
                     to_merge.emplace_back(&slices[i]);
@@ -904,7 +864,7 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
                 tbb::blocked_range<size_t>(0, to_merge.size()),
                 [&to_merge](const tbb::blocked_range<size_t> &range) {
                     for (size_t i = range.begin(); i < range.end(); ++ i)
-                        to_merge[i] = union_ex(to_merge[i]);
+                        *to_merge[i] = union_ex(*to_merge[i]);
             });
         }
     }
