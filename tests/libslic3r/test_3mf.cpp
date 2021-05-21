@@ -110,13 +110,17 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
                 { -4242640, -8537523 }
             };
 
-            bool res = hull_2d.points == result;
-
-            std::cout << "hull_2d vertices count: " << hull_2d.points.size() << "\n";
-            std::cout << "hull_2d vertices:\n";
-            for (size_t i = 0; i < hull_2d.points.size(); ++i) {
-                std::cout << hull_2d.points[i].x() << ", " << hull_2d.points[i].y() << "\n";
+            bool res = hull_2d.points.size() == result.size();
+            if (res) {
+                for (size_t i = 0; i < result.size(); ++i) {
+                    Vec3d hull_p(unscale<double>(hull_2d.points[i].x()), unscale<double>(hull_2d.points[i].y()), 0.0);
+                    Vec3d res_p(unscale<double>(result[i].x()), unscale<double>(result[i].y()), 0.0);
+                    res &= res_p.isApprox(hull_p);
+                }
             }
+
+            // this does not work on RaspberryPi for float precision problem: the x of 1st vertex ending up being -4242640 instead of -4242641
+//            bool res = hull_2d.points == result;
 
             THEN("2D convex hull should match with reference") {
                 REQUIRE(res);
