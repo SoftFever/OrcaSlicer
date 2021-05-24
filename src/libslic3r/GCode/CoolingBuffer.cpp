@@ -357,6 +357,8 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                 for (; *c == ' ' || *c == '\t'; ++ c);
                 if (*c == 0 || *c == ';')
                     break;
+
+                assert(is_decimal_separator_point()); // for atof
                 // Parse the axis.
                 size_t axis = (*c >= 'X' && *c <= 'Z') ? (*c - 'X') :
                               (*c == extrusion_axis) ? 3 : (*c == 'F') ? 4 : size_t(-1);
@@ -454,6 +456,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             line.type = CoolingLine::TYPE_G4;
             size_t pos_S = sline.find('S', 3);
             size_t pos_P = sline.find('P', 3);
+            assert(is_decimal_separator_point()); // for atof
             line.time = line.time_max = float(
                 (pos_S > 0) ? atof(sline.c_str() + pos_S + 1) :
                 (pos_P > 0) ? atof(sline.c_str() + pos_P + 1) * 0.001 : 0.);

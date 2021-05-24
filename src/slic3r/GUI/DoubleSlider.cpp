@@ -2162,7 +2162,7 @@ static void upgrade_text_entry_dialog(wxTextEntryDialog* dlg, double min = -1.0,
         bool disable = textctrl->IsEmpty();
         if (!disable && min >= 0.0 && max >= 0.0) {
             double value = -1.0;
-            if (!textctrl->GetValue().ToCDouble(&value))    // input value couldn't be converted to double
+            if (!textctrl->GetValue().ToDouble(&value))    // input value couldn't be converted to double
                 disable = true;
             else
                 disable = value < min - epsilon() || value > max + epsilon();       // is input value is out of valid range ?
@@ -2231,7 +2231,7 @@ static double get_value_to_jump(double active_value, double min_z, double max_z,
         return -1.0;
 
     double value = -1.0;
-    return dlg.GetValue().ToCDouble(&value) ? value : -1.0;
+    return dlg.GetValue().ToDouble(&value) ? value : -1.0;
 }
 
 void Control::add_code_as_tick(Type type, int selected_extruder/* = -1*/)

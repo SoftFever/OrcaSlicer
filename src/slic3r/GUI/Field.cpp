@@ -37,12 +37,13 @@ wxString double_to_string(double const value, const int max_precision /*= 4*/)
 	// with the exception that here one sets the decimal separator explicitely to dot.
     // If number is in scientific format, trailing zeroes belong to the exponent and cannot be removed.
     if (s.find_first_of("eE") == wxString::npos) {
-	    const size_t posDecSep = s.find(".");
+        char dec_sep = is_decimal_separator_point() ? '.' : ',';
+        const size_t posDecSep = s.find(dec_sep);
 	    // No decimal point => removing trailing zeroes irrelevant for integer number.
 	    if (posDecSep != wxString::npos) {
 		    // Find the last character to keep.
 		    size_t posLastNonZero = s.find_last_not_of("0");
-		    // If it's the decimal separator itself, don't keep it neither.
+            // If it's the decimal separator itself, don't keep it either.
 		    if (posLastNonZero == posDecSep)
 		        -- posLastNonZero;
 		    s.erase(posLastNonZero + 1);
@@ -236,16 +237,22 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 			m_value = double(m_opt.min);
 			break;
 		}
-		double val;
-		// Replace the first occurence of comma in decimal number.
-		str.Replace(",", ".", false);
-        if (str == ".")
+        double val;
+
+        const char dec_sep = is_decimal_separator_point() ? '.' : ',';
+        const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
+        // Replace the first incorrect separator in decimal number.
+        if (str.Replace(dec_sep_alt, dec_sep, false) != 0)
+            set_value(str, false);
+
+
+        if (str == dec_sep)
             val = 0.0;
         else
         {
             if (m_opt.nullable && str == na_value())
                 val = ConfigOptionFloatsNullable::nil_value();
-            else if (!str.ToCDouble(&val))
+            else if (!str.ToDouble(&val))
             {
                 if (!check_value) {
                     m_value.clear();
@@ -293,14 +300,18 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         if (m_opt.type == coFloatOrPercent && !str.IsEmpty() &&  str.Last() != '%')
         {
             double val = 0.;
-			// Replace the first occurence of comma in decimal number.
-			str.Replace(",", ".", false);
+            const char dec_sep = is_decimal_separator_point() ? '.' : ',';
+            const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
+            // Replace the first incorrect separator in decimal number.
+            if (str.Replace(dec_sep_alt, dec_sep, false) != 0)
+                set_value(str, false);
+
 
             // remove space and "mm" substring, if any exists
             str.Replace(" ", "", true);
             str.Replace("m", "", true);
 
-            if (!str.ToCDouble(&val))
+            if (!str.ToDouble(&val))
             {
                 if (!check_value) {
                     m_value.clear();
@@ -1215,8 +1226,8 @@ boost::any& Choice::get_value()
 	return m_value;
 }
 
-void Choice::enable()  { dynamic_cast<choice_ctrl*>(window)->Enable(); };
-void Choice::disable() { dynamic_cast<choice_ctrl*>(window)->Disable(); };
+void Choice::enable()  { dynamic_cast<choice_ctrl*>(window)->Enable(); }
+void Choice::disable() { dynamic_cast<choice_ctrl*>(window)->Disable(); }
 
 void Choice::msw_rescale()
 {
@@ -1478,7 +1489,7 @@ boost::any& PointCtrl::get_value()
 		!y_textctrl->GetValue().ToDouble(&y))
 	{
 		set_value(m_value.empty() ? Vec2d(0.0, 0.0) : m_value, true);
-		show_error(m_parent, _L("Invalid numeric input."));
+        show_error(m_parent, _L("Invalid numeric input."));
 	}
 	else
 	if (m_opt.min > x || x > m_opt.max ||

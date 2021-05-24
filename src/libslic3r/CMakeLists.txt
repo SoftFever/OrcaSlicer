@@ -126,6 +126,8 @@ add_library(libslic3r STATIC
     Line.hpp
     LibraryCheck.cpp
     LibraryCheck.hpp
+    LocalesUtils.cpp
+    LocalesUtils.hpp
     Model.cpp
     Model.hpp
     ModelArrange.hpp

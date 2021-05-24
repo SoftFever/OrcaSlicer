@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 
 using namespace Slic3r;
 
@@ -112,7 +113,7 @@ SCENARIO("Config accessor functions perform as expected.", "[Config]") {
         WHEN("A string option is set through the double interface") {
             config.set("end_gcode", 100.5);
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionString>("end_gcode")->value == std::to_string(100.5));
+                REQUIRE(config.opt<ConfigOptionString>("end_gcode")->value == float_to_string_decimal_point(100.5));
             }
         }
         WHEN("A float or percent is set as a percent through the string interface.") {
