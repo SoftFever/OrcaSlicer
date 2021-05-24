@@ -3780,34 +3780,34 @@ void GLCanvas3D::update_sequential_clearance()
     if (current_printer_technology() != ptFFF || !fff_print()->config().complete_objects)
         return;
 
-    struct Instance
-    {
-        int object_id;
-        int instance_id;
-        Transform3d transform;
-    };
-    std::vector<Instance> instances;
-
     // collects instance transformations from volumes
+    // first define temporary cache
+    std::vector<std::vector<std::pair<bool, Transform3d>>> instance_transforms;
+    for (size_t o = 0; o < m_model->objects.size(); ++o) {
+        instance_transforms.emplace_back(std::vector<std::pair<bool, Transform3d>>());
+        const ModelObject* model_object = m_model->objects[o];
+        for (size_t i = 0; i < model_object->instances.size(); ++i) {
+            instance_transforms[o].emplace_back(false, Transform3d());
+        }
+    }
+
+    // second fill temporary cache with data from volumes
     for (const GLVolume* v : m_volumes.volumes) {
         if (v->is_modifier || v->is_wipe_tower)
             continue;
 
-        const int object_id = v->object_idx();
-        const int instance_id = v->instance_idx();
-
-        // update instances list
-        auto inst_it = std::find_if(instances.begin(), instances.end(), [object_id, instance_id](const Instance& i) { return i.object_id == object_id && i.instance_id == instance_id; });
-        if (inst_it == instances.end()) {
-            const Instance instance = { object_id, instance_id, v->get_instance_transformation().get_matrix() };
-            instances.emplace_back(instance);
+        auto& [already_set, transform] = instance_transforms[v->object_idx()][v->instance_idx()];
+        if (!already_set) {
+            transform = v->get_instance_transformation().get_matrix();
+            already_set = true;
         }
     }
 
+    // calculates objects 2d hulls (see also: Print::sequential_print_horizontal_clearance_valid())
+    // this is done only the first time this method is called while moving the mouse,
+    // the results are then cached for following displacements
     if (m_sequential_print_clearance_first_displacement) {
         m_sequential_print_clearance.m_hull_2d_cache.clear();
-        // calculates objects 2d hulls (see also: Print::sequential_print_horizontal_clearance_valid())
-        // and caches them for following displacements
         float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_radius.value - EPSILON));
         double mitter_limit = scale_(0.1);
         int obj_id = 0;
@@ -3833,17 +3833,14 @@ void GLCanvas3D::update_sequential_clearance()
 
     // calculates instances 2d hulls (see also: Print::sequential_print_horizontal_clearance_valid())
     Polygons polygons;
-    for (size_t i = 0; i < m_model->objects.size(); ++i) {
-        // instances 2d hulls
-        for (const Instance& inst : instances) {
-            if (inst.object_id != static_cast<int>(i))
-                continue;
-
+    for (size_t i = 0; i < instance_transforms.size(); ++i) {
+        const auto& object = instance_transforms[i];
+        for (const auto& instance : object) {
             Points inst_pts;
             inst_pts.reserve(m_sequential_print_clearance.m_hull_2d_cache[i].size());
             for (size_t j = 0; j < m_sequential_print_clearance.m_hull_2d_cache[i].size(); ++j) {
                 const Vec3d& p = m_sequential_print_clearance.m_hull_2d_cache[i][j];
-                const Vec3d inst_p = inst.transform * p;
+                const Vec3d inst_p = instance.second * p;
                 inst_pts.emplace_back(scaled<double>(inst_p.x()), scaled<double>(inst_p.y()));
             }
 
@@ -3851,6 +3848,7 @@ void GLCanvas3D::update_sequential_clearance()
         }
     }
 
+    // sends instances 2d hulls to be rendered
     set_sequential_print_clearance(polygons, false);
 }
 #endif // ENABLE_SEQUENTIAL_LIMITS
