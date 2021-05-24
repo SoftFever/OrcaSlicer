@@ -2271,7 +2271,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
     const bool is_object_settings = m_objects_model->GetItemType(parent_item) == itObject;
     if (!is_object_settings) {
         ModelVolumeType volume_type = m_objects_model->GetVolumeType(parent_item);
-        if (volume_type == ModelVolumeType::SUPPORT_BLOCKER || volume_type == ModelVolumeType::SUPPORT_ENFORCER)
+        if (volume_type == ModelVolumeType::NEGATIVE_VOLUME || volume_type == ModelVolumeType::SUPPORT_BLOCKER || volume_type == ModelVolumeType::SUPPORT_ENFORCER)
             return ret;
     }
 
@@ -3437,9 +3437,8 @@ void ObjectList::change_part_type()
         }
     }
 
-    const wxString names[] = { _(L("Part")), _(L("Modifier")), _(L("Support Enforcer")), _(L("Support Blocker")) };
-    
-    auto new_type = ModelVolumeType(wxGetSingleChoiceIndex(_(L("Type:")), _(L("Select type of part")), wxArrayString(4, names), int(type)));
+    const wxString names[] = { _L("Part"), _L("Negative Volume"), _L("Modifier"), _L("Support Enforcer"), _L("Support Blocker") };
+    auto new_type = ModelVolumeType(wxGetSingleChoiceIndex(_L("Type:"), _L("Select type of part"), wxArrayString(5, names), int(type)));
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
         return;
@@ -3458,7 +3457,7 @@ void ObjectList::change_part_type()
     //(we show additional settings for Part and Modifier and hide it for Support Blocker/Enforcer)
     const auto settings_item = m_objects_model->GetSettingsItem(item);
     if (settings_item && 
-        (new_type == ModelVolumeType::SUPPORT_ENFORCER || new_type == ModelVolumeType::SUPPORT_BLOCKER)) {
+        (new_type == ModelVolumeType::SUPPORT_ENFORCER || new_type == ModelVolumeType::SUPPORT_BLOCKER || new_type == ModelVolumeType::NEGATIVE_VOLUME)) {
         m_objects_model->Delete(settings_item);
     }
     else if (!settings_item && 

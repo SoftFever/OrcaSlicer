@@ -154,6 +154,7 @@ wxBitmap SettingsFactory::get_category_bitmap(const std::string& category_name)
 std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_MENU_ITEMS = {
 //       menu_item Name              menu_item bitmap name
         {L("Add part"),              "add_part" },           // ~ModelVolumeType::MODEL_PART
+        {L("Add negative volume"),   "add_negative" },       // ~ModelVolumeType::NEGATIVE_VOLUME
         {L("Add modifier"),          "add_modifier"},        // ~ModelVolumeType::PARAMETER_MODIFIER
         {L("Add support enforcer"),  "support_enforcer"},    // ~ModelVolumeType::SUPPORT_ENFORCER
         {L("Add support blocker"),   "support_blocker"}      // ~ModelVolumeType::SUPPORT_BLOCKER
@@ -500,7 +501,7 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
         return nullptr;
 
     const auto sel_vol = obj_list()->get_selected_model_volume();
-    if (sel_vol && sel_vol->type() >= ModelVolumeType::SUPPORT_ENFORCER)
+    if (sel_vol && sel_vol->type() != ModelVolumeType::MODEL_PART && sel_vol->type() != ModelVolumeType::PARAMETER_MODIFIER )
         return nullptr;
 
     const ConfigOptionMode mode = wxGetApp().get_mode();
