@@ -221,9 +221,9 @@ public:
     Transform3d                                 trafo_bboxes;
     std::vector<ObjectID>                       cached_volume_ids;
 
-    size_t ref_cnt_inc() { ++ m_ref_cnt; }
-    size_t ref_cnt_dec() { if (-- m_ref_cnt == 0) delete this; }
-    void   clear() {
+    void ref_cnt_inc() { ++ m_ref_cnt; }
+    void ref_cnt_dec() { if (-- m_ref_cnt == 0) delete this; }
+    void clear() {
         all_regions.clear();
         layer_ranges.clear();
     }

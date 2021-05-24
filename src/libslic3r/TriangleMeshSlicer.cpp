@@ -1021,9 +1021,17 @@ static void make_expolygons(const Polygons &loops, const float closing_radius, c
 //    double safety_offset = scale_(0.0499);
     // 0.0001 is set to satisfy GH #520, #1029, #1364
     assert(closing_radius >= 0);
-    assert(extra_offset >= 0);
-    double offset_out = + scale_(closing_radius + extra_offset);
-    double offset_in  = - scale_(closing_radius);
+    // Allowing negative extra_offset for shrinking a contour. This likely only makes sense if slicing a single region only.
+    //assert(extra_offset >= 0);
+    double offset_out;
+    double offset_in;
+    if (closing_radius >= extra_offset) {
+        offset_out = + scale_(closing_radius);
+        offset_in  = - scale_(closing_radius - extra_offset);
+    } else {
+        offset_out = + scale_(extra_offset);
+        offset_in  = 0.;
+    }
 
     /* The following line is commented out because it can generate wrong polygons,
        see for example issue #661 */

@@ -162,12 +162,12 @@ static std::vector<VolumeSlices> slice_volumes_inner(
         slicing_ranges.reserve(layer_ranges.size());
 
     MeshSlicingParamsEx params_base;
-    params_base.closing_radius = float(print_object_config.slice_closing_radius.value);
+    params_base.closing_radius = scaled<float>(print_object_config.slice_closing_radius.value);
     params_base.extra_offset   = 0;
     params_base.trafo          = object_trafo;
     params_base.resolution     = scaled<double>(print_config.resolution.value);
 
-    const float extra_offset = print_object_config.xy_size_compensation > 0 ? float(print_object_config.xy_size_compensation.value) : 0.f;
+    const auto extra_offset = print_object_config.xy_size_compensation > 0 ? scaled<float>(print_object_config.xy_size_compensation.value) : 0.f;
 
     for (const ModelVolume *model_volume : model_volumes)
         if (model_volume_needs_slicing(*model_volume)) {
@@ -208,6 +208,8 @@ static std::vector<VolumeSlices> slice_volumes_inner(
             if (! out.empty() && out.back().slices.empty())
                 out.pop_back();
         }
+
+    return out;
 }
 
 static inline VolumeSlices& volume_slices_find_by_id(std::vector<VolumeSlices> &volume_slices, const ObjectID id)
@@ -302,7 +304,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             last_volume_idx_of_region.assign(print_object_regions.all_regions.size(), -1);
             for (const PrintObjectRegions::VolumeRegion &region : layer_range.volume_regions) {
                 int region_id = region.region->print_object_region_id();
-                layer_range_regions_to_slices.emplace_back(&volume_slices_find_by_id(volume_slices, region.model_volume->id()), last_volume_idx_of_region[region_id]);
+                layer_range_regions_to_slices.push_back({ &volume_slices_find_by_id(volume_slices, region.model_volume->id()), last_volume_idx_of_region[region_id] });
                 last_volume_idx_of_region[region_id] = &region - layer_range.volume_regions.data();
             }
         }
@@ -398,105 +400,9 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                 }
             });
     }
+
+    return slices_by_region;
 }
-
-#if 0
-// Z ranges are not applicable to modifier meshes, therefore a single volume will be found in volume_w_zrange at most once.
-std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std::vector<float> &slice_zs) const
-{
-    std::vector<ExPolygons> out;
-    if (region_id < m_region_volumes.size())
-    {
-        std::vector<std::vector<t_layer_height_range>> volume_ranges;
-        const PrintRegionVolumes &volumes_and_ranges = m_region_volumes[region_id];
-        volume_ranges.reserve(volumes_and_ranges.volumes.size());
-        for (size_t i = 0; i < volumes_and_ranges.volumes.size(); ) {
-            int                volume_id    = volumes_and_ranges.volumes[i].volume_idx;
-            const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
-            if (model_volume->is_modifier()) {
-                std::vector<t_layer_height_range> ranges;
-                ranges.emplace_back(volumes_and_ranges.volumes[i].layer_height_range);
-                size_t j = i + 1;
-                for (; j < volumes_and_ranges.volumes.size() && volume_id == volumes_and_ranges.volumes[j].volume_idx; ++ j) {
-                    if (! ranges.empty() && std::abs(ranges.back().second - volumes_and_ranges.volumes[j].layer_height_range.first) < EPSILON)
-                        ranges.back().second = volumes_and_ranges.volumes[j].layer_height_range.second;
-                    else
-                        ranges.emplace_back(volumes_and_ranges.volumes[j].layer_height_range);
-                }
-                volume_ranges.emplace_back(std::move(ranges));
-                i = j;
-            } else
-                ++ i;
-        }
-
-        if (! volume_ranges.empty()) 
-        {
-            bool equal_ranges = true;
-            for (size_t i = 1; i < volume_ranges.size(); ++ i) {
-                assert(! volume_ranges[i].empty());
-                if (volume_ranges.front() != volume_ranges[i]) {
-                    equal_ranges = false;
-                    break;
-                }
-            }
-
-            if (equal_ranges && volume_ranges.front().size() == 1 && volume_ranges.front().front() == t_layer_height_range(0, DBL_MAX)) {
-                // No modifier in this region was split to layer spans.
-                std::vector<const ModelVolume*> volumes;
-                for (const PrintRegionVolumes::VolumeWithZRange &volume_w_zrange : m_region_volumes[region_id].volumes) {
-                    const ModelVolume *volume = this->model_object()->volumes[volume_w_zrange.volume_idx];
-                    if (volume->is_modifier())
-                        volumes.emplace_back(volume);
-                }
-                out = this->slice_volumes(slice_zs, MeshSlicingParams::SlicingMode::Regular, volumes);
-            } else {
-                // Some modifier in this region was split to layer spans.
-                std::vector<char> merge;
-                for (size_t region_id = 0; region_id < m_region_volumes.size(); ++ region_id) {
-                    const PrintRegionVolumes &volumes_and_ranges = m_region_volumes[region_id];
-                    for (size_t i = 0; i < volumes_and_ranges.volumes.size(); ) {
-                        int                volume_id    = volumes_and_ranges.volumes[i].volume_idx;
-                        const ModelVolume *model_volume = this->model_object()->volumes[volume_id];
-                        if (model_volume->is_modifier()) {
-                            BOOST_LOG_TRIVIAL(debug) << "Slicing modifiers - volume " << volume_id;
-                            // Find the ranges of this volume. Ranges in volumes_and_ranges must not overlap for a single volume.
-                            std::vector<t_layer_height_range> ranges;
-                            ranges.emplace_back(volumes_and_ranges.volumes[i].layer_height_range);
-                            size_t j = i + 1;
-                            for (; j < volumes_and_ranges.volumes.size() && volume_id == volumes_and_ranges.volumes[j].volume_idx; ++ j)
-                                ranges.emplace_back(volumes_and_ranges.volumes[j].layer_height_range);
-                            // slicing in parallel
-                            std::vector<ExPolygons> this_slices = this->slice_volume(slice_zs, ranges, MeshSlicingParams::SlicingMode::Regular, *model_volume);
-                            // Variable this_slices could be empty if no value of slice_zs is within any of the ranges of this volume.
-                            if (out.empty()) {
-                                out = std::move(this_slices);
-                                merge.assign(out.size(), false);
-                            } else if (!this_slices.empty()) {
-                                assert(out.size() == this_slices.size());
-                                for (size_t i = 0; i < out.size(); ++ i)
-                                    if (! this_slices[i].empty()) {
-                                        if (! out[i].empty()) {
-                                            append(out[i], this_slices[i]);
-                                            merge[i] = true;
-                                        } else
-                                            out[i] = std::move(this_slices[i]);
-                                    }
-                            }
-                            i = j;
-                        } else
-                            ++ i;
-                    }
-                }
-                for (size_t i = 0; i < merge.size(); ++ i)
-                    if (merge[i])
-                        out[i] = union_ex(out[i]);
-            }
-        }
-    }
-
-    return out;
-}
-#endif
 
 std::string fix_slicing_errors(LayerPtrs &layers, const std::function<void()> &throw_if_canceled)
 {
@@ -725,8 +631,8 @@ void PrintObject::slice_volumes()
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
-        // Compensation value, scaled.
-        const float xy_compensation_scaled              = float(scale_(m_config.xy_size_compensation.value));
+        // Compensation value, scaled. Only applying the negative scaling here, as the positive scaling has already been applied during slicing.
+        const auto  xy_compensation_scaled              = scaled<float>(std::min(m_config.xy_size_compensation.value, 0.));
         const float elephant_foot_compensation_scaled 	= (m_config.raft_layers == 0) ? 
         	// Only enable Elephant foot compensation if printing directly on the print bed.
             float(scale_(m_config.elefant_foot_compensation.value)) :
@@ -735,7 +641,7 @@ void PrintObject::slice_volumes()
 	    ExPolygons  lslices_1st_layer;
 	    tbb::parallel_for(
 	        tbb::blocked_range<size_t>(0, m_layers.size()),
-			[this, upscaled, clipped, xy_compensation_scaled, elephant_foot_compensation_scaled, &lslices_1st_layer]
+			[this, xy_compensation_scaled, elephant_foot_compensation_scaled, &lslices_1st_layer]
 				(const tbb::blocked_range<size_t>& range) {
 	            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
 	                m_print->throw_if_canceled();
@@ -743,8 +649,6 @@ void PrintObject::slice_volumes()
 	                // Apply size compensation and perform clipping of multi-part objects.
 	                float elfoot = (layer_id == 0) ? elephant_foot_compensation_scaled : 0.f;
 	                if (layer->m_regions.size() == 1) {
-	                	assert(! upscaled);
-	                	assert(! clipped);
 	                    // Optimized version for a single region layer.
 	                    // Single region, growing or shrinking.
 	                    LayerRegion *layerm = layer->m_regions.front();
@@ -763,35 +667,15 @@ void PrintObject::slice_volumes()
 										(delta == 0.f) ? lslices_1st_layer : offset_ex(lslices_1st_layer, delta), 
 	                            		layerm->flow(frExternalPerimeter), unscale<double>(elfoot))),
 								stInternal);
-							if (xy_compensation_scaled != 0.f)
+							if (xy_compensation_scaled < 0.f)
 								lslices_1st_layer = offset_ex(std::move(lslices_1st_layer), xy_compensation_scaled);
-	                    } else if (xy_compensation_scaled != 0.f) {
+	                    } else if (xy_compensation_scaled < 0.f) {
 	                        // Apply the XY compensation.
 	                        layerm->slices.set(
                                 offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), xy_compensation_scaled),
 	                            stInternal);
 	                    }
 	                } else {
-	                    bool upscale   = ! upscaled && xy_compensation_scaled > 0.f;
-	                    bool clip      = ! clipped && m_config.clip_multipart_objects.value;
-	                    if (upscale || clip) {
-	                        // Multiple regions, growing or just clipping one region by the other.
-	                        // When clipping the regions, priority is given to the first regions.
-	                        Polygons processed;
-	            			for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id) {
-	                            LayerRegion *layerm = layer->m_regions[region_id];
-	            				ExPolygons slices = to_expolygons(std::move(layerm->slices.surfaces));
-	            				if (upscale)
-	            					slices = offset_ex(std::move(slices), xy_compensation_scaled);
-	                            if (region_id > 0 && clip)
-	                                // Trim by the slices of already processed regions.
-	                                slices = diff_ex(slices, processed);
-	                            if (clip && (region_id + 1 < layer->m_regions.size()))
-	                                // Collect the already processed regions to trim the to be processed regions.
-	                                polygons_append(processed, slices);
-	                            layerm->slices.set(std::move(slices), stInternal);
-	                        }
-	                    }
 	                    if (xy_compensation_scaled < 0.f || elfoot > 0.f) {
 	                        // Apply the negative XY compensation.
 	                        Polygons trimming;

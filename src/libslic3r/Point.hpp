@@ -54,7 +54,7 @@ using Transform2d    = Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAli
 using Transform3f    = Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign>;
 using Transform3d    = Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign>;
 
-inline bool operator<(const Vec2d &lhs, const Vec2d &rhs) { return lhs(0) < rhs(0) || (lhs(0) == rhs(0) && lhs(1) < rhs(1)); }
+inline bool operator<(const Vec2d &lhs, const Vec2d &rhs) { return lhs.x() < rhs.x() || (lhs.x() == rhs.x() && lhs.y() < rhs.y()); }
 
 template<int Options>
 int32_t cross2(const Eigen::MatrixBase<Eigen::Matrix<int32_t, 2, 1, Options>> &v1, const Eigen::MatrixBase<Eigen::Matrix<int32_t, 2, 1, Options>> &v2) = delete;
@@ -62,36 +62,36 @@ int32_t cross2(const Eigen::MatrixBase<Eigen::Matrix<int32_t, 2, 1, Options>> &v
 template<typename T, int Options>
 inline T cross2(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> &v1, const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> &v2)
 {
-    return v1(0) * v2(1) - v1(1) * v2(0);
+    return v1.x() * v2.y() - v1.y() * v2.x();
 }
 
 template<typename Derived, typename Derived2>
 inline typename Derived::Scalar cross2(const Eigen::MatrixBase<Derived> &v1, const Eigen::MatrixBase<Derived2> &v2)
 {
     static_assert(std::is_same<typename Derived::Scalar, typename Derived2::Scalar>::value, "cross2(): Scalar types of 1st and 2nd operand must be equal.");
-    return v1(0) * v2(1) - v1(1) * v2(0);
+    return v1.x() * v2.y() - v1.y() * v2.x();
 }
 
 template<typename T, int Options>
 inline Eigen::Matrix<T, 2, 1, Eigen::DontAlign> perp(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> &v) { return Eigen::Matrix<T, 2, 1, Eigen::DontAlign>(- v.y(), v.x()); }
 
 template<class T, int N, int Options>
-Eigen::Matrix<T, 2, 1, Eigen::DontAlign> to_2d(const Eigen::MatrixBase<Eigen::Matrix<T, N, 1, Options>> &ptN) { return { ptN(0), ptN(1) }; }
+Eigen::Matrix<T, 2, 1, Eigen::DontAlign> to_2d(const Eigen::MatrixBase<Eigen::Matrix<T, N, 1, Options>> &ptN) { return { ptN.x(), ptN.y() }; }
 
 template<class T, int Options>
-Eigen::Matrix<T, 3, 1, Eigen::DontAlign> to_3d(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> & pt, const T z) { return { pt(0), pt(1), z }; }
+Eigen::Matrix<T, 3, 1, Eigen::DontAlign> to_3d(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> & pt, const T z) { return { pt.x(), pt.y(), z }; }
 
 inline Vec2d   unscale(coord_t x, coord_t y) { return Vec2d(unscale<double>(x), unscale<double>(y)); }
-inline Vec2d   unscale(const Vec2crd &pt) { return Vec2d(unscale<double>(pt(0)), unscale<double>(pt(1))); }
-inline Vec2d   unscale(const Vec2d   &pt) { return Vec2d(unscale<double>(pt(0)), unscale<double>(pt(1))); }
+inline Vec2d   unscale(const Vec2crd &pt) { return Vec2d(unscale<double>(pt.x()), unscale<double>(pt.y())); }
+inline Vec2d   unscale(const Vec2d   &pt) { return Vec2d(unscale<double>(pt.x()), unscale<double>(pt.y())); }
 inline Vec3d   unscale(coord_t x, coord_t y, coord_t z) { return Vec3d(unscale<double>(x), unscale<double>(y), unscale<double>(z)); }
-inline Vec3d   unscale(const Vec3crd &pt) { return Vec3d(unscale<double>(pt(0)), unscale<double>(pt(1)), unscale<double>(pt(2))); }
-inline Vec3d   unscale(const Vec3d   &pt) { return Vec3d(unscale<double>(pt(0)), unscale<double>(pt(1)), unscale<double>(pt(2))); }
+inline Vec3d   unscale(const Vec3crd &pt) { return Vec3d(unscale<double>(pt.x()), unscale<double>(pt.y()), unscale<double>(pt.z())); }
+inline Vec3d   unscale(const Vec3d   &pt) { return Vec3d(unscale<double>(pt.x()), unscale<double>(pt.y()), unscale<double>(pt.z())); }
 
-inline std::string to_string(const Vec2crd &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + "]"; }
-inline std::string to_string(const Vec2d   &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + "]"; }
-inline std::string to_string(const Vec3crd &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + ", " + std::to_string(pt(2)) + "]"; }
-inline std::string to_string(const Vec3d   &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + ", " + std::to_string(pt(2)) + "]"; }
+inline std::string to_string(const Vec2crd &pt) { return std::string("[") + std::to_string(pt.x()) + ", " + std::to_string(pt.y()) + "]"; }
+inline std::string to_string(const Vec2d   &pt) { return std::string("[") + std::to_string(pt.x()) + ", " + std::to_string(pt.y()) + "]"; }
+inline std::string to_string(const Vec3crd &pt) { return std::string("[") + std::to_string(pt.x()) + ", " + std::to_string(pt.y()) + ", " + std::to_string(pt.z()) + "]"; }
+inline std::string to_string(const Vec3d   &pt) { return std::string("[") + std::to_string(pt.x()) + ", " + std::to_string(pt.y()) + ", " + std::to_string(pt.z()) + "]"; }
 
 std::vector<Vec3f> transform(const std::vector<Vec3f>& points, const Transform3f& t);
 Pointf3s transform(const Pointf3s& points, const Transform3d& t);
@@ -123,19 +123,17 @@ public:
         return *this;
     }
 
-    bool operator< (const Point& rhs) const { return (*this)(0) < rhs(0) || ((*this)(0) == rhs(0) && (*this)(1) < rhs(1)); }
-
-    Point& operator+=(const Point& rhs) { (*this)(0) += rhs(0); (*this)(1) += rhs(1); return *this; }
-    Point& operator-=(const Point& rhs) { (*this)(0) -= rhs(0); (*this)(1) -= rhs(1); return *this; }
-	Point& operator*=(const double &rhs) { (*this)(0) = coord_t((*this)(0) * rhs); (*this)(1) = coord_t((*this)(1) * rhs); return *this; }
-    Point operator*(const double &rhs) { return Point((*this)(0) * rhs, (*this)(1) * rhs); }
+    Point& operator+=(const Point& rhs) { this->x() += rhs.x(); this->y() += rhs.y(); return *this; }
+    Point& operator-=(const Point& rhs) { this->x() -= rhs.x(); this->y() -= rhs.y(); return *this; }
+	Point& operator*=(const double &rhs) { this->x() = coord_t(this->x() * rhs); this->y() = coord_t(this->y() * rhs); return *this; }
+    Point operator*(const double &rhs) { return Point(this->x() * rhs, this->y() * rhs); }
 
     void   rotate(double angle) { this->rotate(std::cos(angle), std::sin(angle)); }
     void   rotate(double cos_a, double sin_a) {
-        double cur_x = (double)(*this)(0);
-        double cur_y = (double)(*this)(1);
-        (*this)(0) = (coord_t)round(cos_a * cur_x - sin_a * cur_y);
-        (*this)(1) = (coord_t)round(cos_a * cur_y + sin_a * cur_x);
+        double cur_x = (double)this->x();
+        double cur_y = (double)this->y();
+        this->x() = (coord_t)round(cos_a * cur_x - sin_a * cur_y);
+        this->y() = (coord_t)round(cos_a * cur_y + sin_a * cur_x);
     }
 
     void   rotate(double angle, const Point &center);
@@ -152,6 +150,11 @@ public:
     Point  projection_onto(const MultiPoint &poly) const;
     Point  projection_onto(const Line &line) const;
 };
+
+inline bool operator<(const Point &l, const Point &r) 
+{ 
+    return l.x() < r.x() || (l.x() == r.x() && l.y() < r.y());
+}
 
 inline bool is_approx(const Point &p1, const Point &p2, coord_t epsilon = coord_t(SCALED_EPSILON))
 {
@@ -204,7 +207,7 @@ namespace int128 {
 // To be used by std::unordered_map, std::unordered_multimap and friends.
 struct PointHash {
     size_t operator()(const Vec2crd &pt) const {
-        return std::hash<coord_t>()(pt(0)) ^ std::hash<coord_t>()(pt(1));
+        return std::hash<coord_t>()(pt.x()) ^ std::hash<coord_t>()(pt.y());
     }
 };
 
@@ -265,7 +268,7 @@ public:
         const Point *pt = m_point_accessor(value);
         if (pt != nullptr) {
             // Range of fragment starts around grid_corner, close to pt.
-            auto range = m_map.equal_range(Point((*pt)(0)>>m_grid_log2, (*pt)(1)>>m_grid_log2));
+            auto range = m_map.equal_range(Point((*pt).x()>>m_grid_log2, (*pt).y()>>m_grid_log2));
             // Remove the first item.
             for (auto it = range.first; it != range.second; ++ it) {
                 if (it->second == value) {
@@ -284,12 +287,12 @@ public:
         const ValueType *value_min = nullptr;
         double           dist_min = std::numeric_limits<double>::max();
         // Round pt to a closest grid_cell corner.
-        Vec2crd            grid_corner((pt(0)+(m_grid_resolution>>1))>>m_grid_log2, (pt(1)+(m_grid_resolution>>1))>>m_grid_log2);
+        Vec2crd            grid_corner((pt.x()+(m_grid_resolution>>1))>>m_grid_log2, (pt.y()+(m_grid_resolution>>1))>>m_grid_log2);
         // For four neighbors of grid_corner:
         for (coord_t neighbor_y = -1; neighbor_y < 1; ++ neighbor_y) {
             for (coord_t neighbor_x = -1; neighbor_x < 1; ++ neighbor_x) {
                 // Range of fragment starts around grid_corner, close to pt.
-                auto range = m_map.equal_range(Vec2crd(grid_corner(0) + neighbor_x, grid_corner(1) + neighbor_y));
+                auto range = m_map.equal_range(Vec2crd(grid_corner.x() + neighbor_x, grid_corner.y() + neighbor_y));
                 // Find the map entry closest to pt.
                 for (auto it = range.first; it != range.second; ++it) {
                     const ValueType &value = it->second;
@@ -313,14 +316,14 @@ public:
     std::vector<std::pair<const ValueType*, double>> find_all(const Vec2crd &pt) {
         // Iterate over 4 closest grid cells around pt,
         // Round pt to a closest grid_cell corner.
-        Vec2crd      grid_corner((pt(0)+(m_grid_resolution>>1))>>m_grid_log2, (pt(1)+(m_grid_resolution>>1))>>m_grid_log2);
+        Vec2crd      grid_corner((pt.x()+(m_grid_resolution>>1))>>m_grid_log2, (pt.y()+(m_grid_resolution>>1))>>m_grid_log2);
         // For four neighbors of grid_corner:
         std::vector<std::pair<const ValueType*, double>> out;
         const double r2 = double(m_search_radius) * m_search_radius;
         for (coord_t neighbor_y = -1; neighbor_y < 1; ++ neighbor_y) {
             for (coord_t neighbor_x = -1; neighbor_x < 1; ++ neighbor_x) {
                 // Range of fragment starts around grid_corner, close to pt.
-                auto range = m_map.equal_range(Vec2crd(grid_corner(0) + neighbor_x, grid_corner(1) + neighbor_y));
+                auto range = m_map.equal_range(Vec2crd(grid_corner.x() + neighbor_x, grid_corner.y() + neighbor_y));
                 // Find the map entry closest to pt.
                 for (auto it = range.first; it != range.second; ++it) {
                     const ValueType &value = it->second;

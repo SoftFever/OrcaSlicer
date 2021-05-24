@@ -346,6 +346,9 @@ public: \
 #define PRINT_CONFIG_CLASS_ELEMENT_INITIALIZATION(r, data, elem) PRINT_CONFIG_CLASS_ELEMENT_INITIALIZATION2(BOOST_PP_TUPLE_ELEM(1, elem))
 #define PRINT_CONFIG_CLASS_ELEMENT_HASH(r, data, elem) boost::hash_combine(seed, BOOST_PP_TUPLE_ELEM(1, elem).hash());
 #define PRINT_CONFIG_CLASS_ELEMENT_EQUAL(r, data, elem) if (! (BOOST_PP_TUPLE_ELEM(1, elem) == rhs.BOOST_PP_TUPLE_ELEM(1, elem))) return false;
+#define PRINT_CONFIG_CLASS_ELEMENT_LOWER(r, data, elem) \
+        if (BOOST_PP_TUPLE_ELEM(1, elem) < rhs.BOOST_PP_TUPLE_ELEM(1, elem)) return true; \
+        if (! (BOOST_PP_TUPLE_ELEM(1, elem) == rhs.BOOST_PP_TUPLE_ELEM(1, elem))) return false;
 
 #define PRINT_CONFIG_CLASS_DEFINE(CLASS_NAME, PARAMETER_DEFINITION_SEQ) \
 class CLASS_NAME : public StaticPrintConfig { \
@@ -364,6 +367,11 @@ public: \
         return true; \
     } \
     bool operator!=(const CLASS_NAME &rhs) const throw() { return ! (*this == rhs); } \
+    bool operator<(const CLASS_NAME &rhs) const throw() \
+    { \
+        BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CLASS_ELEMENT_LOWER, _, PARAMETER_DEFINITION_SEQ) \
+        return false; \
+    } \
 protected: \
     void initialize(StaticCacheBase &cache, const char *base_ptr) \
     { \
@@ -932,6 +940,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE0(
 #undef STATIC_PRINT_CONFIG_CACHE_DERIVED
 #undef PRINT_CONFIG_CLASS_ELEMENT_DEFINITION
 #undef PRINT_CONFIG_CLASS_ELEMENT_EQUAL
+#undef PRINT_CONFIG_CLASS_ELEMENT_LOWER
 #undef PRINT_CONFIG_CLASS_ELEMENT_HASH
 #undef PRINT_CONFIG_CLASS_ELEMENT_INITIALIZATION
 #undef PRINT_CONFIG_CLASS_ELEMENT_INITIALIZATION2

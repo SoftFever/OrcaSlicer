@@ -242,45 +242,6 @@ static t_config_option_keys full_print_config_diffs(const DynamicPrintConfig &cu
     return full_config_diff;
 }
 
-bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type)
-{
-    size_t i_old, i_new;
-    for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
-        const ModelVolume &mv_old = *model_object_old.volumes[i_old];
-        const ModelVolume &mv_new = *model_object_new.volumes[i_new];
-        if (mv_old.type() != type) {
-            ++ i_old;
-            continue;
-        }
-        if (mv_new.type() != type) {
-            ++ i_new;
-            continue;
-        }
-        if (mv_old.id() != mv_new.id())
-            return true;
-        //FIXME test for the content of the mesh!
-
-        if (!mv_old.get_matrix().isApprox(mv_new.get_matrix()))
-            return true;
-
-        ++ i_old;
-        ++ i_new;
-    }
-    for (; i_old < model_object_old.volumes.size(); ++ i_old) {
-        const ModelVolume &mv_old = *model_object_old.volumes[i_old];
-        if (mv_old.type() == type)
-            // ModelVolume was deleted.
-            return true;
-    }
-    for (; i_new < model_object_new.volumes.size(); ++ i_new) {
-        const ModelVolume &mv_new = *model_object_new.volumes[i_new];
-        if (mv_new.type() == type)
-            // ModelVolume was added.
-            return true;
-    }
-    return false;
-}
-
 // Repository for solving partial overlaps of ModelObject::layer_config_ranges.
 // Here the const DynamicPrintConfig* point to the config in ModelObject::layer_config_ranges.
 class LayerRanges
@@ -290,6 +251,8 @@ public:
         t_layer_height_range        layer_height_range;
         // Config is owned by the associated ModelObject.
         const DynamicPrintConfig*   config { nullptr };
+
+        bool operator<(const LayerRange &rhs) const throw() { return this->layer_height_range < rhs.layer_height_range; }
     };
 
     LayerRanges() = default;
@@ -323,7 +286,7 @@ public:
     }
 
     const DynamicPrintConfig* config(const t_layer_height_range &range) const {
-        auto it = std::lower_bound(m_ranges.begin(), m_ranges.end(), LayerRange { t_layer_height_range(range.first - EPSILON, range.second - EPSILON), nullptr });
+        auto it = std::lower_bound(m_ranges.begin(), m_ranges.end(), LayerRange{ { range.first - EPSILON, range.second - EPSILON } });
         // #ys_FIXME_COLOR
         // assert(it != m_ranges.end());
         // assert(it == m_ranges.end() || std::abs(it->first.first  - range.first ) < EPSILON);
@@ -518,7 +481,7 @@ static BoundingBoxf3 transformed_its_bbox2d(const indexed_triangle_set &its, con
     BoundingBoxf3 bbox;
     for (const stl_triangle_vertex_indices &tri : its.indices)
         for (int i = 0; i < 3; ++ i)
-            bbox.merge(m * its.vertices[tri(i)]);
+            bbox.merge((m * its.vertices[tri(i)]).cast<double>());
     bbox.min.x() -= offset;
     bbox.min.y() -= offset;
     bbox.min.x() += offset;
@@ -556,25 +519,25 @@ static void transformed_its_bboxes_in_z_ranges(
                         float t2 = (z_range.second - p1->z()) / zspan;
                         Vec2f p = to_2d(*p1);
                         Vec2f v(p2->x() - p1->x(), p2->y() - p1->y());
-                        bbox.merge(to_3d((p + v * t1).eval(), float(z_range.first)));
-                        bbox.merge(to_3d((p + v * t2).eval(), float(z_range.second)));
+                        bbox.merge((to_3d((p + v * t1).eval(), float(z_range.first))).cast<double>());
+                        bbox.merge((to_3d((p + v * t2).eval(), float(z_range.second))).cast<double>());
                     } else {
                         // Single intersection with the lower limit.
                         float t = (z_range.first - p1->z()) / (p2->z() - p1->z());
                         Vec2f v(p2->x() - p1->x(), p2->y() - p1->y());
-                        bbox.merge(to_3d((to_2d(*p1) + v * t).eval(), float(z_range.first)));
-                        bbox.merge(*p2);
+                        bbox.merge((to_3d((to_2d(*p1) + v * t).eval(), float(z_range.first))).cast<double>());
+                        bbox.merge(p2->cast<double>());
                     }
                 } else if (p2->z() > z_range.second) {
                     // Single intersection with the upper limit.
                     float t = (z_range.second - p1->z()) / (p2->z() - p1->z());
                     Vec2f v(p2->x() - p1->x(), p2->y() - p1->y());
-                    bbox.merge(to_3d((to_2d(*p1) + v * t).eval(), float(z_range.second)));
-                    bbox.merge(*p1);
+                    bbox.merge((to_3d((to_2d(*p1) + v * t).eval(), float(z_range.second)).cast<double>()));
+                    bbox.merge(p1->cast<double>());
                 } else {
                     // Both points are inside.
-                    bbox.merge(*p1);
-                    bbox.merge(*p2);
+                    bbox.merge(p1->cast<double>());
+                    bbox.merge(p2->cast<double>());
                 }
                 iprev = iedge;
             }
@@ -744,8 +707,8 @@ void update_volume_bboxes(
                     if (it != volumes_old.end() && it->volume_id == model_volume->id())
                         layer_range.volumes.emplace_back(*it);
                 } else
-                    layer_range.volumes.emplace_back(model_volume->id(),
-                        transformed_its_bbox2d(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix(false)), offset));
+                    layer_range.volumes.push_back({ model_volume->id(),
+                        transformed_its_bbox2d(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix(false)), offset) });
             }
     } else {
         std::vector<std::vector<PrintObjectRegions::VolumeExtents>> volumes_old;
@@ -779,7 +742,7 @@ void update_volume_bboxes(
                 } else {
                     transformed_its_bboxes_in_z_ranges(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix(false)), ranges, bboxes, offset);
                     for (PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges)
-                        layer_range.volumes.emplace_back(model_volume->id(), bboxes[&layer_range - layer_ranges.data()]);
+                        layer_range.volumes.push_back({ model_volume->id(), bboxes[&layer_range - layer_ranges.data()] });
                 }
             }
     }
@@ -799,6 +762,7 @@ static PrintObjectRegions* generate_print_object_regions(
     const PrintRegionConfig                     &default_region_config,
     const Transform3d                           &trafo,
     size_t                                       num_extruders,
+    const float                                  xy_size_compensation,
     const std::vector<unsigned int>             &painting_extruders)
 {
     // Reuse the old object or generate a new one.
@@ -827,11 +791,20 @@ static PrintObjectRegions* generate_print_object_regions(
             layer_ranges_regions.push_back({ range.layer_height_range, range.config });
     }
 
-    update_volume_bboxes(layer_ranges_regions, out->cached_volume_ids, model_volumes, out->trafo_bboxes, std::max(0.f, float(print_object.config().xy_size_compensation()));
+    update_volume_bboxes(layer_ranges_regions, out->cached_volume_ids, model_volumes, out->trafo_bboxes, std::max(0.f, xy_size_compensation));
 
-    std::set<const PrintRegion*> region_set;
-    auto get_create_region = [&region_set](PrintRegionConfig &&config) -> PrintRegion* {
-        return nullptr;
+    std::vector<PrintRegion*> region_set;
+    auto get_create_region = [&region_set, &all_regions](PrintRegionConfig &&config) -> PrintRegion* {
+        size_t hash = config.hash();
+        auto it = Slic3r::lower_bound_by_predicate(region_set.begin(), region_set.end(), [&config, hash](const PrintRegion* l) {
+            return l->config_hash() < hash || (l->config_hash() == hash && l->config() < config); });
+        if ((*it)->config_hash() == hash && (*it)->config() == config)
+            return *it;
+        // Insert into a sorted array, it has O(n) complexity, but the calling algorithm has an O(n^2*log(n)) complexity anyways.
+        all_regions.emplace_back(std::make_unique<PrintRegion>(std::move(config), hash));
+        PrintRegion *region = all_regions.back().get();
+        region_set.emplace(it, region);
+        return region;
     };
 
     // Chain the regions in the order they are stored in the volumes list.
@@ -1259,11 +1232,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                     num_extruders,
                     painting_extruders,
                     *print_object_regions,
-                    [](){
-                        // Stop the background process before assigning new configuration to the regions.
-                        t_config_option_keys diff = region.config().diff(region_config);
-                        update_apply_status(print_object->invalidate_state_by_config_options(region.config(), region_config, diff));
-                        region.config_apply_only(region_config, diff, false);
+                    [&print_object, &update_apply_status](const PrintRegionConfig &old_config, const PrintRegionConfig &new_config, const t_config_option_keys &diff_keys) {
+                        update_apply_status(print_object.invalidate_state_by_config_options(old_config, new_config, diff_keys));
                     })) {
                 // Regions are valid, just keep them.
             } else {
@@ -1285,9 +1255,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 print_object_regions,
                 print_object.model_object()->volumes,
                 LayerRanges(print_object.model_object()->layer_config_ranges),
-                model_object_status.print_instances.front().trafo,
                 m_default_region_config,
+                model_object_status.print_instances.front().trafo,
                 num_extruders,
+                float(print_object.config().xy_size_compensation.value),
                 painting_extruders);
         }
         for (auto it = it_print_object; it != it_print_object_end; ++it)
