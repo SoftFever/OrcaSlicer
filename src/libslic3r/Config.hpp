@@ -760,6 +760,7 @@ public:
     ConfigOption*           clone() const override { return new ConfigOptionString(*this); }
     ConfigOptionString&     operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                    operator==(const ConfigOptionString &rhs) const throw() { return this->value == rhs.value; }
+    bool                    operator< (const ConfigOptionString &rhs) const throw() { return this->value <  rhs.value; }
     bool 					empty() const { return this->value.empty(); }
 
     std::string serialize() const override
@@ -827,8 +828,9 @@ public:
     static ConfigOptionType static_type() { return coPercent; }
     ConfigOptionType        type()  const override { return static_type(); }
     ConfigOption*           clone() const override { return new ConfigOptionPercent(*this); }
-    ConfigOptionPercent&    operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    ConfigOptionPercent&    operator= (const ConfigOption *opt) { this->set(opt); return *this; }
     bool                    operator==(const ConfigOptionPercent &rhs) const throw() { return this->value == rhs.value; }
+    bool                    operator< (const ConfigOptionPercent &rhs) const throw() { return this->value <  rhs.value; }
 
     double                  get_abs_value(double ratio_over) const { return ratio_over * this->value / 100; }
     
@@ -870,6 +872,7 @@ public:
     ConfigOption*           clone() const override { return new ConfigOptionPercentsTempl(*this); }
     ConfigOptionPercentsTempl& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                    operator==(const ConfigOptionPercentsTempl &rhs) const throw() { return this->values == rhs.values; }
+    bool                    operator< (const ConfigOptionPercentsTempl &rhs) const throw() { return vectors_lower(this->values, rhs.values); }
 
     std::string serialize() const override
     {
@@ -930,10 +933,11 @@ public:
     }
     bool                        operator==(const ConfigOptionFloatOrPercent &rhs) const throw()
         { return this->value == rhs.value && this->percent == rhs.percent; }
-    size_t                      hash() const throw() override {
-        size_t seed = std::hash<double>{}(this->value);
-        return this->percent ? seed ^ 0x9e3779b9 : seed;
-    }
+    size_t                      hash() const throw() override 
+        { size_t seed = std::hash<double>{}(this->value); return this->percent ? seed ^ 0x9e3779b9 : seed; }
+    bool                        operator< (const ConfigOptionFloatOrPercent &rhs) const throw() 
+        { return this->value < rhs.value || (this->value == rhs.value && int(this->percent) < int(rhs.percent)); }
+
     double                      get_abs_value(double ratio_over) const 
         { return this->percent ? (ratio_over * this->value / 100) : this->value; }
 
@@ -1079,8 +1083,8 @@ protected:
     static bool vectors_lower(const std::vector<FloatOrPercent> &v1, const std::vector<FloatOrPercent> &v2) {
         if (NULLABLE) {
             for (auto it1 = v1.begin(), it2 = v2.begin(); it1 != v1.end() && it2 != v2.end(); ++ it1, ++ it2) {
-                auto null1 = int(std::isnan(*it1));
-                auto null2 = int(std::isnan(*it2));
+                auto null1 = int(std::isnan(it1->value));
+                auto null2 = int(std::isnan(it2->value));
                 return (null1 < null2) || (null1 == null2 && *it1 < *it2);
             }
             return v1.size() < v2.size();
