@@ -1095,15 +1095,19 @@ double ManipulationEditor::get_value()
     wxString str = GetValue();
 
     double value;
-    // Replace the first occurence of comma in decimal number.
-    str.Replace(",", ".", false);
+    const char dec_sep = is_decimal_separator_point() ? '.' : ',';
+    const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
+    // Replace the first incorrect separator in decimal number.
+    if (str.Replace(dec_sep_alt, dec_sep, false) != 0)
+        SetValue(str);
+
     if (str == ".")
         value = 0.0;
 
-    if ((str.IsEmpty() || !str.ToCDouble(&value)) && !m_valid_value.IsEmpty()) {
+    if ((str.IsEmpty() || !str.ToDouble(&value)) && !m_valid_value.IsEmpty()) {
         str = m_valid_value;
         SetValue(str);
-        str.ToCDouble(&value);
+        str.ToDouble(&value);
     }
 
     return value;

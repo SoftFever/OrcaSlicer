@@ -98,9 +98,14 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
             return;
         }
 
-        str.Replace(",", ".", false);
+        char dec_sep = '.';
+        if (! is_decimal_separator_point()) {
+            str.Replace(".", ",", false);
+            dec_sep = ',';
+        }
+
         double val;
-        if (str == "." || !str.ToCDouble(&val) || val <= 0.0)
+        if (str == dec_sep || !str.ToDouble(&val) || val <= 0.0)
             val = 3.0; // default value
 
         if (fabs(m_sequence.interval_by_layers - val) < 0.001)
