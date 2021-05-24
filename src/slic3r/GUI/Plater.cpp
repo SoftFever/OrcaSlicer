@@ -2730,6 +2730,10 @@ void Plater::priv::reset()
     reset_gcode_toolpaths();
     gcode_result.reset();
 
+#if ENABLE_SEQUENTIAL_LIMITS
+    view3D->get_canvas3d()->set_sequential_print_clearance(Polygons(), false);
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
