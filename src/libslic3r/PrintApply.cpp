@@ -413,6 +413,7 @@ public:
     struct iterator_range : std::pair<const_iterator, const_iterator>
     { 
         using std::pair<const_iterator, const_iterator>::pair;
+        iterator_range(const std::pair<const_iterator, const_iterator> in) : std::pair<const_iterator, const_iterator>(in) {}
 
         const_iterator begin() throw() { return this->first; }
         const_iterator end() throw() { return this->second; }
