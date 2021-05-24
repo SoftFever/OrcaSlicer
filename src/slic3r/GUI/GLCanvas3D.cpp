@@ -3093,6 +3093,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_mouse.drag.move_volume_idx = volume_idx;
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
+#if ENABLE_SEQUENTIAL_LIMITS
+                        m_sequential_print_clearance_first_displacement = true;
+#endif // ENABLE_SEQUENTIAL_LIMITS
                         m_moving = true;
                     }
                 }
@@ -3777,23 +3780,16 @@ void GLCanvas3D::update_sequential_clearance()
     if (current_printer_technology() != ptFFF || !fff_print()->config().complete_objects)
         return;
 
-    // collect objects and instances from volumes
-    struct Object
-    {
-        int id;
-        GLVolumePtrs volumes;
-    };
-    std::vector<Object> objects;
-
     struct Instance
     {
-        int id;
         int object_id;
+        int instance_id;
         Transform3d transform;
     };
     std::vector<Instance> instances;
 
-    for (GLVolume* v : m_volumes.volumes) {
+    // collects instance transformations from volumes
+    for (const GLVolume* v : m_volumes.volumes) {
         if (v->is_modifier || v->is_wipe_tower)
             continue;
 
@@ -3801,58 +3797,56 @@ void GLCanvas3D::update_sequential_clearance()
         const int instance_id = v->instance_idx();
 
         // update instances list
-        auto inst_it = std::find_if(instances.begin(), instances.end(), [object_id, instance_id](const Instance& i) { return i.object_id == object_id && i.id == instance_id; });
+        auto inst_it = std::find_if(instances.begin(), instances.end(), [object_id, instance_id](const Instance& i) { return i.object_id == object_id && i.instance_id == instance_id; });
         if (inst_it == instances.end()) {
-            const Instance i = { instance_id, object_id, v->get_instance_transformation().get_matrix() };
-            instances.emplace_back(i);
+            const Instance instance = { object_id, instance_id, v->get_instance_transformation().get_matrix() };
+            instances.emplace_back(instance);
         }
+    }
 
-        // update objects list
-        if (instance_id == 0) {
-            auto it = std::find_if(objects.begin(), objects.end(), [object_id](const Object& o) { return o.id == object_id; });
-            if (it == objects.end())
-                it = objects.insert(objects.end(), { object_id, GLVolumePtrs() });
-            it->volumes.emplace_back(v);
+    if (m_sequential_print_clearance_first_displacement) {
+        m_sequential_print_clearance.m_hull_2d_cache.clear();
+        // calculates objects 2d hulls (see also: Print::sequential_print_horizontal_clearance_valid())
+        // and caches them for following displacements
+        float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_radius.value - EPSILON));
+        double mitter_limit = scale_(0.1);
+        int obj_id = 0;
+        m_sequential_print_clearance.m_hull_2d_cache.reserve(m_model->objects.size());
+        for (size_t i = 0; i < m_model->objects.size(); ++i) {
+            ModelObject* model_object = m_model->objects[i];
+            ModelInstance* model_instance0 = model_object->instances.front();
+            Polygon hull_2d = offset(model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
+                model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
+                // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
+                // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
+                shrink_factor,
+                jtRound, mitter_limit).front();
+
+            Pointf3s& cache_hull_2d = m_sequential_print_clearance.m_hull_2d_cache.emplace_back(Pointf3s());
+            cache_hull_2d.reserve(hull_2d.points.size());
+            for (const Point& p : hull_2d.points) {
+                cache_hull_2d.emplace_back(unscale<double>(p.x()), unscale<double>(p.y()), 0.0);
+            }
         }
+        m_sequential_print_clearance_first_displacement = false;
     }
 
     // calculates instances 2d hulls (see also: Print::sequential_print_horizontal_clearance_valid())
     Polygons polygons;
-    float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_radius.value - EPSILON));
-    float mitter_limit = static_cast<float>(scale_(0.1));
-    for (const Object& o : objects) {
-        // object 2d hull
-        ModelObject* model_object = m_model->objects[o.id];
-        ModelInstance* model_instance0 = model_object->instances.front();
-        Points obj_pts;
-        for (GLVolume* v : o.volumes) {
-            const TriangleMesh& mesh = model_object->volumes[v->composite_id.volume_id]->mesh();
-            Transform3d inst_trafo = Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
-                model_instance0->get_scaling_factor(), model_instance0->get_mirror());
-            append(obj_pts, its_convex_hull_2d_above(mesh.its, (inst_trafo * v->get_volume_transformation().get_matrix()).cast<float>(), 0.0f).points);
-        }
-
-        obj_pts = offset(Polygon(obj_pts),
-            // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
-            // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-            shrink_factor,
-            jtRound, mitter_limit).front().points;
-
-        Pointf3s obj_pts_d;
-        for (const Point& p : obj_pts) {
-            obj_pts_d.emplace_back(unscale<double>(p.x()), unscale<double>(p.y()), 0.0);
-        }
-
+    for (size_t i = 0; i < m_model->objects.size(); ++i) {
         // instances 2d hulls
-        for (const Instance& i : instances) {
-            if (i.object_id != o.id)
+        for (const Instance& inst : instances) {
+            if (inst.object_id != static_cast<int>(i))
                 continue;
 
             Points inst_pts;
-            for (const Vec3d& p : obj_pts_d) {
-                const Vec3d i_p = i.transform * p;
-                inst_pts.emplace_back(scale_(i_p.x()), scale_(i_p.y()));
+            inst_pts.reserve(m_sequential_print_clearance.m_hull_2d_cache[i].size());
+            for (size_t j = 0; j < m_sequential_print_clearance.m_hull_2d_cache[i].size(); ++j) {
+                const Vec3d& p = m_sequential_print_clearance.m_hull_2d_cache[i][j];
+                const Vec3d inst_p = inst.transform * p;
+                inst_pts.emplace_back(scaled<double>(inst_p.x()), scaled<double>(inst_p.y()));
             }
+
             polygons.emplace_back(Geometry::convex_hull(std::move(inst_pts)));
         }
     }

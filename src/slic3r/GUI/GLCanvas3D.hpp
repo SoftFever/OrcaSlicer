@@ -503,12 +503,17 @@ private:
         GLModel m_perimeter;
         bool m_render_fill{ true };
 
+        std::vector<Pointf3s> m_hull_2d_cache;
+
     public:
         void set(const Polygons& polygons, bool fill);
         void render() const;
+
+        friend class GLCanvas3D;
     };
 
     SequentialPrintClearance m_sequential_print_clearance;
+    bool m_sequential_print_clearance_first_displacement{ true };
 #endif // ENABLE_SEQUENTIAL_LIMITS
 
 public:

@@ -388,7 +388,7 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
                     // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                     // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
                     float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
-                    jtRound, float(scale_(0.1))).front());
+                    jtRound, scale_(0.1)).front());
 #else
 	        it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, model_object_id, 
                 offset(print_object->model_object()->convex_hull_2d(
