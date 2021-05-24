@@ -79,7 +79,7 @@ static std::vector<ExPolygons> slice_volume(
             params2.trafo = params2.trafo * volume.get_matrix();
             if (params2.trafo.rotation().determinant() < 0.)
                 its_flip_triangles(its);
-            layers = slice_mesh_ex(its, zs, params, throw_on_cancel_callback);
+            layers = slice_mesh_ex(its, zs, params2, throw_on_cancel_callback);
             throw_on_cancel_callback();
         }
     }
@@ -718,7 +718,7 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
 {
     auto it_volume     = this->model_object()->volumes.begin();
     auto it_volume_end = this->model_object()->volumes.end();
-    for (; (*it_volume)->type() != model_volume_type && it_volume != it_volume_end; ++ it_volume) ;
+    for (; it_volume != it_volume_end && (*it_volume)->type() != model_volume_type; ++ it_volume) ;
     std::vector<ExPolygons> slices;
     if (it_volume != it_volume_end) {
         // Found at least a single support volume of model_volume_type.
