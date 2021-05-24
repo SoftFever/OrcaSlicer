@@ -115,7 +115,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				str.pop_back();
 				percent = true;
 			}
-            double val = string_to_double_decimal_point(str);
+            double val = std::stod(str); // locale-dependent (on purpose - the input is the actual content of the field)
 			config.set_key_value(opt_key, new ConfigOptionFloatOrPercent(val, percent));
 			break;}
 		case coPercent:
