@@ -992,6 +992,9 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     // save materials file
     boost::filesystem::path mat_filename(filename);
     mat_filename.replace_extension("mtl");
+
+    CNumericLocalesSetter locales_setter;
+
     FILE* fp = boost::nowide::fopen(mat_filename.string().c_str(), "w");
     if (fp == nullptr) {
         BOOST_LOG_TRIVIAL(error) << "GCodeViewer::export_toolpaths_to_obj: Couldn't open " << mat_filename.string().c_str() << " for writing";
