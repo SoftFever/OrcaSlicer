@@ -1,5 +1,4 @@
 #include "Arrange.hpp"
-#include "SVG.hpp"
 
 #include "BoundingBox.hpp"
 

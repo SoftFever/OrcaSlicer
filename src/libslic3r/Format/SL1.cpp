@@ -345,6 +345,7 @@ std::string get_cfg_value(const DynamicPrintConfig &cfg, const std::string &key)
 
 void fill_iniconf(ConfMap &m, const SLAPrint &print)
 {
+    CNumericLocalesSetter locales_setter; // for to_string
     auto &cfg = print.full_print_config();
     m["layerHeight"]    = get_cfg_value(cfg, "layer_height");
     m["expTime"]        = get_cfg_value(cfg, "exposure_time");

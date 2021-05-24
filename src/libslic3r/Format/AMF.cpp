@@ -15,6 +15,7 @@
 #include "../I18N.hpp"
 #include "../Geometry.hpp"
 #include "../CustomGCode.hpp"
+#include "../LocalesUtils.hpp"
 
 #include "AMF.hpp"
 
@@ -498,6 +499,7 @@ void AMFParserContext::characters(const XML_Char *s, int len)
 
 void AMFParserContext::endElement(const char * /* name */)
 {
+    assert(is_decimal_separator_point());
     switch (m_path.back()) {
 
     // Constellation transformation:
@@ -1052,6 +1054,8 @@ bool load_amf_archive(const char* path, DynamicPrintConfig* config, Model* model
 // If config is not a null pointer, updates it if the amf file/archive contains config data
 bool load_amf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
 {
+    CNumericLocalesSetter locales_setter; // use "C" locales and point as a decimal separator
+
     if (boost::iends_with(path, ".amf.xml"))
         // backward compatibility with older slic3r output
         return load_amf_file(path, config, model);
@@ -1251,40 +1255,25 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
         stream << "  </object>\n";
         if (!object->instances.empty()) {
             for (ModelInstance *instance : object->instances) {
-                char buf[512];
-                ::sprintf(buf,
-                    "    <instance objectid=\"%zu\">\n"
-                    "      <deltax>%lf</deltax>\n"
-                    "      <deltay>%lf</deltay>\n"
-                    "      <deltaz>%lf</deltaz>\n"
-                    "      <rx>%lf</rx>\n"
-                    "      <ry>%lf</ry>\n"
-                    "      <rz>%lf</rz>\n"
-                    "      <scalex>%lf</scalex>\n"
-                    "      <scaley>%lf</scaley>\n"
-                    "      <scalez>%lf</scalez>\n"
-                    "      <mirrorx>%lf</mirrorx>\n"
-                    "      <mirrory>%lf</mirrory>\n"
-                    "      <mirrorz>%lf</mirrorz>\n"
-                    "      <printable>%d</printable>\n"
-                    "    </instance>\n",
-                    object_id,
-                    instance->get_offset(X),
-                    instance->get_offset(Y),
-                    instance->get_offset(Z),
-                    instance->get_rotation(X),
-                    instance->get_rotation(Y),
-                    instance->get_rotation(Z),
-                    instance->get_scaling_factor(X),
-                    instance->get_scaling_factor(Y),
-                    instance->get_scaling_factor(Z),
-                    instance->get_mirror(X),
-                    instance->get_mirror(Y),
-                    instance->get_mirror(Z),
-                    instance->printable);
+                std::stringstream buf;
+                buf << "    <instance objectid=\"" << object_id << "\">\n"
+                    << "      <deltax>"  << instance->get_offset(X)         << "</deltax>\n"
+                    << "      <deltay>"  << instance->get_offset(Y)         << "</deltay>\n"
+                    << "      <deltaz>"  << instance->get_offset(Z)         << "</deltaz>\n"
+                    << "      <rx>"      << instance->get_rotation(X)       << "</rx>\n"
+                    << "      <ry>"      << instance->get_rotation(Y)       << "</ry>\n"
+                    << "      <rz>"      << instance->get_rotation(Z)       << "</rz>\n"
+                    << "      <scalex>"  << instance->get_scaling_factor(X) << "</scalex>\n"
+                    << "      <scaley>"  << instance->get_scaling_factor(Y) << "</scaley>\n"
+                    << "      <scalez>"  << instance->get_scaling_factor(Z) << "</scalez>\n"
+                    << "      <mirrorx>" << instance->get_mirror(X)         << "</mirrorx>\n"
+                    << "      <mirrory>" << instance->get_mirror(Y)         << "</mirrory>\n"
+                    << "      <mirrorz>" << instance->get_mirror(Z)         << "</mirrorz>\n"
+                    << "      <printable>" << instance->printable << "</printable>\n"
+                    << "    </instance>\n";
 
                 //FIXME missing instance->scaling_factor
-                instances.append(buf);
+                instances.append(buf.str());
             }
         }
     }

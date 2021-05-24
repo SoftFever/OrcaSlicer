@@ -11,6 +11,8 @@
 
 #include <Eigen/Geometry> 
 
+#include "LocalesUtils.hpp"
+
 namespace Slic3r {
 
 class BoundingBox;
@@ -88,10 +90,10 @@ inline Vec3d   unscale(coord_t x, coord_t y, coord_t z) { return Vec3d(unscale<d
 inline Vec3d   unscale(const Vec3crd &pt) { return Vec3d(unscale<double>(pt(0)), unscale<double>(pt(1)), unscale<double>(pt(2))); }
 inline Vec3d   unscale(const Vec3d   &pt) { return Vec3d(unscale<double>(pt(0)), unscale<double>(pt(1)), unscale<double>(pt(2))); }
 
-inline std::string to_string(const Vec2crd &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + "]"; }
-inline std::string to_string(const Vec2d   &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + "]"; }
-inline std::string to_string(const Vec3crd &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + ", " + std::to_string(pt(2)) + "]"; }
-inline std::string to_string(const Vec3d   &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + ", " + std::to_string(pt(2)) + "]"; }
+inline std::string to_string(const Vec2crd &pt) { return std::string("[") + float_to_string_decimal_point(pt(0)) + ", " + float_to_string_decimal_point(pt(1)) + "]"; }
+inline std::string to_string(const Vec2d   &pt) { return std::string("[") + float_to_string_decimal_point(pt(0)) + ", " + float_to_string_decimal_point(pt(1)) + "]"; }
+inline std::string to_string(const Vec3crd &pt) { return std::string("[") + float_to_string_decimal_point(pt(0)) + ", " + float_to_string_decimal_point(pt(1)) + ", " + float_to_string_decimal_point(pt(2)) + "]"; }
+inline std::string to_string(const Vec3d   &pt) { return std::string("[") + float_to_string_decimal_point(pt(0)) + ", " + float_to_string_decimal_point(pt(1)) + ", " + float_to_string_decimal_point(pt(2)) + "]"; }
 
 std::vector<Vec3f> transform(const std::vector<Vec3f>& points, const Transform3f& t);
 Pointf3s transform(const Pointf3s& points, const Transform3d& t);

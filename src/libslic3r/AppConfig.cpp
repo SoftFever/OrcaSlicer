@@ -2,7 +2,9 @@
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
 #include "Exception.hpp"
+#include "LocalesUtils.hpp"
 #include "Thread.hpp"
+
 
 #include <utility>
 #include <vector>
@@ -376,7 +378,8 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     }
 }
 
-void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz)
+void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone,
+                                 float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -384,11 +387,11 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
         it = m_storage.insert(std::map<std::string, std::map<std::string, std::string>>::value_type(key, std::map<std::string, std::string>())).first;
 
     it->second.clear();
-    it->second["translation_speed"] = std::to_string(translation_speed);
-    it->second["translation_deadzone"] = std::to_string(translation_deadzone);
-    it->second["rotation_speed"] = std::to_string(rotation_speed);
-    it->second["rotation_deadzone"] = std::to_string(rotation_deadzone);
-    it->second["zoom_speed"] = std::to_string(zoom_speed);
+    it->second["translation_speed"] = float_to_string_decimal_point(translation_speed);
+    it->second["translation_deadzone"] = float_to_string_decimal_point(translation_deadzone);
+    it->second["rotation_speed"] = float_to_string_decimal_point(rotation_speed);
+    it->second["rotation_deadzone"] = float_to_string_decimal_point(rotation_deadzone);
+    it->second["zoom_speed"] = float_to_string_decimal_point(zoom_speed);
     it->second["swap_yz"] = swap_yz ? "1" : "0";
 }
 

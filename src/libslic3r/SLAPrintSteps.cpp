@@ -166,8 +166,8 @@ struct FaceHash {
         Vec<3, int64_t> c = a.cross(b) + (pts[0] + pts[1] + pts[2]) / 3;
 
         // Return a concatenated string representation of the coordinates
-        return std::to_string(c(0)) + std::to_string(c(1)) + std::to_string(c(2));
-    };
+        return float_to_string_decimal_point(c(0)) + float_to_string_decimal_point(c(1)) + float_to_string_decimal_point(c(2));
+    }
 
     FaceHash(const indexed_triangle_set &its)
     {

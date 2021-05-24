@@ -5,6 +5,7 @@
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "Plater.hpp"
@@ -78,6 +79,7 @@ static float round_to_nearest(float value, unsigned int decimals)
         res = std::round(value);
     else {
         char buf[64];
+        // locales should not matter, both sprintf and stof are sensitive, so...
         sprintf(buf, "%.*g", decimals, value);
         res = std::stof(buf);
     }
@@ -995,6 +997,9 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     // save materials file
     boost::filesystem::path mat_filename(filename);
     mat_filename.replace_extension("mtl");
+
+    CNumericLocalesSetter locales_setter;
+
     FILE* fp = boost::nowide::fopen(mat_filename.string().c_str(), "w");
     if (fp == nullptr) {
         BOOST_LOG_TRIVIAL(error) << "GCodeViewer::export_toolpaths_to_obj: Couldn't open " << mat_filename.string().c_str() << " for writing";
@@ -3470,18 +3475,16 @@ void GCodeViewer::render_statistics() const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     auto add_time = [this, &imgui](const std::string& label, int64_t time) {
-        char buf[1024];
-        sprintf(buf, "%lld ms (%s)", time, get_time_dhms(static_cast<float>(time) * 0.001f).c_str());
         imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
         ImGui::SameLine(offset);
-        imgui.text(buf);
+        imgui.text(std::to_string(time) + " ms (" + get_time_dhms(static_cast<float>(time) * 0.001f) + ")");
     };
 
     auto add_memory = [this, &imgui](const std::string& label, int64_t memory) {
-        auto format_string = [memory](const std::string& units, float value) {
-            char buf[1024];
-            sprintf(buf, "%lld bytes (%.3f %s)", memory, static_cast<float>(memory) * value, units.c_str());
-            return std::string(buf);
+        auto format_string = [memory](const std::string& units, float value) {            
+            return std::to_string(memory) + " bytes (" +
+                   Slic3r::float_to_string_decimal_point(float(memory) * value, 3)
+                    + " " + units + ")";
         };
 
         static const float kb = 1024.0f;
@@ -3501,11 +3504,9 @@ void GCodeViewer::render_statistics() const
     };
 
     auto add_counter = [this, &imgui](const std::string& label, int64_t counter) {
-        char buf[1024];
-        sprintf(buf, "%lld", counter);
         imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
         ImGui::SameLine(offset);
-        imgui.text(buf);
+        imgui.text(std::to_string(counter));
     };
 
     imgui.set_next_window_pos(0.5f * wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width(), 0.0f, ImGuiCond_Once, 0.5f, 0.0f);

@@ -30,6 +30,8 @@
 
 #include "stl.h"
 
+#include "libslic3r/LocalesUtils.hpp"
+
 void stl_generate_shared_vertices(stl_file *stl, indexed_triangle_set &its)
 {
 	// 3 indices to vertex per face
@@ -127,6 +129,7 @@ void stl_generate_shared_vertices(stl_file *stl, indexed_triangle_set &its)
 
 bool its_write_off(const indexed_triangle_set &its, const char *file)
 {
+    Slic3r::CNumericLocalesSetter locales_setter;
 	/* Open the file */
 	FILE *fp = boost::nowide::fopen(file, "w");
 	if (fp == nullptr) {
@@ -146,6 +149,7 @@ bool its_write_off(const indexed_triangle_set &its, const char *file)
 
 bool its_write_vrml(const indexed_triangle_set &its, const char *file)
 {
+    Slic3r::CNumericLocalesSetter locales_setter;
 	/* Open the file */
   	FILE *fp = boost::nowide::fopen(file, "w");
 	if (fp == nullptr) {
@@ -188,7 +192,7 @@ bool its_write_vrml(const indexed_triangle_set &its, const char *file)
 
 bool its_write_obj(const indexed_triangle_set &its, const char *file)
 {
-
+    Slic3r::CNumericLocalesSetter locales_setter;
   	FILE *fp = boost::nowide::fopen(file, "w");
   	if (fp == nullptr) {
 		BOOST_LOG_TRIVIAL(error) << "stl_write_obj: Couldn't open " << file << " for writing";
