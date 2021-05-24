@@ -87,6 +87,7 @@ public:
 
 protected:
     friend class Layer;
+    friend class PrintObject;
 
     LayerRegion(Layer *layer, const PrintRegion *region) : m_layer(layer), m_region(region) {}
     ~LayerRegion() {}

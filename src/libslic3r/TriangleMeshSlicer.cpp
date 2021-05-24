@@ -1169,6 +1169,7 @@ std::vector<ExPolygons> slice_mesh_ex(
         tbb::blocked_range<size_t>(0, layers_p.size()),
         [&layers_p, &params, &layers, throw_on_cancel]
         (const tbb::blocked_range<size_t>& range) {
+            auto resolution = scaled<float>(params.resolution);
             for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
                 throw_on_cancel();
                 ExPolygons &expolygons = layers[layer_id];
@@ -1177,9 +1178,9 @@ std::vector<ExPolygons> slice_mesh_ex(
                 const auto this_mode = layer_id < params.slicing_mode_normal_below_layer ? params.mode_below : params.mode;
                 if (this_mode == MeshSlicingParams::SlicingMode::PositiveLargestContour)
                     keep_largest_contour_only(expolygons);
-                if (params.resolution != 0.)
+                if (resolution != 0.)
                     for (ExPolygon &ex : expolygons)
-                        ex.simplify(params.resolution);
+                        ex.simplify(resolution);
             }
         });
 //    BOOST_LOG_TRIVIAL(debug) << "slice_mesh make_expolygons in parallel - end";

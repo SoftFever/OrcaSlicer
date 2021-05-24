@@ -474,7 +474,7 @@ static inline bool trafos_differ_in_rotation_and_mirroring_by_z_only(const Trans
         return false;
     // Verify whether the vectors x, y are still perpendicular.
     double   d   = x.dot(y);
-    return std::abs(d) > EPSILON;
+    return std::abs(d * d) < EPSILON * lx2 * ly2;
 }
 
 static BoundingBoxf3 transformed_its_bbox2d(const indexed_triangle_set &its, const Matrix3f &m, float offset)
@@ -778,7 +778,7 @@ static PrintObjectRegions* generate_print_object_regions(
         // Verify that the old ranges match the new ranges.
         assert(model_layer_ranges.size() == layer_ranges_regions.size());
         for (const auto &range : model_layer_ranges) {
-            const PrintObjectRegions::LayerRangeRegions &r = layer_ranges_regions[&range - &*(model_layer_ranges.end())];
+            const PrintObjectRegions::LayerRangeRegions &r = layer_ranges_regions[&range - &*model_layer_ranges.begin()];
             assert(range.layer_height_range == r.layer_height_range);
             assert(range.config == r.config);
             assert(r.volume_regions.empty());
@@ -799,10 +799,10 @@ static PrintObjectRegions* generate_print_object_regions(
         size_t hash = config.hash();
         auto it = Slic3r::lower_bound_by_predicate(region_set.begin(), region_set.end(), [&config, hash](const PrintRegion* l) {
             return l->config_hash() < hash || (l->config_hash() == hash && l->config() < config); });
-        if ((*it)->config_hash() == hash && (*it)->config() == config)
+        if (it != region_set.end() && (*it)->config_hash() == hash && (*it)->config() == config)
             return *it;
         // Insert into a sorted array, it has O(n) complexity, but the calling algorithm has an O(n^2*log(n)) complexity anyways.
-        all_regions.emplace_back(std::make_unique<PrintRegion>(std::move(config), hash));
+        all_regions.emplace_back(std::make_unique<PrintRegion>(std::move(config), hash, int(all_regions.size())));
         PrintRegion *region = all_regions.back().get();
         region_set.emplace(it, region);
         return region;
@@ -1060,21 +1060,24 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 model_object_status.print_object_regions->clear();
             // Copy content of the ModelObject including its ID, do not change the parent.
             model_object.assign_copy(model_object_new);
-        } else if (supports_differ || model_custom_supports_data_changed(model_object, model_object_new)) {
-            // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
-            if (supports_differ) {
-                this->call_cancel_callback();
-                update_apply_status(false);
+        } else { 
+            model_object_status.print_object_regions_status = ModelObjectStatus::PrintObjectRegionsStatus::Valid;
+            if (supports_differ || model_custom_supports_data_changed(model_object, model_object_new)) {
+                // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
+                if (supports_differ) {
+                    this->call_cancel_callback();
+                    update_apply_status(false);
+                }
+                // Invalidate just the supports step.
+                for (const PrintObjectStatus &print_object_status : print_objects_range)
+                    update_apply_status(print_object_status.print_object->invalidate_step(posSupportMaterial));
+                if (supports_differ) {
+                    // Copy just the support volumes.
+                    model_volume_list_update_supports(model_object, model_object_new);
+                }
+            } else if (model_custom_seam_data_changed(model_object, model_object_new)) {
+                update_apply_status(this->invalidate_step(psGCodeExport));
             }
-            // Invalidate just the supports step.
-            for (const PrintObjectStatus &print_object_status : print_objects_range)
-                update_apply_status(print_object_status.print_object->invalidate_step(posSupportMaterial));
-            if (supports_differ) {
-                // Copy just the support volumes.
-                model_volume_list_update_supports(model_object, model_object_new);
-            }
-        } else if (model_custom_seam_data_changed(model_object, model_object_new)) {
-            update_apply_status(this->invalidate_step(psGCodeExport));
         }
         if (! model_parts_differ && ! modifiers_differ) {
             // Synchronize Object's config.
@@ -1213,15 +1216,18 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     const std::vector<unsigned int> painting_extruders;
     for (auto it_print_object = m_objects.begin(); it_print_object != m_objects.end();) {
         // Find the range of PrintObjects sharing the same associated ModelObject.
-        auto                it_print_object_end  = m_objects.begin();
+        auto                it_print_object_end  = it_print_object;
         PrintObject        &print_object         = *(*it_print_object);
         const ModelObject  &model_object         = *print_object.model_object();
         ModelObjectStatus  &model_object_status  = const_cast<ModelObjectStatus&>(model_object_status_db.reuse(model_object));
         PrintObjectRegions *print_object_regions = model_object_status.print_object_regions;
-        for (++ it_print_object_end; it_print_object != m_objects.end() && (*it_print_object)->model_object() == (*it_print_object_end)->model_object(); ++ it_print_object_end)
+        for (++ it_print_object_end; it_print_object_end != m_objects.end() && (*it_print_object)->model_object() == (*it_print_object_end)->model_object(); ++ it_print_object_end)
             assert((*it_print_object_end)->m_shared_regions == nullptr || (*it_print_object_end)->m_shared_regions == print_object_regions);
-        if (print_object_regions == nullptr)
-            print_object_regions = new PrintObjectRegions {};
+        if (print_object_regions == nullptr) {
+            print_object_regions = new PrintObjectRegions{};
+            model_object_status.print_object_regions = print_object_regions;
+            print_object_regions->ref_cnt_inc();
+        }
         if (model_object_status.print_object_regions_status == ModelObjectStatus::PrintObjectRegionsStatus::Valid) {
             // Verify that the trafo for regions & volume bounding boxes thus for regions is still applicable.
             if (print_object_regions && ! trafos_differ_in_rotation_and_mirroring_by_z_only(print_object_regions->trafo_bboxes, model_object_status.print_instances.front().trafo))

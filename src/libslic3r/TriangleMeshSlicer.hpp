@@ -32,11 +32,11 @@ struct MeshSlicingParams
 
 struct MeshSlicingParamsEx : public MeshSlicingParams
 {
-    // Morphological closing operation when creating output expolygons, scaled!
+    // Morphological closing operation when creating output expolygons, unscaled.
     float         closing_radius { 0 };
-    // Positive offset applied when creating output expolygons, scaled!
+    // Positive offset applied when creating output expolygons, unscaled.
     float         extra_offset { 0 };
-    // Resolution for contour simplification, scaled!
+    // Resolution for contour simplification, unscaled.
     // 0 = don't simplify.
     double        resolution { 0 };
 };

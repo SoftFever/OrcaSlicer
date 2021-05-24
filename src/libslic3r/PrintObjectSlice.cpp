@@ -162,12 +162,12 @@ static std::vector<VolumeSlices> slice_volumes_inner(
         slicing_ranges.reserve(layer_ranges.size());
 
     MeshSlicingParamsEx params_base;
-    params_base.closing_radius = scaled<float>(print_object_config.slice_closing_radius.value);
+    params_base.closing_radius = print_object_config.slice_closing_radius.value;
     params_base.extra_offset   = 0;
     params_base.trafo          = object_trafo;
-    params_base.resolution     = scaled<double>(print_config.resolution.value);
+    params_base.resolution     = print_config.resolution.value;
 
-    const auto extra_offset = print_object_config.xy_size_compensation > 0 ? scaled<float>(print_object_config.xy_size_compensation.value) : 0.f;
+    const auto extra_offset = std::max(0.f, float(print_object_config.xy_size_compensation.value));
 
     for (const ModelVolume *model_volume : model_volumes)
         if (model_volume_needs_slicing(*model_volume)) {
@@ -548,6 +548,14 @@ void PrintObject::slice_volumes()
     const Print* print                      = this->print();
     const bool   spiral_vase                = print->config().spiral_vase;
     const auto   throw_on_cancel_callback   = std::function<void()>([print](){ print->throw_if_canceled(); });
+
+    // Clear old LayerRegions, allocate for new PrintRegions.
+    for (Layer* layer : m_layers) {
+        layer->m_regions.clear();
+        layer->m_regions.reserve(m_shared_regions->all_regions.size());
+        for (const std::unique_ptr<PrintRegion> &pr : m_shared_regions->all_regions)
+            layer->m_regions.emplace_back(new LayerRegion(layer, pr.get()));
+    }
 
     std::vector<float>                   slice_zs      = zs_from_layers(m_layers);
     Transform3d                          trafo         = this->trafo();
