@@ -418,11 +418,11 @@ public:
         const_iterator end() throw() { return this->second; }
     };
 
-    iterator_range get_range(const ModelObject &model_object) {
+    iterator_range get_range(const ModelObject &model_object) const {
         return m_db.equal_range(PrintObjectStatus(model_object.id()));
     }
 
-    iterator_range get_range(const ModelObjectStatus &model_object_status) {
+    iterator_range get_range(const ModelObjectStatus &model_object_status) const {
         return m_db.equal_range(PrintObjectStatus(model_object_status.id));
     }
 
