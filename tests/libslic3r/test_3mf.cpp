@@ -93,7 +93,7 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
 
             // set instance's attitude so that it is rotated, scaled and sinking
             ModelInstance* instance = object->instances.front();
-            instance->set_rotation(Y, -M_PI / 4.0);
+            instance->set_rotation(X, -M_PI / 4.0);
             instance->set_offset(Vec3d::Zero());
             instance->set_scaling_factor({ 2.0, 2.0, 2.0 });
 
@@ -102,21 +102,16 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
 
             // verify result
             Points result = {
-                { -4242641, -16299551 },
-                { -4241,    -19502998 },
-                { 66824768, -19502998 },
-                { 66824768, 19502998 },
-                { -4244,    19502998 },
-                { -4242640, -8537523 }
+                { -91501496, -15914144 },
+                { 91501496, -15914144 },
+                { 91501496, 4243 },
+                { 78229680, 4246883 },
+                { 56898100, 4246883 },
+                { -85501496, 4242641 },
+                { -91501496, 4243 }
             };
 
             bool res = hull_2d.points == result;
-
-            std::cout << "hull_2d vertices count: " << hull_2d.points.size() << "\n";
-            std::cout << "hull_2d vertices:\n";
-            for (size_t i = 0; i < hull_2d.points.size(); ++i) {
-                std::cout << hull_2d.points[i].x() << ", " << hull_2d.points[i].y() << "\n";
-            }
 
             THEN("2D convex hull should match with reference") {
                 REQUIRE(res);
