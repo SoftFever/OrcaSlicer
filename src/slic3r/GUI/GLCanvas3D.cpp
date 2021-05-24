@@ -3782,14 +3782,19 @@ void GLCanvas3D::update_sequential_clearance()
 
     // collects instance transformations from volumes
     // first define temporary cache
+    unsigned int instances_count = 0;
     std::vector<std::vector<std::pair<bool, Transform3d>>> instance_transforms;
     for (size_t o = 0; o < m_model->objects.size(); ++o) {
         instance_transforms.emplace_back(std::vector<std::pair<bool, Transform3d>>());
         const ModelObject* model_object = m_model->objects[o];
         for (size_t i = 0; i < model_object->instances.size(); ++i) {
             instance_transforms[o].emplace_back(false, Transform3d());
+            ++instances_count;
         }
     }
+
+    if (instances_count == 1)
+        return;
 
     // second fill temporary cache with data from volumes
     for (const GLVolume* v : m_volumes.volumes) {
@@ -3833,6 +3838,7 @@ void GLCanvas3D::update_sequential_clearance()
 
     // calculates instances 2d hulls (see also: Print::sequential_print_horizontal_clearance_valid())
     Polygons polygons;
+    polygons.reserve(instances_count);
     for (size_t i = 0; i < instance_transforms.size(); ++i) {
         const auto& object = instance_transforms[i];
         for (const auto& instance : object) {
