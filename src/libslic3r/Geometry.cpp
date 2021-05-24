@@ -203,19 +203,19 @@ namespace Slic3r { namespace Geometry {
 
 static bool sort_points(const Point& a, const Point& b)
 {
-    return (a(0) < b(0)) || (a(0) == b(0) && a(1) < b(1));
+    return (a.x() < b.x()) || (a.x() == b.x() && a.y() < b.y());
 }
 
 static bool sort_pointfs(const Vec3d& a, const Vec3d& b)
 {
-    return (a(0) < b(0)) || (a(0) == b(0) && a(1) < b(1));
+    return (a.x() < b.x()) || (a.x() == b.x() && a.y() < b.y());
 }
 
 // This implementation is based on Andrew's monotone chain 2D convex hull algorithm
 Polygon convex_hull(Points pts)
 {
-    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
-    pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
+    std::sort(pts.begin(), pts.end(), sort_points);
+    pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a.x() == b.x() && a.y() == b.y(); }), pts.end());
 
     Polygon hull;
     int n = (int)pts.size();
