@@ -3783,12 +3783,12 @@ void GLCanvas3D::update_sequential_clearance()
     // collects instance transformations from volumes
     // first define temporary cache
     unsigned int instances_count = 0;
-    std::vector<std::vector<std::pair<bool, Transform3d>>> instance_transforms;
+    std::vector<std::vector<std::pair<bool, Geometry::Transformation>>> instance_transforms;
     for (size_t o = 0; o < m_model->objects.size(); ++o) {
-        instance_transforms.emplace_back(std::vector<std::pair<bool, Transform3d>>());
+        instance_transforms.emplace_back(std::vector<std::pair<bool, Geometry::Transformation>>());
         const ModelObject* model_object = m_model->objects[o];
         for (size_t i = 0; i < model_object->instances.size(); ++i) {
-            instance_transforms[o].emplace_back(false, Transform3d());
+            instance_transforms[o].emplace_back(false, Geometry::Transformation());
             ++instances_count;
         }
     }
@@ -3803,7 +3803,7 @@ void GLCanvas3D::update_sequential_clearance()
 
         auto& [already_set, transform] = instance_transforms[v->object_idx()][v->instance_idx()];
         if (!already_set) {
-            transform = v->get_instance_transformation().get_matrix();
+            transform = v->get_instance_transformation();
             already_set = true;
         }
     }
@@ -3840,16 +3840,21 @@ void GLCanvas3D::update_sequential_clearance()
     Polygons polygons;
     polygons.reserve(instances_count);
     for (size_t i = 0; i < instance_transforms.size(); ++i) {
-        const auto& object = instance_transforms[i];
-        for (const auto& instance : object) {
+        const auto& instances = instance_transforms[i];
+        double rotation_z0 = instances.front().second.get_rotation().z();
+        for (const auto& instance : instances) {
+            Geometry::Transformation transformation;
+            const Vec3d& offset = instance.second.get_offset();
+            transformation.set_offset({ offset.x(), offset.y(), 0.0 });
+            transformation.set_rotation(Z, instance.second.get_rotation().z() - rotation_z0);
+            const Transform3d& trafo = transformation.get_matrix();
+            const Pointf3s& hull_2d = m_sequential_print_clearance.m_hull_2d_cache[i];
             Points inst_pts;
-            inst_pts.reserve(m_sequential_print_clearance.m_hull_2d_cache[i].size());
-            for (size_t j = 0; j < m_sequential_print_clearance.m_hull_2d_cache[i].size(); ++j) {
-                const Vec3d& p = m_sequential_print_clearance.m_hull_2d_cache[i][j];
-                const Vec3d inst_p = instance.second * p;
-                inst_pts.emplace_back(scaled<double>(inst_p.x()), scaled<double>(inst_p.y()));
+            inst_pts.reserve(hull_2d.size());
+            for (size_t j = 0; j < hull_2d.size(); ++j) {
+                const Vec3d p = trafo * hull_2d[j];
+                inst_pts.emplace_back(scaled<double>(p.x()), scaled<double>(p.y()));
             }
-
             polygons.emplace_back(Geometry::convex_hull(std::move(inst_pts)));
         }
     }
