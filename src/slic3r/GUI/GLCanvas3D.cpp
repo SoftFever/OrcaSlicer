@@ -3783,12 +3783,12 @@ void GLCanvas3D::update_sequential_clearance()
     // collects instance transformations from volumes
     // first define temporary cache
     unsigned int instances_count = 0;
-    std::vector<std::vector<std::pair<bool, Geometry::Transformation>>> instance_transforms;
-    for (size_t o = 0; o < m_model->objects.size(); ++o) {
-        instance_transforms.emplace_back(std::vector<std::pair<bool, Geometry::Transformation>>());
-        const ModelObject* model_object = m_model->objects[o];
+    std::vector<std::vector<std::optional<Geometry::Transformation>>> instance_transforms;
+    for (size_t obj = 0; obj < m_model->objects.size(); ++obj) {
+        instance_transforms.emplace_back(std::vector<std::optional<Geometry::Transformation>>());
+        const ModelObject* model_object = m_model->objects[obj];
         for (size_t i = 0; i < model_object->instances.size(); ++i) {
-            instance_transforms[o].emplace_back(false, Geometry::Transformation());
+            instance_transforms[obj].emplace_back(std::optional<Geometry::Transformation>());
             ++instances_count;
         }
     }
@@ -3801,11 +3801,9 @@ void GLCanvas3D::update_sequential_clearance()
         if (v->is_modifier || v->is_wipe_tower)
             continue;
 
-        auto& [already_set, transform] = instance_transforms[v->object_idx()][v->instance_idx()];
-        if (!already_set) {
+        auto& transform = instance_transforms[v->object_idx()][v->instance_idx()];
+        if (!transform.has_value())
             transform = v->get_instance_transformation();
-            already_set = true;
-        }
     }
 
     // calculates objects 2d hulls (see also: Print::sequential_print_horizontal_clearance_valid())
@@ -3815,7 +3813,6 @@ void GLCanvas3D::update_sequential_clearance()
         m_sequential_print_clearance.m_hull_2d_cache.clear();
         float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_radius.value - EPSILON));
         double mitter_limit = scale_(0.1);
-        int obj_id = 0;
         m_sequential_print_clearance.m_hull_2d_cache.reserve(m_model->objects.size());
         for (size_t i = 0; i < m_model->objects.size(); ++i) {
             ModelObject* model_object = m_model->objects[i];
@@ -3841,12 +3838,12 @@ void GLCanvas3D::update_sequential_clearance()
     polygons.reserve(instances_count);
     for (size_t i = 0; i < instance_transforms.size(); ++i) {
         const auto& instances = instance_transforms[i];
-        double rotation_z0 = instances.front().second.get_rotation().z();
+        double rotation_z0 = instances.front()->get_rotation().z();
         for (const auto& instance : instances) {
             Geometry::Transformation transformation;
-            const Vec3d& offset = instance.second.get_offset();
+            const Vec3d& offset = instance->get_offset();
             transformation.set_offset({ offset.x(), offset.y(), 0.0 });
-            transformation.set_rotation(Z, instance.second.get_rotation().z() - rotation_z0);
+            transformation.set_rotation(Z, instance->get_rotation().z() - rotation_z0);
             const Transform3d& trafo = transformation.get_matrix();
             const Pointf3s& hull_2d = m_sequential_print_clearance.m_hull_2d_cache[i];
             Points inst_pts;
