@@ -320,7 +320,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     int         region_id;
                     ObjectID    volume_id;
                     bool empty() const { return region_id < 0 || expolygons.empty(); }
-                    bool operator<(const RegionSlice &rhs) {
+                    bool operator<(const RegionSlice &rhs) const {
                         bool this_empty = this->empty();
                         bool rhs_empty  = rhs.empty();
                         // Sort the empty items to the end of the list.
