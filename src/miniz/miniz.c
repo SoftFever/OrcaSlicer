@@ -6766,6 +6766,12 @@ mz_bool mz_zip_writer_add_staged_open(mz_zip_archive* pZip, mz_zip_writer_staged
     {
         mz_zip_time_t_to_dos_time(*pFile_time, &pContext->dos_time, &pContext->dos_date);
     }
+    else
+    {
+        MZ_TIME_T cur_time;
+        time(&cur_time);
+        mz_zip_time_t_to_dos_time(cur_time, &pContext->dos_time, &pContext->dos_date);
+    }
 #endif
 
     if (!mz_zip_writer_write_zeros(pZip, pContext->cur_archive_file_ofs, num_alignment_padding_bytes))
@@ -6897,7 +6903,7 @@ mz_bool mz_zip_writer_add_staged_finish(mz_zip_writer_staged_context *pContext)
         pContext->pExtra_data = pContext->extra_data;
         pContext->extra_size = mz_zip_writer_create_zip64_extra_data(pContext->extra_data, &pContext->uncomp_size, &pContext->comp_size, (pContext->local_dir_header_ofs >= MZ_UINT32_MAX) ? &pContext->local_dir_header_ofs : NULL);
 
-        mz_uint8 min_version[2] = {0x2D, 0x00};
+        mz_uint8 min_version[2]      = {0x2D, 0x00};
         mz_uint8 comp_uncomp_size[4] = {0xFF, 0xFF, 0xFF, 0xFF};
         if (pContext->pZip->m_pWrite(pContext->pZip->m_pIO_opaque, local_dir_header_ofs + MZ_ZIP_LDH_VERSION_NEEDED_OFS, min_version, sizeof(min_version)) != sizeof(min_version))
             return mz_zip_set_error(pContext->pZip, MZ_ZIP_FILE_WRITE_FAILED);
