@@ -201,21 +201,11 @@ using namespace boost::polygon;  // provides also high() and low()
 
 namespace Slic3r { namespace Geometry {
 
-static bool sort_points(const Point& a, const Point& b)
-{
-    return (a(0) < b(0)) || (a(0) == b(0) && a(1) < b(1));
-}
-
-static bool sort_pointfs(const Vec3d& a, const Vec3d& b)
-{
-    return (a(0) < b(0)) || (a(0) == b(0) && a(1) < b(1));
-}
-
 // This implementation is based on Andrew's monotone chain 2D convex hull algorithm
 Polygon convex_hull(Points pts)
 {
-    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
-    pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
+    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a.x() < b.x() || (a.x() == b.x() && a.y() < b.y()); });
+    pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a.x() == b.x() && a.y() == b.y(); }), pts.end());
 
     Polygon hull;
     int n = (int)pts.size();
@@ -245,7 +235,7 @@ Pointf3s convex_hull(Pointf3s points)
 {
     assert(points.size() >= 3);
     // sort input points
-    std::sort(points.begin(), points.end(), sort_pointfs);
+    std::sort(points.begin(), points.end(), [](const Vec3d &a, const Vec3d &b){ return a.x() < b.x() || (a.x() == b.x() && a.y() < b.y()); });
 
     int n = points.size(), k = 0;
     Pointf3s hull;
