@@ -448,14 +448,19 @@ static inline bool model_volume_needs_bbox(const ModelVolume &mv)
     return type == ModelVolumeType::MODEL_PART || type == ModelVolumeType::NEGATIVE_VOLUME || type == ModelVolumeType::PARAMETER_MODIFIER;
 }
 
-static inline Matrix3f trafo_for_bbox(const Transform3d &object_trafo, const Transform3d &volume_trafo)
+static inline Transform3f trafo_for_bbox(const Transform3d &object_trafo, const Transform3d &volume_trafo)
 {
-    Matrix3d m = object_trafo.matrix().block<3,3>(0,0) * volume_trafo.matrix().block<3,3>(0,0);
+    Transform3d m = object_trafo * volume_trafo;
+    m.translation().x() = 0.;
+    m.translation().y() = 0.;
     return m.cast<float>();
 }
 
-static inline bool trafos_differ_in_rotation_and_mirroring_by_z_only(const Transform3d &t1, const Transform3d &t2)
+static inline bool trafos_differ_in_rotation_by_z_and_mirroring_by_xy_only(const Transform3d &t1, const Transform3d &t2)
 {
+    if (std::abs(t1.translation().z() - t2.translation().z()) > EPSILON)
+        // One of the object is higher than the other above the build plate (or below the build plate).
+        return false;
     Matrix3d m1 = t1.matrix().block<3, 3>(0, 0);
     Matrix3d m2 = t2.matrix().block<3, 3>(0, 0);
     Matrix3d m = m2.inverse() * m1;
@@ -477,7 +482,7 @@ static inline bool trafos_differ_in_rotation_and_mirroring_by_z_only(const Trans
     return std::abs(d * d) < EPSILON * lx2 * ly2;
 }
 
-static BoundingBoxf3 transformed_its_bbox2d(const indexed_triangle_set &its, const Matrix3f &m, float offset)
+static BoundingBoxf3 transformed_its_bbox2d(const indexed_triangle_set &its, const Transform3f &m, float offset)
 {
     BoundingBoxf3 bbox;
     for (const stl_triangle_vertex_indices &tri : its.indices)
@@ -492,7 +497,7 @@ static BoundingBoxf3 transformed_its_bbox2d(const indexed_triangle_set &its, con
 
 static void transformed_its_bboxes_in_z_ranges(
     const indexed_triangle_set              &its, 
-    const Matrix3f                          &m, 
+    const Transform3f                       &m,
     const std::vector<t_layer_height_range> &z_ranges,
     std::vector<BoundingBoxf3>              &bboxes, 
     const float                              offset)
@@ -817,7 +822,8 @@ static PrintObjectRegions* generate_print_object_regions(
                     if (volume.is_model_part())
                         layer_range.volume_regions.push_back({
                             &volume, -1,
-                            get_create_region(region_config_from_model_volume(default_region_config, layer_range.config, volume, num_extruders))
+                            get_create_region(region_config_from_model_volume(default_region_config, layer_range.config, volume, num_extruders)),
+                            bbox
                         });
                     else {
                         assert(volume.is_modifier());
@@ -829,7 +835,8 @@ static PrintObjectRegions* generate_print_object_regions(
                             if (parent_bbox->overlap(*bbox))
                                 layer_range.volume_regions.push_back( {
                                     &volume, parent_region_id,
-                                    get_create_region(region_config_from_model_volume(parent_region.region->config(), nullptr, volume, num_extruders))
+                                    get_create_region(region_config_from_model_volume(parent_region.region->config(), nullptr, volume, num_extruders)),
+                                    bbox
                                 });
                         }
                     }
@@ -1020,7 +1027,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         ModelObject       &model_object        = *m_model.objects[idx_model_object];
         ModelObjectStatus &model_object_status = const_cast<ModelObjectStatus&>(model_object_status_db.reuse(model_object));
 		const ModelObject &model_object_new    = *model.objects[idx_model_object];
-        model_object_status.print_instances    = print_objects_from_model_object(model_object_new);
         if (model_object_status.status == ModelObjectStatus::New)
             // PrintObject instances will be added in the next loop.
             continue;
@@ -1138,6 +1144,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Walk over all new model objects and check, whether there are matching PrintObjects.
         for (ModelObject *model_object : m_model.objects) {
             ModelObjectStatus &model_object_status = const_cast<ModelObjectStatus&>(model_object_status_db.reuse(*model_object));
+            model_object_status.print_instances    = print_objects_from_model_object(*model_object);
             std::vector<const PrintObjectStatus*> old;
             old.reserve(print_object_status_db.count(*model_object));
             for (const PrintObjectStatus &print_object_status : print_object_status_db.get_range(*model_object))
@@ -1230,7 +1237,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
         if (model_object_status.print_object_regions_status == ModelObjectStatus::PrintObjectRegionsStatus::Valid) {
             // Verify that the trafo for regions & volume bounding boxes thus for regions is still applicable.
-            if (print_object_regions && ! trafos_differ_in_rotation_and_mirroring_by_z_only(print_object_regions->trafo_bboxes, model_object_status.print_instances.front().trafo))
+            if (print_object_regions && ! trafos_differ_in_rotation_by_z_and_mirroring_by_xy_only(print_object_regions->trafo_bboxes, model_object_status.print_instances.front().trafo))
                 print_object_regions->clear();
             if (print_object_regions && 
                 verify_update_print_object_regions(
