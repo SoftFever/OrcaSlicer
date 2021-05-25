@@ -385,13 +385,14 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                 temp_slices[i].region_id == temp_slices[j].region_id && 
                                 (clip_multipart_objects || temp_slices[i].volume_id == temp_slices[j].volume_id); 
                              ++ j)
-                            if (ExPolygons &expolygons2 = temp_slices[j].expolygons; ! expolygons2.empty())
+                            if (ExPolygons &expolygons2 = temp_slices[j].expolygons; ! expolygons2.empty()) {
                                 if (expolygons.empty()) {
                                     expolygons = std::move(expolygons2);
                                 } else {
                                     append(expolygons, std::move(expolygons2));
                                     merged = true;
                                 }
+                            }
                         if (merged)
                             expolygons = offset2_ex(expolygons, float(scale_(EPSILON)), -float(scale_(EPSILON)));
                         slices_by_region[temp_slices[i].region_id][z_idx] = std::move(expolygons);
