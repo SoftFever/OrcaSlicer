@@ -202,7 +202,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             glsafe(::glPushMatrix());
             glsafe(::glRotated(180., 1., 0., 0.));
             glsafe(::glScaled(cone_radius, cone_radius, cone_height));
-            VBOCone.render();
+            m_cone.render();
             glsafe(::glPopMatrix());
             glsafe(::glTranslatef(0.f, 0.f, cone_height));
             glsafe(::glPopMatrix());
@@ -211,7 +211,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         glsafe(::glPushMatrix());
         double radius = (double)support_point.head_front_radius * RenderPointScale;
         glsafe(::glScaled(radius, radius, radius));
-        VBOSphere.render();
+        m_sphere.render();
         glsafe(::glPopMatrix());
 
         if (vol->is_left_handed())
@@ -251,7 +251,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             glsafe(::glPushMatrix());
             glsafe(::glTranslated(0., 0., -drain_hole.height));
             glsafe(::glScaled(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
-            VBOCylinder.render();
+            m_cylinder.render();
             glsafe(::glPopMatrix());
 
             if (vol->is_left_handed())

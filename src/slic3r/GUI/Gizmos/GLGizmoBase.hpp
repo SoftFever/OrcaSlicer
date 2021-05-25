@@ -45,9 +45,8 @@ protected:
         static const float SizeFactor;
         static const float MinHalfSize;
         static const float DraggingScaleFactor;
-        static GLModel     VBOCube;
-        static GLModel     VBOCone;
 
+        GLModel cube;
         Vec3d center;
         Vec3d angles;
         std::array<float, 4> color;
@@ -102,9 +101,9 @@ protected:
     bool m_first_input_window_render;
     mutable std::string m_tooltip;
     CommonGizmosDataPool* m_c;
-    static GLModel VBOCone;
-    static GLModel VBOCylinder;
-    static GLModel VBOSphere;
+    GLModel m_cone;
+    GLModel m_cylinder;
+    GLModel m_sphere;
 
 public:
     GLGizmoBase(GLCanvas3D& parent,

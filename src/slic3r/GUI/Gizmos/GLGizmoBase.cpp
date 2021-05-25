@@ -13,10 +13,6 @@ namespace GUI {
 const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
-GLModel     GLGizmoBase::Grabber::VBOCube;
-GLModel     GLGizmoBase::VBOCone;
-GLModel     GLGizmoBase::VBOCylinder;
-GLModel     GLGizmoBase::VBOSphere;
 
 GLGizmoBase::Grabber::Grabber()
     : center(Vec3d::Zero())
@@ -25,9 +21,9 @@ GLGizmoBase::Grabber::Grabber()
     , enabled(true)
 {
     color = { 1.0f, 1.0f, 1.0f, 1.0f };
-    TriangleMesh cube = make_cube(1., 1., 1.);
-    cube.translate(Vec3f(-0.5, -0.5, -0.5));
-    VBOCube.init_from(cube);
+    TriangleMesh mesh = make_cube(1., 1., 1.);
+    mesh.translate(Vec3f(-0.5, -0.5, -0.5));
+    cube.init_from(mesh);
 }
 
 void GLGizmoBase::Grabber::render(bool hover, float size) const
@@ -75,7 +71,7 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
     glsafe(::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0));
     glsafe(::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0));
     glsafe(::glScaled(fullsize, fullsize, fullsize));
-    VBOCube.render();
+    cube.render();
     glsafe(::glPopMatrix());
 
     if (! picking)
@@ -98,9 +94,9 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 4 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 4 * sizeof(float));
     ::memcpy((void*)m_highlight_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
-    VBOCone.init_from(make_cone(1., 1., 2*PI/24));
-    VBOSphere.init_from(make_sphere(1., (2*M_PI)/24.));
-    VBOCylinder.init_from(make_cylinder(1., 1., 2*PI/24.));
+    m_cone.init_from(make_cone(1., 1., 2 * PI / 24));
+    m_sphere.init_from(make_sphere(1., (2 * M_PI) / 24.));
+    m_cylinder.init_from(make_cylinder(1., 1., 2 * PI / 24.));
 }
 
 void GLGizmoBase::set_hover_id(int id)

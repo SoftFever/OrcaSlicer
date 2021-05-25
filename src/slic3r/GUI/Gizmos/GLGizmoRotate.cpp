@@ -345,7 +345,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
     glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
-    VBOCone.render();
+    m_cone.render();
     glsafe(::glPopMatrix());
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
@@ -353,7 +353,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
     glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
-    VBOCone.render();
+    m_cone.render();
     glsafe(::glPopMatrix());
 
     if (!picking)
