@@ -203,9 +203,6 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         color[3] = color[3];
     }
 
-    if (!picking)
-        glsafe(::glEnable(GL_LIGHTING));
-
     glsafe(::glColor4fv(color.data()));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[axis].center(0), m_grabbers[axis].center(1), m_grabbers[axis].center(2)));
@@ -218,9 +215,6 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
     m_vbo_cone.render();
     glsafe(::glPopMatrix());
-
-    if (!picking)
-        glsafe(::glDisable(GL_LIGHTING));
 }
 
 

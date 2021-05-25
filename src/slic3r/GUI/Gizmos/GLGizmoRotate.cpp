@@ -335,9 +335,6 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
         color[2] = 1.0f - color[2];
     }
 
-    if (!picking)
-        glsafe(::glEnable(GL_LIGHTING));
-
     glsafe(::glColor4fv(color.data()));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
@@ -355,9 +352,6 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
     m_cone.render();
     glsafe(::glPopMatrix());
-
-    if (!picking)
-        glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLGizmoRotate::transform_to_local(const Selection& selection) const

@@ -1169,7 +1169,6 @@ void Selection::render(float scale_factor) const
 #if ENABLE_RENDER_SELECTION_CENTER
 void Selection::render_center(bool gizmo_is_dragging) const
 {
-    if (!m_valid || is_empty() || m_quadric == nullptr)
     if (!m_valid || is_empty())
         return;
 
@@ -1177,15 +1176,11 @@ void Selection::render_center(bool gizmo_is_dragging) const
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glEnable(GL_LIGHTING));
-
     glsafe(::glColor3f(1.0f, 1.0f, 1.0f));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(center(0), center(1), center(2)));
     m_vbo_sphere.render();
     glsafe(::glPopMatrix());
-
-    glsafe(::glDisable(GL_LIGHTING));
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 

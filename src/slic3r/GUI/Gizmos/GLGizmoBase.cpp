@@ -56,9 +56,6 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
 {
     float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
 
-    if (! picking)
-        glsafe(::glEnable(GL_LIGHTING));
-
     GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_current_shader();
     if (shader)
         shader->set_uniform("uniform_color", render_color);
@@ -73,9 +70,6 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
     glsafe(::glScaled(fullsize, fullsize, fullsize));
     cube.render();
     glsafe(::glPopMatrix());
-
-    if (! picking)
-        glsafe(::glDisable(GL_LIGHTING));
 }
 
 

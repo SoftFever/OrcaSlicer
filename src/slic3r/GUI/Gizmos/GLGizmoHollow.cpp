@@ -178,9 +178,6 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         glsafe(::glPopMatrix());
     }
 
-    //if (!picking)
-    //    glsafe(::glDisable(GL_LIGHTING));
-
     glsafe(::glPopMatrix());
 }
 
