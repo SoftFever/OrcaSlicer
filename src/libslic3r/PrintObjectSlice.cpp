@@ -303,7 +303,9 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             tbb::blocked_range<size_t>(0, zs_complex.size()),
             [&slices_by_region, &model_volumes, &print_object_regions, &zs_complex, &layer_ranges_regions_to_slices, clip_multipart_objects, &throw_on_cancel_callback]
                 (const tbb::blocked_range<size_t> &range) {
-                auto [z_idx, z] = zs_complex[range.begin()];
+                const auto &z_idx_and_z = zs_complex[range.begin()];
+                size_t      z_idx       = z_idx_and_z.first;
+                float       z           = z_idx_and_z.second;
                 auto it_layer_range = lower_bound_by_predicate(print_object_regions.layer_ranges.begin(), print_object_regions.layer_ranges.end(), 
                     [z](const PrintObjectRegions::LayerRangeRegions &lr){ return lr.layer_height_range.second < z; });
                 assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first >= z && z <= it_layer_range->layer_height_range.second);
