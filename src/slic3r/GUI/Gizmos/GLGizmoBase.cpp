@@ -85,9 +85,9 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     , m_imgui(wxGetApp().imgui())
     , m_first_input_window_render(true)
 {
-    ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 4 * sizeof(float));
-    ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 4 * sizeof(float));
-    ::memcpy((void*)m_highlight_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
+    m_base_color = DEFAULT_BASE_COLOR;
+    m_drag_color = DEFAULT_DRAG_COLOR;
+    m_highlight_color = DEFAULT_HIGHLIGHT_COLOR;
     m_cone.init_from(make_cone(1., 1., 2 * PI / 24));
     m_sphere.init_from(make_sphere(1., (2 * M_PI) / 24.));
     m_cylinder.init_from(make_cylinder(1., 1., 2 * PI / 24.));
@@ -102,10 +102,9 @@ void GLGizmoBase::set_hover_id(int id)
     }
 }
 
-void GLGizmoBase::set_highlight_color(const float* color)
+void GLGizmoBase::set_highlight_color(const std::array<float, 4>& color)
 {
-    if (color != nullptr)
-        ::memcpy((void*)m_highlight_color, (const void*)color, 4 * sizeof(float));
+    m_highlight_color = color;
 }
 
 void GLGizmoBase::enable_grabber(unsigned int id)

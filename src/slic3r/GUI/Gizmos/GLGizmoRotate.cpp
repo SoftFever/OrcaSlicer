@@ -133,8 +133,7 @@ void GLGizmoRotate::on_render() const
     const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
 
-    if (m_hover_id != 0 && !m_grabbers[0].dragging)
-    {
+    if (m_hover_id != 0 && !m_grabbers[0].dragging) {
         m_center = box.center();
         m_radius = Offset + box.radius();
         m_snap_coarse_in_radius = m_radius / 3.0f;
@@ -149,18 +148,17 @@ void GLGizmoRotate::on_render() const
     transform_to_local(selection);
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
+    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
 
     render_circle();
 
-    if (m_hover_id != -1)
-    {
+    if (m_hover_id != -1) {
         render_scale();
         render_snap_radii();
         render_reference_radius();
     }
 
-    glsafe(::glColor4fv(m_highlight_color));
+    glsafe(::glColor4fv(m_highlight_color.data()));
 
     if (m_hover_id != -1)
         render_angle();
@@ -311,14 +309,14 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
+    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
 
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
 
-    ::memcpy((void*)m_grabbers[0].color.data(), (const void*)m_highlight_color, 4 * sizeof(float));
+    m_grabbers[0].color = m_highlight_color;
     render_grabbers(box);
 }
 
@@ -430,8 +428,7 @@ GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_fil
     m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
     m_gizmos.emplace_back(parent, GLGizmoRotate::Z);
 
-    for (unsigned int i = 0; i < 3; ++i)
-    {
+    for (unsigned int i = 0; i < 3; ++i) {
         m_gizmos[i].set_group_id(i);
     }
 
@@ -440,14 +437,12 @@ GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_fil
 
 bool GLGizmoRotate3D::on_init()
 {
-    for (GLGizmoRotate& g : m_gizmos)
-    {
+    for (GLGizmoRotate& g : m_gizmos) {
         if (!g.init())
             return false;
     }
 
-    for (unsigned int i = 0; i < 3; ++i)
-    {
+    for (unsigned int i = 0; i < 3; ++i) {
         m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
     }
 
@@ -458,7 +453,7 @@ bool GLGizmoRotate3D::on_init()
 
 std::string GLGizmoRotate3D::on_get_name() const
 {
-    return (_(L("Rotate")) + " [R]").ToUTF8().data();
+    return (_L("Rotate") + " [R]").ToUTF8().data();
 }
 
 bool GLGizmoRotate3D::on_is_activable() const

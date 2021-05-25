@@ -112,14 +112,11 @@ void GLGizmoMove3D::on_render() const
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
-    if (m_hover_id == -1)
-    {
+    if (m_hover_id == -1) {
         // draw axes
-        for (unsigned int i = 0; i < 3; ++i)
-        {
-            if (m_grabbers[i].enabled)
-            {
-                glsafe(::glColor4fv(AXES_COLOR[i]));
+        for (unsigned int i = 0; i < 3; ++i) {
+            if (m_grabbers[i].enabled) {
+                glsafe(::glColor4fv(AXES_COLOR[i].data()));
                 ::glBegin(GL_LINES);
                 ::glVertex3dv(center.data());
                 ::glVertex3dv(m_grabbers[i].center.data());
@@ -129,16 +126,14 @@ void GLGizmoMove3D::on_render() const
 
         // draw grabbers
         render_grabbers(box);
-        for (unsigned int i = 0; i < 3; ++i)
-        {
+        for (unsigned int i = 0; i < 3; ++i) {
             if (m_grabbers[i].enabled)
                 render_grabber_extension((Axis)i, box, false);
         }
     }
-    else
-    {
+    else {
         // draw axis
-        glsafe(::glColor4fv(AXES_COLOR[m_hover_id]));
+        glsafe(::glColor4fv(AXES_COLOR[m_hover_id].data()));
         ::glBegin(GL_LINES);
         ::glVertex3dv(center.data());
         ::glVertex3dv(m_grabbers[m_hover_id].center.data());

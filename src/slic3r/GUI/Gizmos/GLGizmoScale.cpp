@@ -173,34 +173,32 @@ void GLGizmoScale3D::on_render() const
     // x axis
     m_grabbers[0].center = m_transform * Vec3d(m_box.min(0), center(1), center(2)) - offset_x;
     m_grabbers[1].center = m_transform * Vec3d(m_box.max(0), center(1), center(2)) + offset_x;
-    ::memcpy((void*)m_grabbers[0].color.data(), (ctrl_down && (m_hover_id == 1)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 4 * sizeof(float));
-    ::memcpy((void*)m_grabbers[1].color.data(), (ctrl_down && (m_hover_id == 0)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 4 * sizeof(float));
+    m_grabbers[0].color = (ctrl_down && (m_hover_id == 1)) ? CONSTRAINED_COLOR : AXES_COLOR[0];
+    m_grabbers[1].color = (ctrl_down && (m_hover_id == 0)) ? CONSTRAINED_COLOR : AXES_COLOR[0];
 
     // y axis
     m_grabbers[2].center = m_transform * Vec3d(center(0), m_box.min(1), center(2)) - offset_y;
     m_grabbers[3].center = m_transform * Vec3d(center(0), m_box.max(1), center(2)) + offset_y;
-    ::memcpy((void*)m_grabbers[2].color.data(), (ctrl_down && (m_hover_id == 3)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 4 * sizeof(float));
-    ::memcpy((void*)m_grabbers[3].color.data(), (ctrl_down && (m_hover_id == 2)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 4 * sizeof(float));
+    m_grabbers[2].color = (ctrl_down && (m_hover_id == 3)) ? CONSTRAINED_COLOR : AXES_COLOR[1];
+    m_grabbers[3].color = (ctrl_down && (m_hover_id == 2)) ? CONSTRAINED_COLOR : AXES_COLOR[1];
 
     // z axis
     m_grabbers[4].center = m_transform * Vec3d(center(0), center(1), m_box.min(2)) - offset_z;
     m_grabbers[5].center = m_transform * Vec3d(center(0), center(1), m_box.max(2)) + offset_z;
-    ::memcpy((void*)m_grabbers[4].color.data(), (ctrl_down && (m_hover_id == 5)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 4 * sizeof(float));
-    ::memcpy((void*)m_grabbers[5].color.data(), (ctrl_down && (m_hover_id == 4)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 4 * sizeof(float));
+    m_grabbers[4].color = (ctrl_down && (m_hover_id == 5)) ? CONSTRAINED_COLOR : AXES_COLOR[2];
+    m_grabbers[5].color = (ctrl_down && (m_hover_id == 4)) ? CONSTRAINED_COLOR : AXES_COLOR[2];
 
     // uniform
     m_grabbers[6].center = m_transform * Vec3d(m_box.min(0), m_box.min(1), center(2)) - offset_x - offset_y;
     m_grabbers[7].center = m_transform * Vec3d(m_box.max(0), m_box.min(1), center(2)) + offset_x - offset_y;
     m_grabbers[8].center = m_transform * Vec3d(m_box.max(0), m_box.max(1), center(2)) + offset_x + offset_y;
     m_grabbers[9].center = m_transform * Vec3d(m_box.min(0), m_box.max(1), center(2)) - offset_x + offset_y;
-    for (int i = 6; i < 10; ++i)
-    {
-        ::memcpy((void*)m_grabbers[i].color.data(), (const void*)m_highlight_color, 4 * sizeof(float));
+    for (int i = 6; i < 10; ++i) {
+        m_grabbers[i].color = m_highlight_color;
     }
 
     // sets grabbers orientation
-    for (int i = 0; i < 10; ++i)
-    {
+    for (int i = 0; i < 10; ++i) {
         m_grabbers[i].angles = angles;
     }
 
@@ -210,25 +208,21 @@ void GLGizmoScale3D::on_render() const
 
     float grabber_mean_size = (float)((selection_box.size()(0) + selection_box.size()(1) + selection_box.size()(2)) / 3.0);
 
-    if (m_hover_id == -1)
-    {
+    if (m_hover_id == -1) {
         // draw connections
-        if (m_grabbers[0].enabled && m_grabbers[1].enabled)
-        {
+        if (m_grabbers[0].enabled && m_grabbers[1].enabled) {
             glsafe(::glColor4fv(m_grabbers[0].color.data()));
             render_grabbers_connection(0, 1);
         }
-        if (m_grabbers[2].enabled && m_grabbers[3].enabled)
-        {
+        if (m_grabbers[2].enabled && m_grabbers[3].enabled) {
             glsafe(::glColor4fv(m_grabbers[2].color.data()));
             render_grabbers_connection(2, 3);
         }
-        if (m_grabbers[4].enabled && m_grabbers[5].enabled)
-        {
+        if (m_grabbers[4].enabled && m_grabbers[5].enabled) {
             glsafe(::glColor4fv(m_grabbers[4].color.data()));
             render_grabbers_connection(4, 5);
         }
-        glsafe(::glColor4fv(m_base_color));
+        glsafe(::glColor4fv(m_base_color.data()));
         render_grabbers_connection(6, 7);
         render_grabbers_connection(7, 8);
         render_grabbers_connection(8, 9);
@@ -236,8 +230,7 @@ void GLGizmoScale3D::on_render() const
         // draw grabbers
         render_grabbers(grabber_mean_size);
     }
-    else if ((m_hover_id == 0) || (m_hover_id == 1))
-    {
+    else if (m_hover_id == 0 || m_hover_id == 1) {
         // draw connection
         glsafe(::glColor4fv(m_grabbers[0].color.data()));
         render_grabbers_connection(0, 1);
@@ -245,8 +238,7 @@ void GLGizmoScale3D::on_render() const
         m_grabbers[0].render(true, grabber_mean_size);
         m_grabbers[1].render(true, grabber_mean_size);
     }
-    else if ((m_hover_id == 2) || (m_hover_id == 3))
-    {
+    else if (m_hover_id == 2 || m_hover_id == 3) {
         // draw connection
         glsafe(::glColor4fv(m_grabbers[2].color.data()));
         render_grabbers_connection(2, 3);
@@ -254,8 +246,7 @@ void GLGizmoScale3D::on_render() const
         m_grabbers[2].render(true, grabber_mean_size);
         m_grabbers[3].render(true, grabber_mean_size);
     }
-    else if ((m_hover_id == 4) || (m_hover_id == 5))
-    {
+    else if (m_hover_id == 4 || m_hover_id == 5) {
         // draw connection
         glsafe(::glColor4fv(m_grabbers[4].color.data()));
         render_grabbers_connection(4, 5);
@@ -263,17 +254,15 @@ void GLGizmoScale3D::on_render() const
         m_grabbers[4].render(true, grabber_mean_size);
         m_grabbers[5].render(true, grabber_mean_size);
     }
-    else if (m_hover_id >= 6)
-    {
+    else if (m_hover_id >= 6) {
         // draw connection
-        glsafe(::glColor4fv(m_drag_color));
+        glsafe(::glColor4fv(m_drag_color.data()));
         render_grabbers_connection(6, 7);
         render_grabbers_connection(7, 8);
         render_grabbers_connection(8, 9);
         render_grabbers_connection(9, 6);
         // draw grabbers
-        for (int i = 6; i < 10; ++i)
-        {
+        for (int i = 6; i < 10; ++i) {
             m_grabbers[i].render(true, grabber_mean_size);
         }
     }

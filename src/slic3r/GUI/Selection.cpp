@@ -22,7 +22,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
 
-static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
+static const std::array<float, 4> UNIFORM_SCALE_COLOR = { 0.923f, 0.504f, 0.264f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -1823,7 +1823,7 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
-            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+            shader->set_uniform("uniform_color", AXES_COLOR[axis]);
     };
 
     if (boost::ends_with(sidebar_field, "x")) {
@@ -1845,7 +1845,7 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
-            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+            shader->set_uniform("uniform_color", AXES_COLOR[axis]);
     };
 
     auto render_sidebar_rotation_hint = [this]() {
@@ -1875,7 +1875,7 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
-            shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
+            shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]);
 
         glsafe(::glTranslated(0.0, 5.0, 0.0));
         m_arrow.render();
