@@ -119,13 +119,11 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         return;
 
     GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_shader("gouraud_light");
-    if (shader)
+    if (shader != nullptr)
         shader->start_using();
     ScopeGuard guard([shader]() {
-        if (shader) {
-            shader->set_uniform("emission_factor", 0.);
+        if (shader != nullptr)
             shader->stop_using();
-        }
     });
 
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());

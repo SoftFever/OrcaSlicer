@@ -29,8 +29,7 @@ GLGizmoBase::Grabber::Grabber()
 void GLGizmoBase::Grabber::render(bool hover, float size) const
 {
     std::array<float, 4> render_color;
-    if (hover)
-    {
+    if (hover) {
         render_color[0] = (1.0f - color[0]);
         render_color[1] = (1.0f - color[1]);
         render_color[2] = (1.0f - color[2]);
@@ -57,7 +56,7 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
     float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
 
     GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_current_shader();
-    if (shader)
+    if (shader != nullptr)
         shader->set_uniform("uniform_color", render_color);
     else
         glsafe(::glColor4fv(render_color.data())); // picking
@@ -173,33 +172,29 @@ std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {
-    render_grabbers((float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
+    render_grabbers((float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
 }
 
 void GLGizmoBase::render_grabbers(float size) const
 {
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (! shader)
+    if (shader == nullptr)
         return;
     shader->start_using();
     shader->set_uniform("emission_factor", 0.1);
-    for (int i = 0; i < (int)m_grabbers.size(); ++i)
-    {
+    for (int i = 0; i < (int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled)
-            m_grabbers[i].render((m_hover_id == i), size);
+            m_grabbers[i].render(m_hover_id == i, size);
     }
-    shader->set_uniform("emission_factor", 0.);
     shader->stop_using();
 }
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
-    float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
+    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
 
-    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
-    {
-        if (m_grabbers[i].enabled)
-        {
+    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
+        if (m_grabbers[i].enabled) {
             std::array<float, 4> color = picking_color_component(i);
             m_grabbers[i].color = color;
             m_grabbers[i].render_for_picking(mean_size);
@@ -215,8 +210,7 @@ std::string GLGizmoBase::format(float value, unsigned int decimals) const
 void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
 {
     on_render_input_window(x, y, bottom_limit);
-    if (m_first_input_window_render)
-    {
+    if (m_first_input_window_render) {
         // for some reason, the imgui dialogs are not shown on screen in the 1st frame where they are rendered, but show up only with the 2nd rendered frame
         // so, we forces another frame rendering the first time the imgui window is shown
         m_parent.set_as_dirty();

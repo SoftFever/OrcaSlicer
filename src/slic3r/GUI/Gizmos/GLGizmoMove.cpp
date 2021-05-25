@@ -1,6 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoMove.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 #include <GL/glew.h>
 
@@ -40,8 +41,7 @@ std::string GLGizmoMove3D::get_tooltip() const
 
 bool GLGizmoMove3D::on_init()
 {
-    for (int i = 0; i < 3; ++i)
-    {
+    for (int i = 0; i < 3; ++i) {
         m_grabbers.push_back(Grabber());
     }
 
@@ -52,7 +52,7 @@ bool GLGizmoMove3D::on_init()
 
 std::string GLGizmoMove3D::on_get_name() const
 {
-    return (_(L("Move")) + " [M]").ToUTF8().data();
+    return (_L("Move") + " [M]").ToUTF8().data();
 }
 
 bool GLGizmoMove3D::on_is_activable() const
@@ -62,8 +62,7 @@ bool GLGizmoMove3D::on_is_activable() const
 
 void GLGizmoMove3D::on_start_dragging()
 {
-    if (m_hover_id != -1)
-    {
+    if (m_hover_id != -1) {
         m_displacement = Vec3d::Zero();
         const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
         m_starting_drag_position = m_grabbers[m_hover_id].center;
@@ -99,16 +98,16 @@ void GLGizmoMove3D::on_render() const
     const Vec3d& center = box.center();
 
     // x axis
-    m_grabbers[0].center = Vec3d(box.max(0) + Offset, center(1), center(2));
-    ::memcpy((void*)m_grabbers[0].color.data(), (const void*)&AXES_COLOR[0], 4 * sizeof(float));
+    m_grabbers[0].center = Vec3d(box.max.x() + Offset, center.y(), center.z());
+    m_grabbers[0].color = AXES_COLOR[0];
 
     // y axis
-    m_grabbers[1].center = Vec3d(center(0), box.max(1) + Offset, center(2));
-    ::memcpy((void*)m_grabbers[1].color.data(), (const void*)&AXES_COLOR[1], 4 * sizeof(float));
+    m_grabbers[1].center = Vec3d(center.x(), box.max.y() + Offset, center.z());
+    m_grabbers[1].color = AXES_COLOR[1];
 
     // z axis
-    m_grabbers[2].center = Vec3d(center(0), center(1), box.max(2) + Offset);
-    ::memcpy((void*)m_grabbers[2].color.data(), (const void*)&AXES_COLOR[2], 4 * sizeof(float));
+    m_grabbers[2].center = Vec3d(center.x(), center.y(), box.max.z() + Offset);
+    m_grabbers[2].color = AXES_COLOR[2];
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
@@ -140,7 +139,7 @@ void GLGizmoMove3D::on_render() const
         glsafe(::glEnd());
 
         // draw grabber
-        float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
+        float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
         m_grabbers[m_hover_id].render(true, mean_size);
         render_grabber_extension((Axis)m_hover_id, box, false);
     }
@@ -163,8 +162,7 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
     Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
     double len_starting_vec = starting_vec.norm();
-    if (len_starting_vec != 0.0)
-    {
+    if (len_starting_vec != 0.0) {
         Vec3d mouse_dir = data.mouse_ray.unit_vector();
         // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
         // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
@@ -186,21 +184,27 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
-    float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
+    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
     double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size(mean_size) : (double)m_grabbers[axis].get_half_size(mean_size);
 
     std::array<float, 4> color = m_grabbers[axis].color;
-    if (!picking && (m_hover_id != -1))
-    {
+    if (!picking && m_hover_id != -1) {
         color[0] = 1.0f - color[0];
         color[1] = 1.0f - color[1];
         color[2] = 1.0f - color[2];
         color[3] = color[3];
     }
 
-    glsafe(::glColor4fv(color.data()));
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr)
+        return;
+
+    shader->start_using();
+    shader->set_uniform("emission_factor", 0.1);
+    shader->set_uniform("uniform_color", color);
+
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[axis].center(0), m_grabbers[axis].center(1), m_grabbers[axis].center(2)));
+    glsafe(::glTranslated(m_grabbers[axis].center.x(), m_grabbers[axis].center.y(), m_grabbers[axis].center.z()));
     if (axis == X)
         glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
     else if (axis == Y)
@@ -210,6 +214,8 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
     m_vbo_cone.render();
     glsafe(::glPopMatrix());
+
+    shader->stop_using();
 }
 
 

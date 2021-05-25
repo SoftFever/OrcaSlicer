@@ -326,16 +326,22 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 
     std::array<float, 4> color = m_grabbers[0].color;
-    if (!picking && (m_hover_id != -1))
-    {
+    if (!picking && m_hover_id != -1) {
         color[0] = 1.0f - color[0];
         color[1] = 1.0f - color[1];
         color[2] = 1.0f - color[2];
     }
 
-    glsafe(::glColor4fv(color.data()));
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr)
+        return;
+
+    shader->start_using();
+    shader->set_uniform("emission_factor", 0.1);
+    shader->set_uniform("uniform_color", color);
+
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
+    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
     glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
@@ -343,21 +349,22 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     m_cone.render();
     glsafe(::glPopMatrix());
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
+    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
     glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
     glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
     m_cone.render();
     glsafe(::glPopMatrix());
+
+    shader->stop_using();
 }
 
 void GLGizmoRotate::transform_to_local(const Selection& selection) const
 {
     glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
 
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-    {
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes()) {
         Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
         glsafe(::glMultMatrixd(orient_matrix.data()));
     }
