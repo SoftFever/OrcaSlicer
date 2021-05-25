@@ -21,11 +21,11 @@ namespace Slic3r {
 
 class TriangleMeshDataAdapter {
 public:
-    const TriangleMesh &mesh;
+    const indexed_triangle_set &its;
     float voxel_scale;
 
-    size_t polygonCount() const { return mesh.its.indices.size(); }
-    size_t pointCount() const   { return mesh.its.vertices.size(); }
+    size_t polygonCount() const { return its.indices.size(); }
+    size_t pointCount() const   { return its.vertices.size(); }
     size_t vertexCount(size_t) const { return 3; }
 
     // Return position pos in local grid index space for polygon n and vertex v
@@ -33,19 +33,19 @@ public:
     // And the voxel count per unit volume can be affected this way.
     void getIndexSpacePoint(size_t n, size_t v, openvdb::Vec3d& pos) const
     {
-        auto vidx = size_t(mesh.its.indices[n](Eigen::Index(v)));
-        Slic3r::Vec3d p = mesh.its.vertices[vidx].cast<double>() * voxel_scale;
+        auto vidx = size_t(its.indices[n](Eigen::Index(v)));
+        Slic3r::Vec3d p = its.vertices[vidx].cast<double>() * voxel_scale;
         pos = {p.x(), p.y(), p.z()};
     }
 
-    TriangleMeshDataAdapter(const TriangleMesh &m, float voxel_sc = 1.f)
-        : mesh{m}, voxel_scale{voxel_sc} {};
+    TriangleMeshDataAdapter(const indexed_triangle_set &m, float voxel_sc = 1.f)
+        : its{m}, voxel_scale{voxel_sc} {};
 };
 
 // TODO: Do I need to call initialize? Seems to work without it as well but the
 // docs say it should be called ones. It does a mutex lock-unlock sequence all
 // even if was called previously.
-openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &            mesh,
+openvdb::FloatGrid::Ptr mesh_to_grid(const indexed_triangle_set &    mesh,
                                      const openvdb::math::Transform &tr,
                                      float voxel_scale,
                                      float exteriorBandWidth,

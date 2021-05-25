@@ -27,8 +27,8 @@ struct Interior;
 struct InteriorDeleter { void operator()(Interior *p); };
 using  InteriorPtr = std::unique_ptr<Interior, InteriorDeleter>;
 
-TriangleMesh &      get_mesh(Interior &interior);
-const TriangleMesh &get_mesh(const Interior &interior);
+indexed_triangle_set &      get_mesh(Interior &interior);
+const indexed_triangle_set &get_mesh(const Interior &interior);
 
 struct DrainHole
 {
@@ -99,7 +99,7 @@ void cut_drainholes(std::vector<ExPolygons> & obj_slices,
                     const sla::DrainHoles &   holes,
                     std::function<void(void)> thr);
 
-}
-}
+} // namespace sla
+} // namespace Slic3r
 
 #endif // HOLLOWINGFILTER_H

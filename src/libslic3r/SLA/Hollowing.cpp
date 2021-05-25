@@ -29,7 +29,7 @@ template<class S, class = FloatingOnly<S>>
 inline void _scale(S s, Contour3D &m) { for (auto &p : m.points) p *= s; }
 
 struct Interior {
-    TriangleMesh mesh;
+    indexed_triangle_set mesh;
     openvdb::FloatGrid::Ptr gridptr;
     mutable std::optional<openvdb::FloatGrid::ConstAccessor> accessor;
 
@@ -53,12 +53,12 @@ void InteriorDeleter::operator()(Interior *p)
     delete p;
 }
 
-TriangleMesh &get_mesh(Interior &interior)
+indexed_triangle_set &get_mesh(Interior &interior)
 {
     return interior.mesh;
 }
 
-const TriangleMesh &get_mesh(const Interior &interior)
+const indexed_triangle_set &get_mesh(const Interior &interior)
 {
     return interior.mesh;
 }

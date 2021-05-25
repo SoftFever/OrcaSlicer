@@ -28,9 +28,9 @@ inline Vec4i to_vec4i(const openvdb::Vec4I &v) { return Vec4i{int(v[0]), int(v[1
 // achievable through the Transform parameter. (TODO: or is it?)
 // The resulting grid will contain the voxel_scale in its metadata under the
 // "voxel_scale" key to be used in grid_to_mesh function.
-openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &            mesh,
+openvdb::FloatGrid::Ptr mesh_to_grid(const indexed_triangle_set &    mesh,
                                      const openvdb::math::Transform &tr = {},
-                                     float voxel_scale = 1.f,
+                                     float voxel_scale                  = 1.f,
                                      float exteriorBandWidth = 3.0f,
                                      float interiorBandWidth = 3.0f,
                                      int   flags             = 0);
@@ -40,10 +40,10 @@ sla::Contour3D grid_to_contour3d(const openvdb::FloatGrid &grid,
                                  double                    adaptivity,
                                  bool relaxDisorientedTriangles = true);
 
-TriangleMesh grid_to_mesh(const openvdb::FloatGrid &grid,
-                          double                    isovalue   = 0.0,
-                          double                    adaptivity = 0.0,
-                          bool relaxDisorientedTriangles       = true);
+indexed_triangle_set grid_to_mesh(const openvdb::FloatGrid &grid,
+                                  double                    isovalue   = 0.0,
+                                  double                    adaptivity = 0.0,
+                                  bool relaxDisorientedTriangles = true);
 
 openvdb::FloatGrid::Ptr redistance_grid(const openvdb::FloatGrid &grid,
                                         double                    iso,
