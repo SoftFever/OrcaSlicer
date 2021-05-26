@@ -1064,6 +1064,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
 
             vol->supported_facets.assign(volume->supported_facets);
             vol->seam_facets.assign(volume->seam_facets);
+            vol->mmu_segmentation_facets.assign(volume->mmu_segmentation_facets);
 
             // Perform conversion only if the target "imperial" state is different from the current one.
             // This check supports conversion of "mixed" set of volumes, each with different "imperial" state.
@@ -1165,6 +1166,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
         volume->supported_facets.clear();
         volume->seam_facets.clear();
+        volume->mmu_segmentation_facets.clear();
 
         if (! volume->is_model_part()) {
             // Modifiers are not cut, but we still need to add the instance transformation
@@ -1758,6 +1760,7 @@ void ModelVolume::assign_new_unique_ids_recursive()
     config.set_new_unique_id();
     supported_facets.set_new_unique_id();
     seam_facets.set_new_unique_id();
+    mmu_segmentation_facets.set_new_unique_id();
 }
 
 void ModelVolume::rotate(double angle, Axis axis)
@@ -2074,8 +2077,10 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
 
 bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new) {
     assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
-    assert(mo.volumes.size() == mo_new.volumes.size());
-    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    // FIXME Lukas H.: Because of adding another mesh modifiers when slicing, then assert triggered and possible crash. It requires changing the integration of MMU segmentation.
+//    assert(mo.volumes.size() == mo_new.volumes.size());
+//    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    for (size_t i=0; i<std::min(mo.volumes.size(), mo_new.volumes.size()); ++i) {
         if (! mo_new.volumes[i]->supported_facets.timestamp_matches(mo.volumes[i]->supported_facets))
             return true;
     }
@@ -2084,9 +2089,23 @@ bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject
 
 bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo_new) {
     assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
-    assert(mo.volumes.size() == mo_new.volumes.size());
-    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    // FIXME Lukas H.: Because of adding another mesh modifiers when slicing, then assert triggered and possible crash. It requires changing the integration of MMU segmentation.
+//    assert(mo.volumes.size() == mo_new.volumes.size());
+//    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    for (size_t i=0; i<std::min(mo.volumes.size(), mo_new.volumes.size()); ++i) {
         if (! mo_new.volumes[i]->seam_facets.timestamp_matches(mo.volumes[i]->seam_facets))
+            return true;
+    }
+    return false;
+}
+
+bool model_mmu_segmentation_data_changed(const ModelObject& mo, const ModelObject& mo_new) {
+    assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
+    // FIXME Lukas H.: Because of adding another mesh modifiers when slicing, then assert triggered and possible crash. It requires changing the integration of MMU segmentation.
+//    assert(mo.volumes.size() == mo_new.volumes.size());
+//    for (size_t i=0; i<mo.volumes.size(); ++i) {
+    for (size_t i=0; i<std::min(mo.volumes.size(), mo_new.volumes.size()); ++i) {
+        if (! mo_new.volumes[i]->mmu_segmentation_facets.timestamp_matches(mo.volumes[i]->mmu_segmentation_facets))
             return true;
     }
     return false;

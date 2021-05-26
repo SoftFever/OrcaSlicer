@@ -877,7 +877,7 @@ ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::v
 				Vec2d nnext  = perp(ptnext - pt).normalized();
 
 				double delta  = deltas[i];
-				double sin_a  = clamp(-1., 1., cross2(nprev, nnext));
+				double sin_a  = std::clamp(cross2(nprev, nnext), -1., 1.);
 				double convex = sin_a * delta;
 				if (convex <= - sin_min_parallel) {
 					// Concave corner.

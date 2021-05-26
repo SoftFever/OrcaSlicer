@@ -546,7 +546,6 @@ public:
             [object_id](const PrintObject *obj) { return obj->id() == object_id; });
         return (it == m_objects.end()) ? nullptr : *it;
     }
-//    ConstPrintRegionPtrsAdaptor regions() const { return ConstPrintRegionPtrsAdaptor(&m_regions); }
     // How many of PrintObject::copies() over all print objects are there?
     // If zero, then the print is empty and the print shall not be executed.
     unsigned int                num_object_instances() const;

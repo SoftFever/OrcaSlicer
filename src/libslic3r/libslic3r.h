@@ -239,26 +239,20 @@ template<typename T> inline bool one_of(const T& v, const std::initializer_list<
     { return contains(il, v); }
 
 template<typename T>
-static inline T sqr(T x)
+constexpr inline T sqr(T x)
 {
     return x * x;
 }
 
-template <typename T>
-static inline T clamp(const T low, const T high, const T value)
-{
-    return std::max(low, std::min(high, value));
-}
-
 template <typename T, typename Number>
-static inline T lerp(const T& a, const T& b, Number t)
+constexpr inline T lerp(const T& a, const T& b, Number t)
 {
     assert((t >= Number(-EPSILON)) && (t <= Number(1) + Number(EPSILON)));
     return (Number(1) - t) * a + t * b;
 }
 
 template <typename Number>
-static inline bool is_approx(Number value, Number test_value)
+constexpr inline bool is_approx(Number value, Number test_value)
 {
     return std::fabs(double(value) - double(test_value)) < double(EPSILON);
 }

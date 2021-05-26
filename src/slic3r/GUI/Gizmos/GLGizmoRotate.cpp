@@ -110,7 +110,7 @@ void GLGizmoRotate::on_update(const UpdateData& data)
     Vec2d orig_dir = Vec2d::UnitX();
     Vec2d new_dir = mouse_pos.normalized();
 
-    double theta = ::acos(clamp(-1.0, 1.0, new_dir.dot(orig_dir)));
+    double theta = ::acos(std::clamp(new_dir.dot(orig_dir), -1.0, 1.0));
     if (cross2(orig_dir, new_dir) < 0.0)
         theta = 2.0 * (double)PI - theta;
 

@@ -132,6 +132,8 @@ add_library(libslic3r STATIC
     Model.hpp
     ModelArrange.hpp
     ModelArrange.cpp
+    MultiMaterialSegmentation.cpp
+    MultiMaterialSegmentation.hpp
     CustomGCode.cpp
     CustomGCode.hpp
     Arrange.hpp

@@ -550,10 +550,10 @@ void gcode_paint_layer(
 		boost::geometry::expand(bboxLine, rect[2]);
 		boost::geometry::expand(bboxLine, rect[3]);
 		B2i bboxLinei(
-			V2i(clamp(0, nc-1, int(floor(bboxLine.min_corner().x()))),
-				clamp(0, nr-1, int(floor(bboxLine.min_corner().y())))),
-			V2i(clamp(0, nc-1, int(ceil (bboxLine.max_corner().x()))),
-				clamp(0, nr-1, int(ceil (bboxLine.max_corner().y())))));
+			V2i(std::clamp(int(floor(bboxLine.min_corner().x())), 0, nc-1),
+				std::clamp(int(floor(bboxLine.min_corner().y())), 0, nr-1)),
+			V2i(std::clamp(int(ceil(bboxLine.max_corner().x())), 0, nc-1),
+				std::clamp(int(ceil(bboxLine.max_corner().y())), 0, nr-1)));
 		// printf("bboxLinei %d,%d %d,%d\n", bboxLinei.min_corner().x(), bboxLinei.min_corner().y(), bboxLinei.max_corner().x(), bboxLinei.max_corner().y());
 #ifdef _DEBUG
 		float area = polyArea(rect, 4);
@@ -597,10 +597,10 @@ void gcode_paint_bitmap(
 		boost::geometry::expand(bboxLine, rect[2]);
 		boost::geometry::expand(bboxLine, rect[3]);
 		B2i bboxLinei(
-			V2i(clamp(0, nc-1, int(floor(bboxLine.min_corner().x()))),
-				clamp(0, nr-1, int(floor(bboxLine.min_corner().y())))),
-			V2i(clamp(0, nc-1, int(ceil (bboxLine.max_corner().x()))),
-				clamp(0, nr-1, int(ceil (bboxLine.max_corner().y())))));
+			V2i(std::clamp(int(floor(bboxLine.min_corner().x())), 0, nc-1),
+				std::clamp(int(floor(bboxLine.min_corner().y())), 0, nr-1)),
+			V2i(std::clamp(int(ceil(bboxLine.max_corner().x())), 0, nc-1),
+				std::clamp(int(ceil(bboxLine.max_corner().y())), 0, nr-1)));
 		// printf("bboxLinei %d,%d %d,%d\n", bboxLinei.min_corner().x(), bboxLinei.min_corner().y(), bboxLinei.max_corner().x(), bboxLinei.max_corner().y());
 		for (int j = bboxLinei.min_corner().y(); j + 1 < bboxLinei.max_corner().y(); ++ j) {
 			for (int i = bboxLinei.min_corner().x(); i + 1 < bboxLinei.max_corner().x(); ++i) {
@@ -664,10 +664,10 @@ void gcode_spread_points(
 		const float height_target = it->height;
 		B2f bbox(center - V2f(radius, radius), center + V2f(radius, radius));
 		B2i bboxi(
-			V2i(clamp(0, nc-1, int(floor(bbox.min_corner().x()))),
-				clamp(0, nr-1, int(floor(bbox.min_corner().y())))),
-			V2i(clamp(0, nc-1, int(ceil (bbox.max_corner().x()))),
-				clamp(0, nr-1, int(ceil (bbox.max_corner().y())))));
+			V2i(std::clamp(int(floor(bbox.min_corner().x())), 0, nc-1),
+				std::clamp(int(floor(bbox.min_corner().y())), 0, nr-1)),
+			V2i(std::clamp(int(ceil(bbox.max_corner().x())), 0, nc-1),
+				std::clamp(int(ceil(bbox.max_corner().y())), 0, nr-1)));
 		/*
 		// Fill in the spans, at which the circle intersects the rows.
 		int row_first = bboxi.min_corner().y();
@@ -758,7 +758,7 @@ void gcode_spread_points(
 				area_circle_total += area;
 				if (cell.area < area)
 					cell.area = area;
-				cell.fraction_covered = clamp(0.f, 1.f, (cell.area > 0) ? (area / cell.area) : 0);
+				cell.fraction_covered = std::clamp((cell.area > 0) ? (area / cell.area) : 0, 0.f, 1.f);
 				if (cell.fraction_covered == 0) {
 					-- n_cells;
 					continue;
@@ -1018,7 +1018,7 @@ void ExtrusionSimulator::evaluate_accumulator(ExtrusionSimulationType simulation
 			float p = mask[r][c];
 			#endif
 			int   idx = int(floor(p * float(pimpl->color_gradient.size()) + 0.5f));
-			V3uc  clr = pimpl->color_gradient[clamp(0, int(pimpl->color_gradient.size()-1), idx)];
+			V3uc  clr = pimpl->color_gradient[std::clamp(idx, 0, int(pimpl->color_gradient.size()-1))];
 			*ptr ++ = clr.get<0>();
 			*ptr ++ = clr.get<1>();
 			*ptr ++ = clr.get<2>();
