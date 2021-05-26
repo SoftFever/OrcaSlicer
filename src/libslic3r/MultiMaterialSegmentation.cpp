@@ -1511,7 +1511,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
         }
     }); // end of parallel_for
 
-    if (auto w = print_object.print()->config().mmu_segmented_region_max_width; w > 0.f)
+    if (auto w = print_object.config().mmu_segmented_region_max_width; w > 0.f)
         cut_segmented_layers(input_expolygons, segmented_regions, float(-scale_(w)));
 
 //    return segmented_regions;
