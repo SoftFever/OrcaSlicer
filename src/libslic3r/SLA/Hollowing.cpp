@@ -22,12 +22,6 @@
 namespace Slic3r {
 namespace sla {
 
-template<class S, class = FloatingOnly<S>>
-inline void _scale(S s, TriangleMesh &m) { m.scale(float(s)); }
-
-template<class S, class = FloatingOnly<S>>
-inline void _scale(S s, Contour3D &m) { for (auto &p : m.points) p *= s; }
-
 struct Interior {
     indexed_triangle_set mesh;
     openvdb::FloatGrid::Ptr gridptr;

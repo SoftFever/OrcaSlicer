@@ -2,12 +2,10 @@
 #define SLA_HOLLOWING_HPP
 
 #include <memory>
-#include <libslic3r/SLA/Contour3D.hpp>
+#include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/JobController.hpp>
 
 namespace Slic3r {
-
-class TriangleMesh;
 
 namespace sla {
 

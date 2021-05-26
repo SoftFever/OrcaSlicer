@@ -2,7 +2,6 @@
 #define OPENVDBUTILS_HPP
 
 #include <libslic3r/TriangleMesh.hpp>
-#include <libslic3r/SLA/Contour3D.hpp>
 
 #ifdef _MSC_VER
 // Suppress warning C4146 in include/gmp.h(2177,31): unary minus operator applied to unsigned type, result still unsigned 
@@ -19,7 +18,6 @@ namespace Slic3r {
 inline Vec3f to_vec3f(const openvdb::Vec3s &v) { return Vec3f{v.x(), v.y(), v.z()}; }
 inline Vec3d to_vec3d(const openvdb::Vec3s &v) { return to_vec3f(v).cast<double>(); }
 inline Vec3i to_vec3i(const openvdb::Vec3I &v) { return Vec3i{int(v[0]), int(v[1]), int(v[2])}; }
-inline Vec4i to_vec4i(const openvdb::Vec4I &v) { return Vec4i{int(v[0]), int(v[1]), int(v[2]), int(v[3])}; }
 
 // Here voxel_scale defines the scaling of voxels which affects the voxel count.
 // 1.0 value means a voxel for every unit cube. 2 means the model is scaled to
