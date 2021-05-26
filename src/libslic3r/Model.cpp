@@ -652,19 +652,34 @@ ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
     return v;
 }
 
-ModelVolume* ModelObject::add_volume(TriangleMesh &&mesh)
+static void add_v_to_volumes(ModelVolumePtrs* volumes, ModelVolume* v) 
 {
-    ModelVolume* v = new ModelVolume(this, std::move(mesh));
-    this->volumes.push_back(v);
+    if (volumes->empty() || v->type() >= volumes->back()->type())
+        volumes->push_back(v);
+    else {
+        for (int pos = volumes->size() - 1; pos >= 0; pos--)
+            if (v->type() >= (*volumes)[pos]->type()) {
+                volumes->insert(volumes->begin() + pos + 1, v);
+                break;
+            }
+    }
+}
+
+ModelVolume* ModelObject::add_volume(TriangleMesh &&mesh, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/)
+{
+    ModelVolume* v = new ModelVolume(this, std::move(mesh), type);
+    add_v_to_volumes(&(this->volumes), v);
     v->center_geometry_after_creation();
     this->invalidate_bounding_box();
     return v;
 }
 
-ModelVolume* ModelObject::add_volume(const ModelVolume &other)
+ModelVolume* ModelObject::add_volume(const ModelVolume &other, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/)
 {
     ModelVolume* v = new ModelVolume(this, other);
-    this->volumes.push_back(v);
+    if (v->type() != type)
+        v->set_type(type);
+    add_v_to_volumes(&(this->volumes), v);
 	// The volume should already be centered at this point of time when copying shared pointers of the triangle mesh and convex hull.
 //	v->center_geometry_after_creation();
 //    this->invalidate_bounding_box();

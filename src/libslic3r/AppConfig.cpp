@@ -126,6 +126,9 @@ void AppConfig::set_defaults()
 
         if (get("color_mapinulation_panel").empty())
             set("color_mapinulation_panel", "0");
+
+        if (get("order_volumes").empty())
+            set("order_volumes", "1");
     }
     else {
 #ifdef _WIN32

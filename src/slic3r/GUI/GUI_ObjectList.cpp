@@ -1135,8 +1135,44 @@ bool ObjectList::can_drop(const wxDataViewItem& item) const
         return false;
 
     // move volumes inside one object only
-    if (m_dragged_data.type() & itVolume)
-        return m_dragged_data.obj_idx() == m_objects_model->GetObjectIdByItem(item);
+    if (m_dragged_data.type() & itVolume) {
+        if (m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item))
+            return false;
+        wxDataViewItem dragged_item = m_objects_model->GetItemByVolumeId(m_dragged_data.obj_idx(), m_dragged_data.sub_obj_idx());
+        if (!dragged_item)
+            return false;
+        ModelVolumeType item_v_type = m_objects_model->GetVolumeType(item);
+        ModelVolumeType dragged_item_v_type = m_objects_model->GetVolumeType(dragged_item);
+
+        if (dragged_item_v_type == item_v_type && dragged_item_v_type != ModelVolumeType::MODEL_PART)
+            return true;
+        if (wxGetApp().app_config->get("order_volumes") == "1" ||   // we can't reorder volumes outside of types
+            item_v_type >= ModelVolumeType::SUPPORT_BLOCKER)        // support blockers/enforcers can't change its place
+            return false; 
+
+        bool only_one_solid_part = true;
+        auto& volumes = (*m_objects)[m_dragged_data.obj_idx()]->volumes;
+        for (size_t cnt, id = cnt = 0; id < volumes.size() && cnt < 2; id ++)
+            if (volumes[id]->type() == ModelVolumeType::MODEL_PART) {
+                if (++cnt > 1)
+                    only_one_solid_part = false;
+            }
+
+        if (dragged_item_v_type == ModelVolumeType::MODEL_PART) {
+            if (only_one_solid_part)
+                return false;
+            return (m_objects_model->GetVolumeIdByItem(item) == 0 ||
+                    (m_dragged_data.sub_obj_idx()==0 && volumes[1]->type() == ModelVolumeType::MODEL_PART) ||
+                    (m_dragged_data.sub_obj_idx()!=0 && volumes[0]->type() == ModelVolumeType::MODEL_PART));
+        }
+        if ((dragged_item_v_type == ModelVolumeType::NEGATIVE_VOLUME || dragged_item_v_type == ModelVolumeType::PARAMETER_MODIFIER)) {
+            if (only_one_solid_part)
+                return false;
+            return m_objects_model->GetVolumeIdByItem(item) != 0;
+        }
+        
+        return false;
+    }
 
     return true;
 }
@@ -1375,8 +1411,7 @@ void ObjectList::load_part( ModelObject* model_object,
             }
             for (auto volume : object->volumes) {
                 volume->translate(delta);
-                auto new_volume = model_object->add_volume(*volume);
-                new_volume->set_type(type);
+                auto new_volume = model_object->add_volume(*volume, type);
                 new_volume->name = boost::filesystem::path(input_file).filename().string();
 
                 volumes_info.push_back(std::make_pair(from_u8(new_volume->name), new_volume->get_mesh_errors_count()>0));
@@ -1446,8 +1481,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     TriangleMesh mesh = create_mesh(type_name, instance_bb);
     
 	// Mesh will be centered when loading.
-    ModelVolume *new_volume = model_object.add_volume(std::move(mesh));
-    new_volume->set_type(type);
+    ModelVolume *new_volume = model_object.add_volume(std::move(mesh), type);
 
     if (instance_idx != -1)
     {
