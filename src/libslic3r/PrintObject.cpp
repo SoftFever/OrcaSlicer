@@ -15,14 +15,18 @@
 #include "Fill/FillAdaptive.hpp"
 #include "Format/STL.hpp"
 
-#include <utility>
-#include <boost/log/trivial.hpp>
 #include <float.h>
+#include <string_view>
+#include <utility>
+
+#include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
 #include <tbb/atomic.h>
 
 #include <Shiny/Shiny.h>
+
+using namespace std::literals;
 
 //! macro used to mark string used at localization,
 //! return same string
@@ -1537,7 +1541,7 @@ PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObject
 }
 
 const std::string                                                    key_extruder { "extruder" };
-static constexpr const std::initializer_list<const std::string_view> keys_extruders { "infill_extruder", "solid_infill_extruder", "perimeter_extruder" };
+static constexpr const std::initializer_list<const std::string_view> keys_extruders { "infill_extruder"sv, "solid_infill_extruder"sv, "perimeter_extruder"sv };
 
 static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPrintConfig &in)
 {
