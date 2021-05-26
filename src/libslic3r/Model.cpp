@@ -2034,43 +2034,54 @@ bool model_object_list_extended(const Model &model_old, const Model &model_new)
     return true;
 }
 
-bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type)
+template<typename TypeFilterFn>
+bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, TypeFilterFn type_filter)
 {
     size_t i_old, i_new;
     for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
         const ModelVolume &mv_old = *model_object_old.volumes[i_old];
         const ModelVolume &mv_new = *model_object_new.volumes[i_new];
-        if (mv_old.type() != type) {
+        if (! type_filter(mv_old.type())) {
             ++ i_old;
             continue;
         }
-        if (mv_new.type() != type) {
+        if (! type_filter(mv_new.type())) {
             ++ i_new;
             continue;
         }
-        if (mv_old.id() != mv_new.id())
+        if (mv_old.type() != mv_new.type() || mv_old.id() != mv_new.id())
             return true;
         //FIXME test for the content of the mesh!
-
-        if (!mv_old.get_matrix().isApprox(mv_new.get_matrix()))
+        if (! mv_old.get_matrix().isApprox(mv_new.get_matrix()))
             return true;
-
         ++ i_old;
         ++ i_new;
     }
     for (; i_old < model_object_old.volumes.size(); ++ i_old) {
         const ModelVolume &mv_old = *model_object_old.volumes[i_old];
-        if (mv_old.type() == type)
+        if (type_filter(mv_old.type()))
             // ModelVolume was deleted.
             return true;
     }
     for (; i_new < model_object_new.volumes.size(); ++ i_new) {
         const ModelVolume &mv_new = *model_object_new.volumes[i_new];
-        if (mv_new.type() == type)
+        if (type_filter(mv_new.type()))
             // ModelVolume was added.
             return true;
     }
     return false;
+}
+
+bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type)
+{
+    return model_volume_list_changed(model_object_old, model_object_new, [type](const ModelVolumeType t) { return t == type; });
+}
+
+bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const std::initializer_list<ModelVolumeType> &types)
+{
+    return model_volume_list_changed(model_object_old, model_object_new, [&types](const ModelVolumeType t) {
+        return std::find(types.begin(), types.end(), t) != types.end();
+    });
 }
 
 bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new) {

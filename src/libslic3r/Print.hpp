@@ -226,6 +226,7 @@ public:
     void clear() {
         all_regions.clear();
         layer_ranges.clear();
+        cached_volume_ids.clear();
     }
 
 private:

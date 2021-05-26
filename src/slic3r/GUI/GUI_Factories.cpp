@@ -151,7 +151,7 @@ wxBitmap SettingsFactory::get_category_bitmap(const std::string& category_name)
 //-------------------------------------
 
 // Note: id accords to type of the sub-object (adding volume), so sequence of the menu items is important
-std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_MENU_ITEMS = {
+const std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_MENU_ITEMS {
 //       menu_item Name              menu_item bitmap name
         {L("Add part"),              "add_part" },           // ~ModelVolumeType::MODEL_PART
         {L("Add negative volume"),   "add_negative" },       // ~ModelVolumeType::NEGATIVE_VOLUME

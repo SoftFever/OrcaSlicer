@@ -306,21 +306,20 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                 float z              = zs_complex[range.begin()].second;
                 auto  it_layer_range = lower_bound_by_predicate(print_object_regions.layer_ranges.begin(), print_object_regions.layer_ranges.end(), 
                     [z](const PrintObjectRegions::LayerRangeRegions &lr){ return lr.layer_height_range.second < z; });
-                assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first >= z && z <= it_layer_range->layer_height_range.second);
+                assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first <= z && z <= it_layer_range->layer_height_range.second);
                 if (z == it_layer_range->layer_height_range.second)
                     if (auto it_next = it_layer_range; ++ it_next != print_object_regions.layer_ranges.end() && it_next->layer_height_range.first == z)
                         it_layer_range = it_next;
-                assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first >= z && z < it_layer_range->layer_height_range.second);
+                assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first <= z && z <= it_layer_range->layer_height_range.second);
                 // Per volume_regions slices at this Z height.
                 struct RegionSlice { 
                     ExPolygons  expolygons;
                     // Identifier of this region in PrintObjectRegions::all_regions
                     int         region_id;
                     ObjectID    volume_id;
-                    bool empty() const { return region_id < 0 || expolygons.empty(); }
                     bool operator<(const RegionSlice &rhs) const {
-                        bool this_empty = this->empty();
-                        bool rhs_empty  = rhs.empty();
+                        bool this_empty = this->region_id < 0 || this->expolygons.empty();
+                        bool rhs_empty  = rhs.region_id < 0 || rhs.expolygons.empty();
                         // Sort the empty items to the end of the list.
                         // Sort by region_id & volume_id lexicographically.
                         return ! this_empty && (rhs_empty || (this->region_id < rhs.region_id || (this->region_id == rhs.region_id && volume_id < volume_id)));
@@ -331,7 +330,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     auto [z_idx, z] = zs_complex[zs_complex_idx];
                     for (; it_layer_range->layer_height_range.second <= z; ++ it_layer_range)
                         assert(it_layer_range != print_object_regions.layer_ranges.end());
-                    assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first >= z && z < it_layer_range->layer_height_range.second);
+                    assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first <= z && z < it_layer_range->layer_height_range.second);
                     const PrintObjectRegions::LayerRangeRegions &layer_range = *it_layer_range;
                     {
                         std::vector<VolumeSlices*> &layer_range_regions_to_slices = layer_ranges_regions_to_slices[it_layer_range - print_object_regions.layer_ranges.begin()];
@@ -344,26 +343,27 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                         }
                     }
                     for (int idx_region = 0; idx_region < int(layer_range.volume_regions.size()); ++ idx_region)
-                        if (! temp_slices[idx_region].empty()) {
+                        if (! temp_slices[idx_region].expolygons.empty()) {
                             const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_region];
                             if (region.model_volume->is_modifier()) {
                                 assert(region.parent > -1);
                                 bool next_region_same_modifier = idx_region + 1 < int(temp_slices.size()) && layer_range.volume_regions[idx_region + 1].model_volume == region.model_volume;
-                                if (next_region_same_modifier)
-                                    temp_slices[idx_region + 1] = std::move(temp_slices[idx_region]);
                                 RegionSlice &parent_slice = temp_slices[region.parent];
                                 RegionSlice &this_slice   = temp_slices[idx_region];
-                                if (parent_slice.empty())
-                                    this_slice.expolygons.clear();
-                                else {
-                                    RegionSlice &source_slice = temp_slices[idx_region + int(next_region_same_modifier)];
-                                    this_slice  .expolygons = intersection_ex(parent_slice.expolygons, source_slice.expolygons);
-                                    parent_slice.expolygons = diff_ex        (parent_slice.expolygons, source_slice.expolygons);
+                                ExPolygons   source       = std::move(this_slice.expolygons);
+                                if (parent_slice.expolygons.empty()) {
+                                    this_slice  .expolygons.clear();
+                                } else {
+                                    this_slice  .expolygons = intersection_ex(parent_slice.expolygons, source);
+                                    parent_slice.expolygons = diff_ex        (parent_slice.expolygons, source);
                                 }
+                                if (next_region_same_modifier)
+                                    // To be used in the following iteration.
+                                    temp_slices[idx_region + 1].expolygons = std::move(source);
                             } else if ((region.model_volume->is_model_part() && clip_multipart_objects) || region.model_volume->is_negative_volume()) {
                                 // Clip every non-zero region preceding it.
                                 for (int idx_region2 = 0; idx_region2 < idx_region; ++ idx_region2)
-                                    if (! temp_slices[idx_region2].empty()) {
+                                    if (! temp_slices[idx_region2].expolygons.empty()) {
                                         if (const PrintObjectRegions::VolumeRegion &region2 = layer_range.volume_regions[idx_region2];
                                             ! region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
                                             temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
@@ -373,7 +373,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     // Sort by region_id, push empty slices to the end.
                     std::sort(temp_slices.begin(), temp_slices.end());
                     // Remove the empty slices.
-                    temp_slices.erase(std::find_if(temp_slices.begin(), temp_slices.end(), [](const auto &slice) { return slice.empty(); }), temp_slices.end());
+                    temp_slices.erase(std::find_if(temp_slices.begin(), temp_slices.end(), [](const auto &slice) { return slice.region_id == -1 || slice.expolygons.empty(); }), temp_slices.end());
                     // Merge slices and store them to the output.
                     for (int i = 0; i < int(temp_slices.size());) {
                         // Find a range of temp_slices with the same region_id.
