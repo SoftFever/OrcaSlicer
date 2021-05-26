@@ -329,7 +329,25 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
         if (insert_position >= 0) insert_position++;
 	}
 
-    const auto node = new ObjectDataViewModelNode(root, name, GetVolumeIcon(volume_type, has_errors), extruder_str, root->m_volumes_cnt);
+    size_t new_volume_id = root->m_volumes_cnt;
+
+    // find insert_position in respect to the volume type
+    for (int pos = (insert_position < 0 ? (int)root->GetChildCount() : insert_position) - 1; pos >= 0; pos--) {
+        ObjectDataViewModelNode* node = root->GetNthChild(pos);
+        if (volume_type >= node->m_volume_type) {
+            insert_position = pos + 1;
+            new_volume_id = (size_t)(node->GetIdx()) + 1;
+            for (int new_pos = pos + 1; new_pos < (int)root->GetChildCount(); new_pos++) {
+                ObjectDataViewModelNode* new_node = root->GetNthChild(new_pos);
+                if (new_node->GetType() != itVolume)
+                    break;
+                new_node->SetIdx(new_node->GetIdx() + 1);
+            }
+            break;
+        }
+    }
+
+    const auto node = new ObjectDataViewModelNode(root, name, GetVolumeIcon(volume_type, has_errors), extruder_str, new_volume_id);
     insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 
     // if part with errors is added, but object wasn't marked, then mark it

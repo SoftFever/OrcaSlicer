@@ -156,8 +156,8 @@ const std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_M
         {L("Add part"),              "add_part" },           // ~ModelVolumeType::MODEL_PART
         {L("Add negative volume"),   "add_negative" },       // ~ModelVolumeType::NEGATIVE_VOLUME
         {L("Add modifier"),          "add_modifier"},        // ~ModelVolumeType::PARAMETER_MODIFIER
+        {L("Add support blocker"),   "support_blocker"},     // ~ModelVolumeType::SUPPORT_BLOCKER
         {L("Add support enforcer"),  "support_enforcer"},    // ~ModelVolumeType::SUPPORT_ENFORCER
-        {L("Add support blocker"),   "support_blocker"}      // ~ModelVolumeType::SUPPORT_BLOCKER
 };
 
 static Plater* plater()

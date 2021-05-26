@@ -312,6 +312,14 @@ void PreferencesDialog::build()
 		option = Option(def, "color_mapinulation_panel");
 		m_optgroup_gui->append_single_option_line(option);
 
+		def.label = L("Order object volumes by types");
+		def.type = coBool;
+		def.tooltip = L("If enabled, volumes will be always ordered inside the object. Correct order is Model Part, Negative Volume, Modifier, Support Blocker and Support Enforcer. "
+						"If disabled, you can reorder Model Parts, Negative Volumes and Modifiers. But one of the model parts have to be on the first place.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("order_volumes") == "1" });
+		option = Option(def, "order_volumes");
+		m_optgroup_gui->append_single_option_line(option);
+
 		def.label = L("Use custom size for toolbar icons");
 		def.type = coBool;
 		def.tooltip = L("If enabled, you can change size of toolbar icons manually.");

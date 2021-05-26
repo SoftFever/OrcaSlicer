@@ -216,6 +216,16 @@ private:
     friend class ModelObject;
 };
 
+// Declared outside of ModelVolume, so it could be forward declared.
+enum class ModelVolumeType : int {
+    INVALID = -1,
+    MODEL_PART = 0,
+    NEGATIVE_VOLUME,
+    PARAMETER_MODIFIER,
+    SUPPORT_BLOCKER,
+    SUPPORT_ENFORCER,
+};
+
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
 // Each ModelObject may be instantiated mutliple times, each instance having different placement on the print bed,
@@ -262,8 +272,8 @@ public:
     const Model*            get_model() const { return m_model; }
 
     ModelVolume*            add_volume(const TriangleMesh &mesh);
-    ModelVolume*            add_volume(TriangleMesh &&mesh);
-    ModelVolume*            add_volume(const ModelVolume &volume);
+    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART);
+    ModelVolume*            add_volume(const ModelVolume &volume, ModelVolumeType type = ModelVolumeType::MODEL_PART);
     ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
     void                    delete_volume(size_t idx);
     void                    clear_volumes();
@@ -480,16 +490,6 @@ private:
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
 	}
-};
-
-// Declared outside of ModelVolume, so it could be forward declared.
-enum class ModelVolumeType : int {
-    INVALID = -1,
-    MODEL_PART = 0,
-    NEGATIVE_VOLUME,
-    PARAMETER_MODIFIER,
-    SUPPORT_BLOCKER,
-    SUPPORT_ENFORCER,
 };
 
 enum class EnforcerBlockerType : int8_t {
@@ -717,7 +717,7 @@ private:
     //      1   ->   is splittable
     mutable int               		m_is_splittable{ -1 };
 
-	ModelVolume(ModelObject *object, const TriangleMesh &mesh) : m_mesh(new TriangleMesh(mesh)), m_type(ModelVolumeType::MODEL_PART), object(object)
+	ModelVolume(ModelObject *object, const TriangleMesh &mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART) : m_mesh(new TriangleMesh(mesh)), m_type(type), object(object)
     {
 		assert(this->id().valid()); 
         assert(this->config.id().valid()); 
@@ -731,8 +731,8 @@ private:
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
-    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) :
-		m_mesh(new TriangleMesh(std::move(mesh))), m_convex_hull(new TriangleMesh(std::move(convex_hull))), m_type(ModelVolumeType::MODEL_PART), object(object) {
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull, ModelVolumeType type = ModelVolumeType::MODEL_PART) :
+		m_mesh(new TriangleMesh(std::move(mesh))), m_convex_hull(new TriangleMesh(std::move(convex_hull))), m_type(type), object(object) {
 		assert(this->id().valid()); 
         assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
