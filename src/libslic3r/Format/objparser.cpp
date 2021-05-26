@@ -6,6 +6,8 @@
 
 #include "objparser.hpp"
 
+#include "libslic3r/LocalesUtils.hpp"
+
 namespace ObjParser {
 
 static bool obj_parseline(const char *line, ObjData &data)
@@ -14,6 +16,8 @@ static bool obj_parseline(const char *line, ObjData &data)
 
 	if (*line == 0)
 		return true;
+
+    assert(Slic3r::is_decimal_separator_point());
 
 	// Ignore whitespaces at the beginning of the line.
 	//FIXME is this a good idea?
@@ -322,6 +326,8 @@ static bool obj_parseline(const char *line, ObjData &data)
 
 bool objparse(const char *path, ObjData &data)
 {
+    Slic3r::CNumericLocalesSetter locales_setter;
+
 	FILE *pFile = boost::nowide::fopen(path, "rt");
 	if (pFile == 0)
 		return false;
@@ -365,6 +371,8 @@ bool objparse(const char *path, ObjData &data)
 
 bool objparse(std::istream &stream, ObjData &data)
 {
+    Slic3r::CNumericLocalesSetter locales_setter;
+    
     try {
         char buf[65536 * 2];
         size_t len = 0;

@@ -1356,7 +1356,7 @@ void GLCanvas3D::render()
         if (m_rectangle_selection.is_dragging())
             // picking pass using rectangle selection
             _rectangular_selection_picking_pass();
-        else
+        else if (!m_volumes.empty())
             // regular picking pass
             _picking_pass();
     }
@@ -3800,7 +3800,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     if (imgui->slider_float(_L("Spacing"), &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance) {
         settings.distance = std::max(dist_min, settings.distance);
         settings_out.distance = settings.distance;
-        appcfg->set("arrange", dist_key.c_str(), std::to_string(settings_out.distance));
+        appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
         settings_changed = true;
     }
 
@@ -3815,7 +3815,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     if (imgui->button(_L("Reset"))) {
         settings_out = ArrangeSettings{};
         settings_out.distance = std::max(dist_min, settings_out.distance);
-        appcfg->set("arrange", dist_key.c_str(), std::to_string(settings_out.distance));
+        appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
         settings_changed = true;
     }
@@ -4526,6 +4526,14 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 {
     if (m_canvas == nullptr && m_context == nullptr)
         return;
+
+#if ENABLE_SCROLLABLE_LEGEND
+    const std::array<unsigned int, 2> new_size = { w, h };
+    if (m_old_size == new_size)
+        return;
+
+    m_old_size = new_size;
+#endif // ENABLE_SCROLLABLE_LEGEND
 
     auto *imgui = wxGetApp().imgui();
     imgui->set_display_size(static_cast<float>(w), static_cast<float>(h));

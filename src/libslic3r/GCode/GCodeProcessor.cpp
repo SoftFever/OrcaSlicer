@@ -1,6 +1,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "GCodeProcessor.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -465,9 +466,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     };
 
     auto format_time_float = [](float time) {
-        char time_str[64];
-        sprintf(time_str, "%.2f", time);
-        return std::string(time_str);
+        return Slic3r::float_to_string_decimal_point(time, 2);
     };
 
     auto format_line_M73_stop_float = [format_time_float](const std::string& mask, float time) {
@@ -671,7 +670,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 
                                         std::string time_float_str = format_time_float(time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
                                         std::string next_time_float_str = format_time_float(time_in_last_minute(it_stop->elapsed_time - next_it->elapsed_time));
-                                        is_last |= (std::stof(time_float_str) > 0.0f && std::stof(next_time_float_str) == 0.0f);
+                                        is_last |= (string_to_double_decimal_point(time_float_str) > 0. && string_to_double_decimal_point(next_time_float_str) == 0.);
                                     }
 
                                     if (is_last) {
@@ -1374,7 +1373,7 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
             if (pos != cmt.npos) {
                 pos = cmt.find(',', pos);
                 if (pos != cmt.npos) {
-                    out = std::stod(cmt.substr(pos + 1));
+                    out = string_to_double_decimal_point(cmt.substr(pos+1));
                     return true;
                 }
             }
@@ -1524,9 +1523,9 @@ template<typename T>
             else if constexpr (std::is_same_v<T, long>)
                 out = std::stol(str, &read);
             else if constexpr (std::is_same_v<T, float>)
-                out = std::stof(str, &read);
+                out = string_to_double_decimal_point(str, &read);
             else if constexpr (std::is_same_v<T, double>)
-                out = std::stod(str, &read);
+                out = string_to_double_decimal_point(str, &read);
             return str.size() == read;
         } catch (...) {
             return false;

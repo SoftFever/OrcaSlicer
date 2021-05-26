@@ -4,6 +4,7 @@
 
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
+#include "../LocalesUtils.hpp"
 
 #include "PressureEqualizer.hpp"
 
@@ -158,7 +159,7 @@ static inline int parse_int(const char *&line)
 static inline float parse_float(const char *&line)
 {
     char *endptr = NULL;
-    float result = strtof(line, &endptr);
+    float result = string_to_double_decimal_point(line, &endptr);
     if (endptr == NULL || !is_ws_or_eol(*endptr))
         throw Slic3r::RuntimeError("PressureEqualizer: Error parsing a float");
     line = endptr;

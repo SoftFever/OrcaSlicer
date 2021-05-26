@@ -30,23 +30,23 @@ SCENARIO("Export+Import geometry to/from 3mf file cycle", "[3mf]") {
         load_stl(src_file.c_str(), &src_model);
         src_model.add_default_instances();
 
-        ModelObject* src_object = src_model.objects[0];
+        ModelObject* src_object = src_model.objects.front();
 
         // apply generic transformation to the 1st volume
         Geometry::Transformation src_volume_transform;
-        src_volume_transform.set_offset(Vec3d(10.0, 20.0, 0.0));
-        src_volume_transform.set_rotation(Vec3d(Geometry::deg2rad(25.0), Geometry::deg2rad(35.0), Geometry::deg2rad(45.0)));
-        src_volume_transform.set_scaling_factor(Vec3d(1.1, 1.2, 1.3));
-        src_volume_transform.set_mirror(Vec3d(-1.0, 1.0, -1.0));
-        src_object->volumes[0]->set_transformation(src_volume_transform);
+        src_volume_transform.set_offset({ 10.0, 20.0, 0.0 });
+        src_volume_transform.set_rotation({ Geometry::deg2rad(25.0), Geometry::deg2rad(35.0), Geometry::deg2rad(45.0) });
+        src_volume_transform.set_scaling_factor({ 1.1, 1.2, 1.3 });
+        src_volume_transform.set_mirror({ -1.0, 1.0, -1.0 });
+        src_object->volumes.front()->set_transformation(src_volume_transform);
 
         // apply generic transformation to the 1st instance
         Geometry::Transformation src_instance_transform;
-        src_instance_transform.set_offset(Vec3d(5.0, 10.0, 0.0));
-        src_instance_transform.set_rotation(Vec3d(Geometry::deg2rad(12.0), Geometry::deg2rad(13.0), Geometry::deg2rad(14.0)));
-        src_instance_transform.set_scaling_factor(Vec3d(0.9, 0.8, 0.7));
-        src_instance_transform.set_mirror(Vec3d(1.0, -1.0, -1.0));
-        src_object->instances[0]->set_transformation(src_instance_transform);
+        src_instance_transform.set_offset({ 5.0, 10.0, 0.0 });
+        src_instance_transform.set_rotation({ Geometry::deg2rad(12.0), Geometry::deg2rad(13.0), Geometry::deg2rad(14.0) });
+        src_instance_transform.set_scaling_factor({ 0.9, 0.8, 0.7 });
+        src_instance_transform.set_mirror({ 1.0, -1.0, -1.0 });
+        src_object->instances.front()->set_transformation(src_instance_transform);
 
         WHEN("model is saved+loaded to/from 3mf file") {
             // save the model to 3mf file
@@ -67,16 +67,9 @@ SCENARIO("Export+Import geometry to/from 3mf file cycle", "[3mf]") {
             dst_mesh.repair();
 
             bool res = src_mesh.its.vertices.size() == dst_mesh.its.vertices.size();
-            if (res)
-            {
-                for (size_t i = 0; i < dst_mesh.its.vertices.size(); ++i)
-                {
+            if (res) {
+                for (size_t i = 0; i < dst_mesh.its.vertices.size(); ++i) {
                     res &= dst_mesh.its.vertices[i].isApprox(src_mesh.its.vertices[i]);
-                    if (!res)
-                    {
-                        Vec3f diff = dst_mesh.its.vertices[i] - src_mesh.its.vertices[i];
-                        std::cout << i << ": diff " << to_string((Vec3d)diff.cast<double>()) << "\n";
-                    }
                 }
             }
             THEN("world vertices coordinates after load match") {
@@ -85,3 +78,45 @@ SCENARIO("Export+Import geometry to/from 3mf file cycle", "[3mf]") {
         }
     }
 }
+
+SCENARIO("2D convex hull of sinking object", "[3mf]") {
+    GIVEN("model") {
+        // load a model
+        Model model;
+        std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
+        load_stl(src_file.c_str(), &model);
+        model.add_default_instances();
+
+        WHEN("model is rotated, scaled and set as sinking") {
+            ModelObject* object = model.objects.front();
+            object->center_around_origin(false);
+
+            // set instance's attitude so that it is rotated, scaled and sinking
+            ModelInstance* instance = object->instances.front();
+            instance->set_rotation(X, -M_PI / 4.0);
+            instance->set_offset(Vec3d::Zero());
+            instance->set_scaling_factor({ 2.0, 2.0, 2.0 });
+
+            // calculate 2D convex hull
+            Polygon hull_2d = object->convex_hull_2d(instance->get_transformation().get_matrix());
+
+            // verify result
+            Points result = {
+                { -91501496, -15914144 },
+                { 91501496, -15914144 },
+                { 91501496, 4243 },
+                { 78229680, 4246883 },
+                { 56898100, 4246883 },
+                { -85501496, 4242641 },
+                { -91501496, 4243 }
+            };
+
+            bool res = hull_2d.points == result;
+
+            THEN("2D convex hull should match with reference") {
+                REQUIRE(res);
+            }
+        }
+    }
+}
+

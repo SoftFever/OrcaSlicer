@@ -1388,17 +1388,21 @@ static void focus_event(wxFocusEvent& e, wxTextCtrl* ctrl, double def_value)
 {
     e.Skip();
     wxString str = ctrl->GetValue();
-    // Replace the first occurence of comma in decimal number.
-    bool was_replace = str.Replace(",", ".", false) > 0;
+
+    const char dec_sep = is_decimal_separator_point() ? '.' : ',';
+    const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
+    // Replace the first incorrect separator in decimal number.
+    bool was_replaced = str.Replace(dec_sep_alt, dec_sep, false) != 0;
+
     double val = 0.0;
-    if (!str.ToCDouble(&val)) {
+    if (!str.ToDouble(&val)) {
         if (val == 0.0)
             val = def_value;
         ctrl->SetValue(double_to_string(val));
         show_error(nullptr, _L("Invalid numeric input."));
         ctrl->SetFocus();
     }
-    else if (was_replace)
+    else if (was_replaced)
         ctrl->SetValue(double_to_string(val));
 }
 
@@ -1447,17 +1451,17 @@ PageDiameters::PageDiameters(ConfigWizard *parent)
 void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
 {
     double val = 0.0;
-    diam_nozzle->GetValue().ToCDouble(&val);
+    diam_nozzle->GetValue().ToDouble(&val);
     auto *opt_nozzle = new ConfigOptionFloats(1, val);
     config.set_key_value("nozzle_diameter", opt_nozzle);
 
     val = 0.0;
-    diam_filam->GetValue().ToCDouble(&val);
+    diam_filam->GetValue().ToDouble(&val);
     auto * opt_filam = new ConfigOptionFloats(1, val);
     config.set_key_value("filament_diameter", opt_filam);
 
     auto set_extrusion_width = [&config, opt_nozzle](const char *key, double dmr) {
-        char buf[64];
+        char buf[64]; // locales don't matter here (sprintf/atof)
         sprintf(buf, "%.2lf", dmr * opt_nozzle->values.front() / 0.4);
         config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf), false));
     };

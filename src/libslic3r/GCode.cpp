@@ -12,6 +12,7 @@
 #include "Utils.hpp"
 #include "ClipperUtils.hpp"
 #include "libslic3r.h"
+#include "LocalesUtils.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -750,6 +751,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
     std::string path_tmp(path);
     path_tmp += ".tmp";
 
+    CNumericLocalesSetter c_locales_setter;
     FILE *file = boost::nowide::fopen(path_tmp.c_str(), "wb");
     if (file == nullptr)
         throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
@@ -981,6 +983,7 @@ namespace DoExport {
 	            double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
 	            double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
                 auto append = [&extruder](std::pair<std::string, unsigned int> &dst, const char *tmpl, double value) {
+                    assert(is_decimal_separator_point());
 	                while (dst.second < extruder.id()) {
 	                    // Fill in the non-printing extruders with zeros.
 	                    dst.first += (dst.second > 0) ? ", 0" : "0";
@@ -1620,7 +1623,7 @@ void GCode::print_machine_envelope(FILE *file, Print &print)
             int(print.config().machine_max_acceleration_retracting.values.front() + 0.5),
             travel_acc);
 
-
+        assert(is_decimal_separator_point());
         fprintf(file, "M205 X%.2lf Y%.2lf Z%.2lf E%.2lf ; sets the jerk limits, mm/sec\n",
             print.config().machine_max_jerk_x.values.front(),
             print.config().machine_max_jerk_y.values.front(),
@@ -1984,6 +1987,7 @@ void GCode::process_layer(
     }
 
     std::string gcode;
+    assert(is_decimal_separator_point()); // for the sprintfs
 
     // add tag for processor
 #if ENABLE_VALIDATE_CUSTOM_GCODE
@@ -2826,6 +2830,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // so, if the last role was erWipeTower we force export of GCodeProcessor::Height_Tag lines
     bool last_was_wipe_tower = (m_last_processor_extrusion_role == erWipeTower);
     char buf[64];
+    assert(is_decimal_separator_point());
 
     if (path.role() != m_last_processor_extrusion_role) {
         m_last_processor_extrusion_role = path.role();

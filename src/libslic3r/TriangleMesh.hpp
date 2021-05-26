@@ -65,7 +65,7 @@ public:
     // Returns the convex hull of this TriangleMesh
     TriangleMesh convex_hull_3d() const;
     // Slice this mesh at the provided Z levels and return the vector
-    std::vector<ExPolygons> slice(const std::vector<double>& z);
+    std::vector<ExPolygons> slice(const std::vector<double>& z) const;
     void reset_repair_stats();
     bool needed_repair() const;
     void require_shared_vertices();

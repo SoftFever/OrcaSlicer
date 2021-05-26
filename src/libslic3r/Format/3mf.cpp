@@ -2,6 +2,7 @@
 #include "../Exception.hpp"
 #include "../Model.hpp"
 #include "../Utils.hpp"
+#include "../LocalesUtils.hpp"
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
 #include "../GCode/ThumbnailData.hpp"
@@ -2408,6 +2409,7 @@ namespace Slic3r {
         };
 
         auto format_coordinate = [](float f, char *buf) -> char* {
+            assert(is_decimal_separator_point());
 #if EXPORT_3MF_USE_SPIRIT_KARMA_FP
             // Slightly faster than sprintf("%.9g"), but there is an issue with the karma floating point formatter,
             // https://github.com/boostorg/spirit/pull/586
@@ -2575,6 +2577,7 @@ namespace Slic3r {
 
     bool _3MF_Exporter::_add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model)
     {
+        assert(is_decimal_separator_point());
         std::string out = "";
         char buffer[1024];
 
@@ -2666,6 +2669,7 @@ namespace Slic3r {
 
     bool _3MF_Exporter::_add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model)
     {
+        assert(is_decimal_separator_point());
         std::string out = "";
         char buffer[1024];
 
@@ -2700,6 +2704,7 @@ namespace Slic3r {
     
     bool _3MF_Exporter::_add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model)
     {
+        assert(is_decimal_separator_point());
         const char *const fmt = "object_id=%d|";
         std::string out;
         
@@ -2750,6 +2755,7 @@ namespace Slic3r {
 
     bool _3MF_Exporter::_add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config)
     {
+        assert(is_decimal_separator_point());
         char buffer[1024];
         sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
         std::string out = buffer;
@@ -2926,6 +2932,9 @@ bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool c
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
 
+    // All import should use "C" locales for number formatting.
+    CNumericLocalesSetter locales_setter;
+
     _3MF_Importer importer;
     bool res = importer.load_model_from_file(path, *model, *config, check_version);
     importer.log_errors();
@@ -2934,6 +2943,9 @@ bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool c
 
 bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data, bool zip64)
 {
+    // All export should use "C" locales for number formatting.
+    CNumericLocalesSetter locales_setter;
+
     if (path == nullptr || model == nullptr)
         return false;
 

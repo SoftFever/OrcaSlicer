@@ -611,7 +611,7 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
     return output_mesh;
 }
 
-std::vector<ExPolygons> TriangleMesh::slice(const std::vector<double> &z)
+std::vector<ExPolygons> TriangleMesh::slice(const std::vector<double> &z) const
 {
     // convert doubles to floats
     std::vector<float> z_f(z.begin(), z.end());
@@ -911,16 +911,16 @@ void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, c
     all_pts.reserve(all_pts.size() + its.indices.size() * 3);
     for (const stl_triangle_vertex_indices &tri : its.indices) {
         const Vec3f pts[3] = { transform_fn(its.vertices[tri(0)]), transform_fn(its.vertices[tri(1)]), transform_fn(its.vertices[tri(2)]) };
-        int iprev = 3;
+        int iprev = 2;
         for (int iedge = 0; iedge < 3; ++ iedge) {
             const Vec3f &p1 = pts[iprev];
             const Vec3f &p2 = pts[iedge];
             if ((p1.z() < z && p2.z() > z) || (p2.z() < z && p1.z() > z)) {
                 // Edge crosses the z plane. Calculate intersection point with the plane.
-                float t = z / (p2.z() - p1.z());
-                all_pts.emplace_back(scaled<coord_t>(p1.x() + (p2.x() - p1.x()) * t), scaled<coord_t>(p2.x() + (p2.y() - p2.y()) * t));
+                float t = (z - p1.z()) / (p2.z() - p1.z());
+                all_pts.emplace_back(scaled<coord_t>(p1.x() + (p2.x() - p1.x()) * t), scaled<coord_t>(p1.y() + (p2.y() - p1.y()) * t));
             }
-            if (p2.z() > z)
+            if (p2.z() >= z)
                 all_pts.emplace_back(scaled<coord_t>(p2.x()), scaled<coord_t>(p2.y()));
             iprev = iedge;
         }

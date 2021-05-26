@@ -4,9 +4,12 @@
 #include <iostream>
 #include <vector>
 #include <numeric>
+#include <sstream>
+#include <iomanip>
 
 #include "GCodeProcessor.hpp"
 #include "BoundingBox.hpp"
+#include "LocalesUtils.hpp"
 
 
 namespace Slic3r
@@ -30,29 +33,27 @@ public:
         m_filpar(filament_parameters)
         {
             // adds tag for analyzer:
-            char buf[64];
+            std::ostringstream str;
 #if ENABLE_VALIDATE_CUSTOM_GCODE
-            sprintf(buf, ";%s%f\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
-            m_gcode += buf;
-            sprintf(buf, ";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erWipeTower).c_str());
+            str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) << m_layer_height << "\n"; // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
+            str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role) << ExtrusionEntity::role_to_string(erWipeTower) << "\n";
 #else
-            sprintf(buf, ";%s%f\n", GCodeProcessor::Height_Tag.c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
-            m_gcode += buf;
-            sprintf(buf, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(erWipeTower).c_str());
+            str << ";" << GCodeProcessor::Height_Tag << m_layer_height << "\n"; // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
+            str << ";" << GCodeProcessor::Extrusion_Role_Tag << ExtrusionEntity::role_to_string(erWipeTower) << "\n";
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
-            m_gcode += buf;
+            m_gcode += str.str();
             change_analyzer_line_width(line_width);
     }
 
     WipeTowerWriter& change_analyzer_line_width(float line_width) {
         // adds tag for analyzer:
-        char buf[64];
+        std::stringstream str;
 #if ENABLE_VALIDATE_CUSTOM_GCODE
-        sprintf(buf, ";%s%f\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width).c_str(), line_width);
+        str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) << line_width << "\n";
 #else
-        sprintf(buf, ";%s%f\n", GCodeProcessor::Width_Tag.c_str(), line_width);
+        str << ";" << GCodeProcessor::Width_Tag << line_width << "\n";
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
-        m_gcode += buf;
+        m_gcode += str.str();
         return *this;
     }
 
@@ -61,9 +62,9 @@ public:
         static const float area = float(M_PI) * 1.75f * 1.75f / 4.f;
         float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
         // adds tag for processor:
-        char buf[64];
-        sprintf(buf, ";%s%f\n", GCodeProcessor::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
-        m_gcode += buf;
+        std::stringstream str;
+        str << ";" << GCodeProcessor::Mm3_Per_Mm_Tag << mm3_per_mm << "\n";
+        m_gcode += str.str();
         return *this;
     }
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -325,9 +326,7 @@ public:
 	{
         if (time==0.f)
             return *this;
-		char buf[128];
-		sprintf(buf, "G4 S%.3f\n", time);
-		m_gcode += buf;
+        m_gcode += "G4 S" + Slic3r::float_to_string_decimal_point(time, 3) + "\n";
 		return *this;
     }
 
@@ -443,37 +442,29 @@ private:
     const std::vector<WipeTower::FilamentParameters>& m_filpar;
 
 	std::string   set_format_X(float x)
-	{
-		char buf[64];
-		sprintf(buf, " X%.3f", x);
-		m_current_pos.x() = x;
-		return buf;
+    {
+        m_current_pos.x() = x;
+        return " X" + Slic3r::float_to_string_decimal_point(x, 3);
 	}
 
 	std::string   set_format_Y(float y) {
-		char buf[64];
-		sprintf(buf, " Y%.3f", y);
-		m_current_pos.y() = y;
-		return buf;
+        m_current_pos.y() = y;
+        return " Y" + Slic3r::float_to_string_decimal_point(y, 3);
 	}
 
 	std::string   set_format_Z(float z) {
-		char buf[64];
-		sprintf(buf, " Z%.3f", z);
-		return buf;
+        return " Z" + Slic3r::float_to_string_decimal_point(z, 3);
 	}
 
 	std::string   set_format_E(float e) {
-		char buf[64];
-		sprintf(buf, " E%.4f", e);
-		return buf;
+        return " E" + Slic3r::float_to_string_decimal_point(e, 4);
 	}
 
 	std::string   set_format_F(float f) {
-		char buf[64];
-		sprintf(buf, " F%d", int(floor(f + 0.5f)));
-		m_current_feedrate = f;
-		return buf;
+        char buf[64];
+        sprintf(buf, " F%d", int(floor(f + 0.5f)));
+        m_current_feedrate = f;
+        return buf;
 	}
 
 	WipeTowerWriter& operator=(const WipeTowerWriter &rhs);
@@ -959,8 +950,8 @@ void WipeTower::toolchange_Change(
     // postprocessor that we absolutely want to have this in the gcode, even if it thought it is the same as before.
     Vec2f current_pos = writer.pos_rotated();
     writer.feedrate(m_travel_speed * 60.f) // see https://github.com/prusa3d/PrusaSlicer/issues/5483
-          .append(std::string("G1 X") + std::to_string(current_pos.x())
-                             +  " Y"  + std::to_string(current_pos.y())
+          .append(std::string("G1 X") + Slic3r::float_to_string_decimal_point(current_pos.x())
+                             +  " Y"  + Slic3r::float_to_string_decimal_point(current_pos.y())
                              + never_skip_tag() + "\n");
 
     // The toolchange Tn command will be inserted later, only in case that the user does
@@ -1310,11 +1301,10 @@ static WipeTower::ToolChangeResult merge_tcr(WipeTower::ToolChangeResult& first,
 {
     assert(first.new_tool == second.initial_tool);
     WipeTower::ToolChangeResult out = first;
-    if (first.end_pos != second.start_pos) {
-        char buf[2048];     // Add a travel move from tc1.end_pos to tc2.start_pos.
-        sprintf(buf, "G1 X%.3f Y%.3f F7200\n", second.start_pos.x(), second.start_pos.y());
-        out.gcode += buf;
-    }
+    if (first.end_pos != second.start_pos)
+        out.gcode += "G1 X" + Slic3r::float_to_string_decimal_point(second.start_pos.x(), 3)
+                     + " Y" + Slic3r::float_to_string_decimal_point(second.start_pos.y(), 3)
+                     + " F7200\n";
     out.gcode += second.gcode;
     out.extrusions.insert(out.extrusions.end(), second.extrusions.begin(), second.extrusions.end());
     out.end_pos = second.end_pos;
