@@ -1536,34 +1536,49 @@ PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObject
     return config;
 }
 
+const std::string                                               key_extruder { "extruder" };
+static constexpr const std::initializer_list<std::string_view>  keys_extruders { "infill_extruder", "solid_infill_extruder", "perimeter_extruder" };
+
 static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPrintConfig &in)
 {
     // 1) Copy the "extruder key to infill_extruder and perimeter_extruder.
-    std::string sextruder = "extruder";
-    auto *opt_extruder = in.opt<ConfigOptionInt>(sextruder);
-    if (opt_extruder) {
-        int extruder = opt_extruder->value;
-        if (extruder != 0) {
+    auto *opt_extruder = in.opt<ConfigOptionInt>(key_extruder);
+    if (opt_extruder)
+        if (int extruder = opt_extruder->value; extruder != 0) {
+            // Not a default extruder.
             out.infill_extruder      .value = extruder;
             out.solid_infill_extruder.value = extruder;
             out.perimeter_extruder   .value = extruder;
         }
-    }
     // 2) Copy the rest of the values.
     for (auto it = in.cbegin(); it != in.cend(); ++ it)
-        if (it->first != sextruder) {
-            ConfigOption *my_opt = out.option(it->first, false);
-            if (my_opt)
-                my_opt->set(it->second.get());
-        }
+        if (it->first != key_extruder)
+            if (ConfigOption* my_opt = out.option(it->first, false); my_opt != nullptr) {
+                if (one_of(it->first, keys_extruders)) {
+                    // Ignore "default" extruders.
+                    int extruder = static_cast<const ConfigOptionInt*>(it->second.get())->value;
+                    if (extruder > 0)
+                        my_opt->setInt(extruder);
+                } else
+                    my_opt->set(it->second.get());
+            }
 }
 
-PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders)
+PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_or_parent_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders)
 {
-    PrintRegionConfig config = default_region_config;
-    apply_to_print_region_config(config, volume.get_object()->config.get());
-    if (layer_range_config != nullptr)
+    PrintRegionConfig config = default_or_parent_region_config;
+    if (volume.is_model_part()) {
+        // default_or_parent_region_config contains the Print's PrintRegionConfig.
+        // Override with ModelObject's PrintRegionConfig values.
+        apply_to_print_region_config(config, volume.get_object()->config.get());
+    } else {
+        // default_or_parent_region_config contains parent PrintRegion config, which already contains ModelVolume's config.
+    }
+    if (layer_range_config != nullptr) {
+        // Not applicable to modifiers.
+        assert(volume.is_model_part());
     	apply_to_print_region_config(config, *layer_range_config);
+    }
     apply_to_print_region_config(config, volume.config.get());
     if (! volume.material_id().empty())
         apply_to_print_region_config(config, volume.material()->config.get());

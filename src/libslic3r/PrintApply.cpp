@@ -594,7 +594,7 @@ const BoundingBoxf3* find_volume_extents(const PrintObjectRegions::LayerRangeReg
     return it != layer_range.volumes.end() && it->volume_id == volume.id() ? &it->bbox : nullptr;
 }
 
-PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders);
+PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_or_parent_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders);
 
 void print_region_ref_inc(PrintRegion &r) { ++ r.m_ref_cnt; }
 void print_region_ref_reset(PrintRegion &r) { r.m_ref_cnt = 0; }
