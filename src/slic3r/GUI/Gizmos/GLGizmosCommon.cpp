@@ -208,7 +208,7 @@ void HollowedMesh::on_update()
                     m_drainholes = print_object->model_object()->sla_drain_holes;
                     m_old_hollowing_timestamp = timestamp;
 
-                    const TriangleMesh &interior = print_object->hollowed_interior_mesh();
+                    const indexed_triangle_set &interior = print_object->hollowed_interior_mesh();
                     if (!interior.empty()) {
                         m_hollowed_interior_transformed = std::make_unique<TriangleMesh>(interior);
                         m_hollowed_interior_transformed->repaired = false;

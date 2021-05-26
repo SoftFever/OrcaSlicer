@@ -45,7 +45,6 @@ std::vector<ExPolygons> SupportTree::slice(const std::vector<float> &grid,
 
     if (!sup_mesh.empty()) {
         slices.emplace_back();
-        assert(sup_mesh.has_shared_vertices());
         slices.back() = slice_mesh_ex(sup_mesh, grid, cr, ctl().cancelfn);
     }
 
@@ -59,7 +58,6 @@ std::vector<ExPolygons> SupportTree::slice(const std::vector<float> &grid,
         auto padgrid = reserve_vector<float>(size_t(cap > 0 ? cap : 0));
         std::copy(grid.begin(), maxzit, std::back_inserter(padgrid));
 
-        assert(pad_mesh.has_shared_vertices());
         slices.back() = slice_mesh_ex(pad_mesh, padgrid, cr, ctl().cancelfn);
     }
 

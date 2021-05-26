@@ -35,11 +35,6 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const indexed_triangle_set &    mesh,
                                      float interiorBandWidth = 3.0f,
                                      int   flags             = 0);
 
-sla::Contour3D grid_to_contour3d(const openvdb::FloatGrid &grid,
-                                 double                    isovalue,
-                                 double                    adaptivity,
-                                 bool relaxDisorientedTriangles = true);
-
 indexed_triangle_set grid_to_mesh(const openvdb::FloatGrid &grid,
                                   double                    isovalue   = 0.0,
                                   double                    adaptivity = 0.0,

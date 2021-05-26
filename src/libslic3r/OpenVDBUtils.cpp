@@ -54,14 +54,16 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const indexed_triangle_set &    mesh,
 {
     openvdb::initialize();
 
-    TriangleMeshPtrs meshparts_raw = mesh.split();
-    auto meshparts = reserve_vector<std::unique_ptr<TriangleMesh>>(meshparts_raw.size());
-    for (auto *p : meshparts_raw)
-        meshparts.emplace_back(p);
+    std::vector<indexed_triangle_set> meshparts;
+    its_split(mesh, std::back_inserter(meshparts));
+
+//    TriangleMeshPtrs meshparts_raw = mesh.split();
+//    auto meshparts = reserve_vector<std::unique_ptr<TriangleMesh>>(meshparts_raw.size());
+//    for (auto *p : meshparts_raw)
+//        meshparts.emplace_back(p);
 
     auto it = std::remove_if(meshparts.begin(), meshparts.end(), [](auto &m) {
-         m->require_shared_vertices();
-         return m->volume() < EPSILON;
+        return its_volume(m) < EPSILON;
      });
 
     meshparts.erase(it, meshparts.end());
@@ -69,7 +71,7 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const indexed_triangle_set &    mesh,
     openvdb::FloatGrid::Ptr grid;
     for (auto &m : meshparts) {
         auto subgrid = openvdb::tools::meshToVolume<openvdb::FloatGrid>(
-            TriangleMeshDataAdapter{*m, voxel_scale}, tr, exteriorBandWidth,
+            TriangleMeshDataAdapter{m, voxel_scale}, tr, exteriorBandWidth,
             interiorBandWidth, flags);
 
         if (grid && subgrid) openvdb::tools::csgUnion(*grid, *subgrid);
@@ -91,11 +93,10 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const indexed_triangle_set &    mesh,
     return grid;
 }
 
-template<class Grid>
-sla::Contour3D _volumeToMesh(const Grid &grid,
-                             double      isovalue,
-                             double      adaptivity,
-                             bool        relaxDisorientedTriangles)
+indexed_triangle_set grid_to_mesh(const openvdb::FloatGrid &grid,
+                          double                    isovalue,
+                          double                    adaptivity,
+                          bool                      relaxDisorientedTriangles)
 {
     openvdb::initialize();
 
@@ -111,34 +112,18 @@ sla::Contour3D _volumeToMesh(const Grid &grid,
         scale = grid.template metaValue<float>("voxel_scale");
     }  catch (...) { }
 
-    sla::Contour3D ret;
-    ret.points.reserve(points.size());
-    ret.faces3.reserve(triangles.size());
-    ret.faces4.reserve(quads.size());
+    indexed_triangle_set ret;
+    ret.vertices.reserve(points.size());
+    ret.indices.reserve(triangles.size() + quads.size() * 2);
 
-    for (auto &v : points) ret.points.emplace_back(to_vec3d(v) / scale);
-    for (auto &v : triangles) ret.faces3.emplace_back(to_vec3i(v));
-    for (auto &v : quads) ret.faces4.emplace_back(to_vec4i(v));
+    for (auto &v : points) ret.vertices.emplace_back(to_vec3f(v) / scale);
+    for (auto &v : triangles) ret.indices.emplace_back(to_vec3i(v));
+    for (auto &quad : quads) {
+        ret.indices.emplace_back(quad(0), quad(1), quad(2));
+        ret.indices.emplace_back(quad(2), quad(3), quad(0));
+    }
 
     return ret;
-}
-
-TriangleMesh grid_to_mesh(const openvdb::FloatGrid &grid,
-                          double                    isovalue,
-                          double                    adaptivity,
-                          bool                      relaxDisorientedTriangles)
-{
-    return to_triangle_mesh(
-        _volumeToMesh(grid, isovalue, adaptivity, relaxDisorientedTriangles));
-}
-
-sla::Contour3D grid_to_contour3d(const openvdb::FloatGrid &grid,
-                                 double                    isovalue,
-                                 double                    adaptivity,
-                                 bool relaxDisorientedTriangles)
-{
-    return _volumeToMesh(grid, isovalue, adaptivity,
-                         relaxDisorientedTriangles);
 }
 
 openvdb::FloatGrid::Ptr redistance_grid(const openvdb::FloatGrid &grid,

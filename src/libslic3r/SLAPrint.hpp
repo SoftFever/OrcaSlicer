@@ -79,8 +79,8 @@ public:
     const TriangleMesh&     pad_mesh() const;
     
     // Ready after this->is_step_done(slaposDrillHoles) is true
-    const TriangleMesh&     hollowed_interior_mesh() const;
-    
+    const indexed_triangle_set &hollowed_interior_mesh() const;
+
     // Get the mesh that is going to be printed with all the modifications
     // like hollowing and drilled holes.
     const TriangleMesh & get_mesh_to_print() const {

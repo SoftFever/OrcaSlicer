@@ -99,6 +99,12 @@ void cut_drainholes(std::vector<ExPolygons> & obj_slices,
                     const sla::DrainHoles &   holes,
                     std::function<void(void)> thr);
 
+inline void swap_normals(indexed_triangle_set &its)
+{
+    for (auto &face : its.indices)
+        std::swap(face(0), face(2));
+}
+
 } // namespace sla
 } // namespace Slic3r
 

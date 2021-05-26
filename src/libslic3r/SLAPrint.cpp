@@ -1067,6 +1067,7 @@ Vec3d SLAPrint::relative_correction() const
 namespace { // dummy empty static containers for return values in some methods
 const std::vector<ExPolygons> EMPTY_SLICES;
 const TriangleMesh EMPTY_MESH;
+const indexed_triangle_set EMPTY_TRIANGLE_SET;
 const ExPolygons EMPTY_SLICE;
 const std::vector<sla::SupportPoint> EMPTY_SUPPORT_POINTS;
 }
@@ -1143,13 +1144,13 @@ const TriangleMesh& SLAPrintObject::pad_mesh() const
     return EMPTY_MESH;
 }
 
-const TriangleMesh &SLAPrintObject::hollowed_interior_mesh() const
+const indexed_triangle_set &SLAPrintObject::hollowed_interior_mesh() const
 {
     if (m_hollowing_data && m_hollowing_data->interior &&
         m_config.hollowing_enable.getBool())
         return sla::get_mesh(*m_hollowing_data->interior);
     
-    return EMPTY_MESH;
+    return EMPTY_TRIANGLE_SET;
 }
 
 const TriangleMesh &SLAPrintObject::transformed_mesh() const {

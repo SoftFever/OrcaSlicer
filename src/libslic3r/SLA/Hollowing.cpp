@@ -77,7 +77,7 @@ static InteriorPtr generate_interior_verbose(const TriangleMesh & mesh,
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(0, L("Hollowing"));
 
-    auto gridptr = mesh_to_grid(mesh, {}, voxel_scale, out_range, in_range);
+    auto gridptr = mesh_to_grid(mesh.its, {}, voxel_scale, out_range, in_range);
 
     assert(gridptr);
 
@@ -136,19 +136,15 @@ InteriorPtr generate_interior(const TriangleMesh &   mesh,
 
     if (interior && !interior->mesh.empty()) {
 
-        // This flips the normals to be outward facing...
-        interior->mesh.require_shared_vertices();
-        indexed_triangle_set its = std::move(interior->mesh.its);
+        // flip normals back...
+        swap_normals(interior->mesh);
+        Slic3r::simplify_mesh(interior->mesh);
 
-        Slic3r::simplify_mesh(its);
+        its_compactify_vertices(interior->mesh);
+        its_merge_vertices(interior->mesh);
 
         // flip normals back...
-        for (stl_triangle_vertex_indices &ind : its.indices)
-            std::swap(ind(0), ind(2));
-
-        interior->mesh = Slic3r::TriangleMesh{its};
-        interior->mesh.repaired = true;
-        interior->mesh.require_shared_vertices();
+        swap_normals(interior->mesh);
     }
 
     return interior;
@@ -325,7 +321,7 @@ void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags)
     if (flags & hfRemoveInsideTriangles && interior.gridptr)
         remove_inside_triangles(mesh, interior);
 
-    mesh.merge(interior.mesh);
+    mesh.merge(TriangleMesh{interior.mesh});
     mesh.require_shared_vertices();
 }
 

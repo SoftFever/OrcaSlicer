@@ -194,7 +194,7 @@ static std::vector<bool> create_exclude_mask(
         const sla::Interior &interior,
         const std::vector<sla::DrainHole> &holes)
 {
-    FaceHash interior_hash{sla::get_mesh(interior).its};
+    FaceHash interior_hash{sla::get_mesh(interior)};
 
     std::vector<bool> exclude_mask(its.indices.size(), false);
 
@@ -489,11 +489,11 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
                                   nullptr;
 
     if (interior && ! sla::get_mesh(*interior).empty()) {
-        TriangleMesh interiormesh = sla::get_mesh(*interior);
-        interiormesh.repaired = false;
-        interiormesh.repair(true);
+        indexed_triangle_set interiormesh = sla::get_mesh(*interior);
+        sla::swap_normals(interiormesh);
         params.mode = MeshSlicingParams::SlicingMode::Regular;
-        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh.its, slice_grid, params, thr);
+
+        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh, slice_grid, closing_r, thr);
 
         sla::ccr::for_each(size_t(0), interior_slices.size(),
                            [&po, &interior_slices] (size_t i) {

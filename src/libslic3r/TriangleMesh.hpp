@@ -136,6 +136,77 @@ int its_remove_degenerate_faces(indexed_triangle_set &its, bool shrink_to_fit = 
 // Remove vertices, which none of the faces references. Return number of freed vertices.
 int its_compactify_vertices(indexed_triangle_set &its, bool shrink_to_fit = true);
 
+// Used by its_split to map each face of a mesh to a part index. Can be used
+// to query the number of parts in a mesh.
+struct PartMap
+{
+    static constexpr int UNVISITED = -1;
+
+    size_t           count;
+    std::vector<int> face_part_indices;
+
+    PartMap(const indexed_triangle_set &            its,
+            const std::vector<std::vector<size_t>> &vfidx);
+
+    explicit PartMap(const indexed_triangle_set &its)
+        : PartMap(its, create_vertex_faces_index(its))
+    {}
+
+private:
+
+    bool split_recurse(const indexed_triangle_set &            its,
+                       const std::vector<std::vector<size_t>> &vfidx,
+                       size_t                                  fi,
+                       size_t                                  part_idx);
+};
+
+template<class OutputIt>
+void its_split(const indexed_triangle_set &its,
+               const PartMap &             partmap,
+               OutputIt                    out_it)
+{
+    std::vector<indexed_triangle_set> meshes(partmap.count);
+
+    std::vector<int> vidx_conv(its.vertices.size() * meshes.size(),
+                               PartMap::UNVISITED);
+
+    auto &parts = partmap.face_part_indices;
+
+    for (size_t fi = 0; fi < parts.size(); ++fi) {
+        int pi = parts[fi];
+
+        if (pi < 0) continue;
+
+        indexed_triangle_set &part_its   = meshes[size_t(pi)];
+        const auto &          face       = its.indices[fi];
+        size_t                conv_begin = (pi * its.vertices.size());
+        Vec3i                 new_face;
+        for (size_t v = 0; v < 3; ++v) {
+            auto vi = face(v);
+            size_t conv_idx = conv_begin + vi;
+
+            if (vidx_conv[conv_idx] == PartMap::UNVISITED) {
+                vidx_conv[conv_idx] = part_its.vertices.size();
+                part_its.vertices.emplace_back(its.vertices[size_t(vi)]);
+            }
+
+            new_face(v) = vidx_conv[conv_idx];
+        }
+
+        part_its.indices.emplace_back(new_face);
+    }
+
+    for (indexed_triangle_set &part_its : meshes)
+        out_it = std::move(part_its);
+}
+
+template<class OutputIt>
+void its_split(const indexed_triangle_set &            its,
+               OutputIt                                out_it)
+{
+    its_split(its, PartMap{its}, out_it);
+}
+
 // Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
 void its_shrink_to_fit(indexed_triangle_set &its);
 
@@ -163,6 +234,8 @@ inline stl_normal its_unnormalized_normal(const indexed_triangle_set &its,
     its_triangle tri = its_triangle_vertices(its, face_id);
     return (tri[1] - tri[0]).cross(tri[2] - tri[0]);
 }
+
+float its_volume(const indexed_triangle_set &its);
 
 void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B);
 void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles);

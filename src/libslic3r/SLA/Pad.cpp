@@ -480,7 +480,6 @@ void pad_blueprint(const indexed_triangle_set &mesh,
 {
     if (mesh.empty()) return;
 
-    assert(mesh.has_shared_vertices());
     std::vector<ExPolygons> out = slice_mesh_ex(mesh, heights, thrfn);
 
     size_t count = 0;

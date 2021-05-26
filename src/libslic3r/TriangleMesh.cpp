@@ -1161,4 +1161,67 @@ void its_merge(indexed_triangle_set &A, const Pointf3s &triangles)
     its_merge(A, trianglesf);
 }
 
+float its_volume(const indexed_triangle_set &its)
+{
+    if (its.empty()) return 0.;
+
+    // Choose a point, any point as the reference.
+    auto p0 = its.vertices.front();
+    float volume = 0.f;
+    for (size_t i = 0; i < its.indices.size(); ++ i) {
+        // Do dot product to get distance from point to plane.
+        its_triangle triangle = its_triangle_vertices(its, i);
+        Vec3f U = triangle[1] - triangle[0];
+        Vec3f V = triangle[2] - triangle[0];
+        Vec3f C = U.cross(V);
+        Vec3f normal = C.normalized();
+        float area = 0.5 * C.norm();
+        float height = normal.dot(triangle[0] - p0);
+        volume += (area * height) / 3.0f;
+    }
+
+    return volume;
 }
+
+PartMap::PartMap(const indexed_triangle_set &            its,
+                 const std::vector<std::vector<size_t>> &vfidx)
+    : count(0), face_part_indices(its.indices.size(), UNVISITED)
+{
+    auto next_face_idx = [this](size_t start) {
+        size_t i = start;
+        while (face_part_indices[i++] >= 0);
+        return i;
+    };
+
+    size_t face_idx = 0;
+    size_t part_idx = 0;
+
+    do {
+        face_idx = next_face_idx(face_idx);
+    } while(split_recurse(its, vfidx, face_idx, part_idx++));
+
+    count = size_t(part_idx - 1);
+}
+
+bool PartMap::split_recurse(const indexed_triangle_set &            its,
+                            const std::vector<std::vector<size_t>> &vfidx,
+                            size_t                                  fi,
+                            size_t                                  part_idx)
+{
+    if (face_part_indices[fi] >= 0)
+        return false;
+
+    face_part_indices[fi] = part_idx;
+    const auto &face = its.indices[fi];
+
+    for (size_t v = 0; v < 3; ++v) {
+        auto vi = face(v);
+        const std::vector<size_t> neigh_faces = vfidx[vi];
+        for (size_t neigh_face : neigh_faces)
+            split_recurse(its, vfidx, neigh_face, part_idx);
+    }
+
+    return true;
+}
+
+} // namespace Slic3r
