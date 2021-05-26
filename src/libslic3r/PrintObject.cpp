@@ -1536,8 +1536,8 @@ PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObject
     return config;
 }
 
-const std::string                                               key_extruder { "extruder" };
-static constexpr const std::initializer_list<std::string_view>  keys_extruders { "infill_extruder", "solid_infill_extruder", "perimeter_extruder" };
+const std::string                                                    key_extruder { "extruder" };
+static constexpr const std::initializer_list<const std::string_view> keys_extruders { "infill_extruder", "solid_infill_extruder", "perimeter_extruder" };
 
 static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPrintConfig &in)
 {
