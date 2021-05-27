@@ -1822,8 +1822,10 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
 {
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
-        if (shader != nullptr)
+        if (shader != nullptr) {
             shader->set_uniform("uniform_color", AXES_COLOR[axis]);
+            shader->set_uniform("emission_factor", 0.0);
+        }
     };
 
     if (boost::ends_with(sidebar_field, "x")) {
@@ -1844,8 +1846,10 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
 {
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
-        if (shader != nullptr)
+        if (shader != nullptr) {
             shader->set_uniform("uniform_color", AXES_COLOR[axis]);
+            shader->set_uniform("emission_factor", 0.0);
+        }
     };
 
     auto render_sidebar_rotation_hint = [this]() {
@@ -1874,8 +1878,10 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
 
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
-        if (shader != nullptr)
+        if (shader != nullptr) {
             shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]);
+            shader->set_uniform("emission_factor", 0.0);
+        }
 
         glsafe(::glTranslated(0.0, 5.0, 0.0));
         m_arrow.render();
