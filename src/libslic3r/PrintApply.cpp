@@ -504,7 +504,7 @@ static void transformed_its_bboxes_in_z_ranges(
     std::vector<std::pair<PrintObjectRegions::BoundingBox, bool>> &bboxes,
     const float                                                    offset)
 {
-    bboxes.assign(z_ranges.size(), std::make_pair(PrintObjectRegions::BoundingBox, false));
+    bboxes.assign(z_ranges.size(), std::make_pair(PrintObjectRegions::BoundingBox(), false));
     for (const stl_triangle_vertex_indices &tri : its.indices) {
         const Vec3f pts[3] = { m * its.vertices[tri(0)], m * its.vertices[tri(1)], m * its.vertices[tri(2)] };
         for (size_t irange = 0; irange < z_ranges.size(); ++ irange) {
