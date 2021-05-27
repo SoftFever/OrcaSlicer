@@ -645,31 +645,28 @@ bool verify_update_print_object_regions(
             }
 
     // Verify and / or update PrintRegions produced by color painting. 
-    for (const PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges) {
-        size_t painted_region_idx = 0;
-        for (unsigned int painted_extruder_id : painting_extruders)
-            for (int parent_region_id = 0; parent_region_id < int(layer_range.volume_regions.size()); ++ parent_region_id) {
-                const PrintObjectRegions::VolumeRegion  &parent_region  = layer_range.volume_regions[parent_region_id];
-                const PrintObjectRegions::PaintedRegion &region         = layer_range.painted_regions[painted_region_idx ++];
-                PrintRegionConfig cfg = parent_region.region->config();
-                cfg.perimeter_extruder.value = painted_extruder_id;
-                cfg.infill_extruder.value    = painted_extruder_id;
-                if (cfg != region.region->config()) {
-                    // Region configuration changed.
-                    if (print_region_ref_cnt(*region.region) == 0) {
-                        // Region is referenced for the first time. Just change its parameters.
-                        // Stop the background process before assigning new configuration to the regions.
-                        t_config_option_keys diff = region.region->config().diff(cfg);
-                        callback_invalidate(region.region->config(), cfg, diff);
-                        region.region->config_apply_only(cfg, diff, false);
-                    } else {
-                        // Region is referenced multiple times, thus the region is being split. We need to reslice.
-                        return false;
-                    }
+    for (const PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges)
+        for (const PrintObjectRegions::PaintedRegion &region : layer_range.painted_regions) {
+            const PrintObjectRegions::VolumeRegion &parent_region   = layer_range.volume_regions[region.parent];
+            PrintRegionConfig                       cfg             = parent_region.region->config();
+            cfg.perimeter_extruder.value    = region.extruder_id;
+            cfg.solid_infill_extruder.value = region.extruder_id;
+            cfg.infill_extruder.value       = region.extruder_id;
+            if (cfg != region.region->config()) {
+                // Region configuration changed.
+                if (print_region_ref_cnt(*region.region) == 0) {
+                    // Region is referenced for the first time. Just change its parameters.
+                    // Stop the background process before assigning new configuration to the regions.
+                    t_config_option_keys diff = region.region->config().diff(cfg);
+                    callback_invalidate(region.region->config(), cfg, diff);
+                    region.region->config_apply_only(cfg, diff, false);
+                } else {
+                    // Region is referenced multiple times, thus the region is being split. We need to reslice.
+                    return false;
                 }
-                print_region_ref_inc(*region.region);
             }
-    }
+            print_region_ref_inc(*region.region);
+        }
 
     // Lastly verify, whether some regions were not merged.
     {
@@ -855,16 +852,23 @@ static PrintObjectRegions* generate_print_object_regions(
     }
 
     // Finally add painting regions.
-    for (PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges_regions)
+    for (PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges_regions) {
         for (unsigned int painted_extruder_id : painting_extruders)
             for (int parent_region_id = 0; parent_region_id < int(layer_range.volume_regions.size()); ++ parent_region_id)
                 if (const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
                     parent_region.model_volume->is_model_part() || parent_region.model_volume->is_modifier()) {
                     PrintRegionConfig cfg = parent_region.region->config();
-                    cfg.perimeter_extruder.value = painted_extruder_id;
-                    cfg.infill_extruder.value    = painted_extruder_id;
+                    cfg.perimeter_extruder.value    = painted_extruder_id;
+                    cfg.solid_infill_extruder.value = painted_extruder_id;
+                    cfg.infill_extruder.value       = painted_extruder_id;
                     layer_range.painted_regions.push_back({ painted_extruder_id, parent_region_id, get_create_region(std::move(cfg))});
                 }
+        // Sort the regions by parent region::print_object_region_id() and extruder_id to help the slicing algorithm when applying MMU segmentation.
+        std::sort(layer_range.painted_regions.begin(), layer_range.painted_regions.end(), [&layer_range](auto &l, auto &r) {
+            int lid = layer_range.volume_regions[l.parent].region->print_object_region_id();
+            int rid = layer_range.volume_regions[r.parent].region->print_object_region_id();
+            return lid < rid || (lid == rid && l.extruder_id < r.extruder_id); });
+    }
 
     return out.release();
 }
@@ -1049,6 +1053,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         bool solid_or_modifier_differ   = model_volume_list_changed(model_object, model_object_new, solid_or_modifier_types);
         bool supports_differ            = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER) ||
                                           model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
+        bool mmu_segmentation_differ    = model_mmu_segmentation_data_changed(model_object, model_object_new);
         bool layer_height_ranges_differ = ! layer_height_ranges_equal(model_object.layer_config_ranges, model_object_new.layer_config_ranges, model_object_new.layer_height_profile.empty());
         bool model_origin_translation_differ = model_object.origin_translation != model_object_new.origin_translation;
         auto print_objects_range        = print_object_status_db.get_range(model_object);
@@ -1056,7 +1061,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // All PrintObjects in print_objects_range shall point to the same prints_objects_regions
         model_object_status.print_object_regions = print_objects_range.begin()->print_object->m_shared_regions;
         model_object_status.print_object_regions->ref_cnt_inc();
-        if (solid_or_modifier_differ || model_origin_translation_differ || layer_height_ranges_differ ||
+        if (solid_or_modifier_differ || mmu_segmentation_differ || model_origin_translation_differ || layer_height_ranges_differ ||
             ! model_object.layer_height_profile.timestamp_matches(model_object_new.layer_height_profile)) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
             model_object_status.print_object_regions_status = model_origin_translation_differ || layer_height_ranges_differ ?
@@ -1075,7 +1080,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 model_object_status.print_object_regions->clear();
             // Copy content of the ModelObject including its ID, do not change the parent.
             model_object.assign_copy(model_object_new);
-        } else { 
+        } else {
             model_object_status.print_object_regions_status = ModelObjectStatus::PrintObjectRegionsStatus::Valid;
             if (supports_differ || model_custom_supports_data_changed(model_object, model_object_new)) {
                 // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
@@ -1229,7 +1234,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     // All regions now have distinct settings.
     // Check whether applying the new region config defaults we would get different regions,
     // update regions or create regions from scratch.
-    const std::vector<unsigned int> painting_extruders;
     for (auto it_print_object = m_objects.begin(); it_print_object != m_objects.end();) {
         // Find the range of PrintObjects sharing the same associated ModelObject.
         auto                it_print_object_end  = it_print_object;
@@ -1243,6 +1247,13 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             print_object_regions = new PrintObjectRegions{};
             model_object_status.print_object_regions = print_object_regions;
             print_object_regions->ref_cnt_inc();
+        }
+        std::vector<unsigned int> painting_extruders;
+        if (const auto &volumes = print_object.model_object()->volumes; 
+            std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume *v) { return ! v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
+            //FIXME be more specific! Don't enumerate extruders that are not used for painting!
+            painting_extruders.assign(num_extruders, 0);
+            std::iota(painting_extruders.begin(), painting_extruders.end(), 1);
         }
         if (model_object_status.print_object_regions_status == ModelObjectStatus::PrintObjectRegionsStatus::Valid) {
             // Verify that the trafo for regions & volume bounding boxes thus for regions is still applicable.

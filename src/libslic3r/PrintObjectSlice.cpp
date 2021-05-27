@@ -1,6 +1,7 @@
 #include "ElephantFootCompensation.hpp"
 #include "I18N.hpp"
 #include "Layer.hpp"
+#include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -221,8 +222,32 @@ static inline VolumeSlices& volume_slices_find_by_id(std::vector<VolumeSlices> &
 
 static inline bool overlap_in_xy(const BoundingBoxf3 &l, const BoundingBoxf3 &r)
 {
+    assert(l.defined && r.defined);
     return ! (l.max.x() < r.min.x() || l.min.x() > r.max.x() ||
               l.max.y() < r.min.y() || l.min.y() > r.max.y());
+}
+
+static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_range_first(const std::vector<PrintObjectRegions::LayerRangeRegions> &layer_ranges, double z)
+{
+    auto  it = lower_bound_by_predicate(layer_ranges.begin(), layer_ranges.end(),
+        [z](const PrintObjectRegions::LayerRangeRegions &lr) { return lr.layer_height_range.second < z; });
+    assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z <= it->layer_height_range.second);
+    if (z == it->layer_height_range.second)
+        if (auto it_next = it; ++ it_next != layer_ranges.end() && it_next->layer_height_range.first == z)
+            it = it_next;
+    assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z <= it->layer_height_range.second);
+    return it;
+}
+
+static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_range_next(
+    const std::vector<PrintObjectRegions::LayerRangeRegions>            &layer_ranges, 
+    std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator   it,
+    double                                                               z)
+{
+    for (; it->layer_height_range.second <= z; ++ it)
+        assert(it != layer_ranges.end());
+    assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z < it->layer_height_range.second);
+    return it;
 }
 
 static std::vector<std::vector<ExPolygons>> slices_to_regions(
@@ -304,13 +329,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             [&slices_by_region, &print_object_regions, &zs_complex, &layer_ranges_regions_to_slices, clip_multipart_objects, &throw_on_cancel_callback]
                 (const tbb::blocked_range<size_t> &range) {
                 float z              = zs_complex[range.begin()].second;
-                auto  it_layer_range = lower_bound_by_predicate(print_object_regions.layer_ranges.begin(), print_object_regions.layer_ranges.end(), 
-                    [z](const PrintObjectRegions::LayerRangeRegions &lr){ return lr.layer_height_range.second < z; });
-                assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first <= z && z <= it_layer_range->layer_height_range.second);
-                if (z == it_layer_range->layer_height_range.second)
-                    if (auto it_next = it_layer_range; ++ it_next != print_object_regions.layer_ranges.end() && it_next->layer_height_range.first == z)
-                        it_layer_range = it_next;
-                assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first <= z && z <= it_layer_range->layer_height_range.second);
+                auto  it_layer_range = layer_range_first(print_object_regions.layer_ranges, z);
                 // Per volume_regions slices at this Z height.
                 struct RegionSlice { 
                     ExPolygons  expolygons;
@@ -328,9 +347,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                 std::vector<RegionSlice> temp_slices;
                 for (size_t zs_complex_idx = range.begin(); zs_complex_idx < range.end(); ++ zs_complex_idx) {
                     auto [z_idx, z] = zs_complex[zs_complex_idx];
-                    for (; it_layer_range->layer_height_range.second <= z; ++ it_layer_range)
-                        assert(it_layer_range != print_object_regions.layer_ranges.end());
-                    assert(it_layer_range != print_object_regions.layer_ranges.end() && it_layer_range->layer_height_range.first <= z && z < it_layer_range->layer_height_range.second);
+                    it_layer_range = layer_range_next(print_object_regions.layer_ranges, it_layer_range, z);
                     const PrintObjectRegions::LayerRangeRegions &layer_range = *it_layer_range;
                     {
                         std::vector<VolumeSlices*> &layer_range_regions_to_slices = layer_ranges_regions_to_slices[it_layer_range - print_object_regions.layer_ranges.begin()];
@@ -575,57 +592,6 @@ void PrintObject::slice_volumes()
     }
     region_slices.clear();
     
-#if 0
-        // Second clip the volumes in the order they are presented at the user interface.
-        BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - parallel clipping - start";
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, slice_zs.size()),
-            [this, &sliced_volumes, num_modifiers](const tbb::blocked_range<size_t>& range) {
-                float delta   = float(scale_(m_config.xy_size_compensation.value));
-                // Only upscale together with clipping if there are no modifiers, as the modifiers shall be applied before upscaling
-                // (upscaling may grow the object outside of the modifier mesh).
-                bool  upscale = delta > 0 && num_modifiers == 0;
-                for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
-                    m_print->throw_if_canceled();
-                    // Trim volumes in a single layer, one by the other, possibly apply upscaling.
-                    {
-                        Polygons processed;
-                        for (SlicedVolume &sliced_volume : sliced_volumes) 
-                        	if (! sliced_volume.expolygons_by_layer.empty()) {
-	                            ExPolygons slices = std::move(sliced_volume.expolygons_by_layer[layer_id]);
-	                            if (upscale)
-	                                slices = offset_ex(std::move(slices), delta);
-	                            if (! processed.empty())
-	                                // Trim by the slices of already processed regions.
-	                                slices = diff_ex(slices, processed);
-	                            if (size_t(&sliced_volume - &sliced_volumes.front()) + 1 < sliced_volumes.size())
-	                                // Collect the already processed regions to trim the to be processed regions.
-	                                polygons_append(processed, slices);
-	                            sliced_volume.expolygons_by_layer[layer_id] = std::move(slices);
-	                        }
-                    }
-                    // Collect and union volumes of a single region.
-                    for (int region_id = 0; region_id < int(m_region_volumes.size()); ++ region_id) {
-                        ExPolygons expolygons;
-                        size_t     num_volumes = 0;
-                        for (SlicedVolume &sliced_volume : sliced_volumes)
-                            if (sliced_volume.region_id == region_id && ! sliced_volume.expolygons_by_layer.empty() && ! sliced_volume.expolygons_by_layer[layer_id].empty()) {
-                                ++ num_volumes;
-                                append(expolygons, std::move(sliced_volume.expolygons_by_layer[layer_id]));
-                            }
-                        if (num_volumes > 1)
-                            // Merge the islands using a positive / negative offset.
-                            expolygons = offset_ex(offset_ex(expolygons, float(scale_(EPSILON))), -float(scale_(EPSILON)));
-                        m_layers[layer_id]->regions()[region_id]->slices.append(std::move(expolygons), stInternal);
-                    }
-                }
-            });
-        BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - parallel clipping - end";
-        clipped  = true;
-        upscaled = m_config.xy_size_compensation.value > 0 && num_modifiers == 0;
-    }
-#endif
-
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - removing top empty layers";
     while (! m_layers.empty()) {
         const Layer *layer = m_layers.back();
@@ -637,6 +603,124 @@ void PrintObject::slice_volumes()
     if (! m_layers.empty())
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
+
+    // Is any ModelVolume MMU painted?
+    if (const auto &volumes = this->model_object()->volumes;
+        std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume *v) { return ! v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
+        BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - MMU segmentation";
+        // Returns MMU segmentation based on painting in MMU segmentation gizmo
+        std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmentation = multi_material_segmentation_by_painting(*this);
+        assert(segmentation.size() == m_layers.size());
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, segmentation.size(), std::max(segmentation.size() / 128, size_t(1))),
+            [this, &segmentation](const tbb::blocked_range<size_t> &range) {
+                const auto  &layer_ranges   = this->m_shared_regions->layer_ranges;
+                double       z              = m_layers[range.begin()]->slice_z;
+                auto         it_layer_range = layer_range_first(layer_ranges, z);
+                const size_t num_extruders = this->print()->config().nozzle_diameter.size();
+                struct ByExtruder {
+                    ExPolygons  expolygons;
+                    BoundingBox bbox;
+                };
+                std::vector<ByExtruder> by_extruder;
+                struct ByRegion {
+                    ExPolygons  expolygons;
+                    bool        needs_merge { false };
+                };
+                std::vector<ByRegion> by_region;
+                for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
+                    m_print->throw_if_canceled();
+                    Layer *layer = m_layers[layer_id];
+                    it_layer_range = layer_range_next(layer_ranges, it_layer_range, layer->slice_z);
+                    const PrintObjectRegions::LayerRangeRegions &layer_range = *it_layer_range;
+                    // Gather per extruder expolygons.
+                    by_extruder.assign(num_extruders, ByExtruder());
+                    by_region.assign(layer->m_regions.size(), ByRegion());
+                    bool layer_split = false;
+                    for (size_t extruder_id = 0; extruder_id < num_extruders; ++ extruder_id) {
+                        ByExtruder &region = by_extruder[extruder_id];
+                        for (const std::pair<ExPolygon, size_t> &colored_polygon : segmentation[layer_id])
+                            if (colored_polygon.second == extruder_id)
+                                region.expolygons.emplace_back(std::move(colored_polygon.first));
+                        if (! region.expolygons.empty()) {
+                            region.bbox = get_extents(region.expolygons);
+                            layer_split = true;
+                        }
+                    }
+                    if (! layer_split)
+                        continue;
+                    // Split LayerRegions by by_extruder regions.
+                    auto it_painted_region = layer_range.painted_regions.begin();
+                    for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
+                        if (LayerRegion &layerm = *layer->m_regions[region_id]; ! layerm.slices.surfaces.empty()) {
+                            const BoundingBox bbox = get_extents(layerm.slices.surfaces);
+                            assert(it_painted_region < layer_range.painted_regions.end());
+                            for (; layer_range.volume_regions[it_painted_region->parent].region->print_object_region_id() < region_id; ++ it_painted_region)
+                                assert(it_painted_region < layer_range.painted_regions.end());
+                            assert(&layerm.region() == it_painted_region->region && layerm.region().print_object_region_id() == region_id);
+                            // 1-based extruder ID
+                            bool   self_trimmed = false;
+                            size_t self_extruder_id;
+                            for (size_t extruder_id = 1; extruder_id <= by_extruder.size(); ++ extruder_id)
+                                if (ByExtruder &segmented = by_extruder[extruder_id - 1]; segmented.bbox.defined && bbox.overlap(segmented.bbox)) {
+                                    // Find the target region.
+                                    for (; it_painted_region->extruder_id < extruder_id; ++ it_painted_region)
+                                        assert(it_painted_region < layer_range.painted_regions.end());
+                                    assert(layer_range.volume_regions[it_painted_region->parent].region == &layerm.region() && it_painted_region->extruder_id == extruder_id);
+                                    //FIXME Don't trim by self, it is not reliable.
+                                    if (&layerm.region() == it_painted_region->region) {
+                                        self_extruder_id = extruder_id;
+                                        continue;
+                                    }
+                                    // Steal from this region.
+                                    int         target_region_id = it_painted_region->region->print_object_region_id();
+                                    ExPolygons  stolen           = intersection_ex(layerm.slices.surfaces, segmented.expolygons);
+                                    if (! stolen.empty()) {
+                                        ByRegion &dst = by_region[target_region_id];
+                                        if (dst.expolygons.empty()) {
+                                            dst.expolygons = std::move(stolen);
+                                        } else {
+                                            append(dst.expolygons, std::move(stolen));
+                                            dst.needs_merge = true;
+                                        }
+                                    }
+#if 0
+                                    if (&layerm.region() == it_painted_region->region)
+                                        // Slices of this LayerRegion were trimmed by a MMU region of the same PrintRegion.
+                                        self_trimmed = true;
+#endif
+                                }
+                            if (! self_trimmed) {
+                                // Trim slices of this LayerRegion with all the MMU regions.
+                                Polygons mine = to_polygons(std::move(layerm.slices.surfaces));
+                                for (auto &segmented : by_extruder)
+                                    if (&segmented - by_extruder.data() + 1 != self_extruder_id && segmented.bbox.defined && bbox.overlap(segmented.bbox)) {
+                                        mine = diff(mine, segmented.expolygons);
+                                        if (mine.empty())
+                                            break;
+                                    }
+                                if (! mine.empty()) {
+                                    ByRegion &dst = by_region[layerm.region().print_object_region_id()];
+                                    if (dst.expolygons.empty()) {
+                                        dst.expolygons = union_ex(mine);
+                                    } else {
+                                        append(dst.expolygons, union_ex(mine));
+                                        dst.needs_merge = true;
+                                    }
+                                }
+                            }
+                        }
+                    // Re-create Surfaces of LayerRegions.
+                    for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id) {
+                        ByRegion &src = by_region[region_id];
+                        if (src.needs_merge)
+                            // Multiple regions were merged into one.
+                            src.expolygons = offset2_ex(src.expolygons, float(scale_(EPSILON)), - float(scale_(EPSILON)));
+                        layer->m_regions[region_id]->slices.set(std::move(src.expolygons), stInternal);
+                    }
+                }
+            });
+    }
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
@@ -650,8 +734,7 @@ void PrintObject::slice_volumes()
 	    ExPolygons  lslices_1st_layer;
 	    tbb::parallel_for(
 	        tbb::blocked_range<size_t>(0, m_layers.size()),
-			[this, xy_compensation_scaled, elephant_foot_compensation_scaled, &lslices_1st_layer]
-				(const tbb::blocked_range<size_t>& range) {
+			[this, xy_compensation_scaled, elephant_foot_compensation_scaled, &lslices_1st_layer](const tbb::blocked_range<size_t>& range) {
 	            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
 	                m_print->throw_if_canceled();
 	                Layer *layer = m_layers[layer_id];
