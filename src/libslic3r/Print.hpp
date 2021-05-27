@@ -16,6 +16,8 @@
 
 #include "libslic3r.h"
 
+#include <Eigen/Geometry>
+
 #include <functional>
 #include <set>
 
@@ -164,9 +166,12 @@ class PrintObjectRegions
 public:
     // Bounding box of a ModelVolume transformed into the working space of a PrintObject, possibly
     // clipped by a layer range modifier.
+    // Only Eigen types of Nx16 size are vectorized. This bounding box will not be vectorized.
+    static_assert(sizeof(Eigen::AlignedBox<float, 3>) == 24, "Eigen::AlignedBox<float, 3> is not being vectorized, thus it does not need to be aligned");
+    using BoundingBox = Eigen::AlignedBox<float, 3>;
     struct VolumeExtents {
-        ObjectID        volume_id;
-        BoundingBoxf3   bbox;
+        ObjectID             volume_id;
+        BoundingBox          bbox;
     };
 
     struct VolumeRegion
@@ -178,7 +183,7 @@ public:
         // Pointer to PrintObjectRegions::all_regions, null for a negative volume.
         PrintRegion         *region { nullptr };
         // Pointer to VolumeExtents::bbox.
-        const BoundingBoxf3 *bbox { nullptr };
+        const BoundingBox   *bbox { nullptr };
         // To speed up merging of same regions.
         const VolumeRegion  *prev_same_region { nullptr };
     };
@@ -307,6 +312,7 @@ public:
     const PrintRegion&          printing_region(size_t idx) const throw() { return *m_shared_regions->all_regions[idx].get(); }
     //FIXME returing all possible regions before slicing, thus some of the regions may not be slicing at the end.
     std::vector<std::reference_wrapper<const PrintRegion>> all_regions() const;
+    const PrintObjectRegions*   shared_regions() const throw() { return m_shared_regions; }
 
     bool                        has_support()           const { return m_config.support_material || m_config.support_material_enforce_layers > 0; }
     bool                        has_raft()              const { return m_config.raft_layers > 0; }

@@ -484,32 +484,40 @@ static inline bool trafos_differ_in_rotation_by_z_and_mirroring_by_xy_only(const
     return std::abs(d * d) < EPSILON * lx2 * ly2;
 }
 
-static BoundingBoxf3 transformed_its_bbox2d(const indexed_triangle_set &its, const Transform3f &m, float offset)
+static PrintObjectRegions::BoundingBox transformed_its_bbox2d(const indexed_triangle_set &its, const Transform3f &m, float offset)
 {
-    BoundingBoxf3 bbox;
+    assert(! its.indices.empty());
+
+    PrintObjectRegions::BoundingBox bbox(m * its.vertices[its.indices.front()(0)]);
     for (const stl_triangle_vertex_indices &tri : its.indices)
         for (int i = 0; i < 3; ++ i)
-            bbox.merge((m * its.vertices[tri(i)]).cast<double>());
-    bbox.min.x() -= offset;
-    bbox.min.y() -= offset;
-    bbox.min.x() += offset;
-    bbox.min.y() += offset;
+            bbox.extend(m * its.vertices[tri(i)]);
+    bbox.min() -= Vec3f(offset, offset, float(EPSILON));
+    bbox.max() += Vec3f(offset, offset, float(EPSILON));
     return bbox;
 }
 
 static void transformed_its_bboxes_in_z_ranges(
-    const indexed_triangle_set              &its, 
-    const Transform3f                       &m,
-    const std::vector<t_layer_height_range> &z_ranges,
-    std::vector<BoundingBoxf3>              &bboxes, 
-    const float                              offset)
+    const indexed_triangle_set                                    &its, 
+    const Transform3f                                             &m,
+    const std::vector<t_layer_height_range>                       &z_ranges,
+    std::vector<std::pair<PrintObjectRegions::BoundingBox, bool>> &bboxes,
+    const float                                                    offset)
 {
-    bboxes.assign(z_ranges.size(), BoundingBoxf3());
+    bboxes.assign(z_ranges.size(), std::make_pair(PrintObjectRegions::BoundingBox, false));
     for (const stl_triangle_vertex_indices &tri : its.indices) {
         const Vec3f pts[3] = { m * its.vertices[tri(0)], m * its.vertices[tri(1)], m * its.vertices[tri(2)] };
         for (size_t irange = 0; irange < z_ranges.size(); ++ irange) {
-            const t_layer_height_range &z_range = z_ranges[irange];
-            BoundingBoxf3              &bbox    = bboxes[irange];
+            const t_layer_height_range                       &z_range = z_ranges[irange];
+            std::pair<PrintObjectRegions::BoundingBox, bool> &bbox    = bboxes[irange];
+            auto bbox_extend = [&bbox](const Vec3f& p) {
+                if (bbox.second) {
+                    bbox.first.extend(p);
+                } else {
+                    bbox.first.min() = bbox.first.max() = p;
+                    bbox.second = true;
+                }
+            };
             int iprev = 2;
             for (int iedge = 0; iedge < 3; ++ iedge) {
                 const Vec3f *p1 = &pts[iprev];
@@ -527,36 +535,34 @@ static void transformed_its_bboxes_in_z_ranges(
                         float t2 = (z_range.second - p1->z()) / zspan;
                         Vec2f p = to_2d(*p1);
                         Vec2f v(p2->x() - p1->x(), p2->y() - p1->y());
-                        bbox.merge((to_3d((p + v * t1).eval(), float(z_range.first))).cast<double>());
-                        bbox.merge((to_3d((p + v * t2).eval(), float(z_range.second))).cast<double>());
+                        bbox_extend(to_3d((p + v * t1).eval(), float(z_range.first)));
+                        bbox_extend(to_3d((p + v * t2).eval(), float(z_range.second)));
                     } else {
                         // Single intersection with the lower limit.
                         float t = (z_range.first - p1->z()) / (p2->z() - p1->z());
                         Vec2f v(p2->x() - p1->x(), p2->y() - p1->y());
-                        bbox.merge((to_3d((to_2d(*p1) + v * t).eval(), float(z_range.first))).cast<double>());
-                        bbox.merge(p2->cast<double>());
+                        bbox_extend(to_3d((to_2d(*p1) + v * t).eval(), float(z_range.first)));
+                        bbox_extend(*p2);
                     }
                 } else if (p2->z() > z_range.second) {
                     // Single intersection with the upper limit.
                     float t = (z_range.second - p1->z()) / (p2->z() - p1->z());
                     Vec2f v(p2->x() - p1->x(), p2->y() - p1->y());
-                    bbox.merge((to_3d((to_2d(*p1) + v * t).eval(), float(z_range.second)).cast<double>()));
-                    bbox.merge(p1->cast<double>());
+                    bbox_extend(to_3d((to_2d(*p1) + v * t).eval(), float(z_range.second)));
+                    bbox_extend(*p1);
                 } else {
                     // Both points are inside.
-                    bbox.merge(p1->cast<double>());
-                    bbox.merge(p2->cast<double>());
+                    bbox_extend(*p1);
+                    bbox_extend(*p2);
                 }
                 iprev = iedge;
             }
         }
     }
 
-    for (BoundingBoxf3 &bbox : bboxes) {
-        bbox.min.x() -= offset;
-        bbox.min.y() -= offset;
-        bbox.min.x() += offset;
-        bbox.min.y() += offset;
+    for (std::pair<PrintObjectRegions::BoundingBox, bool> &bbox : bboxes) {
+        bbox.first.min() -= Vec3f(offset, offset, float(EPSILON));
+        bbox.first.max() += Vec3f(offset, offset, float(EPSILON));
     }
 }
 
@@ -590,7 +596,7 @@ void print_objects_regions_invalidate_keep_some_volumes(PrintObjectRegions &prin
     print_object_regions.cached_volume_ids.erase(print_object_regions.cached_volume_ids.begin() + last, print_object_regions.cached_volume_ids.end());
 }
 
-const BoundingBoxf3* find_volume_extents(const PrintObjectRegions::LayerRangeRegions &layer_range, const ModelVolume &volume)
+const PrintObjectRegions::BoundingBox* find_volume_extents(const PrintObjectRegions::LayerRangeRegions &layer_range, const ModelVolume &volume)
 {
     auto it = lower_bound_by_predicate(layer_range.volumes.begin(), layer_range.volumes.end(), [&volume](const PrintObjectRegions::VolumeExtents &l){ return l.volume_id < volume.id(); });
     return it != layer_range.volumes.end() && it->volume_id == volume.id() ? &it->bbox : nullptr;
@@ -727,8 +733,8 @@ void update_volume_bboxes(
                 volumes_old.emplace_back(std::move(layer_range.volumes));
         }
 
-        std::vector<BoundingBoxf3>          bboxes;
-        std::vector<t_layer_height_range>   ranges;
+        std::vector<std::pair<PrintObjectRegions::BoundingBox, bool>> bboxes;
+        std::vector<t_layer_height_range>                             ranges;
         ranges.reserve(layer_ranges.size());
         for (const PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges) {
             t_layer_height_range r = layer_range.layer_height_range;
@@ -748,7 +754,8 @@ void update_volume_bboxes(
                 } else {
                     transformed_its_bboxes_in_z_ranges(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix(false)), ranges, bboxes, offset);
                     for (PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges)
-                        layer_range.volumes.push_back({ model_volume->id(), bboxes[&layer_range - layer_ranges.data()] });
+                        if (auto &bbox = bboxes[&layer_range - layer_ranges.data()]; bbox.second)
+                            layer_range.volumes.push_back({ model_volume->id(), bbox.first });
                 }
             }
     }
@@ -820,7 +827,7 @@ static PrintObjectRegions* generate_print_object_regions(
         const ModelVolume &volume = *model_volumes[volume_id];
         if (model_volume_solid_or_modifier(volume)) {
             for (PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges_regions)
-                if (const BoundingBoxf3 *bbox = find_volume_extents(layer_range, volume); bbox) {
+                if (const PrintObjectRegions::BoundingBox *bbox = find_volume_extents(layer_range, volume); bbox) {
                     if (volume.is_model_part()) {
                         // Add a model volume, assign an existing region or generate a new one.
                         layer_range.volume_regions.push_back({
@@ -837,9 +844,9 @@ static PrintObjectRegions* generate_print_object_regions(
                         for (int parent_region_id = int(layer_range.volume_regions.size()) - 1; parent_region_id >= 0; -- parent_region_id)
                             if (const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
                                 parent_region.model_volume->is_model_part() || parent_region.model_volume->is_modifier()) {
-                                    const BoundingBoxf3 *parent_bbox = find_volume_extents(layer_range, *parent_region.model_volume);
+                                    const PrintObjectRegions::BoundingBox *parent_bbox = find_volume_extents(layer_range, *parent_region.model_volume);
                                     assert(parent_bbox != nullptr);
-                                    if (parent_bbox->overlap(*bbox))
+                                    if (parent_bbox->intersects(*bbox))
                                         layer_range.volume_regions.push_back({
                                             &volume, parent_region_id,
                                             get_create_region(region_config_from_model_volume(parent_region.region->config(), nullptr, volume, num_extruders)),
