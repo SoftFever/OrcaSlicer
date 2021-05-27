@@ -2898,8 +2898,8 @@ void GCodeViewer::render_legend() const
     // get used filament (meters and grams) from used volume in respect to the active extruder
     auto get_used_filament_from_volume = [this, imperial_units](double volume, int extruder_id) {
         double koef = imperial_units ? 1.0 / ObjectManipulation::in_to_mm : 0.001;
-        std::pair<double, double> ret = { ret.first = koef * volume / (PI * sqr(0.5 * m_filament_diameters[extruder_id])),
-                                          ret.second = volume * m_filament_densities[extruder_id] * 0.001 };
+        std::pair<double, double> ret = { koef * volume / (PI * sqr(0.5 * m_filament_diameters[extruder_id])),
+                                          volume * m_filament_densities[extruder_id] * 0.001 };
         return ret;
     };
 
