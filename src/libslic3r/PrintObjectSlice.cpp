@@ -3,6 +3,7 @@
 #include "Layer.hpp"
 #include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
+#include "ClipperUtils.hpp"
 
 #include <boost/log/trivial.hpp>
 
