@@ -1615,6 +1615,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     
     _set_current();
 
+    m_hover_volume_idxs.clear();
+
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume* volume) :
             model_volume(nullptr), geometry_id(volume->geometry_id), volume_idx(-1) {}
