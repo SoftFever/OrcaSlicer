@@ -13,6 +13,7 @@
 #include "GCode/WipeTower.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "GCode/GCodeProcessor.hpp"
+#include "MultiMaterialSegmentation.hpp"
 
 #include "libslic3r.h"
 
@@ -627,6 +628,8 @@ private:
     friend class GCode;
     // Allow PrintObject to access m_mutex and m_cancel_callback.
     friend class PrintObject;
+    // Allow multi_material_segmentation_by_painting() to access m_cancel_callback.
+    friend std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentation_by_painting(const PrintObject &print_object);
 };
 
 } /* slic3r_Print_hpp_ */
