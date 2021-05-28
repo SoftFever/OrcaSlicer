@@ -665,6 +665,12 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
     if (sels.IsEmpty())
         return;
 
+    if (sels.Count() == 1) {
+        const auto sel_vol = obj_list()->get_selected_model_volume();
+        if (sel_vol && sel_vol->type() != ModelVolumeType::MODEL_PART && sel_vol->type() != ModelVolumeType::PARAMETER_MODIFIER)
+            return;
+    }
+
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
     wxMenu* extruder_selection_menu = new wxMenu();
     const wxString& name = sels.Count() == 1 ? names[0] : names[1];

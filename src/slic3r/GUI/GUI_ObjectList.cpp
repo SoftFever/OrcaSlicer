@@ -296,6 +296,9 @@ void ObjectList::create_objects_ctrl()
     bmp_choice_renderer->set_can_create_editor_ctrl_function([this]() {
         return m_objects_model->GetItemType(GetSelection()) & (itVolume | itLayer | itObject);
     });
+    bmp_choice_renderer->set_default_extruder_idx([this]() {
+        return m_objects_model->GetDefaultExtruderIdx(GetSelection());
+    });
     AppendColumn(new wxDataViewColumn(_L("Extruder"), bmp_choice_renderer,
         colExtruder, 8*em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
 
@@ -3471,7 +3474,7 @@ void ObjectList::change_part_type()
         }
     }
 
-    const wxString names[] = { _L("Part"), _L("Negative Volume"), _L("Modifier"), _L("Support Enforcer"), _L("Support Blocker") };
+    const wxString names[] = { _L("Part"), _L("Negative Volume"), _L("Modifier"), _L("Support Blocker"), _L("Support Enforcer") };
     auto new_type = ModelVolumeType(wxGetSingleChoiceIndex(_L("Type:"), _L("Select type of part"), wxArrayString(5, names), int(type)));
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
@@ -3819,8 +3822,12 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
     if (event.GetColumn() == colName)
         update_name_in_model(event.GetItem());
-    else if (event.GetColumn() == colExtruder)
-        update_extruder_in_config(event.GetItem());
+    else if (event.GetColumn() == colExtruder) {
+        wxDataViewItem item = event.GetItem();
+        if (m_objects_model->GetItemType(item) == itObject)
+            m_objects_model->UpdateVolumesExtruderBitmap(item);
+        update_extruder_in_config(item);
+    }
 }
 
 #ifdef __WXMSW__
@@ -3861,8 +3868,10 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
     wxDataViewItemArray sels;
     GetSelections(sels);
 
-    if (!sels.empty())
-        take_snapshot(_(L("Change Extruders")));
+    if (sels.empty())
+        return;
+
+    take_snapshot(_L("Change Extruders"));
 
     for (const wxDataViewItem& item : sels)
     {

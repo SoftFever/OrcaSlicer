@@ -94,19 +94,10 @@ public:
 
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
                             const wxString& sub_obj_name,
+                            Slic3r::ModelVolumeType type,
                             const wxBitmap& bmp,
                             const wxString& extruder,
-                            const int idx = -1 ) :
-        m_parent	(parent),
-        m_name		(sub_obj_name),
-        m_type		(itVolume),
-        m_idx       (idx),
-        m_extruder  (extruder)
-    {
-        m_bmp = bmp;
-        set_action_and_extruder_icons();
-        init_container();
-    }
+                            const int idx = -1);
 
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
                             const t_layer_height_range& layer_range,
@@ -184,6 +175,7 @@ public:
     bool            SetValue(const wxVariant &variant, unsigned int col);
     void            SetVolumeType(ModelVolumeType type) { m_volume_type = type; }
     void            SetBitmap(const wxBitmap &icon) { m_bmp = icon; }
+    void            SetExtruder(const wxString &extruder) { m_extruder = extruder; }
     const wxBitmap& GetBitmap() const               { return m_bmp; }
     const wxString& GetName() const                 { return m_name; }
     ItemType        GetType() const                 { return m_type; }
@@ -192,7 +184,9 @@ public:
 	int             GetIdx() const                  { return m_idx; }
     ModelVolumeType GetVolumeType()                 { return m_volume_type; }
 	t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
+    wxString        GetExtruder()                   { return m_extruder; }
     PrintIndicator  IsPrintable() const             { return m_printable; }
+    void            UpdateExtruderAndColorIcon(wxString extruder = "");
 
     // use this function only for childrens
     void AssignAllVal(ObjectDataViewModelNode& from_node)
@@ -384,6 +378,8 @@ public:
 
     bool        UpdateColumValues(unsigned col);
     void        UpdateExtruderBitmap(wxDataViewItem item);
+    void        UpdateVolumesExtruderBitmap(wxDataViewItem object_item);
+    int         GetDefaultExtruderIdx(wxDataViewItem item);
 
 private:
     wxDataViewItem  AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);
