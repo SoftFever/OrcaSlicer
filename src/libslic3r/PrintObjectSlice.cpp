@@ -818,9 +818,12 @@ std::vector<ExPolygons> PrintObject::slice_support_volumes(const ModelVolumeType
         bool               merge = false;
         const Print       *print = this->print();
         auto               throw_on_cancel_callback = std::function<void()>([print](){ print->throw_if_canceled(); });
+        MeshSlicingParamsEx params;
+        params.trafo = this->trafo();
+        params.trafo.pretranslate(Vec3d(-unscale<float>(m_center_offset.x()), -unscale<float>(m_center_offset.y()), 0));
         for (; it_volume != it_volume_end; ++ it_volume)
             if ((*it_volume)->type() == model_volume_type) {
-                std::vector<ExPolygons> slices2 = slice_volume(*(*it_volume), zs, MeshSlicingParamsEx{}, throw_on_cancel_callback);
+                std::vector<ExPolygons> slices2 = slice_volume(*(*it_volume), zs, params, throw_on_cancel_callback);
                 if (slices.empty())
                     slices = std::move(slices2);
                 else if (! slices2.empty()) {

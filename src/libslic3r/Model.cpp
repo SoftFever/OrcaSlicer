@@ -2090,31 +2090,50 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
     });
 }
 
+template< typename TypeFilterFn, typename CompareFn>
+bool model_property_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, typename TypeFilterFn type_filter, typename CompareFn compare)
+{
+    assert(! model_volume_list_changed(model_object_old, model_object_new, type_filter));
+    size_t i_old, i_new;
+    for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
+        const ModelVolume &mv_old = *model_object_old.volumes[i_old];
+        const ModelVolume &mv_new = *model_object_new.volumes[i_new];
+        if (! type_filter(mv_old.type())) {
+            ++ i_old;
+            continue;
+        }
+        if (! type_filter(mv_new.type())) {
+            ++ i_new;
+            continue;
+        }
+        assert(mv_old.type() == mv_new.type() && mv_old.id() == mv_new.id());
+        if (! compare(mv_old, mv_new))
+            return true;
+        ++ i_old;
+        ++ i_new;
+    }
+    return false;
+}
+
 bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new)
 {
-    assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
-    for (size_t i = 0; i < mo.volumes.size(); ++ i)
-        if (! mo_new.volumes[i]->supported_facets.timestamp_matches(mo.volumes[i]->supported_facets))
-            return true;
-    return false;
+    return model_property_changed(mo, mo_new, 
+        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; }, 
+        [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.supported_facets.timestamp_matches(mv_new.supported_facets); });
 }
 
 bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo_new)
 {
-    assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
-    for (size_t i = 0; i < mo.volumes.size(); ++ i)
-        if (! mo_new.volumes[i]->seam_facets.timestamp_matches(mo.volumes[i]->seam_facets))
-            return true;
-    return false;
+    return model_property_changed(mo, mo_new, 
+        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; }, 
+        [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.seam_facets.timestamp_matches(mv_new.seam_facets); });
 }
 
 bool model_mmu_segmentation_data_changed(const ModelObject& mo, const ModelObject& mo_new)
 {
-    assert(! model_volume_list_changed(mo, mo_new, ModelVolumeType::MODEL_PART));
-    for (size_t i = 0; i < mo.volumes.size(); ++ i)
-        if (! mo_new.volumes[i]->mmu_segmentation_facets.timestamp_matches(mo.volumes[i]->mmu_segmentation_facets))
-            return true;
-    return false;
+    return model_property_changed(mo, mo_new, 
+        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; }, 
+        [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.mmu_segmentation_facets.timestamp_matches(mv_new.mmu_segmentation_facets); });
 }
 
 bool model_has_multi_part_objects(const Model &model)

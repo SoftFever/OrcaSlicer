@@ -347,12 +347,12 @@ struct ModelObjectStatus {
 struct ModelObjectStatusDB
 {
     void add(const ModelObject &model_object, const ModelObjectStatus::Status status) {
+        assert(db.find(ModelObjectStatus(model_object.id())) == db.end());
         db.emplace(model_object.id(), status);
     }
 
     bool add_if_new(const ModelObject &model_object, const ModelObjectStatus::Status status) {
         auto it = db.find(ModelObjectStatus(model_object.id()));
-        assert(it != db.end());
         if (it == db.end()) {
             db.emplace_hint(it, model_object.id(), status);
             return true;
@@ -1057,10 +1057,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         assert(model_object_status.status == ModelObjectStatus::Old || model_object_status.status == ModelObjectStatus::Moved);
         // Check whether a model part volume was added or removed, their transformations or order changed.
         // Only volume IDs, volume types, transformation matrices and their order are checked, configuration and other parameters are NOT checked.
-        bool solid_or_modifier_differ   = model_volume_list_changed(model_object, model_object_new, solid_or_modifier_types);
+        bool solid_or_modifier_differ   = model_volume_list_changed(model_object, model_object_new, solid_or_modifier_types) ||
+                                          model_mmu_segmentation_data_changed(model_object, model_object_new);
         bool supports_differ            = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER) ||
                                           model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
-        bool mmu_segmentation_differ    = model_mmu_segmentation_data_changed(model_object, model_object_new);
         bool layer_height_ranges_differ = ! layer_height_ranges_equal(model_object.layer_config_ranges, model_object_new.layer_config_ranges, model_object_new.layer_height_profile.empty());
         bool model_origin_translation_differ = model_object.origin_translation != model_object_new.origin_translation;
         auto print_objects_range        = print_object_status_db.get_range(model_object);
@@ -1068,7 +1068,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // All PrintObjects in print_objects_range shall point to the same prints_objects_regions
         model_object_status.print_object_regions = print_objects_range.begin()->print_object->m_shared_regions;
         model_object_status.print_object_regions->ref_cnt_inc();
-        if (solid_or_modifier_differ || mmu_segmentation_differ || model_origin_translation_differ || layer_height_ranges_differ ||
+        if (solid_or_modifier_differ || model_origin_translation_differ || layer_height_ranges_differ ||
             ! model_object.layer_height_profile.timestamp_matches(model_object_new.layer_height_profile)) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
             model_object_status.print_object_regions_status = model_origin_translation_differ || layer_height_ranges_differ ?
