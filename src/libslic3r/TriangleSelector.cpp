@@ -767,6 +767,12 @@ void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_stat
     for (Triangle &triangle : m_triangles)
         if (!triangle.is_split() && triangle.is_selected_by_seed_fill())
             triangle.set_state(new_state);
+
+    for (Triangle &triangle : m_triangles)
+        if (triangle.is_split() && triangle.valid) {
+            size_t facet_idx = &triangle - &m_triangles.front();
+            remove_useless_children(facet_idx);
+        }
 }
 
 TriangleSelector::Cursor::Cursor(
