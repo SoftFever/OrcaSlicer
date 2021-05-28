@@ -571,29 +571,32 @@ static void transformed_its_bboxes_in_z_ranges(
 // their bounding boxes to be recalculated.
 void print_objects_regions_invalidate_keep_some_volumes(PrintObjectRegions &print_object_regions, ModelVolumePtrs old_volumes, ModelVolumePtrs new_volumes)
 {
-    assert(old_volumes.size() == print_object_regions.cached_volume_ids.size());
-
     print_object_regions.all_regions.clear();
 
     model_volumes_sort_by_id(old_volumes);
     model_volumes_sort_by_id(new_volumes);
 
-    size_t last = 0;
-    size_t i_old = 0;
-    for (size_t i_new = 0; i_new < new_volumes.size(); ++ i_new) {
-        for (; i_old < old_volumes.size(); ++ i_old)
-            if (old_volumes[i_old]->id() >= new_volumes[i_new]->id())
-                break;
-        if (i_old == old_volumes.size())
-            break;
-        if (old_volumes[i_old]->id() == new_volumes[i_new]->id() && old_volumes[i_old]->get_matrix().isApprox(new_volumes[i_new]->get_matrix())) {
-            // Reuse the volume.
-            print_object_regions.cached_volume_ids[last ++] = print_object_regions.cached_volume_ids[i_old];
-        } else {
-            // Don't reuse the volume.
+    size_t i_cached_volume      = 0;
+    size_t last_cached_volume   = 0;
+    size_t i_old                = 0;
+    for (size_t i_new = 0; i_new < new_volumes.size(); ++ i_new)
+        if (model_volume_solid_or_modifier(*new_volumes[i_new])) {
+            for (; i_old < old_volumes.size(); ++ i_old)
+                if (old_volumes[i_old]->id() >= new_volumes[i_new]->id())
+                    break;
+            if (i_old != old_volumes.size() && old_volumes[i_old]->id() == new_volumes[i_new]->id()) {
+                if (old_volumes[i_old]->get_matrix().isApprox(new_volumes[i_new]->get_matrix())) {
+                    // Reuse the volume.
+                    for (; print_object_regions.cached_volume_ids[i_cached_volume] < old_volumes[i_old]->id(); ++ i_cached_volume)
+                        assert(i_cached_volume < print_object_regions.cached_volume_ids.size());
+                    assert(i_cached_volume < print_object_regions.cached_volume_ids.size() && print_object_regions.cached_volume_ids[i_cached_volume] == old_volumes[i_old]->id());
+                    print_object_regions.cached_volume_ids[last_cached_volume ++] = print_object_regions.cached_volume_ids[i_cached_volume ++];
+                } else {
+                    // Don't reuse the volume.
+                }
+            }
         }
-    }
-    print_object_regions.cached_volume_ids.erase(print_object_regions.cached_volume_ids.begin() + last, print_object_regions.cached_volume_ids.end());
+    print_object_regions.cached_volume_ids.erase(print_object_regions.cached_volume_ids.begin() + last_cached_volume, print_object_regions.cached_volume_ids.end());
 }
 
 const PrintObjectRegions::BoundingBox* find_volume_extents(const PrintObjectRegions::LayerRangeRegions &layer_range, const ModelVolume &volume)
@@ -763,7 +766,8 @@ void update_volume_bboxes(
     cached_volume_ids.clear();
     cached_volume_ids.reserve(model_volumes.size());
     for (const ModelVolume *v : model_volumes)
-        cached_volume_ids.emplace_back(v->id());
+        if (model_volume_solid_or_modifier(*v))
+            cached_volume_ids.emplace_back(v->id());
 }
 
 // Either a fresh PrintObject, or PrintObject regions were invalidated (merged, split).
