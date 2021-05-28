@@ -2091,7 +2091,7 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
 }
 
 template< typename TypeFilterFn, typename CompareFn>
-bool model_property_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, typename TypeFilterFn type_filter, typename CompareFn compare)
+bool model_property_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, TypeFilterFn type_filter, CompareFn compare)
 {
     assert(! model_volume_list_changed(model_object_old, model_object_new, type_filter));
     size_t i_old, i_new;
