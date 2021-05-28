@@ -199,9 +199,12 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     if (shader == nullptr)
         return;
 
-    shader->start_using();
-    shader->set_uniform("emission_factor", 0.1);
-    shader->set_uniform("uniform_color", color);
+    if (! picking) {
+        shader->start_using();
+        shader->set_uniform("emission_factor", 0.1);
+        shader->set_uniform("uniform_color", color);
+    } else
+        glsafe(::glColor4fv(color.data()));
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[axis].center.x(), m_grabbers[axis].center.y(), m_grabbers[axis].center.z()));
@@ -215,7 +218,8 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     m_vbo_cone.render();
     glsafe(::glPopMatrix());
 
-    shader->stop_using();
+    if (! picking)
+        shader->stop_using();
 }
 
 

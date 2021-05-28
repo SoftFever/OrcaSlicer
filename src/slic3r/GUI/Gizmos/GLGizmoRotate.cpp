@@ -336,9 +336,12 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     if (shader == nullptr)
         return;
 
-    shader->start_using();
-    shader->set_uniform("emission_factor", 0.1);
-    shader->set_uniform("uniform_color", color);
+    if (! picking) {
+        shader->start_using();
+        shader->set_uniform("emission_factor", 0.1);
+        shader->set_uniform("uniform_color", color);
+    } else
+        glsafe(::glColor4fv(color.data()));
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
@@ -357,7 +360,8 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     m_cone.render();
     glsafe(::glPopMatrix());
 
-    shader->stop_using();
+    if (! picking)
+        shader->stop_using();
 }
 
 void GLGizmoRotate::transform_to_local(const Selection& selection) const

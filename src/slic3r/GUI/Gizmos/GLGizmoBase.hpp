@@ -48,7 +48,6 @@ protected:
         static const float MinHalfSize;
         static const float DraggingScaleFactor;
 
-        GLModel cube;
         Vec3d center;
         Vec3d angles;
         std::array<float, 4> color;
@@ -65,6 +64,9 @@ protected:
 
     private:
         void render(float size, const std::array<float, 4>& render_color, bool picking) const;
+
+        GLModel cube;
+        bool cube_initialized = false;
     };
 
 public:

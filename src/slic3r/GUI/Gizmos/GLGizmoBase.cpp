@@ -21,9 +21,6 @@ GLGizmoBase::Grabber::Grabber()
     , enabled(true)
 {
     color = { 1.0f, 1.0f, 1.0f, 1.0f };
-    TriangleMesh mesh = make_cube(1., 1., 1.);
-    mesh.translate(Vec3f(-0.5, -0.5, -0.5));
-    cube.init_from(mesh);
 }
 
 void GLGizmoBase::Grabber::render(bool hover, float size) const
@@ -53,6 +50,15 @@ float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
 
 void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render_color, bool picking) const
 {
+    if (! cube_initialized) {
+        // This cannot be done in constructor, OpenGL is not yet
+        // initialized at that point (on Linux at least).
+        TriangleMesh mesh = make_cube(1., 1., 1.);
+        mesh.translate(Vec3f(-0.5, -0.5, -0.5));
+        const_cast<GLModel&>(cube).init_from(mesh);
+        const_cast<bool&>(cube_initialized) = true;
+    }
+
     float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
 
     GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_current_shader();
