@@ -674,10 +674,10 @@ ModelVolume* ModelObject::add_volume(TriangleMesh &&mesh, ModelVolumeType type /
     return v;
 }
 
-ModelVolume* ModelObject::add_volume(const ModelVolume &other, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/)
+ModelVolume* ModelObject::add_volume(const ModelVolume &other, ModelVolumeType type /*= ModelVolumeType::INVALID*/)
 {
     ModelVolume* v = new ModelVolume(this, other);
-    if (v->type() != type)
+    if (type != ModelVolumeType::INVALID && v->type() != type)
         v->set_type(type);
     add_v_to_volumes(&(this->volumes), v);
 	// The volume should already be centered at this point of time when copying shared pointers of the triangle mesh and convex hull.
