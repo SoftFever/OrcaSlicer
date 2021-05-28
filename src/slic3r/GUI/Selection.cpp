@@ -22,7 +22,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
 
-static const float UNIFORM_SCALE_COLOR[4] = { 0.923f, 0.504f, 0.264f, 1.0f };
+static const std::array<float, 4> UNIFORM_SCALE_COLOR = { 0.923f, 0.504f, 0.264f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -115,20 +115,8 @@ Selection::Selection()
     , m_scale_factor(1.0f)
 {
     this->set_bounding_boxes_dirty();
-#if ENABLE_RENDER_SELECTION_CENTER
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
-#endif // ENABLE_RENDER_SELECTION_CENTER
 }
 
-#if ENABLE_RENDER_SELECTION_CENTER
-Selection::~Selection()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
-}
-#endif // ENABLE_RENDER_SELECTION_CENTER
 
 void Selection::set_volumes(GLVolumePtrs* volumes)
 {
@@ -141,6 +129,11 @@ bool Selection::init()
 {
     m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
+
+#if ENABLE_RENDER_SELECTION_CENTER
+    m_vbo_sphere.init_from(make_sphere(0.75, 2*PI/24));
+#endif // ENABLE_RENDER_SELECTION_CENTER
+
     return true;
 }
 
@@ -1176,22 +1169,18 @@ void Selection::render(float scale_factor) const
 #if ENABLE_RENDER_SELECTION_CENTER
 void Selection::render_center(bool gizmo_is_dragging) const
 {
-    if (!m_valid || is_empty() || m_quadric == nullptr)
+    if (!m_valid || is_empty())
         return;
 
     const Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glEnable(GL_LIGHTING));
-
     glsafe(::glColor3f(1.0f, 1.0f, 1.0f));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(center(0), center(1), center(2)));
-    glsafe(::gluSphere(m_quadric, 0.75, 32, 32));
+    m_vbo_sphere.render();
     glsafe(::glPopMatrix());
-
-    glsafe(::glDisable(GL_LIGHTING));
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
@@ -1833,8 +1822,10 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field) 
 {
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
-        if (shader != nullptr)
-            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+        if (shader != nullptr) {
+            shader->set_uniform("uniform_color", AXES_COLOR[axis]);
+            shader->set_uniform("emission_factor", 0.0);
+        }
     };
 
     if (boost::ends_with(sidebar_field, "x")) {
@@ -1855,8 +1846,10 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
 {
     auto set_color = [](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
-        if (shader != nullptr)
-            shader->set_uniform("uniform_color", AXES_COLOR[axis], 4);
+        if (shader != nullptr) {
+            shader->set_uniform("uniform_color", AXES_COLOR[axis]);
+            shader->set_uniform("emission_factor", 0.0);
+        }
     };
 
     auto render_sidebar_rotation_hint = [this]() {
@@ -1885,8 +1878,10 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
 
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
         GLShaderProgram* shader = wxGetApp().get_current_shader();
-        if (shader != nullptr)
-            shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis], 4);
+        if (shader != nullptr) {
+            shader->set_uniform("uniform_color", uniform_scale ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]);
+            shader->set_uniform("emission_factor", 0.0);
+        }
 
         glsafe(::glTranslated(0.0, 5.0, 0.0));
         m_arrow.render();

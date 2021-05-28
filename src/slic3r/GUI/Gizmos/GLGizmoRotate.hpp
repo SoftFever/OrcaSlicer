@@ -32,8 +32,6 @@ private:
     Axis m_axis;
     double m_angle;
 
-    GLUquadricObj* m_quadric;
-
     mutable Vec3d m_center;
     mutable float m_radius;
 
@@ -45,7 +43,7 @@ private:
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
     GLGizmoRotate(const GLGizmoRotate& other);
-    virtual ~GLGizmoRotate();
+    virtual ~GLGizmoRotate() = default;
 
     double get_angle() const { return m_angle; }
     void set_angle(double angle);

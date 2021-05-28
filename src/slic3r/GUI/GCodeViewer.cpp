@@ -227,6 +227,7 @@ void GCodeViewer::SequentialView::Marker::render() const
 
     shader->start_using();
     shader->set_uniform("uniform_color", m_color);
+    shader->set_uniform("emission_factor", 0.0);
 
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixf(m_world_transform.data()));

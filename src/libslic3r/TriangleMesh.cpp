@@ -1014,6 +1014,33 @@ TriangleMesh make_cylinder(double r, double h, double fa)
     return mesh;
 }
 
+
+TriangleMesh make_cone(double r, double h, double fa)
+{
+    Pointf3s vertices;
+    std::vector<Vec3i>	facets;
+    vertices.reserve(3+size_t(2*PI/fa));
+    vertices.reserve(3+2*size_t(2*PI/fa));
+
+    vertices = { Vec3d::Zero(), Vec3d(0., 0., h) }; // base center and top vertex
+    size_t i = 0;
+    for (double angle=0; angle<2*PI; angle+=fa) {
+        vertices.emplace_back(r*std::cos(angle), r*std::sin(angle), 0.);
+        if (angle > 0.) {
+            facets.emplace_back(0, i+2, i+1);
+            facets.emplace_back(1, i+1, i+2);
+        }
+        ++i;
+    }
+    facets.emplace_back(0, 2, i+1); // close the shape
+    facets.emplace_back(1, i+1, 2);
+
+    TriangleMesh mesh(std::move(vertices), std::move(facets));
+    mesh.repair();
+    return mesh;
+}
+
+
 // Generates mesh for a sphere centered about the origin, using the generated angle
 // to determine the granularity. 
 // Default angle is 1 degree.

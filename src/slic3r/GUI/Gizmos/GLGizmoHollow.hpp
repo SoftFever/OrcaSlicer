@@ -25,12 +25,10 @@ class GLGizmoHollow : public GLGizmoBase
 private:
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
-    GLUquadricObj* m_quadric;
-
 
 public:
     GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-    ~GLGizmoHollow() override;
+    virtual ~GLGizmoHollow() = default;
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points();    
@@ -50,7 +48,7 @@ private:
 
     ObjectID m_old_mo_id = -1;
 
-    // bool  m_show_supports = true;
+    GLModel m_vbo_cylinder;
     float m_new_hole_radius = 2.f;        // Size of a new hole.
     float m_new_hole_height = 6.f;
     mutable std::vector<bool> m_selected; // which holes are currently selected

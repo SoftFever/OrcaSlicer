@@ -122,6 +122,7 @@ void Bed3D::Axes::render() const
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     shader->start_using();
+    shader->set_uniform("emission_factor", 0.0);
 
     // x axis
     std::array<float, 4> color = { 0.75f, 0.0f, 0.0f, 1.0f };
@@ -489,6 +490,7 @@ void Bed3D::render_model() const
         if (shader != nullptr) {
             shader->start_using();
             shader->set_uniform("uniform_color", m_model_color);
+            shader->set_uniform("emission_factor", 0.0);
             ::glPushMatrix();
             ::glTranslated(m_model_offset(0), m_model_offset(1), m_model_offset(2));
             model->render();
