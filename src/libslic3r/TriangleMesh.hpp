@@ -136,76 +136,73 @@ int its_remove_degenerate_faces(indexed_triangle_set &its, bool shrink_to_fit = 
 // Remove vertices, which none of the faces references. Return number of freed vertices.
 int its_compactify_vertices(indexed_triangle_set &its, bool shrink_to_fit = true);
 
-// Used by its_split to map each face of a mesh to a part index. Can be used
-// to query the number of parts in a mesh.
-struct PartMap
-{
-    static constexpr int UNVISITED = -1;
+using FaceNeighborIndex = std::vector< std::array<size_t, 3> >;
 
-    size_t           count;
-    std::vector<int> face_part_indices;
+// Create index that gives neighbor faces for each face. Ignores face orientations.
+FaceNeighborIndex its_create_neighbors_index(const indexed_triangle_set &its);
 
-    PartMap(const indexed_triangle_set &            its,
-            const std::vector<std::vector<size_t>> &vfidx);
+// Visit all unvisited neighboring facets that are reachable from the first unvisited facet,
+// and return them.
+std::vector<size_t> its_find_unvisited_neighbors(
+    const indexed_triangle_set &its,
+    const FaceNeighborIndex &   neighbor_index,
+    std::vector<bool> &         visited);
 
-    explicit PartMap(const indexed_triangle_set &its)
-        : PartMap(its, create_vertex_faces_index(its))
-    {}
-
-private:
-
-    bool split_recurse(const indexed_triangle_set &            its,
-                       const std::vector<std::vector<size_t>> &vfidx,
-                       size_t                                  fi,
-                       size_t                                  part_idx);
-};
-
-template<class OutputIt>
-void its_split(const indexed_triangle_set &its,
-               const PartMap &             partmap,
-               OutputIt                    out_it)
-{
-    std::vector<indexed_triangle_set> meshes(partmap.count);
-
-    std::vector<int> vidx_conv(its.vertices.size() * meshes.size(),
-                               PartMap::UNVISITED);
-
-    auto &parts = partmap.face_part_indices;
-
-    for (size_t fi = 0; fi < parts.size(); ++fi) {
-        int pi = parts[fi];
-
-        if (pi < 0) continue;
-
-        indexed_triangle_set &part_its   = meshes[size_t(pi)];
-        const auto &          face       = its.indices[fi];
-        size_t                conv_begin = (pi * its.vertices.size());
-        Vec3i                 new_face;
-        for (size_t v = 0; v < 3; ++v) {
-            auto vi = face(v);
-            size_t conv_idx = conv_begin + vi;
-
-            if (vidx_conv[conv_idx] == PartMap::UNVISITED) {
-                vidx_conv[conv_idx] = part_its.vertices.size();
-                part_its.vertices.emplace_back(its.vertices[size_t(vi)]);
-            }
-
-            new_face(v) = vidx_conv[conv_idx];
-        }
-
-        part_its.indices.emplace_back(new_face);
-    }
-
-    for (indexed_triangle_set &part_its : meshes)
-        out_it = std::move(part_its);
-}
-
+// Splits a mesh into multiple meshes when possible.
 template<class OutputIt>
 void its_split(const indexed_triangle_set &            its,
-               OutputIt                                out_it)
+               OutputIt                                out_it,
+               const FaceNeighborIndex &neighbor_index_ = {})
 {
-    its_split(its, PartMap{its}, out_it);
+    const auto &neighbor_index = neighbor_index_.empty() ?
+                                     its_create_neighbors_index(its) :
+                                     neighbor_index_;
+
+    std::vector<bool> visited(its.indices.size(), false);
+
+    const size_t        UNASSIGNED = its.vertices.size();
+    std::vector<size_t> vidx_conv(its.vertices.size());
+
+    for (;;) {
+        std::vector<size_t> facets =
+            its_find_unvisited_neighbors(its, neighbor_index, visited);
+
+        if (facets.empty())
+            break;
+
+        std::fill(vidx_conv.begin(), vidx_conv.end(), UNASSIGNED);
+
+        // Create a new mesh for the part that was just split off.
+        indexed_triangle_set mesh;
+
+        // Assign the facets to the new mesh.
+        for (size_t face_id : facets) {
+            const auto &face = its.indices[face_id];
+            Vec3i       new_face;
+            for (size_t v = 0; v < 3; ++v) {
+                auto vi = face(v);
+
+                if (vidx_conv[vi] == UNASSIGNED) {
+                    vidx_conv[vi] = mesh.vertices.size();
+                    mesh.vertices.emplace_back(its.vertices[size_t(vi)]);
+                }
+
+                new_face(v) = vidx_conv[vi];
+            }
+
+            mesh.indices.emplace_back(new_face);
+        }
+
+        out_it = std::move(mesh);
+    }
 }
+
+std::vector<indexed_triangle_set> its_split(
+    const indexed_triangle_set &its,
+    const FaceNeighborIndex &  neighbor_index = {});
+
+bool its_is_splittable(const indexed_triangle_set &its,
+                       const FaceNeighborIndex &  neighbor_index = {});
 
 // Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
 void its_shrink_to_fit(indexed_triangle_set &its);

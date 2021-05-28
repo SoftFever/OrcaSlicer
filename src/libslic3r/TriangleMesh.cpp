@@ -1183,45 +1183,132 @@ float its_volume(const indexed_triangle_set &its)
     return volume;
 }
 
-PartMap::PartMap(const indexed_triangle_set &            its,
-                 const std::vector<std::vector<size_t>> &vfidx)
-    : count(0), face_part_indices(its.indices.size(), UNVISITED)
+std::vector<size_t> its_find_unvisited_neighbors(
+    const indexed_triangle_set &its,
+    const FaceNeighborIndex &   neighbor_index,
+    std::vector<bool> &         visited)
 {
-    auto next_face_idx = [this](size_t start) {
-        size_t i = start;
-        while (face_part_indices[i++] >= 0);
-        return i;
+    using stack_el = size_t;
+
+    auto facestack = reserve_vector<stack_el>(its.indices.size());
+    auto push = [&facestack] (const stack_el &s) { facestack.emplace_back(s); };
+    auto pop  = [&facestack] () -> stack_el {
+        stack_el ret = facestack.back();
+        facestack.pop_back();
+        return ret;
     };
 
-    size_t face_idx = 0;
-    size_t part_idx = 0;
+    // find the next unvisited facet and push the index
+    auto facet = std::find(visited.begin(), visited.end(), false);
+    std::vector<size_t> ret;
 
-    do {
-        face_idx = next_face_idx(face_idx);
-    } while(split_recurse(its, vfidx, face_idx, part_idx++));
-
-    count = size_t(part_idx - 1);
-}
-
-bool PartMap::split_recurse(const indexed_triangle_set &            its,
-                            const std::vector<std::vector<size_t>> &vfidx,
-                            size_t                                  fi,
-                            size_t                                  part_idx)
-{
-    if (face_part_indices[fi] >= 0)
-        return false;
-
-    face_part_indices[fi] = part_idx;
-    const auto &face = its.indices[fi];
-
-    for (size_t v = 0; v < 3; ++v) {
-        auto vi = face(v);
-        const std::vector<size_t> neigh_faces = vfidx[vi];
-        for (size_t neigh_face : neigh_faces)
-            split_recurse(its, vfidx, neigh_face, part_idx);
+    if (facet != visited.end()) {
+        ret.reserve(its.indices.size());
+        auto idx = size_t(facet - visited.begin());
+        push(idx);
+        ret.emplace_back(idx);
+        visited[idx] = true;
     }
 
-    return true;
+    while (!facestack.empty()) {
+        size_t facet_idx = pop();
+        const auto &neighbors = neighbor_index[facet_idx];
+        for (size_t neighbor_idx : neighbors) {
+            if (!visited[neighbor_idx]) {
+                visited[neighbor_idx] = true;
+                push(neighbor_idx);
+                ret.emplace_back(neighbor_idx);
+            }
+        }
+    }
+
+    return ret;
+}
+
+bool its_is_splittable(const indexed_triangle_set &its,
+                       const FaceNeighborIndex &  neighbor_index)
+{
+    std::vector<bool> visited(its.indices.size(), false);
+    its_find_unvisited_neighbors(its, neighbor_index, visited);
+
+    // Try finding an unvisited facet. If there are none, the mesh is not splittable.
+    auto it = std::find(visited.begin(), visited.end(), false);
+    return it != visited.end();
+}
+
+std::vector<indexed_triangle_set> its_split(
+    const indexed_triangle_set &its, const FaceNeighborIndex &neighbor_index)
+{
+    auto ret = reserve_vector<indexed_triangle_set>(3);
+    its_split(its, std::back_inserter(ret), neighbor_index);
+
+    return ret;
+}
+
+FaceNeighborIndex its_create_neighbors_index(const indexed_triangle_set &its)
+{
+    // Just to be clear what type of object are we referencing
+    using FaceID = size_t;
+    using VertexID = uint64_t;
+    using EdgeID = uint64_t;
+
+    constexpr auto UNASSIGNED = std::numeric_limits<FaceID>::max();
+
+    struct Edge // Will contain IDs of the two facets touching this edge
+    {
+        FaceID first, second;
+        Edge() : first{UNASSIGNED}, second{UNASSIGNED} {}
+        void   assign(FaceID fid)
+        {
+            first == UNASSIGNED ? first = fid : second = fid;
+        }
+    };
+
+    // All vertex IDs will fit into this number of bits. (Used for hashing)
+    const int max_vertex_id_bits = std::ceil(std::log2(its.vertices.size()));
+    assert(max_vertex_id_bits <= 32);
+
+    std::unordered_map< EdgeID, Edge > edge_index;
+
+    // Edge id is constructed by concatenating two vertex ids, starting with
+    // the lowest in MSB
+    auto hash = [max_vertex_id_bits] (VertexID a, VertexID b) {
+        if (a > b) std::swap(a, b);
+        return (a << max_vertex_id_bits) + b;
+    };
+
+    // Go through all edges of all facets and mark the facets touching each edge
+    for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
+        const Vec3i &face = its.indices[face_id];
+
+        EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
+               e3 = hash(face(2), face(0));
+
+        edge_index[e1].assign(face_id);
+        edge_index[e2].assign(face_id);
+        edge_index[e3].assign(face_id);
+    }
+
+    FaceNeighborIndex index(its.indices.size());
+
+    // Now collect the neighbors for each facet into the final index
+    for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
+        const Vec3i &face = its.indices[face_id];
+
+        EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
+               e3 = hash(face(2), face(0));
+
+        const Edge &neighs1 = edge_index[e1];
+        const Edge &neighs2 = edge_index[e2];
+        const Edge &neighs3 = edge_index[e3];
+
+        std::array<size_t, 3> &neighs = index[face_id];
+        neighs[0] = neighs1.first == face_id ? neighs1.second : neighs1.first;
+        neighs[1] = neighs2.first == face_id ? neighs2.second : neighs2.first;
+        neighs[2] = neighs3.first == face_id ? neighs3.second : neighs3.first;
+    }
+
+    return index;
 }
 
 } // namespace Slic3r

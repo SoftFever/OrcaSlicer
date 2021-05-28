@@ -54,17 +54,10 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const indexed_triangle_set &    mesh,
 {
     openvdb::initialize();
 
-    std::vector<indexed_triangle_set> meshparts;
-    its_split(mesh, std::back_inserter(meshparts));
+    std::vector<indexed_triangle_set> meshparts = its_split(mesh);
 
-//    TriangleMeshPtrs meshparts_raw = mesh.split();
-//    auto meshparts = reserve_vector<std::unique_ptr<TriangleMesh>>(meshparts_raw.size());
-//    for (auto *p : meshparts_raw)
-//        meshparts.emplace_back(p);
-
-    auto it = std::remove_if(meshparts.begin(), meshparts.end(), [](auto &m) {
-        return its_volume(m) < EPSILON;
-     });
+    auto it = std::remove_if(meshparts.begin(), meshparts.end(),
+                             [](auto &m) { return its_volume(m) < EPSILON; });
 
     meshparts.erase(it, meshparts.end());
 
