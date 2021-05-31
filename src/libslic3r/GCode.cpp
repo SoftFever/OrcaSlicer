@@ -542,7 +542,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
             if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
                 const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-                    _(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
+                    _(L("Empty layers detected. Make sure the object is printable.")) + "\n\n" +
                     _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
                     std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
                         "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
