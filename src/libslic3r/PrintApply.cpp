@@ -1268,9 +1268,17 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
         if (model_object_status.print_object_regions_status == ModelObjectStatus::PrintObjectRegionsStatus::Valid) {
             // Verify that the trafo for regions & volume bounding boxes thus for regions is still applicable.
-            if (print_object_regions && ! trafos_differ_in_rotation_by_z_and_mirroring_by_xy_only(print_object_regions->trafo_bboxes, model_object_status.print_instances.front().trafo))
+            auto invalidate = [it_print_object, it_print_object_end, update_apply_status]() {
+                for (auto it = it_print_object; it != it_print_object_end; ++ it)
+                    if ((*it)->m_shared_regions != nullptr)
+                        update_apply_status((*it)->invalidate_all_steps());
+            };
+            if (print_object_regions && ! trafos_differ_in_rotation_by_z_and_mirroring_by_xy_only(print_object_regions->trafo_bboxes, model_object_status.print_instances.front().trafo)) {
+                invalidate();
                 print_object_regions->clear();
-            if (print_object_regions && 
+                model_object_status.print_object_regions_status = ModelObjectStatus::PrintObjectRegionsStatus::Invalid;
+                print_regions_reshuffled = true;
+            } else if (print_object_regions &&
                 verify_update_print_object_regions(
                     print_object.model_object()->volumes,
                     m_default_region_config,
@@ -1283,11 +1291,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 // Regions are valid, just keep them.
             } else {
                 // Regions were reshuffled.
-                for (auto it = it_print_object; it != it_print_object_end; ++ it)
-                    if ((*it)->m_shared_regions != nullptr) {
-                        assert(print_object_regions == (*it)->m_shared_regions);
-                        update_apply_status((*it)->invalidate_all_steps());
-                    }
+                invalidate();
                 // At least reuse layer ranges and bounding boxes of ModelVolumes.
                 model_object_status.print_object_regions_status = ModelObjectStatus::PrintObjectRegionsStatus::PartiallyValid;
                 print_regions_reshuffled = true;
@@ -1307,9 +1311,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 painting_extruders);
         }
         for (auto it = it_print_object; it != it_print_object_end; ++it)
-            if ((*it)->m_shared_regions)
+            if ((*it)->m_shared_regions) {
                 assert((*it)->m_shared_regions == print_object_regions);
-            else {
+            } else {
                 (*it)->m_shared_regions = print_object_regions;
                 print_object_regions->ref_cnt_inc();
             }
