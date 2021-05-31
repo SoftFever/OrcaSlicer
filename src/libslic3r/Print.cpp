@@ -197,6 +197,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "cooling_tube_length"
             || opt_key == "extra_loading_move"
             || opt_key == "travel_speed"
+            || opt_key == "travel_speed_z"
             || opt_key == "first_layer_speed"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
