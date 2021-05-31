@@ -376,7 +376,7 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
                 }
             }
 
-            height = std::clamp((weight_total != 0.0) ? height /= weight_total : hi, slicing_params.min_layer_height, slicing_params.max_layer_height);
+            height = std::clamp(weight_total == 0 ? hi : height / weight_total, slicing_params.min_layer_height, slicing_params.max_layer_height);
             if (smoothing_params.keep_min)
                 height = std::min(height, hi);
         }

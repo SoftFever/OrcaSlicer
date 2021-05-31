@@ -598,7 +598,7 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
                     continue;
                 // Split LayerRegions by by_extruder regions.
                 auto it_painted_region = layer_range.painted_regions.begin();
-                for (size_t region_id = 0; region_id < layer->region_count(); ++ region_id)
+                for (int region_id = 0; region_id < int(layer->region_count()); ++ region_id)
                     if (LayerRegion &layerm = *layer->get_region(region_id); ! layerm.slices.surfaces.empty()) {
                         const BoundingBox bbox = get_extents(layerm.slices.surfaces);
                         assert(it_painted_region < layer_range.painted_regions.end());
@@ -607,13 +607,13 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
                         assert(&layerm.region() == it_painted_region->region && layerm.region().print_object_region_id() == region_id);
                         // 1-based extruder ID
                         bool   self_trimmed = false;
-                        size_t self_extruder_id;
-                        for (size_t extruder_id = 1; extruder_id <= by_extruder.size(); ++ extruder_id)
+                        int    self_extruder_id = -1;
+                        for (int extruder_id = 1; extruder_id <= int(by_extruder.size()); ++ extruder_id)
                             if (ByExtruder &segmented = by_extruder[extruder_id - 1]; segmented.bbox.defined && bbox.overlap(segmented.bbox)) {
                                 // Find the target region.
-                                for (; it_painted_region->extruder_id < extruder_id; ++ it_painted_region)
+                                for (; int(it_painted_region->extruder_id) < extruder_id; ++ it_painted_region)
                                     assert(it_painted_region < layer_range.painted_regions.end());
-                                assert(layer_range.volume_regions[it_painted_region->parent].region == &layerm.region() && it_painted_region->extruder_id == extruder_id);
+                                assert(layer_range.volume_regions[it_painted_region->parent].region == &layerm.region() && int(it_painted_region->extruder_id) == extruder_id);
                                 //FIXME Don't trim by self, it is not reliable.
                                 if (&layerm.region() == it_painted_region->region) {
                                     self_extruder_id = extruder_id;
