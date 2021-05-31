@@ -651,6 +651,7 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
             shader->stop_using();
     });
     shader->set_uniform("slope.actived", false);
+    shader->set_uniform("print_box.actived", false);
 
     for (size_t color_idx = 0; color_idx < m_iva_colors.size(); ++color_idx) {
         if (render_colors[color_idx]) {

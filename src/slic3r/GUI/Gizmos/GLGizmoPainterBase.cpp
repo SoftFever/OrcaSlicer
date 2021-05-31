@@ -653,6 +653,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     shader->start_using();
     ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
     shader->set_uniform("slope.actived", false);
+    shader->set_uniform("print_box.actived", false);
 
     if (render_enf) {
         std::array<float, 4> color = { 0.47f, 0.47f, 1.f, 1.f };
