@@ -150,7 +150,11 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         }
 
         if (shader && ! picking)
+#if ENABLE_SEQUENTIAL_LIMITS
+            const_cast<GLModel*>(&m_vbo_cylinder)->set_color(-1 , render_color);
+#else
             shader->set_uniform("uniform_color", render_color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
         else // picking
             glsafe(::glColor4fv(render_color.data()));
 

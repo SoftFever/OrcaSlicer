@@ -63,15 +63,19 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
 
     GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_current_shader();
     if (shader != nullptr)
+#if ENABLE_SEQUENTIAL_LIMITS
+        const_cast<GLModel*>(&cube)->set_color(-1, render_color);
+#else
         shader->set_uniform("uniform_color", render_color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
     else
         glsafe(::glColor4fv(render_color.data())); // picking
 
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(center(0), center(1), center(2)));
-    glsafe(::glRotated(Geometry::rad2deg(angles(2)), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0));
-    glsafe(::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0));
+    glsafe(::glTranslated(center.x(), center.y(), center.z()));
+    glsafe(::glRotated(Geometry::rad2deg(angles.z()), 0.0, 0.0, 1.0));
+    glsafe(::glRotated(Geometry::rad2deg(angles.y()), 0.0, 1.0, 0.0));
+    glsafe(::glRotated(Geometry::rad2deg(angles.x()), 1.0, 0.0, 0.0));
     glsafe(::glScaled(fullsize, fullsize, fullsize));
     cube.render();
     glsafe(::glPopMatrix());

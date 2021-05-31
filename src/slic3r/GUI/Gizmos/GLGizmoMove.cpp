@@ -80,11 +80,11 @@ void GLGizmoMove3D::on_stop_dragging()
 void GLGizmoMove3D::on_update(const UpdateData& data)
 {
     if (m_hover_id == 0)
-        m_displacement(0) = calc_projection(data);
+        m_displacement.x() = calc_projection(data);
     else if (m_hover_id == 1)
-        m_displacement(1) = calc_projection(data);
+        m_displacement.y() = calc_projection(data);
     else if (m_hover_id == 2)
-        m_displacement(2) = calc_projection(data);
+        m_displacement.z() = calc_projection(data);
 }
 
 void GLGizmoMove3D::on_render() const
@@ -98,15 +98,15 @@ void GLGizmoMove3D::on_render() const
     const Vec3d& center = box.center();
 
     // x axis
-    m_grabbers[0].center = Vec3d(box.max.x() + Offset, center.y(), center.z());
+    m_grabbers[0].center = { box.max.x() + Offset, center.y(), center.z() };
     m_grabbers[0].color = AXES_COLOR[0];
 
     // y axis
-    m_grabbers[1].center = Vec3d(center.x(), box.max.y() + Offset, center.z());
+    m_grabbers[1].center = { center.x(), box.max.y() + Offset, center.z() };
     m_grabbers[1].color = AXES_COLOR[1];
 
     // z axis
-    m_grabbers[2].center = Vec3d(center.x(), center.y(), box.max.z() + Offset);
+    m_grabbers[2].center = { center.x(), center.y(), box.max.z() + Offset };
     m_grabbers[2].color = AXES_COLOR[2];
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
@@ -138,9 +138,15 @@ void GLGizmoMove3D::on_render() const
         ::glVertex3dv(m_grabbers[m_hover_id].center.data());
         glsafe(::glEnd());
 
-        // draw grabber
-        float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-        m_grabbers[m_hover_id].render(true, mean_size);
+        GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+        if (shader != nullptr) {
+            shader->start_using();
+            shader->set_uniform("emission_factor", 0.1);
+            // draw grabber
+            float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
+            m_grabbers[m_hover_id].render(true, mean_size);
+            shader->stop_using();
+        }
         render_grabber_extension((Axis)m_hover_id, box, false);
     }
 }
@@ -202,7 +208,11 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     if (! picking) {
         shader->start_using();
         shader->set_uniform("emission_factor", 0.1);
+#if ENABLE_SEQUENTIAL_LIMITS
+        const_cast<GLModel*>(&m_vbo_cone)->set_color(-1, color);
+#else
         shader->set_uniform("uniform_color", color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
     } else
         glsafe(::glColor4fv(color.data()));
 

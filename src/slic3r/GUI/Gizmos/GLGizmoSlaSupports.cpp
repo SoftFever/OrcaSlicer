@@ -166,7 +166,12 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             }
         }
         if (shader && ! picking) {
+#if ENABLE_SEQUENTIAL_LIMITS
+            const_cast<GLModel*>(&m_cone)->set_color(-1, render_color);
+            const_cast<GLModel*>(&m_sphere)->set_color(-1, render_color);
+#else
             shader->set_uniform("uniform_color", render_color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
             shader->set_uniform("emission_factor", 0.5);
         }
         else // picking
@@ -225,7 +230,11 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[2] = 0.7f;
         render_color[3] = 0.7f;
         if (shader) {
+#if ENABLE_SEQUENTIAL_LIMITS
+            const_cast<GLModel*>(&m_cylinder)->set_color(-1, render_color);
+#else
             shader->set_uniform("uniform_color", render_color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
             shader->set_uniform("emission_factor", 0.5);
         }
         for (const sla::DrainHole& drain_hole : m_c->selection_info()->model_object()->sla_drain_holes) {

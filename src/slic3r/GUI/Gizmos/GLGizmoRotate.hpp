@@ -120,16 +120,14 @@ protected:
     void on_stop_dragging() override;
     void on_update(const UpdateData& data) override
     {
-        for (GLGizmoRotate& g : m_gizmos)
-        {
+        for (GLGizmoRotate& g : m_gizmos) {
             g.update(data);
         }
     }
     void on_render() const override;
     void on_render_for_picking() const override
     {
-        for (const GLGizmoRotate& g : m_gizmos)
-        {
+        for (const GLGizmoRotate& g : m_gizmos) {
             g.render_for_picking();
         }
     }
