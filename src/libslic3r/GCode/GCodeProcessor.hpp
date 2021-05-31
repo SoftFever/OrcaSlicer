@@ -343,7 +343,6 @@ namespace Slic3r {
             std::map<size_t, double> volumes_per_extruder;
 
             double role_cache;
-            //       ExtrusionRole : <used_filament_m, used_filament_g>
             std::map<ExtrusionRole, std::pair<double, double>> filaments_per_role;
 
             void reset();
@@ -403,27 +402,14 @@ namespace Slic3r {
             SettingsIds settings_ids;
             size_t extruders_count;
             std::vector<std::string> extruder_colors;
+            std::vector<float> filament_diameters;
+            std::vector<float> filament_densities;
             PrintEstimatedStatistics print_statistics;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
             int64_t time{ 0 };
-            void reset() {
-                time = 0;
-                moves = std::vector<MoveVertex>();
-                bed_shape = Pointfs();
-                extruder_colors = std::vector<std::string>();
-                extruders_count = 0;
-                settings_ids.reset();
-            }
-#else
-            void reset() {
-                moves = std::vector<MoveVertex>();
-                bed_shape = Pointfs();
-                extruder_colors = std::vector<std::string>();
-                extruders_count = 0;
-                settings_ids.reset();
-            }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+            void reset();
         };
 
 #if ENABLE_SEAMS_VISUALIZATION
@@ -549,8 +535,6 @@ namespace Slic3r {
         unsigned char m_extruder_id;
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
-        std::vector<float> m_filament_diameters;
-        std::vector<float> m_filament_densities;
         float m_extruded_last_z;
 #if ENABLE_START_GCODE_VISUALIZATION
         float m_first_layer_height; // mm

@@ -5953,16 +5953,18 @@ static mz_uint32 mz_zip_writer_create_zip64_extra_data(mz_uint8 *pBuf, mz_uint64
 
 static mz_bool mz_zip_writer_create_local_dir_header(mz_zip_archive *pZip, mz_uint8 *pDst, mz_uint16 filename_size, mz_uint16 extra_size, mz_uint64 uncomp_size, mz_uint64 comp_size, mz_uint32 uncomp_crc32, mz_uint16 method, mz_uint16 bit_flags, mz_uint16 dos_time, mz_uint16 dos_date)
 {
+    (void)pZip;
+    mz_bool is_zip64_needed = uncomp_size >= MZ_UINT32_MAX || comp_size >= MZ_UINT32_MAX;
     memset(pDst, 0, MZ_ZIP_LOCAL_DIR_HEADER_SIZE);
     MZ_WRITE_LE32(pDst + MZ_ZIP_LDH_SIG_OFS, MZ_ZIP_LOCAL_DIR_HEADER_SIG);
-    MZ_WRITE_LE16(pDst + MZ_ZIP_LDH_VERSION_NEEDED_OFS, (pZip->m_pState->m_zip64) ? 0x002D : (method ? 0x0014 : 0x0000));
+    MZ_WRITE_LE16(pDst + MZ_ZIP_LDH_VERSION_NEEDED_OFS, is_zip64_needed ? 0x002D : (method ? 0x0014 : 0x0000));
     MZ_WRITE_LE16(pDst + MZ_ZIP_LDH_BIT_FLAG_OFS, bit_flags);
     MZ_WRITE_LE16(pDst + MZ_ZIP_LDH_METHOD_OFS, method);
     MZ_WRITE_LE16(pDst + MZ_ZIP_LDH_FILE_TIME_OFS, dos_time);
     MZ_WRITE_LE16(pDst + MZ_ZIP_LDH_FILE_DATE_OFS, dos_date);
     MZ_WRITE_LE32(pDst + MZ_ZIP_LDH_CRC32_OFS, uncomp_crc32);
-    MZ_WRITE_LE32(pDst + MZ_ZIP_LDH_COMPRESSED_SIZE_OFS, (pZip->m_pState->m_zip64 || comp_size > MZ_UINT32_MAX) ? MZ_UINT32_MAX : comp_size);
-    MZ_WRITE_LE32(pDst + MZ_ZIP_LDH_DECOMPRESSED_SIZE_OFS, (pZip->m_pState->m_zip64 || uncomp_size > MZ_UINT32_MAX) ? MZ_UINT32_MAX : uncomp_size);
+    MZ_WRITE_LE32(pDst + MZ_ZIP_LDH_COMPRESSED_SIZE_OFS, is_zip64_needed ? MZ_UINT32_MAX : comp_size);
+    MZ_WRITE_LE32(pDst + MZ_ZIP_LDH_DECOMPRESSED_SIZE_OFS, is_zip64_needed ? MZ_UINT32_MAX : uncomp_size);
     MZ_WRITE_LE16(pDst + MZ_ZIP_LDH_FILENAME_LEN_OFS, filename_size);
     MZ_WRITE_LE16(pDst + MZ_ZIP_LDH_EXTRA_LEN_OFS, extra_size);
     return MZ_TRUE;
@@ -5974,7 +5976,7 @@ static mz_bool mz_zip_writer_create_central_dir_header(mz_zip_archive *pZip, mz_
                                                        mz_uint16 method, mz_uint16 bit_flags, mz_uint16 dos_time, mz_uint16 dos_date,
                                                        mz_uint64 local_header_ofs, mz_uint32 ext_attributes)
 {
-    mz_zip_internal_state *pState = pZip->m_pState;
+    (void)pZip;
     mz_bool is_zip64_needed = uncomp_size >= MZ_UINT32_MAX || comp_size >= MZ_UINT32_MAX;
     memset(pDst, 0, MZ_ZIP_CENTRAL_DIR_HEADER_SIZE);
     MZ_WRITE_LE32(pDst + MZ_ZIP_CDH_SIG_OFS, MZ_ZIP_CENTRAL_DIR_HEADER_SIG);
@@ -6766,6 +6768,12 @@ mz_bool mz_zip_writer_add_staged_open(mz_zip_archive* pZip, mz_zip_writer_staged
     {
         mz_zip_time_t_to_dos_time(*pFile_time, &pContext->dos_time, &pContext->dos_date);
     }
+    else
+    {
+        MZ_TIME_T cur_time;
+        time(&cur_time);
+        mz_zip_time_t_to_dos_time(cur_time, &pContext->dos_time, &pContext->dos_date);
+    }
 #endif
 
     if (!mz_zip_writer_write_zeros(pZip, pContext->cur_archive_file_ofs, num_alignment_padding_bytes))
@@ -6787,13 +6795,7 @@ mz_bool mz_zip_writer_add_staged_open(mz_zip_archive* pZip, mz_zip_writer_staged
     }
 
     MZ_CLEAR_OBJ(local_dir_header);
-    if (pState->m_zip64)
-    {
-        pContext->pExtra_data = pContext->extra_data;
-        pContext->extra_size  = mz_zip_writer_create_zip64_extra_data(pContext->extra_data, &pContext->uncomp_size, &pContext->comp_size,
-                                                                     (pContext->local_dir_header_ofs >= MZ_UINT32_MAX) ? &pContext->local_dir_header_ofs : NULL);
-    }
-    else if (!pState->m_zip64 && max_size > MZ_UINT32_MAX)
+    if (max_size > MZ_UINT32_MAX)
     {
         pContext->pExtra_data = pContext->extra_data;
         pContext->extra_size  = mz_zip_writer_preallocate_extra_data(pContext->extra_data, 2 * sizeof(mz_uint64));
@@ -6897,7 +6899,7 @@ mz_bool mz_zip_writer_add_staged_finish(mz_zip_writer_staged_context *pContext)
         pContext->pExtra_data = pContext->extra_data;
         pContext->extra_size = mz_zip_writer_create_zip64_extra_data(pContext->extra_data, &pContext->uncomp_size, &pContext->comp_size, (pContext->local_dir_header_ofs >= MZ_UINT32_MAX) ? &pContext->local_dir_header_ofs : NULL);
 
-        mz_uint8 min_version[2] = {0x2D, 0x00};
+        mz_uint8 min_version[2]      = {0x2D, 0x00};
         mz_uint8 comp_uncomp_size[4] = {0xFF, 0xFF, 0xFF, 0xFF};
         if (pContext->pZip->m_pWrite(pContext->pZip->m_pIO_opaque, local_dir_header_ofs + MZ_ZIP_LDH_VERSION_NEEDED_OFS, min_version, sizeof(min_version)) != sizeof(min_version))
             return mz_zip_set_error(pContext->pZip, MZ_ZIP_FILE_WRITE_FAILED);

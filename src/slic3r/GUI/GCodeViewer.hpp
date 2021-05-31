@@ -619,6 +619,8 @@ private:
     std::vector<ExtrusionRole> m_roles;
     size_t m_extruders_count;
     std::vector<unsigned char> m_extruder_ids;
+    std::vector<float> m_filament_diameters;
+    std::vector<float> m_filament_densities;
     Extrusions m_extrusions;
     SequentialView m_sequential_view;
     Shells m_shells;

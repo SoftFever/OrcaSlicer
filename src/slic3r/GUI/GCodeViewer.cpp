@@ -232,6 +232,7 @@ void GCodeViewer::SequentialView::Marker::render() const
 #if !ENABLE_SEQUENTIAL_LIMITS
     shader->set_uniform("uniform_color", m_color);
 #endif // !ENABLE_SEQUENTIAL_LIMITS
+    shader->set_uniform("emission_factor", 0.0);
 
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixf(m_world_transform.data()));
@@ -611,6 +612,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
         return;
 
     m_settings_ids = gcode_result.settings_ids;
+    m_filament_diameters = gcode_result.filament_diameters;
+    m_filament_densities = gcode_result.filament_densities;
 
     if (wxGetApp().is_editor())
         load_shells(print, initialized);
@@ -751,6 +754,8 @@ void GCodeViewer::reset()
     m_tool_colors = std::vector<Color>();
     m_extruders_count = 0;
     m_extruder_ids = std::vector<unsigned char>();
+    m_filament_diameters = std::vector<float>();
+    m_filament_densities = std::vector<float>();
     m_extrusions.reset_role_visibility_flags();
     m_extrusions.reset_ranges();
     m_shells.volumes.clear();
@@ -2897,20 +2902,10 @@ void GCodeViewer::render_legend() const
     }
 
     // get used filament (meters and grams) from used volume in respect to the active extruder
-    auto get_used_filament_from_volume = [imperial_units](double volume, int extruder_id) {
-        const std::vector<std::string>& filament_presets = wxGetApp().preset_bundle->filament_presets;
-        const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
-
-        double koef = imperial_units ? 1.0/ObjectManipulation::in_to_mm : 0.001;
-
-        std::pair<double, double>  ret = { 0.0, 0.0 };
-        if (const Preset* filament_preset = filaments.find_preset(filament_presets[extruder_id], false)) {
-            double filament_radius = 0.5 * filament_preset->config.opt_float("filament_diameter", 0);
-            double s = PI * sqr(filament_radius);
-            ret.first = volume / s * koef;
-            double filament_density = filament_preset->config.opt_float("filament_density", 0);
-            ret.second = volume * filament_density * 0.001;
-        }
+    auto get_used_filament_from_volume = [this, imperial_units](double volume, int extruder_id) {
+        double koef = imperial_units ? 1.0 / ObjectManipulation::in_to_mm : 0.001;
+        std::pair<double, double> ret = { koef * volume / (PI * sqr(0.5 * m_filament_diameters[extruder_id])),
+                                          volume * m_filament_densities[extruder_id] * 0.001 };
         return ret;
     };
 
@@ -3344,10 +3339,19 @@ void GCodeViewer::render_legend() const
     }
 
     // settings section
-    if (wxGetApp().is_gcode_viewer() && 
-        (m_view_type == EViewType::FeatureType || m_view_type == EViewType::Tool) &&
-        (!m_settings_ids.print.empty() || !m_settings_ids.filament.empty() || !m_settings_ids.printer.empty())) {
-
+    bool has_settings = false;
+    has_settings |= !m_settings_ids.print.empty();
+    has_settings |= !m_settings_ids.printer.empty();
+    bool has_filament_settings = true;
+    has_filament_settings &= !m_settings_ids.filament.empty();
+    for (const std::string& fs : m_settings_ids.filament) {
+        has_filament_settings &= !fs.empty();
+    }
+    has_settings |= has_filament_settings;
+    bool show_settings = wxGetApp().is_gcode_viewer();
+    show_settings &= (m_view_type == EViewType::FeatureType || m_view_type == EViewType::Tool);
+    show_settings &= has_settings;
+    if (show_settings) {
         auto calc_offset = [this]() {
             float ret = 0.0f;
             if (!m_settings_ids.printer.empty())
@@ -3364,13 +3368,8 @@ void GCodeViewer::render_legend() const
             return ret;
         };
 
-
         ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::PushStyleColor(ImGuiCol_Separator, { 1.0f, 1.0f, 1.0f, 1.0f });
-        ImGui::Separator();
-        ImGui::PopStyleColor();
-        ImGui::Spacing();
+        imgui.title(_u8L("Settings"));
 
         float offset = calc_offset();
 
@@ -3386,11 +3385,13 @@ void GCodeViewer::render_legend() const
         }
         if (!m_settings_ids.filament.empty()) {
             for (unsigned char i : m_extruder_ids) {
-                std::string txt = _u8L("Filament");
-                txt += (m_extruder_ids.size() == 1) ? ":" : " " + std::to_string(i + 1);
-                imgui.text(txt);
-                ImGui::SameLine(offset);
-                imgui.text(m_settings_ids.filament[i]);
+                if (i < static_cast<unsigned char>(m_settings_ids.filament.size()) && !m_settings_ids.filament[i].empty()) {
+                    std::string txt = _u8L("Filament");
+                    txt += (m_extruder_ids.size() == 1) ? ":" : " " + std::to_string(i + 1);
+                    imgui.text(txt);
+                    ImGui::SameLine(offset);
+                    imgui.text(m_settings_ids.filament[i]);
+                }
             }
         }
     }

@@ -119,6 +119,7 @@ void Bed3D::Axes::render() const
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     shader->start_using();
+    shader->set_uniform("emission_factor", 0.0);
 
     // x axis
 #if ENABLE_SEQUENTIAL_LIMITS
@@ -510,8 +511,9 @@ void Bed3D::render_model() const
 #if !ENABLE_SEQUENTIAL_LIMITS
             shader->set_uniform("uniform_color", m_model_color);
 #endif // !ENABLE_SEQUENTIAL_LIMITS
+            shader->set_uniform("emission_factor", 0.0);
             ::glPushMatrix();
-            ::glTranslated(m_model_offset(0), m_model_offset(1), m_model_offset(2));
+            ::glTranslated(m_model_offset.x(), m_model_offset.y(), m_model_offset.z());
             model->render();
             ::glPopMatrix();
             shader->stop_using();

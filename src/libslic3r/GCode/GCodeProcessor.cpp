@@ -29,6 +29,11 @@ static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
 
+static const size_t MIN_EXTRUDERS_COUNT = 5;
+static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
+static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
+static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
+
 namespace Slic3r {
 
 #if ENABLE_VALIDATE_CUSTOM_GCODE
@@ -185,72 +190,6 @@ void GCodeProcessor::TimeMachine::CustomGCodeTime::reset()
     needed = false;
     cache = 0.0f;
     times = std::vector<std::pair<CustomGCode::Type, float>>();
-}
-
-void GCodeProcessor::UsedFilaments::reset()
-{
-    color_change_cache = 0.0f;
-    volumes_per_color_change = std::vector<double>();
-
-    tool_change_cache = 0.0f;
-    volumes_per_extruder.clear();
-
-    role_cache = 0.0f;
-    filaments_per_role.clear();
-}
-
-void GCodeProcessor::UsedFilaments::increase_caches(double extruded_volume)
-{
-    color_change_cache  += extruded_volume;
-    tool_change_cache   += extruded_volume;
-    role_cache          += extruded_volume;
-}
-
-void GCodeProcessor::UsedFilaments::process_color_change_cache()
-{
-    if (color_change_cache != 0.0f) {
-        volumes_per_color_change.push_back(color_change_cache);
-        color_change_cache = 0.0f;
-    }
-}
-
-void GCodeProcessor::UsedFilaments::process_extruder_cache(GCodeProcessor* processor)
-{
-    size_t active_extruder_id = processor->m_extruder_id;
-    if (tool_change_cache != 0.0f) {
-        if (volumes_per_extruder.find(active_extruder_id) != volumes_per_extruder.end())
-            volumes_per_extruder[active_extruder_id] += tool_change_cache;
-        else
-            volumes_per_extruder[active_extruder_id] = tool_change_cache;
-        tool_change_cache = 0.0f;
-    }
-}
-
-void GCodeProcessor::UsedFilaments::process_role_cache(GCodeProcessor* processor)
-{
-    if (role_cache != 0.0f) {
-        std::pair<double, double> filament = { 0.0f, 0.0f };
-
-        double s = PI * sqr(0.5 * processor->m_filament_diameters[processor->m_extruder_id]);
-        filament.first = role_cache/s * 0.001;
-        filament.second = role_cache * processor->m_filament_densities[processor->m_extruder_id] * 0.001;
-
-        ExtrusionRole active_role = processor->m_extrusion_role;
-        if (filaments_per_role.find(active_role) != filaments_per_role.end()) {
-            filaments_per_role[active_role].first  += filament.first;
-            filaments_per_role[active_role].second += filament.second;
-        }
-        else
-            filaments_per_role[active_role] = filament;
-        role_cache = 0.0f;
-    }
-}
-
-void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
-{
-    process_color_change_cache();
-    process_extruder_cache(processor);
-    process_role_cache(processor);
 }
 
 void GCodeProcessor::TimeMachine::reset()
@@ -785,6 +724,95 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
             "Is " + out_path + " locked?" + '\n');
 }
 
+void GCodeProcessor::UsedFilaments::reset()
+{
+    color_change_cache = 0.0f;
+    volumes_per_color_change = std::vector<double>();
+
+    tool_change_cache = 0.0f;
+    volumes_per_extruder.clear();
+
+    role_cache = 0.0f;
+    filaments_per_role.clear();
+}
+
+void GCodeProcessor::UsedFilaments::increase_caches(double extruded_volume)
+{
+    color_change_cache += extruded_volume;
+    tool_change_cache += extruded_volume;
+    role_cache += extruded_volume;
+}
+
+void GCodeProcessor::UsedFilaments::process_color_change_cache()
+{
+    if (color_change_cache != 0.0f) {
+        volumes_per_color_change.push_back(color_change_cache);
+        color_change_cache = 0.0f;
+    }
+}
+
+void GCodeProcessor::UsedFilaments::process_extruder_cache(GCodeProcessor* processor)
+{
+    size_t active_extruder_id = processor->m_extruder_id;
+    if (tool_change_cache != 0.0f) {
+        if (volumes_per_extruder.find(active_extruder_id) != volumes_per_extruder.end())
+            volumes_per_extruder[active_extruder_id] += tool_change_cache;
+        else
+            volumes_per_extruder[active_extruder_id] = tool_change_cache;
+        tool_change_cache = 0.0f;
+    }
+}
+
+void GCodeProcessor::UsedFilaments::process_role_cache(GCodeProcessor* processor)
+{
+    if (role_cache != 0.0f) {
+        std::pair<double, double> filament = { 0.0f, 0.0f };
+
+        double s = PI * sqr(0.5 * processor->m_result.filament_diameters[processor->m_extruder_id]);
+        filament.first = role_cache / s * 0.001;
+        filament.second = role_cache * processor->m_result.filament_densities[processor->m_extruder_id] * 0.001;
+
+        ExtrusionRole active_role = processor->m_extrusion_role;
+        if (filaments_per_role.find(active_role) != filaments_per_role.end()) {
+            filaments_per_role[active_role].first += filament.first;
+            filaments_per_role[active_role].second += filament.second;
+        }
+        else
+            filaments_per_role[active_role] = filament;
+        role_cache = 0.0f;
+    }
+}
+
+void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
+{
+    process_color_change_cache();
+    process_extruder_cache(processor);
+    process_role_cache(processor);
+}
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+void GCodeProcessor::Result::reset() {
+    moves = std::vector<GCodeProcessor::MoveVertex>();
+    bed_shape = Pointfs();
+    settings_ids.reset();
+    extruders_count = 0;
+    extruder_colors = std::vector<std::string>();
+    filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
+    filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
+    time = 0;
+}
+#else
+void GCodeProcessor::Result::reset() {
+    moves = std::vector<GCodeProcessor::MoveVertex>();
+    bed_shape = Pointfs();
+    settings_ids.reset();
+    extruders_count = 0;
+    extruder_colors = std::vector<std::string>();
+    filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
+    filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
+}
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
 const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProcessor::Producers = {
     { EProducer::PrusaSlicer, "PrusaSlicer" },
     { EProducer::Slic3rPE,    "Slic3r Prusa Edition" },
@@ -886,14 +914,14 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     m_extruder_temps.resize(extruders_count);
 
-    m_filament_diameters.resize(config.filament_diameter.values.size());
+    m_result.filament_diameters.resize(config.filament_diameter.values.size());
     for (size_t i = 0; i < config.filament_diameter.values.size(); ++i) {
-        m_filament_diameters[i] = static_cast<float>(config.filament_diameter.values[i]);
+        m_result.filament_diameters[i] = static_cast<float>(config.filament_diameter.values[i]);
     }
 
-    m_filament_densities.resize(config.filament_density.values.size());
+    m_result.filament_densities.resize(config.filament_density.values.size());
     for (size_t i = 0; i < config.filament_density.values.size(); ++i) {
-        m_filament_densities[i] = static_cast<float>(config.filament_density.values[i]);
+        m_result.filament_densities[i] = static_cast<float>(config.filament_density.values[i]);
     }
 
     if ((m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) && config.machine_limits_usage.value != MachineLimitsUsage::Ignore) {
@@ -959,21 +987,37 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (printer_settings_id != nullptr)
         m_result.settings_ids.printer = printer_settings_id->value;
 
+    m_result.extruders_count = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+
     const ConfigOptionFloats* filament_diameters = config.option<ConfigOptionFloats>("filament_diameter");
     if (filament_diameters != nullptr) {
-        for (double diam : filament_diameters->values) {
-            m_filament_diameters.push_back(static_cast<float>(diam));
+        m_result.filament_diameters.clear();
+        m_result.filament_diameters.resize(filament_diameters->values.size());
+        for (size_t i = 0; i < filament_diameters->values.size(); ++i) {
+            m_result.filament_diameters[i] = static_cast<float>(filament_diameters->values[i]);
+        }
+    }
+
+    if (m_result.filament_diameters.size() < m_result.extruders_count) {
+        for (size_t i = m_result.filament_diameters.size(); i < m_result.extruders_count; ++i) {
+            m_result.filament_diameters.emplace_back(DEFAULT_FILAMENT_DIAMETER);
         }
     }
 
     const ConfigOptionFloats* filament_densities = config.option<ConfigOptionFloats>("filament_density");
     if (filament_densities != nullptr) {
-        for (double dens : filament_densities->values) {
-            m_filament_densities.push_back(static_cast<float>(dens));
+        m_result.filament_densities.clear();
+        m_result.filament_densities.resize(filament_densities->values.size());
+        for (size_t i = 0; i < filament_densities->values.size(); ++i) {
+            m_result.filament_densities[i] = static_cast<float>(filament_densities->values[i]);
         }
     }
 
-    m_result.extruders_count = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    if (m_result.filament_densities.size() < m_result.extruders_count) {
+        for (size_t i = m_result.filament_densities.size(); i < m_result.extruders_count; ++i) {
+            m_result.filament_densities.emplace_back(DEFAULT_FILAMENT_DENSITY);
+        }
+    }
 
     const ConfigOptionPoints* extruder_offset = config.option<ConfigOptionPoints>("extruder_offset");
     if (extruder_offset != nullptr) {
@@ -981,6 +1025,12 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         for (size_t i = 0; i < extruder_offset->values.size(); ++i) {
             Vec2f offset = extruder_offset->values[i].cast<float>();
             m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
+        }
+    }
+    
+    if (m_extruder_offsets.size() < m_result.extruders_count) {
+        for (size_t i = m_extruder_offsets.size(); i < m_result.extruders_count; ++i) {
+            m_extruder_offsets.emplace_back(DEFAULT_EXTRUDER_OFFSET);
         }
     }
 
@@ -995,6 +1045,12 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
                 if (m_result.extruder_colors[i].empty())
                     m_result.extruder_colors[i] = filament_colour->values[i];
             }
+        }
+    }
+
+    if (m_result.extruder_colors.size() < m_result.extruders_count) {
+        for (size_t i = m_result.extruder_colors.size(); i < m_result.extruders_count; ++i) {
+            m_result.extruder_colors.emplace_back(std::string());
         }
     }
 
@@ -1133,12 +1189,10 @@ void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
 
 void GCodeProcessor::reset()
 {
-    static const size_t Min_Extruder_Count = 5;
-
     m_units = EUnits::Millimeters;
     m_global_positioning_type = EPositioningType::Absolute;
     m_e_local_positioning_type = EPositioningType::Absolute;
-    m_extruder_offsets = std::vector<Vec3f>(Min_Extruder_Count, Vec3f::Zero());
+    m_extruder_offsets = std::vector<Vec3f>(MIN_EXTRUDERS_COUNT, Vec3f::Zero());
     m_flavor = gcfRepRapSprinter;
 
     m_start_position = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -1163,17 +1217,15 @@ void GCodeProcessor::reset()
 
     m_extrusion_role = erNone;
     m_extruder_id = 0;
-    m_extruder_colors.resize(Min_Extruder_Count);
-    for (size_t i = 0; i < Min_Extruder_Count; ++i) {
+    m_extruder_colors.resize(MIN_EXTRUDERS_COUNT);
+    for (size_t i = 0; i < MIN_EXTRUDERS_COUNT; ++i) {
         m_extruder_colors[i] = static_cast<unsigned char>(i);
     }
-    m_extruder_temps.resize(Min_Extruder_Count);
-    for (size_t i = 0; i < Min_Extruder_Count; ++i) {
+    m_extruder_temps.resize(MIN_EXTRUDERS_COUNT);
+    for (size_t i = 0; i < MIN_EXTRUDERS_COUNT; ++i) {
         m_extruder_temps[i] = 0.0f;
     }
 
-    m_filament_diameters = std::vector<float>(Min_Extruder_Count, 1.75f);
-    m_filament_densities = std::vector<float>(Min_Extruder_Count, 1.245f);
     m_extruded_last_z = 0.0f;
 #if ENABLE_START_GCODE_VISUALIZATION
     m_first_layer_height = 0.0f;
@@ -2205,7 +2257,7 @@ void GCodeProcessor::process_G0(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 {
-    float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_filament_diameters.size()) ? m_filament_diameters[m_extruder_id] : m_filament_diameters.back();
+    float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
     auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG1) {
@@ -2307,7 +2359,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(1.05f * filament_radius)) / (delta_xyz * m_height);
         else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erNone)
             // cross section: circle
-            m_width = static_cast<float>(m_filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / delta_xyz);
+            m_width = static_cast<float>(m_result.filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / delta_xyz);
         else
             // cross section: rectangle + 2 semicircles
             m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (delta_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height;
@@ -2945,8 +2997,7 @@ void GCodeProcessor::process_T(const std::string_view command)
         } else {
             unsigned char id = static_cast<unsigned char>(eid);
             if (m_extruder_id != id) {
-                unsigned char extruders_count = static_cast<unsigned char>(m_extruder_offsets.size());
-                if (id >= extruders_count)
+                if (id >= m_result.extruders_count)
                     BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange, maybe from a custom gcode.";
                 else {
                     unsigned char old_extruder_id = m_extruder_id;
