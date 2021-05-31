@@ -774,11 +774,9 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             break;
         }
 
-#ifdef __APPLE__
-        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
-#else /* __APPLE__ */
+
+        case WXK_BACK:
         case WXK_DELETE:
-#endif /* __APPLE__ */
         {
             if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Delete))
                 processed = true;
