@@ -31,9 +31,12 @@ public:
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
 
-    virtual void set_painter_gizmo_data(const Selection& selection) override;
+    void set_painter_gizmo_data(const Selection& selection) override;
 
 protected:
+    std::array<float, 4> get_cursor_sphere_left_button_color() const override;
+    std::array<float, 4> get_cursor_sphere_right_button_color() const override;
+
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
 

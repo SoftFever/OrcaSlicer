@@ -299,7 +299,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
     if (m_state != On)
         return;
 
-    int prev_extruders_count = m_original_extruders_colors.size();
+    int prev_extruders_count = int(m_original_extruders_colors.size());
     if (prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors) {
         this->init_extruders_data();
         // Reinitialize triangle selectors because of change of extruder count need also change the size of GLIndexedVertexArray
@@ -592,6 +592,18 @@ void GLGizmoMmuSegmentation::update_from_model_object()
 PainterGizmoType GLGizmoMmuSegmentation::get_painter_type() const
 {
     return PainterGizmoType::MMU_SEGMENTATION;
+}
+
+std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_sphere_left_button_color() const
+{
+    const std::array<uint8_t, 3> &color = m_modified_extruders_colors[m_first_selected_extruder_idx];
+    return {float(color[0]) / 255.0f, float(color[1]) / 255.0f, float(color[2]) / 255.0f, 0.25f};
+}
+
+std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_sphere_right_button_color() const
+{
+    const std::array<uint8_t, 3> &color = m_modified_extruders_colors[m_second_selected_extruder_idx];
+    return {float(color[0]) / 255.0f, float(color[1]) / 255.0f, float(color[2]) / 255.0f, 0.25f};
 }
 
 void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)

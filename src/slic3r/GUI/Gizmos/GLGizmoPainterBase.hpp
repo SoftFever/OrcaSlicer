@@ -87,6 +87,9 @@ protected:
     void activate_internal_undo_redo_stack(bool activate);
     void set_cursor_type(TriangleSelector::CursorType);
 
+    virtual std::array<float, 4> get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
+    virtual std::array<float, 4> get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }
+
     float m_cursor_radius = 2.f;
     static constexpr float CursorRadiusMin  = 0.4f; // cannot be zero
     static constexpr float CursorRadiusMax  = 8.f;

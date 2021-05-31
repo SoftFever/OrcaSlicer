@@ -251,12 +251,12 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
     if (is_left_handed)
         glFrontFace(GL_CW);
 
-    float render_color[4] = { 0.f, 0.f, 0.f, 0.25f };
+    std::array<float, 4> render_color = {0.f, 0.f, 0.f, 0.25f};
     if (m_button_down == Button::Left)
-        render_color[2] = 1.f;
+        render_color = this->get_cursor_sphere_left_button_color();
     else if (m_button_down == Button::Right)
-        render_color[0] = 1.f;
-    glsafe(::glColor4fv(render_color));
+        render_color = this->get_cursor_sphere_right_button_color();
+    glsafe(::glColor4fv(render_color.data()));
 
     m_vbo_sphere.render();
 
