@@ -4,13 +4,11 @@
 #include "libslic3r/Point.hpp"
 
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/GLModel.hpp"
 
 #include <cereal/archives/binary.hpp>
 
 class wxWindow;
-class GLUquadric;
-typedef class GLUquadric GLUquadricObj;
-
 
 namespace Slic3r {
 
@@ -20,13 +18,15 @@ class ModelObject;
 
 namespace GUI {
 
-static const float DEFAULT_BASE_COLOR[4] = { 0.625f, 0.625f, 0.625f, 1.0f };
-static const float DEFAULT_DRAG_COLOR[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-static const float DEFAULT_HIGHLIGHT_COLOR[4] = { 1.0f, 0.38f, 0.0f, 1.0f };
-static const float AXES_COLOR[][4] = { { 0.75f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.75f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.75f, 1.0f } };
-static const float CONSTRAINED_COLOR[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-
-
+static const std::array<float, 4> DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
+static const std::array<float, 4> DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
+static const std::array<float, 4> DEFAULT_HIGHLIGHT_COLOR = { 1.0f, 0.38f, 0.0f, 1.0f };
+static const std::array<std::array<float, 4>, 3> AXES_COLOR = {{
+                                                                { 0.75f, 0.0f, 0.0f, 1.0f },
+                                                                { 0.0f, 0.75f, 0.0f, 1.0f },
+                                                                { 0.0f, 0.0f, 0.75f, 1.0f }
+                                                              }};
+static const std::array<float, 4> CONSTRAINED_COLOR = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 class ImGuiWrapper;
 class GLCanvas3D;
@@ -50,21 +50,23 @@ protected:
 
         Vec3d center;
         Vec3d angles;
-        float color[4];
+        std::array<float, 4> color;
         bool enabled;
         bool dragging;
 
         Grabber();
 
         void render(bool hover, float size) const;
-        void render_for_picking(float size) const { render(size, color, false); }
+        void render_for_picking(float size) const { render(size, color, true); }
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
 
     private:
-        void render(float size, const float* render_color, bool use_lighting) const;
-        void render_face(float half_size) const;
+        void render(float size, const std::array<float, 4>& render_color, bool picking) const;
+
+        GLModel cube;
+        bool cube_initialized = false;
     };
 
 public:
@@ -95,14 +97,17 @@ protected:
     unsigned int m_sprite_id;
     int m_hover_id;
     bool m_dragging;
-    float m_base_color[4];
-    float m_drag_color[4];
-    float m_highlight_color[4];
+    std::array<float, 4> m_base_color;
+    std::array<float, 4> m_drag_color;
+    std::array<float, 4> m_highlight_color;
     mutable std::vector<Grabber> m_grabbers;
     ImGuiWrapper* m_imgui;
     bool m_first_input_window_render;
     mutable std::string m_tooltip;
     CommonGizmosDataPool* m_c;
+    GLModel m_cone;
+    GLModel m_cylinder;
+    GLModel m_sphere;
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
@@ -137,7 +142,7 @@ public:
     int get_hover_id() const { return m_hover_id; }
     void set_hover_id(int id);
     
-    void set_highlight_color(const float* color);
+    void set_highlight_color(const std::array<float, 4>& color);
 
     void enable_grabber(unsigned int id);
     void disable_grabber(unsigned int id);

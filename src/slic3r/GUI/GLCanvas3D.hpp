@@ -496,6 +496,26 @@ private:
 
     void load_arrange_settings();
 
+#if ENABLE_SEQUENTIAL_LIMITS
+    class SequentialPrintClearance
+    {
+        GLModel m_fill;
+        GLModel m_perimeter;
+        bool m_render_fill{ true };
+
+        std::vector<Pointf3s> m_hull_2d_cache;
+
+    public:
+        void set(const Polygons& polygons, bool fill);
+        void render() const;
+
+        friend class GLCanvas3D;
+    };
+
+    SequentialPrintClearance m_sequential_print_clearance;
+    bool m_sequential_print_clearance_first_displacement{ true };
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();
@@ -737,6 +757,14 @@ public:
 #endif
     }
 
+#if ENABLE_SEQUENTIAL_LIMITS
+    void set_sequential_print_clearance(const Polygons& polygons, bool fill) { m_sequential_print_clearance.set(polygons, fill); }
+    void update_sequential_clearance();
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
+    const Print* fff_print() const;
+    const SLAPrint* sla_print() const;
+
 #if ENABLE_SCROLLABLE_LEGEND
     void reset_old_size() { m_old_size = { 0, 0 }; }
 #endif // ENABLE_SCROLLABLE_LEGEND
@@ -767,6 +795,9 @@ private:
     void _render_objects() const;
     void _render_gcode() const;
     void _render_selection() const;
+#if ENABLE_SEQUENTIAL_LIMITS
+    void _render_sequential_clearance() const;
+#endif // ENABLE_SEQUENTIAL_LIMITS
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
@@ -843,10 +874,6 @@ private:
     float get_overlay_window_width() { return LayersEditing::get_overlay_window_width(); }
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
-
-public:
-    const Print* fff_print() const;
-    const SLAPrint* sla_print() const;
 };
 
 } // namespace GUI

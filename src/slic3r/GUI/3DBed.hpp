@@ -17,8 +17,8 @@ class GeometryBuffer
 {
     struct Vertex
     {
-        Vec3f position = Vec3f::Zero();
-        Vec2f tex_coords = Vec2f::Zero();
+        Vec3f position{ Vec3f::Zero() };
+        Vec2f tex_coords{ Vec2f::Zero() };
     };
 
     std::vector<Vertex> m_vertices;
@@ -53,7 +53,10 @@ class Bed3D
     public:
         const Vec3d& get_origin() const { return m_origin; }
         void set_origin(const Vec3d& origin) { m_origin = origin; }
-        void set_stem_length(float length);
+        void set_stem_length(float length) {
+            m_stem_length = length;
+            m_arrow.reset();
+        }
         float get_total_length() const { return m_stem_length + DefaultTipLength; }
         void render() const;
     };

@@ -4,6 +4,7 @@
 #include "GLCanvas3D.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include <igl/project.h>
 
 #include <GL/glew.h>
 
@@ -38,23 +39,26 @@ namespace GUI {
         m_state = Off;
 
         const Camera& camera = wxGetApp().plater()->get_camera();
-        const std::array<int, 4>& viewport = camera.get_viewport();
-        const Transform3d& modelview_matrix = camera.get_view_matrix();
-        const Transform3d& projection_matrix = camera.get_projection_matrix();
+        Matrix4d modelview = camera.get_view_matrix().matrix();
+        Matrix4d projection= camera.get_projection_matrix().matrix();
+        Vec4i viewport(camera.get_viewport().data());
+
+        // Convert our std::vector to Eigen dynamic matrix.
+        Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::DontAlign> pts(points.size(), 3);
+        for (size_t i=0; i<points.size(); ++i)
+            pts.block<1, 3>(i, 0) = points[i];
+
+        // Get the projections.
+        Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::DontAlign> projections;
+        igl::project(pts, modelview, projection, viewport, projections);
 
         // bounding box created from the rectangle corners - will take care of order of the corners
         BoundingBox rectangle(Points{ Point(m_start_corner.cast<coord_t>()), Point(m_end_corner.cast<coord_t>()) });
 
         // Iterate over all points and determine whether they're in the rectangle.
-        for (unsigned int i = 0; i<points.size(); ++i) {
-            const Vec3d& point = points[i];
-            GLdouble out_x, out_y, out_z;
-            ::gluProject((GLdouble)point(0), (GLdouble)point(1), (GLdouble)point(2), (GLdouble*)modelview_matrix.data(), (GLdouble*)projection_matrix.data(), (GLint*)viewport.data(), &out_x, &out_y, &out_z);
-            out_y = canvas.get_canvas_size().get_height() - out_y;
-
-            if (rectangle.contains(Point(out_x, out_y)))
+        for (int i = 0; i<projections.rows(); ++i)
+            if (rectangle.contains(Point(projections(i, 0), canvas.get_canvas_size().get_height() - projections(i, 1))))
                 out.push_back(i);
-        }
 
         return out;
     }

@@ -30,7 +30,6 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent, "", -1)
     , m_axis(axis)
     , m_angle(0.0)
-    , m_quadric(nullptr)
     , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
     , m_snap_coarse_in_radius(0.0f)
@@ -38,16 +37,12 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     , m_snap_fine_in_radius(0.0f)
     , m_snap_fine_out_radius(0.0f)
 {
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 }
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
     : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
-    , m_quadric(nullptr)
     , m_center(other.m_center)
     , m_radius(other.m_radius)
     , m_snap_coarse_in_radius(other.m_snap_coarse_in_radius)
@@ -55,16 +50,8 @@ GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
     , m_snap_fine_in_radius(other.m_snap_fine_in_radius)
     , m_snap_fine_out_radius(other.m_snap_fine_out_radius)
 {
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 }
 
-GLGizmoRotate::~GLGizmoRotate()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
-}
 
 void GLGizmoRotate::set_angle(double angle)
 {
@@ -146,8 +133,7 @@ void GLGizmoRotate::on_render() const
     const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
 
-    if (m_hover_id != 0 && !m_grabbers[0].dragging)
-    {
+    if (m_hover_id != 0 && !m_grabbers[0].dragging) {
         m_center = box.center();
         m_radius = Offset + box.radius();
         m_snap_coarse_in_radius = m_radius / 3.0f;
@@ -162,18 +148,17 @@ void GLGizmoRotate::on_render() const
     transform_to_local(selection);
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
+    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
 
     render_circle();
 
-    if (m_hover_id != -1)
-    {
+    if (m_hover_id != -1) {
         render_scale();
         render_snap_radii();
         render_reference_radius();
     }
 
-    glsafe(::glColor4fv(m_highlight_color));
+    glsafe(::glColor4fv(m_highlight_color.data()));
 
     if (m_hover_id != -1)
         render_angle();
@@ -324,69 +309,70 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
+    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
 
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
 
-    ::memcpy((void*)m_grabbers[0].color, (const void*)m_highlight_color, 4 * sizeof(float));
+    m_grabbers[0].color = m_highlight_color;
     render_grabbers(box);
 }
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-    if (m_quadric == nullptr)
-        return;
-
     float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
     double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 
-    float color[4];
-    ::memcpy((void*)color, (const void*)m_grabbers[0].color, 4 * sizeof(float));
-    if (!picking && (m_hover_id != -1))
-    {
+    std::array<float, 4> color = m_grabbers[0].color;
+    if (!picking && m_hover_id != -1) {
         color[0] = 1.0f - color[0];
         color[1] = 1.0f - color[1];
         color[2] = 1.0f - color[2];
     }
 
-    if (!picking)
-        glsafe(::glEnable(GL_LIGHTING));
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr)
+        return;
 
-    glsafe(::glColor4fv(color));
+    if (! picking) {
+        shader->start_using();
+        shader->set_uniform("emission_factor", 0.1);
+#if ENABLE_SEQUENTIAL_LIMITS
+        const_cast<GLModel*>(&m_cone)->set_color(-1, color);
+#else
+        shader->set_uniform("uniform_color", color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
+    } else
+        glsafe(::glColor4fv(color.data()));
+
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
+    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
     glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
+    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    m_cone.render();
     glsafe(::glPopMatrix());
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
+    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
     glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
+    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    m_cone.render();
     glsafe(::glPopMatrix());
 
-    if (!picking)
-        glsafe(::glDisable(GL_LIGHTING));
+    if (! picking)
+        shader->stop_using();
 }
 
 void GLGizmoRotate::transform_to_local(const Selection& selection) const
 {
     glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
 
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-    {
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes()) {
         Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
         glsafe(::glMultMatrixd(orient_matrix.data()));
     }
@@ -457,8 +443,7 @@ GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_fil
     m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
     m_gizmos.emplace_back(parent, GLGizmoRotate::Z);
 
-    for (unsigned int i = 0; i < 3; ++i)
-    {
+    for (unsigned int i = 0; i < 3; ++i) {
         m_gizmos[i].set_group_id(i);
     }
 
@@ -467,14 +452,12 @@ GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_fil
 
 bool GLGizmoRotate3D::on_init()
 {
-    for (GLGizmoRotate& g : m_gizmos)
-    {
+    for (GLGizmoRotate& g : m_gizmos) {
         if (!g.init())
             return false;
     }
 
-    for (unsigned int i = 0; i < 3; ++i)
-    {
+    for (unsigned int i = 0; i < 3; ++i) {
         m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
     }
 
@@ -485,7 +468,7 @@ bool GLGizmoRotate3D::on_init()
 
 std::string GLGizmoRotate3D::on_get_name() const
 {
-    return (_(L("Rotate")) + " [R]").ToUTF8().data();
+    return (_L("Rotate") + " [R]").ToUTF8().data();
 }
 
 bool GLGizmoRotate3D::on_is_activable() const

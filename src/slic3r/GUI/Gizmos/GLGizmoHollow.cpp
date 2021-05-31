@@ -19,20 +19,10 @@ namespace GUI {
 
 GLGizmoHollow::GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-    , m_quadric(nullptr)
 {
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        // using GLU_FILL does not work when the instance's transformation
-        // contains mirroring (normals are reverted)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+    m_vbo_cylinder.init_from(make_cylinder(1., 1.));
 }
 
-GLGizmoHollow::~GLGizmoHollow()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
-}
 
 bool GLGizmoHollow::on_init()
 {
@@ -87,7 +77,7 @@ void GLGizmoHollow::on_render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    if (m_quadric != nullptr && selection.is_from_single_instance())
+    if (selection.is_from_single_instance())
         render_points(selection, false);
 
     m_selection_rectangle.render(m_parent);
@@ -111,8 +101,10 @@ void GLGizmoHollow::on_render_for_picking() const
 
 void GLGizmoHollow::render_points(const Selection& selection, bool picking) const
 {
-    if (!picking)
-        glsafe(::glEnable(GL_LIGHTING));
+    GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_shader("gouraud_light");
+    if (shader)
+        shader->start_using();
+    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
 
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
@@ -150,16 +142,21 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
             }
             else { // neigher hover nor picking
 
-                render_color[0] = point_selected ? 1.0f : 0.7f;
-                render_color[1] = point_selected ? 0.3f : 0.7f;
-                render_color[2] = point_selected ? 0.3f : 0.7f;
+                render_color[0] = point_selected ? 1.0f : 1.f;
+                render_color[1] = point_selected ? 0.3f : 1.f;
+                render_color[2] = point_selected ? 0.3f : 1.f;
                 render_color[3] = 0.5f;
             }
         }
 
-        glsafe(::glColor4fv(render_color.data()));
-        float render_color_emissive[4] = { 0.5f * render_color[0], 0.5f * render_color[1], 0.5f * render_color[2], 1.f};
-        glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
+        if (shader && ! picking)
+#if ENABLE_SEQUENTIAL_LIMITS
+            const_cast<GLModel*>(&m_vbo_cylinder)->set_color(-1 , render_color);
+#else
+            shader->set_uniform("uniform_color", render_color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
+        else // picking
+            glsafe(::glColor4fv(render_color.data()));
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());
@@ -176,27 +173,14 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
         glsafe(::glPushMatrix());
         glsafe(::glTranslated(0., 0., -drain_hole.height));
-        ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength, 24, 1);
-        glsafe(::glTranslated(0., 0., drain_hole.height + sla::HoleStickOutLength));
-        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-        glsafe(::glTranslated(0., 0., -drain_hole.height - sla::HoleStickOutLength));
-        glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
-        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
+        glsafe(::glScaled(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
+        m_vbo_cylinder.render();
         glsafe(::glPopMatrix());
 
         if (vol->is_left_handed())
             glFrontFace(GL_CCW);
         glsafe(::glPopMatrix());
     }
-
-    {
-        // Reset emissive component to zero (the default value)
-        float render_color_emissive[4] = { 0.f, 0.f, 0.f, 1.f };
-        glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
-    }
-
-    if (!picking)
-        glsafe(::glDisable(GL_LIGHTING));
 
     glsafe(::glPopMatrix());
 }

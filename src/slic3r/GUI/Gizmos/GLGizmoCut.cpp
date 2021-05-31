@@ -51,7 +51,7 @@ bool GLGizmoCut::on_init()
 
 std::string GLGizmoCut::on_get_name() const
 {
-    return (_(L("Cut")) + " [C]").ToUTF8().data();
+    return (_L("Cut") + " [C]").ToUTF8().data();
 }
 
 void GLGizmoCut::on_set_state()
@@ -96,12 +96,12 @@ void GLGizmoCut::on_render() const
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     Vec3d plane_center = box.center();
-    plane_center(2) = m_cut_z;
+    plane_center.z() = m_cut_z;
 
-    const float min_x = box.min(0) - Margin;
-    const float max_x = box.max(0) + Margin;
-    const float min_y = box.min(1) - Margin;
-    const float max_y = box.max(1) + Margin;
+    const float min_x = box.min.x() - Margin;
+    const float max_x = box.max.x() + Margin;
+    const float min_y = box.min.y() - Margin;
+    const float max_y = box.max.y() + Margin;
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glEnable(GL_BLEND));
@@ -110,10 +110,10 @@ void GLGizmoCut::on_render() const
     // Draw the cutting plane
     ::glBegin(GL_QUADS);
     ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    ::glVertex3f(min_x, min_y, plane_center(2));
-    ::glVertex3f(max_x, min_y, plane_center(2));
-    ::glVertex3f(max_x, max_y, plane_center(2));
-    ::glVertex3f(min_x, max_y, plane_center(2));
+    ::glVertex3f(min_x, min_y, plane_center.z());
+    ::glVertex3f(max_x, min_y, plane_center.z());
+    ::glVertex3f(max_x, max_y, plane_center.z());
+    ::glVertex3f(min_x, max_y, plane_center.z());
     glsafe(::glEnd());
 
     glsafe(::glEnable(GL_CULL_FACE));
@@ -123,9 +123,10 @@ void GLGizmoCut::on_render() const
 
     // Draw the grabber and the connecting line
     m_grabbers[0].center = plane_center;
-    m_grabbers[0].center(2) = plane_center(2) + Offset;
+    m_grabbers[0].center.z() = plane_center.z() + Offset;
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+
     glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
     glsafe(::glColor3f(1.0, 1.0, 0.0));
     ::glBegin(GL_LINES);
@@ -133,8 +134,16 @@ void GLGizmoCut::on_render() const
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
 
-    std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_grabbers[0].color);
-    m_grabbers[0].render(m_hover_id == 0, (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr)
+        return;
+    shader->start_using();
+    shader->set_uniform("emission_factor", 0.1);
+
+    m_grabbers[0].color = GrabberColor;
+    m_grabbers[0].render(m_hover_id == 0, (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
+
+    shader->stop_using();
 }
 
 void GLGizmoCut::on_render_for_picking() const

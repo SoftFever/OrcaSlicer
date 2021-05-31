@@ -26,20 +26,9 @@ namespace GUI {
 
 GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-    , m_quadric(nullptr)
-{    
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        // using GLU_FILL does not work when the instance's transformation
-        // contains mirroring (normals are reverted)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+{
 }
 
-GLGizmoSlaSupports::~GLGizmoSlaSupports()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
-}
 
 bool GLGizmoSlaSupports::on_init()
 {
@@ -100,7 +89,7 @@ void GLGizmoSlaSupports::on_render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    if (m_quadric != nullptr && selection.is_from_single_instance())
+    if (selection.is_from_single_instance())
         render_points(selection, false);
 
     m_selection_rectangle.render(m_parent);
@@ -114,14 +103,28 @@ void GLGizmoSlaSupports::on_render() const
 void GLGizmoSlaSupports::on_render_for_picking() const
 {
     const Selection& selection = m_parent.get_selection();
-    glsafe(::glEnable(GL_DEPTH_TEST));
+    //glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);
 }
 
 void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking) const
 {
-    if (!picking)
-        glsafe(::glEnable(GL_LIGHTING));
+    size_t cache_size = m_editing_mode ? m_editing_cache.size() : m_normal_cache.size();
+
+    bool has_points = (cache_size != 0);
+    bool has_holes = (! m_c->hollowed_mesh()->get_hollowed_mesh()
+                   && ! m_c->selection_info()->model_object()->sla_drain_holes.empty());
+
+    if (! has_points && ! has_holes)
+        return;
+
+    GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_shader("gouraud_light");
+    if (shader != nullptr)
+        shader->start_using();
+    ScopeGuard guard([shader]() {
+        if (shader != nullptr)
+            shader->stop_using();
+    });
 
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
@@ -132,8 +135,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     glsafe(::glTranslated(0.0, 0.0, z_shift));
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
-    float render_color[4];
-    size_t cache_size = m_editing_mode ? m_editing_cache.size() : m_normal_cache.size();
+    std::array<float, 4> render_color;
     for (size_t i = 0; i < cache_size; ++i)
     {
         const sla::SupportPoint& support_point = m_editing_mode ? m_editing_cache[i].support_point : m_normal_cache[i];
@@ -143,34 +145,38 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             continue;
 
         // First decide about the color of the point.
-        if (picking) {
-            std::array<float, 4> color = picking_color_component(i);
-            render_color[0] = color[0];
-            render_color[1] = color[1];
-            render_color[2] = color[2];
-	        render_color[3] = color[3];
-        }
+        if (picking)
+            render_color = picking_color_component(i);
         else {
-            render_color[3] = 1.f;
-            if ((size_t(m_hover_id) == i && m_editing_mode)) { // ignore hover state unless editing mode is active
-                render_color[0] = 0.f;
-                render_color[1] = 1.0f;
-                render_color[2] = 1.0f;
-            }
+            if ((size_t(m_hover_id) == i && m_editing_mode)) // ignore hover state unless editing mode is active
+                render_color = { 0.f, 1.f, 1.f, 1.f };
             else { // neigher hover nor picking
                 bool supports_new_island = m_lock_unique_islands && support_point.is_new_island;
                 if (m_editing_mode) {
-                    render_color[0] = point_selected ? 1.0f : (supports_new_island ? 0.3f : 0.7f);
-                    render_color[1] = point_selected ? 0.3f : (supports_new_island ? 0.3f : 0.7f);
-                    render_color[2] = point_selected ? 0.3f : (supports_new_island ? 1.0f : 0.7f);
+                    if (point_selected)
+                        render_color = { 1.f, 0.3f, 0.3f, 1.f};
+                    else
+                        if (supports_new_island)
+                            render_color = { 0.3f, 0.3f, 1.f, 1.f };
+                        else
+                            render_color = { 0.7f, 0.7f, 0.7f, 1.f };
                 }
                 else
-                    for (unsigned char i=0; i<3; ++i) render_color[i] = 0.5f;
+                    render_color = { 0.5f, 0.5f, 0.5f, 1.f };
             }
         }
-        glsafe(::glColor4fv(render_color));
-        float render_color_emissive[4] = { 0.5f * render_color[0], 0.5f * render_color[1], 0.5f * render_color[2], 1.f};
-        glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
+        if (shader && ! picking) {
+#if ENABLE_SEQUENTIAL_LIMITS
+            const_cast<GLModel*>(&m_cone)->set_color(-1, render_color);
+            const_cast<GLModel*>(&m_sphere)->set_color(-1, render_color);
+#else
+            shader->set_uniform("uniform_color", render_color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
+            shader->set_uniform("emission_factor", 0.5);
+        }
+        else // picking
+            glsafe(::glColor4fv(render_color.data()));
+
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());
@@ -195,33 +201,42 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             const double cone_radius = 0.25; // mm
             const double cone_height = 0.75;
             glsafe(::glPushMatrix());
-            glsafe(::glTranslatef(0.f, 0.f, support_point.head_front_radius * RenderPointScale));
-            ::gluCylinder(m_quadric, 0., cone_radius, cone_height, 24, 1);
+            glsafe(::glTranslatef(0.f, 0.f, cone_height + support_point.head_front_radius * RenderPointScale));
+            glsafe(::glPushMatrix());
+            glsafe(::glRotated(180., 1., 0., 0.));
+            glsafe(::glScaled(cone_radius, cone_radius, cone_height));
+            m_cone.render();
+            glsafe(::glPopMatrix());
             glsafe(::glTranslatef(0.f, 0.f, cone_height));
-            ::gluDisk(m_quadric, 0.0, cone_radius, 24, 1);
             glsafe(::glPopMatrix());
         }
-        ::gluSphere(m_quadric, (double)support_point.head_front_radius * RenderPointScale, 24, 12);
+
+        glsafe(::glPushMatrix());
+        double radius = (double)support_point.head_front_radius * RenderPointScale;
+        glsafe(::glScaled(radius, radius, radius));
+        m_sphere.render();
+        glsafe(::glPopMatrix());
+
         if (vol->is_left_handed())
             glFrontFace(GL_CCW);
 
         glsafe(::glPopMatrix());
     }
 
-    {
-        // Reset emissive component to zero (the default value)
-        float render_color_emissive[4] = { 0.f, 0.f, 0.f, 1.f };
-        glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
-    }
-
     // Now render the drain holes:
-    //if (! m_c->has_drilled_mesh()) {
-    if (! m_c->hollowed_mesh()->get_hollowed_mesh()) {
+    if (has_holes && ! picking) {
         render_color[0] = 0.7f;
         render_color[1] = 0.7f;
         render_color[2] = 0.7f;
         render_color[3] = 0.7f;
-        glsafe(::glColor4fv(render_color));
+        if (shader) {
+#if ENABLE_SEQUENTIAL_LIMITS
+            const_cast<GLModel*>(&m_cylinder)->set_color(-1, render_color);
+#else
+            shader->set_uniform("uniform_color", render_color);
+#endif // ENABLE_SEQUENTIAL_LIMITS
+            shader->set_uniform("emission_factor", 0.5);
+        }
         for (const sla::DrainHole& drain_hole : m_c->selection_info()->model_object()->sla_drain_holes) {
             if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
                 continue;
@@ -242,12 +257,8 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
             glsafe(::glPushMatrix());
             glsafe(::glTranslated(0., 0., -drain_hole.height));
-            ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength, 24, 1);
-            glsafe(::glTranslated(0., 0., drain_hole.height + sla::HoleStickOutLength));
-            ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-            glsafe(::glTranslated(0., 0., -drain_hole.height - sla::HoleStickOutLength));
-            glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
-            ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
+            glsafe(::glScaled(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
+            m_cylinder.render();
             glsafe(::glPopMatrix());
 
             if (vol->is_left_handed())
@@ -255,9 +266,6 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             glsafe(::glPopMatrix());
         }
     }
-
-    if (!picking)
-        glsafe(::glDisable(GL_LIGHTING));
 
     glsafe(::glPopMatrix());
 }

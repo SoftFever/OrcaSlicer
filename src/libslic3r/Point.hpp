@@ -27,6 +27,7 @@ using Vec2crd = Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign>;
 using Vec3crd = Eigen::Matrix<coord_t,  3, 1, Eigen::DontAlign>;
 using Vec2i   = Eigen::Matrix<int,      2, 1, Eigen::DontAlign>;
 using Vec3i   = Eigen::Matrix<int,      3, 1, Eigen::DontAlign>;
+using Vec4i   = Eigen::Matrix<int,      4, 1, Eigen::DontAlign>;
 using Vec2i32 = Eigen::Matrix<int32_t,  2, 1, Eigen::DontAlign>;
 using Vec2i64 = Eigen::Matrix<int64_t,  2, 1, Eigen::DontAlign>;
 using Vec3i32 = Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign>;
@@ -50,6 +51,8 @@ using Matrix2f       = Eigen::Matrix<float,  2, 2, Eigen::DontAlign>;
 using Matrix2d       = Eigen::Matrix<double, 2, 2, Eigen::DontAlign>;
 using Matrix3f       = Eigen::Matrix<float,  3, 3, Eigen::DontAlign>;
 using Matrix3d       = Eigen::Matrix<double, 3, 3, Eigen::DontAlign>;
+using Matrix4f       = Eigen::Matrix<float,  4, 4, Eigen::DontAlign>;
+using Matrix4d       = Eigen::Matrix<double, 4, 4, Eigen::DontAlign>;
 
 using Transform2f    = Eigen::Transform<float,  2, Eigen::Affine, Eigen::DontAlign>;
 using Transform2d    = Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign>;

@@ -2,6 +2,7 @@
 #define SLASUPPORTTREEALGORITHM_H
 
 #include <cstdint>
+#include <optional>
 
 #include <libslic3r/SLA/SupportTreeBuilder.hpp>
 #include <libslic3r/SLA/Clustering.hpp>
