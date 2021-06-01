@@ -120,6 +120,9 @@ wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3dEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
+#if ENABLE_SEQUENTIAL_LIMITS
+wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, SimpleEvent);
+#endif // ENABLE_SEQUENTIAL_LIMITS
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
@@ -502,11 +505,14 @@ private:
         GLModel m_fill;
         GLModel m_perimeter;
         bool m_render_fill{ true };
+        bool m_visible{ false };
 
         std::vector<Pointf3s> m_hull_2d_cache;
 
     public:
-        void set(const Polygons& polygons, bool fill);
+        void set_polygons(const Polygons& polygons);
+        void set_render_fill(bool render_fill) { m_render_fill = render_fill; }
+        void set_visible(bool visible) { m_visible = visible; }
         void render() const;
 
         friend class GLCanvas3D;
@@ -758,7 +764,24 @@ public:
     }
 
 #if ENABLE_SEQUENTIAL_LIMITS
-    void set_sequential_print_clearance(const Polygons& polygons, bool fill) { m_sequential_print_clearance.set(polygons, fill); }
+    void reset_sequential_print_clearance() {
+        m_sequential_print_clearance.set_visible(false);
+        m_sequential_print_clearance.set_render_fill(false);
+        m_sequential_print_clearance.set_polygons(Polygons());
+    }
+
+    void set_sequential_print_clearance_visible(bool visible) {
+        m_sequential_print_clearance.set_visible(visible);
+    }
+
+    void set_sequential_print_clearance_render_fill(bool render_fill) {
+        m_sequential_print_clearance.set_render_fill(render_fill);
+    }
+
+    void set_sequential_print_clearance_polygons(const Polygons& polygons) {
+        m_sequential_print_clearance.set_polygons(polygons);
+    }
+
     void update_sequential_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
 

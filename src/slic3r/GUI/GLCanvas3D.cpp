@@ -790,10 +790,8 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 }
 
 #if ENABLE_SEQUENTIAL_LIMITS
-void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons, bool fill)
+void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons)
 {
-    m_render_fill = fill;
-
     m_perimeter.reset();
     m_fill.reset();
     if (polygons.empty())
@@ -805,7 +803,7 @@ void GLCanvas3D::SequentialPrintClearance::set(const Polygons& polygons, bool fi
     }
     size_t vertices_count = 3 * triangles_count;
 
-    if (fill) {
+    if (m_render_fill) {
         GLModel::InitializationData fill_data;
         GLModel::InitializationData::Entity entity;
         entity.type = GLModel::PrimitiveType::Triangles;
@@ -896,6 +894,9 @@ wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
+#if ENABLE_SEQUENTIAL_LIMITS
+wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, SimpleEvent);
+#endif // ENABLE_SEQUENTIAL_LIMITS
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
@@ -1469,9 +1470,7 @@ void GLCanvas3D::render()
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
 #if ENABLE_SEQUENTIAL_LIMITS
-    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined &&
-        !m_layers_editing.is_enabled())
-        _render_sequential_clearance();
+    _render_sequential_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
@@ -3431,7 +3430,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
 
 #if ENABLE_SEQUENTIAL_LIMITS
-    set_sequential_print_clearance(Polygons(), false);
+    reset_sequential_print_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
 
     m_dirty = true;
@@ -3786,6 +3785,9 @@ void GLCanvas3D::update_sequential_clearance()
     if (current_printer_technology() != ptFFF || !fff_print()->config().complete_objects)
         return;
 
+    if (m_layers_editing.is_enabled() || m_gizmos.is_dragging())
+        return;
+
     // collects instance transformations from volumes
     // first define temporary cache
     unsigned int instances_count = 0;
@@ -3863,7 +3865,9 @@ void GLCanvas3D::update_sequential_clearance()
     }
 
     // sends instances 2d hulls to be rendered
-    set_sequential_print_clearance(polygons, false);
+    set_sequential_print_clearance_visible(true);
+    set_sequential_print_clearance_render_fill(false);
+    set_sequential_print_clearance_polygons(polygons);
 }
 #endif // ENABLE_SEQUENTIAL_LIMITS
 
@@ -5119,6 +5123,20 @@ void GLCanvas3D::_render_selection() const
 #if ENABLE_SEQUENTIAL_LIMITS
 void GLCanvas3D::_render_sequential_clearance() const
 {
+    if (m_layers_editing.is_enabled() || m_gizmos.is_dragging())
+        return;
+
+    switch (m_gizmos.get_current_type())
+    {
+    case GLGizmosManager::EType::Flatten:
+    case GLGizmosManager::EType::Cut:
+    case GLGizmosManager::EType::Hollow:
+    case GLGizmosManager::EType::SlaSupports:
+    case GLGizmosManager::EType::FdmSupports:
+    case GLGizmosManager::EType::Seam: { return; }
+    default: { break; }
+    }
+ 
     m_sequential_print_clearance.render();
 }
 #endif // ENABLE_SEQUENTIAL_LIMITS
