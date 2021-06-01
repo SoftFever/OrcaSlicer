@@ -169,6 +169,14 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     params_base.trafo          = object_trafo;
     params_base.resolution     = print_config.resolution.value;
 
+    switch (print_object_config.slicing_mode.value) {
+    case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;
+    case SlicingMode::EvenOdd:    params_base.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
+    case SlicingMode::CloseHoles: params_base.mode = MeshSlicingParams::SlicingMode::Positive; break;
+    }
+
+    params_base.mode_below     = params_base.mode;
+
     const auto extra_offset = std::max(0.f, float(print_object_config.xy_size_compensation.value));
 
     for (const ModelVolume *model_volume : model_volumes)
@@ -184,7 +192,6 @@ static std::vector<VolumeSlices> slice_volumes_inner(
                         params.mode = MeshSlicingParams::SlicingMode::PositiveLargestContour;
                         // Slice the bottom layers with SlicingMode::Regular.
                         // This needs to be in sync with LayerRegion::make_perimeters() spiral_vase!
-                        params.mode_below = MeshSlicingParams::SlicingMode::Regular;
                         const PrintRegionConfig &region_config = it->region->config();
                         params.slicing_mode_normal_below_layer = size_t(region_config.bottom_solid_layers.value);
                         for (; params.slicing_mode_normal_below_layer < zs.size() && zs[params.slicing_mode_normal_below_layer] < region_config.bottom_solid_min_thickness - EPSILON;

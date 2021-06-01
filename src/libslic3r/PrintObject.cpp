@@ -525,7 +525,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "mmu_segmented_region_max_width"
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
-            || opt_key == "slice_closing_radius") {
+            || opt_key == "slice_closing_radius"
+            || opt_key == "slicing_mode") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "clip_multipart_objects"

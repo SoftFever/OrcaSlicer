@@ -1610,6 +1610,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Slicing"));
         optgroup->append_single_option_line("slice_closing_radius");
+        optgroup->append_single_option_line("slicing_mode");
         optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("xy_size_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation", "elephant-foot-compensation_114487");
@@ -4318,6 +4319,7 @@ void TabSLAPrint::build()
     page = add_options_page(L("Advanced"), "wrench");
     optgroup = page->new_optgroup(L("Slicing"));
     optgroup->append_single_option_line("slice_closing_radius");
+    optgroup->append_single_option_line("slicing_mode");
 
     page = add_options_page(L("Output options"), "output+page_white");
     optgroup = page->new_optgroup(L("Output file"));

@@ -472,11 +472,17 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         po.m_model_height_levels.emplace_back(it->slice_level());
 
     po.m_model_slices.clear();
-    float closing_r  = float(po.config().slice_closing_radius.value);
+    MeshSlicingParamsEx params;
+    params.closing_radius = float(po.config().slice_closing_radius.value);
+    switch (po.config().slicing_mode.value) {
+    case SlicingMode::Regular:    params.mode = MeshSlicingParams::SlicingMode::Regular; break;
+    case SlicingMode::EvenOdd:    params.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
+    case SlicingMode::CloseHoles: params.mode = MeshSlicingParams::SlicingMode::Positive; break;
+    }
     auto  thr        = [this]() { m_print->throw_if_canceled(); };
     auto &slice_grid = po.m_model_height_levels;
     assert(mesh.has_shared_vertices());
-    po.m_model_slices = slice_mesh_ex(mesh.its, slice_grid, closing_r, thr);
+    po.m_model_slices = slice_mesh_ex(mesh.its, slice_grid, params, thr);
 
     sla::Interior *interior = po.m_hollowing_data ?
                                   po.m_hollowing_data->interior.get() :
@@ -486,7 +492,8 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         TriangleMesh interiormesh = sla::get_mesh(*interior);
         interiormesh.repaired = false;
         interiormesh.repair(true);
-        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh.its, slice_grid, closing_r, thr);
+        params.mode = MeshSlicingParams::SlicingMode::Regular;
+        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh.its, slice_grid, params, thr);
 
         sla::ccr::for_each(size_t(0), interior_slices.size(),
                            [&po, &interior_slices] (size_t i) {
