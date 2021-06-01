@@ -685,6 +685,31 @@ std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangl
     return index;
 }
 
+void VertexFaceIndex::create(const indexed_triangle_set &its)
+{
+    m_vertex_to_face_start.assign(its.vertices.size() + 1, 0);
+    // 1) Calculate vertex incidence by scatter.
+    for (auto &face : its.indices) {
+        ++ m_vertex_to_face_start[face(0) + 1];
+        ++ m_vertex_to_face_start[face(1) + 1];
+        ++ m_vertex_to_face_start[face(2) + 1];
+    }
+    // 2) Prefix sum to calculate offsets to m_vertex_faces_all.
+    for (size_t i = 2; i < m_vertex_to_face_start.size(); ++ i)
+        m_vertex_to_face_start[i] += m_vertex_to_face_start[i - 1];
+    // 3) Scatter indices of faces incident to a vertex into m_vertex_faces_all.
+    m_vertex_faces_all.assign(m_vertex_to_face_start.back(), 0);
+    for (size_t face_idx = 0; face_idx < its.indices.size(); ++ face_idx) {
+        auto &face = its.indices[face_idx];
+        for (int i = 0; i < 3; ++ i)
+            m_vertex_faces_all[m_vertex_to_face_start[face(i)] ++] = face_idx;
+    }
+    // 4) The previous loop modified m_vertex_to_face_start. Revert the change.
+    for (auto i = int(m_vertex_to_face_start.size()) - 1; i > 0; -- i)
+        m_vertex_to_face_start[i] = m_vertex_to_face_start[i - 1];
+    m_vertex_to_face_start.front() = 0;
+}
+
 // Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
 // Two neighbor faces share a unique edge identifier even if they are flipped.
 template<typename ThrowOnCancelCallback>
