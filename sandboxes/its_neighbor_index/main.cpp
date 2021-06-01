@@ -24,50 +24,71 @@ static MeasureResult measure_index(const indexed_triangle_set &its, IndexCreator
 {
     Benchmark b;
 
-    b.start();
-    ItsNeighborsWrapper itsn{its, fn(its)};
-    b.stop();
-
     MeasureResult r;
-    r.t_index_create = b.getElapsedSec();
+    for (int i = 0; i < 10; ++i) {
+        b.start();
+        ItsNeighborsWrapper itsn{its, fn(its)};
+        b.stop();
 
-    b.start();
-    its_split(itsn);
-    b.stop();
+        r.t_index_create += b.getElapsedSec();
 
-    r.t_split = b.getElapsedSec();
+        b.start();
+        its_split(itsn);
+        b.stop();
+
+        r.t_split += b.getElapsedSec();
+    }
+
+    r.t_index_create /= 10;
+    r.t_split /= 10;
 
     return r;
 }
 
-static TriangleMesh two_spheres(double detail)
+static indexed_triangle_set two_spheres(double detail)
 {
-    TriangleMesh sphere1 = make_sphere(10., 2 * PI / detail), sphere2 = sphere1;
+    auto sphere1 = its_make_sphere(10., 2 * PI / detail), sphere2 = sphere1;
 
-    sphere1.translate(-5.f, 0.f, 0.f);
-    sphere2.translate( 5.f, 0.f, 0.f);
+    its_transform(sphere1, Transform3f{}.translate(Vec3f{-5.f, 0.f, 0.f}));
+    its_transform(sphere2, Transform3f{}.translate(Vec3f{5.f, 0.f, 0.f}));
 
-    sphere1.merge(sphere2);
-    sphere1.require_shared_vertices();
+    its_merge(sphere1, sphere2);
 
     return sphere1;
 }
 
-static const std::map<std::string, TriangleMesh> ToMeasure = {
-    {"simple", make_cube(10., 10., 10.) },
-    {"two_spheres", two_spheres(200.)},
-    {"two_spheres_detail", two_spheres(360.)},
-    {"two_spheres_high_detail", two_spheres(3600.)},
+static const std::map<std::string, indexed_triangle_set> ToMeasure = {
+    {"simple", its_make_cube(10., 10., 10.) }, // this has 12 faces, 8 vertices
+    {"two_spheres_1x", two_spheres(60.)},
+    {"two_spheres_2x", two_spheres(120.)},
+    {"two_spheres_4x", two_spheres(240.)},
+    {"two_spheres_8x", two_spheres(480.)},
 };
 
 static const auto IndexFunctions = std::make_tuple(
-    std::make_pair("tamas's unordered_map based", its_create_neighbors_index_1),
-    std::make_pair("vojta std::sort based", its_create_neighbors_index_2),
-    std::make_pair("vojta tbb::parallel_sort based", its_create_neighbors_index_3),
-    std::make_pair("filip's vertex->face based", its_create_neighbors_index_5),
-    std::make_pair("tamas's std::sort based", its_create_neighbors_index_6),
-    std::make_pair("tamas's tbb::parallel_sort based", its_create_neighbors_index_7),
-    std::make_pair("tamas's map based", its_create_neighbors_index_8)
+    std::make_pair("tamas's unordered_map based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_1); }),
+    std::make_pair("vojta std::sort based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_2); }),
+    std::make_pair("vojta tbb::parallel_sort based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_3); }),
+    std::make_pair("filip's vertex->face based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_5); }),
+    std::make_pair("tamas's std::sort based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_6); }),
+    std::make_pair("tamas's tbb::parallel_sort based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_7); }),
+    std::make_pair("tamas's map based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_8); }),
+    std::make_pair("TriangleMesh split", [](const auto &its) {
+        TriangleMesh m{its};
+
+        MeasureResult ret;
+        for (int i = 0; i < 10; ++i) {
+            Benchmark b;
+            b.start();
+            m.repair();
+            m.split();
+            b.stop();
+            ret.t_split += b.getElapsedSec();
+        }
+        ret.t_split /= 10;
+
+        return ret;
+    })
 );
 
 static constexpr size_t IndexFuncNum = std::tuple_size_v<decltype (IndexFunctions)>;
@@ -85,12 +106,11 @@ int main(const int argc, const char * argv[])
         auto &name = m.first;
         auto &mesh = m.second;
         libnest2d::opt::metaloop::apply([&mesh, &name, &results, &funcnames](int N, auto &e) {
-            MeasureResult r = measure_index(mesh.its, e.second);
+            MeasureResult r = e.second(mesh);
             funcnames[N] = e.first;
             results[name][N] = r;
         }, IndexFunctions);
     }
-
 
     std::string outfilename = "out.csv";
     std::fstream outfile;

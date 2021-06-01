@@ -968,20 +968,22 @@ Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transfor
 }
 
 // Generate the vertex list for a cube solid of arbitrary size in X/Y/Z.
+indexed_triangle_set its_make_cube(double xd, double yd, double zd)
+{
+    auto x = float(xd), y = float(yd), z = float(zd);
+    indexed_triangle_set mesh;
+    mesh.vertices = {{x, y, 0}, {x, 0, 0}, {0, 0, 0}, {0, y, 0},
+                     {x, y, z}, {0, y, z}, {0, 0, z}, {x, 0, z}};
+    mesh.indices  = {{0, 1, 2}, {0, 2, 3}, {4, 5, 6}, {4, 6, 7},
+                    {0, 4, 7}, {0, 7, 1}, {1, 7, 6}, {1, 6, 2},
+                    {2, 6, 5}, {2, 5, 3}, {4, 0, 3}, {4, 3, 5}};
+
+    return mesh;
+}
+
 TriangleMesh make_cube(double x, double y, double z) 
 {
-    TriangleMesh mesh(
-        {
-            {x, y, 0}, {x, 0, 0}, {0, 0, 0},
-            {0, y, 0}, {x, y, z}, {0, y, z},
-            {0, 0, z}, {x, 0, z}
-        },
-        {
-            {0, 1, 2}, {0, 2, 3}, {4, 5, 6},
-            {4, 6, 7}, {0, 4, 7}, {0, 7, 1},
-            {1, 7, 6}, {1, 6, 2}, {2, 6, 5},
-            {2, 5, 3}, {4, 0, 3}, {4, 3, 5}
-        });
+    TriangleMesh mesh(its_make_cube(x, y, z));
     mesh.repair();
     return mesh;
 }
@@ -989,31 +991,32 @@ TriangleMesh make_cube(double x, double y, double z)
 // Generate the mesh for a cylinder and return it, using 
 // the generated angle to calculate the top mesh triangles.
 // Default is 360 sides, angle fa is in radians.
-TriangleMesh make_cylinder(double r, double h, double fa)
+indexed_triangle_set its_make_cylinder(double r, double h, double fa)
 {
+    indexed_triangle_set mesh;
     size_t n_steps    = (size_t)ceil(2. * PI / fa);
     double angle_step = 2. * PI / n_steps;
 
-    Pointf3s            vertices;
-    std::vector<Vec3i>  facets;
+    auto &vertices = mesh.vertices;
+    auto &facets   = mesh.indices;
     vertices.reserve(2 * n_steps + 2);
     facets.reserve(4 * n_steps);
 
     // 2 special vertices, top and bottom center, rest are relative to this
-    vertices.emplace_back(Vec3d(0.0, 0.0, 0.0));
-    vertices.emplace_back(Vec3d(0.0, 0.0, h));
+    vertices.emplace_back(Vec3f(0.f, 0.f, 0.f));
+    vertices.emplace_back(Vec3f(0.f, 0.f, float(h)));
 
     // for each line along the polygon approximating the top/bottom of the
     // circle, generate four points and four facets (2 for the wall, 2 for the
     // top and bottom.
     // Special case: Last line shares 2 vertices with the first line.
-    Vec2d p = Eigen::Rotation2Dd(0.) * Eigen::Vector2d(0, r);
-    vertices.emplace_back(Vec3d(p(0), p(1), 0.));
-    vertices.emplace_back(Vec3d(p(0), p(1), h));
+    Vec2f p = Eigen::Rotation2Df(0.f) * Eigen::Vector2f(0, r);
+    vertices.emplace_back(Vec3f(p(0), p(1), 0.f));
+    vertices.emplace_back(Vec3f(p(0), p(1), float(h)));
     for (size_t i = 1; i < n_steps; ++i) {
-        p = Eigen::Rotation2Dd(angle_step * i) * Eigen::Vector2d(0, r);
-        vertices.emplace_back(Vec3d(p(0), p(1), 0.));
-        vertices.emplace_back(Vec3d(p(0), p(1), h));
+        p = Eigen::Rotation2Df(angle_step * i) * Eigen::Vector2f(0, float(r));
+        vertices.emplace_back(Vec3f(p(0), p(1), 0.f));
+        vertices.emplace_back(Vec3f(p(0), p(1), float(h)));
         int id = (int)vertices.size() - 1;
         facets.emplace_back( 0, id - 1, id - 3); // top
         facets.emplace_back(id,      1, id - 2); // bottom
@@ -1026,9 +1029,15 @@ TriangleMesh make_cylinder(double r, double h, double fa)
     facets.emplace_back( 3, 1,     id);
     facets.emplace_back(id, 2,      3);
     facets.emplace_back(id, id - 1, 2);
-    
-    TriangleMesh mesh(std::move(vertices), std::move(facets));
+
+    return mesh;
+}
+
+TriangleMesh make_cylinder(double r, double h, double fa)
+{
+    TriangleMesh mesh{its_make_cylinder(r, h, fa)};
     mesh.repair();
+
     return mesh;
 }
 
@@ -1063,14 +1072,15 @@ TriangleMesh make_cone(double r, double h, double fa)
 // to determine the granularity. 
 // Default angle is 1 degree.
 //FIXME better to discretize an Icosahedron recursively http://www.songho.ca/opengl/gl_sphere.html
-TriangleMesh make_sphere(double radius, double fa)
+indexed_triangle_set its_make_sphere(double radius, double fa)
 {
     int   sectorCount = int(ceil(2. * M_PI / fa));
     int   stackCount  = int(ceil(M_PI / fa));
     float sectorStep  = float(2. * M_PI / sectorCount);
     float stackStep   = float(M_PI / stackCount);
 
-    Pointf3s vertices;
+    indexed_triangle_set mesh;
+    auto& vertices = mesh.vertices;
     vertices.reserve((stackCount - 1) * sectorCount + 2);
     for (int i = 0; i <= stackCount; ++ i) {
         // from pi/2 to -pi/2
@@ -1078,16 +1088,16 @@ TriangleMesh make_sphere(double radius, double fa)
         double xy = radius * cos(stackAngle);
         double z  = radius * sin(stackAngle);
         if (i == 0 || i == stackCount)
-            vertices.emplace_back(Vec3d(xy, 0., z));
+            vertices.emplace_back(Vec3f(float(xy), 0.f, float(z)));
         else
             for (int j = 0; j < sectorCount; ++ j) {
                 // from 0 to 2pi
                 double sectorAngle = sectorStep * j;
-                vertices.emplace_back(Vec3d(xy * cos(sectorAngle), xy * sin(sectorAngle), z));
+                vertices.emplace_back(Vec3d(xy * std::cos(sectorAngle), xy * std::sin(sectorAngle), z).cast<float>());
             }
     }
 
-    std::vector<Vec3i> facets;
+    auto& facets = mesh.indices;
     facets.reserve(2 * (stackCount - 1) * sectorCount);
     for (int i = 0; i < stackCount; ++ i) {
         // Beginning of current stack.
@@ -1112,8 +1122,15 @@ TriangleMesh make_sphere(double radius, double fa)
             k2 = k2_next;
         }
     }
-    TriangleMesh mesh(std::move(vertices), std::move(facets));
+
+    return mesh;
+}
+
+TriangleMesh make_sphere(double radius, double fa)
+{
+    TriangleMesh mesh(its_make_sphere(radius, fa));
     mesh.repair();
+
     return mesh;
 }
 

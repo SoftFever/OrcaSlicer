@@ -179,8 +179,14 @@ void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B);
 void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles);
 void its_merge(indexed_triangle_set &A, const Pointf3s &triangles);
 
+indexed_triangle_set its_make_cube(double x, double y, double z);
 TriangleMesh make_cube(double x, double y, double z);
+
+// Generate a TriangleMesh of a cylinder
+indexed_triangle_set its_make_cylinder(double r, double h, double fa=(2*PI/360));
 TriangleMesh make_cylinder(double r, double h, double fa=(2*PI/360));
+
+indexed_triangle_set its_make_sphere(double rho, double fa=(2*PI/360));
 TriangleMesh make_cone(double r, double h, double fa=(2*PI/360));
 TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
 
