@@ -1,4 +1,5 @@
 min_slic3r_version = 2.3.1-beta
+0.0.17 Updated start g-code. Added specific start g-code for straingauge printers. Improved output filename format. Added filament profile.
 0.0.16 Updated CR6-SE start g-code. Added and updated filament profiles.
 0.0.15 Added new printer models, filament profiles. Various improvements.
 min_slic3r_version = 2.3.0-rc2

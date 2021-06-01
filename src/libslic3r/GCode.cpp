@@ -243,8 +243,7 @@ namespace Slic3r {
 
         if (! tcr.priming) {
             // Move over the wipe tower.
-            // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
-            gcode += gcodegen.retract(true);
+            gcode += gcodegen.retract();
             gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
             gcode += gcodegen.travel_to(
                 wipe_tower_point_to_object_point(gcodegen, start_pos),
