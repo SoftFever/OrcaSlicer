@@ -1068,10 +1068,13 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         bool layer_height_ranges_differ = ! layer_height_ranges_equal(model_object.layer_config_ranges, model_object_new.layer_config_ranges, model_object_new.layer_height_profile.empty());
         bool model_origin_translation_differ = model_object.origin_translation != model_object_new.origin_translation;
         auto print_objects_range        = print_object_status_db.get_range(model_object);
-        assert(print_objects_range.begin() != print_objects_range.end());
+        // The list actually can be empty if all instances are out of the print bed.
+        //assert(print_objects_range.begin() != print_objects_range.end());
         // All PrintObjects in print_objects_range shall point to the same prints_objects_regions
-        model_object_status.print_object_regions = print_objects_range.begin()->print_object->m_shared_regions;
-        model_object_status.print_object_regions->ref_cnt_inc();
+        if (print_objects_range.begin() != print_objects_range.end()) {
+            model_object_status.print_object_regions = print_objects_range.begin()->print_object->m_shared_regions;
+            model_object_status.print_object_regions->ref_cnt_inc();
+        }
         if (solid_or_modifier_differ || model_origin_translation_differ || layer_height_ranges_differ ||
             ! model_object.layer_height_profile.timestamp_matches(model_object_new.layer_height_profile)) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
