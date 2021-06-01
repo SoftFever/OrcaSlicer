@@ -5371,8 +5371,7 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path)
 void Plater::export_3mf(const boost::filesystem::path& output_path)
 #endif // ENABLE_PROJECT_DIRTY_STATE
 {
-    if (p->model.objects.empty()
-     || canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
+    if (p->model.objects.empty())
 #if ENABLE_PROJECT_DIRTY_STATE
         return false;
 #else
