@@ -1,8 +1,10 @@
 #include "Exception.hpp"
 #include "TriangleMesh.hpp"
 #include "TriangleMeshSlicer.hpp"
+#include "MeshSplitImpl.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include "Point.hpp"
 
 #include <libqhullcpp/Qhull.h>
 #include <libqhullcpp/QhullFacetList.h>
@@ -685,51 +687,24 @@ std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangl
     return index;
 }
 
-void VertexFaceIndex::create(const indexed_triangle_set &its)
-{
-    m_vertex_to_face_start.assign(its.vertices.size() + 1, 0);
-    // 1) Calculate vertex incidence by scatter.
-    for (auto &face : its.indices) {
-        ++ m_vertex_to_face_start[face(0) + 1];
-        ++ m_vertex_to_face_start[face(1) + 1];
-        ++ m_vertex_to_face_start[face(2) + 1];
-    }
-    // 2) Prefix sum to calculate offsets to m_vertex_faces_all.
-    for (size_t i = 2; i < m_vertex_to_face_start.size(); ++ i)
-        m_vertex_to_face_start[i] += m_vertex_to_face_start[i - 1];
-    // 3) Scatter indices of faces incident to a vertex into m_vertex_faces_all.
-    m_vertex_faces_all.assign(m_vertex_to_face_start.back(), 0);
-    for (size_t face_idx = 0; face_idx < its.indices.size(); ++ face_idx) {
-        auto &face = its.indices[face_idx];
-        for (int i = 0; i < 3; ++ i)
-            m_vertex_faces_all[m_vertex_to_face_start[face(i)] ++] = face_idx;
-    }
-    // 4) The previous loop modified m_vertex_to_face_start. Revert the change.
-    for (auto i = int(m_vertex_to_face_start.size()) - 1; i > 0; -- i)
-        m_vertex_to_face_start[i] = m_vertex_to_face_start[i - 1];
-    m_vertex_to_face_start.front() = 0;
-}
+// Create a mapping from triangle edge into face.
+struct EdgeToFace {
+    // Index of the 1st vertex of the triangle edge. vertex_low <= vertex_high.
+    int  vertex_low;
+    // Index of the 2nd vertex of the triangle edge.
+    int  vertex_high;
+    // Index of a triangular face.
+    int  face;
+    // Index of edge in the face, starting with 1. Negative indices if the edge was stored reverse in (vertex_low, vertex_high).
+    int  face_edge;
+    bool operator==(const EdgeToFace &other) const { return vertex_low == other.vertex_low && vertex_high == other.vertex_high; }
+    bool operator<(const EdgeToFace &other) const { return vertex_low < other.vertex_low || (vertex_low == other.vertex_low && vertex_high < other.vertex_high); }
+};
 
-// Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
-// Two neighbor faces share a unique edge identifier even if they are flipped.
 template<typename ThrowOnCancelCallback>
-static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
+static std::vector<EdgeToFace> create_edge_map(
+    const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
 {
-    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
-
-    // Create a mapping from triangle edge into face.
-    struct EdgeToFace {
-        // Index of the 1st vertex of the triangle edge. vertex_low <= vertex_high.
-        int  vertex_low;
-        // Index of the 2nd vertex of the triangle edge.
-        int  vertex_high;
-        // Index of a triangular face.
-        int  face;
-        // Index of edge in the face, starting with 1. Negative indices if the edge was stored reverse in (vertex_low, vertex_high).
-        int  face_edge;
-        bool operator==(const EdgeToFace &other) const { return vertex_low == other.vertex_low && vertex_high == other.vertex_high; }
-        bool operator<(const EdgeToFace &other) const { return vertex_low < other.vertex_low || (vertex_low == other.vertex_low && vertex_high < other.vertex_high); }
-    };
     std::vector<EdgeToFace> edges_map;
     edges_map.assign(its.indices.size() * 3, EdgeToFace());
     for (uint32_t facet_idx = 0; facet_idx < its.indices.size(); ++ facet_idx)
@@ -749,6 +724,18 @@ static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_
         }
     throw_on_cancel();
     std::sort(edges_map.begin(), edges_map.end());
+
+    return edges_map;
+}
+
+// Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
+// Two neighbor faces share a unique edge identifier even if they are flipped.
+template<typename ThrowOnCancelCallback>
+static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
+{
+    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
+
+    std::vector<EdgeToFace> edges_map = create_edge_map(its, throw_on_cancel);
 
     // Assign a unique common edge id to touching triangle edges.
     int num_edges = 0;
@@ -1183,132 +1170,59 @@ float its_volume(const indexed_triangle_set &its)
     return volume;
 }
 
-std::vector<size_t> its_find_unvisited_neighbors(
-    const indexed_triangle_set &its,
-    const FaceNeighborIndex &   neighbor_index,
-    std::vector<bool> &         visited)
+std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its)
 {
-    using stack_el = size_t;
+    return its_split<>(its);
+}
 
-    auto facestack = reserve_vector<stack_el>(its.indices.size());
-    auto push = [&facestack] (const stack_el &s) { facestack.emplace_back(s); };
-    auto pop  = [&facestack] () -> stack_el {
-        stack_el ret = facestack.back();
-        facestack.pop_back();
-        return ret;
-    };
+bool its_is_splittable(const indexed_triangle_set &its)
+{
+    return its_is_splittable<>(its);
+}
 
-    // find the next unvisited facet and push the index
-    auto facet = std::find(visited.begin(), visited.end(), false);
-    std::vector<size_t> ret;
+std::vector<Vec3i> its_create_neighbors_index(const indexed_triangle_set &its)
+{
+    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
 
-    if (facet != visited.end()) {
-        ret.reserve(its.indices.size());
-        auto idx = size_t(facet - visited.begin());
-        push(idx);
-        ret.emplace_back(idx);
-        visited[idx] = true;
-    }
+    std::vector<EdgeToFace> edges_map = create_edge_map(its, []{});
 
-    while (!facestack.empty()) {
-        size_t facet_idx = pop();
-        const auto &neighbors = neighbor_index[facet_idx];
-        for (size_t neighbor_idx : neighbors) {
-            if (!visited[neighbor_idx]) {
-                visited[neighbor_idx] = true;
-                push(neighbor_idx);
-                ret.emplace_back(neighbor_idx);
+    // Assign a unique common edge id to touching triangle edges.
+    for (size_t i = 0; i < edges_map.size(); ++ i) {
+        EdgeToFace &edge_i = edges_map[i];
+        if (edge_i.face == -1)
+            // This edge has been connected to some neighbor already.
+            continue;
+        // Unconnected edge. Find its neighbor with the correct orientation.
+        size_t j;
+        bool found = false;
+        for (j = i + 1; j < edges_map.size() && edge_i == edges_map[j]; ++ j)
+            if (edge_i.face_edge * edges_map[j].face_edge < 0 && edges_map[j].face != -1) {
+                // Faces touching with opposite oriented edges and none of the edges is connected yet.
+                found = true;
+                break;
             }
+        if (! found) {
+            //FIXME Vojtech: Trying to find an edge with equal orientation. This smells.
+            // admesh can assign the same edge ID to more than two facets (which is
+            // still topologically correct), so we have to search for a duplicate of
+            // this edge too in case it was already seen in this orientation
+            for (j = i + 1; j < edges_map.size() && edge_i == edges_map[j]; ++ j)
+                if (edges_map[j].face != -1) {
+                    // Faces touching with equally oriented edges and none of the edges is connected yet.
+                    found = true;
+                    break;
+                }
+        }
+        if (found) {
+            EdgeToFace &edge_j = edges_map[j];
+            out[edge_i.face](std::abs(edge_i.face_edge) - 1) = edge_j.face;
+            out[edge_j.face](std::abs(edge_j.face_edge) - 1) = edge_i.face;
+            // Mark the edge as connected.
+            edge_j.face = -1;
         }
     }
 
-    return ret;
-}
-
-bool its_is_splittable(const indexed_triangle_set &its,
-                       const FaceNeighborIndex &  neighbor_index)
-{
-    std::vector<bool> visited(its.indices.size(), false);
-    its_find_unvisited_neighbors(its, neighbor_index, visited);
-
-    // Try finding an unvisited facet. If there are none, the mesh is not splittable.
-    auto it = std::find(visited.begin(), visited.end(), false);
-    return it != visited.end();
-}
-
-std::vector<indexed_triangle_set> its_split(
-    const indexed_triangle_set &its, const FaceNeighborIndex &neighbor_index)
-{
-    auto ret = reserve_vector<indexed_triangle_set>(3);
-    its_split(its, std::back_inserter(ret), neighbor_index);
-
-    return ret;
-}
-
-FaceNeighborIndex its_create_neighbors_index(const indexed_triangle_set &its)
-{
-    // Just to be clear what type of object are we referencing
-    using FaceID = size_t;
-    using VertexID = uint64_t;
-    using EdgeID = uint64_t;
-
-    constexpr auto UNASSIGNED = std::numeric_limits<FaceID>::max();
-
-    struct Edge // Will contain IDs of the two facets touching this edge
-    {
-        FaceID first, second;
-        Edge() : first{UNASSIGNED}, second{UNASSIGNED} {}
-        void   assign(FaceID fid)
-        {
-            first == UNASSIGNED ? first = fid : second = fid;
-        }
-    };
-
-    // All vertex IDs will fit into this number of bits. (Used for hashing)
-    const int max_vertex_id_bits = std::ceil(std::log2(its.vertices.size()));
-    assert(max_vertex_id_bits <= 32);
-
-    std::unordered_map< EdgeID, Edge > edge_index;
-
-    // Edge id is constructed by concatenating two vertex ids, starting with
-    // the lowest in MSB
-    auto hash = [max_vertex_id_bits] (VertexID a, VertexID b) {
-        if (a > b) std::swap(a, b);
-        return (a << max_vertex_id_bits) + b;
-    };
-
-    // Go through all edges of all facets and mark the facets touching each edge
-    for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
-        const Vec3i &face = its.indices[face_id];
-
-        EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
-               e3 = hash(face(2), face(0));
-
-        edge_index[e1].assign(face_id);
-        edge_index[e2].assign(face_id);
-        edge_index[e3].assign(face_id);
-    }
-
-    FaceNeighborIndex index(its.indices.size());
-
-    // Now collect the neighbors for each facet into the final index
-    for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
-        const Vec3i &face = its.indices[face_id];
-
-        EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
-               e3 = hash(face(2), face(0));
-
-        const Edge &neighs1 = edge_index[e1];
-        const Edge &neighs2 = edge_index[e2];
-        const Edge &neighs3 = edge_index[e3];
-
-        std::array<size_t, 3> &neighs = index[face_id];
-        neighs[0] = neighs1.first == face_id ? neighs1.second : neighs1.first;
-        neighs[1] = neighs2.first == face_id ? neighs2.second : neighs2.first;
-        neighs[2] = neighs3.first == face_id ? neighs3.second : neighs3.first;
-    }
-
-    return index;
+    return out;
 }
 
 } // namespace Slic3r

@@ -21,6 +21,12 @@ class MultiPoint;
 class Point;
 using Vector = Point;
 
+// Base template for eigen derived vectors
+template<int N, int M, class T>
+using Mat = Eigen::Matrix<T, N, M, Eigen::DontAlign, N, M>;
+
+template<int N, class T> using Vec = Mat<N, 1, T>;
+
 // Eigen types, to replace the Slic3r's own types in the future.
 // Vector types with a fixed point coordinate base type.
 using Vec2crd = Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign>;
@@ -487,5 +493,19 @@ namespace cereal {
 	template<class Archive> void load(Archive& archive, Slic3r::Matrix2f &m) { archive.loadBinary((char*)m.data(), sizeof(float) * 4); }
 	template<class Archive> void save(Archive& archive, Slic3r::Matrix2f &m) { archive.saveBinary((char*)m.data(), sizeof(float) * 4); }
 }
+
+namespace Eigen {
+template<class T, int N, int M>
+T* begin(Slic3r::Mat<N, M, T> &mat) { return mat.data(); }
+
+template<class T, int N, int M>
+T* end(Slic3r::Mat<N, M, T> &mat) { return mat.data() + N * M; }
+
+template<class T, int N, int M>
+const T* begin(const Slic3r::Mat<N, M, T> &mat) { return mat.data(); }
+
+template<class T, int N, int M>
+const T* end(const Slic3r::Mat<N, M, T> &mat) { return mat.data() + N * M; }
+} // namespace Eigen
 
 #endif
