@@ -71,7 +71,7 @@ enum class IroningType {
 
 enum class SlicingMode
 {
-    // Regular, applying ClipperLib::pftPositive rule when creating ExPolygons.
+    // Regular, applying ClipperLib::pftNonZero rule when creating ExPolygons.
     Regular,
     // Compatible with 3DLabPrint models, applying ClipperLib::pftEvenOdd rule when creating ExPolygons.
     EvenOdd,
