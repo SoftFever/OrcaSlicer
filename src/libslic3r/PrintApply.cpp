@@ -1,6 +1,8 @@
 #include "Model.hpp"
 #include "Print.hpp"
 
+#include <cfloat>
+
 namespace Slic3r {
 
 // Add or remove support modifier ModelVolumes from model_object_dst to match the ModelVolumes of model_object_new
