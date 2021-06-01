@@ -1702,6 +1702,9 @@ struct Plater::priv
     void on_wipetower_moved(Vec3dEvent&);
     void on_wipetower_rotated(Vec3dEvent&);
     void on_update_geometry(Vec3dsEvent<2>&);
+#if ENABLE_SEQUENTIAL_LIMITS
+    void on_3dcanvas_mouse_dragging_started(SimpleEvent&);
+#endif // ENABLE_SEQUENTIAL_LIMITS
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
     void show_action_buttons(const bool is_ready_to_slice) const;
@@ -1878,6 +1881,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool>& evt) { this->sidebar->enable_buttons(evt.data); });
         view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
+#if ENABLE_SEQUENTIAL_LIMITS
+        view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, &priv::on_3dcanvas_mouse_dragging_started, this);
+#endif // ENABLE_SEQUENTIAL_LIMITS
         view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
         view3D_canvas->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
         view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
@@ -2731,7 +2737,7 @@ void Plater::priv::reset()
     gcode_result.reset();
 
 #if ENABLE_SEQUENTIAL_LIMITS
-    view3D->get_canvas3d()->set_sequential_print_clearance(Polygons(), false);
+    view3D->get_canvas3d()->reset_sequential_print_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
 
     // Stop and reset the Print content.
@@ -2943,7 +2949,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             process_validation_warning(warning);
 #if ENABLE_SEQUENTIAL_LIMITS
             if (printer_technology == ptFFF) {
-                view3D->get_canvas3d()->set_sequential_print_clearance(Polygons(), false);
+                view3D->get_canvas3d()->reset_sequential_print_clearance();
                 view3D->get_canvas3d()->set_as_dirty();
                 view3D->get_canvas3d()->request_extra_frame();
             }
@@ -2959,7 +2965,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
                 Polygons polygons;
                 if (print->config().complete_objects)
                     Print::sequential_print_horizontal_clearance_valid(*print, &polygons);
-                view3D->get_canvas3d()->set_sequential_print_clearance(polygons, true);
+                view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
+                view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
+                view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons);
             }
 #endif // ENABLE_SEQUENTIAL_LIMITS
         }
@@ -3864,13 +3872,20 @@ void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
     // TODO
 }
 
+#if ENABLE_SEQUENTIAL_LIMITS
+void Plater::priv::on_3dcanvas_mouse_dragging_started(SimpleEvent&)
+{
+    view3D->get_canvas3d()->reset_sequential_print_clearance();
+}
+#endif // ENABLE_SEQUENTIAL_LIMITS
+
 // Update the scene from the background processing,
 // if the update message was received during mouse manipulation.
 void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
 {
-    if (this->delayed_scene_refresh) {
-        this->delayed_scene_refresh = false;
-        this->update_sla_scene();
+    if (delayed_scene_refresh) {
+        delayed_scene_refresh = false;
+        update_sla_scene();
     }
 }
 
