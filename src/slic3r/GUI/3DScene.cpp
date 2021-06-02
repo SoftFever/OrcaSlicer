@@ -401,7 +401,12 @@ void GLVolume::set_render_color()
 
 void GLVolume::set_color_from_model_volume(const ModelVolume *model_volume)
 {
-    if (model_volume->is_modifier()) {
+    if (model_volume->is_negative_volume()) {
+        color[0] = 0.2f;
+        color[1] = 0.2f;
+        color[2] = 0.2f;
+    }
+    else if (model_volume->is_modifier()) {
         color[0] = 0.2f;
         color[1] = 1.0f;
         color[2] = 0.2f;

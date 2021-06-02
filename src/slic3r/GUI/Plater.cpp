@@ -1362,6 +1362,7 @@ void Sidebar::update_ui_from_settings()
     p->plater->canvas3D()->update_gizmos_on_off_state();
     p->plater->set_current_canvas_as_dirty();
     p->plater->get_current_canvas3D()->request_extra_frame();
+    p->object_list->apply_volumes_order();
 }
 
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
@@ -2449,6 +2450,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 #endif /* AUTOPLACEMENT_ON_LOAD */
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
+        object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
         obj_idxs.push_back(obj_count++);
 
@@ -3307,6 +3309,7 @@ void Plater::priv::reload_from_disk()
                     if (!sinking)
 #endif // ENABLE_ALLOW_NEGATIVE_Z
                         old_model_object->ensure_on_bed();
+                    old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
 
                     sla::reproject_points_and_holes(old_model_object);
                 }

@@ -277,6 +277,7 @@ public:
     ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
     void                    delete_volume(size_t idx);
     void                    clear_volumes();
+    void                    sort_volumes(bool full_sort);
     bool                    is_multiparts() const { return volumes.size() > 1; }
 
     ModelInstance*          add_instance();
