@@ -5,7 +5,6 @@
 #include "libnest2d/tools/benchmark.h"
 
 namespace Slic3r {
-
 namespace meshsplit_detail {
 
 template<class Its, class Enable = void> struct ItsWithNeighborsIndex_ {
@@ -58,7 +57,7 @@ std::vector<size_t> its_find_unvisited_neighbors(
         size_t facet_idx = pop();
         const auto &neighbors = neighbor_index[facet_idx];
         for (auto neighbor_idx : neighbors) {
-            if (neighbor_idx >= 0 && !visited[size_t(neighbor_idx)]) {
+            if (size_t(neighbor_idx) < visited.size() && !visited[size_t(neighbor_idx)]) {
                 visited[size_t(neighbor_idx)] = true;
                 push(stack_el(neighbor_idx));
                 ret.emplace_back(size_t(neighbor_idx));
@@ -111,6 +110,8 @@ void its_split(const Its &m, OutputIt out_it)
 
         // Create a new mesh for the part that was just split off.
         indexed_triangle_set mesh;
+        mesh.indices.reserve(facets.size());
+        mesh.vertices.reserve(facets.size() * 3);
 
         // Assign the facets to the new mesh.
         for (size_t face_id : facets) {

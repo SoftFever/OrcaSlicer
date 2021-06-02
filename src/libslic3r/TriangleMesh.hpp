@@ -88,10 +88,30 @@ private:
     std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
 };
 
-// Create an index of faces belonging to each vertex. The returned vector can
-// be indexed with vertex indices and contains a list of face indices for each
-// vertex.
-std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangle_set &its);
+// Index of face indices incident with a vertex index.
+struct VertexFaceIndex
+{
+public:
+    using iterator = std::vector<size_t>::const_iterator;
+
+    VertexFaceIndex(const indexed_triangle_set &its) { this->create(its); }
+    VertexFaceIndex() {}
+
+    void create(const indexed_triangle_set &its);
+    void clear() { m_vertex_to_face_start.clear(); m_vertex_faces_all.clear(); }
+
+    // Iterators of face indices incident with the input vertex_id.
+    iterator begin(size_t vertex_id) const throw() { return m_vertex_faces_all.begin() + m_vertex_to_face_start[vertex_id]; }
+    iterator end  (size_t vertex_id) const throw() { return m_vertex_faces_all.begin() + m_vertex_to_face_start[vertex_id + 1]; }
+    // Vertex incidence.
+    size_t   count(size_t vertex_id) const throw() { return m_vertex_to_face_start[vertex_id + 1] - m_vertex_to_face_start[vertex_id]; }
+
+    const Range<iterator> operator[](size_t vertex_id) const { return {begin(vertex_id), end(vertex_id)}; }
+
+private:
+    std::vector<size_t>     m_vertex_to_face_start;
+    std::vector<size_t>     m_vertex_faces_all;
+};
 
 // Index of face indices incident with a vertex index.
 struct VertexFaceIndex

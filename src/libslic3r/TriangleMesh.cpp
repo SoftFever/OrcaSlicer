@@ -669,24 +669,6 @@ void TriangleMesh::restore_optional()
     }
 }
 
-std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangle_set &its)
-{
-    std::vector<std::vector<size_t>> index;
-
-    if (! its.vertices.empty()) {
-        size_t res = its.indices.size() / its.vertices.size();
-        index.assign(its.vertices.size(), reserve_vector<size_t>(res));
-        for (size_t fi = 0; fi < its.indices.size(); ++fi) {
-            auto &face = its.indices[fi];
-            index[face(0)].emplace_back(fi);
-            index[face(1)].emplace_back(fi);
-            index[face(2)].emplace_back(fi);
-        }
-    }
-
-    return index;
-}
-
 // Create a mapping from triangle edge into face.
 struct EdgeToFace {
     // Index of the 1st vertex of the triangle edge. vertex_low <= vertex_high.
@@ -1197,49 +1179,81 @@ bool its_is_splittable(const indexed_triangle_set &its)
     return its_is_splittable<>(its);
 }
 
+void VertexFaceIndex::create(const indexed_triangle_set &its)
+{
+    m_vertex_to_face_start.assign(its.vertices.size() + 1, 0);
+    // 1) Calculate vertex incidence by scatter.
+    for (auto &face : its.indices) {
+        ++ m_vertex_to_face_start[face(0) + 1];
+        ++ m_vertex_to_face_start[face(1) + 1];
+        ++ m_vertex_to_face_start[face(2) + 1];
+    }
+    // 2) Prefix sum to calculate offsets to m_vertex_faces_all.
+    for (size_t i = 2; i < m_vertex_to_face_start.size(); ++ i)
+        m_vertex_to_face_start[i] += m_vertex_to_face_start[i - 1];
+    // 3) Scatter indices of faces incident to a vertex into m_vertex_faces_all.
+    m_vertex_faces_all.assign(m_vertex_to_face_start.back(), 0);
+    for (size_t face_idx = 0; face_idx < its.indices.size(); ++ face_idx) {
+        auto &face = its.indices[face_idx];
+        for (int i = 0; i < 3; ++ i)
+            m_vertex_faces_all[m_vertex_to_face_start[face(i)] ++] = face_idx;
+    }
+    // 4) The previous loop modified m_vertex_to_face_start. Revert the change.
+    for (auto i = int(m_vertex_to_face_start.size()) - 1; i > 0; -- i)
+        m_vertex_to_face_start[i] = m_vertex_to_face_start[i - 1];
+    m_vertex_to_face_start.front() = 0;
+}
+
+static int get_vertex_index(size_t vertex_index, const stl_triangle_vertex_indices &triangle_indices) {
+    if (int(vertex_index) == triangle_indices[0]) return 0;
+    if (int(vertex_index) == triangle_indices[1]) return 1;
+    if (int(vertex_index) == triangle_indices[2]) return 2;
+    return -1;
+}
+
+static Vec2crd get_edge_indices(int edge_index, const stl_triangle_vertex_indices &triangle_indices)
+{
+    int next_edge_index = (edge_index == 2) ? 0 : edge_index + 1;
+    coord_t vi0             = triangle_indices[edge_index];
+    coord_t vi1             = triangle_indices[next_edge_index];
+    return Vec2crd(vi0, vi1);
+}
+
 std::vector<Vec3i> its_create_neighbors_index(const indexed_triangle_set &its)
 {
-    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
+    const std::vector<stl_triangle_vertex_indices> &indices = its.indices;
+    size_t vertices_size = its.vertices.size();
 
-    std::vector<EdgeToFace> edges_map = create_edge_map(its, []{});
-
-    // Assign a unique common edge id to touching triangle edges.
-    for (size_t i = 0; i < edges_map.size(); ++ i) {
-        EdgeToFace &edge_i = edges_map[i];
-        if (edge_i.face == -1)
-            // This edge has been connected to some neighbor already.
-            continue;
-        // Unconnected edge. Find its neighbor with the correct orientation.
-        size_t j;
-        bool found = false;
-        for (j = i + 1; j < edges_map.size() && edge_i == edges_map[j]; ++ j)
-            if (edge_i.face_edge * edges_map[j].face_edge < 0 && edges_map[j].face != -1) {
-                // Faces touching with opposite oriented edges and none of the edges is connected yet.
-                found = true;
+    if (indices.empty() || vertices_size == 0) return {};
+    auto vertex_triangles = VertexFaceIndex{its};
+    coord_t              no_value = -1;
+    std::vector<Vec3i> neighbors(indices.size(), Vec3i(no_value, no_value, no_value));
+    for (const stl_triangle_vertex_indices& triangle_indices : indices) {
+        coord_t index = &triangle_indices - &indices.front();
+        Vec3i& neighbor = neighbors[index];
+        for (int edge_index = 0; edge_index < 3; ++edge_index) {
+            // check if done
+            coord_t& neighbor_edge = neighbor[edge_index];
+            if (neighbor_edge != no_value) continue;
+            Vec2crd edge_indices = get_edge_indices(edge_index, triangle_indices);
+            // IMPROVE: use same vector for 2 sides of triangle
+            const auto &faces_range = vertex_triangles[edge_indices[0]];
+            for (const size_t &face : faces_range) {
+                if (int(face) <= index) continue;
+                const stl_triangle_vertex_indices &face_indices = indices[face];
+                int vertex_index = get_vertex_index(edge_indices[1], face_indices);
+                // NOT Contain second vertex?
+                if (vertex_index < 0) continue;
+                // Has NOT oposit direction?
+                if (edge_indices[0] != face_indices[(vertex_index + 1) % 3]) continue;
+                neighbor_edge = face;
+                neighbors[face][vertex_index] = index;
                 break;
             }
-        if (! found) {
-            //FIXME Vojtech: Trying to find an edge with equal orientation. This smells.
-            // admesh can assign the same edge ID to more than two facets (which is
-            // still topologically correct), so we have to search for a duplicate of
-            // this edge too in case it was already seen in this orientation
-            for (j = i + 1; j < edges_map.size() && edge_i == edges_map[j]; ++ j)
-                if (edges_map[j].face != -1) {
-                    // Faces touching with equally oriented edges and none of the edges is connected yet.
-                    found = true;
-                    break;
-                }
-        }
-        if (found) {
-            EdgeToFace &edge_j = edges_map[j];
-            out[edge_i.face](std::abs(edge_i.face_edge) - 1) = edge_j.face;
-            out[edge_j.face](std::abs(edge_j.face_edge) - 1) = edge_i.face;
-            // Mark the edge as connected.
-            edge_j.face = -1;
         }
     }
 
-    return out;
+    return neighbors;
 }
 
 } // namespace Slic3r

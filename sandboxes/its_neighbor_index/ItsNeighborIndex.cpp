@@ -32,7 +32,7 @@ FaceNeighborIndex its_create_neighbors_index_1(const indexed_triangle_set &its)
     const int max_vertex_id_bits = std::ceil(std::log2(its.vertices.size()));
     assert(max_vertex_id_bits <= 32);
 
-    std::unordered_map< EdgeID, Edge > edge_index;
+    std::unordered_map< EdgeID, Edge> edge_index;
 
     // Edge id is constructed by concatenating two vertex ids, starting with
     // the lowest in MSB
@@ -322,6 +322,27 @@ FaceNeighborIndex its_create_neighbors_index_4(const indexed_triangle_set &its)
     return index;
 }
 
+// Create an index of faces belonging to each vertex. The returned vector can
+// be indexed with vertex indices and contains a list of face indices for each
+// vertex.
+static std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangle_set &its)
+{
+    std::vector<std::vector<size_t>> index;
+
+    if (! its.vertices.empty()) {
+        size_t res = its.indices.size() / its.vertices.size();
+        index.assign(its.vertices.size(), reserve_vector<size_t>(res));
+        for (size_t fi = 0; fi < its.indices.size(); ++fi) {
+            auto &face = its.indices[fi];
+            index[face(0)].emplace_back(fi);
+            index[face(1)].emplace_back(fi);
+            index[face(2)].emplace_back(fi);
+        }
+    }
+
+    return index;
+}
+
 static int get_vertex_index(size_t vertex_index, const stl_triangle_vertex_indices &triangle_indices) {
     if (vertex_index == triangle_indices[0]) return 0;
     if (vertex_index == triangle_indices[1]) return 1;
@@ -329,7 +350,7 @@ static int get_vertex_index(size_t vertex_index, const stl_triangle_vertex_indic
     return -1;
 }
 
-Vec2crd get_edge_indices(int edge_index, const stl_triangle_vertex_indices &triangle_indices)
+static Vec2crd get_edge_indices(int edge_index, const stl_triangle_vertex_indices &triangle_indices)
 {
     int next_edge_index = (edge_index == 2) ? 0 : edge_index + 1;
     coord_t vi0             = triangle_indices[edge_index];
@@ -575,6 +596,46 @@ FaceNeighborIndex its_create_neighbors_index_8(const indexed_triangle_set &its)
     }
 
     return index;
+}
+
+std::vector<Vec3crd> its_create_neighbors_index_9(const indexed_triangle_set &its)
+{
+    const std::vector<stl_triangle_vertex_indices> &indices = its.indices;
+    size_t vertices_size = its.vertices.size();
+
+    if (indices.empty() || vertices_size == 0) return {};
+    //    std::vector<std::vector<size_t>> vertex_triangles = create_vertex_faces_index(indices, vertices_size);
+    auto vertex_triangles = VertexFaceIndex{its};
+    coord_t              no_value = -1;
+    std::vector<Vec3crd> neighbors(indices.size(), Vec3crd(no_value, no_value, no_value));
+    for (const stl_triangle_vertex_indices& triangle_indices : indices) {
+        coord_t index = &triangle_indices - &indices.front();
+        Vec3crd& neighbor = neighbors[index];
+        for (int edge_index = 0; edge_index < 3; ++edge_index) {
+            // check if done
+            coord_t& neighbor_edge = neighbor[edge_index];
+            if (neighbor_edge != no_value) continue;
+            Vec2crd edge_indices = get_edge_indices(edge_index, triangle_indices);
+            // IMPROVE: use same vector for 2 sides of triangle
+            const auto &faces_range = vertex_triangles[edge_indices[0]];
+            for (const size_t &face : faces_range) {
+                if (face <= index) continue;
+                const stl_triangle_vertex_indices &face_indices = indices[face];
+                int vertex_index = get_vertex_index(edge_indices[1], face_indices);
+                // NOT Contain second vertex?
+                if (vertex_index < 0) continue;
+                // Has NOT oposit direction?
+                if (edge_indices[0] != face_indices[(vertex_index + 1) % 3]) continue;
+                neighbor_edge = face;
+                neighbors[face][vertex_index] = index;
+                break;
+            }
+            // must be paired
+            assert(neighbor_edge != no_value);
+        }
+    }
+
+    return neighbors;
 }
 
 } // namespace Slic3r

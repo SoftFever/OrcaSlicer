@@ -306,6 +306,29 @@ IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
 template<class T>
 using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
+// A very simple range concept implementation with iterator-like objects.
+// This should be replaced by std::ranges::subrange (C++20)
+template<class It> class Range
+{
+    It from, to;
+public:
+
+    // The class is ready for range based for loops.
+    It begin() const { return from; }
+    It end() const { return to; }
+
+    // The iterator type can be obtained this way.
+    using iterator = It;
+    using value_type = typename std::iterator_traits<It>::value_type;
+
+    Range() = default;
+    Range(It b, It e) : from(std::move(b)), to(std::move(e)) {}
+
+    // Some useful container-like methods...
+    inline size_t size() const { return end() - begin(); }
+    inline bool   empty() const { return size() == 0; }
+};
+
 } // namespace Slic3r
 
 #endif

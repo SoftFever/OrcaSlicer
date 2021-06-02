@@ -198,14 +198,14 @@ static std::vector<bool> create_exclude_mask(
 
     std::vector<bool> exclude_mask(its.indices.size(), false);
 
-    std::vector< std::vector<size_t> > neighbor_index =
-            create_vertex_faces_index(its);
+    VertexFaceIndex neighbor_index{its};
 
     auto exclude_neighbors = [&neighbor_index, &exclude_mask](const Vec3i &face)
     {
         for (int i = 0; i < 3; ++i) {
-            const std::vector<size_t> &neighbors = neighbor_index[face(i)];
-            for (size_t fi_n : neighbors) exclude_mask[fi_n] = true;
+            const auto &neighbors_range = neighbor_index[face(i)];
+            for (size_t fi_n : neighbors_range)
+                exclude_mask[fi_n] = true;
         }
     };
 
