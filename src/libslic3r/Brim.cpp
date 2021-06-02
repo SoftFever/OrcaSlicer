@@ -16,6 +16,10 @@
     // #define BRIM_DEBUG_TO_SVG
 #endif
 
+#if defined(BRIM_DEBUG_TO_SVG)
+    #include "SVG.hpp"
+#endif
+
 namespace Slic3r {
 
 static void append_and_translate(ExPolygons &dst, const ExPolygons &src, const PrintInstance &instance) {
@@ -104,7 +108,7 @@ static Polygons top_level_outer_brim_islands(const ConstPrintObjectPtrs &top_lev
     Polygons islands;
     for (const PrintObject *object : top_level_objects_with_brim) {
         //FIXME how about the brim type?
-        float    brim_offset = float(scale_(object->config().brim_offset.value));
+        auto     brim_offset = float(scale_(object->config().brim_offset.value));
         Polygons islands_object;
         for (const ExPolygon &ex_poly : object->layers().front()->lslices) {
             Polygons contour_offset = offset(ex_poly.contour, brim_offset);
@@ -128,7 +132,7 @@ static ExPolygons top_level_outer_brim_area(const Print &print, const ConstPrint
         top_level_objects_idx.insert(object->id().id);
 
     ExPolygons brim_area;
-    Polygons   no_brim_area;
+    ExPolygons no_brim_area;
     for (const PrintObject *object : print.objects()) {
         const BrimType brim_type         = object->config().brim_type.value;
         const float    brim_offset       = scale_(object->config().brim_offset.value);
@@ -136,16 +140,19 @@ static ExPolygons top_level_outer_brim_area(const Print &print, const ConstPrint
         const bool     is_top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
 
         ExPolygons brim_area_object;
-        Polygons   no_brim_area_object;
+        ExPolygons no_brim_area_object;
         for (const ExPolygon &ex_poly : object->layers().front()->lslices) {
             if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) && is_top_outer_brim)
                 append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_offset), offset(ex_poly.contour, brim_offset)));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, offset(ex_poly.holes, -no_brim_offset));
+                append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset));
+
+            if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
+                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
 
             if (brim_type != BrimType::btNoBrim)
-                append(no_brim_area_object, offset(ex_poly.contour, brim_offset));
+                append(no_brim_area_object, offset_ex(ExPolygon(ex_poly.contour), brim_offset));
 
             no_brim_area_object.emplace_back(ex_poly.contour);
         }
@@ -190,7 +197,7 @@ static ExPolygons inner_brim_area(const Print &print, const ConstPrintObjectPtrs
                 append(brim_area_object, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, to_expolygons(offset(ex_poly.contour, no_brim_offset)));
+                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
                 append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset));
@@ -260,7 +267,7 @@ static Polylines connect_brim_lines(Polylines &&polylines, const Polygons &brim_
 
         const EdgeGrid::Grid &grid;
         Line                  brim_line;
-        bool                  intersect;
+        bool                  intersect = false;
 
     } visitor(grid);
 
@@ -307,7 +314,7 @@ static Polylines connect_brim_lines(Polylines &&polylines, const Polygons &brim_
 static void make_inner_brim(const Print &print, const ConstPrintObjectPtrs &top_level_objects_with_brim, ExtrusionEntityCollection &brim)
 {
     Flow       flow = print.brim_flow();
-    ExPolygons islands_ex = inner_brim_area(print, top_level_objects_with_brim, flow.scaled_spacing());
+    ExPolygons islands_ex = inner_brim_area(print, top_level_objects_with_brim, float(flow.scaled_spacing()));
     Polygons   loops;
     islands_ex      = offset_ex(islands_ex, -0.5f * float(flow.scaled_spacing()), jtSquare);
     for (size_t i = 0; !islands_ex.empty(); ++i) {
@@ -330,7 +337,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     Flow                 flow                         = print.brim_flow();
     ConstPrintObjectPtrs top_level_objects_with_brim  = get_top_level_objects_with_brim(print);
     Polygons             islands                      = top_level_outer_brim_islands(top_level_objects_with_brim);
-    ExPolygons           islands_area_ex              = top_level_outer_brim_area(print, top_level_objects_with_brim, flow.scaled_spacing());
+    ExPolygons           islands_area_ex              = top_level_outer_brim_area(print, top_level_objects_with_brim, float(flow.scaled_spacing()));
     islands_area                                      = to_polygons(islands_area_ex);
 
     Polygons        loops;
@@ -380,7 +387,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     }
 #endif // BRIM_DEBUG_TO_SVG
 
-    all_loops = connect_brim_lines(std::move(all_loops), offset(islands_area_ex, float(SCALED_EPSILON)), flow.scaled_spacing() * 2.f);
+    all_loops = connect_brim_lines(std::move(all_loops), offset(islands_area_ex, float(SCALED_EPSILON)), float(flow.scaled_spacing()) * 2.f);
 
 #ifdef BRIM_DEBUG_TO_SVG
     {
@@ -508,7 +515,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 			    	for (; i < j; ++ i) {
 			            this_loop_trimmed.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height())));
 						const ClipperLib_Z::Path &path = *loops_trimmed_order[i].first;
-			            Points &points = static_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
+			            Points &points = dynamic_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
 			            points.reserve(path.size());
 			            for (const ClipperLib_Z::IntPoint &pt : path)
 			            	points.emplace_back(coord_t(pt.x()), coord_t(pt.y()));
