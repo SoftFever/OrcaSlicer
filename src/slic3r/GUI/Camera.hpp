@@ -95,7 +95,7 @@ public:
     void apply_view_matrix() const;
     // Calculates and applies the projection matrix tighting the frustrum z range around the given box.
     // If larger z span is needed, pass the desired values of near and far z (negative values are ignored)
-    void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0) const;
+    void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0);
 
     void zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor);
     void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);
@@ -132,10 +132,10 @@ public:
 private:
     // returns tight values for nearZ and farZ plane around the given bounding box
     // the camera MUST be outside of the bounding box in eye coordinate of the given box
-    std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const;
+    std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box);
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor) const;
     double calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor = DefaultZoomToVolumesMarginFactor) const;
-    void set_distance(double distance) const;
+    void set_distance(double distance);
 
     void set_default_orientation();
     Vec3d validate_target(const Vec3d& target) const;
