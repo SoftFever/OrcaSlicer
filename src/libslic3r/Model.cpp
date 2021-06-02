@@ -725,7 +725,9 @@ void ModelObject::sort_volumes(bool full_sort)
     // sort have to controll "place" of the support blockers/enforcers. But one of the model parts have to be on the first place.
     else
         std::stable_sort(volumes.begin(), volumes.end(), [](ModelVolume* vl, ModelVolume* vr) {
-            return vl->type() > ModelVolumeType::PARAMETER_MODIFIER && vl->type() < vr->type();
+            ModelVolumeType vl_type = vl->type() > ModelVolumeType::PARAMETER_MODIFIER ? vl->type() : ModelVolumeType::PARAMETER_MODIFIER;
+            ModelVolumeType vr_type = vr->type() > ModelVolumeType::PARAMETER_MODIFIER ? vr->type() : ModelVolumeType::PARAMETER_MODIFIER;
+            return vl_type < vr_type;
         });
 }
 
