@@ -132,6 +132,7 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
         glsafe(::glEnable(GL_CLIP_PLANE0));
     }
 
+    auto *shader = wxGetApp().get_shader("gouraud");
     int mesh_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
@@ -149,6 +150,16 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 
         glsafe(::glPushMatrix());
         glsafe(::glMultMatrixd(trafo_matrix.data()));
+
+        // For printers with multiple extruders, it is necessary to pass trafo_matrix
+        // to the shader input variable print_box.volume_world_matrix before
+        // rendering the painted triangles. When this matrix is not set, the
+        // wrong transformation matrix is used for "Clipping of view".
+        if (shader) {
+            shader->start_using();
+            shader->set_uniform("print_box.volume_world_matrix", trafo_matrix);
+            shader->stop_using();
+        }
 
         m_triangle_selectors[mesh_id]->render(m_imgui);
 
