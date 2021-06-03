@@ -7,16 +7,13 @@
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/TriangleSelector.hpp"
+#include "libslic3r/Model.hpp"
 
 #include <cereal/types/vector.hpp>
 
 
 
-namespace Slic3r {
-
-enum class EnforcerBlockerType : int8_t;
-
-namespace GUI {
+namespace Slic3r::GUI {
 
 enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
@@ -90,6 +87,9 @@ protected:
     virtual std::array<float, 4> get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
     virtual std::array<float, 4> get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }
 
+    virtual EnforcerBlockerType get_left_button_state_type() const { return EnforcerBlockerType::ENFORCER; }
+    virtual EnforcerBlockerType get_right_button_state_type() const { return EnforcerBlockerType::BLOCKER; }
+
     float m_cursor_radius = 2.f;
     static constexpr float CursorRadiusMin  = 0.4f; // cannot be zero
     static constexpr float CursorRadiusMax  = 8.f;
@@ -104,6 +104,12 @@ protected:
     bool  m_seed_fill_enabled          = false;
     float m_seed_fill_angle            = 0.f;
 
+    enum class Button {
+        None,
+        Left,
+        Right
+    };
+
 private:
     bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;
     void update_raycast_cache(const Vec2d& mouse_position,
@@ -115,12 +121,6 @@ private:
     bool m_internal_stack_active = false;
     bool m_schedule_update = false;
     Vec2d m_last_mouse_click = Vec2d::Zero();
-
-    enum class Button {
-        None,
-        Left,
-        Right
-    };
 
     Button m_button_down = Button::None;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
@@ -151,11 +151,12 @@ protected:
     void on_save(cereal::BinaryOutputArchive& ar) const override {}
     CommonGizmosDataID on_get_requirements() const override;
 
+    virtual wxString handle_snapshot_action_name(bool shift_down, Button button_down) const = 0;
+
     friend class ::Slic3r::GUI::GLGizmoMmuSegmentation;
 };
 
 
-} // namespace GUI
-} // namespace Slic3r
+} // namespace Slic3r::GUI
 
 #endif // slic3r_GLGizmoPainterBase_hpp_

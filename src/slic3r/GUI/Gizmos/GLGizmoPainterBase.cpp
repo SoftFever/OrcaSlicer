@@ -330,13 +330,9 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         EnforcerBlockerType new_state = EnforcerBlockerType::NONE;
         if (! shift_down) {
             if (action == SLAGizmoEventType::Dragging)
-                new_state = m_button_down == Button::Left
-                        ? EnforcerBlockerType::ENFORCER
-                        : EnforcerBlockerType::BLOCKER;
+                new_state = m_button_down == Button::Left ? this->get_left_button_state_type() : this->get_right_button_state_type();
             else
-                new_state = action == SLAGizmoEventType::LeftDown
-                        ? EnforcerBlockerType::ENFORCER
-                        : EnforcerBlockerType::BLOCKER;
+                new_state = action == SLAGizmoEventType::LeftDown ? this->get_left_button_state_type() : this->get_right_button_state_type();
         }
 
         const Camera& camera = wxGetApp().plater()->get_camera();
@@ -447,30 +443,9 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::RightUp)
       && m_button_down != Button::None) {
         // Take snapshot and update ModelVolume data.
-        wxString action_name;
-        if (get_painter_type() == PainterGizmoType::FDM_SUPPORTS) {
-            if (shift_down)
-                action_name = _L("Remove selection");
-            else {
-                if (m_button_down == Button::Left)
-                    action_name = _L("Add supports");
-                else
-                    action_name = _L("Block supports");
-            }
-        }
-        if (get_painter_type() == PainterGizmoType::SEAM) {
-            if (shift_down)
-                action_name = _L("Remove selection");
-            else {
-                if (m_button_down == Button::Left)
-                    action_name = _L("Enforce seam");
-                else
-                    action_name = _L("Block seam");
-            }
-        }
-
+        wxString action_name = this->handle_snapshot_action_name(shift_down, m_button_down);
         activate_internal_undo_redo_stack(true);
-        Plater::TakeSnapshot(wxGetApp().plater(), action_name);
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), action_name);
         update_model_object();
 
         m_button_down = Button::None;

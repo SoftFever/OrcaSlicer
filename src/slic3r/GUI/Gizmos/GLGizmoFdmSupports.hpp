@@ -3,9 +3,7 @@
 
 #include "GLGizmoPainterBase.hpp"
 
-namespace Slic3r {
-
-namespace GUI {
+namespace Slic3r::GUI {
 
 class GLGizmoFdmSupports : public GLGizmoPainterBase
 {
@@ -18,6 +16,8 @@ public:
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+
+    wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
 private:
     bool on_init() override;
@@ -39,8 +39,7 @@ private:
 
 
 
-} // namespace GUI
-} // namespace Slic3r
+} // namespace Slic3r::GUI
 
 
 #endif // slic3r_GLGizmoFdmSupports_hpp_

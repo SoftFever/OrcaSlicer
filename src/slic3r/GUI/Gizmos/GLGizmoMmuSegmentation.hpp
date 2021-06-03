@@ -29,18 +29,21 @@ public:
 
     void render_painter_gizmo() const override;
 
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) override;
-
     void set_painter_gizmo_data(const Selection& selection) override;
 
 protected:
     std::array<float, 4> get_cursor_sphere_left_button_color() const override;
     std::array<float, 4> get_cursor_sphere_right_button_color() const override;
 
+    EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_first_selected_extruder_idx); }
+    EnforcerBlockerType get_right_button_state_type() const override { return EnforcerBlockerType(m_second_selected_extruder_idx); }
+
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
 
     bool on_is_selectable() const override;
+
+    wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
     size_t                              m_first_selected_extruder_idx  = 0;
     size_t                              m_second_selected_extruder_idx = 1;

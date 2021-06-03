@@ -6,6 +6,7 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/BitmapCache.hpp"
+#include "slic3r/GUI/format.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 
@@ -103,193 +104,6 @@ void GLGizmoMmuSegmentation::render_painter_gizmo() const
     render_cursor();
 
     glsafe(::glDisable(GL_BLEND));
-}
-
-bool GLGizmoMmuSegmentation::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
-{
-    if (action == SLAGizmoEventType::MouseWheelUp
-        || action == SLAGizmoEventType::MouseWheelDown) {
-        if (control_down) {
-            double pos = m_c->object_clipper()->get_position();
-            pos = action == SLAGizmoEventType::MouseWheelDown
-                  ? std::max(0., pos - 0.01)
-                  : std::min(1., pos + 0.01);
-            m_c->object_clipper()->set_position(pos, true);
-            return true;
-        }
-        else if (alt_down) {
-            m_cursor_radius = action == SLAGizmoEventType::MouseWheelDown
-                              ? std::max(m_cursor_radius - CursorRadiusStep, CursorRadiusMin)
-                              : std::min(m_cursor_radius + CursorRadiusStep, CursorRadiusMax);
-            m_parent.set_as_dirty();
-            return true;
-        }
-    }
-
-    if (action == SLAGizmoEventType::ResetClippingPlane) {
-        m_c->object_clipper()->set_position(-1., false);
-        return true;
-    }
-
-    if (action == SLAGizmoEventType::LeftDown
-        || action == SLAGizmoEventType::RightDown
-        || (action == SLAGizmoEventType::Dragging && m_button_down != Button::None)) {
-
-        if (m_triangle_selectors.empty())
-            return false;
-
-        EnforcerBlockerType new_state = EnforcerBlockerType::NONE;
-        if (! shift_down) {
-            if (action == SLAGizmoEventType::Dragging)
-                new_state = m_button_down == Button::Left
-                            ? EnforcerBlockerType(m_first_selected_extruder_idx)
-                            : EnforcerBlockerType(m_second_selected_extruder_idx);
-            else
-                new_state = action == SLAGizmoEventType::LeftDown
-                            ? EnforcerBlockerType(m_first_selected_extruder_idx)
-                            : EnforcerBlockerType(m_second_selected_extruder_idx);
-        }
-
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        const Selection& selection = m_parent.get_selection();
-        const ModelObject* mo = m_c->selection_info()->model_object();
-        const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
-        const Transform3d& instance_trafo = mi->get_transformation().get_matrix();
-
-        // List of mouse positions that will be used as seeds for painting.
-        std::vector<Vec2d> mouse_positions{mouse_position};
-
-        // In case current mouse position is far from the last one,
-        // add several positions from between into the list, so there
-        // are no gaps in the painted region.
-        {
-            if (m_last_mouse_click == Vec2d::Zero())
-                m_last_mouse_click = mouse_position;
-            // resolution describes minimal distance limit using circle radius
-            // as a unit (e.g., 2 would mean the patches will be touching).
-            double resolution = 0.7;
-            double diameter_px =  resolution  * m_cursor_radius * camera.get_zoom();
-            int patches_in_between = int(((mouse_position - m_last_mouse_click).norm() - diameter_px) / diameter_px);
-            if (patches_in_between > 0) {
-                Vec2d diff = (mouse_position - m_last_mouse_click)/(patches_in_between+1);
-                for (int i=1; i<=patches_in_between; ++i)
-                    mouse_positions.emplace_back(m_last_mouse_click + i*diff);
-            }
-        }
-        m_last_mouse_click = Vec2d::Zero(); // only actual hits should be saved
-
-        // Precalculate transformations of individual meshes.
-        std::vector<Transform3d> trafo_matrices;
-        for (const ModelVolume* mv : mo->volumes) {
-            if (mv->is_model_part())
-                trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
-        }
-
-        // Now "click" into all the prepared points and spill paint around them.
-        for (const Vec2d& mp : mouse_positions) {
-            update_raycast_cache(mp, camera, trafo_matrices);
-
-            bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
-
-            // The mouse button click detection is enabled when there is a valid hit.
-            // Missing the object entirely
-            // shall not capture the mouse.
-            if (m_rr.mesh_id != -1) {
-                if (m_button_down == Button::None)
-                    m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
-            }
-
-            if (m_rr.mesh_id == -1) {
-                // In case we have no valid hit, we can return. The event will be stopped when
-                // dragging while painting (to prevent scene rotations and moving the object)
-                return dragging_while_painting;
-            }
-
-            const Transform3d& trafo_matrix = trafo_matrices[m_rr.mesh_id];
-
-            // Calculate direction from camera to the hit (in mesh coords):
-            Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
-
-            assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-            if (m_seed_fill_enabled)
-                m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
-            else
-                m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
-                                                                 new_state, trafo_matrix, m_triangle_splitting_enabled);
-            m_last_mouse_click = mouse_position;
-        }
-
-        return true;
-    }
-
-    if (action == SLAGizmoEventType::Moving && m_seed_fill_enabled) {
-        if (m_triangle_selectors.empty())
-            return false;
-
-        const Camera &       camera         = wxGetApp().plater()->get_camera();
-        const Selection &    selection      = m_parent.get_selection();
-        const ModelObject *  mo             = m_c->selection_info()->model_object();
-        const ModelInstance *mi             = mo->instances[selection.get_instance_idx()];
-        const Transform3d &  instance_trafo = mi->get_transformation().get_matrix();
-
-        // Precalculate transformations of individual meshes.
-        std::vector<Transform3d> trafo_matrices;
-        for (const ModelVolume *mv : mo->volumes)
-            if (mv->is_model_part())
-                trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
-
-        // Now "click" into all the prepared points and spill paint around them.
-        update_raycast_cache(mouse_position, camera, trafo_matrices);
-
-        if (m_rr.mesh_id == -1) {
-            // Clean selected by seed fill for all triangles
-            for (auto &triangle_selector : m_triangle_selectors)
-                triangle_selector->seed_fill_unselect_all_triangles();
-
-            // In case we have no valid hit, we can return.
-            return false;
-        }
-
-        assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-        m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
-        return true;
-    }
-
-    if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::RightUp)
-        && m_button_down != Button::None) {
-        // Take snapshot and update ModelVolume data.
-        wxString action_name;
-        if (get_painter_type() == PainterGizmoType::FDM_SUPPORTS) {
-            if (shift_down)
-                action_name = _L("Remove selection");
-            else {
-                if (m_button_down == Button::Left)
-                    action_name = _L("Add supports");
-                else
-                    action_name = _L("Block supports");
-            }
-        }
-        if (get_painter_type() == PainterGizmoType::SEAM) {
-            if (shift_down)
-                action_name = _L("Remove selection");
-            else {
-                if (m_button_down == Button::Left)
-                    action_name = _L("Enforce seam");
-                else
-                    action_name = _L("Block seam");
-            }
-        }
-
-        activate_internal_undo_redo_stack(true);
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), action_name);
-        update_model_object();
-
-        m_button_down = Button::None;
-        m_last_mouse_click = Vec2d::Zero();
-        return true;
-    }
-
-    return false;
 }
 
 void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
@@ -679,6 +493,18 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
         shader->set_uniform("uniform_color", color);
         m_iva_seed_fill.render();
     }
+}
+
+wxString GLGizmoMmuSegmentation::handle_snapshot_action_name(bool shift_down, GLGizmoPainterBase::Button button_down) const
+{
+    wxString action_name;
+    if (shift_down)
+        action_name = _L("Remove painted color");
+    else {
+        size_t extruder_id = (button_down == Button::Left ? m_first_selected_extruder_idx : m_second_selected_extruder_idx) + 1;
+        action_name        = GUI::format(_L("Painted using: Extruder %1%"), extruder_id);
+    }
+    return action_name;
 }
 
 } // namespace Slic3r
