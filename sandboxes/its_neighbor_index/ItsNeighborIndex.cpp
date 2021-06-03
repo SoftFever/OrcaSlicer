@@ -325,7 +325,7 @@ FaceNeighborIndex its_create_neighbors_index_4(const indexed_triangle_set &its)
 // Create an index of faces belonging to each vertex. The returned vector can
 // be indexed with vertex indices and contains a list of face indices for each
 // vertex.
-static std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangle_set &its)
+std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangle_set &its)
 {
     std::vector<std::vector<size_t>> index;
 

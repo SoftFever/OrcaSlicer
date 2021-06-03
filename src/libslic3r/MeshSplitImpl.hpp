@@ -29,7 +29,7 @@ template<class NeighborIndex>
 std::vector<size_t> its_find_unvisited_neighbors(
     const indexed_triangle_set &its,
     const NeighborIndex &       neighbor_index,
-    std::vector<bool> &         visited)
+    std::vector<char> &         visited)
 {
     using stack_el = size_t;
 
@@ -92,26 +92,27 @@ void its_split(const Its &m, OutputIt out_it)
 
     const indexed_triangle_set &its = ItsWithNeighborsIndex_<Its>::get_its(m);
 
-    std::vector<bool> visited(its.indices.size(), false);
+    std::vector<char> visited(its.indices.size(), false);
 
-    const size_t        UNASSIGNED = its.vertices.size();
-    std::vector<size_t> vidx_conv(its.vertices.size());
+    struct VertexConv {
+        size_t part_id      = std::numeric_limits<size_t>::max();
+        size_t vertex_image;
+    };
+    std::vector<VertexConv> vidx_conv(its.vertices.size());
 
     const auto& neighbor_index = ItsWithNeighborsIndex_<Its>::get_index(m);
 
-    for (;;) {
+    for (size_t part_id = 0;; ++part_id) {
         std::vector<size_t> facets =
             its_find_unvisited_neighbors(its, neighbor_index, visited);
 
         if (facets.empty())
             break;
 
-        std::fill(vidx_conv.begin(), vidx_conv.end(), UNASSIGNED);
-
         // Create a new mesh for the part that was just split off.
         indexed_triangle_set mesh;
         mesh.indices.reserve(facets.size());
-        mesh.vertices.reserve(facets.size() * 3);
+        mesh.vertices.reserve(std::min(facets.size() * 3, its.vertices.size()));
 
         // Assign the facets to the new mesh.
         for (size_t face_id : facets) {
@@ -120,12 +121,12 @@ void its_split(const Its &m, OutputIt out_it)
             for (size_t v = 0; v < 3; ++v) {
                 auto vi = face(v);
 
-                if (vidx_conv[vi] == UNASSIGNED) {
-                    vidx_conv[vi] = mesh.vertices.size();
+                if (vidx_conv[vi].part_id != part_id) {
+                    vidx_conv[vi] = {part_id, mesh.vertices.size()};
                     mesh.vertices.emplace_back(its.vertices[size_t(vi)]);
                 }
 
-                new_face(v) = vidx_conv[vi];
+                new_face(v) = vidx_conv[vi].vertex_image;
             }
 
             mesh.indices.emplace_back(new_face);
@@ -150,7 +151,7 @@ template<class Its> bool its_is_splittable(const Its &m)
     const indexed_triangle_set &its = ItsWithNeighborsIndex_<Its>::get_its(m);
     const auto& neighbor_index = ItsWithNeighborsIndex_<Its>::get_index(m);
 
-    std::vector<bool> visited(its.indices.size(), false);
+    std::vector<char> visited(its.indices.size(), false);
     its_find_unvisited_neighbors(its, neighbor_index, visited);
 
     // Try finding an unvisited facet. If there are none, the mesh is not splittable.
