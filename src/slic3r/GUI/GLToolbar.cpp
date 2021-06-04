@@ -260,7 +260,7 @@ bool GLToolbar::add_separator()
     return true;
 }
 
-float GLToolbar::get_width() const
+float GLToolbar::get_width()
 {
     if (m_layout.dirty)
         calc_layout();
@@ -268,7 +268,7 @@ float GLToolbar::get_width() const
     return m_layout.width;
 }
 
-float GLToolbar::get_height() const
+float GLToolbar::get_height()
 {
     if (m_layout.dirty)
         calc_layout();
@@ -403,7 +403,7 @@ bool GLToolbar::update_items_state()
     return ret;
 }
 
-void GLToolbar::render(const GLCanvas3D& parent) const
+void GLToolbar::render(const GLCanvas3D& parent)
 {
     if (!m_enabled || m_items.empty())
         return;
@@ -506,28 +506,26 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     return processed;
 }
 
-void GLToolbar::calc_layout() const
+void GLToolbar::calc_layout()
 {
-    Layout* layout = const_cast<Layout*>(&m_layout);
-
-    switch (layout->type)
+    switch (m_layout.type)
     {
     default:
     case Layout::Horizontal:
     {
-        layout->width = get_width_horizontal();
-        layout->height = get_height_horizontal();
+        m_layout.width = get_width_horizontal();
+        m_layout.height = get_height_horizontal();
         break;
     }
     case Layout::Vertical:
     {
-        layout->width = get_width_vertical();
-        layout->height = get_height_vertical();
+        m_layout.width = get_width_vertical();
+        m_layout.height = get_height_vertical();
         break;
     }
     }
 
-    layout->dirty = false;
+    m_layout.dirty = false;
 }
 
 float GLToolbar::get_width_horizontal() const
@@ -1107,7 +1105,7 @@ void GLToolbar::render_background(float left, float top, float right, float bott
     }
 }
 
-void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
+void GLToolbar::render_horizontal(const GLCanvas3D& parent)
 {
     unsigned int tex_id = m_icons_texture.get_id();
     int tex_width = m_icons_texture.get_width();
@@ -1155,7 +1153,7 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
     }
 }
 
-void GLToolbar::render_vertical(const GLCanvas3D& parent) const
+void GLToolbar::render_vertical(const GLCanvas3D& parent)
 {
     unsigned int tex_id = m_icons_texture.get_id();
     int tex_width = m_icons_texture.get_width();
@@ -1201,7 +1199,7 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
     }
 }
 
-bool GLToolbar::generate_icons_texture() const
+bool GLToolbar::generate_icons_texture()
 {
     std::string path = resources_dir() + "/icons/";
     std::vector<std::string> filenames;
@@ -1234,9 +1232,9 @@ bool GLToolbar::generate_icons_texture() const
 //    if (sprite_size_px % 2 != 0)
 //        sprite_size_px += 1;
 
-    bool res = const_cast<GLTexture*>(&m_icons_texture)->load_from_svg_files_as_sprites_array(filenames, states, sprite_size_px, false);
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, sprite_size_px, false);
     if (res)
-        *const_cast<bool*>(&m_icons_texture_dirty) = false;
+        m_icons_texture_dirty = false;
 
     return res;
 }

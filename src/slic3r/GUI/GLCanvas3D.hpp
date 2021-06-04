@@ -824,13 +824,13 @@ private:
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-    void _check_and_update_toolbar_icon_scale() const;
-    void _render_overlays() const;
+    void _check_and_update_toolbar_icon_scale();
+    void _render_overlays();
     void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
-    void _render_main_toolbar() const;
-    void _render_undoredo_toolbar() const;
+    void _render_main_toolbar();
+    void _render_undoredo_toolbar();
     void _render_collapse_toolbar() const;
     void _render_view_toolbar() const;
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -838,8 +838,8 @@ private:
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices() const;
     void _render_selection_sidebar_hints() const;
-    bool _render_undo_redo_stack(const bool is_undo, float pos_x) const;
-    bool _render_search_list(float pos_x) const;
+    bool _render_undo_redo_stack(const bool is_undo, float pos_x);
+    bool _render_search_list(float pos_x);
     bool _render_arrange_menu(float pos_x);
     void _render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const;
     // render thumbnail using an off-screen framebuffer

@@ -3882,7 +3882,7 @@ static bool string_getter(const bool is_undo, int idx, const char** out_text)
     return wxGetApp().plater()->undo_redo_string_getter(is_undo, idx, out_text);
 }
 
-bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
+bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
 {
     bool action_taken = false;
 
@@ -3924,7 +3924,7 @@ static bool search_string_getter(int idx, const char** label, const char** toolt
     return wxGetApp().plater()->search_string_getter(idx, label, tooltip);
 }
 
-bool GLCanvas3D::_render_search_list(float pos_x) const
+bool GLCanvas3D::_render_search_list(float pos_x)
 {
     bool action_taken = false;
     ImGuiWrapper* imgui = wxGetApp().imgui();
@@ -5148,7 +5148,7 @@ void GLCanvas3D::_render_selection_center() const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
+void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 {
     // Don't update a toolbar scale, when we are on a Preview
     if (wxGetApp().plater()->is_preview_shown())
@@ -5163,13 +5163,13 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
     GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
 #if ENABLE_RETINA_GL
     const float sc = m_retina_helper->get_scale_factor() * scale;
-    const_cast<GLToolbar*>(&m_main_toolbar)->set_scale(sc);
-    const_cast<GLToolbar*>(&m_undoredo_toolbar)->set_scale(sc);
+    m_main_toolbar.set_scale(sc);
+    m_undoredo_toolbar.set_scale(sc);
     collapse_toolbar.set_scale(sc);
     size *= m_retina_helper->get_scale_factor();
 #else
-    const_cast<GLToolbar*>(&m_main_toolbar)->set_icons_size(size);
-    const_cast<GLToolbar*>(&m_undoredo_toolbar)->set_icons_size(size);
+    m_main_toolbar.set_icons_size(size);
+    m_undoredo_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
@@ -5194,7 +5194,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale() const
         wxGetApp().set_auto_toolbar_icon_scale(new_scale);
 }
 
-void GLCanvas3D::_render_overlays() const
+void GLCanvas3D::_render_overlays()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glPushMatrix());
@@ -5214,13 +5214,13 @@ void GLCanvas3D::_render_overlays() const
     // to correctly place them
 #if ENABLE_RETINA_GL
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(/*true*/);
-    const_cast<GLToolbar*>(&m_main_toolbar)->set_scale(scale);
-    const_cast<GLToolbar*>(&m_undoredo_toolbar)->set_scale(scale);
+    m_main_toolbar.set_scale(scale);
+    m_undoredo_toolbar.set_scale(scale);
     wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
 #else
     const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
-    const_cast<GLToolbar*>(&m_main_toolbar)->set_icons_size(size);
-    const_cast<GLToolbar*>(&m_undoredo_toolbar)->set_icons_size(size);
+    m_main_toolbar.set_icons_size(size);
+    m_undoredo_toolbar.set_icons_size(size);
     wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
@@ -5299,7 +5299,7 @@ void GLCanvas3D::_render_gizmos_overlay() const
     m_gizmos.render_overlay();
 }
 
-void GLCanvas3D::_render_main_toolbar() const
+void GLCanvas3D::_render_main_toolbar()
 {
     if (!m_main_toolbar.is_enabled())
         return;
@@ -5308,16 +5308,15 @@ void GLCanvas3D::_render_main_toolbar() const
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    const GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     float left = -0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
 
-    GLToolbar* main_toolbar = const_cast<GLToolbar*>(&m_main_toolbar);
-    main_toolbar->set_position(top, left);
-    main_toolbar->render(*this);
+    m_main_toolbar.set_position(top, left);
+    m_main_toolbar.render(*this);
 }
 
-void GLCanvas3D::_render_undoredo_toolbar() const
+void GLCanvas3D::_render_undoredo_toolbar()
 {
     if (!m_undoredo_toolbar.is_enabled())
         return;
@@ -5326,13 +5325,12 @@ void GLCanvas3D::_render_undoredo_toolbar() const
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    const GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     float left = (m_main_toolbar.get_width() - 0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar_width)) * inv_zoom;
 
-    GLToolbar* undoredo_toolbar = const_cast<GLToolbar*>(&m_undoredo_toolbar);
-    undoredo_toolbar->set_position(top, left);
-    undoredo_toolbar->render(*this);
+    m_undoredo_toolbar.set_position(top, left);
+    m_undoredo_toolbar.render(*this);
 }
 
 void GLCanvas3D::_render_collapse_toolbar() const

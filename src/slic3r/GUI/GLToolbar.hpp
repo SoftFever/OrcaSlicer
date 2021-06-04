@@ -282,8 +282,8 @@ public:
     bool add_item(const GLToolbarItem::Data& data);
     bool add_separator();
 
-    float get_width() const;
-    float get_height() const;
+    float get_width();
+    float get_height();
 
     void select_item(const std::string& name);
 
@@ -309,12 +309,12 @@ public:
     // returns true if any item changed its state
     bool update_items_state();
 
-    void render(const GLCanvas3D& parent) const;    
+    void render(const GLCanvas3D& parent);
 
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
 
 private:
-    void calc_layout() const;
+    void calc_layout();
     float get_width_horizontal() const;
     float get_width_vertical() const;
     float get_height_horizontal() const;
@@ -330,10 +330,10 @@ private:
     int contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
 
     void render_background(float left, float top, float right, float bottom, float border) const;
-    void render_horizontal(const GLCanvas3D& parent) const;
-    void render_vertical(const GLCanvas3D& parent) const;
+    void render_horizontal(const GLCanvas3D& parent);
+    void render_vertical(const GLCanvas3D& parent);
 
-    bool generate_icons_texture() const;
+    bool generate_icons_texture();
 
     // returns true if any item changed its state
     bool update_items_visibility();
