@@ -720,6 +720,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
 {
     PROFILE_CLEAR();
 
+    CNumericLocalesSetter locales_setter;
+
     // Does the file exist? If so, we hope that it is still valid.
     if (print->is_step_done(psGCodeExport) && boost::filesystem::exists(boost::filesystem::path(path)))
         return;
@@ -750,7 +752,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
     std::string path_tmp(path);
     path_tmp += ".tmp";
 
-    CNumericLocalesSetter c_locales_setter;
     FILE *file = boost::nowide::fopen(path_tmp.c_str(), "wb");
     if (file == nullptr)
         throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");

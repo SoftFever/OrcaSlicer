@@ -27,7 +27,8 @@ void GCodeReader::apply_config(const DynamicPrintConfig &config)
 const char* GCodeReader::parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command)
 {
     PROFILE_FUNC();
-    CNumericLocalesSetter locales_setter; // for strtod
+
+    assert(is_decimal_separator_point());
     
     // command and args
     const char *c = ptr;
@@ -153,7 +154,7 @@ bool GCodeReader::GCodeLine::has(char axis) const
 
 bool GCodeReader::GCodeLine::has_value(char axis, float &value) const
 {
-    CNumericLocalesSetter locales_setter; // for strtod
+    assert(is_decimal_separator_point());
     const char *c = m_raw.c_str();
     // Skip the whitespaces.
     c = skip_whitespaces(c);

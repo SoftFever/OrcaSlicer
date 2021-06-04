@@ -1257,6 +1257,8 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
 {
     auto last_cancel_callback_time = std::chrono::high_resolution_clock::now();
 
+    CNumericLocalesSetter locales_setter;
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
