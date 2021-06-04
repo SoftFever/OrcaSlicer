@@ -79,9 +79,9 @@ struct PaintedLine
 
 struct PaintedLineVisitor
 {
-    PaintedLineVisitor(const EdgeGrid::Grid &grid, std::vector<PaintedLine> &painted_lines) : grid(grid), painted_lines(painted_lines)
+    PaintedLineVisitor(const EdgeGrid::Grid &grid, std::vector<PaintedLine> &painted_lines, size_t reserve) : grid(grid), painted_lines(painted_lines)
     {
-        painted_lines_set.reserve(painted_lines.capacity());
+        painted_lines_set.reserve(reserve);
     }
 
     void reset() { painted_lines_set.clear(); }
@@ -1490,15 +1490,12 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
                     line_start -= print_object.center_offset();
                     line_end   -= print_object.center_offset();
 
-                    std::vector<PaintedLine> painted_line_tmp;
-                    PaintedLineVisitor       visitor(edge_grids[layer_idx], painted_line_tmp);
+                    PaintedLineVisitor       visitor(edge_grids[layer_idx], painted_lines[layer_idx], 16);
                     visitor.reset();
                     visitor.line_to_test.a = line_start;
                     visitor.line_to_test.b = line_end;
                     visitor.color          = int(extruder_idx);
                     edge_grids[layer_idx].visit_cells_intersecting_line(line_start, line_end, visitor);
-
-                    append(painted_lines[layer_idx], std::move(painted_line_tmp));
                 }
             }
         }
