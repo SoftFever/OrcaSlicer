@@ -99,7 +99,7 @@ void GLGizmoMmuSegmentation::render_painter_gizmo() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    render_triangles(selection);
+    render_triangles(selection, false);
 
     m_c->object_clipper()->render_cut();
     render_cursor();

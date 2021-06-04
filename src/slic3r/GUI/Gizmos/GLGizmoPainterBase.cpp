@@ -13,8 +13,7 @@
 
 
 
-namespace Slic3r {
-namespace GUI {
+namespace Slic3r::GUI {
 
 
 GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
@@ -110,13 +109,15 @@ void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
 
 
 
-void GLGizmoPainterBase::render_triangles(const Selection& selection) const
+void GLGizmoPainterBase::render_triangles(const Selection& selection, const bool use_polygon_offset_fill) const
 {
     const ModelObject* mo = m_c->selection_info()->model_object();
 
-    glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
-    ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); } );
-    glsafe(::glPolygonOffset(-5.0, -5.0));
+    if (use_polygon_offset_fill) {
+        glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
+        ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
+        glsafe(::glPolygonOffset(-5.0, -5.0));
+    }
 
     // Take care of the clipping plane. The normal of the clipping plane is
     // saved with opposite sign than we need to pass to OpenGL (FIXME)
@@ -578,8 +579,8 @@ void GLGizmoPainterBase::on_load(cereal::BinaryInputArchive&)
 
 void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
 {
-    int enf_cnt = 0;
-    int blc_cnt = 0;
+    int enf_cnt       = 0;
+    int blc_cnt       = 0;
     int seed_fill_cnt = 0;
 
     m_iva_enforcers.release_geometry();
@@ -590,12 +591,8 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
         if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE || tr.is_selected_by_seed_fill())
             continue;
 
-        GLIndexedVertexArray& va = tr.get_state() == EnforcerBlockerType::ENFORCER
-                                   ? m_iva_enforcers
-                                   : m_iva_blockers;
-        int& cnt = tr.get_state() == EnforcerBlockerType::ENFORCER
-                ? enf_cnt
-                : blc_cnt;
+        GLIndexedVertexArray &va  = tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers : m_iva_blockers;
+        int                  &cnt = tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt : blc_cnt;
 
         for (int i=0; i<3; ++i)
             va.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
@@ -617,8 +614,8 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     m_iva_blockers.finalize_geometry(true);
     m_iva_seed_fill.finalize_geometry(true);
 
-    bool render_enf = m_iva_enforcers.has_VBOs();
-    bool render_blc = m_iva_blockers.has_VBOs();
+    bool render_enf       = m_iva_enforcers.has_VBOs();
+    bool render_blc       = m_iva_blockers.has_VBOs();
     bool render_seed_fill = m_iva_seed_fill.has_VBOs();
 
     auto* shader = wxGetApp().get_current_shader();
@@ -627,19 +624,19 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     assert(shader->get_name() == "gouraud");
 
     if (render_enf) {
-        std::array<float, 4> color = { 0.47f, 0.47f, 1.f, 1.f };
+        std::array<float, 4> color = {0.47f, 0.47f, 1.f, 1.f};
         shader->set_uniform("uniform_color", color);
         m_iva_enforcers.render();
     }
 
     if (render_blc) {
-        std::array<float, 4> color = { 1.f, 0.44f, 0.44f, 1.f };
+        std::array<float, 4> color = {1.f, 0.44f, 0.44f, 1.f};
         shader->set_uniform("uniform_color", color);
         m_iva_blockers.render();
     }
 
     if (render_seed_fill) {
-        std::array<float, 4> color = { 0.f, 1.00f, 0.44f, 1.f };
+        std::array<float, 4> color = {0.f, 1.00f, 0.44f, 1.f};
         shader->set_uniform("uniform_color", color);
         m_iva_seed_fill.render();
     }
@@ -746,5 +743,4 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
 
 
 
-} // namespace GUI
-} // namespace Slic3r
+} // namespace Slic3r::GUI

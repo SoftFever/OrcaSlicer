@@ -75,7 +75,7 @@ public:
     virtual void render_painter_gizmo() const = 0;
 
 protected:
-    void render_triangles(const Selection& selection) const;
+    void render_triangles(const Selection& selection, const bool use_polygon_offset_fill = true) const;
     void render_cursor() const;
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;
