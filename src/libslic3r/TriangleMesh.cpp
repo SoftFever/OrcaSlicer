@@ -451,27 +451,40 @@ std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<unsigned
  */
 TriangleMeshPtrs TriangleMesh::split() const
 {
-    // Loop while we have remaining facets.
-    std::vector<unsigned char> facet_visited;
+    struct MeshAdder {
+        TriangleMeshPtrs &meshes;
+        MeshAdder(TriangleMeshPtrs &ptrs): meshes{ptrs} {}
+        void operator=(const indexed_triangle_set &its)
+        {
+            meshes.emplace_back(new TriangleMesh(its));
+        }
+    };
+
     TriangleMeshPtrs meshes;
-    for (;;) {
-        std::deque<uint32_t> facets = find_unvisited_neighbors(facet_visited);
-        if (facets.empty())
-            break;
+    if (has_shared_vertices()) {
+        its_split(its, MeshAdder{meshes});
+    } else {
+        // Loop while we have remaining facets.
+        std::vector<unsigned char> facet_visited;
+        for (;;) {
+            std::deque<uint32_t> facets = find_unvisited_neighbors(facet_visited);
+            if (facets.empty())
+                break;
 
-        // Create a new mesh for the part that was just split off.
-        TriangleMesh* mesh = new TriangleMesh;
-        meshes.emplace_back(mesh);
-        mesh->stl.stats.type = inmemory;
-        mesh->stl.stats.number_of_facets = (uint32_t)facets.size();
-        mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
-        stl_allocate(&mesh->stl);
+            // Create a new mesh for the part that was just split off.
+            TriangleMesh* mesh = new TriangleMesh;
+            meshes.emplace_back(mesh);
+            mesh->stl.stats.type = inmemory;
+            mesh->stl.stats.number_of_facets = (uint32_t)facets.size();
+            mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
+            stl_allocate(&mesh->stl);
 
-        // Assign the facets to the new mesh.
-        bool first = true;
-        for (auto facet = facets.begin(); facet != facets.end(); ++ facet) {
-            mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
-            stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
+            // Assign the facets to the new mesh.
+            bool first = true;
+            for (auto facet = facets.begin(); facet != facets.end(); ++ facet) {
+                mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
+                stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
+            }
         }
     }
 
