@@ -5,6 +5,8 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "Point.hpp"
+#include "Execution/ExecutionTBB.hpp"
+#include "Execution/ExecutionSeq.hpp"
 
 #include <libqhullcpp/Qhull.h>
 #include <libqhullcpp/QhullFacetList.h>
@@ -1204,56 +1206,14 @@ void VertexFaceIndex::create(const indexed_triangle_set &its)
     m_vertex_to_face_start.front() = 0;
 }
 
-static int get_vertex_index(size_t vertex_index, const stl_triangle_vertex_indices &triangle_indices) {
-    if (int(vertex_index) == triangle_indices[0]) return 0;
-    if (int(vertex_index) == triangle_indices[1]) return 1;
-    if (int(vertex_index) == triangle_indices[2]) return 2;
-    return -1;
-}
-
-static Vec2crd get_edge_indices(int edge_index, const stl_triangle_vertex_indices &triangle_indices)
-{
-    int next_edge_index = (edge_index == 2) ? 0 : edge_index + 1;
-    coord_t vi0             = triangle_indices[edge_index];
-    coord_t vi1             = triangle_indices[next_edge_index];
-    return Vec2crd(vi0, vi1);
-}
-
 std::vector<Vec3i> its_create_neighbors_index(const indexed_triangle_set &its)
 {
-    const std::vector<stl_triangle_vertex_indices> &indices = its.indices;
-    size_t vertices_size = its.vertices.size();
+    return create_neighbors_index(ex_seq, its);
+}
 
-    if (indices.empty() || vertices_size == 0) return {};
-    auto vertex_triangles = VertexFaceIndex{its};
-    coord_t              no_value = -1;
-    std::vector<Vec3i> neighbors(indices.size(), Vec3i(no_value, no_value, no_value));
-    for (const stl_triangle_vertex_indices& triangle_indices : indices) {
-        coord_t index = &triangle_indices - &indices.front();
-        Vec3i& neighbor = neighbors[index];
-        for (int edge_index = 0; edge_index < 3; ++edge_index) {
-            // check if done
-            coord_t& neighbor_edge = neighbor[edge_index];
-            if (neighbor_edge != no_value) continue;
-            Vec2crd edge_indices = get_edge_indices(edge_index, triangle_indices);
-            // IMPROVE: use same vector for 2 sides of triangle
-            const auto &faces_range = vertex_triangles[edge_indices[0]];
-            for (const size_t &face : faces_range) {
-                if (int(face) <= index) continue;
-                const stl_triangle_vertex_indices &face_indices = indices[face];
-                int vertex_index = get_vertex_index(edge_indices[1], face_indices);
-                // NOT Contain second vertex?
-                if (vertex_index < 0) continue;
-                // Has NOT oposit direction?
-                if (edge_indices[0] != face_indices[(vertex_index + 1) % 3]) continue;
-                neighbor_edge = face;
-                neighbors[face][vertex_index] = index;
-                break;
-            }
-        }
-    }
-
-    return neighbors;
+std::vector<Vec3i> its_create_neighbors_index_par(const indexed_triangle_set &its)
+{
+    return create_neighbors_index(ex_tbb, its);
 }
 
 } // namespace Slic3r

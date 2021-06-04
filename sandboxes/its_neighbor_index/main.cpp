@@ -138,18 +138,18 @@ static const std::pair<const std::string, indexed_triangle_set> ToMeasure[] = {
     {"two_spheres_64x", two_spheres(8. * 60.)},
     {"two_spheres_128x", two_spheres(sq2 * 8. * 60.)},
     {"two_spheres_256x", two_spheres(16. * 60.)},
-    {"two_spheres_512x", two_spheres(sq2 * 16. * 60.)}
+    {"two_spheres_512x", two_spheres(sq2 * 16. * 60.)},
 
-//    {"2_spheres", make_spheres(2, 60.)},
-//    {"4_spheres", make_spheres(4, 60.)},
-//    {"8_spheres", make_spheres(8, 60.)},
-//    {"16_spheres", make_spheres(16,  60.)},
-//    {"32_spheres", make_spheres(32, 60.)},
-//    {"64_spheres", make_spheres(64, 60.)},
-//    {"128_spheres", make_spheres(128, 60.)},
-//    {"256_spheres", make_spheres(256, 60.)},
-//    {"512_spheres", make_spheres(512, 60.)},
-//    {"1024_spheres", make_spheres(1024, 60.)}
+    {"2_spheres", make_spheres(2, 60.)},
+    {"4_spheres", make_spheres(4, 60.)},
+    {"8_spheres", make_spheres(8, 60.)},
+    {"16_spheres", make_spheres(16,  60.)},
+    {"32_spheres", make_spheres(32, 60.)},
+    {"64_spheres", make_spheres(64, 60.)},
+    {"128_spheres", make_spheres(128, 60.)},
+    {"256_spheres", make_spheres(256, 60.)},
+    {"512_spheres", make_spheres(512, 60.)},
+    {"1024_spheres", make_spheres(1024, 60.)}
 };
 
 static const auto IndexFunctions = std::make_tuple(
@@ -158,6 +158,7 @@ static const auto IndexFunctions = std::make_tuple(
     std::make_pair("vojta tbb::parallel_sort based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_3); }),
     std::make_pair("filip's vertex->face based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_5); }),
     std::make_pair("vojta's vertex->face", [](const auto &its) { return measure_index(its, its_create_neighbors_index_9); }),
+    std::make_pair("vojta's vertex->face parallel", [](const auto &its) { return measure_index(its, its_create_neighbors_index_10); }),
     std::make_pair("tamas's std::sort based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_6); }),
     std::make_pair("tamas's tbb::parallel_sort based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_7); }),
     std::make_pair("tamas's map based", [](const auto &its) { return measure_index(its, its_create_neighbors_index_8); }),
