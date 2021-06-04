@@ -121,18 +121,23 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
     // Take care of the clipping plane. The normal of the clipping plane is
     // saved with opposite sign than we need to pass to OpenGL (FIXME)
     bool clipping_plane_active = m_c->object_clipper()->get_position() != 0.;
+    float clp_dataf[4] = {0.f, 0.f, 1.f, FLT_MAX};
     if (clipping_plane_active) {
         const ClippingPlane* clp = m_c->object_clipper()->get_clipping_plane();
-        double clp_data[4];
-        memcpy(clp_data, clp->get_data(), 4 * sizeof(double));
-        for (int i=0; i<3; ++i)
-            clp_data[i] = -1. * clp_data[i];
-
-        glsafe(::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)clp_data));
-        glsafe(::glEnable(GL_CLIP_PLANE0));
+        for (size_t i=0; i<3; ++i)
+            clp_dataf[i] = -1. * clp->get_data()[i];
+        clp_dataf[3] = clp->get_data()[3];
     }
 
     auto *shader = wxGetApp().get_shader("gouraud");
+    if (! shader)
+        return;
+    shader->start_using();
+    shader->set_uniform("slope.actived", false);
+    shader->set_uniform("print_box.actived", false);
+    shader->set_uniform("clipping_plane", clp_dataf, 4);
+    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+
     int mesh_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
@@ -155,11 +160,7 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
         // to the shader input variable print_box.volume_world_matrix before
         // rendering the painted triangles. When this matrix is not set, the
         // wrong transformation matrix is used for "Clipping of view".
-        if (shader) {
-            shader->start_using();
-            shader->set_uniform("print_box.volume_world_matrix", trafo_matrix);
-            shader->stop_using();
-        }
+        shader->set_uniform("print_box.volume_world_matrix", trafo_matrix);
 
         m_triangle_selectors[mesh_id]->render(m_imgui);
 
@@ -167,8 +168,6 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
-    if (clipping_plane_active)
-        glsafe(::glDisable(GL_CLIP_PLANE0));
 }
 
 
@@ -632,14 +631,10 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     bool render_blc = m_iva_blockers.has_VBOs();
     bool render_seed_fill = m_iva_seed_fill.has_VBOs();
 
-    auto* shader = wxGetApp().get_shader("gouraud");
+    auto* shader = wxGetApp().get_current_shader();
     if (! shader)
         return;
-
-    shader->start_using();
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
-    shader->set_uniform("slope.actived", false);
-    shader->set_uniform("print_box.actived", false);
+    assert(shader->get_name() == "gouraud");
 
     if (render_enf) {
         std::array<float, 4> color = { 0.47f, 0.47f, 1.f, 1.f };
