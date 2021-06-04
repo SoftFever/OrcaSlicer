@@ -434,7 +434,7 @@ void GLCanvas3D::LayersEditing::render_profile(const Rect& bar_rect) const
     glsafe(::glEnd());
 }
 
-void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const GLVolumeCollection &volumes) const
+void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const GLVolumeCollection& volumes)
 {
     assert(this->is_allowed());
     assert(this->last_object_id != -1);
@@ -450,7 +450,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
         // The layer editing shader was already active.
         current_shader = nullptr;
 
-    const_cast<LayersEditing*>(this)->generate_layer_height_texture();
+    generate_layer_height_texture();
 
     // Uniforms were resolved, go ahead using the layer editing shader.
     shader->set_uniform("z_to_texture_row", float(m_layers_texture.cells - 1) / (float(m_layers_texture.width) * float(m_object_max_z)));
@@ -495,7 +495,7 @@ void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
 
 void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
 {
-	const_cast<ModelObject*>(m_model_object)->layer_height_profile.clear();
+    const_cast<ModelObject*>(m_model_object)->layer_height_profile.clear();
     m_layer_height_profile.clear();
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
@@ -850,7 +850,7 @@ void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons
     m_perimeter.init_from(perimeter_data);
 }
 
-void GLCanvas3D::SequentialPrintClearance::render() const
+void GLCanvas3D::SequentialPrintClearance::render()
 {
     std::array<float, 4> FILL_COLOR = { 1.0f, 0.0f, 0.0f, 0.5f };
     std::array<float, 4> NO_FILL_COLOR = { 1.0f, 1.0f, 1.0f, 0.75f };
@@ -866,7 +866,7 @@ void GLCanvas3D::SequentialPrintClearance::render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    const_cast<GLModel*>(&m_perimeter)->set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
+    m_perimeter.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
     m_perimeter.render();
     m_fill.render();
 
@@ -1576,7 +1576,7 @@ void GLCanvas3D::render()
 #endif // ENABLE_RENDER_STATISTICS
 }
 
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     switch (OpenGLManager::get_framebuffers_type())
     {
@@ -3344,10 +3344,10 @@ Vec2d GLCanvas3D::get_local_mouse_position() const
     return Vec2d(factor * mouse_pos.x, factor * mouse_pos.y);
 }
 
-void GLCanvas3D::set_tooltip(const std::string& tooltip) const
+void GLCanvas3D::set_tooltip(const std::string& tooltip)
 {
     if (m_canvas != nullptr)
-        const_cast<Tooltip*>(&m_tooltip)->set_text(tooltip);
+        m_tooltip.set_text(tooltip);
 }
 
 void GLCanvas3D::do_move(const std::string& snapshot_type)
@@ -3900,11 +3900,10 @@ bool GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
 	em *= m_retina_helper->get_scale_factor();
 #endif
 
-    int* mouse_wheel = const_cast<int*>(&m_mouse_wheel);
-    if (imgui->undo_redo_list(ImVec2(18 * em, 26 * em), is_undo, &string_getter, hovered, selected, *mouse_wheel))
-        *const_cast<int*>(&m_imgui_undo_redo_hovered_pos) = hovered;
+    if (imgui->undo_redo_list(ImVec2(18 * em, 26 * em), is_undo, &string_getter, hovered, selected, m_mouse_wheel))
+        m_imgui_undo_redo_hovered_pos = hovered;
     else
-        *const_cast<int*>(&m_imgui_undo_redo_hovered_pos) = -1;
+        m_imgui_undo_redo_hovered_pos = -1;
 
     if (selected >= 0) {
         is_undo ? wxGetApp().plater()->undo_to(selected) : wxGetApp().plater()->redo_to(selected);
@@ -3947,10 +3946,9 @@ bool GLCanvas3D::_render_search_list(float pos_x)
     char *s = new char[255];
     strcpy(s, search_line.empty() ? _u8L("Enter a search term").c_str() : search_line.c_str());
 
-    int* mouse_wheel = const_cast<int*>(&m_mouse_wheel);
     imgui->search_list(ImVec2(45 * em, 30 * em), &search_string_getter, s,
         sidebar.get_searcher().view_params,
-        selected, edited, *mouse_wheel, wxGetApp().is_localized());
+        selected, edited, m_mouse_wheel, wxGetApp().is_localized());
 
     search_line = s;
     delete [] s;
@@ -4074,7 +4072,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const
+void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     auto is_visible = [](const GLVolume& v) {
         bool ret = v.printable;
@@ -4157,7 +4155,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
         glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const
+void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4177,16 +4175,14 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
 
     GLuint render_tex = 0;
     GLuint render_tex_buffer = 0;
-    if (multisample)
-    {
+    if (multisample) {
         // use renderbuffer instead of texture to avoid the need to use glTexImage2DMultisample which is available only since OpenGL 3.2
         glsafe(::glGenRenderbuffers(1, &render_tex_buffer));
         glsafe(::glBindRenderbuffer(GL_RENDERBUFFER, render_tex_buffer));
         glsafe(::glRenderbufferStorageMultisample(GL_RENDERBUFFER, num_samples, GL_RGBA8, w, h));
         glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_tex_buffer));
     }
-    else
-    {
+    else {
         glsafe(::glGenTextures(1, &render_tex));
         glsafe(::glBindTexture(GL_TEXTURE_2D, render_tex));
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
@@ -4208,12 +4204,10 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
     GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0 };
     glsafe(::glDrawBuffers(1, drawBufs));
 
-    if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
-    {
+    if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
         _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, show_bed, transparent_background);
 
-        if (multisample)
-        {
+        if (multisample) {
             GLuint resolve_fbo;
             glsafe(::glGenFramebuffers(1, &resolve_fbo));
             glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, resolve_fbo));
@@ -4228,8 +4222,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
 
             glsafe(::glDrawBuffers(1, drawBufs));
 
-            if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
-            {
+            if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
                 glsafe(::glBindFramebuffer(GL_READ_FRAMEBUFFER, render_fbo));
                 glsafe(::glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolve_fbo));
                 glsafe(::glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_LINEAR));
@@ -4261,7 +4254,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData & thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const
+void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4281,16 +4274,14 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData & thumbnail_dat
 
     GLuint render_tex = 0;
     GLuint render_tex_buffer = 0;
-    if (multisample)
-    {
+    if (multisample) {
         // use renderbuffer instead of texture to avoid the need to use glTexImage2DMultisample which is available only since OpenGL 3.2
         glsafe(::glGenRenderbuffersEXT(1, &render_tex_buffer));
         glsafe(::glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_tex_buffer));
         glsafe(::glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, num_samples, GL_RGBA8, w, h));
         glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, render_tex_buffer));
     }
-    else
-    {
+    else {
         glsafe(::glGenTextures(1, &render_tex));
         glsafe(::glBindTexture(GL_TEXTURE_2D, render_tex));
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
@@ -4312,12 +4303,10 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData & thumbnail_dat
     GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0 };
     glsafe(::glDrawBuffers(1, drawBufs));
 
-    if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT)
-    {
+    if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
         _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, show_bed, transparent_background);
 
-        if (multisample)
-        {
+        if (multisample) {
             GLuint resolve_fbo;
             glsafe(::glGenFramebuffersEXT(1, &resolve_fbo));
             glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, resolve_fbo));
@@ -4332,8 +4321,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData & thumbnail_dat
 
             glsafe(::glDrawBuffers(1, drawBufs));
 
-            if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT)
-            {
+            if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
                 glsafe(::glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, render_fbo));
                 glsafe(::glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, resolve_fbo));
                 glsafe(::glBlitFramebufferEXT(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_LINEAR));
@@ -4365,14 +4353,13 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData & thumbnail_dat
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) const
+void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     // check that thumbnail size does not exceed the default framebuffer size
     const Size& cnv_size = get_canvas_size();
     unsigned int cnv_w = (unsigned int)cnv_size.get_width();
     unsigned int cnv_h = (unsigned int)cnv_size.get_height();
-    if ((w > cnv_w) || (h > cnv_h))
-    {
+    if (w > cnv_w || h > cnv_h) {
         float ratio = std::min((float)cnv_w / (float)w, (float)cnv_h / (float)h);
         w = (unsigned int)(ratio * (float)w);
         h = (unsigned int)(ratio * (float)h);
@@ -4818,12 +4805,10 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
     }
 }
 
-void GLCanvas3D::_picking_pass() const
+void GLCanvas3D::_picking_pass()
 {
-    std::vector<int>* hover_volume_idxs = const_cast<std::vector<int>*>(&m_hover_volume_idxs);
-
     if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
-        hover_volume_idxs->clear();
+        m_hover_volume_idxs.clear();
 
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
@@ -4838,10 +4823,9 @@ void GLCanvas3D::_picking_pass() const
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        ClippingPlane* camera_clipping_plane = const_cast<ClippingPlane*>(&m_camera_clipping_plane);
-        *camera_clipping_plane = m_gizmos.get_clipping_plane();
-        if (camera_clipping_plane->is_active()) {
-            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)camera_clipping_plane->get_data());
+        m_camera_clipping_plane = m_gizmos.get_clipping_plane();
+        if (m_camera_clipping_plane.is_active()) {
+            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
             ::glEnable(GL_CLIP_PLANE0);
         }
         _render_volumes_for_picking();
@@ -4867,19 +4851,19 @@ void GLCanvas3D::_picking_pass() const
         if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
             // do not add the volume id if any gizmo is active and CTRL is pressed
             if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
-                hover_volume_idxs->emplace_back(volume_id);
-            const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
+                m_hover_volume_idxs.emplace_back(volume_id);
+            m_gizmos.set_hover_id(-1);
         }
         else
-            const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
+            m_gizmos.set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
 
         _update_volumes_hover_state();
     }
 }
 
-void GLCanvas3D::_rectangular_selection_picking_pass() const
+void GLCanvas3D::_rectangular_selection_picking_pass()
 {
-    const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
+    m_gizmos.set_hover_id(-1);
 
     std::set<int> idxs;
 
@@ -4946,7 +4930,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
         }
     }
 
-    const_cast<std::vector<int>*>(&m_hover_volume_idxs)->assign(idxs.begin(), idxs.end());
+    m_hover_volume_idxs.assign(idxs.begin(), idxs.end());
     _update_volumes_hover_state();
 }
 
@@ -5017,7 +5001,7 @@ void GLCanvas3D::_render_background() const
     glsafe(::glPopMatrix());
 }
 
-void GLCanvas3D::_render_bed(bool bottom, bool show_axes) const
+void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
@@ -5031,37 +5015,35 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes) const
           && m_gizmos.get_current_type() != GLGizmosManager::Seam
           && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation);
 
-    wxGetApp().plater()->get_bed().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, show_axes, show_texture);
+    wxGetApp().plater()->get_bed().render(*this, bottom, scale_factor, show_axes, show_texture);
 }
 
-void GLCanvas3D::_render_objects() const
+void GLCanvas3D::_render_objects()
 {
     if (m_volumes.empty())
         return;
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    ClippingPlane* camera_clipping_plane = const_cast<ClippingPlane*>(&m_camera_clipping_plane);
-    GLVolumeCollection* volumes = const_cast<GLVolumeCollection*>(&m_volumes);
-    *camera_clipping_plane = m_gizmos.get_clipping_plane();
+    m_camera_clipping_plane = m_gizmos.get_clipping_plane();
 
     if (m_picking_enabled) {
         // Update the layer editing selection to the first object selected, update the current object maximum Z.
-        const_cast<LayersEditing&>(m_layers_editing).select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
+        m_layers_editing.select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
 
         if (m_config != nullptr) {
             const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
-            volumes->set_print_box((float)bed_bb.min(0) - BedEpsilon, (float)bed_bb.min(1) - BedEpsilon, 0.0f, (float)bed_bb.max(0) + BedEpsilon, (float)bed_bb.max(1) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
-            volumes->check_outside_state(m_config, nullptr);
+            m_volumes.set_print_box((float)bed_bb.min(0) - BedEpsilon, (float)bed_bb.min(1) - BedEpsilon, 0.0f, (float)bed_bb.max(0) + BedEpsilon, (float)bed_bb.max(1) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
+            m_volumes.check_outside_state(m_config, nullptr);
         }
     }
 
     if (m_use_clipping_planes)
-        volumes->set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
+        m_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
     else
-        volumes->set_z_range(-FLT_MAX, FLT_MAX);
+        m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
-    volumes->set_clipping_plane(camera_clipping_plane->get_data());
+    m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     if (shader != nullptr) {
@@ -5069,15 +5051,15 @@ void GLCanvas3D::_render_objects() const
 
         if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
             int object_id = m_layers_editing.last_object_id;
-            volumes->render(GLVolumeCollection::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
+            m_volumes.render(GLVolumeCollection::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
                 // Which volume to paint without the layer height profile shader?
                 return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
                 });
             // Let LayersEditing handle rendering of the active object using the layer height profile shader.
-            m_layers_editing.render_volumes(*this, *volumes);
+            m_layers_editing.render_volumes(*this, m_volumes);
         } else {
             // do not cull backfaces to show broken geometry, if any
-            volumes->render(GLVolumeCollection::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
+            m_volumes.render(GLVolumeCollection::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
                 return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
             });
         }
@@ -5097,11 +5079,11 @@ void GLCanvas3D::_render_objects() const
             }
         }
 
-        volumes->render(GLVolumeCollection::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
+        m_volumes.render(GLVolumeCollection::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
         shader->stop_using();
     }
 
-    *camera_clipping_plane = ClippingPlane::ClipsNothing();
+    m_camera_clipping_plane = ClippingPlane::ClipsNothing();
 }
 
 void GLCanvas3D::_render_gcode() const
@@ -5121,7 +5103,7 @@ void GLCanvas3D::_render_selection() const
 }
 
 #if ENABLE_SEQUENTIAL_LIMITS
-void GLCanvas3D::_render_sequential_clearance() const
+void GLCanvas3D::_render_sequential_clearance()
 {
     if (m_layers_editing.is_enabled() || m_gizmos.is_dragging())
         return;
@@ -5283,17 +5265,17 @@ void GLCanvas3D::_render_current_gizmo() const
     m_gizmos.render_current_gizmo();
 }
 
-void GLCanvas3D::_render_gizmos_overlay() const
+void GLCanvas3D::_render_gizmos_overlay()
 {
 #if ENABLE_RETINA_GL
 //     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor()*wxGetApp().toolbar_icon_scale();
-    const_cast<GLGizmosManager*>(&m_gizmos)->set_overlay_scale(scale); //! #ys_FIXME_experiment
+    m_gizmos.set_overlay_scale(scale); //! #ys_FIXME_experiment
 #else
 //     m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
 //     m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);
     const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
-    const_cast<GLGizmosManager*>(&m_gizmos)->set_overlay_icon_size(size); //! #ys_FIXME_experiment
+    m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
 
     m_gizmos.render_overlay();
@@ -5402,7 +5384,7 @@ void GLCanvas3D::_render_camera_target() const
 }
 #endif // ENABLE_SHOW_CAMERA_TARGET
 
-void GLCanvas3D::_render_sla_slices() const
+void GLCanvas3D::_render_sla_slices()
 {
     if (!m_use_clipping_planes || current_printer_technology() != ptSLA)
         return;
@@ -5421,21 +5403,20 @@ void GLCanvas3D::_render_sla_slices() const
         if (!obj->is_step_done(slaposSliceSupports))
             continue;
 
-        SlaCap* sla_caps = const_cast<SlaCap*>(m_sla_caps);
-        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = sla_caps[0].triangles.find(i);
-        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top = sla_caps[1].triangles.find(i);
+        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
+        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top = m_sla_caps[1].triangles.find(i);
         {
-            if (it_caps_bottom == sla_caps[0].triangles.end())
-                it_caps_bottom = sla_caps[0].triangles.emplace(i, SlaCap::Triangles()).first;
-            if (!sla_caps[0].matches(clip_min_z)) {
-                sla_caps[0].z = clip_min_z;
+            if (it_caps_bottom == m_sla_caps[0].triangles.end())
+                it_caps_bottom = m_sla_caps[0].triangles.emplace(i, SlaCap::Triangles()).first;
+            if (!m_sla_caps[0].matches(clip_min_z)) {
+                m_sla_caps[0].z = clip_min_z;
                 it_caps_bottom->second.object.clear();
                 it_caps_bottom->second.supports.clear();
             }
-            if (it_caps_top == sla_caps[1].triangles.end())
-                it_caps_top = sla_caps[1].triangles.emplace(i, SlaCap::Triangles()).first;
-            if (!sla_caps[1].matches(clip_max_z)) {
-                sla_caps[1].z = clip_max_z;
+            if (it_caps_top == m_sla_caps[1].triangles.end())
+                it_caps_top = m_sla_caps[1].triangles.emplace(i, SlaCap::Triangles()).first;
+            if (!m_sla_caps[1].matches(clip_max_z)) {
+                m_sla_caps[1].z = clip_max_z;
                 it_caps_top->second.object.clear();
                 it_caps_top->second.supports.clear();
             }
@@ -5526,7 +5507,7 @@ void GLCanvas3D::_render_selection_sidebar_hints() const
     m_selection.render_sidebar_hints(m_sidebar_field);
 }
 
-void GLCanvas3D::_update_volumes_hover_state() const
+void GLCanvas3D::_update_volumes_hover_state()
 {
     for (GLVolume* v : m_volumes.volumes) {
         v->hover = GLVolume::HS_None;
@@ -5541,7 +5522,7 @@ void GLCanvas3D::_update_volumes_hover_state() const
 
     if (alt_pressed && (shift_pressed || ctrl_pressed)) {
         // illegal combinations of keys
-        const_cast<std::vector<int>*>(&m_hover_volume_idxs)->clear();
+        m_hover_volume_idxs.clear();
         return;
     }
 
@@ -5565,7 +5546,7 @@ void GLCanvas3D::_update_volumes_hover_state() const
 
     if (hover_modifiers_only && !hover_from_single_instance) {
         // do not allow to select volumes from different instances
-        const_cast<std::vector<int>*>(&m_hover_volume_idxs)->clear();
+        m_hover_volume_idxs.clear();
         return;
     }
 
