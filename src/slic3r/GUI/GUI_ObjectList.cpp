@@ -2201,9 +2201,9 @@ void ObjectList::part_selection_changed()
                 if (type == itInfo) {
                     InfoItemType info_type = m_objects_model->GetInfoItemType(item);
                     if (info_type != InfoItemType::VariableLayerHeight) {
-                        GLGizmosManager::EType gizmo_type =
-                            info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports
-                                                                      : GLGizmosManager::EType::Seam;
+                        GLGizmosManager::EType gizmo_type = info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports :
+                                                            info_type == InfoItemType::CustomSeam     ? GLGizmosManager::EType::Seam :
+                                                                                                        GLGizmosManager::EType::MmuSegmentation;
                         GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
                         if (gizmos_mgr.get_current_type() != gizmo_type)
                             gizmos_mgr.open_gizmo(gizmo_type);
@@ -2333,6 +2333,7 @@ void ObjectList::update_info_items(size_t obj_idx)
 
     for (InfoItemType type : {InfoItemType::CustomSupports,
                               InfoItemType::CustomSeam,
+                              InfoItemType::MmuSegmentation,
                               InfoItemType::VariableLayerHeight}) {
         wxDataViewItem item = m_objects_model->GetInfoItemByType(item_obj, type);
         bool shows = item.IsOk();
@@ -2341,12 +2342,13 @@ void ObjectList::update_info_items(size_t obj_idx)
         switch (type) {
         case InfoItemType::CustomSupports :
         case InfoItemType::CustomSeam :
+        case InfoItemType::MmuSegmentation :
             should_show = printer_technology() == ptFFF
                        && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
-                                      [type](const ModelVolume* mv) {
-                                          return ! (type == InfoItemType::CustomSupports
-                                                          ? mv->supported_facets.empty()
-                                                          : mv->seam_facets.empty());
+                                      [type](const ModelVolume *mv) {
+                                          return !(type == InfoItemType::CustomSupports ? mv->supported_facets.empty() :
+                                                   type == InfoItemType::CustomSeam     ? mv->seam_facets.empty() :
+                                                                                          mv->mmu_segmentation_facets.empty());
                                       });
             break;
 
