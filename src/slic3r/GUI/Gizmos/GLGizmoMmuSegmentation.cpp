@@ -462,16 +462,10 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
         render_colors[color_idx] = m_iva_colors[color_idx].has_VBOs();
     bool render_seed_fill = m_iva_seed_fill.has_VBOs();
 
-    auto *shader = wxGetApp().get_shader("gouraud");
-    if (!shader) return;
-
-    shader->start_using();
-    ScopeGuard guard([shader]() {
-        if (shader)
-            shader->stop_using();
-    });
-    shader->set_uniform("slope.actived", false);
-    shader->set_uniform("print_box.actived", false);
+    auto* shader = wxGetApp().get_current_shader();
+    if (! shader)
+        return;
+    assert(shader->get_name() == "gouraud");
 
     for (size_t color_idx = 0; color_idx < m_iva_colors.size(); ++color_idx) {
         if (render_colors[color_idx]) {
