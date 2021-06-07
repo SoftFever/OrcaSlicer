@@ -3913,7 +3913,7 @@ void ObjectList::apply_volumes_order()
     if (wxGetApp().app_config->get("order_volumes") != "1" || !m_objects)
         return;
 
-    for (int obj_idx = 0; obj_idx < m_objects->size(); obj_idx++)
+    for (size_t obj_idx = 0; obj_idx < m_objects->size(); obj_idx++)
         reorder_volumes_and_get_selection(obj_idx);
 }
 

@@ -1217,7 +1217,7 @@ boost::any& Choice::get_value()
         else if (m_opt.type == coInt)
             m_value = atoi(m_opt.enum_values[ret_enum].c_str());
         else
-            m_value = atof(m_opt.enum_values[ret_enum].c_str());
+            m_value = string_to_double_decimal_point(m_opt.enum_values[ret_enum]);
     }
 	else
 		// modifies ret_string!

@@ -1494,6 +1494,7 @@ Transformation Transformation::volume_to_bed_transformation(const Transformation
 // For parsing a transformation matrix from 3MF / AMF.
 Transform3d transform3d_from_string(const std::string& transform_str)
 {
+    assert(is_decimal_separator_point()); // for atof
     Transform3d transform = Transform3d::Identity();
 
     if (!transform_str.empty())
