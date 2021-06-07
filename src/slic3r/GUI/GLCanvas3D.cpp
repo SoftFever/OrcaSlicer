@@ -1124,6 +1124,18 @@ int GLCanvas3D::check_volumes_outside_state() const
     return (int)state;
 }
 
+#if ENABLE_GCODE_WINDOW
+void GLCanvas3D::start_mapping_gcode_window()
+{
+    m_gcode_viewer.start_mapping_gcode_window();
+}
+
+void GLCanvas3D::stop_mapping_gcode_window()
+{
+    m_gcode_viewer.stop_mapping_gcode_window();
+}
+#endif // ENABLE_GCODE_WINDOW
+
 void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
     m_render_sla_auxiliaries = visible;

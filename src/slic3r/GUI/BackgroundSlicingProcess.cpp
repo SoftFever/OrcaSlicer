@@ -150,9 +150,20 @@ void BackgroundSlicingProcess::process_fff()
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 			
+#if ENABLE_GCODE_WINDOW
+			// let the gcode window to unmap the temporary .gcode file (m_temp_output_path)
+			// because the scripts may want to modify it
+			GUI::wxGetApp().plater()->stop_mapping_gcode_window();
+#endif // ENABLE_GCODE_WINDOW
+
 			m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 			run_post_process_scripts(m_temp_output_path, m_fff_print->full_print_config());
-			
+
+#if ENABLE_GCODE_WINDOW
+			// let the gcode window to reload and remap the temporary .gcode file (m_temp_output_path)
+			GUI::wxGetApp().plater()->start_mapping_gcode_window();
+#endif // ENABLE_GCODE_WINDOW
+
 			//FIXME localize the messages
 			// Perform the final post-processing of the export path by applying the print statistics over the file name.
 			std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);

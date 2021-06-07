@@ -561,7 +561,6 @@ public:
 
             void render(float top, float bottom, uint64_t curr_line_id) const;
 
-        private:
             void stop_mapping_file();
         };
 #endif // ENABLE_GCODE_WINDOW
@@ -681,6 +680,8 @@ public:
     void export_toolpaths_to_obj(const char* filename) const;
 
 #if ENABLE_GCODE_WINDOW
+    void start_mapping_gcode_window();
+    void stop_mapping_gcode_window();
     void toggle_gcode_window_visibility() { m_sequential_view.gcode_window.toggle_visibility(); }
 #endif // ENABLE_GCODE_WINDOW
 

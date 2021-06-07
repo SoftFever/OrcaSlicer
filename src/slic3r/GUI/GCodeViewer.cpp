@@ -280,6 +280,9 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
     if (m_filename.empty())
         return;
 
+    if (m_file.is_open())
+        return;
+
     try
     {
         // generate mapping for accessing data in file by line number
@@ -1123,6 +1126,18 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 
     fclose(fp);
 }
+
+#if ENABLE_GCODE_WINDOW
+void GCodeViewer::start_mapping_gcode_window()
+{
+    m_sequential_view.gcode_window.load_gcode();
+}
+
+void GCodeViewer::stop_mapping_gcode_window()
+{
+    m_sequential_view.gcode_window.stop_mapping_file();
+}
+#endif // ENABLE_GCODE_WINDOW
 
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
