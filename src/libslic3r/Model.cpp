@@ -963,7 +963,7 @@ void ModelObject::center_around_origin(bool include_modifiers)
 void ModelObject::ensure_on_bed(bool allow_negative_z)
 {
     const double min_z = get_min_z();
-    if (!allow_negative_z || min_z > 0.0)
+    if (!allow_negative_z || min_z > SINKING_Z_THRESHOLD)
         translate_instances({ 0.0, 0.0, -min_z });
 }
 #else

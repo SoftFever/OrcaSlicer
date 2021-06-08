@@ -360,7 +360,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             if (0 <= idx && idx < static_cast<int>(objects.size())) {
                 const ModelObject* mo = wxGetApp().model().objects[idx];
                 const double min_z = mo->bounding_box().min.z();
-                if (std::abs(min_z) > EPSILON) {
+                if (std::abs(min_z) > SINKING_Z_THRESHOLD) {
                     Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Drop to bed"));
                     change_position_value(2, m_cache.position.z() - min_z);
                 }
@@ -702,7 +702,11 @@ void ObjectManipulation::update_reset_buttons_visibility()
         }
         show_rotation = !rotation.isApprox(Vec3d::Zero());
         show_scale = !scale.isApprox(Vec3d::Ones());
+#if ENABLE_ALLOW_NEGATIVE_Z
+        show_drop_to_bed = std::abs(min_z) > SINKING_Z_THRESHOLD;
+#else
         show_drop_to_bed = (std::abs(min_z) > EPSILON);
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
     wxGetApp().CallAfter([this, show_rotation, show_scale, show_drop_to_bed] {

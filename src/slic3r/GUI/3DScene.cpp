@@ -536,7 +536,7 @@ bool GLVolume::is_sinking() const
 #endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
         return false;
     const BoundingBoxf3& box = transformed_convex_hull_bounding_box();
-    return box.min(2) < -EPSILON && box.max(2) >= -EPSILON;
+    return box.min.z() < SINKING_Z_THRESHOLD && box.max.z() >= SINKING_Z_THRESHOLD;
 }
 
 bool GLVolume::is_below_printbed() const

@@ -1129,6 +1129,10 @@ void check_model_ids_validity(const Model &model);
 void check_model_ids_equal(const Model &model1, const Model &model2);
 #endif /* NDEBUG */
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+static const float SINKING_Z_THRESHOLD = -0.001f;
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
 } // namespace Slic3r
 
 namespace cereal

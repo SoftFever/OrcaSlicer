@@ -3247,7 +3247,7 @@ void Plater::priv::reload_from_disk()
             ModelVolume* old_volume = old_model_object->volumes[sel_v.volume_idx];
 
 #if ENABLE_ALLOW_NEGATIVE_Z
-            bool sinking = old_model_object->bounding_box().min.z() < 0.0;
+            bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
 #endif // ENABLE_ALLOW_NEGATIVE_Z
 
             bool has_source = !old_volume->source.input_file.empty() && boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
@@ -4101,7 +4101,7 @@ bool Plater::priv::layers_height_allowed() const
 
     int obj_idx = get_selected_object_idx();
 #if ENABLE_ALLOW_NEGATIVE_Z
-    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > 0.0 &&
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > SINKING_Z_THRESHOLD &&
         config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
 #else
     return 0 <= obj_idx && obj_idx < (int)model.objects.size() && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
@@ -6051,7 +6051,7 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     for (size_t obj_idx : object_idxs) {
 #if ENABLE_ALLOW_NEGATIVE_Z
         if (obj_idx < p->model.objects.size()) {
-            if (p->model.objects[obj_idx]->bounding_box().min.z() >= 0.0)
+            if (p->model.objects[obj_idx]->bounding_box().min.z() >= SINKING_Z_THRESHOLD)
                 // re - align to Z = 0
                 p->model.objects[obj_idx]->ensure_on_bed();
         }

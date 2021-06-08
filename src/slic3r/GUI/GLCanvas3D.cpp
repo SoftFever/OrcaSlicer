@@ -3413,7 +3413,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
 #if ENABLE_ALLOW_NEGATIVE_Z
         const double shift_z = m->get_instance_min_z(i.second);
 #if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
-        if (current_printer_technology() == ptSLA || shift_z > 0.0) {
+        if (current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) {
 #else
         if (shift_z > 0.0) {
 #endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
@@ -3463,7 +3463,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
             const ModelObject* obj = m_model->objects[i];
             for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
-                min_zs[{ i, j }] = obj->instance_bounding_box(j).min(2);
+                min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
             }
         }
     }
@@ -3508,7 +3508,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
 #if ENABLE_ALLOW_NEGATIVE_Z
         double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= 0.0 || shift_z > 0.0) {
+        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
             Vec3d shift(0.0, 0.0, -shift_z);
 #else
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
@@ -3541,7 +3541,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
         for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
             const ModelObject* obj = m_model->objects[i];
             for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
-                min_zs[{ i, j }] = obj->instance_bounding_box(j).min(2);
+                min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
             }
         }
     }
@@ -3583,7 +3583,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
 #if ENABLE_ALLOW_NEGATIVE_Z
         double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= 0.0 || shift_z > 0.0) {
+        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
             Vec3d shift(0.0, 0.0, -shift_z);
 #else
         Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
