@@ -213,8 +213,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             return;
         }
 
-        if (m_plater != nullptr)
-            m_plater->save_project_if_dirty();
+        if (m_plater != nullptr && !m_plater->save_project_if_dirty()) {
+            event.Veto();
+            return;
+        }
 
         if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes()) {
 #else
