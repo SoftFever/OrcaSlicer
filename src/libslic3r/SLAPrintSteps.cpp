@@ -194,18 +194,18 @@ static std::vector<bool> create_exclude_mask(
         const sla::Interior &interior,
         const std::vector<sla::DrainHole> &holes)
 {
-    FaceHash interior_hash{sla::get_mesh(interior).its};
+    FaceHash interior_hash{sla::get_mesh(interior)};
 
     std::vector<bool> exclude_mask(its.indices.size(), false);
 
-    std::vector< std::vector<size_t> > neighbor_index =
-            create_vertex_faces_index(its);
+    VertexFaceIndex neighbor_index{its};
 
     auto exclude_neighbors = [&neighbor_index, &exclude_mask](const Vec3i &face)
     {
         for (int i = 0; i < 3; ++i) {
-            const std::vector<size_t> &neighbors = neighbor_index[face(i)];
-            for (size_t fi_n : neighbors) exclude_mask[fi_n] = true;
+            const auto &neighbors_range = neighbor_index[face(i)];
+            for (size_t fi_n : neighbors_range)
+                exclude_mask[fi_n] = true;
         }
     };
 
@@ -360,7 +360,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         holept.normal += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
         holept.normal.normalize();
         holept.pos += Vec3f{dist(m_rng), dist(m_rng), dist(m_rng)};
-        TriangleMesh m = sla::to_triangle_mesh(holept.to_mesh());
+        TriangleMesh m{holept.to_mesh()};
         m.require_shared_vertices();
 
         part_to_drill.indices.clear();
@@ -489,11 +489,11 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
                                   nullptr;
 
     if (interior && ! sla::get_mesh(*interior).empty()) {
-        TriangleMesh interiormesh = sla::get_mesh(*interior);
-        interiormesh.repaired = false;
-        interiormesh.repair(true);
+        indexed_triangle_set interiormesh = sla::get_mesh(*interior);
+        sla::swap_normals(interiormesh);
         params.mode = MeshSlicingParams::SlicingMode::Regular;
-        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh.its, slice_grid, params, thr);
+
+        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh, slice_grid, params, thr);
 
         sla::ccr::for_each(size_t(0), interior_slices.size(),
                            [&po, &interior_slices] (size_t i) {
@@ -667,15 +667,14 @@ void SLAPrint::Steps::generate_pad(SLAPrintObject &po) {
             // we sometimes call it "builtin pad" is enabled so we will
             // get a sample from the bottom of the mesh and use it for pad
             // creation.
-            sla::pad_blueprint(trmesh, bp, float(pad_h),
+            sla::pad_blueprint(trmesh.its, bp, float(pad_h),
                                float(po.m_config.layer_height.getFloat()),
                                [this](){ throw_if_canceled(); });
         }
 
-        po.m_supportdata->support_tree_ptr->add_pad(bp, pcfg);
-        auto &pad_mesh = po.m_supportdata->support_tree_ptr->retrieve_mesh(sla::MeshType::Pad);
+        po.m_supportdata->create_pad(bp, pcfg);
 
-        if (!validate_pad(pad_mesh, pcfg))
+        if (!validate_pad(po.m_supportdata->support_tree_ptr->retrieve_mesh(sla::MeshType::Pad), pcfg))
             throw Slic3r::SlicingError(
                     L("No pad can be generated for this model with the "
                       "current configuration"));

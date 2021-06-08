@@ -2,12 +2,10 @@
 #define SLA_HOLLOWING_HPP
 
 #include <memory>
-#include <libslic3r/SLA/Contour3D.hpp>
+#include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/JobController.hpp>
 
 namespace Slic3r {
-
-class TriangleMesh;
 
 namespace sla {
 
@@ -27,8 +25,8 @@ struct Interior;
 struct InteriorDeleter { void operator()(Interior *p); };
 using  InteriorPtr = std::unique_ptr<Interior, InteriorDeleter>;
 
-TriangleMesh &      get_mesh(Interior &interior);
-const TriangleMesh &get_mesh(const Interior &interior);
+indexed_triangle_set &      get_mesh(Interior &interior);
+const indexed_triangle_set &get_mesh(const Interior &interior);
 
 struct DrainHole
 {
@@ -58,7 +56,7 @@ struct DrainHole
     bool get_intersections(const Vec3f& s, const Vec3f& dir,
                            std::array<std::pair<float, Vec3d>, 2>& out) const;
     
-    Contour3D to_mesh() const;
+    indexed_triangle_set to_mesh() const;
     
     template<class Archive> inline void serialize(Archive &ar)
     {
@@ -99,7 +97,13 @@ void cut_drainholes(std::vector<ExPolygons> & obj_slices,
                     const sla::DrainHoles &   holes,
                     std::function<void(void)> thr);
 
+inline void swap_normals(indexed_triangle_set &its)
+{
+    for (auto &face : its.indices)
+        std::swap(face(0), face(2));
 }
-}
+
+} // namespace sla
+} // namespace Slic3r
 
 #endif // HOLLOWINGFILTER_H

@@ -113,14 +113,14 @@ public:
     Plater *plater;
     
     Sel sel = Sel::modelAndProfile;
-    
-    TriangleMesh       mesh;
-    DynamicPrintConfig profile;
-    wxString           path;
-    Vec2i              win = {2, 2};
-    std::string        err;
-    
-    priv(Plater *plt): plater{plt} {}
+
+    indexed_triangle_set mesh;
+    DynamicPrintConfig   profile;
+    wxString             path;
+    Vec2i                win = {2, 2};
+    std::string          err;
+
+    priv(Plater *plt) : plater{plt} {}
 };
 
 SLAImportJob::SLAImportJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
@@ -222,7 +222,8 @@ void SLAImportJob::finalize()
     
     if (!p->mesh.empty()) {
         bool is_centered = false;
-        p->plater->sidebar().obj_list()->load_mesh_object(p->mesh, name, is_centered);
+        p->plater->sidebar().obj_list()->load_mesh_object(TriangleMesh{p->mesh},
+                                                          name, is_centered);
     }
     
     reset();

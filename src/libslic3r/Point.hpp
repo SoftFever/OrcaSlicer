@@ -21,6 +21,12 @@ class MultiPoint;
 class Point;
 using Vector = Point;
 
+// Base template for eigen derived vectors
+template<int N, int M, class T>
+using Mat = Eigen::Matrix<T, N, M, Eigen::DontAlign, N, M>;
+
+template<int N, class T> using Vec = Mat<N, 1, T>;
+
 // Eigen types, to replace the Slic3r's own types in the future.
 // Vector types with a fixed point coordinate base type.
 using Vec2crd = Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign>;
@@ -54,10 +60,18 @@ using Matrix3d       = Eigen::Matrix<double, 3, 3, Eigen::DontAlign>;
 using Matrix4f       = Eigen::Matrix<float,  4, 4, Eigen::DontAlign>;
 using Matrix4d       = Eigen::Matrix<double, 4, 4, Eigen::DontAlign>;
 
+template<int N, class T>
+using Transform = Eigen::Transform<float, N, Eigen::Affine, Eigen::DontAlign>;
+
 using Transform2f    = Eigen::Transform<float,  2, Eigen::Affine, Eigen::DontAlign>;
 using Transform2d    = Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign>;
 using Transform3f    = Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign>;
 using Transform3d    = Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign>;
+
+// I don't know why Eigen::Transform::Identity() return a const object...
+template<int N, class T> Transform<N, T> identity() { return Transform<N, T>::Identity(); }
+inline const auto &identity3f = identity<3, float>;
+inline const auto &identity3d = identity<3, double>;
 
 inline bool operator<(const Vec2d &lhs, const Vec2d &rhs) { return lhs.x() < rhs.x() || (lhs.x() == rhs.x() && lhs.y() < rhs.y()); }
 
@@ -487,5 +501,20 @@ namespace cereal {
 	template<class Archive> void load(Archive& archive, Slic3r::Matrix2f &m) { archive.loadBinary((char*)m.data(), sizeof(float) * 4); }
 	template<class Archive> void save(Archive& archive, Slic3r::Matrix2f &m) { archive.saveBinary((char*)m.data(), sizeof(float) * 4); }
 }
+
+// To be able to use Vec<> and Mat<> in range based for loops:
+namespace Eigen {
+template<class T, int N, int M>
+T* begin(Slic3r::Mat<N, M, T> &mat) { return mat.data(); }
+
+template<class T, int N, int M>
+T* end(Slic3r::Mat<N, M, T> &mat) { return mat.data() + N * M; }
+
+template<class T, int N, int M>
+const T* begin(const Slic3r::Mat<N, M, T> &mat) { return mat.data(); }
+
+template<class T, int N, int M>
+const T* end(const Slic3r::Mat<N, M, T> &mat) { return mat.data() + N * M; }
+} // namespace Eigen
 
 #endif

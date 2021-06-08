@@ -29,38 +29,36 @@
 namespace Slic3r {
 namespace sla {
 
-void SupportTree::retrieve_full_mesh(TriangleMesh &outmesh) const {
-    outmesh.merge(retrieve_mesh(MeshType::Support));
-    outmesh.merge(retrieve_mesh(MeshType::Pad));
+void SupportTree::retrieve_full_mesh(indexed_triangle_set &outmesh) const {
+    its_merge(outmesh, retrieve_mesh(MeshType::Support));
+    its_merge(outmesh, retrieve_mesh(MeshType::Pad));
 }
 
-std::vector<ExPolygons> SupportTree::slice(
-    const std::vector<float> &grid, float cr) const
+std::vector<ExPolygons> SupportTree::slice(const std::vector<float> &grid,
+                                           float                     cr) const
 {
-    const TriangleMesh &sup_mesh = retrieve_mesh(MeshType::Support);
-    const TriangleMesh &pad_mesh = retrieve_mesh(MeshType::Pad);
+    const indexed_triangle_set &sup_mesh = retrieve_mesh(MeshType::Support);
+    const indexed_triangle_set &pad_mesh = retrieve_mesh(MeshType::Pad);
 
     using Slices = std::vector<ExPolygons>;
     auto slices = reserve_vector<Slices>(2);
 
     if (!sup_mesh.empty()) {
         slices.emplace_back();
-        assert(sup_mesh.has_shared_vertices());
-        slices.back() = slice_mesh_ex(sup_mesh.its, grid, cr, ctl().cancelfn);
+        slices.back() = slice_mesh_ex(sup_mesh, grid, cr, ctl().cancelfn);
     }
 
     if (!pad_mesh.empty()) {
         slices.emplace_back();
 
-        auto bb = pad_mesh.bounding_box();
+        auto bb = bounding_box(pad_mesh);
         auto maxzit = std::upper_bound(grid.begin(), grid.end(), bb.max.z());
         
         auto cap = grid.end() - maxzit;
         auto padgrid = reserve_vector<float>(size_t(cap > 0 ? cap : 0));
         std::copy(grid.begin(), maxzit, std::back_inserter(padgrid));
 
-        assert(pad_mesh.has_shared_vertices());
-        slices.back() = slice_mesh_ex(pad_mesh.its, padgrid, cr, ctl().cancelfn);
+        slices.back() = slice_mesh_ex(pad_mesh, padgrid, cr, ctl().cancelfn);
     }
 
     size_t len = grid.size();

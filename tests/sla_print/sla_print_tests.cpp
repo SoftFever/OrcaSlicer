@@ -223,23 +223,14 @@ TEST_CASE("RasterizedPolygonAreaShouldMatch", "[SLARasterOutput]") {
     REQUIRE(raster_pxsum(raster0) == 0);
 }
 
-TEST_CASE("Triangle mesh conversions should be correct", "[SLAConversions]")
-{
-    sla::Contour3D cntr;
-    
-    {
-        std::fstream infile{"extruder_idler_quads.obj", std::ios::in};
-        cntr.from_obj(infile);
-    }
-}
 
 TEST_CASE("halfcone test", "[halfcone]") {
     sla::DiffBridge br{Vec3d{1., 1., 1.}, Vec3d{10., 10., 10.}, 0.25, 0.5};
 
-    TriangleMesh m = sla::to_triangle_mesh(sla::get_mesh(br, 45));
+    indexed_triangle_set m = sla::get_mesh(br, 45);
 
-    m.require_shared_vertices();
-    m.WriteOBJFile("Halfcone.obj");
+    its_merge_vertices(m);
+    its_write_obj(m, "Halfcone.obj");
 }
 
 TEST_CASE("Test concurrency")

@@ -1,7 +1,7 @@
 #include <libslic3r/SLA/Pad.hpp>
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/SLA/BoostAdapter.hpp>
-#include <libslic3r/SLA/Contour3D.hpp>
+//#include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/TriangleMeshSlicer.hpp>
 
 #include "ConcaveHull.hpp"
@@ -29,25 +29,23 @@ namespace Slic3r { namespace sla {
 
 namespace {
 
-Contour3D walls(
+indexed_triangle_set walls(
     const Polygon &lower,
     const Polygon &upper,
     double         lower_z_mm,
     double         upper_z_mm)
 {
-    Wall w = triangulate_wall(lower, upper, lower_z_mm, upper_z_mm);
-
-    Contour3D ret;
-    ret.points = std::move(w.first);
-    ret.faces3 = std::move(w.second);
+    indexed_triangle_set w;
+    triangulate_wall(w.vertices, w.indices, lower, upper, lower_z_mm,
+                     upper_z_mm);
     
-    return ret;
+    return w;
 }
 
 // Same as walls() but with identical higher and lower polygons.
-Contour3D inline straight_walls(const Polygon &plate,
-                                double         lo_z,
-                                double         hi_z)
+inline indexed_triangle_set straight_walls(const Polygon &plate,
+                                           double         lo_z,
+                                           double         hi_z)
 {
     return walls(plate, plate, lo_z, hi_z);
 }
@@ -357,8 +355,10 @@ ExPolygon offset_contour_only(const ExPolygon &poly, coord_t delta, Args...args)
     return std::move(tmp2.front());
 }
 
-bool add_cavity(Contour3D &pad, ExPolygon &top_poly, const PadConfig3D &cfg,
-                ThrowOnCancel thr)
+bool add_cavity(indexed_triangle_set &pad,
+                ExPolygon &           top_poly,
+                const PadConfig3D &   cfg,
+                ThrowOnCancel         thr)
 {
     auto logerr = []{BOOST_LOG_TRIVIAL(error)<<"Could not create pad cavity";};
 
@@ -377,18 +377,18 @@ bool add_cavity(Contour3D &pad, ExPolygon &top_poly, const PadConfig3D &cfg,
     top_poly = pdiff.front();
 
     double z_min = -cfg.wing_height, z_max = 0;
-    pad.merge(walls(inner_base.contour, middle_base.contour, z_min, z_max));
+    its_merge(pad, walls(inner_base.contour, middle_base.contour, z_min, z_max));
     thr();
-    pad.merge(triangulate_expolygon_3d(inner_base, z_min, NORMALS_UP));
+    its_merge(pad, triangulate_expolygon_3d(inner_base, z_min, NORMALS_UP));
 
     return true;
 }
 
-Contour3D create_outer_pad_geometry(const ExPolygons & skeleton,
-                                    const PadConfig3D &cfg,
-                                    ThrowOnCancel      thr)
+indexed_triangle_set create_outer_pad_geometry(const ExPolygons & skeleton,
+                                               const PadConfig3D &cfg,
+                                               ThrowOnCancel      thr)
 {
-    Contour3D ret;
+    indexed_triangle_set ret;
 
     for (const ExPolygon &pad_part : skeleton) {
         ExPolygon top_poly{pad_part};
@@ -399,45 +399,45 @@ Contour3D create_outer_pad_geometry(const ExPolygons & skeleton,
         thr();
         
         double z_min = -cfg.height, z_max = 0;
-        ret.merge(walls(top_poly.contour, bottom_poly.contour, z_max, z_min));
+        its_merge(ret, walls(top_poly.contour, bottom_poly.contour, z_max, z_min));
 
         if (cfg.wing_height > 0. && add_cavity(ret, top_poly, cfg, thr))
             z_max = -cfg.wing_height;
 
         for (auto &h : bottom_poly.holes)
-            ret.merge(straight_walls(h, z_max, z_min));
+            its_merge(ret, straight_walls(h, z_max, z_min));
         
-        ret.merge(triangulate_expolygon_3d(bottom_poly, z_min, NORMALS_DOWN));
-        ret.merge(triangulate_expolygon_3d(top_poly, NORMALS_UP));
+        its_merge(ret, triangulate_expolygon_3d(bottom_poly, z_min, NORMALS_DOWN));
+        its_merge(ret, triangulate_expolygon_3d(top_poly, NORMALS_UP));
     }
 
     return ret;
 }
 
-Contour3D create_inner_pad_geometry(const ExPolygons & skeleton,
-                                    const PadConfig3D &cfg,
-                                    ThrowOnCancel      thr)
+indexed_triangle_set create_inner_pad_geometry(const ExPolygons & skeleton,
+                                               const PadConfig3D &cfg,
+                                               ThrowOnCancel      thr)
 {
-    Contour3D ret;
+    indexed_triangle_set ret;
 
     double z_max = 0., z_min = -cfg.height;
     for (const ExPolygon &pad_part : skeleton) {
         thr();
-        ret.merge(straight_walls(pad_part.contour, z_max, z_min));
+        its_merge(ret, straight_walls(pad_part.contour, z_max, z_min));
 
         for (auto &h : pad_part.holes)
-            ret.merge(straight_walls(h, z_max, z_min));
+            its_merge(ret, straight_walls(h, z_max, z_min));
     
-        ret.merge(triangulate_expolygon_3d(pad_part, z_min, NORMALS_DOWN));
-        ret.merge(triangulate_expolygon_3d(pad_part, z_max, NORMALS_UP));
+        its_merge(ret, triangulate_expolygon_3d(pad_part, z_min, NORMALS_DOWN));
+        its_merge(ret, triangulate_expolygon_3d(pad_part, z_max, NORMALS_UP));
     }
 
     return ret;
 }
 
-Contour3D create_pad_geometry(const PadSkeleton &skelet,
-                              const PadConfig &  cfg,
-                              ThrowOnCancel      thr)
+indexed_triangle_set create_pad_geometry(const PadSkeleton &skelet,
+                                         const PadConfig &  cfg,
+                                         ThrowOnCancel      thr)
 {
 #ifndef NDEBUG
     SVG svg("pad_skeleton.svg");
@@ -447,14 +447,16 @@ Contour3D create_pad_geometry(const PadSkeleton &skelet,
 #endif
 
     PadConfig3D cfg3d(cfg);
-    return create_outer_pad_geometry(skelet.outer, cfg3d, thr)
-        .merge(create_inner_pad_geometry(skelet.inner, cfg3d, thr));
+    auto pg = create_outer_pad_geometry(skelet.outer, cfg3d, thr);
+    its_merge(pg, create_inner_pad_geometry(skelet.inner, cfg3d, thr));
+
+    return pg;
 }
 
-Contour3D create_pad_geometry(const ExPolygons &supp_bp,
-                              const ExPolygons &model_bp,
-                              const PadConfig & cfg,
-                              ThrowOnCancel thr)
+indexed_triangle_set create_pad_geometry(const ExPolygons &supp_bp,
+                                         const ExPolygons &model_bp,
+                                         const PadConfig & cfg,
+                                         ThrowOnCancel     thr)
 {
     PadSkeleton skelet;
 
@@ -471,15 +473,14 @@ Contour3D create_pad_geometry(const ExPolygons &supp_bp,
 
 } // namespace
 
-void pad_blueprint(const TriangleMesh &      mesh,
-                   ExPolygons &              output,
-                   const std::vector<float> &heights,
-                   ThrowOnCancel             thrfn)
+void pad_blueprint(const indexed_triangle_set &mesh,
+                   ExPolygons &                output,
+                   const std::vector<float> &  heights,
+                   ThrowOnCancel               thrfn)
 {
     if (mesh.empty()) return;
 
-    assert(mesh.has_shared_vertices());
-    std::vector<ExPolygons> out = slice_mesh_ex(mesh.its, heights, thrfn);
+    std::vector<ExPolygons> out = slice_mesh_ex(mesh, heights, thrfn);
 
     size_t count = 0;
     for(auto& o : out) count += o.size();
@@ -500,26 +501,26 @@ void pad_blueprint(const TriangleMesh &      mesh,
     }
 }
 
-void pad_blueprint(const TriangleMesh &mesh,
-                   ExPolygons &        output,
-                   float               h,
-                   float               layerh,
-                   ThrowOnCancel       thrfn)
+void pad_blueprint(const indexed_triangle_set &mesh,
+                   ExPolygons &                output,
+                   float                       h,
+                   float                       layerh,
+                   ThrowOnCancel               thrfn)
 {
-    float gnd = float(mesh.bounding_box().min(Z));
+    float gnd = float(bounding_box(mesh).min(Z));
 
     std::vector<float> slicegrid = grid(gnd, gnd + h, layerh);
     pad_blueprint(mesh, output, slicegrid, thrfn);
 }
 
-void create_pad(const ExPolygons &sup_blueprint,
-                const ExPolygons &model_blueprint,
-                TriangleMesh &    out,
-                const PadConfig & cfg,
-                ThrowOnCancel thr)
+void create_pad(const ExPolygons &    sup_blueprint,
+                const ExPolygons &    model_blueprint,
+                indexed_triangle_set &out,
+                const PadConfig &     cfg,
+                ThrowOnCancel         thr)
 {
-    Contour3D t = create_pad_geometry(sup_blueprint, model_blueprint, cfg, thr);
-    out.merge(to_triangle_mesh(std::move(t)));
+    auto t = create_pad_geometry(sup_blueprint, model_blueprint, cfg, thr);
+    its_merge(out, t);
 }
 
 std::string PadConfig::validate() const

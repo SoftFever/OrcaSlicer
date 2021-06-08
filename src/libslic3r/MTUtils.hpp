@@ -74,29 +74,6 @@ public:
     }
 };
 
-/// A very simple range concept implementation with iterator-like objects.
-template<class It> class Range
-{
-    It from, to;
-
-public:
-    // The class is ready for range based for loops.
-    It begin() const { return from; }
-    It end() const { return to; }
-
-    // The iterator type can be obtained this way.
-    using Type = It;
-
-    Range() = default;
-    Range(It &&b, It &&e)
-        : from(std::forward<It>(b)), to(std::forward<It>(e))
-    {}
-
-    // Some useful container-like methods...
-    inline size_t size() const { return end() - begin(); }
-    inline bool   empty() const { return size() == 0; }
-};
-
 template<class C> bool all_of(const C &container)
 {
     return std::all_of(container.begin(),

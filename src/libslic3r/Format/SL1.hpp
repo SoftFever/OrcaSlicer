@@ -14,7 +14,7 @@ class SL1Archive: public SLAPrinter {
 protected:
     uqptr<sla::RasterBase> create_raster() const override;
     sla::RasterEncoder get_encoder() const override;
-    
+
 public:
     
     SL1Archive() = default;
@@ -43,14 +43,14 @@ void import_sla_archive(const std::string &zipfname, DynamicPrintConfig &out);
 void import_sla_archive(
     const std::string &      zipfname,
     Vec2i                    windowsize,
-    TriangleMesh &           out,
+    indexed_triangle_set &   out,
     DynamicPrintConfig &     profile,
     std::function<bool(int)> progr = [](int) { return true; });
 
 inline void import_sla_archive(
     const std::string &      zipfname,
     Vec2i                    windowsize,
-    TriangleMesh &           out,
+    indexed_triangle_set &   out,
     std::function<bool(int)> progr = [](int) { return true; })
 {
     DynamicPrintConfig profile;

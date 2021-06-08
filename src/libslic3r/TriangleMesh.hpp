@@ -88,11 +88,6 @@ private:
     std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
 };
 
-// Create an index of faces belonging to each vertex. The returned vector can
-// be indexed with vertex indices and contains a list of face indices for each
-// vertex.
-std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangle_set &its);
-
 // Index of face indices incident with a vertex index.
 struct VertexFaceIndex
 {
@@ -111,6 +106,8 @@ public:
     // Vertex incidence.
     size_t   count(size_t vertex_id) const throw() { return m_vertex_to_face_start[vertex_id + 1] - m_vertex_to_face_start[vertex_id]; }
 
+    const Range<iterator> operator[](size_t vertex_id) const { return {begin(vertex_id), end(vertex_id)}; }
+
 private:
     std::vector<size_t>     m_vertex_to_face_start;
     std::vector<size_t>     m_vertex_faces_all;
@@ -121,6 +118,11 @@ private:
 // Used for chaining slice lines into polygons.
 std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its);
 std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback);
+
+// Create index that gives neighbor faces for each face. Ignores face orientations.
+// TODO: naming...
+std::vector<Vec3i> its_create_neighbors_index(const indexed_triangle_set &its);
+std::vector<Vec3i> its_create_neighbors_index_par(const indexed_triangle_set &its);
 
 // After applying a transformation with negative determinant, flip the faces to keep the transformed mesh volume positive.
 void its_flip_triangles(indexed_triangle_set &its);
@@ -136,6 +138,10 @@ int its_remove_degenerate_faces(indexed_triangle_set &its, bool shrink_to_fit = 
 // Remove vertices, which none of the faces references. Return number of freed vertices.
 int its_compactify_vertices(indexed_triangle_set &its, bool shrink_to_fit = true);
 
+std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its);
+
+bool its_is_splittable(const indexed_triangle_set &its);
+
 // Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
 void its_shrink_to_fit(indexed_triangle_set &its);
 
@@ -147,10 +153,55 @@ void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, c
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Matrix3f &m, const float z);
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transform3f &t, const float z);
 
+using its_triangle = std::array<stl_vertex, 3>;
+
+inline its_triangle its_triangle_vertices(const indexed_triangle_set &its,
+                                          size_t                      face_id)
+{
+    return {its.vertices[its.indices[face_id](0)],
+            its.vertices[its.indices[face_id](1)],
+            its.vertices[its.indices[face_id](2)]};
+}
+
+inline stl_normal its_unnormalized_normal(const indexed_triangle_set &its,
+                                          size_t                      face_id)
+{
+    its_triangle tri = its_triangle_vertices(its, face_id);
+    return (tri[1] - tri[0]).cross(tri[2] - tri[0]);
+}
+
+float its_volume(const indexed_triangle_set &its);
+
+void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B);
+void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles);
+void its_merge(indexed_triangle_set &A, const Pointf3s &triangles);
+
+indexed_triangle_set its_make_cube(double x, double y, double z);
 TriangleMesh make_cube(double x, double y, double z);
+
+// Generate a TriangleMesh of a cylinder
+indexed_triangle_set its_make_cylinder(double r, double h, double fa=(2*PI/360));
 TriangleMesh make_cylinder(double r, double h, double fa=(2*PI/360));
+
+indexed_triangle_set its_make_sphere(double rho, double fa=(2*PI/360));
 TriangleMesh make_cone(double r, double h, double fa=(2*PI/360));
 TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
+
+inline BoundingBoxf3 bounding_box(const TriangleMesh &m) { return m.bounding_box(); }
+inline BoundingBoxf3 bounding_box(const indexed_triangle_set& its)
+{
+    if (its.vertices.empty())
+        return {};
+
+    Vec3f bmin = its.vertices.front(), bmax = its.vertices.front();
+
+    for (const Vec3f &p : its.vertices) {
+        bmin = p.cwiseMin(bmin);
+        bmax = p.cwiseMax(bmax);
+    }
+
+    return {bmin.cast<double>(), bmax.cast<double>()};
+}
 
 }
 

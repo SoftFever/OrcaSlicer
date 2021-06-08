@@ -22,14 +22,8 @@
 namespace Slic3r {
 namespace sla {
 
-template<class S, class = FloatingOnly<S>>
-inline void _scale(S s, TriangleMesh &m) { m.scale(float(s)); }
-
-template<class S, class = FloatingOnly<S>>
-inline void _scale(S s, Contour3D &m) { for (auto &p : m.points) p *= s; }
-
 struct Interior {
-    TriangleMesh mesh;
+    indexed_triangle_set mesh;
     openvdb::FloatGrid::Ptr gridptr;
     mutable std::optional<openvdb::FloatGrid::ConstAccessor> accessor;
 
@@ -53,12 +47,12 @@ void InteriorDeleter::operator()(Interior *p)
     delete p;
 }
 
-TriangleMesh &get_mesh(Interior &interior)
+indexed_triangle_set &get_mesh(Interior &interior)
 {
     return interior.mesh;
 }
 
-const TriangleMesh &get_mesh(const Interior &interior)
+const indexed_triangle_set &get_mesh(const Interior &interior)
 {
     return interior.mesh;
 }
@@ -77,7 +71,7 @@ static InteriorPtr generate_interior_verbose(const TriangleMesh & mesh,
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(0, L("Hollowing"));
 
-    auto gridptr = mesh_to_grid(mesh, {}, voxel_scale, out_range, in_range);
+    auto gridptr = mesh_to_grid(mesh.its, {}, voxel_scale, out_range, in_range);
 
     assert(gridptr);
 
@@ -136,32 +130,28 @@ InteriorPtr generate_interior(const TriangleMesh &   mesh,
 
     if (interior && !interior->mesh.empty()) {
 
-        // This flips the normals to be outward facing...
-        interior->mesh.require_shared_vertices();
-        indexed_triangle_set its = std::move(interior->mesh.its);
+        // flip normals back...
+        swap_normals(interior->mesh);
+        Slic3r::simplify_mesh(interior->mesh);
 
-        Slic3r::simplify_mesh(its);
+        its_compactify_vertices(interior->mesh);
+        its_merge_vertices(interior->mesh);
 
         // flip normals back...
-        for (stl_triangle_vertex_indices &ind : its.indices)
-            std::swap(ind(0), ind(2));
-
-        interior->mesh = Slic3r::TriangleMesh{its};
-        interior->mesh.repaired = true;
-        interior->mesh.require_shared_vertices();
+        swap_normals(interior->mesh);
     }
 
     return interior;
 }
 
-Contour3D DrainHole::to_mesh() const
+indexed_triangle_set DrainHole::to_mesh() const
 {
     auto r = double(radius);
     auto h = double(height);
-    sla::Contour3D hole = sla::cylinder(r, h, steps);
-    Eigen::Quaterniond q;
-    q.setFromTwoVectors(Vec3d{0., 0., 1.}, normal.cast<double>());
-    for(auto& p : hole.points) p = q * p + pos.cast<double>();
+    indexed_triangle_set hole = sla::cylinder(r, h, steps);
+    Eigen::Quaternionf q;
+    q.setFromTwoVectors(Vec3f{0.f, 0.f, 1.f}, normal);
+    for(auto& p : hole.vertices) p = q * p + pos;
     
     return hole;
 }
@@ -292,7 +282,7 @@ void cut_drainholes(std::vector<ExPolygons> & obj_slices,
 {
     TriangleMesh mesh;
     for (const sla::DrainHole &holept : holes)
-        mesh.merge(sla::to_triangle_mesh(holept.to_mesh()));
+        mesh.merge(TriangleMesh{holept.to_mesh()});
     
     if (mesh.empty()) return;
     
@@ -325,7 +315,7 @@ void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags)
     if (flags & hfRemoveInsideTriangles && interior.gridptr)
         remove_inside_triangles(mesh, interior);
 
-    mesh.merge(interior.mesh);
+    mesh.merge(TriangleMesh{interior.mesh});
     mesh.require_shared_vertices();
 }
 

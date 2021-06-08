@@ -205,6 +205,7 @@ add_library(libslic3r STATIC
     TriangleMesh.hpp
     TriangleMeshSlicer.cpp
     TriangleMeshSlicer.hpp
+    MeshSplitImpl.hpp
     TriangulateWall.hpp
     TriangulateWall.cpp
     utils.cpp
@@ -266,8 +267,6 @@ add_library(libslic3r STATIC
     SLA/SupportPoint.hpp
     SLA/SupportPointGenerator.hpp
     SLA/SupportPointGenerator.cpp
-    SLA/Contour3D.hpp
-    SLA/Contour3D.cpp
     SLA/IndexedMesh.hpp
     SLA/IndexedMesh.cpp
     SLA/Clustering.hpp

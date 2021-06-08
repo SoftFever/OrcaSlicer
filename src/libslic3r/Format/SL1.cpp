@@ -296,7 +296,7 @@ void import_sla_archive(const std::string &zipfname, DynamicPrintConfig &out)
 void import_sla_archive(
     const std::string &      zipfname,
     Vec2i                    windowsize,
-    TriangleMesh &           out,
+    indexed_triangle_set &           out,
     DynamicPrintConfig &     profile,
     std::function<bool(int)> progr)
 {
@@ -316,7 +316,7 @@ void import_sla_archive(
         extract_slices_from_sla_archive(arch, rstp, progr);
 
     if (!slices.empty())
-        out = slices_to_triangle_mesh(slices, 0, slicp.layerh, slicp.initial_layerh);
+        out = slices_to_mesh(slices, 0, slicp.layerh, slicp.initial_layerh);
 }
 
 using ConfMap = std::map<std::string, std::string>;

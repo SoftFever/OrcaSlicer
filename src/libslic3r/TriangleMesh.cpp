@@ -1,8 +1,12 @@
 #include "Exception.hpp"
 #include "TriangleMesh.hpp"
 #include "TriangleMeshSlicer.hpp"
+#include "MeshSplitImpl.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include "Point.hpp"
+#include "Execution/ExecutionTBB.hpp"
+#include "Execution/ExecutionSeq.hpp"
 
 #include <libqhullcpp/Qhull.h>
 #include <libqhullcpp/QhullFacetList.h>
@@ -447,27 +451,40 @@ std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<unsigned
  */
 TriangleMeshPtrs TriangleMesh::split() const
 {
-    // Loop while we have remaining facets.
-    std::vector<unsigned char> facet_visited;
+    struct MeshAdder {
+        TriangleMeshPtrs &meshes;
+        MeshAdder(TriangleMeshPtrs &ptrs): meshes{ptrs} {}
+        void operator=(const indexed_triangle_set &its)
+        {
+            meshes.emplace_back(new TriangleMesh(its));
+        }
+    };
+
     TriangleMeshPtrs meshes;
-    for (;;) {
-        std::deque<uint32_t> facets = find_unvisited_neighbors(facet_visited);
-        if (facets.empty())
-            break;
+    if (has_shared_vertices()) {
+        its_split(its, MeshAdder{meshes});
+    } else {
+        // Loop while we have remaining facets.
+        std::vector<unsigned char> facet_visited;
+        for (;;) {
+            std::deque<uint32_t> facets = find_unvisited_neighbors(facet_visited);
+            if (facets.empty())
+                break;
 
-        // Create a new mesh for the part that was just split off.
-        TriangleMesh* mesh = new TriangleMesh;
-        meshes.emplace_back(mesh);
-        mesh->stl.stats.type = inmemory;
-        mesh->stl.stats.number_of_facets = (uint32_t)facets.size();
-        mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
-        stl_allocate(&mesh->stl);
+            // Create a new mesh for the part that was just split off.
+            TriangleMesh* mesh = new TriangleMesh;
+            meshes.emplace_back(mesh);
+            mesh->stl.stats.type = inmemory;
+            mesh->stl.stats.number_of_facets = (uint32_t)facets.size();
+            mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
+            stl_allocate(&mesh->stl);
 
-        // Assign the facets to the new mesh.
-        bool first = true;
-        for (auto facet = facets.begin(); facet != facets.end(); ++ facet) {
-            mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
-            stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
+            // Assign the facets to the new mesh.
+            bool first = true;
+            for (auto facet = facets.begin(); facet != facets.end(); ++ facet) {
+                mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
+                stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
+            }
         }
     }
 
@@ -667,69 +684,24 @@ void TriangleMesh::restore_optional()
     }
 }
 
-std::vector<std::vector<size_t>> create_vertex_faces_index(const indexed_triangle_set &its)
-{
-    std::vector<std::vector<size_t>> index;
+// Create a mapping from triangle edge into face.
+struct EdgeToFace {
+    // Index of the 1st vertex of the triangle edge. vertex_low <= vertex_high.
+    int  vertex_low;
+    // Index of the 2nd vertex of the triangle edge.
+    int  vertex_high;
+    // Index of a triangular face.
+    int  face;
+    // Index of edge in the face, starting with 1. Negative indices if the edge was stored reverse in (vertex_low, vertex_high).
+    int  face_edge;
+    bool operator==(const EdgeToFace &other) const { return vertex_low == other.vertex_low && vertex_high == other.vertex_high; }
+    bool operator<(const EdgeToFace &other) const { return vertex_low < other.vertex_low || (vertex_low == other.vertex_low && vertex_high < other.vertex_high); }
+};
 
-    if (! its.vertices.empty()) {
-        size_t res = its.indices.size() / its.vertices.size();
-        index.assign(its.vertices.size(), reserve_vector<size_t>(res));
-        for (size_t fi = 0; fi < its.indices.size(); ++fi) {
-            auto &face = its.indices[fi];
-            index[face(0)].emplace_back(fi);
-            index[face(1)].emplace_back(fi);
-            index[face(2)].emplace_back(fi);
-        }
-    }
-
-    return index;
-}
-
-void VertexFaceIndex::create(const indexed_triangle_set &its)
-{
-    m_vertex_to_face_start.assign(its.vertices.size() + 1, 0);
-    // 1) Calculate vertex incidence by scatter.
-    for (auto &face : its.indices) {
-        ++ m_vertex_to_face_start[face(0) + 1];
-        ++ m_vertex_to_face_start[face(1) + 1];
-        ++ m_vertex_to_face_start[face(2) + 1];
-    }
-    // 2) Prefix sum to calculate offsets to m_vertex_faces_all.
-    for (size_t i = 2; i < m_vertex_to_face_start.size(); ++ i)
-        m_vertex_to_face_start[i] += m_vertex_to_face_start[i - 1];
-    // 3) Scatter indices of faces incident to a vertex into m_vertex_faces_all.
-    m_vertex_faces_all.assign(m_vertex_to_face_start.back(), 0);
-    for (size_t face_idx = 0; face_idx < its.indices.size(); ++ face_idx) {
-        auto &face = its.indices[face_idx];
-        for (int i = 0; i < 3; ++ i)
-            m_vertex_faces_all[m_vertex_to_face_start[face(i)] ++] = face_idx;
-    }
-    // 4) The previous loop modified m_vertex_to_face_start. Revert the change.
-    for (auto i = int(m_vertex_to_face_start.size()) - 1; i > 0; -- i)
-        m_vertex_to_face_start[i] = m_vertex_to_face_start[i - 1];
-    m_vertex_to_face_start.front() = 0;
-}
-
-// Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
-// Two neighbor faces share a unique edge identifier even if they are flipped.
 template<typename ThrowOnCancelCallback>
-static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
+static std::vector<EdgeToFace> create_edge_map(
+    const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
 {
-    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
-
-    // Create a mapping from triangle edge into face.
-    struct EdgeToFace {
-        // Index of the 1st vertex of the triangle edge. vertex_low <= vertex_high.
-        int  vertex_low;
-        // Index of the 2nd vertex of the triangle edge.
-        int  vertex_high;
-        // Index of a triangular face.
-        int  face;
-        // Index of edge in the face, starting with 1. Negative indices if the edge was stored reverse in (vertex_low, vertex_high).
-        int  face_edge;
-        bool operator==(const EdgeToFace &other) const { return vertex_low == other.vertex_low && vertex_high == other.vertex_high; }
-        bool operator<(const EdgeToFace &other) const { return vertex_low < other.vertex_low || (vertex_low == other.vertex_low && vertex_high < other.vertex_high); }
-    };
     std::vector<EdgeToFace> edges_map;
     edges_map.assign(its.indices.size() * 3, EdgeToFace());
     for (uint32_t facet_idx = 0; facet_idx < its.indices.size(); ++ facet_idx)
@@ -749,6 +721,18 @@ static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_
         }
     throw_on_cancel();
     std::sort(edges_map.begin(), edges_map.end());
+
+    return edges_map;
+}
+
+// Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
+// Two neighbor faces share a unique edge identifier even if they are flipped.
+template<typename ThrowOnCancelCallback>
+static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
+{
+    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
+
+    std::vector<EdgeToFace> edges_map = create_edge_map(its, throw_on_cancel);
 
     // Assign a unique common edge id to touching triangle edges.
     int num_edges = 0;
@@ -981,20 +965,22 @@ Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transfor
 }
 
 // Generate the vertex list for a cube solid of arbitrary size in X/Y/Z.
+indexed_triangle_set its_make_cube(double xd, double yd, double zd)
+{
+    auto x = float(xd), y = float(yd), z = float(zd);
+    indexed_triangle_set mesh;
+    mesh.vertices = {{x, y, 0}, {x, 0, 0}, {0, 0, 0}, {0, y, 0},
+                     {x, y, z}, {0, y, z}, {0, 0, z}, {x, 0, z}};
+    mesh.indices  = {{0, 1, 2}, {0, 2, 3}, {4, 5, 6}, {4, 6, 7},
+                    {0, 4, 7}, {0, 7, 1}, {1, 7, 6}, {1, 6, 2},
+                    {2, 6, 5}, {2, 5, 3}, {4, 0, 3}, {4, 3, 5}};
+
+    return mesh;
+}
+
 TriangleMesh make_cube(double x, double y, double z) 
 {
-    TriangleMesh mesh(
-        {
-            {x, y, 0}, {x, 0, 0}, {0, 0, 0},
-            {0, y, 0}, {x, y, z}, {0, y, z},
-            {0, 0, z}, {x, 0, z}
-        },
-        {
-            {0, 1, 2}, {0, 2, 3}, {4, 5, 6},
-            {4, 6, 7}, {0, 4, 7}, {0, 7, 1},
-            {1, 7, 6}, {1, 6, 2}, {2, 6, 5},
-            {2, 5, 3}, {4, 0, 3}, {4, 3, 5}
-        });
+    TriangleMesh mesh(its_make_cube(x, y, z));
     mesh.repair();
     return mesh;
 }
@@ -1002,31 +988,32 @@ TriangleMesh make_cube(double x, double y, double z)
 // Generate the mesh for a cylinder and return it, using 
 // the generated angle to calculate the top mesh triangles.
 // Default is 360 sides, angle fa is in radians.
-TriangleMesh make_cylinder(double r, double h, double fa)
+indexed_triangle_set its_make_cylinder(double r, double h, double fa)
 {
+    indexed_triangle_set mesh;
     size_t n_steps    = (size_t)ceil(2. * PI / fa);
     double angle_step = 2. * PI / n_steps;
 
-    Pointf3s            vertices;
-    std::vector<Vec3i>  facets;
+    auto &vertices = mesh.vertices;
+    auto &facets   = mesh.indices;
     vertices.reserve(2 * n_steps + 2);
     facets.reserve(4 * n_steps);
 
     // 2 special vertices, top and bottom center, rest are relative to this
-    vertices.emplace_back(Vec3d(0.0, 0.0, 0.0));
-    vertices.emplace_back(Vec3d(0.0, 0.0, h));
+    vertices.emplace_back(Vec3f(0.f, 0.f, 0.f));
+    vertices.emplace_back(Vec3f(0.f, 0.f, float(h)));
 
     // for each line along the polygon approximating the top/bottom of the
     // circle, generate four points and four facets (2 for the wall, 2 for the
     // top and bottom.
     // Special case: Last line shares 2 vertices with the first line.
-    Vec2d p = Eigen::Rotation2Dd(0.) * Eigen::Vector2d(0, r);
-    vertices.emplace_back(Vec3d(p(0), p(1), 0.));
-    vertices.emplace_back(Vec3d(p(0), p(1), h));
+    Vec2f p = Eigen::Rotation2Df(0.f) * Eigen::Vector2f(0, r);
+    vertices.emplace_back(Vec3f(p(0), p(1), 0.f));
+    vertices.emplace_back(Vec3f(p(0), p(1), float(h)));
     for (size_t i = 1; i < n_steps; ++i) {
-        p = Eigen::Rotation2Dd(angle_step * i) * Eigen::Vector2d(0, r);
-        vertices.emplace_back(Vec3d(p(0), p(1), 0.));
-        vertices.emplace_back(Vec3d(p(0), p(1), h));
+        p = Eigen::Rotation2Df(angle_step * i) * Eigen::Vector2f(0, float(r));
+        vertices.emplace_back(Vec3f(p(0), p(1), 0.f));
+        vertices.emplace_back(Vec3f(p(0), p(1), float(h)));
         int id = (int)vertices.size() - 1;
         facets.emplace_back( 0, id - 1, id - 3); // top
         facets.emplace_back(id,      1, id - 2); // bottom
@@ -1039,9 +1026,15 @@ TriangleMesh make_cylinder(double r, double h, double fa)
     facets.emplace_back( 3, 1,     id);
     facets.emplace_back(id, 2,      3);
     facets.emplace_back(id, id - 1, 2);
-    
-    TriangleMesh mesh(std::move(vertices), std::move(facets));
+
+    return mesh;
+}
+
+TriangleMesh make_cylinder(double r, double h, double fa)
+{
+    TriangleMesh mesh{its_make_cylinder(r, h, fa)};
     mesh.repair();
+
     return mesh;
 }
 
@@ -1076,14 +1069,15 @@ TriangleMesh make_cone(double r, double h, double fa)
 // to determine the granularity. 
 // Default angle is 1 degree.
 //FIXME better to discretize an Icosahedron recursively http://www.songho.ca/opengl/gl_sphere.html
-TriangleMesh make_sphere(double radius, double fa)
+indexed_triangle_set its_make_sphere(double radius, double fa)
 {
     int   sectorCount = int(ceil(2. * M_PI / fa));
     int   stackCount  = int(ceil(M_PI / fa));
     float sectorStep  = float(2. * M_PI / sectorCount);
     float stackStep   = float(M_PI / stackCount);
 
-    Pointf3s vertices;
+    indexed_triangle_set mesh;
+    auto& vertices = mesh.vertices;
     vertices.reserve((stackCount - 1) * sectorCount + 2);
     for (int i = 0; i <= stackCount; ++ i) {
         // from pi/2 to -pi/2
@@ -1091,16 +1085,16 @@ TriangleMesh make_sphere(double radius, double fa)
         double xy = radius * cos(stackAngle);
         double z  = radius * sin(stackAngle);
         if (i == 0 || i == stackCount)
-            vertices.emplace_back(Vec3d(xy, 0., z));
+            vertices.emplace_back(Vec3f(float(xy), 0.f, float(z)));
         else
             for (int j = 0; j < sectorCount; ++ j) {
                 // from 0 to 2pi
                 double sectorAngle = sectorStep * j;
-                vertices.emplace_back(Vec3d(xy * cos(sectorAngle), xy * sin(sectorAngle), z));
+                vertices.emplace_back(Vec3d(xy * std::cos(sectorAngle), xy * std::sin(sectorAngle), z).cast<float>());
             }
     }
 
-    std::vector<Vec3i> facets;
+    auto& facets = mesh.indices;
     facets.reserve(2 * (stackCount - 1) * sectorCount);
     for (int i = 0; i < stackCount; ++ i) {
         // Beginning of current stack.
@@ -1125,9 +1119,114 @@ TriangleMesh make_sphere(double radius, double fa)
             k2 = k2_next;
         }
     }
-    TriangleMesh mesh(std::move(vertices), std::move(facets));
-    mesh.repair();
+
     return mesh;
 }
 
+TriangleMesh make_sphere(double radius, double fa)
+{
+    TriangleMesh mesh(its_make_sphere(radius, fa));
+    mesh.repair();
+
+    return mesh;
 }
+
+void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B)
+{
+    auto N   = int(A.vertices.size());
+    auto N_f = A.indices.size();
+
+    A.vertices.insert(A.vertices.end(), B.vertices.begin(), B.vertices.end());
+    A.indices.insert(A.indices.end(), B.indices.begin(), B.indices.end());
+
+    for(size_t n = N_f; n < A.indices.size(); n++)
+        A.indices[n] += Vec3i{N, N, N};
+}
+
+void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles)
+{
+    const size_t offs = A.vertices.size();
+    A.vertices.insert(A.vertices.end(), triangles.begin(), triangles.end());
+    A.indices.reserve(A.indices.size() + A.vertices.size() / 3);
+
+    for(int i = int(offs); i < int(A.vertices.size()); i += 3)
+        A.indices.emplace_back(i, i + 1, i + 2);
+}
+
+void its_merge(indexed_triangle_set &A, const Pointf3s &triangles)
+{
+    auto trianglesf = reserve_vector<Vec3f> (triangles.size());
+    for (auto &t : triangles)
+        trianglesf.emplace_back(t.cast<float>());
+
+    its_merge(A, trianglesf);
+}
+
+float its_volume(const indexed_triangle_set &its)
+{
+    if (its.empty()) return 0.;
+
+    // Choose a point, any point as the reference.
+    auto p0 = its.vertices.front();
+    float volume = 0.f;
+    for (size_t i = 0; i < its.indices.size(); ++ i) {
+        // Do dot product to get distance from point to plane.
+        its_triangle triangle = its_triangle_vertices(its, i);
+        Vec3f U = triangle[1] - triangle[0];
+        Vec3f V = triangle[2] - triangle[0];
+        Vec3f C = U.cross(V);
+        Vec3f normal = C.normalized();
+        float area = 0.5 * C.norm();
+        float height = normal.dot(triangle[0] - p0);
+        volume += (area * height) / 3.0f;
+    }
+
+    return volume;
+}
+
+std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its)
+{
+    return its_split<>(its);
+}
+
+bool its_is_splittable(const indexed_triangle_set &its)
+{
+    return its_is_splittable<>(its);
+}
+
+void VertexFaceIndex::create(const indexed_triangle_set &its)
+{
+    m_vertex_to_face_start.assign(its.vertices.size() + 1, 0);
+    // 1) Calculate vertex incidence by scatter.
+    for (auto &face : its.indices) {
+        ++ m_vertex_to_face_start[face(0) + 1];
+        ++ m_vertex_to_face_start[face(1) + 1];
+        ++ m_vertex_to_face_start[face(2) + 1];
+    }
+    // 2) Prefix sum to calculate offsets to m_vertex_faces_all.
+    for (size_t i = 2; i < m_vertex_to_face_start.size(); ++ i)
+        m_vertex_to_face_start[i] += m_vertex_to_face_start[i - 1];
+    // 3) Scatter indices of faces incident to a vertex into m_vertex_faces_all.
+    m_vertex_faces_all.assign(m_vertex_to_face_start.back(), 0);
+    for (size_t face_idx = 0; face_idx < its.indices.size(); ++ face_idx) {
+        auto &face = its.indices[face_idx];
+        for (int i = 0; i < 3; ++ i)
+            m_vertex_faces_all[m_vertex_to_face_start[face(i)] ++] = face_idx;
+    }
+    // 4) The previous loop modified m_vertex_to_face_start. Revert the change.
+    for (auto i = int(m_vertex_to_face_start.size()) - 1; i > 0; -- i)
+        m_vertex_to_face_start[i] = m_vertex_to_face_start[i - 1];
+    m_vertex_to_face_start.front() = 0;
+}
+
+std::vector<Vec3i> its_create_neighbors_index(const indexed_triangle_set &its)
+{
+    return create_neighbors_index(ex_seq, its);
+}
+
+std::vector<Vec3i> its_create_neighbors_index_par(const indexed_triangle_set &its)
+{
+    return create_neighbors_index(ex_tbb, its);
+}
+
+} // namespace Slic3r

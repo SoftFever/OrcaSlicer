@@ -69,9 +69,10 @@ void export_failed_case(const std::vector<ExPolygons> &support_slices, const Sup
             svg.Close();
         }
     }
-    
-    TriangleMesh m;
-    byproducts.supporttree.retrieve_full_mesh(m);
+
+    indexed_triangle_set its;
+    byproducts.supporttree.retrieve_full_mesh(its);
+    TriangleMesh m{its};
     m.merge(byproducts.input_mesh);
     m.repair();
     m.require_shared_vertices();
@@ -93,7 +94,7 @@ void test_supports(const std::string          &obj_filename,
     if (hollowingcfg.enabled) {
         sla::InteriorPtr interior = sla::generate_interior(mesh, hollowingcfg);
         REQUIRE(interior);
-        mesh.merge(sla::get_mesh(*interior));
+        mesh.merge(TriangleMesh{sla::get_mesh(*interior)});
         mesh.require_shared_vertices();
     }
     
@@ -151,7 +152,7 @@ void test_supports(const std::string          &obj_filename,
     
     check_support_tree_integrity(treebuilder, supportcfg);
     
-    const TriangleMesh &output_mesh = treebuilder.retrieve_mesh();
+    TriangleMesh output_mesh{treebuilder.retrieve_mesh(sla::MeshType::Support)};
     
     check_validity(output_mesh, validityflags);
     
@@ -228,14 +229,16 @@ void test_pad(const std::string &obj_filename, const sla::PadConfig &padcfg, Pad
     REQUIRE_FALSE(mesh.empty());
     
     // Create pad skeleton only from the model
-    Slic3r::sla::pad_blueprint(mesh, out.model_contours);
+    Slic3r::sla::pad_blueprint(mesh.its, out.model_contours);
     
     test_concave_hull(out.model_contours);
     
     REQUIRE_FALSE(out.model_contours.empty());
     
     // Create the pad geometry for the model contours only
-    Slic3r::sla::create_pad({}, out.model_contours, out.mesh, padcfg);
+    indexed_triangle_set out_its;
+    Slic3r::sla::create_pad({}, out.model_contours, out_its, padcfg);
+    out.mesh = TriangleMesh{out_its};
     
     check_validity(out.mesh);
     
