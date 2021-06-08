@@ -493,7 +493,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         sla::swap_normals(interiormesh);
         params.mode = MeshSlicingParams::SlicingMode::Regular;
 
-        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh, slice_grid, closing_r, thr);
+        std::vector<ExPolygons> interior_slices = slice_mesh_ex(interiormesh, slice_grid, params, thr);
 
         sla::ccr::for_each(size_t(0), interior_slices.size(),
                            [&po, &interior_slices] (size_t i) {
