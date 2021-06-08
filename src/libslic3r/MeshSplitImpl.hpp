@@ -186,7 +186,7 @@ std::vector<Vec3i> create_neighbors_index(ExPolicy &&ex, const indexed_triangle_
     if (indices.empty() || vertices_size == 0) return {};
 
     auto               vertex_triangles = VertexFaceIndex{its};
-    constexpr int      no_value         = -1;
+    static constexpr int no_value         = -1;
     std::vector<Vec3i> neighbors(indices.size(),
                                  Vec3i(no_value, no_value, no_value));
 
