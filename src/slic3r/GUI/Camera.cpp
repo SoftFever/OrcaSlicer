@@ -103,13 +103,13 @@ double Camera::get_fov() const
     };
 }
 
-void Camera::apply_viewport(int x, int y, unsigned int w, unsigned int h) const
+void Camera::apply_viewport(int x, int y, unsigned int w, unsigned int h)
 {
     glsafe(::glViewport(0, 0, w, h));
-    glsafe(::glGetIntegerv(GL_VIEWPORT, const_cast<std::array<int, 4>*>(&m_viewport)->data()));
+    glsafe(::glGetIntegerv(GL_VIEWPORT, m_viewport.data()));
 }
 
-void Camera::apply_view_matrix() const
+void Camera::apply_view_matrix()
 {
     glsafe(::glMatrixMode(GL_MODELVIEW));
     glsafe(::glLoadIdentity());
