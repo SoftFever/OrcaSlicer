@@ -185,7 +185,8 @@ static bool vertex_equal_to_point(const Voronoi::VD::vertex_type &vertex, const 
            ulp_cmp(vertex.y(), double(ipt.y()), ULPS) == ulp_cmp_type::EQUAL;
 }
 
-static inline bool vertex_equal_to_point(const Voronoi::VD::vertex_type *vertex, const Point &ipt) {
+static inline bool vertex_equal_to_point(const Voronoi::VD::vertex_type *vertex, const Point &ipt)
+{
     return vertex_equal_to_point(*vertex, ipt);
 }
 
@@ -1137,11 +1138,10 @@ static void cut_segmented_layers(const std::vector<ExPolygons>                  
             std::vector<std::pair<ExPolygon, size_t>> segmented_regions_cuts;
             for (const std::pair<ExPolygon, size_t> &colored_expoly : segmented_regions[layer_idx]) {
                 ExPolygons cut_colored_expoly = diff_ex(colored_expoly.first, offset_ex(input_expolygons[layer_idx], cut_width));
-                for (const ExPolygon &expoly : cut_colored_expoly) {
-                    segmented_regions_cuts.emplace_back(expoly, colored_expoly.second);
-                }
+                for (ExPolygon &expoly : cut_colored_expoly)
+                    segmented_regions_cuts.emplace_back(std::move(expoly), colored_expoly.second);
             }
-            segmented_regions[layer_idx] = segmented_regions_cuts;
+            segmented_regions[layer_idx] = std::move(segmented_regions_cuts);
         }
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - cutting segmented layers in parallel - end";
@@ -1519,9 +1519,8 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
     tbb::parallel_for(tbb::blocked_range<size_t>(0, print_object.layers().size()), [&](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             throw_on_cancel_callback();
-            auto comp = [&edge_grids, layer_idx](const PaintedLine &first, const PaintedLine &second) {
-                Point first_start_p = *(edge_grids[layer_idx].contours()[first.contour_idx].begin() + first.line_idx);
-
+            auto comp = [&input_polygons, layer_idx](const PaintedLine &first, const PaintedLine &second) {
+                Point first_start_p = input_polygons[layer_idx][first.contour_idx][first.line_idx];
                 return first.contour_idx < second.contour_idx ||
                        (first.contour_idx == second.contour_idx &&
                         (first.line_idx < second.line_idx ||
@@ -1538,8 +1537,8 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
                 remove_multiple_edges_in_vertices(graph, color_poly);
                 graph.remove_nodes_with_one_arc();
                 std::vector<std::pair<Polygon, size_t>> segmentation = extract_colored_segments(graph);
-                for (const std::pair<Polygon, size_t> &region : segmentation)
-                    segmented_regions[layer_idx].emplace_back(region);
+                for (std::pair<Polygon, size_t> &region : segmentation)
+                    segmented_regions[layer_idx].emplace_back(std::move(region));
             }
         }
     }); // end of parallel_for
