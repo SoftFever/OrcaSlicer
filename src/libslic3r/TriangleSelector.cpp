@@ -12,7 +12,7 @@ namespace Slic3r {
 #ifndef _NDEBUG
 bool TriangleSelector::verify_triangle_midpoints(const Triangle &tr) const
 {
-    for (int i = 0; i < 3; ++ i) { 
+    for (int i = 0; i < 3; ++ i) {
         int v1   = tr.verts_idxs[i];
         int v2   = tr.verts_idxs[next_idx_modulo(i, 3)];
         int vmid = this->triangle_midpoint(tr, v1, v2);
@@ -168,7 +168,7 @@ bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, 
     for (int i = 0; i < 3; ++ i)
         neighbors(i) = neighbors_src.neighbor[i];
     assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
-    
+
     if (! select_triangle_recursive(facet_idx, neighbors, type, triangle_splitting))
         return false;
 
@@ -249,11 +249,11 @@ int TriangleSelector::triangle_midpoint(const Triangle &tr, int vertexi, int ver
     assert(tr.verts_idxs[next_idx_modulo(edge, 3)] == vertexj);
 
     if (tr.number_of_split_sides() == 1) {
-        return edge == next_idx_modulo(tr.special_side(), 3) ? 
+        return edge == next_idx_modulo(tr.special_side(), 3) ?
             m_triangles[tr.children[0]].verts_idxs[2] :
             this->triangle_midpoint(m_triangles[tr.children[edge == tr.special_side() ? 0 : 1]], vertexi, vertexj);
     } else if (tr.number_of_split_sides() == 2) {
-        return edge == next_idx_modulo(tr.special_side(), 3) ? 
+        return edge == next_idx_modulo(tr.special_side(), 3) ?
                     this->triangle_midpoint(m_triangles[tr.children[2]], vertexi, vertexj) :
                edge == tr.special_side() ?
                     m_triangles[tr.children[0]].verts_idxs[1] :
@@ -261,7 +261,7 @@ int TriangleSelector::triangle_midpoint(const Triangle &tr, int vertexi, int ver
     } else {
         assert(tr.number_of_split_sides() == 3);
         assert(tr.special_side() == 0);
-        return 
+        return
             (edge == 0) ? m_triangles[tr.children[0]].verts_idxs[1] :
             (edge == 1) ? m_triangles[tr.children[1]].verts_idxs[2] :
                           m_triangles[tr.children[2]].verts_idxs[2];
@@ -282,7 +282,7 @@ int TriangleSelector::triangle_midpoint_or_allocate(int itriangle, int vertexi, 
         Vec3f c = 0.5f * (m_vertices[vertexi].v + m_vertices[vertexj].v);
 #ifdef EXPENSIVE_DEBUG_CHECKS
         // Verify that the vertex is really a new one.
-        auto it = std::find_if(m_vertices.begin(), m_vertices.end(), [this, c](const Vertex &v) { 
+        auto it = std::find_if(m_vertices.begin(), m_vertices.end(), [this, c](const Vertex &v) {
             return v.ref_cnt > 0 && (v.v - c).norm() < EPSILON; });
         assert(it == m_vertices.end());
 #endif // EXPENSIVE_DEBUG_CHECKS
@@ -736,7 +736,7 @@ TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
 }
 
 
-void TriangleSelector::reset(const EnforcerBlockerType reset_state)
+void TriangleSelector::reset()
 {
     m_vertices.clear();
     m_triangles.clear();
@@ -749,10 +749,10 @@ void TriangleSelector::reset(const EnforcerBlockerType reset_state)
     m_triangles.reserve(m_mesh->its.indices.size());
     for (size_t i=0; i<m_mesh->its.indices.size(); ++i) {
         const stl_triangle_vertex_indices& ind = m_mesh->its.indices[i];
-        push_triangle(ind[0], ind[1], ind[2], i, reset_state);
+        push_triangle(ind[0], ind[1], ind[2], i);
     }
     m_orig_size_vertices = m_vertices.size();
-    m_orig_size_indices = m_triangles.size();
+    m_orig_size_indices  = m_triangles.size();
 }
 
 
@@ -930,8 +930,8 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
                 // In case this is leaf, we better save information about its state.
                 int n = int(tr.get_state());
                 if (n >= 3) {
-                    assert(n <= 15);
-                    if (n <= 15) {
+                    assert(n <= 16);
+                    if (n <= 16) {
                         // Store "11" plus 4 bits of (n-3).
                         data.second.insert(data.second.end(), { true, true });
                         n -= 3;
@@ -963,9 +963,9 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
     return out.data;
 }
 
-void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, const EnforcerBlockerType init_state)
+void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data)
 {
-    reset(init_state); // dump any current state
+    reset(); // dump any current state
 
     // Vector to store all parents that have offsprings.
     struct ProcessingInfo {
@@ -1058,7 +1058,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
     }
 }
 
-void TriangleSelector::seed_fill_unselect_all_triangles() 
+void TriangleSelector::seed_fill_unselect_all_triangles()
 {
     for (Triangle &triangle : m_triangles)
         if (!triangle.is_split())

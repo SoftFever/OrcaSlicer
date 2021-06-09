@@ -58,6 +58,20 @@ static std::vector<std::string> get_extruders_names()
     return extruders_out;
 }
 
+static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_object)
+{
+    std::vector<int> extruders_idx;
+    extruders_idx.reserve(model_object.volumes.size());
+    for (const ModelVolume *model_volume : model_object.volumes) {
+        if (!model_volume->is_model_part())
+            continue;
+
+        extruders_idx.emplace_back(model_volume->extruder_id());
+    }
+
+    return extruders_idx;
+}
+
 void GLGizmoMmuSegmentation::init_extruders_data()
 {
     m_original_extruders_names     = get_extruders_names();
@@ -114,12 +128,15 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
     if (m_state != On)
         return;
 
-    int prev_extruders_count = int(m_original_extruders_colors.size());
+    ModelObject *model_object         = m_c->selection_info()->model_object();
+    int          prev_extruders_count = int(m_original_extruders_colors.size());
     if (prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors) {
         this->init_extruders_data();
         // Reinitialize triangle selectors because of change of extruder count need also change the size of GLIndexedVertexArray
         if (prev_extruders_count != wxGetApp().extruders_edited_cnt())
             this->init_model_triangle_selectors();
+    } else if (model_object != nullptr && get_extruder_id_for_volumes(*model_object) != m_original_volumes_extruder_idxs) {
+        this->init_model_triangle_selectors();
     }
 }
 
@@ -280,8 +297,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         for (ModelVolume *mv : mo->volumes) {
             if (mv->is_model_part()) {
                 ++idx;
-                size_t extruder_id = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
-                m_triangle_selectors[idx]->reset(EnforcerBlockerType(extruder_id));
+                m_triangle_selectors[idx]->reset();
             }
         }
 
@@ -395,10 +411,11 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
         // This mesh does not account for the possible Z up SLA offset.
         const TriangleMesh *mesh = &mv->mesh();
 
-        size_t extruder_id = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
-        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorMmuGui>(*mesh, m_modified_extruders_colors));
-        m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data(), EnforcerBlockerType(extruder_id));
+        int extruder_idx = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
+        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorMmuGui>(*mesh, m_modified_extruders_colors, m_original_extruders_colors[size_t(extruder_idx)]));
+        m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data());
     }
+    m_original_volumes_extruder_idxs = get_extruder_id_for_volumes(*mo);
 }
 
 void GLGizmoMmuSegmentation::update_from_model_object()
@@ -468,9 +485,10 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
     assert(shader->get_name() == "gouraud");
 
     for (size_t color_idx = 0; color_idx < m_iva_colors.size(); ++color_idx) {
+        const std::array<uint8_t, 3> &color_source = (color_idx == 0) ? m_default_volume_color : m_colors[color_idx - 1];
         if (render_colors[color_idx]) {
-            std::array<float, 4> color = {float(m_colors[color_idx][0]) / 255.0f, float(m_colors[color_idx][1]) / 255.0f,
-                                          float(m_colors[color_idx][2]) / 255.0f, 1.f};
+            std::array<float, 4> color = {float(color_source[0]) / 255.0f, float(color_source[1]) / 255.0f,
+                                          float(color_source[2]) / 255.0f, 1.f};
             shader->set_uniform("uniform_color", color);
             m_iva_colors[color_idx].render();
         }

@@ -7,9 +7,10 @@ namespace Slic3r::GUI {
 
 class TriangleSelectorMmuGui : public TriangleSelectorGUI {
 public:
-    explicit TriangleSelectorMmuGui(const TriangleMesh& mesh, const std::vector<std::array<uint8_t, 3>> &colors)
-        : TriangleSelectorGUI(mesh), m_colors(colors) {
-        m_iva_colors = std::vector<GLIndexedVertexArray>(colors.size());
+    explicit TriangleSelectorMmuGui(const TriangleMesh& mesh, const std::vector<std::array<uint8_t, 3>> &colors, const std::array<uint8_t, 3> &default_volume_color)
+        : TriangleSelectorGUI(mesh), m_colors(colors), m_default_volume_color(default_volume_color) {
+        // Plus 1 is because the first position is allocated for non-painted triangles.
+        m_iva_colors = std::vector<GLIndexedVertexArray>(colors.size() + 1);
     }
     ~TriangleSelectorMmuGui() override = default;
 
@@ -19,7 +20,8 @@ public:
 
 private:
     const std::vector<std::array<uint8_t, 3>> &m_colors;
-    std::vector<GLIndexedVertexArray> m_iva_colors;
+    std::vector<GLIndexedVertexArray>          m_iva_colors;
+    const std::array<uint8_t, 3>               m_default_volume_color;
 };
 
 class GLGizmoMmuSegmentation : public GLGizmoPainterBase
@@ -37,8 +39,8 @@ protected:
     std::array<float, 4> get_cursor_sphere_left_button_color() const override;
     std::array<float, 4> get_cursor_sphere_right_button_color() const override;
 
-    EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_first_selected_extruder_idx); }
-    EnforcerBlockerType get_right_button_state_type() const override { return EnforcerBlockerType(m_second_selected_extruder_idx); }
+    EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_first_selected_extruder_idx + 1); }
+    EnforcerBlockerType get_right_button_state_type() const override { return EnforcerBlockerType(m_second_selected_extruder_idx + 1); }
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
@@ -52,6 +54,7 @@ protected:
     std::vector<std::string>            m_original_extruders_names;
     std::vector<std::array<uint8_t, 3>> m_original_extruders_colors;
     std::vector<std::array<uint8_t, 3>> m_modified_extruders_colors;
+    std::vector<int>                    m_original_volumes_extruder_idxs;
 
 private:
     bool on_init() override;
