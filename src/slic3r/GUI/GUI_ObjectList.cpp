@@ -3886,6 +3886,9 @@ wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, s
     wxDataViewItemArray items;
 
     ModelObject* object = (*m_objects)[obj_idx];
+    if (object->volumes.size() <= 1)
+        return items;
+
     object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
 
     wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
