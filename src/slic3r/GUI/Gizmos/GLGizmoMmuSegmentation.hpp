@@ -11,6 +11,7 @@ public:
         : TriangleSelectorGUI(mesh), m_colors(colors) {
         m_iva_colors = std::vector<GLIndexedVertexArray>(colors.size());
     }
+    ~TriangleSelectorMmuGui() override = default;
 
     // Render current selection. Transformation matrices are supposed
     // to be already set.
@@ -26,6 +27,7 @@ class GLGizmoMmuSegmentation : public GLGizmoPainterBase
 public:
     GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
         : GLGizmoPainterBase(parent, icon_filename, sprite_id) {}
+    ~GLGizmoMmuSegmentation() override = default;
 
     void render_painter_gizmo() const override;
 

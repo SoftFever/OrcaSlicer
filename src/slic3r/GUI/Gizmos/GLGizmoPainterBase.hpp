@@ -31,6 +31,7 @@ class TriangleSelectorGUI : public TriangleSelector {
 public:
     explicit TriangleSelectorGUI(const TriangleMesh& mesh)
         : TriangleSelector(mesh) {}
+    virtual ~TriangleSelectorGUI() = default;
 
     // Render current selection. Transformation matrices are supposed
     // to be already set.
@@ -64,7 +65,7 @@ private:
 
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-    ~GLGizmoPainterBase() override {}
+    ~GLGizmoPainterBase() override = default;
     virtual void set_painter_gizmo_data(const Selection& selection);
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
