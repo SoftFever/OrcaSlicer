@@ -7,7 +7,7 @@ namespace Slic3r::GUI {
 
 class TriangleSelectorMmuGui : public TriangleSelectorGUI {
 public:
-    explicit TriangleSelectorMmuGui(const TriangleMesh& mesh, const std::vector<std::array<uint8_t, 3>> &colors, const std::array<uint8_t, 3> &default_volume_color)
+    explicit TriangleSelectorMmuGui(const TriangleMesh& mesh, const std::vector<std::array<float, 4>> &colors, const std::array<float, 4> &default_volume_color)
         : TriangleSelectorGUI(mesh), m_colors(colors), m_default_volume_color(default_volume_color) {
         // Plus 1 is because the first position is allocated for non-painted triangles.
         m_iva_colors = std::vector<GLIndexedVertexArray>(colors.size() + 1);
@@ -19,9 +19,10 @@ public:
     void render(ImGuiWrapper* imgui) override;
 
 private:
-    const std::vector<std::array<uint8_t, 3>> &m_colors;
-    std::vector<GLIndexedVertexArray>          m_iva_colors;
-    const std::array<uint8_t, 3>               m_default_volume_color;
+    const std::vector<std::array<float, 4>> &m_colors;
+    std::vector<GLIndexedVertexArray>        m_iva_colors;
+    const std::array<float, 4>               m_default_volume_color;
+    GLIndexedVertexArray                     m_iva_seed_fill;
 };
 
 class GLGizmoMmuSegmentation : public GLGizmoPainterBase
@@ -49,12 +50,12 @@ protected:
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
-    size_t                              m_first_selected_extruder_idx  = 0;
-    size_t                              m_second_selected_extruder_idx = 1;
-    std::vector<std::string>            m_original_extruders_names;
-    std::vector<std::array<uint8_t, 3>> m_original_extruders_colors;
-    std::vector<std::array<uint8_t, 3>> m_modified_extruders_colors;
-    std::vector<int>                    m_original_volumes_extruder_idxs;
+    size_t                            m_first_selected_extruder_idx  = 0;
+    size_t                            m_second_selected_extruder_idx = 1;
+    std::vector<std::string>          m_original_extruders_names;
+    std::vector<std::array<float, 4>> m_original_extruders_colors;
+    std::vector<std::array<float, 4>> m_modified_extruders_colors;
+    std::vector<int>                  m_original_volumes_extruder_idxs;
 
 private:
     bool on_init() override;

@@ -35,7 +35,8 @@ public:
 
     // Render current selection. Transformation matrices are supposed
     // to be already set.
-    virtual void render(ImGuiWrapper* imgui = nullptr);
+    virtual void render(ImGuiWrapper *imgui);
+    void         render() { this->render(nullptr); }
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
@@ -44,11 +45,9 @@ public:
 #endif
 
 private:
-    GLIndexedVertexArray m_iva_enforcers;
-    GLIndexedVertexArray m_iva_blockers;
+    GLIndexedVertexArray                m_iva_enforcers;
+    GLIndexedVertexArray                m_iva_blockers;
     std::array<GLIndexedVertexArray, 3> m_varrays;
-protected:
-    GLIndexedVertexArray m_iva_seed_fill;
 };
 
 
@@ -60,8 +59,8 @@ class GLGizmoPainterBase : public GLGizmoBase
 private:
     ObjectID m_old_mo_id;
     size_t m_old_volumes_size = 0;
-    virtual void on_render() const override {}
-    virtual void on_render_for_picking() const override {}
+    void on_render() const override {}
+    void on_render_for_picking() const override {}
 
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -83,7 +82,6 @@ protected:
     virtual void update_model_object() const = 0;
     virtual void update_from_model_object() = 0;
     void activate_internal_undo_redo_stack(bool activate);
-    void set_cursor_type(TriangleSelector::CursorType);
 
     virtual std::array<float, 4> get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
     virtual std::array<float, 4> get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }

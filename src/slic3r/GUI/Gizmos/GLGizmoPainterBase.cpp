@@ -126,8 +126,8 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection, const bool
     if (clipping_plane_active) {
         const ClippingPlane* clp = m_c->object_clipper()->get_clipping_plane();
         for (size_t i=0; i<3; ++i)
-            clp_dataf[i] = -1. * clp->get_data()[i];
-        clp_dataf[3] = clp->get_data()[3];
+            clp_dataf[i] = -1.f * float(clp->get_data()[i]);
+        clp_dataf[3] = float(clp->get_data()[3]);
     }
 
     auto *shader = wxGetApp().get_shader("gouraud");
@@ -203,13 +203,13 @@ void GLGizmoPainterBase::render_cursor() const
 
 void GLGizmoPainterBase::render_cursor_circle() const
 {
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    float zoom = (float)camera.get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    const Camera &camera   = wxGetApp().plater()->get_camera();
+    auto          zoom     = (float) camera.get_zoom();
+    float         inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    Size cnv_size = m_parent.get_canvas_size();
-    float cnv_half_width = 0.5f * (float)cnv_size.get_width();
-    float cnv_half_height = 0.5f * (float)cnv_size.get_height();
+    Size  cnv_size        = m_parent.get_canvas_size();
+    float cnv_half_width  = 0.5f * (float) cnv_size.get_width();
+    float cnv_half_height = 0.5f * (float) cnv_size.get_height();
     if ((cnv_half_width == 0.0f) || (cnv_half_height == 0.0f))
         return;
     Vec2d mouse_pos(m_parent.get_local_mouse_position()(0), m_parent.get_local_mouse_position()(1));
@@ -217,11 +217,8 @@ void GLGizmoPainterBase::render_cursor_circle() const
     center = center * inv_zoom;
 
     glsafe(::glLineWidth(1.5f));
-    float color[3];
-    color[0] = 0.f;
-    color[1] = 1.f;
-    color[2] = 0.3f;
-    glsafe(::glColor3fv(color));
+    static const std::array<float, 3> color = {0.f, 1.f, 0.3f};
+    glsafe(::glColor3fv(color.data()));
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
@@ -515,11 +512,7 @@ bool GLGizmoPainterBase::on_is_activable() const
 
     // Check that none of the selected volumes is outside. Only SLA auxiliaries (supports) are allowed outside.
     const Selection::IndicesList& list = selection.get_volume_idxs();
-    for (const auto& idx : list)
-        if (selection.get_volume(idx)->is_outside)
-            return false;
-
-    return true;
+    return std::all_of(list.cbegin(), list.cend(), [&selection](unsigned int idx) { return !selection.get_volume(idx)->is_outside; });
 }
 
 bool GLGizmoPainterBase::on_is_selectable() const
@@ -579,66 +572,42 @@ void GLGizmoPainterBase::on_load(cereal::BinaryInputArchive&)
 
 void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
 {
+    static constexpr std::array<float, 4> enforcers_color{0.47f, 0.47f, 1.f, 1.f};
+    static constexpr std::array<float, 4> blockers_color{1.f, 0.44f, 0.44f, 1.f};
+
     int enf_cnt       = 0;
     int blc_cnt       = 0;
-    int seed_fill_cnt = 0;
 
-    m_iva_enforcers.release_geometry();
-    m_iva_blockers.release_geometry();
-    m_iva_seed_fill.release_geometry();
+    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
+        iva->release_geometry();
 
     for (const Triangle& tr : m_triangles) {
-        if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE || tr.is_selected_by_seed_fill())
+        if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE)
             continue;
 
-        GLIndexedVertexArray &va  = tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers : m_iva_blockers;
-        int                  &cnt = tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt : blc_cnt;
+        GLIndexedVertexArray &iva  = tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers : m_iva_blockers;
+        int &                 cnt  = tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt : blc_cnt;
 
-        for (int i=0; i<3; ++i)
-            va.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
-        va.push_triangle(cnt, cnt + 1, cnt + 2);
+        for (int i = 0; i < 3; ++i)
+            iva.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
+        iva.push_triangle(cnt, cnt + 1, cnt + 2);
         cnt += 3;
     }
 
-    for (const Triangle &tr : m_triangles) {
-        if (!tr.valid() || tr.is_split() || !tr.is_selected_by_seed_fill())
-            continue;
-
-        for (int i = 0; i < 3; ++i)
-            m_iva_seed_fill.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
-        m_iva_seed_fill.push_triangle(seed_fill_cnt, seed_fill_cnt + 1, seed_fill_cnt + 2);
-        seed_fill_cnt += 3;
-    }
-
-    m_iva_enforcers.finalize_geometry(true);
-    m_iva_blockers.finalize_geometry(true);
-    m_iva_seed_fill.finalize_geometry(true);
-
-    bool render_enf       = m_iva_enforcers.has_VBOs();
-    bool render_blc       = m_iva_blockers.has_VBOs();
-    bool render_seed_fill = m_iva_seed_fill.has_VBOs();
+    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
+        iva->finalize_geometry(true);
 
     auto* shader = wxGetApp().get_current_shader();
     if (! shader)
         return;
     assert(shader->get_name() == "gouraud");
 
-    if (render_enf) {
-        std::array<float, 4> color = {0.47f, 0.47f, 1.f, 1.f};
-        shader->set_uniform("uniform_color", color);
-        m_iva_enforcers.render();
-    }
-
-    if (render_blc) {
-        std::array<float, 4> color = {1.f, 0.44f, 0.44f, 1.f};
-        shader->set_uniform("uniform_color", color);
-        m_iva_blockers.render();
-    }
-
-    if (render_seed_fill) {
-        std::array<float, 4> color = {0.f, 1.00f, 0.44f, 1.f};
-        shader->set_uniform("uniform_color", color);
-        m_iva_seed_fill.render();
+    for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),
+                     std::make_pair(&m_iva_blockers, blockers_color)}) {
+        if (iva.first->has_VBOs()) {
+            shader->set_uniform("uniform_color", iva.second);
+            iva.first->render();
+        }
     }
 
 
