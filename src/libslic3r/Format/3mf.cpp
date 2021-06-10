@@ -1899,6 +1899,9 @@ namespace Slic3r {
             volume->calculate_convex_hull();
 
             // recreate custom supports, seam and mmu segmentation from previously loaded attribute
+            volume->supported_facets.reserve(triangles_count);
+            volume->seam_facets.reserve(triangles_count);
+            volume->mmu_segmentation_facets.reserve(triangles_count);
             for (unsigned i=0; i<triangles_count; ++i) {
                 size_t index = src_start_id/3 + i;
                 assert(index < geometry.custom_supports.size());
@@ -1911,7 +1914,9 @@ namespace Slic3r {
                 if (! geometry.mmu_segmentation[index].empty())
                     volume->mmu_segmentation_facets.set_triangle_from_string(i, geometry.mmu_segmentation[index]);
             }
-
+            volume->supported_facets.shrink_to_fit();
+            volume->seam_facets.shrink_to_fit();
+            volume->mmu_segmentation_facets.shrink_to_fit();
 
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata) {

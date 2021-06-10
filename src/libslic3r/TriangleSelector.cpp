@@ -593,7 +593,7 @@ indexed_triangle_set TriangleSelector::get_facets(EnforcerBlockerType state) con
 
 
 
-std::map<int, std::vector<bool>> TriangleSelector::serialize() const
+std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector::serialize() const
 {
     // Each original triangle of the mesh is assigned a number encoding its state
     // or how it is split. Each triangle is encoded by 4 bits (xxyy) or 8 bits (zzzzxxyy):
@@ -605,27 +605,27 @@ std::map<int, std::vector<bool>> TriangleSelector::serialize() const
     // The function returns a map from original triangle indices to
     // stream of bits encoding state and offsprings.
 
-    std::map<int, std::vector<bool>> out;
+    std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> out;
+    out.first.reserve(m_orig_size_indices);
     for (int i=0; i<m_orig_size_indices; ++i) {
         const Triangle& tr = m_triangles[i];
 
         if (! tr.is_split() && tr.get_state() == EnforcerBlockerType::NONE)
             continue; // no need to save anything, unsplit and unselected is default
 
-        std::vector<bool> data; // complete encoding of this mesh triangle
-        int stored_triangles = 0; // how many have been already encoded
+        // Store index of the first bit assigned to ith triangle.
+        out.first.emplace_back(i, int(out.second.size()));
 
         std::function<void(int)> serialize_recursive;
-        serialize_recursive = [this, &serialize_recursive, &stored_triangles, &data](int facet_idx) {
+        serialize_recursive = [this, &serialize_recursive, &out](int facet_idx) {
             const Triangle& tr = m_triangles[facet_idx];
 
             // Always save number of split sides. It is zero for unsplit triangles.
             int split_sides = tr.number_of_split_sides();
             assert(split_sides >= 0 && split_sides <= 3);
 
-            //data |= (split_sides << (stored_triangles * 4));
-            data.push_back(split_sides & 0b01);
-            data.push_back(split_sides & 0b10);
+            out.second.push_back(split_sides & 0b01);
+            out.second.push_back(split_sides & 0b10);
 
             if (tr.is_split()) {
                 // If this triangle is split, save which side is split (in case
@@ -633,9 +633,8 @@ std::map<int, std::vector<bool>> TriangleSelector::serialize() const
                 // be ignored for 3-side split.
                 assert(split_sides > 0);
                 assert(tr.special_side() >= 0 && tr.special_side() <= 3);
-                data.push_back(tr.special_side() & 0b01);
-                data.push_back(tr.special_side() & 0b10);
-                ++stored_triangles;
+                out.second.push_back(tr.special_side() & 0b01);
+                out.second.push_back(tr.special_side() & 0b10);
                 // Now save all children.
                 for (int child_idx=0; child_idx<=split_sides; ++child_idx)
                     serialize_recursive(tr.children[child_idx]);
@@ -643,32 +642,33 @@ std::map<int, std::vector<bool>> TriangleSelector::serialize() const
                 // In case this is leaf, we better save information about its state.
                 assert(int(tr.get_state()) <= 15);
                 if (3 <= int(tr.get_state()) && int(tr.get_state()) <= 15) {
-                    data.insert(data.end(), {true, true});
+                    out.second.insert(out.second.end(), {true, true});
                     for (size_t bit_idx = 0; bit_idx < 4; ++bit_idx) {
                         size_t bit_mask = uint64_t(0b0001) << bit_idx;
-                        data.push_back((int(tr.get_state()) - 3) & bit_mask);
+                        out.second.push_back((int(tr.get_state()) - 3) & bit_mask);
                     }
                 } else {
-                    data.push_back(int(tr.get_state()) & 0b01);
-                    data.push_back(int(tr.get_state()) & 0b10);
+                    out.second.push_back(int(tr.get_state()) & 0b01);
+                    out.second.push_back(int(tr.get_state()) & 0b10);
                 }
-                ++stored_triangles;
             }
         };
 
         serialize_recursive(i);
-        out[i] = data;
     }
 
+    // May be stored onto Undo / Redo stack, thus conserve memory.
+    out.first.shrink_to_fit();
+    out.second.shrink_to_fit();
     return out;
 }
 
-void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data, const EnforcerBlockerType init_state)
+void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, const EnforcerBlockerType init_state)
 {
     reset(init_state); // dump any current state
-    for (const auto& [triangle_id, code] : data) {
+    for (const auto [triangle_id, first_bit] : data.first) {
         assert(triangle_id < int(m_triangles.size()));
-        assert(! code.empty());
+        assert(first_bit < data.second.size());
         int processed_nibbles = 0;
         struct ProcessingInfo {
             int facet_id = 0;
@@ -689,7 +689,7 @@ void TriangleSelector::deserialize(const std::map<int, std::vector<bool>> data, 
 
                 for (int i = 3; i >= 0; --i) {
                     next_code[nibble_idx] = next_code[nibble_idx] << 1;
-                    next_code[nibble_idx] |= int(code[4 * processed_nibbles + i]);
+                    next_code[nibble_idx] |= int(data.second[first_bit + 4 * processed_nibbles + i]);
                 }
 
                 ++processed_nibbles;

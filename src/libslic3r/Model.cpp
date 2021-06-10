@@ -1952,9 +1952,9 @@ indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, Enforce
 
 bool FacetsAnnotation::set(const TriangleSelector& selector)
 {
-    std::map<int, std::vector<bool>> sel_map = selector.serialize();
+    std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> sel_map = selector.serialize();
     if (sel_map != m_data) {
-        m_data = sel_map;
+        m_data = std::move(sel_map);
         this->touch();
         return true;
     }
@@ -1963,7 +1963,8 @@ bool FacetsAnnotation::set(const TriangleSelector& selector)
 
 void FacetsAnnotation::clear()
 {
-    m_data.clear();
+    m_data.first.clear();
+    m_data.second.clear();
     this->reset_timestamp();
 }
 
@@ -1974,15 +1975,15 @@ std::string FacetsAnnotation::get_triangle_as_string(int triangle_idx) const
 {
     std::string out;
 
-    auto triangle_it = m_data.find(triangle_idx);
-    if (triangle_it != m_data.end()) {
-        const std::vector<bool>& code = triangle_it->second;
-        int offset = 0;
-        while (offset < int(code.size())) {
+    auto triangle_it = std::lower_bound(m_data.first.begin(), m_data.first.end(), triangle_idx, [](const std::pair<int, int> &l, const int r) { return l.first < r; });
+    if (triangle_it != m_data.first.end() && triangle_it->first == triangle_idx) {
+        int offset = triangle_it->second;
+        int end    = ++ triangle_it == m_data.first.end() ? int(m_data.second.size()) : triangle_it->second;
+        while (offset < end) {
             int next_code = 0;
             for (int i=3; i>=0; --i) {
                 next_code = next_code << 1;
-                next_code |= int(code[offset + i]);
+                next_code |= int(m_data.second[offset + i]);
             }
             offset += 4;
 
@@ -1999,8 +2000,8 @@ std::string FacetsAnnotation::get_triangle_as_string(int triangle_idx) const
 void FacetsAnnotation::set_triangle_from_string(int triangle_id, const std::string& str)
 {
     assert(! str.empty());
-    m_data[triangle_id] = std::vector<bool>(); // zero current state or create new
-    std::vector<bool>& code = m_data[triangle_id];
+    assert(m_data.first.empty() || m_data.first.back().first < triangle_id);
+    m_data.first.emplace_back(triangle_id, int(m_data.second.size()));
 
     for (auto it = str.crbegin(); it != str.crend(); ++it) {
         const char ch = *it;
@@ -2013,9 +2014,8 @@ void FacetsAnnotation::set_triangle_from_string(int triangle_id, const std::stri
             assert(false);
 
         // Convert to binary and append into code.
-        for (int i=0; i<4; ++i) {
-            code.insert(code.end(), bool(dec & (1 << i)));
-        }
+        for (int i=0; i<4; ++i)
+            m_data.second.insert(m_data.second.end(), bool(dec & (1 << i)));
     }
 }
 

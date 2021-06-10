@@ -54,12 +54,12 @@ public:
     // Remove all unnecessary data.
     void garbage_collect();
 
-    // Store the division trees in compact form (a long stream of
-    // bits for each triangle of the original mesh).
-    std::map<int, std::vector<bool>> serialize() const;
+    // Store the division trees in compact form (a long stream of bits for each triangle of the original mesh).
+    // First vector contains pairs of (triangle index, first bit in the second vector).
+    std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::map<int, std::vector<bool>> data, const EnforcerBlockerType init_state = EnforcerBlockerType{0});
+    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, const EnforcerBlockerType init_state = EnforcerBlockerType{0});
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();
