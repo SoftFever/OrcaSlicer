@@ -87,9 +87,6 @@ protected:
         // Triangle normal (a shader might need it).
         Vec3f normal;
 
-        // Is this triangle valid or marked to be removed?
-        bool valid{true};
-
         // Children triangles.
         std::array<int, 4> children;
 
@@ -106,18 +103,24 @@ protected:
         // Get if the triangle has been selected or not by seed fill.
         bool is_selected_by_seed_fill() const { assert(! is_split()); return m_selected_by_seed_fill; }
 
+        // Is this triangle valid or marked to be removed?
+        bool valid() const throw() { return m_valid; }
         // Get info on how it's split.
-        bool is_split() const { return number_of_split_sides() != 0; }
-        int number_of_split_sides() const { return number_of_splits; }
-        int special_side() const  { assert(is_split()); return special_side_idx; }
-        bool was_split_before() const { return old_number_of_splits != 0; }
+        bool is_split() const throw() { return number_of_split_sides() != 0; }
+        int number_of_split_sides() const throw() { return number_of_splits; }
+        int special_side() const throw() { assert(is_split()); return special_side_idx; }
+        bool was_split_before() const throw() { return old_number_of_splits != 0; }
         void forget_history() { old_number_of_splits = 0; }
 
     private:
+        friend TriangleSelector;
+
         int number_of_splits;
         int special_side_idx;
         EnforcerBlockerType state;
         bool m_selected_by_seed_fill = false;
+        // Is this triangle valid or marked to be removed?
+        bool m_valid{true};
 
         // How many children were spawned during last split?
         // Is not reset on remerging the triangle.

@@ -587,7 +587,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     m_iva_seed_fill.release_geometry();
 
     for (const Triangle& tr : m_triangles) {
-        if (!tr.valid || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE || tr.is_selected_by_seed_fill())
+        if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE || tr.is_selected_by_seed_fill())
             continue;
 
         GLIndexedVertexArray& va = tr.get_state() == EnforcerBlockerType::ENFORCER
@@ -609,7 +609,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     }
 
     for (const Triangle &tr : m_triangles) {
-        if (!tr.valid || tr.is_split() || !tr.is_selected_by_seed_fill())
+        if (!tr.valid() || tr.is_split() || !tr.is_selected_by_seed_fill())
             continue;
 
         for (int i = 0; i < 3; ++i)

@@ -127,7 +127,7 @@ bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, 
     assert(facet_idx < int(m_triangles.size()));
 
     Triangle* tr = &m_triangles[facet_idx];
-    if (! tr->valid)
+    if (! tr->valid())
         return false;
 
     int num_of_inside_vertices = vertices_inside(facet_idx);
@@ -177,7 +177,7 @@ bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, 
 
         // Make sure that we did not lose track of invalid triangles.
         assert(m_invalid_triangles == std::count_if(m_triangles.begin(), m_triangles.end(),
-                   [](const Triangle& tr) { return ! tr.valid; }));
+                   [](const Triangle& tr) { return ! tr.valid(); }));
 
         // Do garbage collection maybe?
         if (2*m_invalid_triangles > int(m_triangles.size()))
@@ -213,7 +213,7 @@ void TriangleSelector::split_triangle(int facet_idx)
         tr->set_division(-1);
         for (int i=0; i<=tr->number_of_split_sides(); ++i) {
             m_triangles[tr->children[i]].set_state(old_type);
-            m_triangles[tr->children[i]].valid = true;
+            m_triangles[tr->children[i]].m_valid = true;
             --m_invalid_triangles;
         }
         return;
@@ -343,7 +343,7 @@ void TriangleSelector::undivide_triangle(int facet_idx)
     if (tr.is_split()) {
         for (int i=0; i<=tr.number_of_split_sides(); ++i) {
             undivide_triangle(tr.children[i]);
-            m_triangles[tr.children[i]].valid = false;
+            m_triangles[tr.children[i]].m_valid = false;
             ++m_invalid_triangles;
         }
         tr.set_division(0); // not split
@@ -356,7 +356,7 @@ void TriangleSelector::remove_useless_children(int facet_idx)
     // Check that all children are leafs of the same type. If not, try to
     // make them (recursive call). Remove them if sucessful.
 
-    assert(facet_idx < int(m_triangles.size()) && m_triangles[facet_idx].valid);
+    assert(facet_idx < int(m_triangles.size()) && m_triangles[facet_idx].valid());
     Triangle& tr = m_triangles[facet_idx];
 
     if (! tr.is_split()) {
@@ -367,7 +367,7 @@ void TriangleSelector::remove_useless_children(int facet_idx)
 
     // Call this for all non-leaf children.
     for (int child_idx=0; child_idx<=tr.number_of_split_sides(); ++child_idx) {
-        assert(child_idx < int(m_triangles.size()) && m_triangles[child_idx].valid);
+        assert(child_idx < int(m_triangles.size()) && m_triangles[child_idx].valid());
         if (m_triangles[tr.children[child_idx]].is_split())
             remove_useless_children(tr.children[child_idx]);
     }
@@ -397,7 +397,7 @@ void TriangleSelector::garbage_collect()
     int new_idx = m_orig_size_indices;
     std::vector<int> new_triangle_indices(m_triangles.size(), -1);
     for (int i = m_orig_size_indices; i<int(m_triangles.size()); ++i) {
-        if (m_triangles[i].valid) {
+        if (m_triangles[i].valid()) {
             new_triangle_indices[i] = new_idx;
             ++new_idx;
         } else {
@@ -421,7 +421,7 @@ void TriangleSelector::garbage_collect()
 
     // We can remove all invalid triangles and vertices that are no longer referenced.
     m_triangles.erase(std::remove_if(m_triangles.begin()+m_orig_size_indices, m_triangles.end(),
-                          [](const Triangle& tr) { return ! tr.valid; }),
+                          [](const Triangle& tr) { return ! tr.valid(); }),
                       m_triangles.end());
     m_vertices.erase(std::remove_if(m_vertices.begin()+m_orig_size_vertices, m_vertices.end(),
                           [](const Vertex& vert) { return vert.ref_cnt == 0; }),
@@ -429,7 +429,7 @@ void TriangleSelector::garbage_collect()
 
     // Now go through all remaining triangles and update changed indices.
     for (Triangle& tr : m_triangles) {
-        assert(tr.valid);
+        assert(tr.valid());
 
         if (tr.is_split()) {
             // There are children. Update their indices.
@@ -578,12 +578,17 @@ void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_stat
 indexed_triangle_set TriangleSelector::get_facets(EnforcerBlockerType state) const
 {
     indexed_triangle_set out;
+    std::vector<int> vertex_map(m_vertices.size(), -1);
     for (const Triangle& tr : m_triangles) {
-        if (tr.valid && ! tr.is_split() && tr.get_state() == state) {
+        if (tr.valid() && ! tr.is_split() && tr.get_state() == state) {
             stl_triangle_vertex_indices indices;
             for (int i=0; i<3; ++i) {
-                out.vertices.emplace_back(m_vertices[tr.verts_idxs[i]].v);
-                indices[i] = out.vertices.size() - 1;
+                int j = tr.verts_idxs[i];
+                if (vertex_map[j] == -1) {
+                    vertex_map[j] = int(out.vertices.size());
+                    out.vertices.emplace_back(m_vertices[j].v);
+                }
+                indices[i] = vertex_map[j];
             }
             out.indices.emplace_back(indices);
         }
@@ -769,7 +774,7 @@ void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_stat
             triangle.set_state(new_state);
 
     for (Triangle &triangle : m_triangles)
-        if (triangle.is_split() && triangle.valid) {
+        if (triangle.is_split() && triangle.valid()) {
             size_t facet_idx = &triangle - &m_triangles.front();
             remove_useless_children(facet_idx);
         }

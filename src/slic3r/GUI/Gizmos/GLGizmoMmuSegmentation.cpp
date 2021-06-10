@@ -430,7 +430,7 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
 
     for (size_t color_idx = 0; color_idx < m_iva_colors.size(); ++color_idx) {
         for (const Triangle &tr : m_triangles) {
-            if (!tr.valid || tr.is_split() || tr.is_selected_by_seed_fill() || tr.get_state() != EnforcerBlockerType(color_idx))
+            if (!tr.valid() || tr.is_split() || tr.is_selected_by_seed_fill() || tr.get_state() != EnforcerBlockerType(color_idx))
                 continue;
 
             for (int i = 0; i < 3; ++i)
@@ -446,7 +446,7 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
     }
 
     for (const Triangle &tr : m_triangles) {
-        if (!tr.valid || tr.is_split() || !tr.is_selected_by_seed_fill()) continue;
+        if (!tr.valid() || tr.is_split() || !tr.is_selected_by_seed_fill()) continue;
 
         for (int i = 0; i < 3; ++i)
             m_iva_seed_fill.push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
