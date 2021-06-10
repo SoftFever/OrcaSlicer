@@ -103,6 +103,10 @@ protected:
     bool  m_seed_fill_enabled          = false;
     float m_seed_fill_angle            = 0.f;
 
+    // It stores the value of the previous mesh_id to which the seed fill was applied.
+    // It is used to detect when the mouse has moved from one volume to another one.
+    int   m_seed_fill_last_mesh_id     = -1;
+
     enum class Button {
         None,
         Left,

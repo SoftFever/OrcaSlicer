@@ -393,9 +393,10 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
 
             assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-            if (m_seed_fill_enabled)
+            if (m_seed_fill_enabled) {
                 m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
-            else
+                m_seed_fill_last_mesh_id = -1;
+            } else
                 m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
                                                                  new_state, trafo_matrix, m_triangle_splitting_enabled);
             m_last_mouse_click = mouse_position;
@@ -423,17 +424,27 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // Now "click" into all the prepared points and spill paint around them.
         update_raycast_cache(mouse_position, camera, trafo_matrices);
 
-        if (m_rr.mesh_id == -1) {
-            // Clean selected by seed fill for all triangles
+        auto seed_fill_unselect_all = [this]() {
             for (auto &triangle_selector : m_triangle_selectors)
                 triangle_selector->seed_fill_unselect_all_triangles();
+        };
+
+        if (m_rr.mesh_id == -1) {
+            // Clean selected by seed fill for all triangles in all meshes when a mouse isn't pointing on any mesh.
+            seed_fill_unselect_all();
+            m_seed_fill_last_mesh_id = -1;
 
             // In case we have no valid hit, we can return.
             return false;
         }
 
+        // The mouse moved from one object's volume to another one. So it is needed to unselect all triangles selected by seed fill.
+        if(m_rr.mesh_id != m_seed_fill_last_mesh_id)
+            seed_fill_unselect_all();
+
         assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
         m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
+        m_seed_fill_last_mesh_id = m_rr.mesh_id;
         return true;
     }
 
