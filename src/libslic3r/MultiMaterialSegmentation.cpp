@@ -236,6 +236,10 @@ static std::vector<ColoredLine> colorize_line(const Line &              line_to_
     std::vector<PaintedLine> filtered_lines;
     filtered_lines.emplace_back(internal_painted.front());
     for (size_t line_idx = 1; line_idx < internal_painted.size(); ++line_idx) {
+        // line_to_process is already all colored. Skip another possible duplicate coloring.
+        if(filtered_lines.back().projected_line.b == line_to_process.b)
+            break;
+
         PaintedLine &prev = filtered_lines.back();
         PaintedLine &curr = internal_painted[line_idx];
 
@@ -1417,7 +1421,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             ExPolygons ex_polygons;
             for (LayerRegion *region : layers[layer_idx]->regions())
                 for (const Surface &surface : region->slices.surfaces)
-                    Slic3r::append(ex_polygons, offset_ex(surface.expolygon, float(SCALED_EPSILON)));
+                    Slic3r::append(ex_polygons, offset_ex(surface.expolygon, float(10 * SCALED_EPSILON)));
             // All expolygons are expanded by SCALED_EPSILON, merged, and then shrunk again by SCALED_EPSILON
             // to ensure that very close polygons will be merged.
             ex_polygons = union_ex(ex_polygons);
@@ -1430,7 +1434,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             // Such close points sometimes caused that the Voronoi diagram has self-intersecting edges around these vertices.
             // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
             // Calling expolygons_simplify fixed these issues.
-            input_expolygons[layer_idx] = simplify_polygons_ex(to_polygons(expolygons_simplify(offset_ex(ex_polygons, float(-SCALED_EPSILON)), SCALED_EPSILON)));
+            input_expolygons[layer_idx] = simplify_polygons_ex(to_polygons(expolygons_simplify(offset_ex(ex_polygons, float(-10 * SCALED_EPSILON)), 5 * SCALED_EPSILON)));
             input_polygons[layer_idx] = to_polygons(input_expolygons[layer_idx]);
         }
     }); // end of parallel_for
@@ -1439,7 +1443,8 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
         throw_on_cancel_callback();
         BoundingBox  bbox(get_extents(input_expolygons[layer_idx]));
-        bbox.offset(SCALED_EPSILON);
+        // Projected triangles may slightly exceed the input polygons.
+        bbox.offset(20 * SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
         edge_grids[layer_idx].create(input_expolygons[layer_idx], coord_t(scale_(10.)));
     }
@@ -1525,7 +1530,9 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
                        (first.contour_idx == second.contour_idx &&
                         (first.line_idx < second.line_idx ||
                          (first.line_idx == second.line_idx &&
-                          Line(first_start_p, first.projected_line.a).length() < Line(first_start_p, second.projected_line.a).length())));
+                          ((first.projected_line.a - first_start_p).cast<double>().squaredNorm() < (second.projected_line.a - first_start_p).cast<double>().squaredNorm() ||
+                           ((first.projected_line.a - first_start_p).cast<double>().squaredNorm() == (second.projected_line.a - first_start_p).cast<double>().squaredNorm() &&
+                            (first.projected_line.b - first.projected_line.a).cast<double>().squaredNorm() < (second.projected_line.b - second.projected_line.a).cast<double>().squaredNorm())))));
             };
 
             std::sort(painted_lines[layer_idx].begin(), painted_lines[layer_idx].end(), comp);
