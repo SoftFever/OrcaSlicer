@@ -604,6 +604,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->sla_drain_holes             = std::move(rhs.sla_drain_holes);
     this->layer_config_ranges         = std::move(rhs.layer_config_ranges);
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
+    this->printable                   = std::move(rhs.printable);
     this->origin_translation          = std::move(rhs.origin_translation);
     m_bounding_box                    = std::move(rhs.m_bounding_box);
     m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);
