@@ -162,7 +162,7 @@ public:
     void        init_menubar_as_gcodeviewer();
     void        update_menubar();
 
-    void        update_ui_from_settings(bool apply_free_camera_correction = true);
+    void        update_ui_from_settings();
     bool        is_loaded() const { return m_loaded; }
     bool        is_last_input_file() const  { return !m_qs_last_input_file.IsEmpty(); }
     bool        is_dlg_layout() const { return m_layout == ESettingsLayout::Dlg; }
