@@ -22,6 +22,8 @@ public:
         SPHERE
     };
 
+    // Set a limit to the edge length, below which the edge will not be split by select_patch().
+    // Called by select_patch() internally. Made public for debugging purposes, see TriangleSelectorGUI::render_debug().
     void set_edge_limit(float edge_limit);
 
     // Create new object on a TriangleMesh. The referenced mesh must
@@ -30,7 +32,7 @@ public:
 
     // Select all triangles fully inside the circle, subdivide where needed.
     void select_patch(const Vec3f        &hit,         // point where to start
-                      int                 facet_start, // facet that point belongs to
+                      int                 facet_start, // facet of the original mesh (unsplit) that the hit point belongs to
                       const Vec3f        &source,      // camera position (mesh coords)
                       float               radius,      // radius of the cursor
                       CursorType          type,        // current type of cursor
@@ -39,7 +41,7 @@ public:
                       bool                triangle_splitting); // If triangles will be split base on the cursor or not
 
     void seed_fill_select_triangles(const Vec3f &hit,               // point where to start
-                                    int          facet_start,       // facet that point belongs to
+                                    int          facet_start,       // facet of the original mesh (unsplit) that the hit point belongs to
                                     float        seed_fill_angle);  // the maximal angle between two facets to be painted by the same color
 
     // Get facets currently in the given state.
@@ -65,6 +67,7 @@ public:
     void seed_fill_unselect_all_triangles();
 
     // For all triangles selected by seed fill, set new EnforcerBlockerType and remove flag indicating that triangle was selected by seed fill.
+    // The operation may merge split triangles if they are being assigned the same color.
     void seed_fill_apply_on_triangles(EnforcerBlockerType new_state);
 
 protected:
@@ -173,6 +176,7 @@ protected:
     float m_old_cursor_radius_sqr;
 
     // Private functions:
+private:
     bool select_triangle(int facet_idx, EnforcerBlockerType type, bool recursive_call = false, bool triangle_splitting = true);
     int  vertices_inside(int facet_idx) const;
     bool faces_camera(int facet) const;
