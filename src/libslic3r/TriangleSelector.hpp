@@ -133,7 +133,9 @@ protected:
 
         // How many children were spawned during last split?
         // Is not reset on remerging the triangle.
-        char old_number_of_splits : 2;
+        int old_number_of_splits : 3;
+
+        // there are still 3 bits available at the last byte :-)
     };
 
     struct Vertex {
