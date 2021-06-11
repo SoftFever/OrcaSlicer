@@ -434,12 +434,7 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
                 continue;
 
             for (int i = 0; i < 3; ++i)
-                m_iva_colors[color_idx].push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
-                                                      double(m_vertices[tr.verts_idxs[i]].v[1]),
-                                                      double(m_vertices[tr.verts_idxs[i]].v[2]),
-                                                      double(tr.normal[0]),
-                                                      double(tr.normal[1]),
-                                                      double(tr.normal[2]));
+                m_iva_colors[color_idx].push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
             m_iva_colors[color_idx].push_triangle(color_cnt[color_idx], color_cnt[color_idx] + 1, color_cnt[color_idx] + 2);
             color_cnt[color_idx] += 3;
         }
@@ -449,12 +444,7 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
         if (!tr.valid() || tr.is_split() || !tr.is_selected_by_seed_fill()) continue;
 
         for (int i = 0; i < 3; ++i)
-            m_iva_seed_fill.push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
-                                          double(m_vertices[tr.verts_idxs[i]].v[1]),
-                                          double(m_vertices[tr.verts_idxs[i]].v[2]),
-                                          double(tr.normal[0]),
-                                          double(tr.normal[1]),
-                                          double(tr.normal[2]));
+            m_iva_seed_fill.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
         m_iva_seed_fill.push_triangle(seed_fill_cnt, seed_fill_cnt + 1, seed_fill_cnt + 2);
         seed_fill_cnt += 3;
     }

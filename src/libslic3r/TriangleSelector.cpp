@@ -112,8 +112,9 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f& hit, int facet_st
                     assert(neighbor_idx >= 0);
                     if (neighbor_idx >= 0 && !visited[neighbor_idx]) {
                         // Check if neighbour_facet_idx is satisfies angle in seed_fill_angle and append it to facet_queue if it do.
-                        double dot_product = m_triangles[neighbor_idx].normal.dot(m_triangles[current_facet].normal);
-                        if (std::clamp(dot_product, 0., 1.) >= facet_angle_limit)
+                        const Vec3f &n1 = m_mesh->stl.facet_start[m_triangles[neighbor_idx].source_triangle].normal;
+                        const Vec3f &n2 = m_mesh->stl.facet_start[m_triangles[current_facet].source_triangle].normal;
+                        if (std::clamp(n1.dot(n2), 0.f, 1.f) >= facet_angle_limit)
                             facet_queue.push(neighbor_idx);
                     }
                 }
@@ -201,6 +202,8 @@ void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
     m_triangles[facet_idx].set_state(state);
 }
 
+// called by select_patch()->select_triangle()
+// to decide which sides of the traingle to split and to actually split it calling set_division() and perform_split().
 void TriangleSelector::split_triangle(int facet_idx)
 {
     if (m_triangles[facet_idx].is_split()) {
@@ -475,8 +478,7 @@ void TriangleSelector::reset(const EnforcerBlockerType reset_state)
     m_triangles.reserve(m_mesh->its.indices.size());
     for (size_t i=0; i<m_mesh->its.indices.size(); ++i) {
         const stl_triangle_vertex_indices& ind = m_mesh->its.indices[i];
-        const Vec3f& normal = m_mesh->stl.facet_start[i].normal;
-        push_triangle(ind[0], ind[1], ind[2], normal, reset_state);
+        push_triangle(ind[0], ind[1], ind[2], i, reset_state);
     }
     m_orig_size_vertices = m_vertices.size();
     m_orig_size_indices = m_triangles.size();
@@ -503,20 +505,20 @@ void TriangleSelector::set_edge_limit(float edge_limit)
 
 
 
-void TriangleSelector::push_triangle(int a, int b, int c, const Vec3f& normal, const EnforcerBlockerType state)
+void TriangleSelector::push_triangle(int a, int b, int c, int source_triangle, const EnforcerBlockerType state)
 {
     for (int i : {a, b, c}) {
         assert(i >= 0 && i < int(m_vertices.size()));
         ++m_vertices[i].ref_cnt;
     }
-    m_triangles.emplace_back(a, b, c, normal, state);
+    m_triangles.emplace_back(a, b, c, source_triangle, state);
 }
 
-
+// called by deserialize() and select_patch()->select_triangle()->split_triangle()
 void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_state)
 {
     Triangle* tr = &m_triangles[facet_idx];
-    const Vec3f normal = tr->normal;
+    int source_triangle = tr->source_triangle;
 
     assert(tr->is_split());
 
@@ -524,7 +526,7 @@ void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_stat
     int sides_to_split = tr->number_of_split_sides();
 
     // indices of triangle vertices
-    std::vector<int> verts_idxs;
+    boost::container::small_vector<int, 6> verts_idxs;
     int idx = tr->special_side();
     for (int j=0; j<3; ++j) {
         verts_idxs.push_back(tr->verts_idxs[idx++]);
@@ -537,8 +539,8 @@ void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_stat
         m_vertices.emplace_back((m_vertices[verts_idxs[1]].v + m_vertices[verts_idxs[2]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+2, m_vertices.size() - 1);
 
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2], normal);
-        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0], normal);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2], source_triangle);
+        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0], source_triangle);
         break;
 
     case 2:
@@ -548,9 +550,9 @@ void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_stat
         m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[3]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+4, m_vertices.size() - 1);
 
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4], normal);
-        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4], normal);
-        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4], normal);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4], source_triangle);
+        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4], source_triangle);
+        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4], source_triangle);
         break;
 
     case 3:
@@ -561,10 +563,10 @@ void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_stat
         m_vertices.emplace_back((m_vertices[verts_idxs[4]].v + m_vertices[verts_idxs[0]].v)/2.);
         verts_idxs.insert(verts_idxs.begin()+5, m_vertices.size() - 1);
 
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5], normal);
-        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3], normal);
-        push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5], normal);
-        push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5], normal);
+        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5], source_triangle);
+        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3], source_triangle);
+        push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5], source_triangle);
+        push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5], source_triangle);
         break;
 
     default:
@@ -694,6 +696,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
         int processed_children = 0;
         int total_children = 0;
     };
+    // Depth-first queue of a source mesh triangle and its childern.
     // kept outside of the loop to avoid re-allocating inside the loop.
     std::vector<ProcessingInfo> parents;
 

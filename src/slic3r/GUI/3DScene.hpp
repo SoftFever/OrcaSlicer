@@ -154,8 +154,9 @@ public:
         push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
     }
 
-    inline void push_geometry(const Vec3d& p, const Vec3d& n) {
-        push_geometry(p(0), p(1), p(2), n(0), n(1), n(2));
+    template<typename Derived, typename Derived2>
+    inline void push_geometry(const Eigen::MatrixBase<Derived>& p, const Eigen::MatrixBase<Derived2>& n) {
+        push_geometry(float(p(0)), float(p(1)), float(p(2)), float(n(0)), float(n(1)), float(n(2)));
     }
 
     inline void push_triangle(int idx1, int idx2, int idx3) {
