@@ -703,7 +703,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
     for (auto [triangle_id, ibit] : data.first) {
         assert(triangle_id < int(m_triangles.size()));
         assert(ibit < data.second.size());
-        auto next_nibble = [&data, &ibit]() {
+        auto next_nibble = [&data, &ibit = ibit]() {
             int n = 0;
             for (int i = 0; i < 4; ++ i)
                 n |= data.second[ibit ++] << i;
