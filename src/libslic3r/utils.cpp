@@ -424,6 +424,53 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 }
 
 #ifdef __linux__
+// Copied from boost::filesystem. 
+// Called by copy_file_linux() in case linux sendfile() API is not supported.
+int copy_file_linux_read_write(int infile, int outfile, uintmax_t file_size)
+{
+    std::vector<char> buf(
+	    // Prefer the buffer to be larger than the file size so that we don't have
+	    // to perform an extra read if the file fits in the buffer exactly.
+    	std::clamp<size_t>(file_size + (file_size < ~static_cast<uintmax_t >(0u)),
+		// Min and max buffer sizes are selected to minimize the overhead from system calls.
+		// The values are picked based on coreutils cp(1) benchmarking data described here:
+		// https://github.com/coreutils/coreutils/blob/d1b0257077c0b0f0ee25087efd46270345d1dd1f/src/ioblksize.h#L23-L72
+    			   		   8u * 1024u, 256u * 1024u),
+    	0);
+
+#if defined(POSIX_FADV_SEQUENTIAL)
+    ::posix_fadvise(infile, 0, 0, POSIX_FADV_SEQUENTIAL);
+#endif
+
+    // Don't use file size to limit the amount of data to copy since some filesystems, like procfs or sysfs,
+    // provide files with generated content and indicate that their size is zero or 4096. Just copy as much data
+    // as we can read from the input file.
+    while (true) {
+        ssize_t sz_read = ::read(infile, buf.data(), buf.size());
+        if (sz_read == 0)
+            break;
+        if (sz_read < 0) {
+            int err = errno;
+            if (err == EINTR)
+                continue;
+            return err;
+        }
+        // Allow for partial writes - see Advanced Unix Programming (2nd Ed.),
+        // Marc Rochkind, Addison-Wesley, 2004, page 94
+        for (ssize_t sz_wrote = 0; sz_wrote < sz_read;) {
+            ssize_t sz = ::write(outfile, buf.data() + sz_wrote, static_cast<std::size_t>(sz_read - sz_wrote));
+            if (sz < 0) {
+                int err = errno;
+                if (err == EINTR)
+                    continue;
+                return err;
+            }
+            sz_wrote += sz;
+        }
+    }
+    return 0;
+}
+
 // Copied from boost::filesystem, to support copying a file to a weird filesystem, which does not support changing file attributes,
 // for example ChromeOS Linux integration or FlashAIR WebDAV.
 // Copied and simplified from boost::filesystem::detail::copy_file() with option = overwrite_if_exists and with just the Linux path kept,
@@ -520,6 +567,19 @@ bool copy_file_linux(const boost::filesystem::path &from, const boost::filesyste
 			ssize_t sz = ::sendfile(outfile.fd, infile.fd, nullptr, size_to_copy);
 			if (sz < 0) {
 				err = errno;
+	            if (offset == 0u) {
+	                // sendfile may fail with EINVAL if the underlying filesystem does not support it.
+	                // See https://patchwork.kernel.org/project/linux-nfs/patch/20190411183418.4510-1-olga.kornievskaia@gmail.com/
+	                // https://bugzilla.redhat.com/show_bug.cgi?id=1783554.
+	                // https://github.com/boostorg/filesystem/commit/4b9052f1e0b2acf625e8247582f44acdcc78a4ce
+	                if (err == EINVAL || err == EOPNOTSUPP) {
+						err = copy_file_linux_read_write(infile.fd, outfile.fd, from_stat.st_size);
+						if (err < 0)
+							goto fail;
+						// Succeeded.
+	                	break;
+	                }
+	            }
 				if (err == EINTR)
 					continue;
 				if (err == 0)
