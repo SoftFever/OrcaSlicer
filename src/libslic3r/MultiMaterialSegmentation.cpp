@@ -1385,16 +1385,19 @@ static std::vector<std::vector<std::pair<ExPolygon, size_t>>> merge_segmented_la
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             for (const std::pair<ExPolygon, size_t> &colored_expoly : segmented_regions[layer_idx]) {
                 throw_on_cancel_callback();
+                // Zero is the default color of the volume.
+                if(colored_expoly.second == 0)
+                    continue;
                 ExPolygons cut_colored_expoly = {colored_expoly.first};
                 for (const std::vector<ExPolygons> &top_and_bottom_layer : top_and_bottom_layers)
                     cut_colored_expoly = diff_ex(cut_colored_expoly, top_and_bottom_layer[layer_idx]);
                 for (ExPolygon &ex_poly : cut_colored_expoly)
-                    segmented_regions_merged[layer_idx].emplace_back(std::move(ex_poly), colored_expoly.second);
+                    segmented_regions_merged[layer_idx].emplace_back(std::move(ex_poly), colored_expoly.second - 1);
             }
 
-            for (size_t color_idx = 0; color_idx < top_and_bottom_layers.size(); ++color_idx)
+            for (size_t color_idx = 1; color_idx < top_and_bottom_layers.size(); ++color_idx)
                 for (ExPolygon &expoly : top_and_bottom_layers[color_idx][layer_idx])
-                    segmented_regions_merged[layer_idx].emplace_back(std::move(expoly), color_idx);
+                    segmented_regions_merged[layer_idx].emplace_back(std::move(expoly), color_idx - 1);
         }
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - merging segmented layers in parallel - end";
