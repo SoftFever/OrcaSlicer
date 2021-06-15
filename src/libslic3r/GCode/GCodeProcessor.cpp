@@ -8,6 +8,7 @@
 #if ENABLE_VALIDATE_CUSTOM_GCODE
 #include <boost/algorithm/string/predicate.hpp>
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
+#include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 #if ENABLE_GCODE_WINDOW
@@ -1422,7 +1423,7 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
     BedSize bed_size;
 
     m_parser.parse_file(filename, [this, &bed_size](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
-        auto extract_float = [](const std::string& cmt, const std::string& key, double& out) {
+        auto extract_double = [](const std::string& cmt, const std::string& key, double& out) {
             size_t pos = cmt.find(key);
             if (pos != cmt.npos) {
                 pos = cmt.find(',', pos);
@@ -1434,23 +1435,41 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
             return false;
         };
 
+        auto extract_floats = [](const std::string& cmt, const std::string& key, std::vector<float>& out) {
+            size_t pos = cmt.find(key);
+            if (pos != cmt.npos) {
+                pos = cmt.find(',', pos);
+                if (pos != cmt.npos) {
+                    std::string data_str = cmt.substr(pos + 1);
+                    std::vector<std::string> values_str;
+                    boost::split(values_str, data_str, boost::is_any_of("|"), boost::token_compress_on);
+                    for (const std::string& s : values_str) {
+                        out.emplace_back(static_cast<float>(string_to_double_decimal_point(s)));
+                    }
+                    return true;
+                }
+            }
+            return false;
+        };
+
         const std::string& comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';') {
-            if (bed_size.x == 0.0)
-                extract_float(comment, "strokeXoverride", bed_size.x);
-            if (bed_size.y == 0.0)
-                extract_float(comment, "strokeYoverride", bed_size.y);
-
-            // check for early exit
-            if (bed_size.is_defined()) {
-#if ENABLE_VALIDATE_CUSTOM_GCODE
-                m_parser.quit_parsing();
-#else
-                m_parser.quit_parsing_file();
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+            if (bed_size.x == 0.0 && comment.find("strokeXoverride") != comment.npos)
+                extract_double(comment, "strokeXoverride", bed_size.x);
+            else if (bed_size.y == 0.0 && comment.find("strokeYoverride") != comment.npos)
+                extract_double(comment, "strokeYoverride", bed_size.y);
+            else if (comment.find("filamentDiameters") != comment.npos) {
+                m_result.filament_diameters.clear();
+                extract_floats(comment, "filamentDiameters", m_result.filament_diameters);
+            }
+            else if (comment.find("filamentDensities") != comment.npos) {
+                m_result.filament_densities.clear();
+                extract_floats(comment, "filamentDensities", m_result.filament_densities);
             }
         }
         });
+
+    m_result.extruders_count = std::max<size_t>(1, std::min(m_result.filament_diameters.size(), m_result.filament_densities.size()));
 
     if (bed_size.is_defined()) {
         m_result.bed_shape = {
@@ -1596,8 +1615,7 @@ void GCodeProcessor::process_tags(const std::string_view comment)
 #if ENABLE_VALIDATE_CUSTOM_GCODE
     // extrusion role tag
     if (boost::starts_with(comment, reserved_tag(ETags::Role))) {
-        m_used_filaments.process_role_cache(this);
-        m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(reserved_tag(ETags::Role).length()));
+        set_extrusion_role(ExtrusionEntity::string_to_role(comment.substr(reserved_tag(ETags::Role).length())));
 #if ENABLE_SEAMS_VISUALIZATION
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
@@ -1622,7 +1640,7 @@ void GCodeProcessor::process_tags(const std::string_view comment)
 #else
     // extrusion role tag
     if (boost::starts_with(comment, Extrusion_Role_Tag)) {
-        m_extrusion_role = ExtrusionEntity::string_to_role(comment.substr(Extrusion_Role_Tag.length()));
+        set_extrusion_role(ExtrusionEntity::string_to_role(comment.substr(Extrusion_Role_Tag.length())));
         return;
     }
 
@@ -1804,23 +1822,23 @@ bool GCodeProcessor::process_cura_tags(const std::string_view comment)
     if (pos != comment.npos) {
         const std::string_view type = comment.substr(pos + tag.length());
         if (type == "SKIRT")
-            m_extrusion_role = erSkirt;
+            set_extrusion_role(erSkirt);
         else if (type == "WALL-OUTER")
-            m_extrusion_role = erExternalPerimeter;
+            set_extrusion_role(erExternalPerimeter);
         else if (type == "WALL-INNER")
-            m_extrusion_role = erPerimeter;
+            set_extrusion_role(erPerimeter);
         else if (type == "SKIN")
-            m_extrusion_role = erSolidInfill;
+            set_extrusion_role(erSolidInfill);
         else if (type == "FILL")
-            m_extrusion_role = erInternalInfill;
+            set_extrusion_role(erInternalInfill);
         else if (type == "SUPPORT")
-            m_extrusion_role = erSupportMaterial;
+            set_extrusion_role(erSupportMaterial);
         else if (type == "SUPPORT-INTERFACE")
-            m_extrusion_role = erSupportMaterialInterface;
+            set_extrusion_role(erSupportMaterialInterface);
         else if (type == "PRIME-TOWER")
-            m_extrusion_role = erWipeTower;
+            set_extrusion_role(erWipeTower);
         else {
-            m_extrusion_role = erNone;
+            set_extrusion_role(erNone);
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
         }
 
@@ -1884,14 +1902,14 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
     // ; skirt
     pos = cmt.find(" skirt");
     if (pos == 0) {
-        m_extrusion_role = erSkirt;
+        set_extrusion_role(erSkirt);
         return true;
     }
     
     // ; outer perimeter
     pos = cmt.find(" outer perimeter");
     if (pos == 0) {
-        m_extrusion_role = erExternalPerimeter;
+        set_extrusion_role(erExternalPerimeter);
 #if ENABLE_SEAMS_VISUALIZATION
         m_seams_detector.activate(true);
 #endif // ENABLE_SEAMS_VISUALIZATION
@@ -1901,77 +1919,77 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
     // ; inner perimeter
     pos = cmt.find(" inner perimeter");
     if (pos == 0) {
-        m_extrusion_role = erPerimeter;
+        set_extrusion_role(erPerimeter);
         return true;
     }
 
     // ; gap fill
     pos = cmt.find(" gap fill");
     if (pos == 0) {
-        m_extrusion_role = erGapFill;
+        set_extrusion_role(erGapFill);
         return true;
     }
 
     // ; infill
     pos = cmt.find(" infill");
     if (pos == 0) {
-        m_extrusion_role = erInternalInfill;
+        set_extrusion_role(erInternalInfill);
         return true;
     }
 
     // ; solid layer
     pos = cmt.find(" solid layer");
     if (pos == 0) {
-        m_extrusion_role = erSolidInfill;
+        set_extrusion_role(erSolidInfill);
         return true;
     }
 
     // ; bridge
     pos = cmt.find(" bridge");
     if (pos == 0) {
-        m_extrusion_role = erBridgeInfill;
+        set_extrusion_role(erBridgeInfill);
         return true;
     }
 
     // ; support
     pos = cmt.find(" support");
     if (pos == 0) {
-        m_extrusion_role = erSupportMaterial;
+        set_extrusion_role(erSupportMaterial);
         return true;
     }
 
     // ; dense support
     pos = cmt.find(" dense support");
     if (pos == 0) {
-        m_extrusion_role = erSupportMaterialInterface;
+        set_extrusion_role(erSupportMaterialInterface);
         return true;
     }
 
     // ; prime pillar
     pos = cmt.find(" prime pillar");
     if (pos == 0) {
-        m_extrusion_role = erWipeTower;
+        set_extrusion_role(erWipeTower);
         return true;
     }
 
     // ; ooze shield
     pos = cmt.find(" ooze shield");
     if (pos == 0) {
-        m_extrusion_role = erNone; // Missing mapping
+        set_extrusion_role(erNone); // Missing mapping
         return true;
     }
 
     // ; raft
     pos = cmt.find(" raft");
     if (pos == 0) {
-        m_extrusion_role = erSupportMaterial;
+        set_extrusion_role(erSupportMaterial);
         return true;
     }
 
     // ; internal single extrusion
     pos = cmt.find(" internal single extrusion");
     if (pos == 0) {
-        m_extrusion_role = erNone; // Missing mapping
+        set_extrusion_role(erNone); // Missing mapping
         return true;
     }
 
@@ -2023,29 +2041,29 @@ bool GCodeProcessor::process_craftware_tags(const std::string_view comment)
     if (pos != comment.npos) {
         const std::string_view type = comment.substr(pos + tag.length());
         if (type == "Skirt")
-            m_extrusion_role = erSkirt;
+            set_extrusion_role(erSkirt);
         else if (type == "Perimeter")
-            m_extrusion_role = erExternalPerimeter;
+            set_extrusion_role(erExternalPerimeter);
         else if (type == "HShell")
-            m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            set_extrusion_role(erNone); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         else if (type == "InnerHair")
-            m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            set_extrusion_role(erNone); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         else if (type == "Loop")
-            m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            set_extrusion_role(erNone); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         else if (type == "Infill")
-            m_extrusion_role = erInternalInfill;
+            set_extrusion_role(erInternalInfill);
         else if (type == "Raft")
-            m_extrusion_role = erSkirt;
+            set_extrusion_role(erSkirt);
         else if (type == "Support")
-            m_extrusion_role = erSupportMaterial;
+            set_extrusion_role(erSupportMaterial);
         else if (type == "SupportTouch")
-            m_extrusion_role = erSupportMaterial;
+            set_extrusion_role(erSupportMaterial);
         else if (type == "SoftSupport")
-            m_extrusion_role = erSupportMaterialInterface;
+            set_extrusion_role(erSupportMaterialInterface);
         else if (type == "Pillar")
-            m_extrusion_role = erWipeTower;
+            set_extrusion_role(erWipeTower);
         else {
-            m_extrusion_role = erNone;
+            set_extrusion_role(erNone);
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
         }
 
@@ -2075,21 +2093,21 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string_view comment)
     if (pos != comment.npos) {
         const std::string_view type = comment.substr(pos + tag.length());
         if (type == "RAFT")
-            m_extrusion_role = erSkirt;
+            set_extrusion_role(erSkirt);
         else if (type == "WALL-OUTER")
-            m_extrusion_role = erExternalPerimeter;
+            set_extrusion_role(erExternalPerimeter);
         else if (type == "WALL-INNER")
-            m_extrusion_role = erPerimeter;
+            set_extrusion_role(erPerimeter);
         else if (type == "SOLID-FILL")
-            m_extrusion_role = erSolidInfill;
+            set_extrusion_role(erSolidInfill);
         else if (type == "FILL")
-            m_extrusion_role = erInternalInfill;
+            set_extrusion_role(erInternalInfill);
         else if (type == "BRIDGE")
-            m_extrusion_role = erBridgeInfill;
+            set_extrusion_role(erBridgeInfill);
         else if (type == "SUPPORT")
-            m_extrusion_role = erSupportMaterial;
+            set_extrusion_role(erSupportMaterial);
         else {
-            m_extrusion_role = erNone;
+            set_extrusion_role(erNone);
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
         }
 
@@ -2136,35 +2154,35 @@ bool GCodeProcessor::process_kissslicer_tags(const std::string_view comment)
     // ; 'Raft Path'
     size_t pos = comment.find(" 'Raft Path'");
     if (pos == 0) {
-        m_extrusion_role = erSkirt;
+        set_extrusion_role(erSkirt);
         return true;
     }
 
     // ; 'Support Interface Path'
     pos = comment.find(" 'Support Interface Path'");
     if (pos == 0) {
-        m_extrusion_role = erSupportMaterialInterface;
+        set_extrusion_role(erSupportMaterialInterface);
         return true;
     }
 
     // ; 'Travel/Ironing Path'
     pos = comment.find(" 'Travel/Ironing Path'");
     if (pos == 0) {
-        m_extrusion_role = erIroning;
+        set_extrusion_role(erIroning);
         return true;
     }
 
     // ; 'Support (may Stack) Path'
     pos = comment.find(" 'Support (may Stack) Path'");
     if (pos == 0) {
-        m_extrusion_role = erSupportMaterial;
+        set_extrusion_role(erSupportMaterial);
         return true;
     }
 
     // ; 'Perimeter Path'
     pos = comment.find(" 'Perimeter Path'");
     if (pos == 0) {
-        m_extrusion_role = erExternalPerimeter;
+        set_extrusion_role(erExternalPerimeter);
 #if ENABLE_SEAMS_VISUALIZATION
         m_seams_detector.activate(true);
 #endif // ENABLE_SEAMS_VISUALIZATION
@@ -2174,56 +2192,56 @@ bool GCodeProcessor::process_kissslicer_tags(const std::string_view comment)
     // ; 'Pillar Path'
     pos = comment.find(" 'Pillar Path'");
     if (pos == 0) {
-        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        set_extrusion_role(erNone); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         return true;
     }
 
     // ; 'Destring/Wipe/Jump Path'
     pos = comment.find(" 'Destring/Wipe/Jump Path'");
     if (pos == 0) {
-        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        set_extrusion_role(erNone); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         return true;
     }
 
     // ; 'Prime Pillar Path'
     pos = comment.find(" 'Prime Pillar Path'");
     if (pos == 0) {
-        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        set_extrusion_role(erNone); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         return true;
     }
 
     // ; 'Loop Path'
     pos = comment.find(" 'Loop Path'");
     if (pos == 0) {
-        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        set_extrusion_role(erNone); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         return true;
     }
 
     // ; 'Crown Path'
     pos = comment.find(" 'Crown Path'");
     if (pos == 0) {
-        m_extrusion_role = erNone; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        set_extrusion_role(erNone); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         return true;
     }
 
     // ; 'Solid Path'
     pos = comment.find(" 'Solid Path'");
     if (pos == 0) {
-        m_extrusion_role = erNone;
+        set_extrusion_role(erNone);
         return true;
     }
 
     // ; 'Stacked Sparse Infill Path'
     pos = comment.find(" 'Stacked Sparse Infill Path'");
     if (pos == 0) {
-        m_extrusion_role = erInternalInfill;
+        set_extrusion_role(erInternalInfill);
         return true;
     }
 
     // ; 'Sparse Infill Path'
     pos = comment.find(" 'Sparse Infill Path'");
     if (pos == 0) {
-        m_extrusion_role = erSolidInfill;
+        set_extrusion_role(erSolidInfill);
         return true;
     }
 
@@ -3070,6 +3088,12 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
         }
     }
 #endif // ENABLE_EXTENDED_M73_LINES
+}
+
+void GCodeProcessor::set_extrusion_role(ExtrusionRole role)
+{
+    m_used_filaments.process_role_cache(this);
+    m_extrusion_role = role;
 }
 
 float GCodeProcessor::minimum_feedrate(PrintEstimatedStatistics::ETimeMode mode, float feedrate) const

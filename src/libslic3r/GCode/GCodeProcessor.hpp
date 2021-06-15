@@ -718,6 +718,8 @@ namespace Slic3r {
 
         void store_move_vertex(EMoveType type);
 
+        void set_extrusion_role(ExtrusionRole role);
+
         float minimum_feedrate(PrintEstimatedStatistics::ETimeMode mode, float feedrate) const;
         float minimum_travel_feedrate(PrintEstimatedStatistics::ETimeMode mode, float feedrate) const;
         float get_axis_max_feedrate(PrintEstimatedStatistics::ETimeMode mode, Axis axis) const;
