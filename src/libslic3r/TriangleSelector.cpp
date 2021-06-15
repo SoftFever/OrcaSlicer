@@ -3,32 +3,60 @@
 
 #include <boost/container/small_vector.hpp>
 
+#ifdef DEBUG
+    #define EXPENSIVE_DEBUG_CHECKS
+#endif // DEBUG
+
 namespace Slic3r {
 
+#ifndef _NDEBUG
+bool TriangleSelector::verify_triangle_midpoints(const Triangle &tr) const
+{
+    for (int i = 0; i < 3; ++ i) { 
+        int v1   = tr.verts_idxs[i];
+        int v2   = tr.verts_idxs[next_idx_modulo(i, 3)];
+        int vmid = this->triangle_midpoint(tr, v1, v2);
+        assert(vmid >= -1);
+        if (vmid != -1) {
+            Vec3f c1 = 0.5f * (m_vertices[v1].v + m_vertices[v2].v);
+            Vec3f c2 = m_vertices[vmid].v;
+            float d  = (c2 - c1).norm();
+            assert(std::abs(d) < EPSILON);
+        }
+    }
+    return true;
+}
 
+bool TriangleSelector::verify_triangle_neighbors(const Triangle &tr, const Vec3i &neighbors) const
+{
+    assert(neighbors(0) >= -1);
+    assert(neighbors(1) >= -1);
+    assert(neighbors(2) >= -1);
+    assert(verify_triangle_midpoints(tr));
+
+    for (int i = 0; i < 3; ++i)
+        if (neighbors(i) != -1) {
+            const Triangle &tr2 = m_triangles[neighbors(i)];
+            assert(verify_triangle_midpoints(tr2));
+            int v1 = tr.verts_idxs[i];
+            int v2 = tr.verts_idxs[next_idx_modulo(i, 3)];
+            assert(tr2.verts_idxs[0] == v1 || tr2.verts_idxs[1] == v1 || tr2.verts_idxs[2] == v1);
+            int j = tr2.verts_idxs[0] == v1 ? 0 : tr2.verts_idxs[1] == v1 ? 1 : 2;
+            assert(tr2.verts_idxs[j] == v1);
+            assert(tr2.verts_idxs[prev_idx_modulo(j, 3)] == v2);
+        }
+    return true;
+}
+#endif // _NDEBUG
 
 // sides_to_split==-1 : just restore previous split
 void TriangleSelector::Triangle::set_division(int sides_to_split, int special_side_idx)
 {
-    assert(sides_to_split >=-1 && sides_to_split <= 3);
-    assert(special_side_idx >=-1 && special_side_idx < 3);
-
-    // If splitting one or two sides, second argument must be provided.
-    assert(sides_to_split != 1 || special_side_idx != -1);
-    assert(sides_to_split != 2 || special_side_idx != -1);
-
-    if (sides_to_split == -1) {
-        assert(old_number_of_splits != 0);
-        this->number_of_splits = old_number_of_splits;
-        // indices of children should still be there.
-    } else {
-        this->number_of_splits = sides_to_split;
-        if (sides_to_split != 0) {
-            assert(old_number_of_splits == 0);
-            this->special_side_idx = special_side_idx;
-            this->old_number_of_splits = sides_to_split;
-        }
-    }
+    assert(sides_to_split >= 0 && sides_to_split <= 3);
+    assert(special_side_idx >= 0 && special_side_idx < 3);
+    assert(sides_to_split == 1 || sides_to_split == 2 || special_side_idx == 0);
+    this->number_of_splits = sides_to_split;
+    this->special_side_idx = special_side_idx;
 }
 
 
@@ -64,7 +92,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
     while (facet_idx < int(facets_to_check.size())) {
         int facet = facets_to_check[facet_idx];
         if (! visited[facet]) {
-            if (select_triangle(facet, new_state, false, triangle_splitting)) {
+            if (select_triangle(facet, new_state, triangle_splitting)) {
                 // add neighboring facets to list to be proccessed later
                 for (int n=0; n<3; ++n) {
                     int neighbor_idx = m_mesh->stl.neighbors_start[facet].neighbor[n];
@@ -128,13 +156,264 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f& hit, int facet_st
 // This is done by an actual recursive call. Returns false if the triangle is
 // outside the cursor.
 // Called by select_patch() and by itself.
-bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, bool recursive_call, bool triangle_splitting)
+bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, bool triangle_splitting)
+{
+    assert(facet_idx < int(m_triangles.size()));
+
+    if (! m_triangles[facet_idx].valid())
+        return false;
+
+    Vec3i neighbors;
+    const stl_neighbors &neighbors_src = m_mesh->stl.neighbors_start[facet_idx];
+    for (int i = 0; i < 3; ++ i)
+        neighbors(i) = neighbors_src.neighbor[i];
+    assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
+    
+    if (! select_triangle_recursive(facet_idx, neighbors, type, triangle_splitting))
+        return false;
+
+    // In case that all children are leafs and have the same state now,
+    // they may be removed and substituted by the parent triangle.
+    remove_useless_children(facet_idx);
+
+#ifdef EXPENSIVE_DEBUG_CHECKS
+    // Make sure that we did not lose track of invalid triangles.
+    assert(m_invalid_triangles == std::count_if(m_triangles.begin(), m_triangles.end(),
+               [](const Triangle& tr) { return ! tr.valid(); }));
+#endif // EXPENSIVE_DEBUG_CHECKS
+
+    // Do garbage collection maybe?
+    if (2*m_invalid_triangles > int(m_triangles.size()))
+        garbage_collect();
+
+    return true;
+}
+
+// Return child of itriangle at a CCW oriented side (vertexi, vertexj), either first or 2nd part.
+// If the side sharing (vertexi, vertexj) is not split, return -1.
+int TriangleSelector::neighbor_child(const Triangle &tr, int vertexi, int vertexj, Partition partition) const
+{
+    if (tr.number_of_split_sides() == 0)
+        // If this triangle is not split, then there is no upper / lower subtriangle sharing the edge.
+        return -1;
+
+    // Find the triangle edge.
+    int edge = tr.verts_idxs[0] == vertexi ? 0 : tr.verts_idxs[1] == vertexi ? 1 : 2;
+    assert(tr.verts_idxs[edge] == vertexi);
+    assert(tr.verts_idxs[next_idx_modulo(edge, 3)] == vertexj);
+
+    int child_idx;
+    if (tr.number_of_split_sides() == 1) {
+        if (edge != next_idx_modulo(tr.special_side(), 3))
+            // A child may or may not be split at this side.
+            return this->neighbor_child(m_triangles[tr.children[edge == tr.special_side() ? 0 : 1]], vertexi, vertexj, partition);
+        child_idx = partition == Partition::First ? 0 : 1;
+    } else if (tr.number_of_split_sides() == 2) {
+        if (edge == next_idx_modulo(tr.special_side(), 3))
+            // A child may or may not be split at this side.
+            return this->neighbor_child(m_triangles[tr.children[2]], vertexi, vertexj, partition);
+        child_idx = edge == tr.special_side() ?
+            (partition == Partition::First ? 0 : 1) :
+            (partition == Partition::First ? 2 : 0);
+    } else {
+        assert(tr.number_of_split_sides() == 3);
+        assert(tr.special_side() == 0);
+        switch(edge) {
+        case 0:  child_idx = partition == Partition::First ? 0 : 1; break;
+        case 1:  child_idx = partition == Partition::First ? 1 : 2; break;
+        default: assert(edge == 2);
+                 child_idx = partition == Partition::First ? 2 : 0; break;
+        }
+    }
+    return tr.children[child_idx];
+}
+
+// Return child of itriangle at a CCW oriented side (vertexi, vertexj), either first or 2nd part.
+// If itriangle == -1 or if the side sharing (vertexi, vertexj) is not split, return -1.
+int TriangleSelector::neighbor_child(int itriangle, int vertexi, int vertexj, Partition partition) const
+{
+    return itriangle == -1 ? -1 : this->neighbor_child(m_triangles[itriangle], vertexi, vertexj, partition);
+}
+
+// Return existing midpoint of CCW oriented side (vertexi, vertexj).
+// If itriangle == -1 or if the side sharing (vertexi, vertexj) is not split, return -1.
+int TriangleSelector::triangle_midpoint(const Triangle &tr, int vertexi, int vertexj) const
+{
+    if (tr.number_of_split_sides() == 0)
+        // If this triangle is not split, then there is no upper / lower subtriangle sharing the edge.
+        return -1;
+
+    // Find the triangle edge.
+    int edge = tr.verts_idxs[0] == vertexi ? 0 : tr.verts_idxs[1] == vertexi ? 1 : 2;
+    assert(tr.verts_idxs[edge] == vertexi);
+    assert(tr.verts_idxs[next_idx_modulo(edge, 3)] == vertexj);
+
+    if (tr.number_of_split_sides() == 1) {
+        return edge == next_idx_modulo(tr.special_side(), 3) ? 
+            m_triangles[tr.children[0]].verts_idxs[2] :
+            this->triangle_midpoint(m_triangles[tr.children[edge == tr.special_side() ? 0 : 1]], vertexi, vertexj);
+    } else if (tr.number_of_split_sides() == 2) {
+        return edge == next_idx_modulo(tr.special_side(), 3) ? 
+                    this->triangle_midpoint(m_triangles[tr.children[2]], vertexi, vertexj) :
+               edge == tr.special_side() ?
+                    m_triangles[tr.children[0]].verts_idxs[1] :
+                    m_triangles[tr.children[1]].verts_idxs[2];
+    } else {
+        assert(tr.number_of_split_sides() == 3);
+        assert(tr.special_side() == 0);
+        return 
+            (edge == 0) ? m_triangles[tr.children[0]].verts_idxs[1] :
+            (edge == 1) ? m_triangles[tr.children[1]].verts_idxs[2] :
+                          m_triangles[tr.children[2]].verts_idxs[2];
+    }
+}
+
+// Return existing midpoint of CCW oriented side (vertexi, vertexj).
+// If itriangle == -1 or if the side sharing (vertexi, vertexj) is not split, return -1.
+int TriangleSelector::triangle_midpoint(int itriangle, int vertexi, int vertexj) const
+{
+    return itriangle == -1 ? -1 : this->triangle_midpoint(m_triangles[itriangle], vertexi, vertexj);
+}
+
+int TriangleSelector::triangle_midpoint_or_allocate(int itriangle, int vertexi, int vertexj)
+{
+    int midpoint = this->triangle_midpoint(itriangle, vertexi, vertexj);
+    if (midpoint == -1) {
+        Vec3f c = 0.5f * (m_vertices[vertexi].v + m_vertices[vertexj].v);
+#ifdef EXPENSIVE_DEBUG_CHECKS
+        // Verify that the vertex is really a new one.
+        auto it = std::find_if(m_vertices.begin(), m_vertices.end(), [this, c](const Vertex &v) { 
+            return v.ref_cnt > 0 && (v.v - c).norm() < EPSILON; });
+        assert(it == m_vertices.end());
+#endif // EXPENSIVE_DEBUG_CHECKS
+        // Allocate a new vertex, possibly reusing the free list.
+        if (m_free_vertices_head == -1) {
+            // Allocate a new vertex.
+            midpoint = int(m_vertices.size());
+            m_vertices.emplace_back(c);
+        } else {
+            // Reuse a vertex from the free list.
+            assert(m_free_vertices_head >= -1 && m_free_vertices_head < int(m_vertices.size()));
+            midpoint = m_free_vertices_head;
+            memcpy(&m_free_vertices_head, &m_vertices[midpoint].v[0], sizeof(m_free_vertices_head));
+            assert(m_free_vertices_head >= -1 && m_free_vertices_head < int(m_vertices.size()));
+            m_vertices[midpoint].v = c;
+        }
+        assert(m_vertices[midpoint].ref_cnt == 0);
+    } else {
+#ifndef _NDEBUG
+        Vec3f c1 = 0.5f * (m_vertices[vertexi].v + m_vertices[vertexj].v);
+        Vec3f c2 = m_vertices[midpoint].v;
+        float d = (c2 - c1).norm();
+        assert(std::abs(d) < EPSILON);
+#endif // _NDEBUG
+        assert(m_vertices[midpoint].ref_cnt > 0);
+    }
+    return midpoint;
+}
+
+// Return neighbors of ith child of a triangle given neighbors of the triangle.
+// Returns -1 if such a neighbor does not exist at all, or it does not exist
+// at the same depth as the ith child.
+// Using the same splitting strategy as TriangleSelector::split_triangle()
+Vec3i TriangleSelector::child_neighbors(const Triangle &tr, const Vec3i &neighbors, int child_idx) const
+{
+    assert(this->verify_triangle_neighbors(tr, neighbors));
+
+    assert(child_idx >= 0 && child_idx <= tr.number_of_split_sides());
+    int   i = tr.special_side();
+    int   j = i + 1;
+    if (j >= 3)
+        j = 0;
+    int   k = j + 1;
+    if (k >= 3)
+        k = 0;
+
+    Vec3i out;
+    switch (tr.number_of_split_sides()) {
+    case 1:
+        switch (child_idx) {
+        case 0:
+            out(0) = neighbors(i);
+            out(1) = this->neighbor_child(neighbors(j), tr.verts_idxs[k], tr.verts_idxs[j], Partition::Second);
+            out(2) = tr.children[1];
+            break;
+        default:
+            assert(child_idx == 1);
+            out(0) = this->neighbor_child(neighbors(j), tr.verts_idxs[k], tr.verts_idxs[j], Partition::First);
+            out(1) = neighbors(k);
+            out(2) = tr.children[0];
+            break;
+        }
+        break;
+
+    case 2:
+        switch (child_idx) {
+        case 0:
+            out(0) = this->neighbor_child(neighbors(i), tr.verts_idxs[j], tr.verts_idxs[i], Partition::Second);
+            out(1) = tr.children[1];
+            out(2) = this->neighbor_child(neighbors(k), tr.verts_idxs[i], tr.verts_idxs[k], Partition::First);
+            break;
+        case 1:
+            assert(child_idx == 1);
+            out(0) = this->neighbor_child(neighbors(i), tr.verts_idxs[j], tr.verts_idxs[i], Partition::First);
+            out(1) = tr.children[2];
+            out(2) = tr.children[0];
+            break;
+        default:
+            assert(child_idx == 2);
+            out(0) = neighbors(j);
+            out(1) = this->neighbor_child(neighbors(k), tr.verts_idxs[i], tr.verts_idxs[k], Partition::Second);
+            out(2) = tr.children[1];
+            break;
+        }
+        break;
+
+    case 3:
+        assert(tr.special_side() == 0);
+        switch (child_idx) {
+        case 0:
+            out(0) = this->neighbor_child(neighbors(0), tr.verts_idxs[1], tr.verts_idxs[0], Partition::Second);
+            out(1) = tr.children[3];
+            out(2) = this->neighbor_child(neighbors(2), tr.verts_idxs[0], tr.verts_idxs[2], Partition::First);
+            break;
+        case 1:
+            out(0) = this->neighbor_child(neighbors(0), tr.verts_idxs[1], tr.verts_idxs[0], Partition::First);
+            out(1) = this->neighbor_child(neighbors(1), tr.verts_idxs[2], tr.verts_idxs[1], Partition::Second);
+            out(2) = tr.children[3];
+            break;
+        case 2:
+            out(0) = this->neighbor_child(neighbors(1), tr.verts_idxs[2], tr.verts_idxs[1], Partition::First);
+            out(1) = this->neighbor_child(neighbors(2), tr.verts_idxs[0], tr.verts_idxs[2], Partition::Second);
+            out(2) = tr.children[3];
+            break;
+        default:
+            assert(child_idx == 3);
+            out(0) = tr.children[1];
+            out(1) = tr.children[2];
+            out(2) = tr.children[0];
+            break;
+        }
+        break;
+
+    default:
+        assert(false);
+    }
+
+    assert(this->verify_triangle_neighbors(tr, neighbors));
+    assert(this->verify_triangle_neighbors(m_triangles[tr.children[child_idx]], out));
+    return out;
+}
+
+bool TriangleSelector::select_triangle_recursive(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType type, bool triangle_splitting)
 {
     assert(facet_idx < int(m_triangles.size()));
 
     Triangle* tr = &m_triangles[facet_idx];
     if (! tr->valid())
         return false;
+
+    assert(this->verify_triangle_neighbors(*tr, neighbors));
 
     int num_of_inside_vertices = vertices_inside(facet_idx);
 
@@ -158,41 +437,26 @@ bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, 
         }
 
         if (triangle_splitting)
-            split_triangle(facet_idx);
+            split_triangle(facet_idx, neighbors);
         else if (!m_triangles[facet_idx].is_split())
             m_triangles[facet_idx].set_state(type);
         tr = &m_triangles[facet_idx]; // might have been invalidated by split_triangle().
-
 
         int num_of_children = tr->number_of_split_sides() + 1;
         if (num_of_children != 1) {
             for (int i=0; i<num_of_children; ++i) {
                 assert(i < int(tr->children.size()));
                 assert(tr->children[i] < int(m_triangles.size()));
-
-                select_triangle(tr->children[i], type, true, triangle_splitting);
+                // Recursion, deep first search over the children of this triangle.
+                // All children of this triangle were created by splitting a single source triangle of the original mesh.
+                select_triangle_recursive(tr->children[i], this->child_neighbors(*tr, neighbors, i), type, triangle_splitting);
                 tr = &m_triangles[facet_idx]; // might have been invalidated
             }
         }
     }
 
-    if (! recursive_call) {
-        // In case that all children are leafs and have the same state now,
-        // they may be removed and substituted by the parent triangle.
-        remove_useless_children(facet_idx);
-
-        // Make sure that we did not lose track of invalid triangles.
-        assert(m_invalid_triangles == std::count_if(m_triangles.begin(), m_triangles.end(),
-                   [](const Triangle& tr) { return ! tr.valid(); }));
-
-        // Do garbage collection maybe?
-        if (2*m_invalid_triangles > int(m_triangles.size()))
-            garbage_collect();
-    }
     return true;
 }
-
-
 
 void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
 {
@@ -202,9 +466,9 @@ void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
     m_triangles[facet_idx].set_state(state);
 }
 
-// called by select_patch()->select_triangle()
+// called by select_patch()->select_triangle()...select_triangle()
 // to decide which sides of the traingle to split and to actually split it calling set_division() and perform_split().
-void TriangleSelector::split_triangle(int facet_idx)
+void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
 {
     if (m_triangles[facet_idx].is_split()) {
         // The triangle is divided already.
@@ -212,20 +476,9 @@ void TriangleSelector::split_triangle(int facet_idx)
     }
 
     Triangle* tr = &m_triangles[facet_idx];
+    assert(this->verify_triangle_neighbors(*tr, neighbors));
 
     EnforcerBlockerType old_type = tr->get_state();
-
-    if (tr->was_split_before() != 0) {
-        // This triangle is not split at the moment, but was at one point
-        // in history. We can just restore it and resurrect its children.
-        tr->set_division(-1);
-        for (int i=0; i<=tr->number_of_split_sides(); ++i) {
-            m_triangles[tr->children[i]].set_state(old_type);
-            m_triangles[tr->children[i]].m_valid = true;
-            --m_invalid_triangles;
-        }
-        return;
-    }
 
     // If we got here, we are about to actually split the triangle.
     const double limit_squared = m_edge_limit_sqr;
@@ -260,7 +513,7 @@ void TriangleSelector::split_triangle(int facet_idx)
     }
     if (sides_to_split.empty()) {
         // This shall be unselected.
-        tr->set_division(0);
+        tr->set_division(0, 0);
         return;
     }
 
@@ -269,7 +522,7 @@ void TriangleSelector::split_triangle(int facet_idx)
     tr->set_division(sides_to_split.size(),
         sides_to_split.size() == 2 ? side_to_keep : sides_to_split[0]);
 
-    perform_split(facet_idx, old_type);
+    perform_split(facet_idx, neighbors, old_type);
 }
 
 
@@ -350,11 +603,34 @@ void TriangleSelector::undivide_triangle(int facet_idx)
 
     if (tr.is_split()) {
         for (int i=0; i<=tr.number_of_split_sides(); ++i) {
-            undivide_triangle(tr.children[i]);
-            m_triangles[tr.children[i]].m_valid = false;
+            int       child    = tr.children[i];
+            Triangle &child_tr = m_triangles[child];
+            assert(child_tr.valid());
+            undivide_triangle(child);
+            for (int i = 0; i < 3; ++ i) {
+                int     iv = child_tr.verts_idxs[i];
+                Vertex &v  = m_vertices[iv];
+                assert(v.ref_cnt > 0);
+                if (-- v.ref_cnt == 0) {
+                    // Release this vertex.
+                    // Chain released vertices into a linked list through ref_cnt.
+                    assert(m_free_vertices_head >= -1 && m_free_vertices_head < int(m_vertices.size()));
+                    memcpy(&m_vertices[iv].v[0], &m_free_vertices_head, sizeof(m_free_vertices_head));
+                    m_free_vertices_head = iv;
+                    assert(m_free_vertices_head >= -1 && m_free_vertices_head < int(m_vertices.size()));
+                }
+            }
+            // Chain released triangles into a linked list through children[0].
+            assert(child_tr.valid());
+            child_tr.m_valid = false;
+            assert(m_free_triangles_head >= -1 && m_free_triangles_head < int(m_triangles.size()));
+            assert(m_free_triangles_head == -1 || ! m_triangles[m_free_triangles_head].valid());
+            child_tr.children[0] = m_free_triangles_head;
+            m_free_triangles_head = child;
+            assert(m_free_triangles_head >= -1 && m_free_triangles_head < int(m_triangles.size()));
             ++m_invalid_triangles;
         }
-        tr.set_division(0); // not split
+        tr.set_division(0, 0); // not split
     }
 }
 
@@ -404,15 +680,9 @@ void TriangleSelector::garbage_collect()
     // First make a map from old to new triangle indices.
     int new_idx = m_orig_size_indices;
     std::vector<int> new_triangle_indices(m_triangles.size(), -1);
-    for (int i = m_orig_size_indices; i<int(m_triangles.size()); ++i) {
-        if (m_triangles[i].valid()) {
+    for (int i = m_orig_size_indices; i<int(m_triangles.size()); ++i)
+        if (m_triangles[i].valid())
             new_triangle_indices[i] = new_idx ++;
-        } else {
-            // Decrement reference counter for the vertices.
-            for (int j=0; j<3; ++j)
-                --m_vertices[m_triangles[i].verts_idxs[j]].ref_cnt;
-        }
-    }
 
     // Now we know which vertices are not referenced anymore. Make a map
     // from old idxs to new ones, like we did for triangles.
@@ -452,13 +722,11 @@ void TriangleSelector::garbage_collect()
                 idx = new_vertices_indices[idx];
             }
         }
-
-        // If this triangle was split before, forget it.
-        // Children referenced in the cache are dead by now.
-        tr.forget_history();
     }
 
     m_invalid_triangles = 0;
+    m_free_triangles_head = -1;
+    m_free_vertices_head = -1;
 }
 
 TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
@@ -472,6 +740,9 @@ void TriangleSelector::reset(const EnforcerBlockerType reset_state)
 {
     m_vertices.clear();
     m_triangles.clear();
+    m_invalid_triangles = 0;
+    m_free_triangles_head = -1;
+    m_free_vertices_head = -1;
     m_vertices.reserve(m_mesh->its.vertices.size());
     for (const stl_vertex& vert : m_mesh->its.vertices)
         m_vertices.emplace_back(vert);
@@ -482,7 +753,6 @@ void TriangleSelector::reset(const EnforcerBlockerType reset_state)
     }
     m_orig_size_vertices = m_vertices.size();
     m_orig_size_indices = m_triangles.size();
-    m_invalid_triangles = 0;
 }
 
 
@@ -491,100 +761,107 @@ void TriangleSelector::reset(const EnforcerBlockerType reset_state)
 
 void TriangleSelector::set_edge_limit(float edge_limit)
 {
-    float new_limit_sqr = std::pow(edge_limit, 2.f);
-
-    if (new_limit_sqr != m_edge_limit_sqr) {
-        m_edge_limit_sqr = new_limit_sqr;
-
-        // The way how triangles split may be different now, forget
-        // all cached splits.
-        for (Triangle& tr : m_triangles)
-            tr.forget_history();
-    }
+    m_edge_limit_sqr = std::pow(edge_limit, 2.f);
 }
 
 
 
-void TriangleSelector::push_triangle(int a, int b, int c, int source_triangle, const EnforcerBlockerType state)
+int TriangleSelector::push_triangle(int a, int b, int c, int source_triangle, const EnforcerBlockerType state)
 {
     for (int i : {a, b, c}) {
         assert(i >= 0 && i < int(m_vertices.size()));
         ++m_vertices[i].ref_cnt;
     }
-    m_triangles.emplace_back(a, b, c, source_triangle, state);
+    int idx;
+    if (m_free_triangles_head == -1) {
+        // Allocate a new triangle.
+        assert(m_invalid_triangles == 0);
+        idx = int(m_triangles.size());
+        m_triangles.emplace_back(a, b, c, source_triangle, state);
+    } else {
+        // Reuse triangle from the free list.
+        assert(m_free_triangles_head >= -1 && m_free_triangles_head < int(m_triangles.size()));
+        assert(! m_triangles[m_free_triangles_head].valid());
+        assert(m_invalid_triangles > 0);
+        idx = m_free_triangles_head;
+        m_free_triangles_head = m_triangles[idx].children[0];
+        -- m_invalid_triangles;
+        assert(m_free_triangles_head >= -1 && m_free_triangles_head < int(m_triangles.size()));
+        assert(m_free_triangles_head == -1 || ! m_triangles[m_free_triangles_head].valid());
+        assert(m_invalid_triangles >= 0);
+        assert((m_invalid_triangles == 0) == (m_free_triangles_head == -1));
+        m_triangles[idx] = {a, b, c, source_triangle, state};
+    }
+    assert(m_triangles[idx].valid());
+    return idx;
 }
 
-// called by deserialize() and select_patch()->select_triangle()->split_triangle()
-void TriangleSelector::perform_split(int facet_idx, EnforcerBlockerType old_state)
+// called by deserialize() and select_patch()->select_triangle()->...select_triangle()->split_triangle()
+// Split a triangle based on Triangle::number_of_split_sides() and Triangle::special_side()
+// by allocating child triangles and midpoint vertices.
+// Midpoint vertices are possibly reused by traversing children of neighbor triangles.
+void TriangleSelector::perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state)
 {
-    Triangle* tr = &m_triangles[facet_idx];
-    int source_triangle = tr->source_triangle;
+    // Reserve space for the new triangles upfront, so that the reference to this triangle will not change.
+    m_triangles.reserve(m_triangles.size() + m_triangles[facet_idx].number_of_split_sides() + 1);
 
-    assert(tr->is_split());
-
-    // Read info about how to split this triangle.
-    int sides_to_split = tr->number_of_split_sides();
+    Triangle &tr = m_triangles[facet_idx];
+    assert(tr.is_split());
 
     // indices of triangle vertices
+#ifdef _NDEBUG
     boost::container::small_vector<int, 6> verts_idxs;
-    int idx = tr->special_side();
-    for (int j=0; j<3; ++j) {
-        verts_idxs.push_back(tr->verts_idxs[idx++]);
-        if (idx == 3)
-            idx = 0;
-    }
+#else // _NDEBUG
+    // For easier debugging.
+    std::vector<int> verts_idxs;
+    verts_idxs.reserve(6);
+#endif // _NDEBUG
+    for (int j=0, idx = tr.special_side(); j<3; ++j, idx = next_idx_modulo(idx, 3))
+        verts_idxs.push_back(tr.verts_idxs[idx]);
 
-    switch (sides_to_split) {
+    auto get_alloc_vertex = [this, &neighbors, &verts_idxs](int edge, int i1, int i2) -> int {
+        return this->triangle_midpoint_or_allocate(neighbors(edge), verts_idxs[i1], verts_idxs[i2]);
+    };
+
+    int ichild = 0;
+    switch (tr.number_of_split_sides()) {
     case 1:
-        m_vertices.emplace_back((m_vertices[verts_idxs[1]].v + m_vertices[verts_idxs[2]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+2, m_vertices.size() - 1);
-
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2], source_triangle);
-        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0], source_triangle);
+        verts_idxs.insert(verts_idxs.begin()+2, get_alloc_vertex(next_idx_modulo(tr.special_side(), 3), 2, 1));
+        tr.children[ichild ++] = push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[2], tr.source_triangle, old_state);
+        tr.children[ichild   ] = push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[0], tr.source_triangle, old_state);
         break;
 
     case 2:
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[1]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
-
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[3]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+4, m_vertices.size() - 1);
-
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4], source_triangle);
-        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4], source_triangle);
-        push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4], source_triangle);
+        verts_idxs.insert(verts_idxs.begin()+1, get_alloc_vertex(tr.special_side(), 1, 0));
+        verts_idxs.insert(verts_idxs.begin()+4, get_alloc_vertex(prev_idx_modulo(tr.special_side(), 3), 0, 3));
+        tr.children[ichild ++] = push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[4], tr.source_triangle, old_state);
+        tr.children[ichild ++] = push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[4], tr.source_triangle, old_state);
+        tr.children[ichild   ] = push_triangle(verts_idxs[2], verts_idxs[3], verts_idxs[4], tr.source_triangle, old_state);
         break;
 
     case 3:
-        m_vertices.emplace_back((m_vertices[verts_idxs[0]].v + m_vertices[verts_idxs[1]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+1, m_vertices.size() - 1);
-        m_vertices.emplace_back((m_vertices[verts_idxs[2]].v + m_vertices[verts_idxs[3]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+3, m_vertices.size() - 1);
-        m_vertices.emplace_back((m_vertices[verts_idxs[4]].v + m_vertices[verts_idxs[0]].v)/2.);
-        verts_idxs.insert(verts_idxs.begin()+5, m_vertices.size() - 1);
-
-        push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5], source_triangle);
-        push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3], source_triangle);
-        push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5], source_triangle);
-        push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5], source_triangle);
+        assert(tr.special_side() == 0);
+        verts_idxs.insert(verts_idxs.begin()+1, get_alloc_vertex(0, 1, 0));
+        verts_idxs.insert(verts_idxs.begin()+3, get_alloc_vertex(1, 3, 2));
+        verts_idxs.insert(verts_idxs.begin()+5, get_alloc_vertex(2, 0, 4));
+        tr.children[ichild ++] = push_triangle(verts_idxs[0], verts_idxs[1], verts_idxs[5], tr.source_triangle, old_state);
+        tr.children[ichild ++] = push_triangle(verts_idxs[1], verts_idxs[2], verts_idxs[3], tr.source_triangle, old_state);
+        tr.children[ichild ++] = push_triangle(verts_idxs[3], verts_idxs[4], verts_idxs[5], tr.source_triangle, old_state);
+        tr.children[ichild   ] = push_triangle(verts_idxs[1], verts_idxs[3], verts_idxs[5], tr.source_triangle, old_state);
         break;
 
     default:
         break;
     }
 
-    // tr may have been invalidated due to reallocation of m_triangles.
-    tr = &m_triangles[facet_idx];
-
-    // And save the children. All children should start with the same state as the triangle we just split.
-    assert(sides_to_split <= 3);
-    for (int i=0; i<=sides_to_split; ++i) {
-        tr->children[i] = m_triangles.size()-1-i;
-        m_triangles[tr->children[i]].set_state(old_state);
+#ifndef _NDEBUG
+    assert(this->verify_triangle_neighbors(tr, neighbors));
+    for (int i = 0; i <= tr.number_of_split_sides(); ++i) {
+        Vec3i n = this->child_neighbors(tr, neighbors, i);
+        assert(this->verify_triangle_neighbors(m_triangles[tr.children[i]], n));
     }
+#endif // _NDEBUG
 }
-
-
 
 indexed_triangle_set TriangleSelector::get_facets(EnforcerBlockerType state) const
 {
@@ -693,6 +970,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
     // Vector to store all parents that have offsprings.
     struct ProcessingInfo {
         int facet_id = 0;
+        Vec3i neighbors { -1, -1, -1 };
         int processed_children = 0;
         int total_children = 0;
     };
@@ -727,9 +1005,13 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
                 if (is_split) {
                     // root is split, add it into list of parents and split it.
                     // then go to the next.
-                    parents.push_back({triangle_id, 0, num_of_children});
+                    Vec3i neighbors;
+                    const stl_neighbors& neighbors_src = m_mesh->stl.neighbors_start[triangle_id];
+                    for (int i = 0; i < 3; ++i)
+                        neighbors(i) = neighbors_src.neighbor[i];
+                    parents.push_back({triangle_id, neighbors, 0, num_of_children});
                     m_triangles[triangle_id].set_division(num_of_split_sides, special_side);
-                    perform_split(triangle_id, EnforcerBlockerType::NONE);
+                    perform_split(triangle_id, neighbors, EnforcerBlockerType::NONE);
                     continue;
                 } else {
                     // root is not split. just set the state and that's it.
@@ -744,10 +1026,13 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
 
             if (ProcessingInfo& last = parents.back(); is_split) {
                 // split the triangle and save it as parent of the next ones.
-                int this_idx = m_triangles[last.facet_id].children[last.processed_children];
+                const Triangle &tr = m_triangles[last.facet_id];
+                //FIXME calculate neighbor triangles from last.neighbors and last.processed_children.
+                Vec3i neighbors = this->child_neighbors(tr, last.neighbors, last.processed_children);
+                int this_idx = tr.children[last.processed_children];
                 m_triangles[this_idx].set_division(num_of_split_sides, special_side);
-                perform_split(this_idx, EnforcerBlockerType::NONE);
-                parents.push_back({this_idx, 0, num_of_children});
+                perform_split(this_idx, neighbors, EnforcerBlockerType::NONE);
+                parents.push_back({this_idx, neighbors, 0, num_of_children});
             } else {
                 // this triangle belongs to last split one
                 m_triangles[m_triangles[last.facet_id].children[last.processed_children]].set_state(state);
@@ -862,8 +1147,5 @@ bool TriangleSelector::Cursor::is_pointer_in_triangle(const Vec3f& p1_,
     bool pos = signed_volume_sign(q1,q2,p1,p2);
     return signed_volume_sign(q1,q2,p2,p3) == pos && signed_volume_sign(q1,q2,p3,p1) == pos;
 }
-
-
-
 
 } // namespace Slic3r
