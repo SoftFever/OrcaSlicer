@@ -6,6 +6,7 @@
 
 class wxTextCtrl;
 class wxFlexGridSizer;
+class wxCheckBox;
 
 namespace Slic3r {
 namespace GUI {
@@ -22,6 +23,8 @@ class ExtruderSequenceDialog: public DPIDialog
 
     wxTextCtrl* m_interval_by_layers {nullptr}; 
     wxTextCtrl* m_interval_by_mm {nullptr};
+    wxCheckBox* m_random_sequence {nullptr};
+    wxCheckBox* m_color_repetition{nullptr};
 
     wxFlexGridSizer* m_intervals_grid_sizer {nullptr};
     wxFlexGridSizer* m_extruders_grid_sizer {nullptr};

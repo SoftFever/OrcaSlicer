@@ -24,6 +24,7 @@
 
 #include <cmath>
 #include <boost/algorithm/string/replace.hpp>
+#include <random>
 #include "Field.hpp"
 #include "format.hpp"
 #include "NotificationManager.hpp"
@@ -2394,22 +2395,42 @@ void Control::edit_extruder_sequence()
 
     m_ticks.erase_all_ticks_with_code(ToolChange);
 
+    const int extr_cnt = m_extruders_sequence.extruders.size();
+    if (extr_cnt == 1)
+        return;
+
     int tick = 0;
     double value = 0.0;
-    int extruder = 0;
-    const int extr_cnt = m_extruders_sequence.extruders.size();
+    int extruder = -1;
+
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> distrib(0, extr_cnt-1);
 
     while (tick <= m_max_value)
     {
+        bool color_repetition = false;
+        if (m_extruders_sequence.random_sequence) {
+            int rand_extr = distrib(gen);
+            if (m_extruders_sequence.color_repetition)
+                color_repetition = rand_extr == extruder;
+            else
+                while (rand_extr == extruder)
+                    rand_extr = distrib(gen);
+            extruder = rand_extr;
+        }
+        else {
+            extruder++;
+            if (extruder == extr_cnt)
+                extruder = 0;
+        }
+
         const int cur_extruder = m_extruders_sequence.extruders[extruder];
 
         bool meaningless_tick = tick == 0.0 && cur_extruder == extruder;
-        if (!meaningless_tick)
+        if (!meaningless_tick && !color_repetition)
             m_ticks.ticks.emplace(TickCode{tick, ToolChange,cur_extruder + 1, m_extruder_colors[cur_extruder]});
 
-        extruder++;
-        if (extruder == extr_cnt)
-            extruder = 0;
         if (m_extruders_sequence.is_mm_intervals) {
             value += m_extruders_sequence.interval_by_mm;
             tick = get_tick_from_value(value, true);
