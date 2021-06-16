@@ -86,10 +86,10 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     const float button_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
 
-    float caption_max = 0.f;
-    float total_text_max = 0.;
-    for (const std::string& t : {"enforce", "block", "remove"}) {
-        caption_max = std::max(caption_max, m_imgui->calc_text_size(m_desc.at(t+"_caption")).x);
+    float caption_max    = 0.f;
+    float total_text_max = 0.f;
+    for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"}) {
+        caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc.at(t + "_caption")).x);
         total_text_max = std::max(total_text_max, caption_max + m_imgui->calc_text_size(m_desc.at(t)).x);
     }
     caption_max += m_imgui->scaled(1.f);
@@ -107,7 +107,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         m_imgui->text(text);
     };
 
-    for (const std::string& t : {"enforce", "block", "remove"})
+    for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"})
         draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
 
     m_imgui->text("");

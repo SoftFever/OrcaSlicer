@@ -62,9 +62,10 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     m_type(itInfo),
     m_extruder(wxEmptyString)
 {
-    m_name = info_type == InfoItemType::CustomSupports ? _L("Paint-on supports")
-           : info_type == InfoItemType::CustomSeam     ? _L("Paint-on seam")
-                                                       : _L("Variable layer height");
+    m_name           = info_type == InfoItemType::CustomSupports  ? _L("Paint-on supports") :
+                       info_type == InfoItemType::CustomSeam      ? _L("Paint-on seam") :
+                       info_type == InfoItemType::MmuSegmentation ? _L("Paint-on segmentation") :
+                                                                    _L("Variable layer height");
     m_info_item_type = info_type;
 }
 
