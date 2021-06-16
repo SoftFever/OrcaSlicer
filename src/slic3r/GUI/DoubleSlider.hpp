@@ -146,7 +146,7 @@ struct ExtrudersSequence
     bool            is_mm_intervals     = true;
     double          interval_by_mm      = 3.0;
     int             interval_by_layers  = 10;
-    bool            random_sequence     { true };
+    bool            random_sequence     { false };
     bool            color_repetition    { false };
     std::vector<size_t>  extruders      = { 0 };
 

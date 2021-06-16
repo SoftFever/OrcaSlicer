@@ -91,7 +91,8 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
                                       double_to_string(sequence.interval_by_mm), 
                                       wxDefaultPosition, editor_sz, wxTE_PROCESS_ENTER);
 
-    auto change_value = [this]()
+    double min_layer_height = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("layer_height");
+    auto change_value = [this, min_layer_height]()
     {
         wxString str = m_interval_by_mm->GetValue();
         if (str.IsEmpty()) {
@@ -111,6 +112,11 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
 
         if (fabs(m_sequence.interval_by_layers - val) < 0.001)
             return;
+
+        if (val < min_layer_height) {
+            val = min_layer_height;
+            m_interval_by_mm->SetValue(double_to_string(val, 2));
+        }
 
         m_sequence.interval_by_mm = val;
     };
