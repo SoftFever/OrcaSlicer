@@ -113,9 +113,12 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection, const bool
 {
     const ModelObject* mo = m_c->selection_info()->model_object();
 
+    ScopeGuard offset_fill_guard([&use_polygon_offset_fill]() {
+        if (use_polygon_offset_fill)
+            glsafe(::glDisable(GL_POLYGON_OFFSET_FILL));
+    });
     if (use_polygon_offset_fill) {
         glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
-        ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
         glsafe(::glPolygonOffset(-5.0, -5.0));
     }
 
