@@ -125,7 +125,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
 {
     GLGizmoPainterBase::set_painter_gizmo_data(selection);
 
-    if (m_state != On)
+    if (m_state != On || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF || wxGetApp().extruders_edited_cnt() <= 1)
         return;
 
     ModelObject *model_object         = m_c->selection_info()->model_object();
@@ -403,6 +403,10 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
 {
     const ModelObject *mo = m_c->selection_info()->model_object();
     m_triangle_selectors.clear();
+
+    // Don't continue when extruders colors are not initialized
+    if(m_original_extruders_colors.empty())
+        return;
 
     for (const ModelVolume *mv : mo->volumes) {
         if (!mv->is_model_part())
