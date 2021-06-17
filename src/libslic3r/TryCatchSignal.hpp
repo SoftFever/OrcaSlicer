@@ -4,6 +4,11 @@
 #ifdef _MSC_VER
 #include "TryCatchSignalSEH.hpp"
 #else
+
+#include <csignal>
+
+using SignalT = decltype (SIGSEGV);
+
 template<class TryFn, class CatchFn, int N>
 void try_catch_signal(const SignalT (&/*sigs*/)[N], TryFn &&/*fn*/, CatchFn &&/*cfn*/)
 {
