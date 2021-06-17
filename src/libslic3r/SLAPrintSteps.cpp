@@ -428,6 +428,18 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 
     auto hollowed_mesh_cgal = MeshBoolean::cgal::triangle_mesh_to_cgal(hollowed_mesh);
 
+    if (!MeshBoolean::cgal::does_bound_a_volume(*hollowed_mesh_cgal)) {
+        po.active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
+            L("Mesh to be hollowed is not suitable for hollowing (does not "
+              "bound a volume)."));
+    }
+
+    if (!MeshBoolean::cgal::does_bound_a_volume(*holes_mesh_cgal)) {
+        po.active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
+            L("Unable to drill the current configuration of holes into the "
+              "model."));
+    }
+
     try {
         MeshBoolean::cgal::minus(*hollowed_mesh_cgal, *holes_mesh_cgal);
 
@@ -748,43 +760,6 @@ void SLAPrint::Steps::slice_supports(SLAPrintObject &po) {
     // status to the 3D preview to load the SLA slices.
     report_status(-2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
 }
-
-//static ClipperPolygons polyunion(const ClipperPolygons &subjects)
-//{
-//    ClipperLib::Clipper clipper;
-
-//    bool closed = true;
-
-//    for(auto& path : subjects) {
-//        clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
-//        clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
-//    }
-
-//    auto mode = ClipperLib::pftPositive;
-
-//    return libnest2d::clipper_execute(clipper, ClipperLib::ctUnion, mode, mode);
-//}
-
-//static ClipperPolygons polydiff(const ClipperPolygons &subjects, const ClipperPolygons& clips)
-//{
-//    ClipperLib::Clipper clipper;
-
-//    bool closed = true;
-
-//    for(auto& path : subjects) {
-//        clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
-//        clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
-//    }
-
-//    for(auto& path : clips) {
-//        clipper.AddPath(path.Contour, ClipperLib::ptClip, closed);
-//        clipper.AddPaths(path.Holes, ClipperLib::ptClip, closed);
-//    }
-
-//    auto mode = ClipperLib::pftPositive;
-
-//    return libnest2d::clipper_execute(clipper, ClipperLib::ctDifference, mode, mode);
-//}
 
 // get polygons for all instances in the object
 static ExPolygons get_all_polygons(const SliceRecord& record, SliceOrigin o)
