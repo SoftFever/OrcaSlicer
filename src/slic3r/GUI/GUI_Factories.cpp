@@ -646,6 +646,13 @@ void MenuFactory::append_menu_item_reload_from_disk(wxMenu* menu)
         []() { return plater()->can_reload_from_disk(); }, m_parent);
 }
 
+void MenuFactory::append_menu_item_replace_with_stl(wxMenu* menu)
+{
+    append_menu_item(menu, wxID_ANY, _L("Replace with STL"), _L("Replace the selected volume with new STL"),
+        [](wxCommandEvent&) { plater()->replace_with_stl(); }, "", menu,
+        []() { return plater()->can_replace_with_stl(); }, m_parent);
+}
+
 void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
 {
     const std::vector<wxString> names = { _L("Change extruder"), _L("Set extruder for selected items") };
@@ -824,6 +831,7 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
     menu->AppendSeparator();
 
     append_menu_item_reload_from_disk(menu);
+    append_menu_item_replace_with_stl(menu);
     append_menu_item_export_stl(menu);
     // "Scale to print volume" makes a sense just for whole object
     append_menu_item_scale_selection_to_fit_print_volume(menu);
@@ -875,6 +883,7 @@ void MenuFactory::create_part_menu()
 #endif // __WXOSX__
     append_menu_item_delete(menu);
     append_menu_item_reload_from_disk(menu);
+    append_menu_item_replace_with_stl(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_items_mirror(menu);

@@ -1672,6 +1672,7 @@ struct Plater::priv
 	}
     void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job);
     void reload_from_disk();
+    void replace_with_stl();
     void reload_all_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
 
@@ -1729,6 +1730,7 @@ struct Plater::priv
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
     bool can_reload_from_disk() const;
+    bool can_replace_with_stl() const;
     bool can_split(bool to_objects) const;
 
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
@@ -3124,6 +3126,111 @@ void Plater::priv::update_sla_scene()
     this->update_restart_background_process(true, true);
 }
 
+void Plater::priv::replace_with_stl()
+{
+    const Selection& selection = get_selection();
+
+    if (selection.is_wipe_tower() || get_selection().get_volume_idxs().size() != 1)
+        return;
+
+    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    int object_idx = v->object_idx();
+    int volume_idx = v->volume_idx();
+
+    // collects paths of files to load
+
+    const ModelObject* object = model.objects[object_idx];
+    const ModelVolume* volume = object->volumes[volume_idx];
+
+    fs::path input_path;
+    if (!volume->source.input_file.empty() && fs::exists(volume->source.input_file))
+        input_path = volume->source.input_file;
+
+    wxString title = _L("Please select the file to replace");
+#if defined(__APPLE__)
+    title += " (" + from_u8(search.filename().string()) + ")";
+#endif // __APPLE__
+    title += ":";
+    wxFileDialog dialog(q, title, "", from_u8(input_path.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    fs::path out_path = dialog.GetPath().ToUTF8().data();
+    if (out_path.empty()) {
+        wxMessageDialog dlg(q, _L("File for the replace wasn't selected"), _L("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        dlg.ShowModal();
+        return;
+    }
+
+    wxString fail_replace;
+
+    const auto& path = out_path.string();
+    wxBusyCursor wait;
+    wxBusyInfo info(_L("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+
+    Model new_model;
+    try {
+        new_model = Model::read_from_file(path, nullptr, true, false);
+        for (ModelObject* model_object : new_model.objects) {
+            model_object->center_around_origin();
+            model_object->ensure_on_bed();
+        }
+    }
+    catch (std::exception&) {
+        // error while loading
+        return;
+    }
+
+    if (new_model.objects.size() > 1 || new_model.objects[0]->volumes.size() > 1) {
+        wxMessageDialog dlg(q, _L("Unable to replace with more than one volume"), _L("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        dlg.ShowModal();
+        return;
+    }
+
+    Plater::TakeSnapshot snapshot(q, _L("Replace with STL"));
+
+    ModelObject* old_model_object = model.objects[object_idx];
+    ModelVolume* old_volume = old_model_object->volumes[volume_idx];
+
+#if ENABLE_ALLOW_NEGATIVE_Z
+    bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
+    ModelObject* new_model_object = new_model.objects[0];
+    old_model_object->add_volume(*new_model_object->volumes[0]);
+    ModelVolume* new_volume = old_model_object->volumes.back();
+    new_volume->set_new_unique_id();
+    new_volume->config.apply(old_volume->config);
+    new_volume->set_type(old_volume->type());
+    new_volume->set_material_id(old_volume->material_id());
+    new_volume->set_transformation(old_volume->get_transformation());
+    new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+    if (old_volume->source.is_converted_from_inches)
+        new_volume->convert_from_imperial_units();
+    if (old_volume->source.is_converted_from_meters)
+        new_volume->convert_from_meters();
+    new_volume->supported_facets.assign(old_volume->supported_facets);
+    new_volume->seam_facets.assign(old_volume->seam_facets);
+    new_volume->mmu_segmentation_facets.assign(old_volume->mmu_segmentation_facets);
+    std::swap(old_model_object->volumes[volume_idx], old_model_object->volumes.back());
+    old_model_object->delete_volume(old_model_object->volumes.size() - 1);
+#if ENABLE_ALLOW_NEGATIVE_Z
+    if (!sinking)
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+        old_model_object->ensure_on_bed();
+    old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+
+    sla::reproject_points_and_holes(old_model_object);    
+
+    // update 3D scene
+    update();
+
+    // new GLVolumes have been created at this point, so update their printable state
+    for (size_t i = 0; i < model.objects.size(); ++i) {
+        view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
+    }
+}
+
 void Plater::priv::reload_from_disk()
 {
     Plater::TakeSnapshot snapshot(q, _L("Reload from disk"));
@@ -4117,6 +4224,11 @@ bool Plater::priv::layers_height_allowed() const
 bool Plater::priv::can_mirror() const
 {
     return get_selection().is_from_single_instance();
+}
+
+bool Plater::priv::can_replace_with_stl() const
+{
+    return get_selection().get_volume_idxs().size() == 1;
 }
 
 bool Plater::priv::can_reload_from_disk() const
@@ -5460,6 +5572,11 @@ void Plater::reload_from_disk()
     p->reload_from_disk();
 }
 
+void Plater::replace_with_stl()
+{
+    p->replace_with_stl();
+}
+
 void Plater::reload_all_from_disk()
 {
     p->reload_all_from_disk();
@@ -6344,6 +6461,7 @@ bool Plater::can_copy_to_clipboard() const
 bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
+bool Plater::can_replace_with_stl() const { return p->can_replace_with_stl(); }
 bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
