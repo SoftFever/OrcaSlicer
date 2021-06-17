@@ -1156,7 +1156,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                                                                           const std::vector<ExPolygons> &input_expolygons,
                                                                                           const std::function<void()>   &throw_on_cancel_callback)
 {
-    const size_t num_extruders = print_object.print()->config().nozzle_diameter.size();
+    const size_t num_extruders = print_object.print()->config().nozzle_diameter.size() + 1;
     const ConstLayerPtrsAdaptor layers = print_object.layers();
     std::vector<std::vector<ExPolygons>> triangles_by_color(num_extruders);
     triangles_by_color.assign(num_extruders, std::vector<ExPolygons>(layers.size()));
@@ -1454,7 +1454,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
 
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - projection of painted triangles - begin";
     for (const ModelVolume *mv : print_object.model_object()->volumes) {
-        const size_t num_extruders = print_object.print()->config().nozzle_diameter.size();
+        const size_t num_extruders = print_object.print()->config().nozzle_diameter.size() + 1;
         for (size_t extruder_idx = 1; extruder_idx < num_extruders; ++extruder_idx) {
             throw_on_cancel_callback();
             const indexed_triangle_set custom_facets = mv->mmu_segmentation_facets.get_facets(*mv, EnforcerBlockerType(extruder_idx));
