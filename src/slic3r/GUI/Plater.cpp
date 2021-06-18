@@ -3147,9 +3147,6 @@ void Plater::priv::replace_with_stl()
         input_path = volume->source.input_file;
 
     wxString title = _L("Please select the file to replace");
-#if defined(__APPLE__)
-    title += " (" + from_u8(search.filename().string()) + ")";
-#endif // __APPLE__
     title += ":";
     wxFileDialog dialog(q, title, "", from_u8(input_path.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
