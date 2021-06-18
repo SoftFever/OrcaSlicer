@@ -904,6 +904,8 @@ bool GUI_App::on_init_inner()
     if (scrn && is_editor())
         scrn->SetText(_L("Preparing settings tabs") + dots);
 
+    m_tabs_as_menu = dark_mode() || app_config->get("tabs_as_menu") == "1";
+
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
     if (is_editor())
@@ -1903,6 +1905,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                         init_label_colours();
                     }
 #endif
+                    m_tabs_as_menu = dark_mode() || app_config->get("tabs_as_menu") == "1";
                     recreate_GUI(_L("Restart application") + dots);
                     return;
                 }

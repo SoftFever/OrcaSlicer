@@ -386,7 +386,7 @@ void MainFrame::update_layout()
 
     ESettingsLayout layout = wxGetApp().is_gcode_viewer() ? ESettingsLayout::GCodeViewer :
         (wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
-            wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ( wxGetApp().dark_mode() || wxGetApp().app_config->get("tabs_as_menu") == "1" ? ESettingsLayout::Old : ESettingsLayout::New) :
+            wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ( wxGetApp().tabs_as_menu() ? ESettingsLayout::Old : ESettingsLayout::New) :
             wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old);
 
     if (m_layout == layout)
@@ -436,7 +436,7 @@ void MainFrame::update_layout()
             if (int sel = m_tabpanel->GetSelection(); sel != wxNOT_FOUND)
                 m_tabpanel->SetSelection(sel+1);// call SetSelection to correct layout after switching from Dlg to Old mode
 #ifdef _MSW_DARK_MODE
-        if (wxGetApp().dark_mode() || wxGetApp().app_config->get("tabs_as_menu") == "1")
+        if (wxGetApp().tabs_as_menu())
             show_tabs_menu(true);
 #endif
         break;
@@ -460,7 +460,7 @@ void MainFrame::update_layout()
         m_plater->Show();
 
 #ifdef _MSW_DARK_MODE
-        if (wxGetApp().dark_mode() || wxGetApp().app_config->get("tabs_as_menu") == "1")
+        if (wxGetApp().tabs_as_menu())
             show_tabs_menu(false);
 #endif
         break;
@@ -635,7 +635,7 @@ void MainFrame::init_tabpanel()
     // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
     // with multiple high resolution displays connected.
 #ifdef _MSW_DARK_MODE
-    if (wxGetApp().dark_mode() || wxGetApp().app_config->get("tabs_as_menu") == "1") {
+    if (wxGetApp().tabs_as_menu()) {
         m_tabpanel = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
         wxGetApp().UpdateDarkUI(m_tabpanel);
     }
@@ -1416,7 +1416,7 @@ void MainFrame::init_menubar_as_editor()
     m_menubar->Append(helpMenu, _L("&Help"));
 
 #ifdef _MSW_DARK_MODE
-    if (wxGetApp().dark_mode() || wxGetApp().app_config->get("tabs_as_menu") == "1") {
+    if (wxGetApp().tabs_as_menu()) {
         // Add separator 
         m_menubar->Append(new wxMenu(), "          ");
         add_tabs_as_menu(m_menubar, this, this);
@@ -1425,7 +1425,7 @@ void MainFrame::init_menubar_as_editor()
     SetMenuBar(m_menubar);
 
 #ifdef _MSW_DARK_MODE
-    if (wxGetApp().dark_mode() || wxGetApp().app_config->get("tabs_as_menu") == "1")
+    if (wxGetApp().tabs_as_menu())
         m_menubar->EnableTop(6, false);
 #endif
 
@@ -1869,7 +1869,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         if (m_tabpanel->GetSelection() != (int)new_selection)
             m_tabpanel->SetSelection(new_selection);
 #ifdef _MSW_DARK_MODE
-        if (wxGetApp().dark_mode() || wxGetApp().app_config->get("tabs_as_menu") == "1") {
+        if (wxGetApp().tabs_as_menu()) {
             if (Tab* cur_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(new_selection)))
                 update_marker_for_tabs_menu((m_layout == ESettingsLayout::Old ? m_menubar : m_settings_dialog.menubar()), cur_tab->title(), m_layout == ESettingsLayout::Old);
             else if (tab == 0 && m_layout == ESettingsLayout::Old)
@@ -2135,7 +2135,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& evt) { this->Hide(); });
 
 #ifdef _MSW_DARK_MODE
-    if (wxGetApp().dark_mode() || wxGetApp().app_config->get("tabs_as_menu") == "1") {
+    if (wxGetApp().tabs_as_menu()) {
         // menubar
         m_menubar = new wxMenuBar();
         add_tabs_as_menu(m_menubar, mainframe, this);

@@ -127,6 +127,8 @@ private:
     //bool            m_force_sys_colors_update { false }; // #ysDarkMSW - Use to force dark colors for SystemLightMode
 #endif
 
+    bool            m_tabs_as_menu{ false };
+
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
 	wxFont			m_normal_font;
@@ -208,6 +210,7 @@ public:
     const wxFont&   normal_font()           { return m_normal_font; }
     const wxFont&   code_font()             { return m_code_font; }
     int             em_unit() const         { return m_em_unit; }
+    bool            tabs_as_menu() const    { return m_tabs_as_menu;}
     wxSize          get_min_size() const;
     float           toolbar_icon_scale(const bool is_limited = false) const;
     void            set_auto_toolbar_icon_scale(float scale) const;
