@@ -75,6 +75,12 @@ void AppConfig::set_defaults()
             set("associate_3mf", "0");
         if (get("associate_stl").empty())
             set("associate_stl", "0");
+
+        if (get("dark_color_mode").empty())
+            set("dark_color_mode", "0");
+
+        if (get("tabs_as_menu").empty())
+            set("tabs_as_menu", "0");
 #endif // _WIN32
 
         // remove old 'use_legacy_opengl' parameter from this config, if present

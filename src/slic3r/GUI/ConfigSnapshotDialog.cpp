@@ -42,7 +42,7 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     wxString text = "<tr bgcolor=\"";
     text += snapshot_active ? 
             dark_mode ? "#208a20"  : "#B3FFCB" : 
-            (row_even ? get_color(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)) : dark_mode ? "#656565" : "#D5D5D5" );
+            (row_even ? get_color(wxGetApp().get_window_default_clr()/*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)*/) : dark_mode ? "#656565" : "#D5D5D5" );
     text += "\">";
     text += "<td>";
     
@@ -104,8 +104,8 @@ static wxString generate_html_page(const Config::SnapshotDB &snapshot_db, const 
     bool dark_mode = wxGetApp().dark_mode();
     wxString text = 
         "<html>"
-        "<body bgcolor=\"" + get_color(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)) + "\" cellspacing=\"2\" cellpadding=\"0\" border=\"0\" link=\"#800000\">"
-        "<font color=\"" + get_color(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT)) + "\">";
+        "<body bgcolor=\"" + get_color(wxGetApp().get_window_default_clr()/*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)*/) + "\" cellspacing=\"2\" cellpadding=\"0\" border=\"0\" link=\"#800000\">"
+        "<font color=\"" + get_color(wxGetApp().get_label_clr_default()/*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT)*/) + "\">";
     text += "<table style=\"width:100%\">";
     for (size_t i_row = 0; i_row < snapshot_db.snapshots().size(); ++ i_row) {
         const Config::Snapshot &snapshot = snapshot_db.snapshots()[snapshot_db.snapshots().size() - i_row - 1];
@@ -125,7 +125,11 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX)
 {
     this->SetFont(wxGetApp().normal_font());
+#ifdef _WIN32
+    wxGetApp().UpdateDarkUI(this);
+#else
     this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
 
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(vsizer);
@@ -152,6 +156,7 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
     }
     
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCLOSE);
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CLOSE, this)));
     this->SetEscapeId(wxID_CLOSE);
     this->Bind(wxEVT_BUTTON, &ConfigSnapshotDialog::onCloseDialog, this, wxID_CLOSE);
     vsizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);

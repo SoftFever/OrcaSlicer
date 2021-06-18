@@ -82,7 +82,7 @@ std::string get_mem_info(bool format_as_html)
 SysInfoDialog::SysInfoDialog()
     : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, (wxGetApp().is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME)) + " - " + _L("System Information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+	wxColour bgr_clr = wxGetApp().get_window_default_clr();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
     SetFont(wxGetApp().normal_font());
 
@@ -112,7 +112,7 @@ SysInfoDialog::SysInfoDialog()
 
     // main_info_text
     wxFont font = get_default_font(this);
-    const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    const auto text_clr = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
 
@@ -169,6 +169,9 @@ SysInfoDialog::SysInfoDialog()
     this->SetEscapeId(wxID_OK);
     this->Bind(wxEVT_BUTTON, &SysInfoDialog::onCloseDialog, this, wxID_OK);
     main_sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
+
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_OK, this)), true);
+    wxGetApp().UpdateDarkUI(m_btn_copy_to_clipboard, true);
     
 //     this->Bind(wxEVT_LEFT_DOWN, &SysInfoDialog::onCloseDialog, this);
 //     logo->Bind(wxEVT_LEFT_DOWN, &SysInfoDialog::onCloseDialog, this);

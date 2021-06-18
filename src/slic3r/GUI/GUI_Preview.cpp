@@ -14,6 +14,7 @@
 #include "Plater.hpp"
 #include "MainFrame.hpp"
 
+#include <wx/listbook.h>
 #include <wx/notebook.h>
 #include <wx/glcanvas.h>
 #include <wx/sizer.h>
@@ -27,6 +28,10 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "NotificationManager.hpp"
+
+#ifdef _WIN32
+#include "BitmapComboBox.hpp"
+#endif
 
 namespace Slic3r {
 namespace GUI {
@@ -186,7 +191,7 @@ bool Preview::init(wxWindow* parent, Model* model)
 
     // to match the background of the sliders
 #ifdef _WIN32 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    wxGetApp().UpdateDarkUI(this);
 #else
     SetBackgroundColour(GetParent()->GetBackgroundColour());
 #endif // _WIN32 
@@ -206,9 +211,13 @@ bool Preview::init(wxWindow* parent, Model* model)
 
     m_layers_slider_sizer = create_layers_slider_sizer();
 
-    m_bottom_toolbar_panel = new wxPanel(this);
+    wxGetApp().UpdateDarkUI(m_bottom_toolbar_panel = new wxPanel(this));
     m_label_view_type = new wxStaticText(m_bottom_toolbar_panel, wxID_ANY, _L("View"));
+#ifdef _WIN32
+    wxGetApp().UpdateDarkUI(m_choice_view_type = new BitmapComboBox(m_bottom_toolbar_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, wxCB_READONLY));
+#else
     m_choice_view_type = new wxComboBox(m_bottom_toolbar_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, wxCB_READONLY);
+#endif
     m_choice_view_type->Append(_L("Feature type"));
     m_choice_view_type->Append(_L("Height"));
     m_choice_view_type->Append(_L("Width"));
@@ -222,8 +231,13 @@ bool Preview::init(wxWindow* parent, Model* model)
 
     m_label_show = new wxStaticText(m_bottom_toolbar_panel, wxID_ANY, _L("Show"));
 
+#ifdef _WIN32
+    long combo_style = wxCB_READONLY | wxBORDER_SIMPLE; //set border allows use default color instead of theme color wich is allways light under MSW
+#else
+    long combo_style = wxCB_READONLY;
+#endif
     m_combochecklist_features = new wxComboCtrl();
-    m_combochecklist_features->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Feature types"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
+    m_combochecklist_features->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Feature types"), wxDefaultPosition, wxDefaultSize, combo_style);
     std::string feature_items = GUI::into_u8(
         _L("Unknown") + "|1|" +
         _L("Perimeter") + "|1|" +
@@ -244,7 +258,7 @@ bool Preview::init(wxWindow* parent, Model* model)
     Slic3r::GUI::create_combochecklist(m_combochecklist_features, GUI::into_u8(_L("Feature types")), feature_items);
 
     m_combochecklist_options = new wxComboCtrl();
-    m_combochecklist_options->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Options"), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
+    m_combochecklist_options->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Options"), wxDefaultPosition, wxDefaultSize, combo_style);
     std::string options_items = GUI::into_u8(
         get_option_type_string(OptionType::Travel) + "|0|" +
         get_option_type_string(OptionType::Wipe) + "|0|" +
@@ -401,6 +415,17 @@ void Preview::msw_rescale()
 
 void Preview::sys_color_changed()
 {
+#ifdef _WIN32
+    wxWindowUpdateLocker noUpdates(this);
+
+    wxGetApp().UpdateAllStaticTextDarkUI(m_bottom_toolbar_panel);
+    wxGetApp().UpdateDarkUI(m_choice_view_type);
+    wxGetApp().UpdateDarkUI(m_combochecklist_features);
+    wxGetApp().UpdateDarkUI(static_cast<wxCheckListBoxComboPopup*>(m_combochecklist_features->GetPopupControl()));
+    wxGetApp().UpdateDarkUI(m_combochecklist_options);
+    wxGetApp().UpdateDarkUI(static_cast<wxCheckListBoxComboPopup*>(m_combochecklist_options->GetPopupControl()));
+#endif
+
     if (m_layers_slider != nullptr)
         m_layers_slider->sys_color_changed();
 }

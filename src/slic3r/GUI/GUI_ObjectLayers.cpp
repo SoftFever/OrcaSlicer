@@ -27,7 +27,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
 
     // Legend for object layers
     for (const std::string col : { L("Start at height"), L("Stop at height"), L("Layer height") }) {
-        auto temp = new wxStaticText(m_parent, wxID_ANY, _(col), wxDefaultPosition, /*size*/wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
+        auto temp = new wxStaticText(m_parent, wxID_ANY, _(col), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
         temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         temp->SetFont(wxGetApp().bold_font());
 
@@ -276,15 +276,12 @@ void ObjectLayers::sys_color_changed()
     m_bmp_delete.msw_rescale();
     m_bmp_add.msw_rescale();
 
-    m_grid_sizer->SetHGap(wxGetApp().em_unit());
-
     // rescale edit-boxes
     const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();
     for (int i = 0; i < cells_cnt; ++i) {
         const wxSizerItem* item = m_grid_sizer->GetItem(i);
         if (item->IsSizer()) {// case when we have editor with buttons
-            const std::vector<size_t> btns = {2, 3};  // del_btn, add_btn
-            for (auto btn : btns) {
+            for (size_t btn : {2, 3}) { // del_btn, add_btn
                 wxSizerItem* b_item = item->GetSizer()->GetItem(btn);
                 if (b_item->IsWindow()) {
                     auto button = dynamic_cast<PlusMinusButton*>(b_item->GetWindow());
@@ -294,7 +291,24 @@ void ObjectLayers::sys_color_changed()
             }
         }
     }
-    m_grid_sizer->Layout();
+
+#ifdef _WIN32
+    m_og->sys_color_changed();
+    for (int i = 0; i < cells_cnt; ++i) {
+        const wxSizerItem* item = m_grid_sizer->GetItem(i);
+        if (item->IsWindow()) {
+            if (LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(item->GetWindow()))
+                wxGetApp().UpdateDarkUI(editor);
+        }
+        else if (item->IsSizer()) {// case when we have editor with buttons
+            if (wxSizerItem* e_item = item->GetSizer()->GetItem(size_t(0)); e_item->IsWindow()) {
+                if (LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(e_item->GetWindow()))
+                    wxGetApp().UpdateDarkUI(editor);
+            }
+        }
+    }
+#endif
+
 }
 
 void ObjectLayers::reset_selection()
@@ -313,9 +327,14 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
     m_type(type),
     m_set_focus_data(set_focus_data_fn),
     wxTextCtrl(parent->m_parent, wxID_ANY, value, wxDefaultPosition, 
-               wxSize(8 * em_unit(parent->m_parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
+               wxSize(8 * em_unit(parent->m_parent), wxDefaultCoord), wxTE_PROCESS_ENTER
+#ifdef _WIN32
+        | wxBORDER_SIMPLE
+#endif
+    )
 {
     this->SetFont(wxGetApp().normal_font());
+    wxGetApp().UpdateDarkUI(this);
 
     // Reset m_enter_pressed flag to _false_, when value is editing
     this->Bind(wxEVT_TEXT, [this](wxEvent&) { m_enter_pressed = false; }, this->GetId());

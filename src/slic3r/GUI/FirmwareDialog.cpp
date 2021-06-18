@@ -747,7 +747,8 @@ void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
 
 void FirmwareDialog::priv::on_async_dialog(const wxCommandEvent &evt)
 {
-	wxMessageDialog dlg(this->q, evt.GetString(), wxMessageBoxCaptionStr, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+	//wxMessageDialog dlg(this->q, evt.GetString(), wxMessageBoxCaptionStr, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+	GUI::MessageDialog dlg(this->q, evt.GetString(), wxMessageBoxCaptionStr, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
 	{
 		std::lock_guard<std::mutex> lock(mutex);
 		modal_response = dlg.ShowModal();
@@ -863,6 +864,8 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	bsizer->Add(p->btn_flash);
 	vsizer->Add(bsizer, 0, wxEXPAND);
 
+	GUI::wxGetApp().UpdateDlgDarkUI(this);
+
 	auto *topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(panel, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
 	SetMinSize(wxSize(p->min_width, p->min_height));
@@ -903,7 +906,8 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	p->btn_flash->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
 		if (this->p->avrdude) {
 			// Flashing is in progress, ask the user if they're really sure about canceling it
-			wxMessageDialog dlg(this,
+			//wxMessageDialog dlg(this,
+			GUI::MessageDialog dlg(this,
 				_(L("Are you sure you want to cancel firmware flashing?\nThis could leave your printer in an unusable state!")),
 				_(L("Confirmation")),
 				wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);

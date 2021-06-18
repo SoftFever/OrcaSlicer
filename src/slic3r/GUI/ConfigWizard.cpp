@@ -21,6 +21,7 @@
 #include <wx/statline.h>
 #include <wx/dataview.h>
 #include <wx/notebook.h>
+#include <wx/listbook.h>
 #include <wx/display.h>
 #include <wx/filefn.h>
 #include <wx/wupdlock.h>
@@ -38,6 +39,7 @@
 #include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 #include "format.hpp"
+#include "MsgDialog.hpp"
 
 #if defined(__linux__) && defined(__WXGTK3__)
 #define wxLinux_gtk3 true
@@ -177,6 +179,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     , vendor_id(vendor.id)
     , width(0)
 {
+    wxGetApp().UpdateDarkUI(this);
     const auto &models = vendor.models;
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
@@ -235,6 +238,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
         bitmaps.push_back(bitmap_widget);
 
         auto *variants_panel = new wxPanel(this);
+        wxGetApp().UpdateDarkUI(variants_panel);
         auto *variants_sizer = new wxBoxSizer(wxVERTICAL);
         variants_panel->SetSizer(variants_sizer);
         const auto model_id = model.id;
@@ -322,6 +326,10 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
             title_sizer->Add(sel_all_std, 0, wxRIGHT, BTN_SPACING);
         title_sizer->Add(sel_all, 0, wxRIGHT, BTN_SPACING);
         title_sizer->Add(sel_none);
+
+        wxGetApp().UpdateDarkUI(sel_all_std);
+        wxGetApp().UpdateDarkUI(sel_all);
+        wxGetApp().UpdateDarkUI(sel_none);
 
         // fill button indexes used later for buttons rescaling
         if (is_variants)
@@ -412,6 +420,8 @@ ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxStrin
     , shortname(std::move(shortname))
     , indent(indent)
 {
+    wxGetApp().UpdateDarkUI(this);
+
     auto *sizer = new wxBoxSizer(wxVERTICAL);
 
     auto *text = new wxStaticText(this, wxID_ANY, std::move(title), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
@@ -637,6 +647,11 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     btn_sizer->Add(sel_all, 0, wxRIGHT, em / 2);
     btn_sizer->Add(sel_none);
 
+    wxGetApp().UpdateDarkUI(list_printer);
+    wxGetApp().UpdateDarkUI(list_type);
+    wxGetApp().UpdateDarkUI(list_vendor);
+    wxGetApp().UpdateDarkUI(sel_all);
+    wxGetApp().UpdateDarkUI(sel_none);
 
     grid->Add(new wxBoxSizer(wxHORIZONTAL));
     grid->Add(new wxBoxSizer(wxHORIZONTAL));
@@ -717,12 +732,16 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
 {
     const auto bgr_clr = 
 #if defined(__APPLE__)
-        wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+        html_window->GetParent()->GetBackgroundColour();
+#else 
+#if defined(_WIN32)
+        wxGetApp().get_window_default_clr();
 #else
         wxSystemSettings::GetColour(wxSYS_COLOUR_MENU);
 #endif
+#endif
     const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
-    const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    const auto text_clr = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     wxString first_line = _L("Filaments marked with <b>*</b> are <b>not</b> compatible with some installed printers.");
     wxString text;
@@ -1003,6 +1022,7 @@ void PageMaterials::update_lists(int sel_type, int sel_vendor, int last_selected
 
 		sel_vendor_prev = sel_vendor;
 	}
+    wxGetApp().UpdateDarkUI(list_profile);
 }
 
 void PageMaterials::sort_list_data(StringList* list, bool add_All_item, bool material_type_ordering)
@@ -1149,6 +1169,8 @@ PageCustom::PageCustom(ConfigWizard *parent)
     cb_custom = new wxCheckBox(this, wxID_ANY, _L("Define a custom printer profile"));
     tc_profile_name = new wxTextCtrl(this, wxID_ANY, default_profile_name);
     auto *label = new wxStaticText(this, wxID_ANY, _L("Custom profile name:"));
+
+    wxGetApp().UpdateDarkUI(tc_profile_name);
 
     tc_profile_name->Enable(false);
     tc_profile_name->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &evt) {
@@ -1338,6 +1360,7 @@ PageFirmware::PageFirmware(ConfigWizard *parent)
     }
 
     gcode_picker = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
+    wxGetApp().UpdateDarkUI(gcode_picker);
     const auto &enum_values = gcode_opt.enum_values;
     auto needle = enum_values.cend();
     if (gcode_opt.default_value) {
@@ -1406,10 +1429,26 @@ static void focus_event(wxFocusEvent& e, wxTextCtrl* ctrl, double def_value)
         ctrl->SetValue(double_to_string(val));
 }
 
+class DiamTextCtrl : public wxTextCtrl
+{
+public:
+    DiamTextCtrl(wxWindow* parent)
+    {
+#ifdef _WIN32
+        long style = wxBORDER_SIMPLE;
+#else
+        long style = 0;
+#endif
+        Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(Field::def_width_thinner() * wxGetApp().em_unit(), wxDefaultCoord), style);
+        wxGetApp().UpdateDarkUI(this);
+    }
+    ~DiamTextCtrl() {}
+};
+
 PageDiameters::PageDiameters(ConfigWizard *parent)
     : ConfigWizardPage(parent, _L("Filament and Nozzle Diameters"), _L("Print Diameters"), 1)
-    , diam_nozzle(new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(Field::def_width_thinner() * wxGetApp().em_unit(), wxDefaultCoord)))
-    , diam_filam (new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(Field::def_width_thinner() * wxGetApp().em_unit(), wxDefaultCoord)))
+    , diam_nozzle(new DiamTextCtrl(this))
+    , diam_filam (new DiamTextCtrl(this))
 {
     auto *default_nozzle = print_config_def.get("nozzle_diameter")->get_default_value<ConfigOptionFloats>();
     wxString value = double_to_string(default_nozzle != nullptr && default_nozzle->size() > 0 ? default_nozzle->get_at(0) : 0.5);
@@ -1477,10 +1516,29 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
     set_extrusion_width("solid_infill_extrusion_width",       0.45);
 }
 
+class SpinCtrlDouble: public wxSpinCtrlDouble
+{
+public:
+    SpinCtrlDouble(wxWindow* parent)
+    {
+#ifdef _WIN32
+        long style = wxSP_ARROW_KEYS | wxBORDER_SIMPLE;
+#else
+        long style = wxSP_ARROW_KEYS;
+#endif
+        Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, style);
+#ifdef _WIN32
+        wxGetApp().UpdateDarkUI(this->GetText());
+#endif
+        this->Refresh();
+    }
+    ~SpinCtrlDouble() {}
+};
+
 PageTemperatures::PageTemperatures(ConfigWizard *parent)
     : ConfigWizardPage(parent, _L("Nozzle and Bed Temperatures"), _L("Temperatures"), 1)
-    , spin_extr(new wxSpinCtrlDouble(this, wxID_ANY))
-    , spin_bed(new wxSpinCtrlDouble(this, wxID_ANY))
+    , spin_extr(new SpinCtrlDouble(this))
+    , spin_bed (new SpinCtrlDouble(this))
 {
     spin_extr->SetIncrement(5.0);
     const auto &def_extr = *print_config_def.get("temperature");
@@ -1703,6 +1761,7 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 
         x += + bullet_w + em_w/2;
         const auto text_size = dc.GetTextExtent(item.label);
+        dc.SetTextForeground(wxGetApp().get_label_clr_default());
         dc.DrawText(item.label, x, y + yoff_text);
 
         y += yinc;
@@ -2341,7 +2400,8 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
 
     const auto ask_and_select_default_materials = [this](const wxString &message, const std::set<const VendorProfile::PrinterModel*> &printer_models, Technology technology)
     {
-        wxMessageDialog msg(q, message, _L("Notice"), wxYES_NO);
+        //wxMessageDialog msg(q, message, _L("Notice"), wxYES_NO);
+        MessageDialog msg(q, message, _L("Notice"), wxYES_NO);
         if (msg.ShowModal() == wxID_YES)
             select_default_materials_for_printer_models(technology, printer_models);
     };
@@ -2628,6 +2688,12 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->btnsizer->Add(p->btn_finish, 0, wxLEFT, BTN_SPACING);
     p->btnsizer->Add(p->btn_cancel, 0, wxLEFT, BTN_SPACING);
 
+    wxGetApp().UpdateDarkUI(p->btn_sel_all);
+    wxGetApp().UpdateDarkUI(p->btn_prev);
+    wxGetApp().UpdateDarkUI(p->btn_next);
+    wxGetApp().UpdateDarkUI(p->btn_finish);
+    wxGetApp().UpdateDarkUI(p->btn_cancel);
+
     const auto prusa_it = p->bundles.find("PrusaResearch");
     wxCHECK_RET(prusa_it != p->bundles.cend(), "Vendor PrusaResearch not found");
     const VendorProfile *vendor_prusa = prusa_it->second.vendor_profile;
@@ -2795,6 +2861,12 @@ void ConfigWizard::on_dpi_changed(const wxRect &suggested_rect)
 
     p->init_dialog_size();
 
+    Refresh();
+}
+
+void ConfigWizard::on_sys_color_changed()
+{
+    wxGetApp().UpdateDlgDarkUI(this);
     Refresh();
 }
 

@@ -15,7 +15,6 @@ class wxBoxSizer;
 class wxStaticText;
 class wxComboBox;
 class wxComboCtrl;
-class wxBitmapComboBox;
 class wxCheckBox;
 
 namespace Slic3r {
@@ -36,6 +35,9 @@ class GLToolbar;
 class Bed3D;
 struct Camera;
 class Plater;
+#ifdef _WIN32
+class BitmapComboBox;
+#endif
 
 class View3D : public wxPanel
 {
@@ -82,7 +84,11 @@ class Preview : public wxPanel
     wxBoxSizer* m_layers_slider_sizer { nullptr };
     wxPanel* m_bottom_toolbar_panel { nullptr };
     wxStaticText* m_label_view_type { nullptr };
+#ifdef _WIN32
+    BitmapComboBox* m_choice_view_type { nullptr };
+#else
     wxComboBox* m_choice_view_type { nullptr };
+#endif
     wxStaticText* m_label_show { nullptr };
     wxComboCtrl* m_combochecklist_features { nullptr };
     size_t m_combochecklist_features_pos { 0 };

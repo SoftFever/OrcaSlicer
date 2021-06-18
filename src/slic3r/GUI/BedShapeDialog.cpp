@@ -177,12 +177,17 @@ void BedShape::apply_optgroup_values(ConfigOptionsGroupShp optgroup)
 void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
 {
     SetFont(wxGetApp().normal_font());
+//    wxGetApp().UpdateDarkUI(this);
+
 	m_panel = new BedShapePanel(this);
     m_panel->build_panel(default_pt, custom_texture, custom_model);
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_panel, 1, wxEXPAND);
 	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_OK, this)), true);
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)), true);
 
 	SetSizer(main_sizer);
 	SetMinSize(GetSize());
@@ -214,15 +219,19 @@ const std::string BedShapePanel::EMPTY_STRING = "";
 
 void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
 {
+    wxGetApp().UpdateDarkUI(this);
     m_shape = default_pt.values;
     m_custom_texture = custom_texture.value.empty() ? NONE : custom_texture.value;
     m_custom_model = custom_model.value.empty() ? NONE : custom_model.value;
 
     auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _(L("Shape")));
     sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());
+    wxGetApp().UpdateDarkUI(sbsizer->GetStaticBox());
 
 	// shape options
     m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(25*wxGetApp().em_unit(), -1), wxCHB_TOP);
+    wxGetApp().UpdateDarkUI(m_shape_options_book->GetChoiceCtrl());
+
     sbsizer->Add(m_shape_options_book);
 
     auto optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Rectangular));
@@ -240,6 +249,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 	line.full_width = 1;
 	line.widget = [this](wxWindow* parent) {
         wxButton* shape_btn = new wxButton(parent, wxID_ANY, _L("Load shape from STL..."));
+        wxGetApp().UpdateDarkUI(shape_btn, true);
         wxSizer* shape_sizer = new wxBoxSizer(wxHORIZONTAL);
         shape_sizer->Add(shape_btn, 1, wxEXPAND);
 
@@ -311,6 +321,7 @@ void BedShapePanel::activate_options_page(ConfigOptionsGroupShp options_group)
 wxPanel* BedShapePanel::init_texture_panel()
 {
     wxPanel* panel = new wxPanel(this);
+    wxGetApp().UpdateDarkUI(panel, true);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Texture")));
 
     optgroup->label_width = 10;
@@ -322,21 +333,24 @@ wxPanel* BedShapePanel::init_texture_panel()
     line.full_width = 1;
     line.widget = [this](wxWindow* parent) {
         wxButton* load_btn = new wxButton(parent, wxID_ANY, _(L("Load...")));
+        wxGetApp().UpdateDarkUI(load_btn, true);
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
         wxStaticText* filename_lbl = new wxStaticText(parent, wxID_ANY, _(NONE));
+
         wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         wxButton* remove_btn = new wxButton(parent, wxID_ANY, _(L("Remove")));
+        wxGetApp().UpdateDarkUI(remove_btn, true);
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
 
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
         sizer->Add(load_sizer, 1, wxEXPAND);
-        sizer->Add(remove_sizer, 1, wxEXPAND);
+        sizer->Add(remove_sizer, 1, wxEXPAND | wxTOP, 2);
 
         load_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
             {
@@ -356,7 +370,7 @@ wxPanel* BedShapePanel::init_texture_panel()
                 if (lbl != nullptr)
                 {
                     bool exists = (m_custom_texture == NONE) || boost::filesystem::exists(m_custom_texture);
-                    lbl->SetForegroundColour(exists ? wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT) : wxColor(*wxRED));
+                    lbl->SetForegroundColour(exists ? /*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT)*/wxGetApp().get_label_clr_default() : wxColor(*wxRED));
 
                     wxString tooltip_text = "";
                     if (m_custom_texture != NONE)
@@ -391,6 +405,7 @@ wxPanel* BedShapePanel::init_texture_panel()
 wxPanel* BedShapePanel::init_model_panel()
 {
     wxPanel* panel = new wxPanel(this);
+    wxGetApp().UpdateDarkUI(panel, true);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Model")));
 
     optgroup->label_width = 10;
@@ -402,6 +417,7 @@ wxPanel* BedShapePanel::init_model_panel()
     line.full_width = 1;
     line.widget = [this](wxWindow* parent) {
         wxButton* load_btn = new wxButton(parent, wxID_ANY, _(L("Load...")));
+        wxGetApp().UpdateDarkUI(load_btn, true);
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
@@ -410,13 +426,14 @@ wxPanel* BedShapePanel::init_model_panel()
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         wxButton* remove_btn = new wxButton(parent, wxID_ANY, _(L("Remove")));
+        wxGetApp().UpdateDarkUI(remove_btn, true);
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
 
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
         sizer->Add(load_sizer, 1, wxEXPAND);
-        sizer->Add(remove_sizer, 1, wxEXPAND);
+        sizer->Add(remove_sizer, 1, wxEXPAND | wxTOP, 2);
 
         load_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
             {
@@ -436,7 +453,7 @@ wxPanel* BedShapePanel::init_model_panel()
                 if (lbl != nullptr)
                 {
                     bool exists = (m_custom_model == NONE) || boost::filesystem::exists(m_custom_model);
-                    lbl->SetForegroundColour(exists ? wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT) : wxColor(*wxRED));
+                    lbl->SetForegroundColour(exists ? /*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT)*/wxGetApp().get_label_clr_default() : wxColor(*wxRED));
 
                     wxString tooltip_text = "";
                     if (m_custom_model != NONE)

@@ -225,7 +225,8 @@ void show_error_id(int id, const std::string& message)
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title)
 {
-	wxMessageDialog msg_wingow(parent, message, wxString(SLIC3R_APP_NAME " - ") + (title.empty() ? _L("Notice") : title), wxOK | wxICON_INFORMATION);
+	//wxMessageDialog msg_wingow(parent, message, wxString(SLIC3R_APP_NAME " - ") + (title.empty() ? _L("Notice") : title), wxOK | wxICON_INFORMATION);
+	MessageDialog msg_wingow(parent, message, wxString(SLIC3R_APP_NAME " - ") + (title.empty() ? _L("Notice") : title), wxOK | wxICON_INFORMATION);
 	msg_wingow.ShowModal();
 }
 
@@ -237,7 +238,8 @@ void show_info(wxWindow* parent, const char* message, const char* title)
 
 void warning_catcher(wxWindow* parent, const wxString& message)
 {
-	wxMessageDialog msg(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
+	//wxMessageDialog msg(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
+	MessageDialog msg(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
 	msg.ShowModal();
 }
 
@@ -245,6 +247,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
 {
     if (comboCtrl == nullptr)
         return;
+    wxGetApp().UpdateDarkUI(comboCtrl);
 
     wxCheckListBoxComboPopup* popup = new wxCheckListBoxComboPopup;
     if (popup != nullptr) {
@@ -279,6 +282,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
 		}
 
 		comboCtrl->SetMinClientSize(wxSize(max_width, -1));
+        wxGetApp().UpdateDarkUI(popup);
 	}
 }
 

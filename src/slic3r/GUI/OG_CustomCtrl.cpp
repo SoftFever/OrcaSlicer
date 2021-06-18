@@ -2,6 +2,7 @@
 #include "OptionsGroup.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
+#include "MsgDialog.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 #include <wx/utils.h>
@@ -353,6 +354,8 @@ void OG_CustomCtrl::correct_widgets_position(wxSizer* widget, const Line& line, 
             wxPoint pos = line_pos;
             wxSize  sz = child->GetWindow()->GetSize();
             pos.y += std::max(0, int(0.5 * (line_height - sz.y)));
+            if (line.extra_widget_sizer && widget == line.extra_widget_sizer)
+                pos.x += m_h_gap;
             child->GetWindow()->SetPosition(pos);
             line_pos.x += sz.x + m_h_gap;
         }
@@ -631,7 +634,12 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
 #else
             dc.SetFont(old_font.Bold().Underlined());
 #endif            
-        dc.SetTextForeground(color ? *color : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+        dc.SetTextForeground(color ? *color :
+#ifdef _WIN32
+            wxGetApp().get_label_clr_default());
+#else
+            wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+#endif /* _WIN32 */
         dc.DrawText(out_text, pos);
         dc.SetTextForeground(old_clr);
         dc.SetFont(old_font);
@@ -703,7 +711,6 @@ bool OG_CustomCtrl::CtrlLine::launch_browser() const
 RememberChoiceDialog::RememberChoiceDialog(wxWindow* parent, const wxString& msg_text, const wxString& caption)
     : wxDialog(parent, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxICON_INFORMATION)
 {
-    this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     this->SetEscapeId(wxID_CLOSE);
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
@@ -720,7 +727,8 @@ RememberChoiceDialog::RememberChoiceDialog(wxWindow* parent, const wxString& msg
                 _L("You will not be asked about it again on label hovering.") + "\n\n" +
                 format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
 
-            wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            //wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            MessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
             if (dialog.ShowModal() == wxID_CANCEL)
                 m_remember_choice->SetValue(false);
         });
@@ -737,6 +745,11 @@ RememberChoiceDialog::RememberChoiceDialog(wxWindow* parent, const wxString& msg
     topSizer->Add(m_remember_choice, 0, wxEXPAND | wxALL, 10);
     topSizer->Add(btns, 0, wxEXPAND | wxALL, 10);
 
+#ifdef _WIN32
+    wxGetApp().UpdateDlgDarkUI(this);
+#else
+    this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
     this->SetSizer(topSizer);
     topSizer->SetSizeHints(this);
 

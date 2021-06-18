@@ -43,6 +43,7 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "SavePresetDialog.hpp"
+#include "MsgDialog.hpp"
 
 #ifdef WIN32
 	#include <commctrl.h>
@@ -100,11 +101,13 @@ void Tab::Highlighter::blink()
         invalidate();
 }
 
-Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
+Tab::Tab(wxBookCtrlBase* parent, const wxString& title, Preset::Type type) :
     m_parent(parent), m_title(title), m_type(type)
 {
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL/*, name*/);
     this->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+
+    wxGetApp().UpdateDarkUI(this);
 
     m_compatible_printers.type			= Preset::TYPE_PRINTER;
     m_compatible_printers.key_list		= "compatible_printers";
@@ -253,7 +256,7 @@ void Tab::create_preset_tab()
     m_default_text_clr		= wxGetApp().get_label_clr_default();
 
     // Sizer with buttons for mode changing
-    m_mode_sizer = new ModeSizer(panel);
+    m_mode_sizer = new ModeSizer(panel, int (0.5*em_unit(this)));
 
     const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
     m_hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -305,6 +308,7 @@ void Tab::create_preset_tab()
     m_treectrl->AssignImageList(m_icons);
     m_treectrl->AddRoot("root");
     m_treectrl->SetIndent(0);
+    wxGetApp().UpdateDarkUI(m_treectrl);
 
     // Delay processing of the following handler until the message queue is flushed.
     // This helps to process all the cursor key events on Windows in the tree control,
@@ -483,11 +487,25 @@ void Tab::OnActivate()
     // create controls on active page
     activate_selected_page([](){});
     m_hsizer->Layout();
+
+    // Workaroud for Menu instead of NoteBook
+#ifdef _MSW_DARK_MODE
+    if (wxGetApp().dark_mode()) {
+        wxSize sz = m_presets_choice->GetSize(); 
+        wxSize ok_sz = wxSize(35 * m_em_unit, m_presets_choice->GetBestSize().y+1);
+        if (sz != ok_sz) {
+            m_presets_choice->SetMinSize(ok_sz);
+            m_presets_choice->SetSize(ok_sz);
+            GetSizer()->GetItem(size_t(0))->GetSizer()->Layout();
+        }
+    }
+#endif // _MSW_DARK_MODE
     Refresh();
 }
 
 void Tab::update_label_colours()
 {
+    m_default_text_clr = wxGetApp().get_label_clr_default();
     if (m_sys_label_clr == wxGetApp().get_label_clr_sys() && m_modified_label_clr == wxGetApp().get_label_clr_modified())
         return;
     m_sys_label_clr = wxGetApp().get_label_clr_sys();
@@ -984,14 +1002,15 @@ void Tab::msw_rescale()
 
 void Tab::sys_color_changed()
 {
-    update_tab_ui();
-    m_presets_choice->msw_rescale();
+    m_presets_choice->sys_color_changed();
 
     // update buttons and cached bitmaps
     for (const auto btn : m_scaled_buttons)
         btn->msw_rescale();
     for (const auto bmp : m_scaled_bitmaps)
         bmp->msw_rescale();
+    if (m_detach_preset_btn)
+        m_detach_preset_btn->msw_rescale();
 
     // update icons for tree_ctrl
     for (ScalableBitmap& bmp : m_scaled_icons_list)
@@ -1002,15 +1021,20 @@ void Tab::sys_color_changed()
     for (ScalableBitmap& bmp : m_scaled_icons_list)
         m_icons->Add(bmp.bmp());
     m_treectrl->AssignImageList(m_icons);
-#ifdef __WXMSW__
-    m_treectrl->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif
+
     // Colors for ui "decoration"
     update_label_colours();
+#ifdef _WIN32
+    wxWindowUpdateLocker noUpdates(this);
+    m_mode_sizer->msw_rescale();
+    wxGetApp().UpdateDarkUI(this);
+    wxGetApp().UpdateDarkUI(m_treectrl);
+#endif
+    update_changed_tree_ui();
 
     // update options_groups
     if (m_active_page)
-        m_active_page->msw_rescale();
+        m_active_page->sys_color_changed();
 
     Layout();
 }
@@ -1271,7 +1295,8 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
             msg_text += "\n\n";
             msg_text += _(L("This action is not revertible.\nDo you want to proceed?"));
 
-            wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
+            //wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
+            MessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
             if (dialog.ShowModal() == wxID_YES)
                 save_preset(m_presets->get_edited_preset().is_system ? std::string() : m_presets->get_edited_preset().name, true);
         });
@@ -1740,7 +1765,8 @@ bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)
         reports += _L("contain reserved keywords.") + "\n";
         reports += _L("Please remove them, as they may cause problems in g-code visualization and printing time estimation.");
 
-        wxMessageDialog dialog(wxGetApp().mainframe, reports, _L("Found reserved keywords in") + " " + _(title), wxICON_WARNING | wxOK);
+        //wxMessageDialog dialog(wxGetApp().mainframe, reports, _L("Found reserved keywords in") + " " + _(title), wxICON_WARNING | wxOK);
+        MessageDialog dialog(wxGetApp().mainframe, reports, _L("Found reserved keywords in") + " " + _(title), wxICON_WARNING | wxOK);
         dialog.ShowModal();
     }
     return !invalid;
@@ -1952,6 +1978,7 @@ void TabFilament::build()
 
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", wxEmptyString, [this](wxWindow* parent) {
             auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+            wxGetApp().UpdateDarkUI(ramming_dialog_btn);
             ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2232,7 +2259,8 @@ void TabPrinter::build_fff()
                                     const wxString msg_text = _(L("Single Extruder Multi Material is selected, \n"
                                                                   "and all extruders must have the same diameter.\n"
                                                                   "Do you want to change the diameter for all extruders to first extruder nozzle diameter value?"));
-                                    wxMessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+                                    //wxMessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+                                    MessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
 
                                     DynamicPrintConfig new_conf = *m_config;
                                     if (dialog.ShowModal() == wxID_YES) {
@@ -2690,7 +2718,8 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
                     {
                         const wxString msg_text = _(L("This is a single extruder multimaterial printer, diameters of all extruders "
                                                       "will be set to the new value. Do you want to proceed?"));
-                        wxMessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+                        //wxMessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+                        MessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
 
                         DynamicPrintConfig new_conf = *m_config;
                         if (dialog.ShowModal() == wxID_YES) {
@@ -2921,7 +2950,8 @@ void TabPrinter::toggle_options()
         toggle_option("retract_before_wipe", wipe, i);
 
         if (use_firmware_retraction && wipe) {
-            wxMessageDialog dialog(parent(),
+            //wxMessageDialog dialog(parent(),
+            MessageDialog dialog(parent(),
                 _(L("The Wipe option is not available when using the Firmware Retraction mode.\n"
                     "\nShall I disable it in order to enable Firmware Retraction?")),
                 _(L("Firmware Retraction")), wxICON_WARNING | wxYES | wxNO);
@@ -3047,8 +3077,12 @@ void Tab::load_current_preset()
                 Page* tmp_page = m_active_page;
                 m_active_page = nullptr;
                 for (auto tab : wxGetApp().tabs_list) {
-                    if (tab->type() == Preset::TYPE_PRINTER) // Printer tab is shown every time
+                    if (tab->type() == Preset::TYPE_PRINTER) { // Printer tab is shown every time
+                        int cur_selection = wxGetApp().tab_panel()->GetSelection();
+                        if (cur_selection != 0)
+                            wxGetApp().tab_panel()->SetSelection(wxGetApp().tab_panel()->GetPageCount() - 1);
                         continue;
+                    }
                     if (tab->supports_printer_technology(printer_technology))
                     {
                         wxGetApp().tab_panel()->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab, tab->title());
@@ -3324,7 +3358,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
     }
 
     if (technology_changed)
-        wxGetApp().mainframe->diff_dialog.update_presets();
+        wxGetApp().mainframe->technology_changed();
 }
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
@@ -3651,7 +3685,8 @@ void Tab::delete_preset()
     // TRN  Remove/Delete
     wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str());  //action + _(L(" Preset"));
     if (current_preset.is_default ||
-        wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
+        //wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
+        wxID_YES != MessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
         return;
 
     // if we just delete preset from the physical printer
@@ -3730,6 +3765,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 {
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
     deps.btn = new ScalableButton(parent, wxID_ANY, "printer", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
                                   wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -3768,6 +3804,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
         }
 
         wxMultiChoiceDialog dlg(parent, deps.dialog_title, deps.dialog_label, presets);
+        wxGetApp().UpdateDlgDarkUI(&dlg);
         // Collect and set indices of depending_presets marked as compatible.
         wxArrayInt selections;
         auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(m_config->option(deps.key_list));

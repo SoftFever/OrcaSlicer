@@ -409,16 +409,21 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
     searcher(searcher)
 {
     SetFont(GUI::wxGetApp().normal_font());
-    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-    SetBackgroundColour(bgr_clr);
+    GUI::wxGetApp().UpdateDarkUI(this);
 
     default_string = _L("Enter a search term");
     int border = 10;
     int em = em_unit();
 
     search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    GUI::wxGetApp().UpdateDarkUI(search_line);
 
-    search_list = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(em * 40, em * 30), wxDV_NO_HEADER | wxDV_SINGLE | wxBORDER_SIMPLE);
+    search_list = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(em * 40, em * 30), wxDV_NO_HEADER | wxDV_SINGLE
+#ifdef _WIN32
+        | wxBORDER_SIMPLE
+#endif
+    );
+    GUI::wxGetApp().UpdateDarkUI(search_list);
     search_list_model = new SearchListModel(this);
     search_list->AssociateModel(search_list_model);
 
@@ -442,6 +447,7 @@ SearchDialog::SearchDialog(OptionsSearcher* searcher)
         check_english   = new wxCheckBox(this, wxID_ANY, _L("Search in English"));
 
     wxStdDialogButtonSizer* cancel_btn = this->CreateStdDialogButtonSizer(wxCANCEL);
+    GUI::wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
 
     check_sizer->Add(new wxStaticText(this, wxID_ANY, _L("Use for search") + ":"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
     check_sizer->Add(check_category, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
@@ -656,6 +662,13 @@ void SearchDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void SearchDialog::on_sys_color_changed()
 {
+#ifdef _WIN32
+    GUI::wxGetApp().UpdateAllStaticTextDarkUI(this);
+    GUI::wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)), true);
+    for (wxWindow* win : std::vector<wxWindow*> {search_line, search_list, check_category, check_english})
+        if (win) GUI::wxGetApp().UpdateDarkUI(win);
+#endif
+
     // msw_rescale updates just icons, so use it
     search_list_model->msw_rescale();
 

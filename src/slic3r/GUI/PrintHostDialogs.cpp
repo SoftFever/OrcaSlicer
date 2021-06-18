@@ -92,7 +92,8 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
         // .gcode suffix control
         if (!path.Lower().EndsWith(suffix.Lower()))
         {
-            wxMessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
+            //wxMessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
+            MessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
             if (msg_wingow.ShowModal() == wxID_NO)
                 return;
         }
@@ -237,6 +238,9 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     topsizer->Add(job_list, 1, wxEXPAND | wxBOTTOM, SPACING);
     topsizer->Add(btnsizer, 0, wxEXPAND);
     SetSizer(topsizer);
+
+    wxGetApp().UpdateDlgDarkUI(this);
+    wxGetApp().UpdateDVCDarkUI(job_list);
 
     std::vector<int> size;
     SetSize(load_user_data(UDT_SIZE, size) ? wxSize(size[0] * em, size[1] * em) : wxSize(HEIGHT * em, WIDTH * em));

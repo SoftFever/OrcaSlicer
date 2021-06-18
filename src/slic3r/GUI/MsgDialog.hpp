@@ -31,7 +31,7 @@ struct MsgDialog : wxDialog
 
 protected:
 	enum {
-		CONTENT_WIDTH = 50,
+		CONTENT_WIDTH = 70,//50,
 		CONTENT_MAX_HEIGHT = 60,
 		BORDER = 30,
 		VERT_SPACING = 15,
@@ -40,6 +40,8 @@ protected:
 
 	// button_id is an id of a button that can be added by default, use wxID_NONE to disable
 	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id = wxID_OK, wxBitmap bitmap = wxNullBitmap);
+
+	void add_btn(wxWindowID btn_id, bool set_focus = false);
 
 	wxFont boldfont;
 	wxBoxSizer *content_sizer;
@@ -66,12 +68,10 @@ private:
 };
 
 
-// Generic error dialog, used for displaying exceptions
+// Generic warning dialog, used for displaying exceptions
 class WarningDialog : public MsgDialog
 {
 public:
-	// If monospaced_font is true, the error message is displayed using html <code><pre></pre></code> tags,
-	// so that the code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
 	WarningDialog(	wxWindow *parent,
 		            const wxString& message,
 		            const wxString& caption = wxEmptyString,
@@ -81,9 +81,22 @@ public:
 	WarningDialog &operator=(WarningDialog&&) = delete;
 	WarningDialog &operator=(const WarningDialog&) = delete;
 	virtual ~WarningDialog() = default;
+};
 
-private:
-	wxString	msg;
+
+// Generic message dialog, used intead of wxMessageDialog
+class MessageDialog : public MsgDialog
+{
+public:
+	MessageDialog(	wxWindow *parent,
+		            const wxString& message,
+		            const wxString& caption = wxEmptyString,
+		            long style = wxOK);
+	MessageDialog(MessageDialog&&) = delete;
+	MessageDialog(const MessageDialog&) = delete;
+	MessageDialog &operator=(MessageDialog&&) = delete;
+	MessageDialog &operator=(const MessageDialog&) = delete;
+	virtual ~MessageDialog() = default;
 };
 
 

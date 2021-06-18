@@ -87,7 +87,8 @@ using t_optionfield_map = std::map<t_config_option_key, t_field>;
 using t_opt_map = std::map< std::string, std::pair<std::string, int> >;
 
 class OptionsGroup {
-	wxStaticBox*	stb;
+protected:
+	wxStaticBox*	stb {nullptr};
 public:
     const bool		staticbox {true};
     const wxString	title;

@@ -5,6 +5,7 @@
 #include "format.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "MsgDialog.hpp"
 
 #include <wx/msgdlg.h>
 
@@ -46,7 +47,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (config->opt_float("layer_height") < EPSILON)
     {
         const wxString msg_text = _(L("Layer height is not valid.\n\nThe layer height will be reset to 0.01."));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
+        //wxMessageDialog dialog(nullptr, msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
+        MessageDialog dialog(nullptr, msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
@@ -58,7 +60,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value < EPSILON)
     {
         const wxString msg_text = _(L("First layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
+        //wxMessageDialog dialog(nullptr, msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
+        MessageDialog dialog(nullptr, msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
@@ -87,7 +90,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                					"- Detect thin walls disabled"));
         if (is_global_config)
             msg_text += "\n\n" + _(L("Shall I adjust those settings in order to enable Spiral Vase?"));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Spiral Vase")),
+        //wxMessageDialog dialog(nullptr, msg_text, _(L("Spiral Vase")),
+        MessageDialog dialog(nullptr, msg_text, _(L("Spiral Vase")),
                                wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
         auto answer = dialog.ShowModal();
@@ -122,7 +126,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                 "(both support_material_extruder and support_material_interface_extruder need to be set to 0)."));
         if (is_global_config)
             msg_text += "\n\n" + _(L("Shall I adjust those settings in order to enable the Wipe Tower?"));
-        wxMessageDialog dialog (nullptr, msg_text, _(L("Wipe Tower")),
+        //wxMessageDialog dialog (nullptr, msg_text, _(L("Wipe Tower")),
+        MessageDialog dialog (nullptr, msg_text, _(L("Wipe Tower")),
                                 wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
         auto answer = dialog.ShowModal();
@@ -142,7 +147,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                 "need to be synchronized with the object layers."));
         if (is_global_config)
             msg_text += "\n\n" + _(L("Shall I synchronize support layers in order to enable the Wipe Tower?"));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Wipe Tower")),
+        //wxMessageDialog dialog(nullptr, msg_text, _(L("Wipe Tower")),
+        MessageDialog dialog(nullptr, msg_text, _(L("Wipe Tower")),
                                wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
         auto answer = dialog.ShowModal();
@@ -165,7 +171,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                         "- Detect bridging perimeters"));
                 if (is_global_config)
                     msg_text += "\n\n" + _(L("Shall I adjust those settings for supports?"));
-                wxMessageDialog dialog(nullptr, msg_text, _(L("Support Generator")),
+                //wxMessageDialog dialog(nullptr, msg_text, _(L("Support Generator")),
+                MessageDialog dialog(nullptr, msg_text, _(L("Support Generator")),
                                        wxICON_WARNING | (is_global_config ? wxYES | wxNO | wxCANCEL : wxOK));
                 DynamicPrintConfig new_conf = *config;
                 auto answer = dialog.ShowModal();
@@ -204,7 +211,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                     _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
                 if (is_global_config)
                     msg_text += "\n\n" + _L("Shall I switch to rectilinear fill pattern?");
-                wxMessageDialog dialog(nullptr, msg_text, _L("Infill"),
+                //wxMessageDialog dialog(nullptr, msg_text, _L("Infill"),
+                MessageDialog dialog(nullptr, msg_text, _L("Infill"),
                                                   wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
                 DynamicPrintConfig new_conf = *config;
                 auto answer = dialog.ShowModal();
@@ -333,7 +341,8 @@ void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, con
     if (head_penetration > head_width) {
         wxString msg_text = _(L("Head penetration should not be greater than the head width."));
 
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Invalid Head penetration")), wxICON_WARNING | wxOK);
+        //wxMessageDialog dialog(nullptr, msg_text, _(L("Invalid Head penetration")), wxICON_WARNING | wxOK);
+        MessageDialog dialog(nullptr, msg_text, _(L("Invalid Head penetration")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         if (dialog.ShowModal() == wxID_OK) {
             new_conf.set_key_value("support_head_penetration", new ConfigOptionFloat(head_width));
@@ -346,7 +355,8 @@ void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, con
     if (pinhead_d > pillar_d) {
         wxString msg_text = _(L("Pinhead diameter should be smaller than the pillar diameter."));
 
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Invalid pinhead diameter")), wxICON_WARNING | wxOK);
+        //wxMessageDialog dialog(nullptr, msg_text, _(L("Invalid pinhead diameter")), wxICON_WARNING | wxOK);
+        MessageDialog dialog(nullptr, msg_text, _(L("Invalid pinhead diameter")), wxICON_WARNING | wxOK);
 
         DynamicPrintConfig new_conf = *config;
         if (dialog.ShowModal() == wxID_OK) {

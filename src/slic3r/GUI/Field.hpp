@@ -177,7 +177,7 @@ public:
     }
 
     virtual void msw_rescale();
-    void sys_color_changed();
+    virtual void sys_color_changed();
 
     bool get_enter_pressed() const { return bEnterPressed; }
     void set_enter_pressed(bool pressed) { bEnterPressed = pressed; }
@@ -394,6 +394,7 @@ public:
 	void			set_value(const boost::any& value, bool change_event = false) override;
 	boost::any&		get_value() override;
     void            msw_rescale() override;
+    void            sys_color_changed() override;
 
     void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); }
     void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); }
@@ -420,6 +421,7 @@ public:
 	boost::any&		get_value() override;
 
     void            msw_rescale() override;
+	void            sys_color_changed() override;
 
 	void			enable() override {
 		x_textctrl->Enable();

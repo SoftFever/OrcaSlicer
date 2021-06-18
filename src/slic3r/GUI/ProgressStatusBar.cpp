@@ -28,6 +28,7 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id)
                                   wxDefaultSize)}
     , m_timer{new wxTimer(self)}
 {
+    update_dark_ui();
     m_prog->Hide();
     m_cancelbutton->Hide();
 
@@ -66,6 +67,13 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id)
 
 ProgressStatusBar::~ProgressStatusBar() {
     if(m_timer && m_timer->IsRunning()) m_timer->Stop();
+}
+
+void ProgressStatusBar::update_dark_ui()
+{
+    GUI::wxGetApp().UpdateDarkUI(self);
+    GUI::wxGetApp().UpdateDarkUI(m_prog);
+    GUI::wxGetApp().UpdateDarkUI(m_cancelbutton);
 }
 
 int ProgressStatusBar::get_progress() const

@@ -25,7 +25,7 @@ struct SettingsFactory
     typedef std::map<std::string, std::vector<std::string>> Bundle;
     static std::map<std::string, std::string>               CATEGORY_ICON;
 
-    static wxBitmap                             get_category_bitmap(const std::string& category_name);
+    static wxBitmap                             get_category_bitmap(const std::string& category_name, bool menu_bmp = true);
     static Bundle                               get_bundle(const DynamicPrintConfig* config, bool is_object_settings);
     static std::vector<std::string>             get_options(bool is_part);
 };
@@ -42,6 +42,7 @@ public:
     void    init(wxWindow* parent);
     void    update_object_menu();
     void    msw_rescale();
+    void    sys_color_changed();
 
     wxMenu* default_menu();
     wxMenu* object_menu();

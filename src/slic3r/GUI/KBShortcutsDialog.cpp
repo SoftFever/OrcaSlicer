@@ -9,6 +9,7 @@
 #include "wxExtensions.hpp"
 #include "MainFrame.hpp"
 #include <wx/notebook.h>
+#include <wx/listbook.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -17,7 +18,7 @@ KBShortcutsDialog::KBShortcutsDialog()
     : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+//    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
     // fonts
     const wxFont& font = wxGetApp().normal_font();
@@ -28,7 +29,18 @@ KBShortcutsDialog::KBShortcutsDialog()
 
     main_sizer->Add(create_header(this, bold_font), 0, wxEXPAND | wxALL, 10);
 
+#ifdef _MSW_DARK_MODE
+    wxBookCtrlBase* book;
+    if (wxGetApp().dark_mode()) {
+        book = new wxListbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+        wxGetApp().UpdateDarkUI(book);
+        wxGetApp().UpdateDarkUI(dynamic_cast<wxListbook*>(book)->GetListView());
+    }
+    else
+        book = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+#else
     wxNotebook* book = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+#endif
     main_sizer->Add(book, 1, wxEXPAND | wxALL, 10);
 
     fill_shortcuts();
@@ -39,6 +51,7 @@ KBShortcutsDialog::KBShortcutsDialog()
     }
 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_OK, this)));
     this->SetEscapeId(wxID_OK);
     main_sizer->Add(buttons, 0, wxEXPAND | wxALL, 5);
 
@@ -248,6 +261,7 @@ void KBShortcutsDialog::fill_shortcuts()
 wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_font)
 {
     wxPanel* panel = new wxPanel(parent);
+    wxGetApp().UpdateDarkUI(panel);
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxFont header_font = bold_font;
@@ -278,6 +292,7 @@ wxPanel* KBShortcutsDialog::create_header(wxWindow* parent, const wxFont& bold_f
 wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& shortcuts, const wxFont& font, const wxFont& bold_font)
 {
     wxPanel* main_page = new wxPanel(parent);
+    wxGetApp().UpdateDarkUI(main_page);
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
     if (!shortcuts.first.second.empty()) {
@@ -294,6 +309,7 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& s
     int columns_count = 1 + static_cast<int>(shortcuts.second.size()) / max_items_per_column;
 
     wxScrolledWindow* scrollable_panel = new wxScrolledWindow(main_page);
+    wxGetApp().UpdateDarkUI(scrollable_panel);
     scrollable_panel->SetScrollbars(20, 20, 50, 50);
     scrollable_panel->SetInitialSize(wxSize(850, 450));
 

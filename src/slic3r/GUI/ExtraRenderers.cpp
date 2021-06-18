@@ -139,7 +139,12 @@ bool BitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
     }
     else
 #endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
+#ifdef _WIN32 
+        // workaround for Windows DarkMode : Don't respect to the state & wxDATAVIEW_CELL_SELECTED to avoid update of the text color
+        RenderText(m_value.GetText(), xoffset, rect, dc, state & wxDATAVIEW_CELL_SELECTED ? 0 :state);
+#else
         RenderText(m_value.GetText(), xoffset, rect, dc, state);
+#endif
 
     return true;
 }
@@ -258,7 +263,12 @@ bool BitmapChoiceRenderer::Render(wxRect rect, wxDC* dc, int state)
           rect.height= icon.GetHeight();
     }
 
+#ifdef _WIN32
+    // workaround for Windows DarkMode : Don't respect to the state & wxDATAVIEW_CELL_SELECTED to avoid update of the text color
+    RenderText(m_value.GetText(), xoffset, rect, dc, state & wxDATAVIEW_CELL_SELECTED ? 0 : state);
+#else
     RenderText(m_value.GetText(), xoffset, rect, dc, state);
+#endif
 
     return true;
 }

@@ -281,5 +281,13 @@ void ObjectSettings::msw_rescale()
         group->msw_rescale();
 }
 
+void ObjectSettings::sys_color_changed()
+{
+    m_og->sys_color_changed();
+
+    for (auto group : m_og_settings)
+        group->sys_color_changed();
+}
+
 } //namespace GUI
 } //namespace Slic3r 

@@ -20,11 +20,19 @@ class wxCheckBox;
 namespace Slic3r {
 namespace GUI {
 
+#ifdef _WIN32
+class BitmapComboBox;
+#endif
+
 #ifdef __WXOSX__
     static_assert(wxMAJOR_VERSION >= 3, "Use of wxBitmapComboBox on Manipulation panel requires wxWidgets 3.0 and newer");
     using choice_ctrl = wxBitmapComboBox;
 #else
+#ifdef _WIN32
+    using choice_ctrl = BitmapComboBox;
+#else
     using choice_ctrl = wxComboBox;
+#endif
 #endif // __WXOSX__
 
 class Selection;
@@ -44,6 +52,7 @@ public:
     ~ManipulationEditor() {}
 
     void                msw_rescale();
+    void                sys_color_changed(ObjectManipulation* parent);
     void                set_value(const wxString& new_value);
     void                kill_focus(ObjectManipulation *parent);
 

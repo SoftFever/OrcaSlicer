@@ -16,6 +16,8 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry
 	wxDialog(parent, wxID_ANY, _(L("Buttons And Text Colors Description")), wxDefaultPosition, wxDefaultSize),
 	m_entries(entries)
 {
+	wxGetApp().UpdateDarkUI(this);
+
 	auto grid_sizer = new wxFlexGridSizer(3, 20, 20);
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -36,6 +38,7 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry
 	auto sys_label = new wxStaticText(this, wxID_ANY, _(L("Value is the same as the system value")));
 	sys_label->SetForegroundColour(wxGetApp().get_label_clr_sys());
 	auto sys_colour = new wxColourPickerCtrl(this, wxID_ANY, wxGetApp().get_label_clr_sys());
+	wxGetApp().UpdateDarkUI(sys_colour->GetPickerCtrl(), true);
 	sys_colour->Bind(wxEVT_COLOURPICKER_CHANGED, ([sys_colour, sys_label](wxCommandEvent e)
 	{
 		sys_label->SetForegroundColour(sys_colour->GetColour());
@@ -53,6 +56,7 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry
 	auto mod_label = new wxStaticText(this, wxID_ANY, _(L("Value was changed and is not equal to the system value or the last saved preset")));
 	mod_label->SetForegroundColour(wxGetApp().get_label_clr_modified());
 	auto mod_colour = new wxColourPickerCtrl(this, wxID_ANY, wxGetApp().get_label_clr_modified());
+	wxGetApp().UpdateDarkUI(mod_colour->GetPickerCtrl(), true);
 	mod_colour->Bind(wxEVT_COLOURPICKER_CHANGED, ([mod_colour, mod_label](wxCommandEvent e)
 	{
 		mod_label->SetForegroundColour(mod_colour->GetColour());
@@ -67,7 +71,9 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry
 	main_sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
 
 	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
-	btn->Bind(wxEVT_BUTTON, [sys_colour, mod_colour, this](wxCommandEvent&) { 
+	wxGetApp().UpdateDarkUI(btn);
+	wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
+	btn->Bind(wxEVT_BUTTON, [sys_colour, mod_colour, this](wxCommandEvent&) {
 		wxGetApp().set_label_clr_sys(sys_colour->GetColour());
 		wxGetApp().set_label_clr_modified(mod_colour->GetColour());
 		EndModal(wxID_OK);

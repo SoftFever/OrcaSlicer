@@ -17,6 +17,7 @@
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
 
@@ -920,7 +921,8 @@ void GLGizmoSlaSupports::on_set_state()
             wxGetApp().CallAfter([this]() {
                 // Following is called through CallAfter, because otherwise there was a problem
                 // on OSX with the wxMessageDialog being shown several times when clicked into.
-                wxMessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
+                //wxMessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
+                MessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
                     "edited support points?") + "\n",_L("Save changes?"), wxICON_QUESTION | wxYES | wxNO);
                     if (dlg.ShowModal() == wxID_YES)
                         editing_mode_apply_changes();
@@ -1139,7 +1141,8 @@ void GLGizmoSlaSupports::get_data_from_backend()
 
 void GLGizmoSlaSupports::auto_generate()
 {
-    wxMessageDialog dlg(GUI::wxGetApp().plater(), 
+    //wxMessageDialog dlg(GUI::wxGetApp().plater(), 
+    MessageDialog dlg(GUI::wxGetApp().plater(), 
                         _L("Autogeneration will erase all manually edited points.") + "\n\n" +
                         _L("Are you sure you want to do it?") + "\n",
                         _L("Warning"), wxICON_WARNING | wxYES | wxNO);

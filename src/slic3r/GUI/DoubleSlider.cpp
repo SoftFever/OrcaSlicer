@@ -165,6 +165,8 @@ void Control::msw_rescale()
 
 void Control::sys_color_changed()
 {
+    GUI::wxGetApp().UpdateDarkUI(GetParent());
+
     m_bmp_add_tick_on .msw_rescale();
     m_bmp_add_tick_off.msw_rescale();
     m_bmp_del_tick_on .msw_rescale();
@@ -494,7 +496,7 @@ void Control::draw_focus_rect()
 void Control::render()
 {
 #ifdef _WIN32 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    GUI::wxGetApp().UpdateDarkUI(this);
 #else
     SetBackgroundColour(GetParent()->GetBackgroundColour());
 #endif // _WIN32 
@@ -990,11 +992,7 @@ void Control::draw_colored_band(wxDC& dc)
 
     // don't color a band for MultiExtruder mode
     if (m_ticks.empty() || m_mode == MultiExtruder) {
-#ifdef _WIN32 
-        draw_band(dc, wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW), main_band);
-#else
         draw_band(dc, GetParent()->GetBackgroundColour(), main_band);
-#endif // _WIN32 
         return;
     }
 
@@ -1593,12 +1591,9 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
                                                    (switch_current_code ? _L("Switch code to Change extruder") : _L("Change extruder") ) : 
                                                    _L("Change extruder (N/A)");
 
-        wxMenuItem* change_extruder_menu_item = menu->AppendSubMenu(change_extruder_menu, change_extruder_menu_name, _L("Use another extruder"));
-        change_extruder_menu_item->SetBitmap(create_scaled_bitmap(active_extruders[1] > 0 ? "edit_uni" : "change_extruder"));
-
-        GUI::wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this, change_extruder_menu_item](wxUpdateUIEvent& evt) {
-            enable_menu_item(evt, [this]() {return m_mode == MultiAsSingle; }, change_extruder_menu_item, this); },
-            change_extruder_menu_item->GetId());
+        append_submenu(menu, change_extruder_menu, wxID_ANY, change_extruder_menu_name, _L("Use another extruder"),
+            active_extruders[1] > 0 ? "edit_uni" : "change_extruder",
+            [this]() {return m_mode == MultiAsSingle; }, GUI::wxGetApp().plater());
     }
 }
 
@@ -1626,7 +1621,7 @@ void Control::append_add_color_change_menu_item(wxMenu* menu, bool switch_curren
                                    format_wxstr(_L("Switch code to Color change (%1%) for:"), gcode(ColorChange)) : 
                                    format_wxstr(_L("Add color change (%1%) for:"), gcode(ColorChange));
         wxMenuItem* add_color_change_menu_item = menu->AppendSubMenu(add_color_change_menu, menu_name, "");
-        add_color_change_menu_item->SetBitmap(create_scaled_bitmap("colorchange_add_m"));
+        add_color_change_menu_item->SetBitmap(create_menu_bitmap("colorchange_add_m"));
     }
 }
 
@@ -2143,6 +2138,8 @@ static std::string get_new_color(const std::string& color)
  * */
 static void upgrade_text_entry_dialog(wxTextEntryDialog* dlg, double min = -1.0, double max = -1.0)
 {
+    GUI::wxGetApp().UpdateDlgDarkUI(dlg);
+
     // detect TextCtrl and OK button
     wxTextCtrl* textctrl {nullptr};
     wxWindowList& dlg_items = dlg->GetChildren();
@@ -2487,7 +2484,8 @@ bool Control::check_ticks_changed_event(Type type)
                             _L("Your current changes will delete all saved color changes.") + "\n\n\t" +
                             _L("Are you sure you want to continue?");
 
-        wxMessageDialog msg(this, message, _L("Notice"), wxYES_NO);
+        //wxMessageDialog msg(this, message, _L("Notice"), wxYES_NO);
+        GUI::MessageDialog msg(this, message, _L("Notice"), wxYES_NO);
         if (msg.ShowModal() == wxID_YES) {
             m_ticks.erase_all_ticks_with_code(ColorChange);
             post_ticks_changed_event(ColorChange);
@@ -2507,7 +2505,8 @@ bool Control::check_ticks_changed_event(Type type)
                             _L("Your current changes will delete all saved extruder (tool) changes.") + "\n\n\t" +
                             _L("Are you sure you want to continue?")                  ) ;
 
-        wxMessageDialog msg(this, message, _L("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
+        //wxMessageDialog msg(this, message, _L("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
+        GUI::MessageDialog msg(this, message, _L("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
         const int answer = msg.ShowModal();
         if (answer == wxID_YES) {
             m_ticks.erase_all_ticks_with_code(ToolChange);

@@ -411,6 +411,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled)
 			stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
 			if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
 			stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
+			wxGetApp().UpdateDarkUI(stb);
 		}
 		else
 			stb = nullptr;
@@ -738,6 +739,39 @@ void ConfigOptionsGroup::msw_rescale()
 
 void ConfigOptionsGroup::sys_color_changed()
 {
+#ifdef _WIN32
+    if (staticbox && stb) {
+        wxGetApp().UpdateAllStaticTextDarkUI(stb);
+        // update bitmaps for extra column items (like "delete" buttons on settings panel)
+        for (auto extra_col : m_extra_column_item_ptrs)
+            wxGetApp().UpdateDarkUI(extra_col);
+    }
+
+    auto update = [](wxSizer* sizer) {
+        for (wxSizerItem* item : sizer->GetChildren())
+            if (item->IsWindow()) {
+                wxWindow* win = item->GetWindow();
+                // check if window is ScalableButton
+                if (ScalableButton* sc_btn = dynamic_cast<ScalableButton*>(win)) {
+                    sc_btn->msw_rescale();
+                    return;
+                }
+                wxGetApp().UpdateDarkUI(win, dynamic_cast<wxButton*>(win) != nullptr);
+            }
+    };
+
+    // scale widgets and extra widgets if any exists
+    for (const Line& line : m_lines) {
+        if (line.widget_sizer)
+            update(line.widget_sizer);
+        if (line.extra_widget_sizer)
+            update(line.extra_widget_sizer);
+    }
+
+    if (custom_ctrl)
+        wxGetApp().UpdateDarkUI(custom_ctrl);
+#endif
+
 	// update undo buttons : rescale bitmaps
 	for (const auto& field : m_fields)
 		field.second->sys_color_changed();

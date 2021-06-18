@@ -19,6 +19,7 @@
 #include "wxExtensions.hpp"
 #include "SavePresetDialog.hpp"
 #include "MainFrame.hpp"
+#include "MsgDialog.hpp"
 
 //#define FTS_FUZZY_MATCH_IMPLEMENTATION
 //#include "fts_fuzzy_match.h"
@@ -56,7 +57,7 @@ static std::string get_icon_name(Preset::Type type, PrinterTechnology pt) {
 
 static std::string def_text_color()
 {
-    wxColour def_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    wxColour def_colour = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), def_colour.Red(), def_colour.Green(), def_colour.Blue());
     return clr_str.ToStdString();
 }
@@ -581,9 +582,15 @@ static std::string get_pure_opt_key(std::string opt_key)
 // ----------------------------------------------------------------------------
 
 DiffViewCtrl::DiffViewCtrl(wxWindow* parent, wxSize size)
-    : wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, size, wxBORDER_SIMPLE | wxDV_VARIABLE_LINE_HEIGHT | wxDV_ROW_LINES),
+    : wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, size, wxDV_VARIABLE_LINE_HEIGHT | wxDV_ROW_LINES
+#ifdef _WIN32
+        | wxBORDER_SIMPLE
+#endif
+    ),
     m_em_unit(em_unit(parent))
 {
+    wxGetApp().UpdateDVCDarkUI(this);
+
     model = new DiffModel(parent);
     this->AssociateModel(model);
     model->SetAssociatedControl(this);
@@ -789,9 +796,6 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* 
 
 void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header)
 {
-    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-    SetBackgroundColour(bgr_clr);
-
 #if defined(__WXMSW__)
     // ys_FIXME! temporary workaround for correct font scaling
     // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
@@ -865,7 +869,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
                 _L("You will not be asked about the unsaved changes the next time you switch a preset.")) + "\n\n" +
                 format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto be asked about unsaved changes again."), preferences_item);
     
-        wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+        //wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+        MessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
         if (dialog.ShowModal() == wxID_CANCEL)
             m_remember_choice->SetValue(false);
     });
@@ -1279,8 +1284,7 @@ void UnsavedChangesDialog::on_sys_color_changed()
 FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value)
     : wxDialog(nullptr, wxID_ANY, option_name, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-    SetBackgroundColour(bgr_clr);
+    wxGetApp().UpdateDarkUI(this);
 
     int border = 10;
 
@@ -1323,7 +1327,8 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
     std::set_difference(new_set.begin(), new_set.end(), old_set.begin(), old_set.end(), std::inserter(new_old_diff_set, new_old_diff_set.begin()));
 
     auto add_value = [grid_sizer, border, this](wxString label, const std::set<wxString>& diff_set, bool is_colored = false) {
-        wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(400, 400), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_NONE | wxTE_RICH);
+        wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(400, 400), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_SIMPLE | wxTE_RICH);
+        wxGetApp().UpdateDarkUI(text);
         text->SetStyle(0, label.Len(), wxTextAttr(is_colored ? wxColour(orange) : wxNullColour, wxNullColour, this->GetFont()));
 
         for (const wxString& str : diff_set) {
@@ -1341,6 +1346,7 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
     sizer->Add(grid_sizer, 1, wxEXPAND);
 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_OK, this)), true);
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -1375,9 +1381,6 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     : DPIDialog(mainframe, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_pr_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology())
 {    
-    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-    SetBackgroundColour(bgr_clr);
-
 #if defined(__WXMSW__)
     // ys_FIXME! temporary workaround for correct font scaling
     // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
@@ -1673,6 +1676,17 @@ void DiffPresetDialog::on_dpi_changed(const wxRect&)
 
 void DiffPresetDialog::on_sys_color_changed()
 {
+#ifdef _WIN32
+    wxGetApp().UpdateAllStaticTextDarkUI(this);
+    wxGetApp().UpdateDarkUI(m_show_all_presets);
+    wxGetApp().UpdateDVCDarkUI(m_tree);
+#endif
+
+    for (auto preset_combos : m_preset_combos) {
+        preset_combos.presets_left->msw_rescale();
+        preset_combos.equal_bmp->msw_rescale();
+        preset_combos.presets_right->msw_rescale();
+    }
     // msw_rescale updates just icons, so use it
     m_tree->Rescale();
     Refresh();

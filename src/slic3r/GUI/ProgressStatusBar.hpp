@@ -61,6 +61,8 @@ public:
     void        show_cancel_button();
     void        hide_cancel_button();
 
+    void        update_dark_ui();
+
 private:
     bool m_busy = false;
     CancelFn m_cancel_cb;

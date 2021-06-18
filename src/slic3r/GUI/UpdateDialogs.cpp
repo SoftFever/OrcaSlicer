@@ -137,6 +137,8 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates) :
 	btn_sizer->Add(btn_ok);
 	btn_ok->SetFocus();
 
+	wxGetApp().UpdateDlgDarkUI(this);
+
 	Fit();
 }
 
@@ -292,6 +294,8 @@ MsgDataLegacy::MsgDataLegacy() :
 	content_sizer->Add(link);
 	content_sizer->AddSpacer(VERT_SPACING);
 
+	wxGetApp().UpdateDlgDarkUI(this);
+
 	Fit();
 }
 
@@ -315,6 +319,8 @@ MsgNoUpdates::MsgNoUpdates() :
 	content_sizer->AddSpacer(VERT_SPACING);
 
 	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
+
+	wxGetApp().UpdateDlgDarkUI(this);
 
 	Fit();
 }

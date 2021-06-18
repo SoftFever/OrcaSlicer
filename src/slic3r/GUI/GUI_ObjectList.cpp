@@ -7,6 +7,7 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "Plater.hpp"
+#include "BitmapComboBox.hpp"
 #if ENABLE_PROJECT_DIRTY_STATE
 #include "MainFrame.hpp"
 #endif // ENABLE_PROJECT_DIRTY_STATE
@@ -21,6 +22,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
+#include <wx/listbook.h>
 #include <wx/numformatter.h>
 
 #include "slic3r/Utils/FixModelByWin10.hpp"
@@ -65,8 +67,14 @@ static void take_snapshot(const wxString& snapshot_name)
 }
 
 ObjectList::ObjectList(wxWindow* parent) :
-    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
+    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+#ifdef _WIN32
+        wxBORDER_SIMPLE | 
+#endif
+        wxDV_MULTIPLE)
 {
+    wxGetApp().UpdateDVCDarkUI(this, true);
+
     // create control
     create_objects_ctrl();
 
@@ -3789,10 +3797,9 @@ void ObjectList::msw_rescale()
 
 void ObjectList::sys_color_changed()
 {
-    // update existing items with bitmaps
-    m_objects_model->Rescale();
+    wxGetApp().UpdateDVCDarkUI(this, true);
 
-    Layout();
+    msw_rescale();
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)

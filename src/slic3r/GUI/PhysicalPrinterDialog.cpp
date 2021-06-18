@@ -31,6 +31,7 @@
 #include "RemovableDriveManager.hpp"
 #include "BitmapCache.hpp"
 #include "BonjourDialog.hpp"
+#include "MsgDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -156,8 +157,9 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_
     m_printer("", wxGetApp().preset_bundle->physical_printers.default_config())
 {
     SetFont(wxGetApp().normal_font());
+#ifndef _WIN32
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-
+#endif
     m_default_name = _L("Type here the name of your printer device");
     bool new_printer = true;
 
@@ -171,12 +173,13 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_
 
     wxStaticText* label_top = new wxStaticText(this, wxID_ANY, _L("Descriptive name for the printer") + ":");
 
-    m_add_preset_btn = new ScalableButton(this, wxID_ANY, "add_copies", "", wxDefaultSize, wxDefaultPosition, /*wxBU_LEFT | */wxBU_EXACTFIT);
+    m_add_preset_btn = new ScalableButton(this, wxID_ANY, "add_copies", "", wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT);
     m_add_preset_btn->SetFont(wxGetApp().normal_font());
     m_add_preset_btn->SetToolTip(_L("Add preset for this printer device")); 
     m_add_preset_btn->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::AddPreset, this);
 
     m_printer_name    = new wxTextCtrl(this, wxID_ANY, printer_name, wxDefaultPosition, wxDefaultSize);
+    wxGetApp().UpdateDarkUI(m_printer_name);
     m_printer_name->Bind(wxEVT_TEXT, [this](wxEvent&) { this->update_full_printer_names(); });
 
     PhysicalPrinterCollection& printers = wxGetApp().preset_bundle->physical_printers;
@@ -207,7 +210,10 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_
 
     wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     wxButton* btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
+    wxGetApp().UpdateDarkUI(btnOK);
     btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
+
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
 
     wxBoxSizer* nameSizer = new wxBoxSizer(wxHORIZONTAL);
     nameSizer->Add(m_printer_name, 1, wxEXPAND);
@@ -554,7 +560,8 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
     {
         wxString msg_text = from_u8((boost::format(_u8L("Printer with name \"%1%\" already exists.")) % existing->name/*printer_name*/).str());
         msg_text += "\n" + _L("Replace?");
-        wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+        //wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+        MessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxYES | wxNO);
 
         if (dialog.ShowModal() == wxID_NO)
             return;
@@ -583,7 +590,8 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
                                                    "The above preset for printer \"%2%\" will be used just once.",
                                                    "Following printer presets are duplicated:%1%"
                                                    "The above presets for printer \"%2%\" will be used just once.", repeat_cnt), repeatable_presets, printer_name);
-        wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxOK | wxCANCEL);
+        //wxMessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxOK | wxCANCEL);
+        MessageDialog dialog(nullptr, msg_text, _L("Warning"), wxICON_WARNING | wxOK | wxCANCEL);
         if (dialog.ShowModal() == wxID_CANCEL)
             return;
     }
@@ -628,7 +636,8 @@ void PhysicalPrinterDialog::DeletePreset(PresetForPrinter* preset_for_printer)
 {
     if (m_presets.size() == 1) {
         wxString msg_text = _L("It's not possible to delete the last related preset for the printer.");
-        wxMessageDialog dialog(nullptr, msg_text, _L("Information"), wxICON_INFORMATION | wxOK);
+        //wxMessageDialog dialog(nullptr, msg_text, _L("Information"), wxICON_INFORMATION | wxOK);
+        MessageDialog dialog(nullptr, msg_text, _L("Information"), wxICON_INFORMATION | wxOK);
         dialog.ShowModal();
         return;
     }

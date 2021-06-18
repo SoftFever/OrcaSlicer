@@ -3,6 +3,7 @@
 
 #include "RammingChart.hpp"
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 #include "I18N.hpp"
 
 wxDEFINE_EVENT(EVT_WIPE_TOWER_CHART_CHANGED, wxCommandEvent);
@@ -15,8 +16,13 @@ void Chart::draw() {
     dc.SetPen(GetBackgroundColour());
     dc.DrawRectangle(GetClientRect());  // otherwise the background would end up black on windows
 
+#ifdef _WIN32
+    dc.SetPen(wxPen(GetForegroundColour()));
+    dc.SetBrush(wxBrush(Slic3r::GUI::wxGetApp().get_highlight_default_clr()));
+#else
     dc.SetPen(*wxBLACK_PEN);
     dc.SetBrush(*wxWHITE_BRUSH);
+#endif
     dc.DrawRectangle(m_rect);
     
     if (visible_area.m_width < 0.499) {
@@ -31,7 +37,11 @@ void Chart::draw() {
             dc.SetPen( wxPen( wxColor(std::min(255,color),255-std::max(color-255,0),0), 1 ) );
             dc.DrawLine(m_rect.GetLeft()+1+i,(m_line_to_draw)[i],m_rect.GetLeft()+1+i,m_rect.GetBottom());        
         }
+#ifdef _WIN32
+        dc.SetPen(wxPen(GetForegroundColour()));
+#else
         dc.SetPen( wxPen( wxColor(0,0,0), 1 ) );
+#endif
         for (unsigned int i=0;i<m_line_to_draw.size()-2;++i) {
             if (splines)
                 dc.DrawLine(m_rect.GetLeft()+i,(m_line_to_draw)[i],m_rect.GetLeft()+i+1,(m_line_to_draw)[i+1]);
@@ -44,7 +54,11 @@ void Chart::draw() {
     
     // draw draggable buttons
     dc.SetBrush(*wxBLUE_BRUSH);
-    dc.SetPen( wxPen( wxColor(0,0,0), 1 ) );
+#ifdef _WIN32
+        dc.SetPen(wxPen(GetForegroundColour()));
+#else
+        dc.SetPen( wxPen( wxColor(0,0,0), 1 ) );
+#endif
     for (auto& button : m_buttons)
         //dc.DrawRectangle(math_to_screen(button.get_pos())-wxPoint(side/2.,side/2.), wxSize(side,side));
         dc.DrawCircle(math_to_screen(button.get_pos()),side/2.);

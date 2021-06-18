@@ -13,10 +13,12 @@
 #include <wx/numformatter.h>
 #include <wx/tooltip.h>
 #include <wx/notebook.h>
+#include <wx/listbook.h>
 #include <wx/tokenzr.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include "OG_CustomCtrl.hpp"
 #include "MsgDialog.hpp"
+#include "BitmapComboBox.hpp"
 
 #ifdef __WXOSX__
 #define wxOSX true
@@ -411,6 +413,10 @@ void Field::msw_rescale()
 
 void Field::sys_color_changed()
 {
+#ifdef _WIN32
+	if (wxWindow* win = this->getWindow())
+		wxGetApp().UpdateDarkUI(win);
+#endif
 }
 
 template<class T>
@@ -472,13 +478,17 @@ void TextCtrl::BUILD() {
 		break;
 	}
 
-    const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
+    long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER;
+#ifdef _WIN32
+	style |= wxBORDER_SIMPLE;
+#endif
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double)temp->GetSize().GetHeight()/m_em_unit;
     temp->SetFont(m_opt.is_code ?
                   Slic3r::GUI::wxGetApp().code_font():
                   Slic3r::GUI::wxGetApp().normal_font());
+	wxGetApp().UpdateDarkUI(temp);
 
     if (! m_opt.multiline && !wxOSX)
 		// Only disable background refresh for single line input fields, as they are completely painted over by the edit control.
@@ -796,7 +806,12 @@ void SpinCtrl::BUILD() {
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
-		0|wxTE_PROCESS_ENTER, min_val, max_val, default_value);
+		wxTE_PROCESS_ENTER | wxSP_ARROW_KEYS
+#ifdef _WIN32
+		| wxBORDER_SIMPLE
+#endif 
+		, min_val, max_val, default_value);
+
 #ifdef __WXGTK3__
 	wxSize best_sz = temp->GetBestSize();
 	if (best_sz.x > size.x)
@@ -804,6 +819,7 @@ void SpinCtrl::BUILD() {
 #endif //__WXGTK3__
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	wxGetApp().UpdateDarkUI(temp);
 
     if (m_opt.height < 0 && parent_is_custom_ctrl)
         opt_height = (double)temp->GetSize().GetHeight() / m_em_unit;
@@ -904,7 +920,11 @@ void SpinCtrl::msw_rescale()
 static_assert(wxMAJOR_VERSION >= 3, "Use of wxBitmapComboBox on Settings Tabs requires wxWidgets 3.0 and newer");
 using choice_ctrl = wxBitmapComboBox;
 #else
+#ifdef _WIN32
+using choice_ctrl = BitmapComboBox;
+#else
 using choice_ctrl = wxComboBox;
+#endif
 #endif // __WXOSX__
 
 void Choice::BUILD() {
@@ -1299,6 +1319,8 @@ void ColourPicker::BUILD()
     temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
+	wxGetApp().UpdateDarkUI(temp->GetPickerCtrl());
+
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
 
@@ -1372,6 +1394,15 @@ void ColourPicker::msw_rescale()
         set_undef_value(field);
 }
 
+void ColourPicker::sys_color_changed()
+{
+#ifdef _WIN32
+	if (wxWindow* win = this->getWindow())
+		if (wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(win))
+			wxGetApp().UpdateDarkUI(picker->GetPickerCtrl(), true);
+#endif
+}
+
 void PointCtrl::BUILD()
 {
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
@@ -1384,8 +1415,12 @@ void PointCtrl::BUILD()
 	val = default_pt(1);
 	wxString Y = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 
-	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
-	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
+	long style = wxTE_PROCESS_ENTER;
+#ifdef _WIN32
+	style |= wxBORDER_SIMPLE;
+#endif
+	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, style);
+	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, style);
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double)x_textctrl->GetSize().GetHeight() / m_em_unit;
 
@@ -1400,6 +1435,11 @@ void PointCtrl::BUILD()
 	static_text_x->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	static_text_y->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	static_text_y->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+	wxGetApp().UpdateDarkUI(x_textctrl);
+	wxGetApp().UpdateDarkUI(y_textctrl);
+	wxGetApp().UpdateDarkUI(static_text_x, false, true);
+	wxGetApp().UpdateDarkUI(static_text_y, false, true);
 
 	temp->Add(static_text_x, 0, wxALIGN_CENTER_VERTICAL, 0);
 	temp->Add(x_textctrl);
@@ -1434,6 +1474,15 @@ void PointCtrl::msw_rescale()
         x_textctrl->SetMinSize(field_size);
         y_textctrl->SetMinSize(field_size);
     }
+}
+
+void PointCtrl::sys_color_changed()
+{
+#ifdef _WIN32
+    for (wxSizerItem* item: sizer->GetChildren())
+        if (item->IsWindow())
+            wxGetApp().UpdateDarkUI(item->GetWindow());
+#endif
 }
 
 bool PointCtrl::value_was_changed(wxTextCtrl* win)
@@ -1518,6 +1567,8 @@ void StaticText::BUILD()
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
     temp->SetFont(wxGetApp().bold_font());
+
+	wxGetApp().UpdateDarkUI(temp);
 
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);

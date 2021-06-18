@@ -48,11 +48,19 @@ void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<
 int     em_unit(wxWindow* win);
 int     mode_icon_px_size();
 
+wxBitmap create_menu_bitmap(const std::string& bmp_name);
+
 wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr, 
-    const int px_cnt = 16, const bool grayscale = false);
+    const int px_cnt = 16, const bool grayscale = false, const bool menu_bitmap = false);
 
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon = false);
-void apply_extruder_selector(wxBitmapComboBox** ctrl,
+
+namespace Slic3r {
+namespace GUI {
+class BitmapComboBox;
+}
+}
+void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl,
                              wxWindow* parent,
                              const std::string& first_item = "",
                              wxPoint pos = wxDefaultPosition,
@@ -240,6 +248,7 @@ private:
 
     // bitmap dimensions 
     int             m_px_cnt{ 16 };
+    bool            m_has_border {false};
 };
 
 

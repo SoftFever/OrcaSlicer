@@ -19,6 +19,7 @@
 #include "UnsavedChangesDialog.hpp"
 
 class wxNotebook;
+class wxBookCtrlBase;
 class wxProgressDialog;
 
 namespace Slic3r {
@@ -52,14 +53,16 @@ struct PresetTab {
 // SettingsDialog
 // ----------------------------------------------------------------------------
 
-class SettingsDialog : public DPIDialog
+class SettingsDialog : public DPIFrame//DPIDialog
 {
-    wxNotebook* m_tabpanel { nullptr };
-    MainFrame*  m_main_frame { nullptr };
+    wxBookCtrlBase* m_tabpanel { nullptr };
+    MainFrame*      m_main_frame { nullptr };
+    wxMenuBar*      m_menubar{ nullptr };
 public:
     SettingsDialog(MainFrame* mainframe);
     ~SettingsDialog() = default;
-    void set_tabpanel(wxNotebook* tabpanel) { m_tabpanel = tabpanel; }
+    void set_tabpanel(wxBookCtrlBase* tabpanel) { m_tabpanel = tabpanel; }
+    wxMenuBar* menubar() { return m_menubar; }
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -79,8 +82,6 @@ class MainFrame : public DPIFrame
 #endif
     wxMenuItem* m_menu_item_reslice_now { nullptr };
     wxSizer*    m_main_sizer{ nullptr };
-
-    
 
     size_t      m_last_selected_tab;
 
@@ -161,7 +162,9 @@ public:
     void        init_menubar_as_editor();
     void        init_menubar_as_gcodeviewer();
     void        update_menubar();
-
+#ifdef _WIN32
+    void        show_tabs_menu(bool show);
+#endif
     void        update_ui_from_settings();
     bool        is_loaded() const { return m_loaded; }
     bool        is_last_input_file() const  { return !m_qs_last_input_file.IsEmpty(); }
@@ -194,11 +197,12 @@ public:
 #endif // ENABLE_PROJECT_DIRTY_STATE
 
     void        add_to_recent_projects(const wxString& filename);
+    void        technology_changed();
 
     PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
 
     Plater*               m_plater { nullptr };
-    wxNotebook*           m_tabpanel { nullptr };
+    wxBookCtrlBase*       m_tabpanel { nullptr };
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };

@@ -34,7 +34,10 @@ class PreferencesDialog : public DPIDialog
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 	bool								m_seq_top_gcode_indices_changed{ false };
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-
+	bool								m_recreate_GUI{false};
+#ifdef _MSW_DARK_MODE
+	bool								m_color_mode_changed {false};
+#endif
 public:
 	explicit PreferencesDialog(wxWindow* parent);
 	~PreferencesDialog() = default;
@@ -44,7 +47,10 @@ public:
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 	bool seq_seq_top_gcode_indices_changed() const { return m_seq_top_gcode_indices_changed; }
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-
+	bool recreate_GUI() const { return m_recreate_GUI; }
+#ifdef _MSW_DARK_MODE
+	bool color_mode_changed() const { return m_color_mode_changed; }
+#endif
 	void	build();
 	void	accept();
 

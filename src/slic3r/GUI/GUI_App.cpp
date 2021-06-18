@@ -76,7 +76,10 @@
 #ifdef __WXMSW__
 #include <dbt.h>
 #include <shlobj.h>
-#endif // __WXMSW__
+#ifdef _MSW_DARK_MODE
+#include <wx/msw/dark_mode.h>
+#endif // _MSW_DARK_MODE
+#endif
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
 #include <boost/beast/core/detail/base64.hpp>
@@ -816,6 +819,10 @@ bool GUI_App::on_init_inner()
 
     wxInitAllImageHandlers();
 
+#ifdef _MSW_DARK_MODE
+    if (app_config->get("dark_color_mode") == "1")
+        NppDarkMode::InitDarkMode();
+#endif
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1") {
         // make a bitmap with dark grey banner on the left side
@@ -1015,14 +1022,16 @@ bool GUI_App::dark_mode()
     // proper dark mode was first introduced.
     return wxPlatformInfo::Get().CheckOSVersion(10, 14) && mac_dark_mode();
 #else
-    const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-    return luma < 128;
+    return wxGetApp().app_config->get("dark_color_mode") == "1" ? true : check_dark_mode();
+    //const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    //return luma < 128;
 #endif
 }
 
 void GUI_App::init_label_colours()
 {
-    if (dark_mode()) {
+    bool is_dark_mode = dark_mode();
+    if (is_dark_mode) {
         m_color_label_modified = wxColour(253, 111, 40);
         m_color_label_sys = wxColour(115, 220, 103);
     }
@@ -1030,7 +1039,15 @@ void GUI_App::init_label_colours()
         m_color_label_modified = wxColour(252, 77, 1);
         m_color_label_sys = wxColour(26, 132, 57);
     }
+#ifdef _WIN32
+    m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250): wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
+    m_color_highlight_default       = is_dark_mode ? wxColour(78, 78, 78)   : wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
+    m_color_hovered_btn_label       = is_dark_mode ? wxColour(253, 111, 40) : wxColour(252, 77, 1);
+#else
     m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+#endif
+    m_color_window_default          = is_dark_mode ? wxColour(43, 43, 43)   : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 }
 
 void GUI_App::update_label_colours_from_appconfig()
@@ -1052,6 +1069,103 @@ void GUI_App::update_label_colours()
 {
     for (Tab* tab : tabs_list)
         tab->update_label_colours();
+}
+
+void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool just_font/* = false*/)
+{
+#ifdef _WIN32
+    if (wxButton* btn = dynamic_cast<wxButton*>(window)) {
+        if (!(btn->GetWindowStyle() & wxNO_BORDER)) {
+            btn->SetWindowStyle(btn->GetWindowStyle() | wxNO_BORDER);
+            highlited = true;
+        }
+        // hovering for buttons
+        {
+            auto focus_button = [this, btn](const bool focus) {
+                btn->SetForegroundColour(focus ? m_color_hovered_btn_label : m_color_label_default);
+                btn->Refresh();
+                btn->Update();
+            };
+
+            btn->Bind(wxEVT_ENTER_WINDOW, [focus_button](wxMouseEvent& event) { focus_button(true); event.Skip(); });
+            btn->Bind(wxEVT_LEAVE_WINDOW, [focus_button](wxMouseEvent& event) { focus_button(false); event.Skip(); });
+        }
+    }
+    else if (dark_mode()) {
+        if (wxTextCtrl* text = dynamic_cast<wxTextCtrl*>(window)) {
+            if (text->GetBorder() != wxBORDER_SIMPLE)
+                text->SetWindowStyle(text->GetWindowStyle() | wxBORDER_SIMPLE);
+        }
+        else if (wxCheckListBox* list = dynamic_cast<wxCheckListBox*>(window)) {
+            list->SetWindowStyle(list->GetWindowStyle() | wxBORDER_SIMPLE);
+            list->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
+            for (size_t i = 0; i < list->GetCount(); i++)
+                if (wxOwnerDrawn* item = list->GetItem(i)) {
+                    item->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
+                    item->SetTextColour(m_color_label_default);
+                }
+            return;
+        }
+        else if (dynamic_cast<wxListBox*>(window))
+            window->SetWindowStyle(window->GetWindowStyle() | wxBORDER_SIMPLE);
+    }
+
+    if (!just_font)
+        window->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
+    window->SetForegroundColour(m_color_label_default);
+#endif
+}
+
+// recursive function for scaling fonts for all controls in Window
+#ifdef _WIN32
+static void update_dark_children_ui(wxWindow* window)
+{
+    bool highlight_btn = dynamic_cast<wxButton*>(window) != nullptr;
+    wxGetApp().UpdateDarkUI(window, highlight_btn);
+
+    auto children = window->GetChildren();
+    for (auto child : children) {        
+        update_dark_children_ui(child);
+    }
+}
+#endif
+
+void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
+{
+#ifdef _WIN32
+    update_dark_children_ui(dlg);
+#endif
+}
+void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
+{
+#ifdef _WIN32
+    if (!dark_mode())
+        return;
+    UpdateDarkUI(dvc, highlited);
+    wxItemAttr attr(dark_mode() ? m_color_highlight_default : m_color_label_default,
+        m_color_window_default,
+        m_normal_font);
+    dvc->SetHeaderAttr(attr);
+    if (dvc->HasFlag(wxDV_ROW_LINES))
+        dvc->SetAlternateRowColour(m_color_highlight_default);
+    if (dvc->GetBorder() != wxBORDER_SIMPLE)
+        dvc->SetWindowStyle(dvc->GetWindowStyle() | wxBORDER_SIMPLE);
+#endif
+}
+
+void GUI_App::UpdateAllStaticTextDarkUI(wxWindow* parent)
+{
+#ifdef _WIN32
+    if (!dark_mode())
+        return;
+    wxGetApp().UpdateDarkUI(parent);
+
+    auto children = parent->GetChildren();
+    for (auto child : children) {
+        if (dynamic_cast<wxStaticText*>(child))
+            child->SetForegroundColour(m_color_label_default);
+    }
+#endif
 }
 
 void GUI_App::init_fonts()
@@ -1169,7 +1283,8 @@ void GUI_App::check_printer_presets()
                          _L("By default new Printer devices will be named as \"Printer N\" during its creation.\n"
                             "Note: This name can be changed later from the physical printers settings");
 
-    wxMessageDialog(nullptr, msg_text, _L("Information"), wxOK | wxICON_INFORMATION).ShowModal();
+    //wxMessageDialog(nullptr, msg_text, _L("Information"), wxOK | wxICON_INFORMATION).ShowModal();
+    MessageDialog(nullptr, msg_text, _L("Information"), wxOK | wxICON_INFORMATION).ShowModal();
 
     preset_bundle->physical_printers.load_printers_from_presets(preset_bundle->printers);
 }
@@ -1258,6 +1373,16 @@ void GUI_App::update_ui_from_settings()
 {
     update_label_colours();
     mainframe->update_ui_from_settings();
+
+#if 0 //#ifdef _WIN32  // #ysDarkMSW - Use to force dark colors for SystemLightMode
+    if (m_force_sys_colors_update) {
+        m_force_sys_colors_update = false;
+        mainframe->force_sys_color_changed();
+        mainframe->diff_dialog.force_sys_color_changed();
+        if (m_wizard)
+            m_wizard->force_sys_color_changed();
+    }
+#endif
 }
 
 void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_maximized)
@@ -1395,6 +1520,22 @@ static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguage
 }
 #endif
 
+static int GetSingleChoiceIndex(const wxString& message,
+                                const wxString& caption,
+                                const wxArrayString& choices,
+                                int initialSelection)
+{
+#ifdef _WIN32
+    wxSingleChoiceDialog dialog(nullptr, message, caption, choices);
+    wxGetApp().UpdateDlgDarkUI(&dialog);
+
+    dialog.SetSelection(initialSelection);
+    return dialog.ShowModal() == wxID_OK ? dialog.GetSelection() : -1;
+#else
+    return wxGetSingleChoiceIndex(message, caption, choices, initialSelection);
+#endif
+}
+
 // select language from the list of installed languages
 bool GUI_App::select_language()
 {
@@ -1438,7 +1579,7 @@ bool GUI_App::select_language()
     	// This is the language to highlight in the choice dialog initially.
     	init_selection_default = init_selection;
 
-    const long index = wxGetSingleChoiceIndex(_L("Select the language"), _L("Language"), names, init_selection_default);
+    const long index = GetSingleChoiceIndex(_L("Select the language"), _L("Language"), names, init_selection_default);
 	// Try to load a new language.
     if (index != -1 && (init_selection == -1 || init_selection != index)) {
     	const wxLanguageInfo *new_language_info = language_infos[index];
@@ -1700,6 +1841,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             if (check_unsaved_changes()) {
 #endif // ENABLE_PROJECT_DIRTY_STATE
                 wxTextEntryDialog dlg(nullptr, _L("Taking configuration snapshot"), _L("Snapshot name"));
+                UpdateDlgDarkUI(&dlg);
                 
                 // set current normal font for dialog children, 
                 // because of just dlg.SetFont(normal_font()) has no result;
@@ -1753,6 +1895,17 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 if (dlg.seq_top_layer_only_changed())
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                     this->plater_->refresh_print();
+
+                if (dlg.recreate_GUI()) {
+#ifdef _MSW_DARK_MODE
+                    if (dlg.color_mode_changed()) {
+                        NppDarkMode::SetDarkMode(app_config->get("dark_color_mode") == "1");
+                        init_label_colours();
+                    }
+#endif
+                    recreate_GUI(_L("Restart application") + dots);
+                    return;
+                }
 #ifdef _WIN32
                 if (is_editor()) {
                     if (app_config->get("associate_3mf") == "1")
@@ -1785,7 +1938,8 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 // so we put it into an inner scope
                 wxString title = is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
                 title += " - " + _L("Language selection");
-                wxMessageDialog dialog(nullptr,
+                //wxMessageDialog dialog(nullptr,
+                MessageDialog dialog(nullptr,
                     _L("Switching the language will trigger application restart.\n"
                         "You will lose content of the plater.") + "\n\n" +
                     _L("Do you want to proceed?"),
@@ -1918,7 +2072,8 @@ bool GUI_App::check_print_host_queue()
     }
     wxString message;
     message += _(L("The uploads are still ongoing")) + ":\n\n" + job_string +"\n" + _(L("Stop them and continue anyway?"));
-    wxMessageDialog dialog(mainframe,
+    //wxMessageDialog dialog(mainframe,
+    MessageDialog dialog(mainframe,
         message,
         wxString(SLIC3R_APP_NAME) + " - " + _(L("Ongoing uploads")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
@@ -2058,8 +2213,7 @@ Model& GUI_App::model()
 {
     return plater_->model();
 }
-
-wxNotebook* GUI_App::tab_panel() const
+wxBookCtrlBase* GUI_App::tab_panel() const
 {
     return mainframe->m_tabpanel;
 }

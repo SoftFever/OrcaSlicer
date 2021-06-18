@@ -16,6 +16,7 @@
 #include "I18N.hpp"
 #include "OptionsGroup.hpp"
 #include "MainFrame.hpp"
+#include "BitmapComboBox.hpp"
 
 
 namespace Slic3r {
@@ -26,7 +27,11 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
         wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_sequence(sequence)
 {
+#ifdef _WIN32
+    wxGetApp().UpdateDarkUI(this);
+#else
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
     SetDoubleBuffered(true);
     SetFont(wxGetApp().normal_font());
 
@@ -39,13 +44,14 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
     auto option_sizer = new wxBoxSizer(wxVERTICAL);
 
     auto intervals_box = new wxStaticBox(this, wxID_ANY, _(L("Set extruder change for every"))+ ": ");
+    wxGetApp().UpdateDarkUI(intervals_box);
     auto intervals_box_sizer = new wxStaticBoxSizer(intervals_box, wxVERTICAL);
 
     m_intervals_grid_sizer = new wxFlexGridSizer(3, 5, em);
 
     auto editor_sz = wxSize(4*em, wxDefaultCoord);
 
-    auto ID_RADIO_BUTTON = wxWindow::NewControlId(1);
+    auto ID_RADIO_BUTTON = wxID_ANY;// wxWindow::NewControlId(1);
 
     wxRadioButton* rb_by_layers = new wxRadioButton(this, ID_RADIO_BUTTON, "", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
     rb_by_layers->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) { m_sequence.is_mm_intervals = false; });
@@ -54,7 +60,12 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
     wxStaticText* st_by_layers = new wxStaticText(this, wxID_ANY, _(L("layers")));
     m_interval_by_layers = new wxTextCtrl(this, wxID_ANY, 
                                           wxString::Format("%d", m_sequence.interval_by_layers), 
-                                          wxDefaultPosition, editor_sz);
+                                          wxDefaultPosition, editor_sz
+#ifdef _WIN32
+        , wxBORDER_SIMPLE
+#endif
+    );
+    wxGetApp().UpdateDarkUI(m_interval_by_layers);
     m_interval_by_layers->Bind(wxEVT_TEXT, [this, rb_by_layers](wxEvent&)
     {
         wxString str = m_interval_by_layers->GetValue();
@@ -89,7 +100,12 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
     wxStaticText* st_by_mm = new wxStaticText(this, wxID_ANY, _(L("mm")));
     m_interval_by_mm = new wxTextCtrl(this, wxID_ANY, 
                                       double_to_string(sequence.interval_by_mm), 
-                                      wxDefaultPosition, editor_sz, wxTE_PROCESS_ENTER);
+                                      wxDefaultPosition, editor_sz, wxTE_PROCESS_ENTER
+#ifdef _WIN32
+        | wxBORDER_SIMPLE
+#endif
+    );
+    wxGetApp().UpdateDarkUI(m_interval_by_mm);
 
     double min_layer_height = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("layer_height");
     auto change_value = [this, min_layer_height]()
@@ -159,6 +175,8 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
     m_color_repetition->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {m_sequence.color_repetition = e.IsChecked();  });
     
     auto extruders_box = new wxStaticBox(this, wxID_ANY, _(L("Set extruder(tool) sequence"))+ ": ");
+    wxGetApp().UpdateDarkUI(extruders_box);
+
     auto extruders_box_sizer = new wxStaticBoxSizer(extruders_box, wxVERTICAL);
 
     m_extruders_grid_sizer = new wxFlexGridSizer(3, 5, em);
@@ -173,6 +191,8 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
     main_sizer->Add(option_sizer, 0, wxEXPAND | wxALL, em);
 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_OK, this)));
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
     main_sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, em);
 
     SetSizer(main_sizer);
@@ -195,7 +215,7 @@ void ExtruderSequenceDialog::apply_extruder_sequence()
 
     for (size_t extruder=0; extruder < m_sequence.extruders.size(); ++extruder)
     {
-        wxBitmapComboBox* extruder_selector = nullptr;
+        BitmapComboBox* extruder_selector = nullptr;
         apply_extruder_selector(&extruder_selector, this, "", wxDefaultPosition, wxSize(15*wxGetApp().em_unit(), -1));
         extruder_selector->SetSelection(m_sequence.extruders[extruder]);
 

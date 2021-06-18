@@ -171,7 +171,7 @@ void ObjectDataViewModelNode::update_settings_digest_bitmaps()
     if (bmp == nullptr) {
         std::vector<wxBitmap> bmps;
         for (auto& category : m_opt_categories)
-            bmps.emplace_back(SettingsFactory::get_category_bitmap(category));
+            bmps.emplace_back(SettingsFactory::get_category_bitmap(category, false));
         bmp = m_bitmap_cache->insert(scaled_bitmap_name, bmps);
     }
 
