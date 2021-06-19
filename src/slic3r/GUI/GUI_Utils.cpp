@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include "GUI_App.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include <wx/msw/registry.h>
 #endif
 
 #include <wx/toplevel.h>
@@ -16,7 +17,6 @@
 #include <wx/dcclient.h>
 #include <wx/font.h>
 #include <wx/fontutil.h>
-#include <wx/msw/registry.h>
 
 #include "libslic3r/Config.hpp"
 
