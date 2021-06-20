@@ -116,13 +116,14 @@ private:
 // Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
 // Two neighbor faces share a unique edge identifier even if they are flipped.
 // Used for chaining slice lines into polygons.
-std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its);
-std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback);
+std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its);
+std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback);
+// Having the face neighbors available, assign unique edge IDs to face edges for chaining of polygons over slices.
+std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::vector<Vec3i> &face_neighbors, bool assign_unbound_edges = false, int *num_edges = nullptr);
 
 // Create index that gives neighbor faces for each face. Ignores face orientations.
-// TODO: naming...
-std::vector<Vec3i> its_create_neighbors_index(const indexed_triangle_set &its);
-std::vector<Vec3i> its_create_neighbors_index_par(const indexed_triangle_set &its);
+std::vector<Vec3i> its_face_neighbors(const indexed_triangle_set &its);
+std::vector<Vec3i> its_face_neighbors_par(const indexed_triangle_set &its);
 
 // After applying a transformation with negative determinant, flip the faces to keep the transformed mesh volume positive.
 void its_flip_triangles(indexed_triangle_set &its);
@@ -152,6 +153,28 @@ void its_collect_mesh_projection_points_above(const indexed_triangle_set &its, c
 // Calculate 2D convex hull of a transformed and clipped mesh. Uses the function above.
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Matrix3f &m, const float z);
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transform3f &t, const float z);
+
+// Index of a vertex inside triangle_indices.
+inline int its_triangle_vertex_index(const stl_triangle_vertex_indices &triangle_indices, int vertex_idx)
+{
+    return vertex_idx == triangle_indices[0] ? 0 :
+           vertex_idx == triangle_indices[1] ? 1 :
+           vertex_idx == triangle_indices[2] ? 2 : -1;
+}
+
+inline Vec2i its_triangle_edge(const stl_triangle_vertex_indices &triangle_indices, int edge_idx)
+{
+    int next_edge_idx = (edge_idx == 2) ? 0 : edge_idx + 1;
+    return { triangle_indices[edge_idx], triangle_indices[next_edge_idx] };
+}
+
+// Index of an edge inside triangle.
+inline int its_triangle_edge_index(const stl_triangle_vertex_indices &triangle_indices, const Vec2i &triangle_edge)
+{
+    return triangle_edge(0) == triangle_indices[0] && triangle_edge(1) == triangle_indices[1] ? 0 :
+           triangle_edge(0) == triangle_indices[1] && triangle_edge(1) == triangle_indices[2] ? 1 :
+           triangle_edge(0) == triangle_indices[2] && triangle_edge(1) == triangle_indices[0] ? 2 : -1;
+}
 
 using its_triangle = std::array<stl_vertex, 3>;
 

@@ -449,52 +449,50 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
 {
     static constexpr std::array<float, 4> seed_fill_color{0.f, 1.f, 0.44f, 1.f};
 
-    std::vector<int> color_cnt(m_iva_colors.size());
-    int              seed_fill_cnt = 0;
     for (auto &iva_color : m_iva_colors)
         iva_color.release_geometry();
     m_iva_seed_fill.release_geometry();
 
-    auto append_triangle = [this](GLIndexedVertexArray &iva, int &cnt, const Triangle &tr) -> void {
-        for (int i = 0; i < 3; ++i)
-            iva.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
-        iva.push_triangle(cnt, cnt + 1, cnt + 2);
-        cnt += 3;
-    };
-
-    for (size_t color_idx = 0; color_idx < m_iva_colors.size(); ++color_idx) {
-        for (const Triangle &tr : m_triangles) {
-            if (!tr.valid() || tr.is_split() || tr.is_selected_by_seed_fill() || tr.get_state() != EnforcerBlockerType(color_idx))
-                continue;
-            append_triangle(m_iva_colors[color_idx], color_cnt[color_idx], tr);
+    for (const Triangle &tr : m_triangles)
+        if (tr.valid() && ! tr.is_split()) {
+            GLIndexedVertexArray *iva = nullptr;
+            if (tr.is_selected_by_seed_fill())
+                iva = &m_iva_seed_fill;
+            else if (int color = int(tr.get_state()); color < m_iva_colors.size())
+                iva = &m_iva_colors[color];
+            if (iva) {
+                if (iva->vertices_and_normals_interleaved.size() + 18 > iva->vertices_and_normals_interleaved.capacity())
+                    iva->vertices_and_normals_interleaved.reserve(next_highest_power_of_2(iva->vertices_and_normals_interleaved.size() + 18));
+                const Vec3f &n = m_mesh->stl.facet_start[tr.source_triangle].normal;
+                for (int i = 0; i < 3; ++ i) {
+                    const Vec3f &v = m_vertices[tr.verts_idxs[i]].v;
+                    iva->vertices_and_normals_interleaved.emplace_back(n.x());
+                    iva->vertices_and_normals_interleaved.emplace_back(n.y());
+                    iva->vertices_and_normals_interleaved.emplace_back(n.z());
+                    iva->vertices_and_normals_interleaved.emplace_back(v.x());
+                    iva->vertices_and_normals_interleaved.emplace_back(v.y());
+                    iva->vertices_and_normals_interleaved.emplace_back(v.z());
+                }
+            }
         }
-    }
 
-    for (const Triangle &tr : m_triangles) {
-        if (!tr.valid() || tr.is_split() || !tr.is_selected_by_seed_fill())
-            continue;
-        append_triangle(m_iva_seed_fill, seed_fill_cnt, tr);
-    }
-
-    for (auto &iva_color : m_iva_colors)
-        iva_color.finalize_geometry(true);
-    m_iva_seed_fill.finalize_geometry(true);
-
-    auto *shader = wxGetApp().get_current_shader();
+    auto* shader = wxGetApp().get_current_shader();
     if (!shader)
         return;
     assert(shader->get_name() == "gouraud");
 
-    auto render = [&shader](const GLIndexedVertexArray &iva, const std::array<float, 4> &color) -> void {
-        if (iva.has_VBOs()) {
-            shader->set_uniform("uniform_color", color);
+    for (size_t i = 0; i <= m_iva_colors.size(); ++i)
+        if (GLIndexedVertexArray &iva = i == m_iva_colors.size() ? m_iva_seed_fill : m_iva_colors[i];
+            ! iva.vertices_and_normals_interleaved.empty()) {
+            iva.vertices_and_normals_interleaved_size = iva.vertices_and_normals_interleaved.size();
+            iva.triangle_indices.assign(iva.vertices_and_normals_interleaved_size / 6, 0);
+            std::iota(iva.triangle_indices.begin(), iva.triangle_indices.end(), 0);
+            iva.triangle_indices_size = iva.triangle_indices.size();
+            iva.finalize_geometry(true);
+            shader->set_uniform("uniform_color", 
+                (i == 0) ? m_default_volume_color : i == m_iva_colors.size() ? seed_fill_color : m_colors[i - 1]);
             iva.render();
         }
-    };
-
-    for (size_t color_idx = 0; color_idx < m_iva_colors.size(); ++color_idx)
-        render(m_iva_colors[color_idx], (color_idx == 0) ? m_default_volume_color : m_colors[color_idx - 1]);
-    render(m_iva_seed_fill, seed_fill_color);
 }
 
 wxString GLGizmoMmuSegmentation::handle_snapshot_action_name(bool shift_down, GLGizmoPainterBase::Button button_down) const

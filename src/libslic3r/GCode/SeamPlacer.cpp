@@ -201,21 +201,24 @@ void SeamPlacer::init(const Print& print)
 
     std::vector<ExPolygons> temp_enf;
     std::vector<ExPolygons> temp_blk;
+    std::vector<Polygons>   temp_polygons;
 
     for (const PrintObject* po : print.objects()) {
-        temp_enf.clear();
-        temp_blk.clear();
-        po->project_and_append_custom_facets(true, EnforcerBlockerType::ENFORCER, temp_enf);
-        po->project_and_append_custom_facets(true, EnforcerBlockerType::BLOCKER, temp_blk);
 
-        // Offset the triangles out slightly.
-        for (auto* custom_per_object : {&temp_enf, &temp_blk}) {
+        auto merge_and_offset = [po, &temp_polygons, max_nozzle_dmr](EnforcerBlockerType type, std::vector<ExPolygons>& out) {
+            // Offset the triangles out slightly.
+            temp_polygons.clear();
+            po->project_and_append_custom_facets(true, type, temp_polygons);
+            out.clear();
+            out.reserve(temp_polygons.size());
             float offset = max_nozzle_dmr + po->config().elefant_foot_compensation;
-            for (ExPolygons& explgs : *custom_per_object) {
-                explgs = Slic3r::offset_ex(explgs, scale_(offset));
+            for (const Polygons &src : temp_polygons) {
+                out.emplace_back(Slic3r::offset_ex(src, scale_(offset)));
                 offset = max_nozzle_dmr;
             }
-        }
+        };
+        merge_and_offset(EnforcerBlockerType::BLOCKER, temp_blk);
+        merge_and_offset(EnforcerBlockerType::ENFORCER, temp_enf);
 
 //     FIXME: Offsetting should be done somehow cheaper, but following does not work
 //        for (auto* custom_per_object : {&temp_enf, &temp_blk}) {

@@ -77,6 +77,21 @@ inline std::vector<ExPolygons>  slice_mesh_ex(
     return slice_mesh_ex(mesh, zs, params, throw_on_cancel);
 }
 
+// Slice a triangle set with a set of Z slabs (thick layers).
+// The effect is similar to producing the usual top / bottom layers from a sliced mesh by 
+// subtracting layer[i] from layer[i - 1] for the top surfaces resp.
+// subtracting layer[i] from layer[i + 1] for the bottom surfaces,
+// with the exception that the triangle set this function processes may not cover the whole top resp. bottom surface.
+// top resp. bottom surfaces are calculated only if out_top resp. out_bottom is not null.
+void slice_mesh_slabs(
+    const indexed_triangle_set       &mesh,
+    // Unscaled Zs
+    const std::vector<float>         &zs,
+    const Transform3d                &trafo,
+    std::vector<Polygons>            *out_top,
+    std::vector<Polygons>            *out_bottom,
+    std::function<void()>             throw_on_cancel);
+
 void                            cut_mesh(
     const indexed_triangle_set      &mesh,
     float                            z,
