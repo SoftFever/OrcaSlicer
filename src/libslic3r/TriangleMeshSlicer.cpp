@@ -405,7 +405,7 @@ void slice_facet_with_slabs(
     assert(min_layer == zs.end() ? max_layer == zs.end() : *min_layer >= min_z);
     assert(max_layer == zs.end() || *max_layer > max_z);
 
-    auto emit_slab_edge = [&lines, &lines_mutex, num_edges](IntersectionLine il, size_t slab_id, bool reverse) {
+    auto emit_slab_edge = [&lines, &lines_mutex](IntersectionLine il, size_t slab_id, bool reverse) {
         if (reverse)
             il.reverse();
         boost::lock_guard<std::mutex> l(lines_mutex[(slab_id + 32) >> 6]);

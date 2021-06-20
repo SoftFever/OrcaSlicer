@@ -202,8 +202,6 @@ public:
         vertices_and_normals_interleaved_size = 0;
         triangle_indices_size = 0;
         quad_indices_size = 0;
-        static const float min = std::numeric_limits<float>::lowest();
-        static const float max = std::numeric_limits<float>::max();
         m_bounding_box.setEmpty();
     }
 

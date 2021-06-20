@@ -458,7 +458,7 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
             GLIndexedVertexArray *iva = nullptr;
             if (tr.is_selected_by_seed_fill())
                 iva = &m_iva_seed_fill;
-            else if (int color = int(tr.get_state()); color < m_iva_colors.size())
+            else if (int color = int(tr.get_state()); color < int(m_iva_colors.size()))
                 iva = &m_iva_colors[color];
             if (iva) {
                 if (iva->vertices_and_normals_interleaved.size() + 18 > iva->vertices_and_normals_interleaved.capacity())

@@ -1224,7 +1224,8 @@ bool TriangleSelector::has_facets(const std::pair<std::vector<std::pair<int, int
     std::vector<int> parents_children;
     parents_children.reserve(64);
 
-    for (auto [triangle_id, ibit] : data.first) {
+    for (const std::pair<int, int> &triangle_id_and_ibit : data.first) {
+        int ibit = triangle_id_and_ibit.second;
         assert(ibit < data.second.size());
         auto next_nibble = [&data, &ibit = ibit]() {
             int n = 0;
