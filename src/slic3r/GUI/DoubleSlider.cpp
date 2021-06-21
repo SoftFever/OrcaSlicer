@@ -734,9 +734,9 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
             it = std::lower_bound(m_values.begin(), m_values.end(), layer_print_z - epsilon());
             if (it == m_values.end())
                 return size_t(-1);
-            return size_t(value + 1);
+            return size_t(value);
         }
-        return size_t(it - m_layers_values.begin()+1);
+        return size_t(it - m_layers_values.begin());
     };
 
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -753,7 +753,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         if (label_type == ltEstimatedTime) {
             if (m_is_wipe_tower) {
                 size_t layer_number = get_layer_number(value, label_type);
-                return layer_number == size_t(-1) ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
+                return (layer_number == size_t(-1) || layer_number == m_layers_times.size()) ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
             }
             return value < m_layers_times.size() ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
         }
@@ -763,7 +763,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         if (label_type == ltHeight)
             return str;
         if (label_type == ltHeightWithLayer) {
-            size_t layer_number = m_is_wipe_tower ? get_layer_number(value, label_type) : (m_values.empty() ? value : value + 1);
+            size_t layer_number = m_is_wipe_tower ? get_layer_number(value, label_type) + 1 : (m_values.empty() ? value : value + 1);
             return format_wxstr("%1%\n(%2%)", str, layer_number);
         }
     }
