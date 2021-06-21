@@ -1,3 +1,5 @@
+min_slic3r_version = 2.3.2-alpha0
+0.0.8 Added new AzteQ Industrial printer, added DeltiQ 2 profiles for 0.6mm nozzle, added material ASA 275 (Spectrum), some minor setting improvements
 min_slic3r_version = 2.3.0-alpha3
 0.0.7 Added PLA, PETG profiles for 0.25 nozzle, fixed supports on 0.8 nozzle profile, fixed max volumetric speed, disabled elefant foot compensation
 0.0.6 Added material TPU 93A (SMARTFIL)
