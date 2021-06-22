@@ -453,8 +453,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 
             sla::remove_inside_triangles(mesh_view, interior, exclude_mask);
         }
-
-    } catch (const std::runtime_error &) {
+    } catch (const Slic3r::RuntimeError &) {
         throw Slic3r::SlicingError(L(
             "Drilling holes into the mesh failed. "
             "This is usually caused by broken model. Try to fix it first."));
