@@ -2,6 +2,7 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "MainFrame.hpp"
+#include "format.hpp"
 
 #include <wx/app.h>
 #include <wx/panel.h>
