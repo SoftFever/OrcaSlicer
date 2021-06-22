@@ -15,6 +15,7 @@ class Exception : public std::runtime_error { using std::runtime_error::runtime_
 SLIC3R_DERIVE_EXCEPTION(CriticalException,  Exception);
 SLIC3R_DERIVE_EXCEPTION(RuntimeError,       CriticalException);
 SLIC3R_DERIVE_EXCEPTION(LogicError,         CriticalException);
+SLIC3R_DERIVE_EXCEPTION(HardCrash,          CriticalException);
 SLIC3R_DERIVE_EXCEPTION(InvalidArgument,    LogicError);
 SLIC3R_DERIVE_EXCEPTION(OutOfRange,         LogicError);
 SLIC3R_DERIVE_EXCEPTION(IOError,            CriticalException);
