@@ -140,3 +140,18 @@ TEST_CASE("Reduce one edge by Quadric Edge Collapse", "[its]")
         CHECK(is_between);
     }
 }
+
+#include "test_utils.hpp"
+TEST_CASE("Symplify mesh by Quadric edge collapse to 5%", "[its]")
+{
+    TriangleMesh mesh = load_model("frog_legs.obj");
+    double original_volume = its_volume(mesh.its);
+    size_t wanted_count = mesh.its.indices.size() * 0.05;
+    REQUIRE_FALSE(mesh.empty());
+    indexed_triangle_set its = mesh.its; // copy
+    its_quadric_edge_collapse(its, wanted_count);
+    // its_write_obj(its, "frog_legs_qec.obj");
+    CHECK(its.indices.size() <= wanted_count);
+    double volume = its_volume(its);
+    CHECK(fabs(original_volume - volume) < 30.);
+}

@@ -123,7 +123,7 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
     EdgeInfos     e_infos;
     std::tie(t_infos, v_infos, e_infos) = init(its);
 
-    static constexpr double max_error = std::numeric_limits<double>::max();
+    static constexpr float max_error = std::numeric_limits<float>::max();
     
     auto cmp = [&t_infos](size_t vi0, size_t vi1) -> bool { 
         const Error &e0 = t_infos[vi0].e;
