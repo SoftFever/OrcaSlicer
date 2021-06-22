@@ -107,8 +107,8 @@ bool check_neighbors(TriangleInfos &t_infos,
 bool check_new_vertex(const Vec3f& nv, const Vec3f& v0, const Vec3f& v1) {
     float epsilon = 1.f;
     for (size_t i = 0; i < 3; i++) { 
-        if (nv[i] > (v0[i] + epsilon) && nv[i] > (v1[i] + epsilon) ||
-            nv[i] < (v0[i] - epsilon) && nv[i] < (v1[i] - epsilon)) {
+        if ((nv[i] > (v0[i] + epsilon) && nv[i] > (v1[i] + epsilon)) ||
+            (nv[i] < (v0[i] - epsilon) && nv[i] < (v1[i] - epsilon))) {
             return false;
         }
     }
@@ -386,13 +386,14 @@ size_t QuadricEdgeCollapse::find_triangle_index1(size_t            vi,
                                                  const EdgeInfos & e_infos,
                                                  const Indices &indices)
 {
+    coord_t vi_coord = static_cast<coord_t>(vi);
     size_t end = v_info.start + v_info.count;
     for (size_t ei = v_info.start; ei < end; ++ei) {
         const EdgeInfo &e_info = e_infos[ei];
         if (e_info.t_index == ti0) continue;
         const Triangle& t = indices[e_info.t_index];
-        if (t[(e_info.edge + 1) % 3] == vi || 
-            t[(e_info.edge + 2) % 3] == vi)
+        if (t[(e_info.edge + 1) % 3] == vi_coord || 
+            t[(e_info.edge + 2) % 3] == vi_coord)
             return e_info.t_index;
     }
     // triangle0 is on border and do NOT have twin edge
@@ -508,10 +509,12 @@ void QuadricEdgeCollapse::change_neighbors(EdgeInfos &     e_infos,
     // have to copy Edge info from higher vertex index into smaller
     assert(vi0 < vi1);
 
+    
     // vertex index of triangle 1 which is not vi0 nor vi1
     size_t vi_top1 = t1[0];
     if (vi_top1 == vi0 || vi_top1 == vi1) {
-        vi_top1 = (t1[1] == vi0 || t1[1] == vi1)? t1[2] : t1[1];
+        vi_top1 = t1[1];
+        if (vi_top1 == vi0 || vi_top1 == vi1) vi_top1 = t1[2];
     }
 
     remove_triangle(e_infos, v_infos[vi_top0], ti0);
