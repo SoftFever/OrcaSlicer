@@ -124,9 +124,9 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
 
     static constexpr float max_error = std::numeric_limits<float>::max();
     
-    auto cmp = [&t_infos](size_t vi0, size_t vi1) -> bool { 
-        const Error &e0 = t_infos[vi0].e;
-        const Error &e1 = t_infos[vi1].e;
+    auto cmp = [&t_infos](size_t ti0, size_t ti1) -> bool { 
+        const Error &e0 = t_infos[ti0].e;
+        const Error &e1 = t_infos[ti1].e;
         return e0.value < e1.value;
     };
     // convert triangle index to priority queue index
@@ -143,9 +143,9 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
         mpq.pop();
         TriangleInfo &t_info0 = t_infos[ti0];
         if (t_info0.is_deleted()) continue;
-
         Error &e = t_info0.e;
-        
+        if (e.value >= max_error) return false; // only flipped triangles
+
         const Triangle &t0 = its.indices[ti0];
         size_t vi0 = t0[e.min_index];
         size_t vi1 = t0[(e.min_index+1) %3];
@@ -159,7 +159,7 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
         SymMat q(v_info0.q);
         q += v_info1.q;
         Vec3f new_vertex0 = calculate_vertex(vi0, vi1, q, its.vertices);
-        assert(check_new_vertex(new_vertex0, its.vertices[vi0], its.vertices[vi1]));
+        //assert(check_new_vertex(new_vertex0, its.vertices[vi0], its.vertices[vi1]));
         // set of triangle indices that change quadric
         size_t ti1 = (v_info0.count < v_info1.count)?
             find_triangle_index1(vi1, v_info0, ti0, e_infos, its.indices) :
@@ -170,6 +170,7 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
             // IMPROVE1: what about other edges in triangle?
             // IMPROVE2: check mpq top if it is ti1 with same edge
             e.value = max_error;
+            // error is changed when surround edge is reduced
             mpq.push(ti0);
             continue;
         }
@@ -185,8 +186,7 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
         size_t v_info0_end = v_info0.start + v_info0.count;
         for (size_t di = v_info0.start; di < v_info0_end; ++di) {
             assert(di < e_infos.size());
-            EdgeInfo &e_info = e_infos[di];
-            size_t    ti     = e_info.t_index;
+            size_t    ti     = e_infos[di].t_index;
             if (ti == ti0) continue; // ti0 will be deleted
             if (ti == ti1) continue; // ti1 will be deleted
             sub_quadric(its.indices[ti], t_infos[ti].n, v_infos, its.vertices);
@@ -228,8 +228,7 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
         }
 
         // fix errors - must be after calculate all quadric
-        t_info1.e.value = max_error; // not neccessary when check deleted triangles at begining
-        //mpq.remove(i_convert[ti1]);
+        mpq.remove(i_convert[ti1]);
         for (size_t ti : changed_triangle_indices) {
             const Triangle &t = its.indices[ti];
             t_infos[ti].e = calculate_error(t, its.vertices, v_infos);
