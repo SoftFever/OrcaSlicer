@@ -13,7 +13,7 @@
 
 #if __linux__
 #include <boost/thread.hpp>
-#include <tbb/mutex.h>
+#include <mutex>
 #include <condition_variable>
 #endif // __linux__
 

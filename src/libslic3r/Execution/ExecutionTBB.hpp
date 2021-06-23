@@ -1,8 +1,9 @@
 #ifndef EXECUTIONTBB_HPP
 #define EXECUTIONTBB_HPP
 
+#include <mutex>
+
 #include <tbb/spin_mutex.h>
-#include <tbb/mutex.h>
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_reduce.h>
 #include <tbb/task_arena.h>
@@ -34,7 +35,7 @@ private:
 
 public:
     using SpinningMutex = tbb::spin_mutex;
-    using BlockingMutex = tbb::mutex;
+    using BlockingMutex = std::mutex;
 
     template<class It, class Fn>
     static void for_each(const ExecutionTBB &,

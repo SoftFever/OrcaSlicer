@@ -14,7 +14,6 @@
 #include <boost/container/static_vector.hpp>
 
 #include <tbb/parallel_for.h>
-#include <tbb/atomic.h>
 #include <tbb/spin_mutex.h>
 #include <tbb/task_group.h>
 

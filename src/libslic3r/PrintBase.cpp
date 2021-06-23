@@ -104,7 +104,7 @@ void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /*
         printf("%s warning: %s\n",  print_object ? "print_object" : "print", message.c_str());
 }
 
-tbb::mutex& PrintObjectBase::state_mutex(PrintBase *print)
+std::mutex& PrintObjectBase::state_mutex(PrintBase *print)
 { 
 	return print->state_mutex();
 }
