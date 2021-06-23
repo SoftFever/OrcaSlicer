@@ -1,4 +1,6 @@
 min_slic3r_version = 2.4.0-alpha0
+1.4.0-alpha2 Updated Prusa MINI machine limits.
+1.4.0-alpha1 Added new SL1S resin profiles.
 1.4.0-alpha0 Bumped up config version.
 1.3.0-alpha2 Added SL1S SPEED profiles.
 1.3.0-alpha1 Added Prusament PCCF. Increased travel acceleration for Prusa MINI. Updated start g-code for Prusa MINI. Added multiple add:north and Extrudr filament profiles. Updated Z travel speed values.

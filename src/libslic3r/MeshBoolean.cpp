@@ -208,15 +208,19 @@ static bool _cgal_intersection(CGALMesh &A, CGALMesh &B, CGALMesh &R)
 template<class Op> void _cgal_do(Op &&op, CGALMesh &A, CGALMesh &B)
 {
     bool success = false;
+    bool hw_fail = false;
     try {
         CGALMesh result;
         try_catch_signal({SIGSEGV, SIGFPE}, [&success, &A, &B, &result, &op] {
             success = op(A, B, result);
-        }, [&] { success = false; });
+        }, [&] { hw_fail = true; });
         A = std::move(result);      // In-place operation does not work
     } catch (...) {
         success = false;
     }
+
+    if (hw_fail)
+        throw Slic3r::HardCrash("CGAL mesh boolean operation crashed.");
 
     if (! success)
         throw Slic3r::RuntimeError("CGAL mesh boolean operation failed.");

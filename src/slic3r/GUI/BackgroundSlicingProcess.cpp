@@ -2,6 +2,7 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "MainFrame.hpp"
+#include "format.hpp"
 
 #include <wx/app.h>
 #include <wx/panel.h>
@@ -74,11 +75,15 @@ std::pair<std::string, bool> SlicingProcessCompletedEvent::format_error_message(
 	bool        monospace = false;
 	try {
 		this->rethrow_exception();
-    } catch (const std::bad_alloc& ex) {
+    } catch (const std::bad_alloc &ex) {
         wxString errmsg = GUI::from_u8((boost::format(_utf8(L("%s has encountered an error. It was likely caused by running out of memory. "
                               "If you are sure you have enough RAM on your system, this may also be a bug and we would "
                               "be glad if you reported it."))) % SLIC3R_APP_NAME).str());
         error = std::string(errmsg.ToUTF8()) + "\n\n" + std::string(ex.what());
+    } catch (const HardCrash &ex) {
+        error = GUI::format("PrusaSlicer has encountered a fatal error: \"%1%\"", ex.what()) + "\n\n" +
+        		_u8L("Please save your project and restart PrusaSlicer. "
+                     "We would be glad if you reported the issue.");
     } catch (PlaceholderParserError &ex) {
 		error = ex.what();
 		monospace = true;
@@ -277,19 +282,11 @@ void BackgroundSlicingProcess::thread_proc()
 		m_state = STATE_RUNNING;
 		lck.unlock();
 		std::exception_ptr exception;
-		try {
-			assert(m_print != nullptr);
-			switch(m_print->technology()) {
-				case ptFFF: this->process_fff(); break;
-                case ptSLA: this->process_sla(); break;
-				default: m_print->process(); break;
-			}
-		} catch (CanceledException & /* ex */) {
-			// Canceled, this is all right.
-			assert(m_print->canceled());
-		} catch (...) {
-			exception = std::current_exception();
-		}
+#ifdef _WIN32
+		this->call_process_seh_throw(exception);
+#else
+		this->call_process(exception);
+#endif
 		m_print->finalize();
 		lck.lock();
 		m_state = m_print->canceled() ? STATE_CANCELED : STATE_FINISHED;
@@ -312,7 +309,118 @@ void BackgroundSlicingProcess::thread_proc()
 	// End of the background processing thread. The UI thread should join m_thread now.
 }
 
-void BackgroundSlicingProcess::thread_proc_safe()
+#ifdef _WIN32
+// Only these SEH exceptions will be catched and turned into Slic3r::HardCrash C++ exceptions.
+static bool is_win32_seh_harware_exception(unsigned long ex) throw() {
+	return
+		ex == STATUS_ACCESS_VIOLATION ||
+		ex == STATUS_DATATYPE_MISALIGNMENT ||
+		ex == STATUS_FLOAT_DIVIDE_BY_ZERO ||
+		ex == STATUS_FLOAT_OVERFLOW ||
+		ex == STATUS_FLOAT_UNDERFLOW ||
+#ifdef STATUS_FLOATING_RESEVERED_OPERAND
+		ex == STATUS_FLOATING_RESEVERED_OPERAND ||
+#endif // STATUS_FLOATING_RESEVERED_OPERAND
+		ex == STATUS_ILLEGAL_INSTRUCTION ||
+		ex == STATUS_PRIVILEGED_INSTRUCTION ||
+		ex == STATUS_INTEGER_DIVIDE_BY_ZERO ||
+		ex == STATUS_INTEGER_OVERFLOW ||
+		ex == STATUS_STACK_OVERFLOW;
+}
+
+// Rethrow some SEH exceptions as Slic3r::HardCrash C++ exceptions.
+static void rethrow_seh_exception(unsigned long win32_seh_catched)
+{
+	if (win32_seh_catched) {
+		// Rethrow SEH exception as Slicer::HardCrash.
+		if (win32_seh_catched == STATUS_ACCESS_VIOLATION || win32_seh_catched == STATUS_DATATYPE_MISALIGNMENT)
+			throw Slic3r::HardCrash(_u8L("Access violation"));
+		if (win32_seh_catched == STATUS_ILLEGAL_INSTRUCTION || win32_seh_catched == STATUS_PRIVILEGED_INSTRUCTION)
+			throw Slic3r::HardCrash(_u8L("Illegal instruction"));
+		if (win32_seh_catched == STATUS_FLOAT_DIVIDE_BY_ZERO || win32_seh_catched == STATUS_INTEGER_DIVIDE_BY_ZERO)
+			throw Slic3r::HardCrash(_u8L("Divide by zero"));
+		if (win32_seh_catched == STATUS_FLOAT_OVERFLOW || win32_seh_catched == STATUS_INTEGER_OVERFLOW)
+			throw Slic3r::HardCrash(_u8L("Overflow"));
+		if (win32_seh_catched == STATUS_FLOAT_UNDERFLOW)
+			throw Slic3r::HardCrash(_u8L("Underflow"));
+#ifdef STATUS_FLOATING_RESEVERED_OPERAND
+		if (win32_seh_catched == STATUS_FLOATING_RESEVERED_OPERAND)
+			throw Slic3r::HardCrash(_u8L("Floating reserved operand"));
+#endif // STATUS_FLOATING_RESEVERED_OPERAND
+		if (win32_seh_catched == STATUS_STACK_OVERFLOW)
+			throw Slic3r::HardCrash(_u8L("Stack overflow"));
+	}
+}
+
+// Wrapper for Win32 structured exceptions. Win32 structured exception blocks and C++ exception blocks cannot be mixed in the same function.
+unsigned long BackgroundSlicingProcess::call_process_seh(std::exception_ptr &ex) throw()
+{
+	unsigned long win32_seh_catched = 0;
+	__try {
+		this->call_process(ex);
+	} __except (is_win32_seh_harware_exception(GetExceptionCode())) {
+		win32_seh_catched = GetExceptionCode();
+	}
+	return win32_seh_catched;
+}
+void BackgroundSlicingProcess::call_process_seh_throw(std::exception_ptr &ex) throw()
+{
+	unsigned long win32_seh_catched = this->call_process_seh(ex);
+	if (win32_seh_catched) {
+		// Rethrow SEH exception as Slicer::HardCrash.
+		try {
+			rethrow_seh_exception(win32_seh_catched);
+		} catch (...) {
+			ex = std::current_exception();
+		}
+	}
+}
+#endif // _WIN32
+
+void BackgroundSlicingProcess::call_process(std::exception_ptr &ex) throw()
+{
+	try {
+		assert(m_print != nullptr);
+		switch (m_print->technology()) {
+		case ptFFF: this->process_fff(); break;
+		case ptSLA: this->process_sla(); break;
+		default: m_print->process(); break;
+		}
+	} catch (CanceledException& /* ex */) {
+		// Canceled, this is all right.
+		assert(m_print->canceled());
+		ex = std::current_exception();
+	} catch (...) {
+		ex = std::current_exception();
+	}
+}
+
+#ifdef _WIN32
+unsigned long BackgroundSlicingProcess::thread_proc_safe_seh() throw()
+{
+	unsigned long win32_seh_catched = 0;
+	__try {
+		this->thread_proc_safe();
+	} __except (is_win32_seh_harware_exception(GetExceptionCode())) {
+		win32_seh_catched = GetExceptionCode();
+	}
+	return win32_seh_catched;
+}
+void BackgroundSlicingProcess::thread_proc_safe_seh_throw() throw()
+{
+	unsigned long win32_seh_catched = this->thread_proc_safe_seh();
+	if (win32_seh_catched) {
+		// Rethrow SEH exception as Slicer::HardCrash.
+		try {
+			rethrow_seh_exception(win32_seh_catched);
+		} catch (...) {
+			wxTheApp->OnUnhandledException();
+		}
+	}
+}
+#endif // _WIN32
+
+void BackgroundSlicingProcess::thread_proc_safe() throw()
 {
 	try {
 		this->thread_proc();
@@ -349,7 +457,13 @@ bool BackgroundSlicingProcess::start()
 	if (m_state == STATE_INITIAL) {
 		// The worker thread is not running yet. Start it.
 		assert(! m_thread.joinable());
-		m_thread = create_thread([this]{this->thread_proc_safe();});
+		m_thread = create_thread([this]{
+#ifdef _WIN32
+			this->thread_proc_safe_seh_throw();
+#else // _WIN32
+			this->thread_proc_safe();
+#endif // _WIN32
+		});
 		// Wait until the worker thread is ready to execute the background processing task.
 		m_condition.wait(lck, [this](){ return m_state == STATE_IDLE; });
 	}
@@ -531,7 +645,7 @@ void BackgroundSlicingProcess::schedule_export(const std::string &path, bool exp
 		return;
 
 	// Guard against entering the export step before changing the export path.
-	tbb::mutex::scoped_lock lock(m_print->state_mutex());
+	std::scoped_lock<std::mutex> lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
 	m_export_path = path;
 	m_export_path_on_removable_media = export_path_on_removable_media;
@@ -544,7 +658,7 @@ void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
 		return;
 
 	// Guard against entering the export step before changing the export path.
-	tbb::mutex::scoped_lock lock(m_print->state_mutex());
+	std::scoped_lock<std::mutex> lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
 	m_export_path.clear();
 	m_upload_job = std::move(upload_job);
@@ -557,7 +671,7 @@ void BackgroundSlicingProcess::reset_export()
 		m_export_path.clear();
 		m_export_path_on_removable_media = false;
 		// invalidate_step expects the mutex to be locked.
-		tbb::mutex::scoped_lock lock(m_print->state_mutex());
+		std::scoped_lock<std::mutex> lock(m_print->state_mutex());
 		this->invalidate_step(bspsGCodeFinalize);
 	}
 }
