@@ -10,11 +10,11 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
-#include <tbb/global_control.h>
 #include <tbb/parallel_for.h>
 #include <tbb/task_arena.h>
 
 #include "Thread.hpp"
+#include "Utils.hpp"
 
 namespace Slic3r {
 
@@ -199,15 +199,13 @@ void name_tbb_thread_pool_threads()
 	// TBB will respect the task affinity mask on Linux and spawn less threads than std::thread::hardware_concurrency().
 //	const size_t nthreads_hw = std::thread::hardware_concurrency();
 	const size_t nthreads_hw = tbb::this_task_arena::max_concurrency();
-	size_t 		 nthreads    = nthreads_hw;
+	size_t       nthreads    = nthreads_hw;
 
 #ifdef SLIC3R_PROFILE
 	// Shiny profiler is not thread safe, thus disable parallelization.
+	disable_multi_threading();
 	nthreads = 1;
 #endif
-
-	if (nthreads != nthreads_hw)
-		tbb::global_control(tbb::global_control::max_allowed_parallelism, nthreads);
 
 	std::atomic<size_t>		nthreads_running(0);
 	std::condition_variable cv;
