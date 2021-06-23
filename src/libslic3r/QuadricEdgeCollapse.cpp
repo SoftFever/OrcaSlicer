@@ -54,17 +54,16 @@ namespace QuadricEdgeCollapse {
     Vec3f calculate_vertex(size_t id_v1, size_t id_v2, SymMat & q, const Vertices &vertices);
     // calculate error for vertex and quadrics, triangle quadrics and triangle vertex give zero, only pozitive number
     double vertex_error(const SymMat &q, const Vec3d &vertex);
-    SymMat create_quadric(const Triangle &t, const TriangleInfo &t_info, const Vertices &vertices);
+    SymMat create_quadric(const Triangle &t, const Vec3f& normal, const Vertices &vertices);
     std::tuple<TriangleInfos, VertexInfos, EdgeInfos> init(const indexed_triangle_set &its);
     size_t find_triangle_index1(size_t vi, const VertexInfo& v_info, size_t ti, const EdgeInfos& e_infos, const Indices& indices);
-    bool is_flipped(const Vec3f &vn, const Vec3f &v1, const Vec3f &v2, const Vec3f &normal);
-    bool is_flipped(Vec3f &new_vertex, size_t ti0, size_t ti1, const VertexInfo& v_info, 
+    bool is_flipped(const Vec3f &new_vertex, size_t ti0, size_t ti1, const VertexInfo& v_info, 
         const TriangleInfos &t_infos, const EdgeInfos &e_infos, const indexed_triangle_set &its);
 
     // find edge with smallest error in triangle
     Error calculate_error(const Triangle& t,const Vertices &vertices, const VertexInfos& v_infos);
     // subtract quadric of one triangle from triangle vertex
-    void sub_quadric(const Triangle &t, const TriangleInfo &t_info, VertexInfos &v_infos, const Vertices &vertices);
+    void sub_quadric(const Triangle &t, const Vec3f& normal, VertexInfos &v_infos, const Vertices &vertices);
 
     void remove_triangle(EdgeInfos &e_infos, VertexInfo &v_info, size_t ti);
     void change_neighbors(EdgeInfos &e_infos, VertexInfos &v_infos, size_t ti0, size_t ti1,
@@ -178,10 +177,10 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
         std::vector<size_t> changed_triangle_indices;
         changed_triangle_indices.reserve(v_info0.count + v_info1.count - 4);
 
-        sub_quadric(t0, t_info0, v_infos, its.vertices);
+        sub_quadric(t0, t_info0.n, v_infos, its.vertices);
         TriangleInfo &t_info1 = t_infos[ti1];
         const Triangle &t1 = its.indices[ti1];
-        sub_quadric(t1, t_info1, v_infos, its.vertices);
+        sub_quadric(t1, t_info1.n, v_infos, its.vertices);
         // for each vertex0 triangles
         size_t v_info0_end = v_info0.start + v_info0.count;
         for (size_t di = v_info0.start; di < v_info0_end; ++di) {
@@ -190,7 +189,7 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
             size_t    ti     = e_info.t_index;
             if (ti == ti0) continue; // ti0 will be deleted
             if (ti == ti1) continue; // ti1 will be deleted
-            sub_quadric(its.indices[ti], t_infos[ti], v_infos, its.vertices);
+            sub_quadric(its.indices[ti], t_infos[ti].n, v_infos, its.vertices);
             changed_triangle_indices.emplace_back(ti);
         }
 
@@ -203,7 +202,7 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
             if (ti == ti0) continue; // ti0 will be deleted
             if (ti == ti1) continue; // ti1 will be deleted
             Triangle &t = its.indices[ti];
-            sub_quadric(t, t_infos[ti], v_infos, its.vertices);
+            sub_quadric(t, t_infos[ti].n, v_infos, its.vertices);
             t[e_info.edge] = vi0; // change index
             changed_triangle_indices.emplace_back(ti);
         }
@@ -224,7 +223,7 @@ bool Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
             const Triangle& t = its.indices[ti];
             TriangleInfo &t_info = t_infos[ti];
             t_info.n = create_normal(t, its.vertices); // new normal
-            SymMat q = create_quadric(t, t_info, its.vertices);
+            SymMat q = create_quadric(t, t_info.n, its.vertices);
             for (const size_t vi: t) v_infos[vi].q += q;
         }
 
@@ -325,10 +324,10 @@ double QuadricEdgeCollapse::vertex_error(const SymMat &q, const Vec3d &vertex)
 }
 
 SymMat QuadricEdgeCollapse::create_quadric(const Triangle &       t,
-                                           const TriangleInfo &t_info,
+                                           const Vec3f &normal,
                                            const Vertices &    vertices)
 {
-    Vec3d n  = t_info.n.cast<double>();
+    Vec3d n  = normal.cast<double>();
     Vec3d v0 = vertices[t[0]].cast<double>();
     return SymMat(n.x(), n.y(), n.z(), -n.dot(v0));
 }
@@ -339,12 +338,22 @@ std::tuple<TriangleInfos, VertexInfos, EdgeInfos> QuadricEdgeCollapse::init(
     TriangleInfos t_infos(its.indices.size());
     VertexInfos   v_infos(its.vertices.size());
     EdgeInfos     e_infos(its.indices.size() * 3);
+    
+    // calculate normals
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, its.indices.size()),
+    [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t i = range.begin(); i < range.end(); ++i) {
+            const Triangle &t      = its.indices[i];
+            TriangleInfo &  t_info = t_infos[i];
+            t_info.n = create_normal(t, its.vertices);
+        }
+    }); // END parallel for
 
+    // sum quadrics
     for (size_t i = 0; i < its.indices.size(); i++) { 
         const Triangle &t = its.indices[i];
         TriangleInfo &t_info = t_infos[i];
-        t_info.n = create_normal(t, its.vertices);
-        SymMat q  = create_quadric(t, t_info, its.vertices);
+        SymMat q  = create_quadric(t, t_info.n, its.vertices);
         for (size_t e = 0; e < 3; e++) { 
             VertexInfo &v_info = v_infos[t[e]];
             v_info.q += q;
@@ -361,12 +370,20 @@ std::tuple<TriangleInfos, VertexInfos, EdgeInfos> QuadricEdgeCollapse::init(
         v_info.count = 0;
     }
     assert(its.indices.size() * 3 == triangle_start);
+
+    // calc error
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, its.indices.size()),
+    [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t i = range.begin(); i < range.end(); ++i) {
+            const Triangle &t      = its.indices[i];
+            TriangleInfo &  t_info = t_infos[i];
+            t_info.e = calculate_error(t, its.vertices, v_infos);
+        }
+    }); // END parallel for
     
-    // calc error + create reference
+    // create reference
     for (size_t i = 0; i < its.indices.size(); i++) {
-        const Triangle &t = its.indices[i];
-        TriangleInfo &t_info = t_infos[i];
-        t_info.e = calculate_error(t, its.vertices, v_infos);         
+        const Triangle &t = its.indices[i];       
         for (size_t j = 0; j < 3; ++j) {
             VertexInfo &v_info = v_infos[t[j]];
             size_t ei = v_info.start + v_info.count;
@@ -401,32 +418,7 @@ size_t QuadricEdgeCollapse::find_triangle_index1(size_t            vi,
     return -1;
 }
 
-
-bool QuadricEdgeCollapse::is_flipped(const Vec3f &vn,
-                                     const Vec3f &v1,
-                                     const Vec3f &v2,
-                                     const Vec3f &normal)
-{
-    static const float thr_pos = 1.0f - std::numeric_limits<float>::epsilon();
-    static const float thr_neg = -thr_pos;
-    static const float dot_thr = 0.2f; // Value from simplify mesh
-
-    Vec3f d1 = v1 - vn;
-    d1.normalize();
-    Vec3f d2 = v2 - vn;
-    d2.normalize();
-
-    float dot = d1.dot(d2);
-    if (dot > thr_pos || dot < thr_neg) return true;
-
-    // IMPROVE: propagate new normal
-    Vec3f n = d1.cross(d2);
-    n.normalize();
-    return n.dot(normal) < dot_thr;
-}
-
-
-bool QuadricEdgeCollapse::is_flipped(Vec3f &              new_vertex,
+bool QuadricEdgeCollapse::is_flipped(const Vec3f &              new_vertex,
                                      size_t               ti0,
                                      size_t               ti1,
                                      const VertexInfo &   v_info,
@@ -434,6 +426,10 @@ bool QuadricEdgeCollapse::is_flipped(Vec3f &              new_vertex,
                                      const EdgeInfos &    e_infos,
                                      const indexed_triangle_set &its)
 {
+    static const float thr_pos = 1.0f - std::numeric_limits<float>::epsilon();
+    static const float thr_neg = -thr_pos;
+    static const float dot_thr = 0.2f; // Value from simplify mesh cca 80 DEG
+
     // for each vertex triangles
     size_t v_info_end = v_info.start + v_info.count;
     for (size_t ei = v_info.start; ei < v_info_end; ++ei) {
@@ -445,8 +441,18 @@ bool QuadricEdgeCollapse::is_flipped(Vec3f &              new_vertex,
         const Vec3f &normal = t_infos[e_info.t_index].n;
         const Vec3f &vf     = its.vertices[t[(e_info.edge + 1) % 3]];
         const Vec3f &vs     = its.vertices[t[(e_info.edge + 2) % 3]];
-        if (is_flipped(new_vertex, vf, vs, normal))
-            return true;
+
+        Vec3f d1 = vf - new_vertex;
+        d1.normalize();
+        Vec3f d2 = vs - new_vertex;
+        d2.normalize();
+
+        float dot = d1.dot(d2);
+        if (dot > thr_pos || dot < thr_neg) return true;
+        // IMPROVE: propagate new normal
+        Vec3f n = d1.cross(d2);
+        n.normalize(); 
+        if(n.dot(normal) < dot_thr) return true;
     }
     return false;
 }
@@ -471,12 +477,12 @@ Error QuadricEdgeCollapse::calculate_error(const Triangle &   t,
 }
 
 void QuadricEdgeCollapse::sub_quadric(const Triangle &t,
-                                      const TriangleInfo & t_info,
+                                      const Vec3f& normal,
                                       VertexInfos &v_infos,
                                       const Vertices &vertices)
 {
-    SymMat quadric = create_quadric(t, t_info, vertices);
-    for (size_t vi: t) v_infos[vi].q -= quadric;
+    SymMat quadric = create_quadric(t, normal, vertices);
+    for (auto vi: t) v_infos[vi].q -= quadric;
 }
 
 void QuadricEdgeCollapse::remove_triangle(EdgeInfos & e_infos,
