@@ -32,6 +32,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
     this->SetFont(wxGetApp().normal_font());
+    this->CenterOnParent();
 
 	auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto *rightsizer = new wxBoxSizer(wxVERTICAL);
