@@ -513,6 +513,8 @@ void TriangleSelectorMmGui::update_render_data()
                 iva = &m_iva_seed_fill;
             else if (int color = int(tr.get_state()); color < int(m_iva_colors.size()))
                 iva = &m_iva_colors[color];
+            else
+                iva = &m_iva_colors[0];
             if (iva) {
                 if (iva->vertices_and_normals_interleaved.size() + 18 > iva->vertices_and_normals_interleaved.capacity())
                     iva->vertices_and_normals_interleaved.reserve(next_highest_power_of_2(iva->vertices_and_normals_interleaved.size() + 18));
