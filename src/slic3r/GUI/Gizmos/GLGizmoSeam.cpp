@@ -16,6 +16,13 @@ namespace Slic3r::GUI {
 
 
 
+void GLGizmoSeam::on_shutdown()
+{
+    m_parent.toggle_model_objects_visibility(true);
+}
+
+
+
 bool GLGizmoSeam::on_init()
 {
     m_shortcut_key = WXK_CONTROL_P;

@@ -19,6 +19,7 @@ namespace Slic3r::GUI {
 void GLGizmoMmuSegmentation::on_shutdown()
 {
     m_parent.use_slope(false);
+    m_parent.toggle_model_objects_visibility(true);
 }
 
 std::string GLGizmoMmuSegmentation::on_get_name() const
