@@ -89,28 +89,37 @@ struct PaintedLineVisitor
     bool operator()(coord_t iy, coord_t ix)
     {
         // Called with a row and column of the grid cell, which is intersected by a line.
-        auto         cell_data_range = grid.cell_data_range(iy, ix);
-        const Vec2d  v1              = line_to_test.vector().cast<double>();
+        auto         cell_data_range        = grid.cell_data_range(iy, ix);
+        const Vec2d  v1                     = line_to_test.vector().cast<double>();
+        const double v1_sqr_norm            = v1.squaredNorm();
+        const double heuristic_thr_part     = line_to_test.length() + append_threshold;
         for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second; ++it_contour_and_segment) {
-            Line        grid_line = grid.line(*it_contour_and_segment);
-            const Vec2d v2        = grid_line.vector().cast<double>();
+            Line        grid_line         = grid.line(*it_contour_and_segment);
+            const Vec2d v2                = grid_line.vector().cast<double>();
+            double      heuristic_thr_sqr = Slic3r::sqr(heuristic_thr_part + grid_line.length());
+
+            // An inexpensive heuristic to test whether line_to_test and grid_line can be somewhere close enough to each other.
+            // This helps filter out cases when the following expensive calculations are useless.
+            if ((grid_line.a - line_to_test.a).cast<double>().squaredNorm() > heuristic_thr_sqr ||
+                (grid_line.b - line_to_test.a).cast<double>().squaredNorm() > heuristic_thr_sqr ||
+                (grid_line.a - line_to_test.b).cast<double>().squaredNorm() > heuristic_thr_sqr ||
+                (grid_line.b - line_to_test.b).cast<double>().squaredNorm() > heuristic_thr_sqr)
+                continue;
+
             // When lines have too different length, it is necessary to normalize them
-            if (Slic3r::sqr(v1.dot(v2)) > cos_threshold2 * v1.squaredNorm() * v2.squaredNorm()) {
+            if (Slic3r::sqr(v1.dot(v2)) > cos_threshold2 * v1_sqr_norm * v2.squaredNorm()) {
                 // The two vectors are nearly collinear (their mutual angle is lower than 30 degrees)
                 if (painted_lines_set.find(*it_contour_and_segment) == painted_lines_set.end()) {
-                    double dist_1     = grid_line.distance_to(line_to_test.a);
-                    double dist_2     = grid_line.distance_to(line_to_test.b);
-                    double dist_3     = line_to_test.distance_to(grid_line.a);
-                    double dist_4     = line_to_test.distance_to(grid_line.b);
-                    double total_dist = std::min(std::min(dist_1, dist_2), std::min(dist_3, dist_4));
-
-                    if (total_dist < 50 * SCALED_EPSILON) {
+                    if (grid_line.distance_to_squared(line_to_test.a) < append_threshold2 ||
+                        grid_line.distance_to_squared(line_to_test.b) < append_threshold2 ||
+                        line_to_test.distance_to_squared(grid_line.a) < append_threshold2 ||
+                        line_to_test.distance_to_squared(grid_line.b) < append_threshold2) {
                         Line line_to_test_projected;
                         project_line_on_line(grid_line, line_to_test, &line_to_test_projected);
 
-                        if (Line(grid_line.a, line_to_test_projected.a).length() > Line(grid_line.a, line_to_test_projected.b).length()) {
+                        if ((line_to_test_projected.a - grid_line.a).cast<double>().squaredNorm() > (line_to_test_projected.b - grid_line.a).cast<double>().squaredNorm())
                             line_to_test_projected.reverse();
-                        }
+
                         painted_lines.push_back({it_contour_and_segment->first, it_contour_and_segment->second, line_to_test_projected, this->color});
                         painted_lines_set.insert(*it_contour_and_segment);
                     }
@@ -125,9 +134,11 @@ struct PaintedLineVisitor
     std::vector<PaintedLine>                                                             &painted_lines;
     Line                                                                                  line_to_test;
     std::unordered_set<std::pair<size_t, size_t>, boost::hash<std::pair<size_t, size_t>>> painted_lines_set;
-    int                                                                                   color = -1;
+    int                                                                                   color             = -1;
 
-    static inline const double                                                            cos_threshold2 = Slic3r::sqr(cos(M_PI * 30. / 180.));
+    static inline const double                                                            cos_threshold2    = Slic3r::sqr(cos(M_PI * 30. / 180.));
+    static inline const double                                                            append_threshold  = 50 * SCALED_EPSILON;
+    static inline const double                                                            append_threshold2 = Slic3r::sqr(append_threshold);
 };
 
 static std::vector<ColoredLine> to_colored_lines(const Polygon &polygon, int color)
