@@ -5,20 +5,22 @@
 
 namespace Slic3r::GUI {
 
-class TriangleSelectorMmuGui : public TriangleSelectorGUI {
+class TriangleSelectorMmGui : public TriangleSelectorGUI {
 public:
-    explicit TriangleSelectorMmuGui(const TriangleMesh& mesh, const std::vector<std::array<float, 4>> &colors, const std::array<float, 4> &default_volume_color)
+    explicit TriangleSelectorMmGui(const TriangleMesh& mesh, const std::vector<std::array<float, 4>> &colors, const std::array<float, 4> &default_volume_color)
         : TriangleSelectorGUI(mesh), m_colors(colors), m_default_volume_color(default_volume_color) {
         // Plus 1 is because the first position is allocated for non-painted triangles.
         m_iva_colors = std::vector<GLIndexedVertexArray>(colors.size() + 1);
     }
-    ~TriangleSelectorMmuGui() override = default;
+    ~TriangleSelectorMmGui() override = default;
 
     // Render current selection. Transformation matrices are supposed
     // to be already set.
     void render(ImGuiWrapper* imgui) override;
 
 private:
+    void update_render_data();
+
     const std::vector<std::array<float, 4>> &m_colors;
     std::vector<GLIndexedVertexArray>        m_iva_colors;
     const std::array<float, 4>               m_default_volume_color;

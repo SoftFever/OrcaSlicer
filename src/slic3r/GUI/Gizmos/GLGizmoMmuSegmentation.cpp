@@ -296,8 +296,10 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     if (m_imgui->checkbox(_L("Seed fill"), m_seed_fill_enabled))
         if (!m_seed_fill_enabled)
-            for (auto &triangle_selector : m_triangle_selectors)
+            for (auto &triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
+                triangle_selector->request_update_render_data();
+            }
 
     m_imgui->text(m_desc["seed_fill_angle"] + ":");
     ImGui::AlignTextToFramePadding();
@@ -319,6 +321,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             if (mv->is_model_part()) {
                 ++idx;
                 m_triangle_selectors[idx]->reset();
+                m_triangle_selectors[idx]->request_update_render_data();
             }
         }
 
@@ -437,8 +440,9 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
         const TriangleMesh *mesh = &mv->mesh();
 
         int extruder_idx = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
-        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorMmuGui>(*mesh, m_modified_extruders_colors, m_original_extruders_colors[size_t(extruder_idx)]));
+        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorMmGui>(*mesh, m_modified_extruders_colors, m_original_extruders_colors[size_t(extruder_idx)]));
         m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data());
+        m_triangle_selectors.back()->request_update_render_data();
     }
     m_original_volumes_extruder_idxs = get_extruder_id_for_volumes(*mo);
 }
@@ -466,10 +470,38 @@ std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_sphere_right_button_colo
     return {color[0], color[1], color[2], 0.25f};
 }
 
-void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
+void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
 {
     static constexpr std::array<float, 4> seed_fill_color{0.f, 1.f, 0.44f, 1.f};
 
+    if (m_update_render_data)
+        update_render_data();
+
+    auto *shader = wxGetApp().get_current_shader();
+    if (!shader)
+        return;
+    assert(shader->get_name() == "gouraud");
+
+    for (size_t i = 0; i <= m_iva_colors.size(); ++i) {
+        GLIndexedVertexArray &iva = i == m_iva_colors.size() ? m_iva_seed_fill : m_iva_colors[i];
+        if (!iva.vertices_and_normals_interleaved.empty() && m_update_render_data) {
+            iva.vertices_and_normals_interleaved_size = iva.vertices_and_normals_interleaved.size();
+            iva.triangle_indices.assign(iva.vertices_and_normals_interleaved_size / 6, 0);
+            std::iota(iva.triangle_indices.begin(), iva.triangle_indices.end(), 0);
+            iva.triangle_indices_size = iva.triangle_indices.size();
+            iva.finalize_geometry(true);
+        }
+        if (iva.has_VBOs()) {
+            shader->set_uniform("uniform_color", (i == 0) ? m_default_volume_color : i == m_iva_colors.size() ? seed_fill_color : m_colors[i - 1]);
+            iva.render();
+        }
+    }
+
+    m_update_render_data = false;
+}
+
+void TriangleSelectorMmGui::update_render_data()
+{
     for (auto &iva_color : m_iva_colors)
         iva_color.release_geometry();
     m_iva_seed_fill.release_geometry();
@@ -495,24 +527,6 @@ void TriangleSelectorMmuGui::render(ImGuiWrapper *imgui)
                     iva->vertices_and_normals_interleaved.emplace_back(v.z());
                 }
             }
-        }
-
-    auto* shader = wxGetApp().get_current_shader();
-    if (!shader)
-        return;
-    assert(shader->get_name() == "gouraud");
-
-    for (size_t i = 0; i <= m_iva_colors.size(); ++i)
-        if (GLIndexedVertexArray &iva = i == m_iva_colors.size() ? m_iva_seed_fill : m_iva_colors[i];
-            ! iva.vertices_and_normals_interleaved.empty()) {
-            iva.vertices_and_normals_interleaved_size = iva.vertices_and_normals_interleaved.size();
-            iva.triangle_indices.assign(iva.vertices_and_normals_interleaved_size / 6, 0);
-            std::iota(iva.triangle_indices.begin(), iva.triangle_indices.end(), 0);
-            iva.triangle_indices_size = iva.triangle_indices.size();
-            iva.finalize_geometry(true);
-            shader->set_uniform("uniform_color", 
-                (i == 0) ? m_default_volume_color : i == m_iva_colors.size() ? seed_fill_color : m_colors[i - 1]);
-            iva.render();
         }
 }
 
