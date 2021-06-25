@@ -10,13 +10,7 @@
 #include <unordered_set>
 
 #include <boost/log/trivial.hpp>
-
 #include <tbb/parallel_for.h>
-
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point.hpp>
-#include <boost/geometry/geometries/segment.hpp>
-#include <boost/geometry/index/rtree.hpp>
 
 namespace Slic3r {
 struct ColoredLine {
@@ -165,6 +159,7 @@ static Polygon colored_points_to_polygon(const std::vector<ColoredLine> &lines)
 static Polygons colored_points_to_polygon(const std::vector<std::vector<ColoredLine>> &lines)
 {
     Polygons out;
+    out.reserve(lines.size());
     for (const std::vector<ColoredLine> &l : lines)
         out.emplace_back(colored_points_to_polygon(l));
     return out;
@@ -495,6 +490,12 @@ static std::vector<std::vector<ColoredLine>> colorize_polygons(const Polygons &p
 
 using boost::polygon::voronoi_diagram;
 
+static inline Point mk_point(const Voronoi::VD::vertex_type *point) { return Point(coord_t(point->x()), coord_t(point->y())); }
+
+static inline Point mk_point(const Voronoi::Internal::point_type &point) { return Point(coord_t(point.x()), coord_t(point.y())); }
+
+static inline Point mk_point(const voronoi_diagram<double>::vertex_type &point) { return Point(coord_t(point.x()), coord_t(point.y())); }
+
 struct MMU_Graph
 {
     enum class ARC_TYPE { BORDER, NON_BORDER };
@@ -627,23 +628,62 @@ struct MMU_Graph
     {
         return this->is_vertex_on_contour(edge_iterator->vertex0()) && this->is_vertex_on_contour(edge_iterator->vertex1());
     }
+
+    // All Voronoi vertices are post-processes to merge very close vertices to single. Witch eliminates issues with intersection edges.
+    // Also, Voronoi vertices outside of the bounding of input polygons are throw away by marking them.
+    void append_voronoi_vertices(const Geometry::VoronoiDiagram &vd, const Polygons &color_poly_tmp, BoundingBox bbox) {
+        bbox.offset(SCALED_EPSILON);
+
+        struct CPoint
+        {
+            CPoint() = delete;
+            CPoint(const Point &point, size_t contour_idx, size_t point_idx) : m_point(point), m_point_idx(point_idx), m_contour_idx(contour_idx) {}
+            CPoint(const Point &point, size_t point_idx) : m_point(point), m_point_idx(point_idx), m_contour_idx(0) {}
+            const Point m_point;
+            size_t      m_point_idx;
+            size_t      m_contour_idx;
+
+            [[nodiscard]] const Point &point() const { return m_point; }
+            bool operator==(const CPoint &rhs) const { return this->m_point == rhs.m_point && this->m_contour_idx == rhs.m_contour_idx && this->m_point_idx == rhs.m_point_idx; }
+        };
+        struct CPointAccessor { const Point* operator()(const CPoint &pt) const { return &pt.point(); }};
+        typedef ClosestPointInRadiusLookup<CPoint, CPointAccessor> CPointLookupType;
+
+        CPointLookupType closest_voronoi_point(3 * coord_t(SCALED_EPSILON));
+        CPointLookupType closest_contour_point(3 * coord_t(SCALED_EPSILON));
+        for (const Polygon &polygon : color_poly_tmp)
+            for (const Point &pt : polygon.points)
+                closest_contour_point.insert(CPoint(pt, &polygon - &color_poly_tmp.front(), &pt - &polygon.points.front()));
+
+        for (const voronoi_diagram<double>::vertex_type &vertex : vd.vertices()) {
+            vertex.color(-1);
+            Point vertex_point = mk_point(vertex);
+
+            const Point &first_point  = this->nodes[this->get_arc(vertex.incident_edge()->cell()->source_index()).from_idx].point;
+            const Point &second_point = this->nodes[this->get_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx].point;
+
+            if (vertex_equal_to_point(&vertex, first_point)) {
+                assert(vertex.color() != vertex.incident_edge()->cell()->source_index());
+                assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
+                vertex.color(this->get_arc(vertex.incident_edge()->cell()->source_index()).from_idx);
+            } else if (vertex_equal_to_point(&vertex, second_point)) {
+                assert(vertex.color() != vertex.incident_edge()->cell()->source_index());
+                assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
+                vertex.color(this->get_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx);
+            } else if (bbox.contains(vertex_point)) {
+                if (auto [contour_pt, c_dist_sqr] = closest_contour_point.find(vertex_point); contour_pt != nullptr && c_dist_sqr < 3 * SCALED_EPSILON) {
+                    vertex.color(this->get_global_index(contour_pt->m_contour_idx, contour_pt->m_point_idx));
+                } else if (auto [voronoi_pt, v_dist_sqr] = closest_voronoi_point.find(vertex_point); voronoi_pt == nullptr || v_dist_sqr >= 3 * SCALED_EPSILON) {
+                    closest_voronoi_point.insert(CPoint(vertex_point, this->nodes_count()));
+                    vertex.color(this->nodes_count());
+                    this->nodes.push_back({vertex_point});
+                } else {
+                    vertex.color(voronoi_pt->m_point_idx);
+                }
+            }
+        }
+    }
 };
-
-namespace bg  = boost::geometry;
-namespace bgm = boost::geometry::model;
-namespace bgi = boost::geometry::index;
-
-// float is needed because for coord_t bgi::intersects throws "bad numeric conversion: positive overflow"
-using rtree_point_t = bgm::point<float, 2, boost::geometry::cs::cartesian>;
-using rtree_t       = bgi::rtree<std::pair<rtree_point_t, size_t>, bgi::rstar<16, 4>>;
-
-static inline rtree_point_t mk_rtree_point(const Point &pt) { return rtree_point_t(float(pt.x()), float(pt.y())); }
-
-static inline Point mk_point(const Voronoi::VD::vertex_type *point) { return Point(coord_t(point->x()), coord_t(point->y())); }
-
-static inline Point mk_point(const Voronoi::Internal::point_type &point) { return Point(coord_t(point.x()), coord_t(point.y())); }
-
-static inline Point mk_point(const voronoi_diagram<double>::vertex_type &point) { return Point(coord_t(point.x()), coord_t(point.y())); }
 
 static inline void mark_processed(const voronoi_diagram<double>::const_edge_iterator &edge_iterator)
 {
@@ -706,7 +746,7 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
 {
     Geometry::VoronoiDiagram vd;
     std::vector<ColoredLine> lines_colored  = to_lines(color_poly);
-    Polygons                 color_poly_tmp = colored_points_to_polygon(color_poly);
+    const Polygons           color_poly_tmp = colored_points_to_polygon(color_poly);
     const Points             points         = to_points(color_poly_tmp);
     const Lines              lines          = to_lines(color_poly_tmp);
 
@@ -730,6 +770,7 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
 
     boost::polygon::construct_voronoi(lines_colored.begin(), lines_colored.end(), &vd);
     MMU_Graph graph;
+    graph.nodes.reserve(points.size() + vd.vertices().size());
     for (const Point &point : points)
         graph.nodes.push_back({point});
 
@@ -737,66 +778,8 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
     init_polygon_indices(graph, color_poly, lines_colored);
 
     assert(graph.nodes.size() == lines_colored.size());
-
-    // All Voronoi vertices are post-processes to merge very close vertices to single. Witch Eliminates issues with intersection edges.
-    // Also, Voronoi vertices outside of the bounding of input polygons are throw away by marking them.
-    auto append_voronoi_vertices_to_graph = [&graph, &color_poly_tmp, &vd]() -> void {
-        auto is_equal_points = [](const Point &p1, const Point &p2) { return p1 == p2 || (p1 - p2).cast<double>().norm() <= 3 * SCALED_EPSILON; };
-
-        BoundingBox bbox = get_extents(color_poly_tmp);
-        bbox.offset(SCALED_EPSILON);
-        // EdgeGrid is used for vertices near to contour and rtree for other vertices
-        // FIXME Lukas H.: Get rid of EdgeGrid and rtree. Use only one structure for both cases.
-        EdgeGrid::Grid grid;
-        grid.set_bbox(bbox);
-        grid.create(color_poly_tmp, coord_t(scale_(10.)));
-        rtree_t rtree;
-        for (const voronoi_diagram<double>::vertex_type &vertex : vd.vertices()) {
-            vertex.color(-1);
-            Point vertex_point = mk_point(vertex);
-
-            const Point &first_point  = graph.nodes[graph.get_arc(vertex.incident_edge()->cell()->source_index()).from_idx].point;
-            const Point &second_point = graph.nodes[graph.get_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx].point;
-
-            if (vertex_equal_to_point(&vertex, first_point)) {
-                assert(vertex.color() != vertex.incident_edge()->cell()->source_index());
-                assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
-                vertex.color(graph.get_arc(vertex.incident_edge()->cell()->source_index()).from_idx);
-            } else if (vertex_equal_to_point(&vertex, second_point)) {
-                assert(vertex.color() != vertex.incident_edge()->cell()->source_index());
-                assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
-                vertex.color(graph.get_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx);
-            } else if (bbox.contains(vertex_point)) {
-                EdgeGrid::Grid::ClosestPointResult cp = grid.closest_point_signed_distance(vertex_point, coord_t(3 * SCALED_EPSILON));
-                if (cp.valid()) {
-                    size_t global_idx      = graph.get_global_index(cp.contour_idx, cp.start_point_idx);
-                    size_t global_idx_next = graph.get_global_index(cp.contour_idx, (cp.start_point_idx + 1) % color_poly_tmp[cp.contour_idx].points.size());
-                    vertex.color(is_equal_points(vertex_point, graph.nodes[global_idx].point) ? global_idx : global_idx_next);
-                } else {
-                    if (rtree.empty()) {
-                        rtree.insert(std::make_pair(mk_rtree_point(vertex_point), graph.nodes_count()));
-                        vertex.color(graph.nodes_count());
-                        graph.nodes.push_back({vertex_point});
-                    } else {
-                        std::vector<std::pair<rtree_point_t, size_t>> closest;
-                        rtree.query(bgi::nearest(mk_rtree_point(vertex_point), 1), std::back_inserter(closest));
-                        assert(!closest.empty());
-                        rtree_point_t r_point = closest.front().first;
-                        Point         closest_p(bg::get<0>(r_point), bg::get<1>(r_point));
-                        if (Line(vertex_point, closest_p).length() > 3 * SCALED_EPSILON) {
-                            rtree.insert(std::make_pair(mk_rtree_point(vertex_point), graph.nodes_count()));
-                            vertex.color(graph.nodes_count());
-                            graph.nodes.push_back({vertex_point});
-                        } else {
-                            vertex.color(closest.front().second);
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    append_voronoi_vertices_to_graph();
+    BoundingBox bbox = get_extents(color_poly_tmp);
+    graph.append_voronoi_vertices(vd, color_poly_tmp, bbox);
 
     auto get_prev_contour_line = [&lines_colored, &color_poly, &graph](const voronoi_diagram<double>::const_edge_iterator &edge_it) -> ColoredLine {
         size_t contour_line_local_idx = lines_colored[edge_it->cell()->source_index()].local_line_idx;
@@ -814,7 +797,6 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
         return lines_colored[contour_next_idx];
     };
 
-    BoundingBox bbox = get_extents(color_poly_tmp);
     bbox.offset(scale_(10.));
     const double bbox_dim_max = double(std::max(bbox.size().x(), bbox.size().y()));
 
@@ -1509,7 +1491,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
                         // [P0, P2] a [P0, P1]
                         float t1   = (float(layer->slice_z) - facet[0].z()) / (facet[1].z() - facet[0].z());
                         line_end_f = facet[0] + t1 * (facet[1] - facet[0]);
-                    } else if (facet[1].z() <= layer->slice_z) {
+                    } else {
                         // [P0, P2] a [P1, P2]
                         float t2   = (float(layer->slice_z) - facet[1].z()) / (facet[2].z() - facet[1].z());
                         line_end_f = facet[1] + t2 * (facet[2] - facet[1]);
