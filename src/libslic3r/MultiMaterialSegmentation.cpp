@@ -4,6 +4,7 @@
 #include "Layer.hpp"
 #include "Print.hpp"
 #include "VoronoiVisualUtils.hpp"
+#include "MutablePolygon.hpp"
 
 #include <utility>
 #include <cfloat>
@@ -1421,7 +1422,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             // All expolygons are expanded by SCALED_EPSILON, merged, and then shrunk again by SCALED_EPSILON
             // to ensure that very close polygons will be merged.
             ex_polygons = union_ex(ex_polygons);
-            // Remove all expolygons and holes with an area less than 0.01mm^2
+            // Remove all expolygons and holes with an area less than 0.1mm^2
             remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(0.1f)));
             // Occasionally, some input polygons contained self-intersections that caused problems with Voronoi diagrams
             // and consequently with the extraction of colored segments by function extract_colored_segments.
@@ -1430,19 +1431,19 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             // Such close points sometimes caused that the Voronoi diagram has self-intersecting edges around these vertices.
             // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
             // Calling expolygons_simplify fixed these issues.
-            input_expolygons[layer_idx] = simplify_polygons_ex(to_polygons(expolygons_simplify(offset_ex(ex_polygons, float(-10 * SCALED_EPSILON)), 5 * SCALED_EPSILON)));
-            input_polygons[layer_idx] = to_polygons(input_expolygons[layer_idx]);
+            input_expolygons[layer_idx] = smooth_outward(expolygons_simplify(offset_ex(ex_polygons, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON), 10 * coord_t(SCALED_EPSILON));
+            input_polygons[layer_idx]   = to_polygons(input_expolygons[layer_idx]);
         }
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - slices preparation in parallel - end";
 
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
         throw_on_cancel_callback();
-        BoundingBox  bbox(get_extents(input_expolygons[layer_idx]));
+        BoundingBox  bbox(get_extents(input_polygons[layer_idx]));
         // Projected triangles may slightly exceed the input polygons.
         bbox.offset(20 * SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
-        edge_grids[layer_idx].create(input_expolygons[layer_idx], coord_t(scale_(10.)));
+        edge_grids[layer_idx].create(input_polygons[layer_idx], coord_t(scale_(10.)));
     }
 
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - projection of painted triangles - begin";
