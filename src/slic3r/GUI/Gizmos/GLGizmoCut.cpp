@@ -15,6 +15,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Model.hpp"
 
 
 namespace Slic3r {
@@ -231,7 +232,10 @@ void GLGizmoCut::perform_cut(const Selection& selection)
     coordf_t object_cut_z = m_cut_z - first_glvolume->get_sla_shift_z();
 
     if (object_cut_z > 0.)
-        wxGetApp().plater()->cut(object_idx, instance_idx, object_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower);
+        wxGetApp().plater()->cut(object_idx, instance_idx, object_cut_z, 
+            only_if(m_keep_upper, ModelObjectCutAttribute::KeepUpper) | 
+            only_if(m_keep_lower, ModelObjectCutAttribute::KeepLower) | 
+            only_if(m_rotate_lower, ModelObjectCutAttribute::FlipLower));
     else {
         // the object is SLA-elevated and the plane is under it.
     }

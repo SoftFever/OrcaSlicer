@@ -376,7 +376,7 @@ int CLI::run(int argc, char **argv)
                         o->cut(Z, m_config.opt_float("cut"), &out);
                     }
 #else
-                    model.objects.front()->cut(0, m_config.opt_float("cut"), true, true, true);
+                    model.objects.front()->cut(0, m_config.opt_float("cut"), ModelObjectCutAttribute::KeepLower | ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::FlipLower);
 #endif
                     model.delete_object(size_t(0));
                 }

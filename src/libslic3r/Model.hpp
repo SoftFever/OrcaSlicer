@@ -2,6 +2,7 @@
 #define slic3r_Model_hpp_
 
 #include "libslic3r.h"
+#include "enum_bitmask.hpp"
 #include "Geometry.hpp"
 #include "ObjectID.hpp"
 #include "Point.hpp"
@@ -227,6 +228,10 @@ enum class ModelVolumeType : int {
     SUPPORT_ENFORCER,
 };
 
+enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipLower }; 
+using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
+ENABLE_ENUM_BITMASK_OPERATORS(ModelObjectCutAttribute);
+
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
 // Each ModelObject may be instantiated mutliple times, each instance having different placement on the print bed,
@@ -345,7 +350,7 @@ public:
     size_t materials_count() const;
     size_t facets_count() const;
     bool needed_repair() const;
-    ModelObjectPtrs cut(size_t instance, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);    // Note: z is in world coordinates
+    ModelObjectPtrs cut(size_t instance, coordf_t z, ModelObjectCutAttributes attributes);
     void split(ModelObjectPtrs* new_objects);
     void merge();
     // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,

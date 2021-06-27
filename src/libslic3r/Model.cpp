@@ -1143,17 +1143,18 @@ bool ModelObject::needed_repair() const
     return false;
 }
 
-ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
+ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttributes attributes)
 {
-    if (!keep_upper && !keep_lower) { return {}; }
+    if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
+        return {};
 
     BOOST_LOG_TRIVIAL(trace) << "ModelObject::cut - start";
 
     // Clone the object to duplicate instances, materials etc.
-    ModelObject* upper = keep_upper ? ModelObject::new_clone(*this) : nullptr;
-    ModelObject* lower = keep_lower ? ModelObject::new_clone(*this) : nullptr;
+    ModelObject* upper = attributes.has(ModelObjectCutAttribute::KeepUpper) ? ModelObject::new_clone(*this) : nullptr;
+    ModelObject* lower = attributes.has(ModelObjectCutAttribute::KeepLower) ? ModelObject::new_clone(*this) : nullptr;
 
-    if (keep_upper) {
+    if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
         upper->set_model(nullptr);
         upper->sla_support_points.clear();
         upper->sla_drain_holes.clear();
@@ -1162,7 +1163,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         upper->input_file.clear();
     }
 
-    if (keep_lower) {
+    if (attributes.has(ModelObjectCutAttribute::KeepLower)) {
         lower->set_model(nullptr);
         lower->sla_support_points.clear();
         lower->sla_drain_holes.clear();
@@ -1202,8 +1203,10 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
             volume->set_transformation(Geometry::Transformation(instance_matrix * volume_matrix));
 
-            if (keep_upper) { upper->add_volume(*volume); }
-            if (keep_lower) { lower->add_volume(*volume); }
+            if (attributes.has(ModelObjectCutAttribute::KeepUpper))
+                upper->add_volume(*volume);
+            if (attributes.has(ModelObjectCutAttribute::KeepLower))
+                lower->add_volume(*volume);
         }
         else if (! volume->mesh().empty()) {
             
@@ -1223,19 +1226,19 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
                 indexed_triangle_set upper_its, lower_its;
                 mesh.require_shared_vertices();
                 cut_mesh(mesh.its, float(z), &upper_its, &lower_its);
-                if (keep_upper) {
+                if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
                     upper_mesh = TriangleMesh(upper_its);
                     upper_mesh.repair();
                     upper_mesh.reset_repair_stats();
                 }
-                if (keep_lower) {
+                if (attributes.has(ModelObjectCutAttribute::KeepLower)) {
                     lower_mesh = TriangleMesh(lower_its);
                     lower_mesh.repair();
                     lower_mesh.reset_repair_stats();
                 }
             }
 
-            if (keep_upper && upper_mesh.facets_count() > 0) {
+            if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper_mesh.facets_count() > 0) {
                 ModelVolume* vol = upper->add_volume(upper_mesh);
                 vol->name	= volume->name;
                 // Don't copy the config's ID.
@@ -1244,7 +1247,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 	    		assert(vol->config.id() != volume->config.id());
                 vol->set_material(volume->material_id(), *volume->material());
             }
-            if (keep_lower && lower_mesh.facets_count() > 0) {
+            if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower_mesh.facets_count() > 0) {
                 ModelVolume* vol = lower->add_volume(lower_mesh);
                 vol->name	= volume->name;
                 // Don't copy the config's ID.
@@ -1255,7 +1258,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
                 // Compute the lower part instances' bounding boxes to figure out where to place
                 // the upper part
-                if (keep_upper) {
+                if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
                     for (size_t i = 0; i < instances.size(); i++) {
                         lower_bboxes[i].merge(instances[i]->transform_mesh_bounding_box(lower_mesh, true));
                     }
@@ -1266,7 +1269,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
     ModelObjectPtrs res;
 
-    if (keep_upper && upper->volumes.size() > 0) {
+    if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper->volumes.size() > 0) {
         upper->invalidate_bounding_box();
         upper->center_around_origin();
 
@@ -1286,7 +1289,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
         res.push_back(upper);
     }
-    if (keep_lower && lower->volumes.size() > 0) {
+    if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower->volumes.size() > 0) {
         lower->invalidate_bounding_box();
         lower->center_around_origin();
 
@@ -1297,7 +1300,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
             instance->set_transformation(Geometry::Transformation());
             instance->set_offset(offset);
-            instance->set_rotation(Vec3d(rotate_lower ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
+            instance->set_rotation(Vec3d(attributes.has(ModelObjectCutAttribute::FlipLower) ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
         }
 
         res.push_back(lower);
