@@ -8,6 +8,7 @@
 
 #include "Platform.hpp"
 #include "Time.hpp"
+#include "libslic3r.h"
 
 #ifdef WIN32
 	#include <windows.h>
@@ -128,6 +129,7 @@ void disable_multi_threading()
     tbb::global_control(tbb::global_control::max_allowed_parallelism, 1);
 #else // TBB_HAS_GLOBAL_CONTROL
     static tbb::task_scheduler_init *tbb_init = new tbb::task_scheduler_init(1);
+    UNUSED(tbb_init);
 #endif // TBB_HAS_GLOBAL_CONTROL
 }
 

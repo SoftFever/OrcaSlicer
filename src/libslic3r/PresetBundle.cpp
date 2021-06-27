@@ -922,12 +922,13 @@ ConfigSubstitutions PresetBundle::load_config_file_config_bundle(const std::stri
     // Load the config bundle, but don't save the loaded presets to user profile directory, as only the presets marked as active in the loaded preset bundle
     // will be loaded into the master PresetBundle and activated.
     auto [presets_substitutions, presets_imported] = tmp_bundle.load_configbundle(path, {});
+    UNUSED(presets_imported);
 
     std::string bundle_name = std::string(" - ") + boost::filesystem::path(path).filename().string();
 
     // 2) Extract active configs from the config bundle, copy them and activate them in this bundle.
     ConfigSubstitutions config_substitutions;
-    auto load_one = [this, &path, &bundle_name, &presets_substitutions = presets_substitutions, &config_substitutions](
+    auto load_one = [&path, &bundle_name, &presets_substitutions = presets_substitutions, &config_substitutions](
             PresetCollection &collection_dst, PresetCollection &collection_src, const std::string &preset_name_src, bool activate) -> std::string {
         // If there are substitutions reported for this preset, move them to config_substitutions.
         if (auto it = std::find_if(presets_substitutions.begin(), presets_substitutions.end(), [&preset_name_src](const PresetConfigSubstitutions& subs){ return subs.preset_name == preset_name_src; });
@@ -988,7 +989,7 @@ ConfigSubstitutions PresetBundle::load_config_file_config_bundle(const std::stri
     this->update_compatible(PresetSelectCompatibleType::Never);
 
     sort_remove_duplicates(config_substitutions);
-    return std::move(config_substitutions);
+    return config_substitutions;
 }
 
 // Process the Config Bundle loaded as a Boost property tree.
