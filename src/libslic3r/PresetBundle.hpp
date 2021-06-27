@@ -3,6 +3,7 @@
 
 #include "Preset.hpp"
 #include "AppConfig.hpp"
+#include "enum_bitmask.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -26,7 +27,7 @@ public:
 
     // Load ini files of all types (print, filament, printer) from Slic3r::data_dir() / presets.
     // Load selections (current print, current filaments, current printer) from config.ini
-    void            load_presets(AppConfig &config, const std::string &preferred_model_id = std::string());
+    PresetsConfigSubstitutions load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule, const std::string &preferred_model_id = std::string());
 
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
@@ -82,24 +83,26 @@ public:
     // Instead of a config file, a G-code may be loaded containing the full set of parameters.
     // In the future the configuration will likely be read from an AMF file as well.
     // If the file is loaded successfully, its print / filament / printer profiles will be activated.
-    void                        load_config_file(const std::string &path);
+    ConfigSubstitutions         load_config_file(const std::string &path, ForwardCompatibilitySubstitutionRule compatibility_rule);
 
     // Load a config bundle file, into presets and store the loaded presets into separate files
     // of the local configuration directory.
     // Load settings into the provided settings instance.
     // Activate the presets stored in the config bundle.
     // Returns the number of presets loaded successfully.
-    enum { 
+    enum LoadConfigBundleAttribute { 
         // Save the profiles, which have been loaded.
-        LOAD_CFGBNDLE_SAVE = 1, 
+        SaveImported,
         // Delete all old config profiles before loading.
-        LOAD_CFGBNDLE_RESET_USER_PROFILE = 2,
+        ResetUserProfile,
         // Load a system config bundle.
-        LOAD_CFGBNDLE_SYSTEM = 4,
-        LOAD_CFGBUNDLE_VENDOR_ONLY = 8,
+        LoadSystem,
+        LoadVendorOnly,
     };
-    // Load the config bundle, store it to the user profile directory by default.
-    size_t                      load_configbundle(const std::string &path, unsigned int flags = LOAD_CFGBNDLE_SAVE);
+    using LoadConfigBundleAttributes = enum_bitmask<LoadConfigBundleAttribute>;
+    // Load the config bundle based on the flags.
+    // Don't do any config substitutions when loading a system profile, perform and report substitutions otherwise.
+    std::pair<PresetsConfigSubstitutions, size_t> load_configbundle(const std::string &path, LoadConfigBundleAttributes flags);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path, bool export_system_settings = false, bool export_physical_printers = false);
@@ -155,11 +158,13 @@ private:
     // and the external config is just referenced, not stored into user profile directory.
     // If it is not an external config, then the config will be stored into the user profile directory.
     void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config);
-    void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
+    ConfigSubstitutions         load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
 
     DynamicPrintConfig          full_fff_config() const;
     DynamicPrintConfig          full_sla_config() const;
 };
+
+ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)
 
 } // namespace Slic3r
 

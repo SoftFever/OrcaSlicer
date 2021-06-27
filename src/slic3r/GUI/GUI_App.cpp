@@ -624,6 +624,13 @@ void GUI_App::post_init()
             this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
     }
     else {
+        if (! this->init_params->preset_substitutions.empty()) {
+            // TODO: Add list of changes from all_substitutions
+            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
+                " To recover these files, incompatible values were changed to default values."
+                " But data in files won't be changed until you save them in PrusaSlicer.")));
+        } 
+
 #if 0
         // Load the cummulative config over the currently active profiles.
         //FIXME if multiple configs are loaded, only the last one will have an effect.
@@ -652,6 +659,24 @@ void GUI_App::post_init()
         if (! this->init_params->extra_config.empty())
             this->mainframe->load_config(this->init_params->extra_config);
     }
+
+    // The extra CallAfter() is needed because of Mac, where this is the only way
+    // to popup a modal dialog on start without screwing combo boxes.
+    // This is ugly but I honestly found no better way to do it.
+    // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
+    if (this->preset_updater) {
+        this->check_updates(false);
+        CallAfter([this] {
+            this->config_wizard_startup();
+            this->preset_updater->slic3r_update_notify();
+            this->preset_updater->sync(preset_bundle);
+        });
+    }
+
+#ifdef _WIN32
+    // Sets window property to mainframe so other instances can indentify it.
+    OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
+#endif //WIN32
 }
 
 IMPLEMENT_APP(GUI_App)
@@ -885,7 +910,7 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
     try {
-        preset_bundle->load_presets(*app_config);
+        init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable);
     } catch (const std::exception &ex) {
         show_error(nullptr, ex.what());
     }
@@ -948,7 +973,6 @@ bool GUI_App::on_init_inner()
         if (! plater_)
             return;
 
-
         if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();
 
@@ -968,33 +992,6 @@ bool GUI_App::on_init_inner()
             this->mainframe->register_win32_callbacks();
 #endif
             this->post_init();
-        }
-
-        // Preset updating & Configwizard are done after the above initializations,
-        // and after MainFrame is created & shown.
-        // The extra CallAfter() is needed because of Mac, where this is the only way
-        // to popup a modal dialog on start without screwing combo boxes.
-        // This is ugly but I honestly found no better way to do it.
-        // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
-
-        static bool once = true;
-        if (once) {
-            once = false;
-
-            if (preset_updater != nullptr) {
-                check_updates(false);
-
-                CallAfter([this] {
-                    config_wizard_startup();
-                    preset_updater->slic3r_update_notify();
-                    preset_updater->sync(preset_bundle);
-                    });
-            }
-
-#ifdef _WIN32
-            //sets window property to mainframe so other instances can indentify it
-            OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
-#endif //WIN32
         }
     });
 
@@ -1872,7 +1869,13 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                         Config::SnapshotDB::singleton().take_snapshot(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
                     try {
                         app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
-                        preset_bundle->load_presets(*app_config);
+                        if (PresetsConfigSubstitutions all_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable);
+                            ! all_substitutions.empty()) {
+                            // TODO:
+                            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
+                                " To recover these files, incompatible values were changed to default values."
+                                " But data in files won't be changed until you save them in PrusaSlicer.")));
+                        }
                         // Load the currently selected preset into the GUI, update the preset selection box.
                         load_current_presets();
                     } catch (std::exception &ex) {

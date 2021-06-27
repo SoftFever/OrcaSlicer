@@ -23,6 +23,10 @@
 #include <boost/format.hpp>
 #include <string.h>
 
+//FIXME for GCodeFlavor and gcfMarlin (for forward-compatibility conversion)
+// This is not nice, likely it would be better to pass the ConfigSubstitutionContext to handle_legacy().
+#include "PrintConfig.hpp"
+
 namespace Slic3r {
 
 // Escape \n, \r and backslash
@@ -211,6 +215,10 @@ std::string escape_ampersand(const std::string& str)
     return std::string(out.data(), outptr - out.data());
 }
 
+void ConfigOptionDeleter::operator()(ConfigOption* p) {
+    delete p;
+}
+
 std::vector<std::string> ConfigOptionDef::cli_args(const std::string &key) const
 {
 	std::vector<std::string> args;
@@ -361,7 +369,8 @@ std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults, s
             
             // right: option description
             std::string descr = def.tooltip;
-            if (show_defaults && def.default_value && def.type != coBool
+            bool show_defaults_this = show_defaults || def.opt_key == "config_compatibility";
+            if (show_defaults_this && def.default_value && def.type != coBool
                 && (def.type != coString || !def.default_value->serialize().empty())) {
                 descr += " (";
                 if (!def.sidetext.empty()) {
@@ -469,7 +478,7 @@ void ConfigBase::set(const std::string &opt_key, double value, bool create)
     }
 }
 
-bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src, const std::string &value_src, bool append)
+bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src, const std::string &value_src, ConfigSubstitutionContext& substitutions_ctxt, bool append)
 {
     t_config_option_key opt_key = opt_key_src;
     std::string         value   = value_src;
@@ -479,29 +488,29 @@ bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src,
     if (opt_key.empty())
         // Ignore the option.
         return true;
-    return this->set_deserialize_raw(opt_key, value, append);
+    return this->set_deserialize_raw(opt_key, value, substitutions_ctxt, append);
 }
 
-void ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const std::string &value_src, bool append)
+void ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const std::string &value_src, ConfigSubstitutionContext& substitutions_ctxt, bool append)
 {
-	if (! this->set_deserialize_nothrow(opt_key_src, value_src, append))
+	if (! this->set_deserialize_nothrow(opt_key_src, value_src, substitutions_ctxt, append))
 		throw BadOptionTypeException(format("ConfigBase::set_deserialize() failed for parameter \"%1%\", value \"%2%\"", opt_key_src,  value_src));
 }
 
-void ConfigBase::set_deserialize(std::initializer_list<SetDeserializeItem> items)
+void ConfigBase::set_deserialize(std::initializer_list<SetDeserializeItem> items, ConfigSubstitutionContext& substitutions_ctxt)
 {
 	for (const SetDeserializeItem &item : items)
-		this->set_deserialize(item.opt_key, item.opt_value, item.append);
+		this->set_deserialize(item.opt_key, item.opt_value, substitutions_ctxt, item.append);
 }
 
-bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, const std::string &value, bool append)
+bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, const std::string &value, ConfigSubstitutionContext& substitutions_ctxt, bool append)
 {
-    t_config_option_key opt_key = opt_key_src;
+    t_config_option_key    opt_key = opt_key_src;
     // Try to deserialize the option by its name.
-    const ConfigDef       *def    = this->def();
+    const ConfigDef       *def     = this->def();
     if (def == nullptr)
         throw NoDefinitionException(opt_key);
-    const ConfigOptionDef *optdef = def->get(opt_key);
+    const ConfigOptionDef *optdef  = def->get(opt_key);
     if (optdef == nullptr) {
         // If we didn't find an option, look for any other option having this as an alias.
         for (const auto &opt : def->options) {
@@ -523,14 +532,35 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
         // Aliasing for example "solid_layers" to "top_solid_layers" and "bottom_solid_layers".
         for (const t_config_option_key &shortcut : optdef->shortcut)
             // Recursive call.
-            if (! this->set_deserialize_raw(shortcut, value, append))
+            if (! this->set_deserialize_raw(shortcut, value, substitutions_ctxt, append))
                 return false;
         return true;
     }
     
     ConfigOption *opt = this->option(opt_key, true);
     assert(opt != nullptr);
-    return opt->deserialize(value, append);
+    bool success = opt->deserialize(value, append);
+    if (! success && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable &&
+        // Only allow substitutions of an enum value by another enum value or a boolean value with an enum value.
+        // That means, we expect enum values being added in the future and possibly booleans being converted to enums.
+        (optdef->type == coEnum || optdef->type == coBool)) 
+    {
+        // Deserialize failed, try to substitute with a default value.
+        assert(substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::Enable || substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::EnableSilent);
+
+        opt->set(optdef->default_value.get());
+
+        if (substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::Enable) {
+            // Log the substitution.
+            ConfigSubstitution config_substitution;
+            config_substitution.opt_def = optdef;
+            config_substitution.old_value = value;//std::unique_ptr<ConfigOption>(opt);
+            config_substitution.new_value = ConfigOptionUniquePtr(this->option(opt_key, true)->clone());
+            substitutions_ctxt.substitutions.emplace_back(std::move(config_substitution));
+        }
+        return true;
+    }
+    return success;
 }
 
 // Return an absolute value of a possibly relative config variable.
@@ -589,36 +619,37 @@ void ConfigBase::setenv_() const
     }
 }
 
-void ConfigBase::load(const std::string &file)
+ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
-    if (is_gcode_file(file))
-        this->load_from_gcode_file(file);
-    else
-        this->load_from_ini(file);
+    return is_gcode_file(file) ? 
+        this->load_from_gcode_file(file, true /* check header */, compatibility_rule) :
+        this->load_from_ini(file, compatibility_rule);
 }
 
-void ConfigBase::load_from_ini(const std::string &file)
+ConfigSubstitutions ConfigBase::load_from_ini(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     boost::property_tree::ptree tree;
     boost::nowide::ifstream ifs(file);
     boost::property_tree::read_ini(ifs, tree);
-    this->load(tree);
+    return this->load(tree, compatibility_rule);
 }
 
-void ConfigBase::load(const boost::property_tree::ptree &tree)
+ConfigSubstitutions ConfigBase::load(const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
+    ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
     for (const boost::property_tree::ptree::value_type &v : tree) {
         try {
             t_config_option_key opt_key = v.first;
-            this->set_deserialize(opt_key, v.second.get_value<std::string>());
+            this->set_deserialize(opt_key, v.second.get_value<std::string>(), substitutions_ctxt);
         } catch (UnknownOptionException & /* e */) {
             // ignore
         }
     }
+    return std::move(substitutions_ctxt.substitutions);
 }
 
 // Load the config keys from the tail of a G-code file.
-void ConfigBase::load_from_gcode_file(const std::string& file, bool check_header)
+ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, bool check_header, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     // Read a 64k block from the end of the G-code.
 	boost::nowide::ifstream ifs(file);
@@ -639,13 +670,15 @@ void ConfigBase::load_from_gcode_file(const std::string& file, bool check_header
     ifs.read(data.data(), data_length);
     ifs.close();
 
-    size_t key_value_pairs = load_from_gcode_string(data.data());
+    ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
+    size_t key_value_pairs = load_from_gcode_string(data.data(), substitutions_ctxt);
     if (key_value_pairs < 80)
         throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs));
+    return std::move(substitutions_ctxt.substitutions);
 }
 
 // Load the config keys from the given string.
-size_t ConfigBase::load_from_gcode_string(const char* str)
+size_t ConfigBase::load_from_gcode_string(const char* str, ConfigSubstitutionContext& substitutions)
 {
     if (str == nullptr)
         return 0;
@@ -690,7 +723,7 @@ size_t ConfigBase::load_from_gcode_string(const char* str)
         if (key == nullptr)
             break;
         try {
-            this->set_deserialize(std::string(key, key_end), std::string(value, end));
+            this->set_deserialize(std::string(key, key_end), std::string(value, end), substitutions);
             ++num_key_value_pairs;
         }
         catch (UnknownOptionException & /* e */) {
@@ -719,7 +752,7 @@ void ConfigBase::null_nullables()
         ConfigOption *opt = this->optptr(opt_key, false);
         assert(opt != nullptr);
         if (opt->nullable())
-        	opt->deserialize("nil");
+        	opt->deserialize("nil", ForwardCompatibilitySubstitutionRule::Disable);
     }
 }
 
@@ -883,8 +916,10 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
             // Do not unescape single string values, the unescaping is left to the calling shell.
             static_cast<ConfigOptionString*>(opt_base)->value = value;
         } else {
+            // Just bail out if the configuration value is not understood.
+            ConfigSubstitutionContext context(ForwardCompatibilitySubstitutionRule::Disable);
             // Any scalar value of a type different from Bool and String.
-            if (! this->set_deserialize_nothrow(opt_key, value, false)) {
+            if (! this->set_deserialize_nothrow(opt_key, value, context, false)) {
 				boost::nowide::cerr << "Invalid value supplied for --" << token.c_str() << std::endl;
 				return false;
 			}

@@ -30,7 +30,7 @@ _new_from_width(CLASS, role, width, nozzle_diameter, height)
     float           height;
     CODE:
         ConfigOptionFloatOrPercent optwidth;
-        optwidth.deserialize(width);
+        optwidth.deserialize(width, ForwardCompatibilitySubstitutionRule::Disable);
         RETVAL = new Flow(Flow::new_from_config_width(role, optwidth, nozzle_diameter, height));
     OUTPUT:
         RETVAL

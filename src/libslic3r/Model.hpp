@@ -12,6 +12,7 @@
 #include "TriangleMesh.hpp"
 #include "Arrange.hpp"
 #include "CustomGCode.hpp"
+#include "enum_bitmask.hpp"
 
 #include <map>
 #include <memory>
@@ -1031,8 +1032,20 @@ public:
 
     OBJECTBASE_DERIVED_COPY_MOVE_CLONE(Model)
 
-    static Model read_from_file(const std::string& input_file, DynamicPrintConfig* config = nullptr, bool add_default_instances = true, bool check_version = false);
-    static Model read_from_archive(const std::string& input_file, DynamicPrintConfig* config, bool add_default_instances = true, bool check_version = false);
+    enum class LoadAttribute : int {
+        AddDefaultInstances,
+        CheckVersion
+    };
+    using LoadAttributes = enum_bitmask<LoadAttribute>;
+
+    static Model read_from_file(
+        const std::string& input_file, 
+        DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
+        LoadAttributes options = LoadAttribute::AddDefaultInstances);
+    static Model read_from_archive(
+        const std::string& input_file, 
+        DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
+        LoadAttributes options = LoadAttribute::AddDefaultInstances);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
@@ -1096,6 +1109,8 @@ private:
 		ar(materials, objects, wipe_tower_wrapper);
     }
 };
+
+ENABLE_ENUM_BITMASK_OPERATORS(Model::LoadAttribute)
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE
 #undef OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE

@@ -273,7 +273,7 @@ public:
     NotificationManager* notification_manager();
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
-    const GUI_InitParams* init_params { nullptr };
+    GUI_InitParams* init_params { nullptr };
 
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };
@@ -281,7 +281,7 @@ public:
     MainFrame*      mainframe{ nullptr };
     Plater*         plater_{ nullptr };
 
-	PresetUpdater* get_preset_updater() { return preset_updater; }
+	PresetUpdater*  get_preset_updater() { return preset_updater; }
 
     wxBookCtrlBase* tab_panel() const ;
     int             extruders_cnt() const;

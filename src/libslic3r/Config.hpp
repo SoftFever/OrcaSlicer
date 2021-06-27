@@ -16,6 +16,7 @@
 #include "Exception.hpp"
 #include "Point.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format/format_fwd.hpp>
 #include <boost/functional/hash.hpp>
@@ -161,6 +162,41 @@ enum PrinterTechnology : unsigned char
     ptUnknown,
     // Any technology, useful for parameters compatible with both ptFFF and ptSLA
     ptAny
+};
+
+enum ForwardCompatibilitySubstitutionRule
+{
+    Disable,
+    Enable,
+    EnableSilent,
+};
+
+class  ConfigOption;
+class  ConfigOptionDef;
+// For forward definition of ConfigOption in ConfigOptionUniquePtr, we have to define a custom deleter.
+struct ConfigOptionDeleter { void operator()(ConfigOption* p); };
+using  ConfigOptionUniquePtr = std::unique_ptr<ConfigOption, ConfigOptionDeleter>;
+
+// When parsing a configuration value, if the old_value is not understood by this PrusaSlicer version,
+// it is being substituted with some default value that this PrusaSlicer could work with.
+// This structure serves to inform the user about the substitutions having been done during file import.
+struct ConfigSubstitution {
+    const ConfigOptionDef   *opt_def { nullptr };
+    std::string              old_value;
+    ConfigOptionUniquePtr    new_value;
+};
+
+using  ConfigSubstitutions = std::vector<ConfigSubstitution>;
+
+// Filled in by ConfigBase::set_deserialize_raw(), which based on "rule" either bails out
+// or performs substitutions when encountering an unknown configuration value.
+struct ConfigSubstitutionContext
+{
+    ConfigSubstitutionContext(ForwardCompatibilitySubstitutionRule rl) : rule(rl) {}
+    bool empty() const throw() { return substitutions.empty(); }
+
+    ForwardCompatibilitySubstitutionRule 	rule;
+    ConfigSubstitutions					    substitutions;
 };
 
 // A generic value of a configuration option.
@@ -768,7 +804,7 @@ public:
         return escape_string_cstyle(this->value); 
     }
 
-    bool deserialize(const std::string &str, bool append = false) override 
+    bool deserialize(const std::string &str, bool append = false) override
     {
         UNUSED(append);
         return unescape_string_cstyle(str, this->value);
@@ -1272,8 +1308,15 @@ public:
     bool deserialize(const std::string &str, bool append = false) override
     {
         UNUSED(append);
-        this->value = (str.compare("1") == 0);
-        return true;
+        if (str == "1" || boost::iequals(str, "enabled") || boost::iequals(str, "on")) {
+            this->value = true;
+            return true;
+        }
+        if (str == "0" || boost::iequals(str, "disabled") || boost::iequals(str, "off")) {
+            this->value = false;
+            return true;
+        }
+        return false;
     }
 
 private:
@@ -1687,6 +1730,14 @@ public:
     static const constexpr char *nocli =  "~~~noCLI";
 };
 
+inline bool operator<(const ConfigSubstitution &lhs, const ConfigSubstitution &rhs) throw() {
+    return lhs.opt_def->opt_key < rhs.opt_def->opt_key ||
+           (lhs.opt_def->opt_key == rhs.opt_def->opt_key && lhs.old_value < rhs.old_value);
+}
+inline bool operator==(const ConfigSubstitution &lhs, const ConfigSubstitution &rhs) throw() {
+    return lhs.opt_def == rhs.opt_def && lhs.old_value == rhs.old_value;
+}
+
 // Map from a config option name to its definition.
 // The definition does not carry an actual value of the config option, only its constant default value.
 // t_config_option_key is std::string
@@ -1764,6 +1815,8 @@ public:
         return static_cast<TYPE*>(opt);
     }
 };
+
+
 
 // An abstract configuration store.
 class ConfigBase : public ConfigOptionResolver
@@ -1853,9 +1906,11 @@ public:
 
     // Set a configuration value from a string, it will call an overridable handle_legacy() 
     // to resolve renamed and removed configuration keys.
-	bool set_deserialize_nothrow(const t_config_option_key &opt_key_src, const std::string &value_src, bool append = false);
+    bool set_deserialize_nothrow(const t_config_option_key &opt_key_src, const std::string &value_src, ConfigSubstitutionContext& substitutions, bool append = false);
 	// May throw BadOptionTypeException() if the operation fails.
-    void set_deserialize(const t_config_option_key &opt_key, const std::string &str, bool append = false);
+    void set_deserialize(const t_config_option_key &opt_key, const std::string &str, ConfigSubstitutionContext& config_substitutions, bool append = false);
+    void set_deserialize_strict(const t_config_option_key &opt_key, const std::string &str, bool append = false)
+        { ConfigSubstitutionContext ctxt{ ForwardCompatibilitySubstitutionRule::Disable }; this->set_deserialize(opt_key, str, ctxt, append); }
     struct SetDeserializeItem {
     	SetDeserializeItem(const char *opt_key, const char *opt_value, bool append = false) : opt_key(opt_key), opt_value(opt_value), append(append) {}
     	SetDeserializeItem(const std::string &opt_key, const std::string &opt_value, bool append = false) : opt_key(opt_key), opt_value(opt_value), append(append) {}
@@ -1870,17 +1925,19 @@ public:
     	std::string opt_key; std::string opt_value; bool append = false;
     };
 	// May throw BadOptionTypeException() if the operation fails.
-    void set_deserialize(std::initializer_list<SetDeserializeItem> items);
+    void set_deserialize(std::initializer_list<SetDeserializeItem> items, ConfigSubstitutionContext& substitutions);
+    void set_deserialize_strict(std::initializer_list<SetDeserializeItem> items)
+        { ConfigSubstitutionContext ctxt{ ForwardCompatibilitySubstitutionRule::Disable }; this->set_deserialize(items, ctxt); }
 
     double get_abs_value(const t_config_option_key &opt_key) const;
     double get_abs_value(const t_config_option_key &opt_key, double ratio_over) const;
     void setenv_() const;
-    void load(const std::string &file);
-    void load_from_ini(const std::string &file);
-    void load_from_gcode_file(const std::string& file, bool check_header = true);
+    ConfigSubstitutions load(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
+    ConfigSubstitutions load_from_ini(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
+    ConfigSubstitutions load_from_gcode_file(const std::string &file, bool check_header /* = true */, ForwardCompatibilitySubstitutionRule compatibility_rule);
     // Returns number of key/value pairs extracted.
-    size_t load_from_gcode_string(const char* str);
-    void load(const boost::property_tree::ptree &tree);
+    size_t load_from_gcode_string(const char* str, ConfigSubstitutionContext& substitutions);
+    ConfigSubstitutions load(const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule);
     void save(const std::string &file) const;
 
 	// Set all the nullable values to nils.
@@ -1888,7 +1945,7 @@ public:
 
 private:
     // Set a configuration value from a string.
-    bool set_deserialize_raw(const t_config_option_key &opt_key_src, const std::string &str, bool append);
+    bool set_deserialize_raw(const t_config_option_key& opt_key_src, const std::string& value, ConfigSubstitutionContext& substitutions, bool append);
 };
 
 // Configuration store with dynamic number of configuration values.

@@ -200,14 +200,14 @@ void init_print(std::initializer_list<TriangleMesh> input_meshes, Slic3r::Print 
 void init_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments)
 {
 	Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-	config.set_deserialize(config_items);
+	config.set_deserialize_strict(config_items);
 	init_print(meshes, print, model, config, comments);
 }
 
 void init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments)
 {
 	Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-	config.set_deserialize(config_items);
+	config.set_deserialize_strict(config_items);
 	init_print(meshes, print, model, config, comments);
 }
 

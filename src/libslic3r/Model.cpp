@@ -96,13 +96,17 @@ void Model::update_links_bottom_up_recursive()
 	}
 }
 
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, bool add_default_instances, bool check_version)
+// Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
+Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options)
 {
     Model model;
 
     DynamicPrintConfig temp_config;
+    ConfigSubstitutionContext temp_config_substitutions_context(ForwardCompatibilitySubstitutionRule::EnableSilent);
     if (config == nullptr)
         config = &temp_config;
+    if (config_substitutions == nullptr)
+        config_substitutions = &temp_config_substitutions_context;
 
     bool result = false;
     if (boost::algorithm::iends_with(input_file, ".stl"))
@@ -110,9 +114,10 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
     else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
-        result = load_amf(input_file.c_str(), config, &model, check_version);
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
-        result = load_3mf(input_file.c_str(), config, &model, false);
+        //FIXME options & LoadAttribute::CheckVersion ? 
+        result = load_3mf(input_file.c_str(), *config, *config_substitutions, &model, false);
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
     else
@@ -127,24 +132,29 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     for (ModelObject *o : model.objects)
         o->input_file = input_file;
     
-    if (add_default_instances)
+    if (options & LoadAttribute::AddDefaultInstances)
         model.add_default_instances();
 
     CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
     CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
 
+    sort_remove_duplicates(config_substitutions->substitutions);
     return model;
 }
 
-Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, bool add_default_instances, bool check_version)
+// Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
+Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options)
 {
+    assert(config != nullptr);
+    assert(config_substitutions != nullptr);
+
     Model model;
 
     bool result = false;
     if (boost::algorithm::iends_with(input_file, ".3mf"))
-        result = load_3mf(input_file.c_str(), config, &model, check_version);
+        result = load_3mf(input_file.c_str(), *config, *config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
-        result = load_amf(input_file.c_str(), config, &model, check_version);
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .3mf or .zip.amf extension.");
 
@@ -165,7 +175,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
             o->input_file = input_file;
     }
 
-    if (add_default_instances)
+    if (options & LoadAttribute::AddDefaultInstances)
         model.add_default_instances();
 
     CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
@@ -398,13 +408,12 @@ bool Model::looks_like_multipart_object() const
 }
 
 // Generate next extruder ID string, in the range of (1, max_extruders).
-static inline std::string auto_extruder_id(unsigned int max_extruders, unsigned int &cntr)
+static inline int auto_extruder_id(unsigned int max_extruders, unsigned int &cntr)
 {
-    char str_extruder[64];
-    sprintf(str_extruder, "%ud", cntr + 1);
-    if (++ cntr == max_extruders)
+    int out = ++ cntr;
+    if (cntr == max_extruders)
     	cntr = 0;
-    return str_extruder;
+    return out;
 }
 
 void Model::convert_multipart_object(unsigned int max_extruders)
@@ -431,7 +440,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
             auto copy_volume = [o, max_extruders, &counter, &extruder_counter](ModelVolume *new_v) {
                 assert(new_v != nullptr);
                 new_v->name = o->name + "_" + std::to_string(counter++);
-                new_v->config.set_deserialize("extruder", auto_extruder_id(max_extruders, extruder_counter));
+                new_v->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
                 return new_v;
             };
             if (o->instances.empty()) {
@@ -1738,7 +1747,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
         this->object->volumes[ivolume]->center_geometry_after_creation();
         this->object->volumes[ivolume]->translate(offset);
         this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
-        this->object->volumes[ivolume]->config.set_deserialize("extruder", auto_extruder_id(max_extruders, extruder_counter));
+        this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
         this->object->volumes[ivolume]->m_is_splittable = 0;
         delete mesh;
         ++ idx;

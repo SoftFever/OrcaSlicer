@@ -224,7 +224,7 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
 			{
                 DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
                 config.set_num_extruders(4);
-                config.set_deserialize({ 
+                config.set_deserialize_strict({
                     { "start_gcode",                    "; Extruder [current_extruder]" },
                     { "infill_extruder",                2 },
                     { "solid_infill_extruder",          2 },

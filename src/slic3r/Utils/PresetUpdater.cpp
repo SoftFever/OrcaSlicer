@@ -612,7 +612,7 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			update.install();
 
 			PresetBundle bundle;
-			bundle.load_configbundle(update.source.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
+			bundle.load_configbundle(update.source.string(), PresetBundle::LoadConfigBundleAttribute::LoadSystem);
 
 			BOOST_LOG_TRIVIAL(info) << format("Deleting %1% conflicting presets", bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
 
@@ -710,6 +710,17 @@ void PresetUpdater::slic3r_update_notify()
 	}
 }
 
+static void reload_configs_update_gui()
+{
+	// Reload global configuration
+	auto* app_config = GUI::wxGetApp().app_config;
+	// System profiles should not trigger any substitutions, user profiles may trigger substitutions, but these substitutions
+	// were already presented to the user on application start up. Just do substitutions now and keep quiet about it.
+	GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent);
+	GUI::wxGetApp().load_current_presets();
+	GUI::wxGetApp().plater()->set_bed_shape();
+}
+
 PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, bool no_notification) const
 {
  	if (! p->enabled_config_update) { return R_NOOP; }
@@ -767,7 +778,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 		}
 
 		//forced update
-		if(incompatible_version)
+		if (incompatible_version)
 		{
 			BOOST_LOG_TRIVIAL(info) << format("Update of %1% bundles available. At least one requires higher version of Slicer.", updates.updates.size());
 
@@ -782,14 +793,8 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			const auto res = dlg.ShowModal();
 			if (res == wxID_OK) {
 				BOOST_LOG_TRIVIAL(info) << "User wants to update...";
-
 				p->perform_updates(std::move(updates));
-
-				// Reload global configuration
-				auto* app_config = GUI::wxGetApp().app_config;
-				GUI::wxGetApp().preset_bundle->load_presets(*app_config);
-				GUI::wxGetApp().load_current_presets();
-				GUI::wxGetApp().plater()->set_bed_shape();
+				reload_configs_update_gui();
 				return R_UPDATE_INSTALLED;
 			}
 			else {
@@ -814,11 +819,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			if (res == wxID_OK) {
 				BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
 				p->perform_updates(std::move(updates));
-
-				// Reload global configuration
-				auto* app_config = GUI::wxGetApp().app_config;
-				GUI::wxGetApp().preset_bundle->load_presets(*app_config);
-				GUI::wxGetApp().load_current_presets();
+				reload_configs_update_gui();
 				return R_UPDATE_INSTALLED;
 			}
 			else {
@@ -871,11 +872,7 @@ void PresetUpdater::on_update_notification_confirm()
 	if (res == wxID_OK) {
 		BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
 		p->perform_updates(std::move(p->waiting_updates));
-
-		// Reload global configuration
-		auto* app_config = GUI::wxGetApp().app_config;
-		GUI::wxGetApp().preset_bundle->load_presets(*app_config);
-		GUI::wxGetApp().load_current_presets();
+		reload_configs_update_gui();
 		p->has_waiting_updates = false;
 		//return R_UPDATE_INSTALLED;
 	}

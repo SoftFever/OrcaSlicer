@@ -413,7 +413,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
                 ++ it;
         // Read the active config bundle, parse the config version.
         PresetBundle bundle;
-        bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
+        bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LoadConfigBundleAttribute::LoadVendorOnly);
         for (const auto &vp : bundle.vendors)
             if (vp.second.id == cfg.name)
                 cfg.version.config_version = vp.second.config_version;

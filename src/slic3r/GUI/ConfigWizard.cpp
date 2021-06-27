@@ -64,7 +64,9 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_prusa_bu
     this->is_prusa_bundle = ais_prusa_bundle;
 
     std::string path_string = source_path.string();
-    size_t presets_loaded = preset_bundle->load_configbundle(path_string, PresetBundle::LOAD_CFGBNDLE_SYSTEM);
+    auto [config_substitutions, presets_loaded] = preset_bundle->load_configbundle(path_string, PresetBundle::LoadConfigBundleAttribute::LoadSystem);
+    // No substitutions shall be reported when loading a system config bundle, no substitutions are allowed.
+    assert(config_substitutions.empty());
     auto first_vendor = preset_bundle->vendors.begin();
     if (first_vendor == preset_bundle->vendors.end()) {
         BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: No vendor information defined, cannot install.") % path_string;
@@ -2592,7 +2594,10 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         }
     }
 
-    preset_bundle->load_presets(*app_config, preferred_model);
+    // Reloading the configs after some modifications were done to PrusaSlicer.ini.
+    // Just perform the substitutions silently, as the substitutions were already presented to the user on application start-up
+    // and the Wizard shall not create any new values that would require substitution.
+    PresetsConfigSubstitutions substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent, preferred_model);
 
     if (page_custom->custom_wanted()) {
         page_firmware->apply_custom_config(*custom_config);

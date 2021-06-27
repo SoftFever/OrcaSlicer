@@ -115,6 +115,7 @@
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
+#include "enum_bitmask.hpp"
 #include "format.hpp"
 #include "I18N.hpp"
 #include "MultiPoint.hpp"

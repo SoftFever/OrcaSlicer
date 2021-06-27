@@ -22,7 +22,7 @@
     %name{read_from_file} Model(std::string input_file, bool add_default_instances = true)
         %code%{
             try {
-                RETVAL = new Model(Model::read_from_file(input_file, nullptr, add_default_instances));
+                RETVAL = new Model(Model::read_from_file(input_file, nullptr, nullptr, only_if(add_default_instances, Model::LoadAttribute::AddDefaultInstances)));
             } catch (std::exception& e) {
                 croak("Error while opening %s: %s\n", input_file.c_str(), e.what());
             }
