@@ -91,7 +91,7 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
     	[](const PrintInstance& lhs, const PrintInstance& rhs) { return lhs.model_instance == rhs.model_instance && lhs.shift == rhs.shift; });
     if (! equal) {
         status = PrintBase::APPLY_STATUS_CHANGED;
-        if (m_print->invalidate_steps({ psSkirt, psBrim, psGCodeExport }) ||
+        if (m_print->invalidate_steps({ psSkirtBrim, psGCodeExport }) ||
             (! equal_length && m_print->invalidate_step(psWipeTower)))
             status = PrintBase::APPLY_STATUS_INVALIDATED;
         m_instances = std::move(instances);
@@ -674,18 +674,18 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     // propagate to dependent steps
     if (step == posPerimeters) {
 		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning });
-        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posPrepareInfill) {
         invalidated |= this->invalidate_steps({ posInfill, posIroning });
     } else if (step == posInfill) {
         invalidated |= this->invalidate_steps({ posIroning });
-        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posSlice) {
 		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial });
-		invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
-        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     }
 

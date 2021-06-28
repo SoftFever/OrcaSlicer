@@ -157,7 +157,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wipe_tower_x"
             || opt_key == "wipe_tower_y"
             || opt_key == "wipe_tower_rotation_angle") {
-            steps.emplace_back(psSkirt);
+            steps.emplace_back(psSkirtBrim);
         } else if (
                opt_key == "nozzle_diameter"
             || opt_key == "resolution"
@@ -201,7 +201,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "first_layer_speed"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
-            steps.emplace_back(psSkirt);
+            steps.emplace_back(psSkirtBrim);
         } else if (opt_key == "filament_soluble") {
             steps.emplace_back(psWipeTower);
             // Soluble support interface / non-soluble base interface produces non-soluble interface layers below soluble interface layers.
@@ -215,8 +215,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
-            steps.emplace_back(psSkirt);
-            steps.emplace_back(psBrim);
+            steps.emplace_back(psSkirtBrim);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             //FIXME invalidate all steps of all objects as well?
@@ -239,8 +238,6 @@ bool Print::invalidate_step(PrintStep step)
 {
 	bool invalidated = Inherited::invalidate_step(step);
     // Propagate to dependent steps.
-    if (step == psSkirt)
-		invalidated |= Inherited::invalidate_step(psBrim);
     if (step != psGCodeExport)
         invalidated |= Inherited::invalidate_step(psGCodeExport);
     return invalidated;
@@ -861,7 +858,7 @@ void Print::process()
         }
         this->set_done(psWipeTower);
     }
-    if (this->set_started(psSkirt)) {
+    if (this->set_started(psSkirtBrim)) {
         m_skirt.clear();
         m_skirt_convex_hull.clear();
         m_first_layer_convex_hull.points.clear();
@@ -869,9 +866,7 @@ void Print::process()
             this->set_status(88, L("Generating skirt"));
             this->_make_skirt();
         }
-        this->set_done(psSkirt);
-    }
-	if (this->set_started(psBrim)) {
+
         m_brim.clear();
         m_first_layer_convex_hull.points.clear();
         if (this->has_brim()) {
@@ -884,7 +879,7 @@ void Print::process()
         // Brim depends on skirt (brim lines are trimmed by the skirt lines), therefore if
         // the skirt gets invalidated, brim gets invalidated as well and the following line is called.
         this->finalize_first_layer_convex_hull();
-        this->set_done(psBrim);
+        this->set_done(psSkirtBrim);
     }
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
