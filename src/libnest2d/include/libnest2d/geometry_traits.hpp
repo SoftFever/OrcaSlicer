@@ -501,8 +501,9 @@ inline P _Box<P>::center() const BP2D_NOEXCEPT {
     using Coord = TCoord<P>;
 
     P ret = { // No rounding here, we dont know if these are int coords
-        Coord( (getX(minc) + getX(maxc)) / Coord(2) ),
-        Coord( (getY(minc) + getY(maxc)) / Coord(2) )
+        // Doing the division like this increases the max range of x and y coord
+        getX(minc) / Coord(2) + getX(maxc) / Coord(2),
+        getY(minc) / Coord(2) + getY(maxc) / Coord(2)
     };
 
     return ret;
