@@ -2261,12 +2261,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         // and place the loaded config over the base.
                         config += std::move(config_loaded);
                     }
-                    if (! config_substitutions.empty()) {
-                        // TODO:
-                        show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                            " To recover these files, incompatible values were changed to default values."
-                            " But data in files won't be changed until you save them in PrusaSlicer.")));
-                    }
+                    if (! config_substitutions.empty())
+                        show_substitutions_info(config_substitutions.substitutions, filename.string());
 
                     this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                 }

@@ -159,7 +159,7 @@ void SLAImportJob::process()
     }
 
     if (! config_substitutions.empty()) {
-        //FIXME Add reporting here "Loading profiles found following incompatibilities."
+        show_substitutions_info(config_substitutions, path);
     }
     
     update_status(100, was_canceled() ? _(L("Importing canceled.")) :

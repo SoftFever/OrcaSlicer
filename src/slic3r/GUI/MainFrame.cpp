@@ -1749,12 +1749,8 @@ bool MainFrame::load_config_file(const std::string &path)
 {
     try {
         ConfigSubstitutions config_substitutions = wxGetApp().preset_bundle->load_config_file(path, ForwardCompatibilitySubstitutionRule::Enable);
-        if (! config_substitutions.empty()) {
-            // TODO: Add list of changes from all_substitutions
-            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                " To recover these files, incompatible values were changed to default values."
-                " But data in files won't be changed until you save them in PrusaSlicer.")));
-        }
+        if (!config_substitutions.empty())
+            show_substitutions_info(config_substitutions, path);
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return false;
@@ -1819,12 +1815,8 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
         return;
     }
 
-    if (! config_substitutions.empty()) {
-        // TODO: Add list of changes from all_substitutions
-        show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-            " To recover these files, incompatible values were changed to default values."
-            " But data in files won't be changed until you save them in PrusaSlicer.")));
-    }
+    if (! config_substitutions.empty())
+        show_substitutions_info(config_substitutions);
 
     // Load the currently selected preset into the GUI, update the preset selection box.
 	wxGetApp().load_current_presets();

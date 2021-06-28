@@ -888,7 +888,7 @@ unsigned get_current_pid()
 #endif
 }
 
-std::string xml_escape(std::string text)
+std::string xml_escape(std::string text, bool is_marked/* = false*/)
 {
     std::string::size_type pos = 0;
     for (;;)
@@ -903,8 +903,8 @@ std::string xml_escape(std::string text)
         case '\"': replacement = "&quot;"; break;
         case '\'': replacement = "&apos;"; break;
         case '&':  replacement = "&amp;";  break;
-        case '<':  replacement = "&lt;";   break;
-        case '>':  replacement = "&gt;";   break;
+        case '<':  replacement = is_marked ? "<" :"&lt;"; break;
+        case '>':  replacement = is_marked ? ">" :"&gt;"; break;
         default: break;
         }
 

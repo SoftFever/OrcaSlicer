@@ -626,12 +626,8 @@ void GUI_App::post_init()
             this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
     }
     else {
-        if (! this->init_params->preset_substitutions.empty()) {
-            // TODO: Add list of changes from all_substitutions
-            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                " To recover these files, incompatible values were changed to default values."
-                " But data in files won't be changed until you save them in PrusaSlicer.")));
-        } 
+        if (! this->init_params->preset_substitutions.empty())
+            show_substitutions_info(this->init_params->preset_substitutions);
 
 #if 0
         // Load the cummulative config over the currently active profiles.
@@ -1879,12 +1875,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                     try {
                         app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
                         if (PresetsConfigSubstitutions all_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable);
-                            ! all_substitutions.empty()) {
-                            // TODO:
-                            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                                " To recover these files, incompatible values were changed to default values."
-                                " But data in files won't be changed until you save them in PrusaSlicer.")));
-                        }
+                            ! all_substitutions.empty())
+                            show_substitutions_info(all_substitutions);
+
                         // Load the currently selected preset into the GUI, update the preset selection box.
                         load_current_presets();
                     } catch (std::exception &ex) {

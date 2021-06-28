@@ -244,6 +244,92 @@ void warning_catcher(wxWindow* parent, const wxString& message)
 	msg.ShowModal();
 }
 
+static void add_config_substitutions(const ConfigSubstitutions& conf_substitutions, wxString& changes)
+{
+	for (const ConfigSubstitution& conf_substitution : conf_substitutions) {
+		wxString new_val;
+		if (!conf_substitution.opt_def)
+			continue;
+		if (conf_substitution.opt_def->type == coEnum) {
+			const std::vector<std::string>& labels = conf_substitution.opt_def->enum_labels;
+			const std::vector<std::string>& values = conf_substitution.opt_def->enum_values;
+			int val = conf_substitution.new_value->getInt();
+
+			bool is_infill = conf_substitution.opt_def->opt_key == "top_fill_pattern" ||
+				conf_substitution.opt_def->opt_key == "bottom_fill_pattern" ||
+				conf_substitution.opt_def->opt_key == "fill_pattern";
+
+			// Each infill doesn't use all list of infill declared in PrintConfig.hpp.
+			// So we should "convert" val to the correct one
+			if (is_infill) {
+				for (const auto& key_val : *conf_substitution.opt_def->enum_keys_map)
+					if ((int)key_val.second == val) {
+						auto it = std::find(values.begin(), values.end(), key_val.first);
+						if (it == values.end())
+							break;
+						new_val = from_u8(_utf8(labels[it - values.begin()]));
+						break;
+					}
+				new_val = _L("Undef");
+			}
+			else
+				new_val = from_u8(_utf8(labels[val]));
+		}
+		else if (conf_substitution.opt_def->type == coBool)
+			new_val = conf_substitution.new_value->getBool() ? "true" : "false";
+
+		changes += "\n" + GUI::format(_L("New unknown value <b>\"%1%\"</b> was changed to defaul value <b>\"%2%\"</b>"), conf_substitution.old_value, new_val);
+	}
+}
+
+void show_substitutions_info(const PresetsConfigSubstitutions& presets_config_substitutions) 
+{
+	wxString changes;
+
+	auto preset_type_name = [](Preset::Type type) {
+		return	type == Slic3r::Preset::TYPE_PRINT			? _L("Print") :
+				type == Slic3r::Preset::TYPE_SLA_PRINT		? _L("SLA Print") :
+				type == Slic3r::Preset::TYPE_FILAMENT		? _L("Filament") :
+				type == Slic3r::Preset::TYPE_SLA_MATERIAL	? _L("SLA Material") :
+				type == Slic3r::Preset::TYPE_PRINTER		? _L("Printer") : "";
+	};
+
+	for (const PresetConfigSubstitutions& substitution : presets_config_substitutions) {
+		changes += "\n<p>" + GUI::format(_L(" %1% Preset : <b>%2%</b>"), preset_type_name(substitution.preset_type), substitution.preset_name);
+		if (!substitution.preset_file.empty())
+			changes += GUI::format(" (%1%)", substitution.preset_file);
+		changes += "</p>";
+
+		add_config_substitutions(substitution.substitutions, changes);
+	}
+	if (!changes.IsEmpty())
+		changes += "\n\n";
+
+	wxString message = format(_L("Loading profiles found following incompatibilities:%1%"
+								 " To recover these files, incompatible values were changed to default values.\n"
+							     " But data in files won't be changed until you save them in PrusaSlicer."), changes);
+
+	InfoDialog msg(nullptr, message);
+	msg.ShowModal();
+}
+
+void show_substitutions_info(const ConfigSubstitutions& config_substitutions, const std::string& filename)
+{
+	wxString changes = "\n";
+
+	add_config_substitutions(config_substitutions, changes);
+
+	if (!changes.IsEmpty())
+	changes += "\n\n";
+
+	wxString message = format(_L("Loading <b>%1%</b> file found incompatibilities.\n"
+								 "To recover this file, incompatible values were changed to default values:%2%"
+							     "But data in files won't be changed until you save them in PrusaSlicer."), from_u8(filename), changes);
+
+	InfoDialog msg(nullptr, message);
+	msg.ShowModal();
+}
+
 void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, const std::string& items)
 {
     if (comboCtrl == nullptr)
