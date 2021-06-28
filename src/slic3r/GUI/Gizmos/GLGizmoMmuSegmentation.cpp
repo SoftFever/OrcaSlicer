@@ -8,6 +8,7 @@
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 
@@ -16,9 +17,26 @@
 
 namespace Slic3r::GUI {
 
+static inline void show_notification_extruders_limit_exceeded()
+{
+    wxGetApp()
+        .plater()
+        ->get_notification_manager()
+        ->push_notification(NotificationType::MmSegmentationExceededExtrudersLimit, NotificationManager::NotificationLevel::RegularNotification,
+                            GUI::format(_L("Your printer has more extruders than the multi-material painting gizmo supports. For this reason, only the "
+                                           "first %1% extruders will be able to be used for painting."), GLGizmoMmuSegmentation::EXTRUDERS_LIMIT));
+}
+
+void GLGizmoMmuSegmentation::on_opening()
+{
+    if (wxGetApp().extruders_edited_cnt() > int(GLGizmoMmuSegmentation::EXTRUDERS_LIMIT))
+        show_notification_extruders_limit_exceeded();
+}
+
 void GLGizmoMmuSegmentation::on_shutdown()
 {
     m_parent.use_slope(false);
+    m_parent.toggle_model_objects_visibility(true);
 }
 
 std::string GLGizmoMmuSegmentation::on_get_name() const
@@ -131,6 +149,9 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
     ModelObject *model_object         = m_c->selection_info()->model_object();
     int          prev_extruders_count = int(m_original_extruders_colors.size());
     if (prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors) {
+        if (wxGetApp().extruders_edited_cnt() > int(GLGizmoMmuSegmentation::EXTRUDERS_LIMIT))
+            show_notification_extruders_limit_exceeded();
+
         this->init_extruders_data();
         // Reinitialize triangle selectors because of change of extruder count need also change the size of GLIndexedVertexArray
         if (prev_extruders_count != wxGetApp().extruders_edited_cnt())
@@ -157,7 +178,7 @@ static void render_extruders_combo(const std::string                       &labe
     ImGui::BeginGroup();
     ImVec2 combo_pos = ImGui::GetCursorScreenPos();
     if (ImGui::BeginCombo(label.c_str(), "")) {
-        for (size_t extruder_idx = 0; extruder_idx < extruders.size(); ++extruder_idx) {
+        for (size_t extruder_idx = 0; extruder_idx < std::min(extruders.size(), GLGizmoMmuSegmentation::EXTRUDERS_LIMIT); ++extruder_idx) {
             ImGui::PushID(int(extruder_idx));
             ImVec2 start_position = ImGui::GetCursorScreenPos();
 

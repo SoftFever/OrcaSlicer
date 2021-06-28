@@ -87,7 +87,9 @@ enum class NotificationType
     DesktopIntegrationSuccess,
     DesktopIntegrationFail,
     UndoDesktopIntegrationSuccess,
-    UndoDesktopIntegrationFail
+    UndoDesktopIntegrationFail,
+    // Notification that a printer has more extruders than are supported by MM Gizmo/segmentation.
+    MmSegmentationExceededExtrudersLimit
 
 };
 
