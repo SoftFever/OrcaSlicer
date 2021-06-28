@@ -56,16 +56,15 @@ static const char *TMP_EXTENSION = ".download";
 
 void copy_file_fix(const fs::path &source, const fs::path &target)
 {
-	static const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;   // aka 644
-
 	BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
-
-	// Make sure the file has correct permission both before and after we copy over it
-	if (fs::exists(target)) {
-		fs::permissions(target, perms);
+	std::string error_message;
+	CopyFileResult cfr = copy_file(source.string(), target.string(), error_message, false);
+	if (cfr != CopyFileResult::SUCCESS) {
+		BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+		throw Slic3r::CriticalException(GUI::format(
+				_L("Copying of file %1% to %2% failed: %3%"),
+				source, target, error_message));
 	}
-	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists);
-	fs::permissions(target, perms);
 }
 
 struct Update
