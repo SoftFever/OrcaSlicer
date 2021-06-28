@@ -65,7 +65,9 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_prusa_bu
     this->is_prusa_bundle = ais_prusa_bundle;
 
     std::string path_string = source_path.string();
-    auto [config_substitutions, presets_loaded] = preset_bundle->load_configbundle(path_string, PresetBundle::LoadConfigBundleAttribute::LoadSystem);
+    // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
+    auto [config_substitutions, presets_loaded] = preset_bundle->load_configbundle(
+        path_string, PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
     UNUSED(config_substitutions);
     // No substitutions shall be reported when loading a system config bundle, no substitutions are allowed.
     assert(config_substitutions.empty());
@@ -2590,7 +2592,8 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     // Reloading the configs after some modifications were done to PrusaSlicer.ini.
     // Just perform the substitutions silently, as the substitutions were already presented to the user on application start-up
     // and the Wizard shall not create any new values that would require substitution.
-    PresetsConfigSubstitutions substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent, preferred_model);
+    // Throw on substitutions in system profiles, as the system profiles provided over the air should be compatible with this PrusaSlicer version.
+    preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem, preferred_model);
 
     if (page_custom->custom_wanted()) {
         page_firmware->apply_custom_config(*custom_config);

@@ -65,6 +65,10 @@ void copy_file_fix(const fs::path &source, const fs::path &target)
 				_L("Copying of file %1% to %2% failed: %3%"),
 				source, target, error_message));
 	}
+	// Permissions should be copied from the source file by copy_file(). We are not sure about the source
+	// permissions, let's rewrite them with 644.
+	static constexpr const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;
+	fs::permissions(target, perms);
 }
 
 struct Update
@@ -611,7 +615,8 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			update.install();
 
 			PresetBundle bundle;
-			bundle.load_configbundle(update.source.string(), PresetBundle::LoadConfigBundleAttribute::LoadSystem);
+			// Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
+			bundle.load_configbundle(update.source.string(), PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
 
 			BOOST_LOG_TRIVIAL(info) << format("Deleting %1% conflicting presets", bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
 
@@ -715,7 +720,8 @@ static void reload_configs_update_gui()
 	auto* app_config = GUI::wxGetApp().app_config;
 	// System profiles should not trigger any substitutions, user profiles may trigger substitutions, but these substitutions
 	// were already presented to the user on application start up. Just do substitutions now and keep quiet about it.
-	GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent);
+	// However throw on substitutions in system profiles, those shall never happen with system profiles installed over the air.
+	GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
 	GUI::wxGetApp().load_current_presets();
 	GUI::wxGetApp().plater()->set_bed_shape();
 }

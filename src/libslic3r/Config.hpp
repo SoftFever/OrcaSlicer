@@ -166,9 +166,16 @@ enum PrinterTechnology : unsigned char
 
 enum ForwardCompatibilitySubstitutionRule
 {
+    // Disable susbtitution, throw exception if an option value is not recognized.
     Disable,
+    // Enable substitution of an unknown option value with default. Log the substitution.
     Enable,
+    // Enable substitution of an unknown option value with default. Don't log the substitution.
     EnableSilent,
+    // Enable substitution of an unknown option value with default. Log substitutions in user profiles, don't log substitutions in system profiles.
+    EnableSystemSilent,
+    // Enable silent substitution of an unknown option value with default when loading user profiles. Throw on an unknown option value in a system profile.
+    EnableSilentDisableSystem,
 };
 
 class  ConfigOption;

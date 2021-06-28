@@ -191,7 +191,9 @@ void PresetBundle::setup_directories()
 PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule substitution_rule, const std::string &preferred_model_id)
 {
     // First load the vendor specific system presets.
-    std::string errors_cummulative = this->load_system_presets();
+    PresetsConfigSubstitutions substitutions;
+    std::string errors_cummulative;
+    std::tie(substitutions, errors_cummulative) = this->load_system_presets(substitution_rule);
 
     const std::string dir_user_presets = data_dir()
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
@@ -202,7 +204,6 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
 #endif
         ;
 
-    PresetsConfigSubstitutions substitutions;
     try {
         this->prints.load_presets(dir_user_presets, "print", substitutions, substitution_rule);
     } catch (const std::runtime_error &err) {
@@ -245,12 +246,20 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
 
 // Load system presets into this PresetBundle.
 // For each vendor, there will be a single PresetBundle loaded.
-std::string PresetBundle::load_system_presets()
+std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
+    if (compatibility_rule == ForwardCompatibilitySubstitutionRule::EnableSystemSilent)
+        // Loading system presets, don't log substitutions.
+        compatibility_rule = ForwardCompatibilitySubstitutionRule::EnableSilent;
+    else if (compatibility_rule == ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem)
+        // Loading system presets, throw on unknown option value.
+        compatibility_rule = ForwardCompatibilitySubstitutionRule::Disable;
+
     // Here the vendor specific read only Config Bundles are stored.
-    boost::filesystem::path dir = (boost::filesystem::path(data_dir()) / "vendor").make_preferred();
-    std::string errors_cummulative;
-    bool        first = true;
+    boost::filesystem::path     dir = (boost::filesystem::path(data_dir()) / "vendor").make_preferred();
+    PresetsConfigSubstitutions  substitutions;
+    std::string                 errors_cummulative;
+    bool                        first = true;
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
         if (Slic3r::is_ini_file(dir_entry)) {
             std::string name = dir_entry.path().filename().string();
@@ -260,13 +269,13 @@ std::string PresetBundle::load_system_presets()
                 // Load the config bundle, flatten it.
                 if (first) {
                     // Reset this PresetBundle and load the first vendor config.
-                    this->load_configbundle(dir_entry.path().string(), PresetBundle::LoadSystem);
+                    append(substitutions, this->load_configbundle(dir_entry.path().string(), PresetBundle::LoadSystem, compatibility_rule).first);
                     first = false;
                 } else {
                     // Load the other vendor configs, merge them with this PresetBundle.
                     // Report duplicate profiles.
                     PresetBundle other;
-                    other.load_configbundle(dir_entry.path().string(), PresetBundle::LoadSystem);
+                    append(substitutions, other.load_configbundle(dir_entry.path().string(), PresetBundle::LoadSystem, compatibility_rule).first);
                     std::vector<std::string> duplicates = this->merge_presets(std::move(other));
                     if (! duplicates.empty()) {
                         errors_cummulative += "Vendor configuration file " + name + " contains the following presets with names used by other vendors: ";
@@ -288,7 +297,7 @@ std::string PresetBundle::load_system_presets()
 	}
 
 	this->update_system_maps();
-    return errors_cummulative;
+    return std::make_pair(std::move(substitutions), errors_cummulative);
 }
 
 // Merge one vendor's presets with the other vendor's presets, report duplicates.
@@ -739,7 +748,7 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
         return config_substitutions;
     }
     case CONFIG_FILE_TYPE_CONFIG_BUNDLE:
-        return load_config_file_config_bundle(path, tree);
+        return load_config_file_config_bundle(path, tree, compatibility_rule);
     }
 
     // This shall never happen. Suppres compiler warnings.
@@ -916,13 +925,14 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 }
 
 // Load the active configuration of a config bundle from a boost property_tree. This is a private method called from load_config_file.
-ConfigSubstitutions PresetBundle::load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree)
+ConfigSubstitutions PresetBundle::load_config_file_config_bundle(
+    const std::string &path, const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     // 1) Load the config bundle into a temp data.
     PresetBundle tmp_bundle;
     // Load the config bundle, but don't save the loaded presets to user profile directory, as only the presets marked as active in the loaded preset bundle
     // will be loaded into the master PresetBundle and activated.
-    auto [presets_substitutions, presets_imported] = tmp_bundle.load_configbundle(path, {});
+    auto [presets_substitutions, presets_imported] = tmp_bundle.load_configbundle(path, {}, compatibility_rule);
     UNUSED(presets_imported);
 
     std::string bundle_name = std::string(" - ") + boost::filesystem::path(path).filename().string();
@@ -1135,15 +1145,11 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, co
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
 // of the local configuration directory.
-std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(const std::string &path, LoadConfigBundleAttributes flags)
+std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
+    const std::string &path, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     // Enable substitutions for user config bundle, throw an exception when loading a system profile.
-    ConfigSubstitutionContext substitution_context {
-        flags.has(LoadConfigBundleAttribute::LoadSystem) ?
-            ForwardCompatibilitySubstitutionRule::Disable :
-            ForwardCompatibilitySubstitutionRule::Enable 
-        };
-
+    ConfigSubstitutionContext  substitution_context { compatibility_rule };
     PresetsConfigSubstitutions substitutions;
 
     if (flags.has(LoadConfigBundleAttribute::ResetUserProfile) || flags.has(LoadConfigBundleAttribute::LoadSystem))

@@ -912,7 +912,10 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
     try {
-        init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable);
+        // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
+        // If there are substitutions in system profiles, then a "reconfigure" event shall be triggered, which will force
+        // installation of a compatible system preset, thus nullifying the system preset substitutions.
+        init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
     } catch (const std::exception &ex) {
         show_error(nullptr, ex.what());
     }
@@ -1874,6 +1877,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                         Config::SnapshotDB::singleton().take_snapshot(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
                     try {
                         app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
+                        // Enable substitutions, log both user and system substitutions. There should not be any substitutions performed when loading system
+                        // presets because compatibility of profiles shall be verified using the min_slic3r_version keys in config index, but users
+                        // are known to be creative and mess with the config files in various ways.
                         if (PresetsConfigSubstitutions all_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable);
                             ! all_substitutions.empty())
                             show_substitutions_info(all_substitutions);
