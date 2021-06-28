@@ -21,6 +21,7 @@
 
 #include "AboutDialog.hpp"
 #include "MsgDialog.hpp"
+#include "format.hpp"
 
 #include "libslic3r/Print.hpp"
 
