@@ -50,6 +50,7 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htFlashAir:  return new FlashAir(config);
             case htAstroBox:  return new AstroBox(config);
             case htRepetier:  return new Repetier(config);
+            case htPrusaLink: return new PrusaLink(config);
             default:          return nullptr;
         }
     } else {

@@ -1141,6 +1141,10 @@ void Choice::set_value(const boost::any& value, bool change_event)
 	}
 	case coEnum: {
 		int val = boost::any_cast<int>(value);
+		if (m_opt_id.compare("host_type") == 0 && val != 0 && 
+			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
+			val--;
+
 		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern")
 		{
 			std::string key;
@@ -1197,7 +1201,7 @@ void Choice::set_values(const wxArrayString &values)
 	auto ww = dynamic_cast<choice_ctrl*>(window);
 	auto value = ww->GetValue();
 	ww->Clear();
-	ww->Append("");
+//	ww->Append("");
 	for (const auto &el : values)
 		ww->Append(el);
 	ww->SetValue(value);
@@ -1219,7 +1223,10 @@ boost::any& Choice::get_value()
 
 	if (m_opt.type == coEnum)
 	{
-		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern") {
+		if (m_opt_id.compare("host_type") == 0 && m_opt.enum_values.size() > field->GetCount()) {
+			// for case, when PrusaLink isn't used as a HostType
+			m_value = field->GetSelection()+1;
+		} else if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(ConfigOptionEnum<InfillPattern>::get_enum_values().at(key));
 		}
