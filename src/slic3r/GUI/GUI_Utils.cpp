@@ -1,15 +1,15 @@
 #include "GUI_Utils.hpp"
+#include "GUI_App.hpp"
 
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 
 #ifdef _WIN32
-#include <Windows.h>
-#include "GUI_App.hpp"
-#include "libslic3r/AppConfig.hpp"
-#include <wx/msw/registry.h>
-#endif
+    #include <Windows.h>
+    #include "libslic3r/AppConfig.hpp"
+    #include <wx/msw/registry.h>
+#endif // _WIN32
 
 #include <wx/toplevel.h>
 #include <wx/sizer.h>
