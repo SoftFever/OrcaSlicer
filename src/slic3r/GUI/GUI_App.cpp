@@ -435,7 +435,7 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 
         /* FT_TEX */     "Texture (*.png, *.svg)|*.png;*.PNG;*.svg;*.SVG",
 
-        /* FT_PNGZIP */  "Masked SLA files (*.sl1)|*.sl1;*.SL1",
+        /* FT_PNGZIP */  "Masked SLA files (*.sl1, *sl1s)|*.sl1;*.SL1;*.sl1s;*.SL1S",
     };
 
 	std::string out = defaults[file_type];

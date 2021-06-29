@@ -5303,7 +5303,7 @@ void Plater::export_gcode(bool prefer_removable)
 
     fs::path output_path;
     {
-        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SL1 file as:"),
+        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SL1 / SL1S file as:"),
             start_dir,
             from_path(default_output_file.filename()),
             GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),

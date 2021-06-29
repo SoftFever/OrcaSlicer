@@ -234,7 +234,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("thumbnails", coPoints);
     def->label = L("G-code thumbnails");
-    def->tooltip = L("Picture sizes to be stored into a .gcode and .sl1 files, in the following format: \"XxY, XxY, ...\"");
+    def->tooltip = L("Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the following format: \"XxY, XxY, ...\"");
     def->mode = comExpert;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints());
