@@ -50,7 +50,7 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
     { "teacup",         gcfTeacup },
     { "makerware",      gcfMakerWare },
     { "marlin",         gcfMarlinLegacy },
-    { "marlinfirmware", gcfMarlinFirmware },
+    { "marlin2",        gcfMarlinFirmware },
     { "sailfish",       gcfSailfish },
     { "smoothie",       gcfSmoothie },
     { "mach3",          gcfMach3 },
@@ -1253,7 +1253,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("teacup");
     def->enum_values.push_back("makerware");
     def->enum_values.push_back("marlin");
-    def->enum_values.push_back("marlinfirmware");
+    def->enum_values.push_back("marlin2");
     def->enum_values.push_back("sailfish");
     def->enum_values.push_back("mach3");
     def->enum_values.push_back("machinekit");
@@ -3618,8 +3618,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         } catch (boost::bad_lexical_cast &) {
             value = "0";
         }
-    } else if (opt_key == "gcode_flavor" && value == "makerbot") {
-        value = "makerware";
+    } else if (opt_key == "gcode_flavor") {
+        if (value == "makerbot")
+            value = "makerware";
+        else if (value == "marlinfirmware")
+            // the "new" marlin firmware flavor used to be called "marlinfirmware" for some time during PrusaSlicer 2.4.0-alpha development.
+            value = "marlin2";
     } else if (opt_key == "fill_density" && value.find("%") == std::string::npos) {
         try {
             // fill_density was turned into a percent value
