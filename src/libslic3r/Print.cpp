@@ -859,25 +859,36 @@ void Print::process()
         this->set_done(psWipeTower);
     }
     if (this->set_started(psSkirtBrim)) {
+        this->set_status(88, L("Generating skirt and brim"));
+
         m_skirt.clear();
         m_skirt_convex_hull.clear();
         m_first_layer_convex_hull.points.clear();
-        if (this->has_skirt()) {
-            this->set_status(88, L("Generating skirt"));
-            this->_make_skirt();
+        const bool draft_shield = config().draft_shield;
+
+        if (this->has_skirt() && draft_shield) {
+            // In case that draft shield is active, generate skirt first so brim
+            // can be trimmed to make room for it.
+            _make_skirt();
         }
 
         m_brim.clear();
         m_first_layer_convex_hull.points.clear();
         if (this->has_brim()) {
-            this->set_status(88, L("Generating brim"));
             Polygons islands_area;
             m_brim = make_brim(*this, this->make_try_cancel(), islands_area);
             for (Polygon &poly : union_(this->first_layer_islands(), islands_area))
                 append(m_first_layer_convex_hull.points, std::move(poly.points));
         }
-        // Brim depends on skirt (brim lines are trimmed by the skirt lines), therefore if
-        // the skirt gets invalidated, brim gets invalidated as well and the following line is called.
+
+
+        if (has_skirt() && ! draft_shield) {
+            // In case that draft shield is NOT active, generate skirt now.
+            // It will be placed around the brim, so brim has to be ready.
+            assert(m_skirt.empty());
+            _make_skirt();
+        }
+
         this->finalize_first_layer_convex_hull();
         this->set_done(psSkirtBrim);
     }
@@ -958,6 +969,10 @@ void Print::_make_skirt()
 
     // Include the wipe tower.
     append(points, this->first_layer_wipe_tower_corners());
+
+    // Unless draft shield is enabled, include all brims as well.
+    if (! config().draft_shield)
+        append(points, m_first_layer_convex_hull.points);
 
     if (points.size() < 3)
         // At least three points required for a convex hull.
