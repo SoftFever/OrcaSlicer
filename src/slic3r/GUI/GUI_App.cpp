@@ -1886,6 +1886,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 
                         // Load the currently selected preset into the GUI, update the preset selection box.
                         load_current_presets();
+
+                        // update config wizard in respect to the new config
+                        update_wizard_from_config();
                     } catch (std::exception &ex) {
                         GUI::show_error(nullptr, _L("Failed to activate configuration snapshot.") + "\n" + into_u8(ex.what()));
                     }
@@ -2137,6 +2140,17 @@ void GUI_App::load_current_presets(bool check_printer_presets_ /*= true*/)
 		}
 }
 
+void GUI_App::update_wizard_from_config()
+{
+    if (!m_wizard)
+        return;
+    // If ConfigWizard was created before changing of the configuration,
+    // we have to destroy it to have possibility to create it again in respect to the new config's parameters
+    m_wizard->Reparent(nullptr);
+    m_wizard->Destroy();
+    m_wizard = nullptr;
+}
+
 bool GUI_App::OnExceptionInMainLoop()
 {
     generic_exception_handle();
@@ -2297,7 +2311,13 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 {
     wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
 
+    if (reason == ConfigWizard::RR_USER)
+        if (PresetUpdater::UpdateResult result = preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD);
+            result == PresetUpdater::R_ALL_CANCELED)
+            return false;
+
     if (! m_wizard) {
+        wxBusyCursor wait;
         m_wizard = new ConfigWizard(mainframe);
     }
 
@@ -2465,7 +2485,7 @@ void GUI_App::check_updates(const bool verbose)
 {	
 	PresetUpdater::UpdateResult updater_result;
 	try {
-		updater_result = preset_updater->config_update(app_config->orig_version(), verbose);
+		updater_result = preset_updater->config_update(app_config->orig_version(), verbose ? PresetUpdater::UpdateParams::SHOW_TEXT_BOX : PresetUpdater::UpdateParams::SHOW_NOTIFICATION);
 		if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
 			mainframe->Close();
 		}

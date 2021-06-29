@@ -724,9 +724,10 @@ static void reload_configs_update_gui()
 	GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
 	GUI::wxGetApp().load_current_presets();
 	GUI::wxGetApp().plater()->set_bed_shape();
+	GUI::wxGetApp().update_wizard_from_config();
 }
 
-PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, bool no_notification) const
+PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, UpdateParams params) const
 {
  	if (! p->enabled_config_update) { return R_NOOP; }
 
@@ -809,7 +810,11 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 		}
 
 		// regular update
-		if (no_notification) {
+		if (params == UpdateParams::SHOW_NOTIFICATION) {
+			p->set_waiting_updates(updates);
+			GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateAvailable);
+		}
+		else {
 			BOOST_LOG_TRIVIAL(info) << format("Update of %1% bundles available. Asking for confirmation ...", p->waiting_updates.updates.size());
 
 			std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
@@ -818,7 +823,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 				updates_msg.emplace_back(update.vendor, update.version.config_version, update.version.comment, std::move(changelog_url));
 			}
 
-			GUI::MsgUpdateConfig dlg(updates_msg);
+			GUI::MsgUpdateConfig dlg(updates_msg, params == UpdateParams::FORCED_BEFORE_WIZARD);
 
 			const auto res = dlg.ShowModal();
 			if (res == wxID_OK) {
@@ -829,11 +834,10 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			}
 			else {
 				BOOST_LOG_TRIVIAL(info) << "User refused the update";
+				if (params == UpdateParams::FORCED_BEFORE_WIZARD && res == wxID_CANCEL)
+					return R_ALL_CANCELED;
 				return R_UPDATE_REJECT;
 			}
-		} else {
-			p->set_waiting_updates(updates);
-			GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateAvailable);
 		}
 		
 		// MsgUpdateConfig will show after the notificaation is clicked
