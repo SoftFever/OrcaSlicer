@@ -6,7 +6,7 @@
 #include "I18N.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include <wx/notebook.h>
-#include <wx/listbook.h>
+#include "Notebook.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -58,15 +58,12 @@ void PreferencesDialog::build()
 
 #ifdef _MSW_DARK_MODE
 	wxBookCtrlBase* tabs;
-	if (wxGetApp().dark_mode()) {
-		tabs = new wxListbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME | wxNO_BORDER);
-		wxGetApp().UpdateDarkUI(tabs);
-		wxGetApp().UpdateDarkUI(dynamic_cast<wxListbook*>(tabs)->GetListView());
-	}
-	else {
+//	if (wxGetApp().dark_mode())
+		tabs = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME | wxNB_DEFAULT);
+/*	else {
 		tabs = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME | wxNB_DEFAULT);
 		tabs->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-	}
+	}*/
 #else
     wxNotebook* tabs = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL  |wxNB_NOPAGETHEME | wxNB_DEFAULT );
 	tabs->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -345,7 +342,6 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->get("dark_color_mode") == "1" });
 		option = Option(def, "dark_color_mode");
 		m_optgroup_gui->append_single_option_line(option);
-#endif
 
 		def.label = L("Set settings tabs as menu items (experimental)");
 		def.type = coBool;
@@ -354,6 +350,7 @@ void PreferencesDialog::build()
 		def.set_default_value(new ConfigOptionBool{ app_config->get("tabs_as_menu") == "1" });
 		option = Option(def, "tabs_as_menu");
 		m_optgroup_gui->append_single_option_line(option);
+#endif
 
 		def.label = L("Use custom size for toolbar icons");
 		def.type = coBool;
@@ -414,11 +411,7 @@ void PreferencesDialog::accept()
 //	if (m_values.find("no_defaults") != m_values.end()
 //		warning_catcher(this, wxString::Format(_L("You need to restart %s to make the changes effective."), SLIC3R_APP_NAME));
 
-	std::vector<std::string> options_to_recreate_GUI = { "no_defaults", "tabs_as_menu"
-#ifdef _MSW_DARK_MODE
-		,"dark_color_mode"
-#endif
-	};
+	std::vector<std::string> options_to_recreate_GUI = { "no_defaults", "tabs_as_menu" };
 
 	for (const std::string& option : options_to_recreate_GUI) {
 		if (m_values.find(option) != m_values.end()) {
@@ -432,9 +425,6 @@ void PreferencesDialog::accept()
 				wxICON_QUESTION | wxYES | wxNO);
 			if (dialog.ShowModal() == wxID_YES) {
 				m_recreate_GUI = true;
-#ifdef _MSW_DARK_MODE
-				m_color_mode_changed = m_values.find("dark_color_mode") != m_values.end();
-#endif
 			}
 			else {
 				for (const std::string& option : options_to_recreate_GUI)
@@ -494,6 +484,11 @@ void PreferencesDialog::accept()
 	}
 
 	EndModal(wxID_OK);
+
+#ifdef _MSW_DARK_MODE
+	if (m_values.find("dark_color_mode") != m_values.end())
+		wxGetApp().force_colors_update();
+#endif
 
 	if (m_settings_layout_changed)
 		;// application will be recreated after Preference dialog will be destroyed
@@ -585,7 +580,9 @@ void PreferencesDialog::create_icon_size_slider()
 
 void PreferencesDialog::create_settings_mode_widget()
 {
-	bool dark_mode = wxGetApp().dark_mode();
+#ifdef _MSW_DARK_MODE
+	bool disable_new_layout = wxGetApp().tabs_as_menu();
+#endif
 	std::vector<wxString> choices = {  _L("Old regular layout with the tab bar"),
                                        _L("New layout, access via settings button in the top menu"),
                                        _L("Settings in non-modal window") };
@@ -596,7 +593,7 @@ void PreferencesDialog::create_settings_mode_widget()
                     app_config->get("dlg_settings_layout_mode") == "1" ? 2 : 0;
 
 #ifdef _MSW_DARK_MODE
-	if (dark_mode) {
+	if (disable_new_layout) {
 		choices = { _L("Old regular layout with the tab bar"),
 					_L("Settings in non-modal window") };
 		selection = app_config->get("dlg_settings_layout_mode") == "1" ? 1 : 0;
@@ -621,14 +618,18 @@ void PreferencesDialog::create_settings_mode_widget()
 
         int dlg_id = 2;
 #ifdef _MSW_DARK_MODE
-		if (dark_mode)
+		if (disable_new_layout)
 			dlg_id = 1;
 #endif
 
-        btn->Bind(wxEVT_RADIOBUTTON, [this, id, dlg_id, dark_mode](wxCommandEvent& ) {
+        btn->Bind(wxEVT_RADIOBUTTON, [this, id, dlg_id
+#ifdef _MSW_DARK_MODE
+			, disable_new_layout
+#endif
+		](wxCommandEvent& ) {
             m_values["old_settings_layout_mode"] = (id == 0) ? "1" : "0";
 #ifdef _MSW_DARK_MODE
-			if (!dark_mode)
+			if (!disable_new_layout)
             m_values["new_settings_layout_mode"] = (id == 1) ? "1" : "0";
 #endif
             m_values["dlg_settings_layout_mode"] = (id == dlg_id) ? "1" : "0";
@@ -637,7 +638,7 @@ void PreferencesDialog::create_settings_mode_widget()
 	}
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	sizer->Add(/*m_layout_mode_box*/stb_sizer, 1, wxALIGN_CENTER_VERTICAL);
+	sizer->Add(stb_sizer, 1, wxALIGN_CENTER_VERTICAL);
 	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND | wxTOP, em_unit());
 }
 

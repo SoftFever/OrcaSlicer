@@ -17,6 +17,7 @@
 #include "I18N.hpp"
 #include "ConfigWizard.hpp"
 #include "wxExtensions.hpp"
+#include "Mainframe.hpp"
 #include "GUI_App.hpp"
 
 namespace Slic3r {
@@ -24,7 +25,7 @@ namespace GUI {
 
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id, wxBitmap bitmap)
-	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	: wxDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 	, boldfont(wxGetApp().normal_font()/*wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)*/)
 	, content_sizer(new wxBoxSizer(wxVERTICAL))
 	, btn_sizer(new wxBoxSizer(wxHORIZONTAL))
@@ -136,6 +137,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
 
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 	Fit();
+    this->CenterOnParent();
 }
 
 // WarningDialog
@@ -157,9 +159,10 @@ WarningDialog::WarningDialog(wxWindow *parent,
 
     wxGetApp().UpdateDlgDarkUI(this);
     Fit();
+    this->CenterOnParent();
 }
 
-
+#ifdef _WIN32
 // MessageDialog
 
 MessageDialog::MessageDialog(wxWindow* parent,
@@ -181,7 +184,9 @@ MessageDialog::MessageDialog(wxWindow* parent,
 
     wxGetApp().UpdateDlgDarkUI(this);
     Fit();
+    this->CenterOnParent();
 }
+#endif
 
 }
 }

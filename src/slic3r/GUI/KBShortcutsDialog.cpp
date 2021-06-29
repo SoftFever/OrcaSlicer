@@ -3,13 +3,13 @@
 #include "I18N.hpp"
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
+#include "Notebook.hpp"
 #include <wx/scrolwin.h>
 #include <wx/display.h>
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "MainFrame.hpp"
 #include <wx/notebook.h>
-#include <wx/listbook.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -18,8 +18,6 @@ KBShortcutsDialog::KBShortcutsDialog()
     : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, wxString(wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) + " - " + _L("Keyboard Shortcuts"),
     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-//    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-
     // fonts
     const wxFont& font = wxGetApp().normal_font();
     const wxFont& bold_font = wxGetApp().bold_font();
@@ -31,13 +29,10 @@ KBShortcutsDialog::KBShortcutsDialog()
 
 #ifdef _MSW_DARK_MODE
     wxBookCtrlBase* book;
-    if (wxGetApp().dark_mode()) {
-        book = new wxListbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
-        wxGetApp().UpdateDarkUI(book);
-        wxGetApp().UpdateDarkUI(dynamic_cast<wxListbook*>(book)->GetListView());
-    }
-    else
-        book = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+//    if (wxGetApp().dark_mode()) 
+        book = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+/*    else
+        book = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);*/
 #else
     wxNotebook* book = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
 #endif

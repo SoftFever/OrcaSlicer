@@ -10,7 +10,6 @@ namespace boost::filesystem { class path; }
 
 class wxWindow;
 class wxMenuBar;
-class wxNotebook;
 class wxComboCtrl;
 class wxFileDialog;
 class wxTopLevelWindow;

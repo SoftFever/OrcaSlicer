@@ -1115,5 +1115,20 @@ void MenuFactory::sys_color_changed()
     }
 }
 
+void MenuFactory::sys_color_changed(wxMenuBar* menubar)
+{
+    for (size_t id = 0; id < menubar->GetMenuCount(); id++) {
+        wxMenu* menu = menubar->GetMenu(id);
+        msw_rescale_menu(menu);
+#ifdef _WIN32 
+        // but under MSW we have to update item's bachground color
+        for (wxMenuItem* item : menu->GetMenuItems())
+            update_menu_item_def_colors(item);
+#endif
+    }
+    menubar->Refresh();
+}
+
+
 } //namespace GUI
 } //namespace Slic3r 

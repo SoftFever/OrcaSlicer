@@ -18,7 +18,6 @@
 #include "Event.hpp"
 #include "UnsavedChangesDialog.hpp"
 
-class wxNotebook;
 class wxBookCtrlBase;
 class wxProgressDialog;
 
@@ -154,7 +153,7 @@ public:
 
     void        init_tabpanel();
     void        create_preset_tabs();
-    void        add_created_tab(Tab* panel);
+    void        add_created_tab(Tab* panel, const std::string& bmp_name = "");
     bool        is_active_and_shown_tab(Tab* tab);
     // Register Win32 RawInput callbacks (3DConnexion) and removable media insert / remove callbacks.
     // Called from wxEVT_ACTIVATE, as wxEVT_CREATE was not reliable (bug in wxWidgets?).

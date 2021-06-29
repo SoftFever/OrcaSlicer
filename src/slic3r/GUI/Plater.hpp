@@ -112,6 +112,10 @@ public:
     void                    update_searcher();
     void                    update_ui_from_settings();
 
+#ifdef _MSW_DARK_MODE
+    void                    show_mode_sizer(bool show);
+#endif
+
     std::vector<PlaterPresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();

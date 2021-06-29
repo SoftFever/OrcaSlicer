@@ -838,9 +838,13 @@ ScalableButton::ScalableButton( wxWindow *          parent,
     Create(parent, id, label, pos, size, style);
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this);
 
-    SetBitmap(create_scaled_bitmap(icon_name, parent, m_px_cnt));
-    if (m_use_default_disabled_bitmap)
-        SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
+    if (!icon_name.empty()) {
+        SetBitmap(create_scaled_bitmap(icon_name, parent, m_px_cnt));
+        if (m_use_default_disabled_bitmap)
+            SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
+        if (!label.empty())
+            SetBitmapMargins(int(0.5* em_unit(parent)), 0);
+    }
 
     if (size != wxDefaultSize)
     {
@@ -873,6 +877,20 @@ void ScalableButton::SetBitmap_(const ScalableBitmap& bmp)
     m_current_icon_name = bmp.name();
 }
 
+bool ScalableButton::SetBitmap_(const std::string& bmp_name)
+{
+    m_current_icon_name = bmp_name;
+    if (m_current_icon_name.empty())
+        return false;
+
+    wxBitmap bmp = create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt);
+    SetBitmap(bmp);
+    SetBitmapCurrent(bmp);
+    if (m_use_default_disabled_bitmap)
+        SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
+    return true;
+}
+
 void ScalableButton::SetBitmapDisabled_(const ScalableBitmap& bmp)
 {
     SetBitmapDisabled(bmp.bmp());
@@ -898,11 +916,13 @@ void ScalableButton::msw_rescale()
 {
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this, m_has_border);
 
-    SetBitmap(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt));
-    if (!m_disabled_icon_name.empty())
-        SetBitmapDisabled(create_scaled_bitmap(m_disabled_icon_name, m_parent, m_px_cnt));
-    else if (m_use_default_disabled_bitmap)
-        SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
+    if (!m_current_icon_name.empty()) {
+        SetBitmap(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt));
+        if (!m_disabled_icon_name.empty())
+            SetBitmapDisabled(create_scaled_bitmap(m_disabled_icon_name, m_parent, m_px_cnt));
+        else if (m_use_default_disabled_bitmap)
+            SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
+    }
 
     if (m_width > 0 || m_height>0)
     {
