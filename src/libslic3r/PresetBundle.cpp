@@ -723,8 +723,8 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
     } catch (const std::ifstream::failure &err) {
         throw Slic3r::RuntimeError(std::string("The Config Bundle cannot be loaded: ") + path + "\n\tReason: " + err.what());
     } catch (const boost::property_tree::file_parser_error &err) {
-        throw Slic3r::RuntimeError((boost::format("Failed loading the Config Bundle \"%1%\": %2% at line %3%")
-        	% err.filename() % err.message() % err.line()).str());
+        throw Slic3r::RuntimeError(format("Failed loading the Config Bundle \"%1%\": %2% at line %3%",
+        	err.filename(), err.message(), err.line()));
     } catch (const std::runtime_error &err) {
         throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + path + "\n\tReason: " + err.what());
     }
@@ -732,23 +732,27 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
     // 2) Continue based on the type of the configuration file.
     ConfigFileType config_file_type = guess_config_file_type(tree);
     ConfigSubstitutions config_substitutions;
-    switch (config_file_type) {
-    case CONFIG_FILE_TYPE_UNKNOWN:
-        throw Slic3r::RuntimeError(std::string("Unknown configuration file type: ") + path);   
-    case CONFIG_FILE_TYPE_APP_CONFIG:
-        throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + path + ". This is an application config file.");
-	case CONFIG_FILE_TYPE_CONFIG:
-	{
-		// Initialize a config from full defaults.
-		DynamicPrintConfig config;
-		config.apply(FullPrintConfig::defaults());
-        config_substitutions = config.load(tree, compatibility_rule);
-		Preset::normalize(config);
-		load_config_file_config(path, true, std::move(config));
-        return config_substitutions;
-    }
-    case CONFIG_FILE_TYPE_CONFIG_BUNDLE:
-        return load_config_file_config_bundle(path, tree, compatibility_rule);
+    try {
+        switch (config_file_type) {
+        case CONFIG_FILE_TYPE_UNKNOWN:
+            throw Slic3r::RuntimeError(std::string("Unknown configuration file type: ") + path);   
+        case CONFIG_FILE_TYPE_APP_CONFIG:
+            throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + path + ". This is an application config file.");
+    	case CONFIG_FILE_TYPE_CONFIG:
+    	{
+    		// Initialize a config from full defaults.
+    		DynamicPrintConfig config;
+    		config.apply(FullPrintConfig::defaults());
+            config_substitutions = config.load(tree, compatibility_rule);
+    		Preset::normalize(config);
+    		load_config_file_config(path, true, std::move(config));
+            return config_substitutions;
+        }
+        case CONFIG_FILE_TYPE_CONFIG_BUNDLE:
+            return load_config_file_config_bundle(path, tree, compatibility_rule);
+        }
+    } catch (const ConfigurationError &e) {
+        throw Slic3r::RuntimeError(format("Invalid configuration file %1%: %2%", path, e.what()));
     }
 
     // This shall never happen. Suppres compiler warnings.
@@ -1244,7 +1248,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
                     active_sla_material = kvp.second.data();
                 } else if (kvp.first == "printer") {
                     active_printer = kvp.second.data();
-                }else if (kvp.first == "physical_printer") {
+                } else if (kvp.first == "physical_printer") {
                     active_physical_printer = kvp.second.data();
                 }
             }
@@ -1281,32 +1285,36 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
             DynamicPrintConfig        config;
             std::string 			  alias_name;
             std::vector<std::string>  renamed_from;
-            auto parse_config_section = [&section, &alias_name, &renamed_from, &substitution_context, &path](DynamicPrintConfig &config) {
-                substitution_context.substitutions.clear();
-                for (auto &kvp : section.second) {
-                	if (kvp.first == "alias")
-                		alias_name = kvp.second.data();
-                	else if (kvp.first == "renamed_from") {
-                		if (! unescape_strings_cstyle(kvp.second.data(), renamed_from)) {
-			                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The preset \"" << 
-			                    section.first << "\" contains invalid \"renamed_from\" key, which is being ignored.";
-                   		}
-                	}
-                    // Throws on parsing error. For system presets, no substituion is being done, but an exception is thrown.
-                    config.set_deserialize(kvp.first, kvp.second.data(), substitution_context);
+            try {
+                auto parse_config_section = [&section, &alias_name, &renamed_from, &substitution_context, &path](DynamicPrintConfig &config) {
+                    substitution_context.substitutions.clear();
+                    for (auto &kvp : section.second) {
+                    	if (kvp.first == "alias")
+                    		alias_name = kvp.second.data();
+                    	else if (kvp.first == "renamed_from") {
+                    		if (! unescape_strings_cstyle(kvp.second.data(), renamed_from)) {
+    			                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The preset \"" << 
+    			                    section.first << "\" contains invalid \"renamed_from\" key, which is being ignored.";
+                       		}
+                    	}
+                        // Throws on parsing error. For system presets, no substituion is being done, but an exception is thrown.
+                        config.set_deserialize(kvp.first, kvp.second.data(), substitution_context);
+                    }
+                };
+                if (presets == &this->printers) {
+                    // Select the default config based on the printer_technology field extracted from kvp.
+                    DynamicPrintConfig config_src;
+                    parse_config_section(config_src);
+                    default_config = &presets->default_preset_for(config_src).config;
+                    config = *default_config;
+                    config.apply(config_src);
+                } else {
+                    default_config = &presets->default_preset().config;
+                    config = *default_config;
+                    parse_config_section(config);
                 }
-            };
-            if (presets == &this->printers) {
-                // Select the default config based on the printer_technology field extracted from kvp.
-                DynamicPrintConfig config_src;
-                parse_config_section(config_src);
-                default_config = &presets->default_preset_for(config_src).config;
-                config = *default_config;
-                config.apply(config_src);
-            } else {
-                default_config = &presets->default_preset().config;
-                config = *default_config;
-                parse_config_section(config);
+            } catch (const ConfigurationError &e) {
+                throw ConfigurationError(format("Invalid configuration bundle \"%1%\", section [%2%]: ", path, section.first) + e.what());
             }
             Preset::normalize(config);
             // Report configuration fields, which are misplaced into a wrong group.
@@ -1414,8 +1422,12 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
             DynamicPrintConfig        config = default_config;
 
             substitution_context.substitutions.clear();
-            for (auto& kvp : section.second)
-                config.set_deserialize(kvp.first, kvp.second.data(), substitution_context);
+            try {
+                for (auto& kvp : section.second)
+                    config.set_deserialize(kvp.first, kvp.second.data(), substitution_context);
+            } catch (const ConfigurationError &e) {
+                throw ConfigurationError(format("Invalid configuration bundle \"%1%\", section [%2%]: ", path, section.first) + e.what());
+            }
 
             // Report configuration fields, which are misplaced into a wrong group.
             std::string incorrect_keys = Preset::remove_invalid_keys(config, default_config);
