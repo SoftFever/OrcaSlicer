@@ -1640,7 +1640,7 @@ bool ModelVolume::is_splittable() const
 {
     // the call mesh.is_splittable() is expensive, so cache the value to calculate it only once
     if (m_is_splittable == -1)
-        m_is_splittable = (int)this->mesh().is_splittable();
+        m_is_splittable = its_is_splittable(this->mesh().its);
 
     return m_is_splittable == 1;
 }
