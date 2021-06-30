@@ -258,7 +258,9 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 		const ConfigOptionDef* def = conf_substitution.opt_def;
 		if (!def)
 			continue;
-		if (def->type == coEnum) {
+		switch (def->type) {
+		case coEnum:
+		{
 			const std::vector<std::string>& labels = def->enum_labels;
 			const std::vector<std::string>& values = def->enum_values;
 			int val = conf_substitution.new_value->getInt();
@@ -283,9 +285,24 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 			}
 			else
 				new_val = from_u8(_utf8(labels[val]));
+			break;
 		}
-		else if (def->type == coBool)
+		case coBool:
 			new_val = conf_substitution.new_value->getBool() ? "true" : "false";
+			break;
+		case coBools:
+			if (conf_substitution.new_value->nullable())
+				for (const char v : static_cast<const ConfigOptionBoolsNullable*>(conf_substitution.new_value.get())->values)
+					new_val += std::string(v == ConfigOptionBoolsNullable::nil_value() ? "nil" : v ? "true" : "false") + ", ";
+			else
+				for (const char v : static_cast<const ConfigOptionBools*>(conf_substitution.new_value.get())->values)
+					new_val += std::string(v ? "true" : "false") + ", ";
+			if (! new_val.empty())
+				new_val.erase(new_val.begin() + new_val.size() - 2, new_val.end());
+			break;
+		default:
+			assert(false);
+		}
 
 		changes += "<tr><td>" + bold(_(def->label)) + "</td><td>: " + 
 					format_wxstr(_L("new unknown value %1% was changed to default value %2%"), bold(conf_substitution.old_value), bold(new_val)) + 

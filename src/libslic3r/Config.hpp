@@ -80,6 +80,30 @@ extern bool         unescape_strings_cstyle(const std::string &str, std::vector<
 
 extern std::string  escape_ampersand(const std::string& str);
 
+namespace ConfigHelpers {
+	inline bool looks_like_enum_value(std::string value)
+	{
+		boost::trim(value);
+		if (value.empty() || value.size() > 64 || ! isalpha(value.front()))
+			return false;
+		for (const char c : value)
+			if (! (isalnum(c) || c == '_' || c == '-'))
+				return false;
+		return true;
+	}
+
+	inline bool enum_looks_like_true_value(std::string value) {
+		boost::trim(value);
+		return boost::iequals(value, "enabled") || boost::iequals(value, "on");
+	}
+
+    enum DeserializationResult {
+    	Loaded,
+    	Substituted,
+    	Failed,
+    };
+};
+
 // Base for all exceptions thrown by the configuration layer.
 class ConfigurationError : public Slic3r::RuntimeError {
 public:
@@ -1400,24 +1424,39 @@ public:
         }
         return vv;
     }
-    
-    bool deserialize(const std::string &str, bool append = false) override
+
+    ConfigHelpers::DeserializationResult deserialize_with_substitutions(const std::string &str, bool append, bool substitute)
     {
         if (! append)
             this->values.clear();
         std::istringstream is(str);
         std::string item_str;
+        bool substituted = false;
         while (std::getline(is, item_str, ',')) {
         	boost::trim(item_str);
+        	unsigned char new_value = 0;
         	if (item_str == "nil") {
         		if (NULLABLE)
         			this->values.push_back(nil_value());
         		else
                     throw ConfigurationError("Deserializing nil into a non-nullable object");
+        	} else if (item_str == "1") {
+        		new_value = true;
+        	} else if (item_str == "0") {
+        		new_value = false;
+        	} else if (substitute && ConfigHelpers::looks_like_enum_value(item_str)) {
+        		new_value = ConfigHelpers::enum_looks_like_true_value(item_str);
+        		substituted = true;
         	} else
-        		this->values.push_back(item_str.compare("1") == 0);	
+        		return ConfigHelpers::DeserializationResult::Failed;
+            this->values.push_back(new_value);
         }
-        return true;
+        return substituted ? ConfigHelpers::DeserializationResult::Substituted : ConfigHelpers::DeserializationResult::Loaded;
+    }
+
+    bool deserialize(const std::string &str, bool append = false) override
+    {
+    	return this->deserialize_with_substitutions(str, append, false) == ConfigHelpers::DeserializationResult::Loaded;
     }
 
 protected:
