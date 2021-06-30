@@ -17,7 +17,7 @@
 #include "I18N.hpp"
 #include "ConfigWizard.hpp"
 #include "wxExtensions.hpp"
-#include "Mainframe.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
 #include "GUI_App.hpp"
 
 namespace Slic3r {

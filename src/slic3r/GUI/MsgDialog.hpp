@@ -7,6 +7,7 @@
 #include <wx/dialog.h>
 #include <wx/font.h>
 #include <wx/bitmap.h>
+#include <wx/msgdlg.h>
 
 class wxBoxSizer;
 class wxCheckBox;
