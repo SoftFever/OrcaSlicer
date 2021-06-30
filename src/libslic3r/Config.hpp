@@ -1330,11 +1330,11 @@ public:
     bool deserialize(const std::string &str, bool append = false) override
     {
         UNUSED(append);
-        if (str == "1" || boost::iequals(str, "enabled") || boost::iequals(str, "on")) {
+        if (str == "1") {
             this->value = true;
             return true;
         }
-        if (str == "0" || boost::iequals(str, "disabled") || boost::iequals(str, "off")) {
+        if (str == "0") {
             this->value = false;
             return true;
         }
