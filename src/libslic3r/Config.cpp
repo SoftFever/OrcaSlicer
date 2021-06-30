@@ -506,11 +506,11 @@ void ConfigBase::set_deserialize(std::initializer_list<SetDeserializeItem> items
 		this->set_deserialize(item.opt_key, item.opt_value, substitutions_ctxt, item.append);
 }
 
-static inline bool looks_like_enum_value(const std::string &s)
+static inline bool looks_like_enum_value(const std::string &value)
 {
 	if (value.empty() || value.size() > 64 || ! isalpha(value.front()))
 		return false;
-	for (const char c : s)
+	for (const char c : value)
 		if (! (isalnum(c) || c == '_' || c == '-'))
 			return false;
 	return true;
