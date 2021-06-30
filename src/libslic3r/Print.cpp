@@ -339,12 +339,12 @@ std::vector<ObjectID> Print::print_object_ids() const
 
 bool Print::has_infinite_skirt() const
 {
-    return (m_config.draft_shield && m_config.skirts > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
+    return (m_config.draft_shield == dsEnabled && m_config.skirts > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
 }
 
 bool Print::has_skirt() const
 {
-    return (m_config.skirt_height > 0 && m_config.skirts > 0) || this->has_infinite_skirt();
+    return (m_config.skirt_height > 0 && m_config.skirts > 0) || m_config.draft_shield != dsDisabled;
 }
 
 bool Print::has_brim() const
@@ -864,7 +864,7 @@ void Print::process()
         m_skirt.clear();
         m_skirt_convex_hull.clear();
         m_first_layer_convex_hull.points.clear();
-        const bool draft_shield = config().draft_shield;
+        const bool draft_shield = config().draft_shield != dsDisabled;
 
         if (this->has_skirt() && draft_shield) {
             // In case that draft shield is active, generate skirt first so brim
@@ -971,7 +971,7 @@ void Print::_make_skirt()
     append(points, this->first_layer_wipe_tower_corners());
 
     // Unless draft shield is enabled, include all brims as well.
-    if (! config().draft_shield)
+    if (config().draft_shield == dsDisabled)
         append(points, m_first_layer_convex_hull.points);
 
     if (points.size() < 3)

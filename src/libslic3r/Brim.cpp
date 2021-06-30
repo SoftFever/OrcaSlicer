@@ -403,7 +403,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
         return (bt == btOuterOnly || bt == btOuterAndInner) && print.config().skirt_distance.value < object->config().brim_width;
     });
 
-    const bool draft_shield = print.config().draft_shield;
+    const bool draft_shield = print.config().draft_shield != dsDisabled;
 
 
     // If there is a possibility that brim intersects skirt, go through loops and split those extrusions
