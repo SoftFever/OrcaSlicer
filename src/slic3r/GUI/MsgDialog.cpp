@@ -223,7 +223,6 @@ InfoDialog::InfoDialog(wxWindow* parent, const wxString& msg)
 	// Text shown as HTML, so that mouse selection and Ctrl-V to copy will work.
 	wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
 	{
-		html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
 		wxFont 	  	font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 		wxFont      monospace = wxGetApp().code_font();
 		wxColour  	text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
@@ -234,6 +233,22 @@ InfoDialog::InfoDialog(wxWindow* parent, const wxString& msg)
 		int 		size[] = { font_size, font_size, font_size, font_size, font_size, font_size, font_size };
 		html->SetFonts(font.GetFaceName(), monospace.GetFaceName(), size);
 		html->SetBorders(2);
+
+		// calculate html page size from text
+		int lines = msg.Freq('\n');
+
+		if (msg.Contains("<tr>")) {
+			int pos = 0;
+			while (pos < (int)msg.Len() && pos != wxNOT_FOUND) {
+				pos = msg.find("<tr>", pos + 1);
+				lines+=2;
+			}
+		}
+		int page_height = std::min((font.GetPixelSize().y + 1) * lines, 68 * wxGetApp().em_unit());
+		wxSize page_size(68 * wxGetApp().em_unit(), page_height);
+
+		html->SetMinSize(page_size);
+
 		std::string msg_escaped = xml_escape(msg.ToUTF8().data(), true);
 		boost::replace_all(msg_escaped, "\r\n", "<br>");
 		boost::replace_all(msg_escaped, "\n", "<br>");
@@ -244,7 +259,6 @@ InfoDialog::InfoDialog(wxWindow* parent, const wxString& msg)
 	// Set info bitmap
 	logo->SetBitmap(create_scaled_bitmap("info", this, 84));
 
-	SetMinSize(wxSize(60 * wxGetApp().em_unit(), 30 * wxGetApp().em_unit()));
 	Fit();
 }
 
