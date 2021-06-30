@@ -333,9 +333,9 @@ void show_substitutions_info(const ConfigSubstitutions& config_substitutions, co
 	if (!changes.IsEmpty())
 	changes += "\n\n";
 
-	wxString message = format(_L("Loading <b>%1%</b> file found incompatibilities.\n"
+	wxString message = format(_L("Loading %1% file found incompatibilities.\n"
 								 "To recover this file, incompatible values were changed to default values:%2%"
-							     "But data in files won't be changed until you save them in PrusaSlicer."), from_u8(filename), changes);
+							     "But data in files won't be changed until you save them in PrusaSlicer."), bold(from_u8(filename)), changes);
 
 	InfoDialog msg(nullptr, message);
 	msg.ShowModal();
