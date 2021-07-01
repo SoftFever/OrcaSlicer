@@ -316,11 +316,15 @@ void show_substitutions_info(const PresetsConfigSubstitutions& presets_config_su
 	wxString changes;
 
 	auto preset_type_name = [](Preset::Type type) {
-		return	type == Slic3r::Preset::TYPE_PRINT			? _L("Print settings")		: 
-				type == Slic3r::Preset::TYPE_SLA_PRINT		? _L("SLA print settings")	: 
-				type == Slic3r::Preset::TYPE_FILAMENT		? _L("Filament")			: 
-				type == Slic3r::Preset::TYPE_SLA_MATERIAL	? _L("SLA material")		: 
-				type == Slic3r::Preset::TYPE_PRINTER		? _L("Printer")				: "" ;
+		switch (type) {
+			case Preset::TYPE_PRINT:			return _L("Print settings");
+			case Preset::TYPE_SLA_PRINT:		return _L("SLA print settings");
+			case Preset::TYPE_FILAMENT:			return _L("Filament");
+			case Preset::TYPE_SLA_MATERIAL:		return _L("SLA material");
+			case Preset::TYPE_PRINTER: 			return _L("Printer");
+			case Preset::TYPE_PHYSICAL_PRINTER:	return _L("Physical Printer");
+			default: assert(false);				return wxString();
+		}
 	};
 
 	for (const PresetConfigSubstitutions& substitution : presets_config_substitutions) {

@@ -546,9 +546,18 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
     bool substituted = false;
     if (optdef->type == coBools && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable) {
     	//FIXME Special handling of vectors of bools, quick and not so dirty solution before PrusaSlicer 2.3.2 release.
-    	auto result = opt->nullable() ? 
-    		static_cast<ConfigOptionBoolsNullable*>(opt)->deserialize_with_substitutions(value, append, true) :
-    		static_cast<ConfigOptionBools*>(opt)->deserialize_with_substitutions(value, append, true);
+    	bool nullable = opt->nullable();
+    	ConfigHelpers::DeserializationSubstitution default_value = ConfigHelpers::DeserializationSubstitution::DefaultsToFalse;
+    	if (optdef->default_value) {
+    		// Default value for vectors of booleans used in a "per extruder" context, thus the default contains just a single value.
+    		assert(dynamic_cast<const ConfigOptionVector<unsigned char>*>(optdef->default_value.get()));
+			auto &values = static_cast<const ConfigOptionVector<unsigned char>*>(optdef->default_value.get())->values;
+			if (values.size() == 1 && values.front() == 1)
+				default_value = ConfigHelpers::DeserializationSubstitution::DefaultsToTrue;
+		}
+    	auto result = nullable ?
+    		static_cast<ConfigOptionBoolsNullable*>(opt)->deserialize_with_substitutions(value, append, default_value) :
+    		static_cast<ConfigOptionBools*>(opt)->deserialize_with_substitutions(value, append, default_value);
     	success     = result != ConfigHelpers::DeserializationResult::Failed;
     	substituted = result == ConfigHelpers::DeserializationResult::Substituted;
     } else {
