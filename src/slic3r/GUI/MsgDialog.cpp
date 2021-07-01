@@ -214,8 +214,8 @@ MessageDialog::MessageDialog(wxWindow* parent,
 
 // InfoDialog
 
-InfoDialog::InfoDialog(wxWindow* parent, const wxString& msg)
-	: MsgDialog(parent, wxString::Format(_L("%s information"), SLIC3R_APP_NAME), _L("Note that"))
+InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& msg)
+	: MsgDialog(parent, wxString::Format(_L("%s information"), SLIC3R_APP_NAME), title)
 	, msg(msg)
 {
 	this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));

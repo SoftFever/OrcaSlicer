@@ -8,6 +8,7 @@
 #include <string>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/any.hpp>
 
 #if __APPLE__
@@ -245,7 +246,12 @@ void warning_catcher(wxWindow* parent, const wxString& message)
 	msg.ShowModal();
 }
 
-static wxString bold(const wxString& str) 
+static wxString bold(const wxString& str)
+{
+	return wxString::Format("<b>%s</b>", str);
+};
+
+static wxString bold_string(const wxString& str) 
 { 
 	return wxString::Format("<b>\"%s\"</b>", str); 
 };
@@ -277,14 +283,17 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 						auto it = std::find(values.begin(), values.end(), key_val.first);
 						if (it == values.end())
 							break;
-						new_val = from_u8(_utf8(labels[it - values.begin()]));
+						auto idx = it - values.begin();
+						new_val = wxString("\"") + values[idx] + "\"" + " (" + from_u8(_utf8(labels[idx])) + ")";
 						break;
 					}
-				if (new_val.IsEmpty())
-					new_val = _L("Undef");
+				if (new_val.IsEmpty()) {
+					assert(false);
+					new_val = _L("Undefined");
+				}
 			}
 			else
-				new_val = from_u8(_utf8(labels[val]));
+				new_val = wxString("\"") + values[val] + "\"" + " (" + from_u8(_utf8(labels[val])) + ")";
 			break;
 		}
 		case coBool:
@@ -304,11 +313,19 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 			assert(false);
 		}
 
-		changes += "<tr><td>" + bold(_(def->label)) + "</td><td>: " + 
-					format_wxstr(_L("new unknown value %1% was changed to default value %2%"), bold(conf_substitution.old_value), bold(new_val)) + 
+		changes += format_wxstr("<tr><td><b>\"%1%\" (%2%)</b></td><td>: ", def->opt_key, _(def->label)) +
+				   format_wxstr(_L("%1% was substituted with %2%"), bold_string(conf_substitution.old_value), bold(new_val)) + 
 				   "</td></tr>";
 	}
 	changes += "</table>";
+}
+
+static wxString substitution_message(const wxString& changes)
+{
+	return
+		_L("Most likely the configuration was produced by a newer version of PrusaSlicer or by some PrusaSlicer fork.") + " " +
+		_L("The following values were substituted:") + "\n" + changes + "\n\n" +
+		_L("Please review the substitutions and adjust them if needed.");
 }
 
 void show_substitutions_info(const PresetsConfigSubstitutions& presets_config_substitutions) 
@@ -328,37 +345,25 @@ void show_substitutions_info(const PresetsConfigSubstitutions& presets_config_su
 	};
 
 	for (const PresetConfigSubstitutions& substitution : presets_config_substitutions) {
-		changes += "\n\n" + format_wxstr("%1% : %2%", preset_type_name(substitution.preset_type), bold(substitution.preset_name));
+		changes += "\n\n" + format_wxstr("%1% : %2%", preset_type_name(substitution.preset_type), bold_string(substitution.preset_name));
 		if (!substitution.preset_file.empty())
 			changes += format_wxstr(" (%1%)", substitution.preset_file);
 
 		add_config_substitutions(substitution.substitutions, changes);
 	}
-	if (!changes.IsEmpty())
-		changes += "\n\n";
 
-	wxString message = format_wxstr(  _L("Loading profiles found following incompatibilities:%1%"
-										 " To recover these files, incompatible values were changed to default values.\n"
-										 " But data in files won't be changed until you save them in PrusaSlicer."), changes);
-
-	InfoDialog msg(nullptr, message);
+	InfoDialog msg(nullptr, _L("Configuration bundle was loaded, however some configuration values were not recognized."), substitution_message(changes));
 	msg.ShowModal();
 }
 
 void show_substitutions_info(const ConfigSubstitutions& config_substitutions, const std::string& filename)
 {
 	wxString changes = "\n";
-
 	add_config_substitutions(config_substitutions, changes);
 
-	if (!changes.IsEmpty())
-	changes += "\n\n";
-
-	wxString message = format(_L("Loading %1% file found incompatibilities.\n"
-								 "To recover this file, incompatible values were changed to default values:%2%"
-							     "But data in files won't be changed until you save them in PrusaSlicer."), bold(from_u8(filename)), changes);
-
-	InfoDialog msg(nullptr, message);
+	InfoDialog msg(nullptr, 
+		format_wxstr(_L("Configuration file \"%1%\" was loaded, however some configuration values were not recognized."), from_u8(filename)), 
+		substitution_message(changes));
 	msg.ShowModal();
 }
 

@@ -5310,7 +5310,7 @@ void Plater::export_gcode(bool prefer_removable)
             GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : boost::iequals(ext, ".sl1s") ? FT_SL1S : FT_SL1, ext),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
-        if (dlg.ShowModal() == wxID_OK)
+            if (dlg.ShowModal() == wxID_OK)
             output_path = into_path(dlg.GetPath());
     }
 

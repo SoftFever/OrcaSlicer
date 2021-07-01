@@ -97,13 +97,13 @@ namespace ConfigHelpers {
 		return boost::iequals(value, "enabled") || boost::iequals(value, "on");
 	}
 
-	enum DeserializationSubstitution {
+	enum class DeserializationSubstitution {
 		Disabled,
 		DefaultsToFalse,
 		DefaultsToTrue
 	};
 
-    enum DeserializationResult {
+    enum class DeserializationResult {
     	Loaded,
     	Substituted,
     	Failed,
@@ -1451,7 +1451,7 @@ public:
         	} else if (item_str == "0") {
         		new_value = false;
         	} else if (substitution != ConfigHelpers::DeserializationSubstitution::Disabled && ConfigHelpers::looks_like_enum_value(item_str)) {
-        		new_value = ConfigHelpers::enum_looks_like_true_value(item_str) || substituted == ConfigHelpers::DeserializationSubstitution::DefaultsToTrue;
+        		new_value = ConfigHelpers::enum_looks_like_true_value(item_str) || substitution == ConfigHelpers::DeserializationSubstitution::DefaultsToTrue;
         		substituted = true;
         	} else
         		return ConfigHelpers::DeserializationResult::Failed;
