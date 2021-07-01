@@ -3666,9 +3666,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         value = "rectilinear";
     } else if (opt_key == "skirt_height" && value == "-1") {
     	// PrusaSlicer no more accepts skirt_height == -1 to print a draft shield to the top of the highest object.
-    	// A new "draft_shield" boolean config value is used instead.
+        // A new "draft_shield" enum config value is used instead.
     	opt_key = "draft_shield";
-    	value = "1";
+        value = "enabled";
+    } else if (opt_key == "draft_shield" && (value == "1" || value == "0")) {
+        // draft_shield used to be a bool, it was turned into an enum in PrusaSlicer 2.4.0.
+        value = value == "1" ? "enabled" : "disabled";
     } else if (opt_key == "octoprint_host") {
         opt_key = "print_host";
     } else if (opt_key == "octoprint_cafile") {
