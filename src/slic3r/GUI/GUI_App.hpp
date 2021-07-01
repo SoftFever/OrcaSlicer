@@ -66,7 +66,9 @@ enum FileType
 
     FT_TEX,
 
-    FT_PNGZIP,
+    FT_SL1,
+	// Workaround for OSX file picker, for some reason it always saves with the 1st extension.
+ 	FT_SL1S,
 
     FT_SIZE,
 };
