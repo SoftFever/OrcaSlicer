@@ -325,7 +325,7 @@ static wxString substitution_message(const wxString& changes)
 	return
 		_L("Most likely the configuration was produced by a newer version of PrusaSlicer or by some PrusaSlicer fork.") + " " +
 		_L("The following values were substituted:") + "\n" + changes + "\n\n" +
-		_L("Please review the substitutions and adjust them if needed.");
+		_L("Review the substitutions and adjust them if needed.");
 }
 
 void show_substitutions_info(const PresetsConfigSubstitutions& presets_config_substitutions) 
