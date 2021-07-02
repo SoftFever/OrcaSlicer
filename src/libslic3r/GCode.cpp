@@ -523,7 +523,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // Check that there are extrusions on the very first layer.
         if (layers_to_print.size() == 1u) {
             if (!has_extrusions)
-                throw Slic3r::SlicingError(_(L("There is an object with no extrusions on the first layer.")));
+                throw Slic3r::SlicingError(_(L("There is an object with no extrusions in the first layer.")) + "\n" +
+                                           _(L("Object name")) + ": " + object.model_object()->name);
         }
 
         // In case there are extrusions on this layer, check there is a layer to lay it on.
@@ -541,7 +542,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
             if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON) {
                 const_cast<Print*>(object.print())->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-                    _(L("Empty layers detected. Make sure the object is printable.")) + "\n\n" +
+                    _(L("Empty layers detected. Make sure the object is printable.")) + "\n" +
                     _(L("Object name")) + ": " + object.model_object()->name + "\n" + _(L("Print z")) + ": " +
                     std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
                         "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
