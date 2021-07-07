@@ -1878,7 +1878,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 if (!dlg.snapshot_to_activate().empty()) {
                     if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config) && 
                         ! Config::take_config_snapshot_cancel_on_error(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK, "",
-                                GUI::format(_L("Continue to activate a configuration snapshot %1%?", ex.what()))))
+                                GUI::format(_L("Continue to activate a configuration snapshot %1%?"), dlg.snapshot_to_activate())))
                         break;
                     try {
                         app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
