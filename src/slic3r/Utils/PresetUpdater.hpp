@@ -52,7 +52,7 @@ public:
 	UpdateResult config_update(const Semver &old_slic3r_version, UpdateParams params) const;
 
 	// "Update" a list of bundles from resources (behaves like an online update).
-	void install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot = true) const;
+	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot = true) const;
 
 	void on_update_notification_confirm();
 private:

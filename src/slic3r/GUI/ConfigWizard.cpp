@@ -2453,7 +2453,7 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
     return true;
 }
 
-void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater)
+bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater)
 {
     const auto enabled_vendors = appconfig_new.vendors();
 
@@ -2508,14 +2508,14 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
             break;
     }
 
-    if (snapshot) {
-        SnapshotDB::singleton().take_snapshot(*app_config, snapshot_reason);
-    }
+    if (snapshot && ! take_config_snapshot_cancel_on_error(*app_config, snapshot_reason, "", _u8L("Continue with applying configuration changes?")))
+        return false;
 
     if (install_bundles.size() > 0) {
         // Install bundles from resources.
         // Don't create snapshot - we've already done that above if applicable.
-        updater->install_bundles_rsrc(std::move(install_bundles), false);
+        if (! updater->install_bundles_rsrc(std::move(install_bundles), false))
+            return false;
     } else {
         BOOST_LOG_TRIVIAL(info) << "No bundles need to be installed from resources";
     }
@@ -2607,6 +2607,8 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     // Update the selections from the compatibilty.
     preset_bundle->export_selections(*app_config);
+
+    return true;
 }
 void ConfigWizard::priv::update_presets_in_config(const std::string& section, const std::string& alias_key, bool add)
 {
@@ -2817,7 +2819,8 @@ bool ConfigWizard::run(RunReason reason, StartPage start_page)
     p->set_start_page(start_page);
 
     if (ShowModal() == wxID_OK) {
-        p->apply_config(app.app_config, app.preset_bundle, app.preset_updater);
+        if (! p->apply_config(app.app_config, app.preset_bundle, app.preset_updater))
+            return false;
         app.app_config->set_legacy_datadir(false);
         app.update_mode();
         app.obj_manipul()->update_ui_from_settings();

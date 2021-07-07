@@ -171,7 +171,7 @@ struct PresetUpdater::priv
 
 	void check_install_indices() const;
 	Updates get_config_updates(const Semver& old_slic3r_version) const;
-	void perform_updates(Updates &&updates, bool snapshot = true) const;
+	bool perform_updates(Updates &&updates, bool snapshot = true) const;
 	void set_waiting_updates(Updates u);
 };
 
@@ -584,12 +584,14 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 	return updates;
 }
 
-void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) const
+bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) const
 {
 	if (updates.incompats.size() > 0) {
 		if (snapshot) {
 			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
-			SnapshotDB::singleton().take_snapshot(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_DOWNGRADE);
+			if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_DOWNGRADE, "",
+				_u8L("Continue and install configuration updates?")))
+				return false;
 		}
 		
 		BOOST_LOG_TRIVIAL(info) << format("Deleting %1% incompatible bundles", updates.incompats.size());
@@ -604,7 +606,9 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 		
 		if (snapshot) {
 			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
-			SnapshotDB::singleton().take_snapshot(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE);
+			if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE, "",
+				_u8L("Continue and install configuration updates?")))
+				return false;
 		}
 
 		BOOST_LOG_TRIVIAL(info) << format("Performing %1% updates", updates.updates.size());
@@ -648,6 +652,8 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			for (const auto &name : bundle.obsolete_presets.printers)  { obsolete_remover("printer", name); }
 		}
 	}
+
+	return true;
 }
 
 void PresetUpdater::priv::set_waiting_updates(Updates u)
@@ -761,11 +767,9 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 
 			// This effectively removes the incompatible bundles:
 			// (snapshot is taken beforehand)
-			p->perform_updates(std::move(updates));
-
-			if (!GUI::wxGetApp().run_wizard(GUI::ConfigWizard::RR_DATA_INCOMPAT)) {
+			if (! p->perform_updates(std::move(updates)) ||
+				! GUI::wxGetApp().run_wizard(GUI::ConfigWizard::RR_DATA_INCOMPAT))
 				return R_INCOMPAT_EXIT;
-			}
 
 			return R_INCOMPAT_CONFIGURED;
 		}
@@ -799,7 +803,8 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			const auto res = dlg.ShowModal();
 			if (res == wxID_OK) {
 				BOOST_LOG_TRIVIAL(info) << "User wants to update...";
-				p->perform_updates(std::move(updates));
+				if (! p->perform_updates(std::move(updates)))
+					return R_INCOMPAT_EXIT;
 				reload_configs_update_gui();
 				return R_UPDATE_INSTALLED;
 			}
@@ -828,7 +833,8 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			const auto res = dlg.ShowModal();
 			if (res == wxID_OK) {
 				BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
-				p->perform_updates(std::move(updates));
+				if (! p->perform_updates(std::move(updates)))
+					return R_ALL_CANCELED;
 				reload_configs_update_gui();
 				return R_UPDATE_INSTALLED;
 			}
@@ -848,7 +854,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 	return R_NOOP;
 }
 
-void PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
+bool PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
 {
 	Updates updates;
 
@@ -860,7 +866,7 @@ void PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool 
 		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), "", "");
 	}
 
-	p->perform_updates(std::move(updates), snapshot);
+	return p->perform_updates(std::move(updates), snapshot);
 }
 
 void PresetUpdater::on_update_notification_confirm()
@@ -880,16 +886,14 @@ void PresetUpdater::on_update_notification_confirm()
 	const auto res = dlg.ShowModal();
 	if (res == wxID_OK) {
 		BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
-		p->perform_updates(std::move(p->waiting_updates));
-		reload_configs_update_gui();
-		p->has_waiting_updates = false;
-		//return R_UPDATE_INSTALLED;
+		if (p->perform_updates(std::move(p->waiting_updates))) {
+			reload_configs_update_gui();
+			p->has_waiting_updates = false;
+		}
 	}
 	else {
 		BOOST_LOG_TRIVIAL(info) << "User refused the update";
-		//return R_UPDATE_REJECT;
-	}
-	
+	}	
 }
 
 }

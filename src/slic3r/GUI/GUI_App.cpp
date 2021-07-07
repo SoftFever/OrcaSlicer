@@ -1862,9 +1862,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                     child->SetFont(normal_font());
 
                 if (dlg.ShowModal() == wxID_OK)
-                    app_config->set("on_snapshot",
-                    Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
-                    *app_config, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data()).id);
+                    if (const Config::Snapshot *snapshot = Config::take_config_snapshot_report_error(
+                            *app_config, Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data());
+                        snapshot != nullptr)
+                        app_config->set("on_snapshot", snapshot->id);
             }
             break;
         case ConfigMenuSnapshots:
@@ -1875,8 +1876,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
                 dlg.ShowModal();
                 if (!dlg.snapshot_to_activate().empty()) {
-                    if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
-                        Config::SnapshotDB::singleton().take_snapshot(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
+                    if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config) && 
+                        ! Config::take_config_snapshot_cancel_on_error(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK, "",
+                                GUI::format(_L("Continue to activate a configuration snapshot %1%?", ex.what()))))
+                        break;
                     try {
                         app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
                         // Enable substitutions, log both user and system substitutions. There should not be any substitutions performed when loading system

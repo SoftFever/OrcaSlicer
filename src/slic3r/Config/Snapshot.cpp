@@ -8,6 +8,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/format.hpp"
@@ -16,6 +17,13 @@
 #include "libslic3r/Config.hpp"
 #include "libslic3r/FileParserError.hpp"
 #include "libslic3r/Utils.hpp"
+
+#include "../GUI/GUI.hpp"
+#include "../GUI/GUI_App.hpp"
+#include "../GUI/I18N.hpp"
+#include "../GUI/MainFrame.hpp"
+
+#include <wx/richmsgdlg.h>
 
 #define SLIC3R_SNAPSHOTS_DIR "snapshots"
 #define SLIC3R_SNAPSHOT_FILE "snapshot.ini"
@@ -435,14 +443,27 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
     }
 
 	boost::filesystem::path snapshot_dir = snapshot_db_dir / snapshot.id;
-	boost::filesystem::create_directory(snapshot_dir);
 
-    // Backup the presets.
-    for (const char *subdir : snapshot_subdirs)
-    	copy_config_dir_single_level(data_dir / subdir, snapshot_dir / subdir);
-    snapshot.save_ini((snapshot_dir / "snapshot.ini").string());
-    assert(m_snapshots.empty() || m_snapshots.back().time_captured <= snapshot.time_captured);
-    m_snapshots.emplace_back(std::move(snapshot));
+    try {
+	    boost::filesystem::create_directory(snapshot_dir);
+
+        // Backup the presets.
+        for (const char *subdir : snapshot_subdirs)
+    	    copy_config_dir_single_level(data_dir / subdir, snapshot_dir / subdir);
+        snapshot.save_ini((snapshot_dir / "snapshot.ini").string());
+        assert(m_snapshots.empty() || m_snapshots.back().time_captured <= snapshot.time_captured);
+        m_snapshots.emplace_back(std::move(snapshot));
+    } catch (...) {
+        if (boost::filesystem::is_directory(snapshot_dir)) {
+            try {
+                // Clean up partially copied snapshot.
+                boost::filesystem::remove_all(snapshot_dir);
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(error) << "Failed taking snapshot and failed removing the snapshot directory " << snapshot_dir;
+            }
+        }
+        throw;
+    }
     return m_snapshots.back();
 }
 
@@ -551,6 +572,32 @@ SnapshotDB& SnapshotDB::singleton()
 		}
 	}
 	return instance;
+}
+
+const Snapshot* take_config_snapshot_report_error(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment)
+{
+    try {
+        return &SnapshotDB::singleton().take_snapshot(app_config, reason, comment);
+    } catch (std::exception &err) {
+        show_error(static_cast<wxWindow*>(wxGetApp().mainframe), 
+            _L("Taking a configuration snapshot failed.") + "\n\n" + from_u8(err.what()));
+        return nullptr;
+    }
+}
+
+bool take_config_snapshot_cancel_on_error(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment, const std::string &message)
+{
+    try {
+        SnapshotDB::singleton().take_snapshot(app_config, reason, comment);
+        return true;
+    } catch (std::exception &err) {
+        wxRichMessageDialog dlg(static_cast<wxWindow*>(wxGetApp().mainframe),
+            _L("PrusaSlicer has encountered an error while taking a configuration snapshot.") + "\n\n" + from_u8(err.what()) + "\n\n" + from_u8(message),
+            _L("PrusaSlicer error"),
+            wxYES_NO);
+        dlg.SetYesNoLabels(_L("Continue"), _L("Abort"));
+        return dlg.ShowModal() == wxID_YES;
+    }
 }
 
 } // namespace Config
