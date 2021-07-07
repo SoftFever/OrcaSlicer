@@ -118,7 +118,8 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32
 
-    const std::vector<std::string> &load_configs		= m_config.option<ConfigOptionStrings>("load", true)->values;
+    const std::vector<std::string>              &load_configs		      = m_config.option<ConfigOptionStrings>("load", true)->values;
+    const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
 
     // load config files supplied via --load
     for (auto const &file : load_configs) {
@@ -130,12 +131,18 @@ int CLI::run(int argc, char **argv)
                 return 1;
             }
         }
-        DynamicPrintConfig config;
+        DynamicPrintConfig  config;
+        ConfigSubstitutions config_substitutions;
         try {
-            config.load(file);
+            config_substitutions = config.load(file, config_substitution_rule);
         } catch (std::exception &ex) {
-            boost::nowide::cerr << "Error while reading config file: " << ex.what() << std::endl;
+            boost::nowide::cerr << "Error while reading config file \"" << file << "\": " << ex.what() << std::endl;
             return 1;
+        }
+        if (! config_substitutions.empty()) {
+            boost::nowide::cout << "The following configuration values were substituted when loading \" << file << \":\n";
+            for (const ConfigSubstitution &subst : config_substitutions)
+                boost::nowide::cout << "\tkey = \"" << subst.opt_def->opt_key << "\"\t loaded = \"" << subst.old_value << "\tsubstituted = \"" << subst.new_value->serialize() << "\"\n";
         }
         config.normalize_fdm();
         PrinterTechnology other_printer_technology = get_printer_technology(config);
@@ -174,7 +181,9 @@ int CLI::run(int argc, char **argv)
             try {
                 // When loading an AMF or 3MF, config is imported as well, including the printer technology.
                 DynamicPrintConfig config;
-                model = Model::read_from_file(file, &config, true);
+                ConfigSubstitutionContext config_substitutions(config_substitution_rule);
+                //FIXME should we check the version here? // | Model::LoadAttribute::CheckVersion ?
+                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances);
                 PrinterTechnology other_printer_technology = get_printer_technology(config);
                 if (printer_technology == ptUnknown) {
                     printer_technology = other_printer_technology;
@@ -182,6 +191,11 @@ int CLI::run(int argc, char **argv)
                 else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
                     boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
                     return 1;
+                }
+                if (! config_substitutions.substitutions.empty()) {
+                    boost::nowide::cout << "The following configuration values were substituted when loading \" << file << \":\n";
+                    for (const ConfigSubstitution& subst : config_substitutions.substitutions)
+                        boost::nowide::cout << "\tkey = \"" << subst.opt_def->opt_key << "\"\t loaded = \"" << subst.old_value << "\tsubstituted = \"" << subst.new_value->serialize() << "\"\n";
                 }
                 // config is applied to m_print_config before the current m_config values.
                 config += std::move(m_print_config);
@@ -362,7 +376,7 @@ int CLI::run(int argc, char **argv)
                         o->cut(Z, m_config.opt_float("cut"), &out);
                     }
 #else
-                    model.objects.front()->cut(0, m_config.opt_float("cut"), true, true, true);
+                    model.objects.front()->cut(0, m_config.opt_float("cut"), ModelObjectCutAttribute::KeepLower | ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::FlipLower);
 #endif
                     model.delete_object(size_t(0));
                 }

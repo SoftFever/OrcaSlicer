@@ -19,7 +19,7 @@ SCENARIO("Extrusion width specifics", "[Flow]") {
     GIVEN("A config with a skirt, brim, some fill density, 3 perimeters, and 1 bottom solid layer and a 20mm cube mesh") {
         // this is a sharedptr
         DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-		config.set_deserialize({
+		config.set_deserialize_strict({
 			{ "brim_width",			2 },
 			{ "skirts",				1 },
 			{ "perimeters",			3 },

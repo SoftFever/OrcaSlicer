@@ -21,6 +21,7 @@ void GLGizmoFdmSupports::on_shutdown()
 {
     m_angle_threshold_deg = 0.f;
     m_parent.use_slope(false);
+    m_parent.toggle_model_objects_visibility(true);
 }
 
 

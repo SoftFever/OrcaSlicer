@@ -9,7 +9,6 @@
 #include <string>
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 
-class wxNotebook;
 class wxGLCanvas;
 class wxBoxSizer;
 class wxStaticText;

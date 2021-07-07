@@ -9,6 +9,7 @@
 
 #include "Selection.hpp"
 
+#include "libslic3r/enum_bitmask.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -24,6 +25,8 @@ namespace Slic3r {
 
 class Model;
 class ModelObject;
+enum class ModelObjectCutAttribute : int;
+using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
 class ModelInstance;
 class Print;
 class SLAPrint;
@@ -108,6 +111,10 @@ public:
     void                    collapse(bool collapse);
     void                    update_searcher();
     void                    update_ui_from_settings();
+
+#ifdef _MSW_DARK_MODE
+    void                    show_mode_sizer(bool show);
+#endif
 
     std::vector<PlaterPresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
@@ -204,7 +211,7 @@ public:
     void convert_unit(ConversionType conv_type);
     void toggle_layers_editing(bool enable);
 
-    void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
+    void cut(size_t obj_idx, size_t instance_idx, coordf_t z, ModelObjectCutAttributes attributes);
 
     void export_gcode(bool prefer_removable);
     void export_stl(bool extended = false, bool selection_only = false);

@@ -3,9 +3,9 @@
 
 #include <boost/container/small_vector.hpp>
 
-#ifndef _NDEBUG
+#ifndef NDEBUG
     #define EXPENSIVE_DEBUG_CHECKS
-#endif // _NDEBUG
+#endif // NDEBUG
 
 namespace Slic3r {
 
@@ -19,7 +19,7 @@ static inline Vec3i root_neighbors(const TriangleMesh &mesh, int triangle_id)
     return neighbors;
 }
 
-#ifndef _NDEBUG
+#ifndef NDEBUG
 bool TriangleSelector::verify_triangle_midpoints(const Triangle &tr) const
 {
     for (int i = 0; i < 3; ++ i) {
@@ -57,7 +57,7 @@ bool TriangleSelector::verify_triangle_neighbors(const Triangle &tr, const Vec3i
         }
     return true;
 }
-#endif // _NDEBUG
+#endif // NDEBUG
 
 // sides_to_split==-1 : just restore previous split
 void TriangleSelector::Triangle::set_division(int sides_to_split, int special_side_idx)
@@ -308,12 +308,12 @@ int TriangleSelector::triangle_midpoint_or_allocate(int itriangle, int vertexi, 
         }
         assert(m_vertices[midpoint].ref_cnt == 0);
     } else {
-#ifndef _NDEBUG
+#ifndef NDEBUG
         Vec3f c1 = 0.5f * (m_vertices[vertexi].v + m_vertices[vertexj].v);
         Vec3f c2 = m_vertices[midpoint].v;
         float d = (c2 - c1).norm();
         assert(std::abs(d) < EPSILON);
-#endif // _NDEBUG
+#endif // NDEBUG
         assert(m_vertices[midpoint].ref_cnt > 0);
     }
     return midpoint;
@@ -816,13 +816,13 @@ void TriangleSelector::perform_split(int facet_idx, const Vec3i &neighbors, Enfo
     assert(tr.is_split());
 
     // indices of triangle vertices
-#ifdef _NDEBUG
+#ifdef NDEBUG
     boost::container::small_vector<int, 6> verts_idxs;
-#else // _NDEBUG
+#else // NDEBUG
     // For easier debugging.
     std::vector<int> verts_idxs;
     verts_idxs.reserve(6);
-#endif // _NDEBUG
+#endif // NDEBUG
     for (int j=0, idx = tr.special_side(); j<3; ++j, idx = next_idx_modulo(idx, 3))
         verts_idxs.push_back(tr.verts_idxs[idx]);
 
@@ -861,13 +861,13 @@ void TriangleSelector::perform_split(int facet_idx, const Vec3i &neighbors, Enfo
         break;
     }
 
-#ifndef _NDEBUG
+#ifndef NDEBUG
     assert(this->verify_triangle_neighbors(tr, neighbors));
     for (int i = 0; i <= tr.number_of_split_sides(); ++i) {
         Vec3i n = this->child_neighbors(tr, neighbors, i);
         assert(this->verify_triangle_neighbors(m_triangles[tr.children[i]], n));
     }
-#endif // _NDEBUG
+#endif // NDEBUG
 }
 
 bool TriangleSelector::has_facets(EnforcerBlockerType state) const

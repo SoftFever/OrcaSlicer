@@ -129,7 +129,7 @@ protected:
 	wxScrolledWindow*	m_page_view {nullptr};
 	wxBoxSizer*			m_page_sizer {nullptr};
 
-    ModeSizer*			m_mode_sizer;
+    ModeSizer*			m_mode_sizer {nullptr};
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;

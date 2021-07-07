@@ -284,11 +284,8 @@ static void extract_model_from_archive(
         volume->name = name;
     }
     // Set the extruder to the volume.
-    if (extruder_id != (unsigned int)-1) {
-        char str_extruder[64];
-        sprintf(str_extruder, "%ud", extruder_id);
-        volume->config.set_deserialize("extruder", str_extruder);
-    }
+    if (extruder_id != (unsigned int)-1)
+        volume->config.set("extruder", int(extruder_id));
 }
 
 // Load a PrusaControl project file into a provided model.

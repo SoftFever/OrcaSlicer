@@ -56,16 +56,15 @@ static const char *TMP_EXTENSION = ".download";
 
 void copy_file_fix(const fs::path &source, const fs::path &target)
 {
-	static const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;   // aka 644
-
 	BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
-
-	// Make sure the file has correct permission both before and after we copy over it
-	if (fs::exists(target)) {
-		fs::permissions(target, perms);
+	std::string error_message;
+	CopyFileResult cfr = copy_file(source.string(), target.string(), error_message, false);
+	if (cfr != CopyFileResult::SUCCESS) {
+		BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+		throw Slic3r::CriticalException(GUI::format(
+				_L("Copying of file %1% to %2% failed: %3%"),
+				source, target, error_message));
 	}
-	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists);
-	fs::permissions(target, perms);
 }
 
 struct Update
@@ -612,7 +611,7 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			update.install();
 
 			PresetBundle bundle;
-			bundle.load_configbundle(update.source.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
+			bundle.load_configbundle(update.source.string(), PresetBundle::LoadConfigBundleAttribute::LoadSystem);
 
 			BOOST_LOG_TRIVIAL(info) << format("Deleting %1% conflicting presets", bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
 
@@ -710,6 +709,17 @@ void PresetUpdater::slic3r_update_notify()
 	}
 }
 
+static void reload_configs_update_gui()
+{
+	// Reload global configuration
+	auto* app_config = GUI::wxGetApp().app_config;
+	// System profiles should not trigger any substitutions, user profiles may trigger substitutions, but these substitutions
+	// were already presented to the user on application start up. Just do substitutions now and keep quiet about it.
+	GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent);
+	GUI::wxGetApp().load_current_presets();
+	GUI::wxGetApp().plater()->set_bed_shape();
+}
+
 PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, bool no_notification) const
 {
  	if (! p->enabled_config_update) { return R_NOOP; }
@@ -767,7 +777,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 		}
 
 		//forced update
-		if(incompatible_version)
+		if (incompatible_version)
 		{
 			BOOST_LOG_TRIVIAL(info) << format("Update of %1% bundles available. At least one requires higher version of Slicer.", updates.updates.size());
 
@@ -782,14 +792,8 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			const auto res = dlg.ShowModal();
 			if (res == wxID_OK) {
 				BOOST_LOG_TRIVIAL(info) << "User wants to update...";
-
 				p->perform_updates(std::move(updates));
-
-				// Reload global configuration
-				auto* app_config = GUI::wxGetApp().app_config;
-				GUI::wxGetApp().preset_bundle->load_presets(*app_config);
-				GUI::wxGetApp().load_current_presets();
-				GUI::wxGetApp().plater()->set_bed_shape();
+				reload_configs_update_gui();
 				return R_UPDATE_INSTALLED;
 			}
 			else {
@@ -814,11 +818,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			if (res == wxID_OK) {
 				BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
 				p->perform_updates(std::move(updates));
-
-				// Reload global configuration
-				auto* app_config = GUI::wxGetApp().app_config;
-				GUI::wxGetApp().preset_bundle->load_presets(*app_config);
-				GUI::wxGetApp().load_current_presets();
+				reload_configs_update_gui();
 				return R_UPDATE_INSTALLED;
 			}
 			else {
@@ -871,11 +871,7 @@ void PresetUpdater::on_update_notification_confirm()
 	if (res == wxID_OK) {
 		BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
 		p->perform_updates(std::move(p->waiting_updates));
-
-		// Reload global configuration
-		auto* app_config = GUI::wxGetApp().app_config;
-		GUI::wxGetApp().preset_bundle->load_presets(*app_config);
-		GUI::wxGetApp().load_current_presets();
+		reload_configs_update_gui();
 		p->has_waiting_updates = false;
 		//return R_UPDATE_INSTALLED;
 	}

@@ -175,8 +175,8 @@ public:
     const wxFont& normal_font() const   { return m_normal_font; }
     void enable_force_rescale()         { m_force_rescale = true; }
 
-#if 0 //#ifdef _WIN32  // #ysDarkMSW - Use to force dark colors for SystemLightMode
-    void force_sys_color_changed()
+#ifdef _WIN32
+    void force_color_changed()
     {
         update_dark_ui(this);
         on_sys_color_changed();

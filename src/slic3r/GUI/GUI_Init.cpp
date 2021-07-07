@@ -50,39 +50,8 @@ int GUI_Run(GUI_InitParams &params)
 //      gui->autosave = m_config.opt_string("autosave");
         GUI::GUI_App::SetInstance(gui);
         gui->init_params = &params;
-/*
-        gui->CallAfter([gui, this, &load_configs, params.start_as_gcodeviewer] {
-            if (!gui->initialized()) {
-                return;
-            }
 
-            if (params.start_as_gcodeviewer) {
-                if (!m_input_files.empty())
-                    gui->plater()->load_gcode(wxString::FromUTF8(m_input_files[0].c_str()));
-            } else {
-#if 0
-                // Load the cummulative config over the currently active profiles.
-                //FIXME if multiple configs are loaded, only the last one will have an effect.
-                // We need to decide what to do about loading of separate presets (just print preset, just filament preset etc).
-                // As of now only the full configs are supported here.
-                if (!m_print_config.empty())
-                    gui->mainframe->load_config(m_print_config);
-#endif
-                if (!load_configs.empty())
-                    // Load the last config to give it a name at the UI. The name of the preset may be later
-                    // changed by loading an AMF or 3MF.
-                    //FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
-                    gui->mainframe->load_config_file(load_configs.back());
-                // If loading a 3MF file, the config is loaded from the last one.
-                if (!m_input_files.empty())
-                    gui->plater()->load_files(m_input_files, true, true);
-                if (!m_extra_config.empty())
-                    gui->mainframe->load_config(m_extra_config);
-            }
-        });
-*/
-        int result = wxEntry(params.argc, params.argv);
-        return result;
+        return wxEntry(params.argc, params.argv);
     } catch (const Slic3r::Exception &ex) {
         boost::nowide::cerr << ex.what() << std::endl;
         wxMessageBox(boost::nowide::widen(ex.what()), _L("PrusaSlicer GUI initialization failed"), wxICON_STOP);

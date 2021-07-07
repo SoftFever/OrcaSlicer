@@ -96,13 +96,17 @@ void Model::update_links_bottom_up_recursive()
 	}
 }
 
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, bool add_default_instances, bool check_version)
+// Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
+Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options)
 {
     Model model;
 
     DynamicPrintConfig temp_config;
+    ConfigSubstitutionContext temp_config_substitutions_context(ForwardCompatibilitySubstitutionRule::EnableSilent);
     if (config == nullptr)
         config = &temp_config;
+    if (config_substitutions == nullptr)
+        config_substitutions = &temp_config_substitutions_context;
 
     bool result = false;
     if (boost::algorithm::iends_with(input_file, ".stl"))
@@ -110,9 +114,10 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
     else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
-        result = load_amf(input_file.c_str(), config, &model, check_version);
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
-        result = load_3mf(input_file.c_str(), config, &model, false);
+        //FIXME options & LoadAttribute::CheckVersion ? 
+        result = load_3mf(input_file.c_str(), *config, *config_substitutions, &model, false);
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
     else
@@ -127,24 +132,29 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     for (ModelObject *o : model.objects)
         o->input_file = input_file;
     
-    if (add_default_instances)
+    if (options & LoadAttribute::AddDefaultInstances)
         model.add_default_instances();
 
     CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
     CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
 
+    sort_remove_duplicates(config_substitutions->substitutions);
     return model;
 }
 
-Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, bool add_default_instances, bool check_version)
+// Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
+Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options)
 {
+    assert(config != nullptr);
+    assert(config_substitutions != nullptr);
+
     Model model;
 
     bool result = false;
     if (boost::algorithm::iends_with(input_file, ".3mf"))
-        result = load_3mf(input_file.c_str(), config, &model, check_version);
+        result = load_3mf(input_file.c_str(), *config, *config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
-        result = load_amf(input_file.c_str(), config, &model, check_version);
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .3mf or .zip.amf extension.");
 
@@ -165,7 +175,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
             o->input_file = input_file;
     }
 
-    if (add_default_instances)
+    if (options & LoadAttribute::AddDefaultInstances)
         model.add_default_instances();
 
     CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
@@ -398,13 +408,12 @@ bool Model::looks_like_multipart_object() const
 }
 
 // Generate next extruder ID string, in the range of (1, max_extruders).
-static inline std::string auto_extruder_id(unsigned int max_extruders, unsigned int &cntr)
+static inline int auto_extruder_id(unsigned int max_extruders, unsigned int &cntr)
 {
-    char str_extruder[64];
-    sprintf(str_extruder, "%ud", cntr + 1);
-    if (++ cntr == max_extruders)
+    int out = ++ cntr;
+    if (cntr == max_extruders)
     	cntr = 0;
-    return str_extruder;
+    return out;
 }
 
 void Model::convert_multipart_object(unsigned int max_extruders)
@@ -431,7 +440,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
             auto copy_volume = [o, max_extruders, &counter, &extruder_counter](ModelVolume *new_v) {
                 assert(new_v != nullptr);
                 new_v->name = o->name + "_" + std::to_string(counter++);
-                new_v->config.set_deserialize("extruder", auto_extruder_id(max_extruders, extruder_counter));
+                new_v->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
                 return new_v;
             };
             if (o->instances.empty()) {
@@ -1134,17 +1143,18 @@ bool ModelObject::needed_repair() const
     return false;
 }
 
-ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
+ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttributes attributes)
 {
-    if (!keep_upper && !keep_lower) { return {}; }
+    if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
+        return {};
 
     BOOST_LOG_TRIVIAL(trace) << "ModelObject::cut - start";
 
     // Clone the object to duplicate instances, materials etc.
-    ModelObject* upper = keep_upper ? ModelObject::new_clone(*this) : nullptr;
-    ModelObject* lower = keep_lower ? ModelObject::new_clone(*this) : nullptr;
+    ModelObject* upper = attributes.has(ModelObjectCutAttribute::KeepUpper) ? ModelObject::new_clone(*this) : nullptr;
+    ModelObject* lower = attributes.has(ModelObjectCutAttribute::KeepLower) ? ModelObject::new_clone(*this) : nullptr;
 
-    if (keep_upper) {
+    if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
         upper->set_model(nullptr);
         upper->sla_support_points.clear();
         upper->sla_drain_holes.clear();
@@ -1153,7 +1163,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         upper->input_file.clear();
     }
 
-    if (keep_lower) {
+    if (attributes.has(ModelObjectCutAttribute::KeepLower)) {
         lower->set_model(nullptr);
         lower->sla_support_points.clear();
         lower->sla_drain_holes.clear();
@@ -1193,8 +1203,10 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
             volume->set_transformation(Geometry::Transformation(instance_matrix * volume_matrix));
 
-            if (keep_upper) { upper->add_volume(*volume); }
-            if (keep_lower) { lower->add_volume(*volume); }
+            if (attributes.has(ModelObjectCutAttribute::KeepUpper))
+                upper->add_volume(*volume);
+            if (attributes.has(ModelObjectCutAttribute::KeepLower))
+                lower->add_volume(*volume);
         }
         else if (! volume->mesh().empty()) {
             
@@ -1214,19 +1226,19 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
                 indexed_triangle_set upper_its, lower_its;
                 mesh.require_shared_vertices();
                 cut_mesh(mesh.its, float(z), &upper_its, &lower_its);
-                if (keep_upper) {
+                if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
                     upper_mesh = TriangleMesh(upper_its);
                     upper_mesh.repair();
                     upper_mesh.reset_repair_stats();
                 }
-                if (keep_lower) {
+                if (attributes.has(ModelObjectCutAttribute::KeepLower)) {
                     lower_mesh = TriangleMesh(lower_its);
                     lower_mesh.repair();
                     lower_mesh.reset_repair_stats();
                 }
             }
 
-            if (keep_upper && upper_mesh.facets_count() > 0) {
+            if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper_mesh.facets_count() > 0) {
                 ModelVolume* vol = upper->add_volume(upper_mesh);
                 vol->name	= volume->name;
                 // Don't copy the config's ID.
@@ -1235,7 +1247,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 	    		assert(vol->config.id() != volume->config.id());
                 vol->set_material(volume->material_id(), *volume->material());
             }
-            if (keep_lower && lower_mesh.facets_count() > 0) {
+            if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower_mesh.facets_count() > 0) {
                 ModelVolume* vol = lower->add_volume(lower_mesh);
                 vol->name	= volume->name;
                 // Don't copy the config's ID.
@@ -1246,7 +1258,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
                 // Compute the lower part instances' bounding boxes to figure out where to place
                 // the upper part
-                if (keep_upper) {
+                if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
                     for (size_t i = 0; i < instances.size(); i++) {
                         lower_bboxes[i].merge(instances[i]->transform_mesh_bounding_box(lower_mesh, true));
                     }
@@ -1257,7 +1269,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
     ModelObjectPtrs res;
 
-    if (keep_upper && upper->volumes.size() > 0) {
+    if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper->volumes.size() > 0) {
         upper->invalidate_bounding_box();
         upper->center_around_origin();
 
@@ -1277,7 +1289,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
         res.push_back(upper);
     }
-    if (keep_lower && lower->volumes.size() > 0) {
+    if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower->volumes.size() > 0) {
         lower->invalidate_bounding_box();
         lower->center_around_origin();
 
@@ -1288,7 +1300,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
             instance->set_transformation(Geometry::Transformation());
             instance->set_offset(offset);
-            instance->set_rotation(Vec3d(rotate_lower ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
+            instance->set_rotation(Vec3d(attributes.has(ModelObjectCutAttribute::FlipLower) ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
         }
 
         res.push_back(lower);
@@ -1628,7 +1640,7 @@ bool ModelVolume::is_splittable() const
 {
     // the call mesh.is_splittable() is expensive, so cache the value to calculate it only once
     if (m_is_splittable == -1)
-        m_is_splittable = (int)this->mesh().is_splittable();
+        m_is_splittable = its_is_splittable(this->mesh().its);
 
     return m_is_splittable == 1;
 }
@@ -1738,7 +1750,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
         this->object->volumes[ivolume]->center_geometry_after_creation();
         this->object->volumes[ivolume]->translate(offset);
         this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
-        this->object->volumes[ivolume]->config.set_deserialize("extruder", auto_extruder_id(max_extruders, extruder_counter));
+        this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
         this->object->volumes[ivolume]->m_is_splittable = 0;
         delete mesh;
         ++ idx;

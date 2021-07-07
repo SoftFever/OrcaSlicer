@@ -213,4 +213,48 @@ void SL1Host::set_auth(Http &http) const
     }
 }
 
+// PrusaLink
+PrusaLink::PrusaLink(DynamicPrintConfig* config) :
+    OctoPrint(config),
+    authorization_type(dynamic_cast<const ConfigOptionEnum<AuthorizationType>*>(config->option("printhost_authorization_type"))->value),
+    username(config->opt_string("printhost_user")),
+    password(config->opt_string("printhost_password"))
+{
+}
+
+const char* PrusaLink::get_name() const { return "PrusaLink"; }
+
+wxString PrusaLink::get_test_ok_msg() const
+{
+    return _(L("Connection to PrusaLink works correctly."));
+}
+
+wxString PrusaLink::get_test_failed_msg(wxString& msg) const
+{
+    return GUI::from_u8((boost::format("%s: %s")
+        % _utf8(L("Could not connect to PrusaLink"))
+        % std::string(msg.ToUTF8())).str());
+}
+
+bool PrusaLink::validate_version_text(const boost::optional<std::string>& version_text) const
+{
+    return version_text ? (boost::starts_with(*version_text, "PrusaLink") || boost::starts_with(*version_text, "OctoPrint")) : false;
+}
+
+void PrusaLink::set_auth(Http& http) const
+{
+    switch (authorization_type) {
+    case atKeyPassword:
+        http.header("X-Api-Key", get_apikey());
+        break;
+    case atUserPassword:
+        http.auth_digest(username, password);
+        break;
+    }
+
+    if (!get_cafile().empty()) {
+        http.ca_file(get_cafile());
+    }
+}
+
 }

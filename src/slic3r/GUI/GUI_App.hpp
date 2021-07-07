@@ -124,10 +124,9 @@ private:
     wxColour        m_color_highlight_label_default;
     wxColour        m_color_hovered_btn_label;
     wxColour        m_color_highlight_default;
-    //bool            m_force_sys_colors_update { false }; // #ysDarkMSW - Use to force dark colors for SystemLightMode
+    wxColour        m_color_selected_btn_bg;
+    bool            m_force_colors_update { false };
 #endif
-
-    bool            m_tabs_as_menu{ false };
 
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
@@ -202,7 +201,9 @@ public:
 #ifdef _WIN32
     const wxColour& get_label_highlight_clr()   { return m_color_highlight_label_default; }
     const wxColour& get_highlight_default_clr() { return m_color_highlight_default; }
-//    void            force_sys_colors_update()   { m_force_sys_colors_update = true; } // #ysDarkMSW - Use to force dark colors for SystemLightMode
+    const wxColour& get_color_hovered_btn_label() { return m_color_hovered_btn_label; }
+    const wxColour& get_color_selected_btn_bg() { return m_color_selected_btn_bg; }
+    void            force_colors_update();
 #endif
 
     const wxFont&   small_font()            { return m_small_font; }
@@ -210,7 +211,7 @@ public:
     const wxFont&   normal_font()           { return m_normal_font; }
     const wxFont&   code_font()             { return m_code_font; }
     int             em_unit() const         { return m_em_unit; }
-    bool            tabs_as_menu() const    { return m_tabs_as_menu;}
+    bool            tabs_as_menu() const;
     wxSize          get_min_size() const;
     float           toolbar_icon_scale(const bool is_limited = false) const;
     void            set_auto_toolbar_icon_scale(float scale) const;
@@ -273,7 +274,7 @@ public:
     NotificationManager* notification_manager();
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
-    const GUI_InitParams* init_params { nullptr };
+    GUI_InitParams* init_params { nullptr };
 
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };
@@ -281,7 +282,7 @@ public:
     MainFrame*      mainframe{ nullptr };
     Plater*         plater_{ nullptr };
 
-	PresetUpdater* get_preset_updater() { return preset_updater; }
+	PresetUpdater*  get_preset_updater() { return preset_updater; }
 
     wxBookCtrlBase* tab_panel() const ;
     int             extruders_cnt() const;

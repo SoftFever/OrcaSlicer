@@ -2,6 +2,7 @@
 #define slic3r_Model_hpp_
 
 #include "libslic3r.h"
+#include "enum_bitmask.hpp"
 #include "Geometry.hpp"
 #include "ObjectID.hpp"
 #include "Point.hpp"
@@ -12,6 +13,7 @@
 #include "TriangleMesh.hpp"
 #include "Arrange.hpp"
 #include "CustomGCode.hpp"
+#include "enum_bitmask.hpp"
 
 #include <map>
 #include <memory>
@@ -226,6 +228,10 @@ enum class ModelVolumeType : int {
     SUPPORT_ENFORCER,
 };
 
+enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipLower }; 
+using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
+ENABLE_ENUM_BITMASK_OPERATORS(ModelObjectCutAttribute);
+
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
 // Each ModelObject may be instantiated mutliple times, each instance having different placement on the print bed,
@@ -344,7 +350,7 @@ public:
     size_t materials_count() const;
     size_t facets_count() const;
     bool needed_repair() const;
-    ModelObjectPtrs cut(size_t instance, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);    // Note: z is in world coordinates
+    ModelObjectPtrs cut(size_t instance, coordf_t z, ModelObjectCutAttributes attributes);
     void split(ModelObjectPtrs* new_objects);
     void merge();
     // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,
@@ -1031,8 +1037,20 @@ public:
 
     OBJECTBASE_DERIVED_COPY_MOVE_CLONE(Model)
 
-    static Model read_from_file(const std::string& input_file, DynamicPrintConfig* config = nullptr, bool add_default_instances = true, bool check_version = false);
-    static Model read_from_archive(const std::string& input_file, DynamicPrintConfig* config, bool add_default_instances = true, bool check_version = false);
+    enum class LoadAttribute : int {
+        AddDefaultInstances,
+        CheckVersion
+    };
+    using LoadAttributes = enum_bitmask<LoadAttribute>;
+
+    static Model read_from_file(
+        const std::string& input_file, 
+        DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
+        LoadAttributes options = LoadAttribute::AddDefaultInstances);
+    static Model read_from_archive(
+        const std::string& input_file, 
+        DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
+        LoadAttributes options = LoadAttribute::AddDefaultInstances);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
@@ -1096,6 +1114,8 @@ private:
 		ar(materials, objects, wipe_tower_wrapper);
     }
 };
+
+ENABLE_ENUM_BITMASK_OPERATORS(Model::LoadAttribute)
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE
 #undef OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE

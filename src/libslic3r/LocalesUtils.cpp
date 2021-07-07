@@ -19,6 +19,7 @@ CNumericLocalesSetter::CNumericLocalesSetter()
 #else // APPLE
     m_original_locale = uselocale((locale_t)0);
     m_new_locale = newlocale(LC_NUMERIC_MASK, "C", m_original_locale);
+    uselocale(m_new_locale);
 #endif
 }
 

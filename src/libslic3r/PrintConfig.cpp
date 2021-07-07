@@ -50,7 +50,7 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
     { "teacup",         gcfTeacup },
     { "makerware",      gcfMakerWare },
     { "marlin",         gcfMarlinLegacy },
-    { "marlinfirmware", gcfMarlinFirmware },
+    { "marlin2",        gcfMarlinFirmware },
     { "sailfish",       gcfSailfish },
     { "smoothie",       gcfSmoothie },
     { "mach3",          gcfMach3 },
@@ -67,6 +67,7 @@ static t_config_enum_values s_keys_map_MachineLimitsUsage {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(MachineLimitsUsage)
 
 static t_config_enum_values s_keys_map_PrintHostType {
+    { "prusalink",      htPrusaLink },
     { "octoprint",      htOctoPrint },
     { "duet",           htDuet },
     { "flashair",       htFlashAir },
@@ -171,6 +172,13 @@ static const t_config_enum_values s_keys_map_BrimType = {
     {"outer_and_inner", btOuterAndInner}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
+
+static const t_config_enum_values s_keys_map_ForwardCompatibilitySubstitutionRule = {
+    { "disable",        ForwardCompatibilitySubstitutionRule::Disable },
+    { "enable",         ForwardCompatibilitySubstitutionRule::Enable },
+    { "enable_silent",  ForwardCompatibilitySubstitutionRule::EnableSilent }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -1245,7 +1253,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("teacup");
     def->enum_values.push_back("makerware");
     def->enum_values.push_back("marlin");
-    def->enum_values.push_back("marlinfirmware");
+    def->enum_values.push_back("marlin2");
     def->enum_values.push_back("sailfish");
     def->enum_values.push_back("mach3");
     def->enum_values.push_back("machinekit");
@@ -1772,11 +1780,13 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
                    "the kind of the host.");
     def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
+    def->enum_values.push_back("prusalink");
     def->enum_values.push_back("octoprint");
     def->enum_values.push_back("duet");
     def->enum_values.push_back("flashair");
     def->enum_values.push_back("astrobox");
     def->enum_values.push_back("repetier");
+    def->enum_labels.push_back("PrusaLink");
     def->enum_labels.push_back("OctoPrint");
     def->enum_labels.push_back("Duet");
     def->enum_labels.push_back("FlashAir");
@@ -3608,8 +3618,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         } catch (boost::bad_lexical_cast &) {
             value = "0";
         }
-    } else if (opt_key == "gcode_flavor" && value == "makerbot") {
-        value = "makerware";
+    } else if (opt_key == "gcode_flavor") {
+        if (value == "makerbot")
+            value = "makerware";
+        else if (value == "marlinfirmware")
+            // the "new" marlin firmware flavor used to be called "marlinfirmware" for some time during PrusaSlicer 2.4.0-alpha development.
+            value = "marlin2";
     } else if (opt_key == "fill_density" && value.find("%") == std::string::npos) {
         try {
             // fill_density was turned into a percent value
@@ -3622,7 +3636,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "bed_size" && !value.empty()) {
         opt_key = "bed_shape";
         ConfigOptionPoint p;
-        p.deserialize(value);
+        p.deserialize(value, ForwardCompatibilitySubstitutionRule::Disable);
         std::ostringstream oss;
         oss << "0x0," << p.value(0) << "x0," << p.value(0) << "x" << p.value(1) << ",0x" << p.value(1);
         value = oss.str();
@@ -4170,6 +4184,20 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def = this->add("ignore_nonexistent_config", coBool);
     def->label = L("Ignore non-existent config files");
     def->tooltip = L("Do not fail if a file supplied to --load does not exist.");
+
+    def = this->add("config_compatibility", coEnum);
+    def->label = L("Forward-compatibility rule when loading configurations from config files and project files (3MF, AMF).");
+    def->tooltip = L("This version of PrusaSlicer may not understand configurations produced by newest PrusaSlicer versions. "
+                     "For example, newer PrusaSlicer may extend the list of supported firmware flavors. One may decide to "
+                     "bail out or to substitute an unknown value with a default silently or verbosely.");
+    def->enum_keys_map = &ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>::get_enum_values();
+    def->enum_values.push_back("disable");
+    def->enum_values.push_back("enable");
+    def->enum_values.push_back("enable_silent");
+    def->enum_labels.push_back(L("Bail out on unknown configuration values"));
+    def->enum_labels.push_back(L("Enable reading unknown configuration values by verbosely substituting them with defaults."));
+    def->enum_labels.push_back(L("Enable reading unknown configuration values by silently substituting them with defaults."));
+    def->set_default_value(new ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>(ForwardCompatibilitySubstitutionRule::Enable));
 
     def = this->add("load", coStrings);
     def->label = L("Load config file");

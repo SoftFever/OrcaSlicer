@@ -113,6 +113,9 @@ public:
         TYPE_SLA_MATERIAL,
         TYPE_PRINTER,
         TYPE_COUNT,
+        // This type is here to support PresetConfigSubstitutions for physical printers, however it does not belong to the Preset class,
+        // PhysicalPrinter class is used instead.
+        TYPE_PHYSICAL_PRINTER,
     };
 
     Type                type        = TYPE_INVALID;
@@ -251,6 +254,27 @@ enum class PresetSelectCompatibleType {
 	Always
 };
 
+// Substitutions having been performed during parsing a single configuration file.
+struct PresetConfigSubstitutions {
+    // User readable preset name.
+    std::string                             preset_name;
+    // Type of the preset (Print / Filament / Printer ...)
+    Preset::Type                            preset_type;
+    enum class Source {
+        UserFile,
+        ConfigBundle,
+    };
+    Source                                  preset_source;
+    // Source of the preset. It may be empty in case of a ConfigBundle being loaded.
+    std::string                             preset_file;
+    // What config value has been substituted with what.
+    ConfigSubstitutions                     substitutions;
+};
+
+// Substitutions having been performed during parsing a set of configuration files, for example when starting up
+// PrusaSlicer and reading the user Print / Filament / Printer profiles.
+using PresetsConfigSubstitutions = std::vector<PresetConfigSubstitutions>;
+
 // Collections of presets of the same type (one of the Print, Filament or Printer type).
 class PresetCollection
 {
@@ -280,7 +304,7 @@ public:
     void            add_default_preset(const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &preset_name);
 
     // Load ini files of the particular type from the provided directory path.
-    void            load_presets(const std::string &dir_path, const std::string &subdir);
+    void            load_presets(const std::string &dir_path, const std::string &subdir, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
 
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.
@@ -692,7 +716,7 @@ public:
     const std::deque<PhysicalPrinter>& operator()() const { return m_printers; }
 
     // Load ini files of the particular type from the provided directory path.
-    void            load_printers(const std::string& dir_path, const std::string& subdir);
+    void            load_printers(const std::string& dir_path, const std::string& subdir, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     void            load_printers_from_presets(PrinterPresetCollection &printer_presets);
     // Load printer from the loaded configuration
     void            load_printer(const std::string& path, const std::string& name, DynamicPrintConfig&& config, bool select, bool save=false);

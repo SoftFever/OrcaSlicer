@@ -140,21 +140,26 @@ void SLAImportJob::process()
     if (p->path.empty()) return;
     
     std::string path = p->path.ToUTF8().data();
+    ConfigSubstitutions config_substitutions;
     try {
         switch (p->sel) {
         case Sel::modelAndProfile:
-            import_sla_archive(path, p->win, p->mesh, p->profile, progr);
+            config_substitutions = import_sla_archive(path, p->win, p->mesh, p->profile, progr);
             break;
         case Sel::modelOnly:
-            import_sla_archive(path, p->win, p->mesh, progr);
+            config_substitutions = import_sla_archive(path, p->win, p->mesh, progr);
             break;
         case Sel::profileOnly:
-            import_sla_archive(path, p->profile);
+            config_substitutions = import_sla_archive(path, p->profile);
             break;
         }
         
     } catch (std::exception &ex) {
         p->err = ex.what();
+    }
+
+    if (! config_substitutions.empty()) {
+        //FIXME Add reporting here "Loading profiles found following incompatibilities."
     }
     
     update_status(100, was_canceled() ? _(L("Importing canceled.")) :

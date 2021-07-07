@@ -41,6 +41,8 @@
 #include "GUI_App.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "MsgDialog.hpp"
+#include "Notebook.hpp"
+#include "GUI_Factories.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -427,8 +429,13 @@ void MainFrame::update_layout()
     case ESettingsLayout::Old:
     {
         m_plater->Reparent(m_tabpanel);
+#ifdef _MSW_DARK_MODE
+        if (!wxGetApp().tabs_as_menu())
+            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater, _L("Plater"), std::string("plater"));
+        else
+#endif
         m_tabpanel->InsertPage(0, m_plater, _L("Plater"));
-        m_main_sizer->Add(m_tabpanel, 1, wxEXPAND);
+        m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 1);
         m_plater->Show();
         m_tabpanel->Show();
         // update Tabs
@@ -447,6 +454,11 @@ void MainFrame::update_layout()
         m_tabpanel->Hide();
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND);
         m_plater_page = new wxPanel(m_tabpanel);
+#ifdef _MSW_DARK_MODE
+        if (!wxGetApp().tabs_as_menu())
+            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater_page, _L("Plater"), std::string("plater"));
+        else
+#endif
         m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
         m_plater->Show();
         break;
@@ -455,7 +467,7 @@ void MainFrame::update_layout()
     {
         m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_tabpanel->Reparent(&m_settings_dialog);
-        m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND);
+        m_settings_dialog.GetSizer()->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 2);
         m_tabpanel->Show();
         m_plater->Show();
 
@@ -475,6 +487,11 @@ void MainFrame::update_layout()
         break;
     }
     }
+
+#ifdef _MSW_DARK_MODE
+    // Sizer with buttons for mode changing
+    m_plater->sidebar().show_mode_sizer(wxGetApp().tabs_as_menu() || m_layout != ESettingsLayout::Old);
+#endif
 
 #ifdef __WXMSW__
     if (update_scaling_state != State::noUpdate)
@@ -640,7 +657,7 @@ void MainFrame::init_tabpanel()
         wxGetApp().UpdateDarkUI(m_tabpanel);
     }
     else
-        m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+        m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME, true);
 #else
     m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
 #endif
@@ -652,7 +669,7 @@ void MainFrame::init_tabpanel()
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
 #ifdef __WXMSW__
-    m_tabpanel->Bind(/*wxEVT_LISTBOOK_PAGE_CHANGED*/wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
+    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #else
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #endif
@@ -763,20 +780,25 @@ void MainFrame::register_win32_callbacks()
 void MainFrame::create_preset_tabs()
 {
     wxGetApp().update_label_colours_from_appconfig();
-    add_created_tab(new TabPrint(m_tabpanel));
-    add_created_tab(new TabFilament(m_tabpanel));
-    add_created_tab(new TabSLAPrint(m_tabpanel));
-    add_created_tab(new TabSLAMaterial(m_tabpanel));
-    add_created_tab(new TabPrinter(m_tabpanel));
+    add_created_tab(new TabPrint(m_tabpanel), "cog");
+    add_created_tab(new TabFilament(m_tabpanel), "spool");
+    add_created_tab(new TabSLAPrint(m_tabpanel), "cog");
+    add_created_tab(new TabSLAMaterial(m_tabpanel), "resin");
+    add_created_tab(new TabPrinter(m_tabpanel), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF ? "printer" : "sla_printer");
 }
 
-void MainFrame::add_created_tab(Tab* panel)
+void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*/)
 {
     panel->create_preset_tab();
 
     const auto printer_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 
     if (panel->supports_printer_technology(printer_tech))
+#ifdef _MSW_DARK_MODE
+        if (!wxGetApp().tabs_as_menu())
+            dynamic_cast<Notebook*>(m_tabpanel)->AddPage(panel, panel->title(), bmp_name);
+        else
+#endif
         m_tabpanel->AddPage(panel, panel->title());
 }
 
@@ -960,6 +982,12 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     wxGetApp().update_fonts(this);
     this->SetFont(this->normal_font());
 
+#ifdef _MSW_DARK_MODE
+    // update common mode sizer
+    if (!wxGetApp().tabs_as_menu())
+        dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
+#endif
+
     // update Plater
     wxGetApp().plater()->msw_rescale();
 
@@ -968,9 +996,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
         for (auto tab : wxGetApp().tabs_list)
             tab->msw_rescale();
 
-    wxMenuBar* menu_bar = this->GetMenuBar();
-    for (size_t id = 0; id < menu_bar->GetMenuCount(); id++)
-        msw_rescale_menu(menu_bar->GetMenu(id));
+    for (size_t id = 0; id < m_menubar->GetMenuCount(); id++)
+        msw_rescale_menu(m_menubar->GetMenu(id));
 
     // Workarounds for correct Window rendering after rescale
 
@@ -1003,6 +1030,11 @@ void MainFrame::on_sys_color_changed()
 #ifdef __WXMSW__
     wxGetApp().UpdateDarkUI(m_tabpanel);
     m_statusbar->update_dark_ui();
+#ifdef _MSW_DARK_MODE
+    // update common mode sizer
+    if (!wxGetApp().tabs_as_menu())
+        dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
+#endif
 #endif
 
     // update Plater
@@ -1012,10 +1044,7 @@ void MainFrame::on_sys_color_changed()
     for (auto tab : wxGetApp().tabs_list)
         tab->sys_color_changed();
 
-    // msw_rescale_menu updates just icons, so use it
-    wxMenuBar* menu_bar = this->GetMenuBar();
-    for (size_t id = 0; id < menu_bar->GetMenuCount(); id++)
-        msw_rescale_menu(menu_bar->GetMenu(id));
+    MenuFactory::sys_color_changed(m_menubar);
 
     this->Refresh();
 }
@@ -1518,6 +1547,7 @@ void MainFrame::update_menubar()
     m_changeable_menu_items[miPrinterTab]   ->SetBitmap(create_menu_bitmap(is_fff ? "printer" : "sla_printer"));
 }
 
+#if 0
 // To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".
 void MainFrame::quick_slice(const int qs)
 {
@@ -1643,6 +1673,7 @@ void MainFrame::quick_slice(const int qs)
 //     };
 //     Slic3r::GUI::catch_error(this, []() { if (m_progress_dialog) m_progress_dialog->Destroy(); });
 }
+#endif
 
 void MainFrame::reslice_now()
 {
@@ -1729,7 +1760,13 @@ void MainFrame::load_config_file()
 bool MainFrame::load_config_file(const std::string &path)
 {
     try {
-        wxGetApp().preset_bundle->load_config_file(path); 
+        ConfigSubstitutions config_substitutions = wxGetApp().preset_bundle->load_config_file(path, ForwardCompatibilitySubstitutionRule::Enable);
+        if (! config_substitutions.empty()) {
+            // TODO: Add list of changes from all_substitutions
+            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
+                " To recover these files, incompatible values were changed to default values."
+                " But data in files won't be changed until you save them in PrusaSlicer.")));
+        }
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return false;
@@ -1793,12 +1830,20 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 
     wxGetApp().app_config->update_config_dir(get_dir_name(file));
 
-    auto presets_imported = 0;
+    size_t presets_imported = 0;
+    PresetsConfigSubstitutions config_substitutions;
     try {
-        presets_imported = wxGetApp().preset_bundle->load_configbundle(file.ToUTF8().data());
+        std::tie(config_substitutions, presets_imported) = wxGetApp().preset_bundle->load_configbundle(file.ToUTF8().data(), PresetBundle::LoadConfigBundleAttribute::SaveImported);
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;
+    }
+
+    if (! config_substitutions.empty()) {
+        // TODO: Add list of changes from all_substitutions
+        show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
+            " To recover these files, incompatible values were changed to default values."
+            " But data in files won't be changed until you save them in PrusaSlicer.")));
     }
 
     // Load the currently selected preset into the GUI, update the preset selection box.
@@ -2087,8 +2132,8 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 #else
     this->SetFont(wxGetApp().normal_font());
-#endif // __WXMSW__
     this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif // __WXMSW__
 
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
@@ -2168,6 +2213,12 @@ void SettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     const int& em = em_unit();
     const wxSize& size = wxSize(85 * em, 50 * em);
+
+#ifdef _MSW_DARK_MODE
+    // update common mode sizer
+    if (!wxGetApp().tabs_as_menu())
+        dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
+#endif
 
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)

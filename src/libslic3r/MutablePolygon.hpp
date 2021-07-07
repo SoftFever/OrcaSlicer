@@ -3,6 +3,7 @@
 
 #include "Point.hpp"
 #include "Polygon.hpp"
+#include "ExPolygon.hpp"
 
 namespace Slic3r {
 
@@ -328,6 +329,24 @@ inline Polygons smooth_outward(Polygons polygons, coord_t clip_dist_scaled)
     }
     polygons.erase(std::remove_if(polygons.begin(), polygons.end(), [](const auto &p){ return p.empty(); }), polygons.end());
     return polygons;
+}
+
+inline ExPolygons smooth_outward(ExPolygons expolygons, coord_t clip_dist_scaled)
+{
+    MutablePolygon mp;
+    for (ExPolygon &expolygon : expolygons) {
+        mp.assign(expolygon.contour, expolygon.contour.size() * 2);
+        smooth_outward(mp, clip_dist_scaled);
+        mp.polygon(expolygon.contour);
+        for (Polygon &hole : expolygon.holes) {
+            mp.assign(hole, hole.size() * 2);
+            smooth_outward(mp, clip_dist_scaled);
+            mp.polygon(hole);
+        }
+        expolygon.holes.erase(std::remove_if(expolygon.holes.begin(), expolygon.holes.end(), [](const auto &p) { return p.empty(); }), expolygon.holes.end());
+    }
+    expolygons.erase(std::remove_if(expolygons.begin(), expolygons.end(), [](const auto &p) { return p.empty(); }), expolygons.end());
+    return expolygons;
 }
 
 }

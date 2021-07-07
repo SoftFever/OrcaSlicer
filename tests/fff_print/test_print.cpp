@@ -50,7 +50,7 @@ SCENARIO("Print: Skirt generation", "[Print]") {
 SCENARIO("Print: Changing number of solid surfaces does not cause all surfaces to become internal.", "[Print]") {
     GIVEN("sliced 20mm cube and config with top_solid_surfaces = 2 and bottom_solid_surfaces = 1") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-		config.set_deserialize({
+		config.set_deserialize_strict({
 			{ "top_solid_layers",		2 },
 			{ "bottom_solid_layers",	1 },
 			{ "layer_height",			0.25 }, // get a known number of layers

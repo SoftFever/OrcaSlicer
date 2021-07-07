@@ -7,6 +7,7 @@
 #include <wx/dialog.h>
 #include <wx/font.h>
 #include <wx/bitmap.h>
+#include <wx/msgdlg.h>
 
 class wxBoxSizer;
 class wxCheckBox;
@@ -83,7 +84,7 @@ public:
 	virtual ~WarningDialog() = default;
 };
 
-
+#ifdef _WIN32
 // Generic message dialog, used intead of wxMessageDialog
 class MessageDialog : public MsgDialog
 {
@@ -98,6 +99,19 @@ public:
 	MessageDialog &operator=(const MessageDialog&) = delete;
 	virtual ~MessageDialog() = default;
 };
+#else
+// just a wrapper to wxMessageBox to use the same code on all platforms
+class MessageDialog : public wxMessageDialog
+{
+public:
+	MessageDialog(wxWindow* parent,
+		const wxString& message,
+		const wxString& caption = wxEmptyString,
+		long style = wxOK)
+    : wxMessageDialog(parent, message, caption, style) {}
+	~MessageDialog() {}
+};
+#endif
 
 
 }

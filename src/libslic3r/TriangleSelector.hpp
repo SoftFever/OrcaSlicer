@@ -204,10 +204,10 @@ private:
     int triangle_midpoint(int itriangle, int vertexi, int vertexj) const;
     int triangle_midpoint_or_allocate(int itriangle, int vertexi, int vertexj);
 
-#ifndef _NDEBUG
+#ifndef NDEBUG
     bool verify_triangle_neighbors(const Triangle& tr, const Vec3i& neighbors) const;
     bool verify_triangle_midpoints(const Triangle& tr) const;
-#endif // _NDEBUG
+#endif // NDEBUG
 
     void get_facets_strict_recursive(
         const Triangle                              &tr,

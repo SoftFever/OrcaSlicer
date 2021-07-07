@@ -208,12 +208,13 @@ SavePresetDialog::~SavePresetDialog()
 
 void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix)
 {
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #if defined(__WXMSW__)
     // ys_FIXME! temporary workaround for correct font scaling
     // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
     // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
     this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+#else
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
 
     if (suffix.empty())
@@ -240,6 +241,10 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     topSizer->SetSizeHints(this);
 
     this->CenterOnScreen();
+
+#ifdef _WIN32
+    wxGetApp().UpdateDlgDarkUI(this);
+#endif
 }
 
 void SavePresetDialog::AddItem(Preset::Type type, const std::string& suffix)

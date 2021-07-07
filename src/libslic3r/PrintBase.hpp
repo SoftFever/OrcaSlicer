@@ -448,9 +448,9 @@ public:
 		// Canceled internally from Print::apply() through the Print/PrintObject::invalidate_step() or ::invalidate_all_steps().
 		CANCELED_INTERNAL = 2
 	};
-    CancelStatus               cancel_status() const { return m_cancel_status; }
+    CancelStatus               cancel_status() const { return m_cancel_status.load(std::memory_order_acquire); }
     // Has the calculation been canceled?
-	bool                       canceled() const { return m_cancel_status != NOT_CANCELED; }
+	bool                       canceled() const { return m_cancel_status.load(std::memory_order_acquire) != NOT_CANCELED; }
     // Cancel the running computation. Stop execution of all the background threads.
 	void                       cancel() { m_cancel_status = CANCELED_BY_USER; }
 	void                       cancel_internal() { m_cancel_status = CANCELED_INTERNAL; }
@@ -481,7 +481,7 @@ protected:
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
-    void                   throw_if_canceled() const { if (m_cancel_status) throw CanceledException(); }
+    void                   throw_if_canceled() const { if (m_cancel_status.load(std::memory_order_acquire)) throw CanceledException(); }
     // Wrapper around this->throw_if_canceled(), so that throw_if_canceled() may be passed to a function without making throw_if_canceled() public.
     PrintTryCancel         make_try_cancel() const { return PrintTryCancel(this); }
 

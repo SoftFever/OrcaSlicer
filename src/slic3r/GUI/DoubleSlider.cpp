@@ -2010,11 +2010,11 @@ void Control::show_cog_icon_context_menu()
             []() { return true; }, [this]() { return m_extra_style == 0; }, GUI::wxGetApp().plater());
 
         append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("Show object height"), _L("Show object height on the ruler"),
-            [this](wxCommandEvent&) { m_extra_style & wxSL_AUTOTICKS ? m_extra_style &= wxSL_AUTOTICKS : m_extra_style |= wxSL_AUTOTICKS; }, ruler_mode_menu,
+            [this](wxCommandEvent&) { m_extra_style & wxSL_AUTOTICKS ? m_extra_style ^= wxSL_AUTOTICKS : m_extra_style |= wxSL_AUTOTICKS; }, ruler_mode_menu,
             []() { return true; }, [this]() { return m_extra_style & wxSL_AUTOTICKS; }, GUI::wxGetApp().plater());
 
         append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("Show estimated print time"), _L("Show estimated print time on the ruler"),
-            [this](wxCommandEvent&) { m_extra_style & wxSL_VALUE_LABEL ? m_extra_style &= wxSL_VALUE_LABEL : m_extra_style |= wxSL_VALUE_LABEL; }, ruler_mode_menu,
+            [this](wxCommandEvent&) { m_extra_style & wxSL_VALUE_LABEL ? m_extra_style ^= wxSL_VALUE_LABEL : m_extra_style |= wxSL_VALUE_LABEL; }, ruler_mode_menu,
             []() { return true; }, [this]() { return m_extra_style & wxSL_VALUE_LABEL; }, GUI::wxGetApp().plater());
 
         append_submenu(&menu, ruler_mode_menu, wxID_ANY, _L("Ruler mode"), _L("Set ruler mode"), "",

@@ -36,6 +36,12 @@ public:
 
     void set_painter_gizmo_data(const Selection& selection) override;
 
+    // TriangleSelector::serialization/deserialization has a limit to store 19 different states.
+    // EXTRUDER_LIMIT + 1 states are used to storing the painting because also uncolored triangles are stored.
+    // When increasing EXTRUDER_LIMIT, it needs to ensure that TriangleSelector::serialization/deserialization
+    // will be also extended to support additional states, requiring at least one state to remain free out of 19 states.
+    static const constexpr size_t EXTRUDERS_LIMIT = 16;
+
 protected:
     std::array<float, 4> get_cursor_sphere_left_button_color() const override;
     std::array<float, 4> get_cursor_sphere_right_button_color() const override;
@@ -63,7 +69,7 @@ private:
     void update_model_object() const override;
     void update_from_model_object() override;
 
-    void on_opening() override {}
+    void on_opening() override;
     void on_shutdown() override;
     PainterGizmoType get_painter_type() const override;
 

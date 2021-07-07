@@ -1,3 +1,5 @@
+min_slic3r_version = 2.3.2-alpha0
+0.1.0 Added Ender-7, Sermoon D1, CR-10 SMART
 min_slic3r_version = 2.3.1-beta
 0.0.17 Updated start g-code. Added specific start g-code for straingauge printers. Improved output filename format. Added filament profile.
 0.0.16 Updated CR6-SE start g-code. Added and updated filament profiles.

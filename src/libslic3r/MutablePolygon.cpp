@@ -166,7 +166,7 @@ static bool clip_narrow_corner(
             assert(orient1 > 0 == blocked);
             assert(orient2 > 0 == blocked);
         }
-#endif // _NDEBUG
+#endif // NDEBUG
         if (polygon.size() < 3 || (forward == Far && backward == Far)) {
             polygon.clear();
         } else {

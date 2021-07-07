@@ -44,6 +44,8 @@ public:
     void    msw_rescale();
     void    sys_color_changed();
 
+    static void sys_color_changed(wxMenuBar* menu_bar);
+
     wxMenu* default_menu();
     wxMenu* object_menu();
     wxMenu* sla_object_menu();

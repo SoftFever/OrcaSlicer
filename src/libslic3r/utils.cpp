@@ -8,6 +8,7 @@
 
 #include "Platform.hpp"
 #include "Time.hpp"
+#include "libslic3r.h"
 
 #ifdef WIN32
 	#include <windows.h>
@@ -43,7 +44,13 @@
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 
-#include <tbb/global_control.h>
+// We are using quite an old TBB 2017 U7, which does not support global control API officially.
+// Before we update our build servers, let's use the old API, which is deprecated in up to date TBB.
+#ifdef TBB_HAS_GLOBAL_CONTROL
+    #include <tbb/global_control.h>
+#else
+    #include <tbb/task_scheduler_init.h>
+#endif
 
 #if defined(__linux__) || defined(__GNUC__ )
 #include <strings.h>
@@ -118,7 +125,12 @@ void trace(unsigned int level, const char *message)
 void disable_multi_threading()
 {
     // Disable parallelization so the Shiny profiler works
+#ifdef TBB_HAS_GLOBAL_CONTROL
     tbb::global_control(tbb::global_control::max_allowed_parallelism, 1);
+#else // TBB_HAS_GLOBAL_CONTROL
+    static tbb::task_scheduler_init *tbb_init = new tbb::task_scheduler_init(1);
+    UNUSED(tbb_init);
+#endif // TBB_HAS_GLOBAL_CONTROL
 }
 
 static std::string g_var_dir;

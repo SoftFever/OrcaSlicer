@@ -37,7 +37,7 @@ public:
 
 	// Load the slic3r.ini from a user profile directory (or a datadir, if configured).
 	// return error string or empty strinf
-	std::string		   	load();
+	std::string         load();
 	// Store the slic3r.ini into a user profile directory (or a datadir, if configured).
 	void 			   	save();
 
@@ -63,12 +63,12 @@ public:
 		{ std::string value; this->get("", key, value); return value; }
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
 	{
-#ifndef _NDEBUG
+#ifndef NDEBUG
 		std::string key_trimmed = key;
 		boost::trim_all(key_trimmed);
 		assert(key_trimmed == key);
 		assert(! key_trimmed.empty());
-#endif // _NDEBUG
+#endif // NDEBUG
 		std::string &old = m_storage[section][key];
 		if (old != value) {
 			old = value;

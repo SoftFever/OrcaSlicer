@@ -583,7 +583,7 @@ struct Sidebar::priv
     wxScrolledWindow *scrolled;
     wxPanel* presets_panel; // Used for MSW better layouts
 
-    ModeSizer  *mode_sizer;
+    ModeSizer  *mode_sizer {nullptr};
     wxFlexGridSizer *sizer_presets;
     PlaterPresetComboBox *combo_print;
     std::vector<PlaterPresetComboBox*> combos_filament;
@@ -754,7 +754,8 @@ Sidebar::Sidebar(Plater *parent)
     p->sliced_info = new SlicedInfo(p->scrolled);
 
     // Sizer in the scrolled area
-    scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL/*RIGHT | wxBOTTOM | wxRIGHT, 5*/);
+    if (p->mode_sizer)
+        scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
     is_msw ?
         scrolled_sizer->Add(p->presets_panel, 0, wxEXPAND | wxLEFT, margin_5) :
         scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, margin_5);
@@ -944,13 +945,16 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
 void Sidebar::update_mode_sizer() const
 {
-    p->mode_sizer->SetMode(m_mode);
+    if (p->mode_sizer)
+        p->mode_sizer->SetMode(m_mode);
 }
 
 void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
 {
-    p->mode_sizer->set_items_flag(increase_border ? wxTOP : 0);
-    p->mode_sizer->set_items_border(increase_border ? int(0.5 * wxGetApp().em_unit()) : 0);
+    if (p->mode_sizer) {
+        p->mode_sizer->set_items_flag(increase_border ? wxTOP : 0);
+        p->mode_sizer->set_items_border(increase_border ? int(0.5 * wxGetApp().em_unit()) : 0);
+    }
 }
 
 void Sidebar::update_reslice_btn_tooltip() const
@@ -965,7 +969,8 @@ void Sidebar::msw_rescale()
 {
     SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
 
-    p->mode_sizer->msw_rescale();
+    if (p->mode_sizer)
+        p->mode_sizer->msw_rescale();
 
     for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*> { p->combo_print,
                                                                 p->combo_sla_print,
@@ -1009,7 +1014,8 @@ void Sidebar::sys_color_changed()
     for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
         wxGetApp().UpdateDarkUI(btn, true);
 
-    p->mode_sizer->msw_rescale();
+    if (p->mode_sizer)
+        p->mode_sizer->msw_rescale();
     p->frequently_changed_parameters->sys_color_changed();
     p->object_settings->sys_color_changed();
 #endif
@@ -1394,6 +1400,12 @@ void Sidebar::collapse(bool collapse)
         wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
 }
 
+#ifdef _MSW_DARK_MODE
+void Sidebar::show_mode_sizer(bool show)
+{
+    p->mode_sizer->Show(show);
+}
+#endif
 
 void Sidebar::update_ui_from_settings()
 {
@@ -2237,7 +2249,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 DynamicPrintConfig config;
                 {
                     DynamicPrintConfig config_loaded;
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, false, load_config);
+                    ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion));
                     if (load_config && !config_loaded.empty()) {
                         // Based on the printer technology field found in the loaded config, select the base for the config,
                         PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
@@ -2260,6 +2273,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             static_cast<const ConfigBase&>(SLAFullPrintConfig::defaults()));
                         // and place the loaded config over the base.
                         config += std::move(config_loaded);
+                    }
+                    if (! config_substitutions.empty()) {
+                        // TODO:
+                        show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
+                            " To recover these files, incompatible values were changed to default values."
+                            " But data in files won't be changed until you save them in PrusaSlicer.")));
                     }
 
                     this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
@@ -2330,7 +2349,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
             }
             else {
-                model = Slic3r::Model::read_from_file(path.string(), nullptr, false, load_config);
+                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion));
                 for (auto obj : model.objects)
                     if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();
@@ -3215,7 +3234,7 @@ void Plater::priv::replace_with_stl()
 
     Model new_model;
     try {
-        new_model = Model::read_from_file(path, nullptr, true, false);
+        new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances);
         for (ModelObject* model_object : new_model.objects) {
             model_object->center_around_origin();
             model_object->ensure_on_bed();
@@ -3388,7 +3407,7 @@ void Plater::priv::reload_from_disk()
         Model new_model;
         try
         {
-            new_model = Model::read_from_file(path, nullptr, true, false);
+            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances);
             for (ModelObject* model_object : new_model.objects) {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
@@ -4599,7 +4618,9 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             // Switch to the other printer technology. Switch to the last printer active for that particular technology.
             AppConfig *app_config = wxGetApp().app_config;
             app_config->set("presets", "printer", (new_printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name);
-            wxGetApp().preset_bundle->load_presets(*app_config);
+            //FIXME Why are we reloading the whole preset bundle here? Please document. This is fishy and it is unnecessarily expensive.
+            // Anyways, don't report any config value substitutions, they have been already reported to the user at application start up.
+            wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent);
 			// load_current_presets() calls Tab::load_current_preset() -> TabPrint::update() -> Object_list::update_and_show_object_settings_item(),
 			// but the Object list still keeps pointer to the old Model. Avoid a crash by removing selection first.
 			this->sidebar->obj_list()->unselect_objects();
@@ -5306,21 +5327,20 @@ void Plater::toggle_layers_editing(bool enable)
         wxPostEvent(canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
 }
 
-void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
+void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, ModelObjectCutAttributes attributes)
 {
     wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
     auto *object = p->model.objects[obj_idx];
 
     wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
 
-    if (!keep_upper && !keep_lower) {
+    if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
         return;
-    }
 
     Plater::TakeSnapshot snapshot(this, _L("Cut by Plane"));
 
     wxBusyCursor wait;
-    const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);
+    const auto new_objects = object->cut(instance_idx, z, attributes);
 
     remove(obj_idx);
     p->load_model_objects(new_objects);
@@ -5328,9 +5348,7 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
     Selection& selection = p->get_selection();
     size_t last_id = p->model.objects.size() - 1;
     for (size_t i = 0; i < new_objects.size(); ++i)
-    {
         selection.add_object((unsigned int)(last_id - i), i == 0);
-    }
 }
 
 void Plater::export_gcode(bool prefer_removable)

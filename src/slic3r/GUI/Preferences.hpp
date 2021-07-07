@@ -25,7 +25,6 @@ class PreferencesDialog : public DPIDialog
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_render;
 #endif // ENABLE_ENVIRONMENT_MAP
 	wxSizer*                            m_icon_size_sizer;
-	wxRadioBox*							m_layout_mode_box;
 	wxColourPickerCtrl*					m_sys_colour {nullptr};
 	wxColourPickerCtrl*					m_mod_colour {nullptr};
     bool                                isOSX {false};
@@ -35,9 +34,7 @@ class PreferencesDialog : public DPIDialog
 	bool								m_seq_top_gcode_indices_changed{ false };
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 	bool								m_recreate_GUI{false};
-#ifdef _MSW_DARK_MODE
-	bool								m_color_mode_changed {false};
-#endif
+
 public:
 	explicit PreferencesDialog(wxWindow* parent);
 	~PreferencesDialog() = default;
@@ -48,9 +45,6 @@ public:
 	bool seq_seq_top_gcode_indices_changed() const { return m_seq_top_gcode_indices_changed; }
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 	bool recreate_GUI() const { return m_recreate_GUI; }
-#ifdef _MSW_DARK_MODE
-	bool color_mode_changed() const { return m_color_mode_changed; }
-#endif
 	void	build();
 	void	accept();
 

@@ -282,7 +282,7 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
         break;
     }
     default:
-        if (! opt->deserialize(std::string(SvPV_nolen(value))))
+        if (! opt->deserialize(std::string(SvPV_nolen(value)), ForwardCompatibilitySubstitutionRule::Disable))
             return false;
     }
     return true;
@@ -295,7 +295,8 @@ bool ConfigBase__set_deserialize(ConfigBase* THIS, const t_config_option_key &op
     size_t len;
     const char * c = SvPV(str, len);
     std::string value(c, len);
-    return THIS->set_deserialize_nothrow(opt_key, value);
+    ConfigSubstitutionContext ctxt{ ForwardCompatibilitySubstitutionRule::Disable };
+    return THIS->set_deserialize_nothrow(opt_key, value, ctxt);
 }
 
 void ConfigBase__set_ifndef(ConfigBase* THIS, const t_config_option_key &opt_key, SV* value, bool deserialize)
