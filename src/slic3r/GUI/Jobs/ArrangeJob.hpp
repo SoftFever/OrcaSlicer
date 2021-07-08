@@ -16,6 +16,7 @@ class ArrangeJob : public PlaterJob
     using ArrangePolygons = arrangement::ArrangePolygons;
 
     ArrangePolygons m_selected, m_unselected, m_unprintable;
+    std::vector<ModelInstance*> m_unarranged;
     
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();
@@ -26,6 +27,8 @@ class ArrangeJob : public PlaterJob
     // Prepare the selected and unselected items separately. If nothing is
     // selected, behaves as if everything would be selected.
     void prepare_selected();
+
+    ArrangePolygon get_arrange_poly_(ModelInstance *mi);
     
 protected:
     
