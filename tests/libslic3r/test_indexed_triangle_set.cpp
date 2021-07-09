@@ -167,8 +167,8 @@ std::vector<Vec3f> its_sample_surface(const indexed_triangle_set &its,
 
 // return Average abs distance to original
 float compare(const indexed_triangle_set &original,
-               const indexed_triangle_set &simplified,
-               double sample_per_mm2)
+              const indexed_triangle_set &simplified,
+              double                      sample_per_mm2)
 {
     // create ABBTree
     auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
@@ -203,8 +203,8 @@ TEST_CASE("Reduce one edge by Quadric Edge Collapse", "[its]")
 
     indexed_triangle_set its_ = its; // copy
     // its_write_obj(its, "tetrhedron_in.obj");
-    size_t wanted_count = its.indices.size() - 1;
-    CHECK(its_quadric_edge_collapse(its, wanted_count));
+    uint32_t wanted_count = its.indices.size() - 1;
+    its_quadric_edge_collapse(its, wanted_count);
     // its_write_obj(its, "tetrhedron_out.obj");
     CHECK(its.indices.size() == 4);
     CHECK(its.vertices.size() == 4);
@@ -235,11 +235,12 @@ TEST_CASE("Symplify mesh by Quadric edge collapse to 5%", "[its]")
 {
     TriangleMesh mesh = load_model("frog_legs.obj");
     double original_volume = its_volume(mesh.its);
-    size_t wanted_count = mesh.its.indices.size() * 0.05;
+    uint32_t wanted_count = mesh.its.indices.size() * 0.05;
     REQUIRE_FALSE(mesh.empty());
     indexed_triangle_set its = mesh.its; // copy
-    its_quadric_edge_collapse(its, wanted_count);
     // its_write_obj(its, "frog_legs_qec.obj");
+    float max_error = std::numeric_limits<float>::max();
+    its_quadric_edge_collapse(its, wanted_count, &max_error);
     CHECK(its.indices.size() <= wanted_count);
     double volume = its_volume(its);
     CHECK(fabs(original_volume - volume) < 30.);

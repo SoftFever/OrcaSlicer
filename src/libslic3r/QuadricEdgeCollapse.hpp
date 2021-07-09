@@ -3,6 +3,7 @@
 // inspiration: https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
 
 #include <cstdint>
+#include <functional>
 #include "TriangleMesh.hpp"
 
 namespace Slic3r {
@@ -14,10 +15,14 @@ namespace Slic3r {
 /// <param name="triangle_count">Wanted triangle count.</param>
 /// <param name="max_error">Maximal Quadric for reduce.
 /// When nullptr then max float is used
-/// Output: Last used ErrorValue to collapse edge
-/// </param>
-void its_quadric_edge_collapse(indexed_triangle_set &its,
-                               uint32_t              triangle_count = 0,
-                               float *               max_error = nullptr);
+/// Output: Last used ErrorValue to collapse edge</param>
+/// <param name="throw_on_cancel">Could stop process of calculation.</param>
+/// <param name="statusfn">Give a feed back to user about progress.</param>
+void its_quadric_edge_collapse(
+    indexed_triangle_set &    its,
+    uint32_t                  triangle_count  = 0,
+    float *                   max_error       = nullptr,
+    std::function<void(void)> throw_on_cancel = nullptr,
+    std::function<void(int)>  statusfn        = nullptr);
 
 } // namespace Slic3r

@@ -126,21 +126,29 @@ bool check_new_vertex(const Vec3f& nv, const Vec3f& v0, const Vec3f& v1) {
 
 #endif // NDEBUG
 
-void Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
-                                       uint32_t              triangle_count,
-                                       float *               max_error)
+void Slic3r::its_quadric_edge_collapse(
+    indexed_triangle_set &    its,
+    uint32_t                  triangle_count,
+    float *                   max_error,
+    std::function<void(void)> throw_on_cancel,
+    std::function<void(int)>  statusfn)
 {
+    // constants --> may be move to config
+    const int status_init_size = 10; // in percents
+    const int check_cancel_period = 16; // how many edge to reduce before call throw_on_cancel
+
+    // check input
+    if (triangle_count >= its.indices.size()) return;
+    float maximal_error = (max_error == nullptr)? std::numeric_limits<float>::max() : *max_error;
+    if (maximal_error <= 0.f) return;
+
     TriangleInfos t_infos; // only normals with information about deleted triangle
     VertexInfos   v_infos;
     EdgeInfos     e_infos;
     Errors        errors;
     std::tie(t_infos, v_infos, e_infos, errors) = init(its);
-
-    float max_float = std::numeric_limits<float>::max();
-    float last_collapsed_error = 0.f;
-    if (max_error == nullptr) {        
-        max_error = &max_float;
-    }
+    throw_on_cancel();
+    statusfn(status_init_size);
 
     // convert from triangle index to mutable priority queue index
     std::vector<uint32_t> ti_2_mpqi(its.indices.size(), {0});
@@ -159,10 +167,26 @@ void Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
     changed_triangle_indices.reserve(2 * max_triangle_count_for_one_vertex);
 
     uint32_t actual_triangle_count = its.indices.size();
+    uint32_t count_triangle_to_reduce = actual_triangle_count - triangle_count;
+    auto increase_status = [&]() { 
+        double reduced = (actual_triangle_count - triangle_count) /
+                         (double) count_triangle_to_reduce;
+        double status = (100 - status_init_size) * (1. - reduced);            
+        statusfn(static_cast<int>(std::round(status)));
+    };
+    // modulo for update status
+    uint32_t status_mod = std::max(uint32_t(16), count_triangle_to_reduce / 100);
+
+    uint32_t iteration_number = 0;
+    float last_collapsed_error = 0.f;
     while (actual_triangle_count > triangle_count && !mpq.empty()) {
+        ++iteration_number;
+        if (iteration_number % status_mod == 0) increase_status();
+        if (iteration_number % check_cancel_period == 0) throw_on_cancel();
+
         // triangle index 0
         Error e = mpq.top(); // copy
-        if (e.value >= *max_error) break; // Too big error
+        if (e.value >= maximal_error) break; // Too big error
         mpq.pop();
         uint32_t ti0 = e.triangle_index;
         TriangleInfo &t_info0 = t_infos[ti0];
@@ -258,7 +282,7 @@ void Slic3r::its_quadric_edge_collapse(indexed_triangle_set &its,
 
     // compact triangle
     compact(v_infos, t_infos, e_infos, its);
-    *max_error = last_collapsed_error;
+    if (max_error != nullptr) *max_error = last_collapsed_error;
 }
 
 Vec3f QuadricEdgeCollapse::create_normal(const Triangle &triangle,
