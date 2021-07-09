@@ -2323,10 +2323,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                             preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
 
-                            // show notification about temporary instaled presets
+                            // show notification about temporarily installed presets
                             if (!names.empty()) {
-                                std::string notif_text = into_u8(_L_PLURAL("The preset below was temporary instaled on active instance of PrusaSlicer",
-                                                                           "The presets below were temporary instaled on active instance of PrusaSlicer", names.size())) + ":";
+                                std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on active instance of PrusaSlicer",
+                                                                           "The presets below were temporarily installed on active instance of PrusaSlicer", names.size())) + ":";
                                 for (std::string& name : names)
                                     notif_text += "\n - " + name;
                                 notification_manager->push_notification(NotificationType::CustomNotification,

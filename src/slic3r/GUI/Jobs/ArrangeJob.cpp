@@ -8,6 +8,8 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
+#include "slic3r/GUI/format.hpp"
 
 #include "libnest2d/common.hpp"
 
@@ -67,6 +69,7 @@ void ArrangeJob::clear_input()
     m_selected.clear();
     m_unselected.clear();
     m_unprintable.clear();
+    m_unarranged.clear();
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
     m_unprintable.reserve(cunprint /* for optional wti */);
@@ -78,7 +81,7 @@ void ArrangeJob::prepare_all() {
     for (ModelObject *obj: m_plater->model().objects)
         for (ModelInstance *mi : obj->instances) {
             ArrangePolygons & cont = mi->printable ? m_selected : m_unprintable;
-            cont.emplace_back(get_arrange_poly(mi, m_plater));
+            cont.emplace_back(get_arrange_poly_(mi));
         }
 
     if (auto wti = get_wipe_tower_arrangepoly(*m_plater))
@@ -110,8 +113,8 @@ void ArrangeJob::prepare_selected() {
                 inst_sel[size_t(inst_id)] = true;
         
         for (size_t i = 0; i < inst_sel.size(); ++i) {
-            ArrangePolygon &&ap =
-                get_arrange_poly(mo->instances[i], m_plater);
+            ModelInstance * mi = mo->instances[i];
+            ArrangePolygon &&ap = get_arrange_poly_(mi);
 
             ArrangePolygons &cont = mo->instances[i]->printable ?
                         (inst_sel[i] ? m_selected :
@@ -137,6 +140,20 @@ void ArrangeJob::prepare_selected() {
     // arrangeable (selected) items bed_idx is ignored and the
     // translation is irrelevant.
     for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
+}
+
+arrangement::ArrangePolygon ArrangeJob::get_arrange_poly_(ModelInstance *mi)
+{
+    arrangement::ArrangePolygon ap = get_arrange_poly(mi, m_plater);
+
+    auto setter = ap.setter;
+    ap.setter = [this, setter, mi](const arrangement::ArrangePolygon &set_ap) {
+        setter(set_ap);
+        if (!set_ap.is_arranged())
+            m_unarranged.emplace_back(mi);
+    };
+
+    return ap;
 }
 
 void ArrangeJob::prepare()
@@ -187,6 +204,16 @@ void ArrangeJob::process()
                                    : _(L("Arranging done.")));
 }
 
+static std::string concat_strings(const std::set<std::string> &strings,
+                                  const std::string &delim = "\n")
+{
+    return std::accumulate(
+        strings.begin(), strings.end(), std::string(""),
+        [delim](const std::string &s, const std::string &name) {
+            return s + name + delim;
+        });
+}
+
 void ArrangeJob::finalize() {
     // Ignore the arrange result if aborted.
     if (was_canceled()) return;
@@ -209,9 +236,19 @@ void ArrangeJob::finalize() {
         ap.bed_idx += beds + 1;
         ap.apply();
     }
-    
+
     m_plater->update();
     wxGetApp().obj_manipul()->set_dirty();
+
+    if (!m_unarranged.empty()) {
+        std::set<std::string> names;
+        for (ModelInstance *mi : m_unarranged)
+            names.insert(mi->get_object()->name);
+
+        m_plater->get_notification_manager()->push_notification(GUI::format(
+            _L("Arrangement ignored the following objects which can't fit into a single bed:\n%s"),
+            concat_strings(names, "\n")));
+    }
 
     Job::finalize();
 }

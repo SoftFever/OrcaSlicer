@@ -154,7 +154,7 @@ Then `cd` into the `deps` directory and use these commands to build:
 
     mkdir build
     cd build
-    cmake .. -G "Visual Studio 12 Win64" -DDESTDIR="C:\local\destdir-custom"
+    cmake .. -G "Visual Studio 16 2019" -DDESTDIR="C:\local\destdir-custom"
     msbuild /m ALL_BUILD.vcxproj
 
 You can also use the Visual Studio GUI or other generators as mentioned above.
