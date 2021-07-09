@@ -15,15 +15,12 @@ namespace QuadricEdgeCollapse {
     // smallest error caused by edges, identify smallest edge in triangle
     struct Error
     {
-        float value = -1.;
-        // range(0 .. 2), 
+        float value = -1.; // identifying of smallest edge is stored inside of TriangleInfo
         uint32_t triangle_index = 0;
         Error(float value, uint32_t triangle_index)
             : value(value)
             , triangle_index(triangle_index)
-        {
-            assert(min_index < 3);
-        }
+        {}
         Error() = default;
     };
     using Errors = std::vector<Error>;
@@ -31,6 +28,7 @@ namespace QuadricEdgeCollapse {
     // merge information together - faster access during processing
     struct TriangleInfo {
         Vec3f n; // normalized normal - speed up calcualtion of q and check flip
+        // range(0 .. 2), 
         unsigned char min_index = 0; // identify edge for minimal Error -> lightweight Error structure
         TriangleInfo() = default;
         bool is_deleted() const { return n.x() > 2.f; }
@@ -141,6 +139,8 @@ void Slic3r::its_quadric_edge_collapse(
     if (triangle_count >= its.indices.size()) return;
     float maximal_error = (max_error == nullptr)? std::numeric_limits<float>::max() : *max_error;
     if (maximal_error <= 0.f) return;
+    if (throw_on_cancel == nullptr) throw_on_cancel = []() {};
+    if (statusfn == nullptr) statusfn = [](int) {};
 
     TriangleInfos t_infos; // only normals with information about deleted triangle
     VertexInfos   v_infos;

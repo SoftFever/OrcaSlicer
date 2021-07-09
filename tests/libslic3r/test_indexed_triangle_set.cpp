@@ -233,18 +233,17 @@ TEST_CASE("Reduce one edge by Quadric Edge Collapse", "[its]")
 #include "test_utils.hpp"
 TEST_CASE("Symplify mesh by Quadric edge collapse to 5%", "[its]")
 {
-    TriangleMesh mesh = load_model("frog_legs.obj");
+    TriangleMesh mesh = load_model("frog_legs.obj"); 
     double original_volume = its_volume(mesh.its);
     uint32_t wanted_count = mesh.its.indices.size() * 0.05;
     REQUIRE_FALSE(mesh.empty());
     indexed_triangle_set its = mesh.its; // copy
-    // its_write_obj(its, "frog_legs_qec.obj");
     float max_error = std::numeric_limits<float>::max();
     its_quadric_edge_collapse(its, wanted_count, &max_error);
+    //its_write_obj(its, "frog_legs_qec.obj");
     CHECK(its.indices.size() <= wanted_count);
     double volume = its_volume(its);
-    CHECK(fabs(original_volume - volume) < 30.);
-
+    CHECK(fabs(original_volume - volume) < 33.);
     float avg_distance = compare(mesh.its, its, 10);
-    CHECK(avg_distance < 0.021f); // 0.02022 | 0.0199614074
+    CHECK(avg_distance < 0.022f); // 0.02022 | 0.0199614074
 }
