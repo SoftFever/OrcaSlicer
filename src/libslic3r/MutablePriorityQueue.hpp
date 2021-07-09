@@ -2,11 +2,14 @@
 #define slic3r_MutablePriorityQueue_hpp_
 
 #include <assert.h>
+#include <type_traits>
 
 template<typename T, typename IndexSetter, typename LessPredicate, const bool ResetIndexWhenRemoved = false>
 class MutablePriorityQueue
 {
 public:
+	static_assert(std::is_trivially_copyable<T>::value, "Template argument T must be a trivially copiable type in class template MutablePriorityQueue");
+
 	// It is recommended to use make_mutable_priority_queue() for construction.
 	MutablePriorityQueue(IndexSetter &&index_setter, LessPredicate &&less_predicate) :
 		m_index_setter(std::forward<IndexSetter>(index_setter)), 
@@ -25,6 +28,8 @@ public:
 
 	size_t		size() const						{ return m_heap.size(); }
 	bool		empty() const						{ return m_heap.empty(); }
+	T&			operator[](std::size_t idx) noexcept { return m_heap[idx]; }
+	const T&	operator[](std::size_t idx) const noexcept { return m_heap[idx]; }
 
 	using iterator		 = typename std::vector<T>::iterator;
 	using const_iterator = typename std::vector<T>::const_iterator;
@@ -251,6 +256,7 @@ template<typename T, typename IndexSetter, typename LessPredicate, std::size_t b
 class MutableSkipHeapPriorityQueue
 {
 public:
+	static_assert(std::is_trivially_copyable<T>::value, "Template argument T must be a trivially copiable type in class template MutableSkipHeapPriorityQueue");
 	using address = SkipHeapAddressing<blocking>;
 
 	// It is recommended to use make_miniheap_mutable_priority_queue() for construction.
@@ -272,6 +278,8 @@ public:
 	// There is one padding element storead at each miniheap, thus lower the number of elements by the number of miniheaps.
 	size_t 		size() const noexcept 				{ return m_heap.size() - (m_heap.size() + address::block_size - 1) / address::block_size; }
 	bool		empty() const						{ return m_heap.empty(); }
+	T&			operator[](std::size_t idx) noexcept { assert(! address::is_padding(idx)); return m_heap[idx]; }
+	const T&    operator[](std::size_t idx) const noexcept { assert(! address::is_padding(idx)); return m_heap[idx]; }
 
 protected:
 	void		update_heap_up(size_t top, size_t bottom);
