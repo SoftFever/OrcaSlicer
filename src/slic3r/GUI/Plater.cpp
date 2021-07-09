@@ -1730,6 +1730,7 @@ struct Plater::priv
     void replace_with_stl();
     void reload_all_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
+    void simplify(const int obj_idx, const int vol_idx = -1);
 
     void set_current_panel(wxPanel* panel);
 
@@ -1782,6 +1783,7 @@ struct Plater::priv
     bool can_arrange() const;
     bool can_layers_editing() const;
     bool can_fix_through_netfabb() const;
+    bool can_simplify() const;
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
     bool can_reload_from_disk() const;
@@ -3593,6 +3595,32 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     this->schedule_background_process();
 }
 
+void Plater::priv::simplify(const int obj_idx, const int vol_idx/* = -1*/)
+{
+    if (obj_idx < 0)
+        return;
+
+    // Do not fix anything when a gizmo is open. There might be issues with updates
+    // and what is worse, the snapshot time would refer to the internal stack.
+    if (q->canvas3D()->get_gizmos_manager().get_current_type() != GLGizmosManager::Undefined) {
+        notification_manager->push_notification(
+                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                    NotificationManager::NotificationLevel::RegularNotification,
+                    _u8L("ERROR: Please close all manipulators available from "
+                         "the left toolbar before fixing the mesh."));
+        return;
+    }
+
+    // size_t snapshot_time = undo_redo_stack().active_snapshot_time();
+    Plater::TakeSnapshot snapshot(q, _L("Symplify model"));
+
+    // ToDo
+
+    this->update();
+    this->object_list_changed();
+    this->schedule_background_process();
+}
+
 void Plater::priv::set_current_panel(wxPanel* panel)
 {
     if (std::find(panels.begin(), panels.end(), panel) == panels.end())
@@ -4373,6 +4401,12 @@ bool Plater::priv::can_fix_through_netfabb() const
         return false;
 
     return model.objects[obj_idx]->get_mesh_errors_count() > 0;
+}
+
+
+bool Plater::priv::can_simplify() const
+{
+    return true;
 }
 
 bool Plater::priv::can_increase_instances() const
@@ -6309,6 +6343,7 @@ void Plater::suppress_background_process(const bool stop_background_process)
 }
 
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
+void Plater::simplify(const int obj_idx, const int vol_idx/* = -1*/) { p->simplify(obj_idx, vol_idx); }
 void Plater::mirror(Axis axis)      { p->mirror(axis); }
 void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }
@@ -6509,6 +6544,7 @@ bool Plater::can_increase_instances() const { return p->can_increase_instances()
 bool Plater::can_decrease_instances() const { return p->can_decrease_instances(); }
 bool Plater::can_set_instance_to_object() const { return p->can_set_instance_to_object(); }
 bool Plater::can_fix_through_netfabb() const { return p->can_fix_through_netfabb(); }
+bool Plater::can_simplify() const { return p->can_simplify(); }
 bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }

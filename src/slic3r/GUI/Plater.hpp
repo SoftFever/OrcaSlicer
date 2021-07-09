@@ -236,6 +236,7 @@ public:
     bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
+    void simplify(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 	void eject_drive();
 
@@ -314,6 +315,7 @@ public:
     bool can_decrease_instances() const;
     bool can_set_instance_to_object() const;
     bool can_fix_through_netfabb() const;
+    bool can_simplify() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
     bool can_arrange() const;

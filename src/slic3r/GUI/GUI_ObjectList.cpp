@@ -4,6 +4,7 @@
 #include "GUI_Factories.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectLayers.hpp"
+#include "SimplificationDialog.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "Plater.hpp"
@@ -3757,6 +3758,17 @@ void ObjectList::fix_through_netfabb()
     wxGetApp().plater()->fix_through_netfabb(obj_idx, vol_idx);
     
     update_item_error_icon(obj_idx, vol_idx);
+}
+
+void ObjectList::simplify()
+{
+    int obj_idx, vol_idx;
+    get_selected_item_indexes(obj_idx, vol_idx);
+
+    SimplificationDialog dlg(this);
+    dlg.ShowModal();
+
+    wxGetApp().plater()->simplify(obj_idx, vol_idx);
 }
 
 void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) const 
