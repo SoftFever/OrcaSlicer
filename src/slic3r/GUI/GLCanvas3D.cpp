@@ -2910,9 +2910,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
         printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
-		 m_dirty = true;
+        m_dirty = true;
         // do not return if dragging or tooltip not empty to allow for tooltip update
-        if (!m_mouse.dragging && m_tooltip.is_empty())
+        // also, do not return if the mouse is moving and also is inside MM gizmo to allow update seed fill selection
+        if (!m_mouse.dragging && m_tooltip.is_empty() && (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation || !evt.Moving()))
             return;
     }
 
