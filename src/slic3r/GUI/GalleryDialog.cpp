@@ -77,6 +77,8 @@ GalleryDialog::GalleryDialog(wxWindow* parent) :
     });
 
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+    wxButton* ok_btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
+    ok_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(!m_selected_items.empty()); });
 
     auto add_btn = [this, buttons]( size_t pos, int& ID, wxString title, wxString tooltip,
                                     void (GalleryDialog::* method)(wxEvent&), 
@@ -147,7 +149,7 @@ static void add_border(wxImage& image)
 
     int width = image.GetWidth();
     int height = image.GetHeight();
-    int border_width = 2;
+    int border_width = 1;
 
     for (size_t x = 0; x < width; ++x) {
         for (size_t y = 0; y < height; ++y) {
@@ -165,6 +167,48 @@ static void add_border(wxImage& image)
     }
 }
 
+static void add_lock(wxImage& image) 
+{
+    wxBitmap bmp = create_scaled_bitmap("lock", nullptr, 22);
+
+    wxImage lock_image = bmp.ConvertToImage();
+    if (!lock_image.IsOk() || lock_image.GetWidth() == 0 || lock_image.GetHeight() == 0)
+        return;
+
+    int icon_sz = 16;
+    auto lock_px_data = (uint8_t*)lock_image.GetData();
+    auto lock_a_data = (uint8_t*)lock_image.GetAlpha();
+    int lock_width  = lock_image.GetWidth();
+    int lock_height = lock_image.GetHeight();
+    
+    auto px_data = (uint8_t*)image.GetData();
+    auto a_data = (uint8_t*)image.GetAlpha();
+
+    int width = image.GetWidth();
+    int height = image.GetHeight();
+
+    size_t beg_x = width - lock_width;
+    size_t beg_y = height - lock_height;
+    for (size_t x = 0; x < lock_width; ++x) {
+        for (size_t y = 0; y < lock_height; ++y) {
+            const size_t lock_idx = (x + y * lock_width);
+            if (lock_a_data && lock_a_data[lock_idx] == 0)
+                continue;
+
+            const size_t idx = (beg_x + x + (beg_y + y) * width);
+            if (a_data)
+                a_data[idx] = lock_a_data[lock_idx];
+
+            const size_t idx_rgb = (beg_x + x + (beg_y + y) * width) * 3;
+            const size_t lock_idx_rgb = (x + y * lock_width) * 3;
+            px_data[idx_rgb] = lock_px_data[lock_idx_rgb];
+            px_data[idx_rgb + 1] = lock_px_data[lock_idx_rgb + 1];
+            px_data[idx_rgb + 2] = lock_px_data[lock_idx_rgb + 2];
+        }
+    }
+//    add_border(image);
+}
+
 static void add_def_img(wxImageList* img_list, bool is_system, std::string stl_path)
 {
     wxBitmap bmp = create_scaled_bitmap("cog", nullptr, IMG_PX_CNT, true);    
@@ -172,7 +216,7 @@ static void add_def_img(wxImageList* img_list, bool is_system, std::string stl_p
     if (is_system) {
         wxImage image = bmp.ConvertToImage();
         if (image.IsOk() && image.GetWidth() != 0 && image.GetHeight() != 0) {
-            add_border(image);
+            add_lock(image);
             bmp = wxBitmap(std::move(image));
         }
     }
@@ -252,7 +296,7 @@ void GalleryDialog::load_label_icon_list()
         image.Rescale(px_cnt, px_cnt, wxIMAGE_QUALITY_BILINEAR);
 
         if (item.is_system)
-            add_border(image);
+            add_lock(image);
         wxBitmap bmp = wxBitmap(std::move(image));
         m_image_list->Add(bmp);
     }
@@ -312,6 +356,31 @@ void GalleryDialog::del_custom_shapes(wxEvent& event)
 
 void GalleryDialog::replace_custom_png(wxEvent& event)
 {
+    if (m_selected_items.size() != 1 || m_selected_items[0].is_system)
+        return;
+
+    wxFileDialog dialog(this, _L("Choose one PNG file:"),
+                        from_u8(wxGetApp().app_config->get_last_dir()), "",
+                        "PNG files (*.png)|*.png;*.PNG", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    wxArrayString input_files;
+    dialog.GetPaths(input_files);
+
+    if (input_files.IsEmpty())
+        return;
+
+    try {
+        fs::path current = fs::path(into_u8(input_files.Item(0)));
+        fs::copy_file(current, get_dir(false) / (m_selected_items[0].name + ".png"));
+    }
+    catch (fs::filesystem_error const& e) {
+        std::cerr << e.what() << '\n';
+        return;
+    }
+
+    update();
 }
 
 void GalleryDialog::select(wxListEvent& event)
