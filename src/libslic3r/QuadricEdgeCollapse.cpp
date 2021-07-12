@@ -151,10 +151,11 @@ void Slic3r::its_quadric_edge_collapse(
     statusfn(status_init_size);
 
     // convert from triangle index to mutable priority queue index
-    std::vector<uint32_t> ti_2_mpqi(its.indices.size(), {0});
+    std::vector<size_t> ti_2_mpqi(its.indices.size(), {0});
     auto setter = [&ti_2_mpqi](const Error &e, size_t index) { ti_2_mpqi[e.triangle_index] = index; };
     auto less = [](const Error &e1, const Error &e2) -> bool { return e1.value < e2.value; };
-    MutablePriorityQueue<Error, decltype(setter), decltype(less)> mpq(std::move(setter), std::move(less));
+    auto mpq = make_miniheap_mutable_priority_queue<Error, 32, false>(std::move(setter), std::move(less)); 
+    //MutablePriorityQueue<Error, decltype(setter), decltype(less)> mpq(std::move(setter), std::move(less));
     mpq.reserve(its.indices.size());
     for (Error &error :errors) mpq.push(error);
 
@@ -257,16 +258,14 @@ void Slic3r::its_quadric_edge_collapse(
             vi_top0, t1, ceis, e_infos_swap);
         
         // Change vertex
-        // Has to be set after subtract quadric
         its.vertices[vi0] = new_vertex0;
 
         // fix errors - must be after set neighbors - v_infos
         mpq.remove(ti_2_mpqi[ti1]);
         for (uint32_t ti : changed_triangle_indices) {
             size_t priority_queue_index = ti_2_mpqi[ti];
-            auto iterator = mpq.begin() + priority_queue_index;
             TriangleInfo& t_info = t_infos[ti];
-            *iterator = calculate_error(ti, its.indices[ti], its.vertices, v_infos, t_info.min_index);
+            mpq[priority_queue_index] = calculate_error(ti, its.indices[ti], its.vertices, v_infos, t_info.min_index);
             mpq.update(priority_queue_index);
         }
 
