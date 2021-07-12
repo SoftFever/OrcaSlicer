@@ -5,6 +5,7 @@
 
 class wxListCtrl;
 class wxImageList;
+class wxListEvent;
 
 namespace Slic3r {
 
