@@ -857,6 +857,8 @@ bool GCodeProcessor::contains_reserved_tags(const std::string& gcode, unsigned i
 
     bool ret = false;
 
+    CNumericLocalesSetter locales_setter;
+
     GCodeReader parser;
     parser.parse_buffer(gcode, [&ret, &found_tag, max_count](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
         std::string comment = line.raw();
