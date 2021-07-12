@@ -356,6 +356,7 @@ public:
         if (! this->indexed_vertex_array.bounding_box().isEmpty()) {
             out.min = this->indexed_vertex_array.bounding_box().min().cast<double>();
             out.max = this->indexed_vertex_array.bounding_box().max().cast<double>();
+            out.defined = true;
         };
         return out;
     }
