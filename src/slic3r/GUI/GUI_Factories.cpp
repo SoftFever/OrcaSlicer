@@ -433,6 +433,12 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
             [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
     }
 
+    if (wxGetApp().get_mode() == comExpert && type != ModelVolumeType::INVALID) {
+        sub_menu->AppendSeparator();
+        append_menu_item(sub_menu, wxID_ANY, _L("Gallery"), "",
+            [type](wxCommandEvent&) { obj_list()->load_subobject(type, true); }, "", menu);
+    }
+
     return sub_menu;
 }
 

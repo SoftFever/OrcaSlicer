@@ -45,6 +45,11 @@ void set_local_dir(const std::string &path);
 // Return a full path to the localization directory.
 const std::string& localization_dir();
 
+// Set a path with shapes gallery files.
+void set_gallery_dir(const std::string &path);
+// Return a full path to the gallery directory.
+const std::string& gallery_dir();
+
 // Set a path with preset files.
 void set_data_dir(const std::string &path);
 // Return a full path to the GUI resource files.
@@ -91,6 +96,9 @@ extern bool is_plain_file(const boost::filesystem::directory_entry &path);
 extern bool is_ini_file(const boost::filesystem::directory_entry &path);
 extern bool is_idx_file(const boost::filesystem::directory_entry &path);
 extern bool is_gcode_file(const std::string &path);
+extern bool is_img_file(const std::string& path);
+extern bool is_stl_file(const boost::filesystem::directory_entry& path);
+extern bool is_stl_file(const std::string& path);
 
 // File path / name / extension splitting utilities, working with UTF-8,
 // to be published to Perl.

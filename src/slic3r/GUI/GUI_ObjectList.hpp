@@ -238,8 +238,8 @@ public:
     void                show_settings(const wxDataViewItem settings_item);
     bool                is_instance_or_object_selected();
 
-    void                load_subobject(ModelVolumeType type);
-    void                load_part(ModelObject* model_object, std::vector<ModelVolume*> &added_volumes, ModelVolumeType type);
+    void                load_subobject(ModelVolumeType type, bool from_galery = false);
+    void                load_part(ModelObject* model_object, std::vector<ModelVolume*> &added_volumes, ModelVolumeType type, bool from_galery = false);
 	void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                load_shape_object(const std::string &type_name);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);

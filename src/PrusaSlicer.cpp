@@ -661,6 +661,7 @@ bool CLI::setup(int argc, char **argv)
     set_resources_dir(path_resources.string());
     set_var_dir((path_resources / "icons").string());
     set_local_dir((path_resources / "localization").string());
+    set_gallery_dir((path_resources / "gallery").string());
 
     // Parse all command line options into a DynamicConfig.
     // If any option is unsupported, print usage and abort immediately.
