@@ -8,7 +8,7 @@
 namespace Slic3r {
 
 template<class ExPolicy>
-std::vector<Vec3i> create_neighbors_index(ExPolicy &&ex, const indexed_triangle_set &its);
+std::vector<Vec3i> create_face_neighbors_index(ExPolicy &&ex, const indexed_triangle_set &its);
 
 namespace meshsplit_detail {
 
@@ -24,7 +24,7 @@ template<> struct ItsWithNeighborsIndex_<indexed_triangle_set> {
     static const indexed_triangle_set &get_its(const indexed_triangle_set &its) noexcept { return its; }
     static Index get_index(const indexed_triangle_set &its) noexcept
     {
-        return create_neighbors_index(ex_tbb, its);
+        return create_face_neighbors_index(ex_tbb, its);
     }
 };
 
@@ -162,28 +162,14 @@ template<class Its> bool its_is_splittable(const Its &m)
     return !faces.empty();
 }
 
-inline int get_vertex_index(size_t vertex_index, const stl_triangle_vertex_indices &triangle_indices) {
-    if (int(vertex_index) == triangle_indices[0]) return 0;
-    if (int(vertex_index) == triangle_indices[1]) return 1;
-    if (int(vertex_index) == triangle_indices[2]) return 2;
-    return -1;
-}
-
-inline Vec2crd get_edge_indices(int edge_index, const stl_triangle_vertex_indices &triangle_indices)
-{
-    int next_edge_index = (edge_index == 2) ? 0 : edge_index + 1;
-    int vi0             = triangle_indices[edge_index];
-    int vi1             = triangle_indices[next_edge_index];
-    return Vec2crd(vi0, vi1);
-}
-
 template<class ExPolicy>
-std::vector<Vec3i> create_neighbors_index(ExPolicy &&ex, const indexed_triangle_set &its)
+std::vector<Vec3i> create_face_neighbors_index(ExPolicy &&ex, const indexed_triangle_set &its)
 {
     const std::vector<stl_triangle_vertex_indices> &indices = its.indices;
-    size_t vertices_size = its.vertices.size();
 
-    if (indices.empty() || vertices_size == 0) return {};
+    if (indices.empty()) return {};
+
+    assert(! its.vertices.empty());
 
     auto               vertex_triangles = VertexFaceIndex{its};
     static constexpr int no_value         = -1;
@@ -192,27 +178,28 @@ std::vector<Vec3i> create_neighbors_index(ExPolicy &&ex, const indexed_triangle_
 
     //for (const stl_triangle_vertex_indices& triangle_indices : indices) {
     execution::for_each(ex, size_t(0), indices.size(),
-        [&neighbors, &indices, &vertex_triangles] (size_t index)
+        [&neighbors, &indices, &vertex_triangles] (size_t face_idx)
         {
-            Vec3i& neighbor = neighbors[index];
-            const stl_triangle_vertex_indices & triangle_indices = indices[index];
+            Vec3i& neighbor = neighbors[face_idx];
+            const stl_triangle_vertex_indices & triangle_indices = indices[face_idx];
             for (int edge_index = 0; edge_index < 3; ++edge_index) {
                 // check if done
                 int& neighbor_edge = neighbor[edge_index];
-                if (neighbor_edge != no_value) continue;
-                Vec2crd edge_indices = get_edge_indices(edge_index, triangle_indices);
+                if (neighbor_edge != no_value) 
+                    // This edge already has a neighbor assigned.
+                    continue;
+                Vec2i edge_indices = its_triangle_edge(triangle_indices, edge_index);
                 // IMPROVE: use same vector for 2 sides of triangle
-                const auto &faces_range = vertex_triangles[edge_indices[0]];
-                for (const size_t &face : faces_range) {
-                    if (face <= index) continue;
-                    const stl_triangle_vertex_indices &face_indices = indices[face];
-                    int vertex_index = get_vertex_index(edge_indices[1], face_indices);
+                for (const size_t other_face : vertex_triangles[edge_indices[0]]) {
+                    if (other_face <= face_idx) continue;
+                    const stl_triangle_vertex_indices &face_indices = indices[other_face];
+                    int vertex_index = its_triangle_vertex_index(face_indices, edge_indices[1]);
                     // NOT Contain second vertex?
                     if (vertex_index < 0) continue;
-                    // Has NOT oposit direction?
+                    // Has NOT oposite direction?
                     if (edge_indices[0] != face_indices[(vertex_index + 1) % 3]) continue;
-                    neighbor_edge = face;
-                    neighbors[face][vertex_index] = index;
+                    neighbor_edge = other_face;
+                    neighbors[other_face][vertex_index] = face_idx;
                     break;
                 }
             }

@@ -602,12 +602,12 @@ FaceNeighborIndex its_create_neighbors_index_8(const indexed_triangle_set &its)
 
 std::vector<Vec3crd> its_create_neighbors_index_9(const indexed_triangle_set &its)
 {
-    return create_neighbors_index(ex_seq, its);
+    return create_face_neighbors_index(ex_seq, its);
 }
 
 std::vector<Vec3i> its_create_neighbors_index_10(const indexed_triangle_set &its)
 {
-    return create_neighbors_index(ex_tbb, its);
+    return create_face_neighbors_index(ex_tbb, its);
 }
 
 } // namespace Slic3r

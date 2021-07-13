@@ -728,7 +728,7 @@ static std::vector<EdgeToFace> create_edge_map(
 // Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
 // Two neighbor faces share a unique edge identifier even if they are flipped.
 template<typename ThrowOnCancelCallback>
-static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
+static inline std::vector<Vec3i> its_face_edge_ids_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
 {
     std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
 
@@ -778,14 +778,56 @@ static inline std::vector<Vec3i> create_face_neighbors_index_impl(const indexed_
     return out;
 }
 
-std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its)
+std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its)
 {
-    return create_face_neighbors_index_impl(its, [](){});
+    return its_face_edge_ids_impl(its, [](){});
 }
 
-std::vector<Vec3i> create_face_neighbors_index(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback)
+std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback)
 {
-    return create_face_neighbors_index_impl(its, throw_on_cancel_callback);
+    return its_face_edge_ids_impl(its, throw_on_cancel_callback);
+}
+
+// Having the face neighbors available, assign unique edge IDs to face edges for chaining of polygons over slices.
+std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::vector<Vec3i> &face_neighbors, bool assign_unbound_edges, int *num_edges)
+{
+    // out elements are not initialized!
+    std::vector<Vec3i> out(face_neighbors.size());
+    int last_edge_id = 0;
+    for (int i = 0; i < int(face_neighbors.size()); ++ i) {
+        const stl_triangle_vertex_indices   &triangle  = its.indices[i];
+        const Vec3i                         &neighbors = face_neighbors[i];
+        for (int j = 0; j < 3; ++ j) {
+            int n = neighbors[j];
+            if (n > i) {
+                const stl_triangle_vertex_indices &triangle2 = its.indices[n];
+                int   edge_id = last_edge_id ++;
+                Vec2i edge    = its_triangle_edge(triangle, j);
+                // First find an edge with opposite orientation.
+                std::swap(edge(0), edge(1));
+                int   k       = its_triangle_edge_index(triangle2, edge);
+                //FIXME is the following realistic? Could face_neighbors contain such faces?
+                // And if it does, do we want to produce the same edge ID for those mutually incorrectly oriented edges?
+                if (k == -1) {
+                    // Second find an edge with the same orientation (the neighbor triangle may be flipped).
+                    std::swap(edge(0), edge(1));
+                    k = its_triangle_edge_index(triangle2, edge);
+                }
+                assert(k >= 0);
+                out[i](j) = edge_id;
+                out[n](k) = edge_id;
+            } else if (n == -1) {
+                out[i](j) = assign_unbound_edges ? last_edge_id ++ : -1;
+            } else {
+                // Triangle shall never be neighbor of itself.
+                assert(n < i);
+                // Don't do anything, the neighbor will assign us an edge ID in later iterations.
+            }
+        }
+    }
+    if (num_edges)
+        *num_edges = last_edge_id;
+    return out;
 }
 
 // Merge duplicate vertices, return number of vertices removed.
@@ -1219,14 +1261,14 @@ void VertexFaceIndex::create(const indexed_triangle_set &its)
     m_vertex_to_face_start.front() = 0;
 }
 
-std::vector<Vec3i> its_create_neighbors_index(const indexed_triangle_set &its)
+std::vector<Vec3i> its_face_neighbors(const indexed_triangle_set &its)
 {
-    return create_neighbors_index(ex_seq, its);
+    return create_face_neighbors_index(ex_seq, its);
 }
 
-std::vector<Vec3i> its_create_neighbors_index_par(const indexed_triangle_set &its)
+std::vector<Vec3i> its_face_neighbors_par(const indexed_triangle_set &its)
 {
-    return create_neighbors_index(ex_tbb, its);
+    return create_face_neighbors_index(ex_tbb, its);
 }
 
 } // namespace Slic3r

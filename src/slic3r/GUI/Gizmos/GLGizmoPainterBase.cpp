@@ -685,7 +685,7 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
             va = &m_varrays[ORIGINAL];
             cnt = &cnts[ORIGINAL];
         }
-        else if (tr.valid) {
+        else if (tr.valid()) {
             va = &m_varrays[SPLIT];
             cnt = &cnts[SPLIT];
         }
