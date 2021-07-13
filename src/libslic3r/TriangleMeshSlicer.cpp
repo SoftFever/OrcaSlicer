@@ -1431,6 +1431,8 @@ static std::vector<Polygons> make_slab_loops(
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                         assert(! loops.empty());
                         assert(open_polylines.empty());
+                        if (! open_polylines.empty())
+                            BOOST_LOG_TRIVIAL(trace) << "make_slab_loops - chaining failed. #" << open_polylines.size() << " open polylines";
                     }
                 }
             }
