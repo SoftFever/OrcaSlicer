@@ -655,10 +655,8 @@ std::string Print::validate(std::string* warning) const
             // Notify the user in that case.
             if (! object->has_support() && warning) {
                 for (const ModelVolume* mv : object->model_object()->volumes) {
-                    bool has_enforcers = mv->is_support_enforcer()
-                        || (mv->is_model_part()
-                            && ! mv->supported_facets.empty()
-                            && ! mv->supported_facets.get_facets(*mv, EnforcerBlockerType::ENFORCER).indices.empty());
+                    bool has_enforcers = mv->is_support_enforcer() || 
+                        (mv->is_model_part() && mv->supported_facets.has_facets(*mv, EnforcerBlockerType::ENFORCER));
                     if (has_enforcers) {
                         *warning = "_SUPPORTS_OFF";
                         break;

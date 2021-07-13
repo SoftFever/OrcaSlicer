@@ -38,13 +38,20 @@ public:
     virtual void render(ImGuiWrapper *imgui);
     void         render() { this->render(nullptr); }
 
+    void request_update_render_data() { m_update_render_data = true; };
+
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
     bool m_show_triangles{false};
     bool m_show_invalid{false};
 #endif
 
+protected:
+    bool m_update_render_data = false;
+
 private:
+    void update_render_data();
+
     GLIndexedVertexArray                m_iva_enforcers;
     GLIndexedVertexArray                m_iva_blockers;
     std::array<GLIndexedVertexArray, 3> m_varrays;

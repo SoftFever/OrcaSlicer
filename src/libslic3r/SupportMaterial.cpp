@@ -1353,9 +1353,9 @@ struct SupportAnnotations
         object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers_layers);
     }
 
-    std::vector<ExPolygons>         enforcers_layers;
-    std::vector<ExPolygons>         blockers_layers;
-    const std::vector<Polygons>&    buildplate_covered;
+    std::vector<Polygons>         enforcers_layers;
+    std::vector<Polygons>         blockers_layers;
+    const std::vector<Polygons>&  buildplate_covered;
 };
 
 struct SlicesMarginCache

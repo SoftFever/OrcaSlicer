@@ -6,6 +6,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -14,6 +15,7 @@
 #include <wx/statbox.h>
 #include <wx/wupdlock.h>
 #include <wx/notebook.h>
+#include <wx/listctrl.h>
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -148,32 +150,32 @@ void GalleryDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
-static void add_border(wxImage& image) 
-{
-    const wxColour& clr = wxGetApp().get_color_hovered_btn_label();
+//static void add_border(wxImage& image)
+//{
+//    const wxColour& clr = wxGetApp().get_color_hovered_btn_label();
 
-    auto px_data = (uint8_t*)image.GetData();
-    auto a_data = (uint8_t*)image.GetAlpha();
+//    auto px_data = (uint8_t*)image.GetData();
+//    auto a_data = (uint8_t*)image.GetAlpha();
 
-    int width = image.GetWidth();
-    int height = image.GetHeight();
-    int border_width = 1;
+//    int width = image.GetWidth();
+//    int height = image.GetHeight();
+//    int border_width = 1;
 
-    for (size_t x = 0; x < width; ++x) {
-        for (size_t y = 0; y < height; ++y) {
-            if (x < border_width || y < border_width ||
-                x >= (width - border_width) || y >= (height - border_width)) {
-                const size_t idx = (x + y * width);
-                const size_t idx_rgb = (x + y * width) * 3;
-                px_data[idx_rgb] = clr.Red();
-                px_data[idx_rgb + 1] = clr.Green();
-                px_data[idx_rgb + 2] = clr.Blue();
-                if (a_data)
-                    a_data[idx] = 255u;
-            }
-        }
-    }
-}
+//    for (size_t x = 0; x < width; ++x) {
+//        for (size_t y = 0; y < height; ++y) {
+//            if (x < border_width || y < border_width ||
+//                x >= (width - border_width) || y >= (height - border_width)) {
+//                const size_t idx = (x + y * width);
+//                const size_t idx_rgb = (x + y * width) * 3;
+//                px_data[idx_rgb] = clr.Red();
+//                px_data[idx_rgb + 1] = clr.Green();
+//                px_data[idx_rgb + 2] = clr.Blue();
+//                if (a_data)
+//                    a_data[idx] = 255u;
+//            }
+//        }
+//    }
+//}
 
 static void add_lock(wxImage& image) 
 {

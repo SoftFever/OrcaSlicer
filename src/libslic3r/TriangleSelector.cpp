@@ -810,7 +810,11 @@ int TriangleSelector::push_triangle(int a, int b, int c, int source_triangle, co
 void TriangleSelector::perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state)
 {
     // Reserve space for the new triangles upfront, so that the reference to this triangle will not change.
-    m_triangles.reserve(m_triangles.size() + m_triangles[facet_idx].number_of_split_sides() + 1);
+    {
+        size_t num_triangles_new = m_triangles.size() + m_triangles[facet_idx].number_of_split_sides() + 1;
+        if (m_triangles.capacity() < num_triangles_new)
+            m_triangles.reserve(next_highest_power_of_2(num_triangles_new));
+    }
 
     Triangle &tr = m_triangles[facet_idx];
     assert(tr.is_split());
@@ -918,7 +922,7 @@ indexed_triangle_set TriangleSelector::get_facets_strict(EnforcerBlockerType sta
             ++ num_vertices;
     out.vertices.reserve(num_vertices);
     std::vector<int> vertex_map(m_vertices.size(), -1);
-    for (int i = 0; i < m_vertices.size(); ++ i)
+    for (size_t i = 0; i < m_vertices.size(); ++ i)
         if (const Vertex &v = m_vertices[i]; v.ref_cnt > 0) {
             vertex_map[i] = int(out.vertices.size());
             out.vertices.emplace_back(v.v);
@@ -958,10 +962,13 @@ void TriangleSelector::get_facets_split_by_tjoints(const Vec3i vertices, const V
         this->triangle_midpoint(neighbors(1), vertices(2), vertices(1)),
         this->triangle_midpoint(neighbors(2), vertices(0), vertices(2)));
     int splits = (midpoints(0) != -1) + (midpoints(1) != -1) + (midpoints(2) != -1);
-    if (splits == 0) {
+    switch (splits) {
+    case 0:
         // Just emit this triangle.
-        out_triangles.emplace_back(vertices(0), midpoints(0), midpoints(2));
-    } else if (splits == 1) {
+        out_triangles.emplace_back(vertices(0), vertices(1), vertices(2));
+        break;
+    case 1:
+    {
         // Split to two triangles
         int i = midpoints(0) != -1 ? 2 : midpoints(1) != -1 ? 0 : 1;
         int j = next_idx_modulo(i, 3);
@@ -969,16 +976,19 @@ void TriangleSelector::get_facets_split_by_tjoints(const Vec3i vertices, const V
         this->get_facets_split_by_tjoints(
             { vertices(i), vertices(j), midpoints(j) },
             { neighbors(i),
-              this->neighbor_child(neighbors(j), vertices(j), vertices(k), Partition::Second),
+              this->neighbor_child(neighbors(j), vertices(k), vertices(j), Partition::Second),
               -1 },
               out_triangles);
         this->get_facets_split_by_tjoints(
-            { midpoints(j), vertices(j), vertices(k) },
-            { this->neighbor_child(neighbors(j), vertices(j), vertices(k), Partition::First),
+            { midpoints(j), vertices(k), vertices(i) },
+            { this->neighbor_child(neighbors(j), vertices(k), vertices(j), Partition::First),
               neighbors(k),
               -1 },
               out_triangles);
-    } else if (splits == 2) {
+        break;
+    }
+    case 2:
+    {
         // Split to three triangles.
         int i = midpoints(0) == -1 ? 2 : midpoints(1) == -1 ? 0 : 1;
         int j = next_idx_modulo(i, 3);
@@ -1000,7 +1010,10 @@ void TriangleSelector::get_facets_split_by_tjoints(const Vec3i vertices, const V
               this->neighbor_child(neighbors(k), vertices(i), vertices(k), Partition::Second),
               -1 },
               out_triangles);
-    } else if (splits == 4) {
+        break;
+    }
+    default:
+        assert(splits == 3);
         // Split to 4 triangles.
         this->get_facets_split_by_tjoints(
             { vertices(0), midpoints(0), midpoints(2) },
@@ -1021,6 +1034,7 @@ void TriangleSelector::get_facets_split_by_tjoints(const Vec3i vertices, const V
               -1 },
               out_triangles);
         out_triangles.emplace_back(midpoints);
+        break;
     }
 }
 
@@ -1105,6 +1119,13 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
 void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data)
 {
     reset(); // dump any current state
+
+    // Reserve number of triangles as if each triangle was saved with 4 bits.
+    // With MMU painting this estimate may be somehow low, but better than nothing.
+    m_triangles.reserve(std::max(m_mesh->its.indices.size(), data.second.size() / 4));
+    // Number of triangles is twice the number of vertices on a large manifold mesh of genus zero.
+    // Here the triangles count account for both the nodes and leaves, thus the following line may overestimate.
+    m_vertices.reserve(std::max(m_mesh->its.vertices.size(), m_triangles.size() / 2));
 
     // Vector to store all parents that have offsprings.
     struct ProcessingInfo {
@@ -1203,7 +1224,8 @@ bool TriangleSelector::has_facets(const std::pair<std::vector<std::pair<int, int
     std::vector<int> parents_children;
     parents_children.reserve(64);
 
-    for (auto [triangle_id, ibit] : data.first) {
+    for (const std::pair<int, int> &triangle_id_and_ibit : data.first) {
+        int ibit = triangle_id_and_ibit.second;
         assert(ibit < data.second.size());
         auto next_nibble = [&data, &ibit = ibit]() {
             int n = 0;

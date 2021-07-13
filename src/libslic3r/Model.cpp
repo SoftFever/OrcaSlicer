@@ -1959,8 +1959,19 @@ indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, Enforce
 {
     TriangleSelector selector(mv.mesh());
     selector.deserialize(m_data);
-    indexed_triangle_set out = selector.get_facets(type);
-    return out;
+    return selector.get_facets(type);
+}
+
+indexed_triangle_set FacetsAnnotation::get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const
+{
+    TriangleSelector selector(mv.mesh());
+    selector.deserialize(m_data);
+    return selector.get_facets_strict(type);
+}
+
+bool FacetsAnnotation::has_facets(const ModelVolume& mv, EnforcerBlockerType type) const
+{
+    return TriangleSelector::has_facets(m_data, type);
 }
 
 bool FacetsAnnotation::set(const TriangleSelector& selector)

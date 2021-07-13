@@ -201,6 +201,16 @@ protected:
     virtual ~SupportLayer() = default;
 };
 
+template<typename LayerContainer>
+inline std::vector<float> zs_from_layers(const LayerContainer &layers)
+{
+    std::vector<float> zs;
+    zs.reserve(layers.size());
+    for (const Layer *l : layers)
+        zs.emplace_back((float)l->slice_z);
+    return zs;
+}
+
 }
 
 #endif

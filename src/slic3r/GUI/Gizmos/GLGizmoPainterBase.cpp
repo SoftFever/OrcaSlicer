@@ -402,6 +402,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             } else
                 m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
                                                                  new_state, trafo_matrix, m_triangle_splitting_enabled);
+
+            m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
             m_last_mouse_click = mouse_position;
         }
 
@@ -428,8 +430,10 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         update_raycast_cache(mouse_position, camera, trafo_matrices);
 
         auto seed_fill_unselect_all = [this]() {
-            for (auto &triangle_selector : m_triangle_selectors)
+            for (auto &triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
+                triangle_selector->request_update_render_data();
+            }
         };
 
         if (m_rr.mesh_id == -1) {
@@ -447,6 +451,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
         m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
+        m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
         m_seed_fill_last_mesh_id = m_rr.mesh_id;
         return true;
     }
@@ -589,27 +594,10 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     static constexpr std::array<float, 4> enforcers_color{0.47f, 0.47f, 1.f, 1.f};
     static constexpr std::array<float, 4> blockers_color{1.f, 0.44f, 0.44f, 1.f};
 
-    int enf_cnt       = 0;
-    int blc_cnt       = 0;
-
-    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
-        iva->release_geometry();
-
-    for (const Triangle& tr : m_triangles) {
-        if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE)
-            continue;
-
-        GLIndexedVertexArray &iva  = tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers : m_iva_blockers;
-        int &                 cnt  = tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt : blc_cnt;
-
-        for (int i = 0; i < 3; ++i)
-            iva.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
-        iva.push_triangle(cnt, cnt + 1, cnt + 2);
-        cnt += 3;
+    if (m_update_render_data) {
+        update_render_data();
+        m_update_render_data = false;
     }
-
-    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
-        iva->finalize_geometry(true);
 
     auto* shader = wxGetApp().get_current_shader();
     if (! shader)
@@ -631,6 +619,33 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     else
         assert(false); // If you want debug output, pass ptr to ImGuiWrapper.
 #endif
+}
+
+
+
+void TriangleSelectorGUI::update_render_data()
+{
+    int enf_cnt = 0;
+    int blc_cnt = 0;
+
+    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
+        iva->release_geometry();
+
+    for (const Triangle &tr : m_triangles) {
+        if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE)
+            continue;
+
+        GLIndexedVertexArray &iva = tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers : m_iva_blockers;
+        int &                 cnt = tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt : blc_cnt;
+
+        for (int i = 0; i < 3; ++i)
+            iva.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
+        iva.push_triangle(cnt, cnt + 1, cnt + 2);
+        cnt += 3;
+    }
+
+    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
+        iva->finalize_geometry(true);
 }
 
 
@@ -685,7 +700,7 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
             va = &m_varrays[ORIGINAL];
             cnt = &cnts[ORIGINAL];
         }
-        else if (tr.valid) {
+        else if (tr.valid()) {
             va = &m_varrays[SPLIT];
             cnt = &cnts[SPLIT];
         }
