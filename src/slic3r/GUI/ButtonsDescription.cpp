@@ -70,9 +70,9 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry
 	auto buttons = CreateStdDialogButtonSizer(wxOK|wxCANCEL);
 	main_sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
 
+	wxGetApp().UpdateDlgDarkUI(this, true);
+
 	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
-	wxGetApp().UpdateDarkUI(btn);
-	wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
 	btn->Bind(wxEVT_BUTTON, [sys_colour, mod_colour, this](wxCommandEvent&) {
 		wxGetApp().set_label_clr_sys(sys_colour->GetColour());
 		wxGetApp().set_label_clr_modified(mod_colour->GetColour());

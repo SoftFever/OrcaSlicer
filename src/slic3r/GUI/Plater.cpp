@@ -4956,11 +4956,11 @@ enum class LoadType : unsigned char
 
 class ProjectDropDialog : public DPIDialog
 {
-    wxRadioBox* m_action{ nullptr };
+    int m_action { 0 };
 public:
     ProjectDropDialog(const std::string& filename);
 
-    int get_action() const { return m_action->GetSelection() + 1; }
+    int get_action() const { return m_action + 1; }
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -4981,12 +4981,24 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
 
     main_sizer->Add(new wxStaticText(this, wxID_ANY,
         _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
-    m_action = new wxRadioBox(this, wxID_ANY, _L("Action"), wxDefaultPosition, wxDefaultSize,
-        WXSIZEOF(choices), choices, 0, wxRA_SPECIFY_ROWS);
+
     int action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
         static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)) - 1;
-    m_action->SetSelection(action);
-    main_sizer->Add(m_action, 1, wxEXPAND | wxRIGHT | wxLEFT, 10);
+
+    wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, _L("Action"));
+    if (!wxOSX) action_stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    action_stb->SetFont(wxGetApp().normal_font());
+
+    wxStaticBoxSizer* stb_sizer = new wxStaticBoxSizer(action_stb, wxVERTICAL);
+    int id = 0;
+    for (const wxString& label : choices) {
+        wxRadioButton* btn = new wxRadioButton(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, id == 0 ? wxRB_GROUP : 0);
+        btn->SetValue(id == action);
+        btn->Bind(wxEVT_RADIOBUTTON, [this, id](wxCommandEvent&) { m_action = id; });
+        stb_sizer->Add(btn, 0, wxEXPAND | wxTOP, 5);
+        id++;
+    }
+    main_sizer->Add(stb_sizer, 1, wxEXPAND | wxRIGHT | wxLEFT, 10);
 
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxCheckBox* check = new wxCheckBox(this, wxID_ANY, _L("Don't show again"));
@@ -5000,6 +5012,9 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
 
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
+
+    // Update DarkUi just for buttons
+    wxGetApp().UpdateDlgDarkUI(this, true);
 }
 
 void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)

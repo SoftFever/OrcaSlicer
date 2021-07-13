@@ -46,7 +46,7 @@ public:
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 	bool recreate_GUI() const { return m_recreate_GUI; }
 	void	build();
-	void	accept();
+	void	accept(wxEvent&);
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;

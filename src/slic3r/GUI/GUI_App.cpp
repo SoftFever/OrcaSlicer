@@ -1115,10 +1115,11 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
 
 // recursive function for scaling fonts for all controls in Window
 #ifdef _WIN32
-static void update_dark_children_ui(wxWindow* window)
+static void update_dark_children_ui(wxWindow* window, bool just_buttons_update = false)
 {
-    bool highlight_btn = dynamic_cast<wxButton*>(window) != nullptr;
-    wxGetApp().UpdateDarkUI(window, highlight_btn);
+    bool is_btn = dynamic_cast<wxButton*>(window) != nullptr;
+    if (!(just_buttons_update && !is_btn))
+        wxGetApp().UpdateDarkUI(window, is_btn);
 
     auto children = window->GetChildren();
     for (auto child : children) {        
@@ -1127,10 +1128,11 @@ static void update_dark_children_ui(wxWindow* window)
 }
 #endif
 
-void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
+// Note: Don't use this function for Dialog contains ScalableButtons
+void GUI_App::UpdateDlgDarkUI(wxDialog* dlg, bool just_buttons_update/* = false*/)
 {
 #ifdef _WIN32
-    update_dark_children_ui(dlg);
+    update_dark_children_ui(dlg, just_buttons_update);
 #endif
 }
 void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
