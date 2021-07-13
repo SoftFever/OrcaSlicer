@@ -588,7 +588,6 @@ void GLMmSegmentationGizmo3DScene::finalize_vertices()
 
 void GLMmSegmentationGizmo3DScene::finalize_triangle_indices()
 {
-    assert(triangle_indices_idx < this->triangle_indices.size());
     assert(std::all_of(triangle_indices_VBO_ids.cbegin(), triangle_indices_VBO_ids.cend(), [](const auto &ti_VBO_id) { return ti_VBO_id == 0; }));
 
     assert(this->triangle_indices.size() == this->triangle_indices_VBO_ids.size());
