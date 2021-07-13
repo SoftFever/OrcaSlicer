@@ -1156,6 +1156,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     const size_t num_layers    = input_expolygons.size();
     const ConstLayerPtrsAdaptor layers = print_object.layers();
 
+#if 0
     auto get_extrusion_width = [&layers = std::as_const(layers)](const size_t layer_idx) -> float {
         auto extrusion_width_it = std::max_element(layers[layer_idx]->regions().begin(), layers[layer_idx]->regions().end(),
                                                    [](const LayerRegion *l1, const LayerRegion *l2) {
@@ -1184,7 +1185,6 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         return (*top_bottom_layer_it)->region().config().bottom_solid_layers;
     };
 
-#if 0
     std::vector<ExPolygons> top_layers(num_layers);
     top_layers.back() = input_expolygons.back();
     tbb::parallel_for(tbb::blocked_range<size_t>(1, num_layers), [&](const tbb::blocked_range<size_t> &range) {
@@ -1462,28 +1462,62 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     triangles_by_color_bottom.assign(num_extruders, std::vector<ExPolygons>(num_layers * 2));
     triangles_by_color_top.assign(num_extruders, std::vector<ExPolygons>(num_layers * 2));
 
+    struct LayerColorStat {
+        // Number of regions for a queried color.
+        int     num_regions             { 0 };
+        // Maximum perimeter extrusion width for a queried color.
+        float   extrusion_width         { 0.f };
+        // Minimum radius of a region to be printable. Used to filter regions by morphological opening.
+        float   small_region_threshold  { 0.f };
+        // Maximum number of top layers for a queried color.
+        int     top_solid_layers        { 0 };
+        // Maximum number of bottom layers for a queried color.
+        int     bottom_solid_layers     { 0 };
+    };
+    auto layer_color_stat = [&layers = std::as_const(layers)](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
+        LayerColorStat out;
+        const Layer &layer = *layers[layer_idx];
+        for (const LayerRegion *region : layer.regions())
+            if (const PrintRegionConfig &config = region->region().config(); 
+                // color_idx == 0 means "don't know" extruder aka the underlying extruder.
+                // As this region may split existing regions, we collect statistics over all regions for color_idx == 0.
+                color_idx == 0 || config.perimeter_extruder == int(color_idx)) {
+                out.extrusion_width     = std::max<float>(out.extrusion_width, config.perimeter_extrusion_width);
+                out.top_solid_layers    = std::max<float>(out.top_solid_layers, config.top_solid_layers);
+                out.bottom_solid_layers = std::max<float>(out.bottom_solid_layers, config.bottom_solid_layers);
+                out.small_region_threshold = config.gap_fill_enabled.value && config.gap_fill_speed.value > 0 ? 
+                    // Gap fill enabled. Enable a single line of 1/2 extrusion width.
+                    0.5 * config.perimeter_extrusion_width :
+                    // Gap fill disabled. Enable two lines slightly overlapping.
+                    config.perimeter_extrusion_width + 0.7f * Flow::rounded_rectangle_extrusion_spacing(config.perimeter_extrusion_width, layer.height);
+                out.small_region_threshold = scaled<float>(out.small_region_threshold * 0.5f);
+                ++ out.num_regions;
+            }
+        assert(out.num_regions > 0);
+        out.extrusion_width = scaled<float>(out.extrusion_width);
+        return out;
+    };
+
     tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers, granularity), [&](const tbb::blocked_range<size_t> &range) {
         size_t group_idx   = range.begin() / granularity;
         size_t layer_idx_offset = (group_idx & 1) * num_layers;
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-            float   extrusion_width     = scale_(get_extrusion_width(layer_idx));
-            int     top_solid_layers    = get_top_solid_layers(layer_idx);
-            int     bottom_solid_layers = get_bottom_solid_layers(layer_idx);
-            float   narrow_island_width = 0.1f * float(extrusion_width);
             for (size_t color_idx = 0; color_idx < num_extruders; ++ color_idx) {
                 throw_on_cancel_callback();
+                LayerColorStat stat = layer_color_stat(layer_idx, color_idx);
                 if (std::vector<Polygons> &top = top_raw[color_idx]; ! top.empty() && ! top[layer_idx].empty())
                     if (ExPolygons top_ex = union_ex(top[layer_idx]); ! top_ex.empty()) {
                         // Clean up thin projections. They are not printable anyways.
-                        top_ex = offset2_ex(top_ex, - narrow_island_width, + narrow_island_width);
+                        top_ex = offset2_ex(top_ex, - stat.small_region_threshold, + stat.small_region_threshold);
                         if (! top_ex.empty()) {
                             append(triangles_by_color_top[color_idx][layer_idx + layer_idx_offset], top_ex);
                             float offset = 0.f;
                             ExPolygons layer_slices_trimmed = input_expolygons[layer_idx];
-                            for (int last_idx = int(layer_idx) - 1; last_idx >= std::max(int(layer_idx - top_solid_layers), int(0)); --last_idx) {
-                                offset -= extrusion_width;
+                            for (int last_idx = int(layer_idx) - 1; last_idx >= std::max(int(layer_idx - stat.top_solid_layers), int(0)); --last_idx) {
+                                offset -= stat.extrusion_width;
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
-                                ExPolygons last = intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset));
+                                ExPolygons last = offset2_ex(intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)), 
+                                                             - stat.small_region_threshold, + stat.small_region_threshold);
                                 if (last.empty())
                                     break;
                                 append(triangles_by_color_top[color_idx][last_idx + layer_idx_offset], std::move(last));
@@ -1493,15 +1527,16 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 if (std::vector<Polygons> &bottom = bottom_raw[color_idx]; ! bottom.empty() && ! bottom[layer_idx].empty())
                     if (ExPolygons bottom_ex = union_ex(bottom[layer_idx]); ! bottom_ex.empty()) {
                         // Clean up thin projections. They are not printable anyways.
-                        bottom_ex = offset2_ex(bottom_ex, - narrow_island_width, + narrow_island_width);
+                        bottom_ex = offset2_ex(bottom_ex, - stat.small_region_threshold, + stat.small_region_threshold);
                         if (! bottom_ex.empty()) {
                             append(triangles_by_color_bottom[color_idx][layer_idx + layer_idx_offset], bottom_ex);
                             float offset = 0.f;
                             ExPolygons layer_slices_trimmed = input_expolygons[layer_idx];
-                            for (size_t last_idx = layer_idx + 1; last_idx < std::min(layer_idx + bottom_solid_layers, num_layers); ++last_idx) {
-                                offset -= extrusion_width;
+                            for (size_t last_idx = layer_idx + 1; last_idx < std::min(layer_idx + stat.bottom_solid_layers, num_layers); ++last_idx) {
+                                offset -= stat.extrusion_width;
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
-                                ExPolygons last = intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset));
+                                ExPolygons last = offset2_ex(intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset)),
+                                                              - stat.small_region_threshold, + stat.small_region_threshold);
                                 if (last.empty())
                                     break;
                                 append(triangles_by_color_bottom[color_idx][last_idx + layer_idx_offset], std::move(last));
