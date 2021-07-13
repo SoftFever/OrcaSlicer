@@ -1788,8 +1788,8 @@ struct Plater::priv
     bool can_replace_with_stl() const;
     bool can_split(bool to_objects) const;
 
-    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
-    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params);
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
+    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
 
     void bring_instance_forward() const;
 
@@ -1865,7 +1865,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_result(&gcode_result);
-    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params); });
+    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params, Camera::EType::Ortho); });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
 	background_process.set_export_began_event(EVT_EXPORT_BEGAN);
@@ -4074,18 +4074,18 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
     }
 }
 
-void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, show_bed, transparent_background);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type);
 }
 
-ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params)
+ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type)
 {
     ThumbnailsList thumbnails;
     for (const Vec2d& size : params.sizes) {
         thumbnails.push_back(ThumbnailData());
         Point isize(size); // round to ints
-        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params.printable_only, params.parts_only, params.show_bed, params.transparent_background);
+        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params, camera_type);
         if (!thumbnails.back().is_valid())
             thumbnails.pop_back();
     }
@@ -5630,7 +5630,8 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     wxBusyCursor wait;
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
     ThumbnailData thumbnail_data;
-    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true);
+    ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
+    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
 #if ENABLE_PROJECT_DIRTY_STATE
     bool ret = Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data);
     if (ret) {

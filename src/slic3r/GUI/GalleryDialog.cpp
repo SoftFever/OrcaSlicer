@@ -3,7 +3,9 @@
 #include <cstddef>
 #include <vector>
 #include <string>
+
 #include <boost/algorithm/string.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -11,16 +13,22 @@
 #include <wx/button.h>
 #include <wx/statbox.h>
 #include <wx/wupdlock.h>
+#include <wx/notebook.h>
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "format.hpp"
 #include "wxExtensions.hpp"
 #include "I18N.hpp"
+#include "Notebook.hpp"
+#include "3DScene.hpp"
+#include "GLCanvas3D.hpp"
+#include "Plater.hpp"
+#include "3DBed.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
-#include <wx/notebook.h>
-#include "Notebook.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/GCode/ThumbnailData.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -209,7 +217,7 @@ static void add_lock(wxImage& image)
 //    add_border(image);
 }
 
-static void add_def_img(wxImageList* img_list, bool is_system, std::string stl_path)
+static void add_default_image(wxImageList* img_list, bool is_system, std::string stl_path)
 {
     wxBitmap bmp = create_scaled_bitmap("cog", nullptr, IMG_PX_CNT, true);    
 
@@ -243,11 +251,63 @@ static std::string get_dir_path(bool sys_dir)
 #endif
 }
 
-static std::string name_from_path(fs::path path) 
+static void generate_thumbnail_from_stl(const std::string& filename)
 {
-    std::string filename = path.filename().string();
-    filename.erase(filename.size() - 4); // Remove the extention suffix.
-    return filename;
+    if (!boost::algorithm::iends_with(filename, ".stl")) {
+        BOOST_LOG_TRIVIAL(error) << "Found invalid file type in generate_thumbnail_from_stl() [" << filename << "]";
+        return;
+    }
+
+    Model model;
+    try {
+        model = Model::read_from_file(filename);
+    }
+    catch (std::exception&) {
+        BOOST_LOG_TRIVIAL(error) << "Error loading model from " << filename << " in generate_thumbnail_from_stl()";
+        return;
+    }
+
+    assert(model.objects.size() == 1);
+    assert(model.objects[0]->volumes.size() == 1);
+    assert(model.objects[0]->instances.size() == 1);
+
+    model.objects[0]->center_around_origin(false);
+    model.objects[0]->ensure_on_bed(false);
+
+    const Vec3d bed_center_3d = wxGetApp().plater()->get_bed().get_bounding_box(false).center();
+    const Vec2d bed_center_2d = { bed_center_3d.x(), bed_center_3d.y()};
+    model.center_instances_around_point(bed_center_2d);
+
+    GLVolumeCollection volumes;
+    volumes.volumes.push_back(new GLVolume());
+    GLVolume* volume = volumes.volumes[0];
+    volume->indexed_vertex_array.load_mesh(model.mesh());
+    volume->indexed_vertex_array.finalize_geometry(true);
+    volume->set_instance_transformation(model.objects[0]->instances[0]->get_transformation());
+    volume->set_volume_transformation(model.objects[0]->volumes[0]->get_transformation());
+
+    ThumbnailData thumbnail_data;
+    const ThumbnailsParams thumbnail_params = { {}, false, false, false, true };
+    wxGetApp().plater()->canvas3D()->render_thumbnail(thumbnail_data, 256, 256, thumbnail_params, volumes, Camera::EType::Perspective);
+
+    if (thumbnail_data.width == 0 || thumbnail_data.height == 0)
+        return;
+
+    wxImage image(thumbnail_data.width, thumbnail_data.height);
+    image.InitAlpha();
+
+    for (unsigned int r = 0; r < thumbnail_data.height; ++r) {
+        unsigned int rr = (thumbnail_data.height - 1 - r) * thumbnail_data.width;
+        for (unsigned int c = 0; c < thumbnail_data.width; ++c) {
+            unsigned char* px = (unsigned char*)thumbnail_data.pixels.data() + 4 * (rr + c);
+            image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+            image.SetAlpha((int)c, (int)r, px[3]);
+        }
+    }
+
+    fs::path out_path = fs::path(filename);
+    out_path.replace_extension("png");
+    image.SaveFile(out_path.string(), wxBITMAP_TYPE_PNG);
 }
 
 void GalleryDialog::load_label_icon_list()
@@ -260,11 +320,13 @@ void GalleryDialog::load_label_icon_list()
 
         for (auto& dir_entry : fs::directory_iterator(dir))
             if (is_stl_file(dir_entry)) {
-                std::string name = name_from_path(dir_entry.path());
+                std::string name = dir_entry.path().stem().string();
                 Item item = Item{ name, sys_dir };
                 items.push_back(item);
             }
     };
+
+    wxBusyCursor busy;
 
     std::string m_sys_dir_path, m_cust_dir_path;
     std::vector<Item> list_items;
@@ -282,15 +344,13 @@ void GalleryDialog::load_label_icon_list()
     for (const auto& item : list_items) {
         std::string img_name = (item.is_system ? m_sys_dir_path : m_cust_dir_path) + item.name + ext;
         std::string stl_name = (item.is_system ? m_sys_dir_path : m_cust_dir_path) + item.name + ".stl";
-        if (!fs::exists(img_name)) {
-            add_def_img(m_image_list, item.is_system, stl_name);
-            continue;
-        }
+        if (!fs::exists(img_name))
+            generate_thumbnail_from_stl(stl_name);
 
         wxImage image;
         if (!image.LoadFile(from_u8(img_name), wxBITMAP_TYPE_PNG) ||
             image.GetWidth() == 0 || image.GetHeight() == 0) {
-            add_def_img(m_image_list, item.is_system, stl_name);
+            add_default_image(m_image_list, item.is_system, stl_name);
             continue;
         }
         image.Rescale(px_cnt, px_cnt, wxIMAGE_QUALITY_BILINEAR);
@@ -435,12 +495,12 @@ bool GalleryDialog::load_files(const wxArrayString& input_files)
             if (!fs::exists(dest_dir / current.filename()))
                 fs::copy_file(current, dest_dir / current.filename());
             else {
-                std::string filename = name_from_path(current);
+                std::string filename = current.stem().string();
 
                 int file_idx = 0;
                 for (auto& dir_entry : fs::directory_iterator(dest_dir))
                     if (is_stl_file(dir_entry)) {
-                        std::string name = name_from_path(dir_entry.path());
+                        std::string name = dir_entry.path().stem().string();
                         if (filename == name) {
                             if (file_idx == 0)
                                 file_idx++;

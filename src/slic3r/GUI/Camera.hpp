@@ -18,7 +18,7 @@ struct Camera
     static double FrustrumZMargin;
     static double MaxFovDeg;
 
-    enum EType : unsigned char
+    enum class EType : unsigned char
     {
         Unknown,
         Ortho,
@@ -29,7 +29,7 @@ struct Camera
     bool requires_zoom_to_bed{ false };
 
 private:
-    EType m_type{ Perspective };
+    EType m_type{ EType::Perspective };
     bool m_update_config_on_type_change_enabled{ false };
     Vec3d m_target{ Vec3d::Zero() };
     float m_zenit{ 45.0f };
@@ -54,7 +54,7 @@ public:
     std::string get_type_as_string() const;
     void set_type(EType type);
     // valid values for type: "0" -> ortho, "1" -> perspective
-    void set_type(const std::string& type) { set_type((type == "1") ? Perspective : Ortho); }
+    void set_type(const std::string& type) { set_type((type == "1") ? EType::Perspective : EType::Ortho); }
     void select_next_type();
 
     void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
