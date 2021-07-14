@@ -32,6 +32,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
+#include "../Utils/MacDarkMode.hpp"
 
 namespace Slic3r {
 namespace GUI {
