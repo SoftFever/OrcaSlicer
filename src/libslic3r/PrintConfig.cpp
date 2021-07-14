@@ -173,6 +173,13 @@ static const t_config_enum_values s_keys_map_BrimType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
+static const t_config_enum_values s_keys_map_DraftShield = {
+    { "disabled", dsDisabled },
+    { "limited",  dsLimited  },
+    { "enabled",  dsEnabled  }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(DraftShield)
+
 static const t_config_enum_values s_keys_map_ForwardCompatibilitySubstitutionRule = {
     { "disable",        ForwardCompatibilitySubstitutionRule::Disable },
     { "enable",         ForwardCompatibilitySubstitutionRule::Enable },
@@ -2147,27 +2154,34 @@ void PrintConfigDef::init_fff_params()
 #endif
 
     def = this->add("skirt_distance", coFloat);
-    def->label = L("Distance from object");
-    def->tooltip = L("Distance between skirt and object(s). Set this to zero to attach the skirt "
-                   "to the object(s) and get a brim for better adhesion.");
+    def->label = L("Distance from brim/object");
+    def->tooltip = L("Distance between skirt and brim (when draft shield is not used) or objects.");
     def->sidetext = L("mm");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(6));
 
     def = this->add("skirt_height", coInt);
     def->label = L("Skirt height");
-    def->tooltip = L("Height of skirt expressed in layers. Set this to a tall value to use skirt "
-                   "as a shield against drafts.");
+    def->tooltip = L("Height of skirt expressed in layers.");
     def->sidetext = L("layers");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("draft_shield", coBool);
+    def = this->add("draft_shield", coEnum);
     def->label = L("Draft shield");
-    def->tooltip = L("If enabled, the skirt will be as tall as a highest printed object. "
+    def->tooltip = L("With draft shield active, the skirt will be printed skirt_distance from the object, possibly intersecting brim.\n"
+                     "Enabled = skirt is as tall as the highest printed object.\n"
+                     "Limited = skirt is as tall as specified by skirt_height.\n"
     				 "This is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft.");
+    def->enum_keys_map = &ConfigOptionEnum<DraftShield>::get_enum_values();
+    def->enum_values.push_back("disabled");
+    def->enum_values.push_back("limited");
+    def->enum_values.push_back("enabled");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Limited"));
+    def->enum_labels.push_back(L("Enabled"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
 
     def = this->add("skirts", coInt);
     def->label = L("Loops (minimum)");
@@ -3652,9 +3666,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         value = "rectilinear";
     } else if (opt_key == "skirt_height" && value == "-1") {
     	// PrusaSlicer no more accepts skirt_height == -1 to print a draft shield to the top of the highest object.
-    	// A new "draft_shield" boolean config value is used instead.
+        // A new "draft_shield" enum config value is used instead.
     	opt_key = "draft_shield";
-    	value = "1";
+        value = "enabled";
+    } else if (opt_key == "draft_shield" && (value == "1" || value == "0")) {
+        // draft_shield used to be a bool, it was turned into an enum in PrusaSlicer 2.4.0.
+        value = value == "1" ? "enabled" : "disabled";
     } else if (opt_key == "octoprint_host") {
         opt_key = "print_host";
     } else if (opt_key == "octoprint_cafile") {

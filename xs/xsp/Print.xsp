@@ -17,8 +17,7 @@ _constant()
     STEP_PREPARE_INFILL     = posPrepareInfill
     STEP_INFILL             = posInfill
     STEP_SUPPORTMATERIAL    = posSupportMaterial
-    STEP_SKIRT              = psSkirt
-    STEP_BRIM               = psBrim
+    STEP_SKIRTBRIM          = psSkirtBrim
     STEP_WIPE_TOWER         = psWipeTower
   PROTOTYPE:
   CODE:

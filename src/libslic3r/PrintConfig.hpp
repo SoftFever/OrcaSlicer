@@ -121,6 +121,10 @@ enum BrimType {
     btOuterAndInner,
 };
 
+enum DraftShield {
+    dsDisabled, dsLimited, dsEnabled
+};
+
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
     template<> const t_config_enum_values& ConfigOptionEnum<NAME>::get_enum_values();
@@ -141,6 +145,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
@@ -689,6 +694,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,              cooling))
     ((ConfigOptionFloat,              default_acceleration))
     ((ConfigOptionInts,               disable_fan_first_layers))
+    ((ConfigOptionEnum<DraftShield>,  draft_shield))
     ((ConfigOptionFloat,              duplicate_distance))
     ((ConfigOptionFloat,              extruder_clearance_height))
     ((ConfigOptionFloat,              extruder_clearance_radius))
@@ -728,7 +734,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,              retract_layer_change))
     ((ConfigOptionFloat,              skirt_distance))
     ((ConfigOptionInt,                skirt_height))
-    ((ConfigOptionBool,               draft_shield))
     ((ConfigOptionInt,                skirts))
     ((ConfigOptionInts,               slowdown_below_layer_time))
     ((ConfigOptionBool,               spiral_vase))

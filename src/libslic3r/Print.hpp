@@ -45,11 +45,10 @@ enum PrintStep {
     // psToolOrdering is a synonym to psWipeTower, as the Wipe Tower calculates and modifies the ToolOrdering,
     // while if printing without the Wipe Tower, the ToolOrdering is calculated as well.
     psToolOrdering = psWipeTower,
-    psSkirt, 
-    psBrim,
+    psSkirtBrim,
     // Last step before G-code export, after this step is finished, the initial extrusion path preview
     // should be refreshed.
-    psSlicingFinished = psBrim,
+    psSlicingFinished = psSkirtBrim,
     psGCodeExport,
     psCount,
 };

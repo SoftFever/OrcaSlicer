@@ -402,9 +402,13 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
         const BrimType &bt = object->config().brim_type;
         return (bt == btOuterOnly || bt == btOuterAndInner) && print.config().skirt_distance.value < object->config().brim_width;
     });
+
+    const bool draft_shield = print.config().draft_shield != dsDisabled;
+
+
     // If there is a possibility that brim intersects skirt, go through loops and split those extrusions
     // The result is either the original Polygon or a list of Polylines
-    if (! print.skirt().empty() && could_brim_intersects_skirt)
+    if (draft_shield && ! print.skirt().empty() && could_brim_intersects_skirt)
     {
         // Find the bounding polygons of the skirt
         const Polygons skirt_inners = offset(dynamic_cast<ExtrusionLoop*>(print.skirt().entities.back())->polygon(),

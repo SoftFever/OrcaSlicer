@@ -5704,7 +5704,7 @@ void GLCanvas3D::_load_print_toolpaths()
     if (print == nullptr)
         return;
 
-    if (!print->is_step_done(psSkirt) || !print->is_step_done(psBrim))
+    if (! print->is_step_done(psSkirtBrim))
         return;
 
     if (!print->has_skirt() && !print->has_brim())
