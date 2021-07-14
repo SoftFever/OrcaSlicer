@@ -202,6 +202,7 @@ public:
     void                update_extruder_in_config(const wxDataViewItem& item);
     // update changed name in the object model
     void                update_name_in_model(const wxDataViewItem& item) const;
+    void                update_name_in_list(int obj_idx, int vol_idx) const;
     void                update_extruder_values_for_items(const size_t max_extruder);
 
     // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item

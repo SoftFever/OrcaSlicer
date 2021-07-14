@@ -3284,6 +3284,13 @@ void Plater::priv::replace_with_stl()
         old_model_object->ensure_on_bed();
     old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
 
+    // if object has just one volume, rename object too
+    if (old_model_object->volumes.size() == 1)
+        old_model_object->name = old_model_object->volumes[0]->name;
+
+    // update new name in ObjectList
+    sidebar->obj_list()->update_name_in_list(object_idx, volume_idx);
+
     sla::reproject_points_and_holes(old_model_object);    
 
     // update 3D scene

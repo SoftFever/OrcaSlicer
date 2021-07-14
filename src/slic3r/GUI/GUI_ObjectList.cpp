@@ -595,13 +595,31 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
     take_snapshot(volume_id < 0 ? _(L("Rename Object")) : _(L("Rename Sub-object")));
 
+    ModelObject* obj = object(obj_idx);
     if (m_objects_model->GetItemType(item) & itObject) {
-        (*m_objects)[obj_idx]->name = m_objects_model->GetName(item).ToUTF8().data();
+        obj->name = m_objects_model->GetName(item).ToUTF8().data();
+        // if object has just one volume, rename this volume too
+        if (obj->volumes.size() == 1)
+            obj->volumes[0]->name = obj->name;
         return;
     }
 
     if (volume_id < 0) return;
-    (*m_objects)[obj_idx]->volumes[volume_id]->name = m_objects_model->GetName(item).ToUTF8().data();
+    obj->volumes[volume_id]->name = m_objects_model->GetName(item).ToUTF8().data();
+}
+
+void ObjectList::update_name_in_list(int obj_idx, int vol_idx) const 
+{
+    if (obj_idx < 0) return;
+    wxDataViewItem item = GetSelection();
+    if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
+        return;
+
+    wxString new_name = from_u8(object(obj_idx)->volumes[vol_idx]->name);
+    if (new_name.IsEmpty() || m_objects_model->GetName(item) == new_name)
+        return;
+
+    m_objects_model->SetName(new_name, item);
 }
 
 void ObjectList::selection_changed()
@@ -3746,22 +3764,8 @@ void ObjectList::rename_item()
         return;
     }
 
-    // The icon can't be edited so get its old value and reuse it.
-    wxVariant valueOld;
-    m_objects_model->GetValue(valueOld, item, colName);
-
-    DataViewBitmapText bmpText;
-    bmpText << valueOld;
-
-    // But replace the text with the value entered by user.
-    bmpText.SetText(new_name);
-
-    wxVariant value;    
-    value << bmpText;
-    m_objects_model->SetValue(value, item, colName);
-    m_objects_model->ItemChanged(item);
-
-    update_name_in_model(item);
+    if (m_objects_model->SetName(new_name, item))
+        update_name_in_model(item);
 }
 
 void ObjectList::fix_through_netfabb() 
