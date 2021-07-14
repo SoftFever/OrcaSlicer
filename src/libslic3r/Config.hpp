@@ -1443,7 +1443,7 @@ public:
         	unsigned char new_value = 0;
         	if (item_str == "nil") {
         		if (NULLABLE)
-        			this->values.push_back(nil_value());
+                    new_value = nil_value();
         		else
                     throw ConfigurationError("Deserializing nil into a non-nullable object");
         	} else if (item_str == "1") {
