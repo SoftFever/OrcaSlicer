@@ -27,6 +27,7 @@
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"
 #include "3DBed.hpp"
+#include "MsgDialog.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
@@ -150,33 +151,6 @@ void GalleryDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
-//static void add_border(wxImage& image)
-//{
-//    const wxColour& clr = wxGetApp().get_color_hovered_btn_label();
-
-//    auto px_data = (uint8_t*)image.GetData();
-//    auto a_data = (uint8_t*)image.GetAlpha();
-
-//    int width = image.GetWidth();
-//    int height = image.GetHeight();
-//    int border_width = 1;
-
-//    for (size_t x = 0; x < width; ++x) {
-//        for (size_t y = 0; y < height; ++y) {
-//            if (x < border_width || y < border_width ||
-//                x >= (width - border_width) || y >= (height - border_width)) {
-//                const size_t idx = (x + y * width);
-//                const size_t idx_rgb = (x + y * width) * 3;
-//                px_data[idx_rgb] = clr.Red();
-//                px_data[idx_rgb + 1] = clr.Green();
-//                px_data[idx_rgb + 2] = clr.Blue();
-//                if (a_data)
-//                    a_data[idx] = 255u;
-//            }
-//        }
-//    }
-//}
-
 static void add_lock(wxImage& image) 
 {
     wxBitmap bmp = create_scaled_bitmap("lock", nullptr, 22);
@@ -216,12 +190,11 @@ static void add_lock(wxImage& image)
             px_data[idx_rgb + 2] = lock_px_data[lock_idx_rgb + 2];
         }
     }
-//    add_border(image);
 }
 
-static void add_default_image(wxImageList* img_list, bool is_system, std::string stl_path)
+static void add_default_image(wxImageList* img_list, bool is_system)
 {
-    wxBitmap bmp = create_scaled_bitmap("cog", nullptr, IMG_PX_CNT, true);    
+    wxBitmap bmp = create_scaled_bitmap("cog", nullptr, IMG_PX_CNT, true);
 
     if (is_system) {
         wxImage image = bmp.ConvertToImage();
@@ -321,7 +294,7 @@ void GalleryDialog::load_label_icon_list()
         dir_path = get_dir_path(sys_dir);
 
         for (auto& dir_entry : fs::directory_iterator(dir))
-            if (is_stl_file(dir_entry)) {
+            if (TriangleMesh mesh; is_stl_file(dir_entry) && mesh.ReadSTLFile(dir_entry.path().string().c_str())) {
                 std::string name = dir_entry.path().stem().string();
                 Item item = Item{ name, sys_dir };
                 items.push_back(item);
@@ -350,9 +323,10 @@ void GalleryDialog::load_label_icon_list()
             generate_thumbnail_from_stl(stl_name);
 
         wxImage image;
-        if (!image.LoadFile(from_u8(img_name), wxBITMAP_TYPE_PNG) ||
+        if (!image.CanRead(from_u8(img_name)) ||
+            !image.LoadFile(from_u8(img_name), wxBITMAP_TYPE_PNG) ||
             image.GetWidth() == 0 || image.GetHeight() == 0) {
-            add_default_image(m_image_list, item.is_system, stl_name);
+            add_default_image(m_image_list, item.is_system);
             continue;
         }
         image.Rescale(px_cnt, px_cnt, wxIMAGE_QUALITY_BILINEAR);
@@ -416,6 +390,14 @@ void GalleryDialog::del_custom_shapes(wxEvent& event)
     update();
 }
 
+static void show_warning(const wxString& title, const std::string& error_file_type)
+{
+    const wxString msg_text = format_wxstr(_L("It looks like selected %1%-file has an error or is destructed.\n"
+        "We can't load this file"), error_file_type);
+    MessageDialog dialog(nullptr, msg_text, title, wxICON_WARNING | wxOK);
+    dialog.ShowModal();
+}
+
 void GalleryDialog::replace_custom_png(wxEvent& event)
 {
     if (m_selected_items.size() != 1 || m_selected_items[0].is_system)
@@ -433,9 +415,14 @@ void GalleryDialog::replace_custom_png(wxEvent& event)
     if (input_files.IsEmpty())
         return;
 
+    if (wxImage image; !image.CanRead(input_files.Item(0))) {
+        show_warning(_L("Replacing of the PNG"), "PNG");
+        return;
+    }
+
     try {
         fs::path current = fs::path(into_u8(input_files.Item(0)));
-        fs::copy_file(current, get_dir(false) / (m_selected_items[0].name + ".png"));
+        fs::copy_file(current, get_dir(false) / (m_selected_items[0].name + ".png"), fs::copy_option::overwrite_if_exists);
     }
     catch (fs::filesystem_error const& e) {
         std::cerr << e.what() << '\n';
@@ -491,6 +478,11 @@ bool GalleryDialog::load_files(const wxArrayString& input_files)
     // Iterate through the source directory
     for (size_t i = 0; i < input_files.size(); ++i) {
         std::string input_file = into_u8(input_files.Item(i));
+
+        if (TriangleMesh mesh; !mesh.ReadSTLFile(input_file.c_str())) {
+            show_warning(format_wxstr(_L("Loading of the \"%1%\""), input_file), "STL");
+            continue;
+        }
 
         try {
             fs::path current = fs::path(input_file);
