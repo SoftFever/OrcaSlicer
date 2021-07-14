@@ -46,9 +46,9 @@ void set_local_dir(const std::string &path);
 const std::string& localization_dir();
 
 // Set a path with shapes gallery files.
-void set_gallery_dir(const std::string &path);
-// Return a full path to the gallery directory.
-const std::string& gallery_dir();
+void set_sys_shapes_dir(const std::string &path);
+// Return a full path to the system shapes gallery directory.
+const std::string& sys_shapes_dir();
 
 // Set a path with preset files.
 void set_data_dir(const std::string &path);

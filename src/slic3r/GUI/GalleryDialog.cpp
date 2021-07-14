@@ -160,7 +160,7 @@ static void add_lock(wxImage& image)
 #ifdef __APPLE__
     lock_sz /= mac_max_scaling_factor();
 #endif
-    wxBitmap bmp = create_scaled_bitmap("lock", nullptr, 22);
+    wxBitmap bmp = create_scaled_bitmap("lock", nullptr, lock_sz);
 
     wxImage lock_image = bmp.ConvertToImage();
     if (!lock_image.IsOk() || lock_image.GetWidth() == 0 || lock_image.GetHeight() == 0)
@@ -214,12 +214,14 @@ static void add_default_image(wxImageList* img_list, bool is_system)
 
 static fs::path get_dir(bool sys_dir)
 {
-    return fs::absolute(fs::path(gallery_dir()) / (sys_dir ? "system" : "custom")).make_preferred();
+    if (sys_dir)
+        return fs::absolute(fs::path(sys_shapes_dir())).make_preferred();
+    return fs::absolute(fs::path(data_dir()) / "shapes").make_preferred();
 }
 
 static bool custom_exists() 
 {
-    return fs::exists(fs::absolute(fs::path(gallery_dir()) / "custom").make_preferred());
+    return fs::exists(get_dir(false));
 }
 
 static std::string get_dir_path(bool sys_dir) 
@@ -382,20 +384,22 @@ void GalleryDialog::add_custom_shapes(wxEvent& event)
 
 void GalleryDialog::del_custom_shapes(wxEvent& event)
 {
-    auto dest_dir = get_dir(false);
+    auto custom_dir = get_dir(false);
 
-    for (const Item& item : m_selected_items) {
-        std::string filename = item.name + ".stl";
-
-        if (!fs::exists(dest_dir / filename))
-            continue;
+    auto remove_file = [custom_dir](const std::string& name) {
+        if (!fs::exists(custom_dir / name))
+            return;
         try {
-            fs::remove(dest_dir / filename);
+            fs::remove(custom_dir / name);
         }
         catch (fs::filesystem_error const& e) {
             std::cerr << e.what() << '\n';
-            return;
         }
+    };
+
+    for (const Item& item : m_selected_items) {
+        remove_file(item.name + ".stl");
+        remove_file(item.name + ".png");
     }
 
     update();
