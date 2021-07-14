@@ -480,7 +480,7 @@ typedef std::vector<GLVolumeWithIdAndZ> GLVolumeWithIdAndZList;
 class GLVolumeCollection
 {
 public:
-    enum ERenderType : unsigned char
+    enum class ERenderType : unsigned char
     {
         Opaque,
         Transparent,

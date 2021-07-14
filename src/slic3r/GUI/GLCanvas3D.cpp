@@ -1475,12 +1475,20 @@ void GLCanvas3D::render()
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
 
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+    _render_objects(GLVolumeCollection::ERenderType::Opaque);
+#else
     _render_objects();
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     if (!m_main_toolbar.is_enabled())
         _render_gcode();
     _render_sla_slices();
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+    _render_objects(GLVolumeCollection::ERenderType::Transparent);
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+
 #if ENABLE_SEQUENTIAL_LIMITS
     _render_sequential_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
@@ -5036,7 +5044,11 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
     wxGetApp().plater()->get_bed().render(*this, bottom, scale_factor, show_axes, show_texture);
 }
 
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
+#else
 void GLCanvas3D::_render_objects()
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
 {
     if (m_volumes.empty())
         return;
@@ -5067,37 +5079,63 @@ void GLCanvas3D::_render_objects()
     if (shader != nullptr) {
         shader->start_using();
 
-        if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
-            int object_id = m_layers_editing.last_object_id;
-            m_volumes.render(GLVolumeCollection::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
-                // Which volume to paint without the layer height profile shader?
-                return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
-                });
-            // Let LayersEditing handle rendering of the active object using the layer height profile shader.
-            m_layers_editing.render_volumes(*this, m_volumes);
-        } else {
-            // do not cull backfaces to show broken geometry, if any
-            m_volumes.render(GLVolumeCollection::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
-                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
-            });
-        }
-
-        // In case a painting gizmo is open, it should render the painted triangles
-        // before transparent objects are rendered. Otherwise they would not be
-        // visible when inside modifier meshes etc.
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+        switch (type)
         {
-            const GLGizmosManager& gm = get_gizmos_manager();
-            GLGizmosManager::EType type = gm.get_current_type();
-            if (type == GLGizmosManager::FdmSupports
-                || type == GLGizmosManager::Seam
-                || type == GLGizmosManager::MmuSegmentation) {
-                shader->stop_using();
-                gm.render_painter_gizmo();
-                shader->start_using();
+        default:
+        case GLVolumeCollection::ERenderType::Opaque:
+        {
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+            if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
+                int object_id = m_layers_editing.last_object_id;
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+                m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
+#else
+                m_volumes.render(GLVolumeCollection::ERenderType::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+                    // Which volume to paint without the layer height profile shader?
+                    return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
+                    });
+                // Let LayersEditing handle rendering of the active object using the layer height profile shader.
+                m_layers_editing.render_volumes(*this, m_volumes);
             }
-        }
+            else {
+                // do not cull backfaces to show broken geometry, if any
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+                m_volumes.render(type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
+#else
+                m_volumes.render(GLVolumeCollection::ERenderType::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+                    return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+                    });
+            }
 
-        m_volumes.render(GLVolumeCollection::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
+            // In case a painting gizmo is open, it should render the painted triangles
+            // before transparent objects are rendered. Otherwise they would not be
+            // visible when inside modifier meshes etc.
+            {
+                const GLGizmosManager& gm = get_gizmos_manager();
+                GLGizmosManager::EType type = gm.get_current_type();
+                if (type == GLGizmosManager::FdmSupports
+                    || type == GLGizmosManager::Seam
+                    || type == GLGizmosManager::MmuSegmentation) {
+                    shader->stop_using();
+                    gm.render_painter_gizmo();
+                    shader->start_using();
+                }
+            }
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+            break;
+        }
+        case GLVolumeCollection::ERenderType::Transparent:
+        {
+            m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix());
+            break;
+        }
+        }
+#else
+        m_volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
         shader->stop_using();
     }
 
@@ -5258,8 +5296,8 @@ void GLCanvas3D::_render_volumes_for_picking() const
 
     const Transform3d& view_matrix = wxGetApp().plater()->get_camera().get_view_matrix();
     for (size_t type = 0; type < 2; ++ type) {
-	    GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, (type == 0) ? GLVolumeCollection::Opaque : GLVolumeCollection::Transparent, view_matrix);
-	    for (const GLVolumeWithIdAndZ& volume : to_render)
+        GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, (type == 0) ? GLVolumeCollection::ERenderType::Opaque : GLVolumeCollection::ERenderType::Transparent, view_matrix);
+        for (const GLVolumeWithIdAndZ& volume : to_render)
 	        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries)) {
 		        // Object picking mode. Render the object with a color encoding the object index.
 		        unsigned int id = volume.second.first;

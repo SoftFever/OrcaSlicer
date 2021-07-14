@@ -822,7 +822,11 @@ private:
     void _rectangular_selection_picking_pass();
     void _render_background() const;
     void _render_bed(bool bottom, bool show_axes);
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+    void _render_objects(GLVolumeCollection::ERenderType type);
+#else
     void _render_objects();
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     void _render_gcode() const;
     void _render_selection() const;
 #if ENABLE_SEQUENTIAL_LIMITS

@@ -2593,7 +2593,7 @@ void GCodeViewer::render_shells() const
 //    glsafe(::glDepthMask(GL_FALSE));
 
     shader->start_using();
-    m_shells.volumes.render(GLVolumeCollection::Transparent, true, wxGetApp().plater()->get_camera().get_view_matrix());
+    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, true, wxGetApp().plater()->get_camera().get_view_matrix());
     shader->stop_using();
 
 //    glsafe(::glDepthMask(GL_TRUE));

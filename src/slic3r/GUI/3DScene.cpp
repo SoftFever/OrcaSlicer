@@ -752,17 +752,15 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     {
         GLVolume* volume = volumes[i];
         bool is_transparent = (volume->render_color[3] < 1.0f);
-        if ((((type == GLVolumeCollection::Opaque) && !is_transparent) ||
-             ((type == GLVolumeCollection::Transparent) && is_transparent) ||
-             (type == GLVolumeCollection::All)) &&
+        if ((((type == GLVolumeCollection::ERenderType::Opaque) && !is_transparent) ||
+             ((type == GLVolumeCollection::ERenderType::Transparent) && is_transparent) ||
+             (type == GLVolumeCollection::ERenderType::All)) &&
             (! filter_func || filter_func(*volume)))
             list.emplace_back(std::make_pair(volume, std::make_pair(i, 0.0)));
     }
 
-    if ((type == GLVolumeCollection::Transparent) && (list.size() > 1))
-    {
-        for (GLVolumeWithIdAndZ& volume : list)
-        {
+    if (type == GLVolumeCollection::ERenderType::Transparent && list.size() > 1) {
+        for (GLVolumeWithIdAndZ& volume : list) {
             volume.second.second = volume.first->bounding_box().transformed(view_matrix * volume.first->world_matrix()).max(2);
         }
 
@@ -770,8 +768,7 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
             [](const GLVolumeWithIdAndZ& v1, const GLVolumeWithIdAndZ& v2) -> bool { return v1.second.second < v2.second.second; }
         );
     }
-    else if ((type == GLVolumeCollection::Opaque) && (list.size() > 1))
-    {
+    else if (type == GLVolumeCollection::ERenderType::Opaque && list.size() > 1) {
         std::sort(list.begin(), list.end(),
             [](const GLVolumeWithIdAndZ& v1, const GLVolumeWithIdAndZ& v2) -> bool { return v1.first->selected && !v2.first->selected; }
         );

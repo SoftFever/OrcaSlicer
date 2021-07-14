@@ -68,6 +68,8 @@
 #define DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA (1 && ENABLE_ALLOW_NEGATIVE_Z)
 // Enable visualization of objects clearance for sequential prints
 #define ENABLE_SEQUENTIAL_LIMITS (1 && ENABLE_2_4_0_ALPHA0)
+// Enable delayed rendering of transparent volumes
+#define ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_2_4_0_ALPHA0)
 
 
 #endif // _prusaslicer_technologies_h_
