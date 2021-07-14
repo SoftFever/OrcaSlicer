@@ -251,13 +251,12 @@ double GLGizmoCut::calc_projection(const Linef3& mouse_ray) const
 BoundingBoxf3 GLGizmoCut::bounding_box() const
 {
     BoundingBoxf3 ret;
-
     const Selection& selection = m_parent.get_selection();
     const Selection::IndicesList& idxs = selection.get_volume_idxs();
     for (unsigned int i : idxs) {
         const GLVolume* volume = selection.get_volume(i);
         if (!volume->is_modifier)
-            ret.merge(volume->transformed_bounding_box());
+            ret.merge(volume->transformed_convex_hull_bounding_box());
     }
     return ret;
 }
