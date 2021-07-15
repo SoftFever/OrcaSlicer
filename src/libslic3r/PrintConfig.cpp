@@ -462,6 +462,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer.");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max = 200;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0));
 

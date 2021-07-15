@@ -207,31 +207,33 @@ void SeamPlacer::init(const Print& print)
 
         auto merge_and_offset = [po, &temp_polygons, max_nozzle_dmr](EnforcerBlockerType type, std::vector<ExPolygons>& out) {
             // Offset the triangles out slightly.
+            auto offset_out = [](Polygon& input, float offset) -> ExPolygons {
+                ClipperLib::Paths out(1);
+                std::vector<float>  deltas(input.points.size(), offset);
+                input.make_counter_clockwise();
+                out.front() = mittered_offset_path_scaled(input.points, deltas, 3.);
+                return ClipperPaths_to_Slic3rExPolygons(out);
+            };
+
+
             temp_polygons.clear();
             po->project_and_append_custom_facets(true, type, temp_polygons);
             out.clear();
             out.reserve(temp_polygons.size());
-            float offset = max_nozzle_dmr + po->config().elefant_foot_compensation;
-            for (const Polygons &src : temp_polygons) {
-                out.emplace_back(Slic3r::offset_ex(src, scale_(offset)));
-                offset = max_nozzle_dmr;
+            float offset = scale_(max_nozzle_dmr + po->config().elefant_foot_compensation);
+            for (Polygons &src : temp_polygons) {
+                out.emplace_back(ExPolygons());
+                for (Polygon& plg : src) {
+                    ExPolygons offset_explg = offset_out(plg, offset);
+                    if (! offset_explg.empty())
+                        out.back().emplace_back(std::move(offset_explg.front()));
+                }
+
+                offset = scale_(max_nozzle_dmr);
             }
         };
         merge_and_offset(EnforcerBlockerType::BLOCKER, temp_blk);
         merge_and_offset(EnforcerBlockerType::ENFORCER, temp_enf);
-
-//     FIXME: Offsetting should be done somehow cheaper, but following does not work
-//        for (auto* custom_per_object : {&temp_enf, &temp_blk}) {
-//            for (ExPolygons& plgs : *custom_per_object) {
-//                for (ExPolygon& plg : plgs) {
-//                    auto out = Slic3r::offset_ex(plg, scale_(max_nozzle_dmr));
-//                    plg = out.empty() ? ExPolygon() : out.front();
-//                    assert(out.empty() || out.size() == 1);
-//                }
-//            }
-//        }
-
-
 
         // Remember this PrintObject and initialize a store of enforcers and blockers for it.
         m_po_list.push_back(po);
