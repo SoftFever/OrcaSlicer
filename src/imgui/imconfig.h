@@ -113,9 +113,34 @@
 //#define IMGUI_DEBUG_PARANOID
 
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
-/*
+
 namespace ImGui
 {
-    void MyFunction(const char* name, const MyMatrix44& v);
+    // Special ASCII character is used here as markup symbols for tokens to be highlighted as a for hovered item
+    const char ColorMarkerHovered   = 0x1; // STX
+
+    // Special ASCII characters STX and ETX are used here as markup symbols for tokens to be highlighted.
+    const char ColorMarkerStart = 0x2; // STX
+    const char ColorMarkerEnd   = 0x3; // ETX
+
+    // Special ASCII characters are used here as an ikons markers
+    const char PrintIconMarker         = 0x4;
+    const char PrinterIconMarker       = 0x5;
+    const char PrinterSlaIconMarker    = 0x6;
+    const char FilamentIconMarker      = 0x7;
+    const char MaterialIconMarker      = 0x8;
+    const char CloseNotifButton        = 0xB;
+    const char CloseNotifHoverButton   = 0xC;
+//	const char TimerDotMarker          = 0xE;
+//	const char TimerDotEmptyMarker     = 0xF;
+    const char MinimalizeButton        = 0xE;
+    const char MinimalizeHoverButton   = 0xF;
+    const char WarningMarker           = 0x10;
+    const char ErrorMarker             = 0x11;
+    const char EjectButton             = 0x12;
+    const char EjectHoverButton        = 0x13;
+    const char CancelButton            = 0x14;
+    const char CancelHoverButton       = 0x15;
+//    void MyFunction(const char* name, const MyMatrix44& v);
 }
-*/
+

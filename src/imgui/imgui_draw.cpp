@@ -34,6 +34,8 @@ Index of this file:
 #endif
 
 #include "imgui_internal.h"
+#include "imconfig.h"
+
 #ifdef IMGUI_ENABLE_FREETYPE
 #include "misc/freetype/imgui_freetype.h"
 #endif
@@ -3564,6 +3566,14 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
 
     const ImU32 col_untinted = col | ~IM_COL32_A_MASK;
 
+    ImU32 defaultCol = col;
+    ImU32 highlighCol = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+    // if text is started with ColorMarkerHovered symbol, we should use another color for a highlighting
+    if (*s == ImGui::ColorMarkerHovered) {
+        highlighCol = ImGui::GetColorU32(ImGuiCol_FrameBg);
+        s += 1;
+    }
+
     while (s < text_end)
     {
         if (word_wrap_enabled)
@@ -3590,6 +3600,17 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
                 }
                 continue;
             }
+        }
+
+        if (*s == ImGui::ColorMarkerStart) {
+            col = highlighCol;
+            s += 1;
+        }
+        else if (*s == ImGui::ColorMarkerEnd) {
+            col = defaultCol;
+            s += 1;
+            if (s == text_end)
+                break;
         }
 
         // Decode and advance source
