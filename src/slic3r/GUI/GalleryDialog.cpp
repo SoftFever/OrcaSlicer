@@ -219,11 +219,6 @@ static fs::path get_dir(bool sys_dir)
     return fs::absolute(fs::path(data_dir()) / "shapes").make_preferred();
 }
 
-static bool custom_exists() 
-{
-    return fs::exists(get_dir(false));
-}
-
 static std::string get_dir_path(bool sys_dir) 
 {
     fs::path dir = get_dir(sys_dir);
@@ -299,6 +294,9 @@ void GalleryDialog::load_label_icon_list()
     auto add_files_from_gallery = [](std::vector<Item>& items, bool sys_dir, std::string& dir_path)
     {
         fs::path dir = get_dir(sys_dir);
+        if (!fs::exists(dir))
+            return;
+
         dir_path = get_dir_path(sys_dir);
 
         std::vector<std::string> sorted_names;
@@ -319,8 +317,7 @@ void GalleryDialog::load_label_icon_list()
     std::string m_sys_dir_path, m_cust_dir_path;
     std::vector<Item> list_items;
     add_files_from_gallery(list_items, true, m_sys_dir_path);
-    if (custom_exists())
-        add_files_from_gallery(list_items, false, m_cust_dir_path);
+    add_files_from_gallery(list_items, false, m_cust_dir_path);
 
     // Make an image list containing large icons
 
