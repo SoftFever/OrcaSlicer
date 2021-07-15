@@ -1371,12 +1371,15 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
         item = m_objects_model->GetItemById(obj_idx);
 
     std::vector<ModelVolume*> volumes;
-    load_part((*m_objects)[obj_idx], volumes, type, from_galery);
+    if (type == ModelVolumeType::MODEL_PART)
+        load_part(*(*m_objects)[obj_idx], volumes, type, from_galery);
+    else
+        load_modifier(*(*m_objects)[obj_idx], volumes, type, from_galery);
 
     if (volumes.empty())
         return;
 
-    take_snapshot(_L("Load Part"));
+    take_snapshot((type == ModelVolumeType::MODEL_PART) ? _L("Load Part") : _L("Load Modifier"));
 
     wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume* volume) {
         return std::find(volumes.begin(), volumes.end(), volume) != volumes.end(); });
@@ -1394,8 +1397,11 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
     selection_changed();
 }
 
-void ObjectList::load_part(ModelObject* model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery/* = false*/)
+void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery/* = false*/)
 {
+    if (type != ModelVolumeType::MODEL_PART)
+        return;
+
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
     wxArrayString input_files;
@@ -1433,13 +1439,13 @@ void ObjectList::load_part(ModelObject* model_object, std::vector<ModelVolume*>&
 
         for (auto object : model.objects) {
             Vec3d delta = Vec3d::Zero();
-            if (model_object->origin_translation != Vec3d::Zero()) {
+            if (model_object.origin_translation != Vec3d::Zero()) {
                 object->center_around_origin();
-                delta = model_object->origin_translation - object->origin_translation;
+                delta = model_object.origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {
                 volume->translate(delta);
-                auto new_volume = model_object->add_volume(*volume, type);
+                auto new_volume = model_object.add_volume(*volume, type);
                 new_volume->name = boost::filesystem::path(input_file).filename().string();
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -1448,7 +1454,98 @@ void ObjectList::load_part(ModelObject* model_object, std::vector<ModelVolume*>&
             }
         }
     }
+}
 
+void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery)
+{
+    if (type == ModelVolumeType::MODEL_PART)
+        return;
+
+    wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
+
+    wxArrayString input_files;
+
+    if (from_galery) {
+        GalleryDialog dlg(this);
+        if (dlg.ShowModal() == wxID_CANCEL)
+            return;
+        dlg.get_input_files(input_files);
+        if (input_files.IsEmpty())
+            return;
+    }
+    else
+        wxGetApp().import_model(parent, input_files);
+
+    wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().plater(), wxPD_AUTO_HIDE);
+    wxBusyCursor busy;
+
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0)
+        return;
+
+    const Selection& selection = scene_selection();
+    assert(obj_idx == selection.get_object_idx());
+
+    /** Any changes of the Object's composition is duplicated for all Object's Instances
+      * So, It's enough to take a bounding box of a first selected Instance and calculate Part(generic_subobject) position
+      */
+    int instance_idx = *selection.get_instance_idxs().begin();
+    assert(instance_idx != -1);
+    if (instance_idx == -1)
+        return;
+
+    // Bounding box of the selected instance in world coordinate system including the translation, without modifiers.
+    const BoundingBoxf3 instance_bb = model_object.instance_bounding_box(instance_idx);
+
+    // First (any) GLVolume of the selected instance. They all share the same instance matrix.
+    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    const Geometry::Transformation inst_transform = v->get_instance_transformation();
+    const Transform3d inv_inst_transform = inst_transform.get_matrix(true).inverse();
+    const Vec3d instance_offset = v->get_instance_offset();
+
+    const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
+
+    for (size_t i = 0; i < input_files.size(); ++i) {
+        const std::string input_file = input_files.Item(i).ToUTF8().data();
+
+        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())),
+            _L("Loading file") + ": " + from_path(boost::filesystem::path(input_file).filename()));
+        dlg.Fit();
+
+        Model model;
+        try {
+            model = Model::read_from_file(input_file);
+        }
+        catch (std::exception& e) {
+            auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
+            show_error(parent, msg);
+            exit(1);
+        }
+        
+        model.center_instances_around_point(Vec2d::Zero());
+        double model_max_size = model.bounding_box().max_size();
+        if (model_max_size == 0.0)
+            return;
+
+        TriangleMesh mesh = model.mesh();
+        mesh.repair();
+        mesh.scale(static_cast<float>(side / model_max_size));
+
+        // Mesh will be centered when loading.
+        ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
+        // Transform the new modifier to be aligned with the print bed.
+        const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
+        new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(inst_transform, mesh_bb));
+        // Set the modifier position.
+        // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+        auto offset =  Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
+        new_volume->set_offset(inv_inst_transform * offset);
+        new_volume->name = boost::filesystem::path(input_file).filename().string();
+        // set a default extruder value, since user can't add it manually
+        new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+
+        added_volumes.push_back(new_volume);
+    }
 }
 
 static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf3& bb)
@@ -1498,7 +1595,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     if (instance_idx == -1)
         return;
 
-    take_snapshot(_(L("Add Generic Subobject")));
+    take_snapshot(_L("Add Generic Subobject"));
 
     // Selected object
     ModelObject  &model_object = *(*m_objects)[obj_idx];
@@ -1510,23 +1607,20 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 	// Mesh will be centered when loading.
     ModelVolume *new_volume = model_object.add_volume(std::move(mesh), type);
 
-    if (instance_idx != -1)
-    {
-        // First (any) GLVolume of the selected instance. They all share the same instance matrix.
-        const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        // Transform the new modifier to be aligned with the print bed.
-		const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
-        new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
-        // Set the modifier position.
-        auto offset = (type_name == "Slab") ?
-            // Slab: Lift to print bed
-			Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z()) :
-            // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
-            Vec3d(instance_bb.max(0), instance_bb.min(1), instance_bb.min(2)) + 0.5 * mesh_bb.size() - v->get_instance_offset();
-        new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
-    }
+    // First (any) GLVolume of the selected instance. They all share the same instance matrix.
+    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    // Transform the new modifier to be aligned with the print bed.
+	const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
+    new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
+    // Set the modifier position.
+    auto offset = (type_name == "Slab") ?
+        // Slab: Lift to print bed
+		Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z()) :
+        // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+        Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
+    new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
 
-    const wxString name = _(L("Generic")) + "-" + _(type_name);
+    const wxString name = _L("Generic") + "-" + _(type_name);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -1594,7 +1688,7 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 
     if (center) {
         const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
-        new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
+        new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation.z()));
     } else {
         new_object->instances[0]->set_offset(bb.center());
     }
