@@ -1138,7 +1138,7 @@ void GUI_App::UpdateDlgDarkUI(wxDialog* dlg, bool just_buttons_update/* = false*
 void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 {
 #ifdef _WIN32
-    UpdateDarkUI(dvc, highlited);
+    UpdateDarkUI(dvc, highlited ? dark_mode() : false);
     wxItemAttr attr(dark_mode() ? m_color_highlight_default : m_color_label_default,
         m_color_window_default,
         m_normal_font);

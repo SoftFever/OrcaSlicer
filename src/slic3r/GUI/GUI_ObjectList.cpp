@@ -1358,6 +1358,11 @@ bool ObjectList::is_instance_or_object_selected()
 
 void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false*/)
 {
+    if (type == ModelVolumeType::INVALID && from_galery) {
+        load_shape_object_from_gallery();
+        return;
+    }
+
     wxDataViewItem item = GetSelection();
     // we can add volumes for Object or Instance
     if (!item || !(m_objects_model->GetItemType(item)&(itObject|itInstance)))
@@ -1566,6 +1571,39 @@ void ObjectList::load_shape_object(const std::string& type_name)
     load_mesh_object(mesh, _L("Shape") + "-" + _(type_name));
 #if ENABLE_PROJECT_DIRTY_STATE
     wxGetApp().mainframe->update_title();
+#endif // ENABLE_PROJECT_DIRTY_STATE
+}
+
+void ObjectList::load_shape_object_from_gallery()
+{
+    if (wxGetApp().plater()->canvas3D()->get_selection().get_object_idx() != -1)
+        return;// Add nothing if something is selected on 3DScene
+
+    wxArrayString input_files;
+    GalleryDialog gallery_dlg(this);
+    if (gallery_dlg.ShowModal() == wxID_CANCEL)
+        return;
+    gallery_dlg.get_input_files(input_files);
+    if (input_files.IsEmpty())
+        return;
+
+    std::vector<boost::filesystem::path> paths;
+    for (const auto& file : input_files)
+        paths.push_back(into_path(file));
+
+    assert(!paths.empty());
+    wxString snapshot_label = (paths.size() == 1 ? _L("Add Shape") : _L("Add Shapes")) + ": " +
+        wxString::FromUTF8(paths.front().filename().string().c_str());
+    for (size_t i = 1; i < paths.size(); ++i)
+        snapshot_label += ", " + wxString::FromUTF8(paths[i].filename().string().c_str());
+
+    take_snapshot(snapshot_label);
+#if ENABLE_PROJECT_DIRTY_STATE
+    std::vector<size_t> res = wxGetApp().plater()->load_files(paths, true, false);
+    if (!res.empty())
+        wxGetApp().mainframe->update_title();
+#else
+    load_files(paths, true, false);
 #endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
