@@ -102,6 +102,27 @@ may be provided to tell this module where to look.
 
 #]=======================================================================]
 
+# If an explicit openvdb module path was specified, that will be used
+if (OPENVDB_FIND_MODULE_PATH)
+  set(_module_path_bak ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH ${OPENVDB_FIND_MODULE_PATH})
+  find_package(
+    OpenVDB ${OpenVDB_FIND_VERSION} QUIET
+    COMPONENTS
+      ${OpenVDB_FIND_COMPONENTS}
+  )
+
+  set(CMAKE_MODULE_PATH ${_module_path_bak})
+  if (OpenVDB_FOUND)
+    return()
+  endif ()
+
+  if (NOT OpenVDB_FIND_QUIETLY)
+    message(STATUS "Using bundled find module for OpenVDB")
+  endif ()
+endif ()
+# ###########################################################################
+
 cmake_minimum_required(VERSION 3.3)
 # Monitoring <PackageName>_ROOT variables
 if(POLICY CMP0074)
