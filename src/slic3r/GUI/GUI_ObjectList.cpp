@@ -1508,8 +1508,6 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
     const Transform3d inv_inst_transform = inst_transform.get_matrix(true).inverse();
     const Vec3d instance_offset = v->get_instance_offset();
 
-    const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
-
     for (size_t i = 0; i < input_files.size(); ++i) {
         const std::string input_file = input_files.Item(i).ToUTF8().data();
 
@@ -1526,28 +1524,38 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
             show_error(parent, msg);
             exit(1);
         }
-        
-        model.center_instances_around_point(Vec2d::Zero());
-        double model_max_size = model.bounding_box().max_size();
-        if (model_max_size == 0.0)
-            return;
+
+        if (from_galery)
+            model.center_instances_around_point(Vec2d::Zero());
+        else {
+            for (auto object : model.objects) {
+                if (model_object.origin_translation != Vec3d::Zero()) {
+                    object->center_around_origin();
+                    Vec3d delta = model_object.origin_translation - object->origin_translation;
+                    for (auto volume : object->volumes) {
+                        volume->translate(delta);
+                    }
+                }
+            }
+        }
 
         TriangleMesh mesh = model.mesh();
         mesh.repair();
-        mesh.scale(static_cast<float>(side / model_max_size));
-
         // Mesh will be centered when loading.
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
-        // Transform the new modifier to be aligned with the print bed.
-        const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
-        new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(inst_transform, mesh_bb));
-        // Set the modifier position.
-        // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
-        auto offset =  Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
-        new_volume->set_offset(inv_inst_transform * offset);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
         // set a default extruder value, since user can't add it manually
         new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+
+        if (from_galery) {
+            // Transform the new modifier to be aligned with the print bed.
+            const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
+            new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(inst_transform, mesh_bb));
+            // Set the modifier position.
+            // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+            const Vec3d offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
+            new_volume->set_offset(inv_inst_transform * offset);
+        }
 
         added_volumes.push_back(new_volume);
     }
