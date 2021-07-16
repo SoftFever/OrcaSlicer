@@ -596,13 +596,14 @@ public:
         int volume_idx{ -1 };
         Vec3d mesh_offset{ Vec3d::Zero() };
         Geometry::Transformation transform;
-        bool is_converted_from_inches = false;
-        bool is_converted_from_meters = false;
+        bool is_converted_from_inches{ false };
+        bool is_converted_from_meters{ false };
+        bool is_from_builtin_objects{ false };
 
         template<class Archive> void serialize(Archive& ar) { 
             //FIXME Vojtech: Serialize / deserialize only if the Source is set.
             // likely testing input_file or object_idx would be sufficient.
-            ar(input_file, object_idx, volume_idx, mesh_offset, transform, is_converted_from_inches, is_converted_from_meters);
+            ar(input_file, object_idx, volume_idx, mesh_offset, transform, is_converted_from_inches, is_converted_from_meters, is_from_builtin_objects);
         }
     };
     Source              source;

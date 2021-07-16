@@ -3350,7 +3350,7 @@ void Plater::priv::reload_from_disk()
             else
                 missing_input_paths.push_back(volume->source.input_file);
         }
-        else if (!object->input_file.empty() && volume->is_model_part() && !volume->name.empty())
+        else if (!object->input_file.empty() && volume->is_model_part() && !volume->name.empty() && !volume->source.is_from_builtin_objects)
             missing_input_paths.push_back(volume->name);
     }
 
@@ -4323,14 +4323,12 @@ bool Plater::priv::can_reload_from_disk() const
 
     // collects selected ModelVolumes
     const std::set<unsigned int>& selected_volumes_idxs = selection.get_volume_idxs();
-    for (unsigned int idx : selected_volumes_idxs)
-    {
+    for (unsigned int idx : selected_volumes_idxs) {
         const GLVolume* v = selection.get_volume(idx);
         int v_idx = v->volume_idx();
-        if (v_idx >= 0)
-        {
+        if (v_idx >= 0) {
             int o_idx = v->object_idx();
-            if ((0 <= o_idx) && (o_idx < (int)model.objects.size()))
+            if (0 <= o_idx && o_idx < (int)model.objects.size())
                 selected_volumes.push_back({ o_idx, v_idx });
         }
     }
@@ -4339,13 +4337,12 @@ bool Plater::priv::can_reload_from_disk() const
 
     // collects paths of files to load
     std::vector<fs::path> paths;
-    for (const SelectedVolume& v : selected_volumes)
-    {
+    for (const SelectedVolume& v : selected_volumes) {
         const ModelObject* object = model.objects[v.object_idx];
         const ModelVolume* volume = object->volumes[v.volume_idx];
         if (!volume->source.input_file.empty())
             paths.push_back(volume->source.input_file);
-        else if (!object->input_file.empty() && !volume->name.empty())
+        else if (!object->input_file.empty() && !volume->name.empty() && !volume->source.is_from_builtin_objects)
             paths.push_back(volume->name);
     }
     std::sort(paths.begin(), paths.end());

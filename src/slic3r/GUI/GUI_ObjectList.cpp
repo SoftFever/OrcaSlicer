@@ -1637,6 +1637,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+    new_volume->source.is_from_builtin_objects = true;
 
     select_item([this, obj_idx, new_volume]() {
         wxDataViewItem sel_item;
