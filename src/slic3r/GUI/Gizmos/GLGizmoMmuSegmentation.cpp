@@ -155,8 +155,8 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
         return;
 
     ModelObject *model_object         = m_c->selection_info()->model_object();
-    int          prev_extruders_count = int(m_original_extruders_colors.size());
-    if (prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors) {
+    if (int prev_extruders_count = int(m_original_extruders_colors.size());
+        prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors) {
         if (wxGetApp().extruders_edited_cnt() > int(GLGizmoMmuSegmentation::EXTRUDERS_LIMIT))
             show_notification_extruders_limit_exceeded();
 
@@ -555,6 +555,13 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
 void GLGizmoMmuSegmentation::update_from_model_object()
 {
     wxBusyCursor wait;
+
+    // Extruder colors need to be reloaded before calling init_model_triangle_selectors to render painted triangles
+    // using colors from loaded 3MF and not from printer profile in Slicer.
+    if (int prev_extruders_count = int(m_original_extruders_colors.size());
+        prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors)
+        this->init_extruders_data();
+
     this->init_model_triangle_selectors();
 }
 
