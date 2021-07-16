@@ -194,10 +194,10 @@ void GLGizmoPainterBase::render_cursor() const
     if (m_rr.mesh_id == -1)
         return;
 
-    if (!m_seed_fill_enabled) {
+    if (m_tool_type == ToolType::BRUSH) {
         if (m_cursor_type == TriangleSelector::SPHERE)
             render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
-        else
+        else if (m_cursor_type == TriangleSelector::CIRCLE)
             render_cursor_circle();
     }
 }
@@ -307,11 +307,19 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
         }
         else if (alt_down) {
-            m_cursor_radius = action == SLAGizmoEventType::MouseWheelDown
-                    ? std::max(m_cursor_radius - CursorRadiusStep, CursorRadiusMin)
-                    : std::min(m_cursor_radius + CursorRadiusStep, CursorRadiusMax);
-            m_parent.set_as_dirty();
-            return true;
+            if (m_tool_type == ToolType::BRUSH) {
+                m_cursor_radius = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_cursor_radius - CursorRadiusStep, CursorRadiusMin)
+                                                                              : std::min(m_cursor_radius + CursorRadiusStep, CursorRadiusMax);
+                m_parent.set_as_dirty();
+                return true;
+            } else if (m_tool_type == ToolType::SEED_FILL) {
+                m_seed_fill_angle = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_seed_fill_angle - SeedFillAngleStep, SeedFillAngleMin)
+                                                                                : std::min(m_seed_fill_angle + SeedFillAngleStep, SeedFillAngleMax);
+                m_parent.set_as_dirty();
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -396,10 +404,10 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
 
             assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-            if (m_seed_fill_enabled) {
+            if (m_tool_type == ToolType::SEED_FILL || m_tool_type == ToolType::BUCKET_FILL || (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)) {
                 m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
                 m_seed_fill_last_mesh_id = -1;
-            } else
+            } else if (m_tool_type == ToolType::BRUSH)
                 m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
                                                                  new_state, trafo_matrix, m_triangle_splitting_enabled);
 
@@ -410,7 +418,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         return true;
     }
 
-    if (action == SLAGizmoEventType::Moving && m_seed_fill_enabled) {
+    if (action == SLAGizmoEventType::Moving && (m_tool_type == ToolType::SEED_FILL || m_tool_type == ToolType::BUCKET_FILL || (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER))) {
         if (m_triangle_selectors.empty())
             return false;
 
@@ -450,7 +458,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             seed_fill_unselect_all();
 
         assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-        m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
+        if (m_tool_type == ToolType::SEED_FILL)
+            m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
+        else if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)
+            m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), false);
+        else if (m_tool_type == ToolType::BUCKET_FILL)
+            m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), true);
         m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
         m_seed_fill_last_mesh_id = m_rr.mesh_id;
         return true;

@@ -18,8 +18,12 @@ class TriangleSelector {
 public:
     enum CursorType {
         CIRCLE,
-        SPHERE
+        SPHERE,
+        POINTER
     };
+
+    [[nodiscard]] std::vector<Vec3i> precompute_all_level_neighbors() const;
+    void precompute_all_level_neighbors_recursive(const int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec3i> &neighbors_out) const;
 
     // Set a limit to the edge length, below which the edge will not be split by select_patch().
     // Called by select_patch() internally. Made public for debugging purposes, see TriangleSelectorGUI::render_debug().
@@ -28,6 +32,14 @@ public:
     // Create new object on a TriangleMesh. The referenced mesh must
     // stay valid, a ptr to it is saved and used.
     explicit TriangleSelector(const TriangleMesh& mesh);
+
+    // Returns the facet_idx of the unsplit triangle containing the "hit". Returns -1 if the triangle isn't found.
+    [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx) const;
+    [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx, const Vec3i &neighbors) const;
+
+    [[nodiscard]] bool are_triangles_touching(int first_facet_idx, int second_facet_idx) const;
+
+    [[nodiscard]] std::vector<int> neighboring_triangles(int first_facet_idx, int second_facet_idx, EnforcerBlockerType second_facet_state) const;
 
     // Select all triangles fully inside the circle, subdivide where needed.
     void select_patch(const Vec3f        &hit,         // point where to start
@@ -42,6 +54,10 @@ public:
     void seed_fill_select_triangles(const Vec3f &hit,               // point where to start
                                     int          facet_start,       // facet of the original mesh (unsplit) that the hit point belongs to
                                     float        seed_fill_angle);  // the maximal angle between two facets to be painted by the same color
+
+    void bucket_fill_select_triangles(const Vec3f &hit,             // point where to start
+                                    int          facet_start,       // facet of the original mesh (unsplit) that the hit point belongs to
+                                    bool         propagate);        // if bucket fill is propagated to neighbor faces or if it fills the only facet of the modified mesh that the hit point belongs to.
 
     bool                 has_facets(EnforcerBlockerType state) const;
     static bool          has_facets(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, const EnforcerBlockerType test_state);
@@ -192,6 +208,7 @@ private:
     int  push_triangle(int a, int b, int c, int source_triangle, const EnforcerBlockerType state = EnforcerBlockerType{0});
     void perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state);
     Vec3i child_neighbors(const Triangle &tr, const Vec3i &neighbors, int child_idx) const;
+    Vec3i child_neighbors_propagated(const Triangle &tr, const Vec3i &neighbors, int child_idx) const;
     // Return child of itriangle at a CCW oriented side (vertexi, vertexj), either first or 2nd part.
     // If itriangle == -1 or if the side sharing (vertexi, vertexj) is not split, return -1.
     enum class Partition {
