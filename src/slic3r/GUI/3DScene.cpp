@@ -748,13 +748,12 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     GLVolumeWithIdAndZList list;
     list.reserve(volumes.size());
 
-    for (unsigned int i = 0; i < (unsigned int)volumes.size(); ++i)
-    {
+    for (unsigned int i = 0; i < (unsigned int)volumes.size(); ++i) {
         GLVolume* volume = volumes[i];
         bool is_transparent = (volume->render_color[3] < 1.0f);
-        if ((((type == GLVolumeCollection::ERenderType::Opaque) && !is_transparent) ||
-             ((type == GLVolumeCollection::ERenderType::Transparent) && is_transparent) ||
-             (type == GLVolumeCollection::ERenderType::All)) &&
+        if (((type == GLVolumeCollection::ERenderType::Opaque && !is_transparent) ||
+             (type == GLVolumeCollection::ERenderType::Transparent && is_transparent) ||
+             type == GLVolumeCollection::ERenderType::All) &&
             (! filter_func || filter_func(*volume)))
             list.emplace_back(std::make_pair(volume, std::make_pair(i, 0.0)));
     }
@@ -783,8 +782,10 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     if (shader == nullptr)
         return;
 
-    glsafe(::glEnable(GL_BLEND));
-    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    if (type == ERenderType::Transparent) {
+        glsafe(::glEnable(GL_BLEND));
+        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    }
 
     glsafe(::glCullFace(GL_BACK));
     if (disable_cullface)
@@ -837,7 +838,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     if (disable_cullface)
         glsafe(::glEnable(GL_CULL_FACE));
 
-    glsafe(::glDisable(GL_BLEND));
+    if (type == ERenderType::Transparent)
+        glsafe(::glDisable(GL_BLEND));
 }
 
 bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state) const
