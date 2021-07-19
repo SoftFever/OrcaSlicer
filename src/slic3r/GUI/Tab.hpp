@@ -485,7 +485,6 @@ public:
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
 	void		msw_rescale() override;
-	void		sys_color_changed() override;
 #if ENABLE_PROJECT_DIRTY_STATE
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
 #else

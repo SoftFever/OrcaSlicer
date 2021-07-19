@@ -179,8 +179,8 @@ static void add_lock(wxImage& image)
 
     size_t beg_x = width - lock_width;
     size_t beg_y = height - lock_height;
-    for (size_t x = 0; x < lock_width; ++x) {
-        for (size_t y = 0; y < lock_height; ++y) {
+    for (size_t x = 0; x < (size_t)lock_width; ++x) {
+        for (size_t y = 0; y < (size_t)lock_height; ++y) {
             const size_t lock_idx = (x + y * lock_width);
             if (lock_a_data && lock_a_data[lock_idx] == 0)
                 continue;

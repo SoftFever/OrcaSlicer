@@ -709,25 +709,8 @@ void TabPrinter::msw_rescale()
 {
     Tab::msw_rescale();
 
-    // rescale missed options_groups
-    const std::vector<PageShp>& pages = m_printer_technology == ptFFF ? m_pages_sla : m_pages_fff;
-    for (auto page : pages)
-        page->msw_rescale();
-
     if (m_reset_to_filament_color)
         m_reset_to_filament_color->msw_rescale();
-
-    Layout();
-}
-
-void TabPrinter::sys_color_changed() 
-{
-    Tab::sys_color_changed();
-
-    // update missed options_groups
-    const std::vector<PageShp>& pages = m_printer_technology == ptFFF ? m_pages_sla : m_pages_fff;
-    for (auto page : pages)
-        page->sys_color_changed();
 
     Layout();
 }

@@ -14,9 +14,10 @@ namespace GUI {
 Bed_2D::Bed_2D(wxWindow* parent) : 
 wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTAB_TRAVERSAL)
 {
-    SetBackgroundStyle(wxBG_STYLE_PAINT); // to avoid assert message after wxAutoBufferedPaintDC 
 #ifdef __APPLE__
     m_user_drawn_background = false;
+#else
+    SetBackgroundStyle(wxBG_STYLE_PAINT); // to avoid assert message after wxAutoBufferedPaintDC 
 #endif /*__APPLE__*/
 }
 

@@ -889,6 +889,8 @@ bool ScalableButton::SetBitmap_(const std::string& bmp_name)
     wxBitmap bmp = create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt);
     SetBitmap(bmp);
     SetBitmapCurrent(bmp);
+    SetBitmapPressed(bmp);
+    SetBitmapFocus(bmp);
     if (m_use_default_disabled_bitmap)
         SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
     return true;
@@ -920,7 +922,11 @@ void ScalableButton::msw_rescale()
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this, m_has_border);
 
     if (!m_current_icon_name.empty()) {
-        SetBitmap(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt));
+        wxBitmap bmp = create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt);
+        SetBitmap(bmp);
+        SetBitmapCurrent(bmp);
+        SetBitmapPressed(bmp);
+        SetBitmapFocus(bmp);
         if (!m_disabled_icon_name.empty())
             SetBitmapDisabled(create_scaled_bitmap(m_disabled_icon_name, m_parent, m_px_cnt));
         else if (m_use_default_disabled_bitmap)

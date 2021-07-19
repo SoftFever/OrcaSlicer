@@ -747,6 +747,10 @@ void ConfigOptionsGroup::sys_color_changed()
             wxGetApp().UpdateDarkUI(extra_col);
     }
 
+    if (custom_ctrl)
+        wxGetApp().UpdateDarkUI(custom_ctrl);
+#endif
+
     auto update = [](wxSizer* sizer) {
         for (wxSizerItem* item : sizer->GetChildren())
             if (item->IsWindow()) {
@@ -767,10 +771,6 @@ void ConfigOptionsGroup::sys_color_changed()
         if (line.extra_widget_sizer)
             update(line.extra_widget_sizer);
     }
-
-    if (custom_ctrl)
-        wxGetApp().UpdateDarkUI(custom_ctrl);
-#endif
 
 	// update undo buttons : rescale bitmaps
 	for (const auto& field : m_fields)

@@ -267,7 +267,7 @@ void BitmapComboBox::Rescale()
     // we need to refill control with new bitmaps
     const wxString selection = this->GetValue();
     std::vector<wxString> items;
-    for (int i = 0; i < GetCount(); i++)
+    for (size_t i = 0; i < GetCount(); i++)
         items.push_back(GetString(i));
 
     this->Clear();
