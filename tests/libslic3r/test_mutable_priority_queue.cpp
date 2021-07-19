@@ -370,7 +370,7 @@ TEST_CASE("Mutable priority queue - first pop", "[MutableSkipHeapPriorityQueue]"
 TEST_CASE("Mutable priority queue complex", "[MutableSkipHeapPriorityQueue]")
 {
     struct MyValue {
-        int id;
+        size_t id;
         float val;
     };
     size_t               count = 5000;
@@ -382,7 +382,7 @@ TEST_CASE("Mutable priority queue complex", "[MutableSkipHeapPriorityQueue]")
     q.reserve(count);
 
     auto rand_val = [&]()->float { return (rand() % 53) / 10.f; };
-    int ord = 0;
+    size_t ord = 0;
     for (size_t id = 0; id < count; id++) {
         MyValue mv;
         mv.id = ord++;

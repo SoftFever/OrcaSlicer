@@ -122,12 +122,6 @@ public:
         return *this;
     }
 
-    const SymetricMatrix &operator-=(const SymetricMatrix &n)
-    {
-        for (size_t i = 0; i < N; ++i) m[i] -= n[i];
-        return *this;
-    }
-
     SymetricMatrix operator+(const SymetricMatrix& n)
     {
         SymetricMatrix self = *this;

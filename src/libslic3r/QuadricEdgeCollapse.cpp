@@ -27,9 +27,11 @@ namespace QuadricEdgeCollapse {
 
     // merge information together - faster access during processing
     struct TriangleInfo {
-        Vec3f n; // normalized normal - speed up calcualtion of q and check flip
+        Vec3f n; // normalized normal - used for check when fliped
+
         // range(0 .. 2), 
         unsigned char min_index = 0; // identify edge for minimal Error -> lightweight Error structure
+
         TriangleInfo() = default;
         bool is_deleted() const { return n.x() > 2.f; }
         void set_deleted() { n.x() = 3.f; } 
@@ -60,24 +62,30 @@ namespace QuadricEdgeCollapse {
     };
     using CopyEdgeInfos = std::vector<CopyEdgeInfo>;
 
-    Vec3f create_normal(const Triangle &triangle, const Vertices &vertices);
-    double calculate_error(uint32_t id_v1, uint32_t id_v2, SymMat & q, const Vertices &vertices);
-    Vec3f calculate_vertex(uint32_t id_v1, uint32_t id_v2, SymMat & q, const Vertices &vertices);
+    Vec3d create_normal(const Triangle &triangle, const Vertices &vertices);
+    std::array<Vec3d,3> create_vertices(uint32_t id_v1, uint32_t id_v2, const Vertices &vertices);
+    std::array<double, 3> vertices_error(const SymMat &q, const std::array<Vec3d, 3> &vertices);
+    double calculate_determinant(const SymMat &q);
+    double calculate_error(uint32_t id_v1, uint32_t id_v2, const SymMat & q, const Vertices &vertices);
+    Vec3f calculate_vertex(uint32_t id_v1, uint32_t id_v2, const SymMat & q, const Vertices &vertices);
+    Vec3d calculate_vertex(double det, const SymMat &q);
     // calculate error for vertex and quadrics, triangle quadrics and triangle vertex give zero, only pozitive number
     double vertex_error(const SymMat &q, const Vec3d &vertex);
-    SymMat create_quadric(const Triangle &t, const Vec3f& normal, const Vertices &vertices);
+    SymMat create_quadric(const Triangle &t, const Vec3d& n, const Vertices &vertices);
     std::tuple<TriangleInfos, VertexInfos, EdgeInfos, Errors> init(const indexed_triangle_set &its);
     uint32_t find_triangle_index1(uint32_t vi, const VertexInfo& v_info, uint32_t ti, const EdgeInfos& e_infos, const Indices& indices);
     bool is_flipped(const Vec3f &new_vertex, uint32_t ti0, uint32_t ti1, const VertexInfo& v_info, 
         const TriangleInfos &t_infos, const EdgeInfos &e_infos, const indexed_triangle_set &its);
+
     // find edge with smallest error in triangle
+    Vec3d calculate_3errors(const Triangle &t, const Vertices &vertices, const VertexInfos &v_infos);
     Error calculate_error(uint32_t ti, const Triangle& t,const Vertices &vertices, const VertexInfos& v_infos, unsigned char& min_index);
     void remove_triangle(EdgeInfos &e_infos, VertexInfo &v_info, uint32_t ti);
     void change_neighbors(EdgeInfos &e_infos, VertexInfos &v_infos, uint32_t ti0, uint32_t ti1,
                           uint32_t vi0, uint32_t vi1, uint32_t vi_top0,
                           const Triangle &t1, CopyEdgeInfos& infos, EdgeInfos &e_infos1);
     void compact(const VertexInfos &v_infos, const TriangleInfos &t_infos, const EdgeInfos &e_infos, indexed_triangle_set &its);
-    }
+} // namespace QuadricEdgeCollapse
 
 using namespace QuadricEdgeCollapse;
 
@@ -150,6 +158,7 @@ void Slic3r::its_quadric_edge_collapse(
         uint32_t ti0 = e.triangle_index;
         TriangleInfo &t_info0 = t_infos[ti0];
         if (t_info0.is_deleted()) continue;
+        assert(t_info0.min_index < 3);
 
         const Triangle &t0 = its.indices[ti0];
         uint32_t vi0 = t0[t_info0.min_index];
@@ -171,10 +180,29 @@ void Slic3r::its_quadric_edge_collapse(
 
         if (is_flipped(new_vertex0, ti0, ti1, v_info0, t_infos, e_infos, its) ||
             is_flipped(new_vertex0, ti0, ti1, v_info1, t_infos, e_infos, its)) {
-            // IMPROVE1: what about other edges in triangle?
-            // IMPROVE2: check mpq top if it is ti1 with same edge
-            e.value = std::numeric_limits<float>::max();
-            // error is changed when surround edge is reduced
+
+            // try other triangle's edge
+            Vec3d errors = calculate_3errors(t0, its.vertices, v_infos);
+            Vec3i ord = (errors[0] < errors[1]) ? 
+                ((errors[0] < errors[2])? 
+                    ((errors[1] < errors[2]) ? Vec3i(0, 1, 2) : Vec3i(0, 2, 1)) :
+                    Vec3i(2, 0, 1)):
+                ((errors[1] < errors[2])?
+                    ((errors[0] < errors[2]) ? Vec3i(1, 0, 2) : Vec3i(1, 2, 0)) :
+                    Vec3i(2, 1, 0));
+
+            if (t_info0.min_index == ord[0]) { 
+                t_info0.min_index = ord[1];
+                e.value = errors[t_info0.min_index];
+            } else if (t_info0.min_index == ord[1]) {
+                t_info0.min_index = ord[2];
+                e.value = errors[t_info0.min_index];
+            } else {
+                // error is changed when surround edge is reduced
+                t_info0.min_index = 3; // bad index -> invalidate
+                e.value           = maximal_error;
+            }
+            // IMPROVE: check mpq top if it is ti1 with same edge
             mpq.push(e);
             continue;
         }
@@ -222,6 +250,7 @@ void Slic3r::its_quadric_edge_collapse(
         for (uint32_t ti : changed_triangle_indices) {
             size_t priority_queue_index = ti_2_mpqi[ti];
             TriangleInfo& t_info = t_infos[ti];
+            t_info.n = create_normal(its.indices[ti], its.vertices).cast<float>(); // recalc normals
             mpq[priority_queue_index] = calculate_error(ti, its.indices[ti], its.vertices, v_infos, t_info.min_index);
             mpq.update(priority_queue_index);
         }
@@ -239,69 +268,79 @@ void Slic3r::its_quadric_edge_collapse(
     if (max_error != nullptr) *max_error = last_collapsed_error;
 }
 
-Vec3f QuadricEdgeCollapse::create_normal(const Triangle &triangle,
+Vec3d QuadricEdgeCollapse::create_normal(const Triangle &triangle,
                                          const Vertices &vertices)
 {
-    const Vec3f &v0 = vertices[triangle[0]];
-    const Vec3f &v1 = vertices[triangle[1]];
-    const Vec3f &v2 = vertices[triangle[2]];
+    Vec3d v0 = vertices[triangle[0]].cast<double>();
+    Vec3d v1 = vertices[triangle[1]].cast<double>();
+    Vec3d v2 = vertices[triangle[2]].cast<double>();
     // n = triangle normal
-    Vec3f n = (v1 - v0).cross(v2 - v0);
+    Vec3d n = (v1 - v0).cross(v2 - v0);
     n.normalize();
     return n;
 }
 
-double QuadricEdgeCollapse::calculate_error(uint32_t        id_v1,
-                                            uint32_t        id_v2,
-                                            SymMat &        q,
-                                            const Vertices &vertices)
+double QuadricEdgeCollapse::calculate_determinant(const SymMat &q)
 {
-    double det = q.det(0, 1, 2, 1, 4, 5, 2, 5, 7);
-    if (abs(det) < std::numeric_limits<double>::epsilon()) {
-        // can't divide by zero
-        const Vec3f &v0 = vertices[id_v1];
-        const Vec3f &v1 = vertices[id_v2];
-        Vec3d verts[3]  = {v0.cast<double>(), v1.cast<double>(), Vec3d()};
-        verts[2]        = (verts[0] + verts[1]) / 2;
-        double errors[] = {vertex_error(q, verts[0]),
-                           vertex_error(q, verts[1]),
-                           vertex_error(q, verts[2])};
-        return *std::min_element(std::begin(errors), std::end(errors));
-    }
+    return q.det(0, 1, 2, 1, 4, 5, 2, 5, 7);
+}
 
+Vec3d QuadricEdgeCollapse::calculate_vertex(double det, const SymMat &q) {
     double det_1 = -1 / det;
     double det_x = q.det(1, 2, 3, 4, 5, 6, 5, 7, 8); // vx = A41/det(q_delta)
     double det_y = q.det(0, 2, 3, 1, 5, 6, 2, 7, 8); // vy = A42/det(q_delta)
     double det_z = q.det(0, 1, 3, 1, 4, 6, 2, 5, 8); // vz = A43/det(q_delta)
-    Vec3d  vertex(det_1 * det_x, -det_1 * det_y, det_1 * det_z);
+    return Vec3d(det_1 * det_x, -det_1 * det_y, det_1 * det_z);
+}
+
+std::array<Vec3d,3> QuadricEdgeCollapse::create_vertices(uint32_t id_v1, uint32_t id_v2, const Vertices &vertices)
+{
+    Vec3d v0 = vertices[id_v1].cast<double>();
+    Vec3d v1 = vertices[id_v2].cast<double>();
+    Vec3d vm = (v0 + v1) / 2.;
+    return {v0, v1, vm};
+}
+
+std::array<double, 3> QuadricEdgeCollapse::vertices_error(
+    const SymMat &q, const std::array<Vec3d, 3> &vertices)
+{
+    return {
+        vertex_error(q, vertices[0]), 
+        vertex_error(q, vertices[1]),
+        vertex_error(q, vertices[2])};
+}
+
+double QuadricEdgeCollapse::calculate_error(uint32_t        id_v1,
+                                            uint32_t        id_v2,
+                                            const SymMat &  q,
+                                            const Vertices &vertices)
+{
+    double det = calculate_determinant(q);
+    if (abs(det) < std::numeric_limits<double>::epsilon()) {
+        // can't divide by zero
+        auto verts  = create_vertices(id_v1, id_v2, vertices);
+        auto errors = vertices_error(q, verts);
+        return *std::min_element(std::begin(errors), std::end(errors));
+    }
+    Vec3d vertex = calculate_vertex(det, q);
     return vertex_error(q, vertex);
 }
 
 // similar as calculate error but focus on new vertex without calculation of error
 Vec3f QuadricEdgeCollapse::calculate_vertex(uint32_t          id_v1,
                                             uint32_t          id_v2,
-                                            SymMat &        q,
+                                            const SymMat &        q,
                                             const Vertices &vertices)
 {
-    double det = q.det(0, 1, 2, 1, 4, 5, 2, 5, 7);
+    double det = calculate_determinant(q);
     if (abs(det) < std::numeric_limits<double>::epsilon()) {
         // can't divide by zero
-        const Vec3f &v0 = vertices[id_v1];
-        const Vec3f &v1 = vertices[id_v2];
-        Vec3d verts[3]  = {v0.cast<double>(), v1.cast<double>(), Vec3d()};
-        verts[2]        = (verts[0] + verts[1]) / 2;
-        double errors[] = {vertex_error(q, verts[0]),
-                           vertex_error(q, verts[1]),
-                           vertex_error(q, verts[2])};
-        auto   mit = std::min_element(std::begin(errors), std::end(errors));
+        auto verts  = create_vertices(id_v1, id_v2, vertices);
+        auto errors = vertices_error(q, verts);
+        auto mit    = std::min_element(std::begin(errors), std::end(errors));
         return verts[mit - std::begin(errors)].cast<float>();
     }
-
-    double det_1 = -1 / det;
-    double det_x = q.det(1, 2, 3, 4, 5, 6, 5, 7, 8); // vx = A41/det(q_delta)
-    double det_y = q.det(0, 2, 3, 1, 5, 6, 2, 7, 8); // vy = A42/det(q_delta)
-    double det_z = q.det(0, 1, 3, 1, 4, 6, 2, 5, 8); // vz = A43/det(q_delta)
-    return Vec3f(det_1 * det_x, -det_1 * det_y, det_1 * det_z);
+    return calculate_vertex(det, q).cast<float>();
 }
 
 double QuadricEdgeCollapse::vertex_error(const SymMat &q, const Vec3d &vertex)
@@ -312,11 +351,10 @@ double QuadricEdgeCollapse::vertex_error(const SymMat &q, const Vec3d &vertex)
            2 * q[6] * y + q[7] * z * z + 2 * q[8] * z + q[9];
 }
 
-SymMat QuadricEdgeCollapse::create_quadric(const Triangle &       t,
-                                           const Vec3f &normal,
-                                           const Vertices &    vertices)
+SymMat QuadricEdgeCollapse::create_quadric(const Triangle &t,
+                                           const Vec3d &   n,
+                                           const Vertices &vertices)
 {
-    Vec3d n  = normal.cast<double>();
     Vec3d v0 = vertices[t[0]].cast<double>();
     return SymMat(n.x(), n.y(), n.z(), -n.dot(v0));
 }
@@ -326,29 +364,31 @@ QuadricEdgeCollapse::init(const indexed_triangle_set &its)
 {
     TriangleInfos t_infos(its.indices.size());
     VertexInfos   v_infos(its.vertices.size());
-    EdgeInfos     e_infos(its.indices.size() * 3);
-    Errors        errors(its.indices.size());
-    // calculate normals
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, its.indices.size()),
-    [&](const tbb::blocked_range<size_t> &range) {
-        for (size_t i = range.begin(); i < range.end(); ++i) {
-            const Triangle &t      = its.indices[i];
-            TriangleInfo &  t_info = t_infos[i];
-            t_info.n = create_normal(t, its.vertices);
-        }
-    }); // END parallel for
+    {
+        std::vector<SymMat> triangle_quadrics(its.indices.size());
+        // calculate normals
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, its.indices.size()),
+        [&](const tbb::blocked_range<size_t> &range) {
+            for (size_t i = range.begin(); i < range.end(); ++i) {
+                const Triangle &t      = its.indices[i];
+                TriangleInfo &  t_info = t_infos[i];
+                Vec3d           normal = create_normal(t, its.vertices);
+                t_info.n = normal.cast<float>();
+                triangle_quadrics[i] = create_quadric(t, normal, its.vertices);
+            }
+        }); // END parallel for
 
-    // sum quadrics
-    for (size_t i = 0; i < its.indices.size(); i++) { 
-        const Triangle &t = its.indices[i];
-        TriangleInfo &t_info = t_infos[i];
-        SymMat q  = create_quadric(t, t_info.n, its.vertices);
-        for (size_t e = 0; e < 3; e++) { 
-            VertexInfo &v_info = v_infos[t[e]];
-            v_info.q += q;
-            ++v_info.count; // triangle count
-        }        
-    }
+        // sum quadrics
+        for (size_t i = 0; i < its.indices.size(); i++) {
+            const Triangle &t = its.indices[i];
+            const SymMat &  q = triangle_quadrics[i];
+            for (size_t e = 0; e < 3; e++) {
+                VertexInfo &v_info = v_infos[t[e]];
+                v_info.q += q;
+                ++v_info.count; // triangle count
+            }
+        }
+    } // remove triangle quadrics
 
     // set offseted starts
     uint32_t triangle_start = 0;
@@ -361,6 +401,7 @@ QuadricEdgeCollapse::init(const indexed_triangle_set &its)
     assert(its.indices.size() * 3 == triangle_start);
 
     // calc error
+    Errors errors(its.indices.size());
     tbb::parallel_for(tbb::blocked_range<size_t>(0, its.indices.size()),
     [&](const tbb::blocked_range<size_t> &range) {
         for (size_t i = range.begin(); i < range.end(); ++i) {
@@ -371,6 +412,7 @@ QuadricEdgeCollapse::init(const indexed_triangle_set &its)
     }); // END parallel for
     
     // create reference
+    EdgeInfos e_infos(its.indices.size() * 3);
     for (size_t i = 0; i < its.indices.size(); i++) {
         const Triangle &t = its.indices[i];       
         for (size_t j = 0; j < 3; ++j) {
@@ -446,21 +488,30 @@ bool QuadricEdgeCollapse::is_flipped(const Vec3f &               new_vertex,
     return false;
 }
 
+Vec3d QuadricEdgeCollapse::calculate_3errors(const Triangle &   t,
+                                             const Vertices &   vertices,
+                                             const VertexInfos &v_infos)
+{
+    Vec3d error;
+    for (size_t j = 0; j < 3; ++j) {
+        size_t   j2  = (j == 2) ? 0 : (j + 1);
+        uint32_t vi0 = t[j];
+        uint32_t vi1 = t[j2];
+        SymMat   q(v_infos[vi0].q); // copy
+        q += v_infos[vi1].q;
+        error[j] = calculate_error(vi0, vi1, q, vertices);
+    }
+    return error;
+}
+
 Error QuadricEdgeCollapse::calculate_error(uint32_t           ti,
                                            const Triangle &   t,
                                            const Vertices &   vertices,
                                            const VertexInfos &v_infos,
                                            unsigned char &    min_index)
 {
-    Vec3d error;
-    for (size_t j = 0; j < 3; ++j) {
-        size_t      j2  = (j == 2) ? 0 : (j + 1);
-        uint32_t    vi0 = t[j];
-        uint32_t    vi1 = t[j2];
-        SymMat      q(v_infos[vi0].q); // copy
-        q += v_infos[vi1].q;
-        error[j] = calculate_error(vi0, vi1, q, vertices);
-    }
+    Vec3d error = calculate_3errors(t, vertices, v_infos);
+    // select min error
     min_index = (error[0] < error[1]) ? ((error[0] < error[2]) ? 0 : 2) :
                                         ((error[1] < error[2]) ? 1 : 2);
     return Error(static_cast<float>(error[min_index]), ti);    

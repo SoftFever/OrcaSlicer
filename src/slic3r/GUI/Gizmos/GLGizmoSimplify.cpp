@@ -69,10 +69,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                ImGuiWindowFlags_NoCollapse;
     m_imgui->begin(_L("Simplify mesh ") + volume->name, flag);
-    std::string description = "Reduce amout of triangle in mesh( " +
-                              volume->name + " has " +
-                              std::to_string(triangle_count) + " triangles)";
-    ImGui::Text(description.c_str());
+    ImGui::Text("Reduce amout of triangle in mesh(%s has %d triangles", volume->name, triangle_count);
     // First initialization + fix triangle count
     if (c.wanted_count > triangle_count) c.update_percent(triangle_count);
     if (m_imgui->checkbox(_L("Until triangle count is less than "), c.use_count)) {
@@ -202,7 +199,7 @@ void GLGizmoSimplify::process()
         float*                    max_error       = (c.use_error)? &c.max_error : nullptr;
         std::function<void(void)> throw_on_cancel = [&]() { if ( state == State::canceling) throw SimplifyCanceledException(); };    
         std::function<void(int)> statusfn = [&](int percent) { progress = percent; };
-        indexed_triangle_set collapsed = original_its.value(); // copy
+        indexed_triangle_set collapsed = *original_its; // copy
         try {
             its_quadric_edge_collapse(collapsed, triangle_count, max_error, throw_on_cancel, statusfn);
             set_its(collapsed);
