@@ -346,7 +346,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Paints neighboring facets whose relative angle is less or equal to set angle.").ToUTF8().data());
+        ImGui::TextUnformatted(_L("Paints neighboring facets that have the same color.").ToUTF8().data());
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
@@ -364,7 +364,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Paints neighboring that have the same color.").ToUTF8().data());
+        ImGui::TextUnformatted(_L("Paints neighboring facets whose relative angle is less or equal to set angle.").ToUTF8().data());
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
