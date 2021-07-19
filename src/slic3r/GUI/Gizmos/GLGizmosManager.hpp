@@ -69,6 +69,7 @@ public:
         FdmSupports,
         Seam,
         MmuSegmentation,
+        Simplify,
         Undefined
     };
 

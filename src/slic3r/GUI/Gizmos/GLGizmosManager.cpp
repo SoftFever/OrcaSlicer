@@ -20,6 +20,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -110,6 +111,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "fdm_supports.svg", 7));
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "seam.svg", 8));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "fdm_supports.svg", 9));
+    m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "cut.svg", 10));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
 
@@ -169,7 +171,7 @@ void GLGizmosManager::reset_all_states()
 bool GLGizmosManager::open_gizmo(EType type)
 {
     int idx = int(type);
-    if (m_gizmos[idx]->is_selectable() && m_gizmos[idx]->is_activable()) {
+    if (/*m_gizmos[idx]->is_selectable() &&*/ m_gizmos[idx]->is_activable()) {
         activate_gizmo(m_current == idx ? Undefined : (EType)idx);
         update_data();
         return true;
@@ -1021,6 +1023,8 @@ void GLGizmosManager::do_render_overlay() const
     float u_offset = 1.0f / (float)tex_width;
     float v_offset = 1.0f / (float)tex_height;
 
+    float toolbar_top = 0.f;
+    float current_y   = 0.f;
     for (size_t idx : selectable_idxs)
     {
         GLGizmoBase* gizmo = m_gizmos[idx].get();
@@ -1035,11 +1039,14 @@ void GLGizmosManager::do_render_overlay() const
 
         GLTexture::render_sub_texture(icons_texture_id, zoomed_top_x, zoomed_top_x + zoomed_icons_size, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (idx == m_current) {
-            float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
-            gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
+            toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
+            current_y = 0.5f * cnv_h - zoomed_top_y * zoom;
         }
         zoomed_top_y -= zoomed_stride_y;
     }
+
+    if (m_current != Undefined) 
+        m_gizmos[m_current]->render_input_window(width, current_y, toolbar_top);
 }
 
 float GLGizmosManager::get_scaled_total_height() const

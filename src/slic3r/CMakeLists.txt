@@ -57,6 +57,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoPainterBase.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
+    GUI/Gizmos/GLGizmoSimplify.cpp
+    GUI/Gizmos/GLGizmoSimplify.hpp
     GUI/Gizmos/GLGizmoMmuSegmentation.cpp
     GUI/Gizmos/GLGizmoMmuSegmentation.hpp
     GUI/GLSelectionRectangle.cpp
@@ -97,8 +99,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/SavePresetDialog.cpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
-    GUI/SimplificationDialog.cpp
-    GUI/SimplificationDialog.hpp
     GUI/GUI_Factories.cpp
     GUI/GUI_Factories.hpp
     GUI/GUI_ObjectList.cpp

@@ -230,13 +230,16 @@ public:
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages = false);
+
+    void clear_before_change_mesh(int obj_idx);
+    void changed_mesh(int obj_idx);
+
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
     bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
-    void simplify(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 	void eject_drive();
 
