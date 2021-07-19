@@ -92,7 +92,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     ImGui::SameLine();
     ImGui::SetNextItemWidth(80);
-    int precision = (c.wanted_percent > 10)? 0: ((c.wanted_percent > 1)? 1:2);
+    const char * precision = (c.wanted_percent > 10)? "%.0f": ((c.wanted_percent > 1)? "%.1f":"%.2f");
     float step = (c.wanted_percent > 10)? 1.f: ((c.wanted_percent > 1)? 0.1f : 0.01f);
     if (ImGui::InputFloat("%", &c.wanted_percent, step, 10*step, precision)) {
         if (c.wanted_percent < 0.f) c.wanted_percent = 0.f;
@@ -108,7 +108,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     ImGui::SameLine();
     m_imgui->disabled_begin(!c.use_error);
-    if (ImGui::InputFloat("(maximal quadric error)", &c.max_error, 0.01f, .1f, 2)) {
+    if (ImGui::InputFloat("(maximal quadric error)", &c.max_error, 0.01f, .1f, "%.2f")) {
         if (c.max_error < 0.f) c.max_error = 0.f;
         is_valid_result = false;
     }
