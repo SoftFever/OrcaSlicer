@@ -2670,11 +2670,16 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             if (item->type&itVolume)
             {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
-                if ((*m_objects)[item->obj_idx]->volumes.size() == 1 && 
-                    (*m_objects)[item->obj_idx]->config.has("extruder"))
-                {
-                    const wxString extruder = wxString::Format("%d", (*m_objects)[item->obj_idx]->config.extruder());
-                    m_objects_model->SetExtruder(extruder, m_objects_model->GetItemById(item->obj_idx));
+                ModelObject* obj = object(item->obj_idx);
+                if (obj->volumes.size() == 1) {
+                    wxDataViewItem parent = m_objects_model->GetItemById(item->obj_idx);
+                    if (obj->config.has("extruder")) {
+                        const wxString extruder = wxString::Format("%d", obj->config.extruder());
+                        m_objects_model->SetExtruder(extruder, parent);
+                    }
+                    // If last volume item with warning was deleted, unmark object item
+                    if (obj->get_mesh_errors_count() == 0)
+                        m_objects_model->DeleteWarningIcon(parent);
                 }
                 wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx);
             }
