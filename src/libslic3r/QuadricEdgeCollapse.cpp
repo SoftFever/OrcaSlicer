@@ -81,49 +81,6 @@ namespace QuadricEdgeCollapse {
 
 using namespace QuadricEdgeCollapse;
 
-#ifdef NDEBUG
-bool check_neighbors(TriangleInfos &t_infos,
-                    Indices& indices,
-                     VertexInfos &  v_infos)
-{
-    std::vector<uint32_t> t_counts(v_infos.size(), 0);
-    for (size_t i = 0; i < indices.size(); i++) { 
-        TriangleInfo &t_info = t_infos[i];
-        if (t_info.is_deleted()) continue;
-        Triangle &t = indices[i];
-        for (size_t vidx : t) ++t_counts[vidx];
-    }
-
-    size_t prev_end = 0;
-    for (size_t i = 0; i < v_infos.size(); i++) {
-        VertexInfo &v_info = v_infos[i];
-        if (v_info.is_deleted()) continue;
-        if (v_info.count != t_counts[i]) { 
-            // no correct count
-            return false;
-        }
-        if (prev_end > v_info.start) {
-            // overlap of start
-            return false;
-        }
-        prev_end = v_info.start + v_info.count;
-    }
-    return true;
-}
-
-bool check_new_vertex(const Vec3f& nv, const Vec3f& v0, const Vec3f& v1) {
-    float epsilon = 1.f;
-    for (size_t i = 0; i < 3; i++) { 
-        if ((nv[i] > (v0[i] + epsilon) && nv[i] > (v1[i] + epsilon)) ||
-            (nv[i] < (v0[i] - epsilon) && nv[i] < (v1[i] - epsilon))) {
-            return false;
-        }
-    }
-    return true;
-}
-
-#endif // NDEBUG
-
 void Slic3r::its_quadric_edge_collapse(
     indexed_triangle_set &    its,
     uint32_t                  triangle_count,
@@ -172,7 +129,8 @@ void Slic3r::its_quadric_edge_collapse(
     auto increase_status = [&]() { 
         double reduced = (actual_triangle_count - triangle_count) /
                          (double) count_triangle_to_reduce;
-        double status = (100 - status_init_size) * (1. - reduced);            
+        double status = status_init_size + (100 - status_init_size) *
+                        (1. - reduced);            
         statusfn(static_cast<int>(std::round(status)));
     };
     // modulo for update status
@@ -206,7 +164,6 @@ void Slic3r::its_quadric_edge_collapse(
         SymMat q(v_info0.q);
         q += v_info1.q;
         Vec3f new_vertex0 = calculate_vertex(vi0, vi1, q, its.vertices);
-        //assert(check_new_vertex(new_vertex0, its.vertices[vi0], its.vertices[vi1]));
         // set of triangle indices that change quadric
         uint32_t ti1 = (v_info0.count < v_info1.count)?
             find_triangle_index1(vi1, v_info0, ti0, e_infos, its.indices) :
@@ -275,8 +232,6 @@ void Slic3r::its_quadric_edge_collapse(
         t_info1.set_deleted();
         // triangle counter decrementation
         actual_triangle_count-=2;
-
-        //assert(check_neighbors(t_infos, its.indices, v_infos));
     }
 
     // compact triangle

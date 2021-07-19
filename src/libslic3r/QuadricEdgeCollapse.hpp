@@ -17,7 +17,7 @@ namespace Slic3r {
 /// When nullptr then max float is used
 /// Output: Last used ErrorValue to collapse edge</param>
 /// <param name="throw_on_cancel">Could stop process of calculation.</param>
-/// <param name="statusfn">Give a feed back to user about progress.</param>
+/// <param name="statusfn">Give a feed back to user about progress. Values 1 - 100</param>
 void its_quadric_edge_collapse(
     indexed_triangle_set &    its,
     uint32_t                  triangle_count  = 0,

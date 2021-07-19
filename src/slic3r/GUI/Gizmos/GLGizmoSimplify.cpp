@@ -49,7 +49,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ModelObject *obj = wxGetApp().plater()->model().objects[object_idx];
     ModelVolume *act_volume = obj->volumes.front();
 
-
     // Check selection of new volume
     // Do not reselect object when processing 
     if (act_volume != volume && state == State::settings) {
