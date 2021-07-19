@@ -29,9 +29,12 @@ public:
 
 private:
     wxWindow*                       m_parent;
+    wxFlexGridSizer*                m_buttons_sizer;
     wxBoxSizer*                     m_sizer;
     std::vector<ScalableButton*>    m_pageButtons;
     int                             m_selection {-1};
+    int                             m_btn_margin;
+    int                             m_line_margin;
     ModeSizer*                      m_mode_sizer {nullptr};
 };
 

@@ -315,6 +315,8 @@ public:
 
 private:
     std::vector<ModeButton*> m_mode_btns;
+    wxWindow*                m_parent {nullptr};
+    double                   m_hgap_unscaled;
 };
 
 

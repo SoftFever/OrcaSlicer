@@ -54,6 +54,8 @@ void OnDrawItem(wxDC& dc, const wxRect& rect, int item, int flags) const overrid
 #ifdef _WIN32
 bool MSWOnDraw(WXDRAWITEMSTRUCT* item) override;
 void DrawBackground_(wxDC& dc, const wxRect& rect, int WXUNUSED(item), int flags) const;
+public:
+void Rescale();
 #endif
 
 };

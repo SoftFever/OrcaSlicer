@@ -694,7 +694,9 @@ void ModeButton::focus_button(const bool focus)
 // ----------------------------------------------------------------------------
 
 ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 0*/) :
-    wxFlexGridSizer(3, 0, hgap)
+    wxFlexGridSizer(3, 0, hgap),
+    m_parent(parent),
+    m_hgap_unscaled((double)(hgap)/em_unit(parent))
 {
     SetFlexibleDirection(wxHORIZONTAL);
 
@@ -739,6 +741,7 @@ void ModeSizer::set_items_border(int border)
 
 void ModeSizer::msw_rescale()
 {
+    this->SetHGap(std::lround(m_hgap_unscaled * em_unit(m_parent)));
     for (size_t m = 0; m < m_mode_btns.size(); m++)
         m_mode_btns[m]->msw_rescale();
 }
