@@ -65,8 +65,8 @@ void TriangleSelector::Triangle::set_division(int sides_to_split, int special_si
     assert(sides_to_split >= 0 && sides_to_split <= 3);
     assert(special_side_idx >= 0 && special_side_idx < 3);
     assert(sides_to_split == 1 || sides_to_split == 2 || special_side_idx == 0);
-    this->number_of_splits = sides_to_split;
-    this->special_side_idx = special_side_idx;
+    this->number_of_splits = char(sides_to_split);
+    this->special_side_idx = char(special_side_idx);
 }
 
 inline bool is_point_inside_triangle(const Vec3f &pt, const Vec3f &p1, const Vec3f &p2, const Vec3f &p3)
@@ -167,8 +167,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
         if (! visited[facet]) {
             if (select_triangle(facet, new_state, triangle_splitting)) {
                 // add neighboring facets to list to be proccessed later
-                for (int n=0; n<3; ++n) {
-                    int neighbor_idx = m_mesh->stl.neighbors_start[facet].neighbor[n];
+                for (int neighbor_idx : m_mesh->stl.neighbors_start[facet].neighbor) {
                     if (neighbor_idx >=0 && (m_cursor.type == SPHERE || faces_camera(neighbor_idx)))
                         facets_to_check.push_back(neighbor_idx);
                 }
@@ -182,6 +181,11 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
 void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_start, float seed_fill_angle)
 {
     assert(facet_start < m_orig_size_indices);
+
+    // Recompute seed fill only if the cursor is pointing on facet unselected by seed fill.
+    if (int start_facet_idx = select_unsplit_triangle(hit, facet_start); start_facet_idx >= 0 && m_triangles[start_facet_idx].is_selected_by_seed_fill())
+        return;
+
     this->seed_fill_unselect_all_triangles();
 
     std::vector<bool> visited(m_triangles.size(), false);
@@ -308,12 +312,14 @@ std::vector<int> TriangleSelector::neighboring_triangles(const int first_facet_i
 
 void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, bool propagate)
 {
-    this->seed_fill_unselect_all_triangles();
-
-    int                 start_facet_idx   = select_unsplit_triangle(hit, facet_start);
-    EnforcerBlockerType start_facet_state = m_triangles[start_facet_idx].get_state();
-    if (start_facet_idx == -1)
+    int start_facet_idx = select_unsplit_triangle(hit, facet_start);
+    // Recompute bucket fill only if the cursor is pointing on facet unselected by bucket fill.
+    if (start_facet_idx == -1 || m_triangles[start_facet_idx].is_selected_by_seed_fill())
         return;
+
+    assert(!m_triangles[start_facet_idx].is_split());
+    EnforcerBlockerType start_facet_state = m_triangles[start_facet_idx].get_state();
+    this->seed_fill_unselect_all_triangles();
 
     if (!propagate) {
         m_triangles[start_facet_idx].select_by_seed_fill();
@@ -332,15 +338,15 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
 
         if (!visited[current_facet]) {
             m_triangles[current_facet].select_by_seed_fill();
-            for(int neighbor_idx : all_level_neighbors[current_facet]) {
-                if(neighbor_idx < 0 || visited[neighbor_idx])
+            for (int neighbor_idx : all_level_neighbors[current_facet]) {
+                if (neighbor_idx < 0 || visited[neighbor_idx])
                     continue;
 
-                if(!m_triangles[neighbor_idx].is_split()) {
-                    if(m_triangles[neighbor_idx].get_state() == start_facet_state)
+                if (!m_triangles[neighbor_idx].is_split()) {
+                    if (m_triangles[neighbor_idx].get_state() == start_facet_state)
                         facet_queue.push(neighbor_idx);
                 } else {
-                    for(int neighbor_facet_idx : neighboring_triangles(neighbor_idx, current_facet, start_facet_state))
+                    for (int neighbor_facet_idx : neighboring_triangles(neighbor_idx, current_facet, start_facet_state))
                         facet_queue.push(neighbor_facet_idx);
                 }
             }
@@ -478,7 +484,7 @@ int TriangleSelector::triangle_midpoint_or_allocate(int itriangle, int vertexi, 
         Vec3f c = 0.5f * (m_vertices[vertexi].v + m_vertices[vertexj].v);
 #ifdef EXPENSIVE_DEBUG_CHECKS
         // Verify that the vertex is really a new one.
-        auto it = std::find_if(m_vertices.begin(), m_vertices.end(), [this, c](const Vertex &v) {
+        auto it = std::find_if(m_vertices.begin(), m_vertices.end(), [c](const Vertex &v) {
             return v.ref_cnt > 0 && (v.v - c).norm() < EPSILON; });
         assert(it == m_vertices.end());
 #endif // EXPENSIVE_DEBUG_CHECKS
@@ -777,10 +783,9 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
         }
     }
 
-    std::array<double, 3> sides;
-    sides = { (*pts[2]-*pts[1]).squaredNorm(),
-              (*pts[0]-*pts[2]).squaredNorm(),
-              (*pts[1]-*pts[0]).squaredNorm() };
+    std::array<double, 3> sides = {(*pts[2] - *pts[1]).squaredNorm(),
+                                   (*pts[0] - *pts[2]).squaredNorm(),
+                                   (*pts[1] - *pts[0]).squaredNorm()};
 
     boost::container::small_vector<int, 3> sides_to_split;
     int side_to_keep = -1;
@@ -798,7 +803,7 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
 
     // Save how the triangle will be split. Second argument makes sense only for one
     // or two split sides, otherwise the value is ignored.
-    tr->set_division(sides_to_split.size(),
+    tr->set_division(int(sides_to_split.size()),
         sides_to_split.size() == 2 ? side_to_keep : sides_to_split[0]);
 
     perform_split(facet_idx, neighbors, old_type);
@@ -1026,12 +1031,12 @@ void TriangleSelector::reset()
     for (const stl_vertex& vert : m_mesh->its.vertices)
         m_vertices.emplace_back(vert);
     m_triangles.reserve(m_mesh->its.indices.size());
-    for (size_t i=0; i<m_mesh->its.indices.size(); ++i) {
-        const stl_triangle_vertex_indices& ind = m_mesh->its.indices[i];
-        push_triangle(ind[0], ind[1], ind[2], i);
+    for (size_t i = 0; i < m_mesh->its.indices.size(); ++i) {
+        const stl_triangle_vertex_indices &ind = m_mesh->its.indices[i];
+        push_triangle(ind[0], ind[1], ind[2], int(i));
     }
-    m_orig_size_vertices = m_vertices.size();
-    m_orig_size_indices  = m_triangles.size();
+    m_orig_size_vertices = int(m_vertices.size());
+    m_orig_size_indices  = int(m_triangles.size());
 }
 
 
@@ -1412,7 +1417,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
 
     for (auto [triangle_id, ibit] : data.first) {
         assert(triangle_id < int(m_triangles.size()));
-        assert(ibit < data.second.size());
+        assert(ibit < int(data.second.size()));
         auto next_nibble = [&data, &ibit = ibit]() {
             int n = 0;
             for (int i = 0; i < 4; ++ i)
@@ -1498,7 +1503,7 @@ bool TriangleSelector::has_facets(const std::pair<std::vector<std::pair<int, int
 
     for (const std::pair<int, int> &triangle_id_and_ibit : data.first) {
         int ibit = triangle_id_and_ibit.second;
-        assert(ibit < data.second.size());
+        assert(ibit < int(data.second.size()));
         auto next_nibble = [&data, &ibit = ibit]() {
             int n = 0;
             for (int i = 0; i < 4; ++ i)
@@ -1556,7 +1561,7 @@ void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_stat
     for (Triangle &triangle : m_triangles)
         if (triangle.is_split() && triangle.valid()) {
             size_t facet_idx = &triangle - &m_triangles.front();
-            remove_useless_children(facet_idx);
+            remove_useless_children(int(facet_idx));
         }
 }
 
@@ -1570,7 +1575,7 @@ TriangleSelector::Cursor::Cursor(
 {
     Vec3d sf = Geometry::Transformation(trafo_).get_scaling_factor();
     if (is_approx(sf(0), sf(1)) && is_approx(sf(1), sf(2))) {
-        radius_sqr = std::pow(radius_world / sf(0), 2);
+        radius_sqr = float(std::pow(radius_world / sf(0), 2));
         uniform_scaling = true;
     }
     else {
