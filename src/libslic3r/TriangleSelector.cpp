@@ -333,6 +333,9 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
         if (!visited[current_facet]) {
             m_triangles[current_facet].select_by_seed_fill();
             for(int neighbor_idx : all_level_neighbors[current_facet]) {
+                if(neighbor_idx < 0 || visited[neighbor_idx])
+                    continue;
+
                 if(!m_triangles[neighbor_idx].is_split()) {
                     if(m_triangles[neighbor_idx].get_state() == start_facet_state)
                         facet_queue.push(neighbor_idx);
