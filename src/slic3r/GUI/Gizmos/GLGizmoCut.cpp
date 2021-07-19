@@ -27,11 +27,6 @@ const std::array<float, 4> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0, 1.0 };
 
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-    , m_cut_z(0.0)
-    , m_max_z(0.0)
-    , m_keep_upper(true)
-    , m_keep_lower(true)
-    , m_rotate_lower(false)
 {}
 
 std::string GLGizmoCut::get_tooltip() const
@@ -58,9 +53,8 @@ std::string GLGizmoCut::on_get_name() const
 void GLGizmoCut::on_set_state()
 {
     // Reset m_cut_z on gizmo activation
-    if (get_state() == On) {
-        m_cut_z = m_parent.get_selection().get_bounding_box().size()(2) / 2.0;
-    }
+    if (get_state() == On)
+        m_cut_z = bounding_box().center().z();
 }
 
 bool GLGizmoCut::on_is_activable() const
@@ -74,13 +68,12 @@ void GLGizmoCut::on_start_dragging()
     if (m_hover_id == -1)
         return;
 
-    const Selection& selection = m_parent.get_selection();
-    const BoundingBoxf3& box = selection.get_bounding_box();
+    const BoundingBoxf3 box = bounding_box();
+    m_max_z = box.max.z();
     m_start_z = m_cut_z;
-    update_max_z(selection);
     m_drag_pos = m_grabbers[m_hover_id].center;
     m_drag_center = box.center();
-    m_drag_center(2) = m_cut_z;
+    m_drag_center.z() = m_cut_z;
 }
 
 void GLGizmoCut::on_update(const UpdateData& data)
@@ -91,13 +84,11 @@ void GLGizmoCut::on_update(const UpdateData& data)
 
 void GLGizmoCut::on_render() const
 {
-    const Selection& selection = m_parent.get_selection();
-
-    update_max_z(selection);
-
-    const BoundingBoxf3& box = selection.get_bounding_box();
+    BoundingBoxf3 box = bounding_box();
     Vec3d plane_center = box.center();
     plane_center.z() = m_cut_z;
+    m_max_z = box.max.z();
+    set_cut_z(m_cut_z);
 
     const float min_x = box.min.x() - Margin;
     const float max_x = box.max.x() + Margin;
@@ -160,10 +151,10 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 
     m_imgui->begin(_L("Cut"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+    const bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
 
     // adjust window position to avoid overlap the view toolbar
-    float win_h = ImGui::GetWindowHeight();
+    const float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
     ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
     if (last_h != win_h || last_y != y) {
@@ -198,7 +189,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::Separator();
 
-    m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower) || m_cut_z <= 0.0 || m_max_z < m_cut_z);
+    m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower) || m_cut_z <= 0.0 || m_max_z <= m_cut_z);
     const bool cut_clicked = m_imgui->button(_L("Perform cut"));
     m_imgui->disabled_end();
 
@@ -206,12 +197,6 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 
     if (cut_clicked && (m_keep_upper || m_keep_lower))
         perform_cut(m_parent.get_selection());
-}
-
-void GLGizmoCut::update_max_z(const Selection& selection) const
-{
-    m_max_z = selection.get_bounding_box().size()(2);
-    set_cut_z(m_cut_z);
 }
 
 void GLGizmoCut::set_cut_z(double cut_z) const
@@ -229,10 +214,10 @@ void GLGizmoCut::perform_cut(const Selection& selection)
 
     // m_cut_z is the distance from the bed. Subtract possible SLA elevation.
     const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
-    coordf_t object_cut_z = m_cut_z - first_glvolume->get_sla_shift_z();
+    const double object_cut_z = m_cut_z - first_glvolume->get_sla_shift_z();
 
-    if (object_cut_z > 0.)
-        wxGetApp().plater()->cut(object_idx, instance_idx, object_cut_z, 
+    if (0.0 < object_cut_z && object_cut_z < m_max_z)
+        wxGetApp().plater()->cut(object_idx, instance_idx, object_cut_z,
             only_if(m_keep_upper, ModelObjectCutAttribute::KeepUpper) | 
             only_if(m_keep_lower, ModelObjectCutAttribute::KeepLower) | 
             only_if(m_rotate_lower, ModelObjectCutAttribute::FlipLower));
@@ -247,16 +232,15 @@ double GLGizmoCut::calc_projection(const Linef3& mouse_ray) const
 
     const Vec3d starting_vec = m_drag_pos - m_drag_center;
     const double len_starting_vec = starting_vec.norm();
-    if (len_starting_vec != 0.0)
-    {
-        Vec3d mouse_dir = mouse_ray.unit_vector();
+    if (len_starting_vec != 0.0) {
+        const Vec3d mouse_dir = mouse_ray.unit_vector();
         // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
         // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
         // in our case plane normal and ray direction are the same (orthogonal view)
         // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-        Vec3d inters = mouse_ray.a + (m_drag_pos - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        const Vec3d inters = mouse_ray.a + (m_drag_pos - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
         // vector from the starting position to the found intersection
-        Vec3d inters_vec = inters - m_drag_pos;
+        const Vec3d inters_vec = inters - m_drag_pos;
 
         // finds projection of the vector along the staring direction
         projection = inters_vec.dot(starting_vec.normalized());
@@ -264,6 +248,18 @@ double GLGizmoCut::calc_projection(const Linef3& mouse_ray) const
     return projection;
 }
 
+BoundingBoxf3 GLGizmoCut::bounding_box() const
+{
+    BoundingBoxf3 ret;
+    const Selection& selection = m_parent.get_selection();
+    const Selection::IndicesList& idxs = selection.get_volume_idxs();
+    for (unsigned int i : idxs) {
+        const GLVolume* volume = selection.get_volume(i);
+        if (!volume->is_modifier)
+            ret.merge(volume->transformed_convex_hull_bounding_box());
+    }
+    return ret;
+}
 
 } // namespace GUI
 } // namespace Slic3r

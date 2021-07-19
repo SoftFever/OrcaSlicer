@@ -8,6 +8,7 @@
 #include "I18N.hpp"
 #include "Plater.hpp"
 #include "BitmapComboBox.hpp"
+#include "GalleryDialog.hpp"
 #if ENABLE_PROJECT_DIRTY_STATE
 #include "MainFrame.hpp"
 #endif // ENABLE_PROJECT_DIRTY_STATE
@@ -594,13 +595,31 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
     take_snapshot(volume_id < 0 ? _(L("Rename Object")) : _(L("Rename Sub-object")));
 
+    ModelObject* obj = object(obj_idx);
     if (m_objects_model->GetItemType(item) & itObject) {
-        (*m_objects)[obj_idx]->name = m_objects_model->GetName(item).ToUTF8().data();
+        obj->name = m_objects_model->GetName(item).ToUTF8().data();
+        // if object has just one volume, rename this volume too
+        if (obj->volumes.size() == 1)
+            obj->volumes[0]->name = obj->name;
         return;
     }
 
     if (volume_id < 0) return;
-    (*m_objects)[obj_idx]->volumes[volume_id]->name = m_objects_model->GetName(item).ToUTF8().data();
+    obj->volumes[volume_id]->name = m_objects_model->GetName(item).ToUTF8().data();
+}
+
+void ObjectList::update_name_in_list(int obj_idx, int vol_idx) const 
+{
+    if (obj_idx < 0) return;
+    wxDataViewItem item = GetSelection();
+    if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
+        return;
+
+    wxString new_name = from_u8(object(obj_idx)->volumes[vol_idx]->name);
+    if (new_name.IsEmpty() || m_objects_model->GetName(item) == new_name)
+        return;
+
+    m_objects_model->SetName(new_name, item);
 }
 
 void ObjectList::selection_changed()
@@ -1337,8 +1356,13 @@ bool ObjectList::is_instance_or_object_selected()
     return selection.is_single_full_instance() || selection.is_single_full_object();
 }
 
-void ObjectList::load_subobject(ModelVolumeType type)
+void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false*/)
 {
+    if (type == ModelVolumeType::INVALID && from_galery) {
+        load_shape_object_from_gallery();
+        return;
+    }
+
     wxDataViewItem item = GetSelection();
     // we can add volumes for Object or Instance
     if (!item || !(m_objects_model->GetItemType(item)&(itObject|itInstance)))
@@ -1351,10 +1375,17 @@ void ObjectList::load_subobject(ModelVolumeType type)
     if (m_objects_model->GetItemType(item)&itInstance)
         item = m_objects_model->GetItemById(obj_idx);
 
-    take_snapshot(_L("Load Part"));
-
     std::vector<ModelVolume*> volumes;
-    load_part((*m_objects)[obj_idx], volumes, type);
+    if (type == ModelVolumeType::MODEL_PART)
+        load_part(*(*m_objects)[obj_idx], volumes, type, from_galery);
+    else
+        load_modifier(*(*m_objects)[obj_idx], volumes, type, from_galery);
+
+    if (volumes.empty())
+        return;
+
+    take_snapshot((type == ModelVolumeType::MODEL_PART) ? _L("Load Part") : _L("Load Modifier"));
+
     wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume* volume) {
         return std::find(volumes.begin(), volumes.end(), volume) != volumes.end(); });
 
@@ -1371,12 +1402,25 @@ void ObjectList::load_subobject(ModelVolumeType type)
     selection_changed();
 }
 
-void ObjectList::load_part(ModelObject* model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type)
+void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery/* = false*/)
 {
+    if (type != ModelVolumeType::MODEL_PART)
+        return;
+
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
     wxArrayString input_files;
-    wxGetApp().import_model(parent, input_files);
+
+    if (from_galery) {
+        GalleryDialog dlg(this);
+        if (dlg.ShowModal() == wxID_CANCEL)
+            return;
+        dlg.get_input_files(input_files);
+        if (input_files.IsEmpty())
+            return;
+    }
+    else
+        wxGetApp().import_model(parent, input_files);
 
     wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().plater(), wxPD_AUTO_HIDE);
     wxBusyCursor busy;
@@ -1400,13 +1444,13 @@ void ObjectList::load_part(ModelObject* model_object, std::vector<ModelVolume*>&
 
         for (auto object : model.objects) {
             Vec3d delta = Vec3d::Zero();
-            if (model_object->origin_translation != Vec3d::Zero()) {
+            if (model_object.origin_translation != Vec3d::Zero()) {
                 object->center_around_origin();
-                delta = model_object->origin_translation - object->origin_translation;
+                delta = model_object.origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {
                 volume->translate(delta);
-                auto new_volume = model_object->add_volume(*volume, type);
+                auto new_volume = model_object.add_volume(*volume, type);
                 new_volume->name = boost::filesystem::path(input_file).filename().string();
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -1415,7 +1459,106 @@ void ObjectList::load_part(ModelObject* model_object, std::vector<ModelVolume*>&
             }
         }
     }
+}
 
+void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery)
+{
+    if (type == ModelVolumeType::MODEL_PART)
+        return;
+
+    wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
+
+    wxArrayString input_files;
+
+    if (from_galery) {
+        GalleryDialog dlg(this);
+        if (dlg.ShowModal() == wxID_CANCEL)
+            return;
+        dlg.get_input_files(input_files);
+        if (input_files.IsEmpty())
+            return;
+    }
+    else
+        wxGetApp().import_model(parent, input_files);
+
+    wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().plater(), wxPD_AUTO_HIDE);
+    wxBusyCursor busy;
+
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0)
+        return;
+
+    const Selection& selection = scene_selection();
+    assert(obj_idx == selection.get_object_idx());
+
+    /** Any changes of the Object's composition is duplicated for all Object's Instances
+      * So, It's enough to take a bounding box of a first selected Instance and calculate Part(generic_subobject) position
+      */
+    int instance_idx = *selection.get_instance_idxs().begin();
+    assert(instance_idx != -1);
+    if (instance_idx == -1)
+        return;
+
+    // Bounding box of the selected instance in world coordinate system including the translation, without modifiers.
+    const BoundingBoxf3 instance_bb = model_object.instance_bounding_box(instance_idx);
+
+    // First (any) GLVolume of the selected instance. They all share the same instance matrix.
+    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    const Geometry::Transformation inst_transform = v->get_instance_transformation();
+    const Transform3d inv_inst_transform = inst_transform.get_matrix(true).inverse();
+    const Vec3d instance_offset = v->get_instance_offset();
+
+    for (size_t i = 0; i < input_files.size(); ++i) {
+        const std::string input_file = input_files.Item(i).ToUTF8().data();
+
+        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())),
+            _L("Loading file") + ": " + from_path(boost::filesystem::path(input_file).filename()));
+        dlg.Fit();
+
+        Model model;
+        try {
+            model = Model::read_from_file(input_file);
+        }
+        catch (std::exception& e) {
+            auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
+            show_error(parent, msg);
+            exit(1);
+        }
+
+        if (from_galery)
+            model.center_instances_around_point(Vec2d::Zero());
+        else {
+            for (auto object : model.objects) {
+                if (model_object.origin_translation != Vec3d::Zero()) {
+                    object->center_around_origin();
+                    Vec3d delta = model_object.origin_translation - object->origin_translation;
+                    for (auto volume : object->volumes) {
+                        volume->translate(delta);
+                    }
+                }
+            }
+        }
+
+        TriangleMesh mesh = model.mesh();
+        mesh.repair();
+        // Mesh will be centered when loading.
+        ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
+        new_volume->name = boost::filesystem::path(input_file).filename().string();
+        // set a default extruder value, since user can't add it manually
+        new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+
+        if (from_galery) {
+            // Transform the new modifier to be aligned with the print bed.
+            const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
+            new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(inst_transform, mesh_bb));
+            // Set the modifier position.
+            // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+            const Vec3d offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
+            new_volume->set_offset(inv_inst_transform * offset);
+        }
+
+        added_volumes.push_back(new_volume);
+    }
 }
 
 static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf3& bb)
@@ -1465,7 +1608,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     if (instance_idx == -1)
         return;
 
-    take_snapshot(_(L("Add Generic Subobject")));
+    take_snapshot(_L("Add Generic Subobject"));
 
     // Selected object
     ModelObject  &model_object = *(*m_objects)[obj_idx];
@@ -1477,26 +1620,24 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 	// Mesh will be centered when loading.
     ModelVolume *new_volume = model_object.add_volume(std::move(mesh), type);
 
-    if (instance_idx != -1)
-    {
-        // First (any) GLVolume of the selected instance. They all share the same instance matrix.
-        const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        // Transform the new modifier to be aligned with the print bed.
-		const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
-        new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
-        // Set the modifier position.
-        auto offset = (type_name == "Slab") ?
-            // Slab: Lift to print bed
-			Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z()) :
-            // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
-            Vec3d(instance_bb.max(0), instance_bb.min(1), instance_bb.min(2)) + 0.5 * mesh_bb.size() - v->get_instance_offset();
-        new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
-    }
+    // First (any) GLVolume of the selected instance. They all share the same instance matrix.
+    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    // Transform the new modifier to be aligned with the print bed.
+	const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
+    new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
+    // Set the modifier position.
+    auto offset = (type_name == "Slab") ?
+        // Slab: Lift to print bed
+		Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z()) :
+        // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+        Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
+    new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
 
-    const wxString name = _(L("Generic")) + "-" + _(type_name);
+    const wxString name = _L("Generic") + "-" + _(type_name);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+    new_volume->source.is_from_builtin_objects = true;
 
     select_item([this, obj_idx, new_volume]() {
         wxDataViewItem sel_item;
@@ -1536,6 +1677,39 @@ void ObjectList::load_shape_object(const std::string& type_name)
 #endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
+void ObjectList::load_shape_object_from_gallery()
+{
+    if (wxGetApp().plater()->canvas3D()->get_selection().get_object_idx() != -1)
+        return;// Add nothing if something is selected on 3DScene
+
+    wxArrayString input_files;
+    GalleryDialog gallery_dlg(this);
+    if (gallery_dlg.ShowModal() == wxID_CANCEL)
+        return;
+    gallery_dlg.get_input_files(input_files);
+    if (input_files.IsEmpty())
+        return;
+
+    std::vector<boost::filesystem::path> paths;
+    for (const auto& file : input_files)
+        paths.push_back(into_path(file));
+
+    assert(!paths.empty());
+    wxString snapshot_label = (paths.size() == 1 ? _L("Add Shape") : _L("Add Shapes")) + ": " +
+        wxString::FromUTF8(paths.front().filename().string().c_str());
+    for (size_t i = 1; i < paths.size(); ++i)
+        snapshot_label += ", " + wxString::FromUTF8(paths[i].filename().string().c_str());
+
+    take_snapshot(snapshot_label);
+#if ENABLE_PROJECT_DIRTY_STATE
+    std::vector<size_t> res = wxGetApp().plater()->load_files(paths, true, false);
+    if (!res.empty())
+        wxGetApp().mainframe->update_title();
+#else
+    load_files(paths, true, false);
+#endif // ENABLE_PROJECT_DIRTY_STATE
+}
+
 void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
 {   
     // Add mesh to model as a new object
@@ -1561,7 +1735,7 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 
     if (center) {
         const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
-        new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
+        new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation.z()));
     } else {
         new_object->instances[0]->set_offset(bb.center());
     }
@@ -3731,22 +3905,8 @@ void ObjectList::rename_item()
         return;
     }
 
-    // The icon can't be edited so get its old value and reuse it.
-    wxVariant valueOld;
-    m_objects_model->GetValue(valueOld, item, colName);
-
-    DataViewBitmapText bmpText;
-    bmpText << valueOld;
-
-    // But replace the text with the value entered by user.
-    bmpText.SetText(new_name);
-
-    wxVariant value;    
-    value << bmpText;
-    m_objects_model->SetValue(value, item, colName);
-    m_objects_model->ItemChanged(item);
-
-    update_name_in_model(item);
+    if (m_objects_model->SetName(new_name, item))
+        update_name_in_model(item);
 }
 
 void ObjectList::fix_through_netfabb() 

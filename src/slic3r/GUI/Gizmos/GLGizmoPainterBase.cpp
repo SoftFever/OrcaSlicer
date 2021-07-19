@@ -194,10 +194,10 @@ void GLGizmoPainterBase::render_cursor() const
     if (m_rr.mesh_id == -1)
         return;
 
-    if (!m_seed_fill_enabled) {
+    if (m_tool_type == ToolType::BRUSH) {
         if (m_cursor_type == TriangleSelector::SPHERE)
             render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
-        else
+        else if (m_cursor_type == TriangleSelector::CIRCLE)
             render_cursor_circle();
     }
 }
@@ -307,11 +307,19 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
         }
         else if (alt_down) {
-            m_cursor_radius = action == SLAGizmoEventType::MouseWheelDown
-                    ? std::max(m_cursor_radius - CursorRadiusStep, CursorRadiusMin)
-                    : std::min(m_cursor_radius + CursorRadiusStep, CursorRadiusMax);
-            m_parent.set_as_dirty();
-            return true;
+            if (m_tool_type == ToolType::BRUSH) {
+                m_cursor_radius = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_cursor_radius - CursorRadiusStep, CursorRadiusMin)
+                                                                              : std::min(m_cursor_radius + CursorRadiusStep, CursorRadiusMax);
+                m_parent.set_as_dirty();
+                return true;
+            } else if (m_tool_type == ToolType::SEED_FILL) {
+                m_seed_fill_angle = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_seed_fill_angle - SeedFillAngleStep, SeedFillAngleMin)
+                                                                                : std::min(m_seed_fill_angle + SeedFillAngleStep, SeedFillAngleMax);
+                m_parent.set_as_dirty();
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -396,19 +404,21 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
 
             assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-            if (m_seed_fill_enabled) {
+            if (m_tool_type == ToolType::SEED_FILL || m_tool_type == ToolType::BUCKET_FILL || (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)) {
                 m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
                 m_seed_fill_last_mesh_id = -1;
-            } else
+            } else if (m_tool_type == ToolType::BRUSH)
                 m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
                                                                  new_state, trafo_matrix, m_triangle_splitting_enabled);
+
+            m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
             m_last_mouse_click = mouse_position;
         }
 
         return true;
     }
 
-    if (action == SLAGizmoEventType::Moving && m_seed_fill_enabled) {
+    if (action == SLAGizmoEventType::Moving && (m_tool_type == ToolType::SEED_FILL || m_tool_type == ToolType::BUCKET_FILL || (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER))) {
         if (m_triangle_selectors.empty())
             return false;
 
@@ -428,8 +438,10 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         update_raycast_cache(mouse_position, camera, trafo_matrices);
 
         auto seed_fill_unselect_all = [this]() {
-            for (auto &triangle_selector : m_triangle_selectors)
+            for (auto &triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
+                triangle_selector->request_update_render_data();
+            }
         };
 
         if (m_rr.mesh_id == -1) {
@@ -446,7 +458,13 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             seed_fill_unselect_all();
 
         assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
-        m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
+        if (m_tool_type == ToolType::SEED_FILL)
+            m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle);
+        else if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)
+            m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), false);
+        else if (m_tool_type == ToolType::BUCKET_FILL)
+            m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), true);
+        m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
         m_seed_fill_last_mesh_id = m_rr.mesh_id;
         return true;
     }
@@ -589,27 +607,10 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     static constexpr std::array<float, 4> enforcers_color{0.47f, 0.47f, 1.f, 1.f};
     static constexpr std::array<float, 4> blockers_color{1.f, 0.44f, 0.44f, 1.f};
 
-    int enf_cnt       = 0;
-    int blc_cnt       = 0;
-
-    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
-        iva->release_geometry();
-
-    for (const Triangle& tr : m_triangles) {
-        if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE)
-            continue;
-
-        GLIndexedVertexArray &iva  = tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers : m_iva_blockers;
-        int &                 cnt  = tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt : blc_cnt;
-
-        for (int i = 0; i < 3; ++i)
-            iva.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
-        iva.push_triangle(cnt, cnt + 1, cnt + 2);
-        cnt += 3;
+    if (m_update_render_data) {
+        update_render_data();
+        m_update_render_data = false;
     }
-
-    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
-        iva->finalize_geometry(true);
 
     auto* shader = wxGetApp().get_current_shader();
     if (! shader)
@@ -631,6 +632,33 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     else
         assert(false); // If you want debug output, pass ptr to ImGuiWrapper.
 #endif
+}
+
+
+
+void TriangleSelectorGUI::update_render_data()
+{
+    int enf_cnt = 0;
+    int blc_cnt = 0;
+
+    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
+        iva->release_geometry();
+
+    for (const Triangle &tr : m_triangles) {
+        if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE)
+            continue;
+
+        GLIndexedVertexArray &iva = tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers : m_iva_blockers;
+        int &                 cnt = tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt : blc_cnt;
+
+        for (int i = 0; i < 3; ++i)
+            iva.push_geometry(m_vertices[tr.verts_idxs[i]].v, m_mesh->stl.facet_start[tr.source_triangle].normal);
+        iva.push_triangle(cnt, cnt + 1, cnt + 2);
+        cnt += 3;
+    }
+
+    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
+        iva->finalize_geometry(true);
 }
 
 
@@ -685,7 +713,7 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
             va = &m_varrays[ORIGINAL];
             cnt = &cnts[ORIGINAL];
         }
-        else if (tr.valid) {
+        else if (tr.valid()) {
             va = &m_varrays[SPLIT];
             cnt = &cnts[SPLIT];
         }

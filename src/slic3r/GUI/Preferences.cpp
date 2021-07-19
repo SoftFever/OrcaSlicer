@@ -393,11 +393,9 @@ void PreferencesDialog::build()
 	sizer->Add(tabs, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 5);
 
 	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
-	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
-	btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { accept(); });
+	this->Bind(wxEVT_BUTTON, &PreferencesDialog::accept, this, wxID_OK);
 
-	wxGetApp().UpdateDarkUI(btn);
-	wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
+	wxGetApp().UpdateDlgDarkUI(this, true);
 
 	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM | wxTOP, 10);
 
@@ -406,7 +404,7 @@ void PreferencesDialog::build()
 	this->CenterOnParent();
 }
 
-void PreferencesDialog::accept()
+void PreferencesDialog::accept(wxEvent&)
 {
 //	if (m_values.find("no_defaults") != m_values.end()
 //		warning_catcher(this, wxString::Format(_L("You need to restart %s to make the changes effective."), SLIC3R_APP_NAME));
@@ -432,11 +430,6 @@ void PreferencesDialog::accept()
 			}
 			break;
 		}
-	}
-
-	if (m_values.empty()) {
-		EndModal(wxID_CANCEL);
-		return;
 	}
 
     auto app_config = get_app_config();

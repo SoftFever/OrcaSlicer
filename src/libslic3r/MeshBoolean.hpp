@@ -55,6 +55,7 @@ bool does_self_intersect(const TriangleMesh &mesh);
 bool does_self_intersect(const CGALMesh &mesh);
 
 bool does_bound_a_volume(const CGALMesh &mesh);
+bool empty(const CGALMesh &mesh);
 
 }
 

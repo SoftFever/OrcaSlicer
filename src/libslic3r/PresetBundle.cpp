@@ -159,6 +159,7 @@ void PresetBundle::setup_directories()
         data_dir,
 		data_dir / "vendor",
         data_dir / "cache",
+        data_dir / "shapes",
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
         // Store the print/filament/printer presets into a "presets" directory.
         data_dir / "presets", 

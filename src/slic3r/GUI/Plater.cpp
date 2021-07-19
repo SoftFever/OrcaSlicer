@@ -1789,8 +1789,8 @@ struct Plater::priv
     bool can_replace_with_stl() const;
     bool can_split(bool to_objects) const;
 
-    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
-    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params);
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
+    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
 
     void bring_instance_forward() const;
 
@@ -1866,7 +1866,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_result(&gcode_result);
-    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params); });
+    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params, Camera::EType::Ortho); });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
 	background_process.set_export_began_event(EVT_EXPORT_BEGAN);
@@ -3285,6 +3285,13 @@ void Plater::priv::replace_with_stl()
         old_model_object->ensure_on_bed();
     old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
 
+    // if object has just one volume, rename object too
+    if (old_model_object->volumes.size() == 1)
+        old_model_object->name = old_model_object->volumes[0]->name;
+
+    // update new name in ObjectList
+    sidebar->obj_list()->update_name_in_list(object_idx, volume_idx);
+
     sla::reproject_points_and_holes(old_model_object);    
 
     // update 3D scene
@@ -3344,7 +3351,7 @@ void Plater::priv::reload_from_disk()
             else
                 missing_input_paths.push_back(volume->source.input_file);
         }
-        else if (!object->input_file.empty() && volume->is_model_part() && !volume->name.empty())
+        else if (!object->input_file.empty() && volume->is_model_part() && !volume->name.empty() && !volume->source.is_from_builtin_objects)
             missing_input_paths.push_back(volume->name);
     }
 
@@ -4041,18 +4048,18 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
     }
 }
 
-void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, show_bed, transparent_background);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type);
 }
 
-ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params)
+ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type)
 {
     ThumbnailsList thumbnails;
     for (const Vec2d& size : params.sizes) {
         thumbnails.push_back(ThumbnailData());
         Point isize(size); // round to ints
-        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params.printable_only, params.parts_only, params.show_bed, params.transparent_background);
+        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params, camera_type);
         if (!thumbnails.back().is_valid())
             thumbnails.pop_back();
     }
@@ -4283,14 +4290,12 @@ bool Plater::priv::can_reload_from_disk() const
 
     // collects selected ModelVolumes
     const std::set<unsigned int>& selected_volumes_idxs = selection.get_volume_idxs();
-    for (unsigned int idx : selected_volumes_idxs)
-    {
+    for (unsigned int idx : selected_volumes_idxs) {
         const GLVolume* v = selection.get_volume(idx);
         int v_idx = v->volume_idx();
-        if (v_idx >= 0)
-        {
+        if (v_idx >= 0) {
             int o_idx = v->object_idx();
-            if ((0 <= o_idx) && (o_idx < (int)model.objects.size()))
+            if (0 <= o_idx && o_idx < (int)model.objects.size())
                 selected_volumes.push_back({ o_idx, v_idx });
         }
     }
@@ -4299,13 +4304,12 @@ bool Plater::priv::can_reload_from_disk() const
 
     // collects paths of files to load
     std::vector<fs::path> paths;
-    for (const SelectedVolume& v : selected_volumes)
-    {
+    for (const SelectedVolume& v : selected_volumes) {
         const ModelObject* object = model.objects[v.object_idx];
         const ModelVolume* volume = object->volumes[v.volume_idx];
         if (!volume->source.input_file.empty())
             paths.push_back(volume->source.input_file);
-        else if (!object->input_file.empty() && !volume->name.empty())
+        else if (!object->input_file.empty() && !volume->name.empty() && !volume->source.is_from_builtin_objects)
             paths.push_back(volume->name);
     }
     std::sort(paths.begin(), paths.end());
@@ -4929,11 +4933,11 @@ enum class LoadType : unsigned char
 
 class ProjectDropDialog : public DPIDialog
 {
-    wxRadioBox* m_action{ nullptr };
+    int m_action { 0 };
 public:
     ProjectDropDialog(const std::string& filename);
 
-    int get_action() const { return m_action->GetSelection() + 1; }
+    int get_action() const { return m_action + 1; }
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -4954,12 +4958,24 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
 
     main_sizer->Add(new wxStaticText(this, wxID_ANY,
         _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
-    m_action = new wxRadioBox(this, wxID_ANY, _L("Action"), wxDefaultPosition, wxDefaultSize,
-        WXSIZEOF(choices), choices, 0, wxRA_SPECIFY_ROWS);
+
     int action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
         static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)) - 1;
-    m_action->SetSelection(action);
-    main_sizer->Add(m_action, 1, wxEXPAND | wxRIGHT | wxLEFT, 10);
+
+    wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, _L("Action"));
+    if (!wxOSX) action_stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    action_stb->SetFont(wxGetApp().normal_font());
+
+    wxStaticBoxSizer* stb_sizer = new wxStaticBoxSizer(action_stb, wxVERTICAL);
+    int id = 0;
+    for (const wxString& label : choices) {
+        wxRadioButton* btn = new wxRadioButton(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, id == 0 ? wxRB_GROUP : 0);
+        btn->SetValue(id == action);
+        btn->Bind(wxEVT_RADIOBUTTON, [this, id](wxCommandEvent&) { m_action = id; });
+        stb_sizer->Add(btn, 0, wxEXPAND | wxTOP, 5);
+        id++;
+    }
+    main_sizer->Add(stb_sizer, 1, wxEXPAND | wxRIGHT | wxLEFT, 10);
 
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxCheckBox* check = new wxCheckBox(this, wxID_ANY, _L("Don't show again"));
@@ -4973,6 +4989,9 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
 
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
+
+    // Update DarkUi just for buttons
+    wxGetApp().UpdateDlgDarkUI(this, true);
 }
 
 void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -5603,7 +5622,8 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     wxBusyCursor wait;
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
     ThumbnailData thumbnail_data;
-    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true);
+    ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
+    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
 #if ENABLE_PROJECT_DIRTY_STATE
     bool ret = Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data);
     if (ret) {

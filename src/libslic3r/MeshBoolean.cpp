@@ -276,6 +276,11 @@ bool does_bound_a_volume(const CGALMesh &mesh)
     return CGALProc::does_bound_a_volume(mesh.m);
 }
 
+bool empty(const CGALMesh &mesh)
+{
+    return mesh.m.is_empty();
+}
+
 } // namespace cgal
 
 } // namespace MeshBoolean

@@ -3005,6 +3005,7 @@ void TabPrinter::update()
     m_presets->get_edited_preset().printer_technology() == ptFFF ? update_fff() : update_sla();
     m_update_cnt--;
 
+    update_description_lines();
     Layout();
 
     if (m_update_cnt == 0)
@@ -4289,6 +4290,9 @@ void TabSLAMaterial::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
         return;
+
+    update_description_lines();
+    Layout();
 
 // #ys_FIXME. Just a template for this function
 //     m_update_cnt++;

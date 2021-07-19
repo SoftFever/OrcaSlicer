@@ -33,6 +33,8 @@ option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
 
+set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
+
 set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
 set(IS_CROSS_COMPILE FALSE)
@@ -492,13 +494,17 @@ find_package(NLopt 1.4 REQUIRED)
 if(SLIC3R_STATIC)
     set(OPENVDB_USE_STATIC_LIBS ON)
     set(USE_BLOSC TRUE)
-endif()
+endif ()
 
-find_package(OpenVDB 5.0 REQUIRED COMPONENTS openvdb)
+find_package(OpenVDB 5.0 COMPONENTS openvdb)
 if(OpenVDB_FOUND)
     slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
     slic3r_remap_configs(Blosc::blosc RelWithDebInfo Release)
-endif()
+else ()
+    message(FATAL_ERROR "OpenVDB could not be found with the bundled find module. "
+                   "You can try to specify the find module location of your "
+                   "OpenVDB installation with the OPENVDB_FIND_MODULE_PATH cache variable.")
+endif ()
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(prusaslicer_copy_dlls target)
@@ -559,9 +565,20 @@ if (WIN32)
 elseif (SLIC3R_FHS)
     # CMAKE_INSTALL_FULL_DATAROOTDIR: read-only architecture-independent data root (share)
     set(SLIC3R_FHS_RESOURCES "${CMAKE_INSTALL_FULL_DATAROOTDIR}/PrusaSlicer")
-    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${SLIC3R_FHS_RESOURCES}")
-    install(FILES src/platform/unix/PrusaSlicer.desktop DESTINATION ${SLIC3R_FHS_RESOURCES}/applications)
-    install(FILES src/platform/unix/PrusaGcodeviewer.desktop DESTINATION ${SLIC3R_FHS_RESOURCES}/applications)
+    install(DIRECTORY ${SLIC3R_RESOURCES_DIR}/ DESTINATION ${SLIC3R_FHS_RESOURCES}
+        PATTERN "*/data" EXCLUDE PATTERN "*/udev" EXCLUDE
+    )
+    install(FILES src/platform/unix/PrusaSlicer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+    install(FILES src/platform/unix/PrusaGcodeviewer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+    foreach(SIZE 32 128 192)
+        install(FILES ${SLIC3R_RESOURCES_DIR}/icons/PrusaSlicer_${SIZE}px.png
+            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${SIZE}x${SIZE}/apps RENAME PrusaSlicer.png
+        )
+        install(FILES ${SLIC3R_RESOURCES_DIR}/icons/PrusaSlicer-gcodeviewer_${SIZE}px.png
+            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${SIZE}x${SIZE}/apps RENAME PrusaSlicer-gcodeviewer.png
+        )
+    endforeach()
+    install(DIRECTORY ${SLIC3R_RESOURCES_DIR}/udev/ DESTINATION lib/udev/rules.d)
 else ()
     install(FILES src/platform/unix/PrusaSlicer.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
     install(FILES src/platform/unix/PrusaGcodeviewer.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)

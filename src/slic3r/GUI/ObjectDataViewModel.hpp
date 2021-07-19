@@ -324,6 +324,7 @@ public:
                     unsigned int col);
 
     void SetExtruder(const wxString& extruder, wxDataViewItem item);
+    bool SetName    (const wxString& new_name, wxDataViewItem item);
 
     // For parent move child from cur_volume_id place to new_volume_id
     // Remaining items will moved up/down accordingly

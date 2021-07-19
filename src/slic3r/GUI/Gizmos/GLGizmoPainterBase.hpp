@@ -38,13 +38,20 @@ public:
     virtual void render(ImGuiWrapper *imgui);
     void         render() { this->render(nullptr); }
 
+    void request_update_render_data() { m_update_render_data = true; };
+
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
     bool m_show_triangles{false};
     bool m_show_invalid{false};
 #endif
 
+protected:
+    bool m_update_render_data = false;
+
 private:
+    void update_render_data();
+
     GLIndexedVertexArray                m_iva_enforcers;
     GLIndexedVertexArray                m_iva_blockers;
     std::array<GLIndexedVertexArray, 3> m_varrays;
@@ -99,13 +106,23 @@ protected:
 
     TriangleSelector::CursorType m_cursor_type = TriangleSelector::SPHERE;
 
-    bool  m_triangle_splitting_enabled = true;
-    bool  m_seed_fill_enabled          = false;
-    float m_seed_fill_angle            = 0.f;
+    enum class ToolType {
+        BRUSH,
+        BUCKET_FILL,
+        SEED_FILL
+    };
+
+    bool     m_triangle_splitting_enabled = true;
+    ToolType m_tool_type                  = ToolType::BRUSH;
+    float    m_seed_fill_angle            = 0.f;
+
+    static constexpr float SeedFillAngleMin  = 0.0f;
+    static constexpr float SeedFillAngleMax  = 90.f;
+    static constexpr float SeedFillAngleStep = 1.f;
 
     // It stores the value of the previous mesh_id to which the seed fill was applied.
     // It is used to detect when the mouse has moved from one volume to another one.
-    int   m_seed_fill_last_mesh_id     = -1;
+    int      m_seed_fill_last_mesh_id     = -1;
 
     enum class Button {
         None,

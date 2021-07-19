@@ -39,26 +39,22 @@ enum ModelInstanceEPrintVolumeState : unsigned char;
 // possibly indexed by triangles and / or quads.
 class GLIndexedVertexArray {
 public:
-    GLIndexedVertexArray() : 
-        vertices_and_normals_interleaved_VBO_id(0),
-        triangle_indices_VBO_id(0),
-        quad_indices_VBO_id(0)
-        {}
+    // Only Eigen types of Nx16 size are vectorized. This bounding box will not be vectorized.
+    static_assert(sizeof(Eigen::AlignedBox<float, 3>) == 24, "Eigen::AlignedBox<float, 3> is not being vectorized, thus it does not need to be aligned");
+    using BoundingBox = Eigen::AlignedBox<float, 3>;
+
+    GLIndexedVertexArray() { m_bounding_box.setEmpty(); }
     GLIndexedVertexArray(const GLIndexedVertexArray &rhs) :
         vertices_and_normals_interleaved(rhs.vertices_and_normals_interleaved),
         triangle_indices(rhs.triangle_indices),
         quad_indices(rhs.quad_indices),
-        vertices_and_normals_interleaved_VBO_id(0),
-        triangle_indices_VBO_id(0),
-        quad_indices_VBO_id(0)
-        { assert(! rhs.has_VBOs()); }
+        m_bounding_box(rhs.m_bounding_box)
+        { assert(! rhs.has_VBOs()); m_bounding_box.setEmpty(); }
     GLIndexedVertexArray(GLIndexedVertexArray &&rhs) :
         vertices_and_normals_interleaved(std::move(rhs.vertices_and_normals_interleaved)),
         triangle_indices(std::move(rhs.triangle_indices)),
         quad_indices(std::move(rhs.quad_indices)),
-        vertices_and_normals_interleaved_VBO_id(0),
-        triangle_indices_VBO_id(0),
-        quad_indices_VBO_id(0)
+        m_bounding_box(rhs.m_bounding_box)
         { assert(! rhs.has_VBOs()); }
 
     ~GLIndexedVertexArray() { release_geometry(); }
@@ -92,7 +88,7 @@ public:
         this->vertices_and_normals_interleaved 		 = std::move(rhs.vertices_and_normals_interleaved);
         this->triangle_indices                 		 = std::move(rhs.triangle_indices);
         this->quad_indices                     		 = std::move(rhs.quad_indices);
-        this->m_bounding_box                   		 = std::move(rhs.m_bounding_box);
+        this->m_bounding_box                   		 = rhs.m_bounding_box;
         this->vertices_and_normals_interleaved_size  = rhs.vertices_and_normals_interleaved_size;
         this->triangle_indices_size                  = rhs.triangle_indices_size;
         this->quad_indices_size                      = rhs.quad_indices_size;
@@ -147,7 +143,7 @@ public:
         this->vertices_and_normals_interleaved.emplace_back(z);
 
         this->vertices_and_normals_interleaved_size = this->vertices_and_normals_interleaved.size();
-        m_bounding_box.merge(Vec3f(x, y, z).cast<double>());
+        m_bounding_box.extend(Vec3f(x, y, z));
     };
 
     inline void push_geometry(double x, double y, double z, double nx, double ny, double nz) {
@@ -203,10 +199,10 @@ public:
         this->vertices_and_normals_interleaved.clear();
         this->triangle_indices.clear();
         this->quad_indices.clear();
-        this->m_bounding_box.reset();
         vertices_and_normals_interleaved_size = 0;
         triangle_indices_size = 0;
         quad_indices_size = 0;
+        m_bounding_box.setEmpty();
     }
 
     // Shrink the internal storage to tighly fit the data stored.
@@ -216,7 +212,7 @@ public:
         this->quad_indices.shrink_to_fit();
     }
 
-    const BoundingBoxf3& bounding_box() const { return m_bounding_box; }
+    const BoundingBox& bounding_box() const { return m_bounding_box; }
 
     // Return an estimate of the memory consumed by this class.
     size_t cpu_memory_used() const { return sizeof(*this) + vertices_and_normals_interleaved.capacity() * sizeof(float) + triangle_indices.capacity() * sizeof(int) + quad_indices.capacity() * sizeof(int); }
@@ -235,7 +231,7 @@ public:
     size_t total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
 
 private:
-    BoundingBoxf3 m_bounding_box;
+    BoundingBox m_bounding_box;
 };
 
 class GLVolume {
@@ -355,7 +351,15 @@ public:
     std::vector<size_t>         offsets;
 
     // Bounding box of this volume, in unscaled coordinates.
-    const BoundingBoxf3& bounding_box() const { return this->indexed_vertex_array.bounding_box(); }
+    BoundingBoxf3 bounding_box() const { 
+        BoundingBoxf3 out;
+        if (! this->indexed_vertex_array.bounding_box().isEmpty()) {
+            out.min = this->indexed_vertex_array.bounding_box().min().cast<double>();
+            out.max = this->indexed_vertex_array.bounding_box().max().cast<double>();
+            out.defined = true;
+        };
+        return out;
+    }
 
     void set_render_color(float r, float g, float b, float a);
     void set_render_color(const float* rgba, unsigned int size);
@@ -476,7 +480,7 @@ typedef std::vector<GLVolumeWithIdAndZ> GLVolumeWithIdAndZList;
 class GLVolumeCollection
 {
 public:
-    enum ERenderType : unsigned char
+    enum class ERenderType : unsigned char
     {
         Opaque,
         Transparent,

@@ -202,6 +202,7 @@ public:
     void                update_extruder_in_config(const wxDataViewItem& item);
     // update changed name in the object model
     void                update_name_in_model(const wxDataViewItem& item) const;
+    void                update_name_in_list(int obj_idx, int vol_idx) const;
     void                update_extruder_values_for_items(const size_t max_extruder);
 
     // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item
@@ -238,10 +239,12 @@ public:
     void                show_settings(const wxDataViewItem settings_item);
     bool                is_instance_or_object_selected();
 
-    void                load_subobject(ModelVolumeType type);
-    void                load_part(ModelObject* model_object, std::vector<ModelVolume*> &added_volumes, ModelVolumeType type);
-	void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
+    void                load_subobject(ModelVolumeType type, bool from_galery = false);
+    void                load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
+    void                load_modifier(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
+    void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                load_shape_object(const std::string &type_name);
+    void                load_shape_object_from_gallery();
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
     void                del_object(const int obj_idx);
     void                del_subobject_item(wxDataViewItem& item);

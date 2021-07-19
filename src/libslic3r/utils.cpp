@@ -175,6 +175,18 @@ const std::string& localization_dir()
 	return g_local_dir;
 }
 
+static std::string g_sys_shapes_dir;
+
+void set_sys_shapes_dir(const std::string &dir)
+{
+    g_sys_shapes_dir = dir;
+}
+
+const std::string& sys_shapes_dir()
+{
+	return g_sys_shapes_dir;
+}
+
 // Translate function callback, to call wxWidgets translate function to convert non-localized UTF8 string to a localized one.
 Slic3r::I18N::translate_fn_type Slic3r::I18N::translate_fn = nullptr;
 
@@ -742,6 +754,21 @@ bool is_gcode_file(const std::string &path)
 {
 	return boost::iends_with(path, ".gcode") || boost::iends_with(path, ".gco") ||
 		   boost::iends_with(path, ".g")     || boost::iends_with(path, ".ngc");
+}
+
+bool is_img_file(const std::string &path)
+{
+	return boost::iends_with(path, ".png") || boost::iends_with(path, ".svg");
+}
+
+bool is_stl_file(const boost::filesystem::directory_entry& dir_entry)
+{
+	return is_plain_file(dir_entry) && strcasecmp(dir_entry.path().extension().string().c_str(), ".stl") == 0;
+}
+
+bool is_stl_file(const std::string &path)
+{
+	return boost::iends_with(path, ".stl");
 }
 
 } // namespace Slic3r

@@ -1293,6 +1293,30 @@ void ObjectDataViewModel::SetExtruder(const wxString& extruder, wxDataViewItem i
         UpdateVolumesExtruderBitmap(item);
 }
 
+bool ObjectDataViewModel::SetName(const wxString& new_name, wxDataViewItem item)
+{
+    if (!item.IsOk())
+        return false;
+
+    // The icon can't be edited so get its old value and reuse it.
+    wxVariant valueOld;
+    GetValue(valueOld, item, colName);
+
+    DataViewBitmapText bmpText;
+    bmpText << valueOld;
+
+    // But replace the text with the value entered by user.
+    bmpText.SetText(new_name);
+
+    wxVariant value;
+    value << bmpText;
+    if (SetValue(value, item, colName)) {
+        ItemChanged(item);
+        return true;
+    }
+    return false;
+}
+
 void ObjectDataViewModel::AddAllChildren(const wxDataViewItem& parent)
 {
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(parent.GetID());

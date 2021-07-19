@@ -8,6 +8,7 @@ add_library(imgui STATIC
     imstb_rectpack.h
     imstb_textedit.h
     imstb_truetype.h
+    imgui_tables.cpp
     imgui.cpp
     imgui_demo.cpp
     imgui_draw.cpp

@@ -91,7 +91,7 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
     	[](const PrintInstance& lhs, const PrintInstance& rhs) { return lhs.model_instance == rhs.model_instance && lhs.shift == rhs.shift; });
     if (! equal) {
         status = PrintBase::APPLY_STATUS_CHANGED;
-        if (m_print->invalidate_steps({ psSkirt, psBrim, psGCodeExport }) ||
+        if (m_print->invalidate_steps({ psSkirtBrim, psGCodeExport }) ||
             (! equal_length && m_print->invalidate_step(psWipeTower)))
             status = PrintBase::APPLY_STATUS_INVALIDATED;
         m_instances = std::move(instances);
@@ -402,10 +402,8 @@ void PrintObject::generate_support_material()
             // Notify the user in that case.
             if (! this->has_support()) {
                 for (const ModelVolume* mv : this->model_object()->volumes) {
-                    bool has_enforcers = mv->is_support_enforcer()
-                        || (mv->is_model_part()
-                            && ! mv->supported_facets.empty()
-                            && ! mv->supported_facets.get_facets(*mv, EnforcerBlockerType::ENFORCER).indices.empty());
+                    bool has_enforcers = mv->is_support_enforcer() || 
+                        (mv->is_model_part() && mv->supported_facets.has_facets(*mv, EnforcerBlockerType::ENFORCER));
                     if (has_enforcers) {
                         this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
                             L("An object has custom support enforcers which will not be used "
@@ -676,18 +674,18 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     // propagate to dependent steps
     if (step == posPerimeters) {
 		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning });
-        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posPrepareInfill) {
         invalidated |= this->invalidate_steps({ posInfill, posIroning });
     } else if (step == posInfill) {
         invalidated |= this->invalidate_steps({ posIroning });
-        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posSlice) {
 		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial });
-		invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
-        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     }
 
@@ -2101,206 +2099,206 @@ void PrintObject::_generate_support_material()
     support_material.generate(*this);
 }
 
-
-void PrintObject::project_and_append_custom_facets(
-        bool seam, EnforcerBlockerType type, std::vector<ExPolygons>& expolys) const
+static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const indexed_triangle_set &custom_facets, const Transform3f &tr, bool seam, std::vector<Polygons> &out)
 {
-    for (const ModelVolume* mv : this->model_object()->volumes) {
-        const indexed_triangle_set custom_facets = seam
-                ? mv->seam_facets.get_facets(*mv, type)
-                : mv->supported_facets.get_facets(*mv, type);
-        if (! mv->is_model_part() || custom_facets.indices.empty())
+    if (custom_facets.indices.empty())
+        return;
+
+    const float tr_det_sign = (tr.matrix().determinant() > 0. ? 1.f : -1.f);
+
+    // The projection will be at most a pentagon. Let's minimize heap
+    // reallocations by saving in in the following struct.
+    // Points are used so that scaling can be done in parallel
+    // and they can be moved from to create an ExPolygon later.
+    struct LightPolygon {
+        LightPolygon() { pts.reserve(5); }
+        LightPolygon(const std::array<Vec2f, 3>& tri) {
+            pts.reserve(3);
+            pts.emplace_back(scaled<coord_t>(tri.front()));
+            pts.emplace_back(scaled<coord_t>(tri[1]));
+            pts.emplace_back(scaled<coord_t>(tri.back()));
+        }
+
+        Points pts;
+
+        void add(const Vec2f& pt) {
+            pts.emplace_back(scaled<coord_t>(pt));
+            assert(pts.size() <= 5);
+        }
+    };
+
+    // Structure to collect projected polygons. One element for each triangle.
+    // Saves vector of polygons and layer_id of the first one.
+    struct TriangleProjections {
+        size_t first_layer_id;
+        std::vector<LightPolygon> polygons;
+    };
+
+    // Vector to collect resulting projections from each triangle.
+    std::vector<TriangleProjections> projections_of_triangles(custom_facets.indices.size());
+
+    // Iterate over all triangles.
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, custom_facets.indices.size()),
+        [&custom_facets, &tr, tr_det_sign, seam, layers, &projections_of_triangles](const tbb::blocked_range<size_t>& range) {
+        for (size_t idx = range.begin(); idx < range.end(); ++ idx) {
+
+        std::array<Vec3f, 3> facet;
+
+        // Transform the triangle into worlds coords.
+        for (int i=0; i<3; ++i)
+            facet[i] = tr * custom_facets.vertices[custom_facets.indices[idx](i)];
+
+        // Ignore triangles with upward-pointing normal. Don't forget about mirroring.
+        float z_comp = (facet[1]-facet[0]).cross(facet[2]-facet[0]).z();
+        if (! seam && tr_det_sign * z_comp > 0.)
             continue;
 
-        const Transform3f& tr1 = mv->get_matrix().cast<float>();
-        const Transform3f& tr2 = this->trafo().cast<float>();
-        const Transform3f  tr  = tr2 * tr1;
-        const float        tr_det_sign = (tr.matrix().determinant() > 0. ? 1.f : -1.f);
-        const Vec2f        center = unscaled<float>(this->center_offset());
-        ConstLayerPtrsAdaptor layers = this->layers();
+        // The algorithm does not process vertical triangles, but it should for seam.
+        // In that case, tilt the triangle a bit so the projection does not degenerate.
+        if (seam && z_comp == 0.f)
+            facet[0].x() += float(EPSILON);
 
-        // The projection will be at most a pentagon. Let's minimize heap
-        // reallocations by saving in in the following struct.
-        // Points are used so that scaling can be done in parallel
-        // and they can be moved from to create an ExPolygon later.
-        struct LightPolygon {
-            LightPolygon() { pts.reserve(5); }
-            LightPolygon(const std::array<Vec2f, 3>& tri) {
-                pts.reserve(3);
-                pts.emplace_back(scaled<coord_t>(tri.front()));
-                pts.emplace_back(scaled<coord_t>(tri[1]));
-                pts.emplace_back(scaled<coord_t>(tri.back()));
-            }
+        // Sort the three vertices according to z-coordinate.
+        std::sort(facet.begin(), facet.end(),
+                  [](const Vec3f& pt1, const Vec3f&pt2) {
+                      return pt1.z() < pt2.z();
+                  });
 
-            Points pts;
+        std::array<Vec2f, 3> trianglef;
+        for (int i=0; i<3; ++i)
+            trianglef[i] = to_2d(facet[i]);
 
-            void add(const Vec2f& pt) {
-                pts.emplace_back(scaled<coord_t>(pt));
-                assert(pts.size() <= 5);
-            }
-        };
-
-        // Structure to collect projected polygons. One element for each triangle.
-        // Saves vector of polygons and layer_id of the first one.
-        struct TriangleProjections {
-            size_t first_layer_id;
-            std::vector<LightPolygon> polygons;
-        };
-
-        // Vector to collect resulting projections from each triangle.
-        std::vector<TriangleProjections> projections_of_triangles(custom_facets.indices.size());
-
-        // Iterate over all triangles.
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, custom_facets.indices.size()),
-            [center, &custom_facets, &tr, tr_det_sign, seam, layers, &projections_of_triangles](const tbb::blocked_range<size_t>& range) {
-            for (size_t idx = range.begin(); idx < range.end(); ++ idx) {
-
-            std::array<Vec3f, 3> facet;
-
-            // Transform the triangle into worlds coords.
-            for (int i=0; i<3; ++i)
-                facet[i] = tr * custom_facets.vertices[custom_facets.indices[idx](i)];
-
-            // Ignore triangles with upward-pointing normal. Don't forget about mirroring.
-            float z_comp = (facet[1]-facet[0]).cross(facet[2]-facet[0]).z();
-            if (! seam && tr_det_sign * z_comp > 0.)
-                continue;
-
-            // The algorithm does not process vertical triangles, but it should for seam.
-            // In that case, tilt the triangle a bit so the projection does not degenerate.
-            if (seam && z_comp == 0.f)
-                facet[0].x() += float(EPSILON);
-
-            // Sort the three vertices according to z-coordinate.
-            std::sort(facet.begin(), facet.end(),
-                      [](const Vec3f& pt1, const Vec3f&pt2) {
-                          return pt1.z() < pt2.z();
+        // Find lowest slice not below the triangle.
+        auto it = std::lower_bound(layers.begin(), layers.end(), facet[0].z()+EPSILON,
+                      [](const Layer* l1, float z) {
+                           return l1->slice_z < z;
                       });
 
-            std::array<Vec2f, 3> trianglef;
-            for (int i=0; i<3; ++i)
-                trianglef[i] = to_2d(facet[i]) - center;
+        // Count how many projections will be generated for this triangle
+        // and allocate respective amount in projections_of_triangles.
+        size_t first_layer_id = projections_of_triangles[idx].first_layer_id = it - layers.begin();
+        size_t last_layer_id  = first_layer_id;
+        // The cast in the condition below is important. The comparison must
+        // be an exact opposite of the one lower in the code where
+        // the polygons are appended. And that one is on floats.
+        while (last_layer_id + 1 < layers.size()
+            && float(layers[last_layer_id]->slice_z) <= facet[2].z())
+            ++last_layer_id;
 
-            // Find lowest slice not below the triangle.
-            auto it = std::lower_bound(layers.begin(), layers.end(), facet[0].z()+EPSILON,
-                          [](const Layer* l1, float z) {
-                               return l1->slice_z < z;
-                          });
-
-            // Count how many projections will be generated for this triangle
-            // and allocate respective amount in projections_of_triangles.
-            size_t first_layer_id = projections_of_triangles[idx].first_layer_id = it - layers.begin();
-            size_t last_layer_id  = first_layer_id;
-            // The cast in the condition below is important. The comparison must
-            // be an exact opposite of the one lower in the code where
-            // the polygons are appended. And that one is on floats.
-            while (last_layer_id + 1 < layers.size()
-                && float(layers[last_layer_id]->slice_z) <= facet[2].z())
-                ++last_layer_id;
-
-            if (first_layer_id == last_layer_id) {
-                // The triangle fits just a single slab, just project it. This also avoids division by zero for horizontal triangles.
-                float dz = facet[2].z() - facet[0].z();
-                assert(dz >= 0);
-                // The face is nearly horizontal and it crosses the slicing plane at first_layer_id - 1.
-                // Rather add this face to both the planes.
-                bool add_below = dz < float(2. * EPSILON) && first_layer_id > 0 && layers[first_layer_id - 1]->slice_z > facet[0].z() - EPSILON;
-                projections_of_triangles[idx].polygons.reserve(add_below ? 2 : 1);
+        if (first_layer_id == last_layer_id) {
+            // The triangle fits just a single slab, just project it. This also avoids division by zero for horizontal triangles.
+            float dz = facet[2].z() - facet[0].z();
+            assert(dz >= 0);
+            // The face is nearly horizontal and it crosses the slicing plane at first_layer_id - 1.
+            // Rather add this face to both the planes.
+            bool add_below = dz < float(2. * EPSILON) && first_layer_id > 0 && layers[first_layer_id - 1]->slice_z > facet[0].z() - EPSILON;
+            projections_of_triangles[idx].polygons.reserve(add_below ? 2 : 1);
+            projections_of_triangles[idx].polygons.emplace_back(trianglef);
+            if (add_below) {
+                -- projections_of_triangles[idx].first_layer_id;
                 projections_of_triangles[idx].polygons.emplace_back(trianglef);
-                if (add_below) {
-                    -- projections_of_triangles[idx].first_layer_id;
-                    projections_of_triangles[idx].polygons.emplace_back(trianglef);
-                }
-                continue;
             }
-
-            projections_of_triangles[idx].polygons.resize(last_layer_id - first_layer_id + 1);
-
-            // Calculate how to move points on triangle sides per unit z increment.
-            Vec2f ta(trianglef[1] - trianglef[0]);
-            Vec2f tb(trianglef[2] - trianglef[0]);
-            ta *= 1.f/(facet[1].z() - facet[0].z());
-            tb *= 1.f/(facet[2].z() - facet[0].z());
-
-            // Projection on current slice will be build directly in place.
-            LightPolygon* proj = &projections_of_triangles[idx].polygons[0];
-            proj->add(trianglef[0]);
-
-            bool passed_first = false;
-            bool stop = false;
-
-            // Project a sub-polygon on all slices intersecting the triangle.
-            while (it != layers.end()) {
-                const float z = float((*it)->slice_z);
-
-                // Projections of triangle sides intersections with slices.
-                // a moves along one side, b tracks the other.
-                Vec2f a;
-                Vec2f b;
-
-                // If the middle vertex was already passed, append the vertex
-                // and use ta for tracking the remaining side.
-                if (z > facet[1].z() && ! passed_first) {
-                    proj->add(trianglef[1]);
-                    ta = trianglef[2]-trianglef[1];
-                    ta *= 1.f/(facet[2].z() - facet[1].z());
-                    passed_first = true;
-                }
-
-                // This slice is above the triangle already.
-                if (z > facet[2].z() || it+1 == layers.end()) {
-                    proj->add(trianglef[2]);
-                    stop = true;
-                }
-                else {
-                    // Move a, b along the side it currently tracks to get
-                    // projected intersection with current slice.
-                    a = passed_first ? (trianglef[1]+ta*(z-facet[1].z()))
-                                     : (trianglef[0]+ta*(z-facet[0].z()));
-                    b = trianglef[0]+tb*(z-facet[0].z());
-                    proj->add(a);
-                    proj->add(b);
-                }
-
-               if (stop)
-                    break;
-
-                // Advance to the next layer.
-                ++it;
-                ++proj;
-                assert(proj <= &projections_of_triangles[idx].polygons.back() );
-
-                // a, b are first two points of the polygon for the next layer.
-                proj->add(b);
-                proj->add(a);
-            }
+            continue;
         }
-        }); // end of parallel_for
 
-        // Make sure that the output vector can be used.
-        expolys.resize(layers.size());
+        projections_of_triangles[idx].polygons.resize(last_layer_id - first_layer_id + 1);
 
-        // Now append the collected polygons to respective layers.
-        for (auto& trg : projections_of_triangles) {
-            int layer_id = int(trg.first_layer_id);
-            for (LightPolygon &poly : trg.polygons) {
-                if (layer_id >= int(expolys.size()))
-                    break; // part of triangle could be projected above top layer
-                assert(! poly.pts.empty());
-                // The resulting triangles are fed to the Clipper library, which seem to handle flipped triangles well.
+        // Calculate how to move points on triangle sides per unit z increment.
+        Vec2f ta(trianglef[1] - trianglef[0]);
+        Vec2f tb(trianglef[2] - trianglef[0]);
+        ta *= 1.f/(facet[1].z() - facet[0].z());
+        tb *= 1.f/(facet[2].z() - facet[0].z());
+
+        // Projection on current slice will be built directly in place.
+        LightPolygon* proj = &projections_of_triangles[idx].polygons[0];
+        proj->add(trianglef[0]);
+
+        bool passed_first = false;
+        bool stop = false;
+
+        // Project a sub-polygon on all slices intersecting the triangle.
+        while (it != layers.end()) {
+            const float z = float((*it)->slice_z);
+
+            // Projections of triangle sides intersections with slices.
+            // a moves along one side, b tracks the other.
+            Vec2f a;
+            Vec2f b;
+
+            // If the middle vertex was already passed, append the vertex
+            // and use ta for tracking the remaining side.
+            if (z > facet[1].z() && ! passed_first) {
+                proj->add(trianglef[1]);
+                ta = trianglef[2]-trianglef[1];
+                ta *= 1.f/(facet[2].z() - facet[1].z());
+                passed_first = true;
+            }
+
+            // This slice is above the triangle already.
+            if (z > facet[2].z() || it+1 == layers.end()) {
+                proj->add(trianglef[2]);
+                stop = true;
+            }
+            else {
+                // Move a, b along the side it currently tracks to get
+                // projected intersection with current slice.
+                a = passed_first ? (trianglef[1]+ta*(z-facet[1].z()))
+                                 : (trianglef[0]+ta*(z-facet[0].z()));
+                b = trianglef[0]+tb*(z-facet[0].z());
+                proj->add(a);
+                proj->add(b);
+            }
+
+           if (stop)
+                break;
+
+            // Advance to the next layer.
+            ++it;
+            ++proj;
+            assert(proj <= &projections_of_triangles[idx].polygons.back() );
+
+            // a, b are first two points of the polygon for the next layer.
+            proj->add(b);
+            proj->add(a);
+        }
+    }
+    }); // end of parallel_for
+
+    // Make sure that the output vector can be used.
+    out.resize(layers.size());
+
+    // Now append the collected polygons to respective layers.
+    for (auto& trg : projections_of_triangles) {
+        int layer_id = int(trg.first_layer_id);
+        for (LightPolygon &poly : trg.polygons) {
+            if (layer_id >= int(out.size()))
+                break; // part of triangle could be projected above top layer
+            assert(! poly.pts.empty());
+            // The resulting triangles are fed to the Clipper library, which seem to handle flipped triangles well.
 //                if (cross2(Vec2d((poly.pts[1] - poly.pts[0]).cast<double>()), Vec2d((poly.pts[2] - poly.pts[1]).cast<double>())) < 0)
 //                    std::swap(poly.pts.front(), poly.pts.back());
-                    
-                expolys[layer_id].emplace_back(std::move(poly.pts));
-                ++layer_id;
-            }
+                
+            out[layer_id].emplace_back(std::move(poly.pts));
+            ++layer_id;
         }
-
-    } // loop over ModelVolumes
+    }
 }
 
-
+void PrintObject::project_and_append_custom_facets(
+        bool seam, EnforcerBlockerType type, std::vector<Polygons>& out) const
+{
+    for (const ModelVolume* mv : this->model_object()->volumes)
+        if (mv->is_model_part()) {
+            const indexed_triangle_set custom_facets = seam
+                    ? mv->seam_facets.get_facets_strict(*mv, type)
+                    : mv->supported_facets.get_facets_strict(*mv, type);
+            if (! custom_facets.indices.empty())
+                project_triangles_to_slabs(this->layers(), custom_facets, 
+                    (Eigen::Translation3d(to_3d(unscaled<double>(this->center_offset()), 0.)) * this->trafo() * mv->get_matrix()).cast<float>(), 
+                    seam, out);
+        }
+}
 
 const Layer* PrintObject::get_layer_at_printz(coordf_t print_z) const {
     auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [print_z](const Layer *layer) { return layer->print_z < print_z; });

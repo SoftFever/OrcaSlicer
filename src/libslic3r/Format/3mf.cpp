@@ -1570,12 +1570,7 @@ namespace Slic3r {
 
         m_curr_object.geometry.custom_supports.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
         m_curr_object.geometry.custom_seam.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
-//        m_curr_object.geometry.mmu_segmentation.push_back(get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
-        // FIXME Lukas H.: This is only for backward compatibility with older 3MF test files. Removes this when it is not necessary.
-        if(get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR) != "")
-            m_curr_object.geometry.mmu_segmentation.push_back(get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
-        else
-            m_curr_object.geometry.mmu_segmentation.push_back(get_attribute_value_string(attributes, num_attributes, "slic3rpe:mmu_painting"));
+        m_curr_object.geometry.mmu_segmentation.push_back(get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
         return true;
     }
 

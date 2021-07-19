@@ -992,22 +992,20 @@ void PageMaterials::update_lists(int sel_type, int sel_vendor, int last_selected
 				}
 
 				materials->filter_presets(printer, type, vendor, [this, &to_list](const Preset* p) {
-					bool was_checked = false;
-					//size_t printer_counter = materials->get_printer_counter(p);
-					int cur_i = list_profile->find(p->alias);
-                    bool emplace_to_to_list = false;
-					if (cur_i == wxNOT_FOUND) {
-						cur_i = list_profile->append(p->alias + (materials->get_omnipresent(p) ? "" : " *"), &p->alias);
-                        emplace_to_to_list = true;
-                    } else
-						was_checked = list_profile->IsChecked(cur_i);
-
 					const std::string& section = materials->appconfig_section();
+                    bool checked = wizard_p()->appconfig_new.has(section, p->name);
+                    bool was_checked = false;
 
-					const bool checked = wizard_p()->appconfig_new.has(section, p->name);
-					list_profile->Check(cur_i, checked || was_checked);
-                    if (emplace_to_to_list) 
-                        to_list.emplace_back(p->alias, materials->get_omnipresent(p), checked || was_checked);
+                    int cur_i = list_profile->find(p->alias);
+                    if (cur_i == wxNOT_FOUND) {
+                        cur_i = list_profile->append(p->alias + (materials->get_omnipresent(p) ? "" : " *"), &p->alias);
+                        to_list.emplace_back(p->alias, materials->get_omnipresent(p), checked);
+                    }
+                    else {
+                        was_checked = list_profile->IsChecked(cur_i);
+                        to_list[cur_i].checked = checked || was_checked;
+                    }
+                    list_profile->Check(cur_i, checked || was_checked);
 
 					/* Update preset selection in config.
 					 * If one preset from aliases bundle is selected,
@@ -2335,6 +2333,7 @@ void ConfigWizard::priv::on_3rdparty_install(const VendorProfile *vendor, bool i
 
 bool ConfigWizard::priv::on_bnt_finish()
 {
+    wxBusyCursor wait;
     /* When Filaments or Sla Materials pages are activated, 
      * materials for this pages are automaticaly updated and presets are reloaded.
      * 

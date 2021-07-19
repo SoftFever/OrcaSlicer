@@ -127,6 +127,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
             if (mv->is_model_part()) {
                 ++idx;
                 m_triangle_selectors[idx]->reset();
+                m_triangle_selectors[idx]->request_update_render_data();
             }
         }
 
@@ -147,6 +148,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+    // Manually inserted values aren't clamped by ImGui. Zero cursor size results in a crash.
+    m_cursor_radius = std::clamp(m_cursor_radius, CursorRadiusMin, CursorRadiusMax);
 
 
     ImGui::AlignTextToFramePadding();
@@ -257,6 +260,7 @@ void GLGizmoSeam::update_from_model_object()
 
         m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorGUI>(*mesh));
         m_triangle_selectors.back()->deserialize(mv->seam_facets.get_data());
+        m_triangle_selectors.back()->request_update_render_data();
     }
 }
 

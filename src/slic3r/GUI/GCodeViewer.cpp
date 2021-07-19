@@ -2417,7 +2417,7 @@ void GCodeViewer::render_toolpaths() const
     const Camera& camera = wxGetApp().plater()->get_camera();
     double zoom = camera.get_zoom();
     const std::array<int, 4>& viewport = camera.get_viewport();
-    float near_plane_height = camera.get_type() == Camera::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
+    float near_plane_height = camera.get_type() == Camera::EType::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
         static_cast<float>(viewport[3]) * 0.0005;
 
     auto set_uniform_color = [](const std::array<float, 3>& color, GLShaderProgram& shader) {
@@ -2593,7 +2593,7 @@ void GCodeViewer::render_shells() const
 //    glsafe(::glDepthMask(GL_FALSE));
 
     shader->start_using();
-    m_shells.volumes.render(GLVolumeCollection::Transparent, true, wxGetApp().plater()->get_camera().get_view_matrix());
+    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, true, wxGetApp().plater()->get_camera().get_view_matrix());
     shader->stop_using();
 
 //    glsafe(::glDepthMask(GL_TRUE));

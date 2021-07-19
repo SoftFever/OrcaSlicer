@@ -45,11 +45,10 @@ enum PrintStep {
     // psToolOrdering is a synonym to psWipeTower, as the Wipe Tower calculates and modifies the ToolOrdering,
     // while if printing without the Wipe Tower, the ToolOrdering is calculated as well.
     psToolOrdering = psWipeTower,
-    psSkirt, 
-    psBrim,
+    psSkirtBrim,
     // Last step before G-code export, after this step is finished, the initial extrusion path preview
     // should be refreshed.
-    psSlicingFinished = psBrim,
+    psSlicingFinished = psSkirtBrim,
     psGCodeExport,
     psCount,
 };
@@ -326,12 +325,12 @@ public:
     void slice();
 
     // Helpers to slice support enforcer / blocker meshes by the support generator.
-    std::vector<ExPolygons>     slice_support_volumes(const ModelVolumeType model_volume_type) const;
-    std::vector<ExPolygons>     slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
-    std::vector<ExPolygons>     slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
+    std::vector<Polygons>       slice_support_volumes(const ModelVolumeType model_volume_type) const;
+    std::vector<Polygons>       slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
+    std::vector<Polygons>       slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
     // Helpers to project custom facets on slices
-    void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<ExPolygons>& expolys) const;
+    void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<Polygons>& expolys) const;
 
 private:
     // to be called from Print only.

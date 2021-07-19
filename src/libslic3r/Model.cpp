@@ -1070,8 +1070,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
     new_object->input_file.clear();
 
     int vol_idx = 0;
-    for (ModelVolume* volume : volumes)
-    {
+    for (ModelVolume* volume : volumes) {
         if (!volume->mesh().empty()) {
             TriangleMesh mesh(volume->mesh());
             mesh.require_shared_vertices();
@@ -1089,6 +1088,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
             vol->source.volume_idx = vol_idx;
             vol->source.is_converted_from_inches = volume->source.is_converted_from_inches;
             vol->source.is_converted_from_meters = volume->source.is_converted_from_meters;
+            vol->source.is_from_builtin_objects = volume->source.is_from_builtin_objects;
 
             vol->supported_facets.assign(volume->supported_facets);
             vol->seam_facets.assign(volume->seam_facets);
@@ -1959,8 +1959,19 @@ indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, Enforce
 {
     TriangleSelector selector(mv.mesh());
     selector.deserialize(m_data);
-    indexed_triangle_set out = selector.get_facets(type);
-    return out;
+    return selector.get_facets(type);
+}
+
+indexed_triangle_set FacetsAnnotation::get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const
+{
+    TriangleSelector selector(mv.mesh());
+    selector.deserialize(m_data);
+    return selector.get_facets_strict(type);
+}
+
+bool FacetsAnnotation::has_facets(const ModelVolume& mv, EnforcerBlockerType type) const
+{
+    return TriangleSelector::has_facets(m_data, type);
 }
 
 bool FacetsAnnotation::set(const TriangleSelector& selector)

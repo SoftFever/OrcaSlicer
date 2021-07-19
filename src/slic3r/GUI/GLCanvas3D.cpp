@@ -21,7 +21,6 @@
 #include "slic3r/GUI/GUI_Preview.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/3DBed.hpp"
-#include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 
@@ -697,7 +696,7 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
         Vec3d screen_box_center = world_to_screen * owner.world_box.center();
         float x = 0.0f;
         float y = 0.0f;
-        if (camera.get_type() == Camera::Perspective) {
+        if (camera.get_type() == Camera::EType::Perspective) {
             x = (0.5f + 0.001f * 0.5f * (float)screen_box_center(0)) * viewport[2];
             y = (0.5f - 0.001f * 0.5f * (float)screen_box_center(1)) * viewport[3];
         } else {
@@ -729,7 +728,7 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
         }
 
         // force re-render while the windows gets to its final size (it takes several frames)
-        if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
+        if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
             m_canvas.request_extra_frame();
 
         imgui.end();
@@ -780,7 +779,7 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     ImGui::TextUnformatted(m_text.c_str());
 
     // force re-render while the windows gets to its final size (it may take several frames) or while hidden
-    if (alpha < 1.0f || ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
+    if (alpha < 1.0f || ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
         canvas.request_extra_frame();
 
     size = ImGui::GetWindowSize();
@@ -1476,12 +1475,20 @@ void GLCanvas3D::render()
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
 
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+    _render_objects(GLVolumeCollection::ERenderType::Opaque);
+#else
     _render_objects();
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     if (!m_main_toolbar.is_enabled())
         _render_gcode();
     _render_sla_slices();
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+    _render_objects(GLVolumeCollection::ERenderType::Transparent);
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+
 #if ENABLE_SEQUENTIAL_LIMITS
     _render_sequential_clearance();
 #endif // ENABLE_SEQUENTIAL_LIMITS
@@ -1589,13 +1596,18 @@ void GLCanvas3D::render()
 #endif // ENABLE_RENDER_STATISTICS
 }
 
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
+{
+    render_thumbnail(thumbnail_data, w, h, thumbnail_params, m_volumes, camera_type);
+}
+
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
 {
     switch (OpenGLManager::get_framebuffers_type())
     {
-    case OpenGLManager::EFramebufferType::Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
-    case OpenGLManager::EFramebufferType::Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
-    default: { _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
+    case OpenGLManager::EFramebufferType::Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
+    case OpenGLManager::EFramebufferType::Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
+    default: { _render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
     }
 }
 
@@ -2910,9 +2922,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
         printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
-		 m_dirty = true;
+        m_dirty = true;
         // do not return if dragging or tooltip not empty to allow for tooltip update
-        if (!m_mouse.dragging && m_tooltip.is_empty())
+        // also, do not return if the mouse is moving and also is inside MM gizmo to allow update seed fill selection
+        if (!m_mouse.dragging && m_tooltip.is_empty() && (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation || !evt.Moving()))
             return;
     }
 
@@ -4085,7 +4098,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
 {
     auto is_visible = [](const GLVolume& v) {
         bool ret = v.printable;
@@ -4098,9 +4111,9 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
 
     GLVolumePtrs visible_volumes;
 
-    for (GLVolume* vol : m_volumes.volumes) {
-        if (!vol->is_modifier && !vol->is_wipe_tower && (!parts_only || (vol->composite_id.volume_id >= 0))) {
-            if (!printable_only || is_visible(*vol))
+    for (GLVolume* vol : volumes.volumes) {
+        if (!vol->is_modifier && !vol->is_wipe_tower && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0)) {
+            if (!thumbnail_params.printable_only || is_visible(*vol))
                 visible_volumes.emplace_back(vol);
         }
     }
@@ -4108,37 +4121,37 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
     if (visible_volumes.empty())
         return;
 
-    BoundingBoxf3 box;
+    BoundingBoxf3 volumes_box;
     for (const GLVolume* vol : visible_volumes) {
-        box.merge(vol->transformed_bounding_box());
+        volumes_box.merge(vol->transformed_bounding_box());
     }
 
     Camera camera;
-    camera.set_type(Camera::Ortho);
+    camera.set_type(camera_type);
     camera.set_scene_box(scene_bounding_box());
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
-    camera.zoom_to_volumes(visible_volumes);
+    camera.zoom_to_box(volumes_box);
     camera.apply_view_matrix();
 
     double near_z = -1.0;
     double far_z = -1.0;
 
-    if (show_bed) {
+    if (thumbnail_params.show_bed) {
         // extends the near and far z of the frustrum to avoid the bed being clipped
 
         // box in eye space
         BoundingBoxf3 t_bed_box = wxGetApp().plater()->get_bed().get_bounding_box(true).transformed(camera.get_view_matrix());
-        near_z = -t_bed_box.max(2);
-        far_z = -t_bed_box.min(2);
+        near_z = -t_bed_box.max.z();
+        far_z = -t_bed_box.min.z();
     }
 
-    camera.apply_projection(box, near_z, far_z);
+    camera.apply_projection(volumes_box, near_z, far_z);
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
 
-    if (transparent_background)
+    if (thumbnail_params.transparent_background)
         glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
@@ -4160,15 +4173,15 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    if (show_bed)
+    if (thumbnail_params.show_bed)
         _render_bed(!camera.is_looking_downward(), false);
 
     // restore background color
-    if (transparent_background)
+    if (thumbnail_params.transparent_background)
         glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4218,7 +4231,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, show_bed, transparent_background);
+        _render_thumbnail_internal(thumbnail_data, thumbnail_params, volumes, camera_type);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -4267,7 +4280,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4317,7 +4330,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
-        _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, show_bed, transparent_background);
+        _render_thumbnail_internal(thumbnail_data, thumbnail_params, volumes, camera_type);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -4366,7 +4379,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
 {
     // check that thumbnail size does not exceed the default framebuffer size
     const Size& cnv_size = get_canvas_size();
@@ -4382,7 +4395,7 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
     if (!thumbnail_data.is_valid())
         return;
 
-    _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, show_bed, transparent_background);
+    _render_thumbnail_internal(thumbnail_data, thumbnail_params, volumes, camera_type);
 
     glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
@@ -5031,7 +5044,11 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
     wxGetApp().plater()->get_bed().render(*this, bottom, scale_factor, show_axes, show_texture);
 }
 
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
+#else
 void GLCanvas3D::_render_objects()
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
 {
     if (m_volumes.empty())
         return;
@@ -5062,37 +5079,63 @@ void GLCanvas3D::_render_objects()
     if (shader != nullptr) {
         shader->start_using();
 
-        if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
-            int object_id = m_layers_editing.last_object_id;
-            m_volumes.render(GLVolumeCollection::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
-                // Which volume to paint without the layer height profile shader?
-                return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
-                });
-            // Let LayersEditing handle rendering of the active object using the layer height profile shader.
-            m_layers_editing.render_volumes(*this, m_volumes);
-        } else {
-            // do not cull backfaces to show broken geometry, if any
-            m_volumes.render(GLVolumeCollection::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
-                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
-            });
-        }
-
-        // In case a painting gizmo is open, it should render the painted triangles
-        // before transparent objects are rendered. Otherwise they would not be
-        // visible when inside modifier meshes etc.
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+        switch (type)
         {
-            const GLGizmosManager& gm = get_gizmos_manager();
-            GLGizmosManager::EType type = gm.get_current_type();
-            if (type == GLGizmosManager::FdmSupports
-                || type == GLGizmosManager::Seam
-                || type == GLGizmosManager::MmuSegmentation) {
-                shader->stop_using();
-                gm.render_painter_gizmo();
-                shader->start_using();
+        default:
+        case GLVolumeCollection::ERenderType::Opaque:
+        {
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+            if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
+                int object_id = m_layers_editing.last_object_id;
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+                m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
+#else
+                m_volumes.render(GLVolumeCollection::ERenderType::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+                    // Which volume to paint without the layer height profile shader?
+                    return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
+                    });
+                // Let LayersEditing handle rendering of the active object using the layer height profile shader.
+                m_layers_editing.render_volumes(*this, m_volumes);
             }
-        }
+            else {
+                // do not cull backfaces to show broken geometry, if any
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+                m_volumes.render(type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
+#else
+                m_volumes.render(GLVolumeCollection::ERenderType::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+                    return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+                    });
+            }
 
-        m_volumes.render(GLVolumeCollection::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
+            // In case a painting gizmo is open, it should render the painted triangles
+            // before transparent objects are rendered. Otherwise they would not be
+            // visible when inside modifier meshes etc.
+            {
+                const GLGizmosManager& gm = get_gizmos_manager();
+                GLGizmosManager::EType type = gm.get_current_type();
+                if (type == GLGizmosManager::FdmSupports
+                    || type == GLGizmosManager::Seam
+                    || type == GLGizmosManager::MmuSegmentation) {
+                    shader->stop_using();
+                    gm.render_painter_gizmo();
+                    shader->start_using();
+                }
+            }
+#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
+            break;
+        }
+        case GLVolumeCollection::ERenderType::Transparent:
+        {
+            m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix());
+            break;
+        }
+        }
+#else
+        m_volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
+#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
         shader->stop_using();
     }
 
@@ -5253,8 +5296,8 @@ void GLCanvas3D::_render_volumes_for_picking() const
 
     const Transform3d& view_matrix = wxGetApp().plater()->get_camera().get_view_matrix();
     for (size_t type = 0; type < 2; ++ type) {
-	    GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, (type == 0) ? GLVolumeCollection::Opaque : GLVolumeCollection::Transparent, view_matrix);
-	    for (const GLVolumeWithIdAndZ& volume : to_render)
+        GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, (type == 0) ? GLVolumeCollection::ERenderType::Opaque : GLVolumeCollection::ERenderType::Transparent, view_matrix);
+        for (const GLVolumeWithIdAndZ& volume : to_render)
 	        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries)) {
 		        // Object picking mode. Render the object with a color encoding the object index.
 		        unsigned int id = volume.second.first;
@@ -5661,7 +5704,7 @@ void GLCanvas3D::_load_print_toolpaths()
     if (print == nullptr)
         return;
 
-    if (!print->is_step_done(psSkirt) || !print->is_step_done(psBrim))
+    if (! print->is_step_done(psSkirtBrim))
         return;
 
     if (!print->has_skirt() && !print->has_brim())
