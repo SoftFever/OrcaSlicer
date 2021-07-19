@@ -907,7 +907,7 @@ private:
 
     float get_overlay_window_width() { return LayersEditing::get_overlay_window_width(); }
 
-    static std::vector<std::array<float, 4>> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors);
+    static std::vector<std::array<float, 4>> _parse_colors(const std::vector<std::string>& colors);
 };
 
 } // namespace GUI
