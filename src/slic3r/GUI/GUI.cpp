@@ -1,5 +1,6 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "format.hpp"
 #include "I18N.hpp"
 
 #include "libslic3r/LocalesUtils.hpp"
@@ -199,9 +200,9 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			break;
 		}
 	}
-	catch (const std::exception & /* e */)
+	catch (const std::exception &e)
 	{
-		// int i = 0;//no reason, just experiment
+		wxLogError(format_wxstr(_L("Internal error when changing value for %1%: %2%"), opt_key, e.what()));
 	}
 }
 

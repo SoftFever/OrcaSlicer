@@ -352,18 +352,12 @@ bool Print::has_brim() const
     return std::any_of(m_objects.begin(), m_objects.end(), [](PrintObject *object) { return object->has_brim(); });
 }
 
-#if ENABLE_SEQUENTIAL_LIMITS
 bool Print::sequential_print_horizontal_clearance_valid(const Print& print, Polygons* polygons)
-#else
-static inline bool sequential_print_horizontal_clearance_valid(const Print &print)
-#endif // ENABLE_SEQUENTIAL_LIMITS
 {
 	Polygons convex_hulls_other;
-#if ENABLE_SEQUENTIAL_LIMITS
     if (polygons != nullptr)
         polygons->clear();
     std::vector<size_t> intersecting_idxs;
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
 	std::map<ObjectID, Polygon> map_model_object_to_convex_hull;
 	for (const PrintObject *print_object : print.objects()) {
@@ -408,7 +402,6 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
 	        // instance.shift is a position of a centered object, while model object may not be centered.
 	        // Convert the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
 	        convex_hull.translate(instance.shift - print_object->center_offset());
-#if ENABLE_SEQUENTIAL_LIMITS
             // if output needed, collect indices (inside convex_hulls_other) of intersecting hulls
             for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
                 if (!intersection((Polygons)convex_hulls_other[i], (Polygons)convex_hull).empty()) {
@@ -420,15 +413,10 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
                     }
                 }
             }
-#else
-            if (!intersection(convex_hulls_other, (Polygons)convex_hull).empty())
-                return false;
-#endif // ENABLE_SEQUENTIAL_LIMITS
             convex_hulls_other.emplace_back(std::move(convex_hull));
 	    }
 	}
 
-#if ENABLE_SEQUENTIAL_LIMITS
     if (!intersecting_idxs.empty()) {
         // use collected indices (inside convex_hulls_other) to update output
         std::sort(intersecting_idxs.begin(), intersecting_idxs.end());
@@ -438,7 +426,6 @@ static inline bool sequential_print_horizontal_clearance_valid(const Print &prin
         }
         return false;
     }
-#endif // ENABLE_SEQUENTIAL_LIMITS
     return true;
 }
 

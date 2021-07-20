@@ -41,7 +41,7 @@ class GalleryDialog : public DPIDialog
     void update();
 
 public:
-    GalleryDialog(wxWindow* parent);
+    GalleryDialog(wxWindow* parent, bool modify_gallery = false);
     ~GalleryDialog();
 
     void get_input_files(wxArrayString& input_files);

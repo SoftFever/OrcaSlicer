@@ -1413,7 +1413,7 @@ void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>&
 
     if (from_galery) {
         GalleryDialog dlg(this);
-        if (dlg.ShowModal() == wxID_CANCEL)
+        if (dlg.ShowModal() == wxID_CLOSE)
             return;
         dlg.get_input_files(input_files);
         if (input_files.IsEmpty())
@@ -1472,7 +1472,7 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
 
     if (from_galery) {
         GalleryDialog dlg(this);
-        if (dlg.ShowModal() == wxID_CANCEL)
+        if (dlg.ShowModal() == wxID_CLOSE)
             return;
         dlg.get_input_files(input_files);
         if (input_files.IsEmpty())
@@ -1684,18 +1684,22 @@ void ObjectList::load_shape_object_from_gallery()
 
     wxArrayString input_files;
     GalleryDialog gallery_dlg(this);
-    if (gallery_dlg.ShowModal() == wxID_CANCEL)
+    if (gallery_dlg.ShowModal() == wxID_CLOSE)
         return;
     gallery_dlg.get_input_files(input_files);
     if (input_files.IsEmpty())
         return;
+    load_shape_object_from_gallery(input_files);
+}
 
+void ObjectList::load_shape_object_from_gallery(const wxArrayString& input_files)
+{
     std::vector<boost::filesystem::path> paths;
     for (const auto& file : input_files)
         paths.push_back(into_path(file));
 
     assert(!paths.empty());
-    wxString snapshot_label = (paths.size() == 1 ? _L("Add Shape") : _L("Add Shapes")) + ": " +
+    wxString snapshot_label = (paths.size() == 1 ? _L("Add Shape from Gallery") : _L("Add Shapes from Gallery")) + ": " +
         wxString::FromUTF8(paths.front().filename().string().c_str());
     for (size_t i = 1; i < paths.size(); ++i)
         snapshot_label += ", " + wxString::FromUTF8(paths[i].filename().string().c_str());

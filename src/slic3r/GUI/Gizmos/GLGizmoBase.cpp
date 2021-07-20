@@ -63,11 +63,7 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
 
     GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_current_shader();
     if (shader != nullptr)
-#if ENABLE_SEQUENTIAL_LIMITS
         const_cast<GLModel*>(&cube)->set_color(-1, render_color);
-#else
-        shader->set_uniform("uniform_color", render_color);
-#endif // ENABLE_SEQUENTIAL_LIMITS
     else
         glsafe(::glColor4fv(render_color.data())); // picking
 

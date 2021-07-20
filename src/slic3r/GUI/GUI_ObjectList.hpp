@@ -245,6 +245,7 @@ public:
     void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                load_shape_object(const std::string &type_name);
     void                load_shape_object_from_gallery();
+    void                load_shape_object_from_gallery(const wxArrayString& input_files);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
     void                del_object(const int obj_idx);
     void                del_subobject_item(wxDataViewItem& item);
