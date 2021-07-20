@@ -20,19 +20,19 @@ class GLGizmoSimplify : public GLGizmoBase
     } state;
 
     bool is_valid_result; // differ what to do in apply
-
     int progress;
     
     ModelVolume *volume;
     size_t obj_index;
     std::optional<indexed_triangle_set> original_its;
 
+    std::optional<float> last_error; // for use previous reduction
+
     bool need_reload; // after simplify, glReload must be on main thread
     std::thread worker;
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     virtual ~GLGizmoSimplify();
-    void set_selectable(bool value);
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
