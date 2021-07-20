@@ -402,6 +402,10 @@ void Preview::refresh_print()
 
 void Preview::msw_rescale()
 {
+#ifdef _WIN32
+    m_choice_view_type->Rescale();
+    m_choice_view_type->SetMinSize(m_choice_view_type->GetSize());
+#endif
     // rescale slider
     if (m_layers_slider != nullptr) m_layers_slider->msw_rescale();
     if (m_moves_slider != nullptr) m_moves_slider->msw_rescale();

@@ -166,7 +166,7 @@ int BitmapComboBox::Append(const wxString& item)
     //2. But then set width to 0 value for no using of bitmap left and right spacing
     //3. Set this empty bitmap to the at list one item and BitmapCombobox will be recreated correct
 
-    wxBitmap bitmap(1, this->GetFont().GetPixelSize().y + 2);
+    wxBitmap bitmap(1, int(1.6 * wxGetApp().em_unit() + 1));
     bitmap.SetWidth(0);
 
     OnAddBitmap(bitmap);
@@ -259,6 +259,21 @@ void BitmapComboBox::DrawBackground_(wxDC& dc, const wxRect& rect, int WXUNUSED(
         dc.SetBrush(selCol);
         dc.DrawRectangle(rect);
     }
+}
+
+void BitmapComboBox::Rescale()
+{
+    // Next workaround: To correct scaling of a BitmapCombobox
+    // we need to refill control with new bitmaps
+    const wxString selection = this->GetValue();
+    std::vector<wxString> items;
+    for (size_t i = 0; i < GetCount(); i++)
+        items.push_back(GetString(i));
+
+    this->Clear();
+    for (const wxString& item : items)
+        Append(item);
+    this->SetValue(selection);
 }
 #endif
 

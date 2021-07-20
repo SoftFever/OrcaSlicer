@@ -17,13 +17,20 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, bool add_mode_buttons/* = fal
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
+    int em = em_unit(this);// Slic3r::GUI::wxGetApp().em_unit();
+    m_btn_margin  = std::lround(0.3 * em);
+    m_line_margin = std::lround(0.1 * em);
+
     m_sizer = new wxBoxSizer(wxHORIZONTAL);
     this->SetSizer(m_sizer);
 
+    m_buttons_sizer = new wxFlexGridSizer(4, m_btn_margin, m_btn_margin);
+    m_sizer->Add(m_buttons_sizer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxBOTTOM, m_btn_margin);
+
     if (add_mode_buttons) {
-        m_mode_sizer = new ModeSizer(this, int(0.5 * em_unit(this)));
+        m_mode_sizer = new ModeSizer(this, m_btn_margin);
         m_sizer->AddStretchSpacer(20);
-        m_sizer->Add(m_mode_sizer, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+        m_sizer->Add(m_mode_sizer, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, m_btn_margin);
     }
 
     this->Bind(wxEVT_PAINT, &ButtonsListCtrl::OnPaint, this);
@@ -53,12 +60,12 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
         const wxColour& clr = idx == m_selection ? btn_marker_color : default_btn_bg;
         dc.SetPen(clr);
         dc.SetBrush(clr);
-        dc.DrawRectangle(pos.x, sz.y - 3, size.x, 3);
+        dc.DrawRectangle(pos.x, pos.y + size.y, size.x, sz.y - size.y);
     }
 
     dc.SetPen(btn_marker_color);
     dc.SetBrush(btn_marker_color);
-    dc.DrawRectangle(1, sz.y - 1, sz.x, 1);
+    dc.DrawRectangle(1, sz.y - m_line_margin, sz.x, m_line_margin);
 }
 
 void ButtonsListCtrl::UpdateMode()
@@ -71,6 +78,14 @@ void ButtonsListCtrl::Rescale()
     m_mode_sizer->msw_rescale();
     for (ScalableButton* btn : m_pageButtons)
         btn->msw_rescale();
+
+    int em = em_unit(this);
+    m_btn_margin = std::lround(0.3 * em);
+    m_line_margin = std::lround(0.1 * em);
+    m_buttons_sizer->SetVGap(m_btn_margin);
+    m_buttons_sizer->SetHGap(m_btn_margin);
+
+    m_sizer->Layout();
 }
 
 void ButtonsListCtrl::SetSelection(int sel)
@@ -95,7 +110,7 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* 
     });
     Slic3r::GUI::wxGetApp().UpdateDarkUI(btn);
     m_pageButtons.insert(m_pageButtons.begin() + n, btn);
-    m_sizer->Insert(n, new wxSizerItem(btn, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3));
+    m_buttons_sizer->Insert(n, new wxSizerItem(btn));
     m_sizer->Layout();
     return true;
 }
@@ -104,7 +119,7 @@ void ButtonsListCtrl::RemovePage(size_t n)
 {
     ScalableButton* btn = m_pageButtons[n];
     m_pageButtons.erase(m_pageButtons.begin() + n);
-    m_sizer->Remove(n);
+    m_buttons_sizer->Remove(n);
     btn->Reparent(nullptr);
     btn->Destroy();
     m_sizer->Layout();

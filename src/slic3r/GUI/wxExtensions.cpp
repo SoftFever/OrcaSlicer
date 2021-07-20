@@ -694,7 +694,9 @@ void ModeButton::focus_button(const bool focus)
 // ----------------------------------------------------------------------------
 
 ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 0*/) :
-    wxFlexGridSizer(3, 0, hgap)
+    wxFlexGridSizer(3, 0, hgap),
+    m_parent(parent),
+    m_hgap_unscaled((double)(hgap)/em_unit(parent))
 {
     SetFlexibleDirection(wxHORIZONTAL);
 
@@ -739,6 +741,7 @@ void ModeSizer::set_items_border(int border)
 
 void ModeSizer::msw_rescale()
 {
+    this->SetHGap(std::lround(m_hgap_unscaled * em_unit(m_parent)));
     for (size_t m = 0; m < m_mode_btns.size(); m++)
         m_mode_btns[m]->msw_rescale();
 }
@@ -886,6 +889,8 @@ bool ScalableButton::SetBitmap_(const std::string& bmp_name)
     wxBitmap bmp = create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt);
     SetBitmap(bmp);
     SetBitmapCurrent(bmp);
+    SetBitmapPressed(bmp);
+    SetBitmapFocus(bmp);
     if (m_use_default_disabled_bitmap)
         SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
     return true;
@@ -917,7 +922,11 @@ void ScalableButton::msw_rescale()
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this, m_has_border);
 
     if (!m_current_icon_name.empty()) {
-        SetBitmap(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt));
+        wxBitmap bmp = create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt);
+        SetBitmap(bmp);
+        SetBitmapCurrent(bmp);
+        SetBitmapPressed(bmp);
+        SetBitmapFocus(bmp);
         if (!m_disabled_icon_name.empty())
             SetBitmapDisabled(create_scaled_bitmap(m_disabled_icon_name, m_parent, m_px_cnt));
         else if (m_use_default_disabled_bitmap)

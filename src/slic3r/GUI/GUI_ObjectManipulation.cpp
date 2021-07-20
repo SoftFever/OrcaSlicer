@@ -106,6 +106,9 @@ void msw_rescale_word_local_combo(choice_ctrl* combo)
 
     combo->SetValue(selection);
 #else
+#ifdef _WIN32
+    combo->Rescale();
+#endif
     combo->SetMinSize(wxSize(15 * wxGetApp().em_unit(), -1));
 #endif
 }

@@ -31,7 +31,6 @@ struct SlopeDetection
 
 uniform vec4 uniform_color;
 uniform SlopeDetection slope;
-uniform bool sinking;
 
 #ifdef ENABLE_ENVIRONMENT_MAP
     uniform sampler2D environment_tex;
@@ -50,11 +49,6 @@ varying vec4 model_pos;
 varying float world_pos_z;
 varying float world_normal_z;
 varying vec3 eye_normal;
-
-vec3 sinking_color(vec3 color)
-{
-    return (mod(model_pos.x + model_pos.y + model_pos.z, BANDS_WIDTH) < (0.5 * BANDS_WIDTH)) ? mix(color, ZERO, 0.6666) : color;
-}
 
 uniform bool compute_triangle_normals_in_fs;
 
@@ -97,9 +91,6 @@ void main()
     }
     // if the fragment is outside the print volume -> use darker color
 	color = (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
-    // if the object is sinking, shade it with inclined bands or white around world z = 0
-    if (sinking)
-        color = (abs(world_pos_z) < 0.05) ? WHITE : sinking_color(color);
 #ifdef ENABLE_ENVIRONMENT_MAP
     if (use_environment_tex)
         gl_FragColor = vec4(0.45 * texture2D(environment_tex, normalize(eye_normal_fs).xy * 0.5 + 0.5).xyz + 0.8 * color * intensity_fs.x, alpha);
