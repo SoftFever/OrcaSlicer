@@ -642,10 +642,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 selection.start_dragging();
                 start_dragging();
 
-#if ENABLE_SEQUENTIAL_LIMITS
                 // Let the plater know that the dragging started
                 m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED));
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
                 if (m_current == Flatten) {
                     // Rotate the object so the normal points downward:

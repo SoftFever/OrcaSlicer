@@ -788,7 +788,6 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     ImGui::PopStyleVar(2);
 }
 
-#if ENABLE_SEQUENTIAL_LIMITS
 void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons)
 {
     m_perimeter.reset();
@@ -875,7 +874,6 @@ void GLCanvas3D::SequentialPrintClearance::render()
 
     shader->stop_using();
 }
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
@@ -893,9 +891,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
-#if ENABLE_SEQUENTIAL_LIMITS
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, SimpleEvent);
-#endif // ENABLE_SEQUENTIAL_LIMITS
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
@@ -1489,9 +1485,7 @@ void GLCanvas3D::render()
     _render_objects(GLVolumeCollection::ERenderType::Transparent);
 #endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
 
-#if ENABLE_SEQUENTIAL_LIMITS
     _render_sequential_clearance();
-#endif // ENABLE_SEQUENTIAL_LIMITS
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
 #endif // ENABLE_RENDER_SELECTION_CENTER
@@ -2986,7 +2980,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.position = pos.cast<double>();
 
-#if ENABLE_SEQUENTIAL_LIMITS
         if (evt.Dragging() && current_printer_technology() == ptFFF && fff_print()->config().complete_objects) {
             switch (m_gizmos.get_current_type())
             {
@@ -3000,7 +2993,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             default: { break; }
             }
         }
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
         return;
     }
@@ -3124,9 +3116,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_mouse.drag.move_volume_idx = volume_idx;
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
-#if ENABLE_SEQUENTIAL_LIMITS
                         m_sequential_print_clearance_first_displacement = true;
-#endif // ENABLE_SEQUENTIAL_LIMITS
                         m_moving = true;
                     }
                 }
@@ -3172,10 +3162,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
-#if ENABLE_SEQUENTIAL_LIMITS
             if (current_printer_technology() == ptFFF && fff_print()->config().complete_objects)
                 update_sequential_clearance();
-#endif // ENABLE_SEQUENTIAL_LIMITS
             wxGetApp().obj_manipul()->set_dirty();
             m_dirty = true;
         }
@@ -3455,9 +3443,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
     if (wipe_tower_origin != Vec3d::Zero())
         post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
 
-#if ENABLE_SEQUENTIAL_LIMITS
     reset_sequential_print_clearance();
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
     m_dirty = true;
 }
@@ -3805,7 +3791,6 @@ void GLCanvas3D::mouse_up_cleanup()
         m_canvas->ReleaseMouse();
 }
 
-#if ENABLE_SEQUENTIAL_LIMITS
 void GLCanvas3D::update_sequential_clearance()
 {
     if (current_printer_technology() != ptFFF || !fff_print()->config().complete_objects)
@@ -3895,7 +3880,6 @@ void GLCanvas3D::update_sequential_clearance()
     set_sequential_print_clearance_render_fill(false);
     set_sequential_print_clearance_polygons(polygons);
 }
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
 bool GLCanvas3D::_is_shown_on_screen() const
 {
@@ -5158,7 +5142,6 @@ void GLCanvas3D::_render_selection() const
         m_selection.render(scale_factor);
 }
 
-#if ENABLE_SEQUENTIAL_LIMITS
 void GLCanvas3D::_render_sequential_clearance()
 {
     if (m_layers_editing.is_enabled() || m_gizmos.is_dragging())
@@ -5177,7 +5160,6 @@ void GLCanvas3D::_render_sequential_clearance()
  
     m_sequential_print_clearance.render();
 }
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
 #if ENABLE_RENDER_SELECTION_CENTER
 void GLCanvas3D::_render_selection_center() const

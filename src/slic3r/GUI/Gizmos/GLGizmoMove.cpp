@@ -208,11 +208,7 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     if (! picking) {
         shader->start_using();
         shader->set_uniform("emission_factor", 0.1);
-#if ENABLE_SEQUENTIAL_LIMITS
         const_cast<GLModel*>(&m_vbo_cone)->set_color(-1, color);
-#else
-        shader->set_uniform("uniform_color", color);
-#endif // ENABLE_SEQUENTIAL_LIMITS
     } else
         glsafe(::glColor4fv(color.data()));
 

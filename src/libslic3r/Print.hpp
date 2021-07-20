@@ -583,9 +583,7 @@ public:
     const PrintRegion&          get_print_region(size_t idx) const  { return *m_print_regions[idx]; }
     const ToolOrdering&         get_tool_ordering() const { return m_wipe_tower_data.tool_ordering; }
 
-#if ENABLE_SEQUENTIAL_LIMITS
     static bool sequential_print_horizontal_clearance_valid(const Print& print, Polygons* polygons = nullptr);
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
 protected:
     // Invalidates the step, and its depending steps in Print.

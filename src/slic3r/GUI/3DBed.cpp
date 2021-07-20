@@ -107,9 +107,7 @@ void Bed3D::Axes::render() const
         glsafe(::glPopMatrix());
     };
 
-#if ENABLE_SEQUENTIAL_LIMITS
     if (!m_arrow.is_initialized())
-#endif // ENABLE_SEQUENTIAL_LIMITS
         const_cast<GLModel*>(&m_arrow)->init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
@@ -122,30 +120,15 @@ void Bed3D::Axes::render() const
     shader->set_uniform("emission_factor", 0.0);
 
     // x axis
-#if ENABLE_SEQUENTIAL_LIMITS
     const_cast<GLModel*>(&m_arrow)->set_color(-1, { 0.75f, 0.0f, 0.0f, 1.0f });
-#else
-    std::array<float, 4> color = { 0.75f, 0.0f, 0.0f, 1.0f };
-    shader->set_uniform("uniform_color", color);
-#endif // ENABLE_SEQUENTIAL_LIMITS
     render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }).cast<float>());
 
     // y axis
-#if ENABLE_SEQUENTIAL_LIMITS
     const_cast<GLModel*>(&m_arrow)->set_color(-1, { 0.0f, 0.75f, 0.0f, 1.0f });
-#else
-    color = { 0.0f, 0.75f, 0.0f, 1.0f };
-    shader->set_uniform("uniform_color", color);
-#endif // ENABLE_SEQUENTIAL_LIMITS
     render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }).cast<float>());
 
     // z axis
-#if ENABLE_SEQUENTIAL_LIMITS
     const_cast<GLModel*>(&m_arrow)->set_color(-1, { 0.0f, 0.0f, 0.75f, 1.0f });
-#else
-    color = { 0.0f, 0.0f, 0.75f, 1.0f };
-    shader->set_uniform("uniform_color", color);
-#endif // ENABLE_SEQUENTIAL_LIMITS
     render_axis(Geometry::assemble_transform(m_origin).cast<float>());
 
     shader->stop_using();
@@ -425,9 +408,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             }
 
             glsafe(::glEnable(GL_DEPTH_TEST));
-#if ENABLE_SEQUENTIAL_LIMITS
             if (bottom)
-#endif // ENABLE_SEQUENTIAL_LIMITS
                 glsafe(::glDepthMask(GL_FALSE));
 
             glsafe(::glEnable(GL_BLEND));
@@ -473,9 +454,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
                 glsafe(::glFrontFace(GL_CCW));
 
             glsafe(::glDisable(GL_BLEND));
-#if ENABLE_SEQUENTIAL_LIMITS
             if (bottom)
-#endif // ENABLE_SEQUENTIAL_LIMITS
                 glsafe(::glDepthMask(GL_TRUE));
 
             shader->stop_using();
@@ -491,9 +470,7 @@ void Bed3D::render_model() const
     GLModel* model = const_cast<GLModel*>(&m_model);
 
     if (model->get_filename() != m_model_filename && model->init_from_file(m_model_filename)) {
-#if ENABLE_SEQUENTIAL_LIMITS
         model->set_color(-1, m_model_color);
-#endif // ENABLE_SEQUENTIAL_LIMITS
 
         // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
         Vec3d shift = m_bounding_box.center();
@@ -508,9 +485,6 @@ void Bed3D::render_model() const
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-#if !ENABLE_SEQUENTIAL_LIMITS
-            shader->set_uniform("uniform_color", m_model_color);
-#endif // !ENABLE_SEQUENTIAL_LIMITS
             shader->set_uniform("emission_factor", 0.0);
             ::glPushMatrix();
             ::glTranslated(m_model_offset.x(), m_model_offset.y(), m_model_offset.z());
