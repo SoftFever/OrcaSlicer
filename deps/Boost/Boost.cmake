@@ -135,7 +135,7 @@ if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         EXCLUDE_FROM_ALL ON
         # GIT_REPOSITORY "https://github.com/prusa3d/polygon"
         # GIT_TAG prusaslicer_gmp
-        https://github.com/prusa3d/polygon/archive/refs/heads/prusaslicer_gmp.zip
+        URL https://github.com/prusa3d/polygon/archive/refs/heads/prusaslicer_gmp.zip
         URL_HASH SHA256=abeb9710f0a7069fb9b22181ae5c56f6066002f125db210e7ffb27032aed6824
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/boost_polygon
         DEPENDS dep_Boost
