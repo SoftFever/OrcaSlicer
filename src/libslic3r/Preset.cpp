@@ -1418,6 +1418,7 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
     static std::vector<std::string> s_opts;
     if (s_opts.empty()) {
         s_opts = {
+            "preset_name", // temporary option to compatibility with older Slicer
             "preset_names",
             "printer_technology",
             "host_type",
@@ -1481,6 +1482,15 @@ void PhysicalPrinter::update_preset_names_in_config()
         values.clear();
         for (auto preset : preset_names)
             values.push_back(preset);
+
+        // temporary workaround for compatibility with older Slicer
+        {
+            std::string name;
+            for (auto el : preset_names)
+                name += el + ";";
+            name.pop_back();
+            config.set_key_value("preset_name", new ConfigOptionString(name));
+        }
     }
 }
 
