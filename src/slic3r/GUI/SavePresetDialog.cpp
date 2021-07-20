@@ -286,17 +286,21 @@ void SavePresetDialog::add_info_for_edit_ph_printer(wxBoxSizer* sizer)
     m_label = new wxStaticText(this, wxID_ANY, msg_text);
     m_label->SetFont(wxGetApp().bold_font());
 
-    wxString choices[] = {"","",""};
-
-    m_action_radio_box = new wxRadioBox(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
-                                        WXSIZEOF(choices), choices, 3, wxRA_SPECIFY_ROWS);
-    m_action_radio_box->SetSelection(0);
-    m_action_radio_box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
-        m_action = (ActionType)e.GetSelection(); });
     m_action = ChangePreset;
-
     m_radio_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_radio_sizer->Add(m_action_radio_box, 1, wxEXPAND | wxTOP, 2*BORDER_W);
+
+    wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, "");
+    if (!wxOSX) action_stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    action_stb->SetFont(wxGetApp().bold_font());
+
+    wxStaticBoxSizer* stb_sizer = new wxStaticBoxSizer(action_stb, wxVERTICAL);
+    for (int id = 0; id < 3; id++) {
+        wxRadioButton* btn = new wxRadioButton(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, id == 0 ? wxRB_GROUP : 0);
+        btn->SetValue(id == int(ChangePreset));
+        btn->Bind(wxEVT_RADIOBUTTON, [this, id](wxCommandEvent&) { m_action = (ActionType)id; });
+        stb_sizer->Add(btn, 0, wxEXPAND | wxTOP, 5);
+    }
+    m_radio_sizer->Add(stb_sizer, 1, wxEXPAND | wxTOP, 2*BORDER_W);
 
     sizer->Add(m_label,         0, wxEXPAND | wxLEFT | wxTOP,   3*BORDER_W);
     sizer->Add(m_radio_sizer,   1, wxEXPAND | wxLEFT,           3*BORDER_W);
@@ -313,16 +317,21 @@ void SavePresetDialog::update_info_for_edit_ph_printer(const std::string& preset
         return;
     }
 
-    wxString msg_text = from_u8((boost::format(_u8L("What would you like to do with \"%1%\" preset after saving?")) % preset_name).str());
-    m_action_radio_box->SetLabel(msg_text);
+    if (wxSizerItem* sizer_item = m_radio_sizer->GetItem(size_t(0))) {
+        if (wxStaticBoxSizer* stb_sizer = static_cast<wxStaticBoxSizer*>(sizer_item->GetSizer())) {
+            wxString msg_text = format_wxstr(_L("What would you like to do with \"%1%\" preset after saving?"), preset_name);
+            stb_sizer->GetStaticBox()->SetLabel(msg_text);
 
-    wxString choices[] = { from_u8((boost::format(_u8L("Change \"%1%\" to \"%2%\" for this physical printer \"%3%\"")) % m_old_preset_name % preset_name % m_ph_printer_name).str()),
-                           from_u8((boost::format(_u8L("Add \"%1%\" as a next preset for the the physical printer \"%2%\"")) % preset_name % m_ph_printer_name).str()),
-                           from_u8((boost::format(_u8L("Just switch to \"%1%\" preset")) % preset_name).str()) };
+            wxString choices[] = { format_wxstr(_L("Change \"%1%\" to \"%2%\" for this physical printer \"%3%\""), m_old_preset_name, preset_name, m_ph_printer_name),
+                                   format_wxstr(_L("Add \"%1%\" as a next preset for the the physical printer \"%2%\""), preset_name, m_ph_printer_name),
+                                   format_wxstr(_L("Just switch to \"%1%\" preset"), preset_name) };
 
-    int n = 0;
-    for(const wxString& label: choices)
-        m_action_radio_box->SetString(n++, label);
+            size_t n = 0;
+            for (const wxString& label : choices)
+                stb_sizer->GetItem(n++)->GetWindow()->SetLabel(label);
+        }
+        Refresh();
+    }
 }
 
 void SavePresetDialog::layout()

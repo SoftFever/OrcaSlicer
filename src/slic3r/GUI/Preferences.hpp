@@ -7,7 +7,6 @@
 #include <wx/dialog.h>
 #include <map>
 
-class wxRadioBox;
 class wxColourPickerCtrl;
 
 namespace Slic3r {
