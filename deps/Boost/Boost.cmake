@@ -119,8 +119,8 @@ set(_install_cmd ${_build_cmd} --prefix=${_prefix} install)
 
 ExternalProject_Add(
     dep_Boost
-    URL "https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz"
-    URL_HASH SHA256=882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9
+    URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
+    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
     PATCH_COMMAND ${_patch_command}
@@ -135,8 +135,8 @@ if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         EXCLUDE_FROM_ALL ON
         # GIT_REPOSITORY "https://github.com/prusa3d/polygon"
         # GIT_TAG prusaslicer_gmp
-        URL https://github.com/prusa3d/polygon/archive/679b55115a1b106d918de8c7adf6ff0478abda1e.zip
-        URL_HASH SHA256=b3f288fcd3cee925753d1352783cefc98a5cab777dd0a5a985493a9b2d931752
+        https://github.com/prusa3d/polygon/archive/refs/heads/prusaslicer_gmp.zip
+        URL_HASH SHA256=abeb9710f0a7069fb9b22181ae5c56f6066002f125db210e7ffb27032aed6824
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/boost_polygon
         DEPENDS dep_Boost
         CONFIGURE_COMMAND ""
