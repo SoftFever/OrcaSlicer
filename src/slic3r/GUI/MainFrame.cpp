@@ -43,6 +43,8 @@
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
 #include "GUI_Factories.hpp"
+#include "GUI_ObjectList.hpp"
+#include "GalleryDialog.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1394,6 +1396,18 @@ void MainFrame::init_menubar_as_editor()
                 [this](){return can_change_view(); }, this);
         }
 
+        windowMenu->AppendSeparator();
+        append_menu_item(windowMenu, wxID_ANY, _L("Modify Shapes Gallery") + "\tCtrl+G", _L("Open the dialog to modify shapes gallery"),
+            [this](wxCommandEvent&) { 
+                GalleryDialog dlg(this, true);
+                if (dlg.ShowModal() == wxID_OK) {
+                    wxArrayString input_files;
+                    dlg.get_input_files(input_files);
+                    if (!input_files.IsEmpty())
+                        m_plater->sidebar().obj_list()->load_shape_object_from_gallery(input_files);
+                }
+            }, "cog", nullptr, []() {return true; }, this);
+        
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _L("Print &Host Upload Queue") + "\tCtrl+J", _L("Display the Print Host Upload Queue window"),
             [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);

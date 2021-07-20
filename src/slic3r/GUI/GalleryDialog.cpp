@@ -64,7 +64,7 @@ bool GalleryDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& f
 }
 
 
-GalleryDialog::GalleryDialog(wxWindow* parent) :
+GalleryDialog::GalleryDialog(wxWindow* parent, bool modify_gallery/* = false*/) :
     DPIDialog(parent, wxID_ANY, _L("Shapes Gallery"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 #ifndef _WIN32
@@ -90,9 +90,13 @@ GalleryDialog::GalleryDialog(wxWindow* parent) :
     });
 #endif
 
-    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK | wxCLOSE);
     wxButton* ok_btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
     ok_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(!m_selected_items.empty()); });
+    if (modify_gallery) {
+        ok_btn->SetLabel(_L("Add to bed"));
+        ok_btn->SetToolTip(_L("Add selected shape(s) to the bed"));
+    }
 
     auto add_btn = [this, buttons]( size_t pos, int& ID, wxString title, wxString tooltip,
                                     void (GalleryDialog::* method)(wxEvent&), 
@@ -144,7 +148,7 @@ void GalleryDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
 
-    msw_buttons_rescale(this, em, { ID_BTN_ADD_CUSTOM_SHAPE, ID_BTN_DEL_CUSTOM_SHAPE, ID_BTN_REPLACE_CUSTOM_PNG, wxID_OK, wxID_CANCEL });
+    msw_buttons_rescale(this, em, { ID_BTN_ADD_CUSTOM_SHAPE, ID_BTN_DEL_CUSTOM_SHAPE, ID_BTN_REPLACE_CUSTOM_PNG, wxID_OK, wxID_CLOSE });
 
     wxSize size = wxSize(55 * em, 35 * em);
     m_list_ctrl->SetMinSize(size);

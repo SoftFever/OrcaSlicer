@@ -1,5 +1,6 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "format.hpp"
 #include "I18N.hpp"
 
 #include "libslic3r/LocalesUtils.hpp"
