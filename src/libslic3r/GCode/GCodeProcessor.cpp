@@ -1087,7 +1087,12 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
+    bool use_machine_limits = false;
+    const ConfigOptionEnum<MachineLimitsUsage>* machine_limits_usage = config.option<ConfigOptionEnum<MachineLimitsUsage>>("machine_limits_usage");
+    if (machine_limits_usage != nullptr)
+        use_machine_limits = machine_limits_usage->value != MachineLimitsUsage::Ignore;
+
+    if (use_machine_limits && (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware)) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
         if (machine_max_acceleration_x != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
@@ -1171,8 +1176,13 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
     }
 
-    if (m_time_processor.machine_limits.machine_max_acceleration_x.values.size() > 1)
-        enable_stealth_time_estimator(true);
+    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
+        const ConfigOptionBool* silent_mode = config.option<ConfigOptionBool>("silent_mode");
+        if (silent_mode != nullptr) {
+            if (silent_mode->value && m_time_processor.machine_limits.machine_max_acceleration_x.values.size() > 1)
+                enable_stealth_time_estimator(true);
+        }
+    }
 
     const ConfigOptionBool* use_volumetric_e = config.option<ConfigOptionBool>("use_volumetric_e");
     if (use_volumetric_e != nullptr)
