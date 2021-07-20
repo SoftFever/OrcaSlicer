@@ -114,7 +114,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     if (state == State::settings) {
         if (m_imgui->button(_L("Cancel"))) {
             if (original_its.has_value()) { 
-                 set_its(*original_its);
+                set_its(*original_its);
                 state = State::close_on_end;
             } else {
                 close();
@@ -127,7 +127,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             process();
         }
         ImGui::SameLine();
-        if (m_imgui->button(_L("Aply"))) {
+        if (m_imgui->button(_L("Apply"))) {
             if (!is_valid_result) {
                 state = State::close_on_end;
                 process();
