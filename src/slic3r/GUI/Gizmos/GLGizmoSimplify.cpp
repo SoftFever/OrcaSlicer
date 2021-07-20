@@ -69,7 +69,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                ImGuiWindowFlags_NoCollapse;
     m_imgui->begin(_L("Simplify mesh ") + volume->name, flag);
-    ImGui::Text("Reduce amout of triangle in mesh(%s has %d triangles", volume->name, triangle_count);
+    ImGui::Text(_L("Reduce amout of triangle in mesh(%s has %d triangles").c_str(),
+        volume->name.c_str(), static_cast<int>(triangle_count));
     // First initialization + fix triangle count
     if (c.wanted_count > triangle_count) c.update_percent(triangle_count);
     if (m_imgui->checkbox(_L("Until triangle count is less than "), c.use_count)) {
