@@ -68,27 +68,46 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                ImGuiWindowFlags_NoCollapse;
-    m_imgui->begin(_L("Simplify mesh ") + volume->name, flag);
-    ImGui::Text(_L("Reduce amout of triangle in mesh(%s has %d triangles").c_str(),
-        volume->name.c_str(), static_cast<int>(triangle_count));
+    m_imgui->begin(on_get_name(), flag);
+    
+    int top_left_width = 100;
+    int bottom_left_width = 120;
+    int input_width = 80;    
+
+    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT,
+                          _L("Mesh name") + ":");
+    ImGui::SameLine(top_left_width);
+    m_imgui->text(volume->name);
+    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT,
+                          _L("Triangles") + ":");
+    ImGui::SameLine(top_left_width);
+    m_imgui->text(std::to_string(volume->mesh().its.indices.size()));
+
+    ImGui::Separator();
+
+
+    ImGui::Text(_L("Limit by triangles").c_str());
+    ImGui::SameLine(bottom_left_width);
     // First initialization + fix triangle count
-    if (c.wanted_count > triangle_count) c.update_percent(triangle_count);
-    if (m_imgui->checkbox(_L("Until triangle count is less than "), c.use_count)) {
+    if (m_imgui->checkbox("##UseCount", c.use_count)) {
         if (!c.use_count) c.use_error = true;
         is_valid_result = false;
     }
 
     m_imgui->disabled_begin(!c.use_count);
-    ImGui::SameLine();
+    ImGui::Text(_L("Triangle count").c_str());
+    ImGui::SameLine(bottom_left_width);
     int wanted_count = c.wanted_count;
-    if (ImGui::SliderInt("triangles", &wanted_count, 0,
-                         triangle_count, "%d")) {
+    if (ImGui::SliderInt("##triangle_count", &wanted_count, 0, triangle_count, "%d")) {
         c.wanted_count = static_cast<uint32_t>(wanted_count);
+        if (c.wanted_count < 4) c.wanted_count = 4;
+        if (c.wanted_count > triangle_count) c.wanted_count = triangle_count;
         c.update_count(triangle_count);
         is_valid_result = false;
     }
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(80);
+    ImGui::Text(_L("Ratio").c_str());
+    ImGui::SameLine(bottom_left_width);
+    ImGui::SetNextItemWidth(input_width);
     const char * precision = (c.wanted_percent > 10)? "%.0f": ((c.wanted_percent > 1)? "%.1f":"%.2f");
     float step = (c.wanted_percent > 10)? 1.f: ((c.wanted_percent > 1)? 0.1f : 0.01f);
     if (ImGui::InputFloat("%", &c.wanted_percent, step, 10*step, precision)) {
@@ -99,13 +118,19 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     m_imgui->disabled_end(); // use_count
 
-    if (m_imgui->checkbox(_L("Until error"), c.use_error)) {
+    ImGui::NewLine();
+    ImGui::Text(_L("Limit by error").c_str());
+    ImGui::SameLine(bottom_left_width);
+    if (m_imgui->checkbox("##UseError", c.use_error)) {
         if (!c.use_error) c.use_count = true;
         is_valid_result = false;
     }
-    ImGui::SameLine();
+
     m_imgui->disabled_begin(!c.use_error);
-    if (ImGui::InputFloat("(maximal quadric error)", &c.max_error, 0.01f, .1f, "%.2f")) {
+    ImGui::Text(_L("Max. error").c_str());
+    ImGui::SameLine(bottom_left_width);
+    ImGui::SetNextItemWidth(input_width);
+    if (ImGui::InputFloat("##maxError", &c.max_error, 0.01f, .1f, "%.2f")) {
         if (c.max_error < 0.f) c.max_error = 0.f;
         is_valid_result = false;
     }
@@ -199,7 +224,10 @@ void GLGizmoSimplify::process()
         uint32_t                  triangle_count  = (c.use_count)? c.wanted_count : 0;
         float*                    max_error       = (c.use_error)? &c.max_error : nullptr;
         std::function<void(void)> throw_on_cancel = [&]() { if ( state == State::canceling) throw SimplifyCanceledException(); };    
-        std::function<void(int)> statusfn = [&](int percent) { progress = percent; };
+        std::function<void(int)> statusfn = [&](int percent) { 
+            progress = percent; 
+            wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+        };
         indexed_triangle_set collapsed = *original_its; // copy
         try {
             its_quadric_edge_collapse(collapsed, triangle_count, max_error, throw_on_cancel, statusfn);
@@ -208,6 +236,7 @@ void GLGizmoSimplify::process()
         } catch (SimplifyCanceledException &) {
             is_valid_result = false;
         }
+        wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
     });
 }
 
