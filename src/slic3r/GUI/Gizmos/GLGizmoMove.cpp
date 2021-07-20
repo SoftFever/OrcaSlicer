@@ -205,12 +205,11 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     if (shader == nullptr)
         return;
 
-    if (! picking) {
+    const_cast<GLModel*>(&m_vbo_cone)->set_color(-1, color);
+    if (!picking) {
         shader->start_using();
         shader->set_uniform("emission_factor", 0.1);
-        const_cast<GLModel*>(&m_vbo_cone)->set_color(-1, color);
-    } else
-        glsafe(::glColor4fv(color.data()));
+    }
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[axis].center.x(), m_grabbers[axis].center.y(), m_grabbers[axis].center.z()));
