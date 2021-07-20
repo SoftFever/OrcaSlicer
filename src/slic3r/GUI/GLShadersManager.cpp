@@ -50,6 +50,10 @@ std::pair<bool, std::string> GLShadersManager::init()
         );
     // used to render variable layers heights in 3d editor
     valid &= append_shader("variable_layer_height", { "variable_layer_height.vs", "variable_layer_height.fs" });
+#if ENABLE_ALLOW_NEGATIVE_Z
+    // used to render volumes during picking pass
+    valid &= append_shader("picking", { "picking.vs", "picking.fs" });
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     return { valid, error };
 }

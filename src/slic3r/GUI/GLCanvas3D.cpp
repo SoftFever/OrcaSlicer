@@ -5288,27 +5288,49 @@ void GLCanvas3D::_render_volumes_for_picking() const
 {
     static const GLfloat INV_255 = 1.0f / 255.0f;
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    auto* shader = wxGetApp().get_shader("picking");
+    if (!shader)
+        return;
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
 
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    shader->start_using();
+    shader->set_uniform("viewed_from_top", wxGetApp().plater()->get_camera().is_looking_downward());
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     const Transform3d& view_matrix = wxGetApp().plater()->get_camera().get_view_matrix();
     for (size_t type = 0; type < 2; ++ type) {
         GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, (type == 0) ? GLVolumeCollection::ERenderType::Opaque : GLVolumeCollection::ERenderType::Transparent, view_matrix);
         for (const GLVolumeWithIdAndZ& volume : to_render)
-	        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries)) {
+	        if (!volume.first->disabled && (volume.first->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
 		        // Object picking mode. Render the object with a color encoding the object index.
 		        unsigned int id = volume.second.first;
 		        unsigned int r = (id & (0x000000FF << 0)) << 0;
 		        unsigned int g = (id & (0x000000FF << 8)) >> 8;
 		        unsigned int b = (id & (0x000000FF << 16)) >> 16;
 		        unsigned int a = picking_checksum_alpha_channel(r, g, b);
-		        glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
+#if ENABLE_ALLOW_NEGATIVE_Z
+                std::array<float, 4> color = { (float)r * INV_255, (float)g * INV_255, (float)b * INV_255, (float)a * INV_255 };
+                shader->set_uniform("uniform_color", color);
+                shader->set_uniform("world_matrix", volume.first->world_matrix());
+#else
+                glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
 	            volume.first->render();
 	        }
 	}
+
+#if ENABLE_ALLOW_NEGATIVE_Z
+    shader->stop_using();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
