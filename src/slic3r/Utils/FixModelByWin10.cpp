@@ -423,12 +423,10 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 	if (canceled) {
 		// Nothing to show.
 	} else if (success) {
-		//wxMessageDialog dlg(nullptr, _(L("Model repaired successfully")), _(L("Model Repair by the Netfabb service")), wxICON_INFORMATION | wxOK_DEFAULT);
-		Slic3r::GUI::MessageDialog dlg(nullptr, _(L("Model repaired successfully")), _(L("Model Repair by the Netfabb service")), wxICON_INFORMATION | wxOK_DEFAULT);
+		Slic3r::GUI::MessageDialog dlg(nullptr, _L("Model repaired successfully"), _L("Model Repair by the Netfabb service"), wxICON_INFORMATION | wxOK);
 		dlg.ShowModal();
 	} else {
-		//wxMessageDialog dlg(nullptr, _(L("Model repair failed:")) + " \n" + _(progress.message), _(L("Model Repair by the Netfabb service")), wxICON_ERROR | wxOK_DEFAULT);
-		Slic3r::GUI::MessageDialog dlg(nullptr, _(L("Model repair failed:")) + " \n" + _(progress.message), _(L("Model Repair by the Netfabb service")), wxICON_ERROR | wxOK_DEFAULT);
+		Slic3r::GUI::MessageDialog dlg(nullptr, _L("Model repair failed:") + " \n" + _(progress.message), _L("Model Repair by the Netfabb service"), wxICON_ERROR | wxOK);
 		dlg.ShowModal();
 	}
 	worker_thread.join();
