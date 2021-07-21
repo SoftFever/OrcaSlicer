@@ -46,11 +46,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 {
     const int min_triangle_count = 4; // tetrahedron
     // GUI size constants
+    // TODO: calculate from translation text sizes
     const int top_left_width    = 100;
     const int bottom_left_width = 100;
     const int input_width       = 100;
     const int input_small_width = 80;
     const int window_offset = 100;
+    const int max_char_in_name = 25;
 
     int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                ImGuiWindowFlags_NoCollapse;
@@ -85,7 +87,10 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Mesh name") + ":");
     ImGui::SameLine(top_left_width);
-    m_imgui->text(volume->name);
+    std::string name = volume->name;
+    if (name.length() > max_char_in_name)
+        name = name.substr(0, max_char_in_name-3) + "...";
+    m_imgui->text(name);
     m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Triangles") + ":");
     ImGui::SameLine(top_left_width);
     m_imgui->text(std::to_string(triangle_count));

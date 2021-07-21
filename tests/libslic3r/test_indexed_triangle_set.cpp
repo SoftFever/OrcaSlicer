@@ -233,8 +233,7 @@ TEST_CASE("Reduce one edge by Quadric Edge Collapse", "[its]")
 #include "test_utils.hpp"
 TEST_CASE("Simplify mesh by Quadric edge collapse to 5%", "[its]")
 {
-    TriangleMesh mesh = load_model("frog_legs.obj"); 
-    //TriangleMesh mesh; load_obj("C:/Users/filip/Documents/models/scarecrow_torso.obj", &mesh); 
+    TriangleMesh mesh = load_model("frog_legs.obj");
     double original_volume = its_volume(mesh.its);
     uint32_t wanted_count = mesh.its.indices.size() * 0.05;
     REQUIRE_FALSE(mesh.empty());
