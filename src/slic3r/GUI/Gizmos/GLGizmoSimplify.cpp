@@ -34,6 +34,7 @@ bool GLGizmoSimplify::on_init()
     return true;
 }
 
+
 std::string GLGizmoSimplify::on_get_name() const
 {
     return (_L("Simplify")).ToUTF8().data();
@@ -45,14 +46,8 @@ void GLGizmoSimplify::on_render_for_picking() const{}
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
     const int min_triangle_count = 4; // tetrahedron
-    // GUI size constants
-    // TODO: calculate from translation text sizes
-    const int top_left_width    = 100;
-    const int bottom_left_width = 100;
-    const int input_width       = 100;
-    const int input_small_width = 80;
-    const int window_offset = 100;
     const int max_char_in_name = 25;
+    create_gui_cfg();
 
     int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                ImGuiWindowFlags_NoCollapse;
@@ -75,8 +70,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         is_valid_result = false;
         // set window position
         ImVec2 pos = ImGui::GetMousePos();
-        pos.x -= window_offset;
-        pos.y -= window_offset;
+        pos.x -= gui_cfg->window_offset;
+        pos.y -= gui_cfg->window_offset;
         ImGui::SetWindowPos(pos, ImGuiCond_Always);
     }
 
@@ -86,19 +81,19 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         triangle_count = original_its->indices.size();
 
     m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Mesh name") + ":");
-    ImGui::SameLine(top_left_width);
+    ImGui::SameLine(gui_cfg->top_left_width);
     std::string name = volume->name;
     if (name.length() > max_char_in_name)
         name = name.substr(0, max_char_in_name-3) + "...";
     m_imgui->text(name);
     m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Triangles") + ":");
-    ImGui::SameLine(top_left_width);
+    ImGui::SameLine(gui_cfg->top_left_width);
     m_imgui->text(std::to_string(triangle_count));
 
     ImGui::Separator();
 
     ImGui::Text(_L("Limit by triangles").c_str());
-    ImGui::SameLine(bottom_left_width);
+    ImGui::SameLine(gui_cfg->bottom_left_width);
     // First initialization + fix triangle count
     if (m_imgui->checkbox("##UseCount", c.use_count)) {
         if (!c.use_count) c.use_error = true;
@@ -107,9 +102,9 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     m_imgui->disabled_begin(!c.use_count);
     ImGui::Text(_L("Triangle count").c_str());
-    ImGui::SameLine(bottom_left_width);
+    ImGui::SameLine(gui_cfg->bottom_left_width);
     int wanted_count = c.wanted_count;
-    ImGui::SetNextItemWidth(input_width);
+    ImGui::SetNextItemWidth(gui_cfg->input_width);
     if (ImGui::SliderInt("##triangle_count", &wanted_count, min_triangle_count, triangle_count, "%d")) {
         c.wanted_count = static_cast<uint32_t>(wanted_count);
         if (c.wanted_count < min_triangle_count)
@@ -120,8 +115,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         is_valid_result = false;
     }
     ImGui::Text(_L("Ratio").c_str());
-    ImGui::SameLine(bottom_left_width);
-    ImGui::SetNextItemWidth(input_small_width);
+    ImGui::SameLine(gui_cfg->bottom_left_width);
+    ImGui::SetNextItemWidth(gui_cfg->input_small_width);
     const char * precision = (c.wanted_percent > 10)? "%.0f": ((c.wanted_percent > 1)? "%.1f":"%.2f");
     float step = (c.wanted_percent > 10)? 1.f: ((c.wanted_percent > 1)? 0.1f : 0.01f);
     if (ImGui::InputFloat("%", &c.wanted_percent, step, 10*step, precision)) {
@@ -137,7 +132,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::NewLine();
     ImGui::Text(_L("Limit by error").c_str());
-    ImGui::SameLine(bottom_left_width);
+    ImGui::SameLine(gui_cfg->bottom_left_width);
     if (m_imgui->checkbox("##UseError", c.use_error)) {
         if (!c.use_error) c.use_count = true;
         is_valid_result = false;
@@ -145,8 +140,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     m_imgui->disabled_begin(!c.use_error);
     ImGui::Text(_L("Max. error").c_str());
-    ImGui::SameLine(bottom_left_width);
-    ImGui::SetNextItemWidth(input_small_width);
+    ImGui::SameLine(gui_cfg->bottom_left_width);
+    ImGui::SetNextItemWidth(gui_cfg->input_small_width);
     if (ImGui::InputFloat("##maxError", &c.max_error, 0.01f, .1f, "%.2f")) {
         if (c.max_error < 0.f) c.max_error = 0.f;
         is_valid_result = false;
@@ -163,7 +158,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
                 close();
             }
         }
-        ImGui::SameLine(bottom_left_width);
+        ImGui::SameLine(gui_cfg->bottom_left_width);
         if (m_imgui->button(_L("Preview"))) {
             state = State::simplifying;
             // simplify but not aply on mesh
@@ -184,11 +179,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         if (m_imgui->button(_L("Cancel"))) state = State::canceling;
         m_imgui->disabled_end(); 
 
-        ImGui::SameLine(bottom_left_width);
+        ImGui::SameLine(gui_cfg->bottom_left_width);
         // draw progress bar
         char buf[32];
         sprintf(buf, L("Process %d / 100"), progress);
-        ImGui::ProgressBar(progress / 100., ImVec2(input_width, 0.f), buf);
+        ImGui::ProgressBar(progress / 100., ImVec2(gui_cfg->input_width, 0.f), buf);
     }
     m_imgui->end();
 
@@ -291,6 +286,28 @@ void GLGizmoSimplify::set_its(indexed_triangle_set &its) {
 bool GLGizmoSimplify::on_is_activable() const
 {
     return !m_parent.get_selection().is_empty();
+}
+
+void GLGizmoSimplify::create_gui_cfg() { 
+    if (gui_cfg.has_value()) return;
+
+    int space_size = m_imgui->calc_text_size(":MM").x;
+    GuiCfg cfg;
+    cfg.top_left_width = std::max(m_imgui->calc_text_size(_L("Mesh name")).x,
+                                  m_imgui->calc_text_size(_L("Triangles")).x) 
+        + space_size;
+
+    cfg.bottom_left_width =
+        std::max(
+            std::max(m_imgui->calc_text_size(_L("Limit by triangles")).x,
+                     std::max(m_imgui->calc_text_size(_L("Triangle count")).x,
+                              m_imgui->calc_text_size(_L("Ratio")).x)),
+            std::max(m_imgui->calc_text_size(_L("Limit by error")).x,
+                     m_imgui->calc_text_size(_L("Max. error")).x)) + space_size;
+    cfg.input_width       = cfg.bottom_left_width;
+    cfg.input_small_width = cfg.input_width * 0.8;
+    cfg.window_offset     = cfg.input_width;
+    gui_cfg = cfg;
 }
 
 } // namespace Slic3r::GUI

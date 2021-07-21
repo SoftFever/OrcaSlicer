@@ -66,8 +66,21 @@ private:
             wanted_count = static_cast<uint32_t>(
                 std::round(triangle_count * wanted_percent / 100.f));
         }
+    } c;
+
+    // This configs holds GUI layout size given by translated texts.
+    // etc. When language changes, GUI is recreated and this class constructed again,
+    // so the change takes effect. (info by GLGizmoFdmSupports.hpp)
+    struct GuiCfg
+    {
+        int top_left_width    = 100;
+        int bottom_left_width = 100;
+        int input_width       = 100;
+        int input_small_width = 80;
+        int window_offset     = 100;
     };
-    Configuration c;
+    std::optional<GuiCfg> gui_cfg;
+    void create_gui_cfg();
 };
 
 } // namespace GUI
