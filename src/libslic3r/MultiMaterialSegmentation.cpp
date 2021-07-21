@@ -38,6 +38,9 @@ struct segment_traits<Slic3r::ColoredLine> {
 };
 }
 
+//#define MMU_SEGMENTATION_DEBUG_GRAPH
+//#define MMU_SEGMENTATION_DEBUG_REGIONS
+
 namespace Slic3r {
 
 // Assumes that is at most same projected_l length or below than projection_l
@@ -556,21 +559,34 @@ struct MMU_Graph
                 return;
 
         this->nodes[from_idx].neighbours.push_back({from_idx, to_idx, color, type});
-        this->nodes[to_idx].neighbours.push_back({to_idx, from_idx, color, type});
         this->arcs.push_back({from_idx, to_idx, color, type});
-        this->arcs.push_back({to_idx, from_idx, color, type});
+
+        // Always insert only one directed arc for the input polygons.
+        // Two directed arcs in both directions are inserted if arcs aren't between points of the input polygons.
+        if (type == ARC_TYPE::NON_BORDER) {
+            this->nodes[to_idx].neighbours.push_back({to_idx, from_idx, color, type});
+            this->arcs.push_back({to_idx, from_idx, color, type});
+        }
     }
 
-    // Ignoring arcs in the opposite direction
-    MMU_Graph::Arc get_arc(size_t idx) { return this->arcs[idx * 2]; }
+    // It assumes that between points of the input polygons is always only one directed arc,
+    // with the same direction as lines of the input polygon.
+    MMU_Graph::Arc get_border_arc(size_t idx) {
+        assert(idx < this->all_border_points);
+        return this->arcs[idx];
+    }
 
     [[nodiscard]] size_t nodes_count() const { return this->nodes.size(); }
 
     void remove_nodes_with_one_arc()
     {
         std::queue<size_t> update_queue;
-        for (const MMU_Graph::Node &node : this->nodes)
-            if (node.neighbours.size() == 1) update_queue.emplace(&node - &this->nodes.front());
+        for (const MMU_Graph::Node &node : this->nodes) {
+            size_t node_idx = &node - &this->nodes.front();
+            // Skip nodes that represent points of input polygons.
+            if (node.neighbours.size() == 1 && node_idx >= this->all_border_points)
+                update_queue.emplace(&node - &this->nodes.front());
+        }
 
         while (!update_queue.empty()) {
             size_t           node_from_idx = update_queue.front();
@@ -583,7 +599,7 @@ struct MMU_Graph
             size_t           node_to_idx = node_from.neighbours.front().to_idx;
             MMU_Graph::Node &node_to     = this->nodes[node_to_idx];
             this->remove_edge(node_from_idx, node_to_idx);
-            if (node_to.neighbours.size() == 1)
+            if (node_to.neighbours.size() == 1 && node_to_idx >= this->all_border_points)
                 update_queue.emplace(node_to_idx);
         }
     }
@@ -660,17 +676,17 @@ struct MMU_Graph
             vertex.color(-1);
             Point vertex_point = mk_point(vertex);
 
-            const Point &first_point  = this->nodes[this->get_arc(vertex.incident_edge()->cell()->source_index()).from_idx].point;
-            const Point &second_point = this->nodes[this->get_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx].point;
+            const Point &first_point  = this->nodes[this->get_border_arc(vertex.incident_edge()->cell()->source_index()).from_idx].point;
+            const Point &second_point = this->nodes[this->get_border_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx].point;
 
             if (vertex_equal_to_point(&vertex, first_point)) {
                 assert(vertex.color() != vertex.incident_edge()->cell()->source_index());
                 assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
-                vertex.color(this->get_arc(vertex.incident_edge()->cell()->source_index()).from_idx);
+                vertex.color(this->get_border_arc(vertex.incident_edge()->cell()->source_index()).from_idx);
             } else if (vertex_equal_to_point(&vertex, second_point)) {
                 assert(vertex.color() != vertex.incident_edge()->cell()->source_index());
                 assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
-                vertex.color(this->get_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx);
+                vertex.color(this->get_border_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx);
             } else if (bbox.contains(vertex_point)) {
                 if (auto [contour_pt, c_dist_sqr] = closest_contour_point.find(vertex_point); contour_pt != nullptr && c_dist_sqr < 3 * SCALED_EPSILON) {
                     vertex.color(this->get_global_index(contour_pt->m_contour_idx, contour_pt->m_point_idx));
@@ -825,7 +841,7 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
             Point              contour_intersection;
 
             if (line_intersection_with_epsilon(contour_line.line, edge_line, &contour_intersection)) {
-                const MMU_Graph::Arc &graph_arc = graph.get_arc(edge_it->cell()->source_index());
+                const MMU_Graph::Arc &graph_arc = graph.get_border_arc(edge_it->cell()->source_index());
                 const size_t          from_idx  = (edge_it->vertex1() != nullptr) ? edge_it->vertex1()->color() : edge_it->vertex0()->color();
                 size_t                to_idx    = ((contour_line.line.a - contour_intersection).cast<double>().squaredNorm() <
                                  (contour_line.line.b - contour_intersection).cast<double>().squaredNorm()) ?
@@ -859,12 +875,12 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
                 if (edge_it->vertex1()->color() < graph.nodes_count() && !graph.is_vertex_on_contour(edge_it->vertex1())) {
                     Line contour_line_twin = lines_colored[edge_it->twin()->cell()->source_index()].line;
                     if (line_intersection_with_epsilon(contour_line_twin, edge_line, &intersection)) {
-                        const MMU_Graph::Arc &graph_arc = graph.get_arc(edge_it->twin()->cell()->source_index());
+                        const MMU_Graph::Arc &graph_arc = graph.get_border_arc(edge_it->twin()->cell()->source_index());
                         const size_t          to_idx_l  = is_point_closer_to_beginning_of_line(contour_line_twin, intersection) ? graph_arc.from_idx :
                                                                                                                                   graph_arc.to_idx;
                         graph.append_edge(edge_it->vertex1()->color(), to_idx_l);
                     } else if (line_intersection_with_epsilon(contour_line, edge_line, &intersection)) {
-                        const MMU_Graph::Arc &graph_arc = graph.get_arc(edge_it->cell()->source_index());
+                        const MMU_Graph::Arc &graph_arc = graph.get_border_arc(edge_it->cell()->source_index());
                         const size_t to_idx_l = is_point_closer_to_beginning_of_line(contour_line, intersection) ? graph_arc.from_idx : graph_arc.to_idx;
                         graph.append_edge(edge_it->vertex1()->color(), to_idx_l);
                     }
@@ -912,27 +928,25 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
                     Line second_part(intersection, real_v1);
 
                     if (!has_same_color(contour_line_prev, colored_line)) {
-                        if (points_inside(contour_line_prev.line, contour_line, first_part.b)) {
-                            graph.append_edge(edge_it->vertex0()->color(), graph.get_arc(edge_it->cell()->source_index()).from_idx);
-                        }
-                        if (points_inside(contour_line_prev.line, contour_line, second_part.b)) {
-                            graph.append_edge(edge_it->vertex1()->color(), graph.get_arc(edge_it->cell()->source_index()).from_idx);
-                        }
+                        if (points_inside(contour_line_prev.line, contour_line, first_part.b))
+                            graph.append_edge(edge_it->vertex0()->color(), graph.get_border_arc(edge_it->cell()->source_index()).from_idx);
+
+                        if (points_inside(contour_line_prev.line, contour_line, second_part.b))
+                            graph.append_edge(edge_it->vertex1()->color(), graph.get_border_arc(edge_it->cell()->source_index()).from_idx);
                     }
                 } else {
-                    const size_t int_point_idx = graph.get_arc(edge_it->cell()->source_index()).to_idx;
+                    const size_t int_point_idx = graph.get_border_arc(edge_it->cell()->source_index()).to_idx;
                     const Point  int_point     = graph.nodes[int_point_idx].point;
 
                     const Line first_part(int_point, real_v0);
                     const Line second_part(int_point, real_v1);
 
                     if (!has_same_color(contour_line_next, colored_line)) {
-                        if (points_inside(contour_line, contour_line_next.line, first_part.b)) {
+                        if (points_inside(contour_line, contour_line_next.line, first_part.b))
                             graph.append_edge(edge_it->vertex0()->color(), int_point_idx);
-                        }
-                        if (points_inside(contour_line, contour_line_next.line, second_part.b)) {
+
+                        if (points_inside(contour_line, contour_line_next.line, second_part.b))
                             graph.append_edge(edge_it->vertex1()->color(), int_point_idx);
-                        }
                     }
                 }
             }
@@ -1008,6 +1022,10 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(MMU_Grap
         return *(sorted_arcs.front().first);
     };
 
+    auto all_arc_used = [](const MMU_Graph::Node &node) -> bool {
+        return std::all_of(node.neighbours.cbegin(), node.neighbours.cend(), [](const MMU_Graph::Arc &arc) -> bool { return arc.used; });
+    };
+
     std::vector<std::pair<Polygon, size_t>> polygons_segments;
     for (MMU_Graph::Node &node : graph.nodes)
         for (MMU_Graph::Arc &arc : node.neighbours)
@@ -1017,7 +1035,8 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(MMU_Grap
         MMU_Graph::Node &node = graph.nodes[node_idx];
 
         for (MMU_Graph::Arc &arc : node.neighbours) {
-            if (arc.type == MMU_Graph::ARC_TYPE::NON_BORDER || arc.used) continue;
+            if (arc.type == MMU_Graph::ARC_TYPE::NON_BORDER || arc.used)
+                continue;
 
             Line process_line(node.point, graph.nodes[arc.to_idx].point);
             arc.used = true;
@@ -1031,12 +1050,13 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(MMU_Grap
             do {
                 MMU_Graph::Arc &next = get_next(p_vec, *p_arc);
                 face_lines.emplace_back(Line(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point));
-                if (next.used) break;
+                if (next.used)
+                    break;
 
                 next.used = true;
                 p_vec     = Line(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point);
                 p_arc     = &next;
-            } while (graph.nodes[p_arc->to_idx].point != start_p);
+            } while (graph.nodes[p_arc->to_idx].point != start_p || !all_arc_used(graph.nodes[p_arc->to_idx]));
 
             Polygon poly = to_polygon(face_lines);
             if (poly.is_counter_clockwise() && poly.is_valid())
@@ -1478,18 +1498,18 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         LayerColorStat out;
         const Layer &layer = *layers[layer_idx];
         for (const LayerRegion *region : layer.regions())
-            if (const PrintRegionConfig &config = region->region().config(); 
+            if (const PrintRegionConfig &config = region->region().config();
                 // color_idx == 0 means "don't know" extruder aka the underlying extruder.
                 // As this region may split existing regions, we collect statistics over all regions for color_idx == 0.
                 color_idx == 0 || config.perimeter_extruder == int(color_idx)) {
-                out.extrusion_width     = std::max<float>(out.extrusion_width, config.perimeter_extrusion_width);
-                out.top_solid_layers    = std::max<float>(out.top_solid_layers, config.top_solid_layers);
-                out.bottom_solid_layers = std::max<float>(out.bottom_solid_layers, config.bottom_solid_layers);
-                out.small_region_threshold = config.gap_fill_enabled.value && config.gap_fill_speed.value > 0 ? 
-                    // Gap fill enabled. Enable a single line of 1/2 extrusion width.
-                    0.5 * config.perimeter_extrusion_width :
-                    // Gap fill disabled. Enable two lines slightly overlapping.
-                    config.perimeter_extrusion_width + 0.7f * Flow::rounded_rectangle_extrusion_spacing(config.perimeter_extrusion_width, layer.height);
+                out.extrusion_width     = std::max<float>(out.extrusion_width, float(config.perimeter_extrusion_width));
+                out.top_solid_layers    = std::max<int>(out.top_solid_layers, config.top_solid_layers);
+                out.bottom_solid_layers = std::max<int>(out.bottom_solid_layers, config.bottom_solid_layers);
+                out.small_region_threshold = config.gap_fill_enabled.value && config.gap_fill_speed.value > 0 ?
+                                             // Gap fill enabled. Enable a single line of 1/2 extrusion width.
+                                             0.5f * float(config.perimeter_extrusion_width) :
+                                             // Gap fill disabled. Enable two lines slightly overlapping.
+                                             float(config.perimeter_extrusion_width) + 0.7f * Flow::rounded_rectangle_extrusion_spacing(float(config.perimeter_extrusion_width), float(layer.height));
                 out.small_region_threshold = scaled<float>(out.small_region_threshold * 0.5f);
                 ++ out.num_regions;
             }
@@ -1602,6 +1622,45 @@ static std::vector<std::vector<std::pair<ExPolygon, size_t>>> merge_segmented_la
 
     return segmented_regions_merged;
 }
+
+#ifdef MMU_SEGMENTATION_DEBUG_REGIONS
+static void export_regions_to_svg(const std::string &path, const std::vector<std::pair<ExPolygon, size_t>> &regions, const ExPolygons &lslices)
+{
+    const std::vector<std::string> colors       = {"blue", "cyan", "red", "orange", "magenta", "pink", "purple", "yellow"};
+    coordf_t                       stroke_width = scale_(0.05);
+    BoundingBox                    bbox         = get_extents(lslices);
+    bbox.offset(scale_(1.));
+    ::Slic3r::SVG svg(path.c_str(), bbox);
+
+    svg.draw_outline(lslices, "green", "lime", stroke_width);
+    for (const std::pair<ExPolygon, size_t> &region : regions) {
+        int region_color = region.second;
+        if (region_color >= 0 && region_color < int(colors.size()))
+            svg.draw(region.first, colors[region_color]);
+        else
+            svg.draw(region.first, "black");
+    }
+}
+#endif // MMU_SEGMENTATION_DEBUG_REGIONS
+
+#ifdef MMU_SEGMENTATION_DEBUG_GRAPH
+static void export_graph_to_svg(const std::string &path, const MMU_Graph &graph, const ExPolygons &lslices)
+{
+    const std::vector<std::string> colors       = {"blue", "cyan", "red", "orange", "magenta", "pink", "purple", "green", "yellow"};
+    coordf_t                       stroke_width = scale_(0.05);
+    BoundingBox                    bbox         = get_extents(lslices);
+    bbox.offset(scale_(1.));
+    ::Slic3r::SVG svg(path.c_str(), bbox);
+    for (const MMU_Graph::Node &node : graph.nodes)
+        for (const MMU_Graph::Arc &arc : node.neighbours) {
+            Line arc_line(node.point, graph.nodes[arc.to_idx].point);
+            if (arc.type == MMU_Graph::ARC_TYPE::BORDER && arc.color >= 0 && arc.color < int(colors.size()))
+                svg.draw(arc_line, colors[arc.color], stroke_width);
+            else
+                svg.draw(arc_line, "black", stroke_width);
+        }
+}
+#endif // MMU_SEGMENTATION_DEBUG_GRAPH
 
 std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentation_by_painting(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
@@ -1744,9 +1803,24 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
                 MMU_Graph                             graph      = build_graph(layer_idx, color_poly);
                 remove_multiple_edges_in_vertices(graph, color_poly);
                 graph.remove_nodes_with_one_arc();
+
+#ifdef MMU_SEGMENTATION_DEBUG_GRAPH
+                {
+                    static int iRun = 0;
+                    export_graph_to_svg(debug_out_path("mm-graph-final-%d-%d.svg", layer_idx, iRun++), graph, input_expolygons[layer_idx]);
+                }
+#endif // MMU_SEGMENTATION_DEBUG_GRAPH
+
                 std::vector<std::pair<Polygon, size_t>> segmentation = extract_colored_segments(graph);
                 for (std::pair<Polygon, size_t> &region : segmentation)
                     segmented_regions[layer_idx].emplace_back(std::move(region));
+
+#ifdef MMU_SEGMENTATION_DEBUG_REGIONS
+                {
+                    static int iRun = 0;
+                    export_regions_to_svg(debug_out_path("mm-regions-sides-%d-%d.svg", layer_idx, iRun++), segmented_regions[layer_idx], input_expolygons[layer_idx]);
+                }
+#endif // MMU_SEGMENTATION_DEBUG_REGIONS
             }
         }
     }); // end of parallel_for
@@ -1764,6 +1838,14 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
 
     std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions_merged = merge_segmented_layers(segmented_regions, std::move(top_and_bottom_layers), throw_on_cancel_callback);
     throw_on_cancel_callback();
+
+#ifdef MMU_SEGMENTATION_DEBUG_REGIONS
+    {
+        static int iRun = 0;
+        for (size_t layer_idx = 0; layer_idx < print_object.layers().size(); ++layer_idx)
+            export_regions_to_svg(debug_out_path("mm-regions-merged-%d-%d.svg", layer_idx, iRun++), segmented_regions_merged[layer_idx], input_expolygons[layer_idx]);
+    }
+#endif // MMU_SEGMENTATION_DEBUG_REGIONS
 
     return segmented_regions_merged;
 }
