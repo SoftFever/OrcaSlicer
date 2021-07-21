@@ -1985,7 +1985,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         m_main_sizer->Show(m_tabpanel, tab != 0);
 
         // plater should be focused for correct navigation inside search window
-        if (tab == 0 && m_plater->canvas3D()->is_search_pressed())
+        if (tab == 0)
             m_plater->SetFocus();
         Layout();
     }
