@@ -816,6 +816,7 @@ private:
     void _rectangular_selection_picking_pass();
     void _render_background() const;
     void _render_bed(bool bottom, bool show_axes);
+    void _render_bed_for_picking(bool bottom);
 #if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     void _render_objects(GLVolumeCollection::ERenderType type);
 #else

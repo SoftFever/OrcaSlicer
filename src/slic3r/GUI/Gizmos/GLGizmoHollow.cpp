@@ -91,9 +91,9 @@ void GLGizmoHollow::on_render() const
 void GLGizmoHollow::on_render_for_picking() const
 {
     const Selection& selection = m_parent.get_selection();
-#if ENABLE_RENDER_PICKING_PASS
-    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
-#endif
+//#if ENABLE_RENDER_PICKING_PASS
+//    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+//#endif
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);

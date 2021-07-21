@@ -2449,8 +2449,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'O':
         case 'o': { _update_camera_zoom(-1.0); break; }
 #if ENABLE_RENDER_PICKING_PASS
-        case 'P':
-        case 'p': {
+        case 'T':
+        case 't': {
             m_show_picking_texture = !m_show_picking_texture;
             m_dirty = true;
             break;
@@ -4842,21 +4842,30 @@ void GLCanvas3D::_picking_pass()
         if (m_camera_clipping_plane.is_active())
             ::glDisable(GL_CLIP_PLANE0);
 
+        _render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
+
         m_gizmos.render_current_gizmo_for_picking_pass();
 
         if (m_multisample_allowed)
             glsafe(::glEnable(GL_MULTISAMPLE));
 
         int volume_id = -1;
+        int gizmo_id = -1;
 
         GLubyte color[4] = { 0, 0, 0, 0 };
         const Size& cnv_size = get_canvas_size();
         bool inside = 0 <= m_mouse.position(0) && m_mouse.position(0) < cnv_size.get_width() && 0 <= m_mouse.position(1) && m_mouse.position(1) < cnv_size.get_height();
         if (inside) {
             glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
-            if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3])
-            	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
-            	volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
+            if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
+                // Only non-interpolated colors are valid, those have their lowest three bits zeroed.
+                // we reserve color = (0,0,0) for occluders (as the printbed) 
+                // volumes' id are shifted by 1
+                // see: _render_volumes_for_picking()
+                volume_id = color[0] + (color[1] << 8) + (color[2] << 16) - 1;
+                // gizmos' id are instead properly encoded by the color
+                gizmo_id = color[0] + (color[1] << 8) + (color[2] << 16);
+            }
         }
         if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
             // do not add the volume id if any gizmo is active and CTRL is pressed
@@ -4865,7 +4874,7 @@ void GLCanvas3D::_picking_pass()
             m_gizmos.set_hover_id(-1);
         }
         else
-            m_gizmos.set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
+            m_gizmos.set_hover_id(inside && (unsigned int)gizmo_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - gizmo_id) : -1);
 
         _update_volumes_hover_state();
     }
@@ -5027,6 +5036,17 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
 
     wxGetApp().plater()->get_bed().render(*this, bottom, scale_factor, show_axes, show_texture);
 }
+
+void GLCanvas3D::_render_bed_for_picking(bool bottom)
+{
+    float scale_factor = 1.0;
+#if ENABLE_RETINA_GL
+    scale_factor = m_retina_helper->get_scale_factor();
+#endif // ENABLE_RETINA_GL
+
+    wxGetApp().plater()->get_bed().render_for_picking(*this, bottom, scale_factor);
+}
+
 
 #if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
 void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
@@ -5270,22 +5290,11 @@ void GLCanvas3D::_render_volumes_for_picking() const
 {
     static const GLfloat INV_255 = 1.0f / 255.0f;
 
-#if ENABLE_ALLOW_NEGATIVE_Z
-    auto* shader = wxGetApp().get_shader("picking");
-    if (!shader)
-        return;
-#endif // ENABLE_ALLOW_NEGATIVE_Z
-
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
 
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
-#if ENABLE_ALLOW_NEGATIVE_Z
-    shader->start_using();
-    shader->set_uniform("viewed_from_top", wxGetApp().plater()->get_camera().is_looking_downward());
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     const Transform3d& view_matrix = wxGetApp().plater()->get_camera().get_view_matrix();
     for (size_t type = 0; type < 2; ++ type) {
@@ -5293,26 +5302,17 @@ void GLCanvas3D::_render_volumes_for_picking() const
         for (const GLVolumeWithIdAndZ& volume : to_render)
 	        if (!volume.first->disabled && (volume.first->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
 		        // Object picking mode. Render the object with a color encoding the object index.
-		        unsigned int id = volume.second.first;
-		        unsigned int r = (id & (0x000000FF << 0)) << 0;
+                // we reserve color = (0,0,0) for occluders (as the printbed) 
+                // so we shift volumes' id by 1 to get the proper color
+                unsigned int id = 1 + volume.second.first;
+                unsigned int r = (id & (0x000000FF << 0)) << 0;
 		        unsigned int g = (id & (0x000000FF << 8)) >> 8;
 		        unsigned int b = (id & (0x000000FF << 16)) >> 16;
 		        unsigned int a = picking_checksum_alpha_channel(r, g, b);
-#if ENABLE_ALLOW_NEGATIVE_Z
-                std::array<float, 4> color = { (float)r * INV_255, (float)g * INV_255, (float)b * INV_255, (float)a * INV_255 };
-                shader->set_uniform("uniform_color", color);
-                shader->set_uniform("world_matrix", volume.first->world_matrix());
-#else
                 glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
-#endif // ENABLE_ALLOW_NEGATIVE_Z
-
 	            volume.first->render();
 	        }
 	}
-
-#if ENABLE_ALLOW_NEGATIVE_Z
-    shader->stop_using();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
