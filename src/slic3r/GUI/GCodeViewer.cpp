@@ -3429,11 +3429,17 @@ void GCodeViewer::render_legend() const
         std::string first_str = _u8L("First layer");
         std::string total_str = _u8L("Total");
 
-        float max_len = 10.0f + ImGui::GetStyle().ItemSpacing.x + std::max(ImGui::CalcTextSize(first_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x);
+        float max_len = 10.0f + ImGui::GetStyle().ItemSpacing.x;
+        if (time_mode.layers_times.empty())
+            max_len += ImGui::CalcTextSize(total_str.c_str()).x;
+        else
+            max_len += std::max(ImGui::CalcTextSize(first_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x);
 
-        imgui.text(first_str + ":");
-        ImGui::SameLine(max_len);
-        imgui.text(short_time(get_time_dhms(time_mode.layers_times.front())));
+        if (!time_mode.layers_times.empty()) {
+            imgui.text(first_str + ":");
+            ImGui::SameLine(max_len);
+            imgui.text(short_time(get_time_dhms(time_mode.layers_times.front())));
+        }
 
         imgui.text(total_str + ":");
         ImGui::SameLine(max_len);
