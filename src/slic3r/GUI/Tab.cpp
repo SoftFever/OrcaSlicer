@@ -1172,7 +1172,7 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     wxString page_title = translate_category(category, m_type);
 
     auto cur_item = m_treectrl->GetFirstVisibleItem();
-    if (!cur_item || !m_treectrl->IsVisible(cur_item))
+    if (!cur_item)
         return;
 
     while (cur_item) {

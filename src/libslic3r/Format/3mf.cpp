@@ -666,7 +666,6 @@ namespace Slic3r {
 
         close_zip_reader(&archive);
 
-#if ENABLE_RELOAD_FROM_DISK_FOR_3MF
         if (m_version == 0) {
             // if the 3mf was not produced by PrusaSlicer and there is more than one instance,
             // split the object in as many objects as instances
@@ -711,7 +710,6 @@ namespace Slic3r {
                 ++i;
             }
         }
-#endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
 
         for (const IdToModelObjectMap::value_type& object : m_objects) {
             if (object.second >= int(m_model->objects.size())) {
@@ -779,7 +777,6 @@ namespace Slic3r {
                 return false;
         }
 
-#if ENABLE_RELOAD_FROM_DISK_FOR_3MF
         int object_idx = 0;
         for (ModelObject* o : model.objects) {
             int volume_idx = 0;
@@ -795,7 +792,6 @@ namespace Slic3r {
             }
             ++object_idx;
         }
-#endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
 
 //        // fixes the min z of the model if negative
 //        model.adjust_min_z();
@@ -1877,7 +1873,6 @@ namespace Slic3r {
 			stl_get_size(&stl);
 			triangle_mesh.repair();
 
-#if ENABLE_RELOAD_FROM_DISK_FOR_3MF
             if (m_version == 0) {
                 // if the 3mf was not produced by PrusaSlicer and there is only one instance,
                 // bake the transformation into the geometry to allow the reload from disk command
@@ -1887,7 +1882,6 @@ namespace Slic3r {
                     object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
                 }
             }
-#endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
             // stores the volume matrix taken from the metadata, if present

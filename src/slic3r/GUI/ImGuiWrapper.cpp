@@ -204,7 +204,8 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     unsigned buttons = (evt.LeftIsDown() ? 1 : 0) | (evt.RightIsDown() ? 2 : 0) | (evt.MiddleIsDown() ? 4 : 0);
     m_mouse_buttons = buttons;
 
-    new_frame();
+    if (want_mouse())
+        new_frame();
     return want_mouse();
 }
 
@@ -222,9 +223,6 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         if (key != 0) {
             io.AddInputCharacter(key);
         }
-
-        new_frame();
-        return want_keyboard() || want_text_input();
     } else {
         // Key up/down event
         int key = evt.GetKeyCode();
@@ -235,10 +233,11 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         io.KeyCtrl = evt.ControlDown();
         io.KeyAlt = evt.AltDown();
         io.KeySuper = evt.MetaDown();
-
-        new_frame();
-        return want_keyboard() || want_text_input();
     }
+    bool ret = want_keyboard() || want_text_input();
+    if (ret)
+        new_frame();
+    return ret;
 }
 
 void ImGuiWrapper::new_frame()
