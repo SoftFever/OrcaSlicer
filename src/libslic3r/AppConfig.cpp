@@ -544,6 +544,8 @@ void AppConfig::update_config_dir(const std::string &dir)
 
 void AppConfig::update_skein_dir(const std::string &dir)
 {
+    if (dir == sys_shapes_dir() || dir == custom_shapes_dir())
+        return; // do not save "shapes gallery" directory
     this->set("recent", "skein_directory", dir);
 }
 /*

@@ -219,9 +219,7 @@ static void add_default_image(wxImageList* img_list, bool is_system)
 
 static fs::path get_dir(bool sys_dir)
 {
-    if (sys_dir)
-        return fs::absolute(fs::path(sys_shapes_dir())).make_preferred();
-    return fs::absolute(fs::path(data_dir()) / "shapes").make_preferred();
+    return fs::absolute(fs::path(sys_dir ? sys_shapes_dir() : custom_shapes_dir())).make_preferred();
 }
 
 static std::string get_dir_path(bool sys_dir) 
