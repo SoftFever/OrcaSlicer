@@ -272,9 +272,9 @@ void NotificationManager::PopNotification::count_lines()
 			// find next suitable endline
 			if (ImGui::CalcTextSize(text.substr(last_end).c_str()).x >= m_window_width - m_window_width_offset) {
 				// more than one line till end
-				int next_space = text.find_first_of(' ', last_end);
+				size_t next_space = text.find_first_of(' ', last_end);
 				if (next_space > 0 && next_space < text.length()) {
-					int next_space_candidate = text.find_first_of(' ', next_space + 1);
+                    size_t next_space_candidate = text.find_first_of(' ', next_space + 1);
 					while (next_space_candidate > 0 && ImGui::CalcTextSize(text.substr(last_end, next_space_candidate - last_end).c_str()).x < m_window_width - m_window_width_offset) {
 						next_space = next_space_candidate;
 						next_space_candidate = text.find_first_of(' ', next_space + 1);

@@ -40,6 +40,7 @@
 #include "slic3r/Utils/PresetUpdater.hpp"
 #include "format.hpp"
 #include "MsgDialog.hpp"
+#include "libslic3r/libslic3r.h"
 
 #if defined(__linux__) && defined(__WXGTK3__)
 #define wxLinux_gtk3 true
@@ -65,6 +66,7 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_prusa_bu
 
     std::string path_string = source_path.string();
     auto [config_substitutions, presets_loaded] = preset_bundle->load_configbundle(path_string, PresetBundle::LoadConfigBundleAttribute::LoadSystem);
+    UNUSED(config_substitutions);
     // No substitutions shall be reported when loading a system config bundle, no substitutions are allowed.
     assert(config_substitutions.empty());
     auto first_vendor = preset_bundle->vendors.begin();
