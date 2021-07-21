@@ -9,9 +9,9 @@
 #include "3DScene.hpp"
 #include "GLShader.hpp"
 #include "GUI_App.hpp"
-#if ENABLE_ENVIRONMENT_MAP
+#if ENABLE_ENVIRONMENT_MAP || ENABLE_SINKING_CONTOURS
 #include "Plater.hpp"
-#endif // ENABLE_ENVIRONMENT_MAP
+#endif // ENABLE_ENVIRONMENT_MAP || ENABLE_SINKING_CONTOURS
 
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
@@ -286,6 +286,117 @@ void GLIndexedVertexArray::render(
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
+#if ENABLE_SINKING_CONTOURS
+#define ALG_SLICE_MESH 1
+#define ALG_SLICE_MESHEX 2
+#define ALG_SLICE ALG_SLICE_MESH
+void GLVolume::SinkingContours::update()
+{
+    if (m_parent.is_sinking() && !m_parent.is_below_printbed()) {
+        const BoundingBoxf3& box = m_parent.transformed_convex_hull_bounding_box();
+        if (!m_old_box.size().isApprox(box.size()) || m_old_box.min.z() != box.min.z()) {
+            m_old_box = box;
+            m_shift = Vec3d::Zero();
+
+            const TriangleMesh& mesh = GUI::wxGetApp().plater()->model().objects[m_parent.object_idx()]->volumes[m_parent.volume_idx()]->mesh();
+            assert(mesh.has_shared_vertices());
+
+#if ALG_SLICE == ALG_SLICE_MESH
+            MeshSlicingParams slicing_params;
+            slicing_params.trafo = m_parent.world_matrix();
+            std::vector<Polygons> list_of_polys = slice_mesh(mesh.its, std::vector<float>{ 0.0f }, slicing_params);
+
+            auto append_polygon = [this](const Polygon& polygon, GUI::GLModel::InitializationData& data) {
+                if (!polygon.empty()) {
+                    GUI::GLModel::InitializationData::Entity entity;
+                    entity.type = GUI::GLModel::PrimitiveType::LineLoop;
+                    entity.color[0] = 1.0f - m_parent.render_color[0];
+                    entity.color[1] = 1.0f - m_parent.render_color[1];
+                    entity.color[2] = 1.0f - m_parent.render_color[2];
+                    entity.color[3] = m_parent.render_color[3];
+                    // contour
+                    entity.positions.reserve(polygon.size() + 1);
+                    entity.indices.reserve(polygon.size() + 1);
+                    unsigned int id = 0;
+                    for (const Point& p : polygon) {
+                        entity.positions.emplace_back(unscale(p.x(), p.y(), 0.0).cast<float>());
+                        entity.indices.emplace_back(id++);
+                    }
+                    data.entities.emplace_back(entity);
+                }
+            };
+
+            m_model.reset();
+            GUI::GLModel::InitializationData init_data;
+            for (const Polygons& polygons : list_of_polys) {
+                for (const Polygon& polygon : polygons) {
+                    // contour
+                    append_polygon(polygon, init_data);
+                }
+            }
+#else
+            MeshSlicingParamsEx slicing_params;
+            slicing_params.trafo = m_parent.world_matrix();
+            std::vector<ExPolygons> list_of_expolys = slice_mesh_ex(mesh.its, std::vector<float>{ 0.0f }, slicing_params);
+
+            auto append_polygon = [this](const Polygon& polygon, GUI::GLModel::InitializationData& data) {
+                if (!polygon.empty()) {
+                    GUI::GLModel::InitializationData::Entity entity;
+                    entity.type = GUI::GLModel::PrimitiveType::LineLoop;
+                    entity.color[0] = 1.0f - m_parent.render_color[0];
+                    entity.color[1] = 1.0f - m_parent.render_color[1];
+                    entity.color[2] = 1.0f - m_parent.render_color[2];
+                    entity.color[3] = m_parent.render_color[3];
+                    // contour
+                    entity.positions.reserve(polygon.size() + 1);
+                    entity.indices.reserve(polygon.size() + 1);
+                    unsigned int id = 0;
+                    for (const Point& p : polygon) {
+                        entity.positions.emplace_back(unscale(p.x(), p.y(), 0.0).cast<float>());
+                        entity.indices.emplace_back(id++);
+                    }
+                    data.entities.emplace_back(entity);
+                }
+            };
+
+            m_model.reset();
+            GUI::GLModel::InitializationData init_data;
+            for (const ExPolygons& polygons : list_of_expolys) {
+                for (const ExPolygon& polygon : polygons) {
+                    // contour
+                    append_polygon(polygon.contour, init_data);
+                    // holes
+                    for (const Polygon& hole : polygon.holes) {
+                        append_polygon(hole, init_data);
+                    }
+                }
+            }
+#endif // ALG_SLICE == ALG_SLICE_MESH
+
+            if (!init_data.entities.empty())
+                m_model.init_from(init_data);
+        }
+        else
+            m_shift = box.center() - m_old_box.center();
+    }
+    else
+        m_model.reset();
+}
+
+void GLVolume::SinkingContours::set_color(const std::array<float, 4>& color)
+{
+    m_model.set_color(-1, { 1.0f - color[0], 1.0f - color[1], 1.0f - color[2], color[3] });
+}
+
+void GLVolume::SinkingContours::render() const
+{
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslated(m_shift.x(), m_shift.y(), m_shift.z()));
+    m_model.render();
+    glsafe(::glPopMatrix());
+}
+#endif // ENABLE_SINKING_CONTOURS
+
 const std::array<float, 4> GLVolume::SELECTED_COLOR = { 0.0f, 1.0f, 0.0f, 1.0f };
 const std::array<float, 4> GLVolume::HOVER_SELECT_COLOR = { 0.4f, 0.9f, 0.1f, 1.0f };
 const std::array<float, 4> GLVolume::HOVER_DESELECT_COLOR = { 1.0f, 0.75f, 0.75f, 1.0f };
@@ -306,6 +417,9 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     : m_transformed_bounding_box_dirty(true)
     , m_sla_shift_z(0.0)
     , m_transformed_convex_hull_bounding_box_dirty(true)
+#if ENABLE_SINKING_CONTOURS
+    , m_sinking_contours(*this)
+#endif // ENABLE_SINKING_CONTOURS
     // geometry_id == 0 -> invalid
     , geometry_id(std::pair<size_t, size_t>(0, 0))
     , extruder_id(0)
@@ -537,6 +651,23 @@ bool GLVolume::is_below_printbed() const
 {
     return transformed_convex_hull_bounding_box().max(2) < 0.0;
 }
+
+#if ENABLE_SINKING_CONTOURS
+void GLVolume::update_sinking_contours()
+{
+    m_sinking_contours.update();
+}
+
+void GLVolume::update_sinking_contours_color()
+{
+    m_sinking_contours.set_color(render_color);
+}
+
+void GLVolume::render_sinking_contours()
+{
+    m_sinking_contours.render();
+}
+#endif // ENABLE_SINKING_CONTOURS
 #endif // ENABLE_ALLOW_NEGATIVE_Z
 
 std::vector<int> GLVolumeCollection::load_object(
@@ -774,6 +905,70 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     if (disable_cullface)
         glsafe(::glDisable(GL_CULL_FACE));
 
+#if ENABLE_SINKING_CONTOURS
+    GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
+    for (GLVolumeWithIdAndZ& volume : to_render) {
+        volume.first->set_render_color();
+
+        // render sinking contours of non-hovered volumes
+        if (volume.first->is_sinking() && !volume.first->is_below_printbed() && volume.first->hover == GLVolume::HS_None) {
+            shader->stop_using();
+            glsafe(::glLineWidth(5.0f));
+            volume.first->update_sinking_contours_color();
+            volume.first->render_sinking_contours();
+            shader->start_using();
+        }
+
+        glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+
+        shader->set_uniform("uniform_color", volume.first->render_color);
+        shader->set_uniform("z_range", m_z_range, 2);
+        shader->set_uniform("clipping_plane", m_clipping_plane, 4);
+        shader->set_uniform("print_box.min", m_print_box_min, 3);
+        shader->set_uniform("print_box.max", m_print_box_max, 3);
+        shader->set_uniform("print_box.actived", volume.first->shader_outside_printer_detection_enabled);
+        shader->set_uniform("print_box.volume_world_matrix", volume.first->world_matrix());
+        shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
+        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
+        shader->set_uniform("slope.normal_z", m_slope.normal_z);
+
+#if ENABLE_ENVIRONMENT_MAP
+        unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();
+        bool use_environment_texture = environment_texture_id > 0 && GUI::wxGetApp().app_config->get("use_environment_map") == "1";
+        shader->set_uniform("use_environment_tex", use_environment_texture);
+        if (use_environment_texture)
+            glsafe(::glBindTexture(GL_TEXTURE_2D, environment_texture_id));
+#endif // ENABLE_ENVIRONMENT_MAP
+        glcheck();
+
+        volume.first->render();
+
+#if ENABLE_ENVIRONMENT_MAP
+        if (use_environment_texture)
+            glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+#endif // ENABLE_ENVIRONMENT_MAP
+
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+        glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+    }
+
+    for (GLVolumeWithIdAndZ& volume : to_render) {
+        // render sinking contours of hovered volumes
+        if (volume.first->is_sinking() && !volume.first->is_below_printbed() && volume.first->hover != GLVolume::HS_None) {
+            shader->stop_using();
+            glsafe(::glLineWidth(5.0f));
+            glsafe(::glDisable(GL_DEPTH_TEST));
+            volume.first->update_sinking_contours_color();
+            volume.first->render_sinking_contours();
+            glsafe(::glEnable(GL_DEPTH_TEST));
+            shader->start_using();
+        }
+    }
+#else
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
  
@@ -813,6 +1008,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+#endif // ENABLE_SINKING_CONTOURS
 
     if (disable_cullface)
         glsafe(::glEnable(GL_CULL_FACE));

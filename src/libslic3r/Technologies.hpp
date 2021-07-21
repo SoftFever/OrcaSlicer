@@ -66,6 +66,8 @@
 // Enable to push object instances under the bed
 #define ENABLE_ALLOW_NEGATIVE_Z (1 && ENABLE_2_4_0_ALPHA0)
 #define DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA (1 && ENABLE_ALLOW_NEGATIVE_Z)
+// Enable drawing contours, at cut level, for sinking volumes
+#define ENABLE_SINKING_CONTOURS (1 && ENABLE_ALLOW_NEGATIVE_Z)
 // Enable delayed rendering of transparent volumes
 #define ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_2_4_0_ALPHA0)
 

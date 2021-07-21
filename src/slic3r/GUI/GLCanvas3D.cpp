@@ -2063,6 +2063,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     m_gizmos.update_data();
     m_gizmos.refresh_on_off_state();
 
+#if ENABLE_SINKING_CONTOURS
+    for (GLVolume* v : m_volumes.volumes) {
+        v->update_sinking_contours();
+    }
+#endif // ENABLE_SINKING_CONTOURS
+
     // Update the toolbar
 	if (update_object_list)
 		post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
@@ -5639,6 +5645,11 @@ void GLCanvas3D::_update_volumes_hover_state()
                 }
             }
         }
+#if ENABLE_SINKING_CONTOURS
+        else if (volume.selected)
+            volume.hover = GLVolume::HS_Hover;
+#endif // ENABLE_SINKING_CONTOURS
+
     }
 }
 
