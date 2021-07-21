@@ -148,7 +148,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     m_imgui->disabled_end(); // use_error
 
-
     if (state == State::settings) {
         if (m_imgui->button(_L("Cancel"))) {
             if (original_its.has_value()) { 
@@ -243,8 +242,8 @@ void GLGizmoSimplify::process()
             }
         };    
         std::function<void(int)> statusfn = [&](int percent) { 
-            progress = percent; 
-            wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+            progress = percent;
+            m_parent.schedule_extra_frame(0);
         };
 
         indexed_triangle_set collapsed;
@@ -270,7 +269,10 @@ void GLGizmoSimplify::process()
         } catch (SimplifyCanceledException &) {
             state = State::settings;
         }
-        wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+        // need to render last status fn
+        // without Sleep it freeze until mouse move
+        Sleep(50);
+        m_parent.schedule_extra_frame(0);
     });
 }
 
