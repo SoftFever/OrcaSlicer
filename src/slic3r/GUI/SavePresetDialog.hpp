@@ -10,7 +10,6 @@
 class wxString;
 class wxStaticText;
 class wxComboBox;
-class wxRadioBox;
 class wxStaticBitmap;
 
 namespace Slic3r {
@@ -64,7 +63,6 @@ class SavePresetDialog : public DPIDialog
 
     wxBoxSizer*         m_presets_sizer     {nullptr};
     wxStaticText*       m_label             {nullptr};
-    wxRadioBox*         m_action_radio_box  {nullptr};
     wxBoxSizer*         m_radio_sizer       {nullptr};  
     ActionType          m_action            {UndefAction};
 

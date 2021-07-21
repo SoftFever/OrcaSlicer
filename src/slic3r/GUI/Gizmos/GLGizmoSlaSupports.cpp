@@ -137,8 +137,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
     std::array<float, 4> render_color;
-    for (size_t i = 0; i < cache_size; ++i)
-    {
+    for (size_t i = 0; i < cache_size; ++i) {
         const sla::SupportPoint& support_point = m_editing_mode ? m_editing_cache[i].support_point : m_normal_cache[i];
         const bool& point_selected = m_editing_mode ? m_editing_cache[i].selected : false;
 
@@ -149,7 +148,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         if (picking)
             render_color = picking_color_component(i);
         else {
-            if ((size_t(m_hover_id) == i && m_editing_mode)) // ignore hover state unless editing mode is active
+            if (size_t(m_hover_id) == i && m_editing_mode) // ignore hover state unless editing mode is active
                 render_color = { 0.f, 1.f, 1.f, 1.f };
             else { // neigher hover nor picking
                 bool supports_new_island = m_lock_unique_islands && support_point.is_new_island;
@@ -166,14 +165,11 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
                     render_color = { 0.5f, 0.5f, 0.5f, 1.f };
             }
         }
-        if (shader && ! picking) {
-            const_cast<GLModel*>(&m_cone)->set_color(-1, render_color);
-            const_cast<GLModel*>(&m_sphere)->set_color(-1, render_color);
-            shader->set_uniform("emission_factor", 0.5);
-        }
-        else // picking
-            glsafe(::glColor4fv(render_color.data()));
 
+        const_cast<GLModel*>(&m_cone)->set_color(-1, render_color);
+        const_cast<GLModel*>(&m_sphere)->set_color(-1, render_color);
+        if (shader && !picking)
+            shader->set_uniform("emission_factor", 0.5);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());
@@ -226,10 +222,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[1] = 0.7f;
         render_color[2] = 0.7f;
         render_color[3] = 0.7f;
-        if (shader) {
-            const_cast<GLModel*>(&m_cylinder)->set_color(-1, render_color);
+        const_cast<GLModel*>(&m_cylinder)->set_color(-1, render_color);
+        if (shader)
             shader->set_uniform("emission_factor", 0.5);
-        }
         for (const sla::DrainHole& drain_hole : m_c->selection_info()->model_object()->sla_drain_holes) {
             if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
                 continue;

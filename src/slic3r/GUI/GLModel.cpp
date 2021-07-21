@@ -161,6 +161,8 @@ void GLModel::render() const
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
             shader->set_uniform("uniform_color", data.color);
+        else
+            glsafe(::glColor4fv(data.color.data()));
 
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.ibo_id));
         glsafe(::glDrawElements(mode, static_cast<GLsizei>(data.indices_count), GL_UNSIGNED_INT, (const void*)0));

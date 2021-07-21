@@ -1475,6 +1475,16 @@ bool PhysicalPrinter::has_empty_config() const
             config.opt_string("printhost_password").empty();
 }
 
+// temporary workaround for compatibility with older Slicer
+static void update_preset_name_option(const std::set<std::string>& preset_names, DynamicPrintConfig& config)
+{
+    std::string name;
+    for (auto el : preset_names)
+        name += el + ";";
+    name.pop_back();
+    config.set_key_value("preset_name", new ConfigOptionString(name));
+}
+
 void PhysicalPrinter::update_preset_names_in_config()
 {
     if (!preset_names.empty()) {
@@ -1484,13 +1494,7 @@ void PhysicalPrinter::update_preset_names_in_config()
             values.push_back(preset);
 
         // temporary workaround for compatibility with older Slicer
-        {
-            std::string name;
-            for (auto el : preset_names)
-                name += el + ";";
-            name.pop_back();
-            config.set_key_value("preset_name", new ConfigOptionString(name));
-        }
+        update_preset_name_option(preset_names, config);
     }
 }
 
@@ -1519,9 +1523,12 @@ void PhysicalPrinter::update_from_config(const DynamicPrintConfig& new_config)
 
     if (values.empty())
         preset_names.clear();
-    else
+    else {
         for (const std::string& val : values)
             preset_names.emplace(val);
+        // temporary workaround for compatibility with older Slicer
+        update_preset_name_option(preset_names, config);
+    }
 }
 
 void PhysicalPrinter::reset_presets()

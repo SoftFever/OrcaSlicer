@@ -118,8 +118,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
     const sla::DrainHoles& drain_holes = m_c->selection_info()->model_object()->sla_drain_holes;
     size_t cache_size = drain_holes.size();
 
-    for (size_t i = 0; i < cache_size; ++i)
-    {
+    for (size_t i = 0; i < cache_size; ++i) {
         const sla::DrainHole& drain_hole = drain_holes[i];
         const bool& point_selected = m_selected[i];
 
@@ -129,13 +128,13 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         // First decide about the color of the point.
         if (picking) {
             std::array<float, 4> color = picking_color_component(i);
-
             render_color = color;
         }
         else {
             if (size_t(m_hover_id) == i) {
                 render_color = {0.f, 1.f, 1.f, 1.f};
-            } else if (m_c->hollowed_mesh() &&
+            }
+            else if (m_c->hollowed_mesh() &&
                        i < m_c->hollowed_mesh()->get_drainholes().size() &&
                        m_c->hollowed_mesh()->get_drainholes()[i].failed) {
                 render_color = {1.f, 0.f, 0.f, .5f};
@@ -149,10 +148,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
             }
         }
 
-        if (shader && ! picking)
-            const_cast<GLModel*>(&m_vbo_cylinder)->set_color(-1 , render_color);
-        else // picking
-            glsafe(::glColor4fv(render_color.data()));
+        const_cast<GLModel*>(&m_vbo_cylinder)->set_color(-1, render_color);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());

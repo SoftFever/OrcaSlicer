@@ -658,20 +658,21 @@ void Selection::translate(const Vec3d& displacement, bool local)
     EMode translation_type = m_mode;
 
     for (unsigned int i : m_list) {
-        if (m_mode == Volume || (*m_volumes)[i]->is_wipe_tower) {
+        GLVolume& v = *(*m_volumes)[i];
+        if (m_mode == Volume || v.is_wipe_tower) {
             if (local)
-                (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
             else {
                 const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
-                (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
             }
         }
         else if (m_mode == Instance) {
             if (is_from_fully_selected_instance(i))
-                (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
+                v.set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
             else {
                 const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
-                (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
                 translation_type = Volume;
             }
         }
@@ -811,6 +812,7 @@ void Selection::flattening_rotate(const Vec3d& normal)
         return;
 
     for (unsigned int i : m_list) {
+        GLVolume& v = *(*m_volumes)[i];
         // Normal transformed from the object coordinate space to the world coordinate space.
         const auto &voldata = m_cache.volumes_data[i];
         Vec3d tnormal = (Geometry::assemble_transform(
@@ -818,7 +820,7 @@ void Selection::flattening_rotate(const Vec3d& normal)
             voldata.get_instance_scaling_factor().cwiseInverse(), voldata.get_instance_mirror()) * normal).normalized();
         // Additional rotation to align tnormal with the down vector in the world coordinate space.
         auto  extra_rotation = Eigen::Quaterniond().setFromTwoVectors(tnormal, - Vec3d::UnitZ());
-        (*m_volumes)[i]->set_instance_rotation(Geometry::extract_euler_angles(extra_rotation.toRotationMatrix() * m_cache.volumes_data[i].get_instance_rotation_matrix()));
+        v.set_instance_rotation(Geometry::extract_euler_angles(extra_rotation.toRotationMatrix() * m_cache.volumes_data[i].get_instance_rotation_matrix()));
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -836,8 +838,21 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     if (!m_valid)
         return;
 
+#if ENABLE_ALLOW_NEGATIVE_Z
+    bool is_any_volume_sinking = false;
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+    bool is_sla = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     for (unsigned int i : m_list) {
         GLVolume &volume = *(*m_volumes)[i];
+#if ENABLE_ALLOW_NEGATIVE_Z
+#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+        if (!is_sla)
+#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+            is_any_volume_sinking |= !volume.is_modifier && std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
         if (is_single_full_instance()) {
             if (transformation_type.relative()) {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
@@ -893,10 +908,10 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
     
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
-    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
+#if ENABLE_ALLOW_NEGATIVE_Z
+    if (!is_any_volume_sinking)
         ensure_on_bed();
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
+#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     this->set_bounding_boxes_dirty();
 }
@@ -952,10 +967,11 @@ void Selection::mirror(Axis axis)
     bool single_full_instance = is_single_full_instance();
 
     for (unsigned int i : m_list) {
+        GLVolume& v = *(*m_volumes)[i];
         if (single_full_instance)
-            (*m_volumes)[i]->set_instance_mirror(axis, -(*m_volumes)[i]->get_instance_mirror(axis));
+            v.set_instance_mirror(axis, -(*m_volumes)[i]->get_instance_mirror(axis));
         else if (m_mode == Volume)
-            (*m_volumes)[i]->set_volume_mirror(axis, -(*m_volumes)[i]->get_volume_mirror(axis));
+            v.set_volume_mirror(axis, -(*m_volumes)[i]->get_volume_mirror(axis));
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -974,9 +990,9 @@ void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
         return;
 
     for (unsigned int i : m_list) {
-        GLVolume* v = (*m_volumes)[i];
-        if (v->object_idx() == (int)object_idx)
-            v->set_instance_offset(v->get_instance_offset() + displacement);
+        GLVolume& v = *(*m_volumes)[i];
+        if (v.object_idx() == (int)object_idx)
+            v.set_instance_offset(v.get_instance_offset() + displacement);
     }
 
     std::set<unsigned int> done;  // prevent processing volumes twice
@@ -998,11 +1014,11 @@ void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
             if (done.find(j) != done.end())
                 continue;
 
-            GLVolume* v = (*m_volumes)[j];
-            if (v->object_idx() != object_idx)
+            GLVolume& v = *(*m_volumes)[j];
+            if (v.object_idx() != object_idx)
                 continue;
 
-            v->set_instance_offset(v->get_instance_offset() + displacement);
+            v.set_instance_offset(v.get_instance_offset() + displacement);
             done.insert(j);
         }
     }
@@ -1016,9 +1032,9 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
         return;
 
     for (unsigned int i : m_list) {
-        GLVolume* v = (*m_volumes)[i];
-        if (v->object_idx() == (int)object_idx && v->instance_idx() == (int)instance_idx)
-            v->set_instance_offset(v->get_instance_offset() + displacement);
+        GLVolume& v = *(*m_volumes)[i];
+        if (v.object_idx() == (int)object_idx && v.instance_idx() == (int)instance_idx)
+            v.set_instance_offset(v.get_instance_offset() + displacement);
     }
 
     std::set<unsigned int> done;  // prevent processing volumes twice
@@ -1040,11 +1056,11 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
             if (done.find(j) != done.end())
                 continue;
 
-            GLVolume* v = (*m_volumes)[j];
-            if (v->object_idx() != object_idx || v->instance_idx() != (int)instance_idx)
+            GLVolume& v = *(*m_volumes)[j];
+            if (v.object_idx() != object_idx || v.instance_idx() != (int)instance_idx)
                 continue;
 
-            v->set_instance_offset(v->get_instance_offset() + displacement);
+            v.set_instance_offset(v.get_instance_offset() + displacement);
             done.insert(j);
         }
     }
@@ -1641,10 +1657,16 @@ void Selection::update_type()
 void Selection::set_caches()
 {
     m_cache.volumes_data.clear();
-    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
-    {
-        const GLVolume* v = (*m_volumes)[i];
-        m_cache.volumes_data.emplace(i, VolumeCache(v->get_volume_transformation(), v->get_instance_transformation()));
+#if ENABLE_ALLOW_NEGATIVE_Z
+    m_cache.sinking_volumes.clear();
+#endif // ENABLE_ALLOW_NEGATIVE_Z
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i) {
+        const GLVolume& v = *(*m_volumes)[i];
+        m_cache.volumes_data.emplace(i, VolumeCache(v.get_volume_transformation(), v.get_instance_transformation()));
+#if ENABLE_ALLOW_NEGATIVE_Z
+        if (v.is_sinking())
+            m_cache.sinking_volumes.push_back(i);
+#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
     m_cache.dragging_center = get_bounding_box().center();
 }

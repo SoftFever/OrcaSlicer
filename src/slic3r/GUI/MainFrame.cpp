@@ -1397,7 +1397,7 @@ void MainFrame::init_menubar_as_editor()
         }
 
         windowMenu->AppendSeparator();
-        append_menu_item(windowMenu, wxID_ANY, _L("Modify Shapes Gallery") + "\tCtrl+G", _L("Open the dialog to modify shapes gallery"),
+        append_menu_item(windowMenu, wxID_ANY, _L("Modify Shapes Gallery"), _L("Open the dialog to modify shapes gallery"),
             [this](wxCommandEvent&) { 
                 GalleryDialog dlg(this, true);
                 if (dlg.ShowModal() == wxID_OK) {
