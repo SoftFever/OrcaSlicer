@@ -403,10 +403,8 @@ public:
 
     bool inside_snapshot_capture();
 
-#if ENABLE_RENDER_STATISTICS
     void toggle_render_statistic_dialog();
     bool is_render_statistic_dialog_visible() const;
-#endif // ENABLE_RENDER_STATISTICS
 
 	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);

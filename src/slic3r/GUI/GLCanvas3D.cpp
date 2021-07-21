@@ -1407,10 +1407,6 @@ void GLCanvas3D::render()
     if (!is_initialized() && !init())
         return;
 
-#if ENABLE_RENDER_STATISTICS
-    auto start_time = std::chrono::high_resolution_clock::now();
-#endif // ENABLE_RENDER_STATISTICS
-
     if (wxGetApp().plater()->get_bed().get_shape().empty()) {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
@@ -1505,19 +1501,12 @@ void GLCanvas3D::render()
     // draw overlays
     _render_overlays();
 
-#if ENABLE_RENDER_STATISTICS
     if (wxGetApp().plater()->is_render_statistic_dialog_visible()) {
         ImGuiWrapper& imgui = *wxGetApp().imgui();
         imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-        imgui.text("Last frame:");
+        imgui.text("FPS (SwapBuffers() calls per second):");
         ImGui::SameLine();
-        int64_t average = m_render_stats.get_average();
-        imgui.text(std::to_string(average));
-        ImGui::SameLine();
-        imgui.text("ms");
-        imgui.text("FPS:");
-        ImGui::SameLine();
-        imgui.text(std::to_string((average == 0) ? 0 : static_cast<int>(1000.0f / static_cast<float>(average))));
+        imgui.text(std::to_string(m_render_stats.get_fps_and_reset_if_needed()));
         ImGui::Separator();
         imgui.text("Compressed textures:");
         ImGui::SameLine();
@@ -1527,7 +1516,6 @@ void GLCanvas3D::render()
         imgui.text(std::to_string(OpenGLManager::get_gl_info().get_max_tex_size()));
         imgui.end();
     }
-#endif // ENABLE_RENDER_STATISTICS
 
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
     if (wxGetApp().is_editor() && wxGetApp().plater()->is_view3D_shown())
@@ -1574,11 +1562,7 @@ void GLCanvas3D::render()
     wxGetApp().imgui()->render();
 
     m_canvas->SwapBuffers();
-
-#if ENABLE_RENDER_STATISTICS
-    auto end_time = std::chrono::high_resolution_clock::now();
-    m_render_stats.add_frame(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count());
-#endif // ENABLE_RENDER_STATISTICS
+    m_render_stats.increment_fps_counter();
 }
 
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
@@ -2592,15 +2576,11 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
     {
         if (!m_gizmos.on_key(evt)) {
             if (evt.GetEventType() == wxEVT_KEY_UP) {
-#if ENABLE_RENDER_STATISTICS
                 if (evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_SPACE) {
                     wxGetApp().plater()->toggle_render_statistic_dialog();
                     m_dirty = true;
                 }
                 if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
-#else
-                if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
-#endif // ENABLE_RENDER_STATISTICS
                     // Enable switching between 3D and Preview with Tab
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
                     post_event(SimpleEvent(EVT_GLCANVAS_TAB));

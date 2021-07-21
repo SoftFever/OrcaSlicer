@@ -1565,9 +1565,7 @@ struct Plater::priv
     std::string                 label_btn_export;
     std::string                 label_btn_send;
 
-#if ENABLE_RENDER_STATISTICS
     bool                        show_render_statistic_dialog{ false };
-#endif // ENABLE_RENDER_STATISTICS
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -6515,7 +6513,6 @@ void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }
 
-#if ENABLE_RENDER_STATISTICS
 void Plater::toggle_render_statistic_dialog()
 {
     p->show_render_statistic_dialog = !p->show_render_statistic_dialog;
@@ -6525,7 +6522,6 @@ bool Plater::is_render_statistic_dialog_visible() const
 {
     return p->show_render_statistic_dialog;
 }
-#endif // ENABLE_RENDER_STATISTICS
 
 // Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
