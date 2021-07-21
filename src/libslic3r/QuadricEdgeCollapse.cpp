@@ -73,7 +73,8 @@ namespace QuadricEdgeCollapse {
     double vertex_error(const SymMat &q, const Vec3d &vertex);
     SymMat create_quadric(const Triangle &t, const Vec3d& n, const Vertices &vertices);
     std::tuple<TriangleInfos, VertexInfos, EdgeInfos, Errors> init(const indexed_triangle_set &its);
-    uint32_t find_triangle_index1(uint32_t vi, const VertexInfo& v_info, uint32_t ti, const EdgeInfos& e_infos, const Indices& indices);
+    std::optional<uint32_t> find_triangle_index1(uint32_t vi, const VertexInfo& v_info,
+        uint32_t ti, const EdgeInfos& e_infos, const Indices& indices);
     bool is_flipped(const Vec3f &new_vertex, uint32_t ti0, uint32_t ti1, const VertexInfo& v_info, 
         const TriangleInfos &t_infos, const EdgeInfos &e_infos, const indexed_triangle_set &its);
 
@@ -174,13 +175,12 @@ void Slic3r::its_quadric_edge_collapse(
         q += v_info1.q;
         Vec3f new_vertex0 = calculate_vertex(vi0, vi1, q, its.vertices);
         // set of triangle indices that change quadric
-        uint32_t ti1 = (v_info0.count < v_info1.count)?
+        auto ti1_opt = (v_info0.count < v_info1.count)?
             find_triangle_index1(vi1, v_info0, ti0, e_infos, its.indices) :
             find_triangle_index1(vi0, v_info1, ti0, e_infos, its.indices) ;
-
-        if (is_flipped(new_vertex0, ti0, ti1, v_info0, t_infos, e_infos, its) ||
-            is_flipped(new_vertex0, ti0, ti1, v_info1, t_infos, e_infos, its)) {
-
+        if (!ti1_opt.has_value() || // edge has only one triangle
+            is_flipped(new_vertex0, ti0, *ti1_opt, v_info0, t_infos, e_infos, its) ||
+            is_flipped(new_vertex0, ti0, *ti1_opt, v_info1, t_infos, e_infos, its)) {
             // try other triangle's edge
             Vec3d errors = calculate_3errors(t0, its.vertices, v_infos);
             Vec3i ord = (errors[0] < errors[1]) ? 
@@ -190,7 +190,6 @@ void Slic3r::its_quadric_edge_collapse(
                 ((errors[1] < errors[2])?
                     ((errors[0] < errors[2]) ? Vec3i(1, 0, 2) : Vec3i(1, 2, 0)) :
                     Vec3i(2, 1, 0));
-
             if (t_info0.min_index == ord[0]) { 
                 t_info0.min_index = ord[1];
                 e.value = errors[t_info0.min_index];
@@ -206,6 +205,7 @@ void Slic3r::its_quadric_edge_collapse(
             mpq.push(e);
             continue;
         }
+        uint32_t ti1 = *ti1_opt;
         last_collapsed_error = e.value;
         changed_triangle_indices.clear();
         changed_triangle_indices.reserve(v_info0.count + v_info1.count - 4);
@@ -428,7 +428,7 @@ QuadricEdgeCollapse::init(const indexed_triangle_set &its)
     return {t_infos, v_infos, e_infos, errors};
 }
 
-uint32_t QuadricEdgeCollapse::find_triangle_index1(uint32_t          vi,
+std::optional<uint32_t> QuadricEdgeCollapse::find_triangle_index1(uint32_t          vi,
                                                    const VertexInfo &v_info,
                                                    uint32_t          ti0,
                                                    const EdgeInfos & e_infos,
@@ -445,8 +445,7 @@ uint32_t QuadricEdgeCollapse::find_triangle_index1(uint32_t          vi,
             return e_info.t_index;
     }
     // triangle0 is on border and do NOT have twin edge
-    assert(false);
-    return -1;
+    return {};
 }
 
 bool QuadricEdgeCollapse::is_flipped(const Vec3f &               new_vertex,
