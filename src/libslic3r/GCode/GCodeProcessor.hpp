@@ -251,7 +251,6 @@ namespace Slic3r {
             float max_travel_acceleration; // mm/s^2
             float extrude_factor_override_percentage;
             float time; // s
-#if ENABLE_EXTENDED_M73_LINES
             struct StopTime
             {
                 unsigned int g1_line_id;
@@ -260,9 +259,6 @@ namespace Slic3r {
             std::vector<StopTime> stop_times;
             std::string line_m73_main_mask;
             std::string line_m73_stop_mask;
-#else
-            std::string line_m73_mask;
-#endif // ENABLE_EXTENDED_M73_LINES
             State curr;
             State prev;
             CustomGCodeTime gcode_time;
