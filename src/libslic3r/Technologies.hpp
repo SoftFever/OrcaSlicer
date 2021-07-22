@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable showing a imgui window containing gcode in preview
-#define ENABLE_GCODE_WINDOW (1 && ENABLE_2_4_0_ALPHA0)
 // Enable exporting lines M73 for remaining time to next printer stop to gcode
 #define ENABLE_EXTENDED_M73_LINES (1 && ENABLE_2_4_0_ALPHA0)
 // Enable a modified version of automatic downscale on load of objects too big

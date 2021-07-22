@@ -23,9 +23,7 @@
 
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
-#if ENABLE_GCODE_WINDOW
 #include <boost/algorithm/string/split.hpp>
-#endif // ENABLE_GCODE_WINDOW
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <wx/progdlg.h>
@@ -269,7 +267,6 @@ void GCodeViewer::SequentialView::Marker::render() const
     ImGui::PopStyleVar();
 }
 
-#if ENABLE_GCODE_WINDOW
 void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
 {
     if (m_filename.empty())
@@ -487,7 +484,6 @@ void GCodeViewer::SequentialView::render(float legend_height) const
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
     gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
 }
-#endif // ENABLE_GCODE_WINDOW
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.75f, 0.75f, 0.75f },   // erNone
@@ -599,10 +595,8 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     // release gpu memory, if used
     reset(); 
 
-#if ENABLE_GCODE_WINDOW
     m_sequential_view.gcode_window.set_filename(gcode_result.filename);
     m_sequential_view.gcode_window.load_gcode();
-#endif // ENABLE_GCODE_WINDOW
 
     load_toolpaths(gcode_result);
 
@@ -761,9 +755,7 @@ void GCodeViewer::reset()
     m_layers_z_range = { 0, 0 };
     m_roles = std::vector<ExtrusionRole>();
     m_print_statistics.reset();
-#if ENABLE_GCODE_WINDOW
     m_sequential_view.gcode_window.reset();
-#endif // ENABLE_GCODE_WINDOW
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -832,20 +824,12 @@ void GCodeViewer::render() const
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
     render_shells();
-#if ENABLE_GCODE_WINDOW
     float legend_height = 0.0f;
     render_legend(legend_height);
-#else
-    render_legend();
-#endif // ENABLE_GCODE_WINDOW
     SequentialView* sequential_view = const_cast<SequentialView*>(&m_sequential_view);
     if (sequential_view->current.last != sequential_view->endpoints.last) {
         sequential_view->marker.set_world_position(sequential_view->current_position);
-#if ENABLE_GCODE_WINDOW
         sequential_view->render(legend_height);
-#else
-        sequential_view->marker.render();
-#endif // ENABLE_GCODE_WINDOW
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -1122,7 +1106,6 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     fclose(fp);
 }
 
-#if ENABLE_GCODE_WINDOW
 void GCodeViewer::start_mapping_gcode_window()
 {
     m_sequential_view.gcode_window.load_gcode();
@@ -1132,7 +1115,6 @@ void GCodeViewer::stop_mapping_gcode_window()
 {
     m_sequential_view.gcode_window.stop_mapping_file();
 }
-#endif // ENABLE_GCODE_WINDOW
 
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 {
@@ -2592,11 +2574,7 @@ void GCodeViewer::render_shells() const
 //    glsafe(::glDepthMask(GL_TRUE));
 }
 
-#if ENABLE_GCODE_WINDOW
 void GCodeViewer::render_legend(float& legend_height) const
-#else
-void GCodeViewer::render_legend() const
-#endif // ENABLE_GCODE_WINDOW
 {
     if (!m_legend_enabled)
         return;
@@ -3474,9 +3452,7 @@ void GCodeViewer::render_legend() const
         }
     }
 
-#if ENABLE_GCODE_WINDOW
     legend_height = ImGui::GetCurrentWindow()->Size.y;
-#endif // ENABLE_GCODE_WINDOW
 
     imgui.end();
     ImGui::PopStyleVar();

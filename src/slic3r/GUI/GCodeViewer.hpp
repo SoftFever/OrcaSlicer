@@ -5,9 +5,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GLModel.hpp"
 
-#if ENABLE_GCODE_WINDOW
 #include <boost/iostreams/device/mapped_file.hpp>
-#endif // ENABLE_GCODE_WINDOW
 
 #include <cstdint>
 #include <float.h>
@@ -520,7 +518,6 @@ public:
             void render() const;
         };
 
-#if ENABLE_GCODE_WINDOW
         class GCodeWindow
         {
             struct Line
@@ -557,7 +554,6 @@ public:
 
             void stop_mapping_file();
         };
-#endif // ENABLE_GCODE_WINDOW
 
         struct Endpoints
         {
@@ -571,14 +567,10 @@ public:
         Endpoints last_current;
         Vec3f current_position{ Vec3f::Zero() };
         Marker marker;
-#if ENABLE_GCODE_WINDOW
         GCodeWindow gcode_window;
-#endif // ENABLE_GCODE_WINDOW
         std::vector<unsigned int> gcode_ids;
 
-#if ENABLE_GCODE_WINDOW
         void render(float legend_height) const;
-#endif // ENABLE_GCODE_WINDOW
     };
 
     enum class EViewType : unsigned char
@@ -671,11 +663,9 @@ public:
 
     void export_toolpaths_to_obj(const char* filename) const;
 
-#if ENABLE_GCODE_WINDOW
     void start_mapping_gcode_window();
     void stop_mapping_gcode_window();
     void toggle_gcode_window_visibility() { m_sequential_view.gcode_window.toggle_visibility(); }
-#endif // ENABLE_GCODE_WINDOW
 
 private:
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
@@ -683,11 +673,7 @@ private:
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths() const;
     void render_shells() const;
-#if ENABLE_GCODE_WINDOW
     void render_legend(float& legend_height) const;
-#else
-    void render_legend() const;
-#endif // ENABLE_GCODE_WINDOW
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics() const;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

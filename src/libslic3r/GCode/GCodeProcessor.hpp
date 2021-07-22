@@ -350,9 +350,7 @@ namespace Slic3r {
                     printer = "";
                 }
             };
-#if ENABLE_GCODE_WINDOW
             std::string filename;
-#endif // ENABLE_GCODE_WINDOW
             unsigned int id;
             std::vector<MoveVertex> moves;
             Pointfs bed_shape;
