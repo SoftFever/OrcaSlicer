@@ -4893,6 +4893,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         _render_volumes_for_picking();
+        _render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
 
         if (m_multisample_allowed)
             glsafe(::glEnable(GL_MULTISAMPLE));
@@ -4911,7 +4912,10 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
                 std::array<GLubyte, 4> data;
             	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
                 bool valid() const { return picking_checksum_alpha_channel(data[0], data[1], data[2]) == data[3]; }
-                int id() const { return data[0] + (data[1] << 8) + (data[2] << 16); }
+                // we reserve color = (0,0,0) for occluders (as the printbed) 
+                // volumes' id are shifted by 1
+                // see: _render_volumes_for_picking()
+                int id() const { return data[0] + (data[1] << 8) + (data[2] << 16) - 1; }
             };
 
             std::vector<Pixel> frame(px_count);
