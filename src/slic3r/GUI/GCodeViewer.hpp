@@ -574,9 +574,7 @@ public:
 #if ENABLE_GCODE_WINDOW
         GCodeWindow gcode_window;
 #endif // ENABLE_GCODE_WINDOW
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         std::vector<unsigned int> gcode_ids;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
 #if ENABLE_GCODE_WINDOW
         void render(float legend_height) const;

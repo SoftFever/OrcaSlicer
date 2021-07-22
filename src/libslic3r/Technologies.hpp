@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable showing gcode line numbers in preview horizontal slider
-#define ENABLE_GCODE_LINES_ID_IN_H_SLIDER (1 && ENABLE_2_4_0_ALPHA0)
 // Enable validation of custom gcode against gcode processor reserved keywords
 #define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_4_0_ALPHA0)
 // Enable showing a imgui window containing gcode in preview

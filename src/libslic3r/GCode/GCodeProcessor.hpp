@@ -210,7 +210,6 @@ namespace Slic3r {
             float time() const;
         };
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         struct MoveVertex
         {
             unsigned int gcode_id{ 0 };
@@ -230,7 +229,6 @@ namespace Slic3r {
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
         };
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
     private:
         struct TimeMachine
@@ -326,12 +324,8 @@ namespace Slic3r {
             void reset();
 
             // post process the file with the given filename to add remaining time lines M73
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
             // and updates moves' gcode ids accordingly
             void post_process(const std::string& filename, std::vector<MoveVertex>& moves);
-#else
-            void post_process(const std::string& filename);
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -358,27 +352,6 @@ namespace Slic3r {
         };
 
     public:
-#if !ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-        struct MoveVertex
-        {
-            EMoveType type{ EMoveType::Noop };
-            ExtrusionRole extrusion_role{ erNone };
-            unsigned char extruder_id{ 0 };
-            unsigned char cp_color_id{ 0 };
-            Vec3f position{ Vec3f::Zero() }; // mm
-            float delta_extruder{ 0.0f }; // mm
-            float feedrate{ 0.0f }; // mm/s
-            float width{ 0.0f }; // mm
-            float height{ 0.0f }; // mm
-            float mm3_per_mm{ 0.0f };
-            float fan_speed{ 0.0f }; // percentage
-            float temperature{ 0.0f }; // Celsius degrees
-            float time{ 0.0f }; // s
-
-            float volumetric_rate() const { return feedrate * mm3_per_mm; }
-        };
-#endif // !ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-
         struct Result
         {
             struct SettingsIds
@@ -518,12 +491,10 @@ namespace Slic3r {
         CachedPosition m_cached_position;
         bool m_wiping;
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         unsigned int m_line_id;
 #if ENABLE_SEAMS_VISUALIZATION
         unsigned int m_last_line_id;
 #endif // ENABLE_SEAMS_VISUALIZATION
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         float m_feedrate; // mm/s
         float m_width; // mm
         float m_height; // mm

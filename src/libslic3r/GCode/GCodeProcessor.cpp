@@ -361,11 +361,7 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<MoveVertex>& moves)
-#else
-void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 {
     boost::nowide::ifstream in(filename);
     if (!in.good())
@@ -443,9 +439,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 
     // replace placeholder lines with the proper final value
     auto process_placeholders = [&](const std::string& gcode_line) {
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         unsigned int extra_lines_count = 0;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
         // remove trailing '\n'
         std::string line = gcode_line.substr(0, gcode_line.length() - 1);
@@ -464,26 +458,20 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                         ret += format_line_M73_main(machine.line_m73_main_mask.c_str(),
                             (line == reserved_tag(ETags::First_Line_M73_Placeholder)) ? 0 : 100,
                             (line == reserved_tag(ETags::First_Line_M73_Placeholder)) ? time_in_minutes(machine.time) : 0);
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                         ++extra_lines_count;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
                         // export remaining time to next printer stop
                         if (line == reserved_tag(ETags::First_Line_M73_Placeholder) && !machine.stop_times.empty()) {
                             int to_export_stop = time_in_minutes(machine.stop_times.front().elapsed_time);
                             ret += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
                             last_exported_stop[i] = to_export_stop;
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                             ++extra_lines_count;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                         }
 #else
                         ret += format_line_M73(machine.line_m73_mask.c_str(),
                             (line == reserved_tag(ETags::First_Line_M73_Placeholder)) ? 0 : 100,
                             (line == reserved_tag(ETags::First_Line_M73_Placeholder)) ? time_in_minutes(machine.time) : 0);
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                         ++extra_lines_count;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 #endif // ENABLE_EXTENDED_M73_LINES
                     }
                 }
@@ -518,11 +506,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         }
 #endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         return std::tuple(!ret.empty(), ret.empty() ? gcode_line : ret, (extra_lines_count == 0) ? extra_lines_count : extra_lines_count - 1);
-#else
-        return std::make_pair(!ret.empty(), ret.empty() ? gcode_line : ret);
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     };
 
     // check for temporary lines
@@ -546,9 +530,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
 
     // add lines M73 to exported gcode
     auto process_line_G1 = [&]() {
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         unsigned int exported_lines_count = 0;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         if (export_remaining_time_enabled) {
             for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
                 const TimeMachine& machine = machines[i];
@@ -566,9 +548,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                             export_line += format_line_M73_main(machine.line_m73_main_mask.c_str(),
                                 to_export_main.first, to_export_main.second);
                             last_exported_main[i] = to_export_main;
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                             ++exported_lines_count;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 #else
                         float elapsed_time = it->elapsed_time;
                         std::pair<int, int> to_export = { int(100.0f * elapsed_time / machine.time),
@@ -577,9 +557,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                             export_line += format_line_M73(machine.line_m73_mask.c_str(),
                                 to_export.first, to_export.second);
                             last_exported[i] = to_export;
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                             ++exported_lines_count;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 #endif // ENABLE_EXTENDED_M73_LINES
                         }
 #if ENABLE_EXTENDED_M73_LINES
@@ -593,9 +571,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                                     if (last_exported_stop[i] != to_export_stop) {
                                         export_line += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
                                         last_exported_stop[i] = to_export_stop;
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                                         ++exported_lines_count;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                                     }
                                 }
                                 else {
@@ -620,9 +596,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                                             export_line += format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
 
                                         last_exported_stop[i] = to_export_stop;
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                                         ++exported_lines_count;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                                     }
                                 }
                             }
@@ -632,9 +606,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
                 }
             }
         }
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         return exported_lines_count;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     };
 
     // helper function to write to disk
@@ -649,10 +621,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         export_line.clear();
     };
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     unsigned int line_id = 0;
     std::vector<std::pair<unsigned int, unsigned int>> offsets;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
     while (std::getline(in, gcode_line)) {
         if (!in.good()) {
@@ -660,19 +630,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
             throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
         }
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         ++line_id;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
         gcode_line += "\n";
         // replace placeholder lines
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         auto [processed, result, lines_added_count] = process_placeholders(gcode_line);
         if (processed && lines_added_count > 0)
             offsets.push_back({ line_id, lines_added_count });
-#else
-        auto [processed, result] = process_placeholders(gcode_line);
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         gcode_line = result;
         if (!processed) {
             // remove temporary lines
@@ -683,15 +647,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
             parser.parse_line(gcode_line,
                 [&](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
                     if (line.cmd_is("G1")) {
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                         unsigned int extra_lines_count = process_line_G1();
                         ++g1_lines_counter;
                         if (extra_lines_count > 0)
                             offsets.push_back({ line_id, extra_lines_count });
-#else
-                        process_line_G1();
-                        ++g1_lines_counter;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                     }
                 });
         }
@@ -707,7 +666,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
     fclose(out);
     in.close();
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     // updates moves' gcode ids which have been modified by the insertion of the M73 lines
     unsigned int curr_offset_id = 0;
     unsigned int total_offset = 0;
@@ -718,7 +676,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename)
         }
         move.gcode_id += total_offset;
     }
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
     if (rename_file(out_path, filename))
         throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + out_path + " to " + filename + '\n' +
@@ -1214,12 +1171,10 @@ void GCodeProcessor::reset()
     m_cached_position.reset();
     m_wiping = false;
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     m_line_id = 0;
 #if ENABLE_SEAMS_VISUALIZATION
     m_last_line_id = 0;
 #endif // ENABLE_SEAMS_VISUALIZATION
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     m_feedrate = 0.0f;
     m_width = 0.0f;
     m_height = 0.0f;
@@ -1349,11 +1304,7 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
 
     // post-process to add M73 lines into the gcode
     if (apply_postprocess)
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         m_time_processor.post_process(filename, m_result.moves);
-#else
-        m_time_processor.post_process(filename);
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     std::cout << "\n";
@@ -1500,9 +1451,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
 {
 /* std::cout << line.raw() << std::endl; */
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     ++m_line_id;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
     // update start position
     m_start_position = m_end_position;
@@ -3064,13 +3013,11 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
 #endif // ENABLE_SEAMS_VISUALIZATION
 
     MoveVertex vertex = {
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 #if ENABLE_SEAMS_VISUALIZATION
         m_last_line_id,
 #else
         (type == EMoveType::Color_change || type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) ? m_line_id + 1 : m_line_id,
 #endif // ENABLE_SEAMS_VISUALIZATION
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         type,
         m_extrusion_role,
         m_extruder_id,
