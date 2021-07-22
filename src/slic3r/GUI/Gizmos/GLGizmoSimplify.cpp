@@ -4,6 +4,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
+#include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/QuadricEdgeCollapse.hpp"
@@ -203,7 +204,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         }
 
         // change from simplifying | aply
-        state = State::settings;        
+        state = State::settings;           
+        
+        // Fix warning icon in object list
+        wxGetApp().obj_list()->update_item_error_icon(obj_index, -1);
+        wxGetApp().obj_list()->part_selection_changed();
     }
 }
 
