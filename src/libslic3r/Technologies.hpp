@@ -41,12 +41,10 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable validation of custom gcode against gcode processor reserved keywords
-#define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_4_0_ALPHA0)
 // Enable showing a imgui window containing gcode in preview
 #define ENABLE_GCODE_WINDOW (1 && ENABLE_2_4_0_ALPHA0)
 // Enable exporting lines M73 for remaining time to next printer stop to gcode
-#define ENABLE_EXTENDED_M73_LINES (1 && ENABLE_VALIDATE_CUSTOM_GCODE)
+#define ENABLE_EXTENDED_M73_LINES (1 && ENABLE_2_4_0_ALPHA0)
 // Enable a modified version of automatic downscale on load of objects too big
 #define ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG (1 && ENABLE_2_4_0_ALPHA0)
 // Enable scrollable legend in preview

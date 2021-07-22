@@ -82,11 +82,9 @@ namespace Slic3r {
 
     class GCodeProcessor
     {
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         static const std::vector<std::string> Reserved_Tags;
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+
     public:
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         enum class ETags : unsigned char
         {
             Role,
@@ -109,20 +107,6 @@ namespace Slic3r {
         // checks the given gcode for reserved tags and returns true when finding any
         // (the first max_count found tags are returned into found_tag)
         static bool contains_reserved_tags(const std::string& gcode, unsigned int max_count, std::vector<std::string>& found_tag);
-#else
-        static const std::string Extrusion_Role_Tag;
-        static const std::string Wipe_Start_Tag;
-        static const std::string Wipe_End_Tag;
-        static const std::string Height_Tag;
-        static const std::string Layer_Change_Tag;
-        static const std::string Color_Change_Tag;
-        static const std::string Pause_Print_Tag;
-        static const std::string Custom_Code_Tag;
-        static const std::string First_Line_M73_Placeholder_Tag;
-        static const std::string Last_Line_M73_Placeholder_Tag;
-        static const std::string Estimated_Printing_Time_Placeholder_Tag;
-        static const std::string Width_Tag;
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
         static const float Wipe_Width;
         static const float Wipe_Height;

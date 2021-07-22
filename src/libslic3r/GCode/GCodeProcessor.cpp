@@ -5,9 +5,7 @@
 #include "GCodeProcessor.hpp"
 
 #include <boost/log/trivial.hpp>
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 #include <boost/algorithm/string/predicate.hpp>
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 #include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -37,7 +35,6 @@ static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
 
 namespace Slic3r {
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "TYPE:",
     "WIPE_START",
@@ -52,21 +49,6 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
 };
-#else
-const std::string GCodeProcessor::Extrusion_Role_Tag = "TYPE:";
-const std::string GCodeProcessor::Wipe_Start_Tag     = "WIPE_START";
-const std::string GCodeProcessor::Wipe_End_Tag       = "WIPE_END";
-const std::string GCodeProcessor::Height_Tag         = "HEIGHT:";
-const std::string GCodeProcessor::Width_Tag          = "WIDTH:";
-const std::string GCodeProcessor::Layer_Change_Tag   = "LAYER_CHANGE";
-const std::string GCodeProcessor::Color_Change_Tag   = "COLOR_CHANGE";
-const std::string GCodeProcessor::Pause_Print_Tag    = "PAUSE_PRINT";
-const std::string GCodeProcessor::Custom_Code_Tag    = "CUSTOM_GCODE";
-
-const std::string GCodeProcessor::First_Line_M73_Placeholder_Tag          = "; _GP_FIRST_LINE_M73_PLACEHOLDER";
-const std::string GCodeProcessor::Last_Line_M73_Placeholder_Tag           = "; _GP_LAST_LINE_M73_PLACEHOLDER";
-const std::string GCodeProcessor::Estimated_Printing_Time_Placeholder_Tag = "; _GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
@@ -445,7 +427,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         std::string line = gcode_line.substr(0, gcode_line.length() - 1);
 
         std::string ret;
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         if (line.length() > 1) {
             line = line.substr(1);
             if (export_remaining_time_enabled &&
@@ -477,19 +458,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 }
             }
             else if (line == reserved_tag(ETags::Estimated_Printing_Time_Placeholder)) {
-#else
-        if (export_remaining_time_enabled && (line == First_Line_M73_Placeholder_Tag || line == Last_Line_M73_Placeholder_Tag)) {
-            for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                const TimeMachine& machine = machines[i];
-                if (machine.enabled) {
-                    ret += format_line_M73(machine.line_m73_mask.c_str(),
-                        (line == First_Line_M73_Placeholder_Tag) ? 0 : 100,
-                        (line == First_Line_M73_Placeholder_Tag) ? time_in_minutes(machines[i].time) : 0);
-                }
-            }
-        }
-        else if (line == Estimated_Printing_Time_Placeholder_Tag) {
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
                     const TimeMachine& machine = machines[i];
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
@@ -502,9 +470,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     }
                 }
             }
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
         return std::tuple(!ret.empty(), ret.empty() ? gcode_line : ret, (extra_lines_count == 0) ? extra_lines_count : extra_lines_count - 1);
     };
@@ -784,7 +750,6 @@ const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProces
 
 unsigned int GCodeProcessor::s_result_id = 0;
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 bool GCodeProcessor::contains_reserved_tag(const std::string& gcode, std::string& found_tag)
 {
     bool ret = false;
@@ -836,7 +801,6 @@ bool GCodeProcessor::contains_reserved_tags(const std::string& gcode, unsigned i
 
     return ret;
 }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 GCodeProcessor::GCodeProcessor()
 {
@@ -1239,11 +1203,7 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
             if (cmd.length() == 0) {
                 const std::string_view comment = line.comment();
                 if (comment.length() > 1 && detect_producer(comment))
-#if ENABLE_VALIDATE_CUSTOM_GCODE
                     m_parser.quit_parsing();
-#else
-                    m_parser.quit_parsing_file();
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
             }
             });
 
@@ -1576,7 +1536,6 @@ void GCodeProcessor::process_tags(const std::string_view comment)
     if (m_producers_enabled && process_producers_tags(comment))
         return;
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     // extrusion role tag
     if (boost::starts_with(comment, reserved_tag(ETags::Role))) {
         set_extrusion_role(ExtrusionEntity::string_to_role(comment.substr(reserved_tag(ETags::Role).length())));
@@ -1601,28 +1560,8 @@ void GCodeProcessor::process_tags(const std::string_view comment)
         m_wiping = false;
         return;
     }
-#else
-    // extrusion role tag
-    if (boost::starts_with(comment, Extrusion_Role_Tag)) {
-        set_extrusion_role(ExtrusionEntity::string_to_role(comment.substr(Extrusion_Role_Tag.length())));
-        return;
-    }
-
-    // wipe start tag
-    if (boost::starts_with(comment, Wipe_Start_Tag)) {
-        m_wiping = true;
-        return;
-    }
-
-    // wipe end tag
-    if (boost::starts_with(comment, Wipe_End_Tag)) {
-        m_wiping = false;
-        return;
-    }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     if (!m_producers_enabled || m_producer == EProducer::PrusaSlicer) {
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         // height tag
         if (boost::starts_with(comment, reserved_tag(ETags::Height))) {
             if (!parse_number(comment.substr(reserved_tag(ETags::Height).size()), m_forced_height))
@@ -1635,23 +1574,8 @@ void GCodeProcessor::process_tags(const std::string_view comment)
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             return;
         }
-#else
-        // height tag
-        if (boost::starts_with(comment, Height_Tag)) {
-            if (!parse_number(comment.substr(Height_Tag.size()), m_forced_height))
-                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Height (" << comment << ").";
-            return;
-        }
-        // width tag
-        if (boost::starts_with(comment, Width_Tag)) {
-            if (!parse_number(comment.substr(Width_Tag.size()), m_forced_width))
-                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
-            return;
-        }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
     }
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     // color change tag
     if (boost::starts_with(comment, reserved_tag(ETags::Color_Change))) {
         unsigned char extruder_id = 0;
@@ -1699,53 +1623,6 @@ void GCodeProcessor::process_tags(const std::string_view comment)
         ++m_layer_id;
         return;
     }
-#else
-    // color change tag
-    if (boost::starts_with(comment, Color_Change_Tag)) {
-        unsigned char extruder_id = 0;
-        if (boost::starts_with(comment.substr(Color_Change_Tag.size()), ",T")) {
-            int eid;
-            if (! parse_number(comment.substr(Color_Change_Tag.size() + 2), eid) || eid < 0 || eid > 255) {
-                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
-                return;
-            }
-            extruder_id = static_cast<unsigned char>(eid);
-        }
-
-        m_extruder_colors[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
-        ++m_cp_color.counter;
-        if (m_cp_color.counter == UCHAR_MAX)
-            m_cp_color.counter = 0;
-
-        if (m_extruder_id == extruder_id) {
-            m_cp_color.current = m_extruder_colors[extruder_id];
-            store_move_vertex(EMoveType::Color_change);
-        }
-
-        process_custom_gcode_time(CustomGCode::ColorChange);
-
-        return;
-    }
-
-    // pause print tag
-    if (comment == Pause_Print_Tag) {
-        store_move_vertex(EMoveType::Pause_Print);
-        process_custom_gcode_time(CustomGCode::PausePrint);
-        return;
-    }
-
-    // custom code tag
-    if (comment == Custom_Code_Tag) {
-        store_move_vertex(EMoveType::Custom_GCode);
-        return;
-    }
-
-    // layer change tag
-    if (comment == Layer_Change_Tag) {
-        ++m_layer_id;
-        return;
-    }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     // mm3_per_mm print tag
