@@ -223,9 +223,7 @@ public:
     void    SetKoefForLabels(const double koef)                { m_label_koef = koef; }
     void    SetSliderValues(const std::vector<double>& values);
     void    ChangeOneLayerLock();
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     void    SetSliderAlternateValues(const std::vector<double>& values) { m_alternate_values = values; }
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
     Info    GetTicksValues() const;
     void    SetTicksValues(const Info &custom_gcode_per_print_z);
@@ -409,9 +407,7 @@ private:
     std::vector<std::string>    m_extruder_colors;
     std::string         m_print_obj_idxs;
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     std::vector<double> m_alternate_values;
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
 // control's view variables
     wxCoord SLIDER_MARGIN; // margin around slider

@@ -23,9 +23,7 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 #include "libslic3r/PresetBundle.hpp"
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -456,16 +454,10 @@ void GLVolume::set_render_color(const std::array<float, 4>& rgba)
 
 void GLVolume::set_render_color()
 {
-#if ENABLE_ALLOW_NEGATIVE_Z
     bool outside = is_outside || is_below_printbed();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     if (force_native_color || force_neutral_color) {
-#if ENABLE_ALLOW_NEGATIVE_Z
         if (outside && shader_outside_printer_detection_enabled)
-#else
-        if (is_outside && shader_outside_printer_detection_enabled)
-#endif // ENABLE_ALLOW_NEGATIVE_Z
             set_render_color(OUTSIDE_COLOR);
         else {
             if (force_native_color)
@@ -480,18 +472,10 @@ void GLVolume::set_render_color()
         else if (hover == HS_Deselect)
             set_render_color(HOVER_DESELECT_COLOR);
         else if (selected)
-#if ENABLE_ALLOW_NEGATIVE_Z
             set_render_color(outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR);
-#else
-            set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR);
-#endif // ENABLE_ALLOW_NEGATIVE_Z
         else if (disabled)
             set_render_color(DISABLED_COLOR);
-#if ENABLE_ALLOW_NEGATIVE_Z
         else if (outside && shader_outside_printer_detection_enabled)
-#else
-        else if (is_outside && shader_outside_printer_detection_enabled)
-#endif // ENABLE_ALLOW_NEGATIVE_Z
             set_render_color(OUTSIDE_COLOR);
         else
             set_render_color(color);
@@ -634,14 +618,9 @@ void GLVolume::render() const
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
 bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposPad); }
 
-#if ENABLE_ALLOW_NEGATIVE_Z
 bool GLVolume::is_sinking() const
 {
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
     if (is_modifier || GUI::wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
-#else
-    if (is_modifier)
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
         return false;
     const BoundingBoxf3& box = transformed_convex_hull_bounding_box();
     return box.min.z() < SINKING_Z_THRESHOLD && box.max.z() >= SINKING_Z_THRESHOLD;
@@ -668,7 +647,6 @@ void GLVolume::render_sinking_contours()
     m_sinking_contours.render();
 }
 #endif // ENABLE_SINKING_CONTOURS
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object,

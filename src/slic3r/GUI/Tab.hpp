@@ -79,9 +79,7 @@ public:
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 	const ConfigOptionsGroupShp	get_optgroup(const wxString& title) const;
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 	bool		set_item_colour(const wxColour *clr) {
 		if (m_item_color != clr) {
@@ -357,11 +355,9 @@ public:
 
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
 	bool        validate_custom_gcodes();
-    bool        validate_custom_gcodes_was_shown { false };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+    bool        validate_custom_gcodes_was_shown{ false };
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const wxString& path, widget_t widget);

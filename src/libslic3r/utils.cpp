@@ -202,6 +202,11 @@ const std::string& data_dir()
     return g_data_dir;
 }
 
+std::string custom_shapes_dir()
+{
+    return (boost::filesystem::path(g_data_dir) / "shapes").string();
+}
+
 #ifdef _WIN32
 // The following helpers are borrowed from the LLVM project https://github.com/llvm
 namespace WindowsSupport

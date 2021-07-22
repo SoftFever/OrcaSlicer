@@ -172,11 +172,7 @@ namespace Slic3r {
             // subdivide the retraction in segments
             if (!wipe_path.empty()) {
                 // add tag for processor
-#if ENABLE_VALIDATE_CUSTOM_GCODE
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Start) + "\n";
-#else
-                gcode += ";" + GCodeProcessor::Wipe_Start_Tag + "\n";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
                 for (const Line& line : wipe_path.lines()) {
                     double segment_length = line.length();
                     /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
@@ -192,11 +188,7 @@ namespace Slic3r {
                     );
                 }
                 // add tag for processor
-#if ENABLE_VALIDATE_CUSTOM_GCODE
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_End) + "\n";
-#else
-                gcode += ";" + GCodeProcessor::Wipe_End_Tag + "\n";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
                 gcodegen.set_last_pos(wipe_path.points.back());
             }
 
@@ -655,7 +647,6 @@ namespace DoExport {
         print_statistics.filament_stats = result.print_statistics.volumes_per_extruder;
     }
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     // if any reserved keyword is found, returns a std::vector containing the first MAX_COUNT keywords found
     // into pairs containing:
     // first: source
@@ -714,7 +705,6 @@ namespace DoExport {
 
         return ret;
     }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 } // namespace DoExport
 
 void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
@@ -729,7 +719,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
 
     print->set_started(psGCodeExport);
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     // check if any custom gcode contains keywords used by the gcode processor to
     // produce time estimation and gcode toolpaths
     std::vector<std::pair<std::string, std::string>> validation_res = DoExport::validate_custom_gcode(*print);
@@ -743,7 +732,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
             reports +
             _(L("This may cause problems in g-code visualization and printing time estimation.")));
     }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code..." << log_memory_info();
 
@@ -794,16 +782,11 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
     m_processor.process_file(path_tmp, true, [print]() { print->throw_if_canceled(); });
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
-#if ENABLE_GCODE_WINDOW
     if (result != nullptr) {
         *result = std::move(m_processor.extract_result());
         // set the filename to the correct value
         result->filename = path;
     }
-#else
-    if (result != nullptr)
-        *result = std::move(m_processor.extract_result());
-#endif // ENABLE_GCODE_WINDOW
     BOOST_LOG_TRIVIAL(debug) << "Finished processing gcode, " << log_memory_info();
 
     if (rename_file(path_tmp, path))
@@ -1168,11 +1151,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
 
     // adds tags for time estimators
     if (print.config().remaining_times.value)
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         _write_format(file, ";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::First_Line_M73_Placeholder).c_str());
-#else
-        _writeln(file, GCodeProcessor::First_Line_M73_Placeholder_Tag);
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
@@ -1279,11 +1258,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, false);
 
     // adds tag for processor
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     _write_format(file, ";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
-#else
-    _write_format(file, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     // Write the custom start G-code
     _writeln(file, start_gcode);
@@ -1444,11 +1419,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     _write(file, m_writer.set_fan(false));
 
     // adds tag for processor
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     _write_format(file, ";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
-#else
-    _write_format(file, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     // Process filament-specific gcode in extruder order.
     {
@@ -1475,11 +1446,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
 
     // adds tags for time estimators
     if (print.config().remaining_times.value)
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         _write_format(file, ";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
-#else
-        _writeln(file, GCodeProcessor::Last_Line_M73_Placeholder_Tag);
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     print.throw_if_canceled();
 
@@ -1495,11 +1462,7 @@ void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thu
     _write_format(file, "; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
     if (print.m_print_statistics.total_toolchanges > 0)
     	_write_format(file, "; total toolchanges = %i\n", print.m_print_statistics.total_toolchanges);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     _write_format(file, ";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
-#else
-    _writeln(file, GCodeProcessor::Estimated_Printing_Time_Placeholder_Tag);
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
     // Append full config.
     _write(file, "\n");
@@ -1799,11 +1762,7 @@ namespace ProcessLayer
                 assert(m600_extruder_before_layer >= 0);
 		        // Color Change or Tool Change as Color Change.
                 // add tag for processor
-#if ENABLE_VALIDATE_CUSTOM_GCODE
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Color_Change) + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
-#else
-                gcode += ";" + GCodeProcessor::Color_Change_Tag + ",T" + std::to_string(m600_extruder_before_layer) + "\n";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
                 if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != (unsigned)m600_extruder_before_layer
                     // && !MMU1
@@ -1828,11 +1787,7 @@ namespace ProcessLayer
 	            if (gcode_type == CustomGCode::PausePrint) // Pause print
 	            {
                     // add tag for processor
-#if ENABLE_VALIDATE_CUSTOM_GCODE
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Pause_Print) + "\n";
-#else
-                    gcode += ";" + GCodeProcessor::Pause_Print_Tag + "\n";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
                     //! FIXME_in_fw show message during print pause
 	                if (!pause_print_msg.empty())
 	                    gcode += "M117 " + pause_print_msg + "\n";
@@ -1840,11 +1795,7 @@ namespace ProcessLayer
                 }
 	            else {
                     // add tag for processor
-#if ENABLE_VALIDATE_CUSTOM_GCODE
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Custom_Code) + "\n";
-#else
-                    gcode += ";" + GCodeProcessor::Custom_Code_Tag + "\n";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
                     if (gcode_type == CustomGCode::Template)    // Template Custom Gcode
                         gcode += gcodegen.placeholder_parser_process("template_custom_gcode", config.template_custom_gcode, current_extruder_id);
                     else                                        // custom Gcode
@@ -1991,22 +1942,14 @@ void GCode::process_layer(
     assert(is_decimal_separator_point()); // for the sprintfs
 
     // add tag for processor
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
-#else
-    gcode += ";" + GCodeProcessor::Layer_Change_Tag + "\n";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
     // export layer z
     char buf[64];
     sprintf(buf, ";Z:%g\n", print_z);
     gcode += buf;
     // export layer height
     float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), height);
-#else
-    sprintf(buf, ";%s%g\n", GCodeProcessor::Height_Tag.c_str(), height);
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
     gcode += buf;
     // update caches
     m_last_layer_z = static_cast<float>(print_z);
@@ -2835,21 +2778,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (path.role() != m_last_processor_extrusion_role) {
         m_last_processor_extrusion_role = path.role();
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         sprintf(buf, ";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(m_last_processor_extrusion_role).c_str());
-#else
-        sprintf(buf, ";%s%s\n", GCodeProcessor::Extrusion_Role_Tag.c_str(), ExtrusionEntity::role_to_string(m_last_processor_extrusion_role).c_str());
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         gcode += buf;
     }
 
     if (last_was_wipe_tower || m_last_width != path.width) {
         m_last_width = path.width;
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width).c_str(), m_last_width);
-#else
-        sprintf(buf, ";%s%g\n", GCodeProcessor::Width_Tag.c_str(), m_last_width);
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         gcode += buf;
     }
 
@@ -2863,11 +2798,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (last_was_wipe_tower || std::abs(m_last_height - path.height) > EPSILON) {
         m_last_height = path.height;
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), m_last_height);
-#else
-        sprintf(buf, ";%s%g\n", GCodeProcessor::Height_Tag.c_str(), m_last_height);
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         gcode += buf;
     }
 

@@ -30,27 +30,8 @@ const double ObjectManipulation::mm_to_in = 0.0393700787;
 // volume in world coordinate system.
 static double get_volume_min_z(const GLVolume& volume)
 {
-#if ENABLE_ALLOW_NEGATIVE_Z
     return volume.transformed_convex_hull_bounding_box().min.z();
-#else
-    const Transform3f& world_matrix = volume.world_matrix().cast<float>();
-
-    // need to get the ModelVolume pointer
-    const ModelObject* mo = wxGetApp().model().objects[volume.composite_id.object_id];
-    const ModelVolume* mv = mo->volumes[volume.composite_id.volume_id];
-    const TriangleMesh& hull = mv->get_convex_hull();
-
-    float min_z = std::numeric_limits<float>::max();
-    for (const stl_facet& facet : hull.stl.facet_start) {
-        for (int i = 0; i < 3; ++i)
-            min_z = std::min(min_z, Vec3f::UnitZ().dot(world_matrix * facet.vertex[i]));
-    }
-
-    return min_z;
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 }
-
-
 
 static choice_ctrl* create_word_local_combo(wxWindow *parent)
 {
@@ -358,7 +339,6 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             change_position_value(1, diff.y());
             change_position_value(2, diff.z());
         }
-#if ENABLE_ALLOW_NEGATIVE_Z
         else if (selection.is_single_full_instance()) {
             const ModelObjectPtrs& objects = wxGetApp().model().objects;
             const int idx = selection.get_object_idx();
@@ -371,7 +351,6 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 }
             }
         }
-#endif // ENABLE_ALLOW_NEGATIVE_Z
         });
     editors_grid_sizer->Add(m_drop_to_bed_button);
 
@@ -702,10 +681,7 @@ void ObjectManipulation::update_reset_buttons_visibility()
         if (selection.is_single_full_instance()) {
             rotation = volume->get_instance_rotation();
             scale = volume->get_instance_scaling_factor();
-#if ENABLE_ALLOW_NEGATIVE_Z
             min_z = wxGetApp().model().objects[volume->composite_id.object_id]->bounding_box().min.z();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
-
         }
         else {
             rotation = volume->get_volume_rotation();
@@ -714,11 +690,7 @@ void ObjectManipulation::update_reset_buttons_visibility()
         }
         show_rotation = !rotation.isApprox(Vec3d::Zero());
         show_scale = !scale.isApprox(Vec3d::Ones());
-#if ENABLE_ALLOW_NEGATIVE_Z
         show_drop_to_bed = std::abs(min_z) > SINKING_Z_THRESHOLD;
-#else
-        show_drop_to_bed = (std::abs(min_z) > EPSILON);
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
     wxGetApp().CallAfter([this, show_rotation, show_scale, show_drop_to_bed] {

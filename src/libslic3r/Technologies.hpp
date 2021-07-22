@@ -41,14 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable showing gcode line numbers in preview horizontal slider
-#define ENABLE_GCODE_LINES_ID_IN_H_SLIDER (1 && ENABLE_2_4_0_ALPHA0)
-// Enable validation of custom gcode against gcode processor reserved keywords
-#define ENABLE_VALIDATE_CUSTOM_GCODE (1 && ENABLE_2_4_0_ALPHA0)
-// Enable showing a imgui window containing gcode in preview
-#define ENABLE_GCODE_WINDOW (1 && ENABLE_2_4_0_ALPHA0)
-// Enable exporting lines M73 for remaining time to next printer stop to gcode
-#define ENABLE_EXTENDED_M73_LINES (1 && ENABLE_VALIDATE_CUSTOM_GCODE)
 // Enable a modified version of automatic downscale on load of objects too big
 #define ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG (1 && ENABLE_2_4_0_ALPHA0)
 // Enable scrollable legend in preview
@@ -61,13 +53,10 @@
 #define ENABLE_PROJECT_DIRTY_STATE (1 && ENABLE_2_4_0_ALPHA0)
 // Enable project dirty state manager debug window
 #define ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW (0 && ENABLE_PROJECT_DIRTY_STATE)
-// Enable to push object instances under the bed
-#define ENABLE_ALLOW_NEGATIVE_Z (1 && ENABLE_2_4_0_ALPHA0)
-#define DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA (1 && ENABLE_ALLOW_NEGATIVE_Z)
-// Enable drawing contours, at cut level, for sinking volumes
-#define ENABLE_SINKING_CONTOURS (1 && ENABLE_ALLOW_NEGATIVE_Z)
 // Enable delayed rendering of transparent volumes
 #define ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_2_4_0_ALPHA0)
+// Enable drawing contours, at cut level, for sinking volumes
+#define ENABLE_SINKING_CONTOURS (1 && ENABLE_2_4_0_ALPHA0)
 
 
 #endif // _prusaslicer_technologies_h_

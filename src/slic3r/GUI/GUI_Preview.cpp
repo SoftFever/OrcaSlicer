@@ -834,25 +834,17 @@ void Preview::update_moves_slider()
         return;
 
     std::vector<double> values(view.endpoints.last - view.endpoints.first + 1);
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     std::vector<double> alternate_values(view.endpoints.last - view.endpoints.first + 1);
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     unsigned int count = 0;
     for (unsigned int i = view.endpoints.first; i <= view.endpoints.last; ++i) {
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         values[count] = static_cast<double>(i + 1);
         if (view.gcode_ids[i] > 0)
             alternate_values[count] = static_cast<double>(view.gcode_ids[i]);
         ++count;
-#else
-        values[count++] = static_cast<double>(i + 1);
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     }
 
     m_moves_slider->SetSliderValues(values);
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     m_moves_slider->SetSliderAlternateValues(alternate_values);
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     m_moves_slider->SetMaxValue(view.endpoints.last - view.endpoints.first);
     m_moves_slider->SetSelectionSpan(view.current.first - view.endpoints.first, view.current.last - view.endpoints.first);
 }

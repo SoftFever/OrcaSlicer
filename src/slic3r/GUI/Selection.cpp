@@ -13,9 +13,7 @@
 
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Model.hpp"
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 #include "libslic3r/PresetBundle.hpp"
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 
 #include <GL/glew.h>
 
@@ -850,21 +848,13 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     if (!m_valid)
         return;
 
-#if ENABLE_ALLOW_NEGATIVE_Z
     bool is_any_volume_sinking = false;
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
     bool is_sla = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     for (unsigned int i : m_list) {
         GLVolume &v = *(*m_volumes)[i];
-#if ENABLE_ALLOW_NEGATIVE_Z
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
         if (!is_sla)
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
             is_any_volume_sinking |= !v.is_modifier && std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
         if (is_single_full_instance()) {
             if (transformation_type.relative()) {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
@@ -923,10 +913,8 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
     
-#if ENABLE_ALLOW_NEGATIVE_Z
     if (!is_any_volume_sinking)
         ensure_on_bed();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     this->set_bounding_boxes_dirty();
 }
@@ -1675,16 +1663,12 @@ void Selection::update_type()
 void Selection::set_caches()
 {
     m_cache.volumes_data.clear();
-#if ENABLE_ALLOW_NEGATIVE_Z
     m_cache.sinking_volumes.clear();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i) {
         const GLVolume& v = *(*m_volumes)[i];
         m_cache.volumes_data.emplace(i, VolumeCache(v.get_volume_transformation(), v.get_instance_transformation()));
-#if ENABLE_ALLOW_NEGATIVE_Z
         if (v.is_sinking())
             m_cache.sinking_volumes.push_back(i);
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
     m_cache.dragging_center = get_bounding_box().center();
 }
@@ -2089,21 +2073,12 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
             assert(is_rotation_xy_synchronized(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation()));
             switch (sync_rotation_type) {
             case SYNC_ROTATION_NONE: {
-#if ENABLE_ALLOW_NEGATIVE_Z
                 // z only rotation -> synch instance z
                 // The X,Y rotations should be synchronized from start to end of the rotation.
                 assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
                 if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
                     v->set_instance_offset(Z, volume->get_instance_offset().z());
                 break;
-#else
-                // z only rotation -> keep instance z
-                // The X,Y rotations should be synchronized from start to end of the rotation.
-                assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
-                break;
-#endif // ENABLE_ALLOW_NEGATIVE_Z
             }
             case SYNC_ROTATION_FULL:
                 // rotation comes from place on face -> force given z

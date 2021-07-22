@@ -484,7 +484,6 @@ public:
     bool                is_sla_support() const;
     bool                is_sla_pad() const;
 
-#if ENABLE_ALLOW_NEGATIVE_Z
     bool                is_sinking() const;
     bool                is_below_printbed() const;
 #if ENABLE_SINKING_CONTOURS
@@ -492,7 +491,6 @@ public:
     void                update_sinking_contours_color();
     void                render_sinking_contours();
 #endif // ENABLE_SINKING_CONTOURS
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     // Return an estimate of the memory consumed by this class.
     size_t 				cpu_memory_used() const { 

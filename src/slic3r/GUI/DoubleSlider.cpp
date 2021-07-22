@@ -739,16 +739,11 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         return size_t(it - m_layers_values.begin());
     };
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     if (m_draw_mode == dmSequentialGCodeView) {
         return (Slic3r::GUI::get_app_config()->get("seq_top_gcode_indices") == "1") ?
             wxString::Format("%lu", static_cast<unsigned long>(m_alternate_values[value])) :
             wxString::Format("%lu", static_cast<unsigned long>(m_values[value]));
     }
-#else
-    if (m_draw_mode == dmSequentialGCodeView)
-        return wxString::Format("%lu", static_cast<unsigned long>(m_values[value]));
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
     else {
         if (label_type == ltEstimatedTime) {
             if (m_is_wipe_tower) {
@@ -2180,7 +2175,6 @@ static std::string get_custom_code(const std::string& code_in, double height)
         wxTextEntryDialogStyle | wxTE_MULTILINE);
     upgrade_text_entry_dialog(&dlg);
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     bool valid = true;
     std::string value;
     do {
@@ -2191,12 +2185,6 @@ static std::string get_custom_code(const std::string& code_in, double height)
         valid = GUI::Tab::validate_custom_gcode("Custom G-code", value);
     } while (!valid);
     return value;
-#else
-    if (dlg.ShowModal() != wxID_OK)
-        return "";
-
-    return into_u8(dlg.GetValue());
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 }
 
 static std::string get_pause_print_msg(const std::string& msg_in, double height)

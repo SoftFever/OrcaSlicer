@@ -219,9 +219,7 @@ static void add_default_image(wxImageList* img_list, bool is_system)
 
 static fs::path get_dir(bool sys_dir)
 {
-    if (sys_dir)
-        return fs::absolute(fs::path(sys_shapes_dir())).make_preferred();
-    return fs::absolute(fs::path(data_dir()) / "shapes").make_preferred();
+    return fs::absolute(fs::path(sys_dir ? sys_shapes_dir() : custom_shapes_dir())).make_preferred();
 }
 
 static std::string get_dir_path(bool sys_dir) 
@@ -255,11 +253,7 @@ static void generate_thumbnail_from_stl(const std::string& filename)
     assert(model.objects[0]->instances.size() == 1);
 
     model.objects[0]->center_around_origin(false);
-#if ENABLE_ALLOW_NEGATIVE_Z
     model.objects[0]->ensure_on_bed(false);
-#else
-    model.objects[0]->ensure_on_bed();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     const Vec3d bed_center_3d = wxGetApp().plater()->get_bed().get_bounding_box(false).center();
     const Vec2d bed_center_2d = { bed_center_3d.x(), bed_center_3d.y()};
