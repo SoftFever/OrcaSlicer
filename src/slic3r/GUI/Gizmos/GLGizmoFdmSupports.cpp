@@ -152,6 +152,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     if (m_imgui->button(m_desc["enforce_button"], buttons_width, 0.f)) {
         select_facets_by_angle(m_angle_threshold_deg, false);
         m_angle_threshold_deg = 0.f;
+        m_parent.use_slope(false);
     }
     ImGui::SameLine(window_width - buttons_width);
     if (m_imgui->button(m_desc["cancel"], buttons_width, 0.f)) {
