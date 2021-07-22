@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable scrollable legend in preview
-#define ENABLE_SCROLLABLE_LEGEND (1 && ENABLE_2_4_0_ALPHA0)
 // Enable visualization of start gcode as regular toolpaths
 #define ENABLE_START_GCODE_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
 // Enable visualization of seams in preview

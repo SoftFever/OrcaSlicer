@@ -3595,10 +3595,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
 
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
         view3D->set_as_dirty();
-#if ENABLE_SCROLLABLE_LEGEND
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         view3D->get_canvas3d()->reset_old_size();
-#endif // ENABLE_SCROLLABLE_LEGEND
         view_toolbar.select_item("3D");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(false);
@@ -3619,10 +3617,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         preview->reload_print(true);
 
         preview->set_as_dirty();
-#if ENABLE_SCROLLABLE_LEGEND
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         preview->get_canvas3d()->reset_old_size();
-#endif // ENABLE_SCROLLABLE_LEGEND
         view_toolbar.select_item("Preview");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(true);

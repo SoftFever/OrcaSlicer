@@ -2579,25 +2579,17 @@ void GCodeViewer::render_legend(float& legend_height) const
     if (!m_legend_enabled)
         return;
 
-#if ENABLE_SCROLLABLE_LEGEND
     const Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-#endif // ENABLE_SCROLLABLE_LEGEND
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(0.0f, 0.0f, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
-#if ENABLE_SCROLLABLE_LEGEND
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
     ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
-#else
-    imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-#endif // ENABLE_SCROLLABLE_LEGEND
 
     enum class EItemType : unsigned char
     {
@@ -2608,30 +2600,22 @@ void GCodeViewer::render_legend(float& legend_height) const
     };
 
     const PrintEstimatedStatistics::Mode& time_mode = m_print_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
-#if ENABLE_SCROLLABLE_LEGEND
     bool show_estimated_time = time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
         (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()));
-#endif // ENABLE_SCROLLABLE_LEGEND
 
     const float icon_size = ImGui::GetTextLineHeight();
     const float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
 
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
 
-#if ENABLE_SCROLLABLE_LEGEND
     auto append_item = [this, icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color& color, const std::string& label,
-#else
-    auto append_item = [this, draw_list, icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color& color, const std::string& label,
-#endif // ENABLE_SCROLLABLE_LEGEND
         bool visible = true, const std::string& time = "", float percent = 0.0f, float max_percent = 0.0f, const std::array<float, 4>& offsets = { 0.0f, 0.0f, 0.0f, 0.0f },
         double used_filament_m = 0.0, double used_filament_g = 0.0,
         std::function<void()> callback = nullptr) {
         if (!visible)
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
-#if ENABLE_SCROLLABLE_LEGEND
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
-#endif // ENABLE_SCROLLABLE_LEGEND
         ImVec2 pos = ImGui::GetCursorScreenPos();
         switch (type) {
         default:
@@ -2984,7 +2968,6 @@ void GCodeViewer::render_legend(float& legend_height) const
     }
     case EViewType::ColorPrint:
     {
-#if ENABLE_SCROLLABLE_LEGEND
         const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
         size_t total_items = 1;
         for (unsigned char i : m_extruder_ids) {
@@ -2996,9 +2979,6 @@ void GCodeViewer::render_legend(float& legend_height) const
         // add scrollable region, if needed
         if (need_scrollable)
             ImGui::BeginChild("color_prints", { -1.0f, child_height }, false);
-#else
-        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
-#endif // ENABLE_SCROLLABLE_LEGEND
         if (m_extruders_count == 1) { // single extruder use case
             const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
             const int items_cnt = static_cast<int>(cp_values.size());
@@ -3049,10 +3029,8 @@ void GCodeViewer::render_legend(float& legend_height) const
                 }
             }
         }
-#if ENABLE_SCROLLABLE_LEGEND
         if (need_scrollable)
             ImGui::EndChild();
-#endif // ENABLE_SCROLLABLE_LEGEND
 
         break;
     }
@@ -3203,12 +3181,10 @@ void GCodeViewer::render_legend(float& legend_height) const
 
             ImGui::Spacing();
             append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration"), _u8L("Used filament") }, offsets);
-#if ENABLE_SCROLLABLE_LEGEND
             const bool need_scrollable = static_cast<float>(partial_times.size()) * (icon_size + ImGui::GetStyle().ItemSpacing.y) > child_height;
             if (need_scrollable)
                 // add scrollable region
                 ImGui::BeginChild("events", { -1.0f, child_height }, false);
-#endif // ENABLE_SCROLLABLE_LEGEND
 
             for (const PartialTime& item : partial_times) {
                 switch (item.type)
@@ -3230,10 +3206,8 @@ void GCodeViewer::render_legend(float& legend_height) const
                 }
             }
 
-#if ENABLE_SCROLLABLE_LEGEND
             if (need_scrollable)
                 ImGui::EndChild();
-#endif // ENABLE_SCROLLABLE_LEGEND
         }
     }
 
@@ -3383,14 +3357,7 @@ void GCodeViewer::render_legend(float& legend_height) const
     }
 
     // total estimated printing time section
-#if ENABLE_SCROLLABLE_LEGEND
     if (show_estimated_time) {
-#else
-    if (time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType ||
-        (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()))) {
-
-        ImGui::Spacing();
-#endif // ENABLE_SCROLLABLE_LEGEND
         ImGui::Spacing();
         std::string time_title = _u8L("Estimated printing times");
         switch (m_time_estimate_mode)
