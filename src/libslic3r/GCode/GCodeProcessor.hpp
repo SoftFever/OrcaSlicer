@@ -485,10 +485,8 @@ namespace Slic3r {
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
         float m_extruded_last_z;
-#if ENABLE_START_GCODE_VISUALIZATION
         float m_first_layer_height; // mm
         bool m_processing_start_custom_gcode;
-#endif // ENABLE_START_GCODE_VISUALIZATION
         unsigned int m_g1_line_id;
         unsigned int m_layer_id;
         CpColor m_cp_color;
