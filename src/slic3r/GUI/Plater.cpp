@@ -2520,7 +2520,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
-#if ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
         for (size_t i = 0; i < object->instances.size(); ++i) {
             ModelInstance* instance = object->instances[i];
             const Vec3d size = object->instance_bounding_box(i).size();
@@ -2542,26 +2541,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
                 scaled_down = true;
             }
         }
-#else
-        const Vec3d size = object->bounding_box().size();
-        const Vec3d ratio = size.cwiseQuotient(bed_size);
-        const double max_ratio = std::max(ratio(0), ratio(1));
-        if (max_ratio > 10000) {
-            // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
-            // so scale down the mesh
-            double inv = 1. / max_ratio;
-            object->scale_mesh_after_creation(Vec3d(inv, inv, inv));
-            object->origin_translation = Vec3d::Zero();
-            object->center_around_origin();
-            scaled_down = true;
-        } else if (max_ratio > 5) {
-            const Vec3d inverse = 1.0 / max_ratio * Vec3d::Ones();
-            for (ModelInstance *instance : object->instances) {
-                instance->set_scaling_factor(inverse);
-            }
-            scaled_down = true;
-        }
-#endif // ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
 
         object->ensure_on_bed(allow_negative_z);
     }
@@ -3616,10 +3595,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
 
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
         view3D->set_as_dirty();
-#if ENABLE_SCROLLABLE_LEGEND
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         view3D->get_canvas3d()->reset_old_size();
-#endif // ENABLE_SCROLLABLE_LEGEND
         view_toolbar.select_item("3D");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(false);
@@ -3640,10 +3617,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         preview->reload_print(true);
 
         preview->set_as_dirty();
-#if ENABLE_SCROLLABLE_LEGEND
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         preview->get_canvas3d()->reset_old_size();
-#endif // ENABLE_SCROLLABLE_LEGEND
         view_toolbar.select_item("Preview");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(true);

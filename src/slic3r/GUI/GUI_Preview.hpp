@@ -121,9 +121,7 @@ public:
         Wipe,
         Retractions,
         Unretractions,
-#if ENABLE_SEAMS_VISUALIZATION
         Seams,
-#endif // ENABLE_SEAMS_VISUALIZATION
         ToolChanges,
         ColorChanges,
         PausePrints,

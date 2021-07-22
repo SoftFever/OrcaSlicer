@@ -12,9 +12,7 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#if ENABLE_SEAMS_VISUALIZATION
 #include <optional>
-#endif // ENABLE_SEAMS_VISUALIZATION
 
 namespace Slic3r {
 
@@ -23,9 +21,7 @@ namespace Slic3r {
         Noop,
         Retract,
         Unretract,
-#if ENABLE_SEAMS_VISUALIZATION
         Seam,
-#endif // ENABLE_SEAMS_VISUALIZATION
         Tool_change,
         Color_change,
         Pause_Print,
@@ -363,7 +359,6 @@ namespace Slic3r {
             void reset();
         };
 
-#if ENABLE_SEAMS_VISUALIZATION
         class SeamsDetector
         {
             bool m_active{ false };
@@ -384,7 +379,6 @@ namespace Slic3r {
             bool is_active() const { return m_active; }
             bool has_first_vertex() const { return m_first_vertex.has_value(); }
         };
-#endif // ENABLE_SEAMS_VISUALIZATION
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         struct DataChecker
@@ -470,9 +464,7 @@ namespace Slic3r {
         bool m_wiping;
 
         unsigned int m_line_id;
-#if ENABLE_SEAMS_VISUALIZATION
         unsigned int m_last_line_id;
-#endif // ENABLE_SEAMS_VISUALIZATION
         float m_feedrate; // mm/s
         float m_width; // mm
         float m_height; // mm
@@ -485,17 +477,13 @@ namespace Slic3r {
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
         float m_extruded_last_z;
-#if ENABLE_START_GCODE_VISUALIZATION
         float m_first_layer_height; // mm
         bool m_processing_start_custom_gcode;
-#endif // ENABLE_START_GCODE_VISUALIZATION
         unsigned int m_g1_line_id;
         unsigned int m_layer_id;
         CpColor m_cp_color;
         bool m_use_volumetric_e;
-#if ENABLE_SEAMS_VISUALIZATION
         SeamsDetector m_seams_detector;
-#endif // ENABLE_SEAMS_VISUALIZATION
 
         enum class EProducer
         {

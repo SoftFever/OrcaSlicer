@@ -4707,13 +4707,11 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     if (m_canvas == nullptr && m_context == nullptr)
         return;
 
-#if ENABLE_SCROLLABLE_LEGEND
     const std::array<unsigned int, 2> new_size = { w, h };
     if (m_old_size == new_size)
         return;
 
     m_old_size = new_size;
-#endif // ENABLE_SCROLLABLE_LEGEND
 
     auto *imgui = wxGetApp().imgui();
     imgui->set_display_size(static_cast<float>(w), static_cast<float>(h));
@@ -4724,9 +4722,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     imgui->set_scaling(font_size, m_canvas->GetContentScaleFactor(), 1.0f);
 #endif
 
-#if ENABLE_SCROLLABLE_LEGEND
     this->request_extra_frame();
-#endif // ENABLE_SCROLLABLE_LEGEND
 
     // ensures that this canvas is current
     _set_current();
