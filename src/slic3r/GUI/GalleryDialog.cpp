@@ -253,11 +253,7 @@ static void generate_thumbnail_from_stl(const std::string& filename)
     assert(model.objects[0]->instances.size() == 1);
 
     model.objects[0]->center_around_origin(false);
-#if ENABLE_ALLOW_NEGATIVE_Z
     model.objects[0]->ensure_on_bed(false);
-#else
-    model.objects[0]->ensure_on_bed();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     const Vec3d bed_center_3d = wxGetApp().plater()->get_bed().get_bounding_box(false).center();
     const Vec2d bed_center_2d = { bed_center_3d.x(), bed_center_3d.y()};

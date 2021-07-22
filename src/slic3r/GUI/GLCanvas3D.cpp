@@ -169,17 +169,10 @@ void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
 void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 {
     const ModelObject *model_object_new = (object_id >= 0) ? model.objects[object_id] : nullptr;
-#if ENABLE_ALLOW_NEGATIVE_Z
     // Maximum height of an object changes when the object gets rotated or scaled.
     // Changing maximum height of an object will invalidate the layer heigth editing profile.
     // m_model_object->bounding_box() is cached, therefore it is cheap even if this method is called frequently.
     const float new_max_z = (model_object_new == nullptr) ? 0.0f : static_cast<float>(model_object_new->bounding_box().max.z());
-#else
-    // Maximum height of an object changes when the object gets rotated or scaled.
-    // Changing maximum height of an object will invalidate the layer heigth editing profile.
-    // m_model_object->raw_bounding_box() is cached, therefore it is cheap even if this method is called frequently.
-	float new_max_z = (model_object_new == nullptr) ? 0.f : model_object_new->raw_bounding_box().size().z();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     if (m_model_object != model_object_new || this->last_object_id != object_id || m_object_max_z != new_max_z ||
         (model_object_new != nullptr && m_model_object->id() != model_object_new->id())) {
         m_layer_height_profile.clear();
@@ -3401,37 +3394,21 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             wipe_tower_origin = v->get_volume_offset();
     }
 
-#if ENABLE_ALLOW_NEGATIVE_Z
     // Fixes flying instances
-#else
-    // Fixes sinking/flying instances
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
-#if ENABLE_ALLOW_NEGATIVE_Z
         const double shift_z = m->get_instance_min_z(i.second);
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
         if (current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) {
-#else
-        if (shift_z > 0.0) {
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
             const Vec3d shift(0.0, 0.0, -shift_z);
-#else
-        const Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
-#endif // ENABLE_ALLOW_NEGATIVE_Z
-        m_selection.translate(i.first, i.second, shift);
-        m->translate_instance(i.second, shift);
-#if ENABLE_ALLOW_NEGATIVE_Z
+            m_selection.translate(i.first, i.second, shift);
+            m->translate_instance(i.second, shift);
         }
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
-#if ENABLE_ALLOW_NEGATIVE_Z
     // if the selection is not valid to allow for layer editing after the move, we need to turn off the tool if it is running
     // similar to void Plater::priv::selection_changed()
     if (!wxGetApp().plater()->can_layers_editing() && is_layers_editing_enabled())
         post_event(SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     if (object_moved)
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
@@ -3452,7 +3429,6 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
-#if ENABLE_ALLOW_NEGATIVE_Z
     // stores current min_z of instances
     std::map<std::pair<int, int>, double> min_zs;
     if (!snapshot_type.empty()) {
@@ -3463,7 +3439,6 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
             }
         }
     }
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -3501,19 +3476,13 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     // Fixes sinking/flying instances
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
-#if ENABLE_ALLOW_NEGATIVE_Z
         double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
         if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
             Vec3d shift(0.0, 0.0, -shift_z);
-#else
-        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
-#endif // ENABLE_ALLOW_NEGATIVE_Z
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
-#if ENABLE_ALLOW_NEGATIVE_Z
         }
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
     if (!done.empty())
@@ -3530,7 +3499,6 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
-#if ENABLE_ALLOW_NEGATIVE_Z
     // stores current min_z of instances
     std::map<std::pair<int, int>, double> min_zs;
     if (!snapshot_type.empty()) {
@@ -3541,7 +3509,6 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
             }
         }
     }
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -3576,19 +3543,13 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     // Fixes sinking/flying instances
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
-#if ENABLE_ALLOW_NEGATIVE_Z
         double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
         if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
             Vec3d shift(0.0, 0.0, -shift_z);
-#else
-        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
-#endif // ENABLE_ALLOW_NEGATIVE_Z
-        m_selection.translate(i.first, i.second, shift);
-        m->translate_instance(i.second, shift);
-#if ENABLE_ALLOW_NEGATIVE_Z
+            m_selection.translate(i.first, i.second, shift);
+            m->translate_instance(i.second, shift);
         }
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
     if (!done.empty())

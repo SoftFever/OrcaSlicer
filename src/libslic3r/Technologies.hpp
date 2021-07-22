@@ -53,9 +53,6 @@
 #define ENABLE_PROJECT_DIRTY_STATE (1 && ENABLE_2_4_0_ALPHA0)
 // Enable project dirty state manager debug window
 #define ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW (0 && ENABLE_PROJECT_DIRTY_STATE)
-// Enable to push object instances under the bed
-#define ENABLE_ALLOW_NEGATIVE_Z (1 && ENABLE_2_4_0_ALPHA0)
-#define DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA (1 && ENABLE_ALLOW_NEGATIVE_Z)
 // Enable delayed rendering of transparent volumes
 #define ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_2_4_0_ALPHA0)
 
