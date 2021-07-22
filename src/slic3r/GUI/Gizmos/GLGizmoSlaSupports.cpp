@@ -671,7 +671,7 @@ RENDER_AGAIN:
         //  - keep updating the head radius during sliding so it is continuosly refreshed in 3D scene
         //  - take correct undo/redo snapshot after the user is done with moving the slider
         float initial_value = m_new_point_head_diameter;
-        ImGui::SliderFloat("", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f");
+        m_imgui->slider_float("", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f");
         if (ImGui::IsItemClicked()) {
             if (m_old_point_head_diameter == 0.f)
                 m_old_point_head_diameter = initial_value;
@@ -731,7 +731,7 @@ RENDER_AGAIN:
         float density = static_cast<const ConfigOptionInt*>(opts[0])->value;
         float minimal_point_distance = static_cast<const ConfigOptionFloat*>(opts[1])->value;
 
-        ImGui::SliderFloat("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
+        m_imgui->slider_float("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
         bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
         bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
         bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
@@ -740,7 +740,7 @@ RENDER_AGAIN:
         m_imgui->text(m_desc.at("points_density"));
         ImGui::SameLine(settings_sliders_left);
 
-        ImGui::SliderFloat(" ", &density, 0.f, 200.f, "%.f %%");
+        m_imgui->slider_float(" ", &density, 0.f, 200.f, "%.f %%");
         slider_clicked |= ImGui::IsItemClicked();
         slider_edited |= ImGui::IsItemEdited();
         slider_released |= ImGui::IsItemDeactivatedAfterEdit();
@@ -801,7 +801,7 @@ RENDER_AGAIN:
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
     float clp_dist = m_c->object_clipper()->get_position();
-    if (ImGui::SliderFloat("  ", &clp_dist, 0.f, 1.f, "%.2f"))
+    if (m_imgui->slider_float("  ", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
 

@@ -254,7 +254,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     float widget_align = ImGui::GetCursorPosX();
     ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     m_adaptive_quality = std::clamp(m_adaptive_quality, 0.0f, 1.f);
-    ImGui::SliderFloat("", &m_adaptive_quality, 0.0f, 1.f, "%.2f");
+    imgui.slider_float("", &m_adaptive_quality, 0.0f, 1.f, "%.2f");
 
     ImGui::Separator();
     if (imgui.button(_L("Smooth")))
