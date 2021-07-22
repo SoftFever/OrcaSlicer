@@ -121,9 +121,7 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
     case EMoveType::Custom_GCode:
     case EMoveType::Retract:
     case EMoveType::Unretract:
-#if ENABLE_SEAMS_VISUALIZATION
     case EMoveType::Seam:
-#endif // ENABLE_SEAMS_VISUALIZATION
     case EMoveType::Extrude: {
         // use rounding to reduce the number of generated paths
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
@@ -507,9 +505,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
 const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
     { 0.803f, 0.135f, 0.839f },   // Retractions
     { 0.287f, 0.679f, 0.810f },   // Unretractions
-#if ENABLE_SEAMS_VISUALIZATION
     { 0.900f, 0.900f, 0.900f },   // Seams
-#endif // ENABLE_SEAMS_VISUALIZATION
     { 0.758f, 0.744f, 0.389f },   // ToolChanges
     { 0.856f, 0.582f, 0.546f },   // ColorChanges
     { 0.322f, 0.942f, 0.512f },   // PausePrints
@@ -552,20 +548,12 @@ GCodeViewer::GCodeViewer()
         case EMoveType::Pause_Print:
         case EMoveType::Custom_GCode:
         case EMoveType::Retract:
-#if ENABLE_SEAMS_VISUALIZATION
         case EMoveType::Unretract:
         case EMoveType::Seam: {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
             buffer.vertices.format = VBuffer::EFormat::Position;
             break;
         }
-#else
-        case EMoveType::Unretract: {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
-            buffer.vertices.format = VBuffer::EFormat::Position;
-            break;
-        }
-#endif // ENABLE_SEAMS_VISUALIZATION
         case EMoveType::Wipe:
         case EMoveType::Extrude: {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
@@ -775,18 +763,11 @@ void GCodeViewer::render() const
             case EMoveType::Pause_Print:
             case EMoveType::Custom_GCode:
             case EMoveType::Retract:
-#if ENABLE_SEAMS_VISUALIZATION
             case EMoveType::Unretract:
             case EMoveType::Seam: {
                 buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
                 break;
             }
-#else
-            case EMoveType::Unretract: {
-                buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
-                break;
-            }
-#endif // ENABLE_SEAMS_VISUALIZATION
             case EMoveType::Wipe:
             case EMoveType::Extrude: {
                 buffer.shader = "gouraud_light";
@@ -911,9 +892,7 @@ unsigned int GCodeViewer::get_options_visibility_flags() const
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Wipe), is_toolpath_move_type_visible(EMoveType::Wipe));
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Retractions), is_toolpath_move_type_visible(EMoveType::Retract));
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Unretractions), is_toolpath_move_type_visible(EMoveType::Unretract));
-#if ENABLE_SEAMS_VISUALIZATION
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::Seams), is_toolpath_move_type_visible(EMoveType::Seam));
-#endif // ENABLE_SEAMS_VISUALIZATION
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ToolChanges), is_toolpath_move_type_visible(EMoveType::Tool_change));
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::ColorChanges), is_toolpath_move_type_visible(EMoveType::Color_change));
     flags = set_flag(flags, static_cast<unsigned int>(Preview::OptionType::PausePrints), is_toolpath_move_type_visible(EMoveType::Pause_Print));
@@ -934,9 +913,7 @@ void GCodeViewer::set_options_visibility_from_flags(unsigned int flags)
     set_toolpath_move_type_visible(EMoveType::Wipe, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Wipe)));
     set_toolpath_move_type_visible(EMoveType::Retract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Retractions)));
     set_toolpath_move_type_visible(EMoveType::Unretract, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Unretractions)));
-#if ENABLE_SEAMS_VISUALIZATION
     set_toolpath_move_type_visible(EMoveType::Seam, is_flag_set(static_cast<unsigned int>(Preview::OptionType::Seams)));
-#endif // ENABLE_SEAMS_VISUALIZATION
     set_toolpath_move_type_visible(EMoveType::Tool_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ToolChanges)));
     set_toolpath_move_type_visible(EMoveType::Color_change, is_flag_set(static_cast<unsigned int>(Preview::OptionType::ColorChanges)));
     set_toolpath_move_type_visible(EMoveType::Pause_Print, is_flag_set(static_cast<unsigned int>(Preview::OptionType::PausePrints)));
@@ -2164,9 +2141,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EMoveType::Custom_GCode: { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]; break; }
         case EMoveType::Retract:      { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]; break; }
         case EMoveType::Unretract:    { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]; break; }
-#if ENABLE_SEAMS_VISUALIZATION
         case EMoveType::Seam:         { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Seams)]; break; }
-#endif // ENABLE_SEAMS_VISUALIZATION
         case EMoveType::Extrude: {
             if (!top_layer_only ||
                 m_sequential_view.current.last == global_endpoints.last ||
@@ -3262,12 +3237,8 @@ void GCodeViewer::render_legend(float& legend_height) const
             available(EMoveType::Pause_Print) ||
             available(EMoveType::Retract) ||
             available(EMoveType::Tool_change) ||
-#if ENABLE_SEAMS_VISUALIZATION
             available(EMoveType::Unretract) ||
             available(EMoveType::Seam);
-#else
-            available(EMoveType::Unretract);
-#endif // ENABLE_SEAMS_VISUALIZATION
     };
 
     auto add_option = [this, append_item](EMoveType move_type, EOptionsColors color, const std::string& text) {
@@ -3285,9 +3256,7 @@ void GCodeViewer::render_legend(float& legend_height) const
         // items
         add_option(EMoveType::Retract, EOptionsColors::Retractions, _u8L("Retractions"));
         add_option(EMoveType::Unretract, EOptionsColors::Unretractions, _u8L("Deretractions"));
-#if ENABLE_SEAMS_VISUALIZATION
         add_option(EMoveType::Seam, EOptionsColors::Seams, _u8L("Seams"));
-#endif // ENABLE_SEAMS_VISUALIZATION
         add_option(EMoveType::Tool_change, EOptionsColors::ToolChanges, _u8L("Tool changes"));
         add_option(EMoveType::Color_change, EOptionsColors::ColorChanges, _u8L("Color changes"));
         add_option(EMoveType::Pause_Print, EOptionsColors::PausePrints, _u8L("Print pauses"));

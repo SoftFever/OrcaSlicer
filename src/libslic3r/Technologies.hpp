@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable visualization of seams in preview
-#define ENABLE_SEAMS_VISUALIZATION (1 && ENABLE_2_4_0_ALPHA0)
 // Enable project dirty state manager
 #define ENABLE_PROJECT_DIRTY_STATE (1 && ENABLE_2_4_0_ALPHA0)
 // Enable project dirty state manager debug window

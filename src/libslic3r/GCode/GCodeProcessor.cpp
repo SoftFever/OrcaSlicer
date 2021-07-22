@@ -1088,9 +1088,7 @@ void GCodeProcessor::reset()
     m_wiping = false;
 
     m_line_id = 0;
-#if ENABLE_SEAMS_VISUALIZATION
     m_last_line_id = 0;
-#endif // ENABLE_SEAMS_VISUALIZATION
     m_feedrate = 0.0f;
     m_width = 0.0f;
     m_height = 0.0f;
@@ -1487,10 +1485,8 @@ void GCodeProcessor::process_tags(const std::string_view comment)
     // extrusion role tag
     if (boost::starts_with(comment, reserved_tag(ETags::Role))) {
         set_extrusion_role(ExtrusionEntity::string_to_role(comment.substr(reserved_tag(ETags::Role).length())));
-#if ENABLE_SEAMS_VISUALIZATION
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
-#endif // ENABLE_SEAMS_VISUALIZATION
         m_processing_start_custom_gcode = (m_extrusion_role == erCustom && m_g1_line_id == 0);
         return;
     }
@@ -1629,10 +1625,9 @@ bool GCodeProcessor::process_cura_tags(const std::string_view comment)
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
         }
 
-#if ENABLE_SEAMS_VISUALIZATION
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
-#endif // ENABLE_SEAMS_VISUALIZATION
+
         return true;
     }
 
@@ -1697,9 +1692,7 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
     pos = cmt.find(" outer perimeter");
     if (pos == 0) {
         set_extrusion_role(erExternalPerimeter);
-#if ENABLE_SEAMS_VISUALIZATION
         m_seams_detector.activate(true);
-#endif // ENABLE_SEAMS_VISUALIZATION
         return true;
     }
 
@@ -1854,10 +1847,8 @@ bool GCodeProcessor::process_craftware_tags(const std::string_view comment)
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
         }
 
-#if ENABLE_SEAMS_VISUALIZATION
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
-#endif // ENABLE_SEAMS_VISUALIZATION
 
         return true;
     }
@@ -1898,10 +1889,9 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string_view comment)
             BOOST_LOG_TRIVIAL(warning) << "GCodeProcessor found unknown extrusion role: " << type;
         }
 
-#if ENABLE_SEAMS_VISUALIZATION
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
-#endif // ENABLE_SEAMS_VISUALIZATION
+
         return true;
     }
 
@@ -1970,9 +1960,7 @@ bool GCodeProcessor::process_kissslicer_tags(const std::string_view comment)
     pos = comment.find(" 'Perimeter Path'");
     if (pos == 0) {
         set_extrusion_role(erExternalPerimeter);
-#if ENABLE_SEAMS_VISUALIZATION
         m_seams_detector.activate(true);
-#endif // ENABLE_SEAMS_VISUALIZATION
         return true;
     }
 
@@ -2346,7 +2334,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             machine.calculate_time(TimeProcessor::Planner::queue_size);
     }
 
-#if ENABLE_SEAMS_VISUALIZATION
     if (m_seams_detector.is_active()) {
         // check for seam starting vertex
         if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex())
@@ -2370,7 +2357,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             m_seams_detector.activate(false);
         }
     }
-#endif // ENABLE_SEAMS_VISUALIZATION
 
     // store move
     store_move_vertex(type);
@@ -2825,18 +2811,12 @@ void GCodeProcessor::process_T(const std::string_view command)
 
 void GCodeProcessor::store_move_vertex(EMoveType type)
 {
-#if ENABLE_SEAMS_VISUALIZATION
     m_last_line_id = (type == EMoveType::Color_change || type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) ?
         m_line_id + 1 :
         ((type == EMoveType::Seam) ? m_last_line_id : m_line_id);
-#endif // ENABLE_SEAMS_VISUALIZATION
 
     MoveVertex vertex = {
-#if ENABLE_SEAMS_VISUALIZATION
         m_last_line_id,
-#else
-        (type == EMoveType::Color_change || type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) ? m_line_id + 1 : m_line_id,
-#endif // ENABLE_SEAMS_VISUALIZATION
         type,
         m_extrusion_role,
         m_extruder_id,
