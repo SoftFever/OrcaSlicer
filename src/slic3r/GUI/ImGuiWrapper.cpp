@@ -406,20 +406,23 @@ void ImGuiWrapper::text_colored(const ImVec4& color, const wxString& label)
     this->text_colored(color, label_utf8.c_str());
 }
 
-bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)
 {
-    return ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+    bool ret = ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+    if (clamp)
+        *v = std::clamp(*v, v_min, v_max);
+    return ret;
 }
 
-bool ImGuiWrapper::slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+bool ImGuiWrapper::slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)
 {
-    return this->slider_float(label.c_str(), v, v_min, v_max, format, power);
+    return this->slider_float(label.c_str(), v, v_min, v_max, format, power, clamp);
 }
 
-bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)
 {
     auto label_utf8 = into_u8(label);
-    return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power);
+    return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power, clamp);
 }
 
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)

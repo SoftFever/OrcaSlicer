@@ -586,6 +586,11 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     m_sequential_view.gcode_window.set_filename(gcode_result.filename);
     m_sequential_view.gcode_window.load_gcode();
 
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    if (wxGetApp().is_gcode_viewer())
+        m_custom_gcode_per_print_z = gcode_result.custom_gcode_per_print_z;
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+
     load_toolpaths(gcode_result);
 
     if (m_layers.empty())
@@ -743,6 +748,9 @@ void GCodeViewer::reset()
     m_layers_z_range = { 0, 0 };
     m_roles = std::vector<ExtrusionRole>();
     m_print_statistics.reset();
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    m_custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
     m_sequential_view.gcode_window.reset();
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
@@ -2939,7 +2947,11 @@ void GCodeViewer::render_legend(float& legend_height) const
     }
     case EViewType::ColorPrint:
     {
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes : m_custom_gcode_per_print_z;
+#else
         const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         size_t total_items = 1;
         for (unsigned char i : m_extruder_ids) {
             total_items += color_print_ranges(i, custom_gcode_per_print_z).size();
@@ -3034,7 +3046,11 @@ void GCodeViewer::render_legend(float& legend_height) const
         auto generate_partial_times = [this, get_used_filament_from_volume](const TimesList& times, const std::vector<double>& used_filaments) {
             PartialTimes items;
 
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+            std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes : m_custom_gcode_per_print_z;
+#else
             std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
             int extruders_count = wxGetApp().extruders_edited_cnt();
             std::vector<Color> last_color(extruders_count);
             for (int i = 0; i < extruders_count; ++i) {

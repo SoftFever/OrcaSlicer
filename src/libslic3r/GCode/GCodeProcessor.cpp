@@ -684,6 +684,9 @@ void GCodeProcessor::Result::reset() {
     extruder_colors = std::vector<std::string>();
     filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
     time = 0;
 }
 #else
@@ -695,6 +698,9 @@ void GCodeProcessor::Result::reset() {
     extruder_colors = std::vector<std::string>();
     filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
@@ -1125,6 +1131,9 @@ void GCodeProcessor::reset()
     m_result.id = ++s_result_id;
 
     m_use_volumetric_e = false;
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    m_last_default_color_id = 0;
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_mm3_per_mm_compare.reset();
@@ -1521,6 +1530,56 @@ void GCodeProcessor::process_tags(const std::string_view comment)
     // color change tag
     if (boost::starts_with(comment, reserved_tag(ETags::Color_Change))) {
         unsigned char extruder_id = 0;
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        static std::vector<std::string> Default_Colors = {
+            "#0B2C7A", // { 0.043f, 0.173f, 0.478f }, // bluish
+            "#1C8891", // { 0.110f, 0.533f, 0.569f },
+            "#AAF200", // { 0.667f, 0.949f, 0.000f },
+            "#F5CE0A", // { 0.961f, 0.808f, 0.039f },
+            "#D16830", // { 0.820f, 0.408f, 0.188f },
+            "#942616", // { 0.581f, 0.149f, 0.087f }  // reddish
+        };
+
+        std::string color = Default_Colors[0];
+        auto is_valid_color = [](const std::string& color) {
+            auto is_hex_digit = [](char c) {
+                return ((c >= '0' && c <= '9') ||
+                        (c >= 'A' && c <= 'F') ||
+                        (c >= 'a' && c <= 'f'));
+            };
+
+            if (color[0] != '#' || color.length() != 7)
+                return false;
+            for (int i = 1; i <= 6; ++i) {
+                if (!is_hex_digit(color[i]))
+                    return false;
+            }
+            return true;
+        };
+
+        std::vector<std::string> tokens;
+        boost::split(tokens, comment, boost::is_any_of(","), boost::token_compress_on);
+        if (tokens.size() > 1) {
+            if (tokens[1][0] == 'T') {
+                int eid;
+                if (!parse_number(tokens[1].substr(1), eid) || eid < 0 || eid > 255) {
+                    BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Color_Change (" << comment << ").";
+                    return;
+                }
+                extruder_id = static_cast<unsigned char>(eid);
+            }
+        }
+        if (tokens.size() > 2) {
+            if (is_valid_color(tokens[2]))
+                color = tokens[2];
+        }
+        else {
+            color = Default_Colors[m_last_default_color_id];
+            ++m_last_default_color_id;
+            if (m_last_default_color_id == Default_Colors.size())
+                m_last_default_color_id = 0;
+        }
+#else
         if (boost::starts_with(comment.substr(reserved_tag(ETags::Color_Change).size()), ",T")) {
             int eid;
             if (!parse_number(comment.substr(reserved_tag(ETags::Color_Change).size() + 2), eid) || eid < 0 || eid > 255) {
@@ -1529,6 +1588,7 @@ void GCodeProcessor::process_tags(const std::string_view comment)
             }
             extruder_id = static_cast<unsigned char>(eid);
         }
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
         if (extruder_id < m_extruder_colors.size())
             m_extruder_colors[extruder_id] = static_cast<unsigned char>(m_extruder_offsets.size()) + m_cp_color.counter; // color_change position in list of color for preview
@@ -1539,10 +1599,18 @@ void GCodeProcessor::process_tags(const std::string_view comment)
         if (m_extruder_id == extruder_id) {
             m_cp_color.current = m_extruder_colors[extruder_id];
             store_move_vertex(EMoveType::Color_change);
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+            CustomGCode::Item item = { static_cast<double>(m_end_position[2]), CustomGCode::ColorChange, extruder_id + 1, color, "" };
+            m_result.custom_gcode_per_print_z.emplace_back(item);
+            process_custom_gcode_time(CustomGCode::ColorChange);
+            process_filaments(CustomGCode::ColorChange);
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         }
 
+#if !ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         process_custom_gcode_time(CustomGCode::ColorChange);
         process_filaments(CustomGCode::ColorChange);
+#endif // !ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
         return;
     }
@@ -1550,6 +1618,10 @@ void GCodeProcessor::process_tags(const std::string_view comment)
     // pause print tag
     if (comment == reserved_tag(ETags::Pause_Print)) {
         store_move_vertex(EMoveType::Pause_Print);
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        CustomGCode::Item item = { static_cast<double>(m_end_position[2]), CustomGCode::PausePrint, m_extruder_id + 1, "", "" };
+        m_result.custom_gcode_per_print_z.emplace_back(item);
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         process_custom_gcode_time(CustomGCode::PausePrint);
         return;
     }
@@ -1557,6 +1629,10 @@ void GCodeProcessor::process_tags(const std::string_view comment)
     // custom code tag
     if (comment == reserved_tag(ETags::Custom_Code)) {
         store_move_vertex(EMoveType::Custom_GCode);
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        CustomGCode::Item item = { static_cast<double>(m_end_position[2]), CustomGCode::Custom, m_extruder_id + 1, "", "" };
+        m_result.custom_gcode_per_print_z.emplace_back(item);
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         return;
     }
 

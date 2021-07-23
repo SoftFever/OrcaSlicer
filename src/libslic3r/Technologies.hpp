@@ -47,6 +47,8 @@
 #define ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW (0 && ENABLE_PROJECT_DIRTY_STATE)
 // Enable delayed rendering of transparent volumes
 #define ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_2_4_0_ALPHA0)
+// Enable the fix of importing color print view from gcode files into GCodeViewer
+#define ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER (1 && ENABLE_2_4_0_ALPHA0)
 // Enable drawing contours, at cut level, for sinking volumes
 #define ENABLE_SINKING_CONTOURS (1 && ENABLE_2_4_0_ALPHA0)
 
