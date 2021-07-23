@@ -208,7 +208,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         
         // Fix warning icon in object list
         wxGetApp().obj_list()->update_item_error_icon(obj_index, -1);
-        wxGetApp().obj_list()->part_selection_changed();
     }
 }
 

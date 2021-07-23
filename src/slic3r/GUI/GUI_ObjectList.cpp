@@ -3951,6 +3951,8 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
             // unmark fixed item only
             m_objects_model->DeleteWarningIcon(item);
     }
+    else
+        m_objects_model->AddWarningIcon(item);
 }
 
 void ObjectList::msw_rescale()
