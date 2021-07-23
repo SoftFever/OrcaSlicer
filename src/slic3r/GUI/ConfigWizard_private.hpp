@@ -512,14 +512,11 @@ private:
     ScalableBitmap bullet_black;
     ScalableBitmap bullet_blue;
     ScalableBitmap bullet_white;
-    wxStaticBitmap* logo;
 
     std::vector<Item> items;
     size_t item_active;
     ssize_t item_hover;
     size_t last_page;
-
-    int logo_height;
 
     int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em_w) + em_w; }
 
