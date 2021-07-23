@@ -323,6 +323,7 @@ private:
         {
             support_tree_ptr = sla::SupportTree::create(*this, ctl);
             tree_mesh = TriangleMesh{support_tree_ptr->retrieve_mesh(sla::MeshType::Support)};
+            tree_mesh.require_shared_vertices();
             return support_tree_ptr;
         }
 
