@@ -637,11 +637,25 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     update_layers_slider_mode();
 
     Plater* plater = wxGetApp().plater();
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    CustomGCode::Info ticks_info_from_model;
+    if (wxGetApp().is_editor())
+        ticks_info_from_model = plater->model().custom_gcode_per_print_z;
+    else {
+        ticks_info_from_model.mode = CustomGCode::Mode::SingleExtruder;
+        ticks_info_from_model.gcodes = m_canvas->get_custom_gcode_per_print_z();
+    }
+#else
     CustomGCode::Info& ticks_info_from_model = plater->model().custom_gcode_per_print_z;
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
     check_layers_slider_values(ticks_info_from_model.gcodes, layers_z);
 
     //first of all update extruder colors to avoid crash, when we are switching printer preset from MM to SM
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    m_layers_slider->SetExtruderColors(plater->get_extruder_colors_from_plater_config(wxGetApp().is_editor() ? nullptr : m_gcode_result));
+#else
     m_layers_slider->SetExtruderColors(plater->get_extruder_colors_from_plater_config());
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
     m_layers_slider->SetSliderValues(layers_z);
     assert(m_layers_slider->GetMinValue() == 0);
@@ -904,7 +918,14 @@ void Preview::load_print_as_fff(bool keep_z_range)
         colors = wxGetApp().plater()->get_colors_for_color_print(m_gcode_result);
 
         if (!gcode_preview_data_valid) {
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+            if (wxGetApp().is_editor())
+                color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+            else
+                color_print_values = m_canvas->get_custom_gcode_per_print_z();
+#else
             color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
             colors.push_back("#808080"); // gray color for pause print or custom G-code 
         }
     }
