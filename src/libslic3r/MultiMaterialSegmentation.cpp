@@ -12,6 +12,8 @@
 
 #include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
+#include <mutex>
+#include <boost/thread/lock_guard.hpp>
 
 namespace Slic3r {
 struct ColoredLine {
@@ -77,7 +79,7 @@ struct PaintedLine
 
 struct PaintedLineVisitor
 {
-    PaintedLineVisitor(const EdgeGrid::Grid &grid, std::vector<PaintedLine> &painted_lines, size_t reserve) : grid(grid), painted_lines(painted_lines)
+    PaintedLineVisitor(const EdgeGrid::Grid &grid, std::vector<PaintedLine> &painted_lines, std::mutex &painted_lines_mutex, size_t reserve) : grid(grid), painted_lines(painted_lines), painted_lines_mutex(painted_lines_mutex)
     {
         painted_lines_set.reserve(reserve);
     }
@@ -118,8 +120,11 @@ struct PaintedLineVisitor
                         if ((line_to_test_projected.a - grid_line.a).cast<double>().squaredNorm() > (line_to_test_projected.b - grid_line.a).cast<double>().squaredNorm())
                             line_to_test_projected.reverse();
 
-                        painted_lines.push_back({it_contour_and_segment->first, it_contour_and_segment->second, line_to_test_projected, this->color});
                         painted_lines_set.insert(*it_contour_and_segment);
+                        {
+                            boost::lock_guard<std::mutex> lock(painted_lines_mutex);
+                            painted_lines.push_back({it_contour_and_segment->first, it_contour_and_segment->second, line_to_test_projected, this->color});
+                        }
                     }
                 }
             }
@@ -130,6 +135,7 @@ struct PaintedLineVisitor
 
     const EdgeGrid::Grid                                                                 &grid;
     std::vector<PaintedLine>                                                             &painted_lines;
+    std::mutex                                                                           &painted_lines_mutex;
     Line                                                                                  line_to_test;
     std::unordered_set<std::pair<size_t, size_t>, boost::hash<std::pair<size_t, size_t>>> painted_lines_set;
     int                                                                                   color             = -1;
@@ -1666,6 +1672,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
 {
     std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions(print_object.layers().size());
     std::vector<std::vector<PaintedLine>>                  painted_lines(print_object.layers().size());
+    std::array<std::mutex, 64>                             painted_lines_mutex;
     std::vector<EdgeGrid::Grid>                            edge_grids(print_object.layers().size());
     const ConstLayerPtrsAdaptor                            layers = print_object.layers();
     std::vector<ExPolygons>                                input_expolygons(layers.size());
@@ -1712,69 +1719,75 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - projection of painted triangles - begin";
     for (const ModelVolume *mv : print_object.model_object()->volumes) {
         const size_t num_extruders = print_object.print()->config().nozzle_diameter.size() + 1;
-        for (size_t extruder_idx = 1; extruder_idx < num_extruders; ++extruder_idx) {
-            throw_on_cancel_callback();
-            const indexed_triangle_set custom_facets = mv->mmu_segmentation_facets.get_facets(*mv, EnforcerBlockerType(extruder_idx));
-            if (!mv->is_model_part() || custom_facets.indices.empty())
-                continue;
+        tbb::parallel_for(tbb::blocked_range<size_t>(1, num_extruders), [&mv, &print_object, &edge_grids, &painted_lines, &painted_lines_mutex, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+            for (size_t extruder_idx = range.begin(); extruder_idx < range.end(); ++extruder_idx) {
+                throw_on_cancel_callback();
+                const indexed_triangle_set custom_facets = mv->mmu_segmentation_facets.get_facets(*mv, EnforcerBlockerType(extruder_idx));
+                if (!mv->is_model_part() || custom_facets.indices.empty())
+                    continue;
 
-            const Transform3f tr = print_object.trafo().cast<float>() * mv->get_matrix().cast<float>();
-            for (size_t facet_idx = 0; facet_idx < custom_facets.indices.size(); ++facet_idx) {
-                float min_z = std::numeric_limits<float>::max();
-                float max_z = std::numeric_limits<float>::lowest();
+                const Transform3f tr = print_object.trafo().cast<float>() * mv->get_matrix().cast<float>();
+                tbb::parallel_for(tbb::blocked_range<size_t>(0, custom_facets.indices.size()), [&tr, &custom_facets, &print_object, &edge_grids, &painted_lines, &painted_lines_mutex, &extruder_idx](const tbb::blocked_range<size_t> &range) {
+                    for (size_t facet_idx = range.begin(); facet_idx < range.end(); ++facet_idx) {
+                        float min_z = std::numeric_limits<float>::max();
+                        float max_z = std::numeric_limits<float>::lowest();
 
-                std::array<Vec3f, 3> facet;
-                for (int p_idx = 0; p_idx < 3; ++p_idx) {
-                    facet[p_idx] = tr * custom_facets.vertices[custom_facets.indices[facet_idx](p_idx)];
-                    max_z        = std::max(max_z, facet[p_idx].z());
-                    min_z        = std::min(min_z, facet[p_idx].z());
-                }
+                        std::array<Vec3f, 3> facet;
+                        for (int p_idx = 0; p_idx < 3; ++p_idx) {
+                            facet[p_idx] = tr * custom_facets.vertices[custom_facets.indices[facet_idx](p_idx)];
+                            max_z        = std::max(max_z, facet[p_idx].z());
+                            min_z        = std::min(min_z, facet[p_idx].z());
+                        }
 
-                // Sort the vertices by z-axis for simplification of projected_facet on slices
-                std::sort(facet.begin(), facet.end(), [](const Vec3f &p1, const Vec3f &p2) { return p1.z() < p2.z(); });
+                        // Sort the vertices by z-axis for simplification of projected_facet on slices
+                        std::sort(facet.begin(), facet.end(), [](const Vec3f &p1, const Vec3f &p2) { return p1.z() < p2.z(); });
 
-                // Find lowest slice not below the triangle.
-                auto first_layer = std::upper_bound(print_object.layers().begin(), print_object.layers().end(), float(min_z - EPSILON),
-                                                    [](float z, const Layer *l1) { return z < l1->slice_z; });
-                auto last_layer  = std::upper_bound(print_object.layers().begin(), print_object.layers().end(), float(max_z + EPSILON),
-                                                   [](float z, const Layer *l1) { return z < l1->slice_z; });
-                --last_layer;
+                        // Find lowest slice not below the triangle.
+                        auto first_layer = std::upper_bound(print_object.layers().begin(), print_object.layers().end(), float(min_z - EPSILON),
+                                                            [](float z, const Layer *l1) { return z < l1->slice_z; });
+                        auto last_layer  = std::upper_bound(print_object.layers().begin(), print_object.layers().end(), float(max_z + EPSILON),
+                                                           [](float z, const Layer *l1) { return z < l1->slice_z; });
+                        --last_layer;
 
-                for (auto layer_it = first_layer; layer_it != (last_layer + 1); ++layer_it) {
-                    const Layer *layer     = *layer_it;
-                    size_t       layer_idx = layer_it - print_object.layers().begin();
-                    if (facet[0].z() > layer->slice_z || layer->slice_z > facet[2].z())
-                        continue;
+                        for (auto layer_it = first_layer; layer_it != (last_layer + 1); ++layer_it) {
+                            const Layer *layer     = *layer_it;
+                            size_t       layer_idx = layer_it - print_object.layers().begin();
+                            if (facet[0].z() > layer->slice_z || layer->slice_z > facet[2].z())
+                                continue;
 
-                    // https://kandepet.com/3d-printing-slicing-3d-objects/
-                    float t            = (float(layer->slice_z) - facet[0].z()) / (facet[2].z() - facet[0].z());
-                    Vec3f line_start_f = facet[0] + t * (facet[2] - facet[0]);
-                    Vec3f line_end_f;
+                            // https://kandepet.com/3d-printing-slicing-3d-objects/
+                            float t            = (float(layer->slice_z) - facet[0].z()) / (facet[2].z() - facet[0].z());
+                            Vec3f line_start_f = facet[0] + t * (facet[2] - facet[0]);
+                            Vec3f line_end_f;
 
-                    if (facet[1].z() > layer->slice_z) {
-                        // [P0, P2] a [P0, P1]
-                        float t1   = (float(layer->slice_z) - facet[0].z()) / (facet[1].z() - facet[0].z());
-                        line_end_f = facet[0] + t1 * (facet[1] - facet[0]);
-                    } else {
-                        // [P0, P2] a [P1, P2]
-                        float t2   = (float(layer->slice_z) - facet[1].z()) / (facet[2].z() - facet[1].z());
-                        line_end_f = facet[1] + t2 * (facet[2] - facet[1]);
+                            if (facet[1].z() > layer->slice_z) {
+                                // [P0, P2] and [P0, P1]
+                                float t1   = (float(layer->slice_z) - facet[0].z()) / (facet[1].z() - facet[0].z());
+                                line_end_f = facet[0] + t1 * (facet[1] - facet[0]);
+                            } else {
+                                // [P0, P2] and [P1, P2]
+                                float t2   = (float(layer->slice_z) - facet[1].z()) / (facet[2].z() - facet[1].z());
+                                line_end_f = facet[1] + t2 * (facet[2] - facet[1]);
+                            }
+
+                            Point line_start(scale_(line_start_f.x()), scale_(line_start_f.y()));
+                            Point line_end(scale_(line_end_f.x()), scale_(line_end_f.y()));
+                            line_start -= print_object.center_offset();
+                            line_end   -= print_object.center_offset();
+
+                            size_t mutex_idx = layer_idx & 0x3F;
+                            assert(mutex_idx < painted_lines_mutex.size());
+
+                            PaintedLineVisitor visitor(edge_grids[layer_idx], painted_lines[layer_idx], painted_lines_mutex[mutex_idx], 16);
+                            visitor.line_to_test.a = line_start;
+                            visitor.line_to_test.b = line_end;
+                            visitor.color          = int(extruder_idx);
+                            edge_grids[layer_idx].visit_cells_intersecting_line(line_start, line_end, visitor);
+                        }
                     }
-
-                    Point line_start(scale_(line_start_f.x()), scale_(line_start_f.y()));
-                    Point line_end(scale_(line_end_f.x()), scale_(line_end_f.y()));
-                    line_start -= print_object.center_offset();
-                    line_end   -= print_object.center_offset();
-
-                    PaintedLineVisitor       visitor(edge_grids[layer_idx], painted_lines[layer_idx], 16);
-                    visitor.reset();
-                    visitor.line_to_test.a = line_start;
-                    visitor.line_to_test.b = line_end;
-                    visitor.color          = int(extruder_idx);
-                    edge_grids[layer_idx].visit_cells_intersecting_line(line_start, line_end, visitor);
-                }
+                });
             }
-        }
+        });
     }
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - projection of painted triangles - end";
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - painted layers count: "
