@@ -145,14 +145,14 @@ struct PaintedLineVisitor
     static inline const double                                                            append_threshold2 = Slic3r::sqr(append_threshold);
 };
 
-static std::vector<ColoredLine> to_colored_lines(const Polygon &polygon, int color)
+static std::vector<ColoredLine> to_colored_lines(const EdgeGrid::Contour &contour, int color)
 {
     std::vector<ColoredLine> lines;
-    if (polygon.points.size() > 2) {
-        lines.reserve(polygon.points.size());
-        for (auto it = polygon.points.begin(); it != polygon.points.end() - 1; ++it)
+    if (contour.num_segments() > 2) {
+        lines.reserve(contour.num_segments());
+        for (auto it = contour.begin(); it != contour.end() - 1; ++it)
             lines.push_back({Line(*it, *(it + 1)), color});
-        lines.push_back({Line(polygon.points.back(), polygon.points.front()), color});
+        lines.push_back({Line(contour.back(), contour.front()), color});
     }
     return lines;
 }
@@ -247,7 +247,9 @@ static std::vector<ColoredLine> colorize_line(const Line &              line_to_
                                               std::vector<PaintedLine> &painted_lines)
 {
     std::vector<PaintedLine> internal_painted;
-    for (size_t line_idx = start_idx; line_idx <= end_idx; ++line_idx) { internal_painted.emplace_back(painted_lines[line_idx]); }
+    for (size_t line_idx = start_idx; line_idx <= end_idx; ++line_idx)
+        internal_painted.emplace_back(painted_lines[line_idx]);
+
     const int                filter_eps_value = scale_(0.1f);
     std::vector<PaintedLine> filtered_lines;
     filtered_lines.emplace_back(internal_painted.front());
@@ -333,18 +335,18 @@ static std::vector<ColoredLine> colorize_line(const Line &              line_to_
             if (line_1.line.length() <= scale_(0.2)) line_1.color = line_0.color;
     }
 
-    std::vector<ColoredLine> colored_lines_simpl;
-    colored_lines_simpl.emplace_back(final_lines.front());
+    std::vector<ColoredLine> colored_lines_simple;
+    colored_lines_simple.emplace_back(final_lines.front());
     for (size_t line_idx = 1; line_idx < final_lines.size(); ++line_idx) {
         const ColoredLine &line_0 = final_lines[line_idx];
 
-        if (colored_lines_simpl.back().color == line_0.color)
-            colored_lines_simpl.back().line.b = line_0.line.b;
+        if (colored_lines_simple.back().color == line_0.color)
+            colored_lines_simple.back().line.b = line_0.line.b;
         else
-            colored_lines_simpl.emplace_back(line_0);
+            colored_lines_simple.emplace_back(line_0);
     }
 
-    final_lines = colored_lines_simpl;
+    final_lines = colored_lines_simple;
 
     if (final_lines.size() > 1) {
         if (final_lines.front().color != final_lines[1].color && final_lines.front().line.length() <= scale_(0.2)) {
@@ -363,13 +365,12 @@ static std::vector<ColoredLine> colorize_line(const Line &              line_to_
     return final_lines;
 }
 
-static std::vector<ColoredLine> colorize_polygon(const Polygon &poly, const size_t start_idx, const size_t end_idx, std::vector<PaintedLine> &painted_lines)
+static std::vector<ColoredLine> colorize_polygon(const EdgeGrid::Contour &contour, const size_t start_idx, const size_t end_idx, std::vector<PaintedLine> &painted_lines)
 {
     std::vector<ColoredLine> new_lines;
-    Lines                    lines = poly.lines();
-
+    new_lines.reserve(end_idx - start_idx + 1);
     for (size_t idx = 0; idx < painted_lines[start_idx].line_idx; ++idx)
-        new_lines.emplace_back(ColoredLine{lines[idx], 0});
+        new_lines.emplace_back(ColoredLine{contour.get_segment(idx), 0});
 
     for (size_t first_idx = start_idx; first_idx <= end_idx; ++first_idx) {
         size_t second_idx = first_idx;
@@ -377,18 +378,18 @@ static std::vector<ColoredLine> colorize_polygon(const Polygon &poly, const size
         --second_idx;
 
         assert(painted_lines[first_idx].line_idx == painted_lines[second_idx].line_idx);
-        std::vector<ColoredLine> lines_c_line = colorize_line(lines[painted_lines[first_idx].line_idx], first_idx, second_idx, painted_lines);
+        std::vector<ColoredLine> lines_c_line = colorize_line(contour.get_segment(painted_lines[first_idx].line_idx), first_idx, second_idx, painted_lines);
         new_lines.insert(new_lines.end(), lines_c_line.begin(), lines_c_line.end());
 
         if (second_idx + 1 <= end_idx)
             for (size_t idx = painted_lines[second_idx].line_idx + 1; idx < painted_lines[second_idx + 1].line_idx; ++idx)
-                new_lines.emplace_back(ColoredLine{lines[idx], 0});
+                new_lines.emplace_back(ColoredLine{contour.get_segment(idx), 0});
 
         first_idx = second_idx;
     }
 
-    for (size_t idx = painted_lines[end_idx].line_idx + 1; idx < poly.size(); ++idx)
-        new_lines.emplace_back(ColoredLine{lines[idx], 0});
+    for (size_t idx = painted_lines[end_idx].line_idx + 1; idx < contour.num_segments(); ++idx)
+        new_lines.emplace_back(ColoredLine{contour.get_segment(idx), 0});
 
     for (size_t line_idx = 2; line_idx < new_lines.size(); ++line_idx) {
         const ColoredLine &line_0 = new_lines[line_idx - 2];
@@ -465,15 +466,16 @@ static std::vector<ColoredLine> colorize_polygon(const Polygon &poly, const size
     return new_lines;
 }
 
-static std::vector<std::vector<ColoredLine>> colorize_polygons(const Polygons &polygons, std::vector<PaintedLine> &painted_lines)
+static std::vector<std::vector<ColoredLine>> colorize_polygons(const std::vector<EdgeGrid::Contour> &contours, std::vector<PaintedLine> &painted_lines)
 {
     const size_t start_idx = 0;
     const size_t end_idx   = painted_lines.size() - 1;
 
     std::vector<std::vector<ColoredLine>> new_polygons;
+    new_polygons.reserve(contours.size());
 
     for (size_t idx = 0; idx < painted_lines[start_idx].contour_idx; ++idx)
-        new_polygons.emplace_back(to_colored_lines(polygons[idx], 0));
+        new_polygons.emplace_back(to_colored_lines(contours[idx], 0));
 
     for (size_t first_idx = start_idx; first_idx <= end_idx; ++first_idx) {
         size_t second_idx = first_idx;
@@ -482,18 +484,17 @@ static std::vector<std::vector<ColoredLine>> colorize_polygons(const Polygons &p
         --second_idx;
 
         assert(painted_lines[first_idx].contour_idx == painted_lines[second_idx].contour_idx);
-        std::vector<ColoredLine> polygon_c = colorize_polygon(polygons[painted_lines[first_idx].contour_idx], first_idx, second_idx, painted_lines);
-        new_polygons.emplace_back(polygon_c);
+        new_polygons.emplace_back(colorize_polygon(contours[painted_lines[first_idx].contour_idx], first_idx, second_idx, painted_lines));
 
         if (second_idx + 1 <= end_idx)
             for (size_t idx = painted_lines[second_idx].contour_idx + 1; idx < painted_lines[second_idx + 1].contour_idx; ++idx)
-                new_polygons.emplace_back(to_colored_lines(polygons[idx], 0));
+                new_polygons.emplace_back(to_colored_lines(contours[idx], 0));
 
         first_idx = second_idx;
     }
 
-    for (size_t idx = painted_lines[end_idx].contour_idx + 1; idx < polygons.size(); ++idx)
-        new_polygons.emplace_back(to_colored_lines(polygons[idx], 0));
+    for (size_t idx = painted_lines[end_idx].contour_idx + 1; idx < contours.size(); ++idx)
+        new_polygons.emplace_back(to_colored_lines(contours[idx], 0));
 
     return new_polygons;
 }
@@ -1676,7 +1677,6 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
     std::vector<EdgeGrid::Grid>                            edge_grids(print_object.layers().size());
     const ConstLayerPtrsAdaptor                            layers = print_object.layers();
     std::vector<ExPolygons>                                input_expolygons(layers.size());
-    std::vector<Polygons>                                  input_polygons(layers.size());
 
     throw_on_cancel_callback();
 
@@ -1702,18 +1702,17 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
             // Calling expolygons_simplify fixed these issues.
             input_expolygons[layer_idx] = smooth_outward(expolygons_simplify(offset_ex(ex_polygons, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON), 10 * coord_t(SCALED_EPSILON));
-            input_polygons[layer_idx]   = to_polygons(input_expolygons[layer_idx]);
         }
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - slices preparation in parallel - end";
 
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
         throw_on_cancel_callback();
-        BoundingBox  bbox(get_extents(input_polygons[layer_idx]));
+        BoundingBox  bbox(get_extents(input_expolygons[layer_idx]));
         // Projected triangles may slightly exceed the input polygons.
         bbox.offset(20 * SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
-        edge_grids[layer_idx].create(input_polygons[layer_idx], coord_t(scale_(10.)));
+        edge_grids[layer_idx].create(input_expolygons[layer_idx], coord_t(scale_(10.)));
     }
 
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - projection of painted triangles - begin";
@@ -1797,8 +1796,8 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
     tbb::parallel_for(tbb::blocked_range<size_t>(0, print_object.layers().size()), [&](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             throw_on_cancel_callback();
-            auto comp = [&input_polygons, layer_idx](const PaintedLine &first, const PaintedLine &second) {
-                Point first_start_p = input_polygons[layer_idx][first.contour_idx][first.line_idx];
+            auto comp = [&edge_grids, layer_idx](const PaintedLine &first, const PaintedLine &second) {
+                Point first_start_p = edge_grids[layer_idx].contours()[first.contour_idx].segment_start(first.line_idx);
                 return first.contour_idx < second.contour_idx ||
                        (first.contour_idx == second.contour_idx &&
                         (first.line_idx < second.line_idx ||
@@ -1812,7 +1811,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             std::vector<PaintedLine> &painted_lines_single = painted_lines[layer_idx];
 
             if (!painted_lines_single.empty()) {
-                std::vector<std::vector<ColoredLine>> color_poly = colorize_polygons(input_polygons[layer_idx], painted_lines_single);
+                std::vector<std::vector<ColoredLine>> color_poly = colorize_polygons(edge_grids[layer_idx].contours(), painted_lines_single);
                 MMU_Graph                             graph      = build_graph(layer_idx, color_poly);
                 remove_multiple_edges_in_vertices(graph, color_poly);
                 graph.remove_nodes_with_one_arc();

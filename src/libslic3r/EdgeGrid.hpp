@@ -20,10 +20,13 @@ public:
 	Contour(const Slic3r::Point *data, size_t size, bool open) : Contour(data, data + size, open) {}
 	Contour(const std::vector<Slic3r::Point> &pts, bool open) : Contour(pts.data(), pts.size(), open) {}
 
-	const Slic3r::Point *begin()  const { return m_begin; }
-	const Slic3r::Point *end()    const { return m_end; }
-	bool                 open()   const { return m_open; }
-	bool                 closed() const { return ! m_open; }
+    const Slic3r::Point *begin()  const { return m_begin; }
+    const Slic3r::Point *end()    const { return m_end; }
+    bool                 open()   const { return m_open; }
+    bool                 closed() const { return !m_open; }
+
+    const Slic3r::Point &front()  const { return *m_begin; }
+    const Slic3r::Point &back()   const { return *(m_end - 1); }
 
 	// Start point of a segment idx.
 	const Slic3r::Point& segment_start(size_t idx) const {
@@ -60,6 +63,23 @@ public:
 	}
 
 	size_t               num_segments() const { return this->size() - (m_open ? 1 : 0); }
+
+    Line                 get_segment(size_t idx) const
+    {
+        assert(idx < this->num_segments());
+        return Line(this->segment_start(idx), this->segment_end(idx));
+    }
+
+    Lines                get_segments() const
+    {
+        Lines lines;
+        lines.reserve(this->num_segments());
+        if (this->num_segments() > 2) {
+            for (auto it = this->begin(); it != this->end() - 1; ++it) lines.push_back(Line(*it, *(it + 1)));
+            if (!m_open) lines.push_back(Line(this->back(), this->front()));
+        }
+        return lines;
+    }
 
 private:
 	size_t  			 size() const { return m_end - m_begin; }
