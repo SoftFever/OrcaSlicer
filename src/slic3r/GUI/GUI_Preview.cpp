@@ -966,9 +966,18 @@ void Preview::load_print_as_fff(bool keep_z_range)
     unsigned int number_extruders = (unsigned int)print->extruders().size();
 
     if (!m_keep_current_preview_type) {
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        std::vector<Item> gcodes = wxGetApp().is_editor() ?
+            wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes :
+            m_canvas->get_custom_gcode_per_print_z();
+        const wxString choice = !gcodes.empty() ?
+            _L("Color Print") :
+            (number_extruders > 1) ? _L("Tool") : _L("Feature type");
+#else
         const wxString choice = !wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes.empty() ?
             _L("Color Print") :
             (number_extruders > 1) ? _L("Tool") : _L("Feature type");
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
         int type = m_choice_view_type->FindString(choice);
         if (m_choice_view_type->GetSelection() != type) {
