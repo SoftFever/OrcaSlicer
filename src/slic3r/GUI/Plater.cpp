@@ -3535,7 +3535,6 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     }
 
     fix_model_by_win10_sdk_gui(*mo, vol_idx);
-    q->SetFocus();
     sla::reproject_points_and_holes(mo);
     this->update();
     this->object_list_changed();
