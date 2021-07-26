@@ -32,6 +32,7 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
+set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Path for downloaded source packages.")
 
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 
@@ -46,9 +47,13 @@ endif()
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
 message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
+message(STATUS "PrusaSlicer dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
 message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
+
+# The default command line for patching. Only works for newer 
+set(PATCH_CMD ${GIT_EXECUTABLE} apply --verbose --ignore-space-change --whitespace=fix)
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
@@ -71,6 +76,7 @@ function(prusaslicer_add_cmake_project projectname)
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
         INSTALL_DIR         ${DESTDIR}/usr/local
+        DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
         ${_gen}
         CMAKE_ARGS
             -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
@@ -79,6 +85,7 @@ function(prusaslicer_add_cmake_project projectname)
             -DCMAKE_DEBUG_POSTFIX:STRING=d
             -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
             "${_configs_line}"
             ${DEP_CMAKE_OPTS}
@@ -145,27 +152,42 @@ if (NOT EXPAT_FOUND)
     set(EXPAT_PKG dep_EXPAT)
 endif ()
 
+set(DEP_Boost_COMPONENTS system iostreams filesystem thread log locale regex date_time)
+include(Boost/Boost.cmake)
+
+# The order of includes respects the dependencies between libraries
+include(Cereal/Cereal.cmake)
+include(Qhull/Qhull.cmake)
 include(GLEW/GLEW.cmake)
 include(OpenCSG/OpenCSG.cmake)
+
+include(TBB/TBB.cmake)
+
+include(Blosc/Blosc.cmake)
+include(OpenEXR/OpenEXR.cmake)
+include(OpenVDB/OpenVDB.cmake)
+
 include(GMP/GMP.cmake)
 include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
+
+include(NLopt/NLopt.cmake)
+
+include(OpenSSL/OpenSSL.cmake)
+include(CURL/CURL.cmake)
+
+include(JPEG/JPEG.cmake)
+include(TIFF/TIFF.cmake)
 include(wxWidgets/wxWidgets.cmake)
 
-if (NOT "${ZLIB_PKG}" STREQUAL "")
-    add_dependencies(dep_blosc ${ZLIB_PKG})
-    add_dependencies(dep_openexr ${ZLIB_PKG})
-endif ()
-
 set(_dep_list
-    dep_boost
-    dep_tbb
-    dep_libcurl
+    dep_Boost
+    dep_TBB
+    dep_CURL
     dep_wxWidgets
-    dep_gtest
-    dep_cereal
-    dep_nlopt
-    dep_openvdb
+    dep_Cereal
+    dep_NLopt
+    dep_OpenVDB
     dep_OpenCSG
     dep_CGAL
     ${PNG_PKG}
@@ -173,28 +195,11 @@ set(_dep_list
     ${EXPAT_PKG}
     )
 
-if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-    # Patch the boost::polygon library with a custom one.
-    ExternalProject_Add(dep_boost_polygon
-        EXCLUDE_FROM_ALL ON
-        GIT_REPOSITORY "https://github.com/prusa3d/polygon"
-        GIT_TAG prusaslicer_gmp
-        DEPENDS dep_boost
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/dep_boost_polygon-prefix/src/dep_boost_polygon/include/boost/polygon"
-            "${DESTDIR}/usr/local/include/boost/polygon"
-    )
-    # Only override boost::Polygon Voronoi implementation with Vojtech's GMP hacks on 64bit platforms.
-    list(APPEND _dep_list "dep_boost_polygon")
-endif ()
-
 if (MSVC)
     # Experimental
     #list(APPEND _dep_list "dep_qhull")
 else()
-    list(APPEND _dep_list "dep_qhull")
+    list(APPEND _dep_list "dep_Qhull")
     # Not working, static build has different Eigen
     #list(APPEND _dep_list "dep_libigl")
 endif()
