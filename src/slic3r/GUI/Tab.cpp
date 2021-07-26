@@ -1173,6 +1173,10 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     if (!cur_item)
         return;
 
+    // We should to activate a tab with searched option, if it doesn't.
+    // And do it before finding of the cur_item to avoid a case when Tab isn't activated jet and all treeItems are invisible
+    wxGetApp().mainframe->select_tab(this);
+
     while (cur_item) {
         auto title = m_treectrl->GetItemText(cur_item);
         if (page_title != title) {
@@ -1184,8 +1188,6 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         break;
     }
 
-    // we should to activate a tab with searched option, if it doesn't.
-    wxGetApp().mainframe->select_tab(this);
     Field* field = get_field(opt_key);
 
     // focused selected field
