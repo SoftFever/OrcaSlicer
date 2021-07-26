@@ -542,7 +542,7 @@ void AppConfig::update_config_dir(const std::string &dir)
 
 void AppConfig::update_skein_dir(const std::string &dir)
 {
-    if (dir == sys_shapes_dir() || dir == custom_shapes_dir())
+    if (is_shapes_dir(dir))
         return; // do not save "shapes gallery" directory
     this->set("recent", "skein_directory", dir);
 }
@@ -576,7 +576,7 @@ std::string AppConfig::get_last_output_dir(const std::string& alt, const bool re
 		if (it2 != it->second.end() && it3 != it->second.end() && !it2->second.empty() && it3->second == "1")
 			return it2->second;
 	}
-	return alt;
+	return is_shapes_dir(alt) ? get_last_dir() : alt;
 }
 
 void AppConfig::update_last_output_dir(const std::string& dir, const bool removable)
