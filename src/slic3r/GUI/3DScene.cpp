@@ -302,7 +302,7 @@ void GLVolume::SinkingContours::update()
 #if ALG_SLICE == ALG_SLICE_MESH
             MeshSlicingParams slicing_params;
             slicing_params.trafo = m_parent.world_matrix();
-            std::vector<Polygons> list_of_polys = slice_mesh(mesh.its, std::vector<float>{ 0.0f }, slicing_params);
+            Polygons polygons = slice_mesh(mesh.its, 0.0f, slicing_params);
 
             auto append_polygon = [this](const Polygon& polygon, GUI::GLModel::InitializationData& data) {
                 if (!polygon.empty()) {
@@ -326,11 +326,9 @@ void GLVolume::SinkingContours::update()
 
             m_model.reset();
             GUI::GLModel::InitializationData init_data;
-            for (const Polygons& polygons : list_of_polys) {
-                for (const Polygon& polygon : polygons) {
-                    // contour
-                    append_polygon(polygon, init_data);
-                }
+            for (const Polygon& polygon : polygons) {
+                // contour
+                append_polygon(polygon, init_data);
             }
 #else
             MeshSlicingParamsEx slicing_params;
