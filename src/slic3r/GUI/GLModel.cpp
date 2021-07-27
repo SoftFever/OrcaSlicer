@@ -7,6 +7,9 @@
 
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Model.hpp"
+#if ENABLE_SINKING_CONTOURS
+#include "libslic3r/Polygon.hpp"
+#endif // ENABLE_SINKING_CONTOURS
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -86,6 +89,35 @@ void GLModel::init_from(const TriangleMesh& mesh)
     send_to_gpu(data, vertices, indices);
     m_render_data.emplace_back(data);
 }
+
+#if ENABLE_SINKING_CONTOURS
+void GLModel::init_from(const Polygons& polygons, float z)
+{
+    auto append_polygon = [this](const Polygon& polygon, float z, GUI::GLModel::InitializationData& data) {
+        if (!polygon.empty()) {
+            GUI::GLModel::InitializationData::Entity entity;
+            entity.type = GUI::GLModel::PrimitiveType::LineLoop;
+            // contour
+            entity.positions.reserve(polygon.size() + 1);
+            entity.indices.reserve(polygon.size() + 1);
+            unsigned int id = 0;
+            for (const Point& p : polygon) {
+                Vec3f position = unscale(p.x(), p.y(), 0.0).cast<float>();
+                position.z() = z;
+                entity.positions.emplace_back(position);
+                entity.indices.emplace_back(id++);
+            }
+            data.entities.emplace_back(entity);
+        }
+    };
+
+    InitializationData init_data;
+    for (const Polygon& polygon : polygons) {
+        append_polygon(polygon, z, init_data);
+    }
+    init_from(init_data);
+}
+#endif // ENABLE_SINKING_CONTOURS
 
 bool GLModel::init_from_file(const std::string& filename)
 {

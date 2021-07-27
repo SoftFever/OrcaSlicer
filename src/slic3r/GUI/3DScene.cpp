@@ -285,9 +285,6 @@ void GLIndexedVertexArray::render(
 }
 
 #if ENABLE_SINKING_CONTOURS
-#define ALG_SLICE_MESH 1
-#define ALG_SLICE_MESHEX 2
-#define ALG_SLICE ALG_SLICE_MESH
 void GLVolume::SinkingContours::update()
 {
     if (m_parent.is_sinking() && !m_parent.is_below_printbed()) {
@@ -299,78 +296,19 @@ void GLVolume::SinkingContours::update()
             const TriangleMesh& mesh = GUI::wxGetApp().plater()->model().objects[m_parent.object_idx()]->volumes[m_parent.volume_idx()]->mesh();
             assert(mesh.has_shared_vertices());
 
-#if ALG_SLICE == ALG_SLICE_MESH
             MeshSlicingParams slicing_params;
             slicing_params.trafo = m_parent.world_matrix();
             Polygons polygons = slice_mesh(mesh.its, 0.0f, slicing_params);
 
-            auto append_polygon = [this](const Polygon& polygon, GUI::GLModel::InitializationData& data) {
-                if (!polygon.empty()) {
-                    GUI::GLModel::InitializationData::Entity entity;
-                    entity.type = GUI::GLModel::PrimitiveType::LineLoop;
-                    entity.color[0] = 1.0f - m_parent.render_color[0];
-                    entity.color[1] = 1.0f - m_parent.render_color[1];
-                    entity.color[2] = 1.0f - m_parent.render_color[2];
-                    entity.color[3] = m_parent.render_color[3];
-                    // contour
-                    entity.positions.reserve(polygon.size() + 1);
-                    entity.indices.reserve(polygon.size() + 1);
-                    unsigned int id = 0;
-                    for (const Point& p : polygon) {
-                        entity.positions.emplace_back(unscale(p.x(), p.y(), 0.0).cast<float>());
-                        entity.indices.emplace_back(id++);
-                    }
-                    data.entities.emplace_back(entity);
-                }
-            };
-
             m_model.reset();
-            GUI::GLModel::InitializationData init_data;
-            for (const Polygon& polygon : polygons) {
-                // contour
-                append_polygon(polygon, init_data);
-            }
-#else
-            MeshSlicingParamsEx slicing_params;
-            slicing_params.trafo = m_parent.world_matrix();
-            std::vector<ExPolygons> list_of_expolys = slice_mesh_ex(mesh.its, std::vector<float>{ 0.0f }, slicing_params);
-
-            auto append_polygon = [this](const Polygon& polygon, GUI::GLModel::InitializationData& data) {
-                if (!polygon.empty()) {
-                    GUI::GLModel::InitializationData::Entity entity;
-                    entity.type = GUI::GLModel::PrimitiveType::LineLoop;
-                    entity.color[0] = 1.0f - m_parent.render_color[0];
-                    entity.color[1] = 1.0f - m_parent.render_color[1];
-                    entity.color[2] = 1.0f - m_parent.render_color[2];
-                    entity.color[3] = m_parent.render_color[3];
-                    // contour
-                    entity.positions.reserve(polygon.size() + 1);
-                    entity.indices.reserve(polygon.size() + 1);
-                    unsigned int id = 0;
-                    for (const Point& p : polygon) {
-                        entity.positions.emplace_back(unscale(p.x(), p.y(), 0.0).cast<float>());
-                        entity.indices.emplace_back(id++);
-                    }
-                    data.entities.emplace_back(entity);
-                }
+            m_model.init_from(polygons, 0.0f);
+            std::array<float, 4> color = {
+                1.0f - m_parent.render_color[0],
+                1.0f - m_parent.render_color[1],
+                1.0f - m_parent.render_color[2],
+                m_parent.render_color[3]
             };
-
-            m_model.reset();
-            GUI::GLModel::InitializationData init_data;
-            for (const ExPolygons& polygons : list_of_expolys) {
-                for (const ExPolygon& polygon : polygons) {
-                    // contour
-                    append_polygon(polygon.contour, init_data);
-                    // holes
-                    for (const Polygon& hole : polygon.holes) {
-                        append_polygon(hole, init_data);
-                    }
-                }
-            }
-#endif // ALG_SLICE == ALG_SLICE_MESH
-
-            if (!init_data.entities.empty())
-                m_model.init_from(init_data);
+            m_model.set_color(-1, color);
         }
         else
             m_shift = box.center() - m_old_box.center();
@@ -433,6 +371,9 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , force_transparent(false)
     , force_native_color(false)
     , force_neutral_color(false)
+#if ENABLE_SINKING_CONTOURS
+    , force_sinking_contours(false)
+#endif // ENABLE_SINKING_CONTOURS
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
@@ -887,7 +828,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         volume.first->set_render_color();
 
         // render sinking contours of non-hovered volumes
-        if (volume.first->is_sinking() && !volume.first->is_below_printbed() && volume.first->hover == GLVolume::HS_None) {
+        if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+            volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
             shader->stop_using();
             glsafe(::glLineWidth(5.0f));
             volume.first->update_sinking_contours_color();
@@ -933,8 +875,9 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     }
 
     for (GLVolumeWithIdAndZ& volume : to_render) {
-        // render sinking contours of hovered volumes
-        if (volume.first->is_sinking() && !volume.first->is_below_printbed() && volume.first->hover != GLVolume::HS_None) {
+        // render sinking contours of hovered/displaced volumes
+        if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+            (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
             shader->stop_using();
             glsafe(::glLineWidth(5.0f));
             glsafe(::glDisable(GL_DEPTH_TEST));

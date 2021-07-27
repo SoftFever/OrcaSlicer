@@ -39,8 +39,8 @@ public:
 private:
     bool on_init() override;
     void on_update(const UpdateData& data) override;
-    void on_render() const override;
-    void on_render_for_picking() const override;
+    void on_render() override;
+    void on_render_for_picking() override;
 
     void render_points(const Selection& selection, bool picking = false) const;
     void hollow_mesh(bool postpone_error_messages = false);

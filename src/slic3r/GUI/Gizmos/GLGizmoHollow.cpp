@@ -61,7 +61,7 @@ void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
 
 
 
-void GLGizmoHollow::on_render() const
+void GLGizmoHollow::on_render()
 {
     const Selection& selection = m_parent.get_selection();
     const CommonGizmosDataObjects::SelectionInfo* sel_info = m_c->selection_info();
@@ -88,7 +88,7 @@ void GLGizmoHollow::on_render() const
 }
 
 
-void GLGizmoHollow::on_render_for_picking() const
+void GLGizmoHollow::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
 //#if ENABLE_RENDER_PICKING_PASS

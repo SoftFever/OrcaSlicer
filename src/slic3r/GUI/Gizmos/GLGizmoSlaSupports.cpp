@@ -74,7 +74,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 
 
 
-void GLGizmoSlaSupports::on_render() const
+void GLGizmoSlaSupports::on_render()
 {
     ModelObject* mo = m_c->selection_info()->model_object();
     const Selection& selection = m_parent.get_selection();
@@ -101,7 +101,7 @@ void GLGizmoSlaSupports::on_render() const
 }
 
 
-void GLGizmoSlaSupports::on_render_for_picking() const
+void GLGizmoSlaSupports::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
     //glsafe(::glEnable(GL_DEPTH_TEST));

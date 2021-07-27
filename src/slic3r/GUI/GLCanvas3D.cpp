@@ -2964,6 +2964,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
+#if ENABLE_SINKING_CONTOURS
+    for (GLVolume* volume : m_volumes.volumes) {
+        volume->force_sinking_contours = false;
+    }
+#endif // ENABLE_SINKING_CONTOURS
+
     if (m_gizmos.on_mouse(evt)) {
         if (wxWindow::FindFocus() != m_canvas)
             // Grab keyboard focus for input in gizmo dialogs.
@@ -2988,6 +2994,25 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             default: { break; }
             }
         }
+#if ENABLE_SINKING_CONTOURS
+        else if (evt.Dragging()) {
+            switch (m_gizmos.get_current_type())
+            {
+            case GLGizmosManager::EType::Move:
+            case GLGizmosManager::EType::Scale:
+            case GLGizmosManager::EType::Rotate:
+            {
+                const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
+                for (unsigned int idx : idxs) {
+                    m_volumes.volumes[idx]->force_sinking_contours = true;
+                }
+                m_dirty = true;
+                break;
+            }
+            default: { break; }
+            }
+        }
+#endif // ENABLE_SINKING_CONTOURS
 
         return;
     }

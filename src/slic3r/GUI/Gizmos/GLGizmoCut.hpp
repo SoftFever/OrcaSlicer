@@ -2,7 +2,10 @@
 #define slic3r_GLGizmoCut_hpp_
 
 #include "GLGizmoBase.hpp"
-
+#if ENABLE_SINKING_CONTOURS
+#include "slic3r/GUI/GLModel.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#endif // ENABLE_SINKING_CONTOURS
 
 namespace Slic3r {
 namespace GUI {
@@ -13,8 +16,8 @@ class GLGizmoCut : public GLGizmoBase
     static const double Margin;
     static const std::array<float, 4> GrabberColor;
 
-    mutable double m_cut_z{ 0.0 };
-    mutable double m_max_z{ 0.0 };
+    double m_cut_z{ 0.0 };
+    double m_max_z{ 0.0 };
     double m_start_z{ 0.0 };
     Vec3d m_drag_pos;
     Vec3d m_drag_center;
@@ -22,11 +25,26 @@ class GLGizmoCut : public GLGizmoBase
     bool m_keep_lower{ true };
     bool m_rotate_lower{ false };
 
+#if ENABLE_SINKING_CONTOURS
+    struct CutContours
+    {
+        TriangleMesh mesh;
+        GLModel contours;
+        double cut_z{ 0.0 };
+        Vec3d position{ Vec3d::Zero() };
+        Vec3d shift{ Vec3d::Zero() };
+        int object_idx{ -1 };
+        int instance_idx{ -1 };
+    };
+
+    CutContours m_cut_contours;
+#endif // ENABLE_SINKING_CONTOURS
+
 public:
     GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
     double get_cut_z() const { return m_cut_z; }
-    void set_cut_z(double cut_z) const;
+    void set_cut_z(double cut_z);
 
     std::string get_tooltip() const override;
 
@@ -39,8 +57,8 @@ protected:
     virtual bool on_is_activable() const override;
     virtual void on_start_dragging() override;
     virtual void on_update(const UpdateData& data) override;
-    virtual void on_render() const override;
-    virtual void on_render_for_picking() const override;
+    virtual void on_render() override;
+    virtual void on_render_for_picking() override;
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
 private:

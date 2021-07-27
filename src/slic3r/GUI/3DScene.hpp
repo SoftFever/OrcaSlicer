@@ -359,7 +359,11 @@ public:
 	    bool                force_native_color : 1;
         // Whether or not render this volume in neutral
         bool                force_neutral_color : 1;
-	};
+#if ENABLE_SINKING_CONTOURS
+        // Whether or not to force rendering of sinking contours
+        bool                force_sinking_contours : 1;
+#endif // ENABLE_SINKING_CONTOURS
+    };
 
     // Is mouse or rectangle selection over this object to select/deselect it ?
     EHoverState         	hover;
