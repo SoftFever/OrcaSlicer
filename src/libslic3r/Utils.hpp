@@ -102,6 +102,7 @@ extern bool is_gcode_file(const std::string &path);
 extern bool is_img_file(const std::string& path);
 extern bool is_stl_file(const boost::filesystem::directory_entry& path);
 extern bool is_stl_file(const std::string& path);
+extern bool is_shapes_dir(const std::string& dir);
 
 // File path / name / extension splitting utilities, working with UTF-8,
 // to be published to Perl.

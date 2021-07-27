@@ -269,7 +269,7 @@ public:
     std::vector<std::string> get_extruder_colors_from_plater_config(const GCodeProcessor::Result* const result = nullptr) const;
     std::vector<std::string> get_colors_for_color_print(const GCodeProcessor::Result* const result = nullptr) const;
 
-    void update_object_menu();
+    void update_menus();
     void show_action_buttons(const bool is_ready_to_slice) const;
 
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;

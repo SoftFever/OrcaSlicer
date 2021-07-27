@@ -2653,8 +2653,10 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         default: break;
     }
 
+    std::string out_dir = (boost::filesystem::path(output_file).parent_path()).string();
+
     wxFileDialog dlg(q, dlg_title,
-        from_path(output_file.parent_path()), from_path(output_file.filename()),
+        is_shapes_dir(out_dir) ? from_u8(wxGetApp().app_config->get_last_dir()) : from_path(output_file.parent_path()), from_path(output_file.filename()),
         wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (dlg.ShowModal() != wxID_OK)
@@ -3533,7 +3535,6 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     }
 
     fix_model_by_win10_sdk_gui(*mo, vol_idx);
-    q->SetFocus();
     sla::reproject_points_and_holes(mo);
     this->update();
     this->object_list_changed();
@@ -6267,7 +6268,7 @@ void Plater::mirror(Axis axis)      { p->mirror(axis); }
 void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }
 void Plater::optimize_rotation()    { p->m_ui_jobs.optimize_rotation();}
-void Plater::update_object_menu()   { p->menus.update_object_menu(); }
+void Plater::update_menus()         { p->menus.update(); }
 void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
 
 void Plater::copy_selection_to_clipboard()

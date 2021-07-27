@@ -40,7 +40,9 @@ public:
     ~MenuFactory() = default;
 
     void    init(wxWindow* parent);
+    void    update();
     void    update_object_menu();
+    void    update_default_menu();
     void    msw_rescale();
     void    sys_color_changed();
 

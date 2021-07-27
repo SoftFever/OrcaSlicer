@@ -1120,6 +1120,11 @@ void ImGuiWrapper::init_style()
     set_color(ImGuiCol_TabActive, COL_ORANGE_LIGHT);
     set_color(ImGuiCol_TabUnfocused, COL_GREY_DARK);
     set_color(ImGuiCol_TabUnfocusedActive, COL_GREY_LIGHT);
+
+    // Scrollbars
+    set_color(ImGuiCol_ScrollbarGrab, COL_ORANGE_DARK);
+    set_color(ImGuiCol_ScrollbarGrabHovered, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_ScrollbarGrabActive, COL_ORANGE_LIGHT);
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)

@@ -347,7 +347,7 @@ macro(just_fail msg)
   return()
 endmacro()
 
-find_package(IlmBase QUIET COMPONENTS Half)
+find_package(IlmBase QUIET)
 if(NOT IlmBase_FOUND)
   pkg_check_modules(IlmBase QUIET IlmBase)
 endif()

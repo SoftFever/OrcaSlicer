@@ -112,7 +112,7 @@ InteriorPtr generate_interior(const TriangleMesh &   mesh,
                               const HollowingConfig &hc,
                               const JobController &  ctl)
 {
-    static const double MIN_OVERSAMPL = 3.;
+    static const double MIN_OVERSAMPL = 3.5;
     static const double MAX_OVERSAMPL = 8.;
 
     // I can't figure out how to increase the grid resolution through openvdb

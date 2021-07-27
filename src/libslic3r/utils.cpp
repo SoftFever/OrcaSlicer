@@ -776,6 +776,11 @@ bool is_stl_file(const std::string &path)
 	return boost::iends_with(path, ".stl");
 }
 
+bool is_shapes_dir(const std::string& dir)
+{
+	return dir == sys_shapes_dir() || dir == custom_shapes_dir();
+}
+
 } // namespace Slic3r
 
 #ifdef WIN32

@@ -3341,14 +3341,31 @@ void GCodeViewer::render_legend(float& legend_height) const
     if (show_estimated_time) {
         ImGui::Spacing();
         std::string time_title = _u8L("Estimated printing times");
-        switch (m_time_estimate_mode)
-        {
-        case PrintEstimatedStatistics::ETimeMode::Normal:  { time_title += " [" + _u8L("Normal mode") + "]:"; break; }
-        case PrintEstimatedStatistics::ETimeMode::Stealth: { time_title += " [" + _u8L("Stealth mode") + "]:"; break; }
-        default: { assert(false); break; }
+        auto can_show_mode_button = [this](PrintEstimatedStatistics::ETimeMode mode) {
+            bool show = false;
+            if (m_print_statistics.modes.size() > 1 && m_print_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
+                for (size_t i = 0; i < m_print_statistics.modes.size(); ++i) {
+                    if (i != static_cast<size_t>(mode) &&
+                        m_print_statistics.modes[i].time > 0.0f &&
+                        short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_print_statistics.modes[i].time))) {
+                        show = true;
+                        break;
+                    }
+                }
+            }
+            return show;
+        };
+
+        if (can_show_mode_button(m_time_estimate_mode)) {
+            switch (m_time_estimate_mode)
+            {
+            case PrintEstimatedStatistics::ETimeMode::Normal: { time_title += " [" + _u8L("Normal mode") + "]"; break; }
+            case PrintEstimatedStatistics::ETimeMode::Stealth: { time_title += " [" + _u8L("Stealth mode") + "]"; break; }
+            default: { assert(false); break; }
+            }
         }
 
-        imgui.title(time_title);
+        imgui.title(time_title + ":");
 
         std::string first_str = _u8L("First layer");
         std::string total_str = _u8L("Total");
@@ -3369,16 +3386,8 @@ void GCodeViewer::render_legend(float& legend_height) const
         ImGui::SameLine(max_len);
         imgui.text(short_time(get_time_dhms(time_mode.time)));
 
-        auto show_mode_button = [this, &imgui](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
-            bool show = false;
-            for (size_t i = 0; i < m_print_statistics.modes.size(); ++i) {
-                if (i != static_cast<size_t>(mode) &&
-                    short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_print_statistics.modes[i].time))) {
-                    show = true;
-                    break;
-                }
-            }
-            if (show && m_print_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
+        auto show_mode_button = [this, &imgui, can_show_mode_button](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
+            if (can_show_mode_button(mode)) {
                 if (imgui.button(label)) {
                     *const_cast<PrintEstimatedStatistics::ETimeMode*>(&m_time_estimate_mode) = mode;
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();

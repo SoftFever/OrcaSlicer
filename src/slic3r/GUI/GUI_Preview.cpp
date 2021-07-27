@@ -910,6 +910,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
     GCodeViewer::EViewType gcode_view_type = m_canvas->get_gcode_view_preview_type();
     bool gcode_preview_data_valid = !m_gcode_result->moves.empty();
+
     // Collect colors per extruder.
     std::vector<std::string> colors;
     std::vector<CustomGCode::Item> color_print_values = {};
@@ -934,9 +935,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
         color_print_values.clear();
     }
 
-    if (IsShown()) {
-        std::vector<double> zs;
+    std::vector<double> zs;
 
+    if (IsShown()) {
         m_canvas->set_selected_extruder(0);
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
@@ -947,7 +948,12 @@ void Preview::load_print_as_fff(bool keep_z_range)
             Refresh();
             zs = m_canvas->get_gcode_layers_zs();
             m_loaded = true;
-        } else {
+        }
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        else if (wxGetApp().is_editor()) {
+#else
+        else {
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
             m_left_sizer->Hide(m_bottom_toolbar_panel);
@@ -955,6 +961,33 @@ void Preview::load_print_as_fff(bool keep_z_range)
             Refresh();
             zs = m_canvas->get_volumes_print_zs(true);
         }
+
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        if (!zs.empty() && !m_keep_current_preview_type) {
+            unsigned int number_extruders = wxGetApp().is_editor() ?
+                (unsigned int)print->extruders().size() :
+                m_canvas->get_gcode_extruders_count();
+            std::vector<Item> gcodes = wxGetApp().is_editor() ?
+                wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes :
+                m_canvas->get_custom_gcode_per_print_z();
+            const wxString choice = !gcodes.empty() ?
+                _L("Color Print") :
+                (number_extruders > 1) ? _L("Tool") : _L("Feature type");
+
+            int type = m_choice_view_type->FindString(choice);
+            if (m_choice_view_type->GetSelection() != type) {
+                if (0 <= type && type < static_cast<int>(GCodeViewer::EViewType::Count)) {
+                    m_choice_view_type->SetSelection(type);
+                    m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
+                    if (wxGetApp().is_gcode_viewer()) {
+                        m_keep_current_preview_type = true;
+                        refresh_print();
+                    }
+                }
+            }
+        }
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+
         if (zs.empty()) {
             // all layers filtered out
             hide_layers_slider();
@@ -963,9 +996,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
             update_layers_slider(zs, keep_z_range);
     }
 
-    unsigned int number_extruders = (unsigned int)print->extruders().size();
-
+#if !ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
     if (!m_keep_current_preview_type) {
+        unsigned int number_extruders = (unsigned int)print->extruders().size();
         const wxString choice = !wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes.empty() ?
             _L("Color Print") :
             (number_extruders > 1) ? _L("Tool") : _L("Feature type");
@@ -978,6 +1011,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
             }
         }
     }
+#endif // !ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 }
 
 void Preview::load_print_as_sla()
