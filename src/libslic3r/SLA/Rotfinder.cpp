@@ -58,29 +58,6 @@ T sum_score(AccessFn &&accessfn, size_t facecount, size_t Nthreads)
     return execution::reduce(ex_tbb, from, to, initv, mergefn, accessfn, grainsize);
 }
 
-// Try to guess the number of support points needed to support a mesh
-double get_misalginment_score(const TriangleMesh &mesh, const Transform3f &tr)
-{
-    if (mesh.its.vertices.empty()) return std::nan("");
-
-    auto accessfn = [&mesh, &tr](size_t fi) {
-        auto triangle = get_transformed_triangle(mesh, tr, fi);
-        Vec3f U = triangle[1] - triangle[0];
-        Vec3f V = triangle[2] - triangle[0];
-        Vec3f C = U.cross(V);
-
-        // We should score against the alignment with the reference planes
-        return scaled<int_fast64_t>(std::abs(C.dot(Vec3f::UnitX())) +
-                                    std::abs(C.dot(Vec3f::UnitY())));
-    };
-
-    size_t facecount = mesh.its.indices.size();
-    size_t Nthreads  = std::thread::hardware_concurrency();
-    double S = unscaled(sum_score<int_fast64_t>(accessfn, facecount, Nthreads));
-
-    return S / facecount;
-}
-
 // Get area and normal of a triangle
 struct Facestats {
     Vec3f  normal;
@@ -96,18 +73,43 @@ struct Facestats {
     }
 };
 
+// Try to guess the number of support points needed to support a mesh
+double get_misalginment_score(const TriangleMesh &mesh, const Transform3f &tr)
+{
+    if (mesh.its.vertices.empty()) return std::nan("");
+
+    auto accessfn = [&mesh, &tr](size_t fi) {
+        Facestats fc{get_transformed_triangle(mesh, tr, fi)};
+
+        float score = fc.area
+                      * (std::abs(fc.normal.dot(Vec3f::UnitX()))
+                         + std::abs(fc.normal.dot(Vec3f::UnitY()))
+                         + std::abs(fc.normal.dot(Vec3f::UnitZ())));
+
+        // We should score against the alignment with the reference planes
+        return scaled<int_fast64_t>(score);
+    };
+
+    size_t facecount = mesh.its.indices.size();
+    size_t Nthreads  = std::thread::hardware_concurrency();
+    double S = unscaled(sum_score<int_fast64_t>(accessfn, facecount, Nthreads));
+
+    return S / facecount;
+}
+
 // The score function for a particular face
 inline double get_supportedness_score(const Facestats &fc)
 {
     // Simply get the angle (acos of dot product) between the face normal and
     // the DOWN vector.
-    float phi = 1. - std::acos(fc.normal.dot(DOWN)) / float(PI);
+    float cosphi = fc.normal.dot(DOWN);
+    float phi = 1.f - std::acos(cosphi) / float(PI);
 
     // Only consider faces that have slopes below 90 deg:
-    phi = phi * (phi >= 0.5f);
+    phi = (1.f + phi) * (phi >= 0.5f);
 
     // Make the huge slopes more significant than the smaller slopes
-    phi = phi * phi * phi;
+    phi = phi * phi;
 
     // Multiply with the area of the current face
     return fc.area * POINTS_PER_UNIT_AREA * phi;
@@ -121,7 +123,7 @@ double get_supportedness_score(const TriangleMesh &mesh, const Transform3f &tr)
     auto accessfn = [&mesh, &tr](size_t fi) {
         Facestats fc{get_transformed_triangle(mesh, tr, fi)};
 
-        return get_supportedness_score(fc);
+        return scaled<int_fast64_t>(get_supportedness_score(fc));
     };
 
     size_t facecount = mesh.its.indices.size();
@@ -164,7 +166,7 @@ float get_supportedness_onfloor_score(const TriangleMesh &mesh,
         Facestats fc{tri};
 
         if (tri[0].z() <= zlvl && tri[1].z() <= zlvl && tri[2].z() <= zlvl)
-            return -fc.area * POINTS_PER_UNIT_AREA;
+            return -2 * fc.area * POINTS_PER_UNIT_AREA;
 
         return get_supportedness_score(fc);
     };
@@ -353,6 +355,15 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
     TriangleMesh mesh = mo.raw_mesh();
     mesh.require_shared_vertices();
 
+    ModelInstance* mi = mo.instances[0];
+    Vec3d rotation = mi->get_rotation();
+    Transform3d trafo_instance = Geometry::assemble_transform(mi->get_offset().z() * Vec3d::UnitZ(),
+                                                              rotation,
+                                                              mi->get_scaling_factor(),
+                                                              mi->get_mirror());
+
+    mesh.transform(trafo_instance);
+
     // To keep track of the number of iterations
     unsigned status = 0;
 
@@ -419,6 +430,13 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
 
         // Save the result
         rot = result.optimum;
+        std::cout << "Score was: " << result.score << std::endl;
+
+//auto rt = mo.instances[0]->get_rotation();
+//double score = get_supportedness_score(mesh, to_transform3f({rt(0), rt(1)}));
+//        std::cout << "Score was: " << score << std::endl;
+//        rot[0] = rt(0);
+//        rot[1] = rt(1);
     }
 
     return {rot[0], rot[1]};
