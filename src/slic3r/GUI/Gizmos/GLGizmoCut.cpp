@@ -142,6 +142,7 @@ void GLGizmoCut::on_render()
 #if ENABLE_SINKING_CONTOURS
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
+    glsafe(::glLineWidth(2.0f));
     m_cut_contours.contours.render();
     glsafe(::glPopMatrix());
 #endif // ENABLE_SINKING_CONTOURS

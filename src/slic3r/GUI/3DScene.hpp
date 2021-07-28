@@ -284,6 +284,7 @@ private:
 #if ENABLE_SINKING_CONTOURS
     class SinkingContours
     {
+        static const float HalfWidth;
         GLVolume& m_parent;
         GUI::GLModel m_model;
         BoundingBoxf3 m_old_box;

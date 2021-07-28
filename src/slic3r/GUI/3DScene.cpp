@@ -24,6 +24,9 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#if ENABLE_SINKING_CONTOURS
+#include "libslic3r/Tesselate.hpp"
+#endif // ENABLE_SINKING_CONTOURS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -285,6 +288,8 @@ void GLIndexedVertexArray::render(
 }
 
 #if ENABLE_SINKING_CONTOURS
+const float GLVolume::SinkingContours::HalfWidth = 0.25f;
+
 void GLVolume::SinkingContours::update()
 {
     if (m_parent.is_sinking() && !m_parent.is_below_printbed()) {
@@ -301,14 +306,35 @@ void GLVolume::SinkingContours::update()
             Polygons polygons = slice_mesh(mesh.its, 0.0f, slicing_params);
 
             m_model.reset();
-            m_model.init_from(polygons, 0.0f);
-            std::array<float, 4> color = {
-                1.0f - m_parent.render_color[0],
-                1.0f - m_parent.render_color[1],
-                1.0f - m_parent.render_color[2],
-                m_parent.render_color[3]
-            };
-            m_model.set_color(-1, color);
+            GUI::GLModel::InitializationData init_data;
+            for (const Polygon& polygon : polygons) {
+                const Polygons outer_polys = offset(polygon, float(scale_(HalfWidth)));
+                const Polygons inner_polys = offset(polygon, -float(scale_(HalfWidth)));
+
+                if (outer_polys.empty())
+                    // no outer contour, skip
+                    continue;
+
+                const ExPolygons diff_polys_ex = diff_ex(outer_polys, inner_polys);
+
+                for (const ExPolygon& poly : diff_polys_ex) {
+                    GUI::GLModel::InitializationData::Entity entity;
+                    entity.type = GUI::GLModel::PrimitiveType::Triangles;
+                    const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
+                    for (const Vec3d& v : triangulation) {
+                        entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.015f)); // add a small positive z to avoid z-fighting
+                        entity.normals.emplace_back(Vec3f::UnitZ());
+                        const size_t positions_count = entity.positions.size();
+                        if (positions_count % 3 == 0) {
+                            entity.indices.emplace_back(positions_count - 3);
+                            entity.indices.emplace_back(positions_count - 2);
+                            entity.indices.emplace_back(positions_count - 1);
+                        }
+                    }
+                    init_data.entities.emplace_back(entity);
+                }
+            }
+            m_model.init_from(init_data);
         }
         else
             m_shift = box.center() - m_old_box.center();
@@ -831,7 +857,6 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
             volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
             shader->stop_using();
-            glsafe(::glLineWidth(5.0f));
             volume.first->update_sinking_contours_color();
             volume.first->render_sinking_contours();
             shader->start_using();
@@ -879,11 +904,10 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
             (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
             shader->stop_using();
-            glsafe(::glLineWidth(5.0f));
-            glsafe(::glDisable(GL_DEPTH_TEST));
+            glsafe(::glDepthFunc(GL_ALWAYS));
             volume.first->update_sinking_contours_color();
             volume.first->render_sinking_contours();
-            glsafe(::glEnable(GL_DEPTH_TEST));
+            glsafe(::glDepthFunc(GL_LESS));
             shader->start_using();
         }
     }
