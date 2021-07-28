@@ -65,6 +65,9 @@ private:
     void perform_cut(const Selection& selection);
     double calc_projection(const Linef3& mouse_ray) const;
     BoundingBoxf3 bounding_box() const;
+#if ENABLE_SINKING_CONTOURS
+    void update_contours();
+#endif // ENABLE_SINKING_CONTOURS
 };
 
 } // namespace GUI

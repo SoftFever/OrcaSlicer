@@ -92,6 +92,10 @@ void GLGizmoCut::on_render()
     m_max_z = box.max.z();
     set_cut_z(m_cut_z);
 
+#if ENABLE_SINKING_CONTOURS
+    update_contours();
+#endif // ENABLE_SINKING_CONTOURS
+
     const float min_x = box.min.x() - Margin;
     const float max_x = box.max.x() + Margin;
     const float min_y = box.min.y() - Margin;
@@ -213,45 +217,6 @@ void GLGizmoCut::set_cut_z(double cut_z)
 {
     // Clamp the plane to the object's bounding box
     m_cut_z = std::clamp(cut_z, 0.0, m_max_z);
-
-#if ENABLE_SINKING_CONTOURS
-    const Selection& selection = m_parent.get_selection();
-    const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
-    const BoundingBoxf3& box = first_glvolume->transformed_convex_hull_bounding_box();
-
-    const int object_idx = selection.get_object_idx();
-    const int instance_idx = selection.get_instance_idx();
-
-    if (0.0 < m_cut_z && m_cut_z < m_max_z) {
-        if (m_cut_contours.cut_z != m_cut_z || m_cut_contours.object_idx != object_idx || m_cut_contours.instance_idx != instance_idx) {
-            m_cut_contours.cut_z = m_cut_z;
-
-            if (m_cut_contours.object_idx != object_idx) {
-                m_cut_contours.mesh = wxGetApp().plater()->model().objects[object_idx]->raw_mesh();
-                m_cut_contours.mesh.repair();
-            }
-
-            m_cut_contours.position = box.center();
-            m_cut_contours.shift = Vec3d::Zero();
-            m_cut_contours.object_idx = object_idx;
-            m_cut_contours.instance_idx = instance_idx;
-            m_cut_contours.contours.reset();
-
-            MeshSlicingParams slicing_params;
-            slicing_params.trafo = first_glvolume->get_instance_transformation().get_matrix();
-            const Polygons polys = slice_mesh(m_cut_contours.mesh.its, m_cut_z, slicing_params);
-            if (!polys.empty()) {
-                m_cut_contours.contours.init_from(polys, static_cast<float>(m_cut_z));
-                m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
-            }
-        }
-        else if (box.center() != m_cut_contours.position) {
-            m_cut_contours.shift = box.center() - m_cut_contours.position;
-        }
-    }
-    else
-        m_cut_contours.contours.reset();
-#endif // ENABLE_SINKING_CONTOURS
 }
 
 void GLGizmoCut::perform_cut(const Selection& selection)
@@ -309,6 +274,48 @@ BoundingBoxf3 GLGizmoCut::bounding_box() const
     }
     return ret;
 }
+
+#if ENABLE_SINKING_CONTOURS
+void GLGizmoCut::update_contours()
+{
+    const Selection& selection = m_parent.get_selection();
+    const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
+    const BoundingBoxf3& box = first_glvolume->transformed_convex_hull_bounding_box();
+
+    const int object_idx = selection.get_object_idx();
+    const int instance_idx = selection.get_instance_idx();
+
+    if (0.0 < m_cut_z && m_cut_z < m_max_z) {
+        if (m_cut_contours.cut_z != m_cut_z || m_cut_contours.object_idx != object_idx || m_cut_contours.instance_idx != instance_idx) {
+            m_cut_contours.cut_z = m_cut_z;
+
+            if (m_cut_contours.object_idx != object_idx) {
+                m_cut_contours.mesh = wxGetApp().plater()->model().objects[object_idx]->raw_mesh();
+                m_cut_contours.mesh.repair();
+            }
+
+            m_cut_contours.position = box.center();
+            m_cut_contours.shift = Vec3d::Zero();
+            m_cut_contours.object_idx = object_idx;
+            m_cut_contours.instance_idx = instance_idx;
+            m_cut_contours.contours.reset();
+
+            MeshSlicingParams slicing_params;
+            slicing_params.trafo = first_glvolume->get_instance_transformation().get_matrix();
+            const Polygons polys = slice_mesh(m_cut_contours.mesh.its, m_cut_z, slicing_params);
+            if (!polys.empty()) {
+                m_cut_contours.contours.init_from(polys, static_cast<float>(m_cut_z));
+                m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+            }
+        }
+        else if (box.center() != m_cut_contours.position) {
+            m_cut_contours.shift = box.center() - m_cut_contours.position;
+        }
+    }
+    else
+        m_cut_contours.contours.reset();
+}
+#endif // ENABLE_SINKING_CONTOURS
 
 } // namespace GUI
 } // namespace Slic3r
