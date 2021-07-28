@@ -517,7 +517,6 @@ struct MMU_Graph
         size_t   to_idx;
         int      color;
         ARC_TYPE type;
-        bool     used{false};
 
         bool operator==(const Arc &rhs) const { return (from_idx == rhs.from_idx) && (to_idx == rhs.to_idx) && (color == rhs.color) && (type == rhs.type); }
         bool operator!=(const Arc &rhs) const { return !operator==(rhs); }
@@ -525,15 +524,16 @@ struct MMU_Graph
 
     struct Node
     {
-        Point                     point;
-        std::list<MMU_Graph::Arc> neighbours;
+        Point             point;
+        std::list<size_t> arc_idxs;
 
-        void remove_edge(const size_t to_idx)
+        void remove_edge(const size_t to_idx, MMU_Graph &graph)
         {
-            for (auto arc_it = this->neighbours.begin(); arc_it != this->neighbours.end(); ++arc_it) {
-                if (arc_it->to_idx == to_idx) {
-                    assert(arc_it->type != ARC_TYPE::BORDER);
-                    this->neighbours.erase(arc_it);
+            for (auto arc_it = this->arc_idxs.begin(); arc_it != this->arc_idxs.end(); ++arc_it) {
+                MMU_Graph::Arc &arc = graph.arcs[*arc_it];
+                if (arc.to_idx == to_idx) {
+                    assert(arc.type != ARC_TYPE::BORDER);
+                    this->arc_idxs.erase(arc_it);
                     break;
                 }
             }
@@ -549,8 +549,8 @@ struct MMU_Graph
 
     void remove_edge(const size_t from_idx, const size_t to_idx)
     {
-        nodes[from_idx].remove_edge(to_idx);
-        nodes[to_idx].remove_edge(from_idx);
+        nodes[from_idx].remove_edge(to_idx, *this);
+        nodes[to_idx].remove_edge(from_idx, *this);
     }
 
     [[nodiscard]] size_t get_global_index(const size_t poly_idx, const size_t point_idx) const { return polygon_idx_offset[poly_idx] + point_idx; }
@@ -558,27 +558,27 @@ struct MMU_Graph
     void append_edge(const size_t &from_idx, const size_t &to_idx, int color = -1, ARC_TYPE type = ARC_TYPE::NON_BORDER)
     {
         // Don't append duplicate edges between the same nodes.
-        for (const MMU_Graph::Arc &arc : this->nodes[from_idx].neighbours)
-            if (arc.to_idx == to_idx)
+        for (const size_t &arc_idx : this->nodes[from_idx].arc_idxs)
+            if (arcs[arc_idx].to_idx == to_idx)
                 return;
-        for (const MMU_Graph::Arc &arc : this->nodes[to_idx].neighbours)
-            if (arc.to_idx == to_idx)
+        for (const size_t &arc_idx : this->nodes[to_idx].arc_idxs)
+            if (arcs[arc_idx].to_idx == to_idx)
                 return;
 
-        this->nodes[from_idx].neighbours.push_back({from_idx, to_idx, color, type});
+        this->nodes[from_idx].arc_idxs.push_back(this->arcs.size());
         this->arcs.push_back({from_idx, to_idx, color, type});
 
         // Always insert only one directed arc for the input polygons.
         // Two directed arcs in both directions are inserted if arcs aren't between points of the input polygons.
         if (type == ARC_TYPE::NON_BORDER) {
-            this->nodes[to_idx].neighbours.push_back({to_idx, from_idx, color, type});
+            this->nodes[to_idx].arc_idxs.push_back(this->arcs.size());
             this->arcs.push_back({to_idx, from_idx, color, type});
         }
     }
 
     // It assumes that between points of the input polygons is always only one directed arc,
     // with the same direction as lines of the input polygon.
-    MMU_Graph::Arc get_border_arc(size_t idx) {
+    [[nodiscard]] MMU_Graph::Arc get_border_arc(size_t idx) const {
         assert(idx < this->all_border_points);
         return this->arcs[idx];
     }
@@ -591,7 +591,7 @@ struct MMU_Graph
         for (const MMU_Graph::Node &node : this->nodes) {
             size_t node_idx = &node - &this->nodes.front();
             // Skip nodes that represent points of input polygons.
-            if (node.neighbours.size() == 1 && node_idx >= this->all_border_points)
+            if (node.arc_idxs.size() == 1 && node_idx >= this->all_border_points)
                 update_queue.emplace(&node - &this->nodes.front());
         }
 
@@ -599,14 +599,14 @@ struct MMU_Graph
             size_t           node_from_idx = update_queue.front();
             MMU_Graph::Node &node_from     = this->nodes[update_queue.front()];
             update_queue.pop();
-            if (node_from.neighbours.empty())
+            if (node_from.arc_idxs.empty())
                 continue;
 
-            assert(node_from.neighbours.size() == 1);
-            size_t           node_to_idx = node_from.neighbours.front().to_idx;
+            assert(node_from.arc_idxs.size() == 1);
+            size_t           node_to_idx = arcs[node_from.arc_idxs.front()].to_idx;
             MMU_Graph::Node &node_to     = this->nodes[node_to_idx];
             this->remove_edge(node_from_idx, node_to_idx);
-            if (node_to.neighbours.size() == 1 && node_to_idx >= this->all_border_points)
+            if (node_to.arc_idxs.size() == 1 && node_to_idx >= this->all_border_points)
                 update_queue.emplace(node_to_idx);
         }
     }
@@ -706,6 +706,35 @@ struct MMU_Graph
                 }
             }
         }
+    }
+
+    void garbage_collect()
+    {
+        std::vector<int> nodes_map(this->nodes.size(), -1);
+        int              nodes_count = 0;
+        size_t           arcs_count  = 0;
+        for (const MMU_Graph::Node &node : this->nodes)
+            if (size_t node_idx = &node - &this->nodes.front(); !node.arc_idxs.empty()) {
+                nodes_map[node_idx] = nodes_count++;
+                arcs_count += node.arc_idxs.size();
+            }
+
+        std::vector<MMU_Graph::Node> new_nodes;
+        std::vector<MMU_Graph::Arc>  new_arcs;
+        new_nodes.reserve(nodes_count);
+        new_arcs.reserve(arcs_count);
+        for (const MMU_Graph::Node &node : this->nodes)
+            if (size_t node_idx = &node - &this->nodes.front(); nodes_map[node_idx] >= 0) {
+                new_nodes.push_back({node.point});
+                for (const size_t &arc_idx : node.arc_idxs) {
+                    const Arc &arc = this->arcs[arc_idx];
+                    new_nodes.back().arc_idxs.emplace_back(new_arcs.size());
+                    new_arcs.push_back({size_t(nodes_map[arc.from_idx]), size_t(nodes_map[arc.to_idx]), arc.color, arc.type});
+                }
+            }
+
+        this->nodes = std::move(new_nodes);
+        this->arcs  = std::move(new_arcs);
     }
 };
 
@@ -995,13 +1024,15 @@ static inline Polygon to_polygon(const Lines &lines)
 // It iterates through all nodes on the border between two different colors, and from this point,
 // start selection always left most edges for every node to construct CCW polygons.
 // Assumes that graph is planar (without self-intersection edges)
-static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(MMU_Graph &graph)
+static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(const MMU_Graph &graph)
 {
+    std::vector<bool> used_arcs(graph.arcs.size(), false);
     // When there is no next arc, then is returned original_arc or edge with is marked as used
-    auto get_next = [&graph](const Line &process_line, MMU_Graph::Arc &original_arc) -> MMU_Graph::Arc & {
-        std::vector<std::pair<MMU_Graph::Arc *, double>> sorted_arcs;
-        for (MMU_Graph::Arc &arc : graph.nodes[original_arc.to_idx].neighbours) {
-            if (graph.nodes[arc.to_idx].point == process_line.a || arc.used)
+    auto get_next = [&graph, &used_arcs](const Line &process_line, const MMU_Graph::Arc &original_arc) -> const MMU_Graph::Arc & {
+        std::vector<std::pair<const MMU_Graph::Arc *, double>> sorted_arcs;
+        for (const size_t &arc_idx : graph.nodes[original_arc.to_idx].arc_idxs) {
+            const MMU_Graph::Arc &arc = graph.arcs[arc_idx];
+            if (graph.nodes[arc.to_idx].point == process_line.a || used_arcs[arc_idx])
                 continue;
 
             assert(original_arc.to_idx == arc.from_idx);
@@ -1016,11 +1047,11 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(MMU_Grap
         }
 
         std::sort(sorted_arcs.begin(), sorted_arcs.end(),
-                  [](std::pair<MMU_Graph::Arc *, double> &l, std::pair<MMU_Graph::Arc *, double> &r) -> bool { return l.second < r.second; });
+                  [](std::pair<const MMU_Graph::Arc *, double> &l, std::pair<const MMU_Graph::Arc *, double> &r) -> bool { return l.second < r.second; });
 
         // Try to return left most edge witch is unused
         for (auto &sorted_arc : sorted_arcs)
-            if (!sorted_arc.first->used)
+            if (size_t arc_idx = sorted_arc.first - &graph.arcs.front(); !used_arcs[arc_idx])
                 return *sorted_arc.first;
 
         if (sorted_arcs.empty())
@@ -1029,40 +1060,38 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(MMU_Grap
         return *(sorted_arcs.front().first);
     };
 
-    auto all_arc_used = [](const MMU_Graph::Node &node) -> bool {
-        return std::all_of(node.neighbours.cbegin(), node.neighbours.cend(), [](const MMU_Graph::Arc &arc) -> bool { return arc.used; });
+    auto all_arc_used = [&used_arcs](const MMU_Graph::Node &node) -> bool {
+        return std::all_of(node.arc_idxs.cbegin(), node.arc_idxs.cend(), [&used_arcs](const size_t &arc_idx) -> bool { return used_arcs[arc_idx]; });
     };
 
     std::vector<std::pair<Polygon, size_t>> polygons_segments;
-    for (MMU_Graph::Node &node : graph.nodes)
-        for (MMU_Graph::Arc &arc : node.neighbours)
-            arc.used = false;
-
     for (size_t node_idx = 0; node_idx < graph.all_border_points; ++node_idx) {
-        MMU_Graph::Node &node = graph.nodes[node_idx];
+        const MMU_Graph::Node &node = graph.nodes[node_idx];
 
-        for (MMU_Graph::Arc &arc : node.neighbours) {
-            if (arc.type == MMU_Graph::ARC_TYPE::NON_BORDER || arc.used)
-                continue;
+        for (const size_t &arc_idx : node.arc_idxs) {
+            const MMU_Graph::Arc &arc = graph.arcs[arc_idx];
+            if (arc.type == MMU_Graph::ARC_TYPE::NON_BORDER || used_arcs[arc_idx])continue;
+
 
             Line process_line(node.point, graph.nodes[arc.to_idx].point);
-            arc.used = true;
+            used_arcs[arc_idx] = true;
 
             Lines face_lines;
             face_lines.emplace_back(process_line);
             Point start_p = process_line.a;
 
-            Line            p_vec = process_line;
-            MMU_Graph::Arc *p_arc = &arc;
+            Line                  p_vec = process_line;
+            const MMU_Graph::Arc *p_arc = &arc;
             do {
-                MMU_Graph::Arc &next = get_next(p_vec, *p_arc);
-                face_lines.emplace_back(Line(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point));
-                if (next.used)
+                const MMU_Graph::Arc &next         = get_next(p_vec, *p_arc);
+                size_t                next_arc_idx = &next - &graph.arcs.front();
+                face_lines.emplace_back(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point);
+                if (used_arcs[next_arc_idx])
                     break;
 
-                next.used = true;
-                p_vec     = Line(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point);
-                p_arc     = &next;
+                used_arcs[next_arc_idx] = true;
+                p_vec                   = Line(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point);
+                p_arc                   = &next;
             } while (graph.nodes[p_arc->to_idx].point != start_p || !all_arc_used(graph.nodes[p_arc->to_idx]));
 
             Polygon poly = to_polygon(face_lines);
@@ -1076,20 +1105,19 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(MMU_Grap
 // Used in remove_multiple_edges_in_vertices()
 // Returns length of edge with is connected to contour. To this length is include other edges with follows it if they are almost straight (with the
 // tolerance of 15) And also if node between two subsequent edges is connected only to these two edges.
-static inline double compute_edge_length(MMU_Graph &graph, size_t start_idx, MMU_Graph::Arc &start_edge)
+static inline double compute_edge_length(const MMU_Graph &graph, const size_t start_idx, const size_t &start_arc_idx)
 {
-    for (MMU_Graph::Node &node : graph.nodes)
-        for (MMU_Graph::Arc &arc : node.neighbours)
-            arc.used = false;
+    assert(start_arc_idx < graph.arcs.size());
+    std::vector<bool> used_arcs(graph.arcs.size(), false);
 
-    start_edge.used                   = true;
-    MMU_Graph::Arc *arc               = &start_edge;
-    size_t          idx               = start_idx;
-    double          line_total_length = Line(graph.nodes[idx].point, graph.nodes[arc->to_idx].point).length();
-    while (graph.nodes[arc->to_idx].neighbours.size() == 2) {
+    used_arcs[start_arc_idx]                = true;
+    const MMU_Graph::Arc *arc               = &graph.arcs[start_arc_idx];
+    size_t                idx               = start_idx;
+    double                line_total_length = (graph.nodes[arc->to_idx].point - graph.nodes[idx].point).cast<double>().norm();;
+    while (graph.nodes[arc->to_idx].arc_idxs.size() == 2) {
         bool found = false;
-        for (MMU_Graph::Arc &arc_n : graph.nodes[arc->to_idx].neighbours) {
-            if (arc_n.type == MMU_Graph::ARC_TYPE::NON_BORDER && !arc_n.used && arc_n.to_idx != idx) {
+        for (const size_t &arc_idx : graph.nodes[arc->to_idx].arc_idxs) {
+            if (const MMU_Graph::Arc &arc_n = graph.arcs[arc_idx]; arc_n.type == MMU_Graph::ARC_TYPE::NON_BORDER && !used_arcs[arc_idx] && arc_n.to_idx != idx) {
                 Line first_line(graph.nodes[idx].point, graph.nodes[arc->to_idx].point);
                 Line second_line(graph.nodes[arc->to_idx].point, graph.nodes[arc_n.to_idx].point);
 
@@ -1107,8 +1135,8 @@ static inline double compute_edge_length(MMU_Graph &graph, size_t start_idx, MMU
                 idx = arc->to_idx;
                 arc = &arc_n;
 
-                line_total_length += Line(graph.nodes[idx].point, graph.nodes[arc->to_idx].point).length();
-                arc_n.used = true;
+                line_total_length += (graph.nodes[arc->to_idx].point - graph.nodes[idx].point).cast<double>().norm();
+                used_arcs[arc_idx] = true;
                 found      = true;
                 break;
             }
@@ -1131,11 +1159,12 @@ static void remove_multiple_edges_in_vertices(MMU_Graph &graph, const std::vecto
             size_t second_idx = graph.get_global_index(poly_idx, (colored_segment.second + 1) % graph.polygon_sizes[poly_idx]);
             Line   seg_line(graph.nodes[first_idx].point, graph.nodes[second_idx].point);
 
-            if (graph.nodes[first_idx].neighbours.size() >= 3) {
+            if (graph.nodes[first_idx].arc_idxs.size() >= 3) {
                 std::vector<std::pair<MMU_Graph::Arc *, double>> arc_to_check;
-                for (MMU_Graph::Arc &n_arc : graph.nodes[first_idx].neighbours) {
+                for (const size_t &arc_idx : graph.nodes[first_idx].arc_idxs) {
+                    MMU_Graph::Arc &n_arc = graph.arcs[arc_idx];
                     if (n_arc.type == MMU_Graph::ARC_TYPE::NON_BORDER) {
-                        double total_len = compute_edge_length(graph, first_idx, n_arc);
+                        double total_len = compute_edge_length(graph, first_idx, arc_idx);
                         arc_to_check.emplace_back(&n_arc, total_len);
                     }
                 }
@@ -1659,7 +1688,8 @@ static void export_graph_to_svg(const std::string &path, const MMU_Graph &graph,
     bbox.offset(scale_(1.));
     ::Slic3r::SVG svg(path.c_str(), bbox);
     for (const MMU_Graph::Node &node : graph.nodes)
-        for (const MMU_Graph::Arc &arc : node.neighbours) {
+        for (const size_t &arc_idx : node.arc_idxs) {
+            const MMU_Graph::Arc &arc = graph.arcs[arc_idx];
             Line arc_line(node.point, graph.nodes[arc.to_idx].point);
             if (arc.type == MMU_Graph::ARC_TYPE::BORDER && arc.color >= 0 && arc.color < int(colors.size()))
                 svg.draw(arc_line, colors[arc.color], stroke_width);
