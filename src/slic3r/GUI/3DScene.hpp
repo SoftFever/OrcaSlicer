@@ -292,9 +292,10 @@ private:
 
     public:
         SinkingContours(GLVolume& volume) : m_parent(volume) {}
-        void update();
-        void set_color(const std::array<float, 4>& color);
         void render();
+
+    private:
+        void update();
     };
 
     SinkingContours m_sinking_contours;

@@ -290,6 +290,16 @@ void GLIndexedVertexArray::render(
 #if ENABLE_SINKING_CONTOURS
 const float GLVolume::SinkingContours::HalfWidth = 0.25f;
 
+void GLVolume::SinkingContours::render()
+{
+    update();
+
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslated(m_shift.x(), m_shift.y(), m_shift.z()));
+    m_model.render();
+    glsafe(::glPopMatrix());
+}
+
 void GLVolume::SinkingContours::update()
 {
     if (m_parent.is_sinking() && !m_parent.is_below_printbed()) {
@@ -301,62 +311,47 @@ void GLVolume::SinkingContours::update()
             const TriangleMesh& mesh = GUI::wxGetApp().plater()->model().objects[m_parent.object_idx()]->volumes[m_parent.volume_idx()]->mesh();
             assert(mesh.has_shared_vertices());
 
-            MeshSlicingParams slicing_params;
-            slicing_params.trafo = m_parent.world_matrix();
-            Polygons polygons = slice_mesh(mesh.its, 0.0f, slicing_params);
-
             m_model.reset();
             GUI::GLModel::InitializationData init_data;
-            for (const Polygon& polygon : polygons) {
-                const Polygons outer_polys = offset(polygon, float(scale_(HalfWidth)));
-                const Polygons inner_polys = offset(polygon, -float(scale_(HalfWidth)));
-
+            MeshSlicingParams slicing_params;
+            slicing_params.trafo = m_parent.world_matrix();
+            Polygons polygons = union_(slice_mesh(mesh.its, 0.0f, slicing_params));
+            for (Polygon& polygon : polygons) {
+                if (polygon.is_clockwise())
+                    polygon.reverse();
+                Polygons outer_polys = offset(polygon, float(scale_(HalfWidth)));
+                assert(outer_polys.size() == 1);
                 if (outer_polys.empty())
                     // no outer contour, skip
                     continue;
 
-                const ExPolygons diff_polys_ex = diff_ex(outer_polys, inner_polys);
+                ExPolygon expoly(std::move(outer_polys.front()));
+                expoly.holes = offset(polygon, -float(scale_(HalfWidth)));
+                polygons_reverse(expoly.holes);
 
-                for (const ExPolygon& poly : diff_polys_ex) {
-                    GUI::GLModel::InitializationData::Entity entity;
-                    entity.type = GUI::GLModel::PrimitiveType::Triangles;
-                    const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
-                    for (const Vec3d& v : triangulation) {
-                        entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.015f)); // add a small positive z to avoid z-fighting
-                        entity.normals.emplace_back(Vec3f::UnitZ());
-                        const size_t positions_count = entity.positions.size();
-                        if (positions_count % 3 == 0) {
-                            entity.indices.emplace_back(positions_count - 3);
-                            entity.indices.emplace_back(positions_count - 2);
-                            entity.indices.emplace_back(positions_count - 1);
-                        }
+                GUI::GLModel::InitializationData::Entity entity;
+                entity.type = GUI::GLModel::PrimitiveType::Triangles;
+                const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(expoly);
+                for (const Vec3d& v : triangulation) {
+                    entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.015f)); // add a small positive z to avoid z-fighting
+                    entity.normals.emplace_back(Vec3f::UnitZ());
+                    const size_t positions_count = entity.positions.size();
+                    if (positions_count % 3 == 0) {
+                        entity.indices.emplace_back(positions_count - 3);
+                        entity.indices.emplace_back(positions_count - 2);
+                        entity.indices.emplace_back(positions_count - 1);
                     }
-                    init_data.entities.emplace_back(entity);
                 }
+                init_data.entities.emplace_back(entity);
             }
+
             m_model.init_from(init_data);
-            set_color(m_parent.render_color);
         }
         else
             m_shift = box.center() - m_old_box.center();
     }
     else
         m_model.reset();
-}
-
-void GLVolume::SinkingContours::set_color(const std::array<float, 4>& color)
-{
-    m_model.set_color(-1, { 1.0f - color[0], 1.0f - color[1], 1.0f - color[2], color[3] });
-}
-
-void GLVolume::SinkingContours::render()
-{
-    update();
-
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_shift.x(), m_shift.y(), m_shift.z()));
-    m_model.render();
-    glsafe(::glPopMatrix());
 }
 #endif // ENABLE_SINKING_CONTOURS
 
@@ -602,7 +597,6 @@ bool GLVolume::is_below_printbed() const
 #if ENABLE_SINKING_CONTOURS
 void GLVolume::render_sinking_contours()
 {
-    m_sinking_contours.set_color(render_color);
     m_sinking_contours.render();
 }
 #endif // ENABLE_SINKING_CONTOURS
