@@ -93,7 +93,7 @@ void GLModel::init_from(const TriangleMesh& mesh)
 #if ENABLE_SINKING_CONTOURS
 void GLModel::init_from(const Polygons& polygons, float z)
 {
-    auto append_polygon = [this](const Polygon& polygon, float z, GUI::GLModel::InitializationData& data) {
+    auto append_polygon = [](const Polygon& polygon, float z, GUI::GLModel::InitializationData& data) {
         if (!polygon.empty()) {
             GUI::GLModel::InitializationData::Entity entity;
             entity.type = GUI::GLModel::PrimitiveType::LineLoop;
