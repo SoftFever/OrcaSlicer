@@ -294,7 +294,7 @@ private:
         SinkingContours(GLVolume& volume) : m_parent(volume) {}
         void update();
         void set_color(const std::array<float, 4>& color);
-        void render() const;
+        void render();
     };
 
     SinkingContours m_sinking_contours;
@@ -492,8 +492,6 @@ public:
     bool                is_sinking() const;
     bool                is_below_printbed() const;
 #if ENABLE_SINKING_CONTOURS
-    void                update_sinking_contours();
-    void                update_sinking_contours_color();
     void                render_sinking_contours();
 #endif // ENABLE_SINKING_CONTOURS
 

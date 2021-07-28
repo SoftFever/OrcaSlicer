@@ -335,6 +335,7 @@ void GLVolume::SinkingContours::update()
                 }
             }
             m_model.init_from(init_data);
+            set_color(m_parent.render_color);
         }
         else
             m_shift = box.center() - m_old_box.center();
@@ -348,8 +349,10 @@ void GLVolume::SinkingContours::set_color(const std::array<float, 4>& color)
     m_model.set_color(-1, { 1.0f - color[0], 1.0f - color[1], 1.0f - color[2], color[3] });
 }
 
-void GLVolume::SinkingContours::render() const
+void GLVolume::SinkingContours::render()
 {
+    update();
+
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_shift.x(), m_shift.y(), m_shift.z()));
     m_model.render();
@@ -597,18 +600,9 @@ bool GLVolume::is_below_printbed() const
 }
 
 #if ENABLE_SINKING_CONTOURS
-void GLVolume::update_sinking_contours()
-{
-    m_sinking_contours.update();
-}
-
-void GLVolume::update_sinking_contours_color()
-{
-    m_sinking_contours.set_color(render_color);
-}
-
 void GLVolume::render_sinking_contours()
 {
+    m_sinking_contours.set_color(render_color);
     m_sinking_contours.render();
 }
 #endif // ENABLE_SINKING_CONTOURS
@@ -857,7 +851,6 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
             volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
             shader->stop_using();
-            volume.first->update_sinking_contours_color();
             volume.first->render_sinking_contours();
             shader->start_using();
         }
@@ -905,7 +898,6 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
             (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
             shader->stop_using();
             glsafe(::glDepthFunc(GL_ALWAYS));
-            volume.first->update_sinking_contours_color();
             volume.first->render_sinking_contours();
             glsafe(::glDepthFunc(GL_LESS));
             shader->start_using();

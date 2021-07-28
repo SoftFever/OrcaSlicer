@@ -2054,12 +2054,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     m_gizmos.update_data();
     m_gizmos.refresh_on_off_state();
 
-#if ENABLE_SINKING_CONTOURS
-    for (GLVolume* v : m_volumes.volumes) {
-        v->update_sinking_contours();
-    }
-#endif // ENABLE_SINKING_CONTOURS
-
     // Update the toolbar
 	if (update_object_list)
 		post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
@@ -2968,6 +2962,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     for (GLVolume* volume : m_volumes.volumes) {
         volume->force_sinking_contours = false;
     }
+
+    auto show_sinking_contours = [this]() {
+        const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
+        for (unsigned int idx : idxs) {
+            m_volumes.volumes[idx]->force_sinking_contours = true;
+        }
+        m_dirty = true;
+    };
 #endif // ENABLE_SINKING_CONTOURS
 
     if (m_gizmos.on_mouse(evt)) {
@@ -3002,11 +3004,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case GLGizmosManager::EType::Scale:
             case GLGizmosManager::EType::Rotate:
             {
-                const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
-                for (unsigned int idx : idxs) {
-                    m_volumes.volumes[idx]->force_sinking_contours = true;
-                }
-                m_dirty = true;
+                show_sinking_contours();
                 break;
             }
             default: { break; }
@@ -3137,6 +3135,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
                         m_sequential_print_clearance_first_displacement = true;
+#if ENABLE_SINKING_CONTOURS
+                        show_sinking_contours();
+#endif // ENABLE_SINKING_CONTOURS
                         m_moving = true;
                     }
                 }

@@ -674,9 +674,6 @@ void Selection::translate(const Vec3d& displacement, bool local)
                 translation_type = Volume;
             }
         }
-#if ENABLE_SINKING_CONTOURS
-        v.update_sinking_contours();
-#endif // ENABLE_SINKING_CONTOURS
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -711,9 +708,6 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
                     v.set_volume_rotation(m_cache.volumes_data[i].get_volume_rotation());
                     v.set_volume_offset(m_cache.volumes_data[i].get_volume_position());
                 }
-#if ENABLE_SINKING_CONTOURS
-                v.update_sinking_contours();
-#endif // ENABLE_SINKING_CONTOURS
             }
         }
         else { // this is not the wipe tower
@@ -781,9 +775,6 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
                         v.set_volume_rotation(new_rotation);
                     }
                 }
-#if ENABLE_SINKING_CONTOURS
-                v.update_sinking_contours();
-#endif // ENABLE_SINKING_CONTOURS
             }
         }
 
@@ -828,9 +819,6 @@ void Selection::flattening_rotate(const Vec3d& normal)
         // Additional rotation to align tnormal with the down vector in the world coordinate space.
         auto  extra_rotation = Eigen::Quaterniond().setFromTwoVectors(tnormal, - Vec3d::UnitZ());
         v.set_instance_rotation(Geometry::extract_euler_angles(extra_rotation.toRotationMatrix() * m_cache.volumes_data[i].get_instance_rotation_matrix()));
-#if ENABLE_SINKING_CONTOURS
-        v.update_sinking_contours();
-#endif // ENABLE_SINKING_CONTOURS
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -901,9 +889,6 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
                 v.set_volume_scaling_factor(new_scale);
             }
         }
-#if ENABLE_SINKING_CONTOURS
-        v.update_sinking_contours();
-#endif // ENABLE_SINKING_CONTOURS
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -975,9 +960,6 @@ void Selection::mirror(Axis axis)
             v.set_instance_mirror(axis, -(*m_volumes)[i]->get_instance_mirror(axis));
         else if (m_mode == Volume)
             v.set_volume_mirror(axis, -(*m_volumes)[i]->get_volume_mirror(axis));
-#if ENABLE_SINKING_CONTOURS
-        v.update_sinking_contours();
-#endif // ENABLE_SINKING_CONTOURS
     }
 
 #if !DISABLE_INSTANCES_SYNCH
