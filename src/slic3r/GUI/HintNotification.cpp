@@ -218,7 +218,7 @@ void NotificationManager::HintNotification::count_spaces()
 
 	
 	std::string text;
-	text = ImGui::LeftArrowButton; // TODO change to left arrow 
+	text = ImGui::WarningMarker; 
 	float picture_width = ImGui::CalcTextSize(text.c_str()).x;
 	m_left_indentation = picture_width + m_line_height / 2;
 	

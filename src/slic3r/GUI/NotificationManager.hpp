@@ -29,6 +29,7 @@ wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClicke
 
 class GLCanvas3D;
 class ImGuiWrapper;
+enum class InfoItemType;
 
 enum class NotificationType
 {
@@ -92,7 +93,10 @@ enum class NotificationType
     // Notification that a printer has more extruders than are supported by MM Gizmo/segmentation.
     MmSegmentationExceededExtrudersLimit,
 	// Did you know Notification appearing on startup with arrows to change hint
-	DidYouKnowHint
+	DidYouKnowHint,
+	// Shows when  ObjectList::update_info_items finds information that should be stressed to the user
+	// Might contain logo taken from gizmos
+	UpdatedItemsInfo
 };
 
 class NotificationManager
@@ -166,6 +170,7 @@ public:
 	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
 	// Hint (did you know) notification
 	void push_hint_notification();
+	void push_updated_item_info_notification(InfoItemType type);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
 	// finds ExportFinished notification and closes it if it was to removable device
@@ -488,6 +493,20 @@ private:
 		long      m_hover_time { 0 };
 	};
 
+	class UpdatedItemsInfoNotification : public PopNotification
+	{
+	public:
+		UpdatedItemsInfoNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, InfoItemType info_item_type)
+			: PopNotification(n, id_provider, evt_handler)
+			, m_info_item_type(info_item_type)
+		{
+		}
+		void count_spaces() override;
+	protected:
+		void render_left_sign(ImGuiWrapper& imgui) override;
+		InfoItemType m_info_item_type;
+	};
+
 	// in HintNotification.hpp
 	class HintNotification;
 
@@ -516,7 +535,7 @@ private:
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
 	// Notification types that can be shown multiple types at once (compared by text)
-	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload };
+	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload, NotificationType::UpdatedItemsInfo };
 	//prepared (basic) notifications
 	static const NotificationData basic_notifications[];
 };

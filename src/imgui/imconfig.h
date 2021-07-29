@@ -139,12 +139,19 @@ namespace ImGui
     const char EjectHoverButton        = 0x13;
     const char CancelButton            = 0x14;
     const char CancelHoverButton       = 0x15;
-    const char LeftArrowButton         = 0x16;
-    const char LeftArrowHoverButton    = 0x17;
+    const char VarLayerHeightMarker    = 0x16;
+
     const char RightArrowButton        = 0x18;
     const char RightArrowHoverButton   = 0x19;
     const char PreferencesButton       = 0x1A;
     const char PreferencesHoverButton  = 0x1B;
+    const char SinkingObjectMarker     = 0x1C;
+    const char CustomSupportsMarker    = 0x1D;
+    const char CustomSeamMarker        = 0x1E;
+    const char MmuSegmentationMarker   = 0x1F;
+    
+    
+        
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 
