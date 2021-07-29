@@ -167,6 +167,12 @@ void AppConfig::set_defaults()
     if (get("show_splash_screen").empty())
         set("show_splash_screen", "1");
 
+    if (get("last_hint").empty())
+        set("last_hint", "0");
+
+    if (get("show_hints").empty())
+        set("show_hints", "1");
+
 #ifdef _WIN32
     if (get("use_legacy_3DConnexion").empty())
         set("use_legacy_3DConnexion", "0");

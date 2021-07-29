@@ -83,6 +83,7 @@ public:
     void sys_color_changed();
     void search();
     void jump_to_option(size_t selected);
+    void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();

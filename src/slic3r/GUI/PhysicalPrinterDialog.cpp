@@ -47,7 +47,7 @@ PresetForPrinter::PresetForPrinter(PhysicalPrinterDialog* parent, const std::str
 {
     m_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_delete_preset_btn = new ScalableButton(parent, wxID_ANY, "cross", "", wxDefaultSize, wxDefaultPosition, /*wxBU_LEFT | */wxBU_EXACTFIT);
+    m_delete_preset_btn = new ScalableButton(parent, wxID_ANY, "cross");
     m_delete_preset_btn->SetFont(wxGetApp().normal_font());
     m_delete_preset_btn->SetToolTip(_L("Delete this preset from this printer device"));
     m_delete_preset_btn->Bind(wxEVT_BUTTON, &PresetForPrinter::DeletePreset, this);
@@ -175,7 +175,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_
 
     wxStaticText* label_top = new wxStaticText(this, wxID_ANY, _L("Descriptive name for the printer") + ":");
 
-    m_add_preset_btn = new ScalableButton(this, wxID_ANY, "add_copies", "", wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT);
+    m_add_preset_btn = new ScalableButton(this, wxID_ANY, "add_copies");
     m_add_preset_btn->SetFont(wxGetApp().normal_font());
     m_add_preset_btn->SetToolTip(_L("Add preset for this printer device")); 
     m_add_preset_btn->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::AddPreset, this);

@@ -93,6 +93,43 @@ private:
     wxTimer* m_timer;
 };
 
+class  ToolbarHighlighterTimerEvent : public wxEvent
+{
+public:
+    ToolbarHighlighterTimerEvent(wxEventType type, wxTimer& timer)
+        : wxEvent(timer.GetId(), type),
+        m_timer(&timer)
+    {
+        SetEventObject(timer.GetOwner());
+    }
+    int GetInterval() const { return m_timer->GetInterval(); }
+    wxTimer& GetTimer() const { return *m_timer; }
+
+    virtual wxEvent* Clone() const { return new ToolbarHighlighterTimerEvent(*this); }
+    virtual wxEventCategory GetEventCategory() const { return wxEVT_CATEGORY_TIMER; }
+private:
+    wxTimer* m_timer;
+};
+
+
+class  GizmoHighlighterTimerEvent : public wxEvent
+{
+public:
+    GizmoHighlighterTimerEvent(wxEventType type, wxTimer& timer)
+        : wxEvent(timer.GetId(), type),
+        m_timer(&timer)
+    {
+        SetEventObject(timer.GetOwner());
+    }
+    int GetInterval() const { return m_timer->GetInterval(); }
+    wxTimer& GetTimer() const { return *m_timer; }
+
+    virtual wxEvent* Clone() const { return new GizmoHighlighterTimerEvent(*this); }
+    virtual wxEventCategory GetEventCategory() const { return wxEVT_CATEGORY_TIMER; }
+private:
+    wxTimer* m_timer;
+};
+
 
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 
@@ -137,6 +174,8 @@ wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
+wxDECLARE_EVENT(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, wxTimerEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_GIZMO_HIGHLIGHTER_TIMER, wxTimerEvent);
 
 class GLCanvas3D
 {
@@ -378,6 +417,16 @@ class GLCanvas3D
         virtual void Notify() override;
     };
 
+    class ToolbarHighlighterTimer : public wxTimer {
+    private:
+        virtual void Notify() override;
+    };
+
+    class GizmoHighlighterTimer : public wxTimer {
+    private:
+        virtual void Notify() override;
+    };
+
 public:
     enum ECursorType : unsigned char
     {
@@ -516,6 +565,38 @@ private:
 
     SequentialPrintClearance m_sequential_print_clearance;
     bool m_sequential_print_clearance_first_displacement{ true };
+
+    struct ToolbarHighlighter
+    {
+        void set_timer_owner(wxEvtHandler* owner, int timerid = wxID_ANY);
+        void init(GLToolbarItem* toolbar_item, GLCanvas3D* canvas);
+        void blink();
+        void invalidate();
+        bool                    m_render_arrow{ false };
+        GLToolbarItem*          m_toolbar_item{ nullptr };
+    private:
+        GLCanvas3D*             m_canvas{ nullptr };
+        int				        m_blink_counter{ 0 };
+        ToolbarHighlighterTimer m_timer;       
+    }
+    m_toolbar_highlighter;
+
+    struct GizmoHighlighter
+    {
+        void set_timer_owner(wxEvtHandler* owner, int timerid = wxID_ANY);
+        void init(GLGizmosManager* manager, GLGizmosManager::EType gizmo, GLCanvas3D* canvas);
+        void blink();
+        void invalidate();
+        bool                    m_render_arrow{ false };
+        GLGizmosManager::EType  m_gizmo_type;
+    private:
+        GLGizmosManager*        m_gizmo_manager{ nullptr };
+        GLCanvas3D*             m_canvas{ nullptr };
+        int				        m_blink_counter{ 0 };
+        GizmoHighlighterTimer   m_timer;
+
+    }
+    m_gizmo_highlighter;
 
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas);
@@ -743,6 +824,9 @@ public:
     bool is_using_slope() const { return m_slope.is_used(); }
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }
+
+    void highlight_toolbar_item(const std::string& item_name);
+    void highlight_gizmo(const std::string& gizmo_name);
 
     ArrangeSettings get_arrange_settings() const {
         const ArrangeSettings &settings = get_arrange_settings(this);

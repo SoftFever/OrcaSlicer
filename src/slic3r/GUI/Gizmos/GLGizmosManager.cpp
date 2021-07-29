@@ -123,8 +123,26 @@ bool GLGizmosManager::init()
 
     m_current = Undefined;
     m_hover = Undefined;
+    m_highlight = std::pair<EType, bool>(Undefined, false);
 
     return true;
+}
+
+bool GLGizmosManager::init_arrow(const BackgroundTexture::Metadata& arrow_texture)
+{
+    if (m_arrow_texture.texture.get_id() != 0)
+        return true;
+
+    std::string path = resources_dir() + "/icons/";
+    bool res = false;
+
+    if (!arrow_texture.filename.empty())
+        res = m_arrow_texture.texture.load_from_file(path + arrow_texture.filename, false, GLTexture::SingleThreaded, false);
+//        res = m_arrow_texture.texture.load_from_svg_file(path + arrow_texture.filename, false, true, false, 100);
+    if (res)
+        m_arrow_texture.metadata = arrow_texture;
+
+    return res;
 }
 
 void GLGizmosManager::set_overlay_icon_size(float size)
@@ -973,6 +991,46 @@ void GLGizmosManager::render_background(float left, float top, float right, floa
     }
 }
 
+void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_type) const
+{
+    
+    std::vector<size_t> selectable_idxs = get_selectable_idxs();
+    if (selectable_idxs.empty())
+        return;
+    float cnv_w = (float)m_parent.get_canvas_size().get_width();
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+    float height = get_scaled_total_height();
+    float zoomed_border = m_layout.scaled_border() * inv_zoom;
+    float zoomed_top_x = (-0.5f * cnv_w) * inv_zoom;
+    float zoomed_top_y = (0.5f * height) * inv_zoom;
+    zoomed_top_x += zoomed_border;
+    zoomed_top_y -= zoomed_border;
+    float icons_size = m_layout.scaled_icons_size();
+    float zoomed_icons_size = icons_size * inv_zoom;
+    float zoomed_stride_y = m_layout.scaled_stride_y() * inv_zoom;
+    for (size_t idx : selectable_idxs)
+    {
+        if (idx == highlighted_type) {      
+            int tex_width = m_icons_texture.get_width();
+            int tex_height = m_icons_texture.get_height();
+            unsigned int tex_id = m_arrow_texture.texture.get_id();
+            float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
+            float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
+
+            float internal_left_uv = (float)m_arrow_texture.metadata.left * inv_tex_width;
+            float internal_right_uv = 1.0f - (float)m_arrow_texture.metadata.right * inv_tex_width;
+            float internal_top_uv = 1.0f - (float)m_arrow_texture.metadata.top * inv_tex_height;
+            float internal_bottom_uv = (float)m_arrow_texture.metadata.bottom * inv_tex_height;
+            
+            float arrow_sides_ratio = (float)m_arrow_texture.texture.get_height() / (float)m_arrow_texture.texture.get_width();
+
+            GLTexture::render_sub_texture(tex_id, zoomed_top_x + zoomed_icons_size * 1.2f, zoomed_top_x + zoomed_icons_size * 1.2f + zoomed_icons_size * arrow_sides_ratio, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { internal_left_uv, internal_top_uv }, { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv } });
+            break;
+        }
+        zoomed_top_y -= zoomed_stride_y;
+    }
+}
+
 void GLGizmosManager::do_render_overlay() const
 {
     std::vector<size_t> selectable_idxs = get_selectable_idxs();
@@ -1012,7 +1070,7 @@ void GLGizmosManager::do_render_overlay() const
     if ((icons_texture_id == 0) || (tex_width <= 1) || (tex_height <= 1))
         return;
 
-    float du = (float)(tex_width - 1) / (4.0f * (float)tex_width); // 4 is the number of possible states if the icons
+    float du = (float)(tex_width - 1) / (6.0f * (float)tex_width); // 6 is the number of possible states if the icons
     float dv = (float)(tex_height - 1) / (float)(m_gizmos.size() * tex_height);
 
     // tiles in the texture are spaced by 1 pixel
@@ -1022,9 +1080,9 @@ void GLGizmosManager::do_render_overlay() const
     for (size_t idx : selectable_idxs)
     {
         GLGizmoBase* gizmo = m_gizmos[idx].get();
-
         unsigned int sprite_id = gizmo->get_sprite_id();
-        int icon_idx = (m_current == idx) ? 2 : ((m_hover == idx) ? 1 : (gizmo->is_activable()? 0 : 3));
+        // higlighted state needs to be decided first so its highlighting in every other state
+        int icon_idx = (m_highlight.first == idx ? (m_highlight.second ? 4 : 5) : (m_current == idx) ? 2 : ((m_hover == idx) ? 1 : (gizmo->is_activable()? 0 : 3)));
 
         float v_top = v_offset + sprite_id * dv;
         float u_left = u_offset + icon_idx * du;
@@ -1055,13 +1113,26 @@ GLGizmoBase* GLGizmosManager::get_current() const
     return ((m_current == Undefined) || m_gizmos.empty()) ? nullptr : m_gizmos[m_current].get();
 }
 
+GLGizmosManager::EType GLGizmosManager::get_gizmo_from_name(const std::string& gizmo_name) const
+{
+    std::vector<size_t> selectable_idxs = get_selectable_idxs();
+    for (size_t idx = 0; idx < selectable_idxs.size(); ++idx)
+    {
+        std::string filename = m_gizmos[selectable_idxs[idx]]->get_icon_filename();
+        filename = filename.substr(0, filename.find_first_of('.'));
+        if (filename == gizmo_name)
+            return (GLGizmosManager::EType)selectable_idxs[idx];
+    }
+    return GLGizmosManager::EType::Undefined;
+}
+
 bool GLGizmosManager::generate_icons_texture() const
 {
     std::string path = resources_dir() + "/icons/";
     std::vector<std::string> filenames;
     for (size_t idx=0; idx<m_gizmos.size(); ++idx)
     {
-        if (m_gizmos[idx] != nullptr)
+        if (m_gizmos[idx] != nullptr)   
         {
             const std::string& icon_filename = m_gizmos[idx]->get_icon_filename();
             if (!icon_filename.empty())
@@ -1074,6 +1145,8 @@ bool GLGizmosManager::generate_icons_texture() const
     states.push_back(std::make_pair(0, false)); // Hovered
     states.push_back(std::make_pair(0, true));  // Selected
     states.push_back(std::make_pair(2, false)); // Disabled
+    states.push_back(std::make_pair(0, false)); // HighlightedShown
+    states.push_back(std::make_pair(2, false)); // HighlightedHidden
 
     unsigned int sprite_size_px = (unsigned int)m_layout.scaled_icons_size();
 //    // force even size
