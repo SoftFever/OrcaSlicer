@@ -10,8 +10,6 @@
 #define ENABLE_SELECTION_DEBUG_OUTPUT 0
 // Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
 #define ENABLE_RENDER_SELECTION_CENTER 0
-// Shows an imgui dialog with render related data
-#define ENABLE_RENDER_STATISTICS 0
 // Shows an imgui dialog with camera related data
 #define ENABLE_CAMERA_STATISTICS 0
 // Render the picking pass instead of the main scene (use [T] key to toggle between regular rendering and picking pass only rendering)

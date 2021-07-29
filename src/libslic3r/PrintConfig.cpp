@@ -1457,6 +1457,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum width of a segmented region. Zero disables this feature.");
     def->sidetext = L("mm (zero to disable)");
     def->min = 0;
+    def->category = L("Advanced");
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0.f));
 

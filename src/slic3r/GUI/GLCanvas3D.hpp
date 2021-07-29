@@ -305,25 +305,27 @@ class GLCanvas3D
         ObjectClashed
     };
 
-#if ENABLE_RENDER_STATISTICS
     class RenderStats
     {
-        std::queue<std::pair<int64_t, int64_t>> m_frames;
-        int64_t m_curr_total{ 0 };
-
+    private:
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_measuring_start;
+        int m_fps_out = -1;
+        int m_fps_running = 0;
     public:
-        void add_frame(int64_t frame) {
-            int64_t now = GLCanvas3D::timestamp_now();
-            if (!m_frames.empty() && now - m_frames.front().first > 1000) {
-                m_curr_total -= m_frames.front().second;
-                m_frames.pop();
+        void increment_fps_counter() { ++m_fps_running; }
+        int get_fps() { return m_fps_out; }
+        int get_fps_and_reset_if_needed() {
+            auto cur_time = std::chrono::high_resolution_clock::now();
+            int elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(cur_time-m_measuring_start).count();
+            if (elapsed_ms > 1000  || m_fps_out == -1) {
+                m_measuring_start = cur_time;
+                m_fps_out = int (1000. * m_fps_running / elapsed_ms);
+                m_fps_running = 0;
             }
-            m_curr_total += frame;
-            m_frames.push({ now, frame });
+            return m_fps_out;
         }
-        int64_t get_average() const { return m_frames.empty() ? 0 : m_curr_total / m_frames.size(); }
+
     };
-#endif // ENABLE_RENDER_STATISTICS
 
     class Labels
     {
@@ -455,9 +457,7 @@ private:
     bool m_show_picking_texture;
 #endif // ENABLE_RENDER_PICKING_PASS
 
-#if ENABLE_RENDER_STATISTICS
     RenderStats m_render_stats;
-#endif // ENABLE_RENDER_STATISTICS
 
     int m_imgui_undo_redo_hovered_pos{ -1 };
     int m_mouse_wheel{ 0 };

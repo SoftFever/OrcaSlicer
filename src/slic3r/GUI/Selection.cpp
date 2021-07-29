@@ -841,8 +841,12 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 
     for (unsigned int i : m_list) {
         GLVolume &v = *(*m_volumes)[i];
-        if (!is_sla)
-            is_any_volume_sinking |= !v.is_modifier && std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end();
+        if (!is_sla) {
+            if (v.is_modifier)
+                is_any_volume_sinking = true;
+            else
+                is_any_volume_sinking |= std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end();
+        }
         if (is_single_full_instance()) {
             if (transformation_type.relative()) {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
@@ -2123,7 +2127,7 @@ void Selection::ensure_on_bed()
 
     for (GLVolume* volume : *m_volumes) {
         if (!volume->is_wipe_tower && !volume->is_modifier) {
-            double min_z = volume->transformed_convex_hull_bounding_box().min(2);
+            const double min_z = volume->transformed_convex_hull_bounding_box().min.z();
             std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
             InstancesToZMap::iterator it = instances_min_z.find(instance);
             if (it == instances_min_z.end())
