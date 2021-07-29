@@ -3383,6 +3383,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
         }
+        wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
 
     // if the selection is not valid to allow for layer editing after the move, we need to turn off the tool if it is running
@@ -3463,6 +3464,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
         }
+        wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
 
     if (!done.empty())
@@ -3530,6 +3532,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
         }
+        wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
 
     if (!done.empty())
