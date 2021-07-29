@@ -2897,7 +2897,7 @@ void Plater::priv::update_print_volume_state()
 void Plater::priv::process_validation_warning(const std::string& warning) const
 {
     if (warning.empty())
-        notification_manager->close_notification_of_type(NotificationType::PrintValidateWarning);
+        notification_manager->close_notification_of_type(NotificationType::ValidateWarning);
     else {
         std::string text = warning;
         std::string hypertext = "";
@@ -2920,9 +2920,9 @@ void Plater::priv::process_validation_warning(const std::string& warning) const
         }
 
         notification_manager->push_notification(
-            NotificationType::PrintValidateWarning,
-            NotificationManager::NotificationLevel::ImportantNotification,
-            text, hypertext, action_fn
+            NotificationType::ValidateWarning,
+            NotificationManager::NotificationLevel::WarningNotification,
+            _u8L("WARNING:") + "\n" + text, hypertext, action_fn
         );
     }
 }
@@ -2974,6 +2974,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         std::string err = background_process.validate(&warning);
         if (err.empty()) {
 			notification_manager->set_all_slicing_errors_gray(true);
+            notification_manager->close_notification_of_type(NotificationType::ValidateError);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
 
@@ -2989,7 +2990,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         else {
 			// The print is not valid.
 			// Show error as notification.
-            notification_manager->push_slicing_error_notification(err);
+            notification_manager->push_validate_error_notification(err);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
             if (printer_technology == ptFFF) {
                 const Print* print = background_process.fff_print();

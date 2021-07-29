@@ -55,8 +55,11 @@ enum class NotificationType
 	// Contains a hyperlink to execute installation of the new system profiles.
 	PresetUpdateAvailable,
 //	LoadingFailed,
-	// Not used - instead Slicing error is used for both slicing and validate errors.
-//	ValidateError,
+	// Errors emmited by Print::validate
+	// difference from Slicing error is that they disappear not grey out at update_background_process
+	ValidateError,
+	// Notification emitted by Print::validate
+	ValidateWarning,
 	// Slicing error produced by BackgroundSlicingProcess::validate() or by the BackgroundSlicingProcess background
 	// thread thowing a SlicingError exception.
 	SlicingError,
@@ -79,8 +82,6 @@ enum class NotificationType
     EmptyAutoColorChange,
     // Notification about detected sign
     SignDetected,
-    // Notification emitted by Print::validate
-    PrintValidateWarning,
     // Notification telling user to quit SLA supports manual editing
     QuitSLAManualMode,
     // Desktop integration basic info
@@ -123,6 +124,8 @@ public:
 	// ErrorNotification and ImportantNotification are never faded out.
     void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
                            std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0);
+	// Creates Validate Error notification with a custom text and no fade out.
+	void push_validate_error_notification(const std::string& text);
 	// Creates Slicing Error notification with a custom text and no fade out.
 	void push_slicing_error_notification(const std::string& text);
 	// Creates Slicing Warning notification with a custom text and no fade out.

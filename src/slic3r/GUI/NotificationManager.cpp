@@ -1096,6 +1096,11 @@ void NotificationManager::push_notification(NotificationType type,
 	}
     push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
 }
+void NotificationManager::push_validate_error_notification(const std::string& text)
+{
+	push_notification_data({ NotificationType::ValidateError, NotificationLevel::ErrorNotification, 0,  _u8L("ERROR:") + "\n" + text }, 0);
+}
+
 void NotificationManager::push_slicing_error_notification(const std::string& text)
 {
 	set_all_slicing_errors_gray(false);
