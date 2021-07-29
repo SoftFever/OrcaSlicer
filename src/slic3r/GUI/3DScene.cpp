@@ -24,6 +24,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 #if ENABLE_SINKING_CONTOURS
 #include "libslic3r/Tesselate.hpp"
 #endif // ENABLE_SINKING_CONTOURS

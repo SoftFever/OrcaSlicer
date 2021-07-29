@@ -9,6 +9,8 @@
 #include "libslic3r/PresetBundle.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/nowide/fstream.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <map>
 
