@@ -812,7 +812,8 @@ static PrintObjectRegions* generate_print_object_regions(
             layer_ranges_regions.push_back({ range.layer_height_range, range.config });
     }
 
-    update_volume_bboxes(layer_ranges_regions, out->cached_volume_ids, model_volumes, out->trafo_bboxes, std::max(0.f, xy_size_compensation));
+    const bool is_mm_painted = std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
+    update_volume_bboxes(layer_ranges_regions, out->cached_volume_ids, model_volumes, out->trafo_bboxes, is_mm_painted ? 0.f : std::max(0.f, xy_size_compensation));
 
     std::vector<PrintRegion*> region_set;
     auto get_create_region = [&region_set, &all_regions](PrintRegionConfig &&config) -> PrintRegion* {
@@ -1313,7 +1314,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 m_default_region_config,
                 model_object_status.print_instances.front().trafo,
                 num_extruders,
-                float(print_object.config().xy_size_compensation.value),
+                print_object.is_mm_painted() ? 0.f : float(print_object.config().xy_size_compensation.value),
                 painting_extruders);
         }
         for (auto it = it_print_object; it != it_print_object_end; ++it)
