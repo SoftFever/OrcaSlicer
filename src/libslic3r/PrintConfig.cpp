@@ -1279,7 +1279,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("Teacup");
     def->enum_labels.push_back("MakerWare (MakerBot)");
     def->enum_labels.push_back("Marlin (legacy)");
-    def->enum_labels.push_back("Marlin Firmware");
+    def->enum_labels.push_back("Marlin 2");
     def->enum_labels.push_back("Sailfish (MakerBot)");
     def->enum_labels.push_back("Mach3/LinuxCNC");
     def->enum_labels.push_back("Machinekit");
