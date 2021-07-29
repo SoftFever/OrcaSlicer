@@ -900,6 +900,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
+wxDEFINE_EVENT(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, wxTimerEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_GIZMO_HIGHLIGHTER_TIMER, wxTimerEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 
@@ -2164,6 +2166,10 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Bind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Bind(EVT_GLCANVAS_RENDER_TIMER, &GLCanvas3D::on_render_timer, this);
+        m_toolbar_highlighter.set_timer_owner(m_canvas, 0);
+        m_canvas->Bind(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, [this](wxTimerEvent&) { m_toolbar_highlighter.blink(); });
+        m_gizmo_highlighter.set_timer_owner(m_canvas, 0);
+        m_canvas->Bind(EVT_GLCANVAS_GIZMO_HIGHLIGHTER_TIMER, [this](wxTimerEvent&) { m_gizmo_highlighter.blink(); });
         m_canvas->Bind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
@@ -4399,6 +4405,29 @@ bool GLCanvas3D::_init_main_toolbar()
         m_main_toolbar.set_enabled(false);
         return true;
     }
+    // init arrow
+    BackgroundTexture::Metadata arrow_data;
+    arrow_data.filename = "toolbar_arrow.png";
+//    arrow_data.filename = "toolbar_arrow.svg";
+    //arrow_data.left = 16;
+    //arrow_data.top = 16;
+    //arrow_data.right = 16;
+    //arrow_data.bottom = 16;
+
+    arrow_data.left = 0;
+    arrow_data.top = 0;
+    arrow_data.right = 0;
+    arrow_data.bottom = 0;
+
+    if (!m_main_toolbar.init_arrow(arrow_data))
+    {
+        BOOST_LOG_TRIVIAL(error) << "Main toolbar failed to load arrow texture.";
+    }
+
+    if (!m_gizmos.init_arrow(arrow_data))
+    {
+        BOOST_LOG_TRIVIAL(error) << "Gizmos manager failed to load arrow texture.";
+    }
 
 //    m_main_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     m_main_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
@@ -5313,6 +5342,11 @@ void GLCanvas3D::_render_gizmos_overlay()
 #endif /* __WXMSW__ */
 
     m_gizmos.render_overlay();
+
+    if (m_gizmo_highlighter.m_render_arrow)
+    {
+        m_gizmos.render_arrow(*this, m_gizmo_highlighter.m_gizmo_type);
+    }
 }
 
 void GLCanvas3D::_render_main_toolbar()
@@ -5330,6 +5364,10 @@ void GLCanvas3D::_render_main_toolbar()
 
     m_main_toolbar.set_position(top, left);
     m_main_toolbar.render(*this);
+    if (m_toolbar_highlighter.m_render_arrow)
+    {
+        m_main_toolbar.render_arrow(*this, m_toolbar_highlighter.m_toolbar_item);
+    }
 }
 
 void GLCanvas3D::_render_undoredo_toolbar()
@@ -6497,6 +6535,24 @@ bool GLCanvas3D::_deactivate_collapse_toolbar_items()
     return false;
 }
 
+void GLCanvas3D::highlight_toolbar_item(const std::string& item_name)
+{
+    GLToolbarItem* item = m_main_toolbar.get_item(item_name);
+    if (!item)
+        item = m_undoredo_toolbar.get_item(item_name);
+    if (!item || !item->is_visible())
+        return;
+    m_toolbar_highlighter.init(item, this);
+}
+
+void GLCanvas3D::highlight_gizmo(const std::string& gizmo_name)
+{
+    GLGizmosManager::EType gizmo = m_gizmos.get_gizmo_from_name(gizmo_name);
+    if(gizmo == GLGizmosManager::EType::Undefined)
+        return;
+    m_gizmo_highlighter.init(&m_gizmos, gizmo, this);
+}
+
 const Print* GLCanvas3D::fff_print() const
 {
     return (m_process == nullptr) ? nullptr : m_process->fff_print();
@@ -6516,10 +6572,119 @@ void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
     wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
 }
 
-
-void  GLCanvas3D::RenderTimer::Notify()
+void GLCanvas3D::RenderTimer::Notify()
 {
     wxPostEvent((wxEvtHandler*)GetOwner(), RenderTimerEvent( EVT_GLCANVAS_RENDER_TIMER, *this));
 }
+
+void GLCanvas3D::ToolbarHighlighterTimer::Notify()
+{
+    wxPostEvent((wxEvtHandler*)GetOwner(), ToolbarHighlighterTimerEvent(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, *this));
+}
+
+void GLCanvas3D::GizmoHighlighterTimer::Notify()
+{
+    wxPostEvent((wxEvtHandler*)GetOwner(), GizmoHighlighterTimerEvent(EVT_GLCANVAS_GIZMO_HIGHLIGHTER_TIMER, *this));
+}
+
+void GLCanvas3D::ToolbarHighlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
+{
+    m_timer.SetOwner(owner, timerid);
+}
+
+void GLCanvas3D::ToolbarHighlighter::init(GLToolbarItem* toolbar_item, GLCanvas3D* canvas)
+{
+    if (m_timer.IsRunning())
+        invalidate();
+    if (!toolbar_item || !canvas)
+        return;
+
+    m_timer.Start(300, false);
+
+    m_toolbar_item = toolbar_item;
+    m_canvas       = canvas;
+}
+
+void GLCanvas3D::ToolbarHighlighter::invalidate()
+{
+    m_timer.Stop();
+
+    if (m_toolbar_item) {
+        m_toolbar_item->set_highlight(GLToolbarItem::EHighlightState::NotHighlighted);
+    }
+    m_toolbar_item = nullptr;
+    m_blink_counter = 0;
+    m_render_arrow = false;
+}
+
+void GLCanvas3D::ToolbarHighlighter::blink()
+{
+    if (m_toolbar_item) {
+        char state = m_toolbar_item->get_highlight();
+        if (state != (char)GLToolbarItem::EHighlightState::HighlightedShown)
+            m_toolbar_item->set_highlight(GLToolbarItem::EHighlightState::HighlightedShown);
+        else 
+            m_toolbar_item->set_highlight(GLToolbarItem::EHighlightState::HighlightedHidden);
+
+        m_render_arrow = !m_render_arrow;
+        m_canvas->set_as_dirty();
+    }
+    else
+        invalidate();
+
+    if ((++m_blink_counter) >= 11)
+        invalidate();
+}
+
+void GLCanvas3D::GizmoHighlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
+{
+    m_timer.SetOwner(owner, timerid);
+}
+
+void GLCanvas3D::GizmoHighlighter::init(GLGizmosManager* manager, GLGizmosManager::EType gizmo, GLCanvas3D* canvas)
+{
+    if (m_timer.IsRunning())
+        invalidate();
+    if (!gizmo || !canvas)
+        return;
+
+    m_timer.Start(300, false);
+
+    m_gizmo_manager = manager;
+    m_gizmo_type    = gizmo;
+    m_canvas        = canvas;
+}
+
+void GLCanvas3D::GizmoHighlighter::invalidate()
+{
+    m_timer.Stop();
+
+    if (m_gizmo_manager) {
+        m_gizmo_manager->set_highlight(GLGizmosManager::EType::Undefined, false);
+    }
+    m_gizmo_manager = nullptr;
+    m_gizmo_type = GLGizmosManager::EType::Undefined;
+    m_blink_counter = 0;
+    m_render_arrow = false;
+}
+
+void GLCanvas3D::GizmoHighlighter::blink()
+{
+    if (m_gizmo_manager) {
+        if (m_blink_counter % 2 == 0)
+            m_gizmo_manager->set_highlight(m_gizmo_type, true);
+        else
+            m_gizmo_manager->set_highlight(m_gizmo_type, false);
+
+        m_render_arrow = !m_render_arrow;
+        m_canvas->set_as_dirty();
+    }
+    else
+        invalidate();
+
+    if ((++m_blink_counter) >= 11)
+        invalidate();
+}
+
 } // namespace GUI
 } // namespace Slic3r

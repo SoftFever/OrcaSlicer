@@ -65,6 +65,14 @@ public:
         Num_States
     };
 
+    enum EHighlightState : unsigned char
+    {
+        HighlightedShown,
+        HighlightedHidden,
+        Num_Rendered_Highlight_States,
+        NotHighlighted
+    };
+
     struct Data
     {
         struct Option
@@ -104,12 +112,15 @@ private:
     EState m_state;
     Data m_data;
     EActionType m_last_action_type;
-
+    EHighlightState m_highlight_state;
 public:
     GLToolbarItem(EType type, const Data& data);
 
     EState get_state() const { return m_state; }
     void set_state(EState state) { m_state = state; }
+
+    EHighlightState get_highlight() const { return m_highlight_state; }
+    void set_highlight(EHighlightState state) { m_highlight_state = state; }
 
     const std::string& get_name() const { return m_data.name; }
     const std::string& get_icon_filename() const { return m_data.icon_filename; }
@@ -143,7 +154,6 @@ public:
     bool update_enabled_state();
 
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
-
 private:
     void set_visible(bool visible) { m_data.visible = visible; }
 
@@ -236,6 +246,7 @@ private:
     GLTexture m_icons_texture;
     bool m_icons_texture_dirty;
     BackgroundTexture m_background_texture;
+    BackgroundTexture m_arrow_texture;
     Layout m_layout;
 
     ItemsList m_items;
@@ -261,6 +272,8 @@ public:
     ~GLToolbar();
 
     bool init(const BackgroundTexture::Metadata& background_texture);
+
+    bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
 
     Layout::EType get_layout_type() const;
     void set_layout_type(Layout::EType type);
@@ -310,9 +323,11 @@ public:
     bool update_items_state();
 
     void render(const GLCanvas3D& parent);
+    void render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighted_item);
 
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
-
+    // get item pointer for highlighter timer
+    GLToolbarItem* get_item(const std::string& item_name);
 private:
     void calc_layout();
     float get_width_horizontal() const;
