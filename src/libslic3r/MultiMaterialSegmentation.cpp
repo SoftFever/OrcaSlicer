@@ -42,6 +42,7 @@ struct segment_traits<Slic3r::ColoredLine> {
 
 //#define MMU_SEGMENTATION_DEBUG_GRAPH
 //#define MMU_SEGMENTATION_DEBUG_REGIONS
+//#define MMU_SEGMENTATION_DEBUG_INPUT
 
 namespace Slic3r {
 
@@ -1699,6 +1700,22 @@ static void export_graph_to_svg(const std::string &path, const MMU_Graph &graph,
 }
 #endif // MMU_SEGMENTATION_DEBUG_GRAPH
 
+#ifdef MMU_SEGMENTATION_DEBUG_INPUT
+void export_processed_input_expolygons_to_svg(const std::string &path, const LayerRegionPtrs &regions, const ExPolygons &processed_input_expolygons)
+{
+    coordf_t    stroke_width = scale_(0.05);
+    BoundingBox bbox         = get_extents(regions);
+    bbox.merge(get_extents(processed_input_expolygons));
+    bbox.offset(scale_(1.));
+    ::Slic3r::SVG svg(path.c_str(), bbox);
+
+    for (LayerRegion *region : regions)
+        svg.draw_outline(region->slices.surfaces, "blue", "cyan", stroke_width);
+
+    svg.draw_outline(processed_input_expolygons, "red", "pink", stroke_width);
+}
+#endif // MMU_SEGMENTATION_DEBUG_INPUT
+
 std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentation_by_painting(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
     std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmented_regions(print_object.layers().size());
@@ -1732,13 +1749,21 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
             // Calling expolygons_simplify fixed these issues.
             input_expolygons[layer_idx] = smooth_outward(expolygons_simplify(offset_ex(ex_polygons, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON), 10 * coord_t(SCALED_EPSILON));
+
+#ifdef MMU_SEGMENTATION_DEBUG_INPUT
+            {
+                static int iRun = 0;
+                export_processed_input_expolygons_to_svg(debug_out_path("mm-input-%d-%d.svg", layer_idx, iRun++), layers[layer_idx]->regions(), input_expolygons[layer_idx]);
+            }
+#endif // MMU_SEGMENTATION_DEBUG_INPUT
         }
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - slices preparation in parallel - end";
 
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
         throw_on_cancel_callback();
-        BoundingBox  bbox(get_extents(input_expolygons[layer_idx]));
+        BoundingBox bbox(get_extents(layers[layer_idx]->regions()));
+        bbox.merge(get_extents(input_expolygons[layer_idx]));
         // Projected triangles may slightly exceed the input polygons.
         bbox.offset(20 * SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
@@ -1748,7 +1773,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - projection of painted triangles - begin";
     for (const ModelVolume *mv : print_object.model_object()->volumes) {
         const size_t num_extruders = print_object.print()->config().nozzle_diameter.size() + 1;
-        tbb::parallel_for(tbb::blocked_range<size_t>(1, num_extruders), [&mv, &print_object, &edge_grids, &painted_lines, &painted_lines_mutex, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+        tbb::parallel_for(tbb::blocked_range<size_t>(1, num_extruders), [&mv, &print_object, &edge_grids, &painted_lines, &painted_lines_mutex, &input_expolygons, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
             for (size_t extruder_idx = range.begin(); extruder_idx < range.end(); ++extruder_idx) {
                 throw_on_cancel_callback();
                 const indexed_triangle_set custom_facets = mv->mmu_segmentation_facets.get_facets(*mv, EnforcerBlockerType(extruder_idx));
@@ -1756,7 +1781,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
                     continue;
 
                 const Transform3f tr = print_object.trafo().cast<float>() * mv->get_matrix().cast<float>();
-                tbb::parallel_for(tbb::blocked_range<size_t>(0, custom_facets.indices.size()), [&tr, &custom_facets, &print_object, &edge_grids, &painted_lines, &painted_lines_mutex, &extruder_idx](const tbb::blocked_range<size_t> &range) {
+                tbb::parallel_for(tbb::blocked_range<size_t>(0, custom_facets.indices.size()), [&tr, &custom_facets, &print_object, &edge_grids, &input_expolygons, &painted_lines, &painted_lines_mutex, &extruder_idx](const tbb::blocked_range<size_t> &range) {
                     for (size_t facet_idx = range.begin(); facet_idx < range.end(); ++facet_idx) {
                         float min_z = std::numeric_limits<float>::max();
                         float max_z = std::numeric_limits<float>::lowest();
@@ -1781,7 +1806,7 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
                         for (auto layer_it = first_layer; layer_it != (last_layer + 1); ++layer_it) {
                             const Layer *layer     = *layer_it;
                             size_t       layer_idx = layer_it - print_object.layers().begin();
-                            if (facet[0].z() > layer->slice_z || layer->slice_z > facet[2].z())
+                            if (input_expolygons[layer_idx].empty() || facet[0].z() > layer->slice_z || layer->slice_z > facet[2].z())
                                 continue;
 
                             // https://kandepet.com/3d-printing-slicing-3d-objects/

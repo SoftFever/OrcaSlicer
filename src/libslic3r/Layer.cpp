@@ -4,6 +4,7 @@
 #include "Fill/Fill.hpp"
 #include "ShortestPath.hpp"
 #include "SVG.hpp"
+#include "BoundingBox.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -256,6 +257,28 @@ void Layer::export_region_fill_surfaces_to_svg_debug(const char *name) const
 {
     static size_t idx = 0;
     this->export_region_fill_surfaces_to_svg(debug_out_path("Layer-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
+}
+
+BoundingBox get_extents(const LayerRegion &layer_region)
+{
+    BoundingBox bbox;
+    if (!layer_region.slices.surfaces.empty()) {
+        bbox = get_extents(layer_region.slices.surfaces.front());
+        for (auto it = layer_region.slices.surfaces.cbegin() + 1; it != layer_region.slices.surfaces.cend(); ++it)
+            bbox.merge(get_extents(*it));
+    }
+    return bbox;
+}
+
+BoundingBox get_extents(const LayerRegionPtrs &layer_regions)
+{
+    BoundingBox bbox;
+    if (!layer_regions.empty()) {
+        bbox = get_extents(*layer_regions.front());
+        for (auto it = layer_regions.begin() + 1; it != layer_regions.end(); ++it)
+            bbox.merge(get_extents(**it));
+    }
+    return bbox;
 }
 
 }
