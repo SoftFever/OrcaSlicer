@@ -115,7 +115,7 @@ void GLGizmoScale3D::on_update(const UpdateData& data)
         do_scale_uniform(data);
 }
 
-void GLGizmoScale3D::on_render() const
+void GLGizmoScale3D::on_render()
 {
     const Selection& selection = m_parent.get_selection();
 
@@ -294,7 +294,7 @@ void GLGizmoScale3D::on_render() const
     }
 }
 
-void GLGizmoScale3D::on_render_for_picking() const
+void GLGizmoScale3D::on_render_for_picking()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
     render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());

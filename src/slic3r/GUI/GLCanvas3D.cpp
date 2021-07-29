@@ -792,7 +792,7 @@ void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons
     for (const Polygon& poly : polygons) {
         triangles_count += poly.points.size() - 2;
     }
-    size_t vertices_count = 3 * triangles_count;
+    const size_t vertices_count = 3 * triangles_count;
 
     if (m_render_fill) {
         GLModel::InitializationData fill_data;
@@ -803,13 +803,13 @@ void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons
         entity.normals.reserve(vertices_count);
         entity.indices.reserve(vertices_count);
 
-        ExPolygons polygons_union = union_ex(polygons);
+        const ExPolygons polygons_union = union_ex(polygons);
         for (const ExPolygon& poly : polygons_union) {
-            std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly, false);
+            const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
             for (const Vec3d& v : triangulation) {
                 entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125f)); // add a small positive z to avoid z-fighting
                 entity.normals.emplace_back(Vec3f::UnitZ());
-                size_t positions_count = entity.positions.size();
+                const size_t positions_count = entity.positions.size();
                 if (positions_count % 3 == 0) {
                     entity.indices.emplace_back(positions_count - 3);
                     entity.indices.emplace_back(positions_count - 2);
@@ -2938,6 +2938,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
+#if ENABLE_SINKING_CONTOURS
+    for (GLVolume* volume : m_volumes.volumes) {
+        volume->force_sinking_contours = false;
+    }
+
+    auto show_sinking_contours = [this]() {
+        const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
+        for (unsigned int idx : idxs) {
+            m_volumes.volumes[idx]->force_sinking_contours = true;
+        }
+        m_dirty = true;
+    };
+#endif // ENABLE_SINKING_CONTOURS
+
     if (m_gizmos.on_mouse(evt)) {
         if (wxWindow::FindFocus() != m_canvas)
             // Grab keyboard focus for input in gizmo dialogs.
@@ -2962,6 +2976,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             default: { break; }
             }
         }
+#if ENABLE_SINKING_CONTOURS
+        else if (evt.Dragging()) {
+            switch (m_gizmos.get_current_type())
+            {
+            case GLGizmosManager::EType::Move:
+            case GLGizmosManager::EType::Scale:
+            case GLGizmosManager::EType::Rotate:
+            {
+                show_sinking_contours();
+                break;
+            }
+            default: { break; }
+            }
+        }
+#endif // ENABLE_SINKING_CONTOURS
 
         return;
     }
@@ -3270,6 +3299,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else
         evt.Skip();
+
+#if ENABLE_SINKING_CONTOURS
+    if (m_moving)
+        show_sinking_contours();
+#endif // ENABLE_SINKING_CONTOURS
 
 #ifdef __WXMSW__
 	if (on_enter_workaround)
@@ -5579,6 +5613,11 @@ void GLCanvas3D::_update_volumes_hover_state()
                 }
             }
         }
+#if ENABLE_SINKING_CONTOURS
+        else if (volume.selected)
+            volume.hover = GLVolume::HS_Hover;
+#endif // ENABLE_SINKING_CONTOURS
+
     }
 }
 

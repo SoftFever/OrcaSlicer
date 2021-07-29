@@ -55,8 +55,8 @@ protected:
     std::string on_get_name() const override { return ""; }
     void on_start_dragging() override;
     void on_update(const UpdateData& data) override;
-    void on_render() const override;
-    void on_render_for_picking() const override;
+    void on_render() override;
+    void on_render_for_picking() override;
 
 private:
     void render_circle() const;
@@ -124,10 +124,10 @@ protected:
             g.update(data);
         }
     }
-    void on_render() const override;
-    void on_render_for_picking() const override
+    void on_render() override;
+    void on_render_for_picking() override
     {
-        for (const GLGizmoRotate& g : m_gizmos) {
+        for (GLGizmoRotate& g : m_gizmos) {
             g.render_for_picking();
         }
     }

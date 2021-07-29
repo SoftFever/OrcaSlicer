@@ -16,7 +16,9 @@
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
-
+#if ENABLE_SINKING_CONTOURS
+#include "libslic3r/TriangleMeshSlicer.hpp"
+#endif // ENABLE_SINKING_CONTOURS
 
 namespace Slic3r {
 namespace GUI {
@@ -82,13 +84,17 @@ void GLGizmoCut::on_update(const UpdateData& data)
         set_cut_z(m_start_z + calc_projection(data.mouse_ray));
 }
 
-void GLGizmoCut::on_render() const
+void GLGizmoCut::on_render()
 {
-    BoundingBoxf3 box = bounding_box();
+    const BoundingBoxf3 box = bounding_box();
     Vec3d plane_center = box.center();
     plane_center.z() = m_cut_z;
     m_max_z = box.max.z();
     set_cut_z(m_cut_z);
+
+#if ENABLE_SINKING_CONTOURS
+    update_contours();
+#endif // ENABLE_SINKING_CONTOURS
 
     const float min_x = box.min.x() - Margin;
     const float max_x = box.max.x() + Margin;
@@ -136,9 +142,17 @@ void GLGizmoCut::on_render() const
     m_grabbers[0].render(m_hover_id == 0, (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
 
     shader->stop_using();
+
+#if ENABLE_SINKING_CONTOURS
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
+    glsafe(::glLineWidth(2.0f));
+    m_cut_contours.contours.render();
+    glsafe(::glPopMatrix());
+#endif // ENABLE_SINKING_CONTOURS
 }
 
-void GLGizmoCut::on_render_for_picking() const
+void GLGizmoCut::on_render_for_picking()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
     render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
@@ -199,7 +213,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
         perform_cut(m_parent.get_selection());
 }
 
-void GLGizmoCut::set_cut_z(double cut_z) const
+void GLGizmoCut::set_cut_z(double cut_z)
 {
     // Clamp the plane to the object's bounding box
     m_cut_z = std::clamp(cut_z, 0.0, m_max_z);
@@ -260,6 +274,48 @@ BoundingBoxf3 GLGizmoCut::bounding_box() const
     }
     return ret;
 }
+
+#if ENABLE_SINKING_CONTOURS
+void GLGizmoCut::update_contours()
+{
+    const Selection& selection = m_parent.get_selection();
+    const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
+    const BoundingBoxf3& box = first_glvolume->transformed_convex_hull_bounding_box();
+
+    const int object_idx = selection.get_object_idx();
+    const int instance_idx = selection.get_instance_idx();
+
+    if (0.0 < m_cut_z && m_cut_z < m_max_z) {
+        if (m_cut_contours.cut_z != m_cut_z || m_cut_contours.object_idx != object_idx || m_cut_contours.instance_idx != instance_idx) {
+            m_cut_contours.cut_z = m_cut_z;
+
+            if (m_cut_contours.object_idx != object_idx) {
+                m_cut_contours.mesh = wxGetApp().plater()->model().objects[object_idx]->raw_mesh();
+                m_cut_contours.mesh.repair();
+            }
+
+            m_cut_contours.position = box.center();
+            m_cut_contours.shift = Vec3d::Zero();
+            m_cut_contours.object_idx = object_idx;
+            m_cut_contours.instance_idx = instance_idx;
+            m_cut_contours.contours.reset();
+
+            MeshSlicingParams slicing_params;
+            slicing_params.trafo = first_glvolume->get_instance_transformation().get_matrix();
+            const Polygons polys = slice_mesh(m_cut_contours.mesh.its, m_cut_z, slicing_params);
+            if (!polys.empty()) {
+                m_cut_contours.contours.init_from(polys, static_cast<float>(m_cut_z));
+                m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+            }
+        }
+        else if (box.center() != m_cut_contours.position) {
+            m_cut_contours.shift = box.center() - m_cut_contours.position;
+        }
+    }
+    else
+        m_cut_contours.contours.reset();
+}
+#endif // ENABLE_SINKING_CONTOURS
 
 } // namespace GUI
 } // namespace Slic3r

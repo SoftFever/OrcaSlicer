@@ -54,7 +54,7 @@ void GLGizmoFlatten::on_start_dragging()
     }
 }
 
-void GLGizmoFlatten::on_render() const
+void GLGizmoFlatten::on_render()
 {
     const Selection& selection = m_parent.get_selection();
 
@@ -69,7 +69,7 @@ void GLGizmoFlatten::on_render() const
         glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
         glsafe(::glMultMatrixd(m.data()));
         if (this->is_plane_update_necessary())
-			const_cast<GLGizmoFlatten*>(this)->update_planes();
+            update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
             if (i == m_hover_id)
                 glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.75f));
@@ -86,7 +86,7 @@ void GLGizmoFlatten::on_render() const
     glsafe(::glDisable(GL_BLEND));
 }
 
-void GLGizmoFlatten::on_render_for_picking() const
+void GLGizmoFlatten::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
 
@@ -99,7 +99,7 @@ void GLGizmoFlatten::on_render_for_picking() const
         glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
         glsafe(::glMultMatrixd(m.data()));
         if (this->is_plane_update_necessary())
-			const_cast<GLGizmoFlatten*>(this)->update_planes();
+            update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
             glsafe(::glColor4fv(picking_color_component(i).data()));
             m_planes[i].vbo.render();

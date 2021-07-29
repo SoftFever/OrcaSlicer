@@ -698,27 +698,29 @@ struct EdgeToFace {
     bool operator<(const EdgeToFace &other) const { return vertex_low < other.vertex_low || (vertex_low == other.vertex_low && vertex_high < other.vertex_high); }
 };
 
-template<typename ThrowOnCancelCallback>
+template<typename FaceFilter, typename ThrowOnCancelCallback>
 static std::vector<EdgeToFace> create_edge_map(
-    const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
+    const indexed_triangle_set &its, FaceFilter face_filter, ThrowOnCancelCallback throw_on_cancel)
 {
     std::vector<EdgeToFace> edges_map;
-    edges_map.assign(its.indices.size() * 3, EdgeToFace());
+    edges_map.reserve(its.indices.size() * 3);
     for (uint32_t facet_idx = 0; facet_idx < its.indices.size(); ++ facet_idx)
-        for (int i = 0; i < 3; ++ i) {
-            EdgeToFace &e2f = edges_map[facet_idx * 3 + i];
-            e2f.vertex_low  = its.indices[facet_idx][i];
-            e2f.vertex_high = its.indices[facet_idx][(i + 1) % 3];
-            e2f.face        = facet_idx;
-            // 1 based indexing, to be always strictly positive.
-            e2f.face_edge   = i + 1;
-            if (e2f.vertex_low > e2f.vertex_high) {
-                // Sort the vertices
-                std::swap(e2f.vertex_low, e2f.vertex_high);
-                // and make the face_edge negative to indicate a flipped edge.
-                e2f.face_edge = - e2f.face_edge;
+        if (face_filter(facet_idx))
+            for (int i = 0; i < 3; ++ i) {
+                edges_map.push_back({});
+                EdgeToFace &e2f = edges_map.back();
+                e2f.vertex_low  = its.indices[facet_idx][i];
+                e2f.vertex_high = its.indices[facet_idx][(i + 1) % 3];
+                e2f.face        = facet_idx;
+                // 1 based indexing, to be always strictly positive.
+                e2f.face_edge   = i + 1;
+                if (e2f.vertex_low > e2f.vertex_high) {
+                    // Sort the vertices
+                    std::swap(e2f.vertex_low, e2f.vertex_high);
+                    // and make the face_edge negative to indicate a flipped edge.
+                    e2f.face_edge = - e2f.face_edge;
+                }
             }
-        }
     throw_on_cancel();
     std::sort(edges_map.begin(), edges_map.end());
 
@@ -727,12 +729,12 @@ static std::vector<EdgeToFace> create_edge_map(
 
 // Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
 // Two neighbor faces share a unique edge identifier even if they are flipped.
-template<typename ThrowOnCancelCallback>
-static inline std::vector<Vec3i> its_face_edge_ids_impl(const indexed_triangle_set &its, ThrowOnCancelCallback throw_on_cancel)
+template<typename FaceFilter, typename ThrowOnCancelCallback>
+static inline std::vector<Vec3i> its_face_edge_ids_impl(const indexed_triangle_set &its, FaceFilter face_filter, ThrowOnCancelCallback throw_on_cancel)
 {
     std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
 
-    std::vector<EdgeToFace> edges_map = create_edge_map(its, throw_on_cancel);
+    std::vector<EdgeToFace> edges_map = create_edge_map(its, face_filter, throw_on_cancel);
 
     // Assign a unique common edge id to touching triangle edges.
     int num_edges = 0;
@@ -780,12 +782,17 @@ static inline std::vector<Vec3i> its_face_edge_ids_impl(const indexed_triangle_s
 
 std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its)
 {
-    return its_face_edge_ids_impl(its, [](){});
+    return its_face_edge_ids_impl(its, [](const uint32_t){ return true; }, [](){});
 }
 
 std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback)
 {
-    return its_face_edge_ids_impl(its, throw_on_cancel_callback);
+    return its_face_edge_ids_impl(its, [](const uint32_t){ return true; }, throw_on_cancel_callback);
+}
+
+std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, const std::vector<bool> &face_mask)
+{
+    return its_face_edge_ids_impl(its, [&face_mask](const uint32_t idx){ return face_mask[idx]; }, [](){});
 }
 
 // Having the face neighbors available, assign unique edge IDs to face edges for chaining of polygons over slices.

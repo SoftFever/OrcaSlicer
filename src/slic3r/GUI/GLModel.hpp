@@ -9,6 +9,10 @@
 namespace Slic3r {
 
 class TriangleMesh;
+#if ENABLE_SINKING_CONTOURS
+class Polygon;
+using Polygons = std::vector<Polygon>;
+#endif // ENABLE_SINKING_CONTOURS
 
 namespace GUI {
 
@@ -58,6 +62,9 @@ namespace GUI {
 
         void init_from(const InitializationData& data);
         void init_from(const TriangleMesh& mesh);
+#if ENABLE_SINKING_CONTOURS
+        void init_from(const Polygons& polygons, float z);
+#endif // ENABLE_SINKING_CONTOURS
         bool init_from_file(const std::string& filename);
 
         // if entity_id == -1 set the color of all entities

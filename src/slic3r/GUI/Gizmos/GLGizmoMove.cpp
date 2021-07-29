@@ -87,7 +87,7 @@ void GLGizmoMove3D::on_update(const UpdateData& data)
         m_displacement.z() = calc_projection(data);
 }
 
-void GLGizmoMove3D::on_render() const
+void GLGizmoMove3D::on_render()
 {
     const Selection& selection = m_parent.get_selection();
 
@@ -151,7 +151,7 @@ void GLGizmoMove3D::on_render() const
     }
 }
 
-void GLGizmoMove3D::on_render_for_picking() const
+void GLGizmoMove3D::on_render_for_picking()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
 

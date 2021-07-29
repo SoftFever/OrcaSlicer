@@ -699,14 +699,14 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
         int rot_axis_max = 0;
         if (rotation.isApprox(Vec3d::Zero())) {
             for (unsigned int i : m_list) {
-                GLVolume &volume = *(*m_volumes)[i];
+                GLVolume &v = *(*m_volumes)[i];
                 if (m_mode == Instance) {
-                    volume.set_instance_rotation(m_cache.volumes_data[i].get_instance_rotation());
-                    volume.set_instance_offset(m_cache.volumes_data[i].get_instance_position());
+                    v.set_instance_rotation(m_cache.volumes_data[i].get_instance_rotation());
+                    v.set_instance_offset(m_cache.volumes_data[i].get_instance_position());
                 }
                 else if (m_mode == Volume) {
-                    volume.set_volume_rotation(m_cache.volumes_data[i].get_volume_rotation());
-                    volume.set_volume_offset(m_cache.volumes_data[i].get_volume_position());
+                    v.set_volume_rotation(m_cache.volumes_data[i].get_volume_rotation());
+                    v.set_volume_offset(m_cache.volumes_data[i].get_volume_position());
                 }
             }
         }
@@ -747,22 +747,22 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
             };
 
             for (unsigned int i : m_list) {
-                GLVolume &volume = *(*m_volumes)[i];
+                GLVolume &v = *(*m_volumes)[i];
                 if (is_single_full_instance())
-                    rotate_instance(volume, i);
+                    rotate_instance(v, i);
                 else if (is_single_volume() || is_single_modifier()) {
                     if (transformation_type.independent())
-                        volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
+                        v.set_volume_rotation(v.get_volume_rotation() + rotation);
                     else {
                         const Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
                         const Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                        volume.set_volume_rotation(new_rotation);
+                        v.set_volume_rotation(new_rotation);
                     }
                 }
                 else
                 {
                     if (m_mode == Instance)
-                        rotate_instance(volume, i);
+                        rotate_instance(v, i);
                     else if (m_mode == Volume) {
                         // extracts rotations from the composed transformation
                         Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
@@ -770,9 +770,9 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
                         if (transformation_type.joint()) {
                             const Vec3d local_pivot = m_cache.volumes_data[i].get_instance_full_matrix().inverse() * m_cache.dragging_center;
                             const Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() - local_pivot);
-                            volume.set_volume_offset(local_pivot + offset);
+                            v.set_volume_offset(local_pivot + offset);
                         }
-                        volume.set_volume_rotation(new_rotation);
+                        v.set_volume_rotation(new_rotation);
                     }
                 }
             }
@@ -840,9 +840,9 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     bool is_sla = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
 
     for (unsigned int i : m_list) {
-        GLVolume &volume = *(*m_volumes)[i];
+        GLVolume &v = *(*m_volumes)[i];
         if (!is_sla) {
-            if (volume.is_modifier)
+            if (v.is_modifier)
                 is_any_volume_sinking = true;
             else
                 is_any_volume_sinking |= std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end();
@@ -854,23 +854,23 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
                 if (transformation_type.joint())
-                    volume.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+                    v.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
 
-                volume.set_instance_scaling_factor(new_scale);
+                v.set_instance_scaling_factor(new_scale);
             }
             else {
                 if (transformation_type.world() && (std::abs(scale.x() - scale.y()) > EPSILON || std::abs(scale.x() - scale.z()) > EPSILON)) {
                     // Non-uniform scaling. Transform the scaling factors into the local coordinate system.
                     // This is only possible, if the instance rotation is mulitples of ninety degrees.
-                    assert(Geometry::is_rotation_ninety_degrees(volume.get_instance_rotation()));
-                    volume.set_instance_scaling_factor((volume.get_instance_transformation().get_matrix(true, false, true, true).matrix().block<3, 3>(0, 0).transpose() * scale).cwiseAbs());
+                    assert(Geometry::is_rotation_ninety_degrees(v.get_instance_rotation()));
+                    v.set_instance_scaling_factor((v.get_instance_transformation().get_matrix(true, false, true, true).matrix().block<3, 3>(0, 0).transpose() * scale).cwiseAbs());
                 }
                 else
-                    volume.set_instance_scaling_factor(scale);
+                    v.set_instance_scaling_factor(scale);
             }
         }
         else if (is_single_volume() || is_single_modifier())
-            volume.set_volume_scaling_factor(scale);
+            v.set_volume_scaling_factor(scale);
         else {
             Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
             if (m_mode == Instance) {
@@ -878,9 +878,9 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
                 if (transformation_type.joint())
-                    volume.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+                    v.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
 
-                volume.set_instance_scaling_factor(new_scale);
+                v.set_instance_scaling_factor(new_scale);
             }
             else if (m_mode == Volume) {
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_volume_scale_matrix()).matrix().block(0, 0, 3, 3);
@@ -888,9 +888,9 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
                 if (transformation_type.joint()) {
                     Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
-                    volume.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
+                    v.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
                 }
-                volume.set_volume_scaling_factor(new_scale);
+                v.set_volume_scaling_factor(new_scale);
             }
         }
     }
