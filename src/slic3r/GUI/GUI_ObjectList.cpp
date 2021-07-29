@@ -2558,9 +2558,8 @@ void ObjectList::update_info_items(size_t obj_idx)
             break;
         case InfoItemType::Sinking:
         {
-            const BoundingBoxf3& box = model_object->bounding_box();
             should_show = printer_technology() == ptFFF &&
-                        box.min.z() < SINKING_Z_THRESHOLD && box.max.z() > SINKING_Z_THRESHOLD;
+                wxGetApp().plater()->canvas3D()->is_object_sinking(obj_idx);
             break;
         }
         default: break;

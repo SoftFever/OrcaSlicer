@@ -875,6 +875,8 @@ public:
 
     void reset_old_size() { m_old_size = { 0, 0 }; }
 
+    bool is_object_sinking(int object_idx) const;
+
 private:
     bool _is_shown_on_screen() const;
 

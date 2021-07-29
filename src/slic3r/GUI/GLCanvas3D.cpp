@@ -3497,13 +3497,14 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     // Fixes sinking/flying instances
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
-        double shift_z = m->get_instance_min_z(i.second);
+        const double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
         if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
-            Vec3d shift(0.0, 0.0, -shift_z);
+            const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
         }
+
         wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
 
@@ -3859,6 +3860,15 @@ void GLCanvas3D::update_sequential_clearance()
     set_sequential_print_clearance_visible(true);
     set_sequential_print_clearance_render_fill(false);
     set_sequential_print_clearance_polygons(polygons);
+}
+
+bool GLCanvas3D::is_object_sinking(int object_idx) const
+{
+    for (const GLVolume* v : m_volumes.volumes) {
+        if (v->object_idx() == object_idx && v->is_sinking())
+            return true;
+    }
+    return false;
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
