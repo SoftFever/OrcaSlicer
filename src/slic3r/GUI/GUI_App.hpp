@@ -256,6 +256,8 @@ public:
     wxString 		current_language_code_safe() const;
     bool            is_localized() const { return m_wxLocale->GetLocale() != "English"; }
 
+    void            open_preferences(size_t open_on_tab = 0);
+
     virtual bool OnExceptionInMainLoop() override;
 
 #ifdef __APPLE__
