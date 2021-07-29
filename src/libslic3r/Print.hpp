@@ -317,6 +317,8 @@ public:
     bool                        has_support()           const { return m_config.support_material || m_config.support_material_enforce_layers > 0; }
     bool                        has_raft()              const { return m_config.raft_layers > 0; }
     bool                        has_support_material()  const { return this->has_support() || this->has_raft(); }
+    // Checks if the model object is painted using the multi-material painting gizmo.
+    bool                        is_mm_painted()         const { return this->model_object()->is_mm_painted(); };
 
     // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
     std::vector<unsigned int>   object_extruders() const;
