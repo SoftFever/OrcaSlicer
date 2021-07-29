@@ -1699,6 +1699,10 @@ size_t ModelVolume::split(unsigned int max_extruders)
 
     for (TriangleMesh *mesh : meshptrs) {
         mesh->repair();
+        if (mesh->empty())
+            // Repair may have removed unconnected triangles, thus emptying the mesh.
+            continue;
+
         if (idx == 0)
         {
             this->set_mesh(std::move(*mesh));
