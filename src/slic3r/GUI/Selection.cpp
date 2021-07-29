@@ -841,8 +841,19 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 
     for (unsigned int i : m_list) {
         GLVolume &volume = *(*m_volumes)[i];
-        if (!is_sla)
-            is_any_volume_sinking |= !volume.is_modifier && std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end();
+        if (!is_sla) {
+            if (volume.is_modifier) {
+                int object_idx = volume.object_idx();
+                for (unsigned int id : m_cache.sinking_volumes) {
+                    const GLVolume& v = *(*m_volumes)[id];
+                    is_any_volume_sinking |= v.object_idx() == object_idx && v.is_sinking();
+                    if (is_any_volume_sinking)
+                        break;
+                }
+            }
+            else
+                is_any_volume_sinking |= std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end();
+        }
         if (is_single_full_instance()) {
             if (transformation_type.relative()) {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
