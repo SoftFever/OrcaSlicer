@@ -3135,9 +3135,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
                         m_sequential_print_clearance_first_displacement = true;
-#if ENABLE_SINKING_CONTOURS
-                        show_sinking_contours();
-#endif // ENABLE_SINKING_CONTOURS
                         m_moving = true;
                     }
                 }
@@ -3322,6 +3319,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else
         evt.Skip();
+
+#if ENABLE_SINKING_CONTOURS
+    if (m_moving)
+        show_sinking_contours();
+#endif // ENABLE_SINKING_CONTOURS
 
 #ifdef __WXMSW__
 	if (on_enter_workaround)
