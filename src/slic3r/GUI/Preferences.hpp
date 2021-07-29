@@ -29,7 +29,6 @@ class PreferencesDialog : public DPIDialog
     bool                                isOSX {false};
 	bool								m_settings_layout_changed {false};
 	bool								m_seq_top_layer_only_changed{ false };
-	bool								m_seq_top_gcode_indices_changed{ false };
 	bool								m_recreate_GUI{false};
 
 public:
@@ -38,7 +37,6 @@ public:
 
 	bool settings_layout_changed() const { return m_settings_layout_changed; }
 	bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }
-	bool seq_seq_top_gcode_indices_changed() const { return m_seq_top_gcode_indices_changed; }
 	bool recreate_GUI() const { return m_recreate_GUI; }
 	void build();
 	void accept(wxEvent&);

@@ -1908,7 +1908,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
                 app_layout_changed = dlg.settings_layout_changed();
-                if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+                if (dlg.seq_top_layer_only_changed())
                     this->plater_->refresh_print();
 
                 if (dlg.recreate_GUI()) {

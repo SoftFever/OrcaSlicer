@@ -292,14 +292,6 @@ void PreferencesDialog::build()
 	option = Option(def, "seq_top_layer_only");
 	m_optgroup_gui->append_single_option_line(option);
 
-	def.label = L("Sequential slider shows gcode line numbers");
-	def.type = coBool;
-	def.tooltip = L("If enabled, the sequential slider, in preview, shows the gcode lines numbers."
-		"If disabled, the sequential slider, in preview, shows the move index.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_gcode_indices") == "1" });
-	option = Option(def, "seq_top_gcode_indices");
-	m_optgroup_gui->append_single_option_line(option);
-
 	if (is_editor) {
 		def.label = L("Show sidebar collapse/expand button");
 		def.type = coBool;
@@ -435,10 +427,6 @@ void PreferencesDialog::accept(wxEvent&)
 	m_seq_top_layer_only_changed = false;
 	if (auto it = m_values.find("seq_top_layer_only"); it != m_values.end())
 		m_seq_top_layer_only_changed = app_config->get("seq_top_layer_only") != it->second;
-
-	m_seq_top_gcode_indices_changed = false;
-	if (auto it = m_values.find("seq_top_gcode_indices"); it != m_values.end())
-		m_seq_top_gcode_indices_changed = app_config->get("seq_top_gcode_indices") != it->second;
 
 	m_settings_layout_changed = false;
 	for (const std::string& key : { "old_settings_layout_mode",
