@@ -5,6 +5,7 @@
 #include "ImGuiWrapper.hpp"
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
+#include "ObjectDataViewModel.hpp"
 #include "libslic3r/Config.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "libslic3r/Config.hpp"
@@ -1058,8 +1059,37 @@ void NotificationManager::PrintHostUploadNotification::render_cancel_button(ImGu
 	ImGui::PopStyleColor();
 	ImGui::PopStyleColor();
 	ImGui::PopStyleColor();
-	
 }
+//------UpdatedItemsInfoNotification-------
+void NotificationManager::UpdatedItemsInfoNotification::count_spaces()
+{
+	//determine line width 
+	m_line_height = ImGui::CalcTextSize("A").y;
+
+	std::string text;
+	text =  ImGui::WarningMarker;
+	float picture_width = ImGui::CalcTextSize(text.c_str()).x;
+	m_left_indentation = picture_width + m_line_height / 2;
+
+	m_window_width_offset = m_left_indentation + m_line_height * 3.f;
+	m_window_width = m_line_height * 25;
+}
+void NotificationManager::UpdatedItemsInfoNotification::render_left_sign(ImGuiWrapper& imgui)
+{
+	std::string text;
+	switch (m_info_item_type) {
+	case InfoItemType::CustomSupports:      text = ImGui::CustomSupportsMarker; break;
+	case InfoItemType::CustomSeam:          text = ImGui::CustomSeamMarker; break;
+	case InfoItemType::MmuSegmentation:     text = ImGui::MmuSegmentationMarker; break;
+	case InfoItemType::VariableLayerHeight: text = ImGui::VarLayerHeightMarker; break;
+	case InfoItemType::Sinking:             text = ImGui::SinkingObjectMarker; break;
+	default: break;
+	}
+	ImGui::SetCursorPosX(m_line_height / 3);
+	ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
+	imgui.text(text.c_str());
+}
+
 //------NotificationManager--------
 NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 	m_evt_handler(evt_handler)
@@ -1087,9 +1117,11 @@ void NotificationManager::push_notification(NotificationType type,
 {
 	int duration = 0;
 	switch (level) {
-	case NotificationLevel::RegularNotification: 	duration = 10; break;
-	case NotificationLevel::ErrorNotification: 		break;
-	case NotificationLevel::ImportantNotification: 	break;
+	case NotificationLevel::RegularNotification: 	 duration = 10; break;
+	case NotificationLevel::ErrorNotification: 		 break;
+	case NotificationLevel::WarningNotification:     break;
+	case NotificationLevel::ImportantNotification: 	 break;
+	case NotificationLevel::ProgressBarNotification: break;
 	default:
 		assert(false);
 		return;
@@ -1323,6 +1355,23 @@ void NotificationManager::push_hint_notification()
 	}
 	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::RegularNotification, 0, "" };
 	push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler), 0);
+}
+
+void NotificationManager::push_updated_item_info_notification(InfoItemType type)
+{
+	std::string text = _utf8("Object(s) were loaded with ");
+	switch (type) {
+	case InfoItemType::CustomSupports:      text += _utf8("custom supports."); break;
+	case InfoItemType::CustomSeam:          text += _utf8("custom seam."); break;
+	case InfoItemType::MmuSegmentation:     text += _utf8("MMU segmentation."); break;
+	case InfoItemType::VariableLayerHeight: text += _utf8("variable layer height."); break;
+	case InfoItemType::Sinking:             text = _utf8("Partially sinking object(s) were loaded."); break;
+	default: text.clear(); break;
+	}
+	if (!text.empty()) {
+		NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::RegularNotification, 10, text };
+		push_notification_data(std::make_unique<NotificationManager::UpdatedItemsInfoNotification>(data, m_id_provider, m_evt_handler, type), 0);
+	}
 }
 bool NotificationManager::push_notification_data(const NotificationData& notification_data, int timestamp)
 {

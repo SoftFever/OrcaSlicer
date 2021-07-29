@@ -20,6 +20,7 @@
 #include "GLCanvas3D.hpp"
 #include "Selection.hpp"
 #include "format.hpp"
+#include "NotificationManager.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
@@ -2568,6 +2569,8 @@ void ObjectList::update_info_items(size_t obj_idx)
         if (! shows && should_show) {
             m_objects_model->AddInfoChild(item_obj, type);
             Expand(item_obj);
+            wxGetApp().notification_manager()->push_updated_item_info_notification(type);
+            
         }
         else if (shows && ! should_show) {
             Unselect(item);
