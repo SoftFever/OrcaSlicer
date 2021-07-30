@@ -836,17 +836,8 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     if (!m_valid)
         return;
 
-    bool is_any_volume_sinking = false;
-    bool is_sla = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
-
     for (unsigned int i : m_list) {
         GLVolume &v = *(*m_volumes)[i];
-        if (!is_sla) {
-            if (v.is_modifier)
-                is_any_volume_sinking = true;
-            else
-                is_any_volume_sinking |= std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end();
-        }
         if (is_single_full_instance()) {
             if (transformation_type.relative()) {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
@@ -901,11 +892,9 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     else if (m_mode == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
-    
-    if (!is_any_volume_sinking)
-        ensure_on_bed();
 
-    this->set_bounding_boxes_dirty();
+    ensure_on_bed();
+    set_bounding_boxes_dirty();
 }
 
 void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
@@ -2125,8 +2114,10 @@ void Selection::ensure_on_bed()
     typedef std::map<std::pair<int, int>, double> InstancesToZMap;
     InstancesToZMap instances_min_z;
 
-    for (GLVolume* volume : *m_volumes) {
-        if (!volume->is_wipe_tower && !volume->is_modifier) {
+    for (size_t i = 0; i < m_volumes->size(); ++i) {
+        GLVolume* volume = (*m_volumes)[i];
+        if (!volume->is_wipe_tower && !volume->is_modifier && 
+            std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) == m_cache.sinking_volumes.end()) {
             const double min_z = volume->transformed_convex_hull_bounding_box().min.z();
             std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
             InstancesToZMap::iterator it = instances_min_z.find(instance);
