@@ -1,5 +1,5 @@
-#ifndef slic3r_LibraryCheck_hpp_
-#define slic3r_LibraryCheck_hpp_
+#ifndef slic3r_BlacklistedLibraryCheck_hpp_
+#define slic3r_BlacklistedLibraryCheck_hpp_
 
 #ifdef  WIN32
 #include <windows.h>
@@ -10,30 +10,31 @@
 namespace Slic3r {
 
 #ifdef  WIN32
-class LibraryCheck
+class BlacklistedLibraryCheck
 {
 public:
-    static LibraryCheck& get_instance()
+    static BlacklistedLibraryCheck& get_instance()
     {
-        static LibraryCheck instance; 
+        static BlacklistedLibraryCheck instance; 
                               
         return instance;
     }
 private:
-    LibraryCheck() {}
+    BlacklistedLibraryCheck() = default;
 
     std::vector<std::wstring> m_found;
 public:
-    LibraryCheck(LibraryCheck const&) = delete;
-    void operator=(LibraryCheck const&) = delete;
+    BlacklistedLibraryCheck(BlacklistedLibraryCheck const&) = delete;
+    void operator=(BlacklistedLibraryCheck const&) = delete;
     // returns all found blacklisted dlls
     bool get_blacklisted(std::vector<std::wstring>& names);
     std::wstring get_blacklisted_string();
     // returns true if enumerating found blacklisted dll
     bool perform_check();
 
-    static bool is_blacklisted(std::string  dllpath);
-    static bool is_blacklisted(std::wstring dllpath);
+    // UTF-8 encoded path
+    static bool is_blacklisted(const std::string &dllpath);
+    static bool is_blacklisted(const std::wstring &dllpath);
 private:
     static const std::vector<std::wstring> blacklist;
 };
@@ -42,4 +43,4 @@ private:
 
 } // namespace Slic3r
 
-#endif //slic3r_LibraryCheck_hpp_
+#endif //slic3r_BlacklistedLibraryCheck_hpp_

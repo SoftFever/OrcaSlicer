@@ -125,8 +125,8 @@ add_library(libslic3r STATIC
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     Line.cpp
     Line.hpp
-    LibraryCheck.cpp
-    LibraryCheck.hpp
+    BlacklistedLibraryCheck.cpp
+    BlacklistedLibraryCheck.hpp
     LocalesUtils.cpp
     LocalesUtils.hpp
     Model.cpp
