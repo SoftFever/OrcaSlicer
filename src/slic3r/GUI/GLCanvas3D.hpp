@@ -702,7 +702,7 @@ public:
     void select_all();
     void deselect_all();
     void delete_selected();
-    void ensure_on_bed(unsigned int object_idx);
+    void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);
 
     bool is_gcode_legend_enabled() const { return m_gcode_viewer.is_legend_enabled(); }
     GCodeViewer::EViewType get_gcode_view_type() const { return m_gcode_viewer.get_view_type(); }

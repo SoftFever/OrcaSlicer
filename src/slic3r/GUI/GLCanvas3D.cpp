@@ -1602,14 +1602,17 @@ void GLCanvas3D::delete_selected()
     m_selection.erase();
 }
 
-void GLCanvas3D::ensure_on_bed(unsigned int object_idx)
+void GLCanvas3D::ensure_on_bed(unsigned int object_idx, bool allow_negative_z)
 {
+    if (allow_negative_z)
+        return;
+
     typedef std::map<std::pair<int, int>, double> InstancesToZMap;
     InstancesToZMap instances_min_z;
 
     for (GLVolume* volume : m_volumes.volumes) {
         if (volume->object_idx() == (int)object_idx && !volume->is_modifier) {
-            double min_z = volume->transformed_convex_hull_bounding_box().min(2);
+            double min_z = volume->transformed_convex_hull_bounding_box().min.z();
             std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
             InstancesToZMap::iterator it = instances_min_z.find(instance);
             if (it == instances_min_z.end())

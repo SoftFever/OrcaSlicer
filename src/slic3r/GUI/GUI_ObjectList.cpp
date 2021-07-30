@@ -2708,7 +2708,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
                     if (obj->get_mesh_errors_count() == 0)
                         m_objects_model->DeleteWarningIcon(parent);
                 }
-                wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx);
+                wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx, printer_technology() != ptSLA);
             }
             else
                 m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item->obj_idx, item->sub_obj_idx));
@@ -4075,7 +4075,7 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
         const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
                             m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
 
-        wxGetApp().plater()->canvas3D()->ensure_on_bed(obj_idx);
+        wxGetApp().plater()->canvas3D()->ensure_on_bed(obj_idx, printer_technology() != ptSLA);
     }
 
     // update scene
