@@ -2057,6 +2057,10 @@ void Control::auto_color_change()
                 break;
 
             if (prev_area - cur_area > delta_area) {
+                // Check percent of the area decrease. 
+                // Ignore it, if this value is less than 10% 
+                if (cur_area / prev_area > 0.9)
+                    continue;
                 int tick = get_tick_from_value(layer->print_z);
                 if (tick >= 0 && !m_ticks.has_tick(tick)) {
                     if (m_mode == SingleExtruder) {

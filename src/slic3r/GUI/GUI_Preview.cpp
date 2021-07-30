@@ -713,8 +713,15 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
             int  i;
             for (i = 1; i < int(0.3 * num_layers); ++ i) {
                 double cur_area = area(object->get_layer(i)->lslices);
-                if (cur_area != bottom_area && fabs(cur_area - bottom_area) > scale_(scale_(1)))
+                if (cur_area != bottom_area && fabs(cur_area - bottom_area) > scale_(scale_(1))) {
+                    // but due to the elephant foot compensation, the first layer may be slightly smaller than the others
+                    if (i == 1 && fabs(cur_area - bottom_area) / bottom_area < 0.1) {
+                        // So, let process this case and use second layer as a bottom 
+                        bottom_area = cur_area;
+                        continue;
+                    }
                     break;
+                }
             }
             if (i < int(0.3 * num_layers))
                 continue;
