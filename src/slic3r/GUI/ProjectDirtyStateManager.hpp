@@ -3,8 +3,6 @@
 
 #include "libslic3r/Preset.hpp"
 
-#if ENABLE_PROJECT_DIRTY_STATE
-
 namespace Slic3r {
 namespace UndoRedo {
 class Stack;
@@ -89,8 +87,6 @@ private:
 
 } // namespace GUI
 } // namespace Slic3r
-
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 #endif // slic3r_ProjectDirtyStateManager_hpp_
 

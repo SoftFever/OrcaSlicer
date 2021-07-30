@@ -890,11 +890,7 @@ void GLGizmoSlaSupports::on_set_state()
             // data are not yet available, the CallAfter will postpone taking the
             // snapshot until they are. No, it does not feel right.
             wxGetApp().CallAfter([]() {
-#if ENABLE_PROJECT_DIRTY_STATE
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Entering SLA gizmo"));
-#else
-                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("SLA gizmo turned on"));
-#endif // ENABLE_PROJECT_DIRTY_STATE
             });
         }
 
@@ -922,11 +918,7 @@ void GLGizmoSlaSupports::on_set_state()
         else {
             // we are actually shutting down
             disable_editing_mode(); // so it is not active next time the gizmo opens
-#if ENABLE_PROJECT_DIRTY_STATE
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Leaving SLA gizmo"));
-#else
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("SLA gizmo turned off"));
-#endif // ENABLE_PROJECT_DIRTY_STATE
             m_normal_cache.clear();
             m_old_mo_id = -1;
         }

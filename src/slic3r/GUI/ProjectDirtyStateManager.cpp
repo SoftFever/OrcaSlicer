@@ -13,8 +13,6 @@
 #include <algorithm>
 #include <assert.h>
 
-#if ENABLE_PROJECT_DIRTY_STATE
-
 namespace Slic3r {
 namespace GUI {
 
@@ -410,6 +408,4 @@ void ProjectDirtyStateManager::update_from_undo_redo_gizmo_stack(UpdateType type
 
 } // namespace GUI
 } // namespace Slic3r
-
-#endif // ENABLE_PROJECT_DIRTY_STATE
 

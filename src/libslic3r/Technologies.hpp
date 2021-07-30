@@ -24,6 +24,8 @@
 #define ENABLE_GCODE_VIEWER_STATISTICS 0
 // Enable G-Code viewer comparison between toolpaths height and width detected from gcode and calculated at gcode generation 
 #define ENABLE_GCODE_VIEWER_DATA_CHECKING 0
+// Enable project dirty state manager debug window
+#define ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW 0
 
 
 // Enable rendering of objects using environment map
@@ -39,10 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA0 1
 
-// Enable project dirty state manager
-#define ENABLE_PROJECT_DIRTY_STATE (1 && ENABLE_2_4_0_ALPHA0)
-// Enable project dirty state manager debug window
-#define ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW (0 && ENABLE_PROJECT_DIRTY_STATE)
 // Enable delayed rendering of transparent volumes
 #define ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_2_4_0_ALPHA0)
 // Enable the fix of importing color print view from gcode files into GCodeViewer

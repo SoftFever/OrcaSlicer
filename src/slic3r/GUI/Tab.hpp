@@ -267,11 +267,7 @@ public:
     Preset::Type type()  const { return m_type; }
     // The tab is already constructed.
     bool 		completed() const { return m_completed; }
-#if ENABLE_PROJECT_DIRTY_STATE
 	virtual bool supports_printer_technology(const PrinterTechnology tech) const = 0;
-#else
-	virtual bool supports_printer_technology(const PrinterTechnology tech) = 0;
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 	void		create_preset_tab();
     void        add_scaled_button(wxWindow* parent, ScalableButton** btn, const std::string& icon_name, 
@@ -334,13 +330,9 @@ public:
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
 	void			toggle_option(const std::string& opt_key, bool toggle, int opt_index = -1);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText, wxString text = wxEmptyString);
-#if ENABLE_PROJECT_DIRTY_STATE
 	bool			current_preset_is_dirty() const;
 	bool			saved_preset_is_dirty() const;
 	void            update_saved_preset_from_current_preset();
-#else
-	bool			current_preset_is_dirty();
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 	DynamicPrintConfig*	get_config() { return m_config; }
 	PresetCollection*	get_presets() { return m_presets; }
@@ -391,11 +383,7 @@ public:
 	void		toggle_options() override;
 	void		update() override;
 	void		clear_pages() override;
-#if ENABLE_PROJECT_DIRTY_STATE
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
-#else
-	bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 private:
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
@@ -424,11 +412,7 @@ public:
 	void		toggle_options() override;
 	void		update() override;
 	void		clear_pages() override;
-#if ENABLE_PROJECT_DIRTY_STATE
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
-#else
-	bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 };
 
 class TabPrinter : public Tab
@@ -481,11 +465,7 @@ public:
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
 	void		msw_rescale() override;
-#if ENABLE_PROJECT_DIRTY_STATE
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
-#else
-	bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
@@ -504,11 +484,7 @@ public:
 	void		toggle_options() override {};
 	void		update() override;
     void		init_options_list() override;
-#if ENABLE_PROJECT_DIRTY_STATE
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptSLA; }
-#else
-	bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptSLA; }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 };
 
 class TabSLAPrint : public Tab
@@ -526,11 +502,7 @@ public:
 	void		toggle_options() override;
     void		update() override;
 	void		clear_pages() override;
-#if ENABLE_PROJECT_DIRTY_STATE
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptSLA; }
-#else
-	bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptSLA; }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 };
 
 } // GUI

@@ -9,9 +9,7 @@
 #include "Plater.hpp"
 #include "BitmapComboBox.hpp"
 #include "GalleryDialog.hpp"
-#if ENABLE_PROJECT_DIRTY_STATE
 #include "MainFrame.hpp"
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 #include "OptionsGroup.hpp"
 #include "Tab.hpp"
@@ -1673,9 +1671,7 @@ void ObjectList::load_shape_object(const std::string& type_name)
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
     load_mesh_object(mesh, _L("Shape") + "-" + _(type_name));
-#if ENABLE_PROJECT_DIRTY_STATE
     wxGetApp().mainframe->update_title();
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void ObjectList::load_shape_object_from_gallery()
@@ -1706,13 +1702,9 @@ void ObjectList::load_shape_object_from_gallery(const wxArrayString& input_files
         snapshot_label += ", " + wxString::FromUTF8(paths[i].filename().string().c_str());
 
     take_snapshot(snapshot_label);
-#if ENABLE_PROJECT_DIRTY_STATE
     std::vector<size_t> res = wxGetApp().plater()->load_files(paths, true, false);
     if (!res.empty())
         wxGetApp().mainframe->update_title();
-#else
-    load_files(paths, true, false);
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)

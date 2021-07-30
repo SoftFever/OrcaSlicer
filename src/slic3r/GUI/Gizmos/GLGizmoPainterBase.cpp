@@ -31,7 +31,6 @@ GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& ic
 
 
 
-#if ENABLE_PROJECT_DIRTY_STATE
 // port of 948bc382655993721d93d3b9fce9b0186fcfb211
 void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
 {
@@ -66,29 +65,6 @@ void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
         m_internal_stack_active = false;
     }
 }
-#else
-void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
-{
-    if (activate && ! m_internal_stack_active) {
-        wxString str = get_painter_type() == PainterGizmoType::FDM_SUPPORTS
-                           ? _L("Entering Paint-on supports")
-                           : (get_painter_type() == PainterGizmoType::MMU_SEGMENTATION ? _L("Entering MMU segmentation") : _L("Entering Seam painting"));
-        Plater::TakeSnapshot(wxGetApp().plater(), str);
-        wxGetApp().plater()->enter_gizmos_stack();
-        m_internal_stack_active = true;
-    }
-    if (! activate && m_internal_stack_active) {
-        wxString str = get_painter_type() == PainterGizmoType::SEAM
-                           ? _L("Leaving Seam painting")
-                           : (get_painter_type() == PainterGizmoType::MMU_SEGMENTATION ? _L("Leaving MMU segmentation") : _L("Leaving Paint-on supports"));
-        wxGetApp().plater()->leave_gizmos_stack();
-        Plater::TakeSnapshot(wxGetApp().plater(), str);
-        m_internal_stack_active = false;
-    }
-}
-#endif // ENABLE_PROJECT_DIRTY_STATE
-
-
 
 void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
 {
