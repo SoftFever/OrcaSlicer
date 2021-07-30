@@ -696,9 +696,9 @@ struct MMU_Graph
                 assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
                 vertex.color(this->get_border_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx);
             } else if (bbox.contains(vertex_point)) {
-                if (auto [contour_pt, c_dist_sqr] = closest_contour_point.find(vertex_point); contour_pt != nullptr && c_dist_sqr < 3 * SCALED_EPSILON) {
+                if (auto [contour_pt, c_dist_sqr] = closest_contour_point.find(vertex_point); contour_pt != nullptr && c_dist_sqr < Slic3r::sqr(3 * SCALED_EPSILON)) {
                     vertex.color(this->get_global_index(contour_pt->m_contour_idx, contour_pt->m_point_idx));
-                } else if (auto [voronoi_pt, v_dist_sqr] = closest_voronoi_point.find(vertex_point); voronoi_pt == nullptr || v_dist_sqr >= 3 * SCALED_EPSILON) {
+                } else if (auto [voronoi_pt, v_dist_sqr] = closest_voronoi_point.find(vertex_point); voronoi_pt == nullptr || v_dist_sqr >= Slic3r::sqr(3 * SCALED_EPSILON)) {
                     closest_voronoi_point.insert(CPoint(vertex_point, this->nodes_count()));
                     vertex.color(this->nodes_count());
                     this->nodes.push_back({vertex_point});
