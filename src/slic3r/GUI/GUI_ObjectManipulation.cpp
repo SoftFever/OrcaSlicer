@@ -505,6 +505,7 @@ void ObjectManipulation::update_ui_from_settings()
 #else
             editor->SetBackgroundColour(m_use_colors ? wxColour(axes_color_back[axis_id]) : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif /* _WIN32 */
+            editor->Refresh();
             if (++axis_id == 3)
                 axis_id = 0;
         }
@@ -1094,6 +1095,8 @@ void ManipulationEditor::sys_color_changed(ObjectManipulation* parent)
 {
     if (!parent->use_colors())
         wxGetApp().UpdateDarkUI(this);
+    else
+        SetForegroundColour(*wxBLACK);
 }
 
 double ManipulationEditor::get_value()
