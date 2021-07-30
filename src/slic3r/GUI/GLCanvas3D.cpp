@@ -3602,14 +3602,24 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
+    // stores current min_z of instances
+    std::map<std::pair<int, int>, double> min_zs;
+    if (!snapshot_type.empty()) {
+        for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
+            const ModelObject* obj = m_model->objects[i];
+            for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
+                min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
+            }
+        }
+    }
+
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
     Selection::EMode selection_mode = m_selection.get_mode();
 
-    for (const GLVolume* v : m_volumes.volumes)
-    {
+    for (const GLVolume* v : m_volumes.volumes) {
         int object_idx = v->object_idx();
-        if ((object_idx < 0) || ((int)m_model->objects.size() <= object_idx))
+        if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
         int instance_idx = v->instance_idx();
@@ -3619,8 +3629,7 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
 
         // Mirror instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
-        if (model_object != nullptr)
-        {
+        if (model_object != nullptr) {
             if (selection_mode == Selection::Instance)
                 model_object->instances[instance_idx]->set_mirror(v->get_instance_mirror());
             else if (selection_mode == Selection::Volume)
@@ -3631,12 +3640,16 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
     }
 
     // Fixes sinking/flying instances
-    for (const std::pair<int, int>& i : done)
-    {
+    for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
-        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
-        m_selection.translate(i.first, i.second, shift);
-        m->translate_instance(i.second, shift);
+        double shift_z = m->get_instance_min_z(i.second);
+        // leave sinking instances as sinking
+        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
+            Vec3d shift(0.0, 0.0, -shift_z);
+            m_selection.translate(i.first, i.second, shift);
+            m->translate_instance(i.second, shift);
+        }
+        wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));

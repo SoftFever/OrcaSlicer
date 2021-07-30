@@ -945,14 +945,12 @@ void Selection::mirror(Axis axis)
     if (!m_valid)
         return;
 
-    bool single_full_instance = is_single_full_instance();
-
     for (unsigned int i : m_list) {
         GLVolume& v = *(*m_volumes)[i];
-        if (single_full_instance)
-            v.set_instance_mirror(axis, -(*m_volumes)[i]->get_instance_mirror(axis));
+        if (is_single_full_instance())
+            v.set_instance_mirror(axis, -v.get_instance_mirror(axis));
         else if (m_mode == Volume)
-            v.set_volume_mirror(axis, -(*m_volumes)[i]->get_volume_mirror(axis));
+            v.set_volume_mirror(axis, -v.get_volume_mirror(axis));
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -962,7 +960,7 @@ void Selection::mirror(Axis axis)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
-    this->set_bounding_boxes_dirty();
+    set_bounding_boxes_dirty();
 }
 
 void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
