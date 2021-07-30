@@ -5,6 +5,7 @@
 #include "Print.hpp"
 #include "VoronoiVisualUtils.hpp"
 #include "MutablePolygon.hpp"
+#include "format.hpp"
 
 #include <utility>
 #include <cfloat>
@@ -502,11 +503,13 @@ static std::vector<std::vector<ColoredLine>> colorize_polygons(const std::vector
 
 using boost::polygon::voronoi_diagram;
 
-static inline Point mk_point(const Voronoi::VD::vertex_type *point) { return Point(coord_t(point->x()), coord_t(point->y())); }
+static inline Point mk_point(const Voronoi::VD::vertex_type *point) { return {coord_t(point->x()), coord_t(point->y())}; }
 
-static inline Point mk_point(const Voronoi::Internal::point_type &point) { return Point(coord_t(point.x()), coord_t(point.y())); }
+static inline Point mk_point(const Voronoi::Internal::point_type &point) { return {coord_t(point.x()), coord_t(point.y())}; }
 
-static inline Point mk_point(const voronoi_diagram<double>::vertex_type &point) { return Point(coord_t(point.x()), coord_t(point.y())); }
+static inline Point mk_point(const voronoi_diagram<double>::vertex_type &point) { return {coord_t(point.x()), coord_t(point.y())}; }
+
+static inline Vec2d mk_vec2(const voronoi_diagram<double>::vertex_type *point) { return {point->x(), point->y()}; }
 
 struct MMU_Graph
 {
@@ -796,6 +799,27 @@ static inline void init_polygon_indices(const MMU_Graph                         
     }
 }
 
+// Voronoi edges produced by Voronoi generator cloud have coordinates that don't fit inside coord_t (int32_t).
+// Because of that, this function tries to clip edges that have one endpoint of the edge inside the BoundingBox.
+static inline Line clip_finite_voronoi_edge(const Voronoi::VD::edge_type &edge, const BoundingBoxf &bbox)
+{
+    assert(edge.is_finite());
+    Vec2d v0          = mk_vec2(edge.vertex0());
+    Vec2d v1          = mk_vec2(edge.vertex1());
+    bool  contains_v0 = bbox.contains(v0);
+    bool  contains_v1 = bbox.contains(v1);
+    if ((contains_v0 && contains_v1) || (!contains_v0 && !contains_v1))
+        return {mk_point(edge.vertex0()), mk_point(edge.vertex1())};
+
+    Vec2d vector = (v1 - v0).normalized() * bbox.size().norm();
+    if (!contains_v0)
+        v0 = (v1 - vector);
+    else
+        v1 = (v0 + vector);
+
+    return {v0.cast<coord_t>(), v1.cast<coord_t>()};
+}
+
 static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<ColoredLine>> &color_poly)
 {
     Geometry::VoronoiDiagram vd;
@@ -852,7 +876,8 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
     };
 
     bbox.offset(scale_(10.));
-    const double bbox_dim_max = double(std::max(bbox.size().x(), bbox.size().y()));
+    const BoundingBoxf bbox_clip(bbox.min.cast<double>(), bbox.max.cast<double>());
+    const double       bbox_dim_max = double(std::max(bbox.size().x(), bbox.size().y()));
 
     // Make a copy of the input segments with the double type.
     std::vector<Voronoi::Internal::segment_type> segments;
@@ -890,72 +915,74 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
                 }
             }
         } else if (edge_it->is_finite()) {
-            const Point  v0       = mk_point(edge_it->vertex0());
-            const Point  v1       = mk_point(edge_it->vertex1());
-            const size_t from_idx = edge_it->vertex0()->color();
-            const size_t to_idx   = edge_it->vertex1()->color();
-
             // Both points are on contour, so skip them. In cases of duplicate Voronoi vertices, skip edges between the same two points.
-            if (graph.is_edge_connecting_two_contour_vertices(edge_it) || (edge_it->vertex0()->color() == edge_it->vertex1()->color())) continue;
+            if (graph.is_edge_connecting_two_contour_vertices(edge_it) || (edge_it->vertex0()->color() == edge_it->vertex1()->color()))
+                continue;
 
-            const Line        edge_line(v0, v1);
+            const Line        edge_line         = clip_finite_voronoi_edge(*edge_it, bbox_clip);
             const Line        contour_line      = lines_colored[edge_it->cell()->source_index()].line;
             const ColoredLine colored_line      = lines_colored[edge_it->cell()->source_index()];
             const ColoredLine contour_line_prev = get_prev_contour_line(edge_it);
             const ColoredLine contour_line_next = get_next_contour_line(edge_it);
 
-            Point intersection;
             if (edge_it->vertex0()->color() >= graph.nodes_count() || edge_it->vertex1()->color() >= graph.nodes_count()) {
-//                if(edge_it->vertex0()->color() < graph.nodes_count() && !graph.is_vertex_on_contour(edge_it->vertex0())) {
-//
-//                }
-                if (edge_it->vertex1()->color() < graph.nodes_count() && !graph.is_vertex_on_contour(edge_it->vertex1())) {
-                    Line contour_line_twin = lines_colored[edge_it->twin()->cell()->source_index()].line;
+                enum class Vertex { VERTEX0, VERTEX1 };
+                auto append_edge_if_intersects_with_contour = [&graph, &lines_colored, &edge_line, &contour_line](const voronoi_diagram<double>::const_edge_iterator &edge_iterator, const Vertex vertex) {
+                    Point intersection;
+                    Line  contour_line_twin = lines_colored[edge_iterator->twin()->cell()->source_index()].line;
                     if (line_intersection_with_epsilon(contour_line_twin, edge_line, &intersection)) {
-                        const MMU_Graph::Arc &graph_arc = graph.get_border_arc(edge_it->twin()->cell()->source_index());
+                        const MMU_Graph::Arc &graph_arc = graph.get_border_arc(edge_iterator->twin()->cell()->source_index());
                         const size_t          to_idx_l  = is_point_closer_to_beginning_of_line(contour_line_twin, intersection) ? graph_arc.from_idx :
                                                                                                                                   graph_arc.to_idx;
-                        graph.append_edge(edge_it->vertex1()->color(), to_idx_l);
+                        graph.append_edge(vertex == Vertex::VERTEX0 ? edge_iterator->vertex0()->color() : edge_iterator->vertex1()->color(), to_idx_l);
                     } else if (line_intersection_with_epsilon(contour_line, edge_line, &intersection)) {
-                        const MMU_Graph::Arc &graph_arc = graph.get_border_arc(edge_it->cell()->source_index());
+                        const MMU_Graph::Arc &graph_arc = graph.get_border_arc(edge_iterator->cell()->source_index());
                         const size_t to_idx_l = is_point_closer_to_beginning_of_line(contour_line, intersection) ? graph_arc.from_idx : graph_arc.to_idx;
-                        graph.append_edge(edge_it->vertex1()->color(), to_idx_l);
+                        graph.append_edge(vertex == Vertex::VERTEX0 ? edge_iterator->vertex0()->color() : edge_iterator->vertex1()->color(), to_idx_l);
                     }
-                    mark_processed(edge_it);
-                }
+                    mark_processed(edge_iterator);
+                };
+
+                if (edge_it->vertex0()->color() < graph.nodes_count() && !graph.is_vertex_on_contour(edge_it->vertex0()))
+                    append_edge_if_intersects_with_contour(edge_it, Vertex::VERTEX0);
+
+                if (edge_it->vertex1()->color() < graph.nodes_count() && !graph.is_vertex_on_contour(edge_it->vertex1()))
+                    append_edge_if_intersects_with_contour(edge_it, Vertex::VERTEX1);
             } else if (graph.is_edge_attach_to_contour(edge_it)) {
                 mark_processed(edge_it);
                 // Skip edges witch connection two points on a contour
                 if (graph.is_edge_connecting_two_contour_vertices(edge_it))
                     continue;
 
+                const size_t from_idx = edge_it->vertex0()->color();
+                const size_t to_idx   = edge_it->vertex1()->color();
                 if (graph.is_vertex_on_contour(edge_it->vertex0())) {
-                    if (is_point_closer_to_beginning_of_line(contour_line, v0)) {
-                        if ((!has_same_color(contour_line_prev, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, v1)) {
+                    if (is_point_closer_to_beginning_of_line(contour_line, edge_line.a)) {
+                        if ((!has_same_color(contour_line_prev, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, edge_line.b)) {
                             graph.append_edge(from_idx, to_idx);
                             force_edge_adding[colored_line.poly_idx] = false;
                         }
                     } else {
-                        if ((!has_same_color(contour_line_next, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, v1)) {
+                        if ((!has_same_color(contour_line_next, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, edge_line.b)) {
                             graph.append_edge(from_idx, to_idx);
                             force_edge_adding[colored_line.poly_idx] = false;
                         }
                     }
                 } else {
                     assert(graph.is_vertex_on_contour(edge_it->vertex1()));
-                    if (is_point_closer_to_beginning_of_line(contour_line, v1)) {
-                        if ((!has_same_color(contour_line_prev, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, v0)) {
+                    if (is_point_closer_to_beginning_of_line(contour_line, edge_line.b)) {
+                        if ((!has_same_color(contour_line_prev, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, edge_line.a)) {
                             graph.append_edge(from_idx, to_idx);
                             force_edge_adding[colored_line.poly_idx] = false;
                         }
                     } else {
-                        if ((!has_same_color(contour_line_next, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, v0)) {
+                        if ((!has_same_color(contour_line_next, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, edge_line.a)) {
                             graph.append_edge(from_idx, to_idx);
                             force_edge_adding[colored_line.poly_idx] = false;
                         }
                     }
                 }
-            } else if (line_intersection_with_epsilon(contour_line, edge_line, &intersection)) {
+            } else if (Point intersection; line_intersection_with_epsilon(contour_line, edge_line, &intersection)) {
                 mark_processed(edge_it);
                 Point real_v0 = graph.nodes[edge_it->vertex0()->color()].point;
                 Point real_v1 = graph.nodes[edge_it->vertex1()->color()].point;
@@ -1202,7 +1229,7 @@ static void cut_segmented_layers(const std::vector<ExPolygons>                  
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - cutting segmented layers in parallel - end";
 }
 
-// #define MMU_SEGMENTATION_DEBUG_TOP_BOTTOM
+//#define MMU_SEGMENTATION_DEBUG_TOP_BOTTOM
 
 // Returns MMU segmentation of top and bottom layers based on painting in MMU segmentation gizmo
 static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bottom_layers(const PrintObject             &print_object,
@@ -1671,7 +1698,7 @@ static void export_regions_to_svg(const std::string &path, const std::vector<std
 
     svg.draw_outline(lslices, "green", "lime", stroke_width);
     for (const std::pair<ExPolygon, size_t> &region : regions) {
-        int region_color = region.second;
+        int region_color = int(region.second);
         if (region_color >= 0 && region_color < int(colors.size()))
             svg.draw(region.first, colors[region_color]);
         else
