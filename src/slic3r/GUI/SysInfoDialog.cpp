@@ -15,6 +15,7 @@
 #include "MainFrame.hpp"
 #include "wxExtensions.hpp"
 #include "../libslic3r/BlacklistedLibraryCheck.hpp"
+#include "format.hpp"
 
 #ifdef _WIN32
 	// The standard Windows includes.
