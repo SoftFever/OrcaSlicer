@@ -359,10 +359,10 @@ void ObjectClipper::render_cut() const
         clipper->set_plane(*m_clp);
         clipper->set_transformation(trafo);
 
-        ::glPushMatrix();
-        ::glColor3f(1.0f, 0.37f, 0.0f);
+        glsafe(::glPushMatrix());
+        glsafe(::glColor3f(1.0f, 0.37f, 0.0f));
         clipper->render_cut();
-        ::glPopMatrix();
+        glsafe(::glPopMatrix());
 
         ++clipper_id;
     }
@@ -472,10 +472,10 @@ void SupportsClipper::render_cut() const
     m_clipper->set_plane(*ocl->get_clipping_plane());
     m_clipper->set_transformation(supports_trafo);
 
-    ::glPushMatrix();
-    ::glColor3f(1.0f, 0.f, 0.37f);
+    glsafe(::glPushMatrix());
+    glsafe(::glColor3f(1.0f, 0.f, 0.37f));
     m_clipper->render_cut();
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 }
 
 
