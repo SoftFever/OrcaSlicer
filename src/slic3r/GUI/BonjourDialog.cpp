@@ -93,6 +93,7 @@ BonjourDialog::BonjourDialog(wxWindow *parent, Slic3r::PrinterTechnology tech)
 	});
 
 	Bind(wxEVT_TIMER, &BonjourDialog::on_timer, this);
+	GUI::wxGetApp().UpdateDlgDarkUI(this);
 }
 
 BonjourDialog::~BonjourDialog()

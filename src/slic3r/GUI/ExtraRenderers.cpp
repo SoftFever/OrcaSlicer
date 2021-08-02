@@ -335,3 +335,36 @@ bool BitmapChoiceRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& val
 }
 
 
+// ----------------------------------------------------------------------------
+// TextRenderer
+// ----------------------------------------------------------------------------
+
+bool TextRenderer::SetValue(const wxVariant& value)
+{
+    m_value = value.GetString();
+    return true;
+}
+
+bool TextRenderer::GetValue(wxVariant& value) const
+{
+    return false;
+}
+
+bool TextRenderer::Render(wxRect rect, wxDC* dc, int state)
+{
+#ifdef _WIN32
+    // workaround for Windows DarkMode : Don't respect to the state & wxDATAVIEW_CELL_SELECTED to avoid update of the text color
+    RenderText(m_value, 0, rect, dc, state & wxDATAVIEW_CELL_SELECTED ? 0 : state);
+#else
+    RenderText(m_value, 0, rect, dc, state);
+#endif
+
+    return true;
+}
+
+wxSize TextRenderer::GetSize() const
+{
+    return GetTextExtent(m_value);
+}
+
+
