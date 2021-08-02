@@ -74,7 +74,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 
 
 
-void GLGizmoSlaSupports::on_render() const
+void GLGizmoSlaSupports::on_render()
 {
     ModelObject* mo = m_c->selection_info()->model_object();
     const Selection& selection = m_parent.get_selection();
@@ -101,7 +101,7 @@ void GLGizmoSlaSupports::on_render() const
 }
 
 
-void GLGizmoSlaSupports::on_render_for_picking() const
+void GLGizmoSlaSupports::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
     //glsafe(::glEnable(GL_DEPTH_TEST));
@@ -671,7 +671,7 @@ RENDER_AGAIN:
         //  - keep updating the head radius during sliding so it is continuosly refreshed in 3D scene
         //  - take correct undo/redo snapshot after the user is done with moving the slider
         float initial_value = m_new_point_head_diameter;
-        ImGui::SliderFloat("", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f");
+        m_imgui->slider_float("", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f");
         if (ImGui::IsItemClicked()) {
             if (m_old_point_head_diameter == 0.f)
                 m_old_point_head_diameter = initial_value;
@@ -731,7 +731,7 @@ RENDER_AGAIN:
         float density = static_cast<const ConfigOptionInt*>(opts[0])->value;
         float minimal_point_distance = static_cast<const ConfigOptionFloat*>(opts[1])->value;
 
-        ImGui::SliderFloat("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
+        m_imgui->slider_float("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
         bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
         bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
         bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
@@ -740,7 +740,7 @@ RENDER_AGAIN:
         m_imgui->text(m_desc.at("points_density"));
         ImGui::SameLine(settings_sliders_left);
 
-        ImGui::SliderFloat(" ", &density, 0.f, 200.f, "%.f %%");
+        m_imgui->slider_float(" ", &density, 0.f, 200.f, "%.f %%");
         slider_clicked |= ImGui::IsItemClicked();
         slider_edited |= ImGui::IsItemEdited();
         slider_released |= ImGui::IsItemDeactivatedAfterEdit();
@@ -801,7 +801,7 @@ RENDER_AGAIN:
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
     float clp_dist = m_c->object_clipper()->get_position();
-    if (ImGui::SliderFloat("  ", &clp_dist, 0.f, 1.f, "%.2f"))
+    if (m_imgui->slider_float("  ", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
 
@@ -890,11 +890,7 @@ void GLGizmoSlaSupports::on_set_state()
             // data are not yet available, the CallAfter will postpone taking the
             // snapshot until they are. No, it does not feel right.
             wxGetApp().CallAfter([]() {
-#if ENABLE_PROJECT_DIRTY_STATE
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Entering SLA gizmo"));
-#else
-                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("SLA gizmo turned on"));
-#endif // ENABLE_PROJECT_DIRTY_STATE
             });
         }
 
@@ -922,11 +918,7 @@ void GLGizmoSlaSupports::on_set_state()
         else {
             // we are actually shutting down
             disable_editing_mode(); // so it is not active next time the gizmo opens
-#if ENABLE_PROJECT_DIRTY_STATE
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Leaving SLA gizmo"));
-#else
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("SLA gizmo turned off"));
-#endif // ENABLE_PROJECT_DIRTY_STATE
             m_normal_cache.clear();
             m_old_mo_id = -1;
         }

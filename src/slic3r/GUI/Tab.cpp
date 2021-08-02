@@ -5,9 +5,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 #include "libslic3r/GCode/GCodeProcessor.hpp"
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
@@ -1172,8 +1170,12 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     wxString page_title = translate_category(category, m_type);
 
     auto cur_item = m_treectrl->GetFirstVisibleItem();
-    if (!cur_item || !m_treectrl->IsVisible(cur_item))
+    if (!cur_item)
         return;
+
+    // We should to activate a tab with searched option, if it doesn't.
+    // And do it before finding of the cur_item to avoid a case when Tab isn't activated jet and all treeItems are invisible
+    wxGetApp().mainframe->select_tab(this);
 
     while (cur_item) {
         auto title = m_treectrl->GetItemText(cur_item);
@@ -1186,8 +1188,6 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         break;
     }
 
-    // we should to activate a tab with searched option, if it doesn't.
-    wxGetApp().mainframe->select_tab(this);
     Field* field = get_field(opt_key);
 
     // focused selected field
@@ -1254,9 +1254,7 @@ void Tab::on_presets_changed()
     // to avoid needless preset loading from update() function
     m_dependent_tabs.clear();
 
-#if ENABLE_PROJECT_DIRTY_STATE
     wxGetApp().plater()->update_project_dirty_from_presets();
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
@@ -1744,7 +1742,6 @@ void TabPrint::clear_pages()
     m_top_bottom_shell_thickness_explanation = nullptr;
 }
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)
 {
     std::vector<std::string> tags;
@@ -1770,7 +1767,6 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
     tab->update_dirty();
     tab->on_value_change(opt_key, value);
 }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 void TabFilament::add_filament_overrides_page()
 {
@@ -1996,11 +1992,9 @@ void TabFilament::build()
 
     page = add_options_page(L("Custom G-code"), "cog");
         optgroup = page->new_optgroup(L("Start G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("start_filament_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2008,11 +2002,9 @@ void TabFilament::build()
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("End G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("end_filament_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2139,16 +2131,9 @@ wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticTex
     return sizer;
 }
 
-#if ENABLE_PROJECT_DIRTY_STATE
 bool Tab::saved_preset_is_dirty() const { return m_presets->saved_is_dirty(); }
 void Tab::update_saved_preset_from_current_preset() { m_presets->update_saved_preset_from_current_preset(); }
 bool Tab::current_preset_is_dirty() const { return m_presets->current_is_dirty(); }
-#else
-bool Tab::current_preset_is_dirty()
-{
-    return m_presets->current_is_dirty();
-}
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 void TabPrinter::build()
 {
@@ -2323,11 +2308,9 @@ void TabPrinter::build_fff()
     const int notes_field_height = 25; // 250
     page = add_options_page(L("Custom G-code"), "cog");
         optgroup = page->new_optgroup(L("Start G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("start_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2335,11 +2318,9 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("End G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("end_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2347,11 +2328,9 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Before layer change G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("before_layer_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2359,11 +2338,9 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("After layer change G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("layer_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2371,11 +2348,9 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Tool change G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("toolchange_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2383,11 +2358,9 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Between objects G-code (for sequential printing)"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("between_objects_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2395,33 +2368,27 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Color Change G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("color_change_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Pause Print G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("pause_print_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Template Custom G-code"), 0);
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         option = optgroup->get_option("template_custom_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -3083,6 +3050,7 @@ void Tab::load_current_preset()
                         if (!wxGetApp().tabs_as_menu()) {
                             std::string bmp_name = tab->type() == Slic3r::Preset::TYPE_FILAMENT      ? "spool" :
                                                    tab->type() == Slic3r::Preset::TYPE_SLA_MATERIAL  ? "resin" : "cog";
+                            tab->Hide(); // #ys_WORKAROUND : Hide tab before inserting to avoid unwanted rendering of the tab
                             dynamic_cast<Notebook*>(wxGetApp().tab_panel())->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab, tab->title(), bmp_name);
                         }
                         else
@@ -3904,7 +3872,6 @@ void TabPrinter::apply_extruder_cnt_from_cache()
     }
 }
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 bool Tab::validate_custom_gcodes()
 {
     if (m_type != Preset::TYPE_FILAMENT &&
@@ -3930,7 +3897,6 @@ bool Tab::validate_custom_gcodes()
     }
     return valid;
 }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 void TabPrinter::update_machine_limits_description(const MachineLimitsUsage usage)
 {
@@ -4157,7 +4123,6 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
     return optgroup;
 }
 
-#if ENABLE_VALIDATE_CUSTOM_GCODE
 const ConfigOptionsGroupShp Page::get_optgroup(const wxString& title) const
 {
     for (ConfigOptionsGroupShp optgroup : m_optgroups) {
@@ -4167,7 +4132,6 @@ const ConfigOptionsGroupShp Page::get_optgroup(const wxString& title) const
 
     return nullptr;
 }
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
 void TabSLAMaterial::build()
 {

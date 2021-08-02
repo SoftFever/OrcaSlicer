@@ -211,6 +211,9 @@ inline std::vector<float> zs_from_layers(const LayerContainer &layers)
     return zs;
 }
 
+extern BoundingBox get_extents(const LayerRegion &layer_region);
+extern BoundingBox get_extents(const LayerRegionPtrs &layer_regions);
+
 }
 
 #endif

@@ -84,7 +84,6 @@ private:
     GLTexture m_temp_texture;
     GLModel m_model;
     Vec3d m_model_offset{ Vec3d::Zero() };
-    std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
     unsigned int m_vbo_id{ 0 };
     Axes m_axes;
 
@@ -110,19 +109,23 @@ public:
     Point point_projection(const Point& point) const;
 
     void render(GLCanvas3D& canvas, bool bottom, float scale_factor,
-                bool show_axes, bool show_texture) const;
+        bool show_axes, bool show_texture);
+
+    void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
 
 private:
     void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     std::tuple<EType, std::string, std::string> detect_type(const Pointfs& shape) const;
+    void render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
+        bool show_axes, bool show_texture, bool picking);
     void render_axes() const;
     void render_system(GLCanvas3D& canvas, bool bottom, bool show_texture) const;
     void render_texture(bool bottom, GLCanvas3D& canvas) const;
     void render_model() const;
-    void render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture) const;
-    void render_default(bool bottom) const;
+    void render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture, bool picking) const;
+    void render_default(bool bottom, bool picking) const;
     void reset();
 };
 

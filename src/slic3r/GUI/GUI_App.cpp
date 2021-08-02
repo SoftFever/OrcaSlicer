@@ -661,6 +661,10 @@ void GUI_App::post_init()
             this->mainframe->load_config(this->init_params->extra_config);
     }
 
+    // show "Did you know" notification
+    if (app_config->get("show_hints") == "1")
+        plater_->get_notification_manager()->push_hint_notification();
+
     // The extra CallAfter() is needed because of Mac, where this is the only way
     // to popup a modal dialog on start without screwing combo boxes.
     // This is ugly but I honestly found no better way to do it.
@@ -950,12 +954,10 @@ bool GUI_App::on_init_inner()
     else
         load_current_presets();
 
-#if ENABLE_PROJECT_DIRTY_STATE
     if (plater_ != nullptr) {
         plater_->reset_project_dirty_initial_presets();
         plater_->update_project_dirty_from_presets();
     }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     mainframe->Show(true);
 
@@ -1780,7 +1782,7 @@ void GUI_App::update_mode()
     for (auto tab : tabs_list)
         tab->update_mode();
 
-    plater()->update_object_menu();
+    plater()->update_menus();
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
@@ -1848,11 +1850,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 #endif
         case ConfigMenuTakeSnapshot:
             // Take a configuration snapshot.
-#if ENABLE_PROJECT_DIRTY_STATE
             if (check_and_save_current_preset_changes()) {
-#else
-            if (check_unsaved_changes()) {
-#endif // ENABLE_PROJECT_DIRTY_STATE
                 wxTextEntryDialog dlg(nullptr, _L("Taking configuration snapshot"), _L("Snapshot name"));
                 UpdateDlgDarkUI(&dlg);
                 
@@ -1868,11 +1866,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             }
             break;
         case ConfigMenuSnapshots:
-#if ENABLE_PROJECT_DIRTY_STATE
             if (check_and_save_current_preset_changes()) {
-#else
-            if (check_unsaved_changes()) {
-#endif // ENABLE_PROJECT_DIRTY_STATE
                 std::string on_snapshot;
                 if (Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
                     on_snapshot = app_config->get("on_snapshot");
@@ -1908,11 +1902,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
                 app_layout_changed = dlg.settings_layout_changed();
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
-#else
                 if (dlg.seq_top_layer_only_changed())
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                     this->plater_->refresh_print();
 
                 if (dlg.recreate_GUI()) {
@@ -1985,7 +1975,43 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     menu->Append(local_menu, _L("&Configuration"));
 }
 
-#if ENABLE_PROJECT_DIRTY_STATE
+void GUI_App::open_preferences(size_t open_on_tab)
+{
+    bool app_layout_changed = false;
+    {
+        // the dialog needs to be destroyed before the call to recreate_GUI()
+        // or sometimes the application crashes into wxDialogBase() destructor
+        // so we put it into an inner scope
+        PreferencesDialog dlg(mainframe, open_on_tab);
+        dlg.ShowModal();
+        app_layout_changed = dlg.settings_layout_changed();
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+        if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+#else
+        if (dlg.seq_top_layer_only_changed())
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+            this->plater_->refresh_print();
+#ifdef _WIN32
+        if (is_editor()) {
+            if (app_config->get("associate_3mf") == "1")
+                associate_3mf_files();
+            if (app_config->get("associate_stl") == "1")
+                associate_stl_files();
+        }
+        else {
+            if (app_config->get("associate_gcode") == "1")
+                associate_gcode_files();
+        }
+#endif // _WIN32
+    }
+    if (app_layout_changed) {
+        // hide full main_sizer for mainFrame
+        mainframe->GetSizer()->Show(false);
+        mainframe->update_layout();
+        mainframe->select_tab(size_t(0));
+    }
+}
+
 bool GUI_App::has_unsaved_preset_changes() const
 {
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
@@ -2027,28 +2053,12 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
     }
     return ret;
 }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
-#if ENABLE_PROJECT_DIRTY_STATE
 bool GUI_App::check_and_save_current_preset_changes(const wxString& header)
 {
     if (this->plater()->model().objects.empty() && has_current_preset_changes()) {
-#else
-bool GUI_App::check_unsaved_changes(const wxString &header)
-{
-    PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
-
-    bool has_unsaved_changes = false;
-    for (Tab* tab : tabs_list)
-        if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty()) {
-            has_unsaved_changes = true;
-            break;
-        }
-
-    if (has_unsaved_changes) {
-#endif // ENABLE_PROJECT_DIRTY_STATE
         UnsavedChangesDialog dlg(header);
         if (wxGetApp().app_config->get("default_action_on_close_application") == "none" && dlg.ShowModal() == wxID_CANCEL)
             return false;

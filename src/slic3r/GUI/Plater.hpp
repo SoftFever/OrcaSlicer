@@ -83,6 +83,7 @@ public:
     void sys_color_changed();
     void search();
     void jump_to_option(size_t selected);
+    void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
@@ -137,7 +138,6 @@ public:
     Plater &operator=(const Plater &) = delete;
     ~Plater() = default;
 
-#if ENABLE_PROJECT_DIRTY_STATE
     bool is_project_dirty() const;
     void update_project_dirty_from_presets();
     bool save_project_if_dirty();
@@ -146,9 +146,9 @@ public:
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
     void render_project_state_debug_window() const;
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     Sidebar& sidebar();
+    const Model& model() const;
     Model& model();
     const Print& fff_print() const;
     Print& fff_print();
@@ -216,11 +216,7 @@ public:
     void export_gcode(bool prefer_removable);
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
-#if ENABLE_PROJECT_DIRTY_STATE
     bool export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
-#else
-    void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
-#endif // ENABLE_PROJECT_DIRTY_STATE
     void reload_from_disk();
     void replace_with_stl();
     void reload_all_from_disk();
@@ -255,9 +251,7 @@ public:
     // For the memory statistics. 
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
     void clear_undo_redo_stack_main();
-#if ENABLE_PROJECT_DIRTY_STATE
     const Slic3r::UndoRedo::Stack& undo_redo_stack_active() const;
-#endif // ENABLE_PROJECT_DIRTY_STATE
     // Enter / leave the Gizmos specific Undo / Redo stack. To be used by the SLA support point editing gizmo.
     void enter_gizmos_stack();
     void leave_gizmos_stack();
@@ -272,7 +266,7 @@ public:
     std::vector<std::string> get_extruder_colors_from_plater_config(const GCodeProcessor::Result* const result = nullptr) const;
     std::vector<std::string> get_colors_for_color_print(const GCodeProcessor::Result* const result = nullptr) const;
 
-    void update_object_menu();
+    void update_menus();
     void show_action_buttons(const bool is_ready_to_slice) const;
 
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
@@ -288,10 +282,8 @@ public:
     GLCanvas3D* get_current_canvas3D();
     BoundingBoxf bed_shape_bb() const;
     
-#if ENABLE_GCODE_WINDOW
     void start_mapping_gcode_window();
     void stop_mapping_gcode_window();
-#endif // ENABLE_GCODE_WINDOW
 
     void arrange();
     void find_new_position(const ModelInstancePtrs  &instances);
@@ -410,10 +402,8 @@ public:
 
     bool inside_snapshot_capture();
 
-#if ENABLE_RENDER_STATISTICS
     void toggle_render_statistic_dialog();
     bool is_render_statistic_dialog_visible() const;
-#endif // ENABLE_RENDER_STATISTICS
 
 	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);

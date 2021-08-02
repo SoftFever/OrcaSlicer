@@ -34,13 +34,8 @@ public:
         {
             // adds tag for analyzer:
             std::ostringstream str;
-#if ENABLE_VALIDATE_CUSTOM_GCODE
             str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) << m_layer_height << "\n"; // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
             str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role) << ExtrusionEntity::role_to_string(erWipeTower) << "\n";
-#else
-            str << ";" << GCodeProcessor::Height_Tag << m_layer_height << "\n"; // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
-            str << ";" << GCodeProcessor::Extrusion_Role_Tag << ExtrusionEntity::role_to_string(erWipeTower) << "\n";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
             m_gcode += str.str();
             change_analyzer_line_width(line_width);
     }
@@ -48,11 +43,7 @@ public:
     WipeTowerWriter& change_analyzer_line_width(float line_width) {
         // adds tag for analyzer:
         std::stringstream str;
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) << line_width << "\n";
-#else
-        str << ";" << GCodeProcessor::Width_Tag << line_width << "\n";
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         m_gcode += str.str();
         return *this;
     }

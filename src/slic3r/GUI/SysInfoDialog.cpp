@@ -14,7 +14,8 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "wxExtensions.hpp"
-#include "../libslic3r/LibraryCheck.hpp"
+#include "../libslic3r/BlacklistedLibraryCheck.hpp"
+#include "format.hpp"
 
 #ifdef _WIN32
 	// The standard Windows includes.
@@ -142,19 +143,23 @@ SysInfoDialog::SysInfoDialog()
         m_opengl_info_html->SetMinSize(wxSize(-1, 16 * wxGetApp().em_unit()));
         m_opengl_info_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
         m_opengl_info_html->SetBorders(10);
-        const auto text = wxString::Format(
+        wxString blacklisted_libraries_message;
+#ifdef WIN32
+        std::wstring blacklisted_libraries = BlacklistedLibraryCheck::get_instance().get_blacklisted_string().c_str();
+        if (! blacklisted_libraries.empty())
+            blacklisted_libraries_message = wxString("<br><b>") + _L("Blacklisted libraries loaded into PrusaSlicer process:") + "</b><br>" + blacklisted_libraries;
+#endif // WIN32
+       const auto text = GUI::format_wxstr(
             "<html>"
             "<body bgcolor= %s link= %s>"
             "<font color=%s>"
-            "%s"
+            "%s<br>%s<br>%s<br>%s"
             "</font>"
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
-            get_mem_info(true) + "<br>" + wxGetApp().get_gl_info(true, true) + "<br>Eigen vectorization supported: " + Eigen::SimdInstructionSetsInUse()
-#ifdef WIN32
-            + "<br><br><b>Blacklisted loaded libraries:</b><br>" + LibraryCheck::get_instance().get_blacklisted_string().c_str()
-#endif
-        );
+            blacklisted_libraries_message,
+            get_mem_info(true), wxGetApp().get_gl_info(true, true),
+            "<b>" + _L("Eigen vectorization supported:") + "</b> " + Eigen::SimdInstructionSetsInUse());
 
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);

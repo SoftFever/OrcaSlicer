@@ -155,11 +155,6 @@ void AppConfig::set_defaults()
     if (get("seq_top_layer_only").empty())
         set("seq_top_layer_only", "1");
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-    if (get("seq_top_gcode_indices").empty())
-        set("seq_top_gcode_indices", "1");
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-
     if (get("use_perspective_camera").empty())
         set("use_perspective_camera", "1");
 
@@ -171,6 +166,12 @@ void AppConfig::set_defaults()
 
     if (get("show_splash_screen").empty())
         set("show_splash_screen", "1");
+
+    if (get("last_hint").empty())
+        set("last_hint", "0");
+
+    if (get("show_hints").empty())
+        set("show_hints", "1");
 
 #ifdef _WIN32
     if (get("use_legacy_3DConnexion").empty())
@@ -544,6 +545,8 @@ void AppConfig::update_config_dir(const std::string &dir)
 
 void AppConfig::update_skein_dir(const std::string &dir)
 {
+    if (is_shapes_dir(dir))
+        return; // do not save "shapes gallery" directory
     this->set("recent", "skein_directory", dir);
 }
 /*
@@ -576,7 +579,7 @@ std::string AppConfig::get_last_output_dir(const std::string& alt, const bool re
 		if (it2 != it->second.end() && it3 != it->second.end() && !it2->second.empty() && it3->second == "1")
 			return it2->second;
 	}
-	return alt;
+	return is_shapes_dir(alt) ? get_last_dir() : alt;
 }
 
 void AppConfig::update_last_output_dir(const std::string& dir, const bool removable)

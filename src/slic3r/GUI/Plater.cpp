@@ -82,9 +82,7 @@
 #include "NotificationManager.hpp"
 #include "PresetComboBoxes.hpp"
 #include "MsgDialog.hpp"
-#if ENABLE_PROJECT_DIRTY_STATE
 #include "ProjectDirtyStateManager.hpp"
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -1045,6 +1043,12 @@ void Sidebar::search()
     p->searcher.search();
 }
 
+void Sidebar::jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category)
+{
+    //const Search::Option& opt = p->searcher.get_option(opt_key, type);
+    wxGetApp().get_tab(type)->activate_option(opt_key, category);
+}
+
 void Sidebar::jump_to_option(size_t selected)
 {
     const Search::Option& opt = p->searcher.get_option(selected);
@@ -1454,13 +1458,9 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     this->MSWUpdateDragImageOnLeave();
 #endif // WIN32
 
-#if ENABLE_PROJECT_DIRTY_STATE
     bool res = (m_plater != nullptr) ? m_plater->load_files(filenames) : false;
     wxGetApp().mainframe->update_title();
     return res;
-#else
-    return (m_plater != nullptr) ? m_plater->load_files(filenames) : false;
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 // State to manage showing after export notifications and device ejecting
@@ -1504,9 +1504,7 @@ struct Plater::priv
     Preview *preview;
     NotificationManager* notification_manager { nullptr };
 
-#if ENABLE_PROJECT_DIRTY_STATE
     ProjectDirtyStateManager dirty_state;
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
@@ -1565,9 +1563,7 @@ struct Plater::priv
     std::string                 label_btn_export;
     std::string                 label_btn_send;
 
-#if ENABLE_RENDER_STATISTICS
     bool                        show_render_statistic_dialog{ false };
-#endif // ENABLE_RENDER_STATISTICS
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -1578,7 +1574,6 @@ struct Plater::priv
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
-#if ENABLE_PROJECT_DIRTY_STATE
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
     void update_project_dirty_from_presets() { dirty_state.update_from_presets(); }
     bool save_project_if_dirty() {
@@ -1602,7 +1597,6 @@ struct Plater::priv
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
     void render_project_state_debug_window() const { dirty_state.render_debug_window(); }
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     enum class UpdateParams {
         FORCE_FULL_SCREEN_REFRESH          = 1,
@@ -1650,11 +1644,8 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
-#if ENABLE_ALLOW_NEGATIVE_Z
     std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false);
-#else
-    std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
-#endif // ENABLE_ALLOW_NEGATIVE_Z
+
     wxString get_export_file(GUI::FileType file_type);
 
     const Selection& get_selection() const;
@@ -2418,19 +2409,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     return obj_idxs;
             }
 
-#if ENABLE_ALLOW_NEGATIVE_Z
             for (ModelObject* model_object : model.objects) {
                 if (!type_3mf && !type_zip_amf)
                     model_object->center_around_origin(false);
                 model_object->ensure_on_bed(is_project_file);
             }
-#else
-            for (ModelObject* model_object : model.objects) {
-                if (!type_3mf && !type_zip_amf)
-                    model_object->center_around_origin(false);
-                model_object->ensure_on_bed();
-            }
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
             // check multi-part object adding for the SLA-printing
             if (printer_technology == ptSLA) {
@@ -2444,11 +2427,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             if (one_by_one) {
-#if ENABLE_ALLOW_NEGATIVE_Z
                 auto loaded_idxs = load_model_objects(model.objects, is_project_file);
-#else
-                auto loaded_idxs = load_model_objects(model.objects);
-#endif // ENABLE_ALLOW_NEGATIVE_Z
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
@@ -2501,11 +2480,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 // #define AUTOPLACEMENT_ON_LOAD
 
-#if ENABLE_ALLOW_NEGATIVE_Z
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z)
-#else
-std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
@@ -2540,7 +2515,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
-#if ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
         for (size_t i = 0; i < object->instances.size(); ++i) {
             ModelInstance* instance = object->instances[i];
             const Vec3d size = object->instance_bounding_box(i).size();
@@ -2562,32 +2536,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
                 scaled_down = true;
             }
         }
-#else
-        const Vec3d size = object->bounding_box().size();
-        const Vec3d ratio = size.cwiseQuotient(bed_size);
-        const double max_ratio = std::max(ratio(0), ratio(1));
-        if (max_ratio > 10000) {
-            // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
-            // so scale down the mesh
-            double inv = 1. / max_ratio;
-            object->scale_mesh_after_creation(Vec3d(inv, inv, inv));
-            object->origin_translation = Vec3d::Zero();
-            object->center_around_origin();
-            scaled_down = true;
-        } else if (max_ratio > 5) {
-            const Vec3d inverse = 1.0 / max_ratio * Vec3d::Ones();
-            for (ModelInstance *instance : object->instances) {
-                instance->set_scaling_factor(inverse);
-            }
-            scaled_down = true;
-        }
-#endif // ENABLE_MODIFIED_DOWNSCALE_ON_LOAD_OBJECTS_TOO_BIG
 
-#if ENABLE_ALLOW_NEGATIVE_Z
         object->ensure_on_bed(allow_negative_z);
-#else
-        object->ensure_on_bed();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
@@ -2698,8 +2648,10 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         default: break;
     }
 
+    std::string out_dir = (boost::filesystem::path(output_file).parent_path()).string();
+
     wxFileDialog dlg(q, dlg_title,
-        from_path(output_file.parent_path()), from_path(output_file.filename()),
+        is_shapes_dir(out_dir) ? from_u8(wxGetApp().app_config->get_last_dir()) : from_path(output_file.parent_path()), from_path(output_file.filename()),
         wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (dlg.ShowModal() != wxID_OK)
@@ -2936,7 +2888,7 @@ void Plater::priv::update_print_volume_state()
 void Plater::priv::process_validation_warning(const std::string& warning) const
 {
     if (warning.empty())
-        notification_manager->close_notification_of_type(NotificationType::PrintValidateWarning);
+        notification_manager->close_notification_of_type(NotificationType::ValidateWarning);
     else {
         std::string text = warning;
         std::string hypertext = "";
@@ -2959,9 +2911,9 @@ void Plater::priv::process_validation_warning(const std::string& warning) const
         }
 
         notification_manager->push_notification(
-            NotificationType::PrintValidateWarning,
-            NotificationManager::NotificationLevel::ImportantNotification,
-            text, hypertext, action_fn
+            NotificationType::ValidateWarning,
+            NotificationManager::NotificationLevel::WarningNotification,
+            _u8L("WARNING:") + "\n" + text, hypertext, action_fn
         );
     }
 }
@@ -3013,6 +2965,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         std::string err = background_process.validate(&warning);
         if (err.empty()) {
 			notification_manager->set_all_slicing_errors_gray(true);
+            notification_manager->close_notification_of_type(NotificationType::ValidateError);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
 
@@ -3028,7 +2981,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         else {
 			// The print is not valid.
 			// Show error as notification.
-            notification_manager->push_slicing_error_notification(err);
+            notification_manager->push_validate_error_notification(err);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
             if (printer_technology == ptFFF) {
                 const Print* print = background_process.fff_print();
@@ -3248,9 +3201,7 @@ void Plater::priv::replace_with_stl()
     ModelObject* old_model_object = model.objects[object_idx];
     ModelVolume* old_volume = old_model_object->volumes[volume_idx];
 
-#if ENABLE_ALLOW_NEGATIVE_Z
     bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
     ModelObject* new_model_object = new_model.objects[0];
     old_model_object->add_volume(*new_model_object->volumes[0]);
@@ -3270,9 +3221,7 @@ void Plater::priv::replace_with_stl()
     new_volume->mmu_segmentation_facets.assign(old_volume->mmu_segmentation_facets);
     std::swap(old_model_object->volumes[volume_idx], old_model_object->volumes.back());
     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
-#if ENABLE_ALLOW_NEGATIVE_Z
     if (!sinking)
-#endif // ENABLE_ALLOW_NEGATIVE_Z
         old_model_object->ensure_on_bed();
     old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
 
@@ -3423,9 +3372,7 @@ void Plater::priv::reload_from_disk()
             ModelObject* old_model_object = model.objects[sel_v.object_idx];
             ModelVolume* old_volume = old_model_object->volumes[sel_v.volume_idx];
 
-#if ENABLE_ALLOW_NEGATIVE_Z
             bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
             bool has_source = !old_volume->source.input_file.empty() && boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
             bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
@@ -3482,9 +3429,7 @@ void Plater::priv::reload_from_disk()
                     new_volume->mmu_segmentation_facets.assign(old_volume->mmu_segmentation_facets);
                     std::swap(old_model_object->volumes[sel_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
-#if ENABLE_ALLOW_NEGATIVE_Z
                     if (!sinking)
-#endif // ENABLE_ALLOW_NEGATIVE_Z
                         old_model_object->ensure_on_bed();
                     old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
 
@@ -3613,10 +3558,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
 
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
         view3D->set_as_dirty();
-#if ENABLE_SCROLLABLE_LEGEND
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         view3D->get_canvas3d()->reset_old_size();
-#endif // ENABLE_SCROLLABLE_LEGEND
         view_toolbar.select_item("3D");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(false);
@@ -3637,10 +3580,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         preview->reload_print(true);
 
         preview->set_as_dirty();
-#if ENABLE_SCROLLABLE_LEGEND
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         preview->get_canvas3d()->reset_old_size();
-#endif // ENABLE_SCROLLABLE_LEGEND
         view_toolbar.select_item("Preview");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(true);
@@ -4243,12 +4184,8 @@ bool Plater::priv::layers_height_allowed() const
         return false;
 
     int obj_idx = get_selected_object_idx();
-#if ENABLE_ALLOW_NEGATIVE_Z
     return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > SINKING_Z_THRESHOLD &&
         config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
-#else
-    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 }
 
 bool Plater::priv::can_mirror() const
@@ -4482,9 +4419,7 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), snapshot_data);
     this->undo_redo_stack().release_least_recently_used();
 
-#if ENABLE_PROJECT_DIRTY_STATE
     dirty_state.update_from_undo_redo_stack(ProjectDirtyStateManager::UpdateType::TakeSnapshot);
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     // Save the last active preset name of a particular printer technology.
     ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
@@ -4526,13 +4461,8 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     if (printer_technology_changed) {
         // Switching the printer technology when jumping forwards / backwards in time. Switch to the last active printer profile of the other type.
         std::string s_pt = (it_snapshot->snapshot_data.printer_technology == ptFFF) ? "FFF" : "SLA";
-#if ENABLE_PROJECT_DIRTY_STATE
         if (!wxGetApp().check_and_save_current_preset_changes(format_wxstr(_L(
             "%1% printer was active at the time the target Undo / Redo snapshot was taken. Switching to %1% printer requires reloading of %1% presets."), s_pt)))
-#else
-        if (! wxGetApp().check_unsaved_changes(format_wxstr(_L(
-            "%1% printer was active at the time the target Undo / Redo snapshot was taken. Switching to %1% printer requires reloading of %1% presets."), s_pt)))
-#endif // ENABLE_PROJECT_DIRTY_STATE
             // Don't switch the profiles.
             return;
     }
@@ -4624,9 +4554,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     }
 
-#if ENABLE_PROJECT_DIRTY_STATE
     dirty_state.update_from_undo_redo_stack(ProjectDirtyStateManager::UpdateType::UndoRedoTo);
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
@@ -4710,7 +4638,6 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
     // Initialization performed in the private c-tor
 }
 
-#if ENABLE_PROJECT_DIRTY_STATE
 bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
 void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
 bool Plater::save_project_if_dirty() { return p->save_project_if_dirty(); }
@@ -4719,9 +4646,9 @@ void Plater::reset_project_dirty_initial_presets() { p->reset_project_dirty_init
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 void Plater::render_project_state_debug_window() const { p->render_project_state_debug_window(); }
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
 Sidebar&        Plater::sidebar()           { return *p->sidebar; }
+const Model&    Plater::model() const       { return p->model; }
 Model&          Plater::model()             { return p->model; }
 const Print&    Plater::fff_print() const   { return p->fff_print; }
 Print&          Plater::fff_print()         { return p->fff_print; }
@@ -4730,29 +4657,21 @@ SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
 void Plater::new_project()
 {
-#if ENABLE_PROJECT_DIRTY_STATE
     if (!p->save_project_if_dirty())
         return;
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     p->select_view_3D("3D");
-#if ENABLE_PROJECT_DIRTY_STATE
     take_snapshot(_L("New Project"));
     Plater::SuppressSnapshots suppress(this);
     reset();
     reset_project_dirty_initial_presets();
     update_project_dirty_from_presets();
-#else
-    wxPostEvent(p->view3D->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::load_project()
 {
-#if ENABLE_PROJECT_DIRTY_STATE
     if (!p->save_project_if_dirty())
         return;
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     // Ask user for a project file name.
     wxString input_file;
@@ -4777,16 +4696,11 @@ void Plater::load_project(const wxString& filename)
     std::vector<size_t> res = load_files(input_paths);
 
     // if res is empty no data has been loaded
-#if ENABLE_PROJECT_DIRTY_STATE
     if (!res.empty()) {
         p->set_project_filename(filename);
         reset_project_dirty_initial_presets();
         update_project_dirty_from_presets();
     }
-#else
-    if (!res.empty())
-        p->set_project_filename(filename);
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::add_model(bool imperial_units/* = false*/)
@@ -4817,13 +4731,9 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-#if ENABLE_PROJECT_DIRTY_STATE
     std::vector<size_t> res = load_files(paths, true, false, imperial_units);
     if (!res.empty())
         wxGetApp().mainframe->update_title();
-#else
-    load_files(paths, true, false, imperial_units);
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::import_sl1_archive()
@@ -4871,7 +4781,15 @@ void Plater::load_gcode(const wxString& filename)
     // process gcode
     GCodeProcessor processor;
     processor.enable_producers(true);
-    processor.process_file(filename.ToUTF8().data(), false);
+    try
+    {
+        processor.process_file(filename.ToUTF8().data(), false);
+    }
+    catch (const std::exception& ex)
+    {
+        show_error(this, ex.what());
+        return;
+    }
     p->gcode_result = std::move(processor.extract_result());
 
     // show results
@@ -5573,38 +5491,22 @@ void Plater::export_amf()
     }
 }
 
-#if ENABLE_PROJECT_DIRTY_STATE
 bool Plater::export_3mf(const boost::filesystem::path& output_path)
-#else
-void Plater::export_3mf(const boost::filesystem::path& output_path)
-#endif // ENABLE_PROJECT_DIRTY_STATE
 {
     if (p->model.objects.empty())
-#if ENABLE_PROJECT_DIRTY_STATE
         return false;
-#else
-        return;
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     wxString path;
     bool export_config = true;
     if (output_path.empty()) {
         path = p->get_export_file(FT_3MF);
-#if ENABLE_PROJECT_DIRTY_STATE
         if (path.empty()) { return false; }
-#else
-        if (path.empty()) { return; }
-#endif // ENABLE_PROJECT_DIRTY_STATE
     }
     else
         path = from_path(output_path);
 
     if (!path.Lower().EndsWith(".3mf"))
-#if ENABLE_PROJECT_DIRTY_STATE
         return false;
-#else
-        return;
-#endif // ENABLE_PROJECT_DIRTY_STATE
 
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
@@ -5613,7 +5515,6 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     ThumbnailData thumbnail_data;
     ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
     p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
-#if ENABLE_PROJECT_DIRTY_STATE
     bool ret = Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data);
     if (ret) {
         // Success
@@ -5625,17 +5526,6 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
         p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
     }
     return ret;
-#else
-    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data)) {
-        // Success
-        p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
-        p->set_project_filename(path);
-    }
-    else {
-        // Failure
-        p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
-    }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 }
 
 void Plater::reload_from_disk()
@@ -6083,9 +5973,22 @@ std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor
     std::vector<std::string> colors = get_extruder_colors_from_plater_config(result);
     colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.gcodes.size());
 
-    for (const CustomGCode::Item& code : p->model.custom_gcode_per_print_z.gcodes)
-        if (code.type == CustomGCode::ColorChange)
-            colors.emplace_back(code.color);
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    if (wxGetApp().is_gcode_viewer() && result != nullptr) {
+        for (const CustomGCode::Item& code : result->custom_gcode_per_print_z) {
+            if (code.type == CustomGCode::ColorChange)
+                colors.emplace_back(code.color);
+        }
+    }
+    else {
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        for (const CustomGCode::Item& code : p->model.custom_gcode_per_print_z.gcodes) {
+            if (code.type == CustomGCode::ColorChange)
+                colors.emplace_back(code.color);
+        }
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+    }
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
     return colors;
 }
@@ -6140,7 +6043,6 @@ BoundingBoxf Plater::bed_shape_bb() const
     return p->bed_shape_bb();
 }
 
-#if ENABLE_GCODE_WINDOW
 void Plater::start_mapping_gcode_window()
 {
     p->preview->get_canvas3d()->start_mapping_gcode_window();
@@ -6150,7 +6052,6 @@ void Plater::stop_mapping_gcode_window()
 {
     p->preview->get_canvas3d()->stop_mapping_gcode_window();
 }
-#endif // ENABLE_GCODE_WINDOW
 
 void Plater::arrange()
 {
@@ -6189,13 +6090,11 @@ bool Plater::set_printer_technology(PrinterTechnology printer_technology)
     //FIXME for SLA synchronize
     //p->background_process.apply(Model)!
 
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
     if (printer_technology == ptSLA) {
         for (ModelObject* model_object : p->model.objects) {
             model_object->ensure_on_bed();
         }
     }
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
 
     p->label_btn_export = printer_technology == ptFFF ? L("Export G-code") : L("Export");
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
@@ -6261,15 +6160,7 @@ void Plater::changed_object(int obj_idx)
         return;
     // recenter and re - align to Z = 0
     auto model_object = p->model.objects[obj_idx];
-#if ENABLE_ALLOW_NEGATIVE_Z
-#if DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
     model_object->ensure_on_bed(this->p->printer_technology != ptSLA);
-#else
-    model_object->ensure_on_bed(true);
-#endif // DISABLE_ALLOW_NEGATIVE_Z_FOR_SLA
-#else
-    model_object->ensure_on_bed();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     if (this->p->printer_technology == ptSLA) {
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data, update the 3D scene.
@@ -6288,17 +6179,11 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
         return;
 
     for (size_t obj_idx : object_idxs) {
-#if ENABLE_ALLOW_NEGATIVE_Z
         if (obj_idx < p->model.objects.size()) {
             if (p->model.objects[obj_idx]->bounding_box().min.z() >= SINKING_Z_THRESHOLD)
                 // re - align to Z = 0
                 p->model.objects[obj_idx]->ensure_on_bed();
         }
-#else
-        if (obj_idx < p->model.objects.size())
-            // recenter and re - align to Z = 0
-            p->model.objects[obj_idx]->ensure_on_bed();
-#endif // ENABLE_ALLOW_NEGATIVE_Z
     }
     if (this->p->printer_technology == ptSLA) {
         // Update the SLAPrint from the current Model, so that the reload_scene()
@@ -6340,7 +6225,7 @@ void Plater::mirror(Axis axis)      { p->mirror(axis); }
 void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }
 void Plater::optimize_rotation()    { p->m_ui_jobs.optimize_rotation();}
-void Plater::update_object_menu()   { p->menus.update_object_menu(); }
+void Plater::update_menus()         { p->menus.update(); }
 void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
 
 void Plater::copy_selection_to_clipboard()
@@ -6582,14 +6467,11 @@ bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
-#if ENABLE_PROJECT_DIRTY_STATE
 const UndoRedo::Stack& Plater::undo_redo_stack_active() const { return p->undo_redo_stack(); }
-#endif // ENABLE_PROJECT_DIRTY_STATE
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }
 
-#if ENABLE_RENDER_STATISTICS
 void Plater::toggle_render_statistic_dialog()
 {
     p->show_render_statistic_dialog = !p->show_render_statistic_dialog;
@@ -6599,7 +6481,6 @@ bool Plater::is_render_statistic_dialog_visible() const
 {
     return p->show_render_statistic_dialog;
 }
-#endif // ENABLE_RENDER_STATISTICS
 
 // Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)

@@ -964,6 +964,12 @@ void MenuFactory::init(wxWindow* parent)
     create_instance_menu();
 }
 
+void MenuFactory::update()
+{
+    update_default_menu();
+    update_object_menu();
+}
+
 wxMenu* MenuFactory::default_menu()
 {
     return &m_default_menu;
@@ -1086,6 +1092,14 @@ void MenuFactory::update_menu_items_instance_manipulation(MenuType type)
 void MenuFactory::update_object_menu()
 {
     append_menu_items_add_volume(&m_object_menu);
+}
+
+void MenuFactory::update_default_menu()
+{
+    const auto menu_item_id = m_default_menu.FindItem(_("Add Shape"));
+    if (menu_item_id != wxNOT_FOUND)
+        m_default_menu.Destroy(menu_item_id);
+    create_default_menu();
 }
 
 void MenuFactory::msw_rescale()

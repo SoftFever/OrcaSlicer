@@ -131,8 +131,6 @@ namespace ImGui
     const char MaterialIconMarker      = 0x8;
     const char CloseNotifButton        = 0xB;
     const char CloseNotifHoverButton   = 0xC;
-//	const char TimerDotMarker          = 0xE;
-//	const char TimerDotEmptyMarker     = 0xF;
     const char MinimalizeButton        = 0xE;
     const char MinimalizeHoverButton   = 0xF;
     const char WarningMarker           = 0x10;
@@ -141,6 +139,19 @@ namespace ImGui
     const char EjectHoverButton        = 0x13;
     const char CancelButton            = 0x14;
     const char CancelHoverButton       = 0x15;
+    const char VarLayerHeightMarker    = 0x16;
+
+    const char RightArrowButton        = 0x18;
+    const char RightArrowHoverButton   = 0x19;
+    const char PreferencesButton       = 0x1A;
+    const char PreferencesHoverButton  = 0x1B;
+    const char SinkingObjectMarker     = 0x1C;
+    const char CustomSupportsMarker    = 0x1D;
+    const char CustomSeamMarker        = 0x1E;
+    const char MmuSegmentationMarker   = 0x1F;
+    
+    
+        
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

@@ -1,11 +1,11 @@
 prusaslicer_add_cmake_project(
     CGAL
-    GIT_REPOSITORY https://github.com/CGAL/cgal.git
-    GIT_TAG        bec70a6d52d8aacb0b3d82a7b4edc3caa899184b # releases/CGAL-5.0
+    # GIT_REPOSITORY https://github.com/CGAL/cgal.git
+    # GIT_TAG        bec70a6d52d8aacb0b3d82a7b4edc3caa899184b # releases/CGAL-5.0
     # For whatever reason, this keeps downloading forever (repeats downloads if finished)
-    # URL      https://github.com/CGAL/cgal/archive/releases/CGAL-5.0.zip
-    # URL_HASH SHA256=bd9327be903ab7ee379a8a7a0609eba0962f5078d2497cf8e13e8e1598584154
-    DEPENDS dep_boost dep_GMP dep_MPFR
+    URL      https://github.com/CGAL/cgal/archive/releases/CGAL-5.0.zip
+    URL_HASH SHA256=c2b035bd078687b6d8c0fb6371a7443adcdb647856af9969532c4050cd5f48e5
+    DEPENDS dep_Boost dep_GMP dep_MPFR
 )
 
 include(GNUInstallDirs)

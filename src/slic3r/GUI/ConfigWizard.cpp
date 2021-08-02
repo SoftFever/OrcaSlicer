@@ -40,6 +40,7 @@
 #include "slic3r/Utils/PresetUpdater.hpp"
 #include "format.hpp"
 #include "MsgDialog.hpp"
+#include "libslic3r/libslic3r.h"
 
 #if defined(__linux__) && defined(__WXGTK3__)
 #define wxLinux_gtk3 true
@@ -65,6 +66,7 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_prusa_bu
 
     std::string path_string = source_path.string();
     auto [config_substitutions, presets_loaded] = preset_bundle->load_configbundle(path_string, PresetBundle::LoadConfigBundleAttribute::LoadSystem);
+    UNUSED(config_substitutions);
     // No substitutions shall be reported when loading a system config bundle, no substitutions are allowed.
     assert(config_substitutions.empty());
     auto first_vendor = preset_bundle->vendors.begin();
@@ -1604,25 +1606,17 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     , item_hover(NO_ITEM)
     , last_page((size_t)-1)
 {
+#ifndef __WXOSX__ 
+    SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
+#endif //__WXOSX__
     SetMinSize(bg.bmp().GetSize());
 
     const wxSize size = GetTextExtent("m");
     em_w = size.x;
     em_h = size.y;
 
-    // Add logo bitmap.
-    // This could be done in on_paint() along with the index labels, but I've found it tricky
-    // to get the bitmap rendered well on all platforms with transparent background.
-    // In some cases it didn't work at all. And so wxStaticBitmap is used here instead,
-    // because it has all the platform quirks figured out.
-    auto *sizer = new wxBoxSizer(wxVERTICAL);
-    logo = new wxStaticBitmap(this, wxID_ANY, bg.bmp());
-    sizer->AddStretchSpacer();
-    sizer->Add(logo);
-    SetSizer(sizer);
-    logo_height = logo->GetBitmap().GetHeight();
-
     Bind(wxEVT_PAINT, &ConfigWizardIndex::on_paint, this);
+    Bind(wxEVT_SIZE, [this](wxEvent& e) { e.Skip(); Refresh(); });
     Bind(wxEVT_MOTION, &ConfigWizardIndex::on_mouse_move, this);
 
     Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) {
@@ -1767,6 +1761,12 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
         y += yinc;
         index_width = std::max(index_width, (int)x + text_size.x);
     }
+    
+    //draw logo
+    if (int y = size.y - bg.GetBmpHeight(); y>=0) {
+        dc.DrawBitmap(bg.bmp(), 0, y, false);
+        index_width = std::max(index_width, bg.GetBmpWidth() + em_w / 2);
+    }
 
     if (GetMinSize().x < index_width) {
         CallAfter([this, index_width]() {
@@ -1774,11 +1774,6 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
             Refresh();
         });
     }
-
-    if ((int)y + logo_height > size.GetHeight())
-        logo->Hide();
-    else
-        logo->Show();
 }
 
 void ConfigWizardIndex::on_mouse_move(wxMouseEvent &evt)
@@ -1804,7 +1799,6 @@ void ConfigWizardIndex::msw_rescale()
 
     bg.msw_rescale();
     SetMinSize(bg.bmp().GetSize());
-    logo->SetBitmap(bg.bmp());
 
     bullet_black.msw_rescale();
     bullet_blue.msw_rescale();

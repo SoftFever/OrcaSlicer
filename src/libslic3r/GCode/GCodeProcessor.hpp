@@ -12,9 +12,7 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#if ENABLE_SEAMS_VISUALIZATION
 #include <optional>
-#endif // ENABLE_SEAMS_VISUALIZATION
 
 namespace Slic3r {
 
@@ -23,9 +21,7 @@ namespace Slic3r {
         Noop,
         Retract,
         Unretract,
-#if ENABLE_SEAMS_VISUALIZATION
         Seam,
-#endif // ENABLE_SEAMS_VISUALIZATION
         Tool_change,
         Color_change,
         Pause_Print,
@@ -82,11 +78,9 @@ namespace Slic3r {
 
     class GCodeProcessor
     {
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         static const std::vector<std::string> Reserved_Tags;
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
+
     public:
-#if ENABLE_VALIDATE_CUSTOM_GCODE
         enum class ETags : unsigned char
         {
             Role,
@@ -109,20 +103,6 @@ namespace Slic3r {
         // checks the given gcode for reserved tags and returns true when finding any
         // (the first max_count found tags are returned into found_tag)
         static bool contains_reserved_tags(const std::string& gcode, unsigned int max_count, std::vector<std::string>& found_tag);
-#else
-        static const std::string Extrusion_Role_Tag;
-        static const std::string Wipe_Start_Tag;
-        static const std::string Wipe_End_Tag;
-        static const std::string Height_Tag;
-        static const std::string Layer_Change_Tag;
-        static const std::string Color_Change_Tag;
-        static const std::string Pause_Print_Tag;
-        static const std::string Custom_Code_Tag;
-        static const std::string First_Line_M73_Placeholder_Tag;
-        static const std::string Last_Line_M73_Placeholder_Tag;
-        static const std::string Estimated_Printing_Time_Placeholder_Tag;
-        static const std::string Width_Tag;
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
 
         static const float Wipe_Width;
         static const float Wipe_Height;
@@ -210,7 +190,6 @@ namespace Slic3r {
             float time() const;
         };
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         struct MoveVertex
         {
             unsigned int gcode_id{ 0 };
@@ -230,7 +209,6 @@ namespace Slic3r {
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
         };
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 
     private:
         struct TimeMachine
@@ -269,7 +247,6 @@ namespace Slic3r {
             float max_travel_acceleration; // mm/s^2
             float extrude_factor_override_percentage;
             float time; // s
-#if ENABLE_EXTENDED_M73_LINES
             struct StopTime
             {
                 unsigned int g1_line_id;
@@ -278,9 +255,6 @@ namespace Slic3r {
             std::vector<StopTime> stop_times;
             std::string line_m73_main_mask;
             std::string line_m73_stop_mask;
-#else
-            std::string line_m73_mask;
-#endif // ENABLE_EXTENDED_M73_LINES
             State curr;
             State prev;
             CustomGCodeTime gcode_time;
@@ -326,12 +300,8 @@ namespace Slic3r {
             void reset();
 
             // post process the file with the given filename to add remaining time lines M73
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
             // and updates moves' gcode ids accordingly
             void post_process(const std::string& filename, std::vector<MoveVertex>& moves);
-#else
-            void post_process(const std::string& filename);
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -358,27 +328,6 @@ namespace Slic3r {
         };
 
     public:
-#if !ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-        struct MoveVertex
-        {
-            EMoveType type{ EMoveType::Noop };
-            ExtrusionRole extrusion_role{ erNone };
-            unsigned char extruder_id{ 0 };
-            unsigned char cp_color_id{ 0 };
-            Vec3f position{ Vec3f::Zero() }; // mm
-            float delta_extruder{ 0.0f }; // mm
-            float feedrate{ 0.0f }; // mm/s
-            float width{ 0.0f }; // mm
-            float height{ 0.0f }; // mm
-            float mm3_per_mm{ 0.0f };
-            float fan_speed{ 0.0f }; // percentage
-            float temperature{ 0.0f }; // Celsius degrees
-            float time{ 0.0f }; // s
-
-            float volumetric_rate() const { return feedrate * mm3_per_mm; }
-        };
-#endif // !ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-
         struct Result
         {
             struct SettingsIds
@@ -393,9 +342,7 @@ namespace Slic3r {
                     printer = "";
                 }
             };
-#if ENABLE_GCODE_WINDOW
             std::string filename;
-#endif // ENABLE_GCODE_WINDOW
             unsigned int id;
             std::vector<MoveVertex> moves;
             Pointfs bed_shape;
@@ -405,6 +352,9 @@ namespace Slic3r {
             std::vector<float> filament_diameters;
             std::vector<float> filament_densities;
             PrintEstimatedStatistics print_statistics;
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+            std::vector<CustomGCode::Item> custom_gcode_per_print_z;
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
             int64_t time{ 0 };
@@ -412,7 +362,6 @@ namespace Slic3r {
             void reset();
         };
 
-#if ENABLE_SEAMS_VISUALIZATION
         class SeamsDetector
         {
             bool m_active{ false };
@@ -433,7 +382,6 @@ namespace Slic3r {
             bool is_active() const { return m_active; }
             bool has_first_vertex() const { return m_first_vertex.has_value(); }
         };
-#endif // ENABLE_SEAMS_VISUALIZATION
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         struct DataChecker
@@ -518,12 +466,8 @@ namespace Slic3r {
         CachedPosition m_cached_position;
         bool m_wiping;
 
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         unsigned int m_line_id;
-#if ENABLE_SEAMS_VISUALIZATION
         unsigned int m_last_line_id;
-#endif // ENABLE_SEAMS_VISUALIZATION
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         float m_feedrate; // mm/s
         float m_width; // mm
         float m_height; // mm
@@ -536,17 +480,16 @@ namespace Slic3r {
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
         float m_extruded_last_z;
-#if ENABLE_START_GCODE_VISUALIZATION
         float m_first_layer_height; // mm
         bool m_processing_start_custom_gcode;
-#endif // ENABLE_START_GCODE_VISUALIZATION
         unsigned int m_g1_line_id;
         unsigned int m_layer_id;
         CpColor m_cp_color;
         bool m_use_volumetric_e;
-#if ENABLE_SEAMS_VISUALIZATION
         SeamsDetector m_seams_detector;
-#endif // ENABLE_SEAMS_VISUALIZATION
+#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+        size_t m_last_default_color_id;
+#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
         enum class EProducer
         {

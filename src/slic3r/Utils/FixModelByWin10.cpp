@@ -36,6 +36,8 @@
 #include "../GUI/GUI.hpp"
 #include "../GUI/I18N.hpp"
 #include "../GUI/MsgDialog.hpp"
+#include "../GUI/GUI_App.hpp"
+#include "../GUI/Mainframe.hpp"
 
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
@@ -341,7 +343,7 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 	wxProgressDialog progress_dialog(
 		_L("Model fixing"),
 		_L("Exporting model") + "...",
-		100, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+		100, GUI::wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
 	// Executing the calculation in a background thread, so that the COM context could be created with its own threading model.
 	// (It seems like wxWidgets initialize the COM contex as single threaded and we need a multi-threaded context).
 	bool   success = false;
@@ -423,12 +425,10 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 	if (canceled) {
 		// Nothing to show.
 	} else if (success) {
-		//wxMessageDialog dlg(nullptr, _(L("Model repaired successfully")), _(L("Model Repair by the Netfabb service")), wxICON_INFORMATION | wxOK_DEFAULT);
-		Slic3r::GUI::MessageDialog dlg(nullptr, _(L("Model repaired successfully")), _(L("Model Repair by the Netfabb service")), wxICON_INFORMATION | wxOK_DEFAULT);
+		Slic3r::GUI::MessageDialog dlg(nullptr, _L("Model repaired successfully"), _L("Model Repair by the Netfabb service"), wxICON_INFORMATION | wxOK);
 		dlg.ShowModal();
 	} else {
-		//wxMessageDialog dlg(nullptr, _(L("Model repair failed:")) + " \n" + _(progress.message), _(L("Model Repair by the Netfabb service")), wxICON_ERROR | wxOK_DEFAULT);
-		Slic3r::GUI::MessageDialog dlg(nullptr, _(L("Model repair failed:")) + " \n" + _(progress.message), _(L("Model Repair by the Netfabb service")), wxICON_ERROR | wxOK_DEFAULT);
+		Slic3r::GUI::MessageDialog dlg(nullptr, _L("Model repair failed:") + " \n" + _(progress.message), _L("Model Repair by the Netfabb service"), wxICON_ERROR | wxOK);
 		dlg.ShowModal();
 	}
 	worker_thread.join();

@@ -39,8 +39,8 @@ protected:
     virtual void on_start_dragging() override;
     virtual void on_stop_dragging() override;
     virtual void on_update(const UpdateData& data) override;
-    virtual void on_render() const override;
-    virtual void on_render_for_picking() const override;
+    virtual void on_render() override;
+    virtual void on_render_for_picking() override;
 
 private:
     double calc_projection(const UpdateData& data) const;

@@ -20,6 +20,8 @@
 #include <boost/log/trivial.hpp>
 
 static const float GROUND_Z = -0.02f;
+static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.235f, 0.235f, 0.235f, 1.0f };
+static const std::array<float, 4> PICKING_MODEL_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -211,8 +213,18 @@ Point Bed3D::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
-void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor,
-                   bool show_axes, bool show_texture) const
+void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes, bool show_texture)
+{
+    render_internal(canvas, bottom, scale_factor, show_axes, show_texture, false);
+}
+
+void Bed3D::render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor)
+{
+    render_internal(canvas, bottom, scale_factor, false, false, true);
+}
+
+void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
+    bool show_axes, bool show_texture, bool picking)
 {
     float* factor = const_cast<float*>(&m_scale_factor);
     *factor = scale_factor;
@@ -222,11 +234,13 @@ void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
+    m_model.set_color(-1, picking ? PICKING_MODEL_COLOR : DEFAULT_MODEL_COLOR);
+
     switch (m_type)
     {
     case System: { render_system(canvas, bottom, show_texture); break; }
     default:
-    case Custom: { render_custom(canvas, bottom, show_texture); break; }
+    case Custom: { render_custom(canvas, bottom, show_texture, picking); break; }
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -237,7 +251,7 @@ void Bed3D::calc_bounding_boxes() const
     BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
     *bounding_box = BoundingBoxf3();
     for (const Vec2d& p : m_shape) {
-        bounding_box->merge({ p(0), p(1), 0.0 });
+        bounding_box->merge({ p.x(), p.y(), 0.0 });
     }
 
     BoundingBoxf3* extended_bounding_box = const_cast<BoundingBoxf3*>(&m_extended_bounding_box);
@@ -264,16 +278,16 @@ void Bed3D::calc_triangles(const ExPolygon& poly)
 void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
 {
     Polylines axes_lines;
-    for (coord_t x = bed_bbox.min(0); x <= bed_bbox.max(0); x += scale_(10.0)) {
+    for (coord_t x = bed_bbox.min.x(); x <= bed_bbox.max.x(); x += scale_(10.0)) {
         Polyline line;
-        line.append(Point(x, bed_bbox.min(1)));
-        line.append(Point(x, bed_bbox.max(1)));
+        line.append(Point(x, bed_bbox.min.y()));
+        line.append(Point(x, bed_bbox.max.y()));
         axes_lines.push_back(line);
     }
-    for (coord_t y = bed_bbox.min(1); y <= bed_bbox.max(1); y += scale_(10.0)) {
+    for (coord_t y = bed_bbox.min.y(); y <= bed_bbox.max.y(); y += scale_(10.0)) {
         Polyline line;
-        line.append(Point(bed_bbox.min(0), y));
-        line.append(Point(bed_bbox.max(0), y));
+        line.append(Point(bed_bbox.min.x(), y));
+        line.append(Point(bed_bbox.max.x(), y));
         axes_lines.push_back(line);
     }
 
@@ -333,7 +347,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
 
     if (m_texture_filename.empty()) {
         texture->reset();
-        render_default(bottom);
+        render_default(bottom, false);
         return;
     }
 
@@ -346,7 +360,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
                 // generate a temporary lower resolution texture to show while no main texture levels have been compressed
                 if (!temp_texture->load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
-                    render_default(bottom);
+                    render_default(bottom, false);
                     return;
                 }
                 canvas.request_extra_frame();
@@ -354,7 +368,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
 
             // starts generating the main texture, compression will run asynchronously
             if (!texture->load_from_svg_file(m_texture_filename, true, true, true, max_tex_size)) {
-                render_default(bottom);
+                render_default(bottom, false);
                 return;
             }
         } 
@@ -362,7 +376,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             // generate a temporary lower resolution texture to show while no main texture levels have been compressed
             if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
                 if (!temp_texture->load_from_file(m_texture_filename, false, GLTexture::None, false)) {
-                    render_default(bottom);
+                    render_default(bottom, false);
                     return;
                 }
                 canvas.request_extra_frame();
@@ -370,12 +384,12 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
 
             // starts generating the main texture, compression will run asynchronously
             if (!texture->load_from_file(m_texture_filename, true, GLTexture::MultiThreaded, true)) {
-                render_default(bottom);
+                render_default(bottom, false);
                 return;
             }
         }
         else {
-            render_default(bottom);
+            render_default(bottom, false);
             return;
         }
     }
@@ -388,7 +402,6 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             temp_texture->reset();
 
         canvas.request_extra_frame();
-
     }
 
     if (m_triangles.get_vertices_count() > 0) {
@@ -470,7 +483,7 @@ void Bed3D::render_model() const
     GLModel* model = const_cast<GLModel*>(&m_model);
 
     if (model->get_filename() != m_model_filename && model->init_from_file(m_model_filename)) {
-        model->set_color(-1, m_model_color);
+        model->set_color(-1, DEFAULT_MODEL_COLOR);
 
         // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
         Vec3d shift = m_bounding_box.center();
@@ -495,10 +508,10 @@ void Bed3D::render_model() const
     }
 }
 
-void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture) const
+void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture, bool picking) const
 {
     if (m_texture_filename.empty() && m_model_filename.empty()) {
-        render_default(bottom);
+        render_default(bottom, picking);
         return;
     }
 
@@ -509,7 +522,7 @@ void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture) co
         render_texture(bottom, canvas);
 }
 
-void Bed3D::render_default(bool bottom) const
+void Bed3D::render_default(bool bottom, bool picking) const
 {
     const_cast<GLTexture*>(&m_texture)->reset();
 
@@ -526,21 +539,23 @@ void Bed3D::render_default(bool bottom) const
         if (!has_model && !bottom) {
             // draw background
             glsafe(::glDepthMask(GL_FALSE));
-            glsafe(::glColor4fv(m_model_color.data()));
+            glsafe(::glColor4fv(picking ? PICKING_MODEL_COLOR.data() : DEFAULT_MODEL_COLOR.data()));
             glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
             glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
             glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
             glsafe(::glDepthMask(GL_TRUE));
         }
 
-        // draw grid
-        glsafe(::glLineWidth(1.5f * m_scale_factor));
-        if (has_model && !bottom)
-            glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 1.0f));
-        else
-            glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
-        glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
-        glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
+        if (!picking) {
+            // draw grid
+            glsafe(::glLineWidth(1.5f * m_scale_factor));
+            if (has_model && !bottom)
+                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 1.0f));
+            else
+                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
+            glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
+            glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
+        }
 
         glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 

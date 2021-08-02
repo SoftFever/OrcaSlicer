@@ -362,6 +362,35 @@ static inline std::vector<IntersectionLines> slice_make_lines(
     return lines;
 }
 
+template<typename TransformVertex, typename FaceFilter>
+static inline IntersectionLines slice_make_lines(
+    const std::vector<stl_vertex>                   &mesh_vertices,
+    const TransformVertex                           &transform_vertex_fn,
+    const std::vector<stl_triangle_vertex_indices>  &mesh_faces,
+    const std::vector<Vec3i>                        &face_edge_ids,
+    const float                                      plane_z, 
+    FaceFilter                                       face_filter)
+{
+    IntersectionLines lines;
+    for (int face_idx = 0; face_idx < mesh_faces.size(); ++ face_idx)
+        if (face_filter(face_idx)) {
+            const Vec3i &indices = mesh_faces[face_idx];
+            stl_vertex vertices[3] { transform_vertex_fn(mesh_vertices[indices(0)]), transform_vertex_fn(mesh_vertices[indices(1)]), transform_vertex_fn(mesh_vertices[indices(2)]) };
+            // find facet extents
+            const float min_z = fminf(vertices[0].z(), fminf(vertices[1].z(), vertices[2].z()));
+            const float max_z = fmaxf(vertices[0].z(), fmaxf(vertices[1].z(), vertices[2].z()));
+            assert(min_z <= plane_z && max_z >= plane_z);
+            int  idx_vertex_lowest = (vertices[1].z() == min_z) ? 1 : ((vertices[2].z() == min_z) ? 2 : 0);            
+            IntersectionLine il;
+            // Ignore horizontal triangles. Any valid horizontal triangle must have a vertical triangle connected, otherwise the part has zero volume.
+            if (min_z != max_z && slice_facet(plane_z, vertices, indices, face_edge_ids[face_idx], idx_vertex_lowest, false, il) == FacetSliceType::Slicing) {
+                assert(il.edge_type != IntersectionLine::FacetEdgeType::Horizontal);
+                lines.emplace_back(il);
+            }
+        }
+    return lines;
+}
+
 // For projecting triangle sets onto slice slabs.
 struct SlabLines {
     // Intersection lines of a slice with a triangle set, CCW oriented.
@@ -1718,6 +1747,69 @@ std::vector<Polygons> slice_mesh(
 #endif
 
     return layers;
+}
+
+// Specialized version for a single slicing plane only, running on a single thread.
+Polygons slice_mesh(
+    const indexed_triangle_set       &mesh,
+    // Unscaled Zs
+    const float                       plane_z,
+    const MeshSlicingParams          &params)
+{
+    std::vector<IntersectionLines> lines;
+
+    {
+        bool                trafo_identity = is_identity(params.trafo);
+        Transform3f         tf;
+        std::vector<bool>   face_mask(mesh.indices.size(), false);
+
+        {
+            // 1) Mark vertices as below or above the slicing plane.
+            std::vector<char> vertex_side(mesh.vertices.size(), 0);
+            if (trafo_identity) {
+                for (size_t i = 0; i < mesh.vertices.size(); ++ i) {
+                    float z = mesh.vertices[i].z();
+                    char  s = z < plane_z ? -1 : z == plane_z ? 0 : 1;
+                    vertex_side[i] = s;
+                }
+            } else {
+                tf = make_trafo_for_slicing(params.trafo);
+                for (size_t i = 0; i < mesh.vertices.size(); ++ i) {
+                    //FIXME don't need to transform x & y, just Z.
+                    float z = (tf * mesh.vertices[i]).z();
+                    char  s = z < plane_z ? -1 : z == plane_z ? 0 : 1;
+                    vertex_side[i] = s;
+                }
+            }
+
+            // 2) Mark faces crossing the plane.
+            for (size_t i = 0; i < mesh.indices.size(); ++ i) {
+                const Vec3i &face = mesh.indices[i];
+                int sides[3] = { vertex_side[face(0)], vertex_side[face(1)], vertex_side[face(2)] };
+                face_mask[i] = sides[0] * sides[1] <= 0 || sides[1] * sides[2] <= 0 || sides[0] * sides[2] <= 0;
+            }
+        }
+
+        // 3) Calculate face neighbors for just the faces in face_mask.
+        std::vector<Vec3i> face_edge_ids = its_face_edge_ids(mesh, face_mask);
+
+        // 4) Slice "face_mask" triangles, collect line segments.
+        // It likely is not worthwile to copy the vertices. Apply the transformation in place.
+        if (trafo_identity) {
+            lines.emplace_back(slice_make_lines(
+                mesh.vertices, [](const Vec3f &p) { return Vec3f(scaled<float>(p.x()), scaled<float>(p.y()), p.z()); }, 
+                mesh.indices, face_edge_ids, plane_z, [&face_mask](int face_idx) { return face_mask[face_idx]; }));
+        } else {
+            // Transform the vertices, scale up in XY, not in Z.
+            lines.emplace_back(slice_make_lines(mesh.vertices, [tf](const Vec3f& p) { return tf * p; }, mesh.indices, face_edge_ids, plane_z,
+                [&face_mask](int face_idx) { return face_mask[face_idx]; }));
+        }
+    }
+
+    // 5) Chain the line segments.
+    std::vector<Polygons> layers = make_loops(lines, params, [](){});
+    assert(layers.size() == 1);
+    return layers.front();
 }
 
 std::vector<ExPolygons> slice_mesh_ex(

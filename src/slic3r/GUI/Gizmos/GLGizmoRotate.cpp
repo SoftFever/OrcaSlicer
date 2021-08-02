@@ -125,7 +125,7 @@ void GLGizmoRotate::on_update(const UpdateData& data)
     m_angle = theta;
 }
 
-void GLGizmoRotate::on_render() const
+void GLGizmoRotate::on_render()
 {
     if (!m_grabbers[0].enabled)
         return;
@@ -169,7 +169,7 @@ void GLGizmoRotate::on_render() const
     glsafe(::glPopMatrix());
 }
 
-void GLGizmoRotate::on_render_for_picking() const
+void GLGizmoRotate::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
 
@@ -483,17 +483,17 @@ void GLGizmoRotate3D::on_stop_dragging()
         m_gizmos[m_hover_id].stop_dragging();
 }
 
-void GLGizmoRotate3D::on_render() const
+void GLGizmoRotate3D::on_render()
 {
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
-    if ((m_hover_id == -1) || (m_hover_id == 0))
+    if (m_hover_id == -1 || m_hover_id == 0)
         m_gizmos[X].render();
 
-    if ((m_hover_id == -1) || (m_hover_id == 1))
+    if (m_hover_id == -1 || m_hover_id == 1)
         m_gizmos[Y].render();
 
-    if ((m_hover_id == -1) || (m_hover_id == 2))
+    if (m_hover_id == -1 || m_hover_id == 2)
         m_gizmos[Z].render();
 }
 

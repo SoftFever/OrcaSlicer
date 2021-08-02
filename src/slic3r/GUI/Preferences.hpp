@@ -29,22 +29,16 @@ class PreferencesDialog : public DPIDialog
     bool                                isOSX {false};
 	bool								m_settings_layout_changed {false};
 	bool								m_seq_top_layer_only_changed{ false };
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-	bool								m_seq_top_gcode_indices_changed{ false };
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 	bool								m_recreate_GUI{false};
 
 public:
-	explicit PreferencesDialog(wxWindow* parent);
+	explicit PreferencesDialog(wxWindow* parent, int selected_tab = 0);
 	~PreferencesDialog() = default;
 
 	bool settings_layout_changed() const { return m_settings_layout_changed; }
 	bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-	bool seq_seq_top_gcode_indices_changed() const { return m_seq_top_gcode_indices_changed; }
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
 	bool recreate_GUI() const { return m_recreate_GUI; }
-	void	build();
+	void	build(size_t selected_tab = 0);
 	void	accept(wxEvent&);
 
 protected:

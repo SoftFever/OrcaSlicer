@@ -22,8 +22,8 @@ public:
         POINTER
     };
 
-    [[nodiscard]] std::vector<Vec3i> precompute_all_level_neighbors() const;
-    void precompute_all_level_neighbors_recursive(const int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec3i> &neighbors_out) const;
+    std::pair<std::vector<Vec3i>, std::vector<Vec3i>> precompute_all_neighbors() const;
+    void precompute_all_neighbors_recursive(int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec3i> &neighbors_out, std::vector<Vec3i> &neighbors_normal_out) const;
 
     // Set a limit to the edge length, below which the edge will not be split by select_patch().
     // Called by select_patch() internally. Made public for debugging purposes, see TriangleSelectorGUI::render_debug().
@@ -36,10 +36,6 @@ public:
     // Returns the facet_idx of the unsplit triangle containing the "hit". Returns -1 if the triangle isn't found.
     [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx) const;
     [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx, const Vec3i &neighbors) const;
-
-    [[nodiscard]] bool are_triangles_touching(int first_facet_idx, int second_facet_idx) const;
-
-    [[nodiscard]] std::vector<int> neighboring_triangles(int first_facet_idx, int second_facet_idx, EnforcerBlockerType second_facet_state) const;
 
     // Select all triangles fully inside the circle, subdivide where needed.
     void select_patch(const Vec3f        &hit,         // point where to start
@@ -60,7 +56,7 @@ public:
                                     bool         propagate);        // if bucket fill is propagated to neighbor faces or if it fills the only facet of the modified mesh that the hit point belongs to.
 
     bool                 has_facets(EnforcerBlockerType state) const;
-    static bool          has_facets(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, const EnforcerBlockerType test_state);
+    static bool          has_facets(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, EnforcerBlockerType test_state);
     int                  num_facets(EnforcerBlockerType state) const;
     // Get facets at a given state. Don't triangulate T-joints.
     indexed_triangle_set get_facets(EnforcerBlockerType state) const;
@@ -81,7 +77,7 @@ public:
     std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data);
+    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, bool needs_reset = true);
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();
@@ -128,11 +124,11 @@ protected:
         bool is_selected_by_seed_fill() const { assert(! is_split()); return m_selected_by_seed_fill; }
 
         // Is this triangle valid or marked to be removed?
-        bool valid() const throw() { return m_valid; }
+        bool valid() const noexcept { return m_valid; }
         // Get info on how it's split.
-        bool is_split() const throw() { return number_of_split_sides() != 0; }
-        int number_of_split_sides() const throw() { return number_of_splits; }
-        int special_side() const throw() { assert(is_split()); return special_side_idx; }
+        bool is_split() const noexcept { return number_of_split_sides() != 0; }
+        int number_of_split_sides() const noexcept { return number_of_splits; }
+        int special_side() const noexcept { assert(is_split()); return special_side_idx; }
 
     private:
         friend TriangleSelector;
@@ -205,7 +201,7 @@ private:
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
     bool is_pointer_in_triangle(int facet_idx) const;
     bool is_edge_inside_cursor(int facet_idx) const;
-    int  push_triangle(int a, int b, int c, int source_triangle, const EnforcerBlockerType state = EnforcerBlockerType{0});
+    int  push_triangle(int a, int b, int c, int source_triangle, EnforcerBlockerType state = EnforcerBlockerType{0});
     void perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state);
     Vec3i child_neighbors(const Triangle &tr, const Vec3i &neighbors, int child_idx) const;
     Vec3i child_neighbors_propagated(const Triangle &tr, const Vec3i &neighbors, int child_idx) const;
@@ -221,6 +217,11 @@ private:
     int triangle_midpoint(int itriangle, int vertexi, int vertexj) const;
     int triangle_midpoint_or_allocate(int itriangle, int vertexi, int vertexj);
 
+    static std::pair<int, int> triangle_subtriangles(const Triangle &tr, int vertexi, int vertexj);
+    std::pair<int, int>        triangle_subtriangles(int itriangle, int vertexi, int vertexj) const;
+
+    void append_touching_subtriangles(int itriangle, int vertexi, int vertexj, std::vector<int> &touching_subtriangles_out) const;
+
 #ifndef NDEBUG
     bool verify_triangle_neighbors(const Triangle& tr, const Vec3i& neighbors) const;
     bool verify_triangle_midpoints(const Triangle& tr) const;
@@ -231,7 +232,7 @@ private:
         const Vec3i                                 &neighbors,
         EnforcerBlockerType                          state,
         std::vector<stl_triangle_vertex_indices>    &out_triangles) const;
-    void get_facets_split_by_tjoints(const Vec3i vertices, const Vec3i neighbors, std::vector<stl_triangle_vertex_indices> &out_triangles) const;
+    void get_facets_split_by_tjoints(const Vec3i &vertices, const Vec3i &neighbors, std::vector<stl_triangle_vertex_indices> &out_triangles) const;
 
     int m_free_triangles_head { -1 };
     int m_free_vertices_head { -1 };

@@ -120,13 +120,8 @@ void GCodeReader::parse_file(const std::string &file, callback_t callback)
 {
     boost::nowide::ifstream f(file);
     std::string line;
-#if ENABLE_VALIDATE_CUSTOM_GCODE
     m_parsing = true;
     while (m_parsing && std::getline(f, line))
-#else
-    m_parsing_file = true;
-    while (m_parsing_file && std::getline(f, line))
-#endif // ENABLE_VALIDATE_CUSTOM_GCODE
         this->parse_line(line, callback);
 }
 

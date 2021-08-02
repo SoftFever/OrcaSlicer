@@ -918,7 +918,6 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
 // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
 // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
 // This method is used by the auto arrange function.
-#if ENABLE_ALLOW_NEGATIVE_Z
 Polygon ModelObject::convex_hull_2d(const Transform3d& trafo_instance) const
 {
     Points pts;
@@ -928,33 +927,6 @@ Polygon ModelObject::convex_hull_2d(const Transform3d& trafo_instance) const
     }
     return Geometry::convex_hull(std::move(pts));
 }
-#else
-Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
-{
-    Points pts;
-    for (const ModelVolume *v : this->volumes)
-        if (v->is_model_part()) {
-            Transform3d trafo = trafo_instance * v->get_matrix();
-			const indexed_triangle_set &its = v->mesh().its;
-			if (its.vertices.empty()) {
-                // Using the STL faces.
-				const stl_file& stl = v->mesh().stl;
-				for (const stl_facet &facet : stl.facet_start)
-                    for (size_t j = 0; j < 3; ++ j) {
-                        Vec3d p = trafo * facet.vertex[j].cast<double>();
-                            pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
-                    }
-            } else {
-                // Using the shared vertices should be a bit quicker than using the STL faces.
-                for (size_t i = 0; i < its.vertices.size(); ++ i) {
-                    Vec3d p = trafo * its.vertices[i].cast<double>();
-                        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
-                }
-            }
-        }
-    return Geometry::convex_hull(std::move(pts));
-}
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
 void ModelObject::center_around_origin(bool include_modifiers)
 {
@@ -969,19 +941,12 @@ void ModelObject::center_around_origin(bool include_modifiers)
     this->origin_translation += shift;
 }
 
-#if ENABLE_ALLOW_NEGATIVE_Z
 void ModelObject::ensure_on_bed(bool allow_negative_z)
 {
     const double min_z = get_min_z();
     if (!allow_negative_z || min_z > SINKING_Z_THRESHOLD)
         translate_instances({ 0.0, 0.0, -min_z });
 }
-#else
-void ModelObject::ensure_on_bed()
-{
-    translate_instances({ 0.0, 0.0, -get_min_z() });
-}
-#endif // ENABLE_ALLOW_NEGATIVE_Z
 
 void ModelObject::translate_instances(const Vec3d& vector)
 {
@@ -1734,6 +1699,10 @@ size_t ModelVolume::split(unsigned int max_extruders)
 
     for (TriangleMesh *mesh : meshptrs) {
         mesh->repair();
+        if (mesh->empty())
+            // Repair may have removed unconnected triangles, thus emptying the mesh.
+            continue;
+
         if (idx == 0)
         {
             this->set_mesh(std::move(*mesh));
@@ -1927,19 +1896,9 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
     Transform3d trafo_instance =
-#if ENABLE_ALLOW_NEGATIVE_Z
-        Geometry::assemble_transform(get_offset().z() * Vec3d::UnitZ(), rotation,
-                                     get_scaling_factor(), get_mirror());
-#else
-        Geometry::assemble_transform(Vec3d::Zero(), rotation,
-                                     get_scaling_factor(), get_mirror());
-#endif // ENABLE_ALLOW_NEGATIVE_Z
+        Geometry::assemble_transform(get_offset().z() * Vec3d::UnitZ(), rotation, get_scaling_factor(), get_mirror());
 
     Polygon p = get_object()->convex_hull_2d(trafo_instance);
-
-#if !ENABLE_ALLOW_NEGATIVE_Z
-    assert(!p.points.empty());
-#endif // !ENABLE_ALLOW_NEGATIVE_Z
 
 //    if (!p.points.empty()) {
 //        Polygons pp{p};
@@ -1958,14 +1917,16 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const
 {
     TriangleSelector selector(mv.mesh());
-    selector.deserialize(m_data);
+    // Reset of TriangleSelector is done inside TriangleSelector's constructor, so we don't need it to perform it again in deserialize().
+    selector.deserialize(m_data, false);
     return selector.get_facets(type);
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const
 {
     TriangleSelector selector(mv.mesh());
-    selector.deserialize(m_data);
+    // Reset of TriangleSelector is done inside TriangleSelector's constructor, so we don't need it to perform it again in deserialize().
+    selector.deserialize(m_data, false);
     return selector.get_facets_strict(type);
 }
 

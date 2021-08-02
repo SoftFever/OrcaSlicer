@@ -61,6 +61,7 @@ GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Dat
     , m_state(Normal)
     , m_data(data)
     , m_last_action_type(Undefined)
+    , m_highlight_state(NotHighlighted)
 {
 }
 
@@ -91,7 +92,8 @@ void GLToolbarItem::render(unsigned int tex_id, float left, float right, float b
         assert((tex_width != 0) && (tex_height != 0));
         GLTexture::Quad_UVs ret;
         // tiles in the texture are spaced by 1 pixel
-        float icon_size_px = (float)(tex_width - 1) / (float)Num_States;
+        float icon_size_px = (float)(tex_width - 1) / ((float)Num_States + (float)Num_Rendered_Highlight_States);
+        char render_state = (m_highlight_state ==  NotHighlighted ? m_state : Num_States + m_highlight_state);
         float inv_tex_width = 1.0f / (float)tex_width;
         float inv_tex_height = 1.0f / (float)tex_height;
         // tiles in the texture are spaced by 1 pixel
@@ -99,7 +101,7 @@ void GLToolbarItem::render(unsigned int tex_id, float left, float right, float b
         float v_offset = 1.0f * inv_tex_height;
         float du = icon_size_px * inv_tex_width;
         float dv = icon_size_px * inv_tex_height;
-        float left = u_offset + (float)m_state * du;
+        float left = u_offset + (float)render_state * du;
         float right = left + du - u_offset;
         float top = v_offset + (float)m_data.sprite_id * dv;
         float bottom = top + dv - v_offset;
@@ -179,6 +181,24 @@ bool GLToolbar::init(const BackgroundTexture::Metadata& background_texture)
 
     if (res)
         m_background_texture.metadata = background_texture;
+
+    return res;
+}
+
+bool GLToolbar::init_arrow(const BackgroundTexture::Metadata& arrow_texture)
+{
+    if (m_arrow_texture.texture.get_id() != 0)
+        return true;
+
+    std::string path = resources_dir() + "/icons/";
+    bool res = false;
+
+    if (!arrow_texture.filename.empty())
+        res = m_arrow_texture.texture.load_from_file(path + arrow_texture.filename, false, GLTexture::SingleThreaded, false);
+//        res = m_arrow_texture.texture.load_from_svg_file(path + arrow_texture.filename, false, true, false, 100);
+
+    if (res)
+        m_arrow_texture.metadata = arrow_texture;
 
     return res;
 }
@@ -418,6 +438,8 @@ void GLToolbar::render(const GLCanvas3D& parent)
     case Layout::Vertical: { render_vertical(parent); break; }
     }
 }
+
+
 
 bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
 {
@@ -869,6 +891,21 @@ void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& 
     }
 }
 
+GLToolbarItem* GLToolbar::get_item(const std::string& item_name)
+{
+    if (!m_enabled)
+        return nullptr;
+
+    for (GLToolbarItem* item : m_items)
+    {
+        if (item->get_name() == item_name)   
+        {
+            return item;
+        }
+    }
+    return nullptr;
+}
+
 int GLToolbar::contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const
 {
     if (!m_enabled)
@@ -1105,6 +1142,63 @@ void GLToolbar::render_background(float left, float top, float right, float bott
     }
 }
 
+void GLToolbar::render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighted_item)
+{
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+    float factor = inv_zoom * m_layout.scale;
+
+    float scaled_icons_size = m_layout.icons_size * factor;
+    float scaled_separator_size = m_layout.separator_size * factor;
+    float scaled_gap_size = m_layout.gap_size * factor;
+    float border = m_layout.border * factor;
+
+    float separator_stride = scaled_separator_size + scaled_gap_size;
+    float icon_stride = scaled_icons_size + scaled_gap_size;
+
+    float left = m_layout.left;
+    float top = m_layout.top - icon_stride;
+
+    for (const GLToolbarItem* item : m_items) {
+        if (!item->is_visible())
+            continue;
+
+        if (item->is_separator())
+            left += separator_stride;
+        else {   
+            if (item->get_name() == highlighted_item->get_name())
+                break;
+            left += icon_stride;
+        }
+    }
+
+    left += border;
+    top -= separator_stride;
+    float right = left + scaled_icons_size;
+
+    unsigned int tex_id = m_arrow_texture.texture.get_id();
+    float tex_width = (float)m_icons_texture.get_width();
+    float tex_height = (float)m_icons_texture.get_height();
+
+    if ((tex_id != 0) && (tex_width > 0) && (tex_height > 0)) {
+        float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
+        float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
+
+        float internal_left = left + border - scaled_icons_size / 2; // add half scaled_icons_size for huge arrow
+        float internal_right = right - border + scaled_icons_size / 2;
+        float internal_top = top - border;
+        // bottom is not moving and should be calculated from arrow texture sides ratio
+        float arrow_sides_ratio = (float)m_arrow_texture.texture.get_height() / (float)m_arrow_texture.texture.get_width();
+        float internal_bottom = internal_top - (internal_right - internal_left) * arrow_sides_ratio;
+
+        float internal_left_uv = (float)m_arrow_texture.metadata.left * inv_tex_width;
+        float internal_right_uv = 1.0f - (float)m_arrow_texture.metadata.right * inv_tex_width;
+        float internal_top_uv = 1.0f - (float)m_arrow_texture.metadata.top * inv_tex_height;
+        float internal_bottom_uv = (float)m_arrow_texture.metadata.bottom * inv_tex_height;
+
+        GLTexture::render_sub_texture(tex_id, internal_left, internal_right, internal_bottom, internal_top, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
+    }
+}
+
 void GLToolbar::render_horizontal(const GLCanvas3D& parent)
 {
     unsigned int tex_id = m_icons_texture.get_id();
@@ -1217,6 +1311,8 @@ bool GLToolbar::generate_icons_texture()
         states.push_back({ 0, false }); // Hover
         states.push_back({ 0, false }); // HoverPressed
         states.push_back({ 2, false }); // HoverDisabled
+        states.push_back({ 0, false }); // HighlightedShown
+        states.push_back({ 2, false }); // HighlightedHidden
     }
     else {
         states.push_back({ 1, false }); // Normal
@@ -1225,6 +1321,8 @@ bool GLToolbar::generate_icons_texture()
         states.push_back({ 0, false }); // Hover
         states.push_back({ 1, true });  // HoverPressed
         states.push_back({ 1, false }); // HoverDisabled
+        states.push_back({ 0, false }); // HighlightedShown
+        states.push_back({ 1, false }); // HighlightedHidden
     }
 
     unsigned int sprite_size_px = (unsigned int)(m_layout.icons_size * m_layout.scale);

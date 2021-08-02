@@ -52,8 +52,8 @@ protected:
     virtual bool on_is_activable() const override;
     virtual void on_start_dragging() override;
     virtual void on_update(const UpdateData& data) override;
-    virtual void on_render() const override;
-    virtual void on_render_for_picking() const override;
+    virtual void on_render() override;
+    virtual void on_render_for_picking() override;
 
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;

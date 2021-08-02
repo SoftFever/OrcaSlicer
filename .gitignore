@@ -1,5 +1,6 @@
 Build
 Build.bat
+/build/
 MYMETA.json
 MYMETA.yml
 _build
@@ -11,3 +12,5 @@ xs/MANIFEST.bak
 xs/assertlib*
 .init_bundle.ini
 local-lib
+/src/TAGS
+/.vscode/

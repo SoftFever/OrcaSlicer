@@ -43,7 +43,11 @@ static const std::map<const char, std::string> font_icons = {
     {ImGui::FilamentIconMarker    , "spool"                         },
     {ImGui::MaterialIconMarker    , "resin"                         },
     {ImGui::MinimalizeButton      , "notification_minimalize"       },
-    {ImGui::MinimalizeHoverButton , "notification_minimalize_hover" }
+    {ImGui::MinimalizeHoverButton , "notification_minimalize_hover" },
+    {ImGui::RightArrowButton      , "notification_right"            },
+    {ImGui::RightArrowHoverButton , "notification_right_hover"      },
+    {ImGui::PreferencesButton      , "notification_preferences"      },
+    {ImGui::PreferencesHoverButton , "notification_preferences_hover"},
 };
 static const std::map<const char, std::string> font_icons_large = {
     {ImGui::CloseNotifButton       , "notification_close"            },
@@ -54,6 +58,12 @@ static const std::map<const char, std::string> font_icons_large = {
     {ImGui::ErrorMarker            , "notification_error"            },
     {ImGui::CancelButton           , "notification_cancel"           },
     {ImGui::CancelHoverButton      , "notification_cancel_hover"     },
+    {ImGui::SinkingObjectMarker    , "move"                          },
+    {ImGui::CustomSupportsMarker   , "fdm_supports"                  },
+    {ImGui::CustomSeamMarker       , "seam"                          },
+    {ImGui::MmuSegmentationMarker  , "move"                          },
+    {ImGui::VarLayerHeightMarker   , "layers"                        },
+    
 };
 
 const ImVec4 ImGuiWrapper::COL_GREY_DARK         = { 0.333f, 0.333f, 0.333f, 1.0f };
@@ -204,7 +214,8 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     unsigned buttons = (evt.LeftIsDown() ? 1 : 0) | (evt.RightIsDown() ? 2 : 0) | (evt.MiddleIsDown() ? 4 : 0);
     m_mouse_buttons = buttons;
 
-    new_frame();
+    if (want_mouse())
+        new_frame();
     return want_mouse();
 }
 
@@ -222,9 +233,6 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         if (key != 0) {
             io.AddInputCharacter(key);
         }
-
-        new_frame();
-        return want_keyboard() || want_text_input();
     } else {
         // Key up/down event
         int key = evt.GetKeyCode();
@@ -235,10 +243,11 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         io.KeyCtrl = evt.ControlDown();
         io.KeyAlt = evt.AltDown();
         io.KeySuper = evt.MetaDown();
-
-        new_frame();
-        return want_keyboard() || want_text_input();
     }
+    bool ret = want_keyboard() || want_text_input();
+    if (ret)
+        new_frame();
+    return ret;
 }
 
 void ImGuiWrapper::new_frame()
@@ -407,20 +416,23 @@ void ImGuiWrapper::text_colored(const ImVec4& color, const wxString& label)
     this->text_colored(color, label_utf8.c_str());
 }
 
-bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)
 {
-    return ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+    bool ret = ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+    if (clamp)
+        *v = std::clamp(*v, v_min, v_max);
+    return ret;
 }
 
-bool ImGuiWrapper::slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+bool ImGuiWrapper::slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)
 {
-    return this->slider_float(label.c_str(), v, v_min, v_max, format, power);
+    return this->slider_float(label.c_str(), v, v_min, v_max, format, power, clamp);
 }
 
-bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)
 {
     auto label_utf8 = into_u8(label);
-    return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power);
+    return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power, clamp);
 }
 
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
@@ -1118,6 +1130,11 @@ void ImGuiWrapper::init_style()
     set_color(ImGuiCol_TabActive, COL_ORANGE_LIGHT);
     set_color(ImGuiCol_TabUnfocused, COL_GREY_DARK);
     set_color(ImGuiCol_TabUnfocusedActive, COL_GREY_LIGHT);
+
+    // Scrollbars
+    set_color(ImGuiCol_ScrollbarGrab, COL_ORANGE_DARK);
+    set_color(ImGuiCol_ScrollbarGrabHovered, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_ScrollbarGrabActive, COL_ORANGE_LIGHT);
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)

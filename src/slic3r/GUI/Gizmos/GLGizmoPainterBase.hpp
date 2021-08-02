@@ -66,8 +66,8 @@ class GLGizmoPainterBase : public GLGizmoBase
 private:
     ObjectID m_old_mo_id;
     size_t m_old_volumes_size = 0;
-    void on_render() const override {}
-    void on_render_for_picking() const override {}
+    void on_render() override {}
+    void on_render_for_picking() override {}
 
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);

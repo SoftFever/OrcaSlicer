@@ -50,7 +50,7 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
     const wxColour& selected_btn_bg  = Slic3r::GUI::wxGetApp().get_color_selected_btn_bg();
     const wxColour& default_btn_bg   = Slic3r::GUI::wxGetApp().get_highlight_default_clr();
     const wxColour& btn_marker_color = Slic3r::GUI::wxGetApp().get_color_hovered_btn_label();
-    for (int idx = 0; idx < m_pageButtons.size(); idx++) {
+    for (int idx = 0; idx < int(m_pageButtons.size()); idx++) {
         wxButton* btn = m_pageButtons[idx];
 
         btn->SetBackgroundColour(idx == m_selection ? selected_btn_bg : default_btn_bg);

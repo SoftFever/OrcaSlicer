@@ -29,6 +29,7 @@ wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClicke
 
 class GLCanvas3D;
 class ImGuiWrapper;
+enum class InfoItemType;
 
 enum class NotificationType
 {
@@ -55,8 +56,11 @@ enum class NotificationType
 	// Contains a hyperlink to execute installation of the new system profiles.
 	PresetUpdateAvailable,
 //	LoadingFailed,
-	// Not used - instead Slicing error is used for both slicing and validate errors.
-//	ValidateError,
+	// Errors emmited by Print::validate
+	// difference from Slicing error is that they disappear not grey out at update_background_process
+	ValidateError,
+	// Notification emitted by Print::validate
+	ValidateWarning,
 	// Slicing error produced by BackgroundSlicingProcess::validate() or by the BackgroundSlicingProcess background
 	// thread thowing a SlicingError exception.
 	SlicingError,
@@ -79,8 +83,6 @@ enum class NotificationType
     EmptyAutoColorChange,
     // Notification about detected sign
     SignDetected,
-    // Notification emitted by Print::validate
-    PrintValidateWarning,
     // Notification telling user to quit SLA supports manual editing
     QuitSLAManualMode,
     // Desktop integration basic info
@@ -89,8 +91,12 @@ enum class NotificationType
     UndoDesktopIntegrationSuccess,
     UndoDesktopIntegrationFail,
     // Notification that a printer has more extruders than are supported by MM Gizmo/segmentation.
-    MmSegmentationExceededExtrudersLimit
-
+    MmSegmentationExceededExtrudersLimit,
+	// Did you know Notification appearing on startup with arrows to change hint
+	DidYouKnowHint,
+	// Shows when  ObjectList::update_info_items finds information that should be stressed to the user
+	// Might contain logo taken from gizmos
+	UpdatedItemsInfo
 };
 
 class NotificationManager
@@ -122,6 +128,8 @@ public:
 	// ErrorNotification and ImportantNotification are never faded out.
     void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
                            std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0);
+	// Creates Validate Error notification with a custom text and no fade out.
+	void push_validate_error_notification(const std::string& text);
 	// Creates Slicing Error notification with a custom text and no fade out.
 	void push_slicing_error_notification(const std::string& text);
 	// Creates Slicing Warning notification with a custom text and no fade out.
@@ -160,6 +168,9 @@ public:
 	void set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage);
 	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
 	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
+	// Hint (did you know) notification
+	void push_hint_notification();
+	void push_updated_item_info_notification(InfoItemType type);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
 	// finds ExportFinished notification and closes it if it was to removable device
@@ -188,7 +199,7 @@ private:
 		// Callback for hypertext - returns true if notification should close after triggering
 		// Usually sends event to UI thread thru wxEvtHandler.
 		// Examples in basic_notifications.
-		std::function<bool(wxEvtHandler*)> callback { nullptr };
+        std::function<bool(wxEvtHandler*)> callback;
 		const std::string        text2;
 	};
 
@@ -237,7 +248,7 @@ private:
 		//returns top in actual frame
 		float                  get_current_top() const { return m_top_y; }
 		const NotificationType get_type() const { return m_data.type; }
-		const NotificationData get_data() const { return m_data; }
+		const NotificationData& get_data() const { return m_data; }
 		const bool             is_gray() const { return m_is_gray; }
 		void                   set_gray(bool g) { m_is_gray = g; }
 		virtual bool           compare_text(const std::string& text) const;
@@ -318,7 +329,10 @@ private:
 		float            m_top_y                { 0.0f };  
 		// Height of text - Used as basic scaling unit!
 		float            m_line_height;
+		// endlines for text1, hypertext excluded
         std::vector<size_t> m_endlines;
+		// endlines for text2
+		std::vector<size_t> m_endlines2;
 		// Gray are f.e. eorrors when its uknown if they are still valid
 		bool             m_is_gray              { false };
 		//if multiline = true, notification is showing all lines(>2)
@@ -337,7 +351,7 @@ private:
 		void			set_large(bool l);
 		bool			get_large() { return m_is_large; }
 		void			set_print_info(const std::string &info);
-		virtual void	render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width) override
+		void			render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width) override
 		{
 			// This notification is always hidden if !large (means side bar is collapsed)
 			if (!get_large() && !is_finished()) 
@@ -345,7 +359,7 @@ private:
 			PopNotification::render(canvas, initial_y, move_from_overlay, overlay_width);
 		}
 	protected:
-		virtual void render_text(ImGuiWrapper& imgui,
+		void render_text(ImGuiWrapper& imgui,
 			                     const float win_size_x, const float win_size_y,
 			                     const float win_pos_x, const float win_pos_y) 
 			                     override;
@@ -366,7 +380,7 @@ private:
 	{
 	public:
 		PlaterWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
-		virtual void close()  override { if(is_finished()) return; m_state = EState::Hidden; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+		void	     close()  override { if(is_finished()) return; m_state = EState::Hidden; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
 		void		 real_close()      { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
 		void         show()            { m_state = EState::Unknown; }
 	};
@@ -382,17 +396,17 @@ private:
 		virtual void init() override;
 		virtual void count_lines() override;
 		
-		virtual void render_text(ImGuiWrapper& imgui,
+		virtual void	render_text(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
 									const float win_pos_x, const float win_pos_y) override;
-		virtual void render_bar(ImGuiWrapper& imgui,
+		virtual void	render_bar(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
 									const float win_pos_x, const float win_pos_y) ;
-		virtual void render_cancel_button(ImGuiWrapper& imgui,
+		virtual void	render_cancel_button(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
 									const float win_pos_x, const float win_pos_y)
 		{}
-		virtual void render_minimize_button(ImGuiWrapper& imgui,
+		void			render_minimize_button(ImGuiWrapper& imgui,
 			const float win_pos_x, const float win_pos_y) override {}
 		float				m_percentage;
 		
@@ -421,22 +435,22 @@ private:
 			m_has_cancel_button = true;
 		}
 		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return /*"[" + std::to_string(id) + "] " + */filename + " -> " + host; }
-		virtual void		set_percentage(float percent) override;
+		void				set_percentage(float percent) override;
 		void				cancel() { m_uj_state = UploadJobState::PB_CANCELLED; m_has_cancel_button = false; }
 		void				error()  { m_uj_state = UploadJobState::PB_ERROR;     m_has_cancel_button = false; init(); }
 		bool				compare_job_id(const int other_id) const { return m_job_id == other_id; }
-		virtual bool		compare_text(const std::string& text) const override { return false; }
+		bool				compare_text(const std::string& text) const override { return false; }
 	protected:
-		virtual void        init() override;
-		virtual void count_spaces() override;
-		virtual bool push_background_color() override;
-		virtual void render_bar(ImGuiWrapper& imgui,
+		void        init() override;
+		void		count_spaces() override;
+		bool		push_background_color() override;
+		void		render_bar(ImGuiWrapper& imgui,
 								const float win_size_x, const float win_size_y,
 								const float win_pos_x, const float win_pos_y) override;
-		virtual void render_cancel_button(ImGuiWrapper& imgui,
+		void		render_cancel_button(ImGuiWrapper& imgui,
 											const float win_size_x, const float win_size_y,
 											const float win_pos_x, const float win_pos_y) override;
-		virtual void render_left_sign(ImGuiWrapper& imgui) override;
+		void		render_left_sign(ImGuiWrapper& imgui) override;
 		// Identifies job in cancel callback
 		int					m_job_id;
 		// Size of uploaded size to be displayed in MB
@@ -461,23 +475,40 @@ private:
 		std::string m_export_dir_path;
 	protected:
 		// Reserves space on right for more buttons
-		virtual void count_spaces() override;
-		virtual void render_text(ImGuiWrapper& imgui,
-			                     const float win_size_x, const float win_size_y,
-			                     const float win_pos_x, const float win_pos_y) override;
+		void count_spaces() override;
+		void render_text(ImGuiWrapper& imgui,
+						 const float win_size_x, const float win_size_y,
+						 const float win_pos_x, const float win_pos_y) override;
 		// Renders also button to open directory with exported path and eject removable media
-		virtual void render_close_button(ImGuiWrapper& imgui,
-			                             const float win_size_x, const float win_size_y,
-			                             const float win_pos_x, const float win_pos_y) override;
+		void render_close_button(ImGuiWrapper& imgui,
+								 const float win_size_x, const float win_size_y,
+								 const float win_pos_x, const float win_pos_y) override;
 		void         render_eject_button(ImGuiWrapper& imgui,
 			                             const float win_size_x, const float win_size_y,
 			                             const float win_pos_x, const float win_pos_y);
-		virtual void render_minimize_button(ImGuiWrapper& imgui, const float win_pos_x, const float win_pos_y) override 
+		void render_minimize_button(ImGuiWrapper& imgui, const float win_pos_x, const float win_pos_y) override
 			{ m_minimize_b_visible = false; }
-		virtual bool on_text_click() override; 
+		bool on_text_click() override;
 		// local time of last hover for showing tooltip
 		long      m_hover_time { 0 };
 	};
+
+	class UpdatedItemsInfoNotification : public PopNotification
+	{
+	public:
+		UpdatedItemsInfoNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, InfoItemType info_item_type)
+			: PopNotification(n, id_provider, evt_handler)
+			, m_info_item_type(info_item_type)
+		{
+		}
+		void count_spaces() override;
+	protected:
+		void render_left_sign(ImGuiWrapper& imgui) override;
+		InfoItemType m_info_item_type;
+	};
+
+	// in HintNotification.hpp
+	class HintNotification;
 
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
@@ -504,36 +535,9 @@ private:
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
 	// Notification types that can be shown multiple types at once (compared by text)
-	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload };
+	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload, NotificationType::UpdatedItemsInfo };
 	//prepared (basic) notifications
-	const std::vector<NotificationData> basic_notifications = {
-		{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotification, 10,  _u8L("3D Mouse disconnected.") },
-        {NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("Configuration update is available."),  _u8L("See more."),
-             [](wxEvtHandler* evnthndlr) {
-                 if (evnthndlr != nullptr)
-                     wxPostEvent(evnthndlr, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED));
-                 return true;
-             }
-        },
-		{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr){ 
-				wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
-		{NotificationType::EmptyColorChangeCode, NotificationLevel::RegularNotification, 10,  
-			_u8L("You have just added a G-code for color change, but its value is empty.\n"
-				 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
-		{NotificationType::EmptyAutoColorChange, NotificationLevel::RegularNotification, 10,  
-			_u8L("This model doesn't allow to automatically add the color changes") },
-		{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotification, 10,  
-			_u8L("Desktop integration was successful.") },
-		{NotificationType::DesktopIntegrationFail, NotificationLevel::WarningNotification, 10,  
-			_u8L("Desktop integration failed.") },
-		{NotificationType::UndoDesktopIntegrationSuccess, NotificationLevel::RegularNotification, 10,  
-			_u8L("Undo desktop integration was successful.") },
-		{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotification, 10,  
-			_u8L("Undo desktop integration failed.") },
-		//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
-		//{NotificationType::LoadingFailed, NotificationLevel::RegularNotification, 20,  _u8L("Loading of model has Failed") },
-		//{NotificationType::DeviceEjected, NotificationLevel::RegularNotification, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
-	};
+	static const NotificationData basic_notifications[];
 };
 
 }//namespace GUI

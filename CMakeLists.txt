@@ -389,10 +389,13 @@ find_package(CURL REQUIRED)
 add_library(libcurl INTERFACE)
 target_link_libraries(libcurl INTERFACE CURL::libcurl)
 
+# Fixing curl's cmake config script bugs
 if (NOT WIN32)
     # Required by libcurl
     find_package(ZLIB REQUIRED)
     target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
+else()
+    target_link_libraries(libcurl INTERFACE crypt32)
 endif()
 
 if (SLIC3R_STATIC)
