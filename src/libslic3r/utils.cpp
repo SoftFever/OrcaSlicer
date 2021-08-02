@@ -766,14 +766,14 @@ bool is_img_file(const std::string &path)
 	return boost::iends_with(path, ".png") || boost::iends_with(path, ".svg");
 }
 
-bool is_stl_file(const boost::filesystem::directory_entry& dir_entry)
+bool is_gallery_file(const boost::filesystem::directory_entry& dir_entry, char const* type)
 {
-	return is_plain_file(dir_entry) && strcasecmp(dir_entry.path().extension().string().c_str(), ".stl") == 0;
+	return is_plain_file(dir_entry) && strcasecmp(dir_entry.path().extension().string().c_str(), type) == 0;
 }
 
-bool is_stl_file(const std::string &path)
+bool is_gallery_file(const std::string &path, char const* type)
 {
-	return boost::iends_with(path, ".stl");
+	return boost::iends_with(path, type);
 }
 
 bool is_shapes_dir(const std::string& dir)
