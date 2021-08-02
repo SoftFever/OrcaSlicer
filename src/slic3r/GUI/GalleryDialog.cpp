@@ -340,7 +340,7 @@ void GalleryDialog::load_label_icon_list()
         model_path.replace_extension("png");
         std::string img_name = model_path.string();
 
-#ifdef 0 // use "1" just in DEBUG mode to the generation of the thumbnails for the sistem shapes
+#if 0 // use "1" just in DEBUG mode to the generation of the thumbnails for the sistem shapes
         bool can_generate_thumbnail = true;
 #else
         bool can_generate_thumbnail = !item.is_system;
