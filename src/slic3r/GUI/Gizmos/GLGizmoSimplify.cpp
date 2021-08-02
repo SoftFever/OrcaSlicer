@@ -41,8 +41,8 @@ std::string GLGizmoSimplify::on_get_name() const
     return (_L("Simplify")).ToUTF8().data();
 }
 
-void GLGizmoSimplify::on_render() const{}
-void GLGizmoSimplify::on_render_for_picking() const{}
+void GLGizmoSimplify::on_render() {}
+void GLGizmoSimplify::on_render_for_picking() {}
 
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
