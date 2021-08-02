@@ -3,6 +3,12 @@
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem/operations.hpp>
 
+#if defined(__APPLE__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <mach/machine.h>
+#endif
+
 namespace Slic3r {
 
 static auto s_platform 		  = Platform::Uninitialized;
@@ -16,8 +22,39 @@ void detect_platform()
 	s_platform_flavor = PlatformFlavor::Generic;
 #elif defined(__APPLE__)
     BOOST_LOG_TRIVIAL(info) << "Platform: OSX";
-	s_platform 		  = Platform::OSX;
-	s_platform_flavor = PlatformFlavor::Generic;
+    s_platform        = Platform::OSX;
+    s_platform_flavor = PlatformFlavor::GenericOSX;
+    {
+        cpu_type_t type = 0;
+        size_t     size = sizeof(type);
+        if (sysctlbyname("hw.cputype", &type, &size, NULL, 0) == 0) {
+            type &= ~CPU_ARCH_MASK;
+            if (type == CPU_TYPE_X86) {
+                int proc_translated = 0;
+                size                = sizeof(proc_translated);
+                // Detect if native CPU is really X86 or PrusaSlicer runs through Rosetta.
+                if (sysctlbyname("sysctl.proc_translated", &proc_translated, &size, NULL, 0) == -1) {
+                    if (errno == ENOENT) {
+                        // Native CPU is X86, and property sysctl.proc_translated doesn't exist.
+                        s_platform_flavor = PlatformFlavor::OSXOnX86;
+                        BOOST_LOG_TRIVIAL(info) << "Platform flavor: OSXOnX86";
+                    }
+                } else if (proc_translated == 1) {
+                    // Native CPU is ARM and PrusaSlicer runs through Rosetta.
+                    s_platform_flavor = PlatformFlavor::OSXOnArm;
+                    BOOST_LOG_TRIVIAL(info) << "Platform flavor: OSXOnArm";
+                } else {
+                    // Native CPU is X86.
+                    s_platform_flavor = PlatformFlavor::OSXOnX86;
+                    BOOST_LOG_TRIVIAL(info) << "Platform flavor: OSXOnX86";
+                }
+            } else if (type == CPU_TYPE_ARM) {
+                // Native CPU is ARM
+                s_platform_flavor = PlatformFlavor::OSXOnArm;
+                BOOST_LOG_TRIVIAL(info) << "Platform flavor: OSXOnArm";
+            }
+        }
+    }
 #elif defined(__linux__)
     BOOST_LOG_TRIVIAL(info) << "Platform: Linux";
 	s_platform 		  = Platform::Linux;

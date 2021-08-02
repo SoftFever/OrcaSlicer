@@ -64,6 +64,9 @@ void main()
     float world_normal_z_fs = world_normal_z;
     if (compute_triangle_normals_in_fs) {
         vec3 triangle_normal = normalize(cross(dFdx(model_pos.xyz), dFdy(model_pos.xyz)));
+#ifdef FLIP_TRIANGLE_NORMALS
+        triangle_normal = -triangle_normal;
+#endif
 
         // First transform the normal into camera space and normalize the result.
         eye_normal_fs = normalize(gl_NormalMatrix * triangle_normal);
