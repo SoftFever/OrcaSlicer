@@ -2379,8 +2379,12 @@ void GCodeViewer::render_toolpaths() const
         shader.set_uniform("uniform_color", color4);
     };
 
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto render_as_points = [this, zoom, point_size, near_plane_height, set_uniform_color]
+#else
     auto render_as_points = [zoom, point_size, near_plane_height, set_uniform_color]
-        (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+    (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
 #if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
         shader.set_uniform("use_fixed_screen_size", 1);
 #else
@@ -2409,7 +2413,12 @@ void GCodeViewer::render_toolpaths() const
         glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
     };
 
-    auto render_as_lines = [light_intensity, set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto render_as_lines = [this, light_intensity, set_uniform_color]
+#else
+    auto render_as_lines = [light_intensity, set_uniform_color]
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+    (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         shader.set_uniform("light_intensity", light_intensity);
         for (const RenderPath& path : buffer.render_paths) {
             if (path.ibuffer_id == ibuffer_id) {
@@ -2422,7 +2431,12 @@ void GCodeViewer::render_toolpaths() const
         }
     };
 
-    auto render_as_triangles = [set_uniform_color](const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto render_as_triangles = [this, set_uniform_color]
+#else
+    auto render_as_triangles = [set_uniform_color]
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+(const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         for (const RenderPath& path : buffer.render_paths) {
             if (path.ibuffer_id == ibuffer_id) {
                 set_uniform_color(path.color, shader);
@@ -2495,7 +2509,12 @@ void GCodeViewer::render_toolpaths() const
         }
     }
 
-    auto render_sequential_range_cap = [set_uniform_color](const SequentialRangeCap& cap) {
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto render_sequential_range_cap = [this, set_uniform_color]
+#else
+    auto render_sequential_range_cap = [set_uniform_color]
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+    (const SequentialRangeCap& cap) {
         GLShaderProgram* shader = wxGetApp().get_shader(cap.buffer->shader.c_str());
         if (shader != nullptr) {
             shader->start_using();
