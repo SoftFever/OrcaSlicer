@@ -725,6 +725,11 @@ void ModelObject::clear_volumes()
     this->invalidate_bounding_box();
 }
 
+bool ModelObject::is_mm_painted() const
+{
+    return std::any_of(this->volumes.cbegin(), this->volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
+}
+
 void ModelObject::sort_volumes(bool full_sort)
 {
     // sort volumes inside the object to order "Model Part, Negative Volume, Modifier, Support Blocker and Support Enforcer. "

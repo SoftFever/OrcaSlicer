@@ -167,7 +167,8 @@ static std::vector<VolumeSlices> slice_volumes_inner(
 
     params_base.mode_below     = params_base.mode;
 
-    const auto extra_offset = std::max(0.f, float(print_object_config.xy_size_compensation.value));
+    const bool is_mm_painted = std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
+    const auto extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_size_compensation.value));
 
     for (const ModelVolume *model_volume : model_volumes)
         if (model_volume_needs_slicing(*model_volume)) {
@@ -725,6 +726,17 @@ void PrintObject::slice_volumes()
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume* v) { return !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
+
+        // If XY Size compensation is also enabled, notify the user that XY Size compensation
+        // would not be used because the object is multi-material painted.
+        if (m_config.xy_size_compensation.value != 0.f) {
+            this->active_step_add_warning(
+                PrintStateBase::WarningLevel::CRITICAL,
+                L("An object has enabled XY Size compensation which will not be used because it is also multi-material painted.\nXY Size "
+                  "compensation cannot be combined with multi-material painting.") +
+                    "\n" + (L("Object name")) + ": " + this->model_object()->name);
+        }
+
         BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - MMU segmentation";
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
@@ -733,8 +745,8 @@ void PrintObject::slice_volumes()
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
         // Compensation value, scaled. Only applying the negative scaling here, as the positive scaling has already been applied during slicing.
-        const auto  xy_compensation_scaled              = scaled<float>(std::min(m_config.xy_size_compensation.value, 0.));
-        const float elephant_foot_compensation_scaled 	= (m_config.raft_layers == 0) ? 
+        const auto  xy_compensation_scaled            = this->is_mm_painted() ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_size_compensation.value, 0.));
+        const float elephant_foot_compensation_scaled = (m_config.raft_layers == 0) ?
         	// Only enable Elephant foot compensation if printing directly on the print bed.
             float(scale_(m_config.elefant_foot_compensation.value)) :
         	0.f;
