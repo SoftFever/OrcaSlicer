@@ -206,7 +206,11 @@ static void add_lock(wxImage& image)
 
 static void add_default_image(wxImageList* img_list, bool is_system)
 {
-    wxBitmap bmp = create_scaled_bitmap("cog", nullptr, IMG_PX_CNT, true);
+    int sz = IMG_PX_CNT;
+#ifdef __APPLE__
+    sz /= mac_max_scaling_factor();
+#endif
+    wxBitmap bmp = create_scaled_bitmap("cog", nullptr, sz, true);
 
     if (is_system) {
         wxImage image = bmp.ConvertToImage();
