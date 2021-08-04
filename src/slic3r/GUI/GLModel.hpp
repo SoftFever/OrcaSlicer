@@ -100,6 +100,11 @@ namespace GUI {
     // used to render sidebar hints for position and scale
     GLModel::InitializationData straight_arrow(float tip_width, float tip_height, float stem_width, float stem_height, float thickness);
 
+    // create a diamond with the given resolution
+    // the origin of the diamond is in its center
+    // the diamond is contained into a box with size [1, 1, 1]
+    GLModel::InitializationData diamond(int resolution);
+
 } // namespace GUI
 } // namespace Slic3r
 

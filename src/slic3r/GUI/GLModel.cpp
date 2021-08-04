@@ -597,5 +597,53 @@ GLModel::InitializationData straight_arrow(float tip_width, float tip_height, fl
     return data;
 }
 
+GLModel::InitializationData diamond(int resolution)
+{
+    resolution = std::max(4, resolution);
+
+    GLModel::InitializationData data;
+    GLModel::InitializationData::Entity entity;
+    entity.type = GLModel::PrimitiveType::Triangles;
+
+    const float step = 2.0f * float(PI) / float(resolution);
+
+    // positions
+    for (int i = 0; i < resolution; ++i) {
+        float ii = float(i) * step;
+        entity.positions.emplace_back(0.5f * ::cos(ii), 0.5f * ::sin(ii), 0.0f);
+    }
+    entity.positions.emplace_back(0.0f, 0.0f, 0.5f);
+    entity.positions.emplace_back(0.0f, 0.0f, -0.5f);
+
+    // normals
+    for (const Vec3f& v : entity.positions) {
+        entity.normals.emplace_back(v.normalized());
+    }
+
+    // triangles
+    // top
+    for (int i = 0; i < resolution; ++i) {
+        entity.indices.push_back(i + 0);
+        entity.indices.push_back(i + 1);
+        entity.indices.push_back(resolution);
+    }
+    entity.indices.push_back(resolution - 1);
+    entity.indices.push_back(0);
+    entity.indices.push_back(resolution);
+
+    // bottom
+    for (int i = 0; i < resolution; ++i) {
+        entity.indices.push_back(i + 0);
+        entity.indices.push_back(resolution + 1);
+        entity.indices.push_back(i + 1);
+    }
+    entity.indices.push_back(resolution - 1);
+    entity.indices.push_back(resolution + 1);
+    entity.indices.push_back(0);
+
+    data.entities.emplace_back(entity);
+    return data;
+}
+
 } // namespace GUI
 } // namespace Slic3r
