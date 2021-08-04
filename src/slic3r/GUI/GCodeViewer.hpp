@@ -632,7 +632,7 @@ public:
     void update_shells_color_by_extruder(const DynamicPrintConfig* config);
 
     void reset();
-    void render() const;
+    void render();
 
     bool has_data() const { return !m_roles.empty(); }
     bool can_export_toolpaths() const;
@@ -678,11 +678,11 @@ private:
     void load_toolpaths(const GCodeProcessor::Result& gcode_result);
     void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
-    void render_toolpaths() const;
-    void render_shells() const;
-    void render_legend(float& legend_height) const;
+    void render_toolpaths();
+    void render_shells();
+    void render_legend(float& legend_height);
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    void render_statistics() const;
+    void render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     bool is_visible(ExtrusionRole role) const {
         return role < erCount && (m_extrusions.role_visibility_flags & (1 << role)) != 0;

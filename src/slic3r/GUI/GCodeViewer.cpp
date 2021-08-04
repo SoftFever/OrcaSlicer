@@ -757,12 +757,12 @@ void GCodeViewer::reset()
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
-void GCodeViewer::render() const
+void GCodeViewer::render()
 {
     auto init_gl_data = [this]() {
         // initializes opengl data of TBuffers
         for (size_t i = 0; i < m_buffers.size(); ++i) {
-            TBuffer& buffer = const_cast<TBuffer&>(m_buffers[i]);
+            TBuffer& buffer = m_buffers[i];
             switch (buffer_type(i))
             {
             default: { break; }
@@ -789,17 +789,17 @@ void GCodeViewer::render() const
         }
 
         // initializes tool marker
-        const_cast<SequentialView*>(&m_sequential_view)->marker.init();
+        m_sequential_view.marker.init();
 
         // initializes point sizes
         std::array<int, 2> point_sizes;
         ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
-        *const_cast<std::array<float, 2>*>(&m_detected_point_sizes) = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
-        *const_cast<bool*>(&m_gl_data_initialized) = true;
+        m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
+        m_gl_data_initialized = true;
     };
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    const_cast<Statistics*>(&m_statistics)->reset_opengl();
+    m_statistics.reset_opengl();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // OpenGL data must be initialized after the glContext has been created.
@@ -815,10 +815,9 @@ void GCodeViewer::render() const
     render_shells();
     float legend_height = 0.0f;
     render_legend(legend_height);
-    SequentialView* sequential_view = const_cast<SequentialView*>(&m_sequential_view);
-    if (sequential_view->current.last != sequential_view->endpoints.last) {
-        sequential_view->marker.set_world_position(sequential_view->current_position);
-        sequential_view->render(legend_height);
+    if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
+        m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
+        m_sequential_view.render(legend_height);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -2360,7 +2359,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
-void GCodeViewer::render_toolpaths() const
+void GCodeViewer::render_toolpaths()
 {
 #if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
     float point_size = 20.0f;
@@ -2404,7 +2403,7 @@ void GCodeViewer::render_toolpaths() const
                 set_uniform_color(path.color, shader);
                 glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                ++const_cast<Statistics*>(&m_statistics)->gl_multi_points_calls_count;
+                ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
             }
         }
@@ -2425,7 +2424,7 @@ void GCodeViewer::render_toolpaths() const
                 set_uniform_color(path.color, shader);
                 glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                ++const_cast<Statistics*>(&m_statistics)->gl_multi_lines_calls_count;
+                ++m_statistics.gl_multi_lines_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
             }
         }
@@ -2442,7 +2441,7 @@ void GCodeViewer::render_toolpaths() const
                 set_uniform_color(path.color, shader);
                 glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                ++const_cast<Statistics*>(&m_statistics)->gl_multi_triangles_calls_count;
+                ++m_statistics.gl_multi_triangles_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
             }
         }
@@ -2535,7 +2534,7 @@ void GCodeViewer::render_toolpaths() const
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-            ++const_cast<Statistics*>(&m_statistics)->gl_triangles_calls_count;
+            ++m_statistics.gl_triangles_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
             if (has_normals)
@@ -2554,7 +2553,7 @@ void GCodeViewer::render_toolpaths() const
     }
 }
 
-void GCodeViewer::render_shells() const
+void GCodeViewer::render_shells()
 {
     if (!m_shells.visible || m_shells.volumes.empty())
         return;
@@ -2572,7 +2571,7 @@ void GCodeViewer::render_shells() const
 //    glsafe(::glDepthMask(GL_TRUE));
 }
 
-void GCodeViewer::render_legend(float& legend_height) const
+void GCodeViewer::render_legend(float& legend_height)
 {
     if (!m_legend_enabled)
         return;
@@ -2935,8 +2934,7 @@ void GCodeViewer::render_legend(float& legend_height) const
             const bool visible = is_visible(role);
             append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], labels[i],
                 visible, times[i], percents[i], max_percent, offsets, used_filaments_m[i], used_filaments_g[i], [this, role, visible]() {
-                    Extrusions* extrusions = const_cast<Extrusions*>(&m_extrusions);
-                    extrusions->role_visibility_flags = visible ? extrusions->role_visibility_flags & ~(1 << role) : extrusions->role_visibility_flags | (1 << role);
+                    m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
                     // update buffers' render paths
                     refresh_render_paths(false, false);
                     wxGetApp().plater()->update_preview_moves_slider();
@@ -3408,7 +3406,7 @@ void GCodeViewer::render_legend(float& legend_height) const
         auto show_mode_button = [this, &imgui, can_show_mode_button](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
             if (can_show_mode_button(mode)) {
                 if (imgui.button(label)) {
-                    *const_cast<PrintEstimatedStatistics::ETimeMode*>(&m_time_estimate_mode) = mode;
+                    m_time_estimate_mode = mode;
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
                 }
@@ -3435,7 +3433,7 @@ void GCodeViewer::render_legend(float& legend_height) const
 }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-void GCodeViewer::render_statistics() const
+void GCodeViewer::render_statistics()
 {
     static const float offset = 275.0f;
 
