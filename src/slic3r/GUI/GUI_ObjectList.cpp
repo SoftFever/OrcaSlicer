@@ -2517,7 +2517,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
 }
 
 
-void ObjectList::update_info_items(size_t obj_idx)
+void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selections/* = nullptr*/)
 {
     const ModelObject* model_object = (*m_objects)[obj_idx];
     wxDataViewItem item_obj = m_objects_model->GetItemById(obj_idx);
@@ -2565,9 +2565,21 @@ void ObjectList::update_info_items(size_t obj_idx)
             
         }
         else if (shows && ! should_show) {
-            Unselect(item);
+            if (!selections)
+                Unselect(item);
             m_objects_model->Delete(item);
-            Select(item_obj);
+            if (selections) {
+                if (selections->Index(item) != wxNOT_FOUND) {
+                    // If info item was deleted from the list, 
+                    // it's need to be deleted from selection array, if it was there
+                    selections->Remove(item);
+                    // Select item_obj, if info_item doesn't exist for item anymore, but was selected
+                    if (selections->Index(item_obj) == wxNOT_FOUND)
+                        selections->Add(item_obj);
+                }
+            }
+            else
+                Select(item_obj);
         }
     }
 }
@@ -3760,7 +3772,7 @@ void ObjectList::update_object_list_by_printer_technology()
 
     for (auto& object_item : object_items) {
         // update custom supports info
-        update_info_items(m_objects_model->GetObjectIdByItem(object_item));
+        update_info_items(m_objects_model->GetObjectIdByItem(object_item), &sel);
 
         // Update Settings Item for object
         update_settings_item_and_selection(object_item, sel);

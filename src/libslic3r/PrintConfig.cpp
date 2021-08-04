@@ -4154,6 +4154,10 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->label = L("Don't arrange");
     def->tooltip = L("Do not rearrange the given models before merging and keep their original XY coordinates.");
 
+    def = this->add("dont_ensure_on_bed", coBool);
+    def->label = L("Don't ensure on bed");
+    def->tooltip = L("Do not lift the object above the bed when it is partially below.");
+
     def = this->add("duplicate", coInt);
     def->label = L("Duplicate");
     def->tooltip =L("Multiply copies by this factor.");
