@@ -125,7 +125,7 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
     case EMoveType::Extrude: {
         // use rounding to reduce the number of generated paths
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
-            move.position[2] <= sub_paths.front().first.position[2] && feedrate == move.feedrate && fan_speed == move.fan_speed &&
+            move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
             height == round_to_nearest(move.height, 2) && width == round_to_nearest(move.width, 2) &&
             matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f);
     }
@@ -207,7 +207,7 @@ void GCodeViewer::SequentialView::Marker::init()
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
 {    
     m_world_position = position;
-    m_world_transform = (Geometry::assemble_transform((position + m_z_offset * Vec3f::UnitZ()).cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size()[2] * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
+    m_world_transform = (Geometry::assemble_transform((position + m_z_offset * Vec3f::UnitZ()).cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size().z() * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
 }
 
 void GCodeViewer::SequentialView::Marker::render() const
@@ -623,23 +623,23 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
         else {
             // adjust printbed size in dependence of toolpaths bbox
             const double margin = 10.0;
-            Vec2d min(m_paths_bounding_box.min(0) - margin, m_paths_bounding_box.min(1) - margin);
-            Vec2d max(m_paths_bounding_box.max(0) + margin, m_paths_bounding_box.max(1) + margin);
+            Vec2d min(m_paths_bounding_box.min.x() - margin, m_paths_bounding_box.min.y() - margin);
+            Vec2d max(m_paths_bounding_box.max.x() + margin, m_paths_bounding_box.max.y() + margin);
 
             Vec2d size = max - min;
             bed_shape = {
-                { min(0), min(1) },
-                { max(0), min(1) },
-                { max(0), min(1) + 0.442265 * size[1]},
-                { max(0) - 10.0, min(1) + 0.4711325 * size[1]},
-                { max(0) + 10.0, min(1) + 0.5288675 * size[1]},
-                { max(0), min(1) + 0.557735 * size[1]},
-                { max(0), max(1) },
-                { min(0) + 0.557735 * size[0], max(1)},
-                { min(0) + 0.5288675 * size[0], max(1) - 10.0},
-                { min(0) + 0.4711325 * size[0], max(1) + 10.0},
-                { min(0) + 0.442265 * size[0], max(1)},
-                { min(0), max(1) } };
+                { min.x(), min.y() },
+                { max.x(), min.y() },
+                { max.x(), min.y() + 0.442265 * size.y()},
+                { max.x() - 10.0, min.y() + 0.4711325 * size.y()},
+                { max.x() + 10.0, min.y() + 0.5288675 * size.y()},
+                { max.x(), min.y() + 0.557735 * size.y()},
+                { max.x(), max.y() },
+                { min.x() + 0.557735 * size.x(), max.y()},
+                { min.x() + 0.5288675 * size.x(), max.y() - 10.0},
+                { min.x() + 0.4711325 * size.x(), max.y() + 10.0},
+                { min.x() + 0.442265 * size.x(), max.y()},
+                { min.x(), max.y() } };
         }
 
         wxGetApp().plater()->set_bed_shape(bed_shape, texture, model, gcode_result.bed_shape.empty());
@@ -1036,13 +1036,13 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     // save vertices to file
     fprintf(fp, "\n# vertices\n");
     for (const Vec3f& v : out_vertices) {
-        fprintf(fp, "v %g %g %g\n", v[0], v[1], v[2]);
+        fprintf(fp, "v %g %g %g\n", v.x(), v.y(), v.x());
     }
 
     // save normals to file
     fprintf(fp, "\n# normals\n");
     for (const Vec3f& n : out_normals) {
-        fprintf(fp, "vn %g %g %g\n", n[0], n[1], n[2]);
+        fprintf(fp, "vn %g %g %g\n", n.x(), n.y(), n.z());
     }
 
     size_t i = 0;
@@ -1124,9 +1124,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     // format data into the buffers to be rendered as points
     auto add_vertices_as_point = [](const GCodeProcessor::MoveVertex& curr, VertexBuffer& vertices) {
-        vertices.push_back(curr.position[0]);
-        vertices.push_back(curr.position[1]);
-        vertices.push_back(curr.position[2]);
+        vertices.push_back(curr.position.x());
+        vertices.push_back(curr.position.y());
+        vertices.push_back(curr.position.z());
     };
     auto add_indices_as_point = [](const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
         unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
@@ -1137,13 +1137,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     // format data into the buffers to be rendered as lines
     auto add_vertices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, VertexBuffer& vertices) {
         // x component of the normal to the current segment (the normal is parallel to the XY plane)
-        float normal_x = (curr.position - prev.position).normalized()[1];
+        const float normal_x = (curr.position - prev.position).normalized().y();
 
         auto add_vertex = [&vertices, normal_x](const GCodeProcessor::MoveVertex& vertex) {
             // add position
-            vertices.push_back(vertex.position[0]);
-            vertices.push_back(vertex.position[1]);
-            vertices.push_back(vertex.position[2]);
+            vertices.push_back(vertex.position.x());
+            vertices.push_back(vertex.position.y());
+            vertices.push_back(vertex.position.z());
             // add normal x component
             vertices.push_back(normal_x);
         };
@@ -1177,13 +1177,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     auto add_vertices_as_solid = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer, unsigned int vbuffer_id, VertexBuffer& vertices, size_t move_id) {
         auto store_vertex = [](VertexBuffer& vertices, const Vec3f& position, const Vec3f& normal) {
             // append position
-            vertices.push_back(position[0]);
-            vertices.push_back(position[1]);
-            vertices.push_back(position[2]);
+            vertices.push_back(position.x());
+            vertices.push_back(position.y());
+            vertices.push_back(position.z());
             // append normal
-            vertices.push_back(normal[0]);
-            vertices.push_back(normal[1]);
-            vertices.push_back(normal[2]);
+            vertices.push_back(normal.x());
+            vertices.push_back(normal.y());
+            vertices.push_back(normal.z());
         };
 
         if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
@@ -1193,19 +1193,19 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         Path& last_path = buffer.paths.back();
 
-        Vec3f dir = (curr.position - prev.position).normalized();
-        Vec3f right = Vec3f(dir[1], -dir[0], 0.0f).normalized();
-        Vec3f left = -right;
-        Vec3f up = right.cross(dir);
-        Vec3f down = -up;
-        float half_width = 0.5f * last_path.width;
-        float half_height = 0.5f * last_path.height;
-        Vec3f prev_pos = prev.position - half_height * up;
-        Vec3f curr_pos = curr.position - half_height * up;
-        Vec3f d_up = half_height * up;
-        Vec3f d_down = -half_height * up;
-        Vec3f d_right = half_width * right;
-        Vec3f d_left = -half_width * right;
+        const Vec3f dir = (curr.position - prev.position).normalized();
+        const Vec3f right = Vec3f(dir.y(), -dir.x(), 0.0f).normalized();
+        const Vec3f left = -right;
+        const Vec3f up = right.cross(dir);
+        const Vec3f down = -up;
+        const float half_width = 0.5f * last_path.width;
+        const float half_height = 0.5f * last_path.height;
+        const Vec3f prev_pos = prev.position - half_height * up;
+        const Vec3f curr_pos = curr.position - half_height * up;
+        const Vec3f d_up = half_height * up;
+        const Vec3f d_down = -half_height * up;
+        const Vec3f d_right = half_width * right;
+        const Vec3f d_left = -half_width * right;
 
         // vertices 1st endpoint
         if (last_path.vertices_count() == 1 || vertices.empty()) {
@@ -1284,14 +1284,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
             Path& last_path = buffer.paths.back();
 
-            Vec3f dir = (curr.position - prev.position).normalized();
-            Vec3f right = Vec3f(dir[1], -dir[0], 0.0f).normalized();
-            Vec3f up = right.cross(dir);
-            float sq_length = (curr.position - prev.position).squaredNorm();
+            const Vec3f dir = (curr.position - prev.position).normalized();
+            const Vec3f right = Vec3f(dir.y(), -dir.x(), 0.0f).normalized();
+            const Vec3f up = right.cross(dir);
+            const float sq_length = (curr.position - prev.position).squaredNorm();
 
             const std::array<IBufferType, 8> first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { 0, 1, 2, 3, 4, 5, 6, 7 });
             const std::array<IBufferType, 8> non_first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { -4, 0, -2, 1, 2, 3, 4, 5 });
-            bool is_first_segment = (last_path.vertices_count() == 1);
+            const bool is_first_segment = (last_path.vertices_count() == 1);
             if (is_first_segment || vbuffer_size == 0) {
                 // 1st segment or restart into a new vertex buffer
                 // ===============================================
@@ -1310,20 +1310,20 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 // any other segment
                 // =================
                 float displacement = 0.0f;
-                float cos_dir = prev_dir.dot(dir);
+                const float cos_dir = prev_dir.dot(dir);
                 if (cos_dir > -0.9998477f) {
                     // if the angle between adjacent segments is smaller than 179 degrees
-                    Vec3f med_dir = (prev_dir + dir).normalized();
-                    float half_width = 0.5f * last_path.width;
+                    const Vec3f med_dir = (prev_dir + dir).normalized();
+                    const float half_width = 0.5f * last_path.width;
                     displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
                 }
 
-                float sq_displacement = sqr(displacement);
-                bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_length;
+                const float sq_displacement = sqr(displacement);
+                const bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_length;
 
-                bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
+                const bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
                 // whether the angle between adjacent segments is greater than 45 degrees
-                bool is_sharp = cos_dir < 0.7071068f;
+                const bool is_sharp = cos_dir < 0.7071068f;
 
                 bool right_displaced = false;
                 bool left_displaced = false;
@@ -1434,7 +1434,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             progress_count = 0;
         }
 
-        unsigned char id = buffer_id(curr.type);
+        const unsigned char id = buffer_id(curr.type);
         TBuffer& t_buffer = m_buffers[id];
         MultiVertexBuffer& v_multibuffer = vertices[id];
 
@@ -1476,24 +1476,24 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             return Vec3f(vertices[offset + 0], vertices[offset + 1], vertices[offset + 2]);
         };
         auto update_position_at = [](VertexBuffer& vertices, size_t offset, const Vec3f& position) {
-            vertices[offset + 0] = position[0];
-            vertices[offset + 1] = position[1];
-            vertices[offset + 2] = position[2];
+            vertices[offset + 0] = position.x();
+            vertices[offset + 1] = position.y();
+            vertices[offset + 2] = position.z();
         };
         auto match_right_vertices = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
             size_t curr_s_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
                 if (&prev_sub_path == &next_sub_path) { // previous and next segment are both contained into to the same vertex buffer
                     VertexBuffer& vbuffer = v_multibuffer[prev_sub_path.first.b_id];
                     // offset into the vertex buffer of the next segment 1st vertex
-                    size_t next_1st_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
+                    const size_t next_1st_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
                     // offset into the vertex buffer of the right vertex of the previous segment 
-                    size_t prev_right_offset = prev_sub_path.last.i_id - next_1st_offset - 3 * vertex_size_floats;
+                    const size_t prev_right_offset = prev_sub_path.last.i_id - next_1st_offset - 3 * vertex_size_floats;
                     // new position of the right vertices
-                    Vec3f shared_vertex = extract_position_at(vbuffer, prev_right_offset) + displacement_vec;
+                    const Vec3f shared_vertex = extract_position_at(vbuffer, prev_right_offset) + displacement_vec;
                     // update previous segment
                     update_position_at(vbuffer, prev_right_offset, shared_vertex);
                     // offset into the vertex buffer of the right vertex of the next segment
-                    size_t next_right_offset = next_sub_path.last.i_id - next_1st_offset;
+                    const size_t next_right_offset = next_sub_path.last.i_id - next_1st_offset;
                     // update next segment
                     update_position_at(vbuffer, next_right_offset, shared_vertex);
                 }
@@ -1501,13 +1501,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                     VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
                     VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
                     // offset into the previous vertex buffer of the right vertex of the previous segment 
-                    size_t prev_right_offset = prev_sub_path.last.i_id - 3 * vertex_size_floats;
+                    const size_t prev_right_offset = prev_sub_path.last.i_id - 3 * vertex_size_floats;
                     // new position of the right vertices
-                    Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_right_offset) + displacement_vec;
+                    const Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_right_offset) + displacement_vec;
                     // update previous segment
                     update_position_at(prev_vbuffer, prev_right_offset, shared_vertex);
                     // offset into the next vertex buffer of the right vertex of the next segment
-                    size_t next_right_offset = next_sub_path.first.i_id + 1 * vertex_size_floats;
+                    const size_t next_right_offset = next_sub_path.first.i_id + 1 * vertex_size_floats;
                     // update next segment
                     update_position_at(next_vbuffer, next_right_offset, shared_vertex);
                 }
@@ -1517,15 +1517,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 if (&prev_sub_path == &next_sub_path) { // previous and next segment are both contained into to the same vertex buffer
                     VertexBuffer& vbuffer = v_multibuffer[prev_sub_path.first.b_id];
                     // offset into the vertex buffer of the next segment 1st vertex
-                    size_t next_1st_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
+                    const size_t next_1st_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
                     // offset into the vertex buffer of the left vertex of the previous segment 
-                    size_t prev_left_offset = prev_sub_path.last.i_id - next_1st_offset - 1 * vertex_size_floats;
+                    const size_t prev_left_offset = prev_sub_path.last.i_id - next_1st_offset - 1 * vertex_size_floats;
                     // new position of the left vertices
-                    Vec3f shared_vertex = extract_position_at(vbuffer, prev_left_offset) + displacement_vec;
+                    const Vec3f shared_vertex = extract_position_at(vbuffer, prev_left_offset) + displacement_vec;
                     // update previous segment
                     update_position_at(vbuffer, prev_left_offset, shared_vertex);
                     // offset into the vertex buffer of the left vertex of the next segment
-                    size_t next_left_offset = next_sub_path.last.i_id - next_1st_offset + 1 * vertex_size_floats;
+                    const size_t next_left_offset = next_sub_path.last.i_id - next_1st_offset + 1 * vertex_size_floats;
                     // update next segment
                     update_position_at(vbuffer, next_left_offset, shared_vertex);
                 }
@@ -1533,13 +1533,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                     VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
                     VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
                     // offset into the previous vertex buffer of the left vertex of the previous segment 
-                    size_t prev_left_offset = prev_sub_path.last.i_id - 1 * vertex_size_floats;
+                    const size_t prev_left_offset = prev_sub_path.last.i_id - 1 * vertex_size_floats;
                     // new position of the left vertices
-                    Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_left_offset) + displacement_vec;
+                    const Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_left_offset) + displacement_vec;
                     // update previous segment
                     update_position_at(prev_vbuffer, prev_left_offset, shared_vertex);
                     // offset into the next vertex buffer of the left vertex of the next segment
-                    size_t next_left_offset = next_sub_path.first.i_id + 3 * vertex_size_floats;
+                    const size_t next_left_offset = next_sub_path.first.i_id + 3 * vertex_size_floats;
                     // update next segment
                     update_position_at(next_vbuffer, next_left_offset, shared_vertex);
                 }
@@ -1551,8 +1551,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             // to two different vertex buffers
             size_t prev_sub_path_id = 0;
             size_t next_sub_path_id = 0;
-            size_t path_vertices_count = path.vertices_count();
-            float half_width = 0.5f * path.width;
+            const size_t path_vertices_count = path.vertices_count();
+            const float half_width = 0.5f * path.width;
             for (size_t j = 1; j < path_vertices_count - 1; ++j) {
                 size_t curr_s_id = path.sub_paths.front().first.s_id + j;
                 const Vec3f& prev = gcode_result.moves[curr_s_id - 1].position;
@@ -1567,16 +1567,16 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 const Path::Sub_Path& prev_sub_path = path.sub_paths[prev_sub_path_id];
                 const Path::Sub_Path& next_sub_path = path.sub_paths[next_sub_path_id];
 
-                Vec3f prev_dir = (curr - prev).normalized();
-                Vec3f prev_right = Vec3f(prev_dir[1], -prev_dir[0], 0.0f).normalized();
-                Vec3f prev_up = prev_right.cross(prev_dir);
+                const Vec3f prev_dir = (curr - prev).normalized();
+                const Vec3f prev_right = Vec3f(prev_dir.y(), -prev_dir.x(), 0.0f).normalized();
+                const Vec3f prev_up = prev_right.cross(prev_dir);
 
-                Vec3f next_dir = (next - curr).normalized();
+                const Vec3f next_dir = (next - curr).normalized();
 
-                bool is_right_turn = prev_up.dot(prev_dir.cross(next_dir)) <= 0.0f;
-                float cos_dir = prev_dir.dot(next_dir);
+                const bool is_right_turn = prev_up.dot(prev_dir.cross(next_dir)) <= 0.0f;
+                const float cos_dir = prev_dir.dot(next_dir);
                 // whether the angle between adjacent segments is greater than 45 degrees
-                bool is_sharp = cos_dir < 0.7071068f;
+                const bool is_sharp = cos_dir < 0.7071068f;
 
                 float displacement = 0.0f;
                 if (cos_dir > -0.9998477f) {
@@ -1585,10 +1585,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                     displacement = half_width * ::tan(::acos(std::clamp(next_dir.dot(med_dir), -1.0f, 1.0f)));
                 }
 
-                float sq_prev_length = (curr - prev).squaredNorm();
-                float sq_next_length = (next - curr).squaredNorm();
-                float sq_displacement = sqr(displacement);
-                bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_next_length;
+                const float sq_prev_length = (curr - prev).squaredNorm();
+                const float sq_next_length = (next - curr).squaredNorm();
+                const float sq_displacement = sqr(displacement);
+                const bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_next_length;
 
                 if (can_displace) {
                     // displacement to apply to the vertices to match
@@ -1644,9 +1644,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
         const MultiVertexBuffer& v_multibuffer = vertices[i];
         for (const VertexBuffer& v_buffer : v_multibuffer) {
-            size_t size_elements = v_buffer.size();
-            size_t size_bytes = size_elements * sizeof(float);
-            size_t vertices_count = size_elements / t_buffer.vertices.vertex_size_floats();
+            const size_t size_elements = v_buffer.size();
+            const size_t size_bytes = size_elements * sizeof(float);
+            const size_t vertices_count = size_elements / t_buffer.vertices.vertex_size_floats();
             t_buffer.vertices.count += vertices_count;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1709,7 +1709,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             progress_count = 0;
         }
 
-        unsigned char id = buffer_id(curr.type);
+        const unsigned char id = buffer_id(curr.type);
         TBuffer& t_buffer = m_buffers[id];
         MultiIndexBuffer& i_multibuffer = indices[id];
         CurrVertexBuffer& curr_vertex_buffer = curr_vertex_buffers[id];
@@ -1779,8 +1779,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         TBuffer& t_buffer = m_buffers[i];
         const MultiIndexBuffer& i_multibuffer = indices[i];
         for (const IndexBuffer& i_buffer : i_multibuffer) {
-            size_t size_elements = i_buffer.size();
-            size_t size_bytes = size_elements * sizeof(IBufferType);
+            const size_t size_elements = i_buffer.size();
+            const size_t size_bytes = size_elements * sizeof(IBufferType);
 
             // stores index buffer informations into TBuffer
             t_buffer.indices.push_back(IBuffer());
@@ -1844,7 +1844,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         if (move.type == EMoveType::Extrude) {
             // layers zs
             const double* const last_z = m_layers.empty() ? nullptr : &m_layers.get_zs().back();
-            double z = static_cast<double>(move.position[2]);
+            const double z = static_cast<double>(move.position.z());
             if (last_z == nullptr || z < *last_z - EPSILON || *last_z + EPSILON < z)
                 m_layers.append(z, { last_travel_s_id, i });
             else
@@ -1881,7 +1881,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     if (!options_zs.empty()) {
         TBuffer& extrude_buffer = m_buffers[buffer_id(EMoveType::Extrude)];
         for (Path& path : extrude_buffer.paths) {
-            float z = path.sub_paths.front().first.position[2];
+            const float z = path.sub_paths.front().first.position.z();
             if (std::find_if(options_zs.begin(), options_zs.end(), [z](float f) { return f - EPSILON <= z && z <= f + EPSILON; }) != options_zs.end())
                 path.cp_color_id = 255 - path.cp_color_id;
         }
@@ -1918,12 +1918,12 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
 
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF) {
         // adds wipe tower's volume
-        double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
+        const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print.config();
-        size_t extruders_count = config.nozzle_diameter.size();
+        const size_t extruders_count = config.nozzle_diameter.size();
         if ((extruders_count > 1) && config.wipe_tower && !config.complete_objects) {
-            float depth = print.wipe_tower_data(extruders_count).depth;
-            float brim_width = print.wipe_tower_data(extruders_count).brim_width;
+            const float depth = print.wipe_tower_data(extruders_count).depth;
+            const float brim_width = print.wipe_tower_data(extruders_count).brim_width;
 
             m_shells.volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
                 !print.is_step_done(psWipeTower), brim_width, initialized);
@@ -2427,7 +2427,7 @@ void GCodeViewer::render_toolpaths()
 #else
     auto render_as_triangles = []
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-(const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+    (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         for (const RenderPath& path : buffer.render_paths) {
             if (path.ibuffer_id == ibuffer_id) {
                 shader.set_uniform("uniform_color", path.color);
