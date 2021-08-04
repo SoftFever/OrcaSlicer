@@ -2543,11 +2543,7 @@ void GCodeViewer::render_toolpaths()
     };
 
 #if ENABLE_SEAMS_USING_MODELS
-#if ENABLE_GCODE_VIEWER_STATISTICS
     auto render_as_instanced_model = [this]
-#else
-    auto render_as_instanced_model = []
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
         (TBuffer & buffer, GLShaderProgram & shader) {
         for (const TBuffer::Model::Instance& inst : buffer.model.instances) {
             bool top_layer_only = get_app_config()->get("seq_top_layer_only") == "1";
