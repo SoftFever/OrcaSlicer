@@ -5250,7 +5250,7 @@ void Plater::convert_unit(ConversionType conv_type)
 void Plater::toggle_layers_editing(bool enable)
 {
     if (canvas3D()->is_layers_editing_enabled() != enable)
-        wxPostEvent(canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+        canvas3D()->force_main_toolbar_left_action(canvas3D()->get_main_toolbar_item_id("layersediting"));
 }
 
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, ModelObjectCutAttributes attributes)
