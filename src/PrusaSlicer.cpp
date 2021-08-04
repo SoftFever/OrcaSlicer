@@ -258,7 +258,6 @@ int CLI::run(int argc, char **argv)
     Points bed = get_bed_shape(m_print_config);
     ArrangeParams arrange_cfg;
     arrange_cfg.min_obj_distance = scaled(min_object_distance(m_print_config));
-    bool user_ensure_on_bed = true;
     
     for (auto const &opt_key : m_transforms) {
         if (opt_key == "merge") {
@@ -331,10 +330,8 @@ int CLI::run(int argc, char **argv)
             }
         } else if (opt_key == "dont_arrange") {
             // do nothing - this option alters other transform options
-        } else if (opt_key == "dont_ensure_on_bed") {
-            // Remember that we saw this so we don't lift objects from the bed
-            // after the other transformations are processed.
-            user_ensure_on_bed = false;
+        } else if (opt_key == "ensure_on_bed") {
+            // do nothing, the value is used later
         } else if (opt_key == "rotate") {
             for (auto &model : m_models)
                 for (auto &o : model.objects)
@@ -439,7 +436,7 @@ int CLI::run(int argc, char **argv)
 
     // All transforms have been dealt with. Now ensure that the objects are on bed.
     // (Unless the user said otherwise.)
-    if (user_ensure_on_bed)
+    if (m_config.opt_bool("ensure_on_bed"))
         for (auto &model : m_models)
             for (auto &o : model.objects)
                 o->ensure_on_bed();
