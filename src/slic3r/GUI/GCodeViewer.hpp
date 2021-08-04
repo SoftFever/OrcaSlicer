@@ -81,7 +81,10 @@ class GCodeViewer
         size_t position_size_floats() const { return 3; }
         size_t position_size_bytes() const { return position_size_floats() * sizeof(float); }
 
-        size_t normal_offset_floats() const { return position_size_floats(); }
+        size_t normal_offset_floats() const {
+            assert(format == EFormat::PositionNormal1 || format == EFormat::PositionNormal3);
+            return position_size_floats();
+        }
         size_t normal_offset_bytes() const { return normal_offset_floats() * sizeof(float); }
 
         size_t normal_size_floats() const {
@@ -230,12 +233,42 @@ class GCodeViewer
         {
             Point,
             Line,
+#if ENABLE_SEAMS_USING_MODELS
+            Triangle,
+            Model
+#else
             Triangle
+#endif // ENABLE_SEAMS_USING_MODELS
         };
 
         ERenderPrimitiveType render_primitive_type;
+
+        // buffers for point, line and triangle primitive types
         VBuffer vertices;
         std::vector<IBuffer> indices;
+
+#if ENABLE_SEAMS_USING_MODELS
+        struct Model
+        {
+            struct Instance
+            {
+                Vec3f position;
+                float width;
+                float height;
+                size_t s_id;
+            };
+            using Instances = std::vector<Instance>;
+
+            GLModel model;
+            Color color;
+            Instances instances;
+
+            void reset();
+        };
+
+        // contain the buffer for model primitive types
+        Model model;
+#endif // ENABLE_SEAMS_USING_MODELS
 
         std::string shader;
         std::vector<Path> paths;
@@ -284,9 +317,24 @@ class GCodeViewer
         }
         size_t max_indices_per_segment_size_bytes() const { return max_indices_per_segment() * sizeof(IBufferType); }
 
+#if ENABLE_SEAMS_USING_MODELS
+        bool has_data() const {
+            switch (render_primitive_type)
+            {
+            case ERenderPrimitiveType::Point:
+            case ERenderPrimitiveType::Line:
+            case ERenderPrimitiveType::Triangle: {
+                return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
+            }
+            case ERenderPrimitiveType::Model: { return model.model.is_initialized() && !model.instances.empty(); }
+            default: { return false; }
+            }
+        }
+#else
         bool has_data() const {
             return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
         }
+#endif // ENABLE_SEAMS_USING_MODELS
     };
 
     // helper to render shells
@@ -434,6 +482,9 @@ class GCodeViewer
         int64_t gl_multi_lines_calls_count{ 0 };
         int64_t gl_multi_triangles_calls_count{ 0 };
         int64_t gl_triangles_calls_count{ 0 };
+#if ENABLE_SEAMS_USING_MODELS
+        int64_t gl_models_calls_count{ 0 };
+#endif // ENABLE_SEAMS_USING_MODELS
         // memory
         int64_t results_size{ 0 };
         int64_t total_vertices_gpu_size{ 0 };
@@ -442,6 +493,9 @@ class GCodeViewer
         int64_t max_ibuffer_gpu_size{ 0 };
         int64_t paths_size{ 0 };
         int64_t render_paths_size{ 0 };
+#if ENABLE_SEAMS_USING_MODELS
+        int64_t models_instances_size{ 0 };
+#endif // ENABLE_SEAMS_USING_MODELS
         // other
         int64_t travel_segments_count{ 0 };
         int64_t wipe_segments_count{ 0 };
@@ -471,6 +525,9 @@ class GCodeViewer
             gl_multi_lines_calls_count = 0;
             gl_multi_triangles_calls_count = 0;
             gl_triangles_calls_count = 0;
+#if ENABLE_SEAMS_USING_MODELS
+            gl_models_calls_count = 0;
+#endif // ENABLE_SEAMS_USING_MODELS
         }
 
         void reset_sizes() {
@@ -481,6 +538,9 @@ class GCodeViewer
             max_ibuffer_gpu_size = 0;
             paths_size = 0;
             render_paths_size = 0;
+#if ENABLE_SEAMS_USING_MODELS
+            models_instances_size = 0;
+#endif // ENABLE_SEAMS_USING_MODELS
         }
 
         void reset_others() {
@@ -564,6 +624,9 @@ public:
         Endpoints endpoints;
         Endpoints current;
         Endpoints last_current;
+#if ENABLE_SEAMS_USING_MODELS
+        Endpoints global;
+#endif // ENABLE_SEAMS_USING_MODELS
         Vec3f current_position{ Vec3f::Zero() };
         Marker marker;
         GCodeWindow gcode_window;
