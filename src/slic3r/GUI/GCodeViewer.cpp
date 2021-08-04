@@ -44,10 +44,10 @@ static EMoveType buffer_type(unsigned char id) {
     return static_cast<EMoveType>(static_cast<unsigned char>(EMoveType::Retract) + id);
 }
 
-static std::array<float, 3> decode_color(const std::string& color) {
+static std::array<float, 4> decode_color(const std::string& color) {
     static const float INV_255 = 1.0f / 255.0f;
 
-    std::array<float, 3> ret = { 0.0f, 0.0f, 0.0f };
+    std::array<float, 4> ret = { 0.0f, 0.0f, 0.0f, 1.0f };
     const char* c = color.data() + 1;
     if (color.size() == 7 && color.front() == '#') {
         for (size_t j = 0; j < 3; ++j) {
@@ -62,8 +62,8 @@ static std::array<float, 3> decode_color(const std::string& color) {
     return ret;
 }
 
-static std::vector<std::array<float, 3>> decode_colors(const std::vector<std::string>& colors) {
-    std::vector<std::array<float, 3>> output(colors.size(), { 0.0f, 0.0f, 0.0f });
+static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::string>& colors) {
+    std::vector<std::array<float, 4>> output(colors.size(), { 0.0f, 0.0f, 0.0f, 1.0f });
     for (size_t i = 0; i < colors.size(); ++i) {
         output[i] = decode_color(colors[i]);
     }
@@ -176,7 +176,7 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
     const float local_t = std::clamp(global_t - static_cast<float>(color_low_idx), 0.0f, 1.0f);
 
     // Interpolate between the low and high colors to find exactly which color the input value should get
-    Color ret;
+    Color ret = { 0.0f, 0.0f, 0.0f, 1.0f };
     for (unsigned int i = 0; i < 3; ++i) {
         ret[i] = lerp(Range_Colors[color_low_idx][i], Range_Colors[color_high_idx][i], local_t);
     }
@@ -195,7 +195,7 @@ void GCodeViewer::SequentialRangeCap::reset() {
     buffer = nullptr;
     ibo = 0;
     vbo = 0;
-    color = { 0.0f, 0.0f, 0.0f };
+    color = { 0.0f, 0.0f, 0.0f, 1.0f };
 }
 
 void GCodeViewer::SequentialView::Marker::init()
@@ -484,55 +484,56 @@ void GCodeViewer::SequentialView::render(float legend_height) const
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
-    { 0.75f, 0.75f, 0.75f },   // erNone
-    { 1.00f, 0.90f, 0.30f },   // erPerimeter
-    { 1.00f, 0.49f, 0.22f },   // erExternalPerimeter
-    { 0.12f, 0.12f, 1.00f },   // erOverhangPerimeter
-    { 0.69f, 0.19f, 0.16f },   // erInternalInfill
-    { 0.59f, 0.33f, 0.80f },   // erSolidInfill
-    { 0.94f, 0.25f, 0.25f },   // erTopSolidInfill
-    { 1.00f, 0.55f, 0.41f },   // erIroning
-    { 0.30f, 0.50f, 0.73f },   // erBridgeInfill
-    { 1.00f, 1.00f, 1.00f },   // erGapFill
-    { 0.00f, 0.53f, 0.43f },   // erSkirt
-    { 0.00f, 1.00f, 0.00f },   // erSupportMaterial
-    { 0.00f, 0.50f, 0.00f },   // erSupportMaterialInterface
-    { 0.70f, 0.89f, 0.67f },   // erWipeTower
-    { 0.37f, 0.82f, 0.58f },   // erCustom
-    { 0.00f, 0.00f, 0.00f }    // erMixed
+    { 0.75f, 0.75f, 0.75f, 1.0f },   // erNone
+    { 1.00f, 0.90f, 0.30f, 1.0f },   // erPerimeter
+    { 1.00f, 0.49f, 0.22f, 1.0f },   // erExternalPerimeter
+    { 0.12f, 0.12f, 1.00f, 1.0f },   // erOverhangPerimeter
+    { 0.69f, 0.19f, 0.16f, 1.0f },   // erInternalInfill
+    { 0.59f, 0.33f, 0.80f, 1.0f },   // erSolidInfill
+    { 0.94f, 0.25f, 0.25f, 1.0f },   // erTopSolidInfill
+    { 1.00f, 0.55f, 0.41f, 1.0f },   // erIroning
+    { 0.30f, 0.50f, 0.73f, 1.0f },   // erBridgeInfill
+    { 1.00f, 1.00f, 1.00f, 1.0f },   // erGapFill
+    { 0.00f, 0.53f, 0.43f, 1.0f },   // erSkirt
+    { 0.00f, 1.00f, 0.00f, 1.0f },   // erSupportMaterial
+    { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
+    { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
+    { 0.37f, 0.82f, 0.58f, 1.0f },   // erCustom
+    { 0.00f, 0.00f, 0.00f, 1.0f }    // erMixed
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
-    { 0.803f, 0.135f, 0.839f },   // Retractions
-    { 0.287f, 0.679f, 0.810f },   // Unretractions
-    { 0.900f, 0.900f, 0.900f },   // Seams
-    { 0.758f, 0.744f, 0.389f },   // ToolChanges
-    { 0.856f, 0.582f, 0.546f },   // ColorChanges
-    { 0.322f, 0.942f, 0.512f },   // PausePrints
-    { 0.886f, 0.825f, 0.262f }    // CustomGCodes
+    { 0.803f, 0.135f, 0.839f, 1.0f },   // Retractions
+    { 0.287f, 0.679f, 0.810f, 1.0f },   // Unretractions
+    { 0.900f, 0.900f, 0.900f, 1.0f },   // Seams
+    { 0.758f, 0.744f, 0.389f, 1.0f },   // ToolChanges
+    { 0.856f, 0.582f, 0.546f, 1.0f },   // ColorChanges
+    { 0.322f, 0.942f, 0.512f, 1.0f },   // PausePrints
+    { 0.886f, 0.825f, 0.262f, 1.0f }    // CustomGCodes
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
-    { 0.219f, 0.282f, 0.609f }, // Move
-    { 0.112f, 0.422f, 0.103f }, // Extrude
-    { 0.505f, 0.064f, 0.028f }  // Retract
+    { 0.219f, 0.282f, 0.609f, 1.0f }, // Move
+    { 0.112f, 0.422f, 0.103f, 1.0f }, // Extrude
+    { 0.505f, 0.064f, 0.028f, 1.0f }  // Retract
 }};
-
-const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f };
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
-    { 0.043f, 0.173f, 0.478f }, // bluish
-    { 0.075f, 0.349f, 0.522f },
-    { 0.110f, 0.533f, 0.569f },
-    { 0.016f, 0.839f, 0.059f },
-    { 0.667f, 0.949f, 0.000f },
-    { 0.988f, 0.975f, 0.012f },
-    { 0.961f, 0.808f, 0.039f },
-    { 0.890f, 0.533f, 0.125f },
-    { 0.820f, 0.408f, 0.188f },
-    { 0.761f, 0.322f, 0.235f },
-    { 0.581f, 0.149f, 0.087f }  // reddish
+    { 0.043f, 0.173f, 0.478f, 1.0f }, // bluish
+    { 0.075f, 0.349f, 0.522f, 1.0f },
+    { 0.110f, 0.533f, 0.569f, 1.0f },
+    { 0.016f, 0.839f, 0.059f, 1.0f },
+    { 0.667f, 0.949f, 0.000f, 1.0f },
+    { 0.988f, 0.975f, 0.012f, 1.0f },
+    { 0.961f, 0.808f, 0.039f, 1.0f },
+    { 0.890f, 0.533f, 0.125f, 1.0f },
+    { 0.820f, 0.408f, 0.188f, 1.0f },
+    { 0.761f, 0.322f, 0.235f, 1.0f },
+    { 0.581f, 0.149f, 0.087f, 1.0f }  // reddish
 }};
+
+const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f, 1.0f };
+const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0f };
 
 GCodeViewer::GCodeViewer()
 {
@@ -1967,18 +1968,14 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tool_colors[path.extruder_id]; break; }
         case EViewType::ColorPrint:     {
-            if (path.cp_color_id >= static_cast<unsigned char>(m_tool_colors.size())) {
-                color = { 0.5f, 0.5f, 0.5f };
-//                // complementary color
-//                color = m_tool_colors[255 - path.cp_color_id];
-//                color = { 1.0f - color[0], 1.0f - color[1], 1.0f - color[2] };
-            }
+            if (path.cp_color_id >= static_cast<unsigned char>(m_tool_colors.size()))
+                color = { 0.5f, 0.5f, 0.5f, 1.0f };
             else
                 color = m_tool_colors[path.cp_color_id];
 
             break;
         }
-        default: { color = { 1.0f, 1.0f, 1.0f }; break; }
+        default: { color = { 1.0f, 1.0f, 1.0f, 1.0f }; break; }
         }
 
         return color;
@@ -2142,20 +2139,20 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         Color color;
         switch (path.type)
         {
-        case EMoveType::Tool_change:  { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]; break; }
-        case EMoveType::Color_change: { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]; break; }
-        case EMoveType::Pause_Print:  { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]; break; }
-        case EMoveType::Custom_GCode: { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]; break; }
-        case EMoveType::Retract:      { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]; break; }
-        case EMoveType::Unretract:    { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]; break; }
-        case EMoveType::Seam:         { color = Options_Colors[static_cast<unsigned int>(EOptionsColors::Seams)]; break; }
+        case EMoveType::Tool_change:
+        case EMoveType::Color_change:
+        case EMoveType::Pause_Print:
+        case EMoveType::Custom_GCode:
+        case EMoveType::Retract:
+        case EMoveType::Unretract:
+        case EMoveType::Seam: { color = option_color(path.type); break; }
         case EMoveType::Extrude: {
             if (!top_layer_only ||
                 m_sequential_view.current.last == global_endpoints.last ||
                 is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1]))
                 color = extrusion_color(path);
             else
-                color = { 0.25f, 0.25f, 0.25f };
+                color = Neutral_Color;
 
             break;
         }
@@ -2163,12 +2160,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_travel_in_layers_range(path_id, m_layers_z_range[1], m_layers_z_range[1]))
                 color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path);
             else
-                color = { 0.25f, 0.25f, 0.25f };
+                color = Neutral_Color;
 
             break;
         }
         case EMoveType::Wipe: { color = Wipe_Color; break; }
-        default: { color = { 0.0f, 0.0f, 0.0f }; break; }
+        default: { color = { 0.0f, 0.0f, 0.0f, 1.0f }; break; }
         }
 
         RenderPath key{ tbuffer_id, color, static_cast<unsigned int>(ibuffer_id), path_id };
@@ -2373,15 +2370,10 @@ void GCodeViewer::render_toolpaths()
     float near_plane_height = camera.get_type() == Camera::EType::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
         static_cast<float>(viewport[3]) * 0.0005;
 
-    auto set_uniform_color = [](const std::array<float, 3>& color, GLShaderProgram& shader) {
-        std::array<float, 4> color4 = { color[0], color[1], color[2], 1.0f };
-        shader.set_uniform("uniform_color", color4);
-    };
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_as_points = [this, zoom, point_size, near_plane_height, set_uniform_color]
+    auto render_as_points = [this, zoom, point_size, near_plane_height]
 #else
-    auto render_as_points = [zoom, point_size, near_plane_height, set_uniform_color]
+    auto render_as_points = [zoom, point_size, near_plane_height]
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
 #if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
@@ -2400,7 +2392,7 @@ void GCodeViewer::render_toolpaths()
 
         for (const RenderPath& path : buffer.render_paths) {
             if (path.ibuffer_id == ibuffer_id) {
-                set_uniform_color(path.color, shader);
+                shader.set_uniform("uniform_color", path.color);
                 glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_multi_points_calls_count;
@@ -2413,15 +2405,15 @@ void GCodeViewer::render_toolpaths()
     };
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_as_lines = [this, light_intensity, set_uniform_color]
+    auto render_as_lines = [this, light_intensity]
 #else
-    auto render_as_lines = [light_intensity, set_uniform_color]
+    auto render_as_lines = [light_intensity]
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         shader.set_uniform("light_intensity", light_intensity);
         for (const RenderPath& path : buffer.render_paths) {
             if (path.ibuffer_id == ibuffer_id) {
-                set_uniform_color(path.color, shader);
+                shader.set_uniform("uniform_color", path.color);
                 glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_multi_lines_calls_count;
@@ -2431,14 +2423,14 @@ void GCodeViewer::render_toolpaths()
     };
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_as_triangles = [this, set_uniform_color]
+    auto render_as_triangles = [this]
 #else
-    auto render_as_triangles = [set_uniform_color]
+    auto render_as_triangles = []
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
         for (const RenderPath& path : buffer.render_paths) {
             if (path.ibuffer_id == ibuffer_id) {
-                set_uniform_color(path.color, shader);
+                shader.set_uniform("uniform_color", path.color);
                 glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_multi_triangles_calls_count;
@@ -2509,9 +2501,9 @@ void GCodeViewer::render_toolpaths()
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_sequential_range_cap = [this, set_uniform_color]
+    auto render_sequential_range_cap = [this]
 #else
-    auto render_sequential_range_cap = [set_uniform_color]
+    auto render_sequential_range_cap = []
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     (const SequentialRangeCap& cap) {
         GLShaderProgram* shader = wxGetApp().get_shader(cap.buffer->shader.c_str());
@@ -2527,7 +2519,7 @@ void GCodeViewer::render_toolpaths()
                 glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
             }
 
-            set_uniform_color(cap.color, *shader);
+            shader->set_uniform("uniform_color", cap.color);
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cap.ibo));
             glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)cap.indices_count(), GL_UNSIGNED_SHORT, nullptr));
@@ -3545,6 +3537,21 @@ void GCodeViewer::log_memory_used(const std::string& label, int64_t additional) 
         BOOST_LOG_TRIVIAL(trace) << label
             << "(" << format_memsize_MB(additional + paths_size + render_paths_size + layers_size) << ");"
             << log_memory_info();
+    }
+}
+
+GCodeViewer::Color GCodeViewer::option_color(EMoveType move_type) const
+{
+    switch (move_type)
+    {
+    case EMoveType::Tool_change:  { return Options_Colors[static_cast<unsigned int>(EOptionsColors::ToolChanges)]; }
+    case EMoveType::Color_change: { return Options_Colors[static_cast<unsigned int>(EOptionsColors::ColorChanges)]; }
+    case EMoveType::Pause_Print:  { return Options_Colors[static_cast<unsigned int>(EOptionsColors::PausePrints)]; }
+    case EMoveType::Custom_GCode: { return Options_Colors[static_cast<unsigned int>(EOptionsColors::CustomGCodes)]; }
+    case EMoveType::Retract:      { return Options_Colors[static_cast<unsigned int>(EOptionsColors::Retractions)]; }
+    case EMoveType::Unretract:    { return Options_Colors[static_cast<unsigned int>(EOptionsColors::Unretractions)]; }
+    case EMoveType::Seam:         { return Options_Colors[static_cast<unsigned int>(EOptionsColors::Seams)]; }
+    default:                      { return { 0.0f, 0.0f, 0.0f, 1.0f }; }
     }
 }
 

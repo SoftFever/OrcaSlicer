@@ -22,7 +22,7 @@ namespace GUI {
 class GCodeViewer
 {
     using IBufferType = unsigned short;
-    using Color = std::array<float, 3>;
+    using Color = std::array<float, 4>;
     using VertexBuffer = std::vector<float>;
     using MultiVertexBuffer = std::vector<VertexBuffer>;
     using IndexBuffer = std::vector<IBufferType>;
@@ -31,8 +31,9 @@ class GCodeViewer
     static const std::vector<Color> Extrusion_Role_Colors;
     static const std::vector<Color> Options_Colors;
     static const std::vector<Color> Travel_Colors;
-    static const Color              Wipe_Color;
     static const std::vector<Color> Range_Colors;
+    static const Color              Wipe_Color;
+    static const Color              Neutral_Color;
 
     enum class EOptionsColors : unsigned char
     {
@@ -689,6 +690,7 @@ private:
     }
     bool is_visible(const Path& path) const { return is_visible(path.role); }
     void log_memory_used(const std::string& label, int64_t additional = 0) const;
+    Color option_color(EMoveType move_type) const;
 };
 
 } // namespace GUI
