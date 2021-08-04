@@ -1745,18 +1745,15 @@ void ModelVolume::scale(const Vec3d& scaling_factors)
 
 void ModelObject::scale_to_fit(const Vec3d &size)
 {
-/*
-    BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
     Vec3d orig_size = this->bounding_box().size();
-    float factor = fminf(
-        size.x / orig_size.x,
-        fminf(
-            size.y / orig_size.y,
-            size.z / orig_size.z
+    double factor = std::min(
+        size.x() / orig_size.x(),
+        std::min(
+            size.y() / orig_size.y(),
+            size.z() / orig_size.z()
         )
     );
     this->scale(factor);
-*/
 }
 
 void ModelVolume::assign_new_unique_ids_recursive()
