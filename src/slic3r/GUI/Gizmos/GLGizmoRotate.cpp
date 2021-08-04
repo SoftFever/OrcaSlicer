@@ -339,7 +339,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     const_cast<GLModel*>(&m_cone)->set_color(-1, color);
     if (!picking) {
         shader->start_using();
-        shader->set_uniform("emission_factor", 0.1);
+        shader->set_uniform("emission_factor", 0.1f);
     }
 
     glsafe(::glPushMatrix());

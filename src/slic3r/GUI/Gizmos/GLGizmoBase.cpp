@@ -183,7 +183,7 @@ void GLGizmoBase::render_grabbers(float size) const
     if (shader == nullptr)
         return;
     shader->start_using();
-    shader->set_uniform("emission_factor", 0.1);
+    shader->set_uniform("emission_factor", 0.1f);
     for (int i = 0; i < (int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled)
             m_grabbers[i].render(m_hover_id == i, size);

@@ -223,7 +223,7 @@ void GCodeViewer::SequentialView::Marker::render() const
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     shader->start_using();
-    shader->set_uniform("emission_factor", 0.0);
+    shader->set_uniform("emission_factor", 0.0f);
 
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixf(m_world_transform.data()));

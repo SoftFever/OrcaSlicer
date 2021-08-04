@@ -119,7 +119,7 @@ void Bed3D::Axes::render() const
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     shader->start_using();
-    shader->set_uniform("emission_factor", 0.0);
+    shader->set_uniform("emission_factor", 0.0f);
 
     // x axis
     const_cast<GLModel*>(&m_arrow)->set_color(-1, { 0.75f, 0.0f, 0.0f, 1.0f });
@@ -498,7 +498,7 @@ void Bed3D::render_model() const
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-            shader->set_uniform("emission_factor", 0.0);
+            shader->set_uniform("emission_factor", 0.0f);
             glsafe(::glPushMatrix());
             glsafe(::glTranslated(m_model_offset.x(), m_model_offset.y(), m_model_offset.z()));
             model->render();

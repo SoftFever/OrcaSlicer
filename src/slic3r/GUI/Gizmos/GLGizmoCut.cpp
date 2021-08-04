@@ -136,7 +136,7 @@ void GLGizmoCut::on_render()
     if (shader == nullptr)
         return;
     shader->start_using();
-    shader->set_uniform("emission_factor", 0.1);
+    shader->set_uniform("emission_factor", 0.1f);
 
     m_grabbers[0].color = GrabberColor;
     m_grabbers[0].render(m_hover_id == 0, (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
