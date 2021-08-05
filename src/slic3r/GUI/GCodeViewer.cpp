@@ -545,6 +545,7 @@ const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0
 
 GCodeViewer::GCodeViewer()
 {
+#if !ENABLE_SEAMS_USING_MODELS
     // initializes non OpenGL data of TBuffers
     // OpenGL data are initialized into render().init_gl_data()
     for (size_t i = 0; i < m_buffers.size(); ++i) {
@@ -552,18 +553,6 @@ GCodeViewer::GCodeViewer()
         switch (buffer_type(i))
         {
         default: { break; }
-#if ENABLE_SEAMS_USING_MODELS
-        case EMoveType::Tool_change:
-        case EMoveType::Color_change:
-        case EMoveType::Pause_Print:
-        case EMoveType::Custom_GCode:
-        case EMoveType::Retract:
-        case EMoveType::Unretract:
-        case EMoveType::Seam: {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
-            break;
-        }
-#else
         case EMoveType::Tool_change:
         case EMoveType::Color_change:
         case EMoveType::Pause_Print:
@@ -575,7 +564,6 @@ GCodeViewer::GCodeViewer()
             buffer.vertices.format = VBuffer::EFormat::Position;
             break;
         }
-#endif // ENABLE_SEAMS_USING_MODELS
         case EMoveType::Wipe:
         case EMoveType::Extrude: {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
@@ -591,6 +579,8 @@ GCodeViewer::GCodeViewer()
     }
 
     set_toolpath_move_type_visible(EMoveType::Extrude, true);
+#endif // !ENABLE_SEAMS_USING_MODELS
+
 //    m_sequential_view.skip_invisible_moves = true;
 }
 
@@ -797,25 +787,47 @@ void GCodeViewer::render()
             case EMoveType::Unretract:
             case EMoveType::Seam: {
 #if ENABLE_SEAMS_USING_MODELS
-                buffer.shader = "gouraud_light";
-                buffer.model.model.init_from(diamond(16));
-                buffer.model.color = option_color(type);
+                if (wxGetApp().is_gl_version_greater_or_equal_to(3, 1)) {
+                    buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
+                    buffer.shader = "gouraud_light";
+                    buffer.model.model.init_from(diamond(16));
+                    buffer.model.color = option_color(type);
+                }
+                else {
+                    buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
+                    buffer.vertices.format = VBuffer::EFormat::Position;
+                    buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
+                }
                 break;
 #else
+                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
+                buffer.vertices.format = VBuffer::EFormat::Position;
                 buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
                 break;
 #endif // ENABLE_SEAMS_USING_MODELS
             }
             case EMoveType::Wipe:
             case EMoveType::Extrude: {
+#if ENABLE_SEAMS_USING_MODELS
+                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
+                buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
+#endif // ENABLE_SEAMS_USING_MODELS
                 buffer.shader = "gouraud_light";
                 break;
             }
             case EMoveType::Travel: {
+#if ENABLE_SEAMS_USING_MODELS
+                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
+                buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
+#endif // ENABLE_SEAMS_USING_MODELS
                 buffer.shader = "toolpaths_lines";
                 break;
             }
             }
+
+#if ENABLE_SEAMS_USING_MODELS
+            set_toolpath_move_type_visible(EMoveType::Extrude, true);
+#endif // ENABLE_SEAMS_USING_MODELS
         }
 
         // initializes tool marker
