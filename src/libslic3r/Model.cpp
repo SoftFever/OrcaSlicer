@@ -460,13 +460,15 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     this->objects.push_back(object);
 }
 
+static constexpr const double volume_threshold_inches = 9.0; // 9 = 3*3*3;
+
 bool Model::looks_like_imperial_units() const
 {
     if (this->objects.size() == 0)
         return false;
 
     for (ModelObject* obj : this->objects)
-        if (obj->get_object_stl_stats().volume < 9.0) // 9 = 3*3*3;
+        if (obj->get_object_stl_stats().volume < volume_threshold_inches)
             return true;
 
     return false;
@@ -474,14 +476,18 @@ bool Model::looks_like_imperial_units() const
 
 void Model::convert_from_imperial_units(bool only_small_volumes)
 {
-    double in_to_mm = 25.4;
+    static constexpr const in_to_mm = 25.4;
     for (ModelObject* obj : this->objects)
-        if (! only_small_volumes || obj->get_object_stl_stats().volume < 9.0) { // 9 = 3*3*3;
+        if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_inches) {
             obj->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
-            for (ModelVolume* v : obj->volumes)
+            for (ModelVolume* v : obj->volumes) {
+                assert(! v->source.is_converted_from_meters);
                 v->source.is_converted_from_inches = true;
+            }
         }
 }
+
+static constexpr const double volume_threshold_meters = 0.001; // 0.001 = 0.1*0.1*0.1
 
 bool Model::looks_like_saved_in_meters() const
 {
@@ -489,7 +495,7 @@ bool Model::looks_like_saved_in_meters() const
         return false;
 
     for (ModelObject* obj : this->objects)
-        if (obj->get_object_stl_stats().volume < 0.001) // 0.001 = 0.1*0.1*0.1;
+        if (obj->get_object_stl_stats().volume < volume_threshold_meters)
             return true;
 
     return false;
@@ -497,12 +503,14 @@ bool Model::looks_like_saved_in_meters() const
 
 void Model::convert_from_meters(bool only_small_volumes)
 {
-    double m_to_mm = 1000;
+    static constexpr const double m_to_mm = 1000;
     for (ModelObject* obj : this->objects)
-        if (! only_small_volumes || obj->get_object_stl_stats().volume < 0.001) { // 0.001 = 0.1*0.1*0.1;
+        if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_meters) {
             obj->scale_mesh_after_creation(Vec3d(m_to_mm, m_to_mm, m_to_mm));
-            for (ModelVolume* v : obj->volumes)
+            for (ModelVolume* v : obj->volumes) {
+                assert(! v->source.is_converted_from_inches);
                 v->source.is_converted_from_meters = true;
+            }
         }
 }
 
@@ -1075,6 +1083,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
                     vol->source.is_converted_from_inches = conv_type == ConversionType::CONV_FROM_INCH;
                 if (conv_type == ConversionType::CONV_FROM_METER || conv_type == ConversionType::CONV_TO_METER)
                     vol->source.is_converted_from_meters = conv_type == ConversionType::CONV_FROM_METER;
+                assert(! vol->source.is_converted_from_inches || ! vol->source.is_converted_from_meters);
             }
             else
                 vol->set_offset(volume->get_offset());
@@ -1827,6 +1836,7 @@ void ModelVolume::transform_this_mesh(const Matrix3d &matrix, bool fix_left_hand
 
 void ModelVolume::convert_from_imperial_units()
 {
+    assert(! this->source.is_converted_from_meters);
     double in_to_mm = 25.4;
     this->scale_geometry_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
     this->set_offset(Vec3d(0, 0, 0));
@@ -1835,6 +1845,7 @@ void ModelVolume::convert_from_imperial_units()
 
 void ModelVolume::convert_from_meters()
 {
+    assert(! this->source.is_converted_from_inches);
     double m_to_mm = 1000;
     this->scale_geometry_after_creation(Vec3d(m_to_mm, m_to_mm, m_to_mm));
     this->set_offset(Vec3d(0, 0, 0));
