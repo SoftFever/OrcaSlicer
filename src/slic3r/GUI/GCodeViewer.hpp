@@ -27,6 +27,10 @@ class GCodeViewer
     using MultiVertexBuffer = std::vector<VertexBuffer>;
     using IndexBuffer = std::vector<IBufferType>;
     using MultiIndexBuffer = std::vector<IndexBuffer>;
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+    using InstanceBuffer = std::vector<float>;
+    using InstanceIdBuffer = std::vector<size_t>;
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 
     static const std::vector<Color> Extrusion_Role_Colors;
     static const std::vector<Color> Options_Colors;
@@ -99,6 +103,34 @@ class GCodeViewer
 
         void reset();
     };
+
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+    // vbo buffer containing instances data used to render a toolpaths using instanced models
+    // record format: 5 floats -> position.x|position.y|position.z|width|height
+    struct InstanceVBuffer
+    {
+        struct RenderRange
+        {
+            // offset in bytes of the 1st instance to render
+            unsigned int offset;
+            // count of instances to render
+            unsigned int count;
+        };
+
+        // vbo id
+        unsigned int vbo{ 0 };
+        // move ids
+        std::vector<size_t> s_ids;
+        RenderRange render_range;
+
+        size_t data_size_bytes() const { return s_ids.size() * instance_size_bytes(); }
+
+        size_t instance_size_floats() const { return 5; }
+        size_t instance_size_bytes() const { return instance_size_floats() * sizeof(float); }
+
+        void reset();
+    };
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 
     // ibo buffer containing indices data (for lines/triangles) used to render a specific toolpath type
     struct IBuffer
@@ -262,6 +294,9 @@ class GCodeViewer
             GLModel model;
             Color color;
             Instances instances;
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+            InstanceVBuffer instances2;
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 
             void reset();
         };
@@ -489,8 +524,14 @@ class GCodeViewer
         int64_t results_size{ 0 };
         int64_t total_vertices_gpu_size{ 0 };
         int64_t total_indices_gpu_size{ 0 };
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+        int64_t total_instances_gpu_size{ 0 };
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
         int64_t max_vbuffer_gpu_size{ 0 };
         int64_t max_ibuffer_gpu_size{ 0 };
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+        int64_t max_instance_vbuffer_gpu_size{ 0 };
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
         int64_t paths_size{ 0 };
         int64_t render_paths_size{ 0 };
 #if ENABLE_SEAMS_USING_MODELS
@@ -537,8 +578,14 @@ class GCodeViewer
             results_size = 0;
             total_vertices_gpu_size = 0;
             total_indices_gpu_size = 0;
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+            total_instances_gpu_size = 0;
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
             max_vbuffer_gpu_size = 0;
             max_ibuffer_gpu_size = 0;
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+            max_instance_vbuffer_gpu_size = 0;
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
             paths_size = 0;
             render_paths_size = 0;
 #if ENABLE_SEAMS_USING_MODELS
