@@ -1818,6 +1818,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             add_indices_as_solid(prev, curr, next, t_buffer, curr_vertex_buffer.second, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, i);
             break;
         }
+        default: { break; }
         }
     }
 
@@ -2286,6 +2287,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             size_in_indices = buffer.indices_per_segment() * segments_count;
             break;
         }
+        default: { break; }
         }
 
         if (size_in_indices == 0)
@@ -2625,6 +2627,7 @@ void GCodeViewer::render_toolpaths()
                         render_as_triangles(buffer, static_cast<unsigned int>(j), *shader);
                         break;
                     }
+                    default: { break; }
                     }
 
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
