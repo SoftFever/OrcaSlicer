@@ -499,10 +499,10 @@ void Bed3D::render_model() const
         if (shader != nullptr) {
             shader->start_using();
             shader->set_uniform("emission_factor", 0.0);
-            ::glPushMatrix();
-            ::glTranslated(m_model_offset.x(), m_model_offset.y(), m_model_offset.z());
+            glsafe(::glPushMatrix());
+            glsafe(::glTranslated(m_model_offset.x(), m_model_offset.y(), m_model_offset.z()));
             model->render();
-            ::glPopMatrix();
+            glsafe(::glPopMatrix());
             shader->stop_using();
         }
     }

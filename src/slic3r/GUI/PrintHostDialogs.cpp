@@ -27,6 +27,7 @@
 #include "MainFrame.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "NotificationManager.hpp"
+#include "ExtraRenderers.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -214,14 +215,25 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     }
 
     job_list = new wxDataViewListCtrl(this, wxID_ANY);
+
+    // MSW DarkMode: workaround for the selected item in the list
+    auto append_text_column = [this](const wxString& label, int width, wxAlignment align = wxALIGN_LEFT,
+                                     int flags = wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE) {
+#ifdef _WIN32
+            job_list->AppendColumn(new wxDataViewColumn(label, new TextRenderer(), job_list->GetColumnCount(), width, align, flags));
+#else
+            job_list->AppendTextColumn(label, wxDATAVIEW_CELL_INERT, width, align, flags);
+#endif
+    };
+
     // Note: Keep these in sync with Column
-    job_list->AppendTextColumn(_L("ID"), wxDATAVIEW_CELL_INERT, widths[0], wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-    job_list->AppendProgressColumn(_L("Progress"), wxDATAVIEW_CELL_INERT, widths[1], wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-    job_list->AppendTextColumn(_L("Status"), wxDATAVIEW_CELL_INERT, widths[2], wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-    job_list->AppendTextColumn(_L("Host"), wxDATAVIEW_CELL_INERT, widths[3], wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-    job_list->AppendTextColumn(_CTX_utf8(L_CONTEXT("Size", "OfFile"), "OfFile"), wxDATAVIEW_CELL_INERT, widths[4], wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-    job_list->AppendTextColumn(_L("Filename"), wxDATAVIEW_CELL_INERT, widths[5], wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-    job_list->AppendTextColumn(_L("Error Message"), wxDATAVIEW_CELL_INERT, -1, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+    append_text_column(_L("ID"), widths[0]);
+    job_list->AppendProgressColumn(_L("Progress"),      wxDATAVIEW_CELL_INERT, widths[1], wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+    append_text_column(_L("Status"),widths[2]);
+    append_text_column(_L("Host"),  widths[3]);
+    append_text_column(_CTX_utf8(L_CONTEXT("Size", "OfFile"), "OfFile"), widths[4]);
+    append_text_column(_L("Filename"),      widths[5]);
+    append_text_column(_L("Error Message"), -1, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
  
     auto *btnsizer = new wxBoxSizer(wxHORIZONTAL);
     btn_cancel = new wxButton(this, wxID_DELETE, _L("Cancel selected"));

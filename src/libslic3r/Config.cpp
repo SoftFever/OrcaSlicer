@@ -871,6 +871,7 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
                 token.erase(equals_pos);
             }
         }
+
         // Look for the cli -> option mapping.
         const auto it = opts.find(token);
         if (it == opts.end()) {
@@ -879,15 +880,46 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
         }
         const t_config_option_key opt_key = it->second;
         const ConfigOptionDef &optdef = this->def()->options.at(opt_key);
+
         // If the option type expects a value and it was not already provided,
         // look for it in the next token.
-        if (optdef.type != coBool && optdef.type != coBools && value.empty()) {
-            if (i == (argc-1)) {
-				boost::nowide::cerr << "No value supplied for --" << token.c_str() << std::endl;
+        if (value.empty()) {
+            if (optdef.type != coBool && optdef.type != coBools) {
+                if (i == (argc-1)) {
+                    boost::nowide::cerr << "No value supplied for --" << token.c_str() << std::endl;
+                    return false;
+                }
+                value = argv[++ i];
+            } else {
+                // This is a bool or bools. The value is optional, but may still be there.
+                // Check if the next token can be deserialized into ConfigOptionBool.
+                // If it is in fact bools, it will be rejected later anyway.
+                if (i != argc-1) { // There is still a token to read.
+                    ConfigOptionBool cobool;
+                    if (cobool.deserialize(argv[i+1]))
+                        value = argv[++i];
+                }
+            }
+
+        }
+
+        if (no) {
+            if (optdef.type != coBool && optdef.type != coBools) {
+                boost::nowide::cerr << "Only boolean config options can be negated with --no- prefix." << std::endl;
                 return false;
             }
-            value = argv[++ i];
+            else if (! value.empty()) {
+                boost::nowide::cerr << "Boolean options negated by the --no- prefix cannot have a value." << std::endl;
+                return false;
+            }
         }
+        if (optdef.type == coBools && ! value.empty()) {
+            boost::nowide::cerr << "Vector boolean options cannot have a value. Fill them in by "
+                                   "repeating them and negate by --no- prefix." << std::endl;
+            return false;
+        }
+
+
         // Store the option value.
         const bool               existing   = this->has(opt_key);
         if (keys != nullptr && ! existing) {
@@ -911,7 +943,10 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
                 // unescaped by the calling shell.
 				opt_vector->deserialize(value, true);
         } else if (opt_base->type() == coBool) {
-            static_cast<ConfigOptionBool*>(opt_base)->value = !no;
+            if (value.empty())
+                static_cast<ConfigOptionBool*>(opt_base)->value = !no;
+            else
+                opt_base->deserialize(value);
         } else if (opt_base->type() == coString) {
             // Do not unescape single string values, the unescaping is left to the calling shell.
             static_cast<ConfigOptionString*>(opt_base)->value = value;
