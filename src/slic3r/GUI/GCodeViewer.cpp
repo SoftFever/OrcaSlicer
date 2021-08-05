@@ -1514,7 +1514,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         case TBuffer::ERenderPrimitiveType::Line:     { add_vertices_as_line(prev, curr, v_buffer); break; }
         case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, static_cast<unsigned int>(v_multibuffer.size()) - 1, v_buffer, i); break; }
 #if ENABLE_SEAMS_USING_MODELS
-        case TBuffer::ERenderPrimitiveType::Model:    { add_model_instance(curr, t_buffer.model.instances, i); break; }
+        case TBuffer::ERenderPrimitiveType::Model:
+        {
+            add_model_instance(curr, t_buffer.model.instances, i);
+#if ENABLE_GCODE_VIEWER_STATISTICS
+            ++m_statistics.instances_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+            break;
+        }
 #endif // ENABLE_SEAMS_USING_MODELS
         }
 
@@ -1685,6 +1692,15 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             v_buffer.shrink_to_fit();
         }
     }
+
+#if ENABLE_SEAMS_USING_MODELS
+    for (size_t i = 0; i < m_buffers.size(); ++i) {
+        TBuffer& t_buffer = m_buffers[i];
+        if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Model) {
+            t_buffer.model.instances.shrink_to_fit();
+        }
+    }
+#endif // ENABLE_SEAMS_USING_MODELS
 
     // move the wipe toolpaths half height up to render them on proper position
     MultiVertexBuffer& wipe_vertices = vertices[buffer_id(EMoveType::Wipe)];
@@ -3677,6 +3693,9 @@ void GCodeViewer::render_statistics()
         add_counter(std::string("Travel segments count:"), m_statistics.travel_segments_count);
         add_counter(std::string("Wipe segments count:"), m_statistics.wipe_segments_count);
         add_counter(std::string("Extrude segments count:"), m_statistics.extrude_segments_count);
+#if ENABLE_SEAMS_USING_MODELS
+        add_counter(std::string("Instances count:"), m_statistics.instances_count);
+#endif // ENABLE_SEAMS_USING_MODELS
         ImGui::Separator();
         add_counter(std::string("VBuffers count:"), m_statistics.vbuffers_count);
         add_counter(std::string("IBuffers count:"), m_statistics.ibuffers_count);

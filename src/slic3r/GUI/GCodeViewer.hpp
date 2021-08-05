@@ -500,6 +500,9 @@ class GCodeViewer
         int64_t travel_segments_count{ 0 };
         int64_t wipe_segments_count{ 0 };
         int64_t extrude_segments_count{ 0 };
+#if ENABLE_SEAMS_USING_MODELS
+        int64_t instances_count{ 0 };
+#endif // ENABLE_SEAMS_USING_MODELS
         int64_t vbuffers_count{ 0 };
         int64_t ibuffers_count{ 0 };
 
@@ -547,6 +550,9 @@ class GCodeViewer
             travel_segments_count = 0;
             wipe_segments_count = 0;
             extrude_segments_count =  0;
+#if ENABLE_SEAMS_USING_MODELS
+            instances_count = 0;
+#endif // ENABLE_SEAMS_USING_MODELS
             vbuffers_count = 0;
             ibuffers_count = 0;
         }
