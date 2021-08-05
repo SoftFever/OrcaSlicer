@@ -2096,6 +2096,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     Statistics* statistics = const_cast<Statistics*>(&m_statistics);
     statistics->render_paths_size = 0;
+#if ENABLE_SEAMS_USING_MODELS
+    statistics->models_instances_size = 0;
+#endif // ENABLE_SEAMS_USING_MODELS
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     const bool top_layer_only = get_app_config()->get("seq_top_layer_only") == "1";
