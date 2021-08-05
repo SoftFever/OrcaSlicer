@@ -476,7 +476,7 @@ bool Model::looks_like_imperial_units() const
 
 void Model::convert_from_imperial_units(bool only_small_volumes)
 {
-    static constexpr const in_to_mm = 25.4;
+    static constexpr const double in_to_mm = 25.4;
     for (ModelObject* obj : this->objects)
         if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_inches) {
             obj->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
