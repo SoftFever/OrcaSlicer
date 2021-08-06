@@ -61,7 +61,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	logo = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
 
 	topsizer->Add(logo, 0, wxALL, BORDER);
-	topsizer->Add(rightsizer, 1, wxALL | wxEXPAND, BORDER);
+	topsizer->Add(rightsizer, 1, wxTOP | wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 
 	SetSizerAndFit(topsizer);
 }
@@ -98,7 +98,6 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         msg_lines++;
     }
 
-    html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), monospaced_font ? 30 * wxGetApp().em_unit() : 2 * msg_lines * wxGetApp().em_unit()));
     wxFont      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont      monospace = wxGetApp().code_font();
     wxColour    text_clr = wxGetApp().get_label_clr_default();
@@ -109,6 +108,30 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     int         size[] = { font_size, font_size, font_size, font_size, font_size, font_size, font_size };
     html->SetFonts(font.GetFaceName(), monospace.GetFaceName(), size);
     html->SetBorders(2);
+
+    // calculate html page size from text
+    wxSize page_size;
+    int em = wxGetApp().em_unit();
+
+    // if message containes the table
+    if (msg.Contains("<tr>")) {
+        int lines = msg.Freq('\n') + 1;
+        int pos = 0;
+        while (pos < (int)msg.Len() && pos != wxNOT_FOUND) {
+            pos = msg.find("<tr>", pos + 1);
+            lines += 2;
+        }
+        int page_height = std::min(int(font.GetPixelSize().y+2) * lines, 68 * em);
+        page_size = wxSize(68 * em, page_height);
+    }
+    else {
+        wxClientDC dc(parent);
+        wxSize msg_sz = dc.GetMultiLineTextExtent(msg);
+        page_size = wxSize(std::min(msg_sz.GetX() + em,     68 * em),
+                           std::min(msg_sz.GetY() + 2 * em, 68 * em));
+    }
+    html->SetMinSize(page_size);
+
     std::string msg_escaped = xml_escape(msg.ToUTF8().data());
     boost::replace_all(msg_escaped, "\r\n", "<br>");
     boost::replace_all(msg_escaped, "\n", "<br>");
@@ -116,7 +139,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         // Code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
         msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
     html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
-    content_sizer->Add(html, 1, wxEXPAND | wxBOTTOM, 30);
+    content_sizer->Add(html, 1, wxEXPAND);
 }
 
 // ErrorDialog
@@ -131,7 +154,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
 	add_btn(wxID_OK, true);
 
 	// Use a small bitmap with monospaced font, as the error text will not be wrapped.
-	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/92));
+	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -155,7 +178,7 @@ WarningDialog::WarningDialog(wxWindow *parent,
     if (style & wxYES)  add_btn(wxID_YES);
     if (style & wxNO)   add_btn(wxID_NO);
 
-    logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 90));
+    logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 84));
 
     wxGetApp().UpdateDlgDarkUI(this);
     Fit();
@@ -180,7 +203,7 @@ MessageDialog::MessageDialog(wxWindow* parent,
 
     logo->SetBitmap(create_scaled_bitmap(style & wxICON_WARNING     ? "exclamation" : 
                                          style & wxICON_INFORMATION ? "info.png"    : 
-                                         style & wxICON_QUESTION    ? "question"    : "PrusaSlicer_192px_grayscale.png", this, 90));
+                                         style & wxICON_QUESTION    ? "question"    : "PrusaSlicer_192px_grayscale.png", this, 84));
 
     wxGetApp().UpdateDlgDarkUI(this);
     Fit();
