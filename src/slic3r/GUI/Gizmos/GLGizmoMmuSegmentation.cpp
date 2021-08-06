@@ -341,24 +341,6 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     }
 
     ImGui::SameLine(tool_type_offset + tool_type_radio_brush + m_imgui->scaled(0.f));
-    ImGui::PushItemWidth(tool_type_radio_bucket_fill);
-    if (m_imgui->radio_button(m_desc["tool_bucket_fill"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BUCKET_FILL)) {
-        m_tool_type = GLGizmoMmuSegmentation::ToolType::BUCKET_FILL;
-        for (auto &triangle_selector : m_triangle_selectors) {
-            triangle_selector->seed_fill_unselect_all_triangles();
-            triangle_selector->request_update_render_data();
-        }
-    }
-
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Paints neighboring facets that have the same color.").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-
-    ImGui::SameLine(tool_type_offset + tool_type_radio_brush + tool_type_radio_bucket_fill + m_imgui->scaled(0.f));
     ImGui::PushItemWidth(tool_type_radio_seed_fill);
     if (m_imgui->radio_button(m_desc["tool_seed_fill"], m_tool_type == GLGizmoMmuSegmentation::ToolType::SEED_FILL)) {
         m_tool_type = GLGizmoMmuSegmentation::ToolType::SEED_FILL;
@@ -372,6 +354,24 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(max_tooltip_width);
         ImGui::TextUnformatted(_L("Paints neighboring facets whose relative angle is less or equal to set angle.").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+
+    ImGui::SameLine(tool_type_offset + tool_type_radio_brush + tool_type_radio_seed_fill + m_imgui->scaled(0.f));
+    ImGui::PushItemWidth(tool_type_radio_bucket_fill);
+    if (m_imgui->radio_button(m_desc["tool_bucket_fill"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BUCKET_FILL)) {
+        m_tool_type = GLGizmoMmuSegmentation::ToolType::BUCKET_FILL;
+        for (auto &triangle_selector : m_triangle_selectors) {
+            triangle_selector->seed_fill_unselect_all_triangles();
+            triangle_selector->request_update_render_data();
+        }
+    }
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Paints neighboring facets that have the same color.").ToUTF8().data());
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
