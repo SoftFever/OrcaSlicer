@@ -178,12 +178,12 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
     }
 }
 
-void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_start, float seed_fill_angle)
+void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_start, float seed_fill_angle, bool force_reselection)
 {
     assert(facet_start < m_orig_size_indices);
 
     // Recompute seed fill only if the cursor is pointing on facet unselected by seed fill.
-    if (int start_facet_idx = select_unsplit_triangle(hit, facet_start); start_facet_idx >= 0 && m_triangles[start_facet_idx].is_selected_by_seed_fill())
+    if (int start_facet_idx = select_unsplit_triangle(hit, facet_start); start_facet_idx >= 0 && m_triangles[start_facet_idx].is_selected_by_seed_fill() && !force_reselection)
         return;
 
     this->seed_fill_unselect_all_triangles();
@@ -278,7 +278,7 @@ void TriangleSelector::append_touching_subtriangles(int itriangle, int vertexi, 
         return;
 
     auto process_subtriangle = [this, &itriangle, &vertexi, &vertexj, &touching_subtriangles_out](const int subtriangle_idx, Partition partition) -> void {
-        assert(subtriangle_idx == -1);
+        assert(subtriangle_idx != -1);
         if (!m_triangles[subtriangle_idx].is_split())
             touching_subtriangles_out.emplace_back(subtriangle_idx);
         else if (int midpoint = this->triangle_midpoint(itriangle, vertexi, vertexj); midpoint != -1)
@@ -312,7 +312,7 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
     }
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated) -> std::vector<int> {
-        assert(facet_idx != -1 && facet_idx < m_triangles.size());
+        assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
         assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
         std::vector<int> touching_triangles;
         Vec3i            vertices = {m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2]};
