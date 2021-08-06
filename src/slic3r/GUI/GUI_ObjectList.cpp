@@ -3955,6 +3955,12 @@ void ObjectList::fix_through_netfabb()
     update_item_error_icon(obj_idx, vol_idx);
 }
 
+void ObjectList::simplify()
+{
+    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
+    gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
+}
+
 void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) const 
 {
     const wxDataViewItem item = vol_idx <0 ? m_objects_model->GetItemById(obj_idx) :
@@ -3972,6 +3978,8 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
             // unmark fixed item only
             m_objects_model->DeleteWarningIcon(item);
     }
+    else
+        m_objects_model->AddWarningIcon(item);
 }
 
 void ObjectList::msw_rescale()

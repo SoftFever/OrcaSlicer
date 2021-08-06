@@ -1771,6 +1771,7 @@ struct Plater::priv
     bool can_arrange() const;
     bool can_layers_editing() const;
     bool can_fix_through_netfabb() const;
+    bool can_simplify() const;
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
     bool can_reload_from_disk() const;
@@ -3495,44 +3496,10 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     // size_t snapshot_time = undo_redo_stack().active_snapshot_time();
     Plater::TakeSnapshot snapshot(q, _L("Fix through NetFabb"));
 
+    q->clear_before_change_mesh(obj_idx);
     ModelObject* mo = model.objects[obj_idx];
-
-    // If there are custom supports/seams/mmu segmentation, remove them. Fixed mesh
-    // may be different and they would make no sense.
-    bool paint_removed = false;
-    for (ModelVolume* mv : mo->volumes) {
-        paint_removed |= ! mv->supported_facets.empty() || ! mv->seam_facets.empty() || ! mv->mmu_segmentation_facets.empty();
-        mv->supported_facets.clear();
-        mv->seam_facets.clear();
-        mv->mmu_segmentation_facets.clear();
-    }
-    if (paint_removed) {
-        // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
-        notification_manager->push_notification(
-                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::RegularNotification,
-                    _u8L("Custom supports and seams were removed after repairing the mesh."));
-//                    _u8L("Undo the repair"),
-//                    [this, snapshot_time](wxEvtHandler*){
-//                        // Make sure the snapshot is still available and that
-//                        // we are in the main stack and not in a gizmo-stack.
-//                        if (undo_redo_stack().has_undo_snapshot(snapshot_time)
-//                         && q->canvas3D()->get_gizmos_manager().get_current() == nullptr)
-//                            undo_redo_to(snapshot_time);
-//                        else
-//                            notification_manager->push_notification(
-//                                NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-//                                NotificationManager::NotificationLevel::RegularNotification,
-//                                _u8L("Cannot undo to before the mesh repair!"));
-//                        return true;
-//                    });
-    }
-
     fix_model_by_win10_sdk_gui(*mo, vol_idx);
-    sla::reproject_points_and_holes(mo);
-    this->update();
-    this->object_list_changed();
-    this->schedule_background_process();
+    q->changed_mesh(obj_idx);
 }
 
 void Plater::priv::set_current_panel(wxPanel* panel)
@@ -4302,6 +4269,12 @@ bool Plater::priv::can_fix_through_netfabb() const
         return false;
 
     return model.objects[obj_idx]->get_mesh_errors_count() > 0;
+}
+
+
+bool Plater::priv::can_simplify() const
+{
+    return true;
 }
 
 bool Plater::priv::can_increase_instances() const
@@ -6135,6 +6108,51 @@ bool Plater::set_printer_technology(PrinterTechnology printer_technology)
     return ret;
 }
 
+void Plater::clear_before_change_mesh(int obj_idx)
+{
+    ModelObject* mo = model().objects[obj_idx];
+
+    // If there are custom supports/seams/mmu segmentation, remove them. Fixed mesh
+    // may be different and they would make no sense.
+    bool paint_removed = false;
+    for (ModelVolume* mv : mo->volumes) {
+        paint_removed |= ! mv->supported_facets.empty() || ! mv->seam_facets.empty() || ! mv->mmu_segmentation_facets.empty();
+        mv->supported_facets.clear();
+        mv->seam_facets.clear();
+        mv->mmu_segmentation_facets.clear();
+    }
+    if (paint_removed) {
+        // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
+        get_notification_manager()->push_notification(
+                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                    NotificationManager::NotificationLevel::RegularNotification,
+                    _u8L("Custom supports and seams were removed after repairing the mesh."));
+//                    _u8L("Undo the repair"),
+//                    [this, snapshot_time](wxEvtHandler*){
+//                        // Make sure the snapshot is still available and that
+//                        // we are in the main stack and not in a gizmo-stack.
+//                        if (undo_redo_stack().has_undo_snapshot(snapshot_time)
+//                         && q->canvas3D()->get_gizmos_manager().get_current() == nullptr)
+//                            undo_redo_to(snapshot_time);
+//                        else
+//                            notification_manager->push_notification(
+//                                NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+//                                NotificationManager::NotificationLevel::RegularNotification,
+//                                _u8L("Cannot undo to before the mesh repair!"));
+//                        return true;
+//                    });
+    }
+}
+
+void Plater::changed_mesh(int obj_idx)
+{
+    ModelObject* mo = model().objects[obj_idx];
+    sla::reproject_points_and_holes(mo);
+    update();
+    p->object_list_changed();
+    p->schedule_background_process();
+}
+
 void Plater::changed_object(int obj_idx)
 {
     if (obj_idx < 0)
@@ -6402,6 +6420,7 @@ bool Plater::can_increase_instances() const { return p->can_increase_instances()
 bool Plater::can_decrease_instances() const { return p->can_decrease_instances(); }
 bool Plater::can_set_instance_to_object() const { return p->can_set_instance_to_object(); }
 bool Plater::can_fix_through_netfabb() const { return p->can_fix_through_netfabb(); }
+bool Plater::can_simplify() const { return p->can_simplify(); }
 bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }

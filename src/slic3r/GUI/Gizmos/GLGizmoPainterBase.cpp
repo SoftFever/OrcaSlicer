@@ -520,7 +520,7 @@ bool GLGizmoPainterBase::on_is_activable() const
     const Selection& selection = m_parent.get_selection();
 
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF
-        || !selection.is_single_full_instance())
+        || !selection.is_single_full_instance() || wxGetApp().get_mode() == comSimple)
         return false;
 
     // Check that none of the selected volumes is outside. Only SLA auxiliaries (supports) are allowed outside.

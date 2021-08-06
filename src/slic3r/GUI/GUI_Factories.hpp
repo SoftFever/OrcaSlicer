@@ -92,6 +92,7 @@ private:
     wxMenuItem* append_menu_item_printable(wxMenu* menu);
     void        append_menu_items_osx(wxMenu* menu);
     wxMenuItem* append_menu_item_fix_through_netfabb(wxMenu* menu);
+    wxMenuItem* append_menu_item_simplify(wxMenu* menu);
     void        append_menu_item_export_stl(wxMenu* menu);
     void        append_menu_item_reload_from_disk(wxMenu* menu);
     void        append_menu_item_replace_with_stl(wxMenu* menu);

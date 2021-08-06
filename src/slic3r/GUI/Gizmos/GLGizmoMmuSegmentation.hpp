@@ -109,6 +109,7 @@ protected:
     std::string on_get_name() const override;
 
     bool on_is_selectable() const override;
+    bool on_is_activable() const override;
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 

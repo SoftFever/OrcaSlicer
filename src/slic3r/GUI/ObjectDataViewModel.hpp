@@ -376,6 +376,7 @@ public:
 
     wxBitmap    GetVolumeIcon(const Slic3r::ModelVolumeType vol_type,
                               const bool is_marked = false);
+    void        AddWarningIcon(const wxDataViewItem& item);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
     t_layer_height_range    GetLayerRangeByItem(const wxDataViewItem& item) const;
 

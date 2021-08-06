@@ -107,7 +107,7 @@ public:
     // Determinant
     T det(int a11, int a12, int a13,
           int a21, int a22, int a23,
-          int a31, int a32, int a33)
+          int a31, int a32, int a33) const
     {
         T det = m[a11] * m[a22] * m[a33] + m[a13] * m[a21] * m[a32] +
                 m[a12] * m[a23] * m[a31] - m[a13] * m[a22] * m[a31] -
@@ -121,7 +121,7 @@ public:
         for (size_t i = 0; i < N; ++i) m[i] += n[i];
         return *this;
     }
-    
+
     SymetricMatrix operator+(const SymetricMatrix& n)
     {
         SymetricMatrix self = *this;

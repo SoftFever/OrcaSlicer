@@ -354,7 +354,7 @@ inline void MutableSkipHeapPriorityQueue<T, LessPredicate, IndexSetter, blocking
 #endif /* NDEBUG */
 	{
 		// Mark as removed from the queue.
-		m_index_setter(m_heap.front(), std::numeric_limits<size_t>::max());
+		m_index_setter(m_heap[1], std::numeric_limits<size_t>::max());
 	}
 	// Zero'th element is padding, thus non-empty queue must have at least two elements.
 	if (m_heap.size() > 2) {

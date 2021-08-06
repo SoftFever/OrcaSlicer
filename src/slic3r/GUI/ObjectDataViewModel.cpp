@@ -1697,6 +1697,24 @@ wxBitmap ObjectDataViewModel::GetVolumeIcon(const Slic3r::ModelVolumeType vol_ty
     return *bmp;
 }
 
+void ObjectDataViewModel::AddWarningIcon(const wxDataViewItem& item)
+{
+    if (!item.IsOk())
+        return;
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+
+    if (node->GetType() & itObject) {
+        node->SetBitmap(m_warning_bmp);
+        return;
+    }
+
+    if (node->GetType() & itVolume) {
+        node->SetBitmap(GetVolumeIcon(node->GetVolumeType(), true));
+        node->GetParent()->SetBitmap(m_warning_bmp);
+        return;
+    }
+}
+
 void ObjectDataViewModel::DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object/* = false*/)
 {
     if (!item.IsOk())
