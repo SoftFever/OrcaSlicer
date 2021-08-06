@@ -292,6 +292,11 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 m_seed_fill_angle = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_seed_fill_angle - SeedFillAngleStep, SeedFillAngleMin)
                                                                                 : std::min(m_seed_fill_angle + SeedFillAngleStep, SeedFillAngleMax);
                 m_parent.set_as_dirty();
+                if (m_rr.mesh_id != -1) {
+                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle, true);
+                    m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
+                    m_seed_fill_last_mesh_id = m_rr.mesh_id;
+                }
                 return true;
             }
 

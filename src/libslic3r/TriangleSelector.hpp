@@ -49,7 +49,8 @@ public:
 
     void seed_fill_select_triangles(const Vec3f &hit,               // point where to start
                                     int          facet_start,       // facet of the original mesh (unsplit) that the hit point belongs to
-                                    float        seed_fill_angle);  // the maximal angle between two facets to be painted by the same color
+                                    float        seed_fill_angle,   // the maximal angle between two facets to be painted by the same color
+                                    bool         force_reselection = false); // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
 
     void bucket_fill_select_triangles(const Vec3f &hit,             // point where to start
                                     int          facet_start,       // facet of the original mesh (unsplit) that the hit point belongs to
