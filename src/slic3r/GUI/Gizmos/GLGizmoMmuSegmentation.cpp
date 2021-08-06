@@ -51,6 +51,11 @@ bool GLGizmoMmuSegmentation::on_is_selectable() const
             && wxGetApp().get_mode() != comSimple && wxGetApp().extruders_edited_cnt() > 1);
 }
 
+bool GLGizmoMmuSegmentation::on_is_activable() const
+{
+    return GLGizmoPainterBase::on_is_activable() && wxGetApp().extruders_edited_cnt() > 1;
+}
+
 static std::vector<std::array<float, 4>> get_extruders_colors()
 {
     unsigned char                     rgb_color[3] = {};

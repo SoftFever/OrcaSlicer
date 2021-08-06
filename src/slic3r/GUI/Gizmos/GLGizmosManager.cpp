@@ -51,14 +51,7 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
     return out;
 }
 
-std::vector<size_t> GLGizmosManager::get_activable_idxs() const
-{
-    std::vector<size_t> out;
-    for (size_t i=0; i<m_gizmos.size(); ++i)
-        if (m_gizmos[i]->is_activable())
-            out.push_back(i);
-    return out;
-}
+
 
 size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
 {
@@ -171,7 +164,7 @@ void GLGizmosManager::refresh_on_off_state()
         return;
 
     if (m_current != Undefined
-    && (! m_gizmos[m_current]->is_activable() || ! m_gizmos[m_current]->is_selectable())) {
+    && ! m_gizmos[m_current]->is_activable()) {
         activate_gizmo(Undefined);
         update_data();
     }
@@ -189,7 +182,7 @@ void GLGizmosManager::reset_all_states()
 bool GLGizmosManager::open_gizmo(EType type)
 {
     int idx = int(type);
-    if (/*m_gizmos[idx]->is_selectable() &&*/ m_gizmos[idx]->is_activable()) {
+    if (m_gizmos[idx]->is_activable()) {
         activate_gizmo(m_current == idx ? Undefined : (EType)idx);
         update_data();
         return true;
@@ -306,7 +299,7 @@ bool GLGizmosManager::handle_shortcut(int key)
     auto it = std::find_if(m_gizmos.begin(), m_gizmos.end(),
             [key](const std::unique_ptr<GLGizmoBase>& gizmo) {
                 int gizmo_key = gizmo->get_shortcut_key();
-                return gizmo->is_selectable()
+                return gizmo->is_activable()
                        && ((gizmo_key == key - 64) || (gizmo_key == key - 96));
     });
 
@@ -1079,8 +1072,7 @@ void GLGizmosManager::do_render_overlay() const
     float u_offset = 1.0f / (float)tex_width;
     float v_offset = 1.0f / (float)tex_height;
 
-    float toolbar_top = 0.f;
-    float current_y   = 0.f;
+    float current_y   = FLT_MAX;
     for (size_t idx : selectable_idxs)
     {
         GLGizmoBase* gizmo = m_gizmos[idx].get();
@@ -1094,15 +1086,18 @@ void GLGizmosManager::do_render_overlay() const
         float u_right = u_left + du - u_offset;
 
         GLTexture::render_sub_texture(icons_texture_id, zoomed_top_x, zoomed_top_x + zoomed_icons_size, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
-        if (idx == m_current) {
-            toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
+        if (idx == m_current || current_y == FLT_MAX) {
+            // The FLT_MAX trick is here so that even non-selectable but activable
+            // gizmos are passed some meaningful value.
             current_y = 0.5f * cnv_h - zoomed_top_y * zoom;
         }
         zoomed_top_y -= zoomed_stride_y;
     }
 
-    if (m_current != Undefined) 
+    if (m_current != Undefined) {
+        float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
         m_gizmos[m_current]->render_input_window(width, current_y, toolbar_top);
+    }
 }
 
 float GLGizmosManager::get_scaled_total_height() const
