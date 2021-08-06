@@ -247,3 +247,13 @@ TEST_CASE("Simplify mesh by Quadric edge collapse to 5%", "[its]")
     float avg_distance = compare(mesh.its, its, 10);
     CHECK(avg_distance < 0.022f); // 0.02022 | 0.0199614074
 }
+
+TEST_CASE("Simplify trouble case", "[its]")
+{
+    TriangleMesh tm = load_model("simplification.obj");
+    REQUIRE_FALSE(tm.empty());
+    float max_error = std::numeric_limits<float>::max();
+    uint32_t wanted_count = 8;
+    its_quadric_edge_collapse(tm.its, wanted_count, &max_error);
+    CHECK(tm.its.indices.size() <= 8);
+}

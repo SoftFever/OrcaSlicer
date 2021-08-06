@@ -77,7 +77,8 @@ namespace QuadricEdgeCollapse {
         uint32_t ti, const EdgeInfos& e_infos, const Indices& indices);
     bool is_flipped(const Vec3f &new_vertex, uint32_t ti0, uint32_t ti1, const VertexInfo& v_info, 
         const TriangleInfos &t_infos, const EdgeInfos &e_infos, const indexed_triangle_set &its);
-
+    bool degenerate(uint32_t vi, uint32_t ti0, uint32_t ti1, const VertexInfo &v_info, 
+        const EdgeInfos &e_infos, const Indices &indices);
     // find edge with smallest error in triangle
     Vec3d calculate_3errors(const Triangle &t, const Vertices &vertices, const VertexInfos &v_infos);
     Error calculate_error(uint32_t ti, const Triangle& t,const Vertices &vertices, const VertexInfos& v_infos, unsigned char& min_index);
@@ -179,6 +180,8 @@ void Slic3r::its_quadric_edge_collapse(
             find_triangle_index1(vi1, v_info0, ti0, e_infos, its.indices) :
             find_triangle_index1(vi0, v_info1, ti0, e_infos, its.indices) ;
         if (!ti1_opt.has_value() || // edge has only one triangle
+            degenerate(vi0, ti0, *ti1_opt, v_info1, e_infos, its.indices) ||
+            degenerate(vi1, ti0, *ti1_opt, v_info0, e_infos, its.indices) ||
             is_flipped(new_vertex0, ti0, *ti1_opt, v_info0, t_infos, e_infos, its) ||
             is_flipped(new_vertex0, ti0, *ti1_opt, v_info1, t_infos, e_infos, its)) {
             // try other triangle's edge
@@ -483,6 +486,28 @@ bool QuadricEdgeCollapse::is_flipped(const Vec3f &               new_vertex,
         Vec3f n = d1.cross(d2);
         n.normalize(); 
         if(n.dot(normal) < dot_thr) return true;
+    }
+    return false;
+}
+
+bool QuadricEdgeCollapse::degenerate(uint32_t          vi,
+                                     uint32_t          ti0,
+                                     uint32_t          ti1,
+                                     const VertexInfo &v_info,
+                                     const EdgeInfos & e_infos,
+                                     const Indices &   indices)
+{
+    // check surround triangle do not contain vertex index
+    // protect from creation of triangle with two same vertices inside
+    size_t v_info_end = v_info.start + v_info.count;
+    for (size_t ei = v_info.start; ei < v_info_end; ++ei) {
+        assert(ei < e_infos.size());
+        const EdgeInfo &e_info = e_infos[ei];
+        if (e_info.t_index == ti0) continue; // ti0 will be deleted
+        if (e_info.t_index == ti1) continue; // ti1 will be deleted
+        const Triangle &t = indices[e_info.t_index];
+        for (size_t i = 0; i < 3; ++i)
+            if (t[i] == vi) return true;
     }
     return false;
 }
