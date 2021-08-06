@@ -322,8 +322,15 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::AlignTextToFramePadding();
     ImGui::SameLine(tool_type_offset + m_imgui->scaled(0.f));
     ImGui::PushItemWidth(tool_type_radio_brush);
-    if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BRUSH))
+    if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BRUSH)) {
         m_tool_type = GLGizmoMmuSegmentation::ToolType::BRUSH;
+        for (auto &triangle_selector : m_triangle_selectors) {
+            triangle_selector->seed_fill_unselect_all_triangles();
+            triangle_selector->request_update_render_data();
+        }
+    }
+
+
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
