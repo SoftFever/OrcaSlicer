@@ -906,10 +906,11 @@ void GLGizmoSlaSupports::on_set_state()
                 // on OSX with the wxMessageDialog being shown several times when clicked into.
                 //wxMessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
                 MessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
-                    "edited support points?") + "\n",_L("Save changes?"), wxICON_QUESTION | wxYES | wxNO);
-                    if (dlg.ShowModal() == wxID_YES)
+                    "edited support points?") + "\n",_L("Save support points?"), wxICON_QUESTION | wxYES | wxNO | wxCANCEL );
+                int ret = dlg.ShowModal();
+                    if (ret == wxID_YES)
                         editing_mode_apply_changes();
-                    else
+                    else if (ret == wxID_NO)
                         editing_mode_discard_changes();
             });
             // refuse to be turned off so the gizmo is active when the CallAfter is executed
