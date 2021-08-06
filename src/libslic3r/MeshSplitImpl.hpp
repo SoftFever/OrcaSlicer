@@ -157,6 +157,7 @@ template<class Its> bool its_is_splittable(const Its &m)
     const auto& neighbor_index = ItsWithNeighborsIndex_<Its>::get_index(m);
 
     std::vector<char> visited(its.indices.size(), false);
+    its_find_unvisited_neighbors(its, neighbor_index, visited);
     auto faces = its_find_unvisited_neighbors(its, neighbor_index, visited);
 
     return !faces.empty();
