@@ -1,5 +1,6 @@
 #include "QuadricEdgeCollapse.hpp"
 #include <tuple>
+#include <optional>
 #include "MutablePriorityQueue.hpp"
 #include "SimplifyMeshImpl.hpp"
 #include <tbb/parallel_for.h>
