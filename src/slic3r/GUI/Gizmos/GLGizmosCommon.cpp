@@ -150,6 +150,30 @@ void InstancesHider::on_update()
         canvas->toggle_model_objects_visibility(false);
         canvas->toggle_model_objects_visibility(true, mo, active_inst);
         canvas->toggle_sla_auxiliaries_visibility(m_show_supports, mo, active_inst);
+        canvas->set_use_clipping_planes(true);
+        // Some objects may be sinking, do not show whatever is below the bed.
+        canvas->set_clipping_plane(0, ClippingPlane(Vec3d::UnitZ(), 0.));
+        canvas->set_clipping_plane(1, ClippingPlane(-Vec3d::UnitZ(), std::numeric_limits<double>::max()));
+
+
+        std::vector<const TriangleMesh*> meshes;
+        for (const ModelVolume* mv : mo->volumes)
+            meshes.push_back(&mv->mesh());
+
+        if (meshes != m_old_meshes) {
+            m_clippers.clear();
+            for (const TriangleMesh* mesh : meshes) {
+                m_clippers.emplace_back(new MeshClipper);
+                if (mo->get_instance_min_z(active_inst) < SINKING_Z_THRESHOLD)
+                    m_clippers.back()->set_plane(ClippingPlane(-Vec3d::UnitZ(), 0.));
+                else {
+                    m_clippers.back()->set_plane(ClippingPlane::ClipsNothing());
+                    m_clippers.back()->set_limiting_plane(ClippingPlane::ClipsNothing());
+                }
+                m_clippers.back()->set_mesh(*mesh);
+            }
+            m_old_meshes = meshes;
+        }
     }
     else
         canvas->toggle_model_objects_visibility(true);
@@ -158,12 +182,47 @@ void InstancesHider::on_update()
 void InstancesHider::on_release()
 {
     get_pool()->get_canvas()->toggle_model_objects_visibility(true);
+    get_pool()->get_canvas()->set_use_clipping_planes(false);
+    m_old_meshes.clear();
+    m_clippers.clear();
 }
 
 void InstancesHider::show_supports(bool show) {
     if (m_show_supports != show) {
         m_show_supports = show;
         on_update();
+    }
+}
+
+void InstancesHider::render_cut() const
+{
+    const SelectionInfo* sel_info = get_pool()->selection_info();
+    const ModelObject* mo = sel_info->model_object();
+    Geometry::Transformation inst_trafo = mo->instances[sel_info->get_active_instance()]->get_transformation();
+
+    size_t clipper_id = 0;
+    for (const ModelVolume* mv : mo->volumes) {
+        Geometry::Transformation vol_trafo  = mv->get_transformation();
+        Geometry::Transformation trafo = inst_trafo * vol_trafo;
+        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
+
+        auto& clipper = m_clippers[clipper_id];
+        clipper->set_transformation(trafo);
+        const ObjectClipper* obj_clipper = get_pool()->object_clipper();
+        if (obj_clipper->is_valid() && obj_clipper->get_clipping_plane()
+         && obj_clipper->get_position() != 0.) {
+            ClippingPlane clp = *get_pool()->object_clipper()->get_clipping_plane();
+            clp.set_normal(-clp.get_normal());
+            clipper->set_limiting_plane(clp);
+        } else
+            clipper->set_limiting_plane(ClippingPlane::ClipsNothing());
+
+        glsafe(::glPushMatrix());
+        glsafe(::glColor3f(0.8f, 0.3f, 0.0f));
+        clipper->render_cut();
+        glsafe(::glPopMatrix());
+
+        ++clipper_id;
     }
 }
 
@@ -348,6 +407,7 @@ void ObjectClipper::render_cut() const
     const SelectionInfo* sel_info = get_pool()->selection_info();
     const ModelObject* mo = sel_info->model_object();
     Geometry::Transformation inst_trafo = mo->instances[sel_info->get_active_instance()]->get_transformation();
+    const bool sinking = mo->bounding_box().min.z() < SINKING_Z_THRESHOLD;
 
     size_t clipper_id = 0;
     for (const ModelVolume* mv : mo->volumes) {
@@ -358,7 +418,9 @@ void ObjectClipper::render_cut() const
         auto& clipper = m_clippers[clipper_id];
         clipper->set_plane(*m_clp);
         clipper->set_transformation(trafo);
-
+        clipper->set_limiting_plane(sinking ?
+                                    ClippingPlane(Vec3d::UnitZ(), 0.)
+                                  : ClippingPlane::ClipsNothing());
         glsafe(::glPushMatrix());
         glsafe(::glColor3f(1.0f, 0.37f, 0.0f));
         clipper->render_cut();

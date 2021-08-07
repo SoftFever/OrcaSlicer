@@ -24,6 +24,15 @@ void MeshClipper::set_plane(const ClippingPlane& plane)
 }
 
 
+void MeshClipper::set_limiting_plane(const ClippingPlane& plane)
+{
+    if (m_limiting_plane != plane) {
+        m_limiting_plane = plane;
+        m_triangles_valid = false;
+    }
+}
+
+
 
 void MeshClipper::set_mesh(const TriangleMesh& mesh)
 {
@@ -89,18 +98,71 @@ void MeshClipper::recalculate_triangles()
         std::vector<ExPolygons> neg_polys = slice_mesh_ex(m_negative_mesh->its, std::vector<float>{height_mesh}, slicing_params);
         list_of_expolys.front() = diff_ex(list_of_expolys.front(), neg_polys.front());
     }
-   
-    m_triangles2d = triangulate_expolygons_2f(list_of_expolys[0], m_trafo.get_matrix().matrix().determinant() < 0.);
 
-    // Rotate the cut into world coords:
+    // Triangulate and rotate the cut into world coords:
     Eigen::Quaterniond q;
     q.setFromTwoVectors(Vec3d::UnitZ(), up);
     Transform3d tr = Transform3d::Identity();
     tr.rotate(q);
     tr = m_trafo.get_matrix() * tr;
+    height_mesh += 0.001f; // to avoid z-fighting
 
-    // to avoid z-fighting
-    height_mesh += 0.001f;
+    if (m_limiting_plane != ClippingPlane::ClipsNothing())
+    {
+        // Now remove whatever ended up below the limiting plane (e.g. sinking objects).
+        // First transform the limiting plane from world to mesh coords.
+        // Note that inverse of tr transforms the plane from world to horizontal.
+        Vec3d normal_old = m_limiting_plane.get_normal().normalized();
+        Vec3d normal_new = (tr.matrix().block<3,3>(0,0).transpose() * normal_old).normalized();
+
+        // normal_new should now be the plane normal in mesh coords. To find the offset,
+        // transform a point and set offset so it belongs to the transformed plane.
+        Vec3d pt = Vec3d::Zero();
+        double plane_offset = m_limiting_plane.get_data()[3];
+        if (std::abs(normal_old.z()) > 0.5) // normal is normalized, at least one of the coords if larger than sqrt(3)/3 = 0.57
+            pt.z() = - plane_offset / normal_old.z();
+        else if (std::abs(normal_old.y()) > 0.5)
+            pt.y() = - plane_offset / normal_old.y();
+        else
+            pt.x() = - plane_offset / normal_old.x();
+        pt = tr.inverse() * pt;
+        double offset = -(normal_new.dot(pt));
+
+        if (std::abs(normal_old.dot(m_plane.get_normal().normalized())) > 0.99) {
+            // The cuts are parallel, show all or nothing.
+            if (offset < height_mesh)
+                list_of_expolys.front().clear();
+        } else {
+            // The cut is a horizontal plane defined by z=height_mesh.
+            // ax+by+e=0 is the line of intersection with the limiting plane.
+            // Normalized so a^2 + b^2 = 1.
+            double len = std::hypot(normal_new.x(), normal_new.y());
+            if (len == 0.)
+                return;
+            double a = normal_new.x() / len;
+            double b = normal_new.y() / len;
+            double e = (normal_new.z() * height_mesh + offset) / len;
+            if (b == 0.)
+                return;
+
+            // We need a half-plane to limit the cut. Get angle of the intersecting line.
+            double angle = std::atan(-a/b);
+            if (b > 0) // select correct half-plane
+                angle += M_PI;
+
+            // We'll take a big rectangle above x-axis and rotate and translate
+            // it so it lies on our line. This will be the figure to subtract
+            // from the cut. The coordinates must not overflow after the transform,
+            // make the rectangle a bit smaller.
+            coord_t size = (std::numeric_limits<coord_t>::max() - scale_(std::max(std::abs(e*a), std::abs(e*b)))) / 4;
+            ExPolygons ep {ExPolygon({Point(-size, 0), Point(size, 0), Point(size, 2*size), Point(-size, 2*size)})};
+            ep.front().rotate(angle);
+            ep.front().translate(scale_(-e * a), scale_(-e * b));
+            list_of_expolys.front() = diff_ex(list_of_expolys.front(), ep.front());
+        }
+    }
+
+    m_triangles2d = triangulate_expolygons_2f(list_of_expolys[0], m_trafo.get_matrix().matrix().determinant() < 0.);
 
     m_vertex_array.release_geometry();
     for (auto it=m_triangles2d.cbegin(); it != m_triangles2d.cend(); it=it+3) {
@@ -159,17 +221,19 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
 
     unsigned i = 0;
 
-    // Remove points that are obscured or cut by the clipping plane
-    if (clipping_plane) {
-        for (i=0; i<hits.size(); ++i)
-            if (! clipping_plane->is_point_clipped(trafo * hits[i].position()))
-                break;
+    // Remove points that are obscured or cut by the clipping plane.
+    // Also, remove anything below the bed (sinking objects).
+    for (i=0; i<hits.size(); ++i) {
+        Vec3d transformed_hit = trafo * hits[i].position();
+        if (transformed_hit.z() >= 0. &&
+            (! clipping_plane || ! clipping_plane->is_point_clipped(transformed_hit)))
+            break;
+    }
 
-        if (i==hits.size() || (hits.size()-i) % 2 != 0) {
-            // All hits are either clipped, or there is an odd number of unclipped
-            // hits - meaning the nearest must be from inside the mesh.
-            return false;
-        }
+    if (i==hits.size() || (hits.size()-i) % 2 != 0) {
+        // All hits are either clipped, or there is an odd number of unclipped
+        // hits - meaning the nearest must be from inside the mesh.
+        return false;
     }
 
     // Now stuff the points in the provided vector and calculate normals if asked about them:
