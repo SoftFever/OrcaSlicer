@@ -122,8 +122,9 @@ public:
     float& f()       { return m_position[F]; }
     float  f() const { return m_position[F]; }
 
+    // Returns 0 for gcfNoExtrusion.
     char   extrusion_axis() const { return m_extrusion_axis; }
-    void   set_extrusion_axis(char axis) { m_extrusion_axis = axis; }
+//  void   set_extrusion_axis(char axis) { m_extrusion_axis = axis; }
 
 private:
     const char* parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command);

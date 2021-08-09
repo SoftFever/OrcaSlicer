@@ -2714,7 +2714,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     // calculate extrusion length per distance unit
     double e_per_mm = m_writer.extruder()->e_per_mm3() * path.mm3_per_mm;
-    if (m_writer.extrusion_axis().empty()) e_per_mm = 0;
+    if (m_writer.extrusion_axis().empty())
+        // gcfNoExtrusion
+        e_per_mm = 0;
 
     // set speed
     if (speed == -1) {

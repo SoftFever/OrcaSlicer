@@ -25,6 +25,7 @@ public:
     Extruder*            extruder()             { return m_extruder; }
     const Extruder*      extruder()     const   { return m_extruder; }
 
+    // Returns empty string for gcfNoExtrusion.
     std::string          extrusion_axis() const { return m_extrusion_axis; }
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
