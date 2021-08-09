@@ -11,6 +11,7 @@
 #include "GUI_Utils.hpp"
 #include "MsgDialog.hpp"
 #include "Tab.hpp"
+#include "GUI_ObjectList.hpp"
 
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -1588,7 +1589,7 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
 
         append_submenu(menu, change_extruder_menu, wxID_ANY, change_extruder_menu_name, _L("Use another extruder"),
             active_extruders[1] > 0 ? "edit_uni" : "change_extruder",
-            [this]() {return m_mode == MultiAsSingle; }, GUI::wxGetApp().plater());
+            [this]() {return m_mode == MultiAsSingle && !GUI::wxGetApp().obj_list()->has_paint_on_segmentation(); }, GUI::wxGetApp().plater());
     }
 }
 

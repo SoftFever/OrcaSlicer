@@ -4248,5 +4248,10 @@ ModelObject* ObjectList::object(const int obj_idx) const
     return (*m_objects)[obj_idx];
 }
 
+bool ObjectList::has_paint_on_segmentation()
+{
+    return m_objects_model->HasInfoItem(InfoItemType::MmuSegmentation);
+}
+
 } //namespace GUI
 } //namespace Slic3r 

@@ -345,6 +345,7 @@ public:
     // Is the container just a header or an item with all columns
     // In our case it is an item with all columns
     bool    HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
+    bool    HasInfoItem(InfoItemType type) const;
 
     ItemType        GetItemType(const wxDataViewItem &item) const;
     InfoItemType    GetInfoItemType(const wxDataViewItem &item) const;

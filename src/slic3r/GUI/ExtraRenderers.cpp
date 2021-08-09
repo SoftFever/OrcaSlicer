@@ -2,6 +2,7 @@
 #include "wxExtensions.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
+#include "BitmapComboBox.hpp"
 
 #include <wx/dc.h>
 #ifdef wxHAS_GENERIC_DATAVIEWCTRL
@@ -296,7 +297,11 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
     DataViewBitmapText data;
     data << value;
 
+#ifdef _WIN32
+    Slic3r::GUI::BitmapComboBox* c_editor = new Slic3r::GUI::BitmapComboBox(parent, wxID_ANY, wxEmptyString,
+#else
     auto c_editor = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString,
+#endif
         labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1), 
         0, nullptr , wxCB_READONLY);
 

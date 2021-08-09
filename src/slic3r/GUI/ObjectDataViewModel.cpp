@@ -1494,7 +1494,17 @@ void ObjectDataViewModel::GetAllChildren(const wxDataViewItem &parent, wxDataVie
     }
 }
 
-ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item) const 
+bool ObjectDataViewModel::HasInfoItem(InfoItemType type) const
+{
+    for (ObjectDataViewModelNode* obj_node : m_objects)
+        for (size_t j = 0; j < obj_node->GetChildCount(); j++)
+            if (obj_node->GetNthChild(j)->GetInfoItemType() == type)
+                return true;
+
+    return false;
+}
+
+ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item) const
 {
     if (!item.IsOk())
         return itUndef;
