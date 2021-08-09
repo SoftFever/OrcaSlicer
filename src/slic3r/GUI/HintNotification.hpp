@@ -12,9 +12,13 @@ struct HintData
 	std::string        text;
 	std::string        hypertext;
 	std::string		   follow_text;
-	std::string        disabled_modes;
+	std::string        disabled_mode;
+	std::string		   preferred_mode;
+	std::string        disabled_tech;
+	std::string        preferred_tech;
 	bool               runtime_disable; // if true - hyperlink will check before every click if not in disabled mode
-	std::function<void(void)> callback{ nullptr };
+	std::string        documentation_link;
+	std::function<void(void)> callback { nullptr };
 };
 
 class HintDatabase
@@ -77,18 +81,27 @@ protected:
 	void			render_right_arrow_button(ImGuiWrapper& imgui,
 								const float win_size_x, const float win_size_y,
 								const float win_pos_x, const float win_pos_y);
+	void			render_documentation_button(ImGuiWrapper& imgui,
+								const float win_size_x, const float win_size_y,
+								const float win_pos_x, const float win_pos_y);
 	void			render_logo(ImGuiWrapper& imgui,
 								const float win_size_x, const float win_size_y,
 								const float win_pos_x, const float win_pos_y);
-
 	void			retrieve_data(size_t recursion_counter = 0);
+	void			open_documentation();
 
 	bool						m_has_hint_data { false };
 	std::function<void(void)>	m_hypertext_callback;
-	std::string					m_disabled_modes;
+	std::string					m_disabled_mode;
+	std::string		            m_preferred_mode;
+	std::string                 m_disabled_tech;
+	std::string                 m_preferred_tech;
 	bool                        m_runtime_disable;
+	std::string                 m_documentation_link;
 	float						m_close_b_y { 0 };
 	float						m_close_b_w { 0 };
+	// hover of buttons
+	size_t                      m_hover_time { 0 };
 };
 
 } //namespace Slic3r 
