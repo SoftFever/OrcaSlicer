@@ -36,7 +36,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-static const std::map<const char, std::string> font_icons = {
+static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::PrintIconMarker       , "cog"                           },
     {ImGui::PrinterIconMarker     , "printer"                       },
     {ImGui::PrinterSlaIconMarker  , "sla_printer"                   },
@@ -49,21 +49,27 @@ static const std::map<const char, std::string> font_icons = {
     {ImGui::PreferencesButton      , "notification_preferences"      },
     {ImGui::PreferencesHoverButton , "notification_preferences_hover"},
 };
-static const std::map<const char, std::string> font_icons_large = {
-    {ImGui::CloseNotifButton       , "notification_close"            },
-    {ImGui::CloseNotifHoverButton  , "notification_close_hover"      },
-    {ImGui::EjectButton            , "notification_eject_sd"         },
-    {ImGui::EjectHoverButton       , "notification_eject_sd_hover"   },
-    {ImGui::WarningMarker          , "notification_warning"          },
-    {ImGui::ErrorMarker            , "notification_error"            },
-    {ImGui::CancelButton           , "notification_cancel"           },
-    {ImGui::CancelHoverButton      , "notification_cancel_hover"     },
-    {ImGui::SinkingObjectMarker    , "move"                          },
-    {ImGui::CustomSupportsMarker   , "fdm_supports"                  },
-    {ImGui::CustomSeamMarker       , "seam"                          },
-    {ImGui::MmuSegmentationMarker  , "move"                          },
-    {ImGui::VarLayerHeightMarker   , "layers"                        },
-    
+static const std::map<const wchar_t, std::string> font_icons_large = {
+    {ImGui::CloseNotifButton        , "notification_close"              },
+    {ImGui::CloseNotifHoverButton   , "notification_close_hover"        },
+    {ImGui::EjectButton             , "notification_eject_sd"           },
+    {ImGui::EjectHoverButton        , "notification_eject_sd_hover"     },
+    {ImGui::WarningMarker           , "notification_warning"            },
+    {ImGui::ErrorMarker             , "notification_error"              },
+    {ImGui::CancelButton            , "notification_cancel"             },
+    {ImGui::CancelHoverButton       , "notification_cancel_hover"       },
+    {ImGui::SinkingObjectMarker     , "move"                            },
+    {ImGui::CustomSupportsMarker    , "fdm_supports"                    },
+    {ImGui::CustomSeamMarker        , "seam"                            },
+    {ImGui::MmuSegmentationMarker   , "move"                            },
+    {ImGui::VarLayerHeightMarker    , "layers"                          },
+    {ImGui::DocumentationButton     , "notification_documentation"      },
+    {ImGui::DocumentationHoverButton, "notification_documentation_hover"},
+};
+
+static const std::map<const wchar_t, std::string> font_icons_extra_large = {
+    {ImGui::ClippyMarker            , "notification_clippy"             },
+
 };
 
 const ImVec4 ImGuiWrapper::COL_GREY_DARK         = { 0.333f, 0.333f, 0.333f, 1.0f };
@@ -989,6 +995,8 @@ void ImGuiWrapper::init_font(bool compress)
         io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
     for (auto& icon : font_icons_large)
         io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz * 2, icon_sz * 2, 3.0 * font_scale + icon_sz * 2);
+    for (auto& icon : font_icons_extra_large)
+        io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz * 4, icon_sz * 4, 3.0 * font_scale + icon_sz * 4);
 
     // Build texture atlas
     unsigned char* pixels;
@@ -1013,6 +1021,22 @@ void ImGuiWrapper::init_font(bool compress)
 
     icon_sz *= 2; // default size of large icon is 32 px
     for (auto icon : font_icons_large) {
+        if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
+            assert(rect->Width == icon_sz);
+            assert(rect->Height == icon_sz);
+            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz);
+            const ImU32* pIn = (ImU32*)raw_data.data();
+            for (int y = 0; y < icon_sz; y++) {
+                ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
+                for (int x = 0; x < icon_sz; x++)
+                    *pOut++ = *pIn++;
+            }
+        }
+        rect_id++;
+    }
+
+    icon_sz *= 2; // default size of extra large icon is 64 px
+    for (auto icon : font_icons_extra_large) {
         if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
             assert(rect->Width == icon_sz);
             assert(rect->Height == icon_sz);
