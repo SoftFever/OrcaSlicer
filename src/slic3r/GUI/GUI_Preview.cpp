@@ -788,11 +788,11 @@ void Preview::update_layers_slider_mode()
                         object->config.option("extruder")->getInt() != extruder)
                         return false;
 
-                    if (object->volumes.size() > 1)
-                        for (ModelVolume* volume : object->volumes)
-                            if (volume->config.has("extruder") &&
-                                volume->config.option("extruder")->getInt() != extruder)
-                                return false;
+                    for (ModelVolume* volume : object->volumes)
+                        if (volume->config.has("extruder") &&
+                            volume->config.option("extruder")->getInt() != extruder ||
+                            !volume->mmu_segmentation_facets.empty())
+                            return false;
 
                     for (const auto& range : object->layer_config_ranges)
                         if (range.second.has("extruder") &&

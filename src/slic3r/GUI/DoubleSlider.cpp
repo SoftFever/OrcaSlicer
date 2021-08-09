@@ -384,7 +384,7 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
         post_ticks_changed_event();
 
-    if (custom_gcode_per_print_z.mode)
+    if (custom_gcode_per_print_z.mode && !custom_gcode_per_print_z.gcodes.empty())
         m_ticks.mode = custom_gcode_per_print_z.mode;
 
     Refresh();
@@ -439,7 +439,7 @@ void Control::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, c
     m_mode = !is_one_extruder_printed_model ? MultiExtruder :
              only_extruder < 0              ? SingleExtruder :
                                               MultiAsSingle;
-    if (!m_ticks.mode)
+    if (!m_ticks.mode || (m_ticks.empty() && m_ticks.mode != m_mode))
         m_ticks.mode = m_mode;
     m_only_extruder = only_extruder;
 
@@ -546,7 +546,8 @@ bool Control::is_wipe_tower_layer(int tick) const
         return false;
     if (tick == 0 || (tick == (int)m_values.size() - 1 && m_values[tick] > m_values[tick - 1]))
         return false;
-    if (m_values[tick - 1] == m_values[tick + 1] && m_values[tick] < m_values[tick + 1])
+    if ((m_values[tick - 1] == m_values[tick + 1] && m_values[tick] < m_values[tick + 1]) ||
+        (tick > 0 && m_values[tick] < m_values[tick - 1]) ) // if there is just one wiping on the layer 
         return true;
 
     return false;
@@ -1078,7 +1079,9 @@ void Control::draw_ruler(wxDC& dc)
 {
     if (m_values.empty())
         return;
-    m_ruler.update(this->GetParent(), m_values, get_scroll_step());
+    // When "No sparce layer" is enabled, use m_layers_values for ruler update. 
+    // Because of m_values has duplicate values in this case.
+    m_ruler.update(this->GetParent(), m_layers_values.empty() ? m_values : m_layers_values, get_scroll_step());
 
     int height, width;
     get_size(&width, &height);
