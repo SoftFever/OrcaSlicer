@@ -3918,6 +3918,10 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (evt.data.second)
             return;
 
+        // Each context menu respects to the selected item in ObjectList, 
+        // so this selection should be updated before menu creation
+        wxGetApp().obj_list()->update_selections();
+
         if (printer_technology == ptSLA)
             menu = menus.sla_object_menu();
         else {
