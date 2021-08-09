@@ -147,6 +147,7 @@ void GLGizmoMmuSegmentation::render_painter_gizmo() const
     render_triangles(selection, false);
 
     m_c->object_clipper()->render_cut();
+    m_c->instances_hider()->render_cut();
     render_cursor();
 
     glsafe(::glDisable(GL_BLEND));
