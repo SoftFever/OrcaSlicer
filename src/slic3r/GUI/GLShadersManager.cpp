@@ -61,6 +61,8 @@ std::pair<bool, std::string> GLShadersManager::init()
         );
     // used to render variable layers heights in 3d editor
     valid &= append_shader("variable_layer_height", { "variable_layer_height.vs", "variable_layer_height.fs" });
+    // used to render highlight contour around selected triangles inside the multi-material gizmo
+    valid &= append_shader("mm_contour", { "mm_contour.vs", "mm_contour.fs" });
 
     return { valid, error };
 }
