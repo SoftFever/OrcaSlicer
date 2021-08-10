@@ -30,51 +30,115 @@ inline void push_style_color(ImGuiCol idx, const ImVec4& col, bool fading_out, f
 	else
 		ImGui::PushStyleColor(idx, col);
 }
-// return true if NOT in disabled mode.
-inline bool mode_and_tech_check(const std::string& disabled_mode, const std::string& preferred_mode, const std::string& disabled_tech, const std::string& preferred_tech)
+enum TagCheckResult
 {
-	if (disabled_mode.empty() && preferred_mode.empty() && disabled_tech.empty() && preferred_tech.empty())
-		return true;
+	TagCheckAffirmative,
+	TagCheckNegative,
+	TagCheckNotCompatible
+};
+// returns if in mode defined by tag
+inline TagCheckResult tag_check_mode(const std::string& tag)
+{
+	std::vector<std::string> allowed_tags = {"simple", "advanced", "expert"};
+	if (std::find(allowed_tags.begin(), allowed_tags.end(), tag) != allowed_tags.end())
+	{
+		ConfigOptionMode config_mode = wxGetApp().get_mode();
+		if (config_mode == ConfigOptionMode::comSimple)        return (tag == "simple"   ? TagCheckAffirmative : TagCheckNegative);
+		else if (config_mode == ConfigOptionMode::comAdvanced) return (tag == "advanced" ? TagCheckAffirmative : TagCheckNegative);
+		else if (config_mode == ConfigOptionMode::comExpert)   return (tag == "expert"   ? TagCheckAffirmative : TagCheckNegative);
+	}
+	return TagCheckNotCompatible;
+}
 
-	// simple / advanced / expert
-	ConfigOptionMode config_mode = wxGetApp().get_mode();
-	std::string		 mode_name;
-	if      (config_mode == ConfigOptionMode::comSimple)   mode_name = "simple";
-	else if (config_mode == ConfigOptionMode::comAdvanced) mode_name = "advanced";
-	else if (config_mode == ConfigOptionMode::comExpert)   mode_name = "expert";
-
-	if (!preferred_mode.empty() && !mode_name.empty()  && preferred_mode.find(mode_name) == std::string::npos)
-		return false;
-	if (!mode_name.empty() && disabled_mode.find(mode_name) != std::string::npos)
-		return false;
-
-
-	// tchnology
-	const PrinterTechnology tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
-	if (tech == ptFFF) {
-		// MMU 
-		bool is_mmu = wxGetApp().extruders_edited_cnt() > 1;
-		if (is_mmu)
-		{
-			if (!preferred_tech.empty() && preferred_tech.find("MMU") == std::string::npos)
-				return false;
-			if (is_mmu && disabled_tech.find("MMU") != std::string::npos)
-				return false;
+inline TagCheckResult tag_check_tech(const std::string& tag)
+{
+	std::vector<std::string> allowed_tags = { "FFF", "MMU", "SLA" };
+	if (std::find(allowed_tags.begin(), allowed_tags.end(), tag) != allowed_tags.end()) {
+		const PrinterTechnology tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+		if (tech == ptFFF) {
+			// MMU / FFF
+			bool is_mmu = wxGetApp().extruders_edited_cnt() > 1;
+			if (tag == "MMU") return (is_mmu ? TagCheckAffirmative : TagCheckNegative);
+			return (tag == "FFF" ? TagCheckAffirmative : TagCheckNegative);
 		} else {
-			// only FFF - does not show if MMU preffered
-			if (!preferred_tech.empty() && preferred_tech.find("FFF") == std::string::npos)
-				return false;
-			if (disabled_tech.find("FFF") != std::string::npos)
-				return false;
+			// SLA
+			return (tag == "SLA" ? TagCheckAffirmative : TagCheckNegative);
 		}
-	} else {
-		// SLA
-		if (!preferred_tech.empty() && preferred_tech.find("SLA") == std::string::npos)
-			return false;
-		if (disabled_tech.find("SLA") != std::string::npos)
-			return false;
+	}
+	return TagCheckNotCompatible;
+}
+
+// return true if NOT in disabled mode.
+inline bool tags_check(const std::string& disabled_tags, const std::string& enabled_tags)
+{
+	if (disabled_tags.empty() && enabled_tags.empty())
+		return true;
+	// enabled tags must ALL return affirmative or check fails
+	if (!enabled_tags.empty()) {
+		std::string tag;
+		for (size_t i = 0; i < enabled_tags.size(); i++) {
+			if (enabled_tags[i] == ' ') {
+				tag.erase();
+				continue;
+			}
+			if (enabled_tags[i] != ';') {
+				tag += enabled_tags[i];
+			}
+			if (enabled_tags[i] == ';' || i == enabled_tags.size() - 1) {
+				if (!tag.empty()) {
+					TagCheckResult result;
+					result = tag_check_mode(tag);
+					if (result == TagCheckResult::TagCheckNegative)
+						return false;
+					if (result == TagCheckResult::TagCheckAffirmative)
+						continue;
+					result = tag_check_tech(tag);
+					if (result == TagCheckResult::TagCheckNegative)
+						return false;
+					if (result == TagCheckResult::TagCheckAffirmative)
+						continue;
+					BOOST_LOG_TRIVIAL(error) << "Hint Notification: Tag " << tag << " in enabled_tags not compatible.";
+					// non compatible in enabled means return false since all enabled must be affirmative.
+					return false;
+				}
+			}
+		}
+	}
+	// disabled tags must all NOT return affirmative or check fails
+	if (!disabled_tags.empty()) {
+		std::string tag;
+		for (size_t i = 0; i < disabled_tags.size(); i++) {
+			if (disabled_tags[i] == ' ') {
+				tag.erase();
+				continue;
+			}
+			if (disabled_tags[i] != ';') {
+				tag += disabled_tags[i];
+			}
+			if (disabled_tags[i] == ';' || i == disabled_tags.size() - 1) {
+				if (!tag.empty()) {
+					TagCheckResult result;
+					result = tag_check_mode(tag);
+					if (result == TagCheckResult::TagCheckNegative)
+						continue;
+					if (result == TagCheckResult::TagCheckAffirmative)
+						return false;
+					result = tag_check_tech(tag);
+					if (result == TagCheckResult::TagCheckNegative)
+						continue;
+					if (result == TagCheckResult::TagCheckAffirmative)
+						return false;
+					BOOST_LOG_TRIVIAL(error) << "Hint Notification: Tag " << tag << " in disabled_tags not compatible.";
+				}
+			}
+		}
 	}
 	return true;
+}
+inline void launch_browser_if_allowed(const std::string& url)
+{
+	if (wxGetApp().app_config->get("suppress_hyperlinks") != "1")
+		wxLaunchDefaultBrowser(url);
 }
 } //namespace
 
@@ -108,17 +172,15 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 				dict.emplace(data.first, data.second.data());
 			}
 			
-			//unescaping a translating all texts
-			//unescape text1
+			//unescaping and translating all texts and saving all data common for all hint types 
 			std::string fulltext;
 			std::string text1;
 			std::string hypertext_text;
 			std::string follow_text;
-			std::string disabled_mode;
-			std::string preferred_mode;
-			std::string disabled_tech;
-			std::string preferred_tech;
+			std::string disabled_tags;
+			std::string enabled_tags;
 			std::string documentation_link;
+			//unescape text1
 			unescape_string_cstyle(_utf8(dict["text"]), fulltext);
 			// replace <b> and </b> for imgui markers
 			std::string marker_s(1, ImGui::ColorMarkerStart);
@@ -165,17 +227,11 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 				text1 = fulltext;
 			}
 			
-			if (dict.find("disabled_mode") != dict.end()) {
-				disabled_mode = dict["disabled_mode"];
+			if (dict.find("disabled_tags") != dict.end()) {
+				disabled_tags = dict["disabled_tags"];
 			}
-			if (dict.find("preferred_mode") != dict.end()) {
-				preferred_mode = dict["preferred_mode"];
-			}
-			if (dict.find("disabled_tech") != dict.end()) {
-				disabled_tech = dict["disabled_tech"];
-			}
-			if (dict.find("preferred_tech") != dict.end()) {
-				preferred_tech = dict["preferred_tech"];
+			if (dict.find("enabled_tags") != dict.end()) {
+				enabled_tags = dict["enabled_tags"];
 			}
 			if (dict.find("documentation_link") != dict.end()) {
 				documentation_link = dict["documentation_link"];
@@ -186,37 +242,37 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 				//link to internet
 				if(dict["hypertext_type"] == "link") {
 					std::string	hypertext_link = dict["hypertext_link"];
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_mode, preferred_mode, disabled_tech, preferred_tech, false, documentation_link, [hypertext_link]() { wxLaunchDefaultBrowser(hypertext_link); }  };
+					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [hypertext_link]() { launch_browser_if_allowed(hypertext_link); }  };
 					m_loaded_hints.emplace_back(hint_data);
 				// highlight settings
 				} else if (dict["hypertext_type"] == "settings") {
 					std::string		opt = dict["hypertext_settings_opt"];
 					Preset::Type	type = static_cast<Preset::Type>(std::atoi(dict["hypertext_settings_type"].c_str()));
 					std::wstring	category = boost::nowide::widen(dict["hypertext_settings_category"]);
-					HintData		hint_data{ text1, hypertext_text, follow_text, disabled_mode, preferred_mode, disabled_tech, preferred_tech, true, documentation_link, [opt, type, category]() { GUI::wxGetApp().sidebar().jump_to_option(opt, type, category); } };
+					HintData		hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [opt, type, category]() { GUI::wxGetApp().sidebar().jump_to_option(opt, type, category); } };
 					m_loaded_hints.emplace_back(hint_data);
 				// open preferences
 				} else if(dict["hypertext_type"] == "preferences") {
 					int			page = static_cast<Preset::Type>(std::atoi(dict["hypertext_preferences_page"].c_str()));
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_mode, preferred_mode, disabled_tech, preferred_tech, false, documentation_link, [page]() { wxGetApp().open_preferences(page); } };
+					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [page]() { wxGetApp().open_preferences(page); } };
 					m_loaded_hints.emplace_back(hint_data);
 
 				} else if (dict["hypertext_type"] == "plater") {
 					std::string	item = dict["hypertext_plater_item"];
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_mode, preferred_mode, disabled_tech, preferred_tech, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
+					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				} else if (dict["hypertext_type"] == "gizmo") {
 					std::string	item = dict["hypertext_gizmo_item"];
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_mode, preferred_mode, disabled_tech, preferred_tech, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
+					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gallery") {
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_mode, preferred_mode, disabled_tech, preferred_tech, false, documentation_link, []() {  wxGetApp().obj_list()->load_shape_object_from_gallery(); } };
+					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, []() {  wxGetApp().obj_list()->load_shape_object_from_gallery(); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 			} else {
 				// plain text without hypertext
-				HintData hint_data{ text1, hypertext_text, follow_text, disabled_mode, preferred_mode, disabled_tech, preferred_tech, false, documentation_link };
+				HintData hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link };
 				m_loaded_hints.emplace_back(hint_data);
 			}
 		}
@@ -235,7 +291,7 @@ HintData* HintDatabase::get_hint(bool up)
 	}
 
     // shift id
-    m_hint_id = (up ? m_hint_id + 1 : (m_hint_id == 0 ? m_loaded_hints.size() - 1 : m_hint_id - 1));
+    m_hint_id = (up ? m_hint_id + 1 : m_hint_id );
     m_hint_id %= m_loaded_hints.size();
 
 	AppConfig* app_config = wxGetApp().app_config;
@@ -307,7 +363,7 @@ void NotificationManager::HintNotification::count_lines()
 				}
 				// when one word longer than line.
 				if (ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x > m_window_width - m_window_width_offset ||
-					ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x < (m_window_width - m_window_width_offset) / 4 * 3
+					ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x < (m_window_width - m_window_width_offset) / 5 * 3
 				    ) {
 					float width_of_a = ImGui::CalcTextSize("a").x;
 					int letter_count = (int)((m_window_width - m_window_width_offset) / width_of_a);
@@ -377,7 +433,7 @@ void NotificationManager::HintNotification::count_lines()
 					}
 					// when one word longer than line.
 					if (ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x > m_window_width - m_window_width_offset - size_of_last_line ||
-						ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x + size_of_last_line < (m_window_width - m_window_width_offset) / 4 * 3
+						ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x + size_of_last_line < (m_window_width - m_window_width_offset) / 5 * 3
 						) {
 						float width_of_a = ImGui::CalcTextSize("a").x;
 						int letter_count = (int)((m_window_width - m_window_width_offset - size_of_last_line) / width_of_a);
@@ -436,7 +492,7 @@ void NotificationManager::HintNotification::set_next_window_size(ImGuiWrapper& i
 
 bool NotificationManager::HintNotification::on_text_click()
 {
-	if (m_hypertext_callback != nullptr && (!m_runtime_disable || mode_and_tech_check(m_disabled_mode, m_preferred_mode, m_disabled_tech, m_preferred_tech)))
+	if (m_hypertext_callback != nullptr && (!m_runtime_disable || tags_check(m_disabled_tags, m_enabled_tags)))
 		m_hypertext_callback();
 	return false;
 }
@@ -575,10 +631,10 @@ void NotificationManager::HintNotification::render_close_button(ImGuiWrapper& im
 	ImGui::PopStyleColor();
 
 
-	render_right_arrow_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+	//render_right_arrow_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	render_logo(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	render_preferences_button(imgui, win_pos_x, win_pos_y);
-	if (!m_documentation_link.empty())
+	if (!m_documentation_link.empty() && wxGetApp().app_config->get("suppress_hyperlinks") != "1")
 	{
 		render_documentation_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	}
@@ -597,12 +653,24 @@ void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapp
 	std::string button_text;
 	button_text = ImGui::PreferencesButton;
 	//hover
-	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 10.f, win_pos_y + m_window_height - 2 * m_line_height + 1),
+	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 15.f, win_pos_y + m_window_height - 1.75f * m_line_height),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
 		true))
 	{
 		button_text = ImGui::PreferencesHoverButton;
-	}
+		// tooltip
+		long time_now = wxGetLocalTime();
+		if (m_prefe_hover_time > 0 && m_prefe_hover_time < time_now) {
+			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+			ImGui::BeginTooltip();
+			imgui.text(_u8L("Open Preferences."));
+			ImGui::EndTooltip();
+			ImGui::PopStyleColor();
+		}
+		if (m_prefe_hover_time == 0)
+			m_prefe_hover_time = time_now;
+	} else
+		m_prefe_hover_time = 0;
 
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
@@ -710,21 +778,19 @@ void NotificationManager::HintNotification::render_documentation_button(ImGuiWra
 	{
 		button_text = ImGui::DocumentationHoverButton;
 		// tooltip
-		
 		long time_now = wxGetLocalTime();
-		if (m_hover_time > 0 && m_hover_time < time_now) {
+		if (m_docu_hover_time > 0 && m_docu_hover_time < time_now) {
 			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
 			ImGui::BeginTooltip();
-			imgui.text(_u8L("Open Documentation in web browser"));
+			imgui.text(_u8L("Open Documentation in web browser."));
 			ImGui::EndTooltip();
 			ImGui::PopStyleColor();
 		}
-		if (m_hover_time == 0)
-			m_hover_time = time_now;
-		
+		if (m_docu_hover_time == 0)
+			m_docu_hover_time = time_now;
 	}
 	else
-		m_hover_time = 0;
+		m_docu_hover_time = 0;
 
 	ImVec2 button_pic_size = ImGui::CalcTextSize(placeholder_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
@@ -754,16 +820,16 @@ void NotificationManager::HintNotification::open_documentation()
 {
 	if (!m_documentation_link.empty())
 	{
-		wxLaunchDefaultBrowser(m_documentation_link);
+		launch_browser_if_allowed(m_documentation_link);
 	}
 }
-void NotificationManager::HintNotification::retrieve_data(size_t recursion_counter)
+void NotificationManager::HintNotification::retrieve_data(int recursion_counter)
 {
-    HintData* hint_data = HintDatabase::get_instance().get_hint(true);
+    HintData* hint_data = HintDatabase::get_instance().get_hint(recursion_counter >= 0 ? true : false);
 	if (hint_data == nullptr)
 		 close();
 
-	if (hint_data != nullptr && !mode_and_tech_check(hint_data->disabled_mode, hint_data->preferred_mode, hint_data->disabled_tech, hint_data->preferred_tech))
+	if (hint_data != nullptr && !tags_check(hint_data->disabled_tags, hint_data->enabled_tags))
 	{
 		// Content for different user - retrieve another
 		size_t count = HintDatabase::get_instance().get_count();
@@ -783,13 +849,11 @@ void NotificationManager::HintNotification::retrieve_data(size_t recursion_count
 							  hint_data->hypertext, nullptr,
 							  hint_data->follow_text };
 		m_hypertext_callback = hint_data->callback;
-		m_disabled_mode = hint_data->disabled_mode;
-		m_preferred_mode = hint_data->preferred_mode;
-		m_disabled_tech = hint_data->disabled_tech;
-		m_preferred_tech = hint_data->preferred_tech;
-		m_runtime_disable = hint_data->runtime_disable;
+		m_disabled_tags      = hint_data->disabled_tags;
+		m_enabled_tags       = hint_data->enabled_tags;
+		m_runtime_disable    = hint_data->runtime_disable;
 		m_documentation_link = hint_data->documentation_link;
-        m_has_hint_data = true;
+        m_has_hint_data      = true;
 		update(nd);
     }
 }

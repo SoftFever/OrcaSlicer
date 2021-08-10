@@ -12,10 +12,8 @@ struct HintData
 	std::string        text;
 	std::string        hypertext;
 	std::string		   follow_text;
-	std::string        disabled_mode;
-	std::string		   preferred_mode;
-	std::string        disabled_tech;
-	std::string        preferred_tech;
+	std::string		   disabled_tags;
+	std::string        enabled_tags;
 	bool               runtime_disable; // if true - hyperlink will check before every click if not in disabled mode
 	std::string        documentation_link;
 	std::function<void(void)> callback { nullptr };
@@ -57,12 +55,13 @@ private:
 class NotificationManager::HintNotification : public NotificationManager::PopNotification
 {
 public:
-	HintNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler)
+	HintNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, bool new_hint)
 		: PopNotification(n, id_provider, evt_handler)
 	{
-		retrieve_data();
+		retrieve_data(new_hint ? 0 : -1);
 	}
 	virtual void	init() override;
+	void			open_next() { retrieve_data(0); }
 protected:
 	virtual void	set_next_window_size(ImGuiWrapper& imgui) override;
 	virtual void	count_spaces() override;
@@ -87,21 +86,21 @@ protected:
 	void			render_logo(ImGuiWrapper& imgui,
 								const float win_size_x, const float win_size_y,
 								const float win_pos_x, const float win_pos_y);
-	void			retrieve_data(size_t recursion_counter = 0);
+	// recursion counter -1 tells to retrieve same hint as last time
+	void			retrieve_data(int recursion_counter = 0);
 	void			open_documentation();
 
 	bool						m_has_hint_data { false };
 	std::function<void(void)>	m_hypertext_callback;
-	std::string					m_disabled_mode;
-	std::string		            m_preferred_mode;
-	std::string                 m_disabled_tech;
-	std::string                 m_preferred_tech;
+	std::string					m_disabled_tags;
+	std::string					m_enabled_tags;
 	bool                        m_runtime_disable;
 	std::string                 m_documentation_link;
 	float						m_close_b_y { 0 };
 	float						m_close_b_w { 0 };
 	// hover of buttons
-	size_t                      m_hover_time { 0 };
+	size_t                      m_docu_hover_time { 0 };
+	size_t                      m_prefe_hover_time{ 0 };
 };
 
 } //namespace Slic3r 
