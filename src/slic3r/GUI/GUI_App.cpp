@@ -2059,7 +2059,7 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
 // to notify the user whether he is aware that some preset changes will be lost.
 bool GUI_App::check_and_save_current_preset_changes(const wxString& header)
 {
-    if (this->plater()->model().objects.empty() && has_current_preset_changes()) {
+    if (/*this->plater()->model().objects.empty() && */has_current_preset_changes()) {
         UnsavedChangesDialog dlg(header);
         if (wxGetApp().app_config->get("default_action_on_close_application") == "none" && dlg.ShowModal() == wxID_CANCEL)
             return false;
