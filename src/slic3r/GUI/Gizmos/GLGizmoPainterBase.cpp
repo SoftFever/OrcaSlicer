@@ -324,11 +324,11 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 new_state = action == SLAGizmoEventType::LeftDown ? this->get_left_button_state_type() : this->get_right_button_state_type();
         }
 
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        const Selection& selection = m_parent.get_selection();
-        const ModelObject* mo = m_c->selection_info()->model_object();
-        const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
-        const Transform3d& instance_trafo = mi->get_transformation().get_matrix();
+        const Camera        &camera         = wxGetApp().plater()->get_camera();
+        const Selection     &selection      = m_parent.get_selection();
+        const ModelObject   *mo             = m_c->selection_info()->model_object();
+        const ModelInstance *mi             = mo->instances[selection.get_instance_idx()];
+        const Transform3d   &instance_trafo = mi->get_transformation().get_matrix();
 
         // List of mouse positions that will be used as seeds for painting.
         std::vector<Vec2d> mouse_positions{mouse_position};
@@ -387,6 +387,13 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
             if (m_tool_type == ToolType::SEED_FILL || m_tool_type == ToolType::BUCKET_FILL || (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)) {
                 m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
+                if (m_tool_type == ToolType::SEED_FILL)
+                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle, true);
+                else if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)
+                    m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), false, true);
+                else if (m_tool_type == ToolType::BUCKET_FILL)
+                    m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), true, true);
+
                 m_seed_fill_last_mesh_id = -1;
             } else if (m_tool_type == ToolType::BRUSH)
                 m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
