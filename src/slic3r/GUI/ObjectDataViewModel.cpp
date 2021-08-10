@@ -64,7 +64,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
 {
     m_name           = info_type == InfoItemType::CustomSupports  ? _L("Paint-on supports") :
                        info_type == InfoItemType::CustomSeam      ? _L("Paint-on seam") :
-                       info_type == InfoItemType::MmuSegmentation ? _L("Paint-on segmentation") :
+                       info_type == InfoItemType::MmuSegmentation ? _L("Multimaterial painting") :
                        info_type == InfoItemType::Sinking         ? _L("Sinking") :
                                                                     _L("Variable layer height");
     m_info_item_type = info_type;

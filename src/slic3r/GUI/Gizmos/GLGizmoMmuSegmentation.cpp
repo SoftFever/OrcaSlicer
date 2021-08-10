@@ -42,7 +42,7 @@ void GLGizmoMmuSegmentation::on_shutdown()
 std::string GLGizmoMmuSegmentation::on_get_name() const
 {
     // FIXME Lukas H.: Discuss and change shortcut
-    return (_L("MMU painting") + " [N]").ToUTF8().data();
+    return (_L("Multimaterial painting") + " [N]").ToUTF8().data();
 }
 
 bool GLGizmoMmuSegmentation::on_is_selectable() const

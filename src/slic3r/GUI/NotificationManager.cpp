@@ -1363,7 +1363,7 @@ void NotificationManager::push_updated_item_info_notification(InfoItemType type)
 	switch (type) {
 	case InfoItemType::CustomSupports:      text += _utf8("custom supports."); break;
 	case InfoItemType::CustomSeam:          text += _utf8("custom seam."); break;
-	case InfoItemType::MmuSegmentation:     text += _utf8("MMU segmentation."); break;
+    case InfoItemType::MmuSegmentation:     text += _utf8("multimaterial painting."); break;
 	case InfoItemType::VariableLayerHeight: text += _utf8("variable layer height."); break;
 	case InfoItemType::Sinking:             text = _utf8("Partially sinking object(s) were loaded."); break;
 	default: text.clear(); break;
