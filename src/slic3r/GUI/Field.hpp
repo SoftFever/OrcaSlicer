@@ -342,6 +342,8 @@ public:
 
 class Choice : public Field {
 	using Field::Field;
+	bool	bKilledFocus = false;
+
 public:
 	Choice(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	Choice(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
@@ -349,6 +351,8 @@ public:
 
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;
+	// Propagate value from field to the OptionGroupe and Config after kill_focus/ENTER
+	void			propagate_value();
 
     /* Under OSX: wxBitmapComboBox->GetWindowStyle() returns some weard value, 
      * so let use a flag, which has TRUE value for a control without wxCB_READONLY style

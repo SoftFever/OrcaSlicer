@@ -935,7 +935,7 @@ void Choice::BUILD() {
 	choice_ctrl* temp;
     if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open) {
         m_is_editable = true;
-        temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
+        temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxTE_PROCESS_ENTER);
     }
     else {
 #ifdef __WXOSX__
@@ -988,44 +988,68 @@ void Choice::BUILD() {
     temp->Bind(wxEVT_COMBOBOX,          [this](wxCommandEvent&) { on_change_field(); }, temp->GetId());
 
     if (m_is_editable) {
-        temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) {
+        temp->Bind(wxEVT_KILL_FOCUS, [this](wxEvent& e) {
             e.Skip();
-            if (m_opt.type == coStrings) {
-                on_change_field();
+            if (bKilledFocus)
                 return;
-            }
 
-            if (is_defined_input_value<choice_ctrl>(window, m_opt.type)) {
-				switch (m_opt.type) {
-				case coFloatOrPercent:
-				{
-                    std::string old_val = !m_value.empty() ? boost::any_cast<std::string>(m_value) : "";
-                    if (old_val == boost::any_cast<std::string>(get_value()))
-                        return;
-					break;
-                }
-				case coInt:
-				{
-                    int old_val = !m_value.empty() ? boost::any_cast<int>(m_value) : 0;
-                    if (old_val == boost::any_cast<int>(get_value()))
-                        return;
-					break;
-				}
-				default:
-				{
-					double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
-					if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
-						return;
-				}
-                }
-                on_change_field();
-            }
+            bKilledFocus = true;
+
+            if (bEnterPressed)
+                bEnterPressed = false;
             else
-                on_kill_focus();
-        }), temp->GetId());
+                propagate_value();
+            // After processing of KILL_FOCUS event we should to invalidate a bKilledFocus flag
+            bKilledFocus = false;
+        } );
+
+        temp->Bind(wxEVT_TEXT_ENTER, [this, temp](wxEvent& e) {
+#ifdef _WIN32
+            temp->SetFocus();
+#else
+            bEnterPressed = true;
+            propagate_value();
+#endif //_WIN32
+        } );
     }
 
 	temp->SetToolTip(get_tooltip_text(temp->GetValue()));
+}
+
+void Choice::propagate_value()
+{
+    if (m_opt.type == coStrings) {
+        on_change_field();
+        return;
+    }
+
+    if (is_defined_input_value<choice_ctrl>(window, m_opt.type)) {
+        switch (m_opt.type) {
+        case coFloatOrPercent:
+        {
+            std::string old_val = !m_value.empty() ? boost::any_cast<std::string>(m_value) : "";
+            if (old_val == boost::any_cast<std::string>(get_value()))
+                return;
+            break;
+        }
+        case coInt:
+        {
+            int old_val = !m_value.empty() ? boost::any_cast<int>(m_value) : 0;
+            if (old_val == boost::any_cast<int>(get_value()))
+                return;
+            break;
+        }
+        default:
+        {
+            double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
+            if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
+                return;
+        }
+        }
+        on_change_field();
+    }
+    else
+        on_kill_focus();
 }
 
 void Choice::suppress_scroll()
