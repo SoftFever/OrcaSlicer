@@ -68,6 +68,34 @@ inline TagCheckResult tag_check_tech(const std::string& tag)
 	return TagCheckNotCompatible;
 }
 
+inline TagCheckResult tag_check_system(const std::string& tag)
+{
+	std::vector<std::string> allowed_tags = { "Windows", "Linux", "OSX" };
+	if (std::find(allowed_tags.begin(), allowed_tags.end(), tag) != allowed_tags.end()) {
+		if (tag =="Windows")
+#ifdef WIN32
+			return TagCheckAffirmative;
+#else 
+			return TagCheckNegative;
+#endif // WIN32
+
+		if (tag == "Linux")
+#ifdef __linux__
+			return TagCheckAffirmative;
+#else 
+			return TagCheckNegative;
+#endif // __linux__
+
+		if (tag == "OSX")
+#ifdef __APPLE__
+			return TagCheckAffirmative;
+#else 
+			return TagCheckNegative;
+#endif // __apple__
+	}
+	return TagCheckNotCompatible;
+}
+
 // return true if NOT in disabled mode.
 inline bool tags_check(const std::string& disabled_tags, const std::string& enabled_tags)
 {
@@ -93,6 +121,11 @@ inline bool tags_check(const std::string& disabled_tags, const std::string& enab
 					if (result == TagCheckResult::TagCheckAffirmative)
 						continue;
 					result = tag_check_tech(tag);
+					if (result == TagCheckResult::TagCheckNegative)
+						return false;
+					if (result == TagCheckResult::TagCheckAffirmative)
+						continue;
+					result = tag_check_system(tag);
 					if (result == TagCheckResult::TagCheckNegative)
 						return false;
 					if (result == TagCheckResult::TagCheckAffirmative)
@@ -128,6 +161,11 @@ inline bool tags_check(const std::string& disabled_tags, const std::string& enab
 						continue;
 					if (result == TagCheckResult::TagCheckAffirmative)
 						return false;
+					result = tag_check_system(tag);
+					if (result == TagCheckResult::TagCheckAffirmative)
+						return false;
+					if (result == TagCheckResult::TagCheckNegative)
+						continue;
 					BOOST_LOG_TRIVIAL(error) << "Hint Notification: Tag " << tag << " in disabled_tags not compatible.";
 				}
 			}
@@ -655,8 +693,7 @@ void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapp
 	//hover
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 15.f, win_pos_y + m_window_height - 1.75f * m_line_height),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
-		true))
-	{
+		true)) {
 		button_text = ImGui::PreferencesHoverButton;
 		// tooltip
 		long time_now = wxGetLocalTime();
