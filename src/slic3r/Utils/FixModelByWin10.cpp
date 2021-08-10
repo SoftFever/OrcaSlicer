@@ -37,7 +37,7 @@
 #include "../GUI/I18N.hpp"
 #include "../GUI/MsgDialog.hpp"
 #include "../GUI/GUI_App.hpp"
-#include "../GUI/Mainframe.hpp"
+#include "../GUI/MainFrame.hpp"
 
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
@@ -364,9 +364,17 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 				boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
 				path_src += ".3mf";
 				Model model;
-				ModelObject *model_object = model.add_object();
-				model_object->add_volume(*volumes[ivolume]);
-				model_object->add_instance();
+                ModelObject *mo = model.add_object();
+                mo->add_volume(*volumes[ivolume]);
+
+                // We are about to save a 3mf, fix it by netfabb and load the fixed 3mf back.
+                // store_3mf currently bakes the volume transformation into the mesh itself.
+                // If we then loaded the repaired 3mf and pushed the mesh into the original ModelVolume
+                // (which remembers the matrix the whole time), the transformation would be used twice.
+                // We will therefore set the volume transform on the dummy ModelVolume to identity.
+                mo->volumes.back()->set_transformation(Geometry::Transformation());
+
+                mo->add_instance();
 				if (!Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr, false, nullptr, false)) {
 					boost::filesystem::remove(path_src);
 					throw Slic3r::RuntimeError(L("Export of a temporary 3mf file failed"));
