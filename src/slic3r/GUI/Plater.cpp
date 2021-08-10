@@ -2564,6 +2564,10 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             _L("Object too large?"));
     }
 
+    // Now ObjectList uses GLCanvas3D::is_object_sinkin() to show/hide "Sinking" InfoItem, 
+    // so 3D-scene should be updated before object additing to the ObjectList
+    this->view3D->reload_scene(false, (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
+
     for (const size_t idx : obj_idxs) {
         wxGetApp().obj_list()->add_object_to_list(idx);
     }
