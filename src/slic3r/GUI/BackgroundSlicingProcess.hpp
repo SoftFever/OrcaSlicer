@@ -216,9 +216,9 @@ private:
 	Print 					   *m_fff_print 		 = nullptr;
 	SLAPrint 				   *m_sla_print			 = nullptr;
 	// Data structure, to which the G-code export writes its annotations.
-	GCodeProcessor::Result     *m_gcode_result = nullptr;
+	GCodeProcessor::Result     *m_gcode_result 		 = nullptr;
 	// Callback function, used to write thumbnails into gcode.
-	ThumbnailsGeneratorCallback m_thumbnail_cb = nullptr;
+	ThumbnailsGeneratorCallback m_thumbnail_cb 	     = nullptr;
 	SL1Archive                  m_sla_archive;
 		// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
@@ -262,6 +262,7 @@ private:
     bool                invalidate_all_steps();
     // If the background processing stop was requested, throw CanceledException.
     void                throw_if_canceled() const { if (m_print->canceled()) throw CanceledException(); }
+	void				finalize_gcode();
     void                prepare_upload();
     // To be executed at the background thread.
 	ThumbnailsList		render_thumbnails(const ThumbnailsParams &params);

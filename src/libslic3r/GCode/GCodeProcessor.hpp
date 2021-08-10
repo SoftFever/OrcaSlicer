@@ -337,9 +337,9 @@ namespace Slic3r {
                 std::string printer;
 
                 void reset() {
-                    print = "";
-                    filament = std::vector<std::string>();
-                    printer = "";
+                    print.clear();
+                    filament.clear();
+                    printer.clear();
                 }
             };
             std::string filename;
