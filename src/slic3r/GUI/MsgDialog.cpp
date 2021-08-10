@@ -127,7 +127,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     else {
         wxClientDC dc(parent);
         wxSize msg_sz = dc.GetMultiLineTextExtent(msg);
-        page_size = wxSize(std::min(msg_sz.GetX() + em,     68 * em),
+        page_size = wxSize(std::min(msg_sz.GetX() + 2 * em, 68 * em),
                            std::min(msg_sz.GetY() + 2 * em, 68 * em));
     }
     html->SetMinSize(page_size);

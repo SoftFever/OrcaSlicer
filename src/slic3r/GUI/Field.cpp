@@ -500,7 +500,7 @@ void TextCtrl::BUILD() {
 
 	temp->SetToolTip(get_tooltip_text(text_value));
 
-    if (style == wxTE_PROCESS_ENTER) {
+    if (style & wxTE_PROCESS_ENTER) {
         temp->Bind(wxEVT_TEXT_ENTER, ([this, temp](wxEvent& e)
         {
 #if !defined(__WXGTK__)
