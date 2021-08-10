@@ -45,6 +45,7 @@
 #include "GUI_Factories.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GalleryDialog.hpp"
+#include "NotificationManager.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1073,6 +1074,10 @@ static wxMenu* generate_help_menu()
     else
         append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("&About %s"), GCODEVIEWER_APP_NAME), _L("Show about dialog"),
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
+    append_menu_item(helpMenu, wxID_ANY, _L("Next Hint notification"), _L("Opens another Hint notification."),
+        [](wxCommandEvent&) { wxGetApp().plater()->get_notification_manager()->push_hint_notification(true); });
+    append_menu_item(helpMenu, wxID_ANY, _L("Reopen Hint notification"), _L("Opens Hint notification in bottom right corner."),
+        [](wxCommandEvent&) { wxGetApp().plater()->get_notification_manager()->push_hint_notification(false); });
     helpMenu->AppendSeparator();
     append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
         [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });

@@ -169,7 +169,8 @@ public:
 	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
 	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
 	// Hint (did you know) notification
-	void push_hint_notification();
+	void push_hint_notification(bool open_next);
+	bool is_hint_notification_open();
 	void push_updated_item_info_notification(InfoItemType type);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);

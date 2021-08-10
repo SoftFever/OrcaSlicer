@@ -1347,14 +1347,30 @@ void NotificationManager::upload_job_notification_show_error(int id, const std::
 		}
 	}
 }
-void NotificationManager::push_hint_notification()
+void NotificationManager::push_hint_notification(bool open_next)
+{
+	
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::DidYouKnowHint) {
+			if (open_next)
+				(dynamic_cast<HintNotification*>(notification.get()))->open_next();
+			else
+				notification->set_hovered();
+			return;
+		}
+	}
+	
+	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::RegularNotification, 300, "" };
+	push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 0);
+}
+
+bool NotificationManager::is_hint_notification_open()
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::DidYouKnowHint)
-			return;
+			return true;
 	}
-	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::RegularNotification, 0, "" };
-	push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler), 0);
+	return false;
 }
 
 void NotificationManager::push_updated_item_info_notification(InfoItemType type)
