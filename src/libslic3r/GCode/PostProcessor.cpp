@@ -1,12 +1,15 @@
 #include "PostProcessor.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/format.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cenv.hpp>
+#include <boost/nowide/fstream.hpp>
 
 #ifdef WIN32
 
