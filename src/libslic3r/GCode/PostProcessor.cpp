@@ -247,7 +247,7 @@ bool run_post_process_scripts(std::string &src_path, bool make_copy, const std::
     boost::nowide::setenv("SLIC3R_PP_OUTPUT_NAME", output_name.c_str(), 1);
 
     // Path to an optional file that the post-processing script may create and populate it with a single line containing the output_name replacement.
-    std::string path_output_name = src_path + ".output_name";
+    std::string path_output_name = path + ".output_name";
     auto remove_output_name_file = [&path_output_name, &src_path]() {
         try {
             if (boost::filesystem::exists(path_output_name))
@@ -288,10 +288,29 @@ bool run_post_process_scripts(std::string &src_path, bool make_copy, const std::
                 std::string new_output_name;
                 std::getline(f, new_output_name);
                 f.close();
+
+                if (host == "File") {
+                    boost::filesystem::path op(new_output_name);
+                    if (op.is_relative() && op.has_filename() && op.parent_path().empty()) {
+                        // Is this just a filename? Make it an absolute path.
+                        auto outpath = boost::filesystem::path(output_name).parent_path();
+                        outpath /= op.string();
+                        new_output_name = outpath.string();
+                    }
+                    else {
+                        if (! op.is_absolute() || ! op.has_filename())
+                            throw Slic3r::RuntimeError("Unable to parse desired new path from output name file");
+                    }
+                    if (! boost::filesystem::exists(op.parent_path()))
+                        throw Slic3r::RuntimeError(Slic3r::format("Output directory does not exist: %1%", op.parent_path().string()));
+                }
+
                 BOOST_LOG_TRIVIAL(trace) << "Post-processing script changed the file name from " << output_name << " to " << new_output_name;
                 output_name = new_output_name;
             } catch (const std::exception &err) {
-                BOOST_LOG_TRIVIAL(error) << Slic3r::format("Failed reading a file %1% carrying the final name / path of a G-code file: %2%", path_output_name, err.what());
+                throw Slic3r::RuntimeError(Slic3r::format("run_post_process_scripts: Failed reading a file %1% "
+                                                          "carrying the final name / path of a G-code file: %2%",
+                                                          path_output_name, err.what()));
             }
             remove_output_name_file();
         }
