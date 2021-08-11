@@ -220,15 +220,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             return;
         }
 
-        if (m_plater != nullptr && !m_plater->save_project_if_dirty()) {
-            event.Veto();
-            return;
+        if (m_plater != nullptr) {
+            int saved_project = m_plater->save_project_if_dirty();
+            if (saved_project == wxID_CANCEL) {
+                event.Veto();
+                return;
+            }
+            // check unsaved changes only if project wasn't saved
+            else if (saved_project == wxID_NO && event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes()) {
+                event.Veto();
+                return;
+            }
         }
 
-        if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes()) {
-            event.Veto();
-            return;
-        }
         if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
             event.Veto();
             return;
