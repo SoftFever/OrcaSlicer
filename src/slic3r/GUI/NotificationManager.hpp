@@ -499,13 +499,14 @@ private:
 	public:
 		UpdatedItemsInfoNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, InfoItemType info_item_type)
 			: PopNotification(n, id_provider, evt_handler)
-			, m_info_item_type(info_item_type)
 		{
+			//m_types_and_counts.emplace_back(info_item_type, 1);
 		}
 		void count_spaces() override;
+		void add_type(InfoItemType type);
 	protected:
 		void render_left_sign(ImGuiWrapper& imgui) override;
-		InfoItemType m_info_item_type;
+		std::vector<std::pair<InfoItemType, size_t>> m_types_and_counts;
 	};
 
 	// in HintNotification.hpp
