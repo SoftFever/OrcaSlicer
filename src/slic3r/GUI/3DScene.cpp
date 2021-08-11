@@ -843,12 +843,13 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         volume.first->set_render_color();
 
         // render sinking contours of non-hovered volumes
-        if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
-            volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
-            shader->stop_using();
-            volume.first->render_sinking_contours();
-            shader->start_using();
-        }
+        if (m_show_sinking_contours)
+            if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+                volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
+                shader->stop_using();
+                volume.first->render_sinking_contours();
+                shader->start_using();
+            }
 
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
@@ -887,17 +888,18 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     }
 
-    for (GLVolumeWithIdAndZ& volume : to_render) {
-        // render sinking contours of hovered/displaced volumes
-        if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
-            (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
-            shader->stop_using();
-            glsafe(::glDepthFunc(GL_ALWAYS));
-            volume.first->render_sinking_contours();
-            glsafe(::glDepthFunc(GL_LESS));
-            shader->start_using();
+    if (m_show_sinking_contours)
+        for (GLVolumeWithIdAndZ& volume : to_render) {
+            // render sinking contours of hovered/displaced volumes
+            if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+                (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
+                shader->stop_using();
+                glsafe(::glDepthFunc(GL_ALWAYS));
+                volume.first->render_sinking_contours();
+                glsafe(::glDepthFunc(GL_LESS));
+                shader->start_using();
+            }
         }
-    }
 #else
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));

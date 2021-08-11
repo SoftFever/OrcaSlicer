@@ -1248,6 +1248,12 @@ bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
 }
 
 
+bool GLGizmosManager::is_hiding_instances() const
+{
+    return (m_common_gizmos_data->instances_hider() && m_common_gizmos_data->instances_hider()->is_valid());
+}
+
+
 int GLGizmosManager::get_shortcut_key(GLGizmosManager::EType type) const
 {
     return m_gizmos[type]->get_shortcut_key();
