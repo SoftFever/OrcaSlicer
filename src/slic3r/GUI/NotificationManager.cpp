@@ -1074,10 +1074,39 @@ void NotificationManager::UpdatedItemsInfoNotification::count_spaces()
 	m_window_width_offset = m_left_indentation + m_line_height * 3.f;
 	m_window_width = m_line_height * 25;
 }
+void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType type)
+{
+	std::vector<std::pair<InfoItemType, size_t>>::iterator it = m_types_and_counts.begin();
+	for (; it != m_types_and_counts.end(); ++it) {
+		if ((*it).first == type) {
+			(*it).second++;
+			break;
+		}
+	}
+	if (it == m_types_and_counts.end())
+		m_types_and_counts.emplace_back(type, 1);
+
+	std::string text;
+	for (it = m_types_and_counts.begin(); it != m_types_and_counts.end(); ++it) {
+		text += std::to_string((*it).second);
+		text += _L_PLURAL(" Object was loaded with "," Objects were loaded with ", (*it).second).ToUTF8().data();
+		switch ((*it).first) {
+		case InfoItemType::CustomSupports:      text += _utf8("custom supports.\n"); break;
+		case InfoItemType::CustomSeam:          text += _utf8("custom seam.\n"); break;
+		case InfoItemType::MmuSegmentation:     text += _utf8("multimaterial painting.\n"); break;
+		case InfoItemType::VariableLayerHeight: text += _utf8("variable layer height.\n"); break;
+		case InfoItemType::Sinking:             text += _utf8("Partial sinking.\n"); break;
+		default: text.clear(); break;
+		}
+	}
+	NotificationData data { get_data().type, get_data().level , get_data().duration, text };
+	update(data);
+}
 void NotificationManager::UpdatedItemsInfoNotification::render_left_sign(ImGuiWrapper& imgui)
 {
 	std::string text;
-	switch (m_info_item_type) {
+	InfoItemType type = (m_types_and_counts.empty() ? InfoItemType::CustomSupports : m_types_and_counts[0].first);
+	switch (type) {
 	case InfoItemType::CustomSupports:      text = ImGui::CustomSupportsMarker; break;
 	case InfoItemType::CustomSeam:          text = ImGui::CustomSeamMarker; break;
 	case InfoItemType::MmuSegmentation:     text = ImGui::MmuSegmentationMarker; break;
@@ -1349,7 +1378,6 @@ void NotificationManager::upload_job_notification_show_error(int id, const std::
 }
 void NotificationManager::push_hint_notification(bool open_next)
 {
-	
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::DidYouKnowHint) {
 			if (open_next)
@@ -1375,19 +1403,19 @@ bool NotificationManager::is_hint_notification_open()
 
 void NotificationManager::push_updated_item_info_notification(InfoItemType type)
 {
-	std::string text = _utf8("Object(s) were loaded with ");
-	switch (type) {
-	case InfoItemType::CustomSupports:      text += _utf8("custom supports."); break;
-	case InfoItemType::CustomSeam:          text += _utf8("custom seam."); break;
-    case InfoItemType::MmuSegmentation:     text += _utf8("multimaterial painting."); break;
-	case InfoItemType::VariableLayerHeight: text += _utf8("variable layer height."); break;
-	case InfoItemType::Sinking:             text = _utf8("Partially sinking object(s) were loaded."); break;
-	default: text.clear(); break;
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::UpdatedItemsInfo) {
+			(dynamic_cast<UpdatedItemsInfoNotification*>(notification.get()))->add_type(type);
+			return;
+		}
 	}
-	if (!text.empty()) {
-		NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::RegularNotification, 10, text };
-		push_notification_data(std::make_unique<NotificationManager::UpdatedItemsInfoNotification>(data, m_id_provider, m_evt_handler, type), 0);
+
+	NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::RegularNotification, 5, "" };
+	auto notification = std::make_unique<NotificationManager::UpdatedItemsInfoNotification>(data, m_id_provider, m_evt_handler, type);
+	if (push_notification_data(std::move(notification), 0)) {
+		(dynamic_cast<UpdatedItemsInfoNotification*>(m_pop_notifications.back().get()))->add_type(type);
 	}
+
 }
 bool NotificationManager::push_notification_data(const NotificationData& notification_data, int timestamp)
 {
