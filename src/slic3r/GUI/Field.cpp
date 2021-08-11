@@ -73,8 +73,6 @@ Field::~Field()
 {
 	if (m_on_kill_focus)
 		m_on_kill_focus = nullptr;
-	if (m_on_set_focus)
-		m_on_set_focus = nullptr;
 	if (m_on_change)
 		m_on_change = nullptr;
 	if (m_back_to_initial_value)
@@ -154,15 +152,6 @@ void Field::on_kill_focus()
 	// call the registered function if it is available
     if (m_on_kill_focus!=nullptr)
         m_on_kill_focus(m_opt_id);
-}
-
-void Field::on_set_focus(wxEvent& event)
-{
-    // to allow the default behavior
-	event.Skip();
-	// call the registered function if it is available
-    if (m_on_set_focus!=nullptr)
-        m_on_set_focus(m_opt_id);
 }
 
 void Field::on_change_field()
@@ -507,12 +496,10 @@ void TextCtrl::BUILD() {
             e.Skip();
             temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-            bEnterPressed = true;
+            EnterPressed enter(this);
             propagate_value();
         }), temp->GetId());
     }
-
-    temp->Bind(wxEVT_SET_FOCUS, ([this](wxEvent& e) { on_set_focus(e); }), temp->GetId());
 
 	temp->Bind(wxEVT_LEFT_DOWN, ([temp](wxEvent& event)
 	{
@@ -530,26 +517,11 @@ void TextCtrl::BUILD() {
 	temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 	{
 		e.Skip();
-#ifdef __WXOSX__
-		// OSX issue: For some unknown reason wxEVT_KILL_FOCUS is emitted twice in a row in some cases
-	    // (like when information dialog is shown during an update of the option value)
-		// Thus, suppress its second call
-		if (bKilledFocus)
-			return;
-		bKilledFocus = true;
-#endif // __WXOSX__
-
 #if !defined(__WXGTK__)
 		temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-        if (bEnterPressed)
-            bEnterPressed = false;
-		else
+        if (!bEnterPressed)
             propagate_value();
-#ifdef __WXOSX__
-		// After processing of KILL_FOCUS event we should to invalidate a bKilledFocus flag
-		bKilledFocus = false;
-#endif // __WXOSX__
 	}), temp->GetId());
 /*
 	// select all text using Ctrl+A
@@ -990,26 +962,13 @@ void Choice::BUILD() {
     if (m_is_editable) {
         temp->Bind(wxEVT_KILL_FOCUS, [this](wxEvent& e) {
             e.Skip();
-            if (bKilledFocus)
-                return;
-
-            bKilledFocus = true;
-
-            if (bEnterPressed)
-                bEnterPressed = false;
-            else
+            if (!bEnterPressed)
                 propagate_value();
-            // After processing of KILL_FOCUS event we should to invalidate a bKilledFocus flag
-            bKilledFocus = false;
         } );
 
         temp->Bind(wxEVT_TEXT_ENTER, [this, temp](wxEvent& e) {
-#ifdef _WIN32
-            temp->SetFocus();
-#else
-            bEnterPressed = true;
+            EnterPressed enter(this);
             propagate_value();
-#endif //_WIN32
         } );
     }
 
@@ -1161,6 +1120,15 @@ void Choice::set_value(const boost::any& value, bool change_event)
         }
         else
 			field->SetSelection(idx);
+
+        if (!m_value.empty() && m_opt.opt_key == "fill_density") {
+            // If m_value was changed before, then update m_value here too to avoid case 
+            // when control's value is already changed from the ConfigManipulation::update_print_fff_config(),
+            // but m_value doesn't respect it.
+            if (double val; text_value.ToDouble(&val))
+                m_value = val;
+        }
+
 		break;
 	}
 	case coEnum: {
