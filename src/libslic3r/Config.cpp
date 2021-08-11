@@ -223,10 +223,13 @@ std::vector<std::string> ConfigOptionDef::cli_args(const std::string &key) const
 {
 	std::vector<std::string> args;
 	if (this->cli != ConfigOptionDef::nocli) {
-        std::string cli = this->cli.substr(0, this->cli.find("="));
-        boost::trim_right_if(cli, boost::is_any_of("!"));
+        const std::string &cli = this->cli;
+        //FIXME What was that for? Check the "readline" documentation.
+        // Neither '=' nor '!' is used in any of the cli parameters currently defined by PrusaSlicer.
+//        std::string cli = this->cli.substr(0, this->cli.find("="));
+//        boost::trim_right_if(cli, boost::is_any_of("!"));
 		if (cli.empty()) {
-            // Add the key
+            // Convert an option key to CLI argument by replacing underscores with dashes.
             std::string opt = key;
             boost::replace_all(opt, "_", "-");
             args.emplace_back(std::move(opt));
@@ -817,22 +820,12 @@ const ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key) co
     return (it == options.end()) ? nullptr : it->second.get();
 }
 
-void DynamicConfig::read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra, t_config_option_keys* keys)
-{
-    std::vector<const char*> args;    
-    // push a bogus executable name (argv[0])
-    args.emplace_back("");
-    for (size_t i = 0; i < tokens.size(); ++ i)
-        args.emplace_back(tokens[i].c_str());
-    this->read_cli(int(args.size()), args.data(), extra, keys);
-}
-
 bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option_keys* extra, t_config_option_keys* keys)
 {
     // cache the CLI option => opt_key mapping
     std::map<std::string,std::string> opts;
     for (const auto &oit : this->def()->options)
-        for (auto t : oit.second.cli_args(oit.first))
+        for (const std::string &t : oit.second.cli_args(oit.first))
             opts[t] = oit.first;
     
     bool parse_options = true;
@@ -854,14 +847,8 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
             parse_options = false;
             continue;
         }
-        // Remove leading dashes
-        boost::trim_left_if(token, boost::is_any_of("-"));
-        // Remove the "no-" prefix used to negate boolean options.
-        bool no = false;
-        if (boost::starts_with(token, "no-")) {
-            no = true;
-            boost::replace_first(token, "no-", "");
-        }
+        // Remove leading dashes (one or two).
+        token.erase(token.begin(), token.begin() + (boost::starts_with(token, "--") ? 2 : 1));
         // Read value when supplied in the --key=value form.
         std::string value;
         {
@@ -871,54 +858,45 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
                 token.erase(equals_pos);
             }
         }
-
         // Look for the cli -> option mapping.
-        const auto it = opts.find(token);
+        auto it = opts.find(token);
+        bool no = false;
         if (it == opts.end()) {
-			boost::nowide::cerr << "Unknown option --" << token.c_str() << std::endl;
-			return false;
+            // Remove the "no-" prefix used to negate boolean options.
+            std::string yes_token;
+            if (boost::starts_with(token, "no-")) {
+                yes_token = token.substr(3);
+                it = opts.find(yes_token);
+                no = true;
+            }
+            if (it == opts.end()) {
+                boost::nowide::cerr << "Unknown option --" << token.c_str() << std::endl;
+                return false;
+            }
+            if (no)
+                token = yes_token;
         }
-        const t_config_option_key opt_key = it->second;
-        const ConfigOptionDef &optdef = this->def()->options.at(opt_key);
+
+        const t_config_option_key &opt_key = it->second;
+        const ConfigOptionDef     &optdef  = this->def()->options.at(opt_key);
 
         // If the option type expects a value and it was not already provided,
         // look for it in the next token.
-        if (value.empty()) {
-            if (optdef.type != coBool && optdef.type != coBools) {
-                if (i == (argc-1)) {
-                    boost::nowide::cerr << "No value supplied for --" << token.c_str() << std::endl;
-                    return false;
-                }
-                value = argv[++ i];
-            } else {
-                // This is a bool or bools. The value is optional, but may still be there.
-                // Check if the next token can be deserialized into ConfigOptionBool.
-                // If it is in fact bools, it will be rejected later anyway.
-                if (i != argc-1) { // There is still a token to read.
-                    ConfigOptionBool cobool;
-                    if (cobool.deserialize(argv[i+1]))
-                        value = argv[++i];
-                }
+        if (value.empty() && optdef.type != coBool && optdef.type != coBools) {
+            if (i == argc-1) {
+                boost::nowide::cerr << "No value supplied for --" << token.c_str() << std::endl;
+                return false;
             }
-
+            value = argv[++ i];
         }
 
         if (no) {
-            if (optdef.type != coBool && optdef.type != coBools) {
-                boost::nowide::cerr << "Only boolean config options can be negated with --no- prefix." << std::endl;
-                return false;
-            }
-            else if (! value.empty()) {
+            assert(optdef.type == coBool || optdef.type == coBools);
+            if (! value.empty()) {
                 boost::nowide::cerr << "Boolean options negated by the --no- prefix cannot have a value." << std::endl;
                 return false;
             }
         }
-        if (optdef.type == coBools && ! value.empty()) {
-            boost::nowide::cerr << "Vector boolean options cannot have a value. Fill them in by "
-                                   "repeating them and negate by --no- prefix." << std::endl;
-            return false;
-        }
-
 
         // Store the option value.
         const bool               existing   = this->has(opt_key);
@@ -934,7 +912,7 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
 				opt_vector->clear();
             // Vector values will be chained. Repeated use of a parameter will append the parameter or parameters
             // to the end of the value.
-            if (opt_base->type() == coBools)
+            if (opt_base->type() == coBools && value.empty())
                 static_cast<ConfigOptionBools*>(opt_base)->values.push_back(!no);
             else
                 // Deserialize any other vector value (ConfigOptionInts, Floats, Percents, Points) the same way
