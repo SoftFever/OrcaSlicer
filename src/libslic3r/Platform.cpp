@@ -105,4 +105,42 @@ PlatformFlavor platform_flavor()
 	return s_platform_flavor;
 }
 
+
+
+std::string platform_to_string(Platform platform)
+{
+    switch (platform) {
+        case Platform::Uninitialized: return "Unitialized";
+        case Platform::Unknown      : return "Unknown";
+        case Platform::Windows      : return "Windows";
+        case Platform::OSX          : return "OSX";
+        case Platform::Linux        : return "Linux";
+        case Platform::BSDUnix      : return "BSDUnix";
+    }
+    assert(false);
+    return "";
+}
+
+
+
+std::string platform_flavor_to_string(PlatformFlavor pf)
+{
+    switch (pf) {
+        case PlatformFlavor::Uninitialized   : return "Unitialized";
+        case PlatformFlavor::Unknown         : return "Unknown";
+        case PlatformFlavor::Generic         : return "Generic";
+        case PlatformFlavor::GenericLinux    : return "GenericLinux";
+        case PlatformFlavor::LinuxOnChromium : return "LinuxOnChromium";
+        case PlatformFlavor::WSL             : return "WSL";
+        case PlatformFlavor::WSL2            : return "WSL2";
+        case PlatformFlavor::OpenBSD         : return "OpenBSD";
+        case PlatformFlavor::GenericOSX      : return "GenericOSX";
+        case PlatformFlavor::OSXOnX86        : return "OSXOnX86";
+        case PlatformFlavor::OSXOnArm        : return "OSXOnArm";
+    }
+    assert(false);
+    return "";
+}
+
+
 } // namespace Slic3r

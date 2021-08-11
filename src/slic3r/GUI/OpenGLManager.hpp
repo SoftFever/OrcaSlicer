@@ -10,6 +10,7 @@ class wxGLContext;
 namespace Slic3r {
 namespace GUI {
 
+
 class OpenGLManager
 {
 public:
