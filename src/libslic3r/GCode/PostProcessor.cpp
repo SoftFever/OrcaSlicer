@@ -290,10 +290,11 @@ bool run_post_process_scripts(std::string &src_path, bool make_copy, const std::
                 f.close();
 
                 if (host == "File") {
-                    boost::filesystem::path op(new_output_name);
+                    namespace fs = boost::filesystem;
+                    fs::path op(new_output_name);
                     if (op.is_relative() && op.has_filename() && op.parent_path().empty()) {
                         // Is this just a filename? Make it an absolute path.
-                        auto outpath = boost::filesystem::path(output_name).parent_path();
+                        auto outpath = fs::path(output_name).parent_path();
                         outpath /= op.string();
                         new_output_name = outpath.string();
                     }
@@ -301,8 +302,9 @@ bool run_post_process_scripts(std::string &src_path, bool make_copy, const std::
                         if (! op.is_absolute() || ! op.has_filename())
                             throw Slic3r::RuntimeError("Unable to parse desired new path from output name file");
                     }
-                    if (! boost::filesystem::exists(op.parent_path()))
-                        throw Slic3r::RuntimeError(Slic3r::format("Output directory does not exist: %1%", op.parent_path().string()));
+                    if (! fs::exists(fs::path(new_output_name).parent_path()))
+                        throw Slic3r::RuntimeError(Slic3r::format("Output directory does not exist: %1%",
+                                                                  fs::path(new_output_name).parent_path().string()));
                 }
 
                 BOOST_LOG_TRIVIAL(trace) << "Post-processing script changed the file name from " << output_name << " to " << new_output_name;
