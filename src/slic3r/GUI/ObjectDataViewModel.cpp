@@ -37,7 +37,7 @@ void ObjectDataViewModelNode::init_container()
 static constexpr char LayerRootIcon[]   = "edit_layers_all";
 static constexpr char LayerIcon[]       = "edit_layers_some";
 static constexpr char WarningIcon[]     = "exclamation";
-static constexpr char InfoIcon[]        = "info";
+static constexpr char InfoIcon[]        = "objlist_info";
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,
                                                  const wxString&            sub_obj_name,

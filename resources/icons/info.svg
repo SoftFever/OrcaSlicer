@@ -1,17 +1,71 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 25.4.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="16px" height="16px" viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
-<path fill="#808080" d="M13,14.5H3.5c-0.55,0-1-0.45-1-1V13c0-1.98,1.31-2.5,2-2.5h2c-0.46,0-1-0.43-1-2.5V7c0-1.98,1.31-2.5,2-2.5
-	h1c0.69,0,2,0.52,2,2.5v1c0,2.07-0.54,2.5-1,2.5h2c0.69,0,2,0.52,2,2.5v1C13.5,14.28,13.28,14.5,13,14.5z M4.5,11.5
-	c-0.16,0-1,0.1-1,1.5v0.5h9V13c0-1.48-0.96-1.5-1-1.5h-2c-0.55,0-1-0.45-1-1c0-0.49,0.35-0.89,0.81-0.98C9.37,9.39,9.5,9,9.5,8V7
-	c0-1.48-0.96-1.5-1-1.5h-1c-0.16,0-1,0.1-1,1.5v1c0,1,0.13,1.39,0.19,1.52c0.46,0.09,0.81,0.5,0.81,0.98c0,0.55-0.45,1-1,1H4.5z"/>
-<path fill="#ED6B21" d="M13.43,5.49c-0.12-0.24-0.14-0.64-0.05-0.91l0.12-0.35c0.09-0.26,0-0.63-0.2-0.83L12.6,2.7
-	c-0.19-0.19-0.57-0.28-0.83-0.2l-0.35,0.12c-0.26,0.09-0.67,0.06-0.91-0.05s-1-0.54-1.12-0.79L9.22,1.45C9.1,1.2,8.77,1,8.5,1h-1
-	C7.22,1,6.9,1.2,6.78,1.45L6.61,1.78C6.49,2.02,6.18,2.3,5.93,2.38S4.84,2.7,4.58,2.62L4.23,2.5C3.97,2.41,3.6,2.5,3.4,2.7L2.7,3.4
-	C2.5,3.6,2.41,3.97,2.5,4.23l0.12,0.35C2.7,4.84,2.68,5.25,2.57,5.49s-0.54,1-0.79,1.12L1.45,6.78C1.2,6.9,1,7.22,1,7.5v1
-	c0,0.27,0.2,0.6,0.45,0.72l0.33,0.17c0.25,0.12,0.47,0.28,0.49,0.35S2.58,10,2.86,10h0.06c0.28,0,0.43-0.21,0.34-0.48
-	C3.27,9.52,3,8.71,3,8c0-2.76,2.24-5,5-5s5,2.24,5,5c0,0.71-0.27,1.52-0.27,1.52C12.65,9.79,12.8,10,13.08,10h0.06
-	c0.27,0,0.52-0.06,0.55-0.13s0.29-0.36,0.53-0.48l0.33-0.17C14.8,9.1,15,8.77,15,8.5v-1c0-0.28-0.2-0.6-0.45-0.72l-0.33-0.17
-	C13.98,6.49,13.55,5.72,13.43,5.49z"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   id="error"
+   x="0px"
+   y="0px"
+   viewBox="0 0 200 200"
+   enable-background="new 0 0 100 100"
+   xml:space="preserve"
+   sodipodi:docname="notification_error.svg"
+   width="200"
+   height="200"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"><metadata
+   id="metadata19"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs17" /><sodipodi:namedview
+   inkscape:document-rotation="0"
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="2560"
+   inkscape:window-height="1377"
+   id="namedview15"
+   showgrid="false"
+   inkscape:zoom="5.04"
+   inkscape:cx="117.17146"
+   inkscape:cy="98.609664"
+   inkscape:window-x="-8"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="error" />
+<g
+   id="g4"
+   transform="matrix(2.52,0,0,2.52,-26,-26)">
+	<path
+   fill="#808080"
+   d="m 50,54.25 c -2.35,0 -4.25,-1.9 -4.25,-4.25 V 35 c 0,-2.35 1.9,-4.25 4.25,-4.25 2.35,0 4.25,1.9 4.25,4.25 v 15 c 0,2.35 -1.9,4.25 -4.25,4.25 z"
+   id="path2" />
+</g>
+<g
+   id="g8"
+   transform="matrix(2.52,0,0,2.52,-26,-26)">
+	<circle
+   fill="#808080"
+   cx="50"
+   cy="65"
+   r="5"
+   id="circle6" />
+</g>
+<g
+   id="g12"
+   transform="matrix(2.52,0,0,2.52,-26,-26)">
+	<path
+   fill="#808080"
+   d="M 50,89.25 C 28.36,89.25 10.75,71.64 10.75,50 10.75,28.36 28.36,10.75 50,10.75 71.64,10.75 89.25,28.36 89.25,50 89.25,71.64 71.64,89.25 50,89.25 Z m 0,-70 C 33.05,19.25 19.25,33.04 19.25,50 19.25,66.95 33.04,80.75 50,80.75 66.95,80.75 80.75,66.96 80.75,50 80.75,33.05 66.95,19.25 50,19.25 Z"
+   id="path10" />
+</g>
 </svg>

@@ -202,7 +202,7 @@ MessageDialog::MessageDialog(wxWindow* parent,
     if (style & wxCANCEL)   add_btn(wxID_CANCEL);
 
     logo->SetBitmap(create_scaled_bitmap(style & wxICON_WARNING     ? "exclamation" : 
-                                         style & wxICON_INFORMATION ? "info.png"    : 
+                                         style & wxICON_INFORMATION ? "info"        :
                                          style & wxICON_QUESTION    ? "question"    : "PrusaSlicer_192px_grayscale.png", this, 84));
 
     wxGetApp().UpdateDlgDarkUI(this);
