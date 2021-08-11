@@ -662,11 +662,7 @@ void NotificationManager::HintNotification::render_close_button(ImGuiWrapper& im
 		close();
 	}
 	
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 
 
 	//render_right_arrow_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
@@ -722,11 +718,7 @@ void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapp
 		wxGetApp().open_preferences(2);
 	}
 
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 	// preferences button is in place of minimize button
 	m_minimize_b_visible = true;	
 }
@@ -758,11 +750,7 @@ void NotificationManager::HintNotification::render_right_arrow_button(ImGuiWrapp
 		retrieve_data();
 	}
 
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 void NotificationManager::HintNotification::render_logo(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
@@ -788,11 +776,7 @@ void NotificationManager::HintNotification::render_logo(ImGuiWrapper& imgui, con
 	{
 	}
 	
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 void NotificationManager::HintNotification::render_documentation_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
@@ -846,11 +830,7 @@ void NotificationManager::HintNotification::render_documentation_button(ImGuiWra
 		open_documentation();
 	}
 
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 
 void NotificationManager::HintNotification::open_documentation()

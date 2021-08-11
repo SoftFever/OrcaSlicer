@@ -99,8 +99,8 @@ protected:
 	float						m_close_b_y { 0 };
 	float						m_close_b_w { 0 };
 	// hover of buttons
-	size_t                      m_docu_hover_time { 0 };
-	size_t                      m_prefe_hover_time{ 0 };
+	long                      m_docu_hover_time { 0 };
+	long                      m_prefe_hover_time{ 0 };
 };
 
 } //namespace Slic3r 
