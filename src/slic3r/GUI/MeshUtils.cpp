@@ -87,16 +87,16 @@ void MeshClipper::recalculate_triangles()
     float height_mesh = m_plane.distance(m_trafo.get_offset()) * (up_noscale.norm()/up.norm());
 
     // Now do the cutting
-    MeshSlicingParamsEx slicing_params;
+    MeshSlicingParams slicing_params;
     slicing_params.trafo.rotate(Eigen::Quaternion<double, Eigen::DontAlign>::FromTwoVectors(up, Vec3d::UnitZ()));
 
     assert(m_mesh->has_shared_vertices());
-    std::vector<ExPolygons> list_of_expolys = slice_mesh_ex(m_mesh->its, std::vector<float>{height_mesh}, slicing_params);
+    ExPolygons expolys = union_ex(slice_mesh(m_mesh->its, height_mesh, slicing_params));
 
     if (m_negative_mesh && !m_negative_mesh->empty()) {
         assert(m_negative_mesh->has_shared_vertices());
-        std::vector<ExPolygons> neg_polys = slice_mesh_ex(m_negative_mesh->its, std::vector<float>{height_mesh}, slicing_params);
-        list_of_expolys.front() = diff_ex(list_of_expolys.front(), neg_polys.front());
+        ExPolygons neg_expolys = union_ex(slice_mesh(m_negative_mesh->its, height_mesh, slicing_params));
+        expolys = diff_ex(expolys, neg_expolys);
     }
 
     // Triangulate and rotate the cut into world coords:
@@ -131,7 +131,7 @@ void MeshClipper::recalculate_triangles()
         if (std::abs(normal_old.dot(m_plane.get_normal().normalized())) > 0.99) {
             // The cuts are parallel, show all or nothing.
             if (offset < height_mesh)
-                list_of_expolys.front().clear();
+                expolys.clear();
         } else {
             // The cut is a horizontal plane defined by z=height_mesh.
             // ax+by+e=0 is the line of intersection with the limiting plane.
@@ -155,14 +155,14 @@ void MeshClipper::recalculate_triangles()
             // from the cut. The coordinates must not overflow after the transform,
             // make the rectangle a bit smaller.
             coord_t size = (std::numeric_limits<coord_t>::max() - scale_(std::max(std::abs(e*a), std::abs(e*b)))) / 4;
-            ExPolygons ep {ExPolygon({Point(-size, 0), Point(size, 0), Point(size, 2*size), Point(-size, 2*size)})};
+            Polygons ep {Polygon({Point(-size, 0), Point(size, 0), Point(size, 2*size), Point(-size, 2*size)})};
             ep.front().rotate(angle);
             ep.front().translate(scale_(-e * a), scale_(-e * b));
-            list_of_expolys.front() = diff_ex(list_of_expolys.front(), ep.front());
+            expolys = diff_ex(expolys, ep);
         }
     }
 
-    m_triangles2d = triangulate_expolygons_2f(list_of_expolys[0], m_trafo.get_matrix().matrix().determinant() < 0.);
+    m_triangles2d = triangulate_expolygons_2f(expolys, m_trafo.get_matrix().matrix().determinant() < 0.);
 
     m_vertex_array.release_geometry();
     for (auto it=m_triangles2d.cbegin(); it != m_triangles2d.cend(); it=it+3) {
