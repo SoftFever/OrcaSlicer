@@ -218,6 +218,7 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	if (m_state == EState::FadingOut) {
 		push_style_color(ImGuiCol_WindowBg, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg), true, m_current_fade_opacity);
 		push_style_color(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text), true, m_current_fade_opacity);
+		push_style_color(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered), true, m_current_fade_opacity);
 		fading_pop = true;
 	}
 	
@@ -229,7 +230,7 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		m_id = m_id_provider.allocate_id();
 	std::string name = "!!Ntfctn" + std::to_string(m_id);
 	
-	if (imgui.begin(name, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar)) {
+	if (imgui.begin(name, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
 		ImVec2 win_size = ImGui::GetWindowSize();
 
 		render_left_sign(imgui);
@@ -245,7 +246,7 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		ImGui::PopStyleColor();
 
 	if (fading_pop)
-		ImGui::PopStyleColor(2);
+		ImGui::PopStyleColor(3);
 }
 bool NotificationManager::PopNotification::push_background_color()
 {
@@ -440,9 +441,7 @@ void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui,
 			close();
 		}
 	}
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(3);
 
 	//hover color
 	ImVec4 orange_color = ImVec4(.99f, .313f, .0f, 1.0f);
@@ -501,11 +500,7 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 	{
 		close();
 	}
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 
 void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)
@@ -545,11 +540,7 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 		m_multiline = false;
 	}
 	
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 	m_minimize_b_visible = true;
 }
 bool NotificationManager::PopNotification::on_text_click()
@@ -790,11 +781,7 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 			wxPostEvent(m_evt_handler, EjectDriveNotificationClickedEvent(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED));
 		close();
 	}
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 bool NotificationManager::ExportFinishedNotification::on_text_click()
 {
@@ -1054,11 +1041,7 @@ void NotificationManager::PrintHostUploadNotification::render_cancel_button(ImGu
 	{
 		wxGetApp().printhost_job_queue().cancel(m_job_id - 1);
 	}
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 //------UpdatedItemsInfoNotification-------
 void NotificationManager::UpdatedItemsInfoNotification::count_spaces()
@@ -1096,7 +1079,7 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		case InfoItemType::MmuSegmentation:     text += _utf8("multimaterial painting.\n"); break;
 		case InfoItemType::VariableLayerHeight: text += _utf8("variable layer height.\n"); break;
 		case InfoItemType::Sinking:             text += _utf8("Partial sinking.\n"); break;
-		default: text.clear(); break;
+		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
 		}
 	}
 	NotificationData data { get_data().type, get_data().level , get_data().duration, text };
@@ -1380,10 +1363,7 @@ void NotificationManager::push_hint_notification(bool open_next)
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::DidYouKnowHint) {
-			if (open_next)
-				(dynamic_cast<HintNotification*>(notification.get()))->open_next();
-			else
-				notification->set_hovered();
+			(dynamic_cast<HintNotification*>(notification.get()))->open_next();
 			return;
 		}
 	}
