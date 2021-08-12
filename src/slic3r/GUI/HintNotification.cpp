@@ -354,7 +354,7 @@ void NotificationManager::HintNotification::count_spaces()
 	std::string text;
 	text = ImGui::WarningMarker; 
 	float picture_width = ImGui::CalcTextSize(text.c_str()).x;
-	m_left_indentation = picture_width * 2 + m_line_height / 2;
+	m_left_indentation = picture_width * 1.5f + m_line_height / 2;
 	
 	// no left button picture
 	//m_left_indentation = m_line_height;
