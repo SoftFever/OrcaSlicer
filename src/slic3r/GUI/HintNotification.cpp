@@ -37,7 +37,7 @@ enum TagCheckResult
 	TagCheckNotCompatible
 };
 // returns if in mode defined by tag
-inline TagCheckResult tag_check_mode(const std::string& tag)
+TagCheckResult tag_check_mode(const std::string& tag)
 {
 	std::vector<std::string> allowed_tags = {"simple", "advanced", "expert"};
 	if (std::find(allowed_tags.begin(), allowed_tags.end(), tag) != allowed_tags.end())
@@ -50,7 +50,7 @@ inline TagCheckResult tag_check_mode(const std::string& tag)
 	return TagCheckNotCompatible;
 }
 
-inline TagCheckResult tag_check_tech(const std::string& tag)
+TagCheckResult tag_check_tech(const std::string& tag)
 {
 	std::vector<std::string> allowed_tags = { "FFF", "MMU", "SLA" };
 	if (std::find(allowed_tags.begin(), allowed_tags.end(), tag) != allowed_tags.end()) {
@@ -68,7 +68,7 @@ inline TagCheckResult tag_check_tech(const std::string& tag)
 	return TagCheckNotCompatible;
 }
 
-inline TagCheckResult tag_check_system(const std::string& tag)
+TagCheckResult tag_check_system(const std::string& tag)
 {
 	std::vector<std::string> allowed_tags = { "Windows", "Linux", "OSX" };
 	if (std::find(allowed_tags.begin(), allowed_tags.end(), tag) != allowed_tags.end()) {
@@ -97,7 +97,7 @@ inline TagCheckResult tag_check_system(const std::string& tag)
 }
 
 // return true if NOT in disabled mode.
-inline bool tags_check(const std::string& disabled_tags, const std::string& enabled_tags)
+bool tags_check(const std::string& disabled_tags, const std::string& enabled_tags)
 {
 	if (disabled_tags.empty() && enabled_tags.empty())
 		return true;
@@ -173,7 +173,7 @@ inline bool tags_check(const std::string& disabled_tags, const std::string& enab
 	}
 	return true;
 }
-inline void launch_browser_if_allowed(const std::string& url)
+void launch_browser_if_allowed(const std::string& url)
 {
 	if (wxGetApp().app_config->get("suppress_hyperlinks") != "1")
 		wxLaunchDefaultBrowser(url);
