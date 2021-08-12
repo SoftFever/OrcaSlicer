@@ -700,7 +700,7 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
 	if (is_gcode_file(path)) {
 		DynamicPrintConfig config;
 		config.apply(FullPrintConfig::defaults());
-        ConfigSubstitutions config_substitutions = config.load_from_gcode_file(path, true /* check_header */, compatibility_rule);
+        ConfigSubstitutions config_substitutions = config.load_from_gcode_file(path, compatibility_rule);
         Preset::normalize(config);
 		load_config_file_config(path, true, std::move(config));
 		return config_substitutions;

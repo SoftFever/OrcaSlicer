@@ -1172,7 +1172,7 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
             // Silently substitute unknown values by new ones for loading configurations from PrusaSlicer's own G-code.
             // Showing substitution log or errors may make sense, but we are not really reading many values from the G-code config,
             // thus a probability of incorrect substitution is low and the G-code viewer is a consumer-only anyways.
-            config.load_from_gcode_file(filename, false, ForwardCompatibilitySubstitutionRule::EnableSilent);
+            config.load_from_gcode_file(filename, ForwardCompatibilitySubstitutionRule::EnableSilent);
             apply_config(config);
         }
         else if (m_producer == EProducer::Simplify3D)
