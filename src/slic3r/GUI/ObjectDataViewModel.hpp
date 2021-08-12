@@ -251,8 +251,8 @@ class ObjectDataViewModel :public wxDataViewModel
 {
     std::vector<ObjectDataViewModelNode*>       m_objects;
     std::vector<wxBitmap>                       m_volume_bmps;
+    std::map<InfoItemType, wxBitmap>            m_info_bmps;
     wxBitmap                                    m_warning_bmp;
-    wxBitmap                                    m_info_bmp;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
 
