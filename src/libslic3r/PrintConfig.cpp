@@ -493,7 +493,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Skirt and brim");
     def->tooltip = L("The offset of the brim from the printed object.");
     def->sidetext = L("mm");
-    def->mode = comSimple;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("clip_multipart_objects", coBool);
