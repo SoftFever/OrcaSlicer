@@ -2208,6 +2208,7 @@ void TabPrinter::build_fff()
             def.label = L("Extruders");
             def.tooltip = L("Number of extruders of the printer.");
             def.min = 1;
+            def.max = 256;
             def.mode = comExpert;
         Option option(def, "extruders_count");
         optgroup->append_single_option_line(option);

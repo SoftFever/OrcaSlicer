@@ -823,7 +823,7 @@ void SpinCtrl::BUILD() {
         bEnterPressed = true;
     }), temp->GetId());
 
-	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
+	temp->Bind(wxEVT_TEXT, ([this, temp](wxCommandEvent e)
 	{
 // 		# On OSX / Cocoa, wxSpinCtrl::GetValue() doesn't return the new value
 // 		# when it was changed from the text control, so the on_change callback
@@ -833,20 +833,28 @@ void SpinCtrl::BUILD() {
 
 		long value;
 		const bool parsed = e.GetString().ToLong(&value);
-		tmp_value = parsed && value >= INT_MIN && value <= INT_MAX ? (int)value : UNDEF_VALUE;
-
+        if (!parsed || value < INT_MIN || value > INT_MAX)
+            tmp_value = UNDEF_VALUE;
+        else {
+            tmp_value = std::min(std::max((int)value, m_opt.min), m_opt.max);
 #ifdef __WXOSX__
-        // Forcibly set the input value for SpinControl, since the value
-	    // inserted from the keyboard or clipboard is not updated under OSX
-        if (tmp_value != UNDEF_VALUE) {
-            wxSpinCtrl* spin = static_cast<wxSpinCtrl*>(window);
-            spin->SetValue(tmp_value);
-
+            // Forcibly set the input value for SpinControl, since the value
+            // inserted from the keyboard or clipboard is not updated under OSX
+            temp->SetValue(tmp_value);
             // But in SetValue() is executed m_text_ctrl->SelectAll(), so
             // discard this selection and set insertion point to the end of string
-            spin->GetText()->SetInsertionPointEnd();
-        }
+            temp->GetText()->SetInsertionPointEnd();
+#else
+            // update value for the control only if it was changed in respect to the Min/max values
+            if (tmp_value != (int)value) {
+                temp->SetValue(tmp_value);
+                // But after SetValue() cursor ison the first position
+                // so put it to the end of string
+                int pos = std::to_string(tmp_value).length();
+                temp->SetSelection(pos, pos);
+            }
 #endif
+        }
 	}), temp->GetId());
 
 	temp->SetToolTip(get_tooltip_text(text_value));
