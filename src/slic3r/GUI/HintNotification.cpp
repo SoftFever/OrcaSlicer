@@ -850,7 +850,7 @@ void NotificationManager::HintNotification::retrieve_data(int recursion_counter)
 	{
 		// Content for different user - retrieve another
 		size_t count = HintDatabase::get_instance().get_count();
-		if (count < recursion_counter) {
+		if ((int)count < recursion_counter) {
 			BOOST_LOG_TRIVIAL(error) << "Hint notification failed to load data due to recursion counter.";
 		} else {
 			retrieve_data(recursion_counter + 1);
