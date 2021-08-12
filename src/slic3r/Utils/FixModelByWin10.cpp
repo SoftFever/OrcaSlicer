@@ -36,8 +36,6 @@
 #include "../GUI/GUI.hpp"
 #include "../GUI/I18N.hpp"
 #include "../GUI/MsgDialog.hpp"
-#include "../GUI/GUI_App.hpp"
-#include "../GUI/MainFrame.hpp"
 
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
@@ -343,7 +341,7 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 	wxProgressDialog progress_dialog(
 		_L("Model fixing"),
 		_L("Exporting model") + "...",
-		100, GUI::wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+		100, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);  // ! parent of the wxProgressDialog should be nullptr to avoid flickering during the model fixing
 	// Executing the calculation in a background thread, so that the COM context could be created with its own threading model.
 	// (It seems like wxWidgets initialize the COM contex as single threaded and we need a multi-threaded context).
 	bool   success = false;

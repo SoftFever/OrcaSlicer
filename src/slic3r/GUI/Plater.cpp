@@ -3503,6 +3503,8 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     ModelObject* mo = model.objects[obj_idx];
     fix_model_by_win10_sdk_gui(*mo, vol_idx);
     q->changed_mesh(obj_idx);
+    // workaround to fix the issue, when PrusaSlicer lose a focus after model fixing
+    q->SetFocus();
 }
 
 void Plater::priv::set_current_panel(wxPanel* panel)
