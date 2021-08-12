@@ -1778,10 +1778,8 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
         del_layers_from_object(obj_idx);
     else if (type & itLayer && obj_idx != -1)
         del_layer_from_object(obj_idx, m_objects_model->GetLayerRangeByItem(item));
-    else if (type & itInfo && obj_idx != -1) {
-        Unselect(item);
-        Select(parent);
-    }
+    else if (type & itInfo && obj_idx != -1)
+        del_info_item(obj_idx, m_objects_model->GetInfoItemType(item));
     else if (idx == -1)
         return;
     else if (!del_subobject_from_object(obj_idx, idx, type))
@@ -1793,6 +1791,11 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
 
     m_objects_model->Delete(item);
     update_info_items(obj_idx);
+}
+
+void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
+{
+    // ToDo lmFIXME :)
 }
 
 void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
