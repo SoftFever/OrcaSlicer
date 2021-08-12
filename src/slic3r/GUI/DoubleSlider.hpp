@@ -180,6 +180,13 @@ struct ExtrudersSequence
             return;// last item can't be deleted
         extruders.erase(extruders.begin() + pos);
     }
+
+    void init(size_t extruders_count) 
+    {
+        extruders.clear();
+        for (size_t extruder = 0; extruder < extruders_count; extruder++)
+            extruders.push_back(extruder);
+    }
 };
 
 class Control : public wxControl

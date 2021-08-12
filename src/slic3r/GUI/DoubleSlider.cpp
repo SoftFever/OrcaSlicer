@@ -384,6 +384,10 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
         post_ticks_changed_event();
 
+    // init extruder sequence in respect to the extruders count 
+    if (m_ticks.empty())
+        m_extruders_sequence.init(m_extruder_colors.size());
+
     if (custom_gcode_per_print_z.mode && !custom_gcode_per_print_z.gcodes.empty())
         m_ticks.mode = custom_gcode_per_print_z.mode;
 
