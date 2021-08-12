@@ -3857,6 +3857,7 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
 
     // update printable state for new volumes on canvas3D
     wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object(new_obj_indx);
+    update_info_items(new_obj_indx);
 }
 
 void ObjectList::instances_to_separated_objects(const int obj_idx)
@@ -3889,6 +3890,8 @@ void ObjectList::instances_to_separated_objects(const int obj_idx)
 
     // update printable state for new volumes on canvas3D
     wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(object_idxs);
+    for (size_t object : object_idxs)
+        update_info_items(object);
 }
 
 void ObjectList::split_instances()
