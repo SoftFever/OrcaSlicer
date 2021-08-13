@@ -659,8 +659,9 @@ ConfigSubstitutions ConfigBase::load_from_ini_string_commented(std::string &&dat
                 // Consume LF.
                 assert(data[i] == '\n');
                 // Don't keep empty lines.
-                if (j != 0 && data[j] != '\n')
-                    data[j ++] = data[i ++];
+                if (j > 0 && data[j - 1] != '\n')
+                    data[j ++] = data[i];
+                ++ i;
             }
             // Skip all leading spaces;
             for (; i < data.size() && (data[i] == ' ' || data[i] == '\t'); ++ i) ;
