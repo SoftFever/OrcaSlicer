@@ -3,6 +3,7 @@
 
 #include <wx/dataview.h>
 #include <vector>
+#include <map>
 
 #include "ExtraRenderers.hpp"
 
