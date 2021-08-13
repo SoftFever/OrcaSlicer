@@ -709,9 +709,9 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
             const ExPolygons& bottom = object->get_layer(0)->lslices;
             double bottom_area = area(bottom);
 
-            // at least 30% of object's height have to be a solid 
-            int  i;
-            for (i = 1; i < int(0.3 * num_layers); ++ i) {
+            // at least 25% of object's height have to be a solid 
+            int  i, min_solid_height = int(0.25 * num_layers);
+            for (i = 1; i <= min_solid_height; ++ i) {
                 double cur_area = area(object->get_layer(i)->lslices);
                 if (cur_area != bottom_area && fabs(cur_area - bottom_area) > scale_(scale_(1))) {
                     // but due to the elephant foot compensation, the first layer may be slightly smaller than the others
@@ -723,7 +723,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
                     break;
                 }
             }
-            if (i < int(0.3 * num_layers))
+            if (i < min_solid_height)
                 continue;
 
             // bottom layer have to be a biggest, so control relation between bottom layer and object size
