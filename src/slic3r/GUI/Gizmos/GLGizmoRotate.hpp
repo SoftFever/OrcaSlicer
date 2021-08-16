@@ -138,10 +138,6 @@ private:
 
     class RotoptimzeWindow {
         ImGuiWrapper *m_imgui = nullptr;
-
-        static const char * options [];
-        static bool options_valid;
-
     public:
 
         struct State {
