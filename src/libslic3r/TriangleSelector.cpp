@@ -277,22 +277,22 @@ void TriangleSelector::append_touching_subtriangles(int itriangle, int vertexi, 
     if (itriangle == -1)
         return;
 
-    auto process_subtriangle = [this, &itriangle, &vertexi, &vertexj, &touching_subtriangles_out](const int subtriangle_idx) -> void {
+    auto process_subtriangle = [this, &itriangle, &vertexi, &vertexj, &touching_subtriangles_out](const int subtriangle_idx, Partition partition) -> void {
         assert(subtriangle_idx == -1);
         if (!m_triangles[subtriangle_idx].is_split())
             touching_subtriangles_out.emplace_back(subtriangle_idx);
         else if (int midpoint = this->triangle_midpoint(itriangle, vertexi, vertexj); midpoint != -1)
-            append_touching_subtriangles(subtriangle_idx, vertexi, midpoint, touching_subtriangles_out);
+            append_touching_subtriangles(subtriangle_idx, partition == Partition::First ? vertexi : midpoint, partition == Partition::First ? midpoint : vertexj, touching_subtriangles_out);
         else
             append_touching_subtriangles(subtriangle_idx, vertexi, vertexj, touching_subtriangles_out);
     };
 
     std::pair<int, int> touching = this->triangle_subtriangles(itriangle, vertexi, vertexj);
     if (touching.first != -1)
-        process_subtriangle(touching.first);
+        process_subtriangle(touching.first, Partition::First);
 
     if (touching.second != -1)
-        process_subtriangle(touching.second);
+        process_subtriangle(touching.second, Partition::Second);
 }
 
 void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, bool propagate)
@@ -437,7 +437,7 @@ int TriangleSelector::neighbor_child(int itriangle, int vertexi, int vertexj, Pa
 
 std::pair<int, int> TriangleSelector::triangle_subtriangles(int itriangle, int vertexi, int vertexj) const
 {
-    return itriangle == -1 ? std::make_pair(-1, -1) : this->triangle_subtriangles(m_triangles[itriangle], vertexi, vertexj);
+    return itriangle == -1 ? std::make_pair(-1, -1) : Slic3r::TriangleSelector::triangle_subtriangles(m_triangles[itriangle], vertexi, vertexj);
 }
 
 std::pair<int, int> TriangleSelector::triangle_subtriangles(const Triangle &tr, int vertexi, int vertexj)

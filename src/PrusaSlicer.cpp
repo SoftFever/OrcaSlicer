@@ -330,6 +330,8 @@ int CLI::run(int argc, char **argv)
             }
         } else if (opt_key == "dont_arrange") {
             // do nothing - this option alters other transform options
+        } else if (opt_key == "ensure_on_bed") {
+            // do nothing, the value is used later
         } else if (opt_key == "rotate") {
             for (auto &model : m_models)
                 for (auto &o : model.objects)
@@ -431,6 +433,13 @@ int CLI::run(int argc, char **argv)
             return 1;
         }
     }
+
+    // All transforms have been dealt with. Now ensure that the objects are on bed.
+    // (Unless the user said otherwise.)
+    if (m_config.opt_bool("ensure_on_bed"))
+        for (auto &model : m_models)
+            for (auto &o : model.objects)
+                o->ensure_on_bed();
 
     // loop through action options
     for (auto const &opt_key : m_actions) {

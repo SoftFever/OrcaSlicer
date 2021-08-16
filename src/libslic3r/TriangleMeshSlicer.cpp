@@ -372,7 +372,7 @@ static inline IntersectionLines slice_make_lines(
     FaceFilter                                       face_filter)
 {
     IntersectionLines lines;
-    for (int face_idx = 0; face_idx < mesh_faces.size(); ++ face_idx)
+    for (int face_idx = 0; face_idx < int(mesh_faces.size()); ++ face_idx)
         if (face_filter(face_idx)) {
             const Vec3i &indices = mesh_faces[face_idx];
             stl_vertex vertices[3] { transform_vertex_fn(mesh_vertices[indices(0)]), transform_vertex_fn(mesh_vertices[indices(1)]), transform_vertex_fn(mesh_vertices[indices(2)]) };

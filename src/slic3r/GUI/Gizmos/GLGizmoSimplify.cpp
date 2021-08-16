@@ -9,6 +9,9 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/QuadricEdgeCollapse.hpp"
 
+#include <chrono>
+#include <thread>
+
 namespace Slic3r::GUI {
 
 GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
@@ -274,8 +277,8 @@ void GLGizmoSimplify::process()
             state = State::settings;
         }
         // need to render last status fn
-        // without Sleep it freeze until mouse move
-        Sleep(50);
+        // without sleep it freezes until mouse move
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
         m_parent.schedule_extra_frame(0);
     });
 }

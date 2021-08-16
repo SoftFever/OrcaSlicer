@@ -32,6 +32,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
+#include "libslic3r/Format/OBJ.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
 namespace Slic3r {
@@ -205,7 +206,11 @@ static void add_lock(wxImage& image)
 
 static void add_default_image(wxImageList* img_list, bool is_system)
 {
-    wxBitmap bmp = create_scaled_bitmap("cog", nullptr, IMG_PX_CNT, true);
+    int sz = IMG_PX_CNT;
+#ifdef __APPLE__
+    sz /= mac_max_scaling_factor();
+#endif
+    wxBitmap bmp = create_scaled_bitmap("cog", nullptr, sz, true);
 
     if (is_system) {
         wxImage image = bmp.ConvertToImage();
@@ -232,10 +237,11 @@ static std::string get_dir_path(bool sys_dir)
 #endif
 }
 
-static void generate_thumbnail_from_stl(const std::string& filename)
+static void generate_thumbnail_from_model(const std::string& filename)
 {
-    if (!boost::algorithm::iends_with(filename, ".stl")) {
-        BOOST_LOG_TRIVIAL(error) << "Found invalid file type in generate_thumbnail_from_stl() [" << filename << "]";
+    if (!boost::algorithm::iends_with(filename, ".stl") &&
+        !boost::algorithm::iends_with(filename, ".obj")) {
+        BOOST_LOG_TRIVIAL(error) << "Found invalid file type in generate_thumbnail_from_model() [" << filename << "]";
         return;
     }
 
@@ -244,7 +250,7 @@ static void generate_thumbnail_from_stl(const std::string& filename)
         model = Model::read_from_file(filename);
     }
     catch (std::exception&) {
-        BOOST_LOG_TRIVIAL(error) << "Error loading model from " << filename << " in generate_thumbnail_from_stl()";
+        BOOST_LOG_TRIVIAL(error) << "Error loading model from " << filename << " in generate_thumbnail_from_model()";
         return;
     }
 
@@ -294,25 +300,28 @@ static void generate_thumbnail_from_stl(const std::string& filename)
 void GalleryDialog::load_label_icon_list()
 {
     // load names from files
-    auto add_files_from_gallery = [](std::vector<Item>& items, bool sys_dir, std::string& dir_path)
+    auto add_files_from_gallery = [](std::vector<Item>& items, bool is_sys_dir, std::string& dir_path)
     {
-        fs::path dir = get_dir(sys_dir);
+        fs::path dir = get_dir(is_sys_dir);
         if (!fs::exists(dir))
             return;
 
-        dir_path = get_dir_path(sys_dir);
+        dir_path = get_dir_path(is_sys_dir);
 
         std::vector<std::string> sorted_names;
-        for (auto& dir_entry : fs::directory_iterator(dir))
-            if (TriangleMesh mesh; is_stl_file(dir_entry) && mesh.ReadSTLFile(dir_entry.path().string().c_str()))
-                sorted_names.push_back(dir_entry.path().stem().string());
+        for (auto& dir_entry : fs::directory_iterator(dir)) {
+            TriangleMesh mesh;
+            if ((is_gallery_file(dir_entry, ".stl") && mesh.ReadSTLFile(dir_entry.path().string().c_str())) || 
+                (is_gallery_file(dir_entry, ".obj") && load_obj(dir_entry.path().string().c_str(), &mesh) )    )
+                sorted_names.push_back(dir_entry.path().filename().string());
+        }
 
         // sort the filename case insensitive
         std::sort(sorted_names.begin(), sorted_names.end(), [](const std::string& a, const std::string& b)
             { return boost::algorithm::to_lower_copy(a) < boost::algorithm::to_lower_copy(b); });
 
         for (const std::string& name : sorted_names)
-            items.push_back(Item{ name, sys_dir });
+            items.push_back(Item{ name, is_sys_dir });
     };
 
     wxBusyCursor busy;
@@ -330,10 +339,24 @@ void GalleryDialog::load_label_icon_list()
     std::string ext = ".png";
 
     for (const auto& item : list_items) {
-        std::string img_name = (item.is_system ? m_sys_dir_path : m_cust_dir_path) + item.name + ext;
-        std::string stl_name = (item.is_system ? m_sys_dir_path : m_cust_dir_path) + item.name + ".stl";
-        if (!fs::exists(img_name))
-            generate_thumbnail_from_stl(stl_name);
+        fs::path model_path = fs::path((item.is_system ? m_sys_dir_path : m_cust_dir_path) + item.name);
+        std::string model_name = model_path.string();
+        model_path.replace_extension("png");
+        std::string img_name = model_path.string();
+
+#if 0 // use "1" just in DEBUG mode to the generation of the thumbnails for the sistem shapes
+        bool can_generate_thumbnail = true;
+#else
+        bool can_generate_thumbnail = !item.is_system;
+#endif //DEBUG
+        if (!fs::exists(img_name)) {
+            if (can_generate_thumbnail)
+                generate_thumbnail_from_model(model_name);
+            else {
+                add_default_image(m_image_list, item.is_system);
+                continue;
+            }
+        }
 
         wxImage image;
         if (!image.CanRead(from_u8(img_name)) ||
@@ -363,15 +386,15 @@ void GalleryDialog::load_label_icon_list()
 void GalleryDialog::get_input_files(wxArrayString& input_files)
 {
     for (const Item& item : m_selected_items)
-        input_files.Add(from_u8(get_dir_path(item.is_system) + item.name + ".stl"));
+        input_files.Add(from_u8(get_dir_path(item.is_system) + item.name));
 }
 
 void GalleryDialog::add_custom_shapes(wxEvent& event)
 {
     wxArrayString input_files;
-    wxFileDialog dialog(this, _L("Choose one or more files (STL):"),
+    wxFileDialog dialog(this, _L("Choose one or more files (STL, OBJ):"),
         from_u8(wxGetApp().app_config->get_last_dir()), "",
-        file_wildcards(FT_STL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+        file_wildcards(FT_GALLERY), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 
     if (dialog.ShowModal() == wxID_OK)
         dialog.GetPaths(input_files);
@@ -398,8 +421,10 @@ void GalleryDialog::del_custom_shapes(wxEvent& event)
     };
 
     for (const Item& item : m_selected_items) {
-        remove_file(item.name + ".stl");
-        remove_file(item.name + ".png");
+        remove_file(item.name);
+        fs::path path = fs::path(item.name);
+        path.replace_extension("png");
+        remove_file(path.string());
     }
 
     update();
@@ -490,12 +515,18 @@ bool GalleryDialog::load_files(const wxArrayString& input_files)
         return false;
     }
 
-    // Iterate through the source directory
+    // Iterate through the input files
     for (size_t i = 0; i < input_files.size(); ++i) {
         std::string input_file = into_u8(input_files.Item(i));
 
-        if (TriangleMesh mesh; !mesh.ReadSTLFile(input_file.c_str())) {
+        TriangleMesh mesh; 
+        if (is_gallery_file(input_file, ".stl") && !mesh.ReadSTLFile(input_file.c_str())) {
             show_warning(format_wxstr(_L("Loading of the \"%1%\""), input_file), "STL");
+            continue;
+        }
+
+        if (is_gallery_file(input_file, ".obj") && !load_obj(input_file.c_str(), &mesh)) {
+            show_warning(format_wxstr(_L("Loading of the \"%1%\""), input_file), "OBJ");
             continue;
         }
 
@@ -504,12 +535,12 @@ bool GalleryDialog::load_files(const wxArrayString& input_files)
             if (!fs::exists(dest_dir / current.filename()))
                 fs::copy_file(current, dest_dir / current.filename());
             else {
-                std::string filename = current.stem().string();
+                std::string filename = current.filename().string();
 
                 int file_idx = 0;
                 for (auto& dir_entry : fs::directory_iterator(dest_dir))
-                    if (is_stl_file(dir_entry)) {
-                        std::string name = dir_entry.path().stem().string();
+                    if (is_gallery_file(dir_entry, ".stl") || is_gallery_file(dir_entry, ".obj")) {
+                        std::string name = dir_entry.path().filename().string();
                         if (filename == name) {
                             if (file_idx == 0)
                                 file_idx++;
@@ -524,7 +555,7 @@ bool GalleryDialog::load_files(const wxArrayString& input_files)
                             file_idx = cur_idx+1;
                     }
                 if (file_idx > 0) {
-                    filename += " (" + std::to_string(file_idx) + ").stl";
+                    filename += " (" + std::to_string(file_idx) + ")." + (is_gallery_file(input_file, ".stl") ? "stl" : "obj");
                     fs::copy_file(current, dest_dir / filename);
                 }
             }

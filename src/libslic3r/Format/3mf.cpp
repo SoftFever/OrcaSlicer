@@ -2860,9 +2860,10 @@ namespace Slic3r {
                                     stream << prefix << SOURCE_OFFSET_Y_KEY  << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(1) << "\"/>\n";
                                     stream << prefix << SOURCE_OFFSET_Z_KEY  << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(2) << "\"/>\n";
                                 }
+                                assert(! volume->source.is_converted_from_inches || ! volume->source.is_converted_from_meters);
                                 if (volume->source.is_converted_from_inches)
                                     stream << prefix << SOURCE_IN_INCHES << "\" " << VALUE_ATTR << "=\"1\"/>\n";
-                                if (volume->source.is_converted_from_meters)
+                                else if (volume->source.is_converted_from_meters)
                                     stream << prefix << SOURCE_IN_METERS << "\" " << VALUE_ATTR << "=\"1\"/>\n";
                             }
 

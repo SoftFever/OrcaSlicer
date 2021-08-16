@@ -434,6 +434,12 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
                 e.Skip();
                 temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
+                // Remove all leading and trailing spaces from the input
+                std::string trimed_str, str = trimed_str = temp->GetValue().ToStdString();
+                boost::trim(trimed_str);
+                if (trimed_str != str)
+                    temp->SetValue(trimed_str);
+
                 TextCtrl* field = dynamic_cast<TextCtrl*>(printhost_field);
                 if (field)
                     field->propagate_value();

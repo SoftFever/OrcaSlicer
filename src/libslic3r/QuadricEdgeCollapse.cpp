@@ -2,6 +2,7 @@
 #include <tuple>
 #include "MutablePriorityQueue.hpp"
 #include "SimplifyMeshImpl.hpp"
+#include <tbb/parallel_for.h>
 
 using namespace Slic3r;
 
@@ -435,7 +436,7 @@ double QuadricEdgeCollapse::calculate_error(uint32_t        id_v1,
                                             const Vertices &vertices)
 {
     double det = calculate_determinant(q);
-    if (abs(det) < std::numeric_limits<double>::epsilon()) {
+    if (std::abs(det) < std::numeric_limits<double>::epsilon()) {
         // can't divide by zero
         auto verts  = create_vertices(id_v1, id_v2, vertices);
         auto errors = vertices_error(q, verts);
@@ -452,7 +453,7 @@ Vec3f QuadricEdgeCollapse::calculate_vertex(uint32_t          id_v1,
                                             const Vertices &vertices)
 {
     double det = calculate_determinant(q);
-    if (abs(det) < std::numeric_limits<double>::epsilon()) {
+    if (std::abs(det) < std::numeric_limits<double>::epsilon()) {
         // can't divide by zero
         auto verts  = create_vertices(id_v1, id_v2, vertices);
         auto errors = vertices_error(q, verts);

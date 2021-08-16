@@ -59,6 +59,7 @@ enum FileType
     FT_GCODE,
     FT_MODEL,
     FT_PROJECT,
+    FT_GALLERY,
 
     FT_INI,
     FT_SVG,

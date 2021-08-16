@@ -40,7 +40,7 @@ protected:
     virtual void on_render_for_picking() override;    
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
     virtual bool on_is_activable() const override;
-    virtual bool on_is_selectable() const override { return false; };
+    virtual bool on_is_selectable() const override { return false; }
 
 private:
     void close();

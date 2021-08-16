@@ -102,7 +102,6 @@ private:
     std::pair<EType, bool> m_highlight; // bool true = higlightedShown, false = highlightedHidden
 
     std::vector<size_t> get_selectable_idxs() const;
-    std::vector<size_t> get_activable_idxs() const;
     size_t get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const;
 
     void activate_gizmo(EType type);
