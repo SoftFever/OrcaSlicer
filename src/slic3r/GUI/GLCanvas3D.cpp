@@ -6380,7 +6380,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ObjectOutside:      text = _u8L("An object outside the print area was detected."); break;
     case EWarning::ToolpathOutside:    text = _u8L("A toolpath outside the print area was detected."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::SlaSupportsOutside: text = _u8L("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
-    case EWarning::SomethingNotShown:  text = _u8L("Some objects are not visible."); break;
+    case EWarning::SomethingNotShown:  text = _u8L("Some objects are not visible during editing."); break;
     case EWarning::ObjectClashed:
         text = _u8L("An object outside the print area was detected.\n"
             "Resolve the current problem to continue slicing.");
