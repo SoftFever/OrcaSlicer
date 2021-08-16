@@ -105,7 +105,9 @@ inline double get_supportedness_score(const Facestats &fc)
     float cosphi = fc.normal.dot(DOWN);
     float phi = 1.f - std::acos(cosphi) / float(PI);
 
-    // Only consider faces that have slopes below 90 deg:
+    // Phi is raised by 1.0 to not be less than zero when squared in the next
+    // step. If phi is greater than 0.5 (slope is > 90 deg) make phi zero
+    // to not skip this face in the overall score.
     phi = (1.f + phi) * (phi >= 0.5f);
 
     // Make the huge slopes more significant than the smaller slopes
@@ -285,6 +287,26 @@ std::array<double, N> find_min_score(Fn &&fn, It from, It to, StopCond &&stopfn)
 
 } // namespace
 
+// Assemble the mesh with the correct transformation to be used in rotation
+// optimization.
+TriangleMesh get_mesh_to_rotate(const ModelObject &mo)
+{
+    TriangleMesh mesh = mo.raw_mesh();
+    mesh.require_shared_vertices();
+
+    ModelInstance *mi = mo.instances[0];
+    auto rotation = Vec3d::Zero();
+    auto offset = Vec3d::Zero();
+    Transform3d trafo_instance = Geometry::assemble_transform(offset,
+                                                              rotation,
+                                                              mi->get_scaling_factor(),
+                                                              mi->get_mirror());
+
+    mesh.transform(trafo_instance);
+
+    return mesh;
+}
+
 Vec2d find_best_misalignment_rotation(const ModelObject &      mo,
                                       const RotOptimizeParams &params)
 {
@@ -295,8 +317,7 @@ Vec2d find_best_misalignment_rotation(const ModelObject &      mo,
 
     // We will use only one instance of this converted mesh to examine different
     // rotations
-    TriangleMesh mesh = mo.raw_mesh();
-    mesh.require_shared_vertices();
+    TriangleMesh mesh = get_mesh_to_rotate(mo);
 
     // To keep track of the number of iterations
     int status = 0;
@@ -352,17 +373,7 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
 
     // We will use only one instance of this converted mesh to examine different
     // rotations
-    TriangleMesh mesh = mo.raw_mesh();
-    mesh.require_shared_vertices();
-
-    ModelInstance* mi = mo.instances[0];
-    Vec3d rotation = mi->get_rotation();
-    Transform3d trafo_instance = Geometry::assemble_transform(mi->get_offset().z() * Vec3d::UnitZ(),
-                                                              rotation,
-                                                              mi->get_scaling_factor(),
-                                                              mi->get_mirror());
-
-    mesh.transform(trafo_instance);
+    TriangleMesh mesh = get_mesh_to_rotate(mo);
 
     // To keep track of the number of iterations
     unsigned status = 0;
@@ -430,13 +441,6 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
 
         // Save the result
         rot = result.optimum;
-        std::cout << "Score was: " << result.score << std::endl;
-
-//auto rt = mo.instances[0]->get_rotation();
-//double score = get_supportedness_score(mesh, to_transform3f({rt(0), rt(1)}));
-//        std::cout << "Score was: " << score << std::endl;
-//        rot[0] = rt(0);
-//        rot[1] = rt(1);
     }
 
     return {rot[0], rot[1]};
