@@ -194,19 +194,15 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         need_reload = false;
 
         // Reload visualization of mesh - change VBO, FBO on GPU
-        m_parent.reload_scene(true); // deactivate gizmo??
-        GLGizmosManager &gizmos_mgr = m_parent.get_gizmos_manager();
-        gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
-
+        m_parent.reload_scene(true);
         if (state == State::close_on_end) {
             // fix hollowing, sla support points, modifiers, ...
             auto plater = wxGetApp().plater();
-            plater->changed_mesh(obj_index); // deactivate gizmo??
-            // changed_mesh cause close();
-            //close(); 
+            plater->changed_mesh(obj_index);
+            close(); 
         }
 
-        // change from simplifying | aply
+        // change from simplifying | apply
         state = State::settings;           
         
         // Fix warning icon in object list
