@@ -695,11 +695,9 @@ void PrintObject::slice_volumes()
     }
 
     std::vector<float>                   slice_zs      = zs_from_layers(m_layers);
-    Transform3d                          trafo         = this->trafo();
-    trafo.pretranslate(Vec3d(- unscale<double>(m_center_offset.x()), - unscale<double>(m_center_offset.y()), 0));
     std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
         slice_volumes_inner(
-            print->config(), this->config(), trafo,
+            print->config(), this->config(), this->trafo_centered(),
             this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs, throw_on_cancel_callback),
         m_config.clip_multipart_objects,
         throw_on_cancel_callback);
@@ -832,8 +830,7 @@ std::vector<Polygons> PrintObject::slice_support_volumes(const ModelVolumeType m
         const Print       *print = this->print();
         auto               throw_on_cancel_callback = std::function<void()>([print](){ print->throw_if_canceled(); });
         MeshSlicingParamsEx params;
-        params.trafo = this->trafo();
-        params.trafo.pretranslate(Vec3d(-unscale<float>(m_center_offset.x()), -unscale<float>(m_center_offset.y()), 0));
+        params.trafo = this->trafo_centered();
         for (; it_volume != it_volume_end; ++ it_volume)
             if ((*it_volume)->type() == model_volume_type) {
                 std::vector<ExPolygons> slices2 = slice_volume(*(*it_volume), zs, params, throw_on_cancel_callback);

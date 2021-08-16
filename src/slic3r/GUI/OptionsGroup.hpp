@@ -100,7 +100,6 @@ public:
 	// To be called when the field loses focus, to assign a new initial value to the field.
 	// Used by the relative position / rotation / scale manipulation fields of the Object Manipulation UI.
     t_kill_focus    m_fill_empty_value { nullptr };
-    t_kill_focus    m_set_focus { nullptr };
 	std::function<DynamicPrintConfig()>	m_get_initial_config{ nullptr };
 	std::function<DynamicPrintConfig()>	m_get_sys_config{ nullptr };
 	std::function<bool()>	have_sys_config{ nullptr };
@@ -208,7 +207,6 @@ protected:
 	const t_field&		build_field(const Option& opt);
 
     virtual void		on_kill_focus(const std::string& opt_key) {};
-	virtual void		on_set_focus(const std::string& opt_key);
 	virtual void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value);
 	virtual void		back_to_initial_value(const std::string& opt_key) {}
 	virtual void		back_to_sys_value(const std::string& opt_key) {}

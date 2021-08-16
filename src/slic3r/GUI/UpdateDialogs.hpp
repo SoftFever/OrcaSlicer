@@ -54,7 +54,8 @@ public:
 		{}
 	};
 
-	MsgUpdateConfig(const std::vector<Update> &updates);
+	// force_before_wizard - indicates that check of updated is forced before ConfigWizard opening
+	MsgUpdateConfig(const std::vector<Update> &updates, bool force_before_wizard = false);
 	MsgUpdateConfig(MsgUpdateConfig &&) = delete;
 	MsgUpdateConfig(const MsgUpdateConfig &) = delete;
 	MsgUpdateConfig &operator=(MsgUpdateConfig &&) = delete;

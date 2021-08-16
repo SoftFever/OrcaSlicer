@@ -71,6 +71,11 @@ public:
     // This is supposed to be in world coordinates.
     void set_plane(const ClippingPlane& plane);
 
+    // In case the object is clipped by two planes (e.g. in case of sinking
+    // objects), this will be used to clip the triagnulated cut.
+    // Pass ClippingPlane::ClipsNothing to turn this off.
+    void set_limiting_plane(const ClippingPlane& plane);
+
     // Which mesh to cut. MeshClipper remembers const * to it, caller
     // must make sure that it stays valid.
     void set_mesh(const TriangleMesh& mesh);
@@ -92,6 +97,7 @@ private:
     const TriangleMesh* m_mesh = nullptr;
     const TriangleMesh* m_negative_mesh = nullptr;
     ClippingPlane m_plane;
+    ClippingPlane m_limiting_plane = ClippingPlane::ClipsNothing();
     std::vector<Vec2f> m_triangles2d;
     GLIndexedVertexArray m_vertex_array;
     bool m_triangles_valid = false;

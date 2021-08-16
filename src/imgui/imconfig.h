@@ -124,32 +124,34 @@ namespace ImGui
     const char ColorMarkerEnd   = 0x3; // ETX
 
     // Special ASCII characters are used here as an ikons markers
-    const char PrintIconMarker         = 0x4;
-    const char PrinterIconMarker       = 0x5;
-    const char PrinterSlaIconMarker    = 0x6;
-    const char FilamentIconMarker      = 0x7;
-    const char MaterialIconMarker      = 0x8;
-    const char CloseNotifButton        = 0xB;
-    const char CloseNotifHoverButton   = 0xC;
-    const char MinimalizeButton        = 0xE;
-    const char MinimalizeHoverButton   = 0xF;
-    const char WarningMarker           = 0x10;
-    const char ErrorMarker             = 0x11;
-    const char EjectButton             = 0x12;
-    const char EjectHoverButton        = 0x13;
-    const char CancelButton            = 0x14;
-    const char CancelHoverButton       = 0x15;
-    const char VarLayerHeightMarker    = 0x16;
+    const wchar_t PrintIconMarker          = 0x4;
+    const wchar_t PrinterIconMarker        = 0x5;
+    const wchar_t PrinterSlaIconMarker     = 0x6;
+    const wchar_t FilamentIconMarker       = 0x7;
+    const wchar_t MaterialIconMarker       = 0x8;
+    const wchar_t CloseNotifButton         = 0xB;
+    const wchar_t CloseNotifHoverButton    = 0xC;
+    const wchar_t MinimalizeButton         = 0xE;
+    const wchar_t MinimalizeHoverButton    = 0xF;
+    const wchar_t WarningMarker            = 0x10;
+    const wchar_t ErrorMarker              = 0x11;
+    const wchar_t EjectButton              = 0x12;
+    const wchar_t EjectHoverButton         = 0x13;
+    const wchar_t CancelButton             = 0x14;
+    const wchar_t CancelHoverButton        = 0x15;
+    const wchar_t VarLayerHeightMarker     = 0x16;
 
-    const char RightArrowButton        = 0x18;
-    const char RightArrowHoverButton   = 0x19;
-    const char PreferencesButton       = 0x1A;
-    const char PreferencesHoverButton  = 0x1B;
-    const char SinkingObjectMarker     = 0x1C;
-    const char CustomSupportsMarker    = 0x1D;
-    const char CustomSeamMarker        = 0x1E;
-    const char MmuSegmentationMarker   = 0x1F;
-    
+    const wchar_t RightArrowButton         = 0x18;
+    const wchar_t RightArrowHoverButton    = 0x19;
+    const wchar_t PreferencesButton        = 0x1A;
+    const wchar_t PreferencesHoverButton   = 0x1B;
+    const wchar_t SinkingObjectMarker      = 0x1C;
+    const wchar_t CustomSupportsMarker     = 0x1D;
+    const wchar_t CustomSeamMarker         = 0x1E;
+    const wchar_t MmuSegmentationMarker    = 0x1F;
+    const wchar_t DocumentationButton      = 0x2600;
+    const wchar_t DocumentationHoverButton = 0x2601;
+    const wchar_t ClippyMarker             = 0x2602;
     
         
 //    void MyFunction(const char* name, const MyMatrix44& v);

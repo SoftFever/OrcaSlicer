@@ -3455,12 +3455,17 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
 
     // stores current min_z of instances
     std::map<std::pair<int, int>, double> min_zs;
-    if (!snapshot_type.empty()) {
-        for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
-            const ModelObject* obj = m_model->objects[i];
-            for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
+    for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
+        const ModelObject* obj = m_model->objects[i];
+        for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
+            if (snapshot_type.empty() && m_selection.get_object_idx() == i) {
+                // This means we are flattening this object. In that case pretend
+                // that it is not sinking (even if it is), so it is placed on bed
+                // later on (whatever is sinking will be left sinking).
+                min_zs[{ i, j }] = SINKING_Z_THRESHOLD;
+            } else
                 min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
-            }
+
         }
     }
 
@@ -3502,7 +3507,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         ModelObject* m = m_model->objects[i.first];
         const double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
+        if (min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
@@ -5107,6 +5112,7 @@ void GLCanvas3D::_render_objects()
         m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
     m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
+    m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     if (shader != nullptr) {

@@ -102,7 +102,8 @@ public:
     using LoadConfigBundleAttributes = enum_bitmask<LoadConfigBundleAttribute>;
     // Load the config bundle based on the flags.
     // Don't do any config substitutions when loading a system profile, perform and report substitutions otherwise.
-    std::pair<PresetsConfigSubstitutions, size_t> load_configbundle(const std::string &path, LoadConfigBundleAttributes flags);
+    std::pair<PresetsConfigSubstitutions, size_t> load_configbundle(
+        const std::string &path, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path, bool export_system_settings = false, bool export_physical_printers = false);
@@ -139,7 +140,7 @@ public:
 
     static const char *PRUSA_BUNDLE;
 private:
-    std::string                 load_system_presets();
+    std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
     std::vector<std::string>    merge_presets(PresetBundle &&other);
     // Update renamed_from and alias maps of system profiles.
@@ -158,7 +159,8 @@ private:
     // and the external config is just referenced, not stored into user profile directory.
     // If it is not an external config, then the config will be stored into the user profile directory.
     void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config);
-    ConfigSubstitutions         load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
+    ConfigSubstitutions         load_config_file_config_bundle(
+        const std::string &path, const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule);
 
     DynamicPrintConfig          full_fff_config() const;
     DynamicPrintConfig          full_sla_config() const;

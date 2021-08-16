@@ -182,7 +182,7 @@ const char* SL1Host::get_name() const { return "SL1Host"; }
 
 wxString SL1Host::get_test_ok_msg () const
 {
-    return _(L("Connection to Prusa SL1 works correctly."));
+    return _(L("Connection to Prusa SL1 / SL1S works correctly."));
 }
 
 wxString SL1Host::get_test_failed_msg (wxString &msg) const

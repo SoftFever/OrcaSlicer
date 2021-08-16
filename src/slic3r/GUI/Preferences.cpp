@@ -342,7 +342,7 @@ void PreferencesDialog::build(size_t selected_tab)
 		m_optgroup_gui->append_single_option_line(option);
 #endif
 		
-		def.label = L("Show \"Did you know\" hints after start");
+		def.label = L("Show \"Tip of the day\" notification after start");
 		def.type = coBool;
 		def.tooltip = L("If enabled, useful hints are displayed at startup.");
 		def.set_default_value(new ConfigOptionBool{ app_config->get("show_hints") == "1" });

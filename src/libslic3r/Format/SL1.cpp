@@ -203,7 +203,7 @@ RasterParams get_raster_params(const DynamicPrintConfig &cfg)
 
     if (!opt_disp_cols || !opt_disp_rows || !opt_disp_w || !opt_disp_h ||
         !opt_mirror_x || !opt_mirror_y || !opt_orient)
-        throw Slic3r::FileIOError("Invalid SL1 file");
+        throw Slic3r::FileIOError("Invalid SL1 / SL1S file");
 
     RasterParams rstp;
 
@@ -229,7 +229,7 @@ SliceParams get_slice_params(const DynamicPrintConfig &cfg)
     auto *opt_init_layerh = cfg.option<ConfigOptionFloat>("initial_layer_height");
 
     if (!opt_layerh || !opt_init_layerh)
-        throw Slic3r::FileIOError("Invalid SL1 file");
+        throw Slic3r::FileIOError("Invalid SL1 / SL1S file");
 
     return SliceParams{opt_layerh->getFloat(), opt_init_layerh->getFloat()};
 }

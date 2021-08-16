@@ -42,6 +42,8 @@ std::string GLGizmoFlatten::on_get_name() const
 
 bool GLGizmoFlatten::on_is_activable() const
 {
+    // This is assumed in GLCanvas3D::do_rotate, do not change this
+    // without updating that function too.
     return m_parent.get_selection().is_single_full_instance();
 }
 

@@ -223,10 +223,13 @@ std::vector<std::string> ConfigOptionDef::cli_args(const std::string &key) const
 {
 	std::vector<std::string> args;
 	if (this->cli != ConfigOptionDef::nocli) {
-        std::string cli = this->cli.substr(0, this->cli.find("="));
-        boost::trim_right_if(cli, boost::is_any_of("!"));
+        const std::string &cli = this->cli;
+        //FIXME What was that for? Check the "readline" documentation.
+        // Neither '=' nor '!' is used in any of the cli parameters currently defined by PrusaSlicer.
+//        std::string cli = this->cli.substr(0, this->cli.find("="));
+//        boost::trim_right_if(cli, boost::is_any_of("!"));
 		if (cli.empty()) {
-            // Add the key
+            // Convert an option key to CLI argument by replacing underscores with dashes.
             std::string opt = key;
             boost::replace_all(opt, "_", "-");
             args.emplace_back(std::move(opt));
@@ -245,7 +248,7 @@ ConfigOption* ConfigOptionDef::create_empty_option() const
 	    case coPercents:        return new ConfigOptionPercentsNullable();
         case coFloatsOrPercents: return new ConfigOptionFloatsOrPercentsNullable();
 	    case coBools:           return new ConfigOptionBoolsNullable();
-	    default:                throw Slic3r::RuntimeError(std::string("Unknown option type for nullable option ") + this->label);
+	    default:                throw ConfigurationError(std::string("Unknown option type for nullable option ") + this->label);
 	    }
 	} else {
 	    switch (this->type) {
@@ -266,7 +269,7 @@ ConfigOption* ConfigOptionDef::create_empty_option() const
 	    case coBool:            return new ConfigOptionBool();
 	    case coBools:           return new ConfigOptionBools();
 	    case coEnum:            return new ConfigOptionEnumGeneric(this->enum_keys_map);
-	    default:                throw Slic3r::RuntimeError(std::string("Unknown option type for option ") + this->label);
+	    default:                throw ConfigurationError(std::string("Unknown option type for option ") + this->label);
 	    }
 	}
 }
@@ -494,7 +497,7 @@ bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src,
 void ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const std::string &value_src, ConfigSubstitutionContext& substitutions_ctxt, bool append)
 {
 	if (! this->set_deserialize_nothrow(opt_key_src, value_src, substitutions_ctxt, append))
-		throw BadOptionTypeException(format("ConfigBase::set_deserialize() failed for parameter \"%1%\", value \"%2%\"", opt_key_src,  value_src));
+		throw BadOptionValueException(format("Invalid value provided for parameter %1%: %2%", opt_key_src,  value_src));
 }
 
 void ConfigBase::set_deserialize(std::initializer_list<SetDeserializeItem> items, ConfigSubstitutionContext& substitutions_ctxt)
@@ -539,26 +542,50 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
     
     ConfigOption *opt = this->option(opt_key, true);
     assert(opt != nullptr);
-    bool success = opt->deserialize(value, append);
-    if (! success && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable &&
-        // Only allow substitutions of an enum value by another enum value or a boolean value with an enum value.
-        // That means, we expect enum values being added in the future and possibly booleans being converted to enums.
-        (optdef->type == coEnum || optdef->type == coBool)) 
-    {
-        // Deserialize failed, try to substitute with a default value.
-        assert(substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::Enable || substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::EnableSilent);
+    bool success     = false;
+    bool substituted = false;
+    if (optdef->type == coBools && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable) {
+    	//FIXME Special handling of vectors of bools, quick and not so dirty solution before PrusaSlicer 2.3.2 release.
+    	bool nullable = opt->nullable();
+    	ConfigHelpers::DeserializationSubstitution default_value = ConfigHelpers::DeserializationSubstitution::DefaultsToFalse;
+    	if (optdef->default_value) {
+    		// Default value for vectors of booleans used in a "per extruder" context, thus the default contains just a single value.
+    		assert(dynamic_cast<const ConfigOptionVector<unsigned char>*>(optdef->default_value.get()));
+			auto &values = static_cast<const ConfigOptionVector<unsigned char>*>(optdef->default_value.get())->values;
+			if (values.size() == 1 && values.front() == 1)
+				default_value = ConfigHelpers::DeserializationSubstitution::DefaultsToTrue;
+		}
+    	auto result = nullable ?
+    		static_cast<ConfigOptionBoolsNullable*>(opt)->deserialize_with_substitutions(value, append, default_value) :
+    		static_cast<ConfigOptionBools*>(opt)->deserialize_with_substitutions(value, append, default_value);
+    	success     = result != ConfigHelpers::DeserializationResult::Failed;
+    	substituted = result == ConfigHelpers::DeserializationResult::Substituted;
+    } else {
+		success = opt->deserialize(value, append);
+	    if (! success && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable &&
+	        // Only allow substitutions of an enum value by another enum value or a boolean value with an enum value.
+	        // That means, we expect enum values being added in the future and possibly booleans being converted to enums.
+	        (optdef->type == coEnum || optdef->type == coBool) && ConfigHelpers::looks_like_enum_value(value)) {
+	        // Deserialize failed, try to substitute with a default value.
+	        assert(substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::Enable || substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::EnableSilent);
+	        if (optdef->type == coBool)
+	            static_cast<ConfigOptionBool*>(opt)->value = ConfigHelpers::enum_looks_like_true_value(value);
+	        else
+	        	// Just use the default of the option.
+	            opt->set(optdef->default_value.get());
+            success     = true;
+            substituted = true;
+	    }
+	}
 
-        opt->set(optdef->default_value.get());
-
-        if (substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::Enable) {
-            // Log the substitution.
-            ConfigSubstitution config_substitution;
-            config_substitution.opt_def = optdef;
-            config_substitution.old_value = value;//std::unique_ptr<ConfigOption>(opt);
-            config_substitution.new_value = ConfigOptionUniquePtr(this->option(opt_key, true)->clone());
-            substitutions_ctxt.substitutions.emplace_back(std::move(config_substitution));
-        }
-        return true;
+    if (substituted && (substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::Enable ||
+                        substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::EnableSystemSilent)) {
+        // Log the substitution.
+        ConfigSubstitution config_substitution;
+        config_substitution.opt_def   = optdef;
+        config_substitution.old_value = value;
+        config_substitution.new_value = ConfigOptionUniquePtr(opt->clone());
+        substitutions_ctxt.substitutions.emplace_back(std::move(config_substitution));
     }
     return success;
 }
@@ -585,7 +612,7 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
         return opt_def->ratio_over.empty() ? 0. : 
             static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
     }
-    throw Slic3r::RuntimeError("ConfigBase::get_abs_value(): Not a valid option type for get_abs_value()");
+    throw ConfigurationError("ConfigBase::get_abs_value(): Not a valid option type for get_abs_value()");
 }
 
 // Return an absolute value of a possibly relative config variable.
@@ -596,7 +623,7 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key, double rati
     const ConfigOption *raw_opt = this->option(opt_key);
     assert(raw_opt != nullptr);
     if (raw_opt->type() != coFloatOrPercent)
-        throw Slic3r::RuntimeError("ConfigBase::get_abs_value(): opt_key is not of coFloatOrPercent");
+        throw ConfigurationError("ConfigBase::get_abs_value(): opt_key is not of coFloatOrPercent");
     // Compute absolute value.
     return static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(ratio_over);
 }
@@ -622,16 +649,69 @@ void ConfigBase::setenv_() const
 ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     return is_gcode_file(file) ? 
-        this->load_from_gcode_file(file, true /* check header */, compatibility_rule) :
+        this->load_from_gcode_file(file, compatibility_rule) :
         this->load_from_ini(file, compatibility_rule);
 }
 
 ConfigSubstitutions ConfigBase::load_from_ini(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
+    try {
+        boost::property_tree::ptree tree;
+        boost::nowide::ifstream ifs(file);
+        boost::property_tree::read_ini(ifs, tree);
+        return this->load(tree, compatibility_rule);
+    } catch (const ConfigurationError &e) {
+        throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, e.what()));
+    }
+}
+
+ConfigSubstitutions ConfigBase::load_from_ini_string(const std::string &data, ForwardCompatibilitySubstitutionRule compatibility_rule)
+{
     boost::property_tree::ptree tree;
-    boost::nowide::ifstream ifs(file);
-    boost::property_tree::read_ini(ifs, tree);
+    std::istringstream iss(data);
+    boost::property_tree::read_ini(iss, tree);
     return this->load(tree, compatibility_rule);
+}
+
+// Loading a "will be one day a legacy format" of configuration stored into 3MF or AMF.
+// Accepts the same data as load_from_ini_string(), only with each configuration line possibly prefixed with a semicolon (G-code comment).
+ConfigSubstitutions ConfigBase::load_from_ini_string_commented(std::string &&data, ForwardCompatibilitySubstitutionRule compatibility_rule)
+{
+    // Convert the "data" string into INI format by removing the semi-colons at the start of a line.
+    // Also the "; generated by PrusaSlicer ..." comment line will be removed.
+    size_t j = 0;
+    for (size_t i = 0; i < data.size();)
+        if (i == 0 || data[i] == '\n') {
+            // Start of a line.
+            if (i != 0) {
+                // Consume LF.
+                assert(data[i] == '\n');
+                // Don't keep empty lines.
+                if (j > 0 && data[j - 1] != '\n')
+                    data[j ++] = data[i];
+                ++ i;
+            }
+            // Skip all leading spaces;
+            for (; i < data.size() && (data[i] == ' ' || data[i] == '\t'); ++ i) ;
+            // Skip the semicolon (comment indicator).
+            if (i < data.size() && data[i] == ';')
+                ++ i;
+            // Skip all leading spaces after semicolon.
+            for (; i < data.size() && (data[i] == ' ' || data[i] == '\t'); ++ i) ;
+            if (strncmp(data.data() + i, "generated by ", 13) == 0) {
+                // Skip the "; generated by ..." line.
+                for (; i < data.size() && data[i] != '\n'; ++ i);
+            }
+        } else if (data[i] == '\r' && i + 1 < data.size() && data[i + 1] == '\n') {
+            // Skip CR.
+            ++ i;
+        } else {
+            // Consume the rest of the data.
+            data[j ++] = data[i ++];
+        }
+    data.erase(data.begin() + j, data.end());
+
+    return this->load_from_ini_string(data, compatibility_rule);
 }
 
 ConfigSubstitutions ConfigBase::load(const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule)
@@ -648,37 +728,8 @@ ConfigSubstitutions ConfigBase::load(const boost::property_tree::ptree &tree, Fo
     return std::move(substitutions_ctxt.substitutions);
 }
 
-// Load the config keys from the tail of a G-code file.
-ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, bool check_header, ForwardCompatibilitySubstitutionRule compatibility_rule)
-{
-    // Read a 64k block from the end of the G-code.
-	boost::nowide::ifstream ifs(file);
-    if (check_header) {
-		const char slic3r_gcode_header[] = "; generated by Slic3r ";
-        const char prusaslicer_gcode_header[] = "; generated by PrusaSlicer ";
-		std::string firstline;
-		std::getline(ifs, firstline);
-		if (strncmp(slic3r_gcode_header, firstline.c_str(), strlen(slic3r_gcode_header)) != 0 &&
-            strncmp(prusaslicer_gcode_header, firstline.c_str(), strlen(prusaslicer_gcode_header)) != 0)
-			throw Slic3r::RuntimeError("Not a PrusaSlicer / Slic3r PE generated g-code.");
-	}
-    ifs.seekg(0, ifs.end);
-	auto file_length = ifs.tellg();
-	auto data_length = std::min<std::fstream::pos_type>(65535, file_length);
-	ifs.seekg(file_length - data_length, ifs.beg);
-    std::vector<char> data(size_t(data_length) + 1, 0);
-    ifs.read(data.data(), data_length);
-    ifs.close();
-
-    ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
-    size_t key_value_pairs = load_from_gcode_string(data.data(), substitutions_ctxt);
-    if (key_value_pairs < 80)
-        throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs));
-    return std::move(substitutions_ctxt.substitutions);
-}
-
 // Load the config keys from the given string.
-size_t ConfigBase::load_from_gcode_string(const char* str, ConfigSubstitutionContext& substitutions)
+static inline size_t load_from_gcode_string_legacy(ConfigBase &config, const char *str, ConfigSubstitutionContext &substitutions)
 {
     if (str == nullptr)
         return 0;
@@ -701,7 +752,7 @@ size_t ConfigBase::load_from_gcode_string(const char* str, ConfigSubstitutionCon
         if (end - (++ start) < 10 || start[0] != ';' || start[1] != ' ')
             break;
         const char *key = start + 2;
-        if (!(*key >= 'a' && *key <= 'z') || (*key >= 'A' && *key <= 'Z'))
+        if (!((*key >= 'a' && *key <= 'z') || (*key >= 'A' && *key <= 'Z')))
             // A key must start with a letter.
             break;
         const char *sep = key;
@@ -723,7 +774,7 @@ size_t ConfigBase::load_from_gcode_string(const char* str, ConfigSubstitutionCon
         if (key == nullptr)
             break;
         try {
-            this->set_deserialize(std::string(key, key_end), std::string(value, end), substitutions);
+            config.set_deserialize(std::string(key, key_end), std::string(value, end), substitutions);
             ++num_key_value_pairs;
         }
         catch (UnknownOptionException & /* e */) {
@@ -732,7 +783,175 @@ size_t ConfigBase::load_from_gcode_string(const char* str, ConfigSubstitutionCon
         end = start;
     }
 
-	return num_key_value_pairs;
+    return num_key_value_pairs;
+}
+
+// Reading a config from G-code back to front for performance reasons: We don't want to scan
+// hundreds of MB file for a short config block, which we expect to find at the end of the G-code.
+class ReverseLineReader
+{
+public:
+    using pos_type = boost::nowide::ifstream::pos_type;
+
+    // Stop at file_start
+    ReverseLineReader(boost::nowide::ifstream &ifs, pos_type file_start) : m_ifs(ifs), m_file_start(file_start)
+    {
+        m_ifs.seekg(0, m_ifs.end);
+        m_file_pos = m_ifs.tellg();
+        m_block.assign(m_block_size, 0);
+    }
+
+    bool getline(std::string &out) {
+        out.clear();
+        for (;;) {
+            if (m_block_len == 0) {
+                // Read the next block.
+                m_block_len = size_t(std::min<std::fstream::pos_type>(m_block_size, m_file_pos - m_file_start));
+                if (m_block_len == 0)
+                    return false;
+                m_file_pos -= m_block_len;
+                m_ifs.seekg(m_file_pos, m_ifs.beg);
+                if (! m_ifs.read(m_block.data(), m_block_len))
+                    return false;
+            }
+
+            assert(m_block_len > 0);
+            // Non-empty buffer. Find another LF.
+            int i = int(m_block_len) - 1;
+            for (; i >= 0; -- i)
+                if (m_block[i] == '\n')
+                    break;
+            // i is position of LF or -1 if not found.
+            if (i == -1) {
+                // LF not found. Just make a backup of the buffer and continue.
+                out.insert(out.begin(), m_block.begin(), m_block.begin() + m_block_len);
+                m_block_len = 0;
+            } else {
+                assert(i >= 0);
+                // Copy new line to the output. It may be empty.
+                out.insert(out.begin(), m_block.begin() + i + 1, m_block.begin() + m_block_len);
+                // Block length without the newline.
+                m_block_len = i;
+                // Remove CRLF from the end of the block.
+                if (m_block_len > 0 && m_block[m_block_len - 1] == '\r')
+                    -- m_block_len;
+                return true;
+            }
+        }
+        assert(false);
+        return false;
+    }
+
+private:
+    boost::nowide::ifstream &m_ifs;
+    std::vector<char>        m_block;
+    size_t                   m_block_size = 65536;
+    size_t                   m_block_len  = 0;
+    pos_type                 m_file_start;
+    pos_type                 m_file_pos   = 0;
+};
+
+// Load the config keys from the tail of a G-code file.
+ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
+{
+    // Read a 64k block from the end of the G-code.
+	boost::nowide::ifstream ifs(file);
+    // Look for Slic3r or PrusaSlicer header.
+    // Look for the header across the whole file as the G-code may have been extended at the start by a post-processing script or the user.
+    bool has_delimiters = false;
+    {
+    	static constexpr const char slic3r_gcode_header[] = "; generated by Slic3r ";
+        static constexpr const char prusaslicer_gcode_header[] = "; generated by PrusaSlicer ";
+        std::string header;
+        bool        header_found = false;
+        while (std::getline(ifs, header)) {
+            if (strncmp(slic3r_gcode_header, header.c_str(), strlen(slic3r_gcode_header)) == 0) {
+                header_found = true;
+                break;
+            } else if (strncmp(prusaslicer_gcode_header, header.c_str(), strlen(prusaslicer_gcode_header)) == 0) {
+                // Parse PrusaSlicer version.
+                size_t i = strlen(prusaslicer_gcode_header);
+                for (; i < header.size() && header[i] == ' '; ++ i) ;
+                size_t j = i;
+                for (; j < header.size() && header[j] != ' '; ++ j) ;
+                try {
+                    Semver semver(header.substr(i, j - i));
+                    has_delimiters = semver >= Semver(2, 4, 0, nullptr, "alpha0");
+                } catch (const RuntimeError &) {
+                }
+                header_found = true;
+                break;
+            }
+        }
+        if (! header_found)
+            throw Slic3r::RuntimeError("Not a PrusaSlicer / Slic3r PE generated g-code.");
+    }
+
+    auto                      header_end_pos = ifs.tellg();
+    ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
+    size_t                    key_value_pairs = 0;
+
+    if (has_delimiters)
+    {
+        // PrusaSlicer starting with 2.4.0-alpha0 delimits the config section stored into G-code with 
+        // ; prusaslicer_config = begin
+        // ...
+        // ; prusaslicer_config = end
+        // The begin / end tags look like any other key / value pairs on purpose to be compatible with older G-code viewer.
+        // Read the file in reverse line by line.
+        ReverseLineReader reader(ifs, header_end_pos);
+        // Read the G-code file by 64k blocks back to front.
+        bool begin_found = false;
+        bool end_found   = false;
+        std::string line;
+        while (reader.getline(line))
+            if (line == "; prusaslicer_config = end") {
+                end_found = true;
+                break;
+            }
+        if (! end_found) 
+            throw Slic3r::RuntimeError(format("Configuration block closing tag \"; prusaslicer_config = end\" not found when reading %1%", file));
+        std::string key, value;
+        while (reader.getline(line)) {
+            if (line == "; prusaslicer_config = begin") {
+                begin_found = true;
+                break;
+            }
+            // line should be a valid key = value pair.
+            auto pos = line.find('=');
+            if (pos != std::string::npos && pos > 1 && line.front() == ';') {
+                key   = line.substr(1, pos - 1);
+                value = line.substr(pos + 1);
+                boost::trim(key);
+                boost::trim(value);
+                try {
+                    this->set_deserialize(key, value, substitutions_ctxt);
+                    ++ key_value_pairs;
+                } catch (UnknownOptionException & /* e */) {
+                    // ignore
+                }
+            }
+        }
+        if (! begin_found) 
+            throw Slic3r::RuntimeError(format("Configuration block opening tag \"; prusaslicer_config = begin\" not found when reading %1%", file));
+    }
+    else
+    {
+        // Slic3r or PrusaSlicer older than 2.4.0-alpha0 do not emit any delimiter.
+        // Try a heuristics reading the G-code from back.
+        ifs.seekg(0, ifs.end);
+        auto file_length = ifs.tellg();
+    	auto data_length = std::min<std::fstream::pos_type>(65535, file_length - header_end_pos);
+    	ifs.seekg(file_length - data_length, ifs.beg);
+        std::vector<char> data(size_t(data_length) + 1, 0);
+        ifs.read(data.data(), data_length);
+        ifs.close();
+        key_value_pairs = load_from_gcode_string_legacy(*this, data.data(), substitutions_ctxt);
+    }
+
+    if (key_value_pairs < 80)
+        throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs));
+    return std::move(substitutions_ctxt.substitutions);
 }
 
 void ConfigBase::save(const std::string &file) const
@@ -803,7 +1022,7 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
         throw NoDefinitionException(opt_key);
     const ConfigOptionDef *optdef = def->get(opt_key);
     if (optdef == nullptr)
-//        throw Slic3r::RuntimeError(std::string("Invalid option name: ") + opt_key);
+//        throw ConfigurationError(std::string("Invalid option name: ") + opt_key);
         // Let the parent decide what to do if the opt_key is not defined by this->def().
         return nullptr;
     ConfigOption *opt = optdef->create_default_option();
@@ -817,22 +1036,12 @@ const ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key) co
     return (it == options.end()) ? nullptr : it->second.get();
 }
 
-void DynamicConfig::read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra, t_config_option_keys* keys)
-{
-    std::vector<const char*> args;    
-    // push a bogus executable name (argv[0])
-    args.emplace_back("");
-    for (size_t i = 0; i < tokens.size(); ++ i)
-        args.emplace_back(tokens[i].c_str());
-    this->read_cli(int(args.size()), args.data(), extra, keys);
-}
-
 bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option_keys* extra, t_config_option_keys* keys)
 {
     // cache the CLI option => opt_key mapping
     std::map<std::string,std::string> opts;
     for (const auto &oit : this->def()->options)
-        for (auto t : oit.second.cli_args(oit.first))
+        for (const std::string &t : oit.second.cli_args(oit.first))
             opts[t] = oit.first;
     
     bool parse_options = true;
@@ -854,14 +1063,8 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
             parse_options = false;
             continue;
         }
-        // Remove leading dashes
-        boost::trim_left_if(token, boost::is_any_of("-"));
-        // Remove the "no-" prefix used to negate boolean options.
-        bool no = false;
-        if (boost::starts_with(token, "no-")) {
-            no = true;
-            boost::replace_first(token, "no-", "");
-        }
+        // Remove leading dashes (one or two).
+        token.erase(token.begin(), token.begin() + (boost::starts_with(token, "--") ? 2 : 1));
         // Read value when supplied in the --key=value form.
         std::string value;
         {
@@ -871,54 +1074,45 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
                 token.erase(equals_pos);
             }
         }
-
         // Look for the cli -> option mapping.
-        const auto it = opts.find(token);
+        auto it = opts.find(token);
+        bool no = false;
         if (it == opts.end()) {
-			boost::nowide::cerr << "Unknown option --" << token.c_str() << std::endl;
-			return false;
+            // Remove the "no-" prefix used to negate boolean options.
+            std::string yes_token;
+            if (boost::starts_with(token, "no-")) {
+                yes_token = token.substr(3);
+                it = opts.find(yes_token);
+                no = true;
+            }
+            if (it == opts.end()) {
+                boost::nowide::cerr << "Unknown option --" << token.c_str() << std::endl;
+                return false;
+            }
+            if (no)
+                token = yes_token;
         }
-        const t_config_option_key opt_key = it->second;
-        const ConfigOptionDef &optdef = this->def()->options.at(opt_key);
+
+        const t_config_option_key &opt_key = it->second;
+        const ConfigOptionDef     &optdef  = this->def()->options.at(opt_key);
 
         // If the option type expects a value and it was not already provided,
         // look for it in the next token.
-        if (value.empty()) {
-            if (optdef.type != coBool && optdef.type != coBools) {
-                if (i == (argc-1)) {
-                    boost::nowide::cerr << "No value supplied for --" << token.c_str() << std::endl;
-                    return false;
-                }
-                value = argv[++ i];
-            } else {
-                // This is a bool or bools. The value is optional, but may still be there.
-                // Check if the next token can be deserialized into ConfigOptionBool.
-                // If it is in fact bools, it will be rejected later anyway.
-                if (i != argc-1) { // There is still a token to read.
-                    ConfigOptionBool cobool;
-                    if (cobool.deserialize(argv[i+1]))
-                        value = argv[++i];
-                }
+        if (value.empty() && optdef.type != coBool && optdef.type != coBools) {
+            if (i == argc-1) {
+                boost::nowide::cerr << "No value supplied for --" << token.c_str() << std::endl;
+                return false;
             }
-
+            value = argv[++ i];
         }
 
         if (no) {
-            if (optdef.type != coBool && optdef.type != coBools) {
-                boost::nowide::cerr << "Only boolean config options can be negated with --no- prefix." << std::endl;
-                return false;
-            }
-            else if (! value.empty()) {
+            assert(optdef.type == coBool || optdef.type == coBools);
+            if (! value.empty()) {
                 boost::nowide::cerr << "Boolean options negated by the --no- prefix cannot have a value." << std::endl;
                 return false;
             }
         }
-        if (optdef.type == coBools && ! value.empty()) {
-            boost::nowide::cerr << "Vector boolean options cannot have a value. Fill them in by "
-                                   "repeating them and negate by --no- prefix." << std::endl;
-            return false;
-        }
-
 
         // Store the option value.
         const bool               existing   = this->has(opt_key);
@@ -934,7 +1128,7 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
 				opt_vector->clear();
             // Vector values will be chained. Repeated use of a parameter will append the parameter or parameters
             // to the end of the value.
-            if (opt_base->type() == coBools)
+            if (opt_base->type() == coBools && value.empty())
                 static_cast<ConfigOptionBools*>(opt_base)->values.push_back(!no);
             else
                 // Deserialize any other vector value (ConfigOptionInts, Floats, Percents, Points) the same way

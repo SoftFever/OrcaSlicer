@@ -65,7 +65,9 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_prusa_bu
     this->is_prusa_bundle = ais_prusa_bundle;
 
     std::string path_string = source_path.string();
-    auto [config_substitutions, presets_loaded] = preset_bundle->load_configbundle(path_string, PresetBundle::LoadConfigBundleAttribute::LoadSystem);
+    // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
+    auto [config_substitutions, presets_loaded] = preset_bundle->load_configbundle(
+        path_string, PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
     UNUSED(config_substitutions);
     // No substitutions shall be reported when loading a system config bundle, no substitutions are allowed.
     assert(config_substitutions.empty());
@@ -2451,7 +2453,7 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
     return true;
 }
 
-void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater)
+bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater)
 {
     const auto enabled_vendors = appconfig_new.vendors();
 
@@ -2506,14 +2508,14 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
             break;
     }
 
-    if (snapshot) {
-        SnapshotDB::singleton().take_snapshot(*app_config, snapshot_reason);
-    }
+    if (snapshot && ! take_config_snapshot_cancel_on_error(*app_config, snapshot_reason, "", _u8L("Continue with applying configuration changes?")))
+        return false;
 
     if (install_bundles.size() > 0) {
         // Install bundles from resources.
         // Don't create snapshot - we've already done that above if applicable.
-        updater->install_bundles_rsrc(std::move(install_bundles), false);
+        if (! updater->install_bundles_rsrc(std::move(install_bundles), false))
+            return false;
     } else {
         BOOST_LOG_TRIVIAL(info) << "No bundles need to be installed from resources";
     }
@@ -2590,7 +2592,8 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     // Reloading the configs after some modifications were done to PrusaSlicer.ini.
     // Just perform the substitutions silently, as the substitutions were already presented to the user on application start-up
     // and the Wizard shall not create any new values that would require substitution.
-    PresetsConfigSubstitutions substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent, preferred_model);
+    // Throw on substitutions in system profiles, as the system profiles provided over the air should be compatible with this PrusaSlicer version.
+    preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem, preferred_model);
 
     if (page_custom->custom_wanted()) {
         page_firmware->apply_custom_config(*custom_config);
@@ -2604,6 +2607,8 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     // Update the selections from the compatibilty.
     preset_bundle->export_selections(*app_config);
+
+    return true;
 }
 void ConfigWizard::priv::update_presets_in_config(const std::string& section, const std::string& alias_key, bool add)
 {
@@ -2814,7 +2819,8 @@ bool ConfigWizard::run(RunReason reason, StartPage start_page)
     p->set_start_page(start_page);
 
     if (ShowModal() == wxID_OK) {
-        p->apply_config(app.app_config, app.preset_bundle, app.preset_updater);
+        if (! p->apply_config(app.app_config, app.preset_bundle, app.preset_updater))
+            return false;
         app.app_config->set_legacy_datadir(false);
         app.update_mode();
         app.obj_manipul()->update_ui_from_settings();

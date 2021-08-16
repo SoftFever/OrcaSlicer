@@ -1576,20 +1576,19 @@ struct Plater::priv
 
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
     void update_project_dirty_from_presets() { dirty_state.update_from_presets(); }
-    bool save_project_if_dirty() {
+    int save_project_if_dirty() {
+        int res = wxID_NO;
         if (dirty_state.is_dirty()) {
             MainFrame* mainframe = wxGetApp().mainframe;
             if (mainframe->can_save_as()) {
                 //wxMessageDialog dlg(mainframe, _L("Do you want to save the changes to the current project ?"), wxString(SLIC3R_APP_NAME), wxYES_NO | wxCANCEL);
                 MessageDialog dlg(mainframe, _L("Do you want to save the changes to the current project ?"), wxString(SLIC3R_APP_NAME), wxYES_NO | wxCANCEL);
-                int res = dlg.ShowModal();
+                res = dlg.ShowModal();
                 if (res == wxID_YES)
                     mainframe->save_project_as(wxGetApp().plater()->get_project_filename());
-                else if (res == wxID_CANCEL)
-                    return false;
             }
         }
-        return true;
+        return res;
     }
     void reset_project_dirty_after_save() { dirty_state.reset_after_save(); }
     void reset_project_dirty_initial_presets() { dirty_state.reset_initial_presets(); }
@@ -2262,12 +2261,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         // and place the loaded config over the base.
                         config += std::move(config_loaded);
                     }
-                    if (! config_substitutions.empty()) {
-                        // TODO:
-                        show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                            " To recover these files, incompatible values were changed to default values."
-                            " But data in files won't be changed until you save them in PrusaSlicer.")));
-                    }
+                    if (! config_substitutions.empty())
+                        show_substitutions_info(config_substitutions.substitutions, filename.string());
 
                     this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                 }
@@ -2342,6 +2337,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();
             }
+        } catch (const ConfigurationError &e) {
+            std::string message = GUI::format(_L("Failed loading file \"%1%\" due to an invalid configuration."), filename.string()) + "\n\n" + e.what();
+            GUI::show_error(q, message);
+            continue;
         } catch (const std::exception &e) {
             GUI::show_error(q, e.what());
             continue;
@@ -2563,6 +2562,10 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             _L("Your object appears to be too large, so it was automatically scaled down to fit your print bed."),
             _L("Object too large?"));
     }
+
+    // Now ObjectList uses GLCanvas3D::is_object_sinkin() to show/hide "Sinking" InfoItem, 
+    // so 3D-scene should be updated before object additing to the ObjectList
+    this->view3D->reload_scene(false, (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
 
     for (const size_t idx : obj_idxs) {
         wxGetApp().obj_list()->add_object_to_list(idx);
@@ -3500,6 +3503,8 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     ModelObject* mo = model.objects[obj_idx];
     fix_model_by_win10_sdk_gui(*mo, vol_idx);
     q->changed_mesh(obj_idx);
+    // workaround to fix the issue, when PrusaSlicer lose a focus after model fixing
+    q->SetFocus();
 }
 
 void Plater::priv::set_current_panel(wxPanel* panel)
@@ -3917,6 +3922,10 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         // If in 3DScene is(are) selected volume(s), but right button was clicked on empty space
         if (evt.data.second)
             return;
+
+        // Each context menu respects to the selected item in ObjectList, 
+        // so this selection should be updated before menu creation
+        wxGetApp().obj_list()->update_selections();
 
         if (printer_technology == ptSLA)
             menu = menus.sla_object_menu();
@@ -4639,7 +4648,7 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
 void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
-bool Plater::save_project_if_dirty() { return p->save_project_if_dirty(); }
+int  Plater::save_project_if_dirty() { return p->save_project_if_dirty(); }
 void Plater::reset_project_dirty_after_save() { p->reset_project_dirty_after_save(); }
 void Plater::reset_project_dirty_initial_presets() { p->reset_project_dirty_initial_presets(); }
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
@@ -5294,13 +5303,14 @@ void Plater::export_gcode(bool prefer_removable)
 
     fs::path output_path;
     {
-        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SL1 file as:"),
+    	std::string ext = default_output_file.extension().string();
+        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SL1 / SL1S file as:"),
             start_dir,
             from_path(default_output_file.filename()),
-            GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
+            GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : boost::iequals(ext, ".sl1s") ? FT_SL1S : FT_SL1, ext),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
-        if (dlg.ShowModal() == wxID_OK)
+            if (dlg.ShowModal() == wxID_OK)
             output_path = into_path(dlg.GetPath());
     }
 
@@ -6126,7 +6136,8 @@ void Plater::clear_before_change_mesh(int obj_idx)
         get_notification_manager()->push_notification(
                     NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
                     NotificationManager::NotificationLevel::RegularNotification,
-                    _u8L("Custom supports and seams were removed after repairing the mesh."));
+                    _u8L("Custom supports, seams and multimaterial painting were "
+                         "removed after repairing the mesh."));
 //                    _u8L("Undo the repair"),
 //                    [this, snapshot_time](wxEvtHandler*){
 //                        // Make sure the snapshot is still available and that

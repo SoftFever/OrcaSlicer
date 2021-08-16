@@ -178,12 +178,12 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
     }
 }
 
-void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_start, float seed_fill_angle)
+void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_start, float seed_fill_angle, bool force_reselection)
 {
     assert(facet_start < m_orig_size_indices);
 
     // Recompute seed fill only if the cursor is pointing on facet unselected by seed fill.
-    if (int start_facet_idx = select_unsplit_triangle(hit, facet_start); start_facet_idx >= 0 && m_triangles[start_facet_idx].is_selected_by_seed_fill())
+    if (int start_facet_idx = select_unsplit_triangle(hit, facet_start); start_facet_idx >= 0 && m_triangles[start_facet_idx].is_selected_by_seed_fill() && !force_reselection)
         return;
 
     this->seed_fill_unselect_all_triangles();
@@ -278,7 +278,7 @@ void TriangleSelector::append_touching_subtriangles(int itriangle, int vertexi, 
         return;
 
     auto process_subtriangle = [this, &itriangle, &vertexi, &vertexj, &touching_subtriangles_out](const int subtriangle_idx, Partition partition) -> void {
-        assert(subtriangle_idx == -1);
+        assert(subtriangle_idx != -1);
         if (!m_triangles[subtriangle_idx].is_split())
             touching_subtriangles_out.emplace_back(subtriangle_idx);
         else if (int midpoint = this->triangle_midpoint(itriangle, vertexi, vertexj); midpoint != -1)
@@ -295,11 +295,48 @@ void TriangleSelector::append_touching_subtriangles(int itriangle, int vertexi, 
         process_subtriangle(touching.second, Partition::Second);
 }
 
-void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, bool propagate)
+// It appends all edges that are touching the edge (vertexi, vertexj) of the triangle and are not selected by seed fill
+// It doesn't append the edges that are touching the triangle only by part of the edge that means the triangles are from lower depth.
+void TriangleSelector::append_touching_edges(int itriangle, int vertexi, int vertexj, std::vector<Vec2i> &touching_edges_out) const
+{
+    if (itriangle == -1)
+        return;
+
+    auto process_subtriangle = [this, &itriangle, &vertexi, &vertexj, &touching_edges_out](const int subtriangle_idx, Partition partition) -> void {
+        assert(subtriangle_idx != -1);
+        if (!m_triangles[subtriangle_idx].is_split()) {
+            if (!m_triangles[subtriangle_idx].is_selected_by_seed_fill()) {
+                int midpoint = this->triangle_midpoint(itriangle, vertexi, vertexj);
+                if (partition == Partition::First && midpoint != -1) {
+                    touching_edges_out.emplace_back(vertexi, midpoint);
+                } else if (partition == Partition::First && midpoint == -1) {
+                    touching_edges_out.emplace_back(vertexi, vertexj);
+                } else {
+                    assert(midpoint != -1 && partition == Partition::Second);
+                    touching_edges_out.emplace_back(midpoint, vertexj);
+                }
+            }
+        } else if (int midpoint = this->triangle_midpoint(itriangle, vertexi, vertexj); midpoint != -1)
+            append_touching_edges(subtriangle_idx, partition == Partition::First ? vertexi : midpoint, partition == Partition::First ? midpoint : vertexj,
+                                  touching_edges_out);
+        else
+            append_touching_edges(subtriangle_idx, vertexi, vertexj, touching_edges_out);
+    };
+
+    std::pair<int, int> touching = this->triangle_subtriangles(itriangle, vertexi, vertexj);
+    if (touching.first != -1)
+        process_subtriangle(touching.first, Partition::First);
+
+    if (touching.second != -1)
+        process_subtriangle(touching.second, Partition::Second);
+}
+
+void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, bool propagate, bool force_reselection)
 {
     int start_facet_idx = select_unsplit_triangle(hit, facet_start);
+    assert(start_facet_idx != -1);
     // Recompute bucket fill only if the cursor is pointing on facet unselected by bucket fill.
-    if (start_facet_idx == -1 || m_triangles[start_facet_idx].is_selected_by_seed_fill())
+    if (start_facet_idx == -1 || (m_triangles[start_facet_idx].is_selected_by_seed_fill() && !force_reselection))
         return;
 
     assert(!m_triangles[start_facet_idx].is_split());
@@ -312,7 +349,7 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
     }
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated) -> std::vector<int> {
-        assert(facet_idx != -1 && facet_idx < m_triangles.size());
+        assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
         assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
         std::vector<int> touching_triangles;
         Vec3i            vertices = {m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2]};
@@ -1355,6 +1392,48 @@ void TriangleSelector::get_facets_split_by_tjoints(const Vec3i &vertices, const 
               out_triangles);
         out_triangles.emplace_back(midpoints);
         break;
+    }
+}
+
+std::vector<Vec2i> TriangleSelector::get_seed_fill_contour() const {
+    std::vector<Vec2i> edges_out;
+    for (int facet_idx = 0; facet_idx < this->m_orig_size_indices; ++facet_idx) {
+        const Vec3i neighbors = root_neighbors(*m_mesh, facet_idx);
+        assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
+        this->get_seed_fill_contour_recursive(facet_idx, neighbors, neighbors, edges_out);
+    }
+
+    return edges_out;
+}
+
+void TriangleSelector::get_seed_fill_contour_recursive(const int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec2i> &edges_out) const {
+    assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
+    assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
+    const Triangle *tr = &m_triangles[facet_idx];
+    if (!tr->valid())
+        return;
+
+    if (tr->is_split()) {
+        int num_of_children = tr->number_of_split_sides() + 1;
+        if (num_of_children != 1) {
+            for (int i = 0; i < num_of_children; ++i) {
+                assert(i < int(tr->children.size()));
+                assert(tr->children[i] < int(m_triangles.size()));
+                // Recursion, deep first search over the children of this triangle.
+                // All children of this triangle were created by splitting a single source triangle of the original mesh.
+                this->get_seed_fill_contour_recursive(tr->children[i], this->child_neighbors(*tr, neighbors, i), this->child_neighbors_propagated(*tr, neighbors_propagated, i), edges_out);
+            }
+        }
+    } else if (tr->is_selected_by_seed_fill()) {
+        Vec3i vertices = {m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2]};
+        append_touching_edges(neighbors(0), vertices(1), vertices(0), edges_out);
+        append_touching_edges(neighbors(1), vertices(2), vertices(1), edges_out);
+        append_touching_edges(neighbors(2), vertices(0), vertices(2), edges_out);
+
+        // It appends the edges that are touching the triangle only by part of the edge that means the triangles are from lower depth.
+        for (int idx = 0; idx < 3; ++idx)
+            if (int neighbor_tr_idx = neighbors_propagated(idx); neighbor_tr_idx != -1 && !m_triangles[neighbor_tr_idx].is_split() && !m_triangles[neighbor_tr_idx].is_selected_by_seed_fill())
+                edges_out.emplace_back(vertices(idx), vertices(next_idx_modulo(idx, 3)));
     }
 }
 

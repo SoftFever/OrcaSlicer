@@ -42,7 +42,7 @@ void GLGizmoMmuSegmentation::on_shutdown()
 std::string GLGizmoMmuSegmentation::on_get_name() const
 {
     // FIXME Lukas H.: Discuss and change shortcut
-    return (_L("MMU painting") + " [N]").ToUTF8().data();
+    return (_L("Multimaterial painting") + " [N]").ToUTF8().data();
 }
 
 bool GLGizmoMmuSegmentation::on_is_selectable() const
@@ -147,6 +147,7 @@ void GLGizmoMmuSegmentation::render_painter_gizmo() const
     render_triangles(selection, false);
 
     m_c->object_clipper()->render_cut();
+    m_c->instances_hider()->render_cut();
     render_cursor();
 
     glsafe(::glDisable(GL_BLEND));
@@ -327,8 +328,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::AlignTextToFramePadding();
     ImGui::SameLine(tool_type_offset + m_imgui->scaled(0.f));
     ImGui::PushItemWidth(tool_type_radio_brush);
-    if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BRUSH))
+    if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BRUSH)) {
         m_tool_type = GLGizmoMmuSegmentation::ToolType::BRUSH;
+        for (auto &triangle_selector : m_triangle_selectors) {
+            triangle_selector->seed_fill_unselect_all_triangles();
+            triangle_selector->request_update_render_data();
+        }
+    }
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
@@ -339,24 +345,6 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     }
 
     ImGui::SameLine(tool_type_offset + tool_type_radio_brush + m_imgui->scaled(0.f));
-    ImGui::PushItemWidth(tool_type_radio_bucket_fill);
-    if (m_imgui->radio_button(m_desc["tool_bucket_fill"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BUCKET_FILL)) {
-        m_tool_type = GLGizmoMmuSegmentation::ToolType::BUCKET_FILL;
-        for (auto &triangle_selector : m_triangle_selectors) {
-            triangle_selector->seed_fill_unselect_all_triangles();
-            triangle_selector->request_update_render_data();
-        }
-    }
-
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Paints neighboring facets that have the same color.").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-
-    ImGui::SameLine(tool_type_offset + tool_type_radio_brush + tool_type_radio_bucket_fill + m_imgui->scaled(0.f));
     ImGui::PushItemWidth(tool_type_radio_seed_fill);
     if (m_imgui->radio_button(m_desc["tool_seed_fill"], m_tool_type == GLGizmoMmuSegmentation::ToolType::SEED_FILL)) {
         m_tool_type = GLGizmoMmuSegmentation::ToolType::SEED_FILL;
@@ -370,6 +358,24 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(max_tooltip_width);
         ImGui::TextUnformatted(_L("Paints neighboring facets whose relative angle is less or equal to set angle.").ToUTF8().data());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+
+    ImGui::SameLine(tool_type_offset + tool_type_radio_brush + tool_type_radio_seed_fill + m_imgui->scaled(0.f));
+    ImGui::PushItemWidth(tool_type_radio_bucket_fill);
+    if (m_imgui->radio_button(m_desc["tool_bucket_fill"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BUCKET_FILL)) {
+        m_tool_type = GLGizmoMmuSegmentation::ToolType::BUCKET_FILL;
+        for (auto &triangle_selector : m_triangle_selectors) {
+            triangle_selector->seed_fill_unselect_all_triangles();
+            triangle_selector->request_update_render_data();
+        }
+    }
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(max_tooltip_width);
+        ImGui::TextUnformatted(_L("Paints neighboring facets that have the same color.").ToUTF8().data());
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
@@ -459,7 +465,12 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
                                                                                 "placed after the number with no whitespace in between.");
         ImGui::SameLine(sliders_width);
         ImGui::PushItemWidth(window_width - sliders_width);
-        m_imgui->slider_float("##seed_fill_angle", &m_seed_fill_angle, SeedFillAngleMin, SeedFillAngleMax, format_str.data());
+        if(m_imgui->slider_float("##seed_fill_angle", &m_seed_fill_angle, SeedFillAngleMin, SeedFillAngleMax, format_str.data()))
+            for (auto &triangle_selector : m_triangle_selectors) {
+                triangle_selector->seed_fill_unselect_all_triangles();
+                triangle_selector->request_update_render_data();
+            }
+
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(max_tooltip_width);
@@ -586,10 +597,13 @@ std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_sphere_right_button_colo
     return {color[0], color[1], color[2], 0.25f};
 }
 
+static std::array<float, 4> get_seed_fill_color(const std::array<float, 4> &base_color)
+{
+    return {base_color[0] * 0.75f, base_color[1] * 0.75f, base_color[2] * 0.75f, 1.f};
+}
+
 void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
 {
-    static constexpr std::array<float, 4> seed_fill_color{0.f, 1.f, 0.44f, 1.f};
-
     if (m_update_render_data)
         update_render_data();
 
@@ -602,11 +616,23 @@ void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
 
     for (size_t color_idx = 0; color_idx < m_gizmo_scene.triangle_indices.size(); ++color_idx)
         if (m_gizmo_scene.has_VBOs(color_idx)) {
-            shader->set_uniform("uniform_color", color_idx == 0                                           ? m_default_volume_color :
-                                                            color_idx == (m_gizmo_scene.triangle_indices.size() - 1) ? seed_fill_color :
-                                                                                                                       m_colors[color_idx - 1]);
+            if (color_idx > m_colors.size()) // Seed fill VBO
+                shader->set_uniform("uniform_color", get_seed_fill_color(color_idx == (m_colors.size() + 1) ? m_default_volume_color : m_colors[color_idx - (m_colors.size() + 1) - 1]));
+            else                             // Normal VBO
+                shader->set_uniform("uniform_color", color_idx == 0 ? m_default_volume_color : m_colors[color_idx - 1]);
+
             m_gizmo_scene.render(color_idx);
         }
+
+    if (m_gizmo_scene.has_contour_VBO()) {
+        ScopeGuard guard_gouraud([shader]() { shader->start_using(); });
+        shader->stop_using();
+
+        auto *contour_shader = wxGetApp().get_shader("mm_contour");
+        contour_shader->start_using();
+        m_gizmo_scene.render_contour();
+        contour_shader->stop_using();
+    }
 
     m_update_render_data = false;
 }
@@ -624,10 +650,10 @@ void TriangleSelectorMmGui::update_render_data()
 
     for (const Triangle &tr : m_triangles)
         if (tr.valid() && !tr.is_split()) {
-            int               color = int(tr.get_state());
-            std::vector<int> &iva   = tr.is_selected_by_seed_fill()                          ? m_gizmo_scene.triangle_indices.back() :
-                                      color < int(m_gizmo_scene.triangle_indices.size() - 1) ? m_gizmo_scene.triangle_indices[color] :
-                                                                                               m_gizmo_scene.triangle_indices.front();
+            int               color = int(tr.get_state()) <= int(m_colors.size()) ? int(tr.get_state()) : 0;
+            assert(m_colors.size() + 1 + color < m_gizmo_scene.triangle_indices.size());
+            std::vector<int> &iva   = m_gizmo_scene.triangle_indices[color + tr.is_selected_by_seed_fill() * (m_colors.size() + 1)];
+
             if (iva.size() + 3 > iva.capacity())
                 iva.reserve(next_highest_power_of_2(iva.size() + 3));
 
@@ -640,6 +666,24 @@ void TriangleSelectorMmGui::update_render_data()
         m_gizmo_scene.triangle_indices_sizes[color_idx] = m_gizmo_scene.triangle_indices[color_idx].size();
 
     m_gizmo_scene.finalize_triangle_indices();
+
+    std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
+    m_gizmo_scene.contour_vertices.reserve(contour_edges.size() * 6);
+    for (const Vec2i &edge : contour_edges) {
+        m_gizmo_scene.contour_vertices.emplace_back(m_vertices[edge(0)].v.x());
+        m_gizmo_scene.contour_vertices.emplace_back(m_vertices[edge(0)].v.y());
+        m_gizmo_scene.contour_vertices.emplace_back(m_vertices[edge(0)].v.z());
+
+        m_gizmo_scene.contour_vertices.emplace_back(m_vertices[edge(1)].v.x());
+        m_gizmo_scene.contour_vertices.emplace_back(m_vertices[edge(1)].v.y());
+        m_gizmo_scene.contour_vertices.emplace_back(m_vertices[edge(1)].v.z());
+    }
+
+    m_gizmo_scene.contour_indices.assign(m_gizmo_scene.contour_vertices.size() / 3, 0);
+    std::iota(m_gizmo_scene.contour_indices.begin(), m_gizmo_scene.contour_indices.end(), 0);
+    m_gizmo_scene.contour_indices_size = m_gizmo_scene.contour_indices.size();
+
+    m_gizmo_scene.finalize_contour();
 }
 
 wxString GLGizmoMmuSegmentation::handle_snapshot_action_name(bool shift_down, GLGizmoPainterBase::Button button_down) const
@@ -663,6 +707,14 @@ void GLMmSegmentationGizmo3DScene::release_geometry() {
         glsafe(::glDeleteBuffers(1, &triangle_indices_VBO_id));
         triangle_indices_VBO_id = 0;
     }
+    if (this->contour_vertices_VBO_id) {
+        glsafe(::glDeleteBuffers(1, &this->contour_vertices_VBO_id));
+        this->contour_vertices_VBO_id = 0;
+    }
+    if (this->contour_indices_VBO_id) {
+        glsafe(::glDeleteBuffers(1, &this->contour_indices_VBO_id));
+        this->contour_indices_VBO_id = 0;
+    }
     this->clear();
 }
 
@@ -672,6 +724,10 @@ void GLMmSegmentationGizmo3DScene::render(size_t triangle_indices_idx) const
     assert(this->triangle_indices_sizes.size() == this->triangle_indices_VBO_ids.size());
     assert(this->vertices_VBO_id != 0);
     assert(this->triangle_indices_VBO_ids[triangle_indices_idx] != 0);
+
+    ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
+    glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
+    glsafe(::glPolygonOffset(5.0, 5.0));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_VBO_id));
     glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (const void*)(0 * sizeof(float))));
@@ -690,13 +746,36 @@ void GLMmSegmentationGizmo3DScene::render(size_t triangle_indices_idx) const
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
+void GLMmSegmentationGizmo3DScene::render_contour() const
+{
+    assert(this->contour_vertices_VBO_id != 0);
+    assert(this->contour_indices_VBO_id != 0);
+
+    glsafe(::glLineWidth(4.0f));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->contour_vertices_VBO_id));
+    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
+
+    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+
+    if (this->contour_indices_size > 0) {
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->contour_indices_VBO_id));
+        glsafe(::glDrawElements(GL_LINES, GLsizei(this->contour_indices_size), GL_UNSIGNED_INT, nullptr));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
+
+    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
 void GLMmSegmentationGizmo3DScene::finalize_vertices()
 {
     assert(this->vertices_VBO_id == 0);
     if (!this->vertices.empty()) {
         glsafe(::glGenBuffers(1, &this->vertices_VBO_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_VBO_id));
-        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * 4, this->vertices.data(), GL_STATIC_DRAW));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(float), this->vertices.data(), GL_STATIC_DRAW));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
         this->vertices.clear();
     }
@@ -711,19 +790,32 @@ void GLMmSegmentationGizmo3DScene::finalize_triangle_indices()
         if (!this->triangle_indices[buffer_idx].empty()) {
             glsafe(::glGenBuffers(1, &this->triangle_indices_VBO_ids[buffer_idx]));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_ids[buffer_idx]));
-            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices[buffer_idx].size() * 4, this->triangle_indices[buffer_idx].data(),
-                                  GL_STATIC_DRAW));
+            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices[buffer_idx].size() * sizeof(int), this->triangle_indices[buffer_idx].data(), GL_STATIC_DRAW));
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
             this->triangle_indices[buffer_idx].clear();
         }
 }
 
-void GLMmSegmentationGizmo3DScene::finalize_geometry()
+void GLMmSegmentationGizmo3DScene::finalize_contour()
 {
-    assert(this->vertices_VBO_id == 0);
-    assert(this->triangle_indices.size() == this->triangle_indices_VBO_ids.size());
-    finalize_vertices();
-    finalize_triangle_indices();
+    assert(this->contour_vertices_VBO_id == 0);
+    assert(this->contour_indices_VBO_id == 0);
+
+    if (!this->contour_vertices.empty()) {
+        glsafe(::glGenBuffers(1, &this->contour_vertices_VBO_id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->contour_vertices_VBO_id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->contour_vertices.size() * sizeof(float), this->contour_vertices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        this->contour_vertices.clear();
+    }
+
+    if (!this->contour_indices.empty()) {
+        glsafe(::glGenBuffers(1, &this->contour_indices_VBO_id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->contour_indices_VBO_id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->contour_indices.size() * sizeof(unsigned int), this->contour_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        this->contour_indices.clear();
+    }
 }
 
 } // namespace Slic3r

@@ -2517,7 +2517,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
 }
 
 
-void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selections/* = nullptr*/)
+void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selections/* = nullptr*/, bool added_object/* = false*/)
 {
     const ModelObject* model_object = (*m_objects)[obj_idx];
     wxDataViewItem item_obj = m_objects_model->GetItemById(obj_idx);
@@ -2561,8 +2561,8 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
         if (! shows && should_show) {
             m_objects_model->AddInfoChild(item_obj, type);
             Expand(item_obj);
-            wxGetApp().notification_manager()->push_updated_item_info_notification(type);
-            
+            if (added_object)
+                wxGetApp().notification_manager()->push_updated_item_info_notification(type); 
         }
         else if (shows && ! should_show) {
             if (!selections)
@@ -2594,7 +2594,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
                       model_object->config.has("extruder") ? model_object->config.extruder() : 0,
                       get_mesh_errors_count(obj_idx) > 0);
 
-    update_info_items(obj_idx);
+    update_info_items(obj_idx, nullptr, true);
 
     // add volumes to the object
     if (model_object->volumes.size() > 1) {
@@ -3857,6 +3857,7 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
 
     // update printable state for new volumes on canvas3D
     wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object(new_obj_indx);
+    update_info_items(new_obj_indx);
 }
 
 void ObjectList::instances_to_separated_objects(const int obj_idx)
@@ -3889,6 +3890,8 @@ void ObjectList::instances_to_separated_objects(const int obj_idx)
 
     // update printable state for new volumes on canvas3D
     wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(object_idxs);
+    for (size_t object : object_idxs)
+        update_info_items(object);
 }
 
 void ObjectList::split_instances()
@@ -3953,6 +3956,7 @@ void ObjectList::fix_through_netfabb()
     wxGetApp().plater()->fix_through_netfabb(obj_idx, vol_idx);
     
     update_item_error_icon(obj_idx, vol_idx);
+    update_info_items(obj_idx);
 }
 
 void ObjectList::simplify()
@@ -4246,6 +4250,11 @@ ModelObject* ObjectList::object(const int obj_idx) const
         return nullptr;
 
     return (*m_objects)[obj_idx];
+}
+
+bool ObjectList::has_paint_on_segmentation()
+{
+    return m_objects_model->HasInfoItem(InfoItemType::MmuSegmentation);
 }
 
 } //namespace GUI

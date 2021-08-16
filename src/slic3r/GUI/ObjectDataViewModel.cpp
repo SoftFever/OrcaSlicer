@@ -37,7 +37,21 @@ void ObjectDataViewModelNode::init_container()
 static constexpr char LayerRootIcon[]   = "edit_layers_all";
 static constexpr char LayerIcon[]       = "edit_layers_some";
 static constexpr char WarningIcon[]     = "exclamation";
-static constexpr char InfoIcon[]        = "info";
+static constexpr char InfoIcon[]        = "objlist_info";
+
+struct InfoItemAtributes {
+    std::string name;
+    std::string bmp_name;
+};
+
+const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
+//           info_item Type                         info_item Name              info_item BitmapName
+            { InfoItemType::CustomSupports,      {L("Paint-on supports"),       "fdm_supports" },      },
+            { InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam" },              },
+            { InfoItemType::MmuSegmentation,     {L("Multimaterial painting"),  "mmu_segmentation"},   },
+            { InfoItemType::Sinking,             {L("Sinking"),                 "support_blocker"},    },
+            { InfoItemType::VariableLayerHeight, {L("Variable layer height"),   "layers"},             },
+};
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,
                                                  const wxString&            sub_obj_name,
@@ -60,14 +74,10 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   pare
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const InfoItemType info_type) :
     m_parent(parent),
     m_type(itInfo),
-    m_extruder(wxEmptyString)
+    m_info_item_type(info_type),
+    m_extruder(wxEmptyString),
+    m_name(_(INFO_ITEMS.at(info_type).name))
 {
-    m_name           = info_type == InfoItemType::CustomSupports  ? _L("Paint-on supports") :
-                       info_type == InfoItemType::CustomSeam      ? _L("Paint-on seam") :
-                       info_type == InfoItemType::MmuSegmentation ? _L("Paint-on segmentation") :
-                       info_type == InfoItemType::Sinking         ? _L("Sinking") :
-                                                                    _L("Variable layer height");
-    m_info_item_type = info_type;
 }
 
 
@@ -307,7 +317,8 @@ ObjectDataViewModel::ObjectDataViewModel()
 
     m_volume_bmps = MenuFactory::get_volume_bitmaps();
     m_warning_bmp = create_scaled_bitmap(WarningIcon);
-    m_info_bmp    = create_scaled_bitmap(InfoIcon);
+    for (auto item : INFO_ITEMS)
+        m_info_bmps[item.first] = create_scaled_bitmap(item.second.bmp_name);
 }
 
 ObjectDataViewModel::~ObjectDataViewModel()
@@ -402,7 +413,7 @@ wxDataViewItem ObjectDataViewModel::AddInfoChild(const wxDataViewItem &parent_it
     }
 
     root->Insert(node, idx+1);
-    node->SetBitmap(m_info_bmp);
+    node->SetBitmap(m_info_bmps.at(info_type));
     // notify control
     const wxDataViewItem child((void*)node);
     ItemAdded(parent_item, child);
@@ -1494,7 +1505,17 @@ void ObjectDataViewModel::GetAllChildren(const wxDataViewItem &parent, wxDataVie
     }
 }
 
-ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item) const 
+bool ObjectDataViewModel::HasInfoItem(InfoItemType type) const
+{
+    for (ObjectDataViewModelNode* obj_node : m_objects)
+        for (size_t j = 0; j < obj_node->GetChildCount(); j++)
+            if (obj_node->GetNthChild(j)->GetInfoItemType() == type)
+                return true;
+
+    return false;
+}
+
+ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item) const
 {
     if (!item.IsOk())
         return itUndef;

@@ -218,6 +218,7 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	if (m_state == EState::FadingOut) {
 		push_style_color(ImGuiCol_WindowBg, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg), true, m_current_fade_opacity);
 		push_style_color(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text), true, m_current_fade_opacity);
+		push_style_color(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered), true, m_current_fade_opacity);
 		fading_pop = true;
 	}
 	
@@ -229,7 +230,7 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		m_id = m_id_provider.allocate_id();
 	std::string name = "!!Ntfctn" + std::to_string(m_id);
 	
-	if (imgui.begin(name, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar)) {
+	if (imgui.begin(name, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
 		ImVec2 win_size = ImGui::GetWindowSize();
 
 		render_left_sign(imgui);
@@ -245,7 +246,7 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		ImGui::PopStyleColor();
 
 	if (fading_pop)
-		ImGui::PopStyleColor(2);
+		ImGui::PopStyleColor(3);
 }
 bool NotificationManager::PopNotification::push_background_color()
 {
@@ -440,9 +441,7 @@ void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui,
 			close();
 		}
 	}
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(3);
 
 	//hover color
 	ImVec4 orange_color = ImVec4(.99f, .313f, .0f, 1.0f);
@@ -501,11 +500,7 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 	{
 		close();
 	}
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 
 void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)
@@ -545,11 +540,7 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 		m_multiline = false;
 	}
 	
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 	m_minimize_b_visible = true;
 }
 bool NotificationManager::PopNotification::on_text_click()
@@ -790,11 +781,7 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 			wxPostEvent(m_evt_handler, EjectDriveNotificationClickedEvent(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED));
 		close();
 	}
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 bool NotificationManager::ExportFinishedNotification::on_text_click()
 {
@@ -1054,11 +1041,7 @@ void NotificationManager::PrintHostUploadNotification::render_cancel_button(ImGu
 	{
 		wxGetApp().printhost_job_queue().cancel(m_job_id - 1);
 	}
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(5);
 }
 //------UpdatedItemsInfoNotification-------
 void NotificationManager::UpdatedItemsInfoNotification::count_spaces()
@@ -1074,10 +1057,39 @@ void NotificationManager::UpdatedItemsInfoNotification::count_spaces()
 	m_window_width_offset = m_left_indentation + m_line_height * 3.f;
 	m_window_width = m_line_height * 25;
 }
+void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType type)
+{
+	std::vector<std::pair<InfoItemType, size_t>>::iterator it = m_types_and_counts.begin();
+	for (; it != m_types_and_counts.end(); ++it) {
+		if ((*it).first == type) {
+			(*it).second++;
+			break;
+		}
+	}
+	if (it == m_types_and_counts.end())
+		m_types_and_counts.emplace_back(type, 1);
+
+	std::string text;
+	for (it = m_types_and_counts.begin(); it != m_types_and_counts.end(); ++it) {
+		text += std::to_string((*it).second);
+		text += _L_PLURAL(" Object was loaded with "," Objects were loaded with ", (*it).second).ToUTF8().data();
+		switch ((*it).first) {
+		case InfoItemType::CustomSupports:      text += _utf8("custom supports.\n"); break;
+		case InfoItemType::CustomSeam:          text += _utf8("custom seam.\n"); break;
+		case InfoItemType::MmuSegmentation:     text += _utf8("multimaterial painting.\n"); break;
+		case InfoItemType::VariableLayerHeight: text += _utf8("variable layer height.\n"); break;
+		case InfoItemType::Sinking:             text += _utf8("Partial sinking.\n"); break;
+		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
+		}
+	}
+	NotificationData data { get_data().type, get_data().level , get_data().duration, text };
+	update(data);
+}
 void NotificationManager::UpdatedItemsInfoNotification::render_left_sign(ImGuiWrapper& imgui)
 {
 	std::string text;
-	switch (m_info_item_type) {
+	InfoItemType type = (m_types_and_counts.empty() ? InfoItemType::CustomSupports : m_types_and_counts[0].first);
+	switch (type) {
 	case InfoItemType::CustomSupports:      text = ImGui::CustomSupportsMarker; break;
 	case InfoItemType::CustomSeam:          text = ImGui::CustomSeamMarker; break;
 	case InfoItemType::MmuSegmentation:     text = ImGui::MmuSegmentationMarker; break;
@@ -1347,31 +1359,43 @@ void NotificationManager::upload_job_notification_show_error(int id, const std::
 		}
 	}
 }
-void NotificationManager::push_hint_notification()
+void NotificationManager::push_hint_notification(bool open_next)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::DidYouKnowHint) {
+			(dynamic_cast<HintNotification*>(notification.get()))->open_next();
+			return;
+		}
+	}
+	
+	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::RegularNotification, 300, "" };
+	push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 0);
+}
+
+bool NotificationManager::is_hint_notification_open()
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::DidYouKnowHint)
-			return;
+			return true;
 	}
-	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::RegularNotification, 0, "" };
-	push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler), 0);
+	return false;
 }
 
 void NotificationManager::push_updated_item_info_notification(InfoItemType type)
 {
-	std::string text = _utf8("Object(s) were loaded with ");
-	switch (type) {
-	case InfoItemType::CustomSupports:      text += _utf8("custom supports."); break;
-	case InfoItemType::CustomSeam:          text += _utf8("custom seam."); break;
-	case InfoItemType::MmuSegmentation:     text += _utf8("MMU segmentation."); break;
-	case InfoItemType::VariableLayerHeight: text += _utf8("variable layer height."); break;
-	case InfoItemType::Sinking:             text = _utf8("Partially sinking object(s) were loaded."); break;
-	default: text.clear(); break;
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::UpdatedItemsInfo) {
+			(dynamic_cast<UpdatedItemsInfoNotification*>(notification.get()))->add_type(type);
+			return;
+		}
 	}
-	if (!text.empty()) {
-		NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::RegularNotification, 10, text };
-		push_notification_data(std::make_unique<NotificationManager::UpdatedItemsInfoNotification>(data, m_id_provider, m_evt_handler, type), 0);
+
+	NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::RegularNotification, 5, "" };
+	auto notification = std::make_unique<NotificationManager::UpdatedItemsInfoNotification>(data, m_id_provider, m_evt_handler, type);
+	if (push_notification_data(std::move(notification), 0)) {
+		(dynamic_cast<UpdatedItemsInfoNotification*>(m_pop_notifications.back().get()))->add_type(type);
 	}
+
 }
 bool NotificationManager::push_notification_data(const NotificationData& notification_data, int timestamp)
 {

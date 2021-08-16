@@ -17,6 +17,7 @@ struct HexFile
 		DEV_MK3,
 		DEV_MM_CONTROL,
 		DEV_CW1,
+		DEV_CW1S,
 	};
 
 	boost::filesystem::path path;

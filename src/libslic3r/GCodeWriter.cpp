@@ -405,8 +405,10 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
     
     std::ostringstream gcode;
     gcode << "G1 X" << XYZF_NUM(point(0))
-          <<   " Y" << XYZF_NUM(point(1))
-          <<    " " << m_extrusion_axis << E_NUM(m_extruder->E());
+          <<   " Y" << XYZF_NUM(point(1));
+    if (! m_extrusion_axis.empty())
+        // not gcfNoExtrusion
+        gcode << " " << m_extrusion_axis << E_NUM(m_extruder->E());
     COMMENT(comment);
     gcode << "\n";
     return gcode.str();
@@ -421,8 +423,10 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     std::ostringstream gcode;
     gcode << "G1 X" << XYZF_NUM(point(0))
           <<   " Y" << XYZF_NUM(point(1))
-          <<   " Z" << XYZF_NUM(point(2))
-          <<    " " << m_extrusion_axis << E_NUM(m_extruder->E());
+          <<   " Z" << XYZF_NUM(point(2));
+    if (! m_extrusion_axis.empty())
+        // not gcfNoExtrusion
+        gcode << " " << m_extrusion_axis << E_NUM(m_extruder->E());
     COMMENT(comment);
     gcode << "\n";
     return gcode.str();
@@ -474,7 +478,7 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
                 gcode << "G22 ; retract\n";
             else
                 gcode << "G10 ; retract\n";
-        } else {
+        } else if (! m_extrusion_axis.empty()) {
             gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E())
                            << " F" << XYZF_NUM(m_extruder->retract_speed() * 60.);
             COMMENT(comment);
@@ -503,7 +507,7 @@ std::string GCodeWriter::unretract()
             else
                  gcode << "G11 ; unretract\n";
             gcode << this->reset_e();
-        } else {
+        } else if (! m_extrusion_axis.empty()) {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
             gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E())
                            << " F" << XYZF_NUM(m_extruder->deretract_speed() * 60.);

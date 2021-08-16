@@ -706,7 +706,9 @@ void AMFParserContext::endElement(const char * /* name */)
 
     case NODE_TYPE_METADATA:
         if ((m_config != nullptr) && strncmp(m_value[0].c_str(), SLIC3R_CONFIG_TYPE, strlen(SLIC3R_CONFIG_TYPE)) == 0) {
-            m_config->load_from_gcode_string(m_value[1].c_str(), *m_config_substitutions);
+            //FIXME Loading a "will be one day a legacy format" of configuration in a form of a G-code comment.
+            // Each config line is prefixed with a semicolon (G-code comment), that is ugly.
+            m_config_substitutions->substitutions = m_config->load_from_ini_string_commented(std::move(m_value[1].c_str()), m_config_substitutions->rule);
         }
         else if (strncmp(m_value[0].c_str(), "slic3r.", 7) == 0) {
             const char *opt_key = m_value[0].c_str() + 7;

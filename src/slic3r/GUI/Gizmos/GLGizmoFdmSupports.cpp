@@ -67,8 +67,8 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     render_triangles(selection);
-
     m_c->object_clipper()->render_cut();
+    m_c->instances_hider()->render_cut();
     render_cursor();
 
     glsafe(::glDisable(GL_BLEND));

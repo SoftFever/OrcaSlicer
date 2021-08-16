@@ -875,7 +875,9 @@ namespace Slic3r {
                 add_error("Error while reading config data to buffer");
                 return;
             }
-            config.load_from_gcode_string(buffer.data(), config_substitutions);
+            //FIXME Loading a "will be one day a legacy format" of configuration in a form of a G-code comment.
+            // Each config line is prefixed with a semicolon (G-code comment), that is ugly.
+            config_substitutions.substitutions = config.load_from_ini_string_commented(std::move(buffer), config_substitutions.rule);
         }
     }
 

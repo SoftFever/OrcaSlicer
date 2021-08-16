@@ -35,18 +35,24 @@ public:
 		R_INCOMPAT_CONFIGURED,
 		R_UPDATE_INSTALLED,
 		R_UPDATE_REJECT,
-		R_UPDATE_NOTIFICATION
+		R_UPDATE_NOTIFICATION,
+		R_ALL_CANCELED
+	};
+
+	enum class UpdateParams {
+		SHOW_TEXT_BOX,				// force modal textbox
+		SHOW_NOTIFICATION,			// only shows notification
+		FORCED_BEFORE_WIZARD		// indicates that check of updated is forced before ConfigWizard opening
 	};
 
 	// If updating is enabled, check if updates are available in cache, if so, ask about installation.
 	// A false return value implies Slic3r should exit due to incompatibility of configuration.
 	// Providing old slic3r version upgrade profiles on upgrade of an application even in case
 	// that the config index installed from the Internet is equal to the index contained in the installation package.
-	// no_notification = force modal textbox, otherwise some cases only shows notification
-	UpdateResult config_update(const Semver &old_slic3r_version, bool no_notification) const;
+	UpdateResult config_update(const Semver &old_slic3r_version, UpdateParams params) const;
 
 	// "Update" a list of bundles from resources (behaves like an online update).
-	void install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot = true) const;
+	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot = true) const;
 
 	void on_update_notification_confirm();
 private:

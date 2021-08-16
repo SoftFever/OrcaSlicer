@@ -8,6 +8,7 @@
 #include <string>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/any.hpp>
 
 #if __APPLE__
@@ -21,6 +22,7 @@
 
 #include "AboutDialog.hpp"
 #include "MsgDialog.hpp"
+#include "format.hpp"
 
 #include "libslic3r/Print.hpp"
 
@@ -241,6 +243,127 @@ void warning_catcher(wxWindow* parent, const wxString& message)
 {
 	//wxMessageDialog msg(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
 	MessageDialog msg(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
+	msg.ShowModal();
+}
+
+static wxString bold(const wxString& str)
+{
+	return wxString::Format("<b>%s</b>", str);
+};
+
+static wxString bold_string(const wxString& str) 
+{ 
+	return wxString::Format("<b>\"%s\"</b>", str); 
+};
+
+static void add_config_substitutions(const ConfigSubstitutions& conf_substitutions, wxString& changes)
+{
+	changes += "<table>";
+	for (const ConfigSubstitution& conf_substitution : conf_substitutions) {
+		wxString new_val;
+		const ConfigOptionDef* def = conf_substitution.opt_def;
+		if (!def)
+			continue;
+		switch (def->type) {
+		case coEnum:
+		{
+			const std::vector<std::string>& labels = def->enum_labels;
+			const std::vector<std::string>& values = def->enum_values;
+			int val = conf_substitution.new_value->getInt();
+
+			bool is_infill = def->opt_key == "top_fill_pattern"	   ||
+							 def->opt_key == "bottom_fill_pattern" ||
+							 def->opt_key == "fill_pattern";
+
+			// Each infill doesn't use all list of infill declared in PrintConfig.hpp.
+			// So we should "convert" val to the correct one
+			if (is_infill) {
+				for (const auto& key_val : *def->enum_keys_map)
+					if ((int)key_val.second == val) {
+						auto it = std::find(values.begin(), values.end(), key_val.first);
+						if (it == values.end())
+							break;
+						auto idx = it - values.begin();
+						new_val = wxString("\"") + values[idx] + "\"" + " (" + from_u8(_utf8(labels[idx])) + ")";
+						break;
+					}
+				if (new_val.IsEmpty()) {
+					assert(false);
+					new_val = _L("Undefined");
+				}
+			}
+			else
+				new_val = wxString("\"") + values[val] + "\"" + " (" + from_u8(_utf8(labels[val])) + ")";
+			break;
+		}
+		case coBool:
+			new_val = conf_substitution.new_value->getBool() ? "true" : "false";
+			break;
+		case coBools:
+			if (conf_substitution.new_value->nullable())
+				for (const char v : static_cast<const ConfigOptionBoolsNullable*>(conf_substitution.new_value.get())->values)
+					new_val += std::string(v == ConfigOptionBoolsNullable::nil_value() ? "nil" : v ? "true" : "false") + ", ";
+			else
+				for (const char v : static_cast<const ConfigOptionBools*>(conf_substitution.new_value.get())->values)
+					new_val += std::string(v ? "true" : "false") + ", ";
+			if (! new_val.empty())
+				new_val.erase(new_val.begin() + new_val.size() - 2, new_val.end());
+			break;
+		default:
+			assert(false);
+		}
+
+		changes += format_wxstr("<tr><td><b>\"%1%\" (%2%)</b></td><td>: ", def->opt_key, _(def->label)) +
+				   format_wxstr(_L("%1% was substituted with %2%"), bold_string(conf_substitution.old_value), bold(new_val)) + 
+				   "</td></tr>";
+	}
+	changes += "</table>";
+}
+
+static wxString substitution_message(const wxString& changes)
+{
+	return
+		_L("Most likely the configuration was produced by a newer version of PrusaSlicer or by some PrusaSlicer fork.") + " " +
+		_L("The following values were substituted:") + "\n" + changes + "\n\n" +
+		_L("Review the substitutions and adjust them if needed.");
+}
+
+void show_substitutions_info(const PresetsConfigSubstitutions& presets_config_substitutions) 
+{
+	wxString changes;
+
+	auto preset_type_name = [](Preset::Type type) {
+		switch (type) {
+			case Preset::TYPE_PRINT:			return _L("Print settings");
+			case Preset::TYPE_SLA_PRINT:		return _L("SLA print settings");
+			case Preset::TYPE_FILAMENT:			return _L("Filament");
+			case Preset::TYPE_SLA_MATERIAL:		return _L("SLA material");
+			case Preset::TYPE_PRINTER: 			return _L("Printer");
+			case Preset::TYPE_PHYSICAL_PRINTER:	return _L("Physical Printer");
+			default: assert(false);				return wxString();
+		}
+	};
+
+	for (const PresetConfigSubstitutions& substitution : presets_config_substitutions) {
+		changes += "\n\n" + format_wxstr("%1% : %2%", preset_type_name(substitution.preset_type), bold_string(substitution.preset_name));
+		if (!substitution.preset_file.empty())
+			changes += format_wxstr(" (%1%)", substitution.preset_file);
+
+		add_config_substitutions(substitution.substitutions, changes);
+	}
+
+	InfoDialog msg(nullptr, _L("Configuration bundle was loaded, however some configuration values were not recognized."), substitution_message(changes));
+	msg.ShowModal();
+}
+
+void show_substitutions_info(const ConfigSubstitutions& config_substitutions, const std::string& filename)
+{
+	wxString changes = "\n";
+	add_config_substitutions(config_substitutions, changes);
+
+	InfoDialog msg(nullptr, 
+		format_wxstr(_L("Configuration file \"%1%\" was loaded, however some configuration values were not recognized."), from_u8(filename)), 
+		substitution_message(changes));
 	msg.ShowModal();
 }
 
