@@ -957,6 +957,48 @@ int its_compactify_vertices(indexed_triangle_set &its, bool shrink_to_fit)
     return removed;
 }
 
+bool its_store_triangle(const indexed_triangle_set &its,
+                        const char *                obj_filename,
+                        size_t                      triangle_index)
+{
+    if (its.indices.size() <= triangle_index) return false;
+    Vec3i                t = its.indices[triangle_index];
+    indexed_triangle_set its2;
+    its2.indices  = {{0, 1, 2}};
+    its2.vertices = {its.vertices[t[0]], its.vertices[t[1]],
+                     its.vertices[t[2]]};
+    return its_write_obj(its2, obj_filename);
+}
+
+bool its_store_triangles(const indexed_triangle_set &its,
+                         const char *                obj_filename,
+                         const std::vector<size_t> & triangles)
+{
+    indexed_triangle_set its2;
+    its2.vertices.reserve(triangles.size() * 3);
+    its2.indices.reserve(triangles.size());
+    std::map<size_t, size_t> vertex_map;
+    for (auto ti : triangles) {
+        if (its.indices.size() <= ti) return false;
+        Vec3i t = its.indices[ti];
+        Vec3i new_t;
+        for (size_t i = 0; i < 3; ++i) {
+            size_t vi = t[i];
+            auto   it = vertex_map.find(vi);
+            if (it != vertex_map.end()) {
+                new_t[i] = it->second;
+                continue;
+            }
+            size_t new_vi = its2.vertices.size();
+            its2.vertices.push_back(its.vertices[vi]);
+            vertex_map[vi] = new_vi;
+            new_t[i]       = new_vi;
+        }
+        its2.indices.push_back(new_t);
+    }
+    return its_write_obj(its2, obj_filename);
+}
+
 void its_shrink_to_fit(indexed_triangle_set &its)
 {
     its.indices.shrink_to_fit();
