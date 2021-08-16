@@ -165,29 +165,51 @@ std::vector<Vec3f> its_sample_surface(const indexed_triangle_set &its,
 
 #include "libslic3r/AABBTreeIndirect.hpp"
 
-// return Average abs distance to original
-float compare(const indexed_triangle_set &original,
-              const indexed_triangle_set &simplified,
-              double                      sample_per_mm2)
+struct CompareConfig
+{
+    float max_distance = 3.f;
+    float max_average_distance = 2.f;
+};
+
+bool is_similar(const indexed_triangle_set &from,
+             const indexed_triangle_set &to,
+             const CompareConfig &cfg)
 {
     // create ABBTree
     auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
-        original.vertices, original.indices);
+        from.vertices, from.indices);
+    float sum_distance = 0.f;
+    float max_distance = 0.f;
 
-    unsigned int init = 0;
-    std::mt19937 rnd(init);
-    auto samples = its_sample_surface(simplified, sample_per_mm2, rnd);
-
-    float sumDistance = 0;
-    for (const Vec3f &sample : samples) { 
+    auto  collect_distances = [&](const Vec3f &surface_point) {
         size_t hit_idx;
         Vec3f  hit_point;
-        float distance2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
-            original.vertices, original.indices, tree, sample, hit_idx,
-            hit_point);
-        sumDistance += sqrt(distance2);
+        float  distance2 =
+            AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                from.vertices, from.indices, tree, surface_point, hit_idx, hit_point);
+        float distance = sqrt(distance2);
+        if (max_distance < distance) max_distance = distance;
+        sum_distance += distance;
+    };
+
+    for (const Vec3f &vertex : to.vertices) { 
+        collect_distances(vertex);
     }
-    return sumDistance / samples.size();
+
+    for (const Vec3i &t : to.indices) {
+        Vec3f center(0,0,0);
+        for (size_t i = 0; i < 3; ++i) { 
+            center += to.vertices[t[i]] / 3;
+        }
+        collect_distances(center);
+    }
+
+    size_t count        = to.vertices.size() + to.indices.size();
+    float avg_distance = sum_distance / count;
+    if (avg_distance > cfg.max_average_distance || 
+        max_distance > cfg.max_distance)
+        return false;
+    return true;
 }
 
 TEST_CASE("Reduce one edge by Quadric Edge Collapse", "[its]")
@@ -226,8 +248,12 @@ TEST_CASE("Reduce one edge by Quadric Edge Collapse", "[its]")
                           (v[i] > v4[i] && v[i] < v2[i]);
         CHECK(is_between);
     }
-    float avg_distance = compare(its_, its, 10);
-    CHECK(avg_distance < 8e-3f);
+    CompareConfig cfg;
+    cfg.max_average_distance = 0.014f;
+    cfg.max_distance         = 0.75f;
+
+    CHECK(is_similar(its, its_, cfg));
+    CHECK(is_similar(its_, its, cfg));
 }
 
 #include "test_utils.hpp"
@@ -244,8 +270,13 @@ TEST_CASE("Simplify mesh by Quadric edge collapse to 5%", "[its]")
     CHECK(its.indices.size() <= wanted_count);
     double volume = its_volume(its);
     CHECK(fabs(original_volume - volume) < 33.);
-    float avg_distance = compare(mesh.its, its, 10);
-    CHECK(avg_distance < 0.022f); // 0.02022 | 0.0199614074
+
+    CompareConfig cfg;
+    cfg.max_average_distance = 0.043f;
+    cfg.max_distance         = 0.32f;
+
+    CHECK(is_similar(mesh.its, its, cfg));
+    CHECK(is_similar(its, mesh.its, cfg));
 }
 
 TEST_CASE("Simplify trouble case", "[its]")
