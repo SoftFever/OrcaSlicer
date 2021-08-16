@@ -53,10 +53,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     const int max_char_in_name = 25;
     create_gui_cfg();
 
-    int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
-               ImGuiWindowFlags_NoCollapse;
-    m_imgui->begin(on_get_name(), flag);
-
     const Selection &selection = m_parent.get_selection();
     int object_idx = selection.get_object_idx();
     ModelObject *obj = wxGetApp().plater()->model().objects[object_idx];
@@ -65,6 +61,12 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     // Check selection of new volume
     // Do not reselect object when processing 
     if (act_volume != volume && state == State::settings) {
+        bool change_window_position = (volume == nullptr);
+        // select different model
+        if (volume != nullptr && original_its.has_value()) {
+            set_its(*original_its);
+        }
+
         obj_index = object_idx; // to remember correct object
         volume = act_volume;
         original_its = {};
@@ -72,12 +74,29 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         c.wanted_percent = 50.;  // default value
         c.update_percent(tm.its.indices.size());
         is_valid_result = false;
-        // set window position
-        ImVec2 pos = ImGui::GetMousePos();
-        pos.x -= gui_cfg->window_offset;
-        pos.y -= gui_cfg->window_offset;
-        ImGui::SetWindowPos(pos, ImGuiCond_Always);
+
+        if (change_window_position) {
+            ImVec2 pos = ImGui::GetMousePos();
+            pos.x -= gui_cfg->window_offset;
+            pos.y -= gui_cfg->window_offset;
+            // minimal top left value
+            ImVec2 tl(gui_cfg->window_padding, gui_cfg->window_padding);
+            if (pos.x < tl.x) pos.x = tl.x;
+            if (pos.y < tl.y) pos.y = tl.y;
+            // maximal bottom right value
+            auto parent_size = m_parent.get_canvas_size();
+            ImVec2 br(
+                parent_size.get_width() - (2 * gui_cfg->window_offset + gui_cfg->window_padding), 
+                parent_size.get_height() - (2 * gui_cfg->window_offset + gui_cfg->window_padding));
+            if (pos.x > br.x) pos.x = br.x;
+            if (pos.y > br.y) pos.y = br.y;
+            ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
+        }
     }
+
+    int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
+               ImGuiWindowFlags_NoCollapse;
+    m_imgui->begin(on_get_name(), flag);
 
     size_t triangle_count = volume->mesh().its.indices.size();
     // already reduced mesh
@@ -211,8 +230,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 }
 
 void GLGizmoSimplify::close() {
-    volume = nullptr;
-    
     // close gizmo == open it again
     GLGizmosManager &gizmos_mgr = m_parent.get_gizmos_manager();
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
@@ -291,6 +308,14 @@ void GLGizmoSimplify::set_its(indexed_triangle_set &its) {
 bool GLGizmoSimplify::on_is_activable() const
 {
     return !m_parent.get_selection().is_empty();
+}
+
+void GLGizmoSimplify::on_set_state() 
+{ 
+    // Closing gizmo. e.g. selecting another one
+    if (m_state == GLGizmoBase::Off) {
+        volume = nullptr;            
+    }
 }
 
 void GLGizmoSimplify::create_gui_cfg() { 
