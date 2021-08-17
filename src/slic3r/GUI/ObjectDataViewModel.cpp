@@ -1141,7 +1141,7 @@ void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type
     if (!node || 
         node->GetIdx() <-1 || 
         ( node->GetIdx() == -1 && 
-         !(node->GetType() & (itObject | itSettings | itInstanceRoot | itLayerRoot/* | itLayer*/))
+         !(node->GetType() & (itObject | itSettings | itInstanceRoot | itLayerRoot | itInfo))
         )
        )
         return;
