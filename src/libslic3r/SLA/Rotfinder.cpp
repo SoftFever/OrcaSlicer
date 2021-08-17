@@ -105,16 +105,13 @@ inline double get_supportedness_score(const Facestats &fc)
     float cosphi = fc.normal.dot(DOWN);
     float phi = 1.f - std::acos(cosphi) / float(PI);
 
-    // Phi is raised by 1.0 to not be less than zero when squared in the next
-    // step. If phi is greater than 0.5 (slope is > 90 deg) make phi zero
-    // to not skip this face in the overall score.
-    phi = (1.f + phi) * (phi >= 0.5f);
-
     // Make the huge slopes more significant than the smaller slopes
-    phi = phi * phi;
+    phi = phi * phi * phi;
 
-    // Multiply with the area of the current face
-    return fc.area * POINTS_PER_UNIT_AREA * phi;
+    // Multiply with the square root of face area of the current face,
+    // the area is less important as it grows.
+    // This makes many smaller overhangs a bigger impact.
+    return std::sqrt(fc.area) * POINTS_PER_UNIT_AREA * phi;
 }
 
 // Try to guess the number of support points needed to support a mesh
@@ -124,7 +121,6 @@ double get_supportedness_score(const TriangleMesh &mesh, const Transform3f &tr)
 
     auto accessfn = [&mesh, &tr](size_t fi) {
         Facestats fc{get_transformed_triangle(mesh, tr, fi)};
-
         return scaled<int_fast64_t>(get_supportedness_score(fc));
     };
 
@@ -349,7 +345,7 @@ Vec2d find_best_misalignment_rotation(const ModelObject &      mo,
     // We are searching rotations around only two axes x, y. Thus the
     // problem becomes a 2 dimensional optimization task.
     // We can specify the bounds for a dimension in the following way:
-    auto bounds = opt::bounds({ {-PI/2, PI/2}, {-PI/2, PI/2} });
+    auto bounds = opt::bounds({ {-PI, PI}, {-PI, PI} });
 
     auto result = solver.to_max().optimize(
         [&mesh, &statusfn] (const XYRotation &rot)

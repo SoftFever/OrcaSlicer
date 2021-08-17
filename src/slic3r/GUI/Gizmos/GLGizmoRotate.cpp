@@ -512,7 +512,7 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
     y = std::min(y, alignment.bottom_limit - win_h);
     ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
 
-    ImGui::PushItemWidth(200.f);
+    ImGui::PushItemWidth(300.f);
 
     if (ImGui::BeginCombo(_L("Choose goal").c_str(), RotoptimizeJob::get_method_name(state.method_id).c_str())) {
         for (size_t i = 0; i < RotoptimizeJob::get_methods_count(); ++i) {
