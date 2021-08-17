@@ -10,26 +10,7 @@ namespace Slic3r {
 namespace GUI {
 
 class GLGizmoSimplify : public GLGizmoBase
-{
-    enum class State {
-        settings,
-        simplifying, // start processing
-        canceling, // canceled
-        successfull, // successful simplified
-        close_on_end
-    } state;
-
-    bool is_valid_result; // differ what to do in apply
-    int progress;
-    
-    ModelVolume *volume;
-    size_t obj_index;
-    std::optional<indexed_triangle_set> original_its;
-
-    std::optional<float> last_error; // for use previous reduction
-
-    bool need_reload; // after simplify, glReload must be on main thread
-    std::thread worker;
+{    
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     virtual ~GLGizmoSimplify();
@@ -47,6 +28,28 @@ private:
     void close();
     void process();
     void set_its(indexed_triangle_set &its);
+    void create_gui_cfg();
+
+    bool m_is_valid_result; // differ what to do in apply
+    volatile int m_progress; // percent of done work
+    ModelVolume *m_volume; // 
+    size_t m_obj_index;
+
+    std::optional<indexed_triangle_set> m_original_its;
+    std::optional<float> m_last_error; // for use previous reduction
+
+    volatile bool m_need_reload; // after simplify, glReload must be on main thread
+    std::thread m_worker;
+
+    enum class State {
+        settings,
+        simplifying, // start processing
+        canceling, // canceled
+        successfull, // successful simplified
+        close_on_end
+    };
+    volatile State m_state;
+
     struct Configuration
     {
         bool use_count = true;
@@ -67,7 +70,7 @@ private:
             wanted_count = static_cast<uint32_t>(
                 std::round(triangle_count * wanted_percent / 100.f));
         }
-    } c;
+    } m_configuration;
 
     // This configs holds GUI layout size given by translated texts.
     // etc. When language changes, GUI is recreated and this class constructed again,
@@ -81,8 +84,7 @@ private:
         int window_offset     = 100;
         int window_padding    = 0;
     };
-    std::optional<GuiCfg> gui_cfg;
-    void create_gui_cfg();
+    std::optional<GuiCfg> m_gui_cfg;
 };
 
 } // namespace GUI
