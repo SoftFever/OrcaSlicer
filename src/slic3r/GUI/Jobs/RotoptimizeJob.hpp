@@ -21,13 +21,13 @@ class RotoptimizeJob : public PlaterJob
         = {{L("Best surface quality"),
             sla::find_best_misalignment_rotation,
             L("Optimize object rotation for best surface quality.")},
-           {L("Least supports"),
+           {L("Reduced overhang slopes"),
             sla::find_least_supports_rotation,
             L("Optimize object rotation to have minimum amount of overhangs needing support "
               "structures.\nNote that this method will try to find the best surface of the object "
               "for touching the print bed if no elevation is set.")},
            // Just a min area bounding box that is done for all methods anyway.
-           {L("Z axis only"),
+           {L("Smallest bounding box (Z axis only)"),
             nullptr,
             L("Rotate the object only in Z axis to have the smallest bounding box.")}};
 
