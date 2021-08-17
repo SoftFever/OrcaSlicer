@@ -36,17 +36,18 @@ private:
     size_t m_obj_index;
 
     std::optional<indexed_triangle_set> m_original_its;
+
     std::optional<float> m_last_error; // for use previous reduction
+    std::optional<uint32_t> m_last_count;
 
     volatile bool m_need_reload; // after simplify, glReload must be on main thread
     std::thread m_worker;
 
     enum class State {
         settings,
-        simplifying, // start processing
-        canceling, // canceled
-        successfull, // successful simplified
-        close_on_end
+        preview,      // simplify to show preview
+        close_on_end, // simplify with close on end
+        canceling // after button click, before canceled
     };
     volatile State m_state;
 

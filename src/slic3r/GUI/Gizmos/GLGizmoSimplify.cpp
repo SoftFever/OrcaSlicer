@@ -184,7 +184,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         }
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         if (m_imgui->button(_L("Preview"))) {
-            m_state = State::simplifying;
+            m_state = State::preview;
             // simplify but not aply on mesh
             process();
         }
@@ -263,23 +263,18 @@ void GLGizmoSimplify::process()
             if (m_state == State::canceling) {
                 throw SimplifyCanceledException();
             }
-        };    
+        };
         std::function<void(int)> statusfn = [&](int percent) { 
             m_progress = percent;
             m_parent.schedule_extra_frame(0);
         };
 
         indexed_triangle_set collapsed;
-        if (m_last_error.has_value()) {
-            // is chance to continue with last reduction
-            const indexed_triangle_set &its = m_volume->mesh().its;
-            uint32_t last_triangle_count = static_cast<uint32_t>(its.indices.size());
-            if ((!m_configuration.use_count || triangle_count <= last_triangle_count) && 
-                (!m_configuration.use_error || m_configuration.max_error <= *m_last_error)) {
-                collapsed = its; // small copy
-            } else {
-                collapsed = *m_original_its; // copy
-            }
+        if (m_last_error.has_value() && m_last_count.has_value() &&             
+            (!m_configuration.use_count || triangle_count <= *m_last_count) && 
+            (!m_configuration.use_error || m_configuration.max_error <= *m_last_error)) {
+            // continue from last reduction - speed up
+            collapsed = m_volume->mesh().its; // small copy
         } else {
             collapsed = *m_original_its; // copy
         }
@@ -288,14 +283,14 @@ void GLGizmoSimplify::process()
             its_quadric_edge_collapse(collapsed, triangle_count, &max_error, throw_on_cancel, statusfn);
             set_its(collapsed);
             m_is_valid_result = true;
+            m_last_count = triangle_count; // need to store last requirement, collapsed count could be count-1
             m_last_error = max_error;
         } catch (SimplifyCanceledException &) {
             // set state out of main thread
+            m_last_error = {};
             m_state = State::settings; 
         }
-        // need to render last status fn
-        // without sleep it freezes until mouse move
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        // need to render last status fn to change bar graph to buttons
         m_parent.schedule_extra_frame(0);
     });
 }
