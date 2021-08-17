@@ -1735,7 +1735,16 @@ void TabPrint::update()
 
     m_update_cnt++;
 
-    m_config_manipulation.update_print_fff_config(m_config, true);
+    // see https://github.com/prusa3d/PrusaSlicer/issues/6814
+    // ysFIXME: It's temporary workaround and should be clewer reworked:
+    // Note: This workaround works till "support_material" and "overhangs" is exclusive sets of mutually no-exclusive parameters.
+    // But it should be corrected when we will have more such sets.
+    // Disable check of the compatibility of the "support_material" and "overhangs" options for saved user profile
+    const Preset& selected_preset = m_preset_bundle->prints.get_selected_preset();
+    bool is_user_and_saved_preset = !selected_preset.is_system && !selected_preset.is_dirty;
+    bool support_material_overhangs_queried = m_config->opt_bool("support_material") && !m_config->opt_bool("overhangs");
+
+    m_config_manipulation.update_print_fff_config(m_config, true, is_user_and_saved_preset && support_material_overhangs_queried);
 
     update_description_lines();
     Layout();
