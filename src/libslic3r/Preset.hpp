@@ -592,7 +592,7 @@ public:
 
     const Preset&   default_preset_for(const DynamicPrintConfig &config) const override;
 
-    const Preset*   find_by_model_id(const std::string &model_id) const;
+    const Preset*   find_system_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const;
 
 private:
     PrinterPresetCollection() = default;
