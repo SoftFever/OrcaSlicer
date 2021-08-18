@@ -209,8 +209,13 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 
     m_imgui->end();
 
-    if (cut_clicked && (m_keep_upper || m_keep_lower))
+    if (cut_clicked && (m_keep_upper || m_keep_lower)) {
         perform_cut(m_parent.get_selection());
+        m_cut_contours.cut_z = 0.0f;
+        m_cut_contours.object_idx = -1;
+        m_cut_contours.instance_idx = -1;
+        m_cut_contours.contours.reset();
+    }
 }
 
 void GLGizmoCut::set_cut_z(double cut_z)
@@ -308,9 +313,8 @@ void GLGizmoCut::update_contours()
                 m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
             }
         }
-        else if (box.center() != m_cut_contours.position) {
+        else if (box.center() != m_cut_contours.position)
             m_cut_contours.shift = box.center() - m_cut_contours.position;
-        }
     }
     else
         m_cut_contours.contours.reset();
