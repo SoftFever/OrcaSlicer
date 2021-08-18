@@ -463,9 +463,6 @@ Vec2d find_min_z_height_rotation(const ModelObject &mo,
     inputs.shrink_to_fit();
     bp.max_tries = inputs.size();
 
-    // If the model can be placed on the bed directly, we only need to
-    // check the 3D convex hull face rotations.
-
     auto objfn = [&bp, &chull](const XYRotation &rot) {
         bp.statusfn();
         Transform3f tr = to_transform3f(rot);
