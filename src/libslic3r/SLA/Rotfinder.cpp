@@ -442,4 +442,92 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
     return {rot[0], rot[1]};
 }
 
+inline BoundingBoxf3 bounding_box_with_tr(const indexed_triangle_set& its, const Transform3f &tr)
+{
+    if (its.vertices.empty())
+        return {};
+
+    Vec3f bmin = tr * its.vertices.front(), bmax = tr * its.vertices.front();
+
+    for (const Vec3f &p : its.vertices) {
+        Vec3f pp = tr * p;
+        bmin = pp.cwiseMin(bmin);
+        bmax = pp.cwiseMax(bmax);
+    }
+
+    return {bmin.cast<double>(), bmax.cast<double>()};
+}
+
+Vec2d find_min_z_height_rotation(const ModelObject &mo, const RotOptimizeParams &params)
+{
+    static const unsigned MAX_TRIES = 1000;
+
+    // return value
+    XYRotation rot;
+
+    // We will use only one instance of this converted mesh to examine different
+    // rotations
+    TriangleMesh mesh = get_mesh_to_rotate(mo);
+
+    // To keep track of the number of iterations
+    unsigned status = 0;
+
+    // The maximum number of iterations
+    auto max_tries = unsigned(params.accuracy() * MAX_TRIES);
+
+    auto &statuscb = params.statuscb();
+
+    // call status callback with zero, because we are at the start
+    statuscb(status);
+
+    auto statusfn = [&statuscb, &status, &max_tries] {
+        // report status
+        statuscb(unsigned(++status * 100.0/max_tries) );
+    };
+
+    auto stopcond = [&statuscb] {
+        return ! statuscb(-1);
+    };
+
+    TriangleMesh chull = mesh.convex_hull_3d();
+    chull.require_shared_vertices();
+    auto inputs = reserve_vector<XYRotation>(chull.its.indices.size());
+    auto rotcmp = [](const XYRotation &r1, const XYRotation &r2) {
+        double xdiff = r1[X] - r2[X], ydiff = r1[Y] - r2[Y];
+        return std::abs(xdiff) < EPSILON ? ydiff < 0. : xdiff < 0.;
+    };
+    auto eqcmp = [](const XYRotation &r1, const XYRotation &r2) {
+        double xdiff = r1[X] - r2[X], ydiff = r1[Y] - r2[Y];
+        return std::abs(xdiff) < EPSILON  && std::abs(ydiff) < EPSILON;
+    };
+
+    for (size_t fi = 0; fi < chull.its.indices.size(); ++fi) {
+        Facestats fc{get_triangle_vertices(chull, fi)};
+
+        auto q = Eigen::Quaternionf{}.FromTwoVectors(fc.normal, DOWN);
+        XYRotation rot = from_transform3f(Transform3f::Identity() * q);
+
+        auto it = std::lower_bound(inputs.begin(), inputs.end(), rot, rotcmp);
+
+        if (it == inputs.end() || !eqcmp(*it, rot))
+            inputs.insert(it, rot);
+    }
+
+    inputs.shrink_to_fit();
+    max_tries = inputs.size();
+
+    // If the model can be placed on the bed directly, we only need to
+    // check the 3D convex hull face rotations.
+
+    auto objfn = [&chull, &statusfn](const XYRotation &rot) {
+        statusfn();
+        Transform3f tr = to_transform3f(rot);
+        return bounding_box_with_tr(chull.its, tr).size().z();
+    };
+
+    rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), stopcond);
+
+    return {rot[0], rot[1]};
+}
+
 }} // namespace Slic3r::sla

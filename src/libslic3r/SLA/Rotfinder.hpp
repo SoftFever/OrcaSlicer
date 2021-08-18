@@ -63,7 +63,8 @@ Vec2d find_best_misalignment_rotation(const ModelObject &modelobj,
 Vec2d find_least_supports_rotation(const ModelObject &modelobj,
                                    const RotOptimizeParams & = {});
 
-double find_Z_fit_to_bed_rotation(const ModelObject &mo, const BoundingBox &bed);
+Vec2d find_min_z_height_rotation(const ModelObject &mo,
+                                 const RotOptimizeParams &params = {});
 
 } // namespace sla
 } // namespace Slic3r
