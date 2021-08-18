@@ -5,6 +5,7 @@
 #if ENABLE_SINKING_CONTOURS
 #include "slic3r/GUI/GLModel.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/ObjectID.hpp"
 #endif // ENABLE_SINKING_CONTOURS
 
 namespace Slic3r {
@@ -33,18 +34,8 @@ class GLGizmoCut : public GLGizmoBase
         double cut_z{ 0.0 };
         Vec3d position{ Vec3d::Zero() };
         Vec3d shift{ Vec3d::Zero() };
-        int object_idx{ -1 };
+        ObjectID object_id;
         int instance_idx{ -1 };
-
-        void reset() {
-            mesh.clear();
-            contours.reset();
-            cut_z = 0.0;
-            position = Vec3d::Zero();
-            shift = Vec3d::Zero();
-            object_idx = -1;
-            instance_idx = -1;
-        }
     };
 
     CutContours m_cut_contours;
