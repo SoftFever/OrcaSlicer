@@ -789,8 +789,8 @@ void Preview::update_layers_slider_mode()
                         return false;
 
                     for (ModelVolume* volume : object->volumes)
-                        if (volume->config.has("extruder") &&
-                            volume->config.option("extruder")->getInt() != extruder ||
+                        if ((volume->config.has("extruder") &&
+                            volume->config.option("extruder")->getInt() != extruder) ||
                             !volume->mmu_segmentation_facets.empty())
                             return false;
 

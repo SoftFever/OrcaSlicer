@@ -55,8 +55,15 @@ std::string GLGizmoCut::on_get_name() const
 void GLGizmoCut::on_set_state()
 {
     // Reset m_cut_z on gizmo activation
+#if ENABLE_SINKING_CONTOURS
+    if (get_state() == On) {
+        m_cut_z = bounding_box().center().z();
+        m_cut_contours.reset();
+    }
+#else
     if (get_state() == On)
         m_cut_z = bounding_box().center().z();
+#endif // ENABLE_SINKING_CONTOURS
 }
 
 bool GLGizmoCut::on_is_activable() const
@@ -209,8 +216,12 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 
     m_imgui->end();
 
-    if (cut_clicked && (m_keep_upper || m_keep_lower))
+    if (cut_clicked && (m_keep_upper || m_keep_lower)) {
         perform_cut(m_parent.get_selection());
+#if ENABLE_SINKING_CONTOURS
+        m_cut_contours.reset();
+#endif // ENABLE_SINKING_CONTOURS
+    }
 }
 
 void GLGizmoCut::set_cut_z(double cut_z)
@@ -308,9 +319,8 @@ void GLGizmoCut::update_contours()
                 m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
             }
         }
-        else if (box.center() != m_cut_contours.position) {
+        else if (box.center() != m_cut_contours.position)
             m_cut_contours.shift = box.center() - m_cut_contours.position;
-        }
     }
     else
         m_cut_contours.contours.reset();

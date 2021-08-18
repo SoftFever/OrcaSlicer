@@ -519,7 +519,7 @@ bool SupportTreeBuildsteps::create_ground_pillar(const Vec3d &hjp,
         auto [polar, azimuth] = dir_to_spheric(dir);
         polar = PI - m_cfg.bridge_slope;
         Vec3d d = spheric_to_dir(polar, azimuth).normalized();
-        double t = bridge_mesh_distance(endp, dir, radius);
+        double t = bridge_mesh_distance(endp, d, radius);
         double tmax = std::min(m_cfg.max_bridge_length_mm, t);
         t = 0.;
 

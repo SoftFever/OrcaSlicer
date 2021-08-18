@@ -303,13 +303,16 @@ void GLVolume::SinkingContours::render()
 
 void GLVolume::SinkingContours::update()
 {
-    if (m_parent.is_sinking() && !m_parent.is_below_printbed()) {
+    int object_idx = m_parent.object_idx();
+    Model& model = GUI::wxGetApp().plater()->model();
+
+    if (0 <= object_idx && object_idx < (int)model.objects.size() && m_parent.is_sinking() && !m_parent.is_below_printbed()) {
         const BoundingBoxf3& box = m_parent.transformed_convex_hull_bounding_box();
         if (!m_old_box.size().isApprox(box.size()) || m_old_box.min.z() != box.min.z()) {
             m_old_box = box;
             m_shift = Vec3d::Zero();
 
-            const TriangleMesh& mesh = GUI::wxGetApp().plater()->model().objects[m_parent.object_idx()]->volumes[m_parent.volume_idx()]->mesh();
+            const TriangleMesh& mesh = model.objects[object_idx]->volumes[m_parent.volume_idx()]->mesh();
             assert(mesh.has_shared_vertices());
 
             m_model.reset();

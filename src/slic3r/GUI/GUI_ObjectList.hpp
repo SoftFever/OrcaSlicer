@@ -254,6 +254,7 @@ public:
     void                del_layer_from_object(const int obj_idx, const t_layer_height_range& layer_range);
     void                del_layers_from_object(const int obj_idx);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
+    void                del_info_item(const int obj_idx, InfoItemType type);
     void                split();
     void                merge(bool to_multipart_object);
     void                layers_editing();
