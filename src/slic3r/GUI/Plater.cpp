@@ -4283,6 +4283,12 @@ bool Plater::priv::can_fix_through_netfabb() const
 
 bool Plater::priv::can_simplify() const
 {
+    // is object for simplification selected
+    if (get_selected_object_idx() < 0) return false;
+    // is already opened?
+    if (q->canvas3D()->get_gizmos_manager().get_current_type() ==
+        GLGizmosManager::EType::Simplify)
+        return false;
     return true;
 }
 

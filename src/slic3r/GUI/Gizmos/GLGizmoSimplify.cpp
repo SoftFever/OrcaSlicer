@@ -1,16 +1,13 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoSimplify.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/QuadricEdgeCollapse.hpp"
-
-#include <chrono>
-#include <thread>
 
 namespace Slic3r::GUI {
 
@@ -37,7 +34,6 @@ bool GLGizmoSimplify::on_init()
     //m_shortcut_key = WXK_CONTROL_C;
     return true;
 }
-
 
 std::string GLGizmoSimplify::on_get_name() const
 {
@@ -195,6 +191,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
                 process();
             } else {
                 // use preview and close
+                if (m_original_its.has_value()) {
+                    // fix hollowing, sla support points, modifiers, ...
+                    auto plater = wxGetApp().plater();
+                    plater->changed_mesh(m_obj_index);
+                }
                 close();
             }
         }
@@ -213,18 +214,17 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     if (m_need_reload) { 
         m_need_reload = false;
-
+        bool close_on_end = (m_state == State::close_on_end);
         // Reload visualization of mesh - change VBO, FBO on GPU
         m_parent.reload_scene(true);
-        if (m_state == State::close_on_end) {
+        // set m_state must be before close() !!!
+        m_state = State::settings;
+        if (close_on_end) {
             // fix hollowing, sla support points, modifiers, ...
             auto plater = wxGetApp().plater();
             plater->changed_mesh(m_obj_index);
             close(); 
         }
-
-        // change from simplifying | apply
-        m_state = State::settings;           
         
         // Fix warning icon in object list
         wxGetApp().obj_list()->update_item_error_icon(m_obj_index, -1);
@@ -287,7 +287,6 @@ void GLGizmoSimplify::process()
             m_last_error = max_error;
         } catch (SimplifyCanceledException &) {
             // set state out of main thread
-            m_last_error = {};
             m_state = State::settings; 
         }
         // need to render last status fn to change bar graph to buttons
@@ -310,10 +309,30 @@ bool GLGizmoSimplify::on_is_activable() const
 }
 
 void GLGizmoSimplify::on_set_state() 
-{ 
+{
     // Closing gizmo. e.g. selecting another one
     if (GLGizmoBase::m_state == GLGizmoBase::Off) {
-        m_volume = nullptr;            
+
+        // refuse outgoing during simlification
+        if (m_state != State::settings) {
+            GLGizmoBase::m_state = GLGizmoBase::On;
+            auto notification_manager = wxGetApp().plater()->get_notification_manager();
+            notification_manager->push_notification(
+                NotificationType::CustomNotification,
+                NotificationManager::NotificationLevel::RegularNotification,
+                _u8L("ERROR: Wait until Simplification ends or Cancel process."));
+            return;
+        }
+
+        // revert preview
+        if (m_original_its.has_value()) {
+            set_its(*m_original_its);
+            m_parent.reload_scene(true);
+            m_need_reload = false;
+        }
+
+        // invalidate selected model
+        m_volume = nullptr;
     }
 }
 

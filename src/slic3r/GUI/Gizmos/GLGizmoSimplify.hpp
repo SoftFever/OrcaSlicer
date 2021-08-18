@@ -1,13 +1,19 @@
 #ifndef slic3r_GLGizmoSimplify_hpp_
 #define slic3r_GLGizmoSimplify_hpp_
 
+// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code,
+// which overrides our localization "L" macro.
 #include "GLGizmoBase.hpp"
-#include "libslic3r/Model.hpp"
+#include "admesh/stl.h" // indexed_triangle_set
 #include <thread>
 #include <optional>
 
 namespace Slic3r {
+
+class ModelVolume;
+
 namespace GUI {
+
 
 class GLGizmoSimplify : public GLGizmoBase
 {    
