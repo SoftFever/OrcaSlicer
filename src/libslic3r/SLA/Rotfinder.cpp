@@ -283,64 +283,61 @@ std::array<double, N> find_min_score(Fn &&fn, It from, It to, StopCond &&stopfn)
 
 } // namespace
 
-// Assemble the mesh with the correct transformation to be used in rotation
-// optimization.
-TriangleMesh get_mesh_to_rotate(const ModelObject &mo)
-{
-    TriangleMesh mesh = mo.raw_mesh();
-    mesh.require_shared_vertices();
 
-    ModelInstance *mi = mo.instances[0];
-    auto rotation = Vec3d::Zero();
-    auto offset = Vec3d::Zero();
-    Transform3d trafo_instance = Geometry::assemble_transform(offset,
-                                                              rotation,
-                                                              mi->get_scaling_factor(),
-                                                              mi->get_mirror());
 
-    mesh.transform(trafo_instance);
+template<unsigned MAX_ITER>
+struct RotfinderBoilerplate {
+    static constexpr unsigned MAX_TRIES = MAX_ITER;
 
-    return mesh;
-}
+    int status = 0;
+    TriangleMesh mesh;
+    unsigned max_tries;
+    const RotOptimizeParams &params;
+
+    // Assemble the mesh with the correct transformation to be used in rotation
+    // optimization.
+    static TriangleMesh get_mesh_to_rotate(const ModelObject &mo)
+    {
+        TriangleMesh mesh = mo.raw_mesh();
+        mesh.require_shared_vertices();
+
+        ModelInstance *mi = mo.instances[0];
+        auto rotation = Vec3d::Zero();
+        auto offset = Vec3d::Zero();
+        Transform3d trafo_instance =
+            Geometry::assemble_transform(offset, rotation,
+                                         mi->get_scaling_factor(),
+                                         mi->get_mirror());
+
+        mesh.transform(trafo_instance);
+
+        return mesh;
+    }
+
+    RotfinderBoilerplate(const ModelObject &mo, const RotOptimizeParams &p)
+        : mesh{get_mesh_to_rotate(mo)}
+        , params{p}
+        , max_tries(p.accuracy() * MAX_TRIES)
+    {
+
+    }
+
+    void statusfn() { params.statuscb()(++status * 100.0 / max_tries); }
+    bool stopcond() { return ! params.statuscb()(-1); }
+};
 
 Vec2d find_best_misalignment_rotation(const ModelObject &      mo,
                                       const RotOptimizeParams &params)
 {
-    static constexpr unsigned MAX_TRIES = 1000;
-
-    // return value
-    XYRotation rot;
-
-    // We will use only one instance of this converted mesh to examine different
-    // rotations
-    TriangleMesh mesh = get_mesh_to_rotate(mo);
-
-    // To keep track of the number of iterations
-    int status = 0;
-
-    // The maximum number of iterations
-    auto max_tries = unsigned(params.accuracy() * MAX_TRIES);
-
-    auto &statuscb = params.statuscb();
-
-    // call status callback with zero, because we are at the start
-    statuscb(status);
-
-    auto statusfn = [&statuscb, &status, &max_tries] {
-        // report status
-        statuscb(++status * 100.0/max_tries);
-    };
-
-    auto stopcond = [&statuscb] {
-        return ! statuscb(-1);
-    };
+    RotfinderBoilerplate<1000> bp{mo, params};
 
     // Preparing the optimizer.
-    size_t gridsize = std::sqrt(max_tries);
-    opt::Optimizer<opt::AlgBruteForce> solver(opt::StopCriteria{}
-                                                .max_iterations(max_tries)
-                                                .stop_condition(stopcond),
-                                              gridsize);
+    size_t gridsize = std::sqrt(bp.max_tries);
+    opt::Optimizer<opt::AlgBruteForce> solver(
+        opt::StopCriteria{}.max_iterations(bp.max_tries)
+                           .stop_condition([&bp] { return bp.stopcond(); }),
+        gridsize
+    );
 
     // We are searching rotations around only two axes x, y. Thus the
     // problem becomes a 2 dimensional optimization task.
@@ -348,48 +345,19 @@ Vec2d find_best_misalignment_rotation(const ModelObject &      mo,
     auto bounds = opt::bounds({ {-PI, PI}, {-PI, PI} });
 
     auto result = solver.to_max().optimize(
-        [&mesh, &statusfn] (const XYRotation &rot)
+        [&bp] (const XYRotation &rot)
         {
-            statusfn();
-            return get_misalginment_score(mesh, to_transform3f(rot));
+            bp.statusfn();
+            return get_misalginment_score(bp.mesh, to_transform3f(rot));
         }, opt::initvals({0., 0.}), bounds);
 
-    rot = result.optimum;
-
-    return {rot[0], rot[1]};
+    return {result.optimum[0], result.optimum[1]};
 }
 
 Vec2d find_least_supports_rotation(const ModelObject &      mo,
                                    const RotOptimizeParams &params)
 {
-    static const unsigned MAX_TRIES = 1000;
-
-    // return value
-    XYRotation rot;
-
-    // We will use only one instance of this converted mesh to examine different
-    // rotations
-    TriangleMesh mesh = get_mesh_to_rotate(mo);
-
-    // To keep track of the number of iterations
-    unsigned status = 0;
-
-    // The maximum number of iterations
-    auto max_tries = unsigned(params.accuracy() * MAX_TRIES);
-
-    auto &statuscb = params.statuscb();
-
-    // call status callback with zero, because we are at the start
-    statuscb(status);
-
-    auto statusfn = [&statuscb, &status, &max_tries] {
-        // report status
-        statuscb(unsigned(++status * 100.0/max_tries) );
-    };
-
-    auto stopcond = [&statuscb] {
-        return ! statuscb(-1);
-    };
+    RotfinderBoilerplate<1000> bp{mo, params};
 
     SLAPrintObjectConfig pocfg;
     if (params.print_config())
@@ -397,31 +365,35 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
 
     pocfg.apply(mo.config.get());
 
+    XYRotation rot;
+
     // Different search methods have to be used depending on the model elevation
     if (is_on_floor(pocfg)) {
 
-        std::vector<XYRotation> inputs = get_chull_rotations(mesh, max_tries);
-        max_tries = inputs.size();
+        std::vector<XYRotation> inputs = get_chull_rotations(bp.mesh, bp.max_tries);
+        bp.max_tries = inputs.size();
 
         // If the model can be placed on the bed directly, we only need to
         // check the 3D convex hull face rotations.
 
-        auto objfn = [&mesh, &statusfn](const XYRotation &rot) {
-            statusfn();
+        auto objfn = [&bp](const XYRotation &rot) {
+            bp.statusfn();
             Transform3f tr = to_transform3f(rot);
-            return get_supportedness_onfloor_score(mesh, tr);
+            return get_supportedness_onfloor_score(bp.mesh, tr);
         };
 
-        rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), stopcond);
+        rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), [&bp] {
+            return bp.stopcond();
+        });
 
     } else {
-
         // Preparing the optimizer.
-        size_t gridsize = std::sqrt(max_tries); // 2D grid has gridsize^2 calls
-        opt::Optimizer<opt::AlgBruteForce> solver(opt::StopCriteria{}
-                                                      .max_iterations(max_tries)
-                                                      .stop_condition(stopcond),
-                                                  gridsize);
+        size_t gridsize = std::sqrt(bp.max_tries); // 2D grid has gridsize^2 calls
+        opt::Optimizer<opt::AlgBruteForce> solver(
+            opt::StopCriteria{}.max_iterations(bp.max_tries)
+                               .stop_condition([&bp] { return bp.stopcond(); }),
+            gridsize
+        );
 
         // We are searching rotations around only two axes x, y. Thus the
         // problem becomes a 2 dimensional optimization task.
@@ -429,10 +401,10 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
         auto bounds = opt::bounds({ {-PI, PI}, {-PI, PI} });
 
         auto result = solver.to_min().optimize(
-            [&mesh, &statusfn] (const XYRotation &rot)
+            [&bp] (const XYRotation &rot)
             {
-                statusfn();
-                return get_supportedness_score(mesh, to_transform3f(rot));
+                bp.statusfn();
+                return get_supportedness_score(bp.mesh, to_transform3f(rot));
             }, opt::initvals({0., 0.}), bounds);
 
         // Save the result
@@ -442,7 +414,8 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
     return {rot[0], rot[1]};
 }
 
-inline BoundingBoxf3 bounding_box_with_tr(const indexed_triangle_set& its, const Transform3f &tr)
+inline BoundingBoxf3 bounding_box_with_tr(const indexed_triangle_set &its,
+                                          const Transform3f &tr)
 {
     if (its.vertices.empty())
         return {};
@@ -458,38 +431,12 @@ inline BoundingBoxf3 bounding_box_with_tr(const indexed_triangle_set& its, const
     return {bmin.cast<double>(), bmax.cast<double>()};
 }
 
-Vec2d find_min_z_height_rotation(const ModelObject &mo, const RotOptimizeParams &params)
+Vec2d find_min_z_height_rotation(const ModelObject &mo,
+                                 const RotOptimizeParams &params)
 {
-    static const unsigned MAX_TRIES = 1000;
+    RotfinderBoilerplate<1000> bp{mo, params};
 
-    // return value
-    XYRotation rot;
-
-    // We will use only one instance of this converted mesh to examine different
-    // rotations
-    TriangleMesh mesh = get_mesh_to_rotate(mo);
-
-    // To keep track of the number of iterations
-    unsigned status = 0;
-
-    // The maximum number of iterations
-    auto max_tries = unsigned(params.accuracy() * MAX_TRIES);
-
-    auto &statuscb = params.statuscb();
-
-    // call status callback with zero, because we are at the start
-    statuscb(status);
-
-    auto statusfn = [&statuscb, &status, &max_tries] {
-        // report status
-        statuscb(unsigned(++status * 100.0/max_tries) );
-    };
-
-    auto stopcond = [&statuscb] {
-        return ! statuscb(-1);
-    };
-
-    TriangleMesh chull = mesh.convex_hull_3d();
+    TriangleMesh chull = bp.mesh.convex_hull_3d();
     chull.require_shared_vertices();
     auto inputs = reserve_vector<XYRotation>(chull.its.indices.size());
     auto rotcmp = [](const XYRotation &r1, const XYRotation &r2) {
@@ -514,18 +461,20 @@ Vec2d find_min_z_height_rotation(const ModelObject &mo, const RotOptimizeParams 
     }
 
     inputs.shrink_to_fit();
-    max_tries = inputs.size();
+    bp.max_tries = inputs.size();
 
     // If the model can be placed on the bed directly, we only need to
     // check the 3D convex hull face rotations.
 
-    auto objfn = [&chull, &statusfn](const XYRotation &rot) {
-        statusfn();
+    auto objfn = [&bp, &chull](const XYRotation &rot) {
+        bp.statusfn();
         Transform3f tr = to_transform3f(rot);
         return bounding_box_with_tr(chull.its, tr).size().z();
     };
 
-    rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), stopcond);
+    XYRotation rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), [&bp] {
+        return bp.stopcond();
+    });
 
     return {rot[0], rot[1]};
 }
