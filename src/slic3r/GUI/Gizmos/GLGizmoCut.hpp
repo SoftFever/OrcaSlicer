@@ -35,6 +35,16 @@ class GLGizmoCut : public GLGizmoBase
         Vec3d shift{ Vec3d::Zero() };
         int object_idx{ -1 };
         int instance_idx{ -1 };
+
+        void reset() {
+            mesh.clear();
+            contours.reset();
+            cut_z = 0.0;
+            position = Vec3d::Zero();
+            shift = Vec3d::Zero();
+            object_idx = -1;
+            instance_idx = -1;
+        }
     };
 
     CutContours m_cut_contours;
