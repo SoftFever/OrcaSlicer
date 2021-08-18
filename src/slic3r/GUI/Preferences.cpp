@@ -7,6 +7,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include <wx/notebook.h>
 #include "Notebook.hpp"
+#include "ButtonsDescription.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -395,7 +396,8 @@ void PreferencesDialog::build(size_t selected_tab)
 	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 	this->Bind(wxEVT_BUTTON, &PreferencesDialog::accept, this, wxID_OK);
 
-	wxGetApp().UpdateDlgDarkUI(this, true);
+	for (int id : {wxID_OK, wxID_CANCEL})
+		wxGetApp().UpdateDarkUI(static_cast<wxButton*>(FindWindowById(id, this)));
 
 	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM | wxTOP, 10);
 
@@ -638,32 +640,7 @@ void PreferencesDialog::create_settings_text_color_widget()
 	if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	wxSizer* sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
-	wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2, 5, 5);
-	sizer->Add(grid_sizer, 0, wxEXPAND);
-
-	auto sys_label = new wxStaticText(parent, wxID_ANY, _L("Value is the same as the system value"));
-	sys_label->SetForegroundColour(wxGetApp().get_label_clr_sys());
-	m_sys_colour = new wxColourPickerCtrl(parent, wxID_ANY, wxGetApp().get_label_clr_sys());
-	wxGetApp().UpdateDarkUI(m_sys_colour->GetPickerCtrl(), true);
-	m_sys_colour->Bind(wxEVT_COLOURPICKER_CHANGED, [this, sys_label](wxCommandEvent&) {
-		sys_label->SetForegroundColour(m_sys_colour->GetColour());
-		sys_label->Refresh();
-	});
-	
-	grid_sizer->Add(m_sys_colour, 0, wxALIGN_CENTRE_VERTICAL);
-	grid_sizer->Add(sys_label, 0, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
-
-	auto mod_label = new wxStaticText(parent, wxID_ANY, _L("Value was changed and is not equal to the system value or the last saved preset"));
-	mod_label->SetForegroundColour(wxGetApp().get_label_clr_modified());
-	m_mod_colour = new wxColourPickerCtrl(parent, wxID_ANY, wxGetApp().get_label_clr_modified());
-	wxGetApp().UpdateDarkUI(m_mod_colour->GetPickerCtrl(), true);
-	m_mod_colour->Bind(wxEVT_COLOURPICKER_CHANGED, [this, mod_label](wxCommandEvent&) {
-		mod_label->SetForegroundColour(m_mod_colour->GetColour());
-		mod_label->Refresh();
-	});
-
-	grid_sizer->Add(m_mod_colour, 0, wxALIGN_CENTRE_VERTICAL);
-	grid_sizer->Add(mod_label, 0, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
+	ButtonsDescription::FillSizerWithTextColorDescriptions(sizer, parent, &m_sys_colour, &m_mod_colour);
 
 	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND | wxTOP, em_unit());
 }

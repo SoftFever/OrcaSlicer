@@ -179,6 +179,8 @@ public:
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();
+    const wxColour  get_label_default_clr_system();
+    const wxColour  get_label_default_clr_modified();
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
     void            update_label_colours();

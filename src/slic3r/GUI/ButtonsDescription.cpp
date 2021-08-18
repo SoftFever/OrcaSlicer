@@ -12,6 +12,46 @@
 namespace Slic3r {
 namespace GUI {
 
+void ButtonsDescription::FillSizerWithTextColorDescriptions(wxSizer* sizer, wxWindow* parent, wxColourPickerCtrl** sys_colour, wxColourPickerCtrl** mod_colour)
+{
+	wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(3, 5, 5);
+	sizer->Add(grid_sizer, 0, wxEXPAND);
+
+	ScalableBitmap bmp_delete = ScalableBitmap(parent, "cross");
+	ScalableBitmap bmp_delete_focus = ScalableBitmap(parent, "cross_focus");
+
+	auto add_color = [grid_sizer, parent](wxColourPickerCtrl** color_picker, const wxColour& color, const wxColour& def_color, wxString label_text) {
+		//
+		auto sys_label = new wxStaticText(parent, wxID_ANY, label_text);
+		sys_label->SetForegroundColour(color);
+
+		*color_picker = new wxColourPickerCtrl(parent, wxID_ANY, color);
+		wxGetApp().UpdateDarkUI((*color_picker)->GetPickerCtrl(), true);
+		(*color_picker)->Bind(wxEVT_COLOURPICKER_CHANGED, [color_picker, sys_label](wxCommandEvent&) {
+			sys_label->SetForegroundColour((*color_picker)->GetColour());
+			sys_label->Refresh();
+		});
+
+		auto btn = new ScalableButton(parent, wxID_ANY, "undo");
+		btn->SetToolTip(_L("Revert color to default"));
+		btn->Bind(wxEVT_BUTTON, [sys_label, color_picker, def_color](wxEvent& event) {
+			(*color_picker)->SetColour(def_color);
+			sys_label->SetForegroundColour(def_color);
+			sys_label->Refresh();
+		});
+		parent->Bind(wxEVT_UPDATE_UI, [color_picker, def_color](wxUpdateUIEvent& evt) {
+			evt.Enable((*color_picker)->GetColour() != def_color);
+	    }, btn->GetId());
+
+		grid_sizer->Add(*color_picker, 0, wxALIGN_CENTRE_VERTICAL);
+		grid_sizer->Add(btn, 0, wxALIGN_CENTRE_VERTICAL);
+		grid_sizer->Add(sys_label, 0, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
+	};
+
+	add_color(sys_colour, wxGetApp().get_label_clr_sys(),	  wxGetApp().get_label_default_clr_system(),	_L("Value is the same as the system value"));
+	add_color(mod_colour, wxGetApp().get_label_clr_modified(),wxGetApp().get_label_default_clr_modified(),	_L("Value was changed and is not equal to the system value or the last saved preset"));
+}
+
 ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry> &entries) :
 	wxDialog(parent, wxID_ANY, _(L("Buttons And Text Colors Description")), wxDefaultPosition, wxDefaultSize),
 	m_entries(entries)
@@ -35,49 +75,22 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry
 	}
 
 	// Text color description
-	auto sys_label = new wxStaticText(this, wxID_ANY, _(L("Value is the same as the system value")));
-	sys_label->SetForegroundColour(wxGetApp().get_label_clr_sys());
-	auto sys_colour = new wxColourPickerCtrl(this, wxID_ANY, wxGetApp().get_label_clr_sys());
-	wxGetApp().UpdateDarkUI(sys_colour->GetPickerCtrl(), true);
-	sys_colour->Bind(wxEVT_COLOURPICKER_CHANGED, ([sys_colour, sys_label](wxCommandEvent e)
-	{
-		sys_label->SetForegroundColour(sys_colour->GetColour());
-		sys_label->Refresh();
-	}));
-	size_t t= 0;
-	while (t < 3) {
-		grid_sizer->Add(new wxStaticText(this, wxID_ANY, ""), -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
-		++t;
-	}
-	grid_sizer->Add(0, -1, wxALIGN_CENTRE_VERTICAL);
-	grid_sizer->Add(sys_colour, -1, wxALIGN_CENTRE_VERTICAL);
-	grid_sizer->Add(sys_label, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
-
-	auto mod_label = new wxStaticText(this, wxID_ANY, _(L("Value was changed and is not equal to the system value or the last saved preset")));
-	mod_label->SetForegroundColour(wxGetApp().get_label_clr_modified());
-	auto mod_colour = new wxColourPickerCtrl(this, wxID_ANY, wxGetApp().get_label_clr_modified());
-	wxGetApp().UpdateDarkUI(mod_colour->GetPickerCtrl(), true);
-	mod_colour->Bind(wxEVT_COLOURPICKER_CHANGED, ([mod_colour, mod_label](wxCommandEvent e)
-	{
-		mod_label->SetForegroundColour(mod_colour->GetColour());
-		mod_label->Refresh();
-	}));
-	grid_sizer->Add(0, -1, wxALIGN_CENTRE_VERTICAL);
-	grid_sizer->Add(mod_colour, -1, wxALIGN_CENTRE_VERTICAL);
-	grid_sizer->Add(mod_label, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
-	
+	wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+	FillSizerWithTextColorDescriptions(sizer, this, &sys_colour, &mod_colour);
+	main_sizer->Add(sizer, 0, wxEXPAND | wxALL, 20);	
 
 	auto buttons = CreateStdDialogButtonSizer(wxOK|wxCANCEL);
 	main_sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
 
-	wxGetApp().UpdateDlgDarkUI(this, true);
-
 	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
-	btn->Bind(wxEVT_BUTTON, [sys_colour, mod_colour, this](wxCommandEvent&) {
+	btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
 		wxGetApp().set_label_clr_sys(sys_colour->GetColour());
 		wxGetApp().set_label_clr_modified(mod_colour->GetColour());
 		EndModal(wxID_OK);
 		});
+
+	wxGetApp().UpdateDarkUI(btn);
+	wxGetApp().UpdateDarkUI(static_cast<wxButton*>(FindWindowById(wxID_CANCEL, this)));
 
 	SetSizer(main_sizer);
 	main_sizer->SetSizeHints(this);
