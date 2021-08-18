@@ -306,7 +306,7 @@ void GLVolume::SinkingContours::update()
     int object_idx = m_parent.object_idx();
     Model& model = GUI::wxGetApp().plater()->model();
 
-    if (0 <= object_idx && object_idx < (int)model.objects.size() && m_parent.is_sinking() && !m_parent.is_below_printbed()) {
+    if (0 <= object_idx && object_idx < model.objects.size() && m_parent.is_sinking() && !m_parent.is_below_printbed()) {
         const BoundingBoxf3& box = m_parent.transformed_convex_hull_bounding_box();
         if (!m_old_box.size().isApprox(box.size()) || m_old_box.min.z() != box.min.z()) {
             m_old_box = box;
