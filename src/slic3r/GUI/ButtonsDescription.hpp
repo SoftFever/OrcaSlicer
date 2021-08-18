@@ -5,6 +5,7 @@
 #include <vector>
 
 class ScalableBitmap;
+class wxColourPickerCtrl;
 
 namespace Slic3r {
 namespace GUI {
