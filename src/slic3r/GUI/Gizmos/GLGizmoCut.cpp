@@ -282,21 +282,21 @@ void GLGizmoCut::update_contours()
     const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
     const BoundingBoxf3& box = first_glvolume->transformed_convex_hull_bounding_box();
 
-    const int object_idx = selection.get_object_idx();
+    const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
     const int instance_idx = selection.get_instance_idx();
 
     if (0.0 < m_cut_z && m_cut_z < m_max_z) {
-        if (m_cut_contours.cut_z != m_cut_z || m_cut_contours.object_idx != object_idx || m_cut_contours.instance_idx != instance_idx) {
+        if (m_cut_contours.cut_z != m_cut_z || m_cut_contours.object_id != model_object->id() || m_cut_contours.instance_idx != instance_idx) {
             m_cut_contours.cut_z = m_cut_z;
 
-            if (m_cut_contours.object_idx != object_idx) {
-                m_cut_contours.mesh = wxGetApp().plater()->model().objects[object_idx]->raw_mesh();
+            if (m_cut_contours.object_id != model_object->id()) {
+                m_cut_contours.mesh = model_object->raw_mesh();
                 m_cut_contours.mesh.repair();
             }
 
             m_cut_contours.position = box.center();
             m_cut_contours.shift = Vec3d::Zero();
-            m_cut_contours.object_idx = object_idx;
+            m_cut_contours.object_id = model_object->id();
             m_cut_contours.instance_idx = instance_idx;
             m_cut_contours.contours.reset();
 
