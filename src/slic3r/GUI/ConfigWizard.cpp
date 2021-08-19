@@ -494,7 +494,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
 {
     welcome_text->Hide();
     cbox_reset->Hide();
-#ifdef __linux__
+#if defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION) 
     if (!DesktopIntegrationDialog::is_integrated())
         cbox_integrate->Show(true);
     else
