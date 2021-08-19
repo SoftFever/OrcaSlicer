@@ -242,6 +242,11 @@ namespace Slic3r {
             float acceleration; // mm/s^2
             // hard limit for the acceleration, to which the firmware will clamp.
             float max_acceleration; // mm/s^2
+#if ENABLE_RETRACT_ACCELERATION
+            float retract_acceleration; // mm/s^2
+            // hard limit for the acceleration, to which the firmware will clamp.
+            float max_retract_acceleration; // mm/s^2
+#endif // ENABLE_RETRACT_ACCELERATION
             float travel_acceleration; // mm/s^2
             // hard limit for the travel acceleration, to which the firmware will clamp.
             float max_travel_acceleration; // mm/s^2
@@ -669,6 +674,9 @@ namespace Slic3r {
         float get_axis_max_acceleration(PrintEstimatedStatistics::ETimeMode mode, Axis axis) const;
         float get_axis_max_jerk(PrintEstimatedStatistics::ETimeMode mode, Axis axis) const;
         float get_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode) const;
+#if ENABLE_RETRACT_ACCELERATION
+        void  set_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value);
+#endif // ENABLE_RETRACT_ACCELERATION
         float get_acceleration(PrintEstimatedStatistics::ETimeMode mode) const;
         void  set_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value);
         float get_travel_acceleration(PrintEstimatedStatistics::ETimeMode mode) const;
