@@ -3020,8 +3020,6 @@ float GCodeProcessor::get_retract_acceleration(PrintEstimatedStatistics::ETimeMo
 #if ENABLE_RETRACT_ACCELERATION
 void GCodeProcessor::set_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value)
 {
-    std::cout << value << "\n";
-
     size_t id = static_cast<size_t>(mode);
     if (id < m_time_processor.machines.size()) {
         m_time_processor.machines[id].retract_acceleration = (m_time_processor.machines[id].max_retract_acceleration == 0.0f) ? value :
