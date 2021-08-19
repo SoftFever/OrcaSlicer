@@ -405,7 +405,7 @@ else()
     target_link_libraries(libcurl INTERFACE crypt32)
 endif()
 
-if (SLIC3R_STATIC)
+if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL)
     if (NOT APPLE)
         # libcurl is always linked dynamically to the system libcurl on OSX.
         # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
@@ -456,13 +456,13 @@ set(OpenGL_GL_PREFERENCE "LEGACY")
 find_package(OpenGL REQUIRED)
 
 # Find glew or use bundled version
-if (SLIC3R_STATIC)
+if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
     set(GLEW_USE_STATIC_LIBS ON)
     set(GLEW_VERBOSE ON)
 endif()
 
 find_package(GLEW)
-if (NOT GLEW_FOUND)
+if (NOT TARGET GLEW::GLEW)
     message(STATUS "GLEW not found, using bundled version.")
     add_library(glew STATIC ${LIBDIR}/glew/src/glew.c)
     set(GLEW_FOUND TRUE)
