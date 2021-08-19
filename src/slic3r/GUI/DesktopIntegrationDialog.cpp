@@ -13,6 +13,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 #include <wx/filename.h>
 #include <wx/stattext.h>
@@ -133,10 +134,10 @@ void DesktopIntegrationDialog::perform_desktop_integration()
 
     // Path to appimage
     const char *appimage_env = std::getenv("APPIMAGE");
-    std::string appimage_path;
+    std::string excutable_path;
     if (appimage_env) {
         try {
-            appimage_path = boost::filesystem::canonical(boost::filesystem::path(appimage_env)).string();
+            excutable_path = boost::filesystem::canonical(boost::filesystem::path(appimage_env)).string();
         } catch (std::exception &) {            
             BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path.";
             show_error(nullptr, _L("Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."));
@@ -144,10 +145,10 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         }
     } else {
         // not appimage - find executable
-        appimage_path = boost::dll::program_location().string();
-        //appimage_path = wxStandardPaths::Get().GetExecutablePath().string();
-        BOOST_LOG_TRIVIAL(debug) << "non-appimage path to executable: " << appimage_path;
-        if (appimage_path.empty())
+        excutable_path = boost::dll::program_location().string();
+        //excutable_path = wxStandardPaths::Get().GetExecutablePath().string();
+        BOOST_LOG_TRIVIAL(debug) << "non-appimage path to executable: " << excutable_path;
+        if (excutable_path.empty())
         {
             BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - no executable found.";
             show_error(nullptr, _L("Performing desktop integration failed - Could not find executable."));
@@ -155,8 +156,8 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         }
     }
 
-    // Escape ' characters in appimage, other special symbols will be esacaped in desktop file by 'appimage_path'
-    //appimage_path = std::regex_replace(appimage_path, std::regex("\'"), "\\\'");
+    // Escape ' characters in appimage, other special symbols will be esacaped in desktop file by 'excutable_path'
+    boost::replace_all(excutable_path, "'", "'\\''");
 
     // Find directories icons and applications
     // $XDG_DATA_HOME defines the base directory relative to which user specific data files should be stored. 
@@ -249,7 +250,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 "Categories=Graphics;3DGraphics;Engineering;\n"
                 "Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA\n"
                 "StartupNotify=false\n"
-                "StartupWMClass=prusa-slicer", name_suffix, version_suffix, appimage_path);
+                "StartupWMClass=prusa-slicer", name_suffix, version_suffix, excutable_path);
 
             std::string path = GUI::format("%1%/applications/PrusaSlicer%2%.desktop", target_dir_desktop, version_suffix);
             if (create_desktop_file(path, desktop_file)){
@@ -315,7 +316,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         "MimeType=text/x.gcode;\n"
         "Categories=Graphics;3DGraphics;\n"
         "Keywords=3D;Printing;Slicer;\n"
-        "StartupNotify=false", name_suffix, version_suffix, appimage_path);
+        "StartupNotify=false", name_suffix, version_suffix, excutable_path);
 
     std::string desktop_path = GUI::format("%1%/applications/PrusaSlicerGcodeViewer%2%.desktop", target_dir_desktop, version_suffix);
     if (create_desktop_file(desktop_path, desktop_file))
