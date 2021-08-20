@@ -5847,6 +5847,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->sidebar->update_searcher();
             p->sidebar->show_sliced_info_sizer(false);
             p->reset_gcode_toolpaths();
+            p->view3D->get_canvas3d()->reset_sequential_print_clearance();
         }
         else if (opt_key == "bed_shape" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
             bed_shape_changed = true;
