@@ -2362,25 +2362,23 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
                 else if (model.looks_like_saved_in_meters()) {
-                    //wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
                     MessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
-                        "The object in file %s looks like saved in meters.\n"
-                        "Should I consider it as a saved in meters and convert it?",
-                        "Some objects in file %s look like saved in meters.\n"
-                        "Should I consider them as a saved in meters and convert them?", model.objects.size()), from_path(filename)) + "\n",
-                        _L("The object appears to be saved in meters"), wxICON_WARNING | wxYES | wxNO);
+                        "The dimensions of the object from file %s seem to be defined in meters.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
+                        "The dimensions of some objects from file %s seem to be defined in meters.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                        _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES)
                         //FIXME up-scale only the small parts?
                         model.convert_from_meters(true);
                 }
                 else if (model.looks_like_imperial_units()) {
-                    //wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
                     MessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
-                        "The object in file %s looks like saved in inches.\n"
-                        "Should I consider it as a saved in inches and convert it?",
-                        "Some objects in file %s look like saved in inches.\n"
-                        "Should I consider them as a saved in inches and convert them?", model.objects.size()), from_path(filename)) + "\n",
-                        _L("The object appears to be saved in inches"), wxICON_WARNING | wxYES | wxNO);
+                        "The dimensions of the object from file %s seem to be defined in inches.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
+                        "The dimensions of some objects from file %s seem to be defined in inches.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                        _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES)
                         //FIXME up-scale only the small parts?
                         convert_from_imperial_units(model, true);
