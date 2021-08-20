@@ -24,6 +24,7 @@ class FillBedJob : public PlaterJob
 protected:
 
     void prepare() override;
+    void process() override;
 
 public:
     FillBedJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
@@ -34,8 +35,6 @@ public:
     {
         return m_status_range;
     }
-
-    void process() override;
 
     void finalize() override;
 };
