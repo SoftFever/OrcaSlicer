@@ -2028,7 +2028,7 @@ void Control::show_cog_icon_context_menu()
         append_menu_item(&menu, wxID_ANY, _L("Set extruder sequence for the entire print"), "",
             [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
 
-    if (m_mode != MultiExtruder && m_draw_mode == dmRegular)
+    if (GUI::wxGetApp().is_editor() && m_mode != MultiExtruder && m_draw_mode == dmRegular)
         append_menu_item(&menu, wxID_ANY, _L("Set auto color changes"), "",
             [this](wxCommandEvent&) { auto_color_change(); }, "", &menu);
 
