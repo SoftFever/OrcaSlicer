@@ -2408,6 +2408,28 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     return obj_idxs;
             }
 
+            // detection of simplification suggestion
+            const uint32_t triangles_to_suggest_simplify = 1000000;
+            for (const ModelObject *model_object : model.objects) {
+                const indexed_triangle_set &its =
+                    model_object->volumes.front()->mesh().its;
+                uint32_t triangle_count = its.indices.size();
+                if (triangle_count > triangles_to_suggest_simplify) {
+                    std::string text = _u8L("Processing models with more than 1M triangles"
+                        " could be slow. It is highly recommend to reduce amount of triangles.") + "\n";
+                    std::string hypertext = "Simplify mesh.";
+                    std::function<bool(wxEvtHandler *)> action_fn = [&](wxEvtHandler *) {
+                            auto &manager = q->canvas3D()->get_gizmos_manager();
+                            manager.open_gizmo(GLGizmosManager::EType::Simplify);
+                            return true;
+                        };
+                    notification_manager->push_notification(
+                        NotificationType::CustomNotification,
+                        NotificationManager::NotificationLevel::WarningNotification,
+                        _u8L("WARNING:") + "\n" + text, hypertext, action_fn);
+                }
+            }
+
             for (ModelObject* model_object : model.objects) {
                 if (!type_3mf && !type_zip_amf)
                     model_object->center_around_origin(false);
