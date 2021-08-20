@@ -4,7 +4,7 @@
 #include <boost/container/small_vector.hpp>
 
 #ifndef NDEBUG
-    #define EXPENSIVE_DEBUG_CHECKS
+//    #define EXPENSIVE_DEBUG_CHECKS
 #endif // NDEBUG
 
 namespace Slic3r {
