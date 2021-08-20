@@ -157,9 +157,8 @@ void GLGizmoBase::update(const UpdateData& data)
 
 bool GLGizmoBase::update_items_state()
 {
-    std::lock_guard<std::mutex> g(m_dirty_access); 
     bool res = m_dirty;
-    m_dirty = false;
+    m_dirty  = false;
     return res;
 };
 
@@ -218,8 +217,7 @@ std::string GLGizmoBase::format(float value, unsigned int decimals) const
     return Slic3r::string_printf("%.*f", decimals, value);
 }
 
-void GLGizmoBase::set_dirty() { 
-    std::lock_guard<std::mutex> g(m_dirty_access); 
+void GLGizmoBase::set_dirty() {
     m_dirty = true;
 }
 

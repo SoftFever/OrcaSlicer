@@ -1,7 +1,6 @@
 #ifndef slic3r_GLGizmoBase_hpp_
 #define slic3r_GLGizmoBase_hpp_
 
-#include <mutex>
 #include "libslic3r/Point.hpp"
 
 #include "slic3r/GUI/I18N.hpp"
@@ -154,6 +153,8 @@ public:
     bool is_dragging() const { return m_dragging; }
 
     void update(const UpdateData& data);
+
+    // returns True when Gizmo changed its state
     bool update_items_state();
 
     void render() { m_tooltip.clear(); on_render(); }
@@ -190,10 +191,11 @@ protected:
 
     std::string format(float value, unsigned int decimals) const;
 
+    // Mark gizmo as dirty to Re-Render when idle()
     void set_dirty();
-
 private:
-    std::mutex m_dirty_access;
+    // Flag for dirty visible state of Gizmo
+    // When True then need new rendering
     bool m_dirty;
 };
 

@@ -253,7 +253,7 @@ void GLGizmoSimplify::process()
     plater->clear_before_change_mesh(m_obj_index);
     m_progress = 0;
     if (m_worker.joinable()) m_worker.join();
-    m_worker = std::thread([&]() {
+    m_worker = std::thread([this]() {
         // store original triangles        
         uint32_t triangle_count = (m_configuration.use_count) ? m_configuration.wanted_count : 0;
         float    max_error      = (m_configuration.use_error) ? 
@@ -264,10 +264,16 @@ void GLGizmoSimplify::process()
                 throw SimplifyCanceledException();
             }
         };
-        std::function<void(int)> statusfn = [&](int percent) { 
+
+        std::function<void(int)> statusfn = [this](int percent) {
             m_progress = percent;
-            set_dirty();
-            m_parent.schedule_extra_frame(0);
+
+            // check max 4fps
+            static int64_t last = 0;
+            int64_t now = m_parent.timestamp_now();
+            if ((now - last) < 250) return;
+
+            request_rerender();
         };
 
         indexed_triangle_set collapsed;
@@ -290,9 +296,8 @@ void GLGizmoSimplify::process()
             // set state out of main thread
             m_state = State::settings; 
         }
-        // need to render last status fn to change bar graph to buttons
-        set_dirty();
-        m_parent.schedule_extra_frame(0);
+        // need to render last status fn to change bar graph to buttons        
+        request_rerender();
     });
 }
 
@@ -335,6 +340,9 @@ void GLGizmoSimplify::on_set_state()
 
         // invalidate selected model
         m_volume = nullptr;
+    } else if (GLGizmoBase::m_state == GLGizmoBase::On) {
+        // when open by hyperlink it needs to show up
+        request_rerender();
     }
 }
 
@@ -358,6 +366,13 @@ void GLGizmoSimplify::create_gui_cfg() {
     cfg.input_small_width = cfg.input_width * 0.8;
     cfg.window_offset     = cfg.input_width;
     m_gui_cfg = cfg;
+}
+
+void GLGizmoSimplify::request_rerender() {
+    wxGetApp().plater()->CallAfter([this]() {
+        set_dirty();
+        m_parent.schedule_extra_frame(0);
+    });
 }
 
 } // namespace Slic3r::GUI

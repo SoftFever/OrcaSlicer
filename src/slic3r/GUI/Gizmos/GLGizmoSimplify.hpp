@@ -35,6 +35,7 @@ private:
     void process();
     void set_its(indexed_triangle_set &its);
     void create_gui_cfg();
+    void request_rerender();
 
     bool m_is_valid_result; // differ what to do in apply
     volatile int m_progress; // percent of done work
