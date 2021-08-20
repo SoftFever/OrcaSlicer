@@ -1839,11 +1839,17 @@ namespace Slic3r {
 
             Transform3d volume_matrix_to_object = Transform3d::Identity();
             bool        has_transform 		    = false;
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+            bool        is_left_handed          = false;
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
             // extract the volume transformation from the volume's metadata, if present
             for (const Metadata& metadata : volume_data.metadata) {
                 if (metadata.key == MATRIX_KEY) {
                     volume_matrix_to_object = Slic3r::Geometry::transform3d_from_string(metadata.value);
                     has_transform 			= ! volume_matrix_to_object.isApprox(Transform3d::Identity(), 1e-10);
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+                    is_left_handed          = Slic3r::Geometry::Transformation(volume_matrix_to_object).is_left_handed();
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
                     break;
                 }
             }
@@ -1874,6 +1880,13 @@ namespace Slic3r {
 
 			stl_get_size(&stl);
 			triangle_mesh.repair();
+
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+            // PrusaSlicer older than 2.4.0 saved mirrored volumes with reversed winding of the triangles
+            // This caused the call to TriangleMesh::repair() to reverse all the facets because the calculated volume was negative
+            if (is_left_handed && stl.stats.facets_reversed > 0 && stl.stats.facets_reversed == stl.stats.original_num_facets)
+                stl.stats.facets_reversed = 0;
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
 
             if (m_version == 0) {
                 // if the 3mf was not produced by PrusaSlicer and there is only one instance,
@@ -2499,6 +2512,10 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+            bool is_left_handed = volume->is_left_handed();
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+
             VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
             assert(volume_it != volumes_offsets.end());
 
@@ -2513,6 +2530,15 @@ namespace Slic3r {
                 {
                     const Vec3i &idx = its.indices[i];
                     char *ptr = buf;
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+                    boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
+                        " v1=\"" << boost::spirit::int_ <<
+                        "\" v2=\"" << boost::spirit::int_ <<
+                        "\" v3=\"" << boost::spirit::int_ << "\"",
+                        idx[is_left_handed ? 2 : 0] + volume_it->second.first_vertex_id,
+                        idx[1] + volume_it->second.first_vertex_id,
+                        idx[is_left_handed ? 0 : 2] + volume_it->second.first_vertex_id);
+#else
                     boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
                         " v1=\"" << boost::spirit::int_ <<
                         "\" v2=\"" << boost::spirit::int_ <<
@@ -2520,6 +2546,7 @@ namespace Slic3r {
                         idx[0] + volume_it->second.first_vertex_id,
                         idx[1] + volume_it->second.first_vertex_id,
                         idx[2] + volume_it->second.first_vertex_id);
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
                     *ptr = '\0';
                     output_buffer += buf;
                 }

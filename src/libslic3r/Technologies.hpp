@@ -47,6 +47,8 @@
 #define ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER (1 && ENABLE_2_4_0_ALPHA0)
 // Enable drawing contours, at cut level, for sinking volumes
 #define ENABLE_SINKING_CONTOURS (1 && ENABLE_2_4_0_ALPHA0)
+// Enable the fix for exporting and importing to/from 3mf file of mirrored volumes
+#define ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT (1 && ENABLE_2_4_0_ALPHA0)
 
 
 #endif // _prusaslicer_technologies_h_
