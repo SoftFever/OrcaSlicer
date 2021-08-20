@@ -1,6 +1,7 @@
 #ifndef slic3r_GLGizmoBase_hpp_
 #define slic3r_GLGizmoBase_hpp_
 
+#include <mutex>
 #include "libslic3r/Point.hpp"
 
 #include "slic3r/GUI/I18N.hpp"
@@ -153,6 +154,7 @@ public:
     bool is_dragging() const { return m_dragging; }
 
     void update(const UpdateData& data);
+    bool update_items_state();
 
     void render() { m_tooltip.clear(); on_render(); }
     void render_for_picking() { on_render_for_picking(); }
@@ -187,6 +189,12 @@ protected:
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
 
     std::string format(float value, unsigned int decimals) const;
+
+    void set_dirty();
+
+private:
+    std::mutex m_dirty_access;
+    bool m_dirty;
 };
 
 // Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components

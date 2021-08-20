@@ -266,6 +266,7 @@ void GLGizmoSimplify::process()
         };
         std::function<void(int)> statusfn = [&](int percent) { 
             m_progress = percent;
+            set_dirty();
             m_parent.schedule_extra_frame(0);
         };
 
@@ -290,6 +291,7 @@ void GLGizmoSimplify::process()
             m_state = State::settings; 
         }
         // need to render last status fn to change bar graph to buttons
+        set_dirty();
         m_parent.schedule_extra_frame(0);
     });
 }
