@@ -1477,7 +1477,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
         if (! active_print.empty()) 
             prints.select_preset_by_name(active_print, true);
         if (! active_sla_print.empty()) 
-            sla_materials.select_preset_by_name(active_sla_print, true);
+            sla_prints.select_preset_by_name(active_sla_print, true);
         if (! active_sla_material.empty()) 
             sla_materials.select_preset_by_name(active_sla_material, true);
         if (! active_printer.empty())
