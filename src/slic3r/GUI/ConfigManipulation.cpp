@@ -268,7 +268,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("gap_fill_speed", have_perimeters);
 
     for (auto el : { "top_infill_extrusion_width", "top_solid_infill_speed" })
-        toggle_field(el, has_top_solid_infill);
+        toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     for (auto el : { "perimeter_acceleration", "infill_acceleration",
