@@ -96,7 +96,9 @@ enum class NotificationType
 	DidYouKnowHint,
 	// Shows when  ObjectList::update_info_items finds information that should be stressed to the user
 	// Might contain logo taken from gizmos
-	UpdatedItemsInfo
+	UpdatedItemsInfo,
+	// Give user advice to simplify object with big amount of triangles
+	SimplifySuggestion
 };
 
 class NotificationManager
@@ -537,7 +539,14 @@ private:
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
 	// Notification types that can be shown multiple types at once (compared by text)
-	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload, NotificationType::UpdatedItemsInfo };
+	const std::vector<NotificationType> m_multiple_types = { 
+		NotificationType::CustomNotification, 
+		NotificationType::PlaterWarning, 
+		NotificationType::ProgressBar, 
+		NotificationType::PrintHostUpload, 
+		NotificationType::UpdatedItemsInfo,
+        NotificationType::SimplifySuggestion
+	};
 	//prepared (basic) notifications
 	static const NotificationData basic_notifications[];
 };
