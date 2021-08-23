@@ -4878,7 +4878,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
         _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
 
     m_action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
-        static_cast<int>(LoadType::OpenProject) - 1, static_cast<int>(LoadType::LoadConfig)) - 1;
+        static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)) - 1;
 
     wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, _L("Action"));
     if (!wxOSX) action_stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
