@@ -179,6 +179,21 @@ void launch_browser_if_allowed(const std::string& url)
 	if (wxGetApp().app_config->get("suppress_hyperlinks") != "1")
 		wxLaunchDefaultBrowser(url);
 }
+bool pot_exists()
+{
+	return true;
+//	return boost::filesystem::exists(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.pot"));
+}
+void write_pot(const std::vector<std::string>& elements)
+{
+	boost::filesystem::ofstream file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.pot"));
+	
+	for ( const auto &element : elements)
+	{
+		file << "msgid \"" << escape_string_cstyle(element) << "\"\nmsgstr \"\"\n\n";
+	}
+	file.close();
+}
 } //namespace
 
 void HintDatabase::init()
@@ -195,6 +210,8 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 {
 	namespace pt = boost::property_tree;
 	pt::ptree tree;
+	bool create_pot = !pot_exists();
+	std::vector<std::string> pot_elements;
  	boost::nowide::ifstream ifs(path.string());
 	try {
 		pt::read_ini(ifs, tree);
@@ -221,6 +238,8 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 			std::string documentation_link;
 			//unescape text1
 			unescape_string_cstyle(_utf8(dict["text"]), fulltext);
+			if (create_pot)
+				pot_elements.emplace_back(fulltext);
 			// replace <b> and </b> for imgui markers
 			std::string marker_s(1, ImGui::ColorMarkerStart);
 			std::string marker_e(1, ImGui::ColorMarkerEnd);
@@ -319,6 +338,8 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 			}
 		}
 	}
+	if (create_pot)
+		write_pot(pot_elements);
 }
 HintData* HintDatabase::get_hint(bool up)
 {
