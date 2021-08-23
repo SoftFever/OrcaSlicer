@@ -3,6 +3,7 @@
 #include "format.hpp"
 #include "I18N.hpp"
 #include "GUI_ObjectList.hpp"
+#include "GLCanvas3D.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
@@ -305,7 +306,10 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 					m_loaded_hints.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gallery") {
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, []() {  wxGetApp().obj_list()->load_shape_object_from_gallery(); } };
+					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, []() {  
+						// Deselect all objects, otherwise gallery wont show.
+						wxGetApp().plater()->canvas3D()->deselect_all();
+						wxGetApp().obj_list()->load_shape_object_from_gallery(); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 			} else {
