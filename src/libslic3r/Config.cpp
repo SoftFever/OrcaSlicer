@@ -426,7 +426,19 @@ void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys 
     }
 }
 
-// this will *ignore* options not present in both configs
+// Are the two configs equal? Ignoring options not present in both configs.
+bool ConfigBase::equals(const ConfigBase &other) const
+{ 
+    for (const t_config_option_key &opt_key : this->keys()) {
+        const ConfigOption *this_opt  = this->option(opt_key);
+        const ConfigOption *other_opt = other.option(opt_key);
+        if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
+            return false;
+    }
+    return true;
+}
+
+// Returns options differing in the two configs, ignoring options not present in both configs.
 t_config_option_keys ConfigBase::diff(const ConfigBase &other) const
 {
     t_config_option_keys diff;
@@ -439,6 +451,7 @@ t_config_option_keys ConfigBase::diff(const ConfigBase &other) const
     return diff;
 }
 
+// Returns options being equal in the two configs, ignoring options not present in both configs.
 t_config_option_keys ConfigBase::equal(const ConfigBase &other) const
 {
     t_config_option_keys equal;
@@ -1188,6 +1201,65 @@ t_config_option_keys StaticConfig::keys() const
         if (this->option(opt_def.first) != nullptr) 
             keys.push_back(opt_def.first);
     return keys;
+}
+
+// Iterate over the pairs of options with equal keys, call the fn.
+// Returns true on early exit by fn().
+template<typename Fn>
+static inline bool dynamic_config_iterate(const DynamicConfig &lhs, const DynamicConfig &rhs, Fn fn)
+{
+    std::map<t_config_option_key, std::unique_ptr<ConfigOption>>::const_iterator i = lhs.cbegin();
+    std::map<t_config_option_key, std::unique_ptr<ConfigOption>>::const_iterator j = rhs.cbegin();
+    while (i != lhs.cend() && j != rhs.cend())
+        if (i->first < j->first)
+            ++ i;
+        else if (i->first > j->first)
+            ++ j;
+        else {
+            assert(i->first == j->first);
+            if (fn(i->first, i->second.get(), j->second.get()))
+                // Early exit by fn.
+                return true;
+            ++ i;
+            ++ j;
+        }
+    // Finished to the end.
+    return false;
+}
+
+// Are the two configs equal? Ignoring options not present in both configs.
+bool DynamicConfig::equals(const DynamicConfig &other) const
+{ 
+    return ! dynamic_config_iterate(*this, other, 
+        [](const t_config_option_key & /* key */, const ConfigOption *l, const ConfigOption *r) { return *l != *r; });
+}
+
+// Returns options differing in the two configs, ignoring options not present in both configs.
+t_config_option_keys DynamicConfig::diff(const DynamicConfig &other) const
+{
+    t_config_option_keys diff;
+    dynamic_config_iterate(*this, other, 
+        [&diff](const t_config_option_key &key, const ConfigOption *l, const ConfigOption *r) {
+            if (*l != *r)
+                diff.emplace_back(key);
+            // Continue iterating.
+            return false; 
+        });
+    return diff;
+}
+
+// Returns options being equal in the two configs, ignoring options not present in both configs.
+t_config_option_keys DynamicConfig::equal(const DynamicConfig &other) const
+{
+    t_config_option_keys equal;
+    dynamic_config_iterate(*this, other, 
+        [&equal](const t_config_option_key &key, const ConfigOption *l, const ConfigOption *r) {
+            if (*l == *r)
+                equal.emplace_back(key);
+            // Continue iterating.
+            return false;
+        });
+    return equal;
 }
 
 }

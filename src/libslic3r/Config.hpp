@@ -1893,8 +1893,8 @@ public:
     // The configuration definition is static: It does not carry the actual configuration values,
     // but it carries the defaults of the configuration values.
     
-    ConfigBase() {}
-    ~ConfigBase() override {}
+    ConfigBase() = default;
+    ~ConfigBase() override = default;
 
     // Virtual overridables:
 public:
@@ -1953,8 +1953,11 @@ public:
     // An UnknownOptionException is thrown in case some option keys are not defined by this->def(),
     // or this ConfigBase is of a StaticConfig type and it does not support some of the keys, and ignore_nonexistent is not set.
     void apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false);
-    bool equals(const ConfigBase &other) const { return this->diff(other).empty(); }
+    // Are the two configs equal? Ignoring options not present in both configs.
+    bool equals(const ConfigBase &other) const;
+    // Returns options differing in the two configs, ignoring options not present in both configs.
     t_config_option_keys diff(const ConfigBase &other) const;
+    // Returns options being equal in the two configs, ignoring options not present in both configs.
     t_config_option_keys equal(const ConfigBase &other) const;
     std::string opt_serialize(const t_config_option_key &opt_key) const;
 
@@ -2022,12 +2025,12 @@ private:
 class DynamicConfig : public virtual ConfigBase
 {
 public:
-    DynamicConfig() {}
+    DynamicConfig() = default;
     DynamicConfig(const DynamicConfig &rhs) { *this = rhs; }
     DynamicConfig(DynamicConfig &&rhs) noexcept : options(std::move(rhs.options)) { rhs.options.clear(); }
 	explicit DynamicConfig(const ConfigBase &rhs, const t_config_option_keys &keys);
 	explicit DynamicConfig(const ConfigBase& rhs) : DynamicConfig(rhs, rhs.keys()) {}
-	virtual ~DynamicConfig() override { clear(); }
+	virtual ~DynamicConfig() override = default;
 
     // Copy a content of one DynamicConfig to another DynamicConfig.
     // If rhs.def() is not null, then it has to be equal to this->def(). 
@@ -2143,6 +2146,13 @@ public:
             return false;
         }
     }
+
+    // Are the two configs equal? Ignoring options not present in both configs.
+    bool equals(const DynamicConfig &other) const;
+    // Returns options differing in the two configs, ignoring options not present in both configs.
+    t_config_option_keys diff(const DynamicConfig &other) const;
+    // Returns options being equal in the two configs, ignoring options not present in both configs.
+    t_config_option_keys equal(const DynamicConfig &other) const;
 
     std::string&        opt_string(const t_config_option_key &opt_key, bool create = false)     { return this->option<ConfigOptionString>(opt_key, create)->value; }
     const std::string&  opt_string(const t_config_option_key &opt_key) const                    { return const_cast<DynamicConfig*>(this)->opt_string(opt_key); }

@@ -463,7 +463,8 @@ public:
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
-    bool                        current_is_dirty() const { return ! this->current_dirty_options().empty(); }
+    bool                        current_is_dirty() const 
+        { return is_dirty(&this->get_edited_preset(), &this->get_selected_preset()); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
     std::vector<std::string>    current_dirty_options(const bool deep_compare = false) const
         { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset(), deep_compare); }
@@ -472,10 +473,11 @@ public:
         { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), deep_compare); }
 
     // Compare the content of get_saved_preset() with get_edited_preset() configs, return true if they differ.
-    bool                        saved_is_dirty() const { return !this->saved_dirty_options().empty(); }
+    bool                        saved_is_dirty() const 
+        { return is_dirty(&this->get_edited_preset(), &this->get_saved_preset()); }
     // Compare the content of get_saved_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    saved_dirty_options(const bool deep_compare = false) const
-        { return dirty_options(&this->get_edited_preset(), &this->get_saved_preset(), deep_compare); }
+//    std::vector<std::string>    saved_dirty_options() const
+//        { return dirty_options(&this->get_edited_preset(), &this->get_saved_preset(), /* deep_compare */ false); }
     // Copy edited preset into saved preset.
     void                        update_saved_preset_from_current_preset() { m_saved_preset = m_edited_preset; }
 
@@ -552,7 +554,8 @@ private:
 
     size_t update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType unselect_if_incompatible);
 public:
-    static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference, const bool is_printer_type = false);
+    static bool                     is_dirty(const Preset *edited, const Preset *reference);
+    static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference, const bool deep_compare = false);
 private:
     // Type of this PresetCollection: TYPE_PRINT, TYPE_FILAMENT or TYPE_PRINTER.
     Preset::Type            m_type;
