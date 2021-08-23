@@ -46,7 +46,7 @@ void GLGizmoSimplify::on_render_for_picking() {}
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
     const int min_triangle_count = 4; // tetrahedron
-    const int max_char_in_name = 25;
+    const int max_char_in_name = 20;
     create_gui_cfg();
 
     const Selection &selection = m_parent.get_selection();
@@ -357,7 +357,6 @@ void GLGizmoSimplify::create_gui_cfg() {
         space_size + radio_size;
 
     cfg.input_width       = cfg.bottom_left_width;
-    cfg.input_small_width = cfg.input_width * 0.8;
     cfg.window_offset     = cfg.input_width;
     m_gui_cfg = cfg;
 }

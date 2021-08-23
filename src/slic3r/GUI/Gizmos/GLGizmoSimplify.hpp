@@ -84,7 +84,6 @@ private:
         int top_left_width    = 100;
         int bottom_left_width = 100;
         int input_width       = 100;
-        int input_small_width = 80;
         int window_offset     = 100;
         int window_padding    = 0;
     };
