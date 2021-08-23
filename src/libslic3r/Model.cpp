@@ -424,7 +424,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     
     ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
-    object->name = this->objects.front()->name;
+    object->name = boost::filesystem::path(this->objects.front()->input_file).stem().string();
     //FIXME copy the config etc?
 
     unsigned int extruder_counter = 0;
@@ -439,7 +439,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
             int counter = 1;
             auto copy_volume = [o, max_extruders, &counter, &extruder_counter](ModelVolume *new_v) {
                 assert(new_v != nullptr);
-                new_v->name = o->name + "_" + std::to_string(counter++);
+                new_v->name = (counter > 1) ? o->name + "_" + std::to_string(counter++) : o->name;
                 new_v->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
                 return new_v;
             };

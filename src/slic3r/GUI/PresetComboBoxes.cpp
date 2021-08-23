@@ -634,6 +634,12 @@ PlaterPresetComboBox::~PlaterPresetComboBox()
         edit_btn->Destroy();
 }
 
+static void run_wizard(ConfigWizard::StartPage sp)
+{
+    if (wxGetApp().check_and_save_current_preset_changes())
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, sp);
+}
+
 void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
 {
     auto selected_item = evt.GetSelection();
@@ -653,7 +659,7 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
             case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
             default: break;
             }
-            wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
+            wxTheApp->CallAfter([sp]() { run_wizard(sp); });
         }
         return;
     }
@@ -685,7 +691,7 @@ void PlaterPresetComboBox::show_add_menu()
 
     append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
         [](wxCommandEvent&) {
-            wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS); });
+            wxTheApp->CallAfter([]() { run_wizard(ConfigWizard::SP_PRINTERS); });
         }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
     append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
@@ -715,7 +721,7 @@ void PlaterPresetComboBox::show_edit_menu()
     else
         append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
             [](wxCommandEvent&) {
-                wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS); });
+                wxTheApp->CallAfter([]() { run_wizard(ConfigWizard::SP_PRINTERS); });
             }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
     append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
@@ -918,7 +924,7 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
         this->SetSelection(m_last_selected);
         if (marker == LABEL_ITEM_WIZARD_PRINTERS)
             wxTheApp->CallAfter([this]() {
-            wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+            run_wizard(ConfigWizard::SP_PRINTERS);
 
             // update combobox if its parent is a PhysicalPrinterDialog
             PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());

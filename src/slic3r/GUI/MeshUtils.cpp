@@ -4,6 +4,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/TriangleMeshSlicer.hpp"
 #include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/Model.hpp"
 
 #include "slic3r/GUI/Camera.hpp"
 
@@ -225,7 +226,7 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     // Also, remove anything below the bed (sinking objects).
     for (i=0; i<hits.size(); ++i) {
         Vec3d transformed_hit = trafo * hits[i].position();
-        if (transformed_hit.z() >= 0. &&
+        if (transformed_hit.z() >= SINKING_Z_THRESHOLD &&
             (! clipping_plane || ! clipping_plane->is_point_clipped(transformed_hit)))
             break;
     }

@@ -1019,7 +1019,7 @@ void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_t
             
             float arrow_sides_ratio = (float)m_arrow_texture.texture.get_height() / (float)m_arrow_texture.texture.get_width();
 
-            GLTexture::render_sub_texture(tex_id, zoomed_top_x + zoomed_icons_size * 1.2f, zoomed_top_x + zoomed_icons_size * 1.2f + zoomed_icons_size * arrow_sides_ratio, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { internal_left_uv, internal_top_uv }, { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv } });
+            GLTexture::render_sub_texture(tex_id, zoomed_top_x + zoomed_icons_size * 1.2f, zoomed_top_x + zoomed_icons_size * 1.2f + zoomed_icons_size * arrow_sides_ratio, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { internal_left_uv, internal_bottom_uv }, { internal_left_uv, internal_top_uv }, { internal_right_uv, internal_top_uv }, { internal_right_uv, internal_bottom_uv } });
             break;
         }
         zoomed_top_y -= zoomed_stride_y;

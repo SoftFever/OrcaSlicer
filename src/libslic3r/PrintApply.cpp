@@ -216,22 +216,25 @@ static t_config_option_keys print_config_diffs(
         const ConfigOption *opt_new_filament = std::binary_search(extruder_retract_keys.begin(), extruder_retract_keys.end(), opt_key) ? new_full_config.option(filament_prefix + opt_key) : nullptr;
         if (opt_new_filament != nullptr && ! opt_new_filament->is_nil()) {
             // An extruder retract override is available at some of the filament presets.
-            if (*opt_old != *opt_new || opt_new->overriden_by(opt_new_filament)) {
+            bool overriden = opt_new->overriden_by(opt_new_filament);
+            if (overriden || *opt_old != *opt_new) {
                 auto opt_copy = opt_new->clone();
                 opt_copy->apply_override(opt_new_filament);
-                if (*opt_old == *opt_copy)
-                    delete opt_copy;
-                else {
-                    filament_overrides.set_key_value(opt_key, opt_copy);
+                bool changed = *opt_old != *opt_copy;
+                if (changed)
                     print_diff.emplace_back(opt_key);
-                }
+                if (changed || overriden) {
+                    // filament_overrides will be applied to the placeholder parser, which layers these parameters over full_print_config.
+                    filament_overrides.set_key_value(opt_key, opt_copy);
+                } else
+                    delete opt_copy;
             }
         } else if (*opt_new != *opt_old)
             print_diff.emplace_back(opt_key);
     }
 
     return print_diff;
- }
+}
 
 // Prepare for storing of the full print config into new_full_config to be exported into the G-code and to be used by the PlaceholderParser.
 static t_config_option_keys full_print_config_diffs(const DynamicPrintConfig &current_full_config, const DynamicPrintConfig &new_full_config)
@@ -812,7 +815,7 @@ static PrintObjectRegions* generate_print_object_regions(
             layer_ranges_regions.push_back({ range.layer_height_range, range.config });
     }
 
-    const bool is_mm_painted = std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
+    const bool is_mm_painted = num_extruders > 1 && std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
     update_volume_bboxes(layer_ranges_regions, out->cached_volume_ids, model_volumes, out->trafo_bboxes, is_mm_painted ? 0.f : std::max(0.f, xy_size_compensation));
 
     std::vector<PrintRegion*> region_set;
@@ -928,6 +931,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     bool   num_extruders_changed = false;
     if (! full_config_diff.empty()) {
         update_apply_status(this->invalidate_step(psGCodeExport));
+        m_placeholder_parser.clear_config();
         // Set the profile aliases for the PrintBase::output_filename()
 		m_placeholder_parser.set("print_preset",              new_full_config.option("print_settings_id")->clone());
 		m_placeholder_parser.set("filament_preset",           new_full_config.option("filament_settings_id")->clone());
@@ -939,6 +943,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	    // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
 	    m_config.apply_only(new_full_config, print_diff, true);
 	    //FIXME use move semantics once ConfigBase supports it.
+        // Some filament_overrides may contain values different from new_full_config, but equal to m_config.
+        // As long as these config options don't reallocate memory when copying, we are safe overriding a value, which is in use by a worker thread.
 	    m_config.apply(filament_overrides);
 	    // Handle changes to object config defaults
 	    m_default_object_config.apply_only(new_full_config, object_diff, true);
@@ -946,8 +952,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	    m_default_region_config.apply_only(new_full_config, region_diff, true);
         m_full_print_config = std::move(new_full_config);
         if (num_extruders != m_config.nozzle_diameter.size()) {
-        	num_extruders = m_config.nozzle_diameter.size();
-        	num_extruders_changed = true;
+            num_extruders = m_config.nozzle_diameter.size();
+            num_extruders_changed = true;
         }
     }
     
@@ -1065,7 +1071,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Check whether a model part volume was added or removed, their transformations or order changed.
         // Only volume IDs, volume types, transformation matrices and their order are checked, configuration and other parameters are NOT checked.
         bool solid_or_modifier_differ   = model_volume_list_changed(model_object, model_object_new, solid_or_modifier_types) ||
-                                          model_mmu_segmentation_data_changed(model_object, model_object_new);
+                                          model_mmu_segmentation_data_changed(model_object, model_object_new) ||
+                                          (model_object_new.is_mm_painted() && num_extruders_changed);
         bool supports_differ            = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER) ||
                                           model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         bool layer_height_ranges_differ = ! layer_height_ranges_equal(model_object.layer_config_ranges, model_object_new.layer_config_ranges, model_object_new.layer_height_profile.empty());
@@ -1267,7 +1274,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             print_object_regions->ref_cnt_inc();
         }
         std::vector<unsigned int> painting_extruders;
-        if (const auto &volumes = print_object.model_object()->volumes; 
+        if (const auto &volumes = print_object.model_object()->volumes;
+            num_extruders > 1 &&
             std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume *v) { return ! v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
             //FIXME be more specific! Don't enumerate extruders that are not used for painting!
             painting_extruders.assign(num_extruders, 0);

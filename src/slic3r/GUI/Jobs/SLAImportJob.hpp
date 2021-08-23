@@ -10,18 +10,16 @@ class SLAImportJob : public PlaterJob {
     
     std::unique_ptr<priv> p;
     
+protected:
+    void prepare() override;
+    void process() override;
+    void finalize() override;
+
 public:
     SLAImportJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater);
     ~SLAImportJob();
 
-    void process() override;
-    
     void reset();
-    
-protected:
-    void prepare() override;
-    
-    void finalize() override;
 };
 
 }}     // namespace Slic3r::GUI

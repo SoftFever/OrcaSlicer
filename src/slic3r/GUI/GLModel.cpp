@@ -169,6 +169,8 @@ void GLModel::reset()
 
 void GLModel::render() const
 {
+    GLShaderProgram* shader = wxGetApp().get_current_shader();
+
     for (const RenderData& data : m_render_data) {
         if (data.vbo_id == 0 || data.ibo_id == 0)
             continue;
@@ -190,7 +192,6 @@ void GLModel::render() const
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
-        GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
             shader->set_uniform("uniform_color", data.color);
         else

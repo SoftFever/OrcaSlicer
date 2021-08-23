@@ -1,15 +1,19 @@
 #ifdef __linux__
 #include "DesktopIntegrationDialog.hpp"
 #include "GUI_App.hpp"
+#include "GUI.hpp"
 #include "format.hpp"
 #include "I18N.hpp"
 #include "NotificationManager.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Platform.hpp"
+#include "libslic3r/Config.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 #include <wx/filename.h>
 #include <wx/stattext.h>
@@ -17,9 +21,9 @@
 namespace Slic3r {
 namespace GUI {
 
-namespace integrate_desktop_internal{
+namespace {
 // Disects path strings stored in system variable divided by ':' and adds into vector
-static void resolve_path_from_var(const std::string& var, std::vector<std::string>& paths)
+void resolve_path_from_var(const std::string& var, std::vector<std::string>& paths)
 {
     wxString wxdirs;
     if (! wxGetEnv(boost::nowide::widen(var), &wxdirs) || wxdirs.empty() )
@@ -34,7 +38,7 @@ static void resolve_path_from_var(const std::string& var, std::vector<std::strin
     paths.push_back(dirs);
 }
 // Return true if directory in path p+dir_name exists
-static bool contains_path_dir(const std::string& p, const std::string& dir_name)
+bool contains_path_dir(const std::string& p, const std::string& dir_name)
 {
     if (p.empty() || dir_name.empty()) 
        return false;
@@ -47,7 +51,7 @@ static bool contains_path_dir(const std::string& p, const std::string& dir_name)
     return false;
 }
 // Creates directory in path if not exists yet
-static void create_dir(const boost::filesystem::path& path)
+void create_dir(const boost::filesystem::path& path)
 {
     if (boost::filesystem::exists(path))
         return;
@@ -58,7 +62,7 @@ static void create_dir(const boost::filesystem::path& path)
         BOOST_LOG_TRIVIAL(error)<< "create directory failed: " << ec.message();
 }
 // Starts at basic_path (excluded) and creates all directories in dir_path
-static void create_path(const std::string& basic_path, const std::string& dir_path)
+void create_path(const std::string& basic_path, const std::string& dir_path)
 {
     if (basic_path.empty() || dir_path.empty())
        return;
@@ -76,7 +80,7 @@ static void create_path(const std::string& basic_path, const std::string& dir_pa
     create_dir(path);
 }
 // Calls our internal copy_file function to copy file at icon_path to dest_path
-static bool copy_icon(const std::string& icon_path, const std::string& dest_path)
+bool copy_icon(const std::string& icon_path, const std::string& dest_path)
 {
     BOOST_LOG_TRIVIAL(debug) <<"icon from "<< icon_path;
     BOOST_LOG_TRIVIAL(debug) <<"icon to "<< dest_path;
@@ -90,8 +94,8 @@ static bool copy_icon(const std::string& icon_path, const std::string& dest_path
     return true;
 }
 // Creates new file filled with data.
-static bool create_desktop_file(const std::string& path, const std::string& data)
-{
+bool create_desktop_file(const std::string& path, const std::string& data)
+{    
     BOOST_LOG_TRIVIAL(debug) <<".desktop to "<< path;
     std::ofstream output(path);
     output << data;
@@ -109,10 +113,6 @@ static bool create_desktop_file(const std::string& path, const std::string& data
 // methods that actually do / undo desktop integration. Static to be accesible from anywhere.
 bool DesktopIntegrationDialog::is_integrated()
 {
-	const char *appimage_env = std::getenv("APPIMAGE");
-    if (!appimage_env) 
-        return false;
- 
     const AppConfig *app_config = wxGetApp().app_config;
     std::string path(app_config->get("desktop_integration_app_path"));
     BOOST_LOG_TRIVIAL(debug) << "Desktop integration desktop file path: " << path;
@@ -126,10 +126,6 @@ bool DesktopIntegrationDialog::is_integrated()
 }
 bool DesktopIntegrationDialog::integration_possible()
 {
-
-	const char *appimage_env = std::getenv("APPIMAGE");
-    if (!appimage_env)
-        return false;
     return true;
 }
 void DesktopIntegrationDialog::perform_desktop_integration()
@@ -138,18 +134,30 @@ void DesktopIntegrationDialog::perform_desktop_integration()
 
     // Path to appimage
     const char *appimage_env = std::getenv("APPIMAGE");
-    std::string appimage_path;
+    std::string excutable_path;
     if (appimage_env) {
         try {
-            appimage_path = boost::filesystem::canonical(boost::filesystem::path(appimage_env)).string();
+            excutable_path = boost::filesystem::canonical(boost::filesystem::path(appimage_env)).string();
         } catch (std::exception &) {            
+            BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path.";
+            show_error(nullptr, _L("Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."));
+            return;
         }
     } else {
-        // not appimage - not performing
-        BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - not Appimage executable.";
-        wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::DesktopIntegrationFail);
-        return;
+        // not appimage - find executable
+        excutable_path = boost::dll::program_location().string();
+        //excutable_path = wxStandardPaths::Get().GetExecutablePath().string();
+        BOOST_LOG_TRIVIAL(debug) << "non-appimage path to executable: " << excutable_path;
+        if (excutable_path.empty())
+        {
+            BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - no executable found.";
+            show_error(nullptr, _L("Performing desktop integration failed - Could not find executable."));
+            return; 
+        }
     }
+
+    // Escape ' characters in appimage, other special symbols will be esacaped in desktop file by 'excutable_path'
+    boost::replace_all(excutable_path, "'", "'\\''");
 
     // Find directories icons and applications
     // $XDG_DATA_HOME defines the base directory relative to which user specific data files should be stored. 
@@ -158,8 +166,8 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     // The directories in $XDG_DATA_DIRS should be seperated with a colon ':'.
     // If $XDG_DATA_DIRS is either not set or empty, a value equal to /usr/local/share/:/usr/share/ should be used. 
     std::vector<std::string>target_candidates;
-    integrate_desktop_internal::resolve_path_from_var("XDG_DATA_HOME", target_candidates);
-    integrate_desktop_internal::resolve_path_from_var("XDG_DATA_DIRS", target_candidates);
+    resolve_path_from_var("XDG_DATA_HOME", target_candidates);
+    resolve_path_from_var("XDG_DATA_DIRS", target_candidates);
 
     AppConfig *app_config = wxGetApp().app_config;
     // suffix string to create different desktop file for alpha, beta.
@@ -186,7 +194,6 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         icon_theme_dirs = "/hicolor/96x96/apps";
     }
     
-    
     std::string target_dir_icons;
     std::string target_dir_desktop;
     
@@ -194,24 +201,24 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     // iterate thru target_candidates to find icons folder
     for (size_t i = 0; i < target_candidates.size(); ++i) {
         // Copy icon PrusaSlicer.png from resources_dir()/icons to target_dir_icons/icons/
-        if (integrate_desktop_internal::contains_path_dir(target_candidates[i], "icons")) {
+        if (contains_path_dir(target_candidates[i], "icons")) {
             target_dir_icons = target_candidates[i];
             std::string icon_path = GUI::format("%1%/icons/PrusaSlicer.png",resources_dir());
             std::string dest_path = GUI::format("%1%/icons/%2%PrusaSlicer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
-            if (integrate_desktop_internal::copy_icon(icon_path, dest_path))
+            if (copy_icon(icon_path, dest_path))
                 break; // success
             else
                 target_dir_icons.clear(); // copying failed
             // if all failed - try creating default home folder
             if (i == target_candidates.size() - 1) {
                 // create $HOME/.local/share
-                integrate_desktop_internal::create_path(boost::nowide::narrow(wxFileName::GetHomeDir()), ".local/share/icons" + icon_theme_dirs);
+                create_path(boost::nowide::narrow(wxFileName::GetHomeDir()), ".local/share/icons" + icon_theme_dirs);
                 // copy icon
                 target_dir_icons = GUI::format("%1%/.local/share",wxFileName::GetHomeDir());
                 std::string icon_path = GUI::format("%1%/icons/PrusaSlicer.png",resources_dir());
                 std::string dest_path = GUI::format("%1%/icons/%2%PrusaSlicer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
-                if (!integrate_desktop_internal::contains_path_dir(target_dir_icons, "icons") 
-                    || !integrate_desktop_internal::copy_icon(icon_path, dest_path)) {
+                if (!contains_path_dir(target_dir_icons, "icons") 
+                    || !copy_icon(icon_path, dest_path)) {
                 	// every attempt failed - icon wont be present
                     target_dir_icons.clear(); 
                 }
@@ -228,7 +235,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     // iterate thru target_candidates to find applications folder
     for (size_t i = 0; i < target_candidates.size(); ++i)
     {
-        if (integrate_desktop_internal::contains_path_dir(target_candidates[i], "applications")) {
+        if (contains_path_dir(target_candidates[i], "applications")) {
             target_dir_desktop = target_candidates[i];
             // Write slicer desktop file
             std::string desktop_file = GUI::format(
@@ -236,33 +243,33 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 "Name=PrusaSlicer%1%\n"
                 "GenericName=3D Printing Software\n"
                 "Icon=PrusaSlicer%2%\n"
-                "Exec=%3% %%F\n"
+                "Exec=\'%3%\' %%F\n"
                 "Terminal=false\n"
                 "Type=Application\n"
                 "MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;\n"
                 "Categories=Graphics;3DGraphics;Engineering;\n"
                 "Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA\n"
                 "StartupNotify=false\n"
-                "StartupWMClass=prusa-slicer", name_suffix, version_suffix, appimage_path);
+                "StartupWMClass=prusa-slicer", name_suffix, version_suffix, excutable_path);
 
             std::string path = GUI::format("%1%/applications/PrusaSlicer%2%.desktop", target_dir_desktop, version_suffix);
-            if (integrate_desktop_internal::create_desktop_file(path, desktop_file)){
+            if (create_desktop_file(path, desktop_file)){
                 BOOST_LOG_TRIVIAL(debug) << "PrusaSlicer.desktop file installation success.";
                 break;
             } else {
             	// write failed - try another path
-                BOOST_LOG_TRIVIAL(error) << "PrusaSlicer.desktop file installation failed.";
+                BOOST_LOG_TRIVIAL(debug) << "Attempt to PrusaSlicer.desktop file installation failed. failed path: " << target_candidates[i];
                 target_dir_desktop.clear(); 
             }
             // if all failed - try creating default home folder
             if (i == target_candidates.size() - 1) {
                 // create $HOME/.local/share
-                integrate_desktop_internal::create_path(boost::nowide::narrow(wxFileName::GetHomeDir()), ".local/share/applications");
+                create_path(boost::nowide::narrow(wxFileName::GetHomeDir()), ".local/share/applications");
                 // create desktop file
                 target_dir_desktop = GUI::format("%1%/.local/share",wxFileName::GetHomeDir());
                 std::string path = GUI::format("%1%/applications/PrusaSlicer%2%.desktop", target_dir_desktop, version_suffix);
-                if (integrate_desktop_internal::contains_path_dir(target_dir_desktop, "applications")) {
-                    if (!integrate_desktop_internal::create_desktop_file(path, desktop_file)) {    
+                if (contains_path_dir(target_dir_desktop, "applications")) {
+                    if (!create_desktop_file(path, desktop_file)) {    
                         // Desktop file not written - end desktop integration
                         BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not create desktop file";
                         return;
@@ -278,7 +285,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     if(target_dir_desktop.empty()) {
     	// Desktop file not written - end desktop integration
         BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not find applications directory";
-        wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::DesktopIntegrationFail);
+        show_error(nullptr, _L("Performing desktop integration failed - could not find applications directory."));
         return;
     }
     // save path to desktop file
@@ -290,7 +297,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     {
     	std::string icon_path = GUI::format("%1%/icons/PrusaSlicer-gcodeviewer_192px.png",resources_dir());
 	    std::string dest_path = GUI::format("%1%/icons/%2%PrusaSlicer-gcodeviewer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
-	    if (integrate_desktop_internal::copy_icon(icon_path, dest_path))
+	    if (copy_icon(icon_path, dest_path))
 	    	// save path to icon
 	        app_config->set("desktop_integration_icon_viewer_path", dest_path);
 	    else
@@ -303,32 +310,26 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         "Name=Prusa Gcode Viewer%1%\n"
         "GenericName=3D Printing Software\n"
         "Icon=PrusaSlicer-gcodeviewer%2%\n"
-        "Exec=%3% --gcodeviwer %%F\n"
+        "Exec=\'%3%\' --gcodeviwer %%F\n"
         "Terminal=false\n"
         "Type=Application\n"
         "MimeType=text/x.gcode;\n"
         "Categories=Graphics;3DGraphics;\n"
         "Keywords=3D;Printing;Slicer;\n"
-        "StartupNotify=false", name_suffix, version_suffix, appimage_path);
+        "StartupNotify=false", name_suffix, version_suffix, excutable_path);
 
     std::string desktop_path = GUI::format("%1%/applications/PrusaSlicerGcodeViewer%2%.desktop", target_dir_desktop, version_suffix);
-    if (integrate_desktop_internal::create_desktop_file(desktop_path, desktop_file))
+    if (create_desktop_file(desktop_path, desktop_file))
     	// save path to desktop file
         app_config->set("desktop_integration_app_viewer_path", desktop_path);
     else {
-        BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could create gcode viewer desktop file";
-         wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::DesktopIntegrationFail);
+        BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not create Gcodeviewer desktop file";
+        show_error(nullptr, _L("Performing desktop integration failed - could not create Gcodeviewer desktop file. PrusaSlicer desktop file was probably created successfully."));
     }
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::DesktopIntegrationSuccess);
 }
 void DesktopIntegrationDialog::undo_desktop_intgration()
 {
-	const char *appimage_env = std::getenv("APPIMAGE");
-    if (!appimage_env) {
-        BOOST_LOG_TRIVIAL(error) << "Undo desktop integration failed - not Appimage executable.";
-    	wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::UndoDesktopIntegrationFail);
-        return;
-    }
     const AppConfig *app_config = wxGetApp().app_config;
     // slicer .desktop
     std::string path = std::string(app_config->get("desktop_integration_app_path"));

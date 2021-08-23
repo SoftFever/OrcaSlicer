@@ -1030,17 +1030,22 @@ bool GUI_App::dark_mode()
 #endif
 }
 
+const wxColour GUI_App::get_label_default_clr_system()
+{
+    return dark_mode() ? wxColour(115, 220, 103) : wxColour(26, 132, 57);
+}
+
+const wxColour GUI_App::get_label_default_clr_modified()
+{
+    return dark_mode() ? wxColour(253, 111, 40) : wxColour(252, 77, 1);
+}
+
 void GUI_App::init_label_colours()
 {
+    m_color_label_modified          = get_label_default_clr_modified();
+    m_color_label_sys               = get_label_default_clr_system();
+
     bool is_dark_mode = dark_mode();
-    if (is_dark_mode) {
-        m_color_label_modified = wxColour(253, 111, 40);
-        m_color_label_sys = wxColour(115, 220, 103);
-    }
-    else {
-        m_color_label_modified = wxColour(252, 77, 1);
-        m_color_label_sys = wxColour(26, 132, 57);
-    }
 #ifdef _WIN32
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250): wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
@@ -1801,10 +1806,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         local_menu->Append(config_id_base + ConfigMenuSnapshots, _L("&Configuration Snapshots") + dots, _L("Inspect / activate configuration snapshots"));
         local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _L("Take Configuration &Snapshot"), _L("Capture a configuration snapshot"));
         local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for updates"), _L("Check for configuration updates"));
-#ifdef __linux__
-        if (DesktopIntegrationDialog::integration_possible())
-            local_menu->Append(config_id_base + ConfigMenuDesktopIntegration, _L("Desktop Integration"), _L("Desktop Integration"));    
-#endif        
+#if defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION) 
+        //if (DesktopIntegrationDialog::integration_possible())
+        local_menu->Append(config_id_base + ConfigMenuDesktopIntegration, _L("Desktop Integration"), _L("Desktop Integration"));    
+#endif //(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION)        
         local_menu->AppendSeparator();
     }
     local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +

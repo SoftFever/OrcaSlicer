@@ -1643,7 +1643,7 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
-    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false);
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool force_center_on_bed = false);
 
     wxString get_export_file(GUI::FileType file_type);
 
@@ -2334,7 +2334,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             else {
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion));
                 for (auto obj : model.objects)
-                    if (obj->name.empty())
+                    if (obj->name.empty() ||
+                        obj->name.find_first_of("/") != std::string::npos) // When file is imported from Fusion360 the path containes "/" instead of "\\" (see https://github.com/prusa3d/PrusaSlicer/issues/6803)
+                                                                           // But read_from_file doesn't support that direction separator and as a result object name containes full path 
                         obj->name = fs::path(obj->input_file).filename().string();
             }
         } catch (const ConfigurationError &e) {
@@ -2360,25 +2362,23 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
                 else if (model.looks_like_saved_in_meters()) {
-                    //wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
                     MessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
-                        "The object in file %s looks like saved in meters.\n"
-                        "Should I consider it as a saved in meters and convert it?",
-                        "Some objects in file %s look like saved in meters.\n"
-                        "Should I consider them as a saved in meters and convert them?", model.objects.size()), from_path(filename)) + "\n",
-                        _L("The object appears to be saved in meters"), wxICON_WARNING | wxYES | wxNO);
+                        "The dimensions of the object from file %s seem to be defined in meters.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
+                        "The dimensions of some objects from file %s seem to be defined in meters.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                        _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES)
                         //FIXME up-scale only the small parts?
                         model.convert_from_meters(true);
                 }
                 else if (model.looks_like_imperial_units()) {
-                    //wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
                     MessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
-                        "The object in file %s looks like saved in inches.\n"
-                        "Should I consider it as a saved in inches and convert it?",
-                        "Some objects in file %s look like saved in inches.\n"
-                        "Should I consider them as a saved in inches and convert them?", model.objects.size()), from_path(filename)) + "\n",
-                        _L("The object appears to be saved in inches"), wxICON_WARNING | wxYES | wxNO);
+                        "The dimensions of the object from file %s seem to be defined in inches.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
+                        "The dimensions of some objects from file %s seem to be defined in inches.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                        _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES)
                         //FIXME up-scale only the small parts?
                         convert_from_imperial_units(model, true);
@@ -2426,7 +2426,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             if (one_by_one) {
-                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
+                auto loaded_idxs = load_model_objects(model.objects, is_project_file, !is_project_file);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
@@ -2481,7 +2481,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 // #define AUTOPLACEMENT_ON_LOAD
 
-std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z)
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z, bool force_center_on_bed)
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
@@ -2540,6 +2540,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 
         object->ensure_on_bed(allow_negative_z);
     }
+
+    if (force_center_on_bed)
+        model.center_instances_around_point(bed_shape.center());
 
 #ifdef AUTOPLACEMENT_ON_LOAD
     // FIXME distance should be a config value /////////////////////////////////
@@ -5902,6 +5905,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->sidebar->update_searcher();
             p->sidebar->show_sliced_info_sizer(false);
             p->reset_gcode_toolpaths();
+            p->view3D->get_canvas3d()->reset_sequential_print_clearance();
         }
         else if (opt_key == "bed_shape" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
             bed_shape_changed = true;

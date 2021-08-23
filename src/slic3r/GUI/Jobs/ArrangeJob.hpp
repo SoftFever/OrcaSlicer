@@ -35,7 +35,9 @@ protected:
     void prepare() override;
 
     void on_exception(const std::exception_ptr &) override;
-    
+
+    void process() override;
+
 public:
     ArrangeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
         : PlaterJob{std::move(pri), plater}
@@ -45,8 +47,6 @@ public:
     {
         return int(m_selected.size() + m_unprintable.size());
     }
-    
-    void process() override;
     
     void finalize() override;
 };

@@ -1,5 +1,5 @@
-project(libigl)
 cmake_minimum_required(VERSION 3.0)
+project(libigl)
 
 add_library(libigl INTERFACE)
 

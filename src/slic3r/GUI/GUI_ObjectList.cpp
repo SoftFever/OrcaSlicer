@@ -3404,6 +3404,18 @@ void ObjectList::update_selections_on_canvas()
             std::vector<unsigned int> idxs = selection.get_volume_idxs_from_instance(obj_idx, inst_idx);
             volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
         }
+        else if (type == itInfo) {
+            // When selecting an info item, select one instance of the
+            // respective object - a gizmo may want to be opened.
+            int inst_idx = selection.get_instance_idx();
+            int scene_obj_idx = selection.get_object_idx();
+            mode = Selection::Instance;
+            // select first instance, unless an instance of the object is already selected
+            if (scene_obj_idx == -1 || inst_idx == -1 || scene_obj_idx != obj_idx)
+                inst_idx = 0;
+            std::vector<unsigned int> idxs = selection.get_volume_idxs_from_instance(obj_idx, inst_idx);
+            volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
+        }
         else
         {
             mode = Selection::Instance;
@@ -3418,7 +3430,7 @@ void ObjectList::update_selections_on_canvas()
 
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
-        if (m_objects_model->GetItemType(item) & (itSettings | itInstanceRoot | itLayerRoot | itLayer | itInfo))
+        if (m_objects_model->GetItemType(item) & (itSettings | itInstanceRoot | itLayerRoot | itLayer))
             add_to_selection(m_objects_model->GetParent(item), selection, instance_idx, mode);
         else
             add_to_selection(item, selection, instance_idx, mode);

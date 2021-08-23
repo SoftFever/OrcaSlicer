@@ -1194,21 +1194,38 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
     return diff;
 }
 
+static constexpr const std::initializer_list<const char*> optional_keys { "compatible_prints", "compatible_printers" };
+
+bool PresetCollection::is_dirty(const Preset *edited, const Preset *reference)
+{
+    if (edited != nullptr && reference != nullptr) {
+        // Only compares options existing in both configs.
+        if (! reference->config.equals(edited->config))
+            return true;
+        // The "compatible_printers" option key is handled differently from the others:
+        // It is not mandatory. If the key is missing, it means it is compatible with any printer.
+        // If the key exists and it is empty, it means it is compatible with no printer.
+        for (auto &opt_key : optional_keys)
+            if (reference->config.has(opt_key) != edited->config.has(opt_key))
+                return true;
+    }
+    return false;
+}
+
 std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, const Preset *reference, const bool deep_compare /*= false*/)
 {
     std::vector<std::string> changed;
     if (edited != nullptr && reference != nullptr) {
+        // Only compares options existing in both configs.
         changed = deep_compare ?
                 deep_diff(edited->config, reference->config) :
                 reference->config.diff(edited->config);
         // The "compatible_printers" option key is handled differently from the others:
         // It is not mandatory. If the key is missing, it means it is compatible with any printer.
         // If the key exists and it is empty, it means it is compatible with no printer.
-        std::initializer_list<const char*> optional_keys { "compatible_prints", "compatible_printers" };
-        for (auto &opt_key : optional_keys) {
+        for (auto &opt_key : optional_keys)
             if (reference->config.has(opt_key) != edited->config.has(opt_key))
                 changed.emplace_back(opt_key);
-        }
     }
     return changed;
 }
@@ -1385,12 +1402,16 @@ const Preset& PrinterPresetCollection::default_preset_for(const DynamicPrintConf
     return this->default_preset((opt_printer_technology == nullptr || opt_printer_technology->value == ptFFF) ? 0 : 1);
 }
 
-const Preset* PrinterPresetCollection::find_by_model_id(const std::string &model_id) const
+const Preset* PrinterPresetCollection::find_system_preset_by_model_and_variant(const std::string &model_id, const std::string& variant) const
 {
     if (model_id.empty()) { return nullptr; }
 
     const auto it = std::find_if(cbegin(), cend(), [&](const Preset &preset) {
-        return preset.config.opt_string("printer_model") == model_id;
+        if (!preset.is_system || preset.config.opt_string("printer_model") != model_id)
+            return false;
+        if (variant.empty())
+            return true;
+        return preset.config.opt_string("printer_variant") == variant;
     });
 
     return it != cend() ? &*it : nullptr;

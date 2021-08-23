@@ -27,9 +27,9 @@ class RotoptimizeJob : public PlaterJob
               "structures.\nNote that this method will try to find the best surface of the object "
               "for touching the print bed if no elevation is set.")},
            // Just a min area bounding box that is done for all methods anyway.
-           {L("Smallest bounding box (Z axis only)"),
-            nullptr,
-            L("Rotate the object only in Z axis to have the smallest bounding box.")}};
+           {L("Lowest Z height"),
+            sla::find_min_z_height_rotation,
+            L("Rotate the model to have the lowest z height for faster print time.")}};
 
     size_t m_method_id = 0;
     float  m_accuracy  = 0.75;
@@ -48,14 +48,14 @@ class RotoptimizeJob : public PlaterJob
 protected:
 
     void prepare() override;
+    void process() override;
 
 public:
 
     RotoptimizeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
         : PlaterJob{std::move(pri), plater}
     {}
-    
-    void process() override;
+
     void finalize() override;
 
     static constexpr size_t get_methods_count() { return std::size(Methods); }
