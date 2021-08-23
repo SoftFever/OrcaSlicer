@@ -618,8 +618,11 @@ void MainFrame::update_title()
         // Don't try to remove the extension, it would remove part of the file name after the last dot!
         wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
         wxString dirty_marker = (!m_plater->model().objects.empty() && m_plater->is_project_dirty()) ? "*" : "";
-        if (!dirty_marker.empty() || !project.empty())
-            title = dirty_marker + project + " - ";
+        if (!dirty_marker.empty() || !project.empty()) {
+            if (!dirty_marker.empty() && project.empty())
+                project = _("Untitled");
+                title = dirty_marker + project + " - ";
+        }
     }
 
     std::string build_id = wxGetApp().is_editor() ? SLIC3R_BUILD_ID : GCODEVIEWER_BUILD_ID;
