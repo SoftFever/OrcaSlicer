@@ -271,7 +271,11 @@ public:
     // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
     const Point& 			     center_offset() const  { return m_center_offset; }
 
-    bool                         has_brim() const       { return this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.; }
+    bool                         has_brim() const       {
+        return this->config().brim_type != btNoBrim
+            && this->config().brim_width.value > 0.
+            && ! this->has_raft();
+    }
 
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
@@ -321,7 +325,7 @@ public:
     bool                        has_raft()              const { return m_config.raft_layers > 0; }
     bool                        has_support_material()  const { return this->has_support() || this->has_raft(); }
     // Checks if the model object is painted using the multi-material painting gizmo.
-    bool                        is_mm_painted()         const { return this->model_object()->is_mm_painted(); };
+    bool                        is_mm_painted()         const { return this->model_object()->is_mm_painted(); }
 
     // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
     std::vector<unsigned int>   object_extruders() const;

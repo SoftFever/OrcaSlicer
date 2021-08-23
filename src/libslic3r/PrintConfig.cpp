@@ -471,7 +471,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_width", coFloat);
     def->label = L("Brim width");
     def->category = L("Skirt and brim");
-    def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer.");
+    def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer."
+                     "When raft is used, no brim is generated (use raft_first_layer_expansion).");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 200;
