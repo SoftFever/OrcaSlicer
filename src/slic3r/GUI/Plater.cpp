@@ -4877,8 +4877,8 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
     main_sizer->Add(new wxStaticText(this, wxID_ANY,
         _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
 
-    int action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
-        static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)) - 1;
+    m_action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
+        static_cast<int>(LoadType::OpenProject) - 1, static_cast<int>(LoadType::LoadConfig)) - 1;
 
     wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, _L("Action"));
     if (!wxOSX) action_stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -4888,7 +4888,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
     int id = 0;
     for (const wxString& label : choices) {
         wxRadioButton* btn = new wxRadioButton(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, id == 0 ? wxRB_GROUP : 0);
-        btn->SetValue(id == action);
+        btn->SetValue(id == m_action);
         btn->Bind(wxEVT_RADIOBUTTON, [this, id](wxCommandEvent&) { m_action = id; });
         stb_sizer->Add(btn, 0, wxEXPAND | wxTOP, 5);
         id++;
