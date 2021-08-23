@@ -44,9 +44,6 @@ private:
 
     std::optional<indexed_triangle_set> m_original_its;
 
-    std::optional<float> m_last_error; // for use previous reduction
-    std::optional<uint32_t> m_last_count;
-
     volatile bool m_need_reload; // after simplify, glReload must be on main thread
     std::thread m_worker;
 
@@ -60,12 +57,11 @@ private:
 
     struct Configuration
     {
-        bool use_count = true;
+        bool use_count = false;
         // minimal triangle count
         float    wanted_percent = 50.f;
         uint32_t wanted_count   = 0; // initialize by percents
 
-        bool use_error = false;
         // maximal quadric error
         float max_error = 1.;
 

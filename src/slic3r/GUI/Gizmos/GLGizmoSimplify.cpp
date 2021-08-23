@@ -111,63 +111,69 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::Separator();
 
-    ImGui::Text(_L("Limit by triangles").c_str());
+    if(ImGui::RadioButton("##use_error", !m_configuration.use_count)) {
+        m_is_valid_result         = false;
+        m_configuration.use_count = !m_configuration.use_count;
+    }
+    ImGui::SameLine();
+    m_imgui->disabled_begin(m_configuration.use_count);
+    ImGui::Text(_L("Detail level").c_str());
+    std::vector<std::string> reduce_captions = {
+        _u8L("Extra high"),
+        _u8L("High"),
+        _u8L("Medium"),
+        _u8L("Low"),
+        _u8L("Extra low")
+    };
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    // First initialization + fix triangle count
-    if (m_imgui->checkbox("##UseCount", m_configuration.use_count)) {
-        if (!m_configuration.use_count) m_configuration.use_error = true;
+    ImGui::SetNextItemWidth(m_gui_cfg->input_width);
+    static int reduction = 3;
+    if(ImGui::SliderInt("##ReductionLevel", &reduction, 1, 5, reduce_captions[reduction-1].c_str())) {
         m_is_valid_result = false;
+        if (reduction < 1) reduction = 1;
+        if (reduction > 5) reduction = 5;
+        switch (reduction) {
+        case 1: m_configuration.max_error = 1e-3f; break;
+        case 2: m_configuration.max_error = 1e-2f; break;
+        case 3: m_configuration.max_error = 0.1f; break;
+        case 4: m_configuration.max_error = 0.5f; break;
+        case 5: m_configuration.max_error = 1.f; break;
+        }
+    }
+    m_imgui->disabled_end(); // !use_count
+
+    if (ImGui::RadioButton("##use_count", m_configuration.use_count)) {
+        m_is_valid_result         = false;
+        m_configuration.use_count = !m_configuration.use_count;
+    }
+    ImGui::SameLine();
+
+    // show preview result triangle count (percent)
+    if (m_need_reload && !m_configuration.use_count) {
+        m_configuration.wanted_count = static_cast<uint32_t>(m_volume->mesh().its.indices.size());
+        m_configuration.update_count(triangle_count);
     }
 
     m_imgui->disabled_begin(!m_configuration.use_count);
-    ImGui::Text(_L("Triangle count").c_str());
+    ImGui::Text(_L("Ratio").c_str());
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
     int wanted_count = m_configuration.wanted_count;
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
-    if (ImGui::SliderInt("##triangle_count", &wanted_count, min_triangle_count, triangle_count, "%d")) {
-        m_configuration.wanted_count = static_cast<uint32_t>(wanted_count);
-        if (m_configuration.wanted_count < min_triangle_count)
-            m_configuration.wanted_count = min_triangle_count;
-        if (m_configuration.wanted_count > triangle_count) 
-            m_configuration.wanted_count = triangle_count;
-        m_configuration.update_count(triangle_count);
+    const char * format = (m_configuration.wanted_percent > 10)? "%.0f %%": 
+        ((m_configuration.wanted_percent > 1)? "%.1f %%":"%.2f %%");
+    if (ImGui::SliderFloat("##triangle_ratio", &m_configuration.wanted_percent, 0.f, 100.f, format)) {
         m_is_valid_result = false;
-    }
-    ImGui::Text(_L("Ratio").c_str());
-    ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    ImGui::SetNextItemWidth(m_gui_cfg->input_small_width);
-    const char * precision = (m_configuration.wanted_percent > 10)? "%.0f": 
-        ((m_configuration.wanted_percent > 1)? "%.1f":"%.2f");
-    float step = (m_configuration.wanted_percent > 10)? 1.f: 
-        ((m_configuration.wanted_percent > 1)? 0.1f : 0.01f);
-    if (ImGui::InputFloat("%", &m_configuration.wanted_percent, step, 10*step, precision)) {
-        if (m_configuration.wanted_percent > 100.f) m_configuration.wanted_percent = 100.f;
+        if (m_configuration.wanted_percent < 0.f)
+            m_configuration.wanted_percent = 0.01;
+        if (m_configuration.wanted_percent > 100.f)
+            m_configuration.wanted_percent = 100.f;
         m_configuration.update_percent(triangle_count);
-        if (m_configuration.wanted_count < min_triangle_count) {
-            m_configuration.wanted_count = min_triangle_count;
-            m_configuration.update_count(triangle_count);
-        }
-        m_is_valid_result = false;
     }
-    m_imgui->disabled_end(); // use_count
 
     ImGui::NewLine();
-    ImGui::Text(_L("Limit by error").c_str());
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    if (m_imgui->checkbox("##UseError", m_configuration.use_error)) {
-        if (!m_configuration.use_error) m_configuration.use_count = true;
-        m_is_valid_result = false;
-    }
-
-    m_imgui->disabled_begin(!m_configuration.use_error);
-    ImGui::Text(_L("Max. error").c_str());
-    ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    ImGui::SetNextItemWidth(m_gui_cfg->input_small_width);
-    if (ImGui::InputFloat("##maxError", &m_configuration.max_error, 0.01f, .1f, "%.2f")) {
-        if (m_configuration.max_error < 0.f) m_configuration.max_error = 0.f;
-        m_is_valid_result = false;
-    }
-    m_imgui->disabled_end(); // use_error
+    ImGui::Text(_L("%d triangles").c_str(), m_configuration.wanted_count);
+    m_imgui->disabled_end(); // use_count
 
     if (m_state == State::settings) {
         if (m_imgui->button(_L("Cancel"))) {
@@ -256,8 +262,7 @@ void GLGizmoSimplify::process()
     m_worker = std::thread([this]() {
         // store original triangles        
         uint32_t triangle_count = (m_configuration.use_count) ? m_configuration.wanted_count : 0;
-        float    max_error      = (m_configuration.use_error) ? 
-            m_configuration.max_error : std::numeric_limits<float>::max();
+        float    max_error      = (!m_configuration.use_count) ? m_configuration.max_error : std::numeric_limits<float>::max();
 
         std::function<void(void)> throw_on_cancel = [&]() {
             if (m_state == State::canceling) {
@@ -272,26 +277,17 @@ void GLGizmoSimplify::process()
             static int64_t last = 0;
             int64_t now = m_parent.timestamp_now();
             if ((now - last) < 250) return;
+            last = now;
 
             request_rerender();
         };
 
-        indexed_triangle_set collapsed;
-        if (m_last_error.has_value() && m_last_count.has_value() &&             
-            (!m_configuration.use_count || triangle_count <= *m_last_count) && 
-            (!m_configuration.use_error || m_configuration.max_error <= *m_last_error)) {
-            // continue from last reduction - speed up
-            collapsed = m_volume->mesh().its; // small copy
-        } else {
-            collapsed = *m_original_its; // copy
-        }
+        indexed_triangle_set collapsed = *m_original_its; // copy
 
         try {
             its_quadric_edge_collapse(collapsed, triangle_count, &max_error, throw_on_cancel, statusfn);
             set_its(collapsed);
             m_is_valid_result = true;
-            m_last_count = triangle_count; // need to store last requirement, collapsed count could be count-1
-            m_last_error = max_error;
         } catch (SimplifyCanceledException &) {
             // set state out of main thread
             m_state = State::settings; 
@@ -348,20 +344,18 @@ void GLGizmoSimplify::on_set_state()
 
 void GLGizmoSimplify::create_gui_cfg() { 
     if (m_gui_cfg.has_value()) return;
-
     int space_size = m_imgui->calc_text_size(":MM").x;
     GuiCfg cfg;
     cfg.top_left_width = std::max(m_imgui->calc_text_size(_L("Mesh name")).x,
                                   m_imgui->calc_text_size(_L("Triangles")).x) 
         + space_size;
 
+    const float radio_size = ImGui::GetFrameHeight();
     cfg.bottom_left_width =
-        std::max(
-            std::max(m_imgui->calc_text_size(_L("Limit by triangles")).x,
-                     std::max(m_imgui->calc_text_size(_L("Triangle count")).x,
-                              m_imgui->calc_text_size(_L("Ratio")).x)),
-            std::max(m_imgui->calc_text_size(_L("Limit by error")).x,
-                     m_imgui->calc_text_size(_L("Max. error")).x)) + space_size;
+        std::max(m_imgui->calc_text_size(_L("Detail level")).x,
+                 m_imgui->calc_text_size(_L("Ratio")).x) +
+        space_size + radio_size;
+
     cfg.input_width       = cfg.bottom_left_width;
     cfg.input_small_width = cfg.input_width * 0.8;
     cfg.window_offset     = cfg.input_width;
