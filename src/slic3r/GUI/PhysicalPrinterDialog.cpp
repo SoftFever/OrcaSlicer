@@ -413,13 +413,6 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
             return sizer;
         };
         m_optgroup->append_line(line);
-
-#ifdef WIN32
-        option = m_optgroup->get_option("printhost_ignore_check");
-        option.opt.width = Field::def_width_wider();
-        m_optgroup->append_single_option_line(option);
-#endif
-       
     }
 
     for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" }) {        
@@ -427,6 +420,12 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         option.opt.width = Field::def_width_wider();
         m_optgroup->append_single_option_line(option);
     }
+
+#ifdef WIN32
+    option = m_optgroup->get_option("printhost_ssl_ignore_revoke");
+    option.opt.width = Field::def_width_wider();
+    m_optgroup->append_single_option_line(option);
+#endif
 
     m_optgroup->activate();
 

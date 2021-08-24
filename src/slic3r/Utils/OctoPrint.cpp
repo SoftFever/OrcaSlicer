@@ -23,10 +23,10 @@ namespace pt = boost::property_tree;
 namespace Slic3r {
 
 OctoPrint::OctoPrint(DynamicPrintConfig *config) :
-    host(config->opt_string("print_host")),
-    apikey(config->opt_string("printhost_apikey")),
-    cafile(config->opt_string("printhost_cafile")),
-    ignore_checks(config->opt_bool("printhost_ignore_check"))
+    m_host(config->opt_string("print_host")),
+    m_apikey(config->opt_string("printhost_apikey")),
+    m_cafile(config->opt_string("printhost_cafile")),
+    m_ssl_revoke_best_effort(config->opt_bool("printhost_ssl_ignore_revoke"))
 {}
 
 const char* OctoPrint::get_name() const { return "OctoPrint"; }
@@ -75,7 +75,7 @@ bool OctoPrint::test(wxString &msg) const
             }
         })
 #ifdef WIN32
-        .revoke_best_effort(ignore_checks)
+        .ssl_revoke_best_effort(m_ssl_revoke_best_effort)
 #endif
         .perform_sync();
 
@@ -142,7 +142,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
             }
         })
 #ifdef WIN32
-        .revoke_best_effort(ignore_checks)
+        .ssl_revoke_best_effort(m_ssl_revoke_best_effort)
 #endif
         .perform_sync();
 
@@ -156,31 +156,31 @@ bool OctoPrint::validate_version_text(const boost::optional<std::string> &versio
 
 void OctoPrint::set_auth(Http &http) const
 {
-    http.header("X-Api-Key", apikey);
+    http.header("X-Api-Key", m_apikey);
 
-    if (! cafile.empty()) {
-        http.ca_file(cafile);
+    if (!m_cafile.empty()) {
+        http.ca_file(m_cafile);
     }
 }
 
 std::string OctoPrint::make_url(const std::string &path) const
 {
-    if (host.find("http://") == 0 || host.find("https://") == 0) {
-        if (host.back() == '/') {
-            return (boost::format("%1%%2%") % host % path).str();
+    if (m_host.find("http://") == 0 || m_host.find("https://") == 0) {
+        if (m_host.back() == '/') {
+            return (boost::format("%1%%2%") % m_host % path).str();
         } else {
-            return (boost::format("%1%/%2%") % host % path).str();
+            return (boost::format("%1%/%2%") % m_host % path).str();
         }
     } else {
-        return (boost::format("http://%1%/%2%") % host % path).str();
+        return (boost::format("http://%1%/%2%") % m_host % path).str();
     }
 }
 
 SL1Host::SL1Host(DynamicPrintConfig *config) : 
     OctoPrint(config),
-    authorization_type(dynamic_cast<const ConfigOptionEnum<AuthorizationType>*>(config->option("printhost_authorization_type"))->value),
-    username(config->opt_string("printhost_user")),
-    password(config->opt_string("printhost_password"))
+    m_authorization_type(dynamic_cast<const ConfigOptionEnum<AuthorizationType>*>(config->option("printhost_authorization_type"))->value),
+    m_username(config->opt_string("printhost_user")),
+    m_password(config->opt_string("printhost_password"))
 {
 }
 
@@ -206,12 +206,12 @@ bool SL1Host::validate_version_text(const boost::optional<std::string> &version_
 
 void SL1Host::set_auth(Http &http) const
 {
-    switch (authorization_type) {
+    switch (m_authorization_type) {
     case atKeyPassword:
         http.header("X-Api-Key", get_apikey());
         break;
     case atUserPassword:
-        http.auth_digest(username, password);
+        http.auth_digest(m_username, m_password);
         break;
     }
 
@@ -223,9 +223,9 @@ void SL1Host::set_auth(Http &http) const
 // PrusaLink
 PrusaLink::PrusaLink(DynamicPrintConfig* config) :
     OctoPrint(config),
-    authorization_type(dynamic_cast<const ConfigOptionEnum<AuthorizationType>*>(config->option("printhost_authorization_type"))->value),
-    username(config->opt_string("printhost_user")),
-    password(config->opt_string("printhost_password"))
+    m_authorization_type(dynamic_cast<const ConfigOptionEnum<AuthorizationType>*>(config->option("printhost_authorization_type"))->value),
+    m_username(config->opt_string("printhost_user")),
+    m_password(config->opt_string("printhost_password"))
 {
 }
 
@@ -250,12 +250,12 @@ bool PrusaLink::validate_version_text(const boost::optional<std::string>& versio
 
 void PrusaLink::set_auth(Http& http) const
 {
-    switch (authorization_type) {
+    switch (m_authorization_type) {
     case atKeyPassword:
         http.header("X-Api-Key", get_apikey());
         break;
     case atUserPassword:
-        http.auth_digest(username, password);
+        http.auth_digest(m_username, m_password);
         break;
     }
 
