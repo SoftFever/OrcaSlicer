@@ -45,7 +45,6 @@ void GLGizmoSimplify::on_render_for_picking() {}
 
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
-    const int min_triangle_count = 4; // tetrahedron
     const int max_char_in_name = 20;
     create_gui_cfg();
 
@@ -119,11 +118,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     m_imgui->disabled_begin(m_configuration.use_count);
     ImGui::Text(_L("Detail level").c_str());
     std::vector<std::string> reduce_captions = {
-        _u8L("Extra high"),
-        _u8L("High"),
-        _u8L("Medium"),
-        _u8L("Low"),
-        _u8L("Extra low")
+        static_cast<std::string>(_u8L("Extra high")),
+        static_cast<std::string>(_u8L("High")),
+        static_cast<std::string>(_u8L("Medium")),
+        static_cast<std::string>(_u8L("Low")),
+        static_cast<std::string>(_u8L("Extra low"))
     };
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
@@ -157,14 +156,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     m_imgui->disabled_begin(!m_configuration.use_count);
     ImGui::Text(_L("Ratio").c_str());
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    int wanted_count = m_configuration.wanted_count;
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
     const char * format = (m_configuration.wanted_percent > 10)? "%.0f %%": 
         ((m_configuration.wanted_percent > 1)? "%.1f %%":"%.2f %%");
     if (ImGui::SliderFloat("##triangle_ratio", &m_configuration.wanted_percent, 0.f, 100.f, format)) {
         m_is_valid_result = false;
         if (m_configuration.wanted_percent < 0.f)
-            m_configuration.wanted_percent = 0.01;
+            m_configuration.wanted_percent = 0.01f;
         if (m_configuration.wanted_percent > 100.f)
             m_configuration.wanted_percent = 100.f;
         m_configuration.update_percent(triangle_count);

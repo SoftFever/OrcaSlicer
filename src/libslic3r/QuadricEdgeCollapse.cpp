@@ -562,7 +562,7 @@ bool QuadricEdgeCollapse::degenerate(uint32_t          vi,
         if (e_info.t_index == ti1) continue; // ti1 will be deleted
         const Triangle &t = indices[e_info.t_index];
         for (size_t i = 0; i < 3; ++i)
-            if (t[i] == vi) return true;
+            if (static_cast<uint32_t>(t[i]) == vi) return true;
     }
     return false;
 }
