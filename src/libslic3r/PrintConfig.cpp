@@ -310,6 +310,12 @@ void PrintConfigDef::init_common_params()
 //    def->tooltip = L("");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("printhost_ignore_check", coBool);
+    def->label = L("Ignore certificate revocation checks");
+    //    def->tooltip = L("");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
     
     def = this->add("preset_names", coStrings);
     def->label = L("Printer preset names");

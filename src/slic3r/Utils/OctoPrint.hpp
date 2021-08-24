@@ -40,6 +40,7 @@ private:
     std::string host;
     std::string apikey;
     std::string cafile;
+    bool        ignore_checks;
 
     virtual void set_auth(Http &http) const;
     std::string make_url(const std::string &path) const;
