@@ -395,7 +395,7 @@ public:
     void            discard_current_changes() {
         m_presets[m_idx_selected].reset_dirty();
         m_edited_preset = m_presets[m_idx_selected];
-        update_saved_preset_from_current_preset();
+//        update_saved_preset_from_current_preset();
     }
 
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
