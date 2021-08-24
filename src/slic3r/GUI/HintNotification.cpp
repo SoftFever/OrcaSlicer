@@ -20,7 +20,7 @@
 
 #define HINTS_CEREAL_VERSION 1
 // structure for writing used hints into binary file with version
-struct CerealData
+struct HintsCerealData
 {
 	std::vector<std::string> my_data;
 	// cereal will supply the version automatically when loading or saving
@@ -38,7 +38,7 @@ struct CerealData
 	}
 };
 // version of used hints binary file
-CEREAL_CLASS_VERSION(CerealData, HINTS_CEREAL_VERSION);
+CEREAL_CLASS_VERSION(HintsCerealData, HINTS_CEREAL_VERSION);
 
 namespace Slic3r {
 namespace GUI {
@@ -65,7 +65,7 @@ void write_used_binary(const std::vector<std::string>& ids)
 {
 	boost::filesystem::ofstream file((boost::filesystem::path(data_dir()) / "cache" / "hints.cereal"), std::ios::binary);
 	cereal::BinaryOutputArchive archive(file);
-		CerealData cd { ids };
+		HintsCerealData cd { ids };
 	try
 	{
 		archive(cd);
@@ -79,7 +79,7 @@ void read_used_binary(std::vector<std::string>& ids)
 {
 	boost::filesystem::ifstream file((boost::filesystem::path(data_dir()) / "cache" / "hints.cereal"));
 	cereal::BinaryInputArchive archive(file);
-	CerealData cd;
+	HintsCerealData cd;
 	try
 	{
 		archive(cd);
@@ -407,8 +407,17 @@ HintData* HintDatabase::get_hint(bool new_hint/* = true*/)
 		return nullptr;
 	}
 
-	if (new_hint)
-		m_hint_id = get_next();
+	try
+	{
+		if (new_hint)
+			m_hint_id = get_next();
+	}
+	catch (const std::exception&)
+	{
+		return nullptr;
+	}
+	
+
 
     return &m_loaded_hints[m_hint_id];
 }
@@ -442,6 +451,10 @@ size_t HintDatabase::get_next()
 			}
 		}
 	}
+	if (total_weight == 0) {
+		BOOST_LOG_TRIVIAL(error) << "Hint notification random number generator failed. No suitable hint was found.";
+		throw std::exception();
+	}
 	size_t random_number = rand() % total_weight + 1;
 	size_t current_weight = 0;
 	for (size_t i = 0; i < candidates.size(); i++) {
@@ -453,7 +466,7 @@ size_t HintDatabase::get_next()
 		}
 	}
 	BOOST_LOG_TRIVIAL(error) << "Hint notification random number generator failed.";
-	return 0;
+	throw std::exception();
 }
 
 bool HintDatabase::is_used(const std::string& id)
