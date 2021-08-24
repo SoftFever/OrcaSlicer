@@ -87,6 +87,11 @@
 #include <boost/nowide/fstream.hpp>
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
+// Needed for forcing menu icons back under gtk2 and gtk3
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    #include <gtk/gtk.h>
+#endif
+
 namespace Slic3r {
 namespace GUI {
 
@@ -799,6 +804,14 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
+    // Forcing back menu icons under gtk2 and gtk3. Solution is based on:
+    // https://docs.gtk.org/gtk3/class.Settings.html
+    // see also https://docs.wxwidgets.org/3.0/classwx_menu_item.html#a2b5d6bcb820b992b1e4709facbf6d4fb
+    // TODO: Find workaround for GTK4
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    g_object_set (gtk_settings_get_default (), "gtk-menu-images", TRUE, NULL);
+#endif
+
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
