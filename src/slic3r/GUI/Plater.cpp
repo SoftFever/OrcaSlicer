@@ -1643,7 +1643,7 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
-    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool force_center_on_bed = false);
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false);
 
     wxString get_export_file(GUI::FileType file_type);
 
@@ -2426,7 +2426,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             if (one_by_one) {
-                auto loaded_idxs = load_model_objects(model.objects, is_project_file, !is_project_file);
+                if (type_3mf && !is_project_file)
+                    model.center_instances_around_point(bed_shape_bb().center());
+                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
@@ -2479,7 +2481,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 // #define AUTOPLACEMENT_ON_LOAD
 
-std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z, bool force_center_on_bed)
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z)
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
@@ -2538,9 +2540,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 
         object->ensure_on_bed(allow_negative_z);
     }
-
-    if (force_center_on_bed)
-        model.center_instances_around_point(bed_shape.center());
 
 #ifdef AUTOPLACEMENT_ON_LOAD
     // FIXME distance should be a config value /////////////////////////////////
