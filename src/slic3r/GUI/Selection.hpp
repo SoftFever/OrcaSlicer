@@ -385,6 +385,7 @@ public:
 
 private:
     void ensure_on_bed();
+    void ensure_not_below_bed();
     bool is_from_fully_selected_instance(unsigned int volume_idx) const;
 
     void paste_volumes_from_clipboard();

@@ -1177,6 +1177,7 @@ void check_model_ids_equal(const Model &model1, const Model &model2);
 #endif /* NDEBUG */
 
 static const float SINKING_Z_THRESHOLD = -0.001f;
+static const double SINKING_MIN_Z_THRESHOLD = 0.05;
 
 } // namespace Slic3r
 
