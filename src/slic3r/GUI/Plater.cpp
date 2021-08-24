@@ -4703,10 +4703,8 @@ void Plater::load_project(const wxString& filename)
     std::vector<fs::path> input_paths;
     input_paths.push_back(into_path(filename));
 
-    std::vector<size_t> res = load_files(input_paths);
-
-    // if res is empty no data has been loaded
-    if (!res.empty()) {
+    if (! load_files(input_paths).empty()) {
+        // At least one file was loaded.
         p->set_project_filename(filename);
         reset_project_dirty_initial_presets();
         update_project_dirty_from_presets();
@@ -4741,8 +4739,7 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    std::vector<size_t> res = load_files(paths, true, false, imperial_units);
-    if (!res.empty())
+    if (! load_files(paths, true, false, imperial_units).empty())
         wxGetApp().mainframe->update_title();
 }
 
