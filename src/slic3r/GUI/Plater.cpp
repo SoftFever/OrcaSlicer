@@ -2944,6 +2944,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     if (view3D->is_layers_editing_enabled())
         view3D->get_wxglcanvas()->Refresh();
 
+    if (background_process.empty())
+        view3D->get_canvas3d()->reset_sequential_print_clearance();
+
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
         // Some previously calculated data on the Print was invalidated.
         // Hide the slicing results, as the current slicing status is no more valid.
