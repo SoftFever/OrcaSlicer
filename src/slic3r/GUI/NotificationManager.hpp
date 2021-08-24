@@ -538,7 +538,7 @@ private:
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
 	// Notification types that can be shown multiple types at once (compared by text)
-	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload, NotificationType::UpdatedItemsInfo };
+	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload };
 	//prepared (basic) notifications
 	static const NotificationData basic_notifications[];
 };
