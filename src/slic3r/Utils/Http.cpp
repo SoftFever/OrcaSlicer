@@ -491,6 +491,14 @@ Http& Http::form_add_file(const std::string &name, const fs::path &path, const s
 	return *this;
 }
 
+Http& Http::revoke_best_effort(bool set)
+{
+	if(p && set){
+		::curl_easy_setopt(p->curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_REVOKE_BEST_EFFORT);
+	}
+	return *this;
+}
+
 Http& Http::set_post_body(const fs::path &path)
 {
 	if (p) { p->set_post_body(path);}

@@ -80,6 +80,8 @@ public:
 	// Same as above except also override the file's filename with a custom one
 	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
 
+	Http& revoke_best_effort(bool set);
+
 	// Set the file contents as a POST request body.
 	// The data is used verbatim, it is not additionally encoded in any way.
 	// This can be used for hosts which do not support multipart requests.
