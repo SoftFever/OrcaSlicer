@@ -1149,6 +1149,7 @@ void Selection::erase()
         }
 
         wxGetApp().obj_list()->delete_from_model_and_list(items);
+        ensure_not_below_bed();
     }
 }
 
