@@ -396,6 +396,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         m_optgroup->append_line(cafile_hint);
     }
     else {
+        
         Line line{ "", "" };
         line.full_width = 1;
 
@@ -411,7 +412,6 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
             sizer->Add(txt, 1, wxEXPAND);
             return sizer;
         };
-
         m_optgroup->append_line(line);
     }
 
@@ -420,6 +420,12 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         option.opt.width = Field::def_width_wider();
         m_optgroup->append_single_option_line(option);
     }
+
+#ifdef WIN32
+    option = m_optgroup->get_option("printhost_ssl_ignore_revoke");
+    option.opt.width = Field::def_width_wider();
+    m_optgroup->append_single_option_line(option);
+#endif
 
     m_optgroup->activate();
 

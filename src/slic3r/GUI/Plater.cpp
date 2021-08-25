@@ -1643,7 +1643,7 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
-    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool force_center_on_bed = false);
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false);
 
     wxString get_export_file(GUI::FileType file_type);
 
@@ -1658,6 +1658,7 @@ struct Plater::priv
     void deselect_all();
     void remove(size_t obj_idx);
     void delete_object_from_model(size_t obj_idx);
+    void delete_all_objects_from_model();
     void reset();
     void mirror(Axis axis);
     void split_object();
@@ -1944,7 +1945,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         // 3DScene/Toolbar:
         view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
-        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { delete_all_objects_from_model(); });
+//        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
@@ -2426,7 +2428,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             if (one_by_one) {
-                auto loaded_idxs = load_model_objects(model.objects, is_project_file, !is_project_file);
+                if (type_3mf && !is_project_file)
+                    model.center_instances_around_point(bed_shape_bb().center());
+                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
@@ -2481,7 +2485,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 // #define AUTOPLACEMENT_ON_LOAD
 
-std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z, bool force_center_on_bed)
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z)
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
@@ -2540,9 +2544,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 
         object->ensure_on_bed(allow_negative_z);
     }
-
-    if (force_center_on_bed)
-        model.center_instances_around_point(bed_shape.center());
 
 #ifdef AUTOPLACEMENT_ON_LOAD
     // FIXME distance should be a config value /////////////////////////////////
@@ -2756,6 +2757,32 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
     object_list_changed();
 }
 
+void Plater::priv::delete_all_objects_from_model()
+{
+    Plater::TakeSnapshot snapshot(q, _L("Delete All Objects"));
+
+    if (view3D->is_layers_editing_enabled())
+        view3D->enable_layers_editing(false);
+
+    reset_gcode_toolpaths();
+    gcode_result.reset();
+
+    view3D->get_canvas3d()->reset_sequential_print_clearance();
+
+    // Stop and reset the Print content.
+    background_process.reset();
+    model.clear_objects();
+    update();
+    // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
+    sidebar->obj_list()->delete_all_objects_from_list();
+    object_list_changed();
+
+    // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
+    sidebar->show_sliced_info_sizer(false);
+
+    model.custom_gcode_per_print_z.gcodes.clear();
+}
+
 void Plater::priv::reset()
 {
     Plater::TakeSnapshot snapshot(q, _L("Reset Project"));
@@ -2946,6 +2973,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     if (view3D->is_layers_editing_enabled())
         view3D->get_wxglcanvas()->Refresh();
+
+    if (background_process.empty())
+        view3D->get_canvas3d()->reset_sequential_print_clearance();
 
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
         // Some previously calculated data on the Print was invalidated.
@@ -4759,10 +4789,8 @@ void Plater::load_project(const wxString& filename)
     std::vector<fs::path> input_paths;
     input_paths.push_back(into_path(filename));
 
-    std::vector<size_t> res = load_files(input_paths);
-
-    // if res is empty no data has been loaded
-    if (!res.empty()) {
+    if (! load_files(input_paths).empty()) {
+        // At least one file was loaded.
         p->set_project_filename(filename);
         reset_project_dirty_initial_presets();
         update_project_dirty_from_presets();
@@ -4797,8 +4825,7 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    std::vector<size_t> res = load_files(paths, true, false, imperial_units);
-    if (!res.empty())
+    if (! load_files(paths, true, false, imperial_units).empty())
         wxGetApp().mainframe->update_title();
 }
 
@@ -4933,7 +4960,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
         _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
 
     m_action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
-        static_cast<int>(LoadType::OpenProject) - 1, static_cast<int>(LoadType::LoadConfig)) - 1;
+        static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)) - 1;
 
     wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, _L("Action"));
     if (!wxOSX) action_stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -6228,8 +6255,7 @@ void Plater::changed_object(int obj_idx)
     if (obj_idx < 0)
         return;
     // recenter and re - align to Z = 0
-    auto model_object = p->model.objects[obj_idx];
-    model_object->ensure_on_bed(this->p->printer_technology != ptSLA);
+    p->model.objects[obj_idx]->ensure_on_bed(p->printer_technology != ptSLA);
     if (this->p->printer_technology == ptSLA) {
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data, update the 3D scene.

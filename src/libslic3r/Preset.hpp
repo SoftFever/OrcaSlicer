@@ -371,7 +371,7 @@ public:
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
 
     // Return the last saved preset.
-    const Preset& get_saved_preset() const { return m_saved_preset; }
+//  const Preset&   get_saved_preset() const { return m_saved_preset; }
 
     // Return vendor of the first parent profile, for which the vendor is defined, or null if such profile does not exist.
     PresetWithVendorProfile get_preset_with_vendor_profile(const Preset &preset) const;
@@ -395,7 +395,7 @@ public:
     void            discard_current_changes() {
         m_presets[m_idx_selected].reset_dirty();
         m_edited_preset = m_presets[m_idx_selected];
-        update_saved_preset_from_current_preset();
+//        update_saved_preset_from_current_preset();
     }
 
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
@@ -474,7 +474,7 @@ public:
 
     // Compare the content of get_saved_preset() with get_edited_preset() configs, return true if they differ.
     bool                        saved_is_dirty() const 
-        { return is_dirty(&this->get_edited_preset(), &this->get_saved_preset()); }
+        { return is_dirty(&this->get_edited_preset(), &m_saved_preset); }
     // Compare the content of get_saved_preset() with get_edited_preset() configs, return the list of keys where they differ.
 //    std::vector<std::string>    saved_dirty_options() const
 //        { return dirty_options(&this->get_edited_preset(), &this->get_saved_preset(), /* deep_compare */ false); }

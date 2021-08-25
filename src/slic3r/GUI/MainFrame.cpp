@@ -621,7 +621,7 @@ void MainFrame::update_title()
         if (!dirty_marker.empty() || !project.empty()) {
             if (!dirty_marker.empty() && project.empty())
                 project = _("Untitled");
-                title = dirty_marker + project + " - ";
+            title = dirty_marker + project + " - ";
         }
     }
 

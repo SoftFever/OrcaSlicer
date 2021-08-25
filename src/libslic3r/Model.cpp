@@ -956,9 +956,22 @@ void ModelObject::center_around_origin(bool include_modifiers)
 
 void ModelObject::ensure_on_bed(bool allow_negative_z)
 {
-    const double min_z = get_min_z();
-    if (!allow_negative_z || min_z > SINKING_Z_THRESHOLD)
-        translate_instances({ 0.0, 0.0, -min_z });
+    double z_offset = 0.0;
+
+    if (allow_negative_z) {
+        if (volumes.size() == 1)
+            z_offset = -get_min_z();
+        else {
+            const double max_z = get_max_z();
+            if (max_z < SINKING_MIN_Z_THRESHOLD)
+                z_offset = SINKING_MIN_Z_THRESHOLD - max_z;
+        }
+    }
+    else
+        z_offset = -get_min_z();
+
+    if (z_offset != 0.0)
+        translate_instances(z_offset * Vec3d::UnitZ());
 }
 
 void ModelObject::translate_instances(const Vec3d& vector)
@@ -1429,6 +1442,19 @@ double ModelObject::get_min_z() const
     }
 }
 
+double ModelObject::get_max_z() const
+{
+    if (instances.empty())
+        return 0.0;
+    else {
+        double max_z = -DBL_MAX;
+        for (size_t i = 0; i < instances.size(); ++i) {
+            max_z = std::max(max_z, get_instance_max_z(i));
+        }
+        return max_z;
+    }
+}
+
 double ModelObject::get_instance_min_z(size_t instance_idx) const
 {
     double min_z = DBL_MAX;
@@ -1448,6 +1474,27 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
     }
 
     return min_z + inst->get_offset(Z);
+}
+
+double ModelObject::get_instance_max_z(size_t instance_idx) const
+{
+    double max_z = -DBL_MAX;
+
+    const ModelInstance* inst = instances[instance_idx];
+    const Transform3d& mi = inst->get_matrix(true);
+
+    for (const ModelVolume* v : volumes) {
+        if (!v->is_model_part())
+            continue;
+
+        const Transform3d mv = mi * v->get_matrix();
+        const TriangleMesh& hull = v->get_convex_hull();
+        for (const stl_facet& facet : hull.stl.facet_start)
+            for (int i = 0; i < 3; ++i)
+                max_z = std::max(max_z, (mv * facet.vertex[i].cast<double>()).z());
+    }
+
+    return max_z + inst->get_offset(Z);
 }
 
 unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)

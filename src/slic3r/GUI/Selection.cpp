@@ -683,7 +683,8 @@ void Selection::translate(const Vec3d& displacement, bool local)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
-    this->set_bounding_boxes_dirty();
+    ensure_not_below_bed();
+    set_bounding_boxes_dirty();
 }
 
 // Rotate an object around one of the axes. Only one rotation component is expected to be changing.
@@ -1148,6 +1149,7 @@ void Selection::erase()
         }
 
         wxGetApp().obj_list()->delete_from_model_and_list(items);
+        ensure_not_below_bed();
     }
 }
 
@@ -1712,7 +1714,7 @@ void Selection::calc_unscaled_instance_bounding_box() const
             if (volume.is_modifier)
                 continue;
             Transform3d trafo = volume.get_instance_transformation().get_matrix(false, false, true, false) * volume.get_volume_transformation().get_matrix();
-            trafo.translation()(2) += volume.get_sla_shift_z();
+            trafo.translation().z() += volume.get_sla_shift_z();
             unscaled_instance_bounding_box->merge(volume.transformed_convex_hull_bounding_box(trafo));
         }
     }
@@ -1729,7 +1731,7 @@ void Selection::calc_scaled_instance_bounding_box() const
             if (volume.is_modifier)
                 continue;
             Transform3d trafo = volume.get_instance_transformation().get_matrix(false, false, false, false) * volume.get_volume_transformation().get_matrix();
-            trafo.translation()(2) += volume.get_sla_shift_z();
+            trafo.translation().z() += volume.get_sla_shift_z();
             scaled_instance_bounding_box->merge(volume.transformed_convex_hull_bounding_box(trafo));
         }
     }
@@ -2131,6 +2133,32 @@ void Selection::ensure_on_bed()
         InstancesToZMap::iterator it = instances_min_z.find(instance);
         if (it != instances_min_z.end())
             volume->set_instance_offset(Z, volume->get_instance_offset(Z) - it->second);
+    }
+}
+
+void Selection::ensure_not_below_bed()
+{
+    typedef std::map<std::pair<int, int>, double> InstancesToZMap;
+    InstancesToZMap instances_max_z;
+
+    for (size_t i = 0; i < m_volumes->size(); ++i) {
+        GLVolume* volume = (*m_volumes)[i];
+        if (!volume->is_wipe_tower && !volume->is_modifier) {
+            const double max_z = volume->transformed_convex_hull_bounding_box().max.z();
+            std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
+            InstancesToZMap::iterator it = instances_max_z.find(instance);
+            if (it == instances_max_z.end())
+                it = instances_max_z.insert(InstancesToZMap::value_type(instance, -DBL_MAX)).first;
+
+            it->second = std::max(it->second, max_z);
+        }
+    }
+
+    for (GLVolume* volume : *m_volumes) {
+        std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
+        InstancesToZMap::iterator it = instances_max_z.find(instance);
+        if (it != instances_max_z.end() && it->second < SINKING_MIN_Z_THRESHOLD)
+            volume->set_instance_offset(Z, volume->get_instance_offset(Z) + SINKING_MIN_Z_THRESHOLD - it->second);
     }
 }
 

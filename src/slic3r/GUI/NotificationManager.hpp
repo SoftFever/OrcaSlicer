@@ -545,7 +545,6 @@ private:
 		NotificationType::PlaterWarning, 
 		NotificationType::ProgressBar, 
 		NotificationType::PrintHostUpload, 
-		NotificationType::UpdatedItemsInfo,
         NotificationType::SimplifySuggestion
 	};
 	//prepared (basic) notifications
