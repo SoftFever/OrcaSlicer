@@ -248,12 +248,8 @@ HintDatabase::~HintDatabase()
 }
 void HintDatabase::init()
 {
-		
 	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));
-		
-	const AppConfig* app_config = wxGetApp().app_config;
     m_initialized = true;
-
 }
 void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 {
