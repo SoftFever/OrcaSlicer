@@ -87,7 +87,7 @@ private:
         int window_padding    = 0;
 
         // trunc model name when longer
-        int max_char_in_name = 30;
+        size_t max_char_in_name = 30;
     };
     std::optional<GuiCfg> m_gui_cfg;
 

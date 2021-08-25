@@ -129,7 +129,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
-    ImGui::Text(tr_detail_level.c_str());
+    ImGui::Text("%s", tr_detail_level.c_str());
     std::vector<std::string> reduce_captions = {
         static_cast<std::string>(_u8L("Extra high")),
         static_cast<std::string>(_u8L("High")),
@@ -139,17 +139,17 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     };
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
-    static int reduction = 3;
-    if(ImGui::SliderInt("##ReductionLevel", &reduction, 1, 5, reduce_captions[reduction-1].c_str())) {
+    static int reduction = 2;
+    if(ImGui::SliderInt("##ReductionLevel", &reduction, 0, 4, reduce_captions[reduction].c_str())) {
         m_is_valid_result = false;
-        if (reduction < 1) reduction = 1;
-        if (reduction > 5) reduction = 5;
+        if (reduction < 0) reduction = 0;
+        if (reduction > 4) reduction = 4;
         switch (reduction) {
-        case 1: m_configuration.max_error = 1e-3f; break;
-        case 2: m_configuration.max_error = 1e-2f; break;
-        case 3: m_configuration.max_error = 0.1f; break;
-        case 4: m_configuration.max_error = 0.5f; break;
-        case 5: m_configuration.max_error = 1.f; break;
+        case 0: m_configuration.max_error = 1e-3f; break;
+        case 1: m_configuration.max_error = 1e-2f; break;
+        case 2: m_configuration.max_error = 0.1f; break;
+        case 3: m_configuration.max_error = 0.5f; break;
+        case 4: m_configuration.max_error = 1.f; break;
         }
     }
     m_imgui->disabled_end(); // !use_count
@@ -168,7 +168,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
 
     m_imgui->disabled_begin(!m_configuration.use_count);
-    ImGui::Text(tr_decimate_ratio.c_str());
+    ImGui::Text("%s", tr_decimate_ratio.c_str());
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
     const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%": 
