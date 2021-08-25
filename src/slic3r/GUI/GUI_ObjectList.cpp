@@ -1049,7 +1049,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         || event.GetKeyCode() == WXK_BACK
 #endif //__WXOSX__
         ) {
-        remove();
+        wxGetApp().plater()->remove_selected();
     }
     else if (event.GetKeyCode() == WXK_F5)
         wxGetApp().plater()->reload_all_from_disk();
