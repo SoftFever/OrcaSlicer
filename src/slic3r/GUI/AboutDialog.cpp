@@ -195,7 +195,7 @@ void CopyrightsDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void CopyrightsDialog::onLinkClicked(wxHtmlLinkEvent &event)
 {
-    wxLaunchDefaultBrowser(event.GetLinkInfo().GetHref());
+    wxGetApp().open_browser_with_warning_dialog(event.GetLinkInfo().GetHref());
     event.Skip(false);
 }
 
@@ -344,7 +344,7 @@ void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void AboutDialog::onLinkClicked(wxHtmlLinkEvent &event)
 {
-    wxLaunchDefaultBrowser(event.GetLinkInfo().GetHref());
+    wxGetApp().open_browser_with_warning_dialog(event.GetLinkInfo().GetHref());
     event.Skip(false);
 }
 
