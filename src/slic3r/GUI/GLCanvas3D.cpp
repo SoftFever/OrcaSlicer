@@ -4438,13 +4438,7 @@ bool GLCanvas3D::_init_main_toolbar()
     }
     // init arrow
     BackgroundTexture::Metadata arrow_data;
-    arrow_data.filename = "toolbar_arrow.png";
-//    arrow_data.filename = "toolbar_arrow.svg";
-    //arrow_data.left = 16;
-    //arrow_data.top = 16;
-    //arrow_data.right = 16;
-    //arrow_data.bottom = 16;
-
+    arrow_data.filename = "toolbar_arrow.svg";
     arrow_data.left = 0;
     arrow_data.top = 0;
     arrow_data.right = 0;
