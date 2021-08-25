@@ -2154,11 +2154,23 @@ void Selection::ensure_not_below_bed()
         }
     }
 
-    for (GLVolume* volume : *m_volumes) {
-        std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
-        InstancesToZMap::iterator it = instances_max_z.find(instance);
-        if (it != instances_max_z.end() && it->second < SINKING_MIN_Z_THRESHOLD)
-            volume->set_instance_offset(Z, volume->get_instance_offset(Z) + SINKING_MIN_Z_THRESHOLD - it->second);
+    if (is_any_volume()) {
+        for (unsigned int i : m_list) {
+            GLVolume& volume = *(*m_volumes)[i];
+            std::pair<int, int> instance = std::make_pair(volume.object_idx(), volume.instance_idx());
+            InstancesToZMap::iterator it = instances_max_z.find(instance);
+            double z_shift = SINKING_MIN_Z_THRESHOLD - it->second;
+            if (it != instances_max_z.end() && z_shift > 0.0)
+                volume.set_volume_offset(Z, volume.get_volume_offset(Z) + z_shift);
+        }
+    }
+    else {
+        for (GLVolume* volume : *m_volumes) {
+            std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
+            InstancesToZMap::iterator it = instances_max_z.find(instance);
+            if (it != instances_max_z.end() && it->second < SINKING_MIN_Z_THRESHOLD)
+                volume->set_instance_offset(Z, volume->get_instance_offset(Z) + SINKING_MIN_Z_THRESHOLD - it->second);
+        }
     }
 }
 

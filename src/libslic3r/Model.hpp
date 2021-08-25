@@ -347,6 +347,7 @@ public:
 
     size_t materials_count() const;
     size_t facets_count() const;
+    size_t parts_count() const;
     bool needed_repair() const;
     ModelObjectPtrs cut(size_t instance, coordf_t z, ModelObjectCutAttributes attributes);
     void split(ModelObjectPtrs* new_objects);

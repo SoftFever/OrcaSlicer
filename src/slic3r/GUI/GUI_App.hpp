@@ -261,7 +261,8 @@ public:
     void            open_preferences(size_t open_on_tab = 0);
 
     virtual bool OnExceptionInMainLoop() override;
-
+    // Calls wxLaunchDefaultBrowser if user confirms in dialog.
+    bool            open_browser_with_warning_dialog(const wxString& url, int flags = 0);
 #ifdef __APPLE__
     void            OSXStoreOpenFiles(const wxArrayString &files) override;
     // wxWidgets override to get an event on open files.

@@ -236,8 +236,7 @@ bool tags_check(const std::string& disabled_tags, const std::string& enabled_tag
 }
 void launch_browser_if_allowed(const std::string& url)
 {
-	if (wxGetApp().app_config->get("suppress_hyperlinks") != "1")
-		wxLaunchDefaultBrowser(url);
+	wxGetApp().open_browser_with_warning_dialog(url);
 }
 } //namespace
 HintDatabase::~HintDatabase()

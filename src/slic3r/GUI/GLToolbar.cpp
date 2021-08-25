@@ -193,10 +193,9 @@ bool GLToolbar::init_arrow(const BackgroundTexture::Metadata& arrow_texture)
     std::string path = resources_dir() + "/icons/";
     bool res = false;
 
-    if (!arrow_texture.filename.empty())
-        res = m_arrow_texture.texture.load_from_file(path + arrow_texture.filename, false, GLTexture::SingleThreaded, false);
-//        res = m_arrow_texture.texture.load_from_svg_file(path + arrow_texture.filename, false, true, false, 100);
-
+    if (!arrow_texture.filename.empty()) {
+        res = m_arrow_texture.texture.load_from_svg_file(path + arrow_texture.filename, false, false, false, 1000);
+    }
     if (res)
         m_arrow_texture.metadata = arrow_texture;
 
@@ -1176,19 +1175,22 @@ void GLToolbar::render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighte
     float right = left + scaled_icons_size;
 
     unsigned int tex_id = m_arrow_texture.texture.get_id();
+    // width and height of icon arrow is pointing to
     float tex_width = (float)m_icons_texture.get_width();
     float tex_height = (float)m_icons_texture.get_height();
+    // arrow width and height
+    float arr_tex_width = (float)m_arrow_texture.texture.get_width();
+    float arr_tex_height = (float)m_arrow_texture.texture.get_height();
+    if ((tex_id != 0) && (arr_tex_width > 0) && (arr_tex_height > 0)) {
+        float inv_tex_width = (arr_tex_width != 0.0f) ? 1.0f / arr_tex_width : 0.0f;
+        float inv_tex_height = (arr_tex_height != 0.0f) ? 1.0f / arr_tex_height : 0.0f;
 
-    if ((tex_id != 0) && (tex_width > 0) && (tex_height > 0)) {
-        float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
-        float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
-
-        float internal_left = left + border - scaled_icons_size / 2; // add half scaled_icons_size for huge arrow
-        float internal_right = right - border + scaled_icons_size / 2;
+        float internal_left = left + border - scaled_icons_size * 1.5f; // add scaled_icons_size for huge arrow
+        float internal_right = right - border + scaled_icons_size * 1.5f;
         float internal_top = top - border;
         // bottom is not moving and should be calculated from arrow texture sides ratio
         float arrow_sides_ratio = (float)m_arrow_texture.texture.get_height() / (float)m_arrow_texture.texture.get_width();
-        float internal_bottom = internal_top - (internal_right - internal_left) * arrow_sides_ratio;
+        float internal_bottom = internal_top - (internal_right - internal_left) * arrow_sides_ratio ;
 
         float internal_left_uv = (float)m_arrow_texture.metadata.left * inv_tex_width;
         float internal_right_uv = 1.0f - (float)m_arrow_texture.metadata.right * inv_tex_width;
