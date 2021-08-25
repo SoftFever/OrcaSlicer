@@ -959,7 +959,7 @@ void ModelObject::ensure_on_bed(bool allow_negative_z)
     double z_offset = 0.0;
 
     if (allow_negative_z) {
-        if (volumes.size() == 1)
+        if (parts_count() == 1)
             z_offset = -get_min_z();
         else {
             const double max_z = get_max_z();
@@ -1124,6 +1124,15 @@ size_t ModelObject::facets_count() const
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part())
             num += v->mesh().stl.stats.number_of_facets;
+    return num;
+}
+
+size_t ModelObject::parts_count() const
+{
+    size_t num = 0;
+    for (const ModelVolume* v : this->volumes)
+        if (v->is_model_part())
+            ++num;
     return num;
 }
 
