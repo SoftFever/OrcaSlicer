@@ -17,10 +17,17 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     : GLGizmoBase(parent, icon_filename, -1)
     , m_state(State::settings)
     , m_is_valid_result(false)
+    , m_exist_preview(false)
     , m_progress(0)
     , m_volume(nullptr)
     , m_obj_index(0)
     , m_need_reload(false)
+
+    , tr_mesh_name(_u8L("Mesh name"))
+    , tr_triangles(_u8L("Triangles"))
+    , tr_preview(_u8L("Preview"))
+    , tr_detail_level(_u8L("Detail level"))
+    , tr_decimate_ratio(_u8L("Decimate ratio"))
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify() { 
@@ -45,9 +52,7 @@ void GLGizmoSimplify::on_render_for_picking() {}
 
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
-    const int max_char_in_name = 20;
     create_gui_cfg();
-
     const Selection &selection = m_parent.get_selection();
     int object_idx = selection.get_object_idx();
     ModelObject *obj = wxGetApp().plater()->model().objects[object_idx];
@@ -65,15 +70,15 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_obj_index = object_idx; // to remember correct object
         m_volume = act_volume;
         m_original_its = {};
-        const TriangleMesh &tm = m_volume->mesh();
-        m_configuration.wanted_percent = 50.; // default value
-        m_configuration.update_percent(tm.its.indices.size());
+        m_configuration.decimate_ratio = 50.; // default value
+        m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
         m_is_valid_result = false;
+        m_exist_preview   = false;
 
         if (change_window_position) {
             ImVec2 pos = ImGui::GetMousePos();
-            pos.x -= m_gui_cfg->window_offset;
-            pos.y -= m_gui_cfg->window_offset;
+            pos.x -= m_gui_cfg->window_offset_x;
+            pos.y -= m_gui_cfg->window_offset_y;
             // minimal top left value
             ImVec2 tl(m_gui_cfg->window_padding, m_gui_cfg->window_padding);
             if (pos.x < tl.x) pos.x = tl.x;
@@ -81,8 +86,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             // maximal bottom right value
             auto parent_size = m_parent.get_canvas_size();
             ImVec2 br(
-                parent_size.get_width() - (2 * m_gui_cfg->window_offset + m_gui_cfg->window_padding), 
-                parent_size.get_height() - (2 * m_gui_cfg->window_offset + m_gui_cfg->window_padding));
+                parent_size.get_width() - (2 * m_gui_cfg->window_offset_x + m_gui_cfg->window_padding), 
+                parent_size.get_height() - (2 * m_gui_cfg->window_offset_y + m_gui_cfg->window_padding));
             if (pos.x > br.x) pos.x = br.x;
             if (pos.y > br.y) pos.y = br.y;
             ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
@@ -98,15 +103,23 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     if (m_original_its.has_value())
         triangle_count = m_original_its->indices.size();
 
-    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Mesh name") + ":");
+    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_mesh_name + ":");
     ImGui::SameLine(m_gui_cfg->top_left_width);
     std::string name = m_volume->name;
-    if (name.length() > max_char_in_name)
-        name = name.substr(0, max_char_in_name-3) + "...";
+    if (name.length() > m_gui_cfg->max_char_in_name)
+        name = name.substr(0, m_gui_cfg->max_char_in_name - 3) + "...";
     m_imgui->text(name);
-    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Triangles") + ":");
+    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_triangles + ":");
     ImGui::SameLine(m_gui_cfg->top_left_width);
     m_imgui->text(std::to_string(triangle_count));
+    /*
+    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_preview + ":");
+    ImGui::SameLine(m_gui_cfg->top_left_width);
+    if (m_exist_preview) {
+        m_imgui->text(std::to_string(m_volume->mesh().its.indices.size()));
+    } else {
+        m_imgui->text("---");
+    }*/
 
     ImGui::Separator();
 
@@ -116,7 +129,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
-    ImGui::Text(_L("Detail level").c_str());
+    ImGui::Text(tr_detail_level.c_str());
     std::vector<std::string> reduce_captions = {
         static_cast<std::string>(_u8L("Extra high")),
         static_cast<std::string>(_u8L("High")),
@@ -150,22 +163,23 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     // show preview result triangle count (percent)
     if (m_need_reload && !m_configuration.use_count) {
         m_configuration.wanted_count = static_cast<uint32_t>(m_volume->mesh().its.indices.size());
-        m_configuration.update_count(triangle_count);
+        m_configuration.decimate_ratio = 
+            (1.0f - (m_configuration.wanted_count / (float) triangle_count)) * 100.f;
     }
 
     m_imgui->disabled_begin(!m_configuration.use_count);
-    ImGui::Text(_L("Ratio").c_str());
+    ImGui::Text(tr_decimate_ratio.c_str());
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
-    const char * format = (m_configuration.wanted_percent > 10)? "%.0f %%": 
-        ((m_configuration.wanted_percent > 1)? "%.1f %%":"%.2f %%");
-    if (ImGui::SliderFloat("##triangle_ratio", &m_configuration.wanted_percent, 0.f, 100.f, format)) {
+    const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%": 
+        ((m_configuration.decimate_ratio > 1)? "%.1f %%":"%.2f %%");
+    if (ImGui::SliderFloat("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
         m_is_valid_result = false;
-        if (m_configuration.wanted_percent < 0.f)
-            m_configuration.wanted_percent = 0.01f;
-        if (m_configuration.wanted_percent > 100.f)
-            m_configuration.wanted_percent = 100.f;
-        m_configuration.update_percent(triangle_count);
+        if (m_configuration.decimate_ratio < 0.f)
+            m_configuration.decimate_ratio = 0.01f;
+        if (m_configuration.decimate_ratio > 100.f)
+            m_configuration.decimate_ratio = 100.f;
+        m_configuration.fix_count_by_ratio(triangle_count);
     }
 
     ImGui::NewLine();
@@ -195,7 +209,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
                 process();
             } else {
                 // use preview and close
-                if (m_original_its.has_value()) {
+                if (m_exist_preview) {
                     // fix hollowing, sla support points, modifiers, ...
                     auto plater = wxGetApp().plater();
                     plater->changed_mesh(m_obj_index);
@@ -286,6 +300,7 @@ void GLGizmoSimplify::process()
             its_quadric_edge_collapse(collapsed, triangle_count, &max_error, throw_on_cancel, statusfn);
             set_its(collapsed);
             m_is_valid_result = true;
+            m_exist_preview   = true;
         } catch (SimplifyCanceledException &) {
             // set state out of main thread
             m_state = State::settings; 
@@ -326,7 +341,7 @@ void GLGizmoSimplify::on_set_state()
         }
 
         // revert preview
-        if (m_original_its.has_value()) {
+        if (m_exist_preview) {
             set_its(*m_original_its);
             m_parent.reload_scene(true);
             m_need_reload = false;
@@ -344,18 +359,19 @@ void GLGizmoSimplify::create_gui_cfg() {
     if (m_gui_cfg.has_value()) return;
     int space_size = m_imgui->calc_text_size(":MM").x;
     GuiCfg cfg;
-    cfg.top_left_width = std::max(m_imgui->calc_text_size(_L("Mesh name")).x,
-                                  m_imgui->calc_text_size(_L("Triangles")).x) 
+    cfg.top_left_width = std::max(m_imgui->calc_text_size(tr_mesh_name).x,
+                                  m_imgui->calc_text_size(tr_triangles).x) 
         + space_size;
 
     const float radio_size = ImGui::GetFrameHeight();
     cfg.bottom_left_width =
-        std::max(m_imgui->calc_text_size(_L("Detail level")).x,
-                 m_imgui->calc_text_size(_L("Ratio")).x) +
+        std::max(m_imgui->calc_text_size(tr_detail_level).x,
+                 m_imgui->calc_text_size(tr_decimate_ratio).x) +
         space_size + radio_size;
 
-    cfg.input_width       = cfg.bottom_left_width;
-    cfg.window_offset     = cfg.input_width;
+    cfg.input_width   = cfg.bottom_left_width * 1.5;
+    cfg.window_offset_x = (cfg.bottom_left_width + cfg.input_width)/2;
+    cfg.window_offset_y = ImGui::GetTextLineHeightWithSpacing() * 5;
     m_gui_cfg = cfg;
 }
 

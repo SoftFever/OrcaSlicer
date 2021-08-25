@@ -37,7 +37,9 @@ private:
     void create_gui_cfg();
     void request_rerender();
 
-    bool m_is_valid_result; // differ what to do in apply
+    std::atomic_bool m_is_valid_result; // differ what to do in apply
+    std::atomic_bool m_exist_preview;   // set when process end
+
     volatile int m_progress; // percent of done work
     ModelVolume *m_volume; // 
     size_t m_obj_index;
@@ -59,20 +61,16 @@ private:
     {
         bool use_count = false;
         // minimal triangle count
-        float    wanted_percent = 50.f;
+        float    decimate_ratio = 50.f; // in percent
         uint32_t wanted_count   = 0; // initialize by percents
 
         // maximal quadric error
         float max_error = 1.;
 
-        void update_count(size_t triangle_count)
-        {
-            wanted_percent = (float) wanted_count / triangle_count * 100.f;
-        }
-        void update_percent(size_t triangle_count)
+        void fix_count_by_ratio(size_t triangle_count)
         {
             wanted_count = static_cast<uint32_t>(
-                std::round(triangle_count * wanted_percent / 100.f));
+                std::round(triangle_count * (100.f-decimate_ratio) / 100.f));
         }
     } m_configuration;
 
@@ -84,10 +82,21 @@ private:
         int top_left_width    = 100;
         int bottom_left_width = 100;
         int input_width       = 100;
-        int window_offset     = 100;
+        int window_offset_x   = 100;
+        int window_offset_y   = 100;
         int window_padding    = 0;
+
+        // trunc model name when longer
+        int max_char_in_name = 30;
     };
     std::optional<GuiCfg> m_gui_cfg;
+
+    // translations used for calc window size
+    const std::string tr_mesh_name;
+    const std::string tr_triangles;
+    const std::string tr_preview;
+    const std::string tr_detail_level;
+    const std::string tr_decimate_ratio;
 };
 
 } // namespace GUI
