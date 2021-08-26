@@ -2915,6 +2915,7 @@ void Plater::priv::update_print_volume_state()
     BoundingBox     bed_box_2D = get_extents(Polygon::new_scale(this->config->opt<ConfigOptionPoints>("bed_shape")->values));
     BoundingBoxf3   print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(this->config->opt_float("max_print_height"))));
     // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
+    print_volume.offset(BedEpsilon);
     print_volume.min(2) = -1e10;
     this->q->model().update_print_volume_state(print_volume);
 }
