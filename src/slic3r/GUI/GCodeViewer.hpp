@@ -288,6 +288,7 @@ class GCodeViewer
 #if ENABLE_SEAMS_USING_MODELS
         struct Model
         {
+#if !ENABLE_SEAMS_USING_INSTANCED_MODELS
             struct Instance
             {
                 Vec3f position;
@@ -296,12 +297,14 @@ class GCodeViewer
                 size_t s_id;
             };
             using Instances = std::vector<Instance>;
+#endif // !ENABLE_SEAMS_USING_INSTANCED_MODELS
 
             GLModel model;
             Color color;
-            Instances instances;
 #if ENABLE_SEAMS_USING_INSTANCED_MODELS
-            InstanceVBuffer instances2;
+            InstanceVBuffer instances;
+#else
+            Instances instances;
 #endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 
             void reset();
@@ -367,7 +370,11 @@ class GCodeViewer
             case ERenderPrimitiveType::Triangle: {
                 return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
             }
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+            case ERenderPrimitiveType::Model: { return model.model.is_initialized() && !model.instances.buffer.empty(); }
+#else
             case ERenderPrimitiveType::Model: { return model.model.is_initialized() && !model.instances.empty(); }
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
             default: { return false; }
             }
         }
