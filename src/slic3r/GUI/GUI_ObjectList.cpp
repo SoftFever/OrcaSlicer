@@ -4023,7 +4023,23 @@ void ObjectList::fix_through_netfabb()
 
 void ObjectList::simplify()
 {
-    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
+    auto plater = wxGetApp().plater();
+    GLGizmosManager& gizmos_mgr = plater->canvas3D()->get_gizmos_manager();
+
+    // Do not simplify when a gizmo is open. There might be issues with updates
+    // and what is worse, the snapshot time would refer to the internal stack.
+    auto current_type = gizmos_mgr.get_current_type();
+    if (current_type == GLGizmosManager::Simplify) {
+        // close first
+        gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
+    }else if (current_type != GLGizmosManager::Undefined) {
+        plater->get_notification_manager()->push_notification(
+            NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+            NotificationManager::NotificationLevel::RegularNotification,
+            _u8L("ERROR: Please close all manipulators available from "
+                 "the left toolbar before start simplify the mesh."));
+        return;
+    }
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 

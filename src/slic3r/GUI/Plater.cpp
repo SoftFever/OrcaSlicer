@@ -1721,7 +1721,7 @@ struct Plater::priv
     void replace_with_stl();
     void reload_all_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
-
+    void create_simplify_notification(const std::vector<size_t>& obj_ids);
     void set_current_panel(wxPanel* panel);
 
     void on_select_preset(wxCommandEvent&);
@@ -2477,6 +2477,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
             view3D->get_canvas3d()->update_gizmos_on_off_state();
     }
+
+    create_simplify_notification(obj_idxs);
 
     return obj_idxs;
 }
@@ -3540,6 +3542,53 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     q->SetFocus();
 }
 
+void Plater::priv::create_simplify_notification(const std::vector<size_t>& obj_ids) {
+    const uint32_t triangles_to_suggest_simplify = 1000000;
+
+    std::vector<size_t> big_ids;
+    big_ids.reserve(obj_ids.size());
+    std::copy_if(obj_ids.begin(), obj_ids.end(), std::back_inserter(big_ids),
+                 [this, triangles_to_suggest_simplify](size_t object_id) {
+            if (object_id >= model.objects.size()) return false; // out of object index
+            ModelVolumePtrs& volumes = model.objects[object_id]->volumes;
+            if (volumes.size() != 1) return false; // not only one volume
+            size_t triangle_count = volumes.front()->mesh().its.indices.size();
+            if (triangle_count < triangles_to_suggest_simplify) return false; // small volume
+            return true;
+        });
+
+    if (big_ids.empty()) return;
+
+    for (size_t object_id : big_ids) {
+        std::string t = _u8L(
+            "Processing model '@object_name' with more than 1M triangles "
+            "could be slow. It is highly recommend to reduce "
+            "amount of triangles.");
+        t.replace(t.find("@object_name"), sizeof("@object_name") - 1,
+                  model.objects[object_id]->name);
+        std::stringstream text;
+        text << _u8L("WARNING:") << "\n" << t << "\n";
+        std::string hypertext = _u8L("Simplify model");
+
+        std::function<bool(wxEvtHandler *)> open_simplify = [object_id](wxEvtHandler *) {
+            auto plater = wxGetApp().plater();
+            if (object_id >= plater->model().objects.size()) return true;
+
+            Selection &selection = plater->canvas3D()->get_selection();
+            selection.clear();
+            selection.add_object((unsigned int) object_id);
+
+            auto &manager = plater->canvas3D()->get_gizmos_manager();
+            manager.open_gizmo(GLGizmosManager::EType::Simplify);
+            return true;
+        };
+        notification_manager->push_notification(
+            NotificationType::SimplifySuggestion,
+            NotificationManager::NotificationLevel::WarningNotification,
+            text.str(), hypertext, open_simplify);    
+    }
+}
+
 void Plater::priv::set_current_panel(wxPanel* panel)
 {
     if (std::find(panels.begin(), panels.end(), panel) == panels.end())
@@ -4316,6 +4365,12 @@ bool Plater::priv::can_fix_through_netfabb() const
 
 bool Plater::priv::can_simplify() const
 {
+    // is object for simplification selected
+    if (get_selected_object_idx() < 0) return false;
+    // is already opened?
+    if (q->canvas3D()->get_gizmos_manager().get_current_type() ==
+        GLGizmosManager::EType::Simplify)
+        return false;
     return true;
 }
 
