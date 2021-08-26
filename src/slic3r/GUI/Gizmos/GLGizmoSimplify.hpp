@@ -7,6 +7,7 @@
 #include "admesh/stl.h" // indexed_triangle_set
 #include <thread>
 #include <optional>
+#include <atomic>
 
 namespace Slic3r {
 
