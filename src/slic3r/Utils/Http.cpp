@@ -491,6 +491,18 @@ Http& Http::form_add_file(const std::string &name, const fs::path &path, const s
 	return *this;
 }
 
+#ifdef WIN32
+// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present. 
+// This option is only supported for Schannel (the native Windows SSL library).
+Http& Http::ssl_revoke_best_effort(bool set)
+{
+	if(p && set){
+		::curl_easy_setopt(p->curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_REVOKE_BEST_EFFORT);
+	}
+	return *this;
+}
+#endif // WIN32
+
 Http& Http::set_post_body(const fs::path &path)
 {
 	if (p) { p->set_post_body(path);}

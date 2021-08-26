@@ -494,15 +494,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
 {
     welcome_text->Hide();
     cbox_reset->Hide();
-#ifdef __linux__
-    if (!DesktopIntegrationDialog::is_integrated())
-        cbox_integrate->Show(true);
-    else
-        cbox_integrate->Hide();
-#else
-    cbox_integrate->Hide();
-#endif
-    
+    cbox_integrate->Hide();    
 }
 
 void PageWelcome::set_run_reason(ConfigWizard::RunReason run_reason)
@@ -510,7 +502,7 @@ void PageWelcome::set_run_reason(ConfigWizard::RunReason run_reason)
     const bool data_empty = run_reason == ConfigWizard::RR_DATA_EMPTY;
     welcome_text->Show(data_empty);
     cbox_reset->Show(!data_empty);
-#ifdef __linux__
+#if defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION)
     if (!DesktopIntegrationDialog::is_integrated())
         cbox_integrate->Show(true);
     else

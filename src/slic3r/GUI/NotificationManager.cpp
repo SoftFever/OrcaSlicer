@@ -42,12 +42,12 @@ const NotificationManager::NotificationData NotificationManager::basic_notificat
 		}
 	},
 	{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotification, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
-		wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
+		wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
 	{NotificationType::EmptyColorChangeCode, NotificationLevel::RegularNotification, 10,
 		_u8L("You have just added a G-code for color change, but its value is empty.\n"
 			 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
 	{NotificationType::EmptyAutoColorChange, NotificationLevel::RegularNotification, 10,
-		_u8L("This model doesn't allow to automatically add the color changes") },
+		_u8L("No color change event was added to the print. The print does not look like a sign.") },
 	{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotification, 10,
 		_u8L("Desktop integration was successful.") },
 	{NotificationType::DesktopIntegrationFail, NotificationLevel::WarningNotification, 10,

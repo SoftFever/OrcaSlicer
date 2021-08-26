@@ -80,6 +80,12 @@ public:
 	// Same as above except also override the file's filename with a custom one
 	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
 
+#ifdef WIN32
+	// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present. 
+	// This option is only supported for Schannel (the native Windows SSL library).
+	Http& ssl_revoke_best_effort(bool set);
+#endif // WIN32
+
 	// Set the file contents as a POST request body.
 	// The data is used verbatim, it is not additionally encoded in any way.
 	// This can be used for hosts which do not support multipart requests.

@@ -28,7 +28,7 @@ static const UndoRedo::Snapshot* get_active_snapshot(const UndoRedo::Stack& stac
     const size_t active_snapshot_time = stack.active_snapshot_time();
     const auto it = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(active_snapshot_time));
     const int idx = it - snapshots.begin() - 1;
-    const Slic3r::UndoRedo::Snapshot* ret = (0 <= idx && (size_t)idx < snapshots.size() - 1) ?
+    const Slic3r::UndoRedo::Snapshot* ret = (0 <= idx && idx < int(snapshots.size()) - 1) ?
         &snapshots[idx] : nullptr;
 
     assert(ret != nullptr);
@@ -195,8 +195,7 @@ void ProjectDirtyStateManager::update_from_undo_redo_stack(UpdateType type)
 void ProjectDirtyStateManager::update_from_presets()
 {
     m_state.presets = false;
-    std::vector<std::pair<unsigned int, std::string>> selected_presets = wxGetApp().get_selected_presets();
-    for (const auto& [type, name] : selected_presets) {
+    for (const auto& [type, name] : wxGetApp().get_selected_presets()) {
         m_state.presets |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
     }
     m_state.presets |= wxGetApp().has_unsaved_preset_changes();
@@ -214,6 +213,7 @@ void ProjectDirtyStateManager::reset_after_save()
         m_last_save.main = (saveable_snapshot != nullptr) ? saveable_snapshot->timestamp : 0;
     }
     else {
+        // Gizmo is active with its own Undo / Redo stack (for example the SLA support point editing gizmo).
         const UndoRedo::Snapshot* main_active_snapshot = get_active_snapshot(main_stack);
         if (boost::starts_with(main_active_snapshot->name, _utf8("Entering"))) {
             if (m_state.gizmos.current)
@@ -231,8 +231,7 @@ void ProjectDirtyStateManager::reset_after_save()
 void ProjectDirtyStateManager::reset_initial_presets()
 {
     m_initial_presets = std::array<std::string, Preset::TYPE_COUNT>();
-    std::vector<std::pair<unsigned int, std::string>> selected_presets = wxGetApp().get_selected_presets();
-    for (const auto& [type, name] : selected_presets) {
+    for (const auto& [type, name] : wxGetApp().get_selected_presets()) {
         m_initial_presets[type] = name;
     }
 }

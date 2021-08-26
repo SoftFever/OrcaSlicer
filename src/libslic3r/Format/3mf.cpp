@@ -595,7 +595,7 @@ namespace Slic3r {
 
         mz_zip_archive_file_stat stat;
 
-        m_name = boost::filesystem::path(filename).filename().stem().string();
+        m_name = boost::filesystem::path(filename).stem().string();
 
         // we first loop the entries to read from the archive the .model file only, in order to extract the version from it
         for (mz_uint i = 0; i < num_entries; ++i) {
@@ -1406,6 +1406,13 @@ namespace Slic3r {
             ModelObject *model_object = m_model->objects[object.second];
             if (model_object != nullptr && model_object->instances.size() == 0)
                 m_model->delete_object(model_object);
+        }
+
+        if (m_version == 0) {
+            // if the 3mf was not produced by PrusaSlicer and there is only one object,
+            // set the object name to match the filename
+            if (m_model->objects.size() == 1)
+                m_model->objects.front()->name = m_name;
         }
 
         // applies instances' matrices

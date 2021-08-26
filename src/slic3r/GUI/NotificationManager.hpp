@@ -96,7 +96,9 @@ enum class NotificationType
 	DidYouKnowHint,
 	// Shows when  ObjectList::update_info_items finds information that should be stressed to the user
 	// Might contain logo taken from gizmos
-	UpdatedItemsInfo
+	UpdatedItemsInfo,
+	// Give user advice to simplify object with big amount of triangles
+	SimplifySuggestion
 };
 
 class NotificationManager
@@ -391,7 +393,7 @@ private:
 	{
 	public:
 		
-		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage) : PopNotification(n, id_provider, evt_handler) { set_percentage(percentage); }
+		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage) : PopNotification(n, id_provider, evt_handler) { }
 		virtual void set_percentage(float percent) { m_percentage = percent; }
 	protected:
 		virtual void init() override;
@@ -434,6 +436,7 @@ private:
 			, m_file_size(filesize)
 		{
 			m_has_cancel_button = true;
+			set_percentage(percentage);
 		}
 		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return /*"[" + std::to_string(id) + "] " + */filename + " -> " + host; }
 		void				set_percentage(float percent) override;
@@ -537,7 +540,13 @@ private:
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
 	// Notification types that can be shown multiple types at once (compared by text)
-	const std::vector<NotificationType> m_multiple_types = { NotificationType::CustomNotification, NotificationType::PlaterWarning, NotificationType::ProgressBar, NotificationType::PrintHostUpload, NotificationType::UpdatedItemsInfo };
+	const std::vector<NotificationType> m_multiple_types = { 
+		NotificationType::CustomNotification, 
+		NotificationType::PlaterWarning, 
+		NotificationType::ProgressBar, 
+		NotificationType::PrintHostUpload, 
+        NotificationType::SimplifySuggestion
+	};
 	//prepared (basic) notifications
 	static const NotificationData basic_notifications[];
 };

@@ -167,9 +167,6 @@ void AppConfig::set_defaults()
     if (get("show_splash_screen").empty())
         set("show_splash_screen", "1");
 
-    if (get("last_hint").empty())
-        set("last_hint", "0");
-
     if (get("show_hints").empty())
         set("show_hints", "1");
 
