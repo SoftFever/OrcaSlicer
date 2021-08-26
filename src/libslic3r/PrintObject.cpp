@@ -428,10 +428,8 @@ std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare
 
     indexed_triangle_set mesh = this->model_object()->raw_indexed_triangle_set();
     // Rotate mesh and build octree on it with axis-aligned (standart base) cubes.
-    Transform3d m = m_trafo;
-    m.pretranslate(Vec3d(- unscale<float>(m_center_offset.x()), - unscale<float>(m_center_offset.y()), 0));
     auto to_octree = transform_to_octree().toRotationMatrix();
-    its_transform(mesh, to_octree * m, true);
+    its_transform(mesh, to_octree * this->trafo_centered(), true);
 
     // Triangulate internal bridging surfaces.
     std::vector<std::vector<Vec3d>> overhangs(this->layers().size());
@@ -537,7 +535,6 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPerimeters);
         } else if (
                opt_key == "layer_height"
-            || opt_key == "first_layer_height"
             || opt_key == "mmu_segmented_region_max_width"
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
@@ -2298,7 +2295,7 @@ void PrintObject::project_and_append_custom_facets(
                     : mv->supported_facets.get_facets_strict(*mv, type);
             if (! custom_facets.indices.empty())
                 project_triangles_to_slabs(this->layers(), custom_facets, 
-                    (Eigen::Translation3d(to_3d(unscaled<double>(this->center_offset()), 0.)) * this->trafo() * mv->get_matrix()).cast<float>(), 
+                    (this->trafo_centered() * mv->get_matrix()).cast<float>(),
                     seam, out);
         }
 }

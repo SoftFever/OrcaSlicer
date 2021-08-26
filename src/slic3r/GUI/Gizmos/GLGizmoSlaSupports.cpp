@@ -447,7 +447,8 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
 
         if (action ==  SLAGizmoEventType::DiscardChanges) {
-            editing_mode_discard_changes();
+            ask_about_changes_call_after([this](){ editing_mode_apply_changes(); },
+                                         [this](){ editing_mode_discard_changes(); });
             return true;
         }
 
@@ -879,6 +880,22 @@ CommonGizmosDataID GLGizmoSlaSupports::on_get_requirements() const
 
 
 
+void GLGizmoSlaSupports::ask_about_changes_call_after(std::function<void()> on_yes, std::function<void()> on_no)
+{
+    wxGetApp().CallAfter([this, on_yes, on_no]() {
+        // Following is called through CallAfter, because otherwise there was a problem
+        // on OSX with the wxMessageDialog being shown several times when clicked into.
+        MessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
+            "edited support points?") + "\n",_L("Save support points?"), wxICON_QUESTION | wxYES | wxNO | wxCANCEL );
+        int ret = dlg.ShowModal();
+            if (ret == wxID_YES)
+                on_yes();
+            else if (ret == wxID_NO)
+                on_no();
+    });
+}
+
+
 void GLGizmoSlaSupports::on_set_state()
 {
     if (m_state == m_old_state)
@@ -901,17 +918,8 @@ void GLGizmoSlaSupports::on_set_state()
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         bool will_ask = m_editing_mode && unsaved_changes() && on_is_activable();
         if (will_ask) {
-            wxGetApp().CallAfter([this]() {
-                // Following is called through CallAfter, because otherwise there was a problem
-                // on OSX with the wxMessageDialog being shown several times when clicked into.
-                //wxMessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
-                MessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
-                    "edited support points?") + "\n",_L("Save changes?"), wxICON_QUESTION | wxYES | wxNO);
-                    if (dlg.ShowModal() == wxID_YES)
-                        editing_mode_apply_changes();
-                    else
-                        editing_mode_discard_changes();
-            });
+            ask_about_changes_call_after([this](){ editing_mode_apply_changes(); },
+                                         [this](){ editing_mode_discard_changes(); });
             // refuse to be turned off so the gizmo is active when the CallAfter is executed
             m_state = m_old_state;
         }

@@ -167,8 +167,9 @@ static std::vector<VolumeSlices> slice_volumes_inner(
 
     params_base.mode_below     = params_base.mode;
 
-    const bool is_mm_painted = std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
-    const auto extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_size_compensation.value));
+    const size_t num_extruders = print_config.nozzle_diameter.size();
+    const bool   is_mm_painted = num_extruders > 1 && std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
+    const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_size_compensation.value));
 
     for (const ModelVolume *model_volume : model_volumes)
         if (model_volume_needs_slicing(*model_volume)) {
@@ -695,11 +696,9 @@ void PrintObject::slice_volumes()
     }
 
     std::vector<float>                   slice_zs      = zs_from_layers(m_layers);
-    Transform3d                          trafo         = this->trafo();
-    trafo.pretranslate(Vec3d(- unscale<double>(m_center_offset.x()), - unscale<double>(m_center_offset.y()), 0));
     std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
         slice_volumes_inner(
-            print->config(), this->config(), trafo,
+            print->config(), this->config(), this->trafo_centered(),
             this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs, throw_on_cancel_callback),
         m_config.clip_multipart_objects,
         throw_on_cancel_callback);
@@ -725,6 +724,7 @@ void PrintObject::slice_volumes()
 
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
+        m_print->config().nozzle_diameter.size() > 1 &&
         std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume* v) { return !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
 
         // If XY Size compensation is also enabled, notify the user that XY Size compensation
@@ -745,8 +745,9 @@ void PrintObject::slice_volumes()
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
         // Compensation value, scaled. Only applying the negative scaling here, as the positive scaling has already been applied during slicing.
-        const auto  xy_compensation_scaled            = this->is_mm_painted() ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_size_compensation.value, 0.));
-        const float elephant_foot_compensation_scaled = (m_config.raft_layers == 0) ?
+        const size_t num_extruders = print->config().nozzle_diameter.size();
+        const auto   xy_compensation_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_size_compensation.value, 0.));
+        const float  elephant_foot_compensation_scaled = (m_config.raft_layers == 0) ?
         	// Only enable Elephant foot compensation if printing directly on the print bed.
             float(scale_(m_config.elefant_foot_compensation.value)) :
         	0.f;
@@ -832,8 +833,7 @@ std::vector<Polygons> PrintObject::slice_support_volumes(const ModelVolumeType m
         const Print       *print = this->print();
         auto               throw_on_cancel_callback = std::function<void()>([print](){ print->throw_if_canceled(); });
         MeshSlicingParamsEx params;
-        params.trafo = this->trafo();
-        params.trafo.pretranslate(Vec3d(-unscale<float>(m_center_offset.x()), -unscale<float>(m_center_offset.y()), 0));
+        params.trafo = this->trafo_centered();
         for (; it_volume != it_volume_end; ++ it_volume)
             if ((*it_volume)->type() == model_volume_type) {
                 std::vector<ExPolygons> slices2 = slice_volume(*(*it_volume), zs, params, throw_on_cancel_callback);

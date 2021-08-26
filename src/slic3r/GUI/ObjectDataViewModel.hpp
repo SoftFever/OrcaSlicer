@@ -3,6 +3,7 @@
 
 #include <wx/dataview.h>
 #include <vector>
+#include <map>
 
 #include "ExtraRenderers.hpp"
 
@@ -251,8 +252,8 @@ class ObjectDataViewModel :public wxDataViewModel
 {
     std::vector<ObjectDataViewModelNode*>       m_objects;
     std::vector<wxBitmap>                       m_volume_bmps;
+    std::map<InfoItemType, wxBitmap>            m_info_bmps;
     wxBitmap                                    m_warning_bmp;
-    wxBitmap                                    m_info_bmp;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
 
@@ -345,6 +346,7 @@ public:
     // Is the container just a header or an item with all columns
     // In our case it is an item with all columns
     bool    HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
+    bool    HasInfoItem(InfoItemType type) const;
 
     ItemType        GetItemType(const wxDataViewItem &item) const;
     InfoItemType    GetInfoItemType(const wxDataViewItem &item) const;
@@ -376,6 +378,7 @@ public:
 
     wxBitmap    GetVolumeIcon(const Slic3r::ModelVolumeType vol_type,
                               const bool is_marked = false);
+    void        AddWarningIcon(const wxDataViewItem& item);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
     t_layer_height_range    GetLayerRangeByItem(const wxDataViewItem& item) const;
 

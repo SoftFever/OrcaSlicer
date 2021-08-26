@@ -303,13 +303,16 @@ void GLVolume::SinkingContours::render()
 
 void GLVolume::SinkingContours::update()
 {
-    if (m_parent.is_sinking() && !m_parent.is_below_printbed()) {
+    int object_idx = m_parent.object_idx();
+    Model& model = GUI::wxGetApp().plater()->model();
+
+    if (0 <= object_idx && object_idx < (int)model.objects.size() && m_parent.is_sinking() && !m_parent.is_below_printbed()) {
         const BoundingBoxf3& box = m_parent.transformed_convex_hull_bounding_box();
         if (!m_old_box.size().isApprox(box.size()) || m_old_box.min.z() != box.min.z()) {
             m_old_box = box;
             m_shift = Vec3d::Zero();
 
-            const TriangleMesh& mesh = GUI::wxGetApp().plater()->model().objects[m_parent.object_idx()]->volumes[m_parent.volume_idx()]->mesh();
+            const TriangleMesh& mesh = model.objects[object_idx]->volumes[m_parent.volume_idx()]->mesh();
             assert(mesh.has_shared_vertices());
 
             m_model.reset();
@@ -592,7 +595,7 @@ bool GLVolume::is_sinking() const
 
 bool GLVolume::is_below_printbed() const
 {
-    return transformed_convex_hull_bounding_box().max(2) < 0.0;
+    return transformed_convex_hull_bounding_box().max.z() < 0.0;
 }
 
 #if ENABLE_SINKING_CONTOURS
@@ -843,12 +846,13 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         volume.first->set_render_color();
 
         // render sinking contours of non-hovered volumes
-        if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
-            volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
-            shader->stop_using();
-            volume.first->render_sinking_contours();
-            shader->start_using();
-        }
+        if (m_show_sinking_contours)
+            if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+                volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
+                shader->stop_using();
+                volume.first->render_sinking_contours();
+                shader->start_using();
+            }
 
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
@@ -887,17 +891,18 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     }
 
-    for (GLVolumeWithIdAndZ& volume : to_render) {
-        // render sinking contours of hovered/displaced volumes
-        if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
-            (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
-            shader->stop_using();
-            glsafe(::glDepthFunc(GL_ALWAYS));
-            volume.first->render_sinking_contours();
-            glsafe(::glDepthFunc(GL_LESS));
-            shader->start_using();
+    if (m_show_sinking_contours)
+        for (GLVolumeWithIdAndZ& volume : to_render) {
+            // render sinking contours of hovered/displaced volumes
+            if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+                (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
+                shader->stop_using();
+                glsafe(::glDepthFunc(GL_ALWAYS));
+                volume.first->render_sinking_contours();
+                glsafe(::glDepthFunc(GL_LESS));
+                shader->start_using();
+            }
         }
-    }
 #else
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));

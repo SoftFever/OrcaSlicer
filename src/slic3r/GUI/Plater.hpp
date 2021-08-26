@@ -140,7 +140,7 @@ public:
 
     bool is_project_dirty() const;
     void update_project_dirty_from_presets();
-    bool save_project_if_dirty();
+    int  save_project_if_dirty();
     void reset_project_dirty_after_save();
     void reset_project_dirty_initial_presets();
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
@@ -226,6 +226,10 @@ public:
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages = false);
+
+    void clear_before_change_mesh(int obj_idx);
+    void changed_mesh(int obj_idx);
+
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
@@ -306,6 +310,7 @@ public:
     bool can_decrease_instances() const;
     bool can_set_instance_to_object() const;
     bool can_fix_through_netfabb() const;
+    bool can_simplify() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
     bool can_arrange() const;

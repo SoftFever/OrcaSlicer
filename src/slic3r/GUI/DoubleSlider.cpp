@@ -11,6 +11,7 @@
 #include "GUI_Utils.hpp"
 #include "MsgDialog.hpp"
 #include "Tab.hpp"
+#include "GUI_ObjectList.hpp"
 
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -383,7 +384,11 @@ void Control::SetTicksValues(const Info& custom_gcode_per_print_z)
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
         post_ticks_changed_event();
 
-    if (custom_gcode_per_print_z.mode)
+    // init extruder sequence in respect to the extruders count 
+    if (m_ticks.empty())
+        m_extruders_sequence.init(m_extruder_colors.size());
+
+    if (custom_gcode_per_print_z.mode && !custom_gcode_per_print_z.gcodes.empty())
         m_ticks.mode = custom_gcode_per_print_z.mode;
 
     Refresh();
@@ -438,7 +443,7 @@ void Control::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, c
     m_mode = !is_one_extruder_printed_model ? MultiExtruder :
              only_extruder < 0              ? SingleExtruder :
                                               MultiAsSingle;
-    if (!m_ticks.mode)
+    if (!m_ticks.mode || (m_ticks.empty() && m_ticks.mode != m_mode))
         m_ticks.mode = m_mode;
     m_only_extruder = only_extruder;
 
@@ -545,7 +550,8 @@ bool Control::is_wipe_tower_layer(int tick) const
         return false;
     if (tick == 0 || (tick == (int)m_values.size() - 1 && m_values[tick] > m_values[tick - 1]))
         return false;
-    if (m_values[tick - 1] == m_values[tick + 1] && m_values[tick] < m_values[tick + 1])
+    if ((m_values[tick - 1] == m_values[tick + 1] && m_values[tick] < m_values[tick + 1]) ||
+        (tick > 0 && m_values[tick] < m_values[tick - 1]) ) // if there is just one wiping on the layer 
         return true;
 
     return false;
@@ -1077,7 +1083,9 @@ void Control::draw_ruler(wxDC& dc)
 {
     if (m_values.empty())
         return;
-    m_ruler.update(this->GetParent(), m_values, get_scroll_step());
+    // When "No sparce layer" is enabled, use m_layers_values for ruler update. 
+    // Because of m_values has duplicate values in this case.
+    m_ruler.update(this->GetParent(), m_layers_values.empty() ? m_values : m_layers_values, get_scroll_step());
 
     int height, width;
     get_size(&width, &height);
@@ -1588,7 +1596,7 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
 
         append_submenu(menu, change_extruder_menu, wxID_ANY, change_extruder_menu_name, _L("Use another extruder"),
             active_extruders[1] > 0 ? "edit_uni" : "change_extruder",
-            [this]() {return m_mode == MultiAsSingle; }, GUI::wxGetApp().plater());
+            [this]() {return m_mode == MultiAsSingle && !GUI::wxGetApp().obj_list()->has_paint_on_segmentation(); }, GUI::wxGetApp().plater());
     }
 }
 
@@ -2020,7 +2028,7 @@ void Control::show_cog_icon_context_menu()
         append_menu_item(&menu, wxID_ANY, _L("Set extruder sequence for the entire print"), "",
             [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
 
-    if (m_mode != MultiExtruder && m_draw_mode == dmRegular)
+    if (GUI::wxGetApp().is_editor() && m_mode != MultiExtruder && m_draw_mode == dmRegular)
         append_menu_item(&menu, wxID_ANY, _L("Set auto color changes"), "",
             [this](wxCommandEvent&) { auto_color_change(); }, "", &menu);
 

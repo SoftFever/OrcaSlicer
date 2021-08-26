@@ -1518,11 +1518,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_material_auto", category_path + "auto-generated-supports");
         optgroup->append_single_option_line("support_material_threshold", category_path + "overhang-threshold");
         optgroup->append_single_option_line("support_material_enforce_layers", category_path + "enforce-support-for-the-first");
+        optgroup->append_single_option_line("raft_first_layer_density", category_path + "raft-first-layer-density");
+        optgroup->append_single_option_line("raft_first_layer_expansion", category_path + "raft-first-layer-expansion");
 
         optgroup = page->new_optgroup(L("Raft"));
         optgroup->append_single_option_line("raft_layers", category_path + "raft-layers");
-        optgroup->append_single_option_line("raft_first_layer_density", category_path + "raft-first-layer-density");
-        optgroup->append_single_option_line("raft_first_layer_expansion", category_path + "raft-first-layer-expansion");
         optgroup->append_single_option_line("raft_contact_distance");
         optgroup->append_single_option_line("raft_expansion");
 
@@ -1747,14 +1747,14 @@ bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)
     std::vector<std::string> tags;
     bool invalid = GCodeProcessor::contains_reserved_tags(gcode, 5, tags);
     if (invalid) {
-        wxString reports = _L_PLURAL("The following line", "The following lines", tags.size());
-        reports += ":\n";
-        for (const std::string& keyword : tags) {
-            reports += ";" + keyword + "\n";
-        }
-        reports += _L("contain reserved keywords.") + "\n";
-        reports += _L("Please remove them, as they may cause problems in g-code visualization and printing time estimation.");
-
+        std::string lines = ":\n";
+        for (const std::string& keyword : tags)
+            lines += ";" + keyword + "\n";
+        wxString reports = format_wxstr(
+            _L_PLURAL("The following line %s contains reserved keywords.\nPlease remove it, as it may cause problems in G-code visualization and printing time estimation.", 
+                      "The following lines %s contain reserved keywords.\nPlease remove them, as they may cause problems in G-code visualization and printing time estimation.", 
+                      tags.size()),
+            lines);
         //wxMessageDialog dialog(wxGetApp().mainframe, reports, _L("Found reserved keywords in") + " " + _(title), wxICON_WARNING | wxOK);
         MessageDialog dialog(wxGetApp().mainframe, reports, _L("Found reserved keywords in") + " " + _(title), wxICON_WARNING | wxOK);
         dialog.ShowModal();
@@ -2208,6 +2208,7 @@ void TabPrinter::build_fff()
             def.label = L("Extruders");
             def.tooltip = L("Number of extruders of the printer.");
             def.min = 1;
+            def.max = 256;
             def.mode = comExpert;
         Option option(def, "extruders_count");
         optgroup->append_single_option_line(option);

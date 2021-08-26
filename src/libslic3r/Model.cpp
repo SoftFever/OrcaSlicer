@@ -424,7 +424,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     
     ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
-    object->name = this->objects.front()->name;
+    object->name = boost::filesystem::path(this->objects.front()->input_file).stem().string();
     //FIXME copy the config etc?
 
     unsigned int extruder_counter = 0;
@@ -439,7 +439,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
             int counter = 1;
             auto copy_volume = [o, max_extruders, &counter, &extruder_counter](ModelVolume *new_v) {
                 assert(new_v != nullptr);
-                new_v->name = o->name + "_" + std::to_string(counter++);
+                new_v->name = (counter > 1) ? o->name + "_" + std::to_string(counter++) : o->name;
                 new_v->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
                 return new_v;
             };
@@ -460,13 +460,15 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     this->objects.push_back(object);
 }
 
+static constexpr const double volume_threshold_inches = 9.0; // 9 = 3*3*3;
+
 bool Model::looks_like_imperial_units() const
 {
     if (this->objects.size() == 0)
         return false;
 
     for (ModelObject* obj : this->objects)
-        if (obj->get_object_stl_stats().volume < 9.0) // 9 = 3*3*3;
+        if (obj->get_object_stl_stats().volume < volume_threshold_inches)
             return true;
 
     return false;
@@ -474,14 +476,18 @@ bool Model::looks_like_imperial_units() const
 
 void Model::convert_from_imperial_units(bool only_small_volumes)
 {
-    double in_to_mm = 25.4;
+    static constexpr const double in_to_mm = 25.4;
     for (ModelObject* obj : this->objects)
-        if (! only_small_volumes || obj->get_object_stl_stats().volume < 9.0) { // 9 = 3*3*3;
+        if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_inches) {
             obj->scale_mesh_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
-            for (ModelVolume* v : obj->volumes)
+            for (ModelVolume* v : obj->volumes) {
+                assert(! v->source.is_converted_from_meters);
                 v->source.is_converted_from_inches = true;
+            }
         }
 }
+
+static constexpr const double volume_threshold_meters = 0.001; // 0.001 = 0.1*0.1*0.1
 
 bool Model::looks_like_saved_in_meters() const
 {
@@ -489,7 +495,7 @@ bool Model::looks_like_saved_in_meters() const
         return false;
 
     for (ModelObject* obj : this->objects)
-        if (obj->get_object_stl_stats().volume < 0.001) // 0.001 = 0.1*0.1*0.1;
+        if (obj->get_object_stl_stats().volume < volume_threshold_meters)
             return true;
 
     return false;
@@ -497,12 +503,14 @@ bool Model::looks_like_saved_in_meters() const
 
 void Model::convert_from_meters(bool only_small_volumes)
 {
-    double m_to_mm = 1000;
+    static constexpr const double m_to_mm = 1000;
     for (ModelObject* obj : this->objects)
-        if (! only_small_volumes || obj->get_object_stl_stats().volume < 0.001) { // 0.001 = 0.1*0.1*0.1;
+        if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_meters) {
             obj->scale_mesh_after_creation(Vec3d(m_to_mm, m_to_mm, m_to_mm));
-            for (ModelVolume* v : obj->volumes)
+            for (ModelVolume* v : obj->volumes) {
+                assert(! v->source.is_converted_from_inches);
                 v->source.is_converted_from_meters = true;
+            }
         }
 }
 
@@ -948,9 +956,26 @@ void ModelObject::center_around_origin(bool include_modifiers)
 
 void ModelObject::ensure_on_bed(bool allow_negative_z)
 {
-    const double min_z = get_min_z();
-    if (!allow_negative_z || min_z > SINKING_Z_THRESHOLD)
-        translate_instances({ 0.0, 0.0, -min_z });
+    double z_offset = 0.0;
+
+    if (allow_negative_z) {
+        if (parts_count() == 1) {
+            const double min_z = get_min_z();
+            const double max_z = get_max_z();
+            if (min_z >= SINKING_Z_THRESHOLD || max_z < 0.0)
+                z_offset = -min_z;
+        }
+        else {
+            const double max_z = get_max_z();
+            if (max_z < SINKING_MIN_Z_THRESHOLD)
+                z_offset = SINKING_MIN_Z_THRESHOLD - max_z;
+        }
+    }
+    else
+        z_offset = -get_min_z();
+
+    if (z_offset != 0.0)
+        translate_instances(z_offset * Vec3d::UnitZ());
 }
 
 void ModelObject::translate_instances(const Vec3d& vector)
@@ -1075,6 +1100,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
                     vol->source.is_converted_from_inches = conv_type == ConversionType::CONV_FROM_INCH;
                 if (conv_type == ConversionType::CONV_FROM_METER || conv_type == ConversionType::CONV_TO_METER)
                     vol->source.is_converted_from_meters = conv_type == ConversionType::CONV_FROM_METER;
+                assert(! vol->source.is_converted_from_inches || ! vol->source.is_converted_from_meters);
             }
             else
                 vol->set_offset(volume->get_offset());
@@ -1102,6 +1128,15 @@ size_t ModelObject::facets_count() const
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part())
             num += v->mesh().stl.stats.number_of_facets;
+    return num;
+}
+
+size_t ModelObject::parts_count() const
+{
+    size_t num = 0;
+    for (const ModelVolume* v : this->volumes)
+        if (v->is_model_part())
+            ++num;
     return num;
 }
 
@@ -1420,6 +1455,19 @@ double ModelObject::get_min_z() const
     }
 }
 
+double ModelObject::get_max_z() const
+{
+    if (instances.empty())
+        return 0.0;
+    else {
+        double max_z = -DBL_MAX;
+        for (size_t i = 0; i < instances.size(); ++i) {
+            max_z = std::max(max_z, get_instance_max_z(i));
+        }
+        return max_z;
+    }
+}
+
 double ModelObject::get_instance_min_z(size_t instance_idx) const
 {
     double min_z = DBL_MAX;
@@ -1439,6 +1487,27 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
     }
 
     return min_z + inst->get_offset(Z);
+}
+
+double ModelObject::get_instance_max_z(size_t instance_idx) const
+{
+    double max_z = -DBL_MAX;
+
+    const ModelInstance* inst = instances[instance_idx];
+    const Transform3d& mi = inst->get_matrix(true);
+
+    for (const ModelVolume* v : volumes) {
+        if (!v->is_model_part())
+            continue;
+
+        const Transform3d mv = mi * v->get_matrix();
+        const TriangleMesh& hull = v->get_convex_hull();
+        for (const stl_facet& facet : hull.stl.facet_start)
+            for (int i = 0; i < 3; ++i)
+                max_z = std::max(max_z, (mv * facet.vertex[i].cast<double>()).z());
+    }
+
+    return max_z + inst->get_offset(Z);
 }
 
 unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
@@ -1827,6 +1896,7 @@ void ModelVolume::transform_this_mesh(const Matrix3d &matrix, bool fix_left_hand
 
 void ModelVolume::convert_from_imperial_units()
 {
+    assert(! this->source.is_converted_from_meters);
     double in_to_mm = 25.4;
     this->scale_geometry_after_creation(Vec3d(in_to_mm, in_to_mm, in_to_mm));
     this->set_offset(Vec3d(0, 0, 0));
@@ -1835,6 +1905,7 @@ void ModelVolume::convert_from_imperial_units()
 
 void ModelVolume::convert_from_meters()
 {
+    assert(! this->source.is_converted_from_inches);
     double m_to_mm = 1000;
     this->scale_geometry_after_creation(Vec3d(m_to_mm, m_to_mm, m_to_mm));
     this->set_offset(Vec3d(0, 0, 0));

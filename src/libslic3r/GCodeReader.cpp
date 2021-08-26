@@ -12,16 +12,24 @@
 
 namespace Slic3r {
 
+static inline char get_extrusion_axis_char(const GCodeConfig &config)
+{
+    std::string axis = get_extrusion_axis(config);
+    assert(axis.size() <= 1);
+    // Return 0 for gcfNoExtrusion
+    return axis.empty() ? 0 : axis[0];
+}
+
 void GCodeReader::apply_config(const GCodeConfig &config)
 {
     m_config = config;
-    m_extrusion_axis = get_extrusion_axis(m_config)[0];
+    m_extrusion_axis = get_extrusion_axis_char(m_config);
 }
 
 void GCodeReader::apply_config(const DynamicPrintConfig &config)
 {
     m_config.apply(config, true);
-    m_extrusion_axis = get_extrusion_axis(m_config)[0];
+    m_extrusion_axis = get_extrusion_axis_char(m_config);
 }
 
 const char* GCodeReader::parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command)
@@ -52,9 +60,10 @@ const char* GCodeReader::parse_line_internal(const char *ptr, GCodeLine &gline, 
             case 'Z': axis = Z; break;
             case 'F': axis = F; break;
             default:
-                if (*c == m_extrusion_axis)
-                    axis = E;
-                else if (*c >= 'A' && *c <= 'Z')
+                if (*c == m_extrusion_axis) {
+                    if (m_extrusion_axis != 0)
+                        axis = E;
+                } else if (*c >= 'A' && *c <= 'Z')
                 	// Unknown axis, but we still want to remember that such a axis was seen.
                 	axis = UNKNOWN_AXIS;
                 break;
@@ -190,6 +199,8 @@ void GCodeReader::GCodeLine::set(const GCodeReader &reader, const Axis axis, con
         match[1] = 'F';
     else {
         assert(axis == E);
+        // Extruder axis is set.
+        assert(reader.extrusion_axis() != 0);
         match[1] = reader.extrusion_axis();
     }
 

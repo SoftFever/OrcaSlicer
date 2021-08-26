@@ -45,6 +45,7 @@
 #include "GUI_Factories.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GalleryDialog.hpp"
+#include "NotificationManager.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -219,15 +220,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             return;
         }
 
-        if (m_plater != nullptr && !m_plater->save_project_if_dirty()) {
-            event.Veto();
-            return;
+        if (m_plater != nullptr) {
+            int saved_project = m_plater->save_project_if_dirty();
+            if (saved_project == wxID_CANCEL) {
+                event.Veto();
+                return;
+            }
+            // check unsaved changes only if project wasn't saved
+            else if (saved_project == wxID_NO && event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes()) {
+                event.Veto();
+                return;
+            }
         }
 
-        if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes()) {
-            event.Veto();
-            return;
-        }
         if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
             event.Veto();
             return;
@@ -613,8 +618,11 @@ void MainFrame::update_title()
         // Don't try to remove the extension, it would remove part of the file name after the last dot!
         wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
         wxString dirty_marker = (!m_plater->model().objects.empty() && m_plater->is_project_dirty()) ? "*" : "";
-        if (!dirty_marker.empty() || !project.empty())
+        if (!dirty_marker.empty() || !project.empty()) {
+            if (!dirty_marker.empty() && project.empty())
+                project = _("Untitled");
             title = dirty_marker + project + " - ";
+        }
     }
 
     std::string build_id = wxGetApp().is_editor() ? SLIC3R_BUILD_ID : GCODEVIEWER_BUILD_ID;
@@ -1049,7 +1057,7 @@ static wxMenu* generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, _L("Prusa 3D &Drivers"), _L("Open the Prusa3D drivers download page in your browser"),
         [](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/downloads"); });
     append_menu_item(helpMenu, wxID_ANY, _L("Software &Releases"), _L("Open the software releases page in your browser"),
-        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/prusa3d/PrusaSlicer/releases"); });
+        [](wxCommandEvent&) { wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); });
 //#        my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", "Check for new Slic3r versions", sub{
 //#            wxTheApp->check_version(1);
 //#        });
@@ -1059,20 +1067,22 @@ static wxMenu* generate_help_menu()
         [](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/slicerweb"); });
 //        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("%s &Manual"), SLIC3R_APP_NAME),
 //                                             wxString::Format(_L("Open the %s manual in your browser"), SLIC3R_APP_NAME),
-//            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });
+//            [this](wxCommandEvent&) { wxGetApp().open_browser_with_warning_dialog("http://manual.slic3r.org/"); });
     helpMenu->AppendSeparator();
     append_menu_item(helpMenu, wxID_ANY, _L("System &Info"), _L("Show system information"),
         [](wxCommandEvent&) { wxGetApp().system_info(); });
     append_menu_item(helpMenu, wxID_ANY, _L("Show &Configuration Folder"), _L("Show user configuration folder (datadir)"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
     append_menu_item(helpMenu, wxID_ANY, _L("Report an I&ssue"), wxString::Format(_L("Report an issue on %s"), SLIC3R_APP_NAME),
-        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/prusa3d/slic3r/issues/new"); });
+        [](wxCommandEvent&) { wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/slic3r/issues/new"); });
     if (wxGetApp().is_editor())
         append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("&About %s"), SLIC3R_APP_NAME), _L("Show about dialog"),
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
     else
         append_menu_item(helpMenu, wxID_ANY, wxString::Format(_L("&About %s"), GCODEVIEWER_APP_NAME), _L("Show about dialog"),
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
+    append_menu_item(helpMenu, wxID_ANY, _L("Show Tip of the day"), _L("Opens Tip of the day notification in bottom right corner or shows another tip if already opened."),
+        [](wxCommandEvent&) { wxGetApp().plater()->get_notification_manager()->push_hint_notification(false); });
     helpMenu->AppendSeparator();
     append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
         [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
@@ -1181,7 +1191,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(true); }, "import_plater", nullptr,
             [this](){return m_plater != nullptr; }, this);
         
-        append_menu_item(import_menu, wxID_ANY, _L("Import SL1 archive") + dots, _L("Load an SL1 archive"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import SL1 / SL1S archive") + dots, _L("Load an SL1 / Sl1S archive"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->import_sl1_archive(); }, "import_plater", nullptr,
             [this](){return m_plater != nullptr; }, this);    
     
@@ -1742,12 +1752,8 @@ bool MainFrame::load_config_file(const std::string &path)
 {
     try {
         ConfigSubstitutions config_substitutions = wxGetApp().preset_bundle->load_config_file(path, ForwardCompatibilitySubstitutionRule::Enable);
-        if (! config_substitutions.empty()) {
-            // TODO: Add list of changes from all_substitutions
-            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                " To recover these files, incompatible values were changed to default values."
-                " But data in files won't be changed until you save them in PrusaSlicer.")));
-        }
+        if (!config_substitutions.empty())
+            show_substitutions_info(config_substitutions, path);
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return false;
@@ -1806,18 +1812,16 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
     size_t presets_imported = 0;
     PresetsConfigSubstitutions config_substitutions;
     try {
-        std::tie(config_substitutions, presets_imported) = wxGetApp().preset_bundle->load_configbundle(file.ToUTF8().data(), PresetBundle::LoadConfigBundleAttribute::SaveImported);
+        // Report all substitutions.
+        std::tie(config_substitutions, presets_imported) = wxGetApp().preset_bundle->load_configbundle(
+            file.ToUTF8().data(), PresetBundle::LoadConfigBundleAttribute::SaveImported, ForwardCompatibilitySubstitutionRule::Enable);
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;
     }
 
-    if (! config_substitutions.empty()) {
-        // TODO: Add list of changes from all_substitutions
-        show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-            " To recover these files, incompatible values were changed to default values."
-            " But data in files won't be changed until you save them in PrusaSlicer.")));
-    }
+    if (! config_substitutions.empty())
+        show_substitutions_info(config_substitutions);
 
     // Load the currently selected preset into the GUI, update the preset selection box.
 	wxGetApp().load_current_presets();

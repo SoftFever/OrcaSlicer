@@ -88,11 +88,6 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 			if (!m_disabled)
 				this->on_kill_focus(opt_id);
 	};
-    field->m_on_set_focus = [this](const std::string& opt_id) {
-			//! This function will be called from Field.
-			if (!m_disabled)
-				this->on_set_focus(opt_id);
-	};
     field->m_parent = parent();
 
 	field->m_back_to_initial_value = [this](std::string opt_id) {
@@ -512,12 +507,6 @@ void OptionsGroup::clear_fields_except_of(const std::vector<std::string> left_fi
         else
             it++;
     }
-}
-
-void OptionsGroup::on_set_focus(const std::string& opt_key)
-{
-    if (m_set_focus != nullptr)
-        m_set_focus(opt_key);
 }
 
 void OptionsGroup::on_change_OG(const t_config_option_key& opt_id, const boost::any& value) {

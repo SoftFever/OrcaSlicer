@@ -283,7 +283,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
         }
         else if (alt_down) {
-            if (m_tool_type == ToolType::BRUSH) {
+            if (m_tool_type == ToolType::BRUSH && (m_cursor_type == TriangleSelector::CursorType::SPHERE || m_cursor_type == TriangleSelector::CursorType::CIRCLE)) {
                 m_cursor_radius = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_cursor_radius - CursorRadiusStep, CursorRadiusMin)
                                                                               : std::min(m_cursor_radius + CursorRadiusStep, CursorRadiusMax);
                 m_parent.set_as_dirty();
@@ -292,6 +292,11 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 m_seed_fill_angle = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_seed_fill_angle - SeedFillAngleStep, SeedFillAngleMin)
                                                                                 : std::min(m_seed_fill_angle + SeedFillAngleStep, SeedFillAngleMax);
                 m_parent.set_as_dirty();
+                if (m_rr.mesh_id != -1) {
+                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle, true);
+                    m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
+                    m_seed_fill_last_mesh_id = m_rr.mesh_id;
+                }
                 return true;
             }
 
@@ -319,11 +324,11 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 new_state = action == SLAGizmoEventType::LeftDown ? this->get_left_button_state_type() : this->get_right_button_state_type();
         }
 
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        const Selection& selection = m_parent.get_selection();
-        const ModelObject* mo = m_c->selection_info()->model_object();
-        const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
-        const Transform3d& instance_trafo = mi->get_transformation().get_matrix();
+        const Camera        &camera         = wxGetApp().plater()->get_camera();
+        const Selection     &selection      = m_parent.get_selection();
+        const ModelObject   *mo             = m_c->selection_info()->model_object();
+        const ModelInstance *mi             = mo->instances[selection.get_instance_idx()];
+        const Transform3d   &instance_trafo = mi->get_transformation().get_matrix();
 
         // List of mouse positions that will be used as seeds for painting.
         std::vector<Vec2d> mouse_positions{mouse_position};
@@ -382,6 +387,13 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
             if (m_tool_type == ToolType::SEED_FILL || m_tool_type == ToolType::BUCKET_FILL || (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)) {
                 m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
+                if (m_tool_type == ToolType::SEED_FILL)
+                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_seed_fill_angle, true);
+                else if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)
+                    m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), false, true);
+                else if (m_tool_type == ToolType::BUCKET_FILL)
+                    m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), true, true);
+
                 m_seed_fill_last_mesh_id = -1;
             } else if (m_tool_type == ToolType::BRUSH)
                 m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
@@ -515,7 +527,7 @@ bool GLGizmoPainterBase::on_is_activable() const
     const Selection& selection = m_parent.get_selection();
 
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF
-        || !selection.is_single_full_instance())
+        || !selection.is_single_full_instance() || wxGetApp().get_mode() == comSimple)
         return false;
 
     // Check that none of the selected volumes is outside. Only SLA auxiliaries (supports) are allowed outside.

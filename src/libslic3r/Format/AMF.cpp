@@ -706,7 +706,9 @@ void AMFParserContext::endElement(const char * /* name */)
 
     case NODE_TYPE_METADATA:
         if ((m_config != nullptr) && strncmp(m_value[0].c_str(), SLIC3R_CONFIG_TYPE, strlen(SLIC3R_CONFIG_TYPE)) == 0) {
-            m_config->load_from_gcode_string(m_value[1].c_str(), *m_config_substitutions);
+            //FIXME Loading a "will be one day a legacy format" of configuration in a form of a G-code comment.
+            // Each config line is prefixed with a semicolon (G-code comment), that is ugly.
+            m_config_substitutions->substitutions = m_config->load_from_ini_string_commented(std::move(m_value[1].c_str()), m_config_substitutions->rule);
         }
         else if (strncmp(m_value[0].c_str(), "slic3r.", 7) == 0) {
             const char *opt_key = m_value[0].c_str() + 7;
@@ -1241,9 +1243,10 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
                 stream << "        <metadata type=\"slic3r.source_offset_y\">" << volume->source.mesh_offset(1) << "</metadata>\n";
                 stream << "        <metadata type=\"slic3r.source_offset_z\">" << volume->source.mesh_offset(2) << "</metadata>\n";
             }
+            assert(! volume->source.is_converted_from_inches || ! volume->source.is_converted_from_meters);
             if (volume->source.is_converted_from_inches)
                 stream << "        <metadata type=\"slic3r.source_in_inches\">1</metadata>\n";
-            if (volume->source.is_converted_from_meters)
+            else if (volume->source.is_converted_from_meters)
                 stream << "        <metadata type=\"slic3r.source_in_meters\">1</metadata>\n";
 			stream << std::setprecision(std::numeric_limits<float>::max_digits10);
             const indexed_triangle_set &its = volume->mesh().its;

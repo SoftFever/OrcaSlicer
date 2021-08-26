@@ -238,7 +238,7 @@ inline typename CONTAINER_TYPE::value_type& next_value_modulo(typename CONTAINER
 	return container[next_idx_modulo(idx, container.size())];
 }
 
-extern std::string xml_escape(std::string text);
+extern std::string xml_escape(std::string text, bool is_marked = false);
 
 
 #if defined __GNUC__ && __GNUC__ < 5 && !defined __clang__

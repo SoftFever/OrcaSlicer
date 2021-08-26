@@ -180,6 +180,7 @@ public:
 
     void show_supports(bool show);
     bool are_supports_shown() const { return m_show_supports; }
+    void render_cut() const;
 
 protected:
     void on_update() override;
@@ -187,6 +188,8 @@ protected:
 
 private:
     bool m_show_supports = false;
+    std::vector<const TriangleMesh*> m_old_meshes;
+    std::vector<std::unique_ptr<MeshClipper>> m_clippers;
 };
 
 

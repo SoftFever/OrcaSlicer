@@ -114,7 +114,7 @@ protected:
 
     bool     m_triangle_splitting_enabled = true;
     ToolType m_tool_type                  = ToolType::BRUSH;
-    float    m_seed_fill_angle            = 0.f;
+    float    m_seed_fill_angle            = 30.f;
 
     static constexpr float SeedFillAngleMin  = 0.0f;
     static constexpr float SeedFillAngleMax  = 90.f;

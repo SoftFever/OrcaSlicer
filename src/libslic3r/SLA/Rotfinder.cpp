@@ -58,29 +58,6 @@ T sum_score(AccessFn &&accessfn, size_t facecount, size_t Nthreads)
     return execution::reduce(ex_tbb, from, to, initv, mergefn, accessfn, grainsize);
 }
 
-// Try to guess the number of support points needed to support a mesh
-double get_misalginment_score(const TriangleMesh &mesh, const Transform3f &tr)
-{
-    if (mesh.its.vertices.empty()) return std::nan("");
-
-    auto accessfn = [&mesh, &tr](size_t fi) {
-        auto triangle = get_transformed_triangle(mesh, tr, fi);
-        Vec3f U = triangle[1] - triangle[0];
-        Vec3f V = triangle[2] - triangle[0];
-        Vec3f C = U.cross(V);
-
-        // We should score against the alignment with the reference planes
-        return scaled<int_fast64_t>(std::abs(C.dot(Vec3f::UnitX())) +
-                                    std::abs(C.dot(Vec3f::UnitY())));
-    };
-
-    size_t facecount = mesh.its.indices.size();
-    size_t Nthreads  = std::thread::hardware_concurrency();
-    double S = unscaled(sum_score<int_fast64_t>(accessfn, facecount, Nthreads));
-
-    return S / facecount;
-}
-
 // Get area and normal of a triangle
 struct Facestats {
     Vec3f  normal;
@@ -96,21 +73,45 @@ struct Facestats {
     }
 };
 
+// Try to guess the number of support points needed to support a mesh
+double get_misalginment_score(const TriangleMesh &mesh, const Transform3f &tr)
+{
+    if (mesh.its.vertices.empty()) return std::nan("");
+
+    auto accessfn = [&mesh, &tr](size_t fi) {
+        Facestats fc{get_transformed_triangle(mesh, tr, fi)};
+
+        float score = fc.area
+                      * (std::abs(fc.normal.dot(Vec3f::UnitX()))
+                         + std::abs(fc.normal.dot(Vec3f::UnitY()))
+                         + std::abs(fc.normal.dot(Vec3f::UnitZ())));
+
+        // We should score against the alignment with the reference planes
+        return scaled<int_fast64_t>(score);
+    };
+
+    size_t facecount = mesh.its.indices.size();
+    size_t Nthreads  = std::thread::hardware_concurrency();
+    double S = unscaled(sum_score<int_fast64_t>(accessfn, facecount, Nthreads));
+
+    return S / facecount;
+}
+
 // The score function for a particular face
 inline double get_supportedness_score(const Facestats &fc)
 {
     // Simply get the angle (acos of dot product) between the face normal and
     // the DOWN vector.
-    float phi = 1. - std::acos(fc.normal.dot(DOWN)) / float(PI);
-
-    // Only consider faces that have slopes below 90 deg:
-    phi = phi * (phi >= 0.5f);
+    float cosphi = fc.normal.dot(DOWN);
+    float phi = 1.f - std::acos(cosphi) / float(PI);
 
     // Make the huge slopes more significant than the smaller slopes
     phi = phi * phi * phi;
 
-    // Multiply with the area of the current face
-    return fc.area * POINTS_PER_UNIT_AREA * phi;
+    // Multiply with the square root of face area of the current face,
+    // the area is less important as it grows.
+    // This makes many smaller overhangs a bigger impact.
+    return std::sqrt(fc.area) * POINTS_PER_UNIT_AREA * phi;
 }
 
 // Try to guess the number of support points needed to support a mesh
@@ -120,8 +121,7 @@ double get_supportedness_score(const TriangleMesh &mesh, const Transform3f &tr)
 
     auto accessfn = [&mesh, &tr](size_t fi) {
         Facestats fc{get_transformed_triangle(mesh, tr, fi)};
-
-        return get_supportedness_score(fc);
+        return scaled<int_fast64_t>(get_supportedness_score(fc));
     };
 
     size_t facecount = mesh.its.indices.size();
@@ -164,7 +164,7 @@ float get_supportedness_onfloor_score(const TriangleMesh &mesh,
         Facestats fc{tri};
 
         if (tri[0].z() <= zlvl && tri[1].z() <= zlvl && tri[2].z() <= zlvl)
-            return -fc.area * POINTS_PER_UNIT_AREA;
+            return -2 * fc.area * POINTS_PER_UNIT_AREA;
 
         return get_supportedness_score(fc);
     };
@@ -283,95 +283,81 @@ std::array<double, N> find_min_score(Fn &&fn, It from, It to, StopCond &&stopfn)
 
 } // namespace
 
+
+
+template<unsigned MAX_ITER>
+struct RotfinderBoilerplate {
+    static constexpr unsigned MAX_TRIES = MAX_ITER;
+
+    int status = 0;
+    TriangleMesh mesh;
+    unsigned max_tries;
+    const RotOptimizeParams &params;
+
+    // Assemble the mesh with the correct transformation to be used in rotation
+    // optimization.
+    static TriangleMesh get_mesh_to_rotate(const ModelObject &mo)
+    {
+        TriangleMesh mesh = mo.raw_mesh();
+        mesh.require_shared_vertices();
+
+        ModelInstance *mi = mo.instances[0];
+        auto rotation = Vec3d::Zero();
+        auto offset = Vec3d::Zero();
+        Transform3d trafo_instance =
+            Geometry::assemble_transform(offset, rotation,
+                                         mi->get_scaling_factor(),
+                                         mi->get_mirror());
+
+        mesh.transform(trafo_instance);
+
+        return mesh;
+    }
+
+    RotfinderBoilerplate(const ModelObject &mo, const RotOptimizeParams &p)
+        : mesh{get_mesh_to_rotate(mo)}
+        , params{p}
+        , max_tries(p.accuracy() * MAX_TRIES)
+    {
+
+    }
+
+    void statusfn() { params.statuscb()(++status * 100.0 / max_tries); }
+    bool stopcond() { return ! params.statuscb()(-1); }
+};
+
 Vec2d find_best_misalignment_rotation(const ModelObject &      mo,
                                       const RotOptimizeParams &params)
 {
-    static constexpr unsigned MAX_TRIES = 1000;
-
-    // return value
-    XYRotation rot;
-
-    // We will use only one instance of this converted mesh to examine different
-    // rotations
-    TriangleMesh mesh = mo.raw_mesh();
-    mesh.require_shared_vertices();
-
-    // To keep track of the number of iterations
-    int status = 0;
-
-    // The maximum number of iterations
-    auto max_tries = unsigned(params.accuracy() * MAX_TRIES);
-
-    auto &statuscb = params.statuscb();
-
-    // call status callback with zero, because we are at the start
-    statuscb(status);
-
-    auto statusfn = [&statuscb, &status, &max_tries] {
-        // report status
-        statuscb(++status * 100.0/max_tries);
-    };
-
-    auto stopcond = [&statuscb] {
-        return ! statuscb(-1);
-    };
+    RotfinderBoilerplate<1000> bp{mo, params};
 
     // Preparing the optimizer.
-    size_t gridsize = std::sqrt(max_tries);
-    opt::Optimizer<opt::AlgBruteForce> solver(opt::StopCriteria{}
-                                                .max_iterations(max_tries)
-                                                .stop_condition(stopcond),
-                                              gridsize);
+    size_t gridsize = std::sqrt(bp.max_tries);
+    opt::Optimizer<opt::AlgBruteForce> solver(
+        opt::StopCriteria{}.max_iterations(bp.max_tries)
+                           .stop_condition([&bp] { return bp.stopcond(); }),
+        gridsize
+    );
 
     // We are searching rotations around only two axes x, y. Thus the
     // problem becomes a 2 dimensional optimization task.
     // We can specify the bounds for a dimension in the following way:
-    auto bounds = opt::bounds({ {-PI/2, PI/2}, {-PI/2, PI/2} });
+    auto bounds = opt::bounds({ {-PI, PI}, {-PI, PI} });
 
     auto result = solver.to_max().optimize(
-        [&mesh, &statusfn] (const XYRotation &rot)
+        [&bp] (const XYRotation &rot)
         {
-            statusfn();
-            return get_misalginment_score(mesh, to_transform3f(rot));
+            bp.statusfn();
+            return get_misalginment_score(bp.mesh, to_transform3f(rot));
         }, opt::initvals({0., 0.}), bounds);
 
-    rot = result.optimum;
-
-    return {rot[0], rot[1]};
+    return {result.optimum[0], result.optimum[1]};
 }
 
 Vec2d find_least_supports_rotation(const ModelObject &      mo,
                                    const RotOptimizeParams &params)
 {
-    static const unsigned MAX_TRIES = 1000;
-
-    // return value
-    XYRotation rot;
-
-    // We will use only one instance of this converted mesh to examine different
-    // rotations
-    TriangleMesh mesh = mo.raw_mesh();
-    mesh.require_shared_vertices();
-
-    // To keep track of the number of iterations
-    unsigned status = 0;
-
-    // The maximum number of iterations
-    auto max_tries = unsigned(params.accuracy() * MAX_TRIES);
-
-    auto &statuscb = params.statuscb();
-
-    // call status callback with zero, because we are at the start
-    statuscb(status);
-
-    auto statusfn = [&statuscb, &status, &max_tries] {
-        // report status
-        statuscb(unsigned(++status * 100.0/max_tries) );
-    };
-
-    auto stopcond = [&statuscb] {
-        return ! statuscb(-1);
-    };
+    RotfinderBoilerplate<1000> bp{mo, params};
 
     SLAPrintObjectConfig pocfg;
     if (params.print_config())
@@ -379,31 +365,35 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
 
     pocfg.apply(mo.config.get());
 
+    XYRotation rot;
+
     // Different search methods have to be used depending on the model elevation
     if (is_on_floor(pocfg)) {
 
-        std::vector<XYRotation> inputs = get_chull_rotations(mesh, max_tries);
-        max_tries = inputs.size();
+        std::vector<XYRotation> inputs = get_chull_rotations(bp.mesh, bp.max_tries);
+        bp.max_tries = inputs.size();
 
         // If the model can be placed on the bed directly, we only need to
         // check the 3D convex hull face rotations.
 
-        auto objfn = [&mesh, &statusfn](const XYRotation &rot) {
-            statusfn();
+        auto objfn = [&bp](const XYRotation &rot) {
+            bp.statusfn();
             Transform3f tr = to_transform3f(rot);
-            return get_supportedness_onfloor_score(mesh, tr);
+            return get_supportedness_onfloor_score(bp.mesh, tr);
         };
 
-        rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), stopcond);
+        rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), [&bp] {
+            return bp.stopcond();
+        });
 
     } else {
-
         // Preparing the optimizer.
-        size_t gridsize = std::sqrt(max_tries); // 2D grid has gridsize^2 calls
-        opt::Optimizer<opt::AlgBruteForce> solver(opt::StopCriteria{}
-                                                      .max_iterations(max_tries)
-                                                      .stop_condition(stopcond),
-                                                  gridsize);
+        size_t gridsize = std::sqrt(bp.max_tries); // 2D grid has gridsize^2 calls
+        opt::Optimizer<opt::AlgBruteForce> solver(
+            opt::StopCriteria{}.max_iterations(bp.max_tries)
+                               .stop_condition([&bp] { return bp.stopcond(); }),
+            gridsize
+        );
 
         // We are searching rotations around only two axes x, y. Thus the
         // problem becomes a 2 dimensional optimization task.
@@ -411,15 +401,77 @@ Vec2d find_least_supports_rotation(const ModelObject &      mo,
         auto bounds = opt::bounds({ {-PI, PI}, {-PI, PI} });
 
         auto result = solver.to_min().optimize(
-            [&mesh, &statusfn] (const XYRotation &rot)
+            [&bp] (const XYRotation &rot)
             {
-                statusfn();
-                return get_supportedness_score(mesh, to_transform3f(rot));
+                bp.statusfn();
+                return get_supportedness_score(bp.mesh, to_transform3f(rot));
             }, opt::initvals({0., 0.}), bounds);
 
         // Save the result
         rot = result.optimum;
     }
+
+    return {rot[0], rot[1]};
+}
+
+inline BoundingBoxf3 bounding_box_with_tr(const indexed_triangle_set &its,
+                                          const Transform3f &tr)
+{
+    if (its.vertices.empty())
+        return {};
+
+    Vec3f bmin = tr * its.vertices.front(), bmax = tr * its.vertices.front();
+
+    for (const Vec3f &p : its.vertices) {
+        Vec3f pp = tr * p;
+        bmin = pp.cwiseMin(bmin);
+        bmax = pp.cwiseMax(bmax);
+    }
+
+    return {bmin.cast<double>(), bmax.cast<double>()};
+}
+
+Vec2d find_min_z_height_rotation(const ModelObject &mo,
+                                 const RotOptimizeParams &params)
+{
+    RotfinderBoilerplate<1000> bp{mo, params};
+
+    TriangleMesh chull = bp.mesh.convex_hull_3d();
+    chull.require_shared_vertices();
+    auto inputs = reserve_vector<XYRotation>(chull.its.indices.size());
+    auto rotcmp = [](const XYRotation &r1, const XYRotation &r2) {
+        double xdiff = r1[X] - r2[X], ydiff = r1[Y] - r2[Y];
+        return std::abs(xdiff) < EPSILON ? ydiff < 0. : xdiff < 0.;
+    };
+    auto eqcmp = [](const XYRotation &r1, const XYRotation &r2) {
+        double xdiff = r1[X] - r2[X], ydiff = r1[Y] - r2[Y];
+        return std::abs(xdiff) < EPSILON  && std::abs(ydiff) < EPSILON;
+    };
+
+    for (size_t fi = 0; fi < chull.its.indices.size(); ++fi) {
+        Facestats fc{get_triangle_vertices(chull, fi)};
+
+        auto q = Eigen::Quaternionf{}.FromTwoVectors(fc.normal, DOWN);
+        XYRotation rot = from_transform3f(Transform3f::Identity() * q);
+
+        auto it = std::lower_bound(inputs.begin(), inputs.end(), rot, rotcmp);
+
+        if (it == inputs.end() || !eqcmp(*it, rot))
+            inputs.insert(it, rot);
+    }
+
+    inputs.shrink_to_fit();
+    bp.max_tries = inputs.size();
+
+    auto objfn = [&bp, &chull](const XYRotation &rot) {
+        bp.statusfn();
+        Transform3f tr = to_transform3f(rot);
+        return bounding_box_with_tr(chull.its, tr).size().z();
+    };
+
+    XYRotation rot = find_min_score<2>(objfn, inputs.begin(), inputs.end(), [&bp] {
+        return bp.stopcond();
+    });
 
     return {rot[0], rot[1]};
 }

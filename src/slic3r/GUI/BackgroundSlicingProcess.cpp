@@ -154,54 +154,7 @@ void BackgroundSlicingProcess::process_fff()
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
-			
-			// let the gcode window to unmap the temporary .gcode file (m_temp_output_path)
-			// because the scripts may want to modify it
-			GUI::wxGetApp().plater()->stop_mapping_gcode_window();
-
-			m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-			run_post_process_scripts(m_temp_output_path, m_fff_print->full_print_config());
-
-			// let the gcode window to reload and remap the temporary .gcode file (m_temp_output_path)
-			GUI::wxGetApp().plater()->start_mapping_gcode_window();
-
-			//FIXME localize the messages
-			// Perform the final post-processing of the export path by applying the print statistics over the file name.
-			std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
-			std::string error_message;
-			int copy_ret_val = CopyFileResult::SUCCESS;
-			try
-			{
-				copy_ret_val = copy_file(m_temp_output_path, export_path, error_message, m_export_path_on_removable_media);
-			}
-			catch (...)
-			{
-				throw Slic3r::ExportError(_utf8(L("Unknown error occured during exporting G-code.")));
-			}
-			switch (copy_ret_val) {
-			case CopyFileResult::SUCCESS: break; // no error
-			case CopyFileResult::FAIL_COPY_FILE:
-				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"))) % error_message).str());
-				break;
-			case CopyFileResult::FAIL_FILES_DIFFERENT:
-				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
-				break;
-			case CopyFileResult::FAIL_RENAMING:
-				throw Slic3r::ExportError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str());
-				break;
-			case CopyFileResult::FAIL_CHECK_ORIGIN_NOT_OPENED:
-				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % m_temp_output_path % export_path).str());
-				break;
-			case CopyFileResult::FAIL_CHECK_TARGET_NOT_OPENED:
-				throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str());
-				break;
-			default:
-				throw Slic3r::ExportError(_utf8(L("Unknown error occured during exporting G-code.")));
-				BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
-				break;
-			}
-
-	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
+			finalize_gcode();
 	    } else if (! m_upload_job.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 			prepare_upload();
@@ -621,8 +574,11 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 		// Some FFF status was invalidated, and the G-code was not exported yet.
 		// Let the G-code preview UI know that the final G-code preview is not valid.
 		// In addition, this early memory deallocation reduces memory footprint.
-		if (m_gcode_result != nullptr)
+		if (m_gcode_result != nullptr) {
+			//FIXME calling platter from here is not a staple of a good architecture.
+			GUI::wxGetApp().plater()->stop_mapping_gcode_window();
 			m_gcode_result->reset();
+		}
 	}
 	return invalidated;
 }
@@ -698,12 +654,73 @@ bool BackgroundSlicingProcess::invalidate_all_steps()
 	return m_step_state.invalidate_all([this](){ this->stop_internal(); });
 }
 
+// G-code is generated in m_temp_output_path.
+// Optionally run a post-processing script on a copy of m_temp_output_path.
+// Copy the final G-code to target location (possibly a SD card, if it is a removable media, then verify that the file was written without an error).
+void BackgroundSlicingProcess::finalize_gcode()
+{
+	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+
+	// Perform the final post-processing of the export path by applying the print statistics over the file name.
+	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
+	std::string output_path = m_temp_output_path;
+	// Both output_path and export_path ar in-out parameters.
+	// If post processed, output_path will differ from m_temp_output_path as run_post_process_scripts() will make a copy of the G-code to not
+	// collide with the G-code viewer memory mapping of the unprocessed G-code. G-code viewer maps unprocessed G-code, because m_gcode_result 
+	// is calculated for the unprocessed G-code and it references lines in the memory mapped G-code file by line numbers.
+	// export_path may be changed by the post-processing script as well if the post processing script decides so, see GH #6042.
+	bool post_processed = run_post_process_scripts(output_path, true, "File", export_path, m_fff_print->full_print_config());
+	auto remove_post_processed_temp_file = [post_processed, &output_path]() {
+		if (post_processed)
+			try {
+				boost::filesystem::remove(output_path);
+			} catch (const std::exception &ex) {
+				BOOST_LOG_TRIVIAL(error) << "Failed to remove temp file " << output_path << ": " << ex.what();
+			}
+	};
+
+	//FIXME localize the messages
+	std::string error_message;
+	int copy_ret_val = CopyFileResult::SUCCESS;
+	try
+	{
+		copy_ret_val = copy_file(output_path, export_path, error_message, m_export_path_on_removable_media);
+		remove_post_processed_temp_file();
+	}
+	catch (...)
+	{
+		remove_post_processed_temp_file();
+		throw Slic3r::ExportError(_utf8(L("Unknown error occured during exporting G-code.")));
+	}
+	switch (copy_ret_val) {
+	case CopyFileResult::SUCCESS: break; // no error
+	case CopyFileResult::FAIL_COPY_FILE:
+		throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"))) % error_message).str());
+		break;
+	case CopyFileResult::FAIL_FILES_DIFFERENT:
+		throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."))) % export_path).str());
+		break;
+	case CopyFileResult::FAIL_RENAMING:
+		throw Slic3r::ExportError((boost::format(_utf8(L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."))) % export_path).str());
+		break;
+	case CopyFileResult::FAIL_CHECK_ORIGIN_NOT_OPENED:
+		throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."))) % output_path % export_path).str());
+		break;
+	case CopyFileResult::FAIL_CHECK_TARGET_NOT_OPENED:
+		throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str());
+		break;
+	default:
+		throw Slic3r::ExportError(_utf8(L("Unknown error occured during exporting G-code.")));
+		BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
+		break;
+	}
+
+	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
+}
+
+// A print host upload job has been scheduled, enqueue it to the printhost job queue
 void BackgroundSlicingProcess::prepare_upload()
 {
-	// A print host upload job has been scheduled, enqueue it to the printhost job queue
-
-	// XXX: is fs::path::string() right?
-
 	// Generate a unique temp path to which the gcode/zip file is copied/exported
 	boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
 		/ boost::filesystem::unique_path("." SLIC3R_APP_KEY ".upload.%%%%-%%%%-%%%%-%%%%");
@@ -711,11 +728,15 @@ void BackgroundSlicingProcess::prepare_upload()
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 		std::string error_message;
-		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS) {
+		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
 			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
-		}
-		run_post_process_scripts(source_path.string(), m_fff_print->full_print_config());
         m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+        // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
+        // (not here, but when the final target is a file). 
+        std::string source_path_str = source_path.string();
+        std::string output_name_str = m_upload_job.upload_data.upload_path.string();
+		if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str, m_fff_print->full_print_config()))
+			m_upload_job.upload_data.upload_path = output_name_str;
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
         

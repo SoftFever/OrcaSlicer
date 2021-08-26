@@ -25,9 +25,18 @@ public:
 
     void            setup_directories();
 
+    struct PresetPreferences {
+        std::string printer_model_id;// name of a preferred printer model
+        std::string printer_variant; // name of a preferred printer variant
+        std::string filament;        // name of a preferred filament preset
+        std::string sla_material;    // name of a preferred sla_material preset
+    };
+
     // Load ini files of all types (print, filament, printer) from Slic3r::data_dir() / presets.
     // Load selections (current print, current filaments, current printer) from config.ini
-    PresetsConfigSubstitutions load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule, const std::string &preferred_model_id = std::string());
+    // select preferred presets, if any exist
+    PresetsConfigSubstitutions load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule,
+                                            const PresetPreferences& preferred_selection = PresetPreferences());
 
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
@@ -102,7 +111,8 @@ public:
     using LoadConfigBundleAttributes = enum_bitmask<LoadConfigBundleAttribute>;
     // Load the config bundle based on the flags.
     // Don't do any config substitutions when loading a system profile, perform and report substitutions otherwise.
-    std::pair<PresetsConfigSubstitutions, size_t> load_configbundle(const std::string &path, LoadConfigBundleAttributes flags);
+    std::pair<PresetsConfigSubstitutions, size_t> load_configbundle(
+        const std::string &path, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path, bool export_system_settings = false, bool export_physical_printers = false);
@@ -139,7 +149,7 @@ public:
 
     static const char *PRUSA_BUNDLE;
 private:
-    std::string                 load_system_presets();
+    std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
     std::vector<std::string>    merge_presets(PresetBundle &&other);
     // Update renamed_from and alias maps of system profiles.
@@ -152,13 +162,14 @@ private:
 
     // Load selections (current print, current filaments, current printer) from config.ini
     // This is done just once on application start up.
-    void                        load_selections(AppConfig &config, const std::string &preferred_model_id = "");
+    void                        load_selections(AppConfig &config, const PresetPreferences& preferred_selection = PresetPreferences());
 
     // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
     // and the external config is just referenced, not stored into user profile directory.
     // If it is not an external config, then the config will be stored into the user profile directory.
     void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config);
-    ConfigSubstitutions         load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
+    ConfigSubstitutions         load_config_file_config_bundle(
+        const std::string &path, const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule);
 
     DynamicPrintConfig          full_fff_config() const;
     DynamicPrintConfig          full_sla_config() const;

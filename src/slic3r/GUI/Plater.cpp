@@ -1576,20 +1576,19 @@ struct Plater::priv
 
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
     void update_project_dirty_from_presets() { dirty_state.update_from_presets(); }
-    bool save_project_if_dirty() {
+    int save_project_if_dirty() {
+        int res = wxID_NO;
         if (dirty_state.is_dirty()) {
             MainFrame* mainframe = wxGetApp().mainframe;
             if (mainframe->can_save_as()) {
                 //wxMessageDialog dlg(mainframe, _L("Do you want to save the changes to the current project ?"), wxString(SLIC3R_APP_NAME), wxYES_NO | wxCANCEL);
                 MessageDialog dlg(mainframe, _L("Do you want to save the changes to the current project ?"), wxString(SLIC3R_APP_NAME), wxYES_NO | wxCANCEL);
-                int res = dlg.ShowModal();
+                res = dlg.ShowModal();
                 if (res == wxID_YES)
                     mainframe->save_project_as(wxGetApp().plater()->get_project_filename());
-                else if (res == wxID_CANCEL)
-                    return false;
             }
         }
-        return true;
+        return res;
     }
     void reset_project_dirty_after_save() { dirty_state.reset_after_save(); }
     void reset_project_dirty_initial_presets() { dirty_state.reset_initial_presets(); }
@@ -1659,6 +1658,7 @@ struct Plater::priv
     void deselect_all();
     void remove(size_t obj_idx);
     void delete_object_from_model(size_t obj_idx);
+    void delete_all_objects_from_model();
     void reset();
     void mirror(Axis axis);
     void split_object();
@@ -1721,7 +1721,7 @@ struct Plater::priv
     void replace_with_stl();
     void reload_all_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
-
+    void create_simplify_notification(const std::vector<size_t>& obj_ids);
     void set_current_panel(wxPanel* panel);
 
     void on_select_preset(wxCommandEvent&);
@@ -1771,6 +1771,7 @@ struct Plater::priv
     bool can_arrange() const;
     bool can_layers_editing() const;
     bool can_fix_through_netfabb() const;
+    bool can_simplify() const;
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
     bool can_reload_from_disk() const;
@@ -1944,7 +1945,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         // 3DScene/Toolbar:
         view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
-        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { delete_all_objects_from_model(); });
+//        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
@@ -2261,12 +2263,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         // and place the loaded config over the base.
                         config += std::move(config_loaded);
                     }
-                    if (! config_substitutions.empty()) {
-                        // TODO:
-                        show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                            " To recover these files, incompatible values were changed to default values."
-                            " But data in files won't be changed until you save them in PrusaSlicer.")));
-                    }
+                    if (! config_substitutions.empty())
+                        show_substitutions_info(config_substitutions.substitutions, filename.string());
 
                     this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                 }
@@ -2338,9 +2336,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             else {
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion));
                 for (auto obj : model.objects)
-                    if (obj->name.empty())
+                    if (obj->name.empty() ||
+                        obj->name.find_first_of("/") != std::string::npos) // When file is imported from Fusion360 the path containes "/" instead of "\\" (see https://github.com/prusa3d/PrusaSlicer/issues/6803)
+                                                                           // But read_from_file doesn't support that direction separator and as a result object name containes full path 
                         obj->name = fs::path(obj->input_file).filename().string();
             }
+        } catch (const ConfigurationError &e) {
+            std::string message = GUI::format(_L("Failed loading file \"%1%\" due to an invalid configuration."), filename.string()) + "\n\n" + e.what();
+            GUI::show_error(q, message);
+            continue;
         } catch (const std::exception &e) {
             GUI::show_error(q, e.what());
             continue;
@@ -2360,25 +2364,23 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
                 else if (model.looks_like_saved_in_meters()) {
-                    //wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
                     MessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
-                        "The object in file %s looks like saved in meters.\n"
-                        "Should I consider it as a saved in meters and convert it?",
-                        "Some objects in file %s look like saved in meters.\n"
-                        "Should I consider them as a saved in meters and convert them?", model.objects.size()), from_path(filename)) + "\n",
-                        _L("The object appears to be saved in meters"), wxICON_WARNING | wxYES | wxNO);
+                        "The dimensions of the object from file %s seem to be defined in meters.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
+                        "The dimensions of some objects from file %s seem to be defined in meters.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                        _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES)
                         //FIXME up-scale only the small parts?
                         model.convert_from_meters(true);
                 }
                 else if (model.looks_like_imperial_units()) {
-                    //wxMessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
                     MessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
-                        "The object in file %s looks like saved in inches.\n"
-                        "Should I consider it as a saved in inches and convert it?",
-                        "Some objects in file %s look like saved in inches.\n"
-                        "Should I consider them as a saved in inches and convert them?", model.objects.size()), from_path(filename)) + "\n",
-                        _L("The object appears to be saved in inches"), wxICON_WARNING | wxYES | wxNO);
+                        "The dimensions of the object from file %s seem to be defined in inches.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
+                        "The dimensions of some objects from file %s seem to be defined in inches.\n"
+                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                        _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES)
                         //FIXME up-scale only the small parts?
                         convert_from_imperial_units(model, true);
@@ -2388,8 +2390,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     //wxMessageDialog msg_dlg(q, _L(
                     MessageDialog msg_dlg(q, _L(
                         "This file contains several objects positioned at multiple heights.\n"
-                        "Instead of considering them as multiple objects, should I consider\n"
-                        "this file as a single object having multiple parts?") + "\n",
+                        "Instead of considering them as multiple objects, should \n"
+                        "should the file be loaded as a single object having multiple parts?") + "\n",
                         _L("Multi-part object detected"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES) {
                         model.convert_multipart_object(nozzle_dmrs->values.size());
@@ -2426,6 +2428,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             if (one_by_one) {
+                if (type_3mf && !is_project_file)
+                    model.center_instances_around_point(bed_shape_bb().center());
                 auto loaded_idxs = load_model_objects(model.objects, is_project_file);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
@@ -2473,6 +2477,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
             view3D->get_canvas3d()->update_gizmos_on_off_state();
     }
+
+    create_simplify_notification(obj_idxs);
 
     return obj_idxs;
 }
@@ -2562,6 +2568,10 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             _L("Your object appears to be too large, so it was automatically scaled down to fit your print bed."),
             _L("Object too large?"));
     }
+
+    // Now ObjectList uses GLCanvas3D::is_object_sinkin() to show/hide "Sinking" InfoItem, 
+    // so 3D-scene should be updated before object additing to the ObjectList
+    this->view3D->reload_scene(false, (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
 
     for (const size_t idx : obj_idxs) {
         wxGetApp().obj_list()->add_object_to_list(idx);
@@ -2745,6 +2755,32 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
     model.delete_object(obj_idx);
     update();
     object_list_changed();
+}
+
+void Plater::priv::delete_all_objects_from_model()
+{
+    Plater::TakeSnapshot snapshot(q, _L("Delete All Objects"));
+
+    if (view3D->is_layers_editing_enabled())
+        view3D->enable_layers_editing(false);
+
+    reset_gcode_toolpaths();
+    gcode_result.reset();
+
+    view3D->get_canvas3d()->reset_sequential_print_clearance();
+
+    // Stop and reset the Print content.
+    background_process.reset();
+    model.clear_objects();
+    update();
+    // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
+    sidebar->obj_list()->delete_all_objects_from_list();
+    object_list_changed();
+
+    // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
+    sidebar->show_sliced_info_sizer(false);
+
+    model.custom_gcode_per_print_z.gcodes.clear();
 }
 
 void Plater::priv::reset()
@@ -2937,6 +2973,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     if (view3D->is_layers_editing_enabled())
         view3D->get_wxglcanvas()->Refresh();
+
+    if (background_process.empty())
+        view3D->get_canvas3d()->reset_sequential_print_clearance();
 
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
         // Some previously calculated data on the Print was invalidated.
@@ -3211,9 +3250,10 @@ void Plater::priv::replace_with_stl()
     new_volume->set_material_id(old_volume->material_id());
     new_volume->set_transformation(old_volume->get_transformation());
     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+    assert(! old_volume->source.is_converted_from_inches || ! old_volume->source.is_converted_from_meters);
     if (old_volume->source.is_converted_from_inches)
         new_volume->convert_from_imperial_units();
-    if (old_volume->source.is_converted_from_meters)
+    else if (old_volume->source.is_converted_from_meters)
         new_volume->convert_from_meters();
     new_volume->supported_facets.assign(old_volume->supported_facets);
     new_volume->seam_facets.assign(old_volume->seam_facets);
@@ -3419,13 +3459,11 @@ void Plater::priv::reload_from_disk()
                     new_volume->set_material_id(old_volume->material_id());
                     new_volume->set_transformation(old_volume->get_transformation());
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+                    assert(! old_volume->source.is_converted_from_inches || ! old_volume->source.is_converted_from_meters);
                     if (old_volume->source.is_converted_from_inches)
                         new_volume->convert_from_imperial_units();
-                    if (old_volume->source.is_converted_from_meters)
+                    else if (old_volume->source.is_converted_from_meters)
                         new_volume->convert_from_meters();
-                    new_volume->supported_facets.assign(old_volume->supported_facets);
-                    new_volume->seam_facets.assign(old_volume->seam_facets);
-                    new_volume->mmu_segmentation_facets.assign(old_volume->mmu_segmentation_facets);
                     std::swap(old_model_object->volumes[sel_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                     if (!sinking)
@@ -3496,44 +3534,59 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     // size_t snapshot_time = undo_redo_stack().active_snapshot_time();
     Plater::TakeSnapshot snapshot(q, _L("Fix through NetFabb"));
 
+    q->clear_before_change_mesh(obj_idx);
     ModelObject* mo = model.objects[obj_idx];
-
-    // If there are custom supports/seams/mmu segmentation, remove them. Fixed mesh
-    // may be different and they would make no sense.
-    bool paint_removed = false;
-    for (ModelVolume* mv : mo->volumes) {
-        paint_removed |= ! mv->supported_facets.empty() || ! mv->seam_facets.empty() || ! mv->mmu_segmentation_facets.empty();
-        mv->supported_facets.clear();
-        mv->seam_facets.clear();
-        mv->mmu_segmentation_facets.clear();
-    }
-    if (paint_removed) {
-        // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
-        notification_manager->push_notification(
-                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::RegularNotification,
-                    _u8L("Custom supports and seams were removed after repairing the mesh."));
-//                    _u8L("Undo the repair"),
-//                    [this, snapshot_time](wxEvtHandler*){
-//                        // Make sure the snapshot is still available and that
-//                        // we are in the main stack and not in a gizmo-stack.
-//                        if (undo_redo_stack().has_undo_snapshot(snapshot_time)
-//                         && q->canvas3D()->get_gizmos_manager().get_current() == nullptr)
-//                            undo_redo_to(snapshot_time);
-//                        else
-//                            notification_manager->push_notification(
-//                                NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-//                                NotificationManager::NotificationLevel::RegularNotification,
-//                                _u8L("Cannot undo to before the mesh repair!"));
-//                        return true;
-//                    });
-    }
-
     fix_model_by_win10_sdk_gui(*mo, vol_idx);
-    sla::reproject_points_and_holes(mo);
-    this->update();
-    this->object_list_changed();
-    this->schedule_background_process();
+    q->changed_mesh(obj_idx);
+    // workaround to fix the issue, when PrusaSlicer lose a focus after model fixing
+    q->SetFocus();
+}
+
+void Plater::priv::create_simplify_notification(const std::vector<size_t>& obj_ids) {
+    const uint32_t triangles_to_suggest_simplify = 1000000;
+
+    std::vector<size_t> big_ids;
+    big_ids.reserve(obj_ids.size());
+    std::copy_if(obj_ids.begin(), obj_ids.end(), std::back_inserter(big_ids),
+                 [this, triangles_to_suggest_simplify](size_t object_id) {
+            if (object_id >= model.objects.size()) return false; // out of object index
+            ModelVolumePtrs& volumes = model.objects[object_id]->volumes;
+            if (volumes.size() != 1) return false; // not only one volume
+            size_t triangle_count = volumes.front()->mesh().its.indices.size();
+            if (triangle_count < triangles_to_suggest_simplify) return false; // small volume
+            return true;
+        });
+
+    if (big_ids.empty()) return;
+
+    for (size_t object_id : big_ids) {
+        std::string t = _u8L(
+            "Processing model '@object_name' with more than 1M triangles "
+            "could be slow. It is highly recommend to reduce "
+            "amount of triangles.");
+        t.replace(t.find("@object_name"), sizeof("@object_name") - 1,
+                  model.objects[object_id]->name);
+        std::stringstream text;
+        text << _u8L("WARNING:") << "\n" << t << "\n";
+        std::string hypertext = _u8L("Simplify model");
+
+        std::function<bool(wxEvtHandler *)> open_simplify = [object_id](wxEvtHandler *) {
+            auto plater = wxGetApp().plater();
+            if (object_id >= plater->model().objects.size()) return true;
+
+            Selection &selection = plater->canvas3D()->get_selection();
+            selection.clear();
+            selection.add_object((unsigned int) object_id);
+
+            auto &manager = plater->canvas3D()->get_gizmos_manager();
+            manager.open_gizmo(GLGizmosManager::EType::Simplify);
+            return true;
+        };
+        notification_manager->push_notification(
+            NotificationType::SimplifySuggestion,
+            NotificationManager::NotificationLevel::WarningNotification,
+            text.str(), hypertext, open_simplify);    
+    }
 }
 
 void Plater::priv::set_current_panel(wxPanel* panel)
@@ -3952,6 +4005,10 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (evt.data.second)
             return;
 
+        // Each context menu respects to the selected item in ObjectList, 
+        // so this selection should be updated before menu creation
+        wxGetApp().obj_list()->update_selections();
+
         if (printer_technology == ptSLA)
             menu = menus.sla_object_menu();
         else {
@@ -4303,6 +4360,18 @@ bool Plater::priv::can_fix_through_netfabb() const
         return false;
 
     return model.objects[obj_idx]->get_mesh_errors_count() > 0;
+}
+
+
+bool Plater::priv::can_simplify() const
+{
+    // is object for simplification selected
+    if (get_selected_object_idx() < 0) return false;
+    // is already opened?
+    if (q->canvas3D()->get_gizmos_manager().get_current_type() ==
+        GLGizmosManager::EType::Simplify)
+        return false;
+    return true;
 }
 
 bool Plater::priv::can_increase_instances() const
@@ -4667,7 +4736,7 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
 void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
-bool Plater::save_project_if_dirty() { return p->save_project_if_dirty(); }
+int  Plater::save_project_if_dirty() { return p->save_project_if_dirty(); }
 void Plater::reset_project_dirty_after_save() { p->reset_project_dirty_after_save(); }
 void Plater::reset_project_dirty_initial_presets() { p->reset_project_dirty_initial_presets(); }
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
@@ -4720,10 +4789,8 @@ void Plater::load_project(const wxString& filename)
     std::vector<fs::path> input_paths;
     input_paths.push_back(into_path(filename));
 
-    std::vector<size_t> res = load_files(input_paths);
-
-    // if res is empty no data has been loaded
-    if (!res.empty()) {
+    if (! load_files(input_paths).empty()) {
+        // At least one file was loaded.
         p->set_project_filename(filename);
         reset_project_dirty_initial_presets();
         update_project_dirty_from_presets();
@@ -4758,8 +4825,7 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    std::vector<size_t> res = load_files(paths, true, false, imperial_units);
-    if (!res.empty())
+    if (! load_files(paths, true, false, imperial_units).empty())
         wxGetApp().mainframe->update_title();
 }
 
@@ -4893,7 +4959,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
     main_sizer->Add(new wxStaticText(this, wxID_ANY,
         _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
 
-    int action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
+    m_action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
         static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)) - 1;
 
     wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, _L("Action"));
@@ -4904,7 +4970,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
     int id = 0;
     for (const wxString& label : choices) {
         wxRadioButton* btn = new wxRadioButton(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, id == 0 ? wxRB_GROUP : 0);
-        btn->SetValue(id == action);
+        btn->SetValue(id == m_action);
         btn->Bind(wxEVT_RADIOBUTTON, [this, id](wxCommandEvent&) { m_action = id; });
         stb_sizer->Add(btn, 0, wxEXPAND | wxTOP, 5);
         id++;
@@ -5322,13 +5388,14 @@ void Plater::export_gcode(bool prefer_removable)
 
     fs::path output_path;
     {
-        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SL1 file as:"),
+    	std::string ext = default_output_file.extension().string();
+        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SL1 / SL1S file as:"),
             start_dir,
             from_path(default_output_file.filename()),
-            GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
+            GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : boost::iequals(ext, ".sl1s") ? FT_SL1S : FT_SL1, ext),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
-        if (dlg.ShowModal() == wxID_OK)
+            if (dlg.ShowModal() == wxID_OK)
             output_path = into_path(dlg.GetPath());
     }
 
@@ -5865,6 +5932,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->sidebar->update_searcher();
             p->sidebar->show_sliced_info_sizer(false);
             p->reset_gcode_toolpaths();
+            p->view3D->get_canvas3d()->reset_sequential_print_clearance();
         }
         else if (opt_key == "bed_shape" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
             bed_shape_changed = true;
@@ -6136,13 +6204,58 @@ bool Plater::set_printer_technology(PrinterTechnology printer_technology)
     return ret;
 }
 
+void Plater::clear_before_change_mesh(int obj_idx)
+{
+    ModelObject* mo = model().objects[obj_idx];
+
+    // If there are custom supports/seams/mmu segmentation, remove them. Fixed mesh
+    // may be different and they would make no sense.
+    bool paint_removed = false;
+    for (ModelVolume* mv : mo->volumes) {
+        paint_removed |= ! mv->supported_facets.empty() || ! mv->seam_facets.empty() || ! mv->mmu_segmentation_facets.empty();
+        mv->supported_facets.clear();
+        mv->seam_facets.clear();
+        mv->mmu_segmentation_facets.clear();
+    }
+    if (paint_removed) {
+        // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
+        get_notification_manager()->push_notification(
+                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                    NotificationManager::NotificationLevel::RegularNotification,
+                    _u8L("Custom supports, seams and multimaterial painting were "
+                         "removed after repairing the mesh."));
+//                    _u8L("Undo the repair"),
+//                    [this, snapshot_time](wxEvtHandler*){
+//                        // Make sure the snapshot is still available and that
+//                        // we are in the main stack and not in a gizmo-stack.
+//                        if (undo_redo_stack().has_undo_snapshot(snapshot_time)
+//                         && q->canvas3D()->get_gizmos_manager().get_current() == nullptr)
+//                            undo_redo_to(snapshot_time);
+//                        else
+//                            notification_manager->push_notification(
+//                                NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+//                                NotificationManager::NotificationLevel::RegularNotification,
+//                                _u8L("Cannot undo to before the mesh repair!"));
+//                        return true;
+//                    });
+    }
+}
+
+void Plater::changed_mesh(int obj_idx)
+{
+    ModelObject* mo = model().objects[obj_idx];
+    sla::reproject_points_and_holes(mo);
+    update();
+    p->object_list_changed();
+    p->schedule_background_process();
+}
+
 void Plater::changed_object(int obj_idx)
 {
     if (obj_idx < 0)
         return;
     // recenter and re - align to Z = 0
-    auto model_object = p->model.objects[obj_idx];
-    model_object->ensure_on_bed(this->p->printer_technology != ptSLA);
+    p->model.objects[obj_idx]->ensure_on_bed(p->printer_technology != ptSLA);
     if (this->p->printer_technology == ptSLA) {
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data, update the 3D scene.
@@ -6403,6 +6516,7 @@ bool Plater::can_increase_instances() const { return p->can_increase_instances()
 bool Plater::can_decrease_instances() const { return p->can_decrease_instances(); }
 bool Plater::can_set_instance_to_object() const { return p->can_set_instance_to_object(); }
 bool Plater::can_fix_through_netfabb() const { return p->can_fix_through_netfabb(); }
+bool Plater::can_simplify() const { return p->can_simplify(); }
 bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }

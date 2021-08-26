@@ -85,8 +85,11 @@ bool MsgUpdateSlic3r::disable_version_check() const
 
 // MsgUpdateConfig
 
-MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates) :
-	MsgDialog(nullptr, _(L("Configuration update")), _(L("Configuration update is available")), wxID_NONE)
+MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_before_wizard/* = false*/) :
+	MsgDialog(nullptr, force_before_wizard ? _L("Opening Configuration Wizard") : _L("Configuration update"), 
+					   force_before_wizard ? _L("PrusaSlicer is not using the newest configuration available.\n"
+												"Configuration Wizard may not offer the latest printers, filaments and SLA materials to be installed. ") : 
+											 _L("Configuration update is available"), wxID_NONE)
 {
 	auto *text = new wxStaticText(this, wxID_ANY, _(L(
 		"Would you like to install it?\n\n"
@@ -130,11 +133,17 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates) :
 	content_sizer->Add(versions);
 	content_sizer->AddSpacer(2*VERT_SPACING);
 
-	auto *btn_cancel = new wxButton(this, wxID_CANCEL);
-	btn_sizer->Add(btn_cancel);
-	btn_sizer->AddSpacer(HORIZ_SPACING);
-	auto *btn_ok = new wxButton(this, wxID_OK);
+	auto* btn_ok = new wxButton(this, wxID_OK, force_before_wizard ? _L("Install") : "OK");
 	btn_sizer->Add(btn_ok);
+	btn_sizer->AddSpacer(HORIZ_SPACING);
+	if (force_before_wizard) {
+		auto* btn_no_install = new wxButton(this, wxID_ANY, "Don't install");
+		btn_no_install->Bind(wxEVT_BUTTON, [this](wxEvent&) { this->EndModal(wxID_CLOSE); });
+		btn_sizer->Add(btn_no_install);
+		btn_sizer->AddSpacer(HORIZ_SPACING);
+	}
+	auto* btn_cancel = new wxButton(this, wxID_CANCEL);
+	btn_sizer->Add(btn_cancel);
 	btn_ok->SetFocus();
 
 	wxGetApp().UpdateDlgDarkUI(this);

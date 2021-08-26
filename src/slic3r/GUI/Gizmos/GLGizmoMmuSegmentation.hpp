@@ -25,9 +25,8 @@ public:
         return this->triangle_indices_VBO_ids[triangle_indices_idx] != 0;
     }
 
-    // Finalize the initialization of the geometry and indices, upload the geometry and indices to OpenGL VBO objects
-    // and possibly releasing it if it has been loaded into the VBOs.
-    void finalize_geometry();
+    [[nodiscard]] inline bool has_contour_VBO() const { return this->contour_indices_VBO_id != 0; }
+
     // Release the geometry data, release OpenGL VBOs.
     void release_geometry();
     // Finalize the initialization of the geometry, upload the geometry to OpenGL VBO objects
@@ -36,6 +35,9 @@ public:
     // Finalize the initialization of the indices, upload the indices to OpenGL VBO objects
     // and possibly releasing it if it has been loaded into the VBOs.
     void finalize_triangle_indices();
+    // Finalize the initialization of the contour geometry and the indices, upload both to OpenGL VBO objects
+    // and possibly releasing it if it has been loaded into the VBOs.
+    void finalize_contour();
 
     void clear()
     {
@@ -45,28 +47,41 @@ public:
 
         for (size_t &triangle_indices_size : this->triangle_indices_sizes)
             triangle_indices_size = 0;
+
+        this->contour_vertices.clear();
+        this->contour_indices.clear();
+        this->contour_indices_size = 0;
     }
 
     void render(size_t triangle_indices_idx) const;
 
+    void render_contour() const;
+
     std::vector<float>            vertices;
     std::vector<std::vector<int>> triangle_indices;
+
+    std::vector<float>            contour_vertices;
+    std::vector<int>              contour_indices;
 
     // When the triangle indices are loaded into the graphics card as Vertex Buffer Objects,
     // the above mentioned std::vectors are cleared and the following variables keep their original length.
     std::vector<size_t> triangle_indices_sizes;
+    size_t              contour_indices_size{0};
 
     // IDs of the Vertex Array Objects, into which the geometry has been loaded.
     // Zero if the VBOs are not sent to GPU yet.
     unsigned int              vertices_VBO_id{0};
     std::vector<unsigned int> triangle_indices_VBO_ids;
+
+    unsigned int              contour_vertices_VBO_id{0};
+    unsigned int              contour_indices_VBO_id{0};
 };
 
 class TriangleSelectorMmGui : public TriangleSelectorGUI {
 public:
-    // Plus 2 in the initialization of m_gizmo_scene is because the first position is allocated for non-painted triangles, and the last position is allocated for seed fill.
+    // Plus 1 in the initialization of m_gizmo_scene is because the first position is allocated for non-painted triangles, and the indices above colors.size() are allocated for seed fill.
     explicit TriangleSelectorMmGui(const TriangleMesh &mesh, const std::vector<std::array<float, 4>> &colors, const std::array<float, 4> &default_volume_color)
-        : TriangleSelectorGUI(mesh), m_colors(colors), m_default_volume_color(default_volume_color), m_gizmo_scene(colors.size() + 2) {}
+        : TriangleSelectorGUI(mesh), m_colors(colors), m_default_volume_color(default_volume_color), m_gizmo_scene(2 * (colors.size() + 1)) {}
     ~TriangleSelectorMmGui() override = default;
 
     // Render current selection. Transformation matrices are supposed
@@ -109,6 +124,7 @@ protected:
     std::string on_get_name() const override;
 
     bool on_is_selectable() const override;
+    bool on_is_activable() const override;
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 

@@ -69,6 +69,7 @@ public:
         FdmSupports,
         Seam,
         MmuSegmentation,
+        Simplify,
         Undefined
     };
 
@@ -101,7 +102,6 @@ private:
     std::pair<EType, bool> m_highlight; // bool true = higlightedShown, false = highlightedHidden
 
     std::vector<size_t> get_selectable_idxs() const;
-    std::vector<size_t> get_activable_idxs() const;
     size_t get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const;
 
     void activate_gizmo(EType type);
@@ -122,7 +122,6 @@ private:
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
     bool m_serializing;
-    //std::unique_ptr<CommonGizmosData> m_common_gizmos_data;
     std::unique_ptr<CommonGizmosDataPool> m_common_gizmos_data;
 
 public:
@@ -218,6 +217,7 @@ public:
     bool wants_reslice_supports_on_undo() const;
 
     bool is_in_editing_mode(bool error_notification = false) const;
+    bool is_hiding_instances() const;
 
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;

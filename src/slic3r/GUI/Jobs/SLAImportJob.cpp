@@ -33,7 +33,7 @@ public:
         
         m_filepicker = new wxFilePickerCtrl(this, wxID_ANY,
                                             from_u8(wxGetApp().app_config->get_last_dir()), _(L("Choose SLA archive:")),
-                                            "SL1 archive files (*.sl1, *.zip)|*.sl1;*.SL1;*.zip;*.ZIP",
+                                            "SL1 / SL1S archive files (*.sl1, *.sl1s, *.zip)|*.sl1;*.SL1;*.sl1s;*.SL1S;*.zip;*.ZIP",
                                             wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE | wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         
         szfilepck->Add(new wxStaticText(this, wxID_ANY, _L("Import file") + ": "), 0, wxALIGN_CENTER);
@@ -119,6 +119,7 @@ public:
     wxString             path;
     Vec2i                win = {2, 2};
     std::string          err;
+    ConfigSubstitutions config_substitutions;
 
     priv(Plater *plt) : plater{plt} {}
 };
@@ -140,26 +141,21 @@ void SLAImportJob::process()
     if (p->path.empty()) return;
     
     std::string path = p->path.ToUTF8().data();
-    ConfigSubstitutions config_substitutions;
     try {
         switch (p->sel) {
         case Sel::modelAndProfile:
-            config_substitutions = import_sla_archive(path, p->win, p->mesh, p->profile, progr);
+            p->config_substitutions = import_sla_archive(path, p->win, p->mesh, p->profile, progr);
             break;
         case Sel::modelOnly:
-            config_substitutions = import_sla_archive(path, p->win, p->mesh, progr);
+            p->config_substitutions = import_sla_archive(path, p->win, p->mesh, progr);
             break;
         case Sel::profileOnly:
-            config_substitutions = import_sla_archive(path, p->profile);
+            p->config_substitutions = import_sla_archive(path, p->profile);
             break;
         }
         
     } catch (std::exception &ex) {
         p->err = ex.what();
-    }
-
-    if (! config_substitutions.empty()) {
-        //FIXME Add reporting here "Loading profiles found following incompatibilities."
     }
     
     update_status(100, was_canceled() ? _(L("Importing canceled.")) :
@@ -187,6 +183,7 @@ void SLAImportJob::prepare()
         p->path = !nm.Exists(wxFILE_EXISTS_REGULAR) ? "" : nm.GetFullPath();
         p->sel  = dlg.get_selection();
         p->win  = dlg.get_marchsq_windowsize();
+        p->config_substitutions.clear();
     } else {
         p->path = "";
     }
@@ -230,8 +227,11 @@ void SLAImportJob::finalize()
         p->plater->sidebar().obj_list()->load_mesh_object(TriangleMesh{p->mesh},
                                                           name, is_centered);
     }
-    
+
+    if (! p->config_substitutions.empty())
+        show_substitutions_info(p->config_substitutions, p->path.ToUTF8().data());
+
     reset();
 }
 
-}}
+}} // namespace Slic3r::GUI

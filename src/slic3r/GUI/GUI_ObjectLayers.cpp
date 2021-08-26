@@ -145,7 +145,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     auto temp = new wxStaticText(m_parent, wxID_ANY, _L("mm"));
     temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
     temp->SetFont(wxGetApp().normal_font());
-    sizer->Add(temp, 0, wxLEFT, wxGetApp().em_unit());
+    sizer->Add(temp, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, wxGetApp().em_unit());
 
     m_grid_sizer->Add(sizer);
 

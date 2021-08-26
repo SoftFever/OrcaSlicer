@@ -2239,6 +2239,8 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(wxGetApp().plater()->get_camera());
     m_dirty |= mouse3d_controller_applied;
     m_dirty |= wxGetApp().plater()->get_notification_manager()->update_notifications(*this);
+    auto gizmo = wxGetApp().plater()->canvas3D()->get_gizmos_manager().get_current();
+    if (gizmo != nullptr) m_dirty |= gizmo->update_items_state();
 
     if (!m_dirty)
         return;
@@ -2780,11 +2782,10 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
 {
-    // no need to do anything here
-    // right after this event is recieved, idle event is fired
-
-    //m_dirty = true;
-    //wxWakeUpIdle();  
+    // no need to wake up idle
+    // right after this event, idle event is fired
+    // m_dirty = true; 
+    // wxWakeUpIdle(); 
 }
 
 
@@ -2802,21 +2803,15 @@ void GLCanvas3D::schedule_extra_frame(int miliseconds)
             return;
         }
     } 
-    // Start timer
-    int64_t now = timestamp_now();
+    int remaining_time = m_render_timer.GetInterval();
     // Timer is not running
-    if (! m_render_timer.IsRunning()) {
-        m_extra_frame_requested_delayed = miliseconds;
+    if (!m_render_timer.IsRunning()) {
         m_render_timer.StartOnce(miliseconds);
-        m_render_timer_start = now;
     // Timer is running - restart only if new period is shorter than remaning period
     } else {
-        const int64_t remaining_time = (m_render_timer_start + m_extra_frame_requested_delayed) - now;
         if (miliseconds + 20 < remaining_time) {
             m_render_timer.Stop(); 
-            m_extra_frame_requested_delayed = miliseconds;
             m_render_timer.StartOnce(miliseconds);
-            m_render_timer_start = now;
         }
     }
 }
@@ -3455,12 +3450,17 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
 
     // stores current min_z of instances
     std::map<std::pair<int, int>, double> min_zs;
-    if (!snapshot_type.empty()) {
-        for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
-            const ModelObject* obj = m_model->objects[i];
-            for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
+    for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
+        const ModelObject* obj = m_model->objects[i];
+        for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
+            if (snapshot_type.empty() && m_selection.get_object_idx() == i) {
+                // This means we are flattening this object. In that case pretend
+                // that it is not sinking (even if it is), so it is placed on bed
+                // later on (whatever is sinking will be left sinking).
+                min_zs[{ i, j }] = SINKING_Z_THRESHOLD;
+            } else
                 min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
-            }
+
         }
     }
 
@@ -3502,7 +3502,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         ModelObject* m = m_model->objects[i.first];
         const double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
+        if (min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
@@ -4433,13 +4433,7 @@ bool GLCanvas3D::_init_main_toolbar()
     }
     // init arrow
     BackgroundTexture::Metadata arrow_data;
-    arrow_data.filename = "toolbar_arrow.png";
-//    arrow_data.filename = "toolbar_arrow.svg";
-    //arrow_data.left = 16;
-    //arrow_data.top = 16;
-    //arrow_data.right = 16;
-    //arrow_data.bottom = 16;
-
+    arrow_data.filename = "toolbar_arrow.svg";
     arrow_data.left = 0;
     arrow_data.top = 0;
     arrow_data.right = 0;
@@ -5107,6 +5101,7 @@ void GLCanvas3D::_render_objects()
         m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
     m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
+    m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     if (shader != nullptr) {
@@ -6374,7 +6369,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ObjectOutside:      text = _u8L("An object outside the print area was detected."); break;
     case EWarning::ToolpathOutside:    text = _u8L("A toolpath outside the print area was detected."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::SlaSupportsOutside: text = _u8L("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
-    case EWarning::SomethingNotShown:  text = _u8L("Some objects are not visible."); break;
+    case EWarning::SomethingNotShown:  text = _u8L("Some objects are not visible during editing."); break;
     case EWarning::ObjectClashed:
         text = _u8L("An object outside the print area was detected.\n"
             "Resolve the current problem to continue slicing.");

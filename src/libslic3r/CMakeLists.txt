@@ -178,6 +178,8 @@ add_library(libslic3r STATIC
     PrintRegion.cpp
     PNGReadWrite.hpp
     PNGReadWrite.cpp
+    QuadricEdgeCollapse.cpp
+    QuadricEdgeCollapse.hpp
     Semver.cpp
     ShortestPath.cpp
     ShortestPath.hpp

@@ -66,7 +66,9 @@ enum FileType
 
     FT_TEX,
 
-    FT_PNGZIP,
+    FT_SL1,
+	// Workaround for OSX file picker, for some reason it always saves with the 1st extension.
+ 	FT_SL1S,
 
     FT_SIZE,
 };
@@ -177,6 +179,8 @@ public:
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();
+    const wxColour  get_label_default_clr_system();
+    const wxColour  get_label_default_clr_modified();
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
     void            update_label_colours();
@@ -247,6 +251,7 @@ public:
     bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
     void            load_current_presets(bool check_printer_presets = true);
+    void            update_wizard_from_config();
 
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
@@ -256,7 +261,8 @@ public:
     void            open_preferences(size_t open_on_tab = 0);
 
     virtual bool OnExceptionInMainLoop() override;
-
+    // Calls wxLaunchDefaultBrowser if user confirms in dialog.
+    bool            open_browser_with_warning_dialog(const wxString& url, int flags = 0);
 #ifdef __APPLE__
     void            OSXStoreOpenFiles(const wxArrayString &files) override;
     // wxWidgets override to get an event on open files.

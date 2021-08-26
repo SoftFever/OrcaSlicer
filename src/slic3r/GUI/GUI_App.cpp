@@ -87,6 +87,11 @@
 #include <boost/nowide/fstream.hpp>
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
+// Needed for forcing menu icons back under gtk2 and gtk3
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    #include <gtk/gtk.h>
+#endif
+
 namespace Slic3r {
 namespace GUI {
 
@@ -435,7 +440,9 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 
         /* FT_TEX */     "Texture (*.png, *.svg)|*.png;*.PNG;*.svg;*.SVG",
 
-        /* FT_PNGZIP */  "Masked SLA files (*.sl1)|*.sl1;*.SL1",
+        /* FT_SL1 */     "Masked SLA files (*.sl1, *.sl1s)|*.sl1;*.SL1;*.sl1s;*.SL1S",
+        // Workaround for OSX file picker, for some reason it always saves with the 1st extension.
+        /* FT_SL1S */    "Masked SLA files (*.sl1s, *.sl1)|*.sl1s;*.SL1S;*.sl1;*.SL1",
     };
 
 	std::string out = defaults[file_type];
@@ -626,12 +633,8 @@ void GUI_App::post_init()
             this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
     }
     else {
-        if (! this->init_params->preset_substitutions.empty()) {
-            // TODO: Add list of changes from all_substitutions
-            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                " To recover these files, incompatible values were changed to default values."
-                " But data in files won't be changed until you save them in PrusaSlicer.")));
-        } 
+        if (! this->init_params->preset_substitutions.empty())
+            show_substitutions_info(this->init_params->preset_substitutions);
 
 #if 0
         // Load the cummulative config over the currently active profiles.
@@ -664,7 +667,7 @@ void GUI_App::post_init()
 
     // show "Did you know" notification
     if (app_config->get("show_hints") == "1" && ! is_gcode_viewer())
-        plater_->get_notification_manager()->push_hint_notification();
+        plater_->get_notification_manager()->push_hint_notification(true);
 
     // The extra CallAfter() is needed because of Mac, where this is the only way
     // to popup a modal dialog on start without screwing combo boxes.
@@ -801,6 +804,14 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
+    // Forcing back menu icons under gtk2 and gtk3. Solution is based on:
+    // https://docs.gtk.org/gtk3/class.Settings.html
+    // see also https://docs.wxwidgets.org/3.0/classwx_menu_item.html#a2b5d6bcb820b992b1e4709facbf6d4fb
+    // TODO: Find workaround for GTK4
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    g_object_set (gtk_settings_get_default (), "gtk-menu-images", TRUE, NULL);
+#endif
+
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
@@ -916,7 +927,10 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
     try {
-        init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable);
+        // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
+        // If there are substitutions in system profiles, then a "reconfigure" event shall be triggered, which will force
+        // installation of a compatible system preset, thus nullifying the system preset substitutions.
+        init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
     } catch (const std::exception &ex) {
         show_error(nullptr, ex.what());
     }
@@ -1029,17 +1043,22 @@ bool GUI_App::dark_mode()
 #endif
 }
 
+const wxColour GUI_App::get_label_default_clr_system()
+{
+    return dark_mode() ? wxColour(115, 220, 103) : wxColour(26, 132, 57);
+}
+
+const wxColour GUI_App::get_label_default_clr_modified()
+{
+    return dark_mode() ? wxColour(253, 111, 40) : wxColour(252, 77, 1);
+}
+
 void GUI_App::init_label_colours()
 {
+    m_color_label_modified          = get_label_default_clr_modified();
+    m_color_label_sys               = get_label_default_clr_system();
+
     bool is_dark_mode = dark_mode();
-    if (is_dark_mode) {
-        m_color_label_modified = wxColour(253, 111, 40);
-        m_color_label_sys = wxColour(115, 220, 103);
-    }
-    else {
-        m_color_label_modified = wxColour(252, 77, 1);
-        m_color_label_sys = wxColour(26, 132, 57);
-    }
 #ifdef _WIN32
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250): wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
@@ -1800,10 +1819,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         local_menu->Append(config_id_base + ConfigMenuSnapshots, _L("&Configuration Snapshots") + dots, _L("Inspect / activate configuration snapshots"));
         local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _L("Take Configuration &Snapshot"), _L("Capture a configuration snapshot"));
         local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for updates"), _L("Check for configuration updates"));
-#ifdef __linux__
-        if (DesktopIntegrationDialog::integration_possible())
-            local_menu->Append(config_id_base + ConfigMenuDesktopIntegration, _L("Desktop Integration"), _L("Desktop Integration"));    
-#endif        
+#if defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION) 
+        //if (DesktopIntegrationDialog::integration_possible())
+        local_menu->Append(config_id_base + ConfigMenuDesktopIntegration, _L("Desktop Integration"), _L("Desktop Integration"));    
+#endif //(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION)        
         local_menu->AppendSeparator();
     }
     local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +
@@ -1861,9 +1880,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                     child->SetFont(normal_font());
 
                 if (dlg.ShowModal() == wxID_OK)
-                    app_config->set("on_snapshot",
-                    Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
-                    *app_config, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data()).id);
+                    if (const Config::Snapshot *snapshot = Config::take_config_snapshot_report_error(
+                            *app_config, Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data());
+                        snapshot != nullptr)
+                        app_config->set("on_snapshot", snapshot->id);
             }
             break;
         case ConfigMenuSnapshots:
@@ -1874,19 +1894,24 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
                 ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
                 dlg.ShowModal();
                 if (!dlg.snapshot_to_activate().empty()) {
-                    if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
-                        Config::SnapshotDB::singleton().take_snapshot(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
+                    if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config) && 
+                        ! Config::take_config_snapshot_cancel_on_error(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK, "",
+                                GUI::format(_L("Continue to activate a configuration snapshot %1%?"), dlg.snapshot_to_activate())))
+                        break;
                     try {
                         app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
+                        // Enable substitutions, log both user and system substitutions. There should not be any substitutions performed when loading system
+                        // presets because compatibility of profiles shall be verified using the min_slic3r_version keys in config index, but users
+                        // are known to be creative and mess with the config files in various ways.
                         if (PresetsConfigSubstitutions all_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable);
-                            ! all_substitutions.empty()) {
-                            // TODO:
-                            show_error(nullptr, GUI::format(_L("Loading profiles found following incompatibilities."
-                                " To recover these files, incompatible values were changed to default values."
-                                " But data in files won't be changed until you save them in PrusaSlicer.")));
-                        }
+                            ! all_substitutions.empty())
+                            show_substitutions_info(all_substitutions);
+
                         // Load the currently selected preset into the GUI, update the preset selection box.
                         load_current_presets();
+
+                        // update config wizard in respect to the new config
+                        update_wizard_from_config();
                     } catch (std::exception &ex) {
                         GUI::show_error(nullptr, _L("Failed to activate configuration snapshot.") + "\n" + into_u8(ex.what()));
                     }
@@ -2059,7 +2084,7 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
 // to notify the user whether he is aware that some preset changes will be lost.
 bool GUI_App::check_and_save_current_preset_changes(const wxString& header)
 {
-    if (this->plater()->model().objects.empty() && has_current_preset_changes()) {
+    if (/*this->plater()->model().objects.empty() && */has_current_preset_changes()) {
         UnsavedChangesDialog dlg(header);
         if (wxGetApp().app_config->get("default_action_on_close_application") == "none" && dlg.ShowModal() == wxID_CANCEL)
             return false;
@@ -2136,6 +2161,17 @@ void GUI_App::load_current_presets(bool check_printer_presets_ /*= true*/)
 			}
 			tab->load_current_preset();
 		}
+}
+
+void GUI_App::update_wizard_from_config()
+{
+    if (!m_wizard)
+        return;
+    // If ConfigWizard was created before changing of the configuration,
+    // we have to destroy it to have possibility to create it again in respect to the new config's parameters
+    m_wizard->Reparent(nullptr);
+    m_wizard->Destroy();
+    m_wizard = nullptr;
 }
 
 bool GUI_App::OnExceptionInMainLoop()
@@ -2291,14 +2327,20 @@ wxString GUI_App::current_language_code_safe() const
 
 void GUI_App::open_web_page_localized(const std::string &http_address)
 {
-    wxLaunchDefaultBrowser(http_address + "&lng=" + this->current_language_code_safe());
+    open_browser_with_warning_dialog(http_address + "&lng=" + this->current_language_code_safe());
 }
 
 bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage start_page)
 {
     wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
 
+    if (reason == ConfigWizard::RR_USER)
+        if (PresetUpdater::UpdateResult result = preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD);
+            result == PresetUpdater::R_ALL_CANCELED)
+            return false;
+
     if (! m_wizard) {
+        wxBusyCursor wait;
         m_wizard = new ConfigWizard(mainframe);
     }
 
@@ -2466,7 +2508,7 @@ void GUI_App::check_updates(const bool verbose)
 {	
 	PresetUpdater::UpdateResult updater_result;
 	try {
-		updater_result = preset_updater->config_update(app_config->orig_version(), verbose);
+		updater_result = preset_updater->config_update(app_config->orig_version(), verbose ? PresetUpdater::UpdateParams::SHOW_TEXT_BOX : PresetUpdater::UpdateParams::SHOW_NOTIFICATION);
 		if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
 			mainframe->Close();
 		}
@@ -2481,6 +2523,23 @@ void GUI_App::check_updates(const bool verbose)
 	catch (const std::exception & ex) {
 		show_error(nullptr, ex.what());
 	}
+}
+
+bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* = 0*/)
+{
+    bool launch = true;
+
+    if (get_app_config()->get("suppress_hyperlinks").empty()) {
+        wxRichMessageDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
+        dialog.ShowCheckBox(_L("Remember my choice"));
+        int answer = dialog.ShowModal();
+        launch = answer == wxID_YES;
+        get_app_config()->set("suppress_hyperlinks", dialog.IsCheckBoxChecked() ? (answer == wxID_NO ? "1" : "0") : "");
+    }
+    if (launch)
+        launch = get_app_config()->get("suppress_hyperlinks") != "1";
+
+    return  launch && wxLaunchDefaultBrowser(url, flags);
 }
 
 // static method accepting a wxWindow object as first parameter

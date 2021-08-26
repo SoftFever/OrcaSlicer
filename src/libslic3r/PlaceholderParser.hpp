@@ -24,6 +24,7 @@ public:
 
     PlaceholderParser(const DynamicConfig *external_config = nullptr);
     
+    void clear_config() { m_config.clear(); }
     // Return a list of keys, which should be changed in m_config from rhs.
     // This contains keys, which are found in rhs, but not in m_config.
     std::vector<std::string> config_diff(const DynamicPrintConfig &rhs);

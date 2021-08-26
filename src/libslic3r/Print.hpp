@@ -253,6 +253,9 @@ public:
     ConstLayerPtrsAdaptor        layers() const         { return ConstLayerPtrsAdaptor(&m_layers); }
     ConstSupportLayerPtrsAdaptor support_layers() const { return ConstSupportLayerPtrsAdaptor(&m_support_layers); }
     const Transform3d&           trafo() const          { return m_trafo; }
+    // Trafo with the center_offset() applied after the transformation, to center the object in XY before slicing.
+    Transform3d                  trafo_centered() const 
+        { Transform3d t = this->trafo(); t.pretranslate(Vec3d(- unscale<double>(m_center_offset.x()), - unscale<double>(m_center_offset.y()), 0)); return t; }
     const PrintInstances&        instances() const      { return m_instances; }
 
     // Whoever will get a non-const pointer to PrintObject will be able to modify its layers.
@@ -268,7 +271,11 @@ public:
     // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
     const Point& 			     center_offset() const  { return m_center_offset; }
 
-    bool                         has_brim() const       { return this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.; }
+    bool                         has_brim() const       {
+        return this->config().brim_type != btNoBrim
+            && this->config().brim_width.value > 0.
+            && ! this->has_raft();
+    }
 
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
@@ -318,7 +325,7 @@ public:
     bool                        has_raft()              const { return m_config.raft_layers > 0; }
     bool                        has_support_material()  const { return this->has_support() || this->has_raft(); }
     // Checks if the model object is painted using the multi-material painting gizmo.
-    bool                        is_mm_painted()         const { return this->model_object()->is_mm_painted(); };
+    bool                        is_mm_painted()         const { return this->model_object()->is_mm_painted(); }
 
     // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
     std::vector<unsigned int>   object_extruders() const;

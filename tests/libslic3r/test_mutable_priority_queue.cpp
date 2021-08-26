@@ -339,3 +339,104 @@ TEST_CASE("Mutable priority queue - reshedule first", "[MutableSkipHeapPriorityQ
         }
     }
 }
+
+TEST_CASE("Mutable priority queue - first pop", "[MutableSkipHeapPriorityQueue]")
+{
+    struct MyValue{
+        int   id;
+        float val;
+    };
+    size_t              count = 50000;
+    std::vector<size_t> idxs(count, {0});
+    std::vector<bool>   dels(count, false);
+    auto q = make_miniheap_mutable_priority_queue<MyValue, 16, true>(
+        [&](MyValue &v, size_t idx) {
+            idxs[v.id] = idx; 
+        },
+        [](MyValue &l, MyValue &r) { return l.val < r.val; });
+    q.reserve(count);
+    for (size_t id = 0; id < count; id++) {
+        MyValue mv;
+        mv.id  = id;
+        mv.val = rand();
+        q.push(mv);
+    }
+    MyValue it = q.top(); // copy
+    q.pop();
+    bool valid = (it.id != 0) && (idxs[0] < 3 * count);
+    CHECK(valid);
+}
+
+TEST_CASE("Mutable priority queue complex", "[MutableSkipHeapPriorityQueue]")
+{
+    struct MyValue {
+        size_t id;
+        float val;
+    };
+    size_t               count = 5000;
+    std::vector<size_t>  idxs(count, {0});
+    std::vector<bool>    dels(count, false);
+    auto q = make_miniheap_mutable_priority_queue<MyValue, 16, true>(
+        [&](MyValue &v, size_t idx) { idxs[v.id] = idx; },
+        [](MyValue &l, MyValue &r) { return l.val < r.val; });
+    q.reserve(count);
+
+    auto rand_val = [&]()->float { return (rand() % 53) / 10.f; };
+    size_t ord = 0;
+    for (size_t id = 0; id < count; id++) {
+        MyValue mv;
+        mv.id = ord++;
+        mv.val = rand_val();
+        q.push(mv);
+    }
+    auto check = [&]()->bool{
+        for (size_t i = 0; i < idxs.size(); ++i) {
+            if (dels[i]) continue;
+            size_t   qid = idxs[i];
+            if (qid > 3*count) { 
+                return false;
+            }
+            MyValue &mv  = q[qid]; 
+            if (mv.id != i) { 
+                return false; // ERROR 
+            }
+        }
+        return true;
+    };
+
+    CHECK(check()); // initial check
+
+    auto get_valid_id = [&]()->int { 
+        int id = 0;
+        do {
+            id = rand() % count;
+        } while (dels[id]);
+        return id;
+    };
+    for (size_t i = 0; i < 100; i++) {
+        MyValue it = q.top(); // copy
+        q.pop();
+        dels[it.id] = true;
+        CHECK(check());
+        if (i % 20 == 0) {
+            it.val = rand_val();
+            q.push(it);
+            dels[it.id] = false;
+            CHECK(check());
+            continue;
+        }
+
+        int id = get_valid_id();
+        q.remove(idxs[id]);
+        dels[id] = true;
+        CHECK(check());
+        for (size_t j = 0; j < 5; j++) { 
+            int id = get_valid_id();
+            size_t   qid = idxs[id];
+            MyValue &mv  = q[qid];
+            mv.val       = rand_val();
+            q.update(qid);
+            CHECK(check());
+        }
+    }
+}

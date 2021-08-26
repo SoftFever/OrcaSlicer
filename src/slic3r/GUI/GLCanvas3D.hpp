@@ -463,15 +463,13 @@ private:
     std::string m_sidebar_field;
     // when true renders an extra frame by not resetting m_dirty to false
     // see request_extra_frame()
-    bool m_extra_frame_requested; 
-    int  m_extra_frame_requested_delayed { std::numeric_limits<int>::max() };
+    bool m_extra_frame_requested;
     bool m_event_handlers_bound{ false };
 
     GLVolumeCollection m_volumes;
     GCodeViewer m_gcode_viewer;
 
     RenderTimer m_render_timer;
-    int64_t     m_render_timer_start;
 
     Selection m_selection;
     const DynamicPrintConfig* m_config;

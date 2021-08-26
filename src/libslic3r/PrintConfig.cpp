@@ -232,9 +232,19 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("elefant_foot_compensation", coFloat);
+    def->label = L("Elephant foot compensation");
+    def->category = L("Advanced");
+    def->tooltip = L("The first layer will be shrunk in the XY plane by the configured value "
+                     "to compensate for the 1st layer squish aka an Elephant Foot effect.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("thumbnails", coPoints);
     def->label = L("G-code thumbnails");
-    def->tooltip = L("Picture sizes to be stored into a .gcode and .sl1 files, in the following format: \"XxY, XxY, ...\"");
+    def->tooltip = L("Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the following format: \"XxY, XxY, ...\"");
     def->mode = comExpert;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints());
@@ -264,6 +274,7 @@ void PrintConfigDef::init_common_params()
                    "Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL "
                    "in the following format: https://username:password@your-octopi-address/");
     def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("printhost_apikey", coString);
@@ -271,6 +282,7 @@ void PrintConfigDef::init_common_params()
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
                    "the API Key or the password required for authentication.");
     def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
     
     def = this->add("printhost_port", coString);
@@ -278,6 +290,7 @@ void PrintConfigDef::init_common_params()
     def->tooltip = L("Name of the printer");
     def->gui_type = ConfigOptionDef::GUIType::select_open;
     def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
     
     def = this->add("printhost_cafile", coString);
@@ -285,43 +298,39 @@ void PrintConfigDef::init_common_params()
     def->tooltip = L("Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
                    "If left blank, the default OS CA certificate repository is used.");
     def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
     
-    def = this->add("elefant_foot_compensation", coFloat);
-    def->label = L("Elephant foot compensation");
-    def->category = L("Advanced");
-    def->tooltip = L("The first layer will be shrunk in the XY plane by the configured value "
-                     "to compensate for the 1st layer squish aka an Elephant Foot effect.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.2));
-
     // Options used by physical printers
     
     def = this->add("printhost_user", coString);
     def->label = L("User");
 //    def->tooltip = L("");
     def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
     
     def = this->add("printhost_password", coString);
     def->label = L("Password");
 //    def->tooltip = L("");
     def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
+
+    // Only available on Windows.
+    def = this->add("printhost_ssl_ignore_revoke", coBool);
+    def->label = L("Ignore HTTPS certificate revocation checks");
+    def->tooltip = L("Ignore HTTPS certificate revocation checks in case of missing or offline distribution points. "
+                     "One may want to enable this option for self signed certificates if connection fails.");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionBool(false));
     
     def = this->add("preset_names", coStrings);
     def->label = L("Printer preset names");
     def->tooltip = L("Names of presets related to the physical printer");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
-
-    // temporary workaround for compatibility with older Slicer
-    {
-        def = this->add("preset_name", coString);
-        def->set_default_value(new ConfigOptionString());
-    }
 
     def = this->add("printhost_authorization_type", coEnum);
     def->label = L("Authorization Type");
@@ -332,7 +341,14 @@ void PrintConfigDef::init_common_params()
     def->enum_labels.push_back(L("API key"));
     def->enum_labels.push_back(L("HTTP digest"));
     def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
+
+    // temporary workaround for compatibility with older Slicer
+    {
+        def = this->add("preset_name", coString);
+        def->set_default_value(new ConfigOptionString());
+    }
 }
 
 void PrintConfigDef::init_fff_params()
@@ -465,7 +481,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_width", coFloat);
     def->label = L("Brim width");
     def->category = L("Skirt and brim");
-    def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer.");
+    def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer."
+                     "When raft is used, no brim is generated (use raft_first_layer_expansion).");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 200;
@@ -491,10 +508,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_offset", coFloat);
     def->label = L("Brim offset");
     def->category = L("Skirt and brim");
-    def->tooltip = L("The offset of the brim from the printed object.");
+    def->tooltip = L("The offset of the brim from the printed object. The offset is applied after the elephant foot compensation.");
     def->sidetext = L("mm");
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.f));
 
     def = this->add("clip_multipart_objects", coBool);
     def->label = L("Clip multi-part objects");
@@ -1808,6 +1826,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("AstroBox");
     def->enum_labels.push_back("Repetier");
     def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
 
     def = this->add("only_retract_when_crossing_perimeters", coBool);
@@ -4154,9 +4173,10 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->label = L("Don't arrange");
     def->tooltip = L("Do not rearrange the given models before merging and keep their original XY coordinates.");
 
-    def = this->add("dont_ensure_on_bed", coBool);
-    def->label = L("Don't ensure on bed");
-    def->tooltip = L("Do not lift the object above the bed when it is partially below.");
+    def = this->add("ensure_on_bed", coBool);
+    def->label = L("Ensure on bed");
+    def->tooltip = L("Lift the object above the bed when it is partially below. Enabled by default, use --no-ensure-on-bed to disable.");
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("duplicate", coInt);
     def->label = L("Duplicate");

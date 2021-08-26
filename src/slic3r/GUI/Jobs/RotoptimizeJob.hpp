@@ -15,14 +15,21 @@ class RotoptimizeJob : public PlaterJob
     using FindFn = std::function<Vec2d(const ModelObject &           mo,
                                        const sla::RotOptimizeParams &params)>;
 
-    struct FindMethod { std::string name; FindFn findfn; };
+    struct FindMethod { std::string name; FindFn findfn; std::string descr; };
 
-    static inline const FindMethod Methods[] = {
-        { L("Best surface quality"), sla::find_best_misalignment_rotation },
-        { L("Least supports"), sla::find_least_supports_rotation },
-        // Just a min area bounding box that is done for all methods anyway.
-        { L("Z axis only"), nullptr }
-    };
+    static inline const FindMethod Methods[]
+        = {{L("Best surface quality"),
+            sla::find_best_misalignment_rotation,
+            L("Optimize object rotation for best surface quality.")},
+           {L("Reduced overhang slopes"),
+            sla::find_least_supports_rotation,
+            L("Optimize object rotation to have minimum amount of overhangs needing support "
+              "structures.\nNote that this method will try to find the best surface of the object "
+              "for touching the print bed if no elevation is set.")},
+           // Just a min area bounding box that is done for all methods anyway.
+           {L("Lowest Z height"),
+            sla::find_min_z_height_rotation,
+            L("Rotate the model to have the lowest z height for faster print time.")}};
 
     size_t m_method_id = 0;
     float  m_accuracy  = 0.75;
@@ -41,31 +48,26 @@ class RotoptimizeJob : public PlaterJob
 protected:
 
     void prepare() override;
+    void process() override;
 
 public:
 
     RotoptimizeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
         : PlaterJob{std::move(pri), plater}
     {}
-    
-    void process() override;
+
     void finalize() override;
 
     static constexpr size_t get_methods_count() { return std::size(Methods); }
-    static const auto & get_method_names()
+
+    static std::string get_method_name(size_t i)
     {
-        static bool m_method_names_valid = false;
-        static std::array<std::string, std::size(Methods)> m_method_names;
+        return _utf8(Methods[i].name);
+    }
 
-        if (!m_method_names_valid) {
-
-            for (size_t i = 0; i < std::size(Methods); ++i)
-                m_method_names[i] = _utf8(Methods[i].name);
-
-            m_method_names_valid = true;
-        }
-
-        return m_method_names;
+    static std::string get_method_description(size_t i)
+    {
+        return _utf8(Methods[i].descr);
     }
 };
 

@@ -24,7 +24,7 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, bool add_mode_buttons/* = fal
     m_sizer = new wxBoxSizer(wxHORIZONTAL);
     this->SetSizer(m_sizer);
 
-    m_buttons_sizer = new wxFlexGridSizer(4, m_btn_margin, m_btn_margin);
+    m_buttons_sizer = new wxFlexGridSizer(1, m_btn_margin, m_btn_margin);
     m_sizer->Add(m_buttons_sizer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxBOTTOM, m_btn_margin);
 
     if (add_mode_buttons) {
@@ -111,6 +111,7 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* 
     Slic3r::GUI::wxGetApp().UpdateDarkUI(btn);
     m_pageButtons.insert(m_pageButtons.begin() + n, btn);
     m_buttons_sizer->Insert(n, new wxSizerItem(btn));
+    m_buttons_sizer->SetCols(m_buttons_sizer->GetCols() + 1);
     m_sizer->Layout();
     return true;
 }

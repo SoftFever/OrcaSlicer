@@ -3,6 +3,7 @@ project(PrusaSlicer)
 
 include("version.inc")
 include(GNUInstallDirs)
+include(CMakeDependentOption)
 
 set(SLIC3R_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
@@ -32,6 +33,8 @@ option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
+# If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
+CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow perfoming desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
 set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
 
@@ -69,6 +72,10 @@ endforeach()
 
 if (SLIC3R_GUI)
     add_definitions(-DSLIC3R_GUI)
+endif ()
+
+if(SLIC3R_DESKTOP_INTEGRATION)
+    add_definitions(-DSLIC3R_DESKTOP_INTEGRATION)
 endif ()
 
 if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
@@ -398,7 +405,7 @@ else()
     target_link_libraries(libcurl INTERFACE crypt32)
 endif()
 
-if (SLIC3R_STATIC)
+if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL)
     if (NOT APPLE)
         # libcurl is always linked dynamically to the system libcurl on OSX.
         # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
@@ -449,13 +456,13 @@ set(OpenGL_GL_PREFERENCE "LEGACY")
 find_package(OpenGL REQUIRED)
 
 # Find glew or use bundled version
-if (SLIC3R_STATIC)
+if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
     set(GLEW_USE_STATIC_LIBS ON)
     set(GLEW_VERBOSE ON)
 endif()
 
 find_package(GLEW)
-if (NOT GLEW_FOUND)
+if (NOT TARGET GLEW::GLEW)
     message(STATUS "GLEW not found, using bundled version.")
     add_library(glew STATIC ${LIBDIR}/glew/src/glew.c)
     set(GLEW_FOUND TRUE)
@@ -474,6 +481,7 @@ add_custom_target(gettext_make_pot
     COMMAND xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --debug
         -f "${L10N_DIR}/list.txt"
         -o "${L10N_DIR}/PrusaSlicer.pot"
+    COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${L10N_DIR}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
 )
@@ -546,6 +554,8 @@ endfunction()
 add_subdirectory(src)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT PrusaSlicer_app_console)
 
+add_dependencies(gettext_make_pot hintsToPot)
+
 # Perl bindings, currently only used for the unit / integration tests of libslic3r.
 # Also runs the unit / integration tests.
 #FIXME Port the tests into C++ to finally get rid of the Perl!
@@ -569,7 +579,7 @@ elseif (SLIC3R_FHS)
     # CMAKE_INSTALL_FULL_DATAROOTDIR: read-only architecture-independent data root (share)
     set(SLIC3R_FHS_RESOURCES "${CMAKE_INSTALL_FULL_DATAROOTDIR}/PrusaSlicer")
     install(DIRECTORY ${SLIC3R_RESOURCES_DIR}/ DESTINATION ${SLIC3R_FHS_RESOURCES}
-        PATTERN "*/data" EXCLUDE PATTERN "*/udev" EXCLUDE
+        PATTERN "*/udev" EXCLUDE
     )
     install(FILES src/platform/unix/PrusaSlicer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
     install(FILES src/platform/unix/PrusaGcodeviewer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)

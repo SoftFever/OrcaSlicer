@@ -118,6 +118,11 @@ void triangle_mesh_to_cgal(const std::vector<stl_vertex> &                 V,
 {
     if (F.empty()) return;
 
+    size_t vertices_count = V.size();
+    size_t edges_count    = (F.size()* 3) / 2;
+    size_t faces_count    = F.size();
+    out.reserve(vertices_count, edges_count, faces_count);
+
     for (auto &v : V)
         out.add_vertex(typename _Mesh::Point{v.x(), v.y(), v.z()});
 

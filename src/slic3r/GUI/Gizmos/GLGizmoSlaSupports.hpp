@@ -117,6 +117,7 @@ private:
     void auto_generate();
     void switch_to_editing_mode();
     void disable_editing_mode();
+    void ask_about_changes_call_after(std::function<void()> on_yes, std::function<void()> on_no);
 
 protected:
     void on_set_state() override;
