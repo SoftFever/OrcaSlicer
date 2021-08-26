@@ -50,10 +50,6 @@
 // Enable rendering seams (and other options) in preview using models
 #define ENABLE_SEAMS_USING_MODELS (1 && ENABLE_2_4_0_ALPHA0)
 // Enable rendering seams (and other options) in preview using instanced models
-// references:
-// https://ogldev.org/www/tutorial33/tutorial33.html
-// https://docs.gl/gl3/glDrawElementsInstanced
-// https://www.khronos.org/opengl/wiki/Vertex_Rendering#Instancing
 #define ENABLE_SEAMS_USING_INSTANCED_MODELS (1 && ENABLE_SEAMS_USING_MODELS)
 
 

@@ -102,7 +102,8 @@ void GCodeViewer::InstanceVBuffer::reset()
     if (vbo > 0)
         glsafe(::glDeleteBuffers(1, &vbo));
     s_ids.clear();
-    render_range = { 0, 0 };
+    buffer.clear();
+    render_ranges.clear();
 }
 #endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 
@@ -803,7 +804,11 @@ void GCodeViewer::render()
 #if ENABLE_SEAMS_USING_MODELS
                 if (wxGetApp().is_gl_version_greater_or_equal_to(3, 1)) {
                     buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+                    buffer.shader = "gouraud_light_instanced";
+#else
                     buffer.shader = "gouraud_light";
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
                     buffer.model.model.init_from(diamond(16));
                     buffer.model.color = option_color(type);
                 }
@@ -1764,7 +1769,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 m_statistics.total_instances_gpu_size += static_cast<int64_t>(size_bytes);
-                m_statistics.max_instance_vbuffer_gpu_size = std::max(m_statistics.max_instance_vbuffer_gpu_size, static_cast<int64_t>(size_bytes));
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
                 GLuint id = 0;
@@ -1774,6 +1778,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
                 t_buffer.model.instances2.vbo = id;
+                t_buffer.model.instances2.buffer = inst_buffer;
                 t_buffer.model.instances2.s_ids = instances_ids[i];
             }
         }
@@ -2467,21 +2472,36 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Model)
             continue;
 
-        buffer.model.instances2.render_range = { 0, 0 };
+        buffer.model.instances2.render_ranges.clear();
 
         if (!buffer.visible)
             continue;
 
+        buffer.model.instances2.render_ranges.push_back({ 0, 0, buffer.model.color });
+        bool has_second_range = top_layer_only && m_sequential_view.current.last != m_sequential_view.global.last;
+        if (has_second_range)
+            buffer.model.instances2.render_ranges.push_back({ 0, 0, Neutral_Color });
+
         if (m_sequential_view.current.first <= buffer.model.instances2.s_ids.back() && buffer.model.instances2.s_ids.front() <= m_sequential_view.current.last) {
             for (size_t id : buffer.model.instances2.s_ids) {
-                if (id <= m_sequential_view.current.first) {
-                    buffer.model.instances2.render_range.offset += buffer.model.instances2.instance_size_bytes();
-                    buffer.model.instances2.render_range.count = 0;
+                if (has_second_range) {
+                    if (id <= m_sequential_view.endpoints.first) {
+                        buffer.model.instances2.render_ranges.front().offset += buffer.model.instances2.instance_size_bytes();
+                        ++buffer.model.instances2.render_ranges.back().count;
+                    }
+                    else if (id <= m_sequential_view.current.last)
+                        ++buffer.model.instances2.render_ranges.front().count;
+                    else
+                        break;
                 }
-                else if (id <= m_sequential_view.current.last)
-                    ++buffer.model.instances2.render_range.count;
-                else
-                    break;
+                else {
+                    if (id <= m_sequential_view.current.first)
+                        buffer.model.instances2.render_ranges.front().offset += buffer.model.instances2.instance_size_bytes();
+                    else if (id <= m_sequential_view.current.last)
+                        ++buffer.model.instances2.render_ranges.front().count;
+                    else
+                        break;
+                }
             }
         }
     }
@@ -2616,7 +2636,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         }
 #if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_INSTANCED_MODELS
+        statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances2.buffer, float);
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances2.s_ids, size_t);
+        statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances2.render_ranges, InstanceVBuffer::RenderRange);
 #else
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances, TBuffer::Model::Instance);
 #endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
@@ -2711,7 +2733,18 @@ void GCodeViewer::render_toolpaths()
 
 #if ENABLE_SEAMS_USING_MODELS
     auto render_as_instanced_model = [this]
-        (TBuffer & buffer, GLShaderProgram & shader) {
+        (TBuffer& buffer, GLShaderProgram & shader) {
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+        if (buffer.model.instances2.vbo > 0) {
+            for (const InstanceVBuffer::RenderRange& range : buffer.model.instances2.render_ranges) {
+                buffer.model.model.set_color(-1, range.color);
+                buffer.model.model.render_instanced(buffer.model.instances2.vbo, range.count);
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                ++m_statistics.gl_instanced_models_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+            }
+        }
+#else
         for (const TBuffer::Model::Instance& inst : buffer.model.instances) {
             bool top_layer_only = get_app_config()->get("seq_top_layer_only") == "1";
             bool visible = top_layer_only ?
@@ -2732,6 +2765,7 @@ void GCodeViewer::render_toolpaths()
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
             }
         }
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
     };
 #endif // ENABLE_SEAMS_USING_MODELS
 
@@ -3800,7 +3834,11 @@ void GCodeViewer::render_statistics()
         add_counter(std::string("Multi GL_TRIANGLES:"), m_statistics.gl_multi_triangles_calls_count);
         add_counter(std::string("GL_TRIANGLES:"), m_statistics.gl_triangles_calls_count);
 #if ENABLE_SEAMS_USING_MODELS
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+        add_counter(std::string("Instanced models:"), m_statistics.gl_instanced_models_calls_count);
+#else
         add_counter(std::string("Models:"), m_statistics.gl_models_calls_count);
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
     }
 
@@ -3824,9 +3862,6 @@ void GCodeViewer::render_statistics()
         ImGui::Separator();
         add_memory(std::string("Max VBuffer:"), m_statistics.max_vbuffer_gpu_size);
         add_memory(std::string("Max IBuffer:"), m_statistics.max_ibuffer_gpu_size);
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
-        add_memory(std::string("Max instance VBuffer:"), m_statistics.max_instance_vbuffer_gpu_size);
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
     }
 
     if (ImGui::CollapsingHeader("Other")) {

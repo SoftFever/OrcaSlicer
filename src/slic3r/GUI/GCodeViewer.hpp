@@ -105,8 +105,9 @@ class GCodeViewer
     };
 
 #if ENABLE_SEAMS_USING_INSTANCED_MODELS
-    // vbo buffer containing instances data used to render a toolpaths using instanced models
-    // record format: 5 floats -> position.x|position.y|position.z|width|height
+    // buffer containing instances data used to render a toolpaths using instanced models
+    // instance record format: 5 floats -> position.x|position.y|position.z|width|height
+    // which is sent to the shader as -> vec3 (offset) + vec2 (scales) in GLModel::render_instanced()
     struct InstanceVBuffer
     {
         struct RenderRange
@@ -115,13 +116,18 @@ class GCodeViewer
             unsigned int offset;
             // count of instances to render
             unsigned int count;
+            // Color to apply to the instances
+            Color color;
         };
 
         // vbo id
         unsigned int vbo{ 0 };
-        // move ids
+        // cpu-side buffer containing all instances data
+        InstanceBuffer buffer;
+        // indices of the moves for all instances
         std::vector<size_t> s_ids;
-        RenderRange render_range;
+        // ranges used to render only subparts of the intances
+        std::vector<RenderRange> render_ranges;
 
         size_t data_size_bytes() const { return s_ids.size() * instance_size_bytes(); }
 
@@ -518,7 +524,11 @@ class GCodeViewer
         int64_t gl_multi_triangles_calls_count{ 0 };
         int64_t gl_triangles_calls_count{ 0 };
 #if ENABLE_SEAMS_USING_MODELS
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+        int64_t gl_instanced_models_calls_count{ 0 };
+#else
         int64_t gl_models_calls_count{ 0 };
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
         // memory
         int64_t results_size{ 0 };
@@ -529,9 +539,6 @@ class GCodeViewer
 #endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
         int64_t max_vbuffer_gpu_size{ 0 };
         int64_t max_ibuffer_gpu_size{ 0 };
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
-        int64_t max_instance_vbuffer_gpu_size{ 0 };
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
         int64_t paths_size{ 0 };
         int64_t render_paths_size{ 0 };
 #if ENABLE_SEAMS_USING_MODELS
@@ -570,7 +577,11 @@ class GCodeViewer
             gl_multi_triangles_calls_count = 0;
             gl_triangles_calls_count = 0;
 #if ENABLE_SEAMS_USING_MODELS
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+            gl_instanced_models_calls_count = 0;
+#else
             gl_models_calls_count = 0;
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
         }
 
@@ -583,9 +594,6 @@ class GCodeViewer
 #endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
             max_vbuffer_gpu_size = 0;
             max_ibuffer_gpu_size = 0;
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
-            max_instance_vbuffer_gpu_size = 0;
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
             paths_size = 0;
             render_paths_size = 0;
 #if ENABLE_SEAMS_USING_MODELS

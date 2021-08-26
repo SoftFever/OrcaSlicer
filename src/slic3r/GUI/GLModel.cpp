@@ -207,6 +207,85 @@ void GLModel::render() const
     }
 }
 
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instances_count) const
+{
+    if (instances_vbo == 0)
+        return;
+
+    GLShaderProgram* shader = wxGetApp().get_current_shader();
+    assert(shader == nullptr || boost::algorithm::iends_with(shader->get_name(), "_instanced"));
+
+    // vertex attributes
+    GLint position_id = (shader != nullptr) ? shader->get_attrib_location("v_position") : -1;
+    GLint normal_id = (shader != nullptr) ? shader->get_attrib_location("v_normal") : -1;
+    assert(position_id != -1 && normal_id != -1);
+
+    // instance attributes
+    GLint offset_id = (shader != nullptr) ? shader->get_attrib_location("i_offset") : -1;
+    GLint scales_id = (shader != nullptr) ? shader->get_attrib_location("i_scales") : -1;
+    assert(offset_id != -1 && scales_id != -1);
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, instances_vbo));
+    if (offset_id != -1) {
+        glsafe(::glVertexAttribPointer(offset_id, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (GLvoid*)0));
+        glsafe(::glEnableVertexAttribArray(offset_id));
+        glsafe(::glVertexAttribDivisor(offset_id, 1));
+    }
+    if (scales_id != -1) {
+        glsafe(::glVertexAttribPointer(scales_id, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (GLvoid*)(3 * sizeof(float))));
+        glsafe(::glEnableVertexAttribArray(scales_id));
+        glsafe(::glVertexAttribDivisor(scales_id, 1));
+    }
+
+    for (const RenderData& data : m_render_data) {
+        if (data.vbo_id == 0 || data.ibo_id == 0)
+            continue;
+
+        GLenum mode;
+        switch (data.type)
+        {
+        default:
+        case PrimitiveType::Triangles: { mode = GL_TRIANGLES; break; }
+        case PrimitiveType::Lines:     { mode = GL_LINES; break; }
+        case PrimitiveType::LineStrip: { mode = GL_LINE_STRIP; break; }
+        case PrimitiveType::LineLoop:  { mode = GL_LINE_LOOP; break; }
+        }
+
+        if (shader != nullptr)
+            shader->set_uniform("uniform_color", data.color);
+        else
+            glsafe(::glColor4fv(data.color.data()));
+
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, data.vbo_id));
+        if (position_id != -1) {
+            glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)0));
+            glsafe(::glEnableVertexAttribArray(position_id));
+        }
+        if (normal_id != -1) {
+            glsafe(::glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(3 * sizeof(float))));
+            glsafe(::glEnableVertexAttribArray(normal_id));
+        }
+
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.ibo_id));
+        glsafe(::glDrawElementsInstanced(mode, static_cast<GLsizei>(data.indices_count), GL_UNSIGNED_INT, (const void*)0, instances_count));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+        if (normal_id != -1)
+            glsafe(::glDisableVertexAttribArray(normal_id));
+        if (position_id != -1)
+            glsafe(::glDisableVertexAttribArray(position_id));
+    }
+
+    if (scales_id != -1)
+        glsafe(::glDisableVertexAttribArray(scales_id));
+    if (offset_id != -1)
+        glsafe(::glDisableVertexAttribArray(offset_id));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+
 void GLModel::send_to_gpu(RenderData& data, const std::vector<float>& vertices, const std::vector<unsigned int>& indices)
 {
     assert(data.vbo_id == 0);
