@@ -57,6 +57,11 @@ set(PATCH_CMD ${GIT_EXECUTABLE} apply --verbose --ignore-space-change --whitespa
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
+if (NOT _is_multi AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+    message(STATUS "Forcing CMAKE_BUILD_TYPE to Release as it was not specified.")
+endif ()
+
 function(prusaslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
 

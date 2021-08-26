@@ -630,7 +630,11 @@ void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
 
         auto *contour_shader = wxGetApp().get_shader("mm_contour");
         contour_shader->start_using();
+
+        glsafe(::glDepthFunc(GL_LEQUAL));
         m_gizmo_scene.render_contour();
+        glsafe(::glDepthFunc(GL_LESS));
+
         contour_shader->stop_using();
     }
 
@@ -724,10 +728,6 @@ void GLMmSegmentationGizmo3DScene::render(size_t triangle_indices_idx) const
     assert(this->triangle_indices_sizes.size() == this->triangle_indices_VBO_ids.size());
     assert(this->vertices_VBO_id != 0);
     assert(this->triangle_indices_VBO_ids[triangle_indices_idx] != 0);
-
-    ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
-    glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
-    glsafe(::glPolygonOffset(5.0, 5.0));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_VBO_id));
     glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (const void*)(0 * sizeof(float))));
