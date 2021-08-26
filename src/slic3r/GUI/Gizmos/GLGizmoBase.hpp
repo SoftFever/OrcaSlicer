@@ -154,6 +154,9 @@ public:
 
     void update(const UpdateData& data);
 
+    // returns True when Gizmo changed its state
+    bool update_items_state();
+
     void render() { m_tooltip.clear(); on_render(); }
     void render_for_picking() { on_render_for_picking(); }
     void render_input_window(float x, float y, float bottom_limit);
@@ -187,6 +190,13 @@ protected:
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
 
     std::string format(float value, unsigned int decimals) const;
+
+    // Mark gizmo as dirty to Re-Render when idle()
+    void set_dirty();
+private:
+    // Flag for dirty visible state of Gizmo
+    // When True then need new rendering
+    bool m_dirty;
 };
 
 // Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components

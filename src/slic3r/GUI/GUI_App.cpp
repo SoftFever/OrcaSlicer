@@ -87,6 +87,11 @@
 #include <boost/nowide/fstream.hpp>
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
+// Needed for forcing menu icons back under gtk2 and gtk3
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    #include <gtk/gtk.h>
+#endif
+
 namespace Slic3r {
 namespace GUI {
 
@@ -799,6 +804,14 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
+    // Forcing back menu icons under gtk2 and gtk3. Solution is based on:
+    // https://docs.gtk.org/gtk3/class.Settings.html
+    // see also https://docs.wxwidgets.org/3.0/classwx_menu_item.html#a2b5d6bcb820b992b1e4709facbf6d4fb
+    // TODO: Find workaround for GTK4
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    g_object_set (gtk_settings_get_default (), "gtk-menu-images", TRUE, NULL);
+#endif
+
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
@@ -2314,7 +2327,7 @@ wxString GUI_App::current_language_code_safe() const
 
 void GUI_App::open_web_page_localized(const std::string &http_address)
 {
-    wxLaunchDefaultBrowser(http_address + "&lng=" + this->current_language_code_safe());
+    open_browser_with_warning_dialog(http_address + "&lng=" + this->current_language_code_safe());
 }
 
 bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage start_page)
@@ -2510,6 +2523,23 @@ void GUI_App::check_updates(const bool verbose)
 	catch (const std::exception & ex) {
 		show_error(nullptr, ex.what());
 	}
+}
+
+bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* = 0*/)
+{
+    bool launch = true;
+
+    if (get_app_config()->get("suppress_hyperlinks").empty()) {
+        wxRichMessageDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
+        dialog.ShowCheckBox(_L("Remember my choice"));
+        int answer = dialog.ShowModal();
+        launch = answer == wxID_YES;
+        get_app_config()->set("suppress_hyperlinks", dialog.IsCheckBoxChecked() ? (answer == wxID_NO ? "1" : "0") : "");
+    }
+    if (launch)
+        launch = get_app_config()->get("suppress_hyperlinks") != "1";
+
+    return  launch && wxLaunchDefaultBrowser(url, flags);
 }
 
 // static method accepting a wxWindow object as first parameter

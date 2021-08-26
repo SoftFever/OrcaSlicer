@@ -147,26 +147,28 @@ void FillBedJob::finalize()
 
     size_t inst_cnt = model_object->instances.size();
 
-    for (ArrangePolygon &ap : m_selected) {
-        if (ap.bed_idx != arrangement::UNARRANGED && (ap.priority != 0 || ap.bed_idx == 0))
-            ap.apply();
-    }
+    int added_cnt = std::accumulate(m_selected.begin(), m_selected.end(), 0, [](int s, auto &ap) {
+        return s + int(ap.priority == 0 && ap.bed_idx == 0);
+    });
 
-    model_object->ensure_on_bed();
+    if (added_cnt > 0) {
+        for (ArrangePolygon &ap : m_selected) {
+            if (ap.bed_idx != arrangement::UNARRANGED && (ap.priority != 0 || ap.bed_idx == 0))
+                ap.apply();
+        }
 
-    m_plater->update();
+        model_object->ensure_on_bed();
 
-    int added_cnt = std::accumulate(m_selected.begin(), m_selected.end(), 0,
-                                     [](int s, auto &ap) {
-                                         return s + int(ap.priority == 0 && ap.bed_idx == 0);
-                                     });
+        m_plater->update();
 
-    // FIXME: somebody explain why this is needed for increase_object_instances
-    if (inst_cnt == 1) added_cnt++;
+        // FIXME: somebody explain why this is needed for increase_object_instances
+        if (inst_cnt == 1) added_cnt++;
 
-    if (added_cnt > 0)
         m_plater->sidebar()
             .obj_list()->increase_object_instances(m_object_idx, size_t(added_cnt));
+    }
+
+    Job::finalize();
 }
 
 }} // namespace Slic3r::GUI

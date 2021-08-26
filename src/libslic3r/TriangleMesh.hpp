@@ -140,6 +140,10 @@ int its_remove_degenerate_faces(indexed_triangle_set &its, bool shrink_to_fit = 
 // Remove vertices, which none of the faces references. Return number of freed vertices.
 int its_compactify_vertices(indexed_triangle_set &its, bool shrink_to_fit = true);
 
+// store part of index triangle set
+bool its_store_triangle(const indexed_triangle_set &its, const char *obj_filename, size_t triangle_index);
+bool its_store_triangles(const indexed_triangle_set &its, const char *obj_filename, const std::vector<size_t>& triangles);
+
 std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its);
 
 bool its_is_splittable(const indexed_triangle_set &its);

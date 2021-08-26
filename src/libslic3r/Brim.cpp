@@ -71,12 +71,16 @@ static ConstPrintObjectPtrs get_top_level_objects_with_brim(const Print &print, 
     Polygons             islands;
     ConstPrintObjectPtrs island_to_object;
     for(size_t print_object_idx = 0; print_object_idx < print.objects().size(); ++print_object_idx) {
+        const PrintObject *object = print.objects()[print_object_idx];
+
+        if (! object->has_brim())
+            continue;
+
         Polygons islands_object;
         islands_object.reserve(bottom_layers_expolygons[print_object_idx].size());
         for (const ExPolygon &ex_poly : bottom_layers_expolygons[print_object_idx])
             islands_object.emplace_back(ex_poly.contour);
 
-        const PrintObject *object = print.objects()[print_object_idx];
         islands.reserve(islands.size() + object->instances().size() * islands_object.size());
         for (const PrintInstance &instance : object->instances())
             for (Polygon &poly : islands_object) {

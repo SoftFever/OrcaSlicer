@@ -3,6 +3,7 @@
 #include "format.hpp"
 #include "I18N.hpp"
 #include "GUI_ObjectList.hpp"
+#include "GLCanvas3D.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
@@ -13,6 +14,31 @@
 #include <boost/log/trivial.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <map>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
+
+#define HINTS_CEREAL_VERSION 1
+// structure for writing used hints into binary file with version
+struct HintsCerealData
+{
+	std::vector<std::string> my_data;
+	// cereal will supply the version automatically when loading or saving
+	// The version number comes from the CEREAL_CLASS_VERSION macro
+	template<class Archive>
+	void serialize(Archive& ar, std::uint32_t const version)
+	{
+		// You can choose different behaviors depending on the version
+		// This is useful if you need to support older variants of your codebase
+		// interacting with newer ones
+		if (version > HINTS_CEREAL_VERSION)
+			throw Slic3r::IOError("Version of hints.cereal is higher than current version.");
+		else
+			ar(my_data);
+	}
+};
+// version of used hints binary file
+CEREAL_CLASS_VERSION(HintsCerealData, HINTS_CEREAL_VERSION);
 
 namespace Slic3r {
 namespace GUI {
@@ -29,6 +55,41 @@ inline void push_style_color(ImGuiCol idx, const ImVec4& col, bool fading_out, f
 		ImGui::PushStyleColor(idx, ImVec4(col.x, col.y, col.z, col.w * current_fade_opacity));
 	else
 		ImGui::PushStyleColor(idx, col);
+}
+
+
+
+
+
+void write_used_binary(const std::vector<std::string>& ids)
+{
+	boost::filesystem::ofstream file((boost::filesystem::path(data_dir()) / "cache" / "hints.cereal"), std::ios::binary);
+	cereal::BinaryOutputArchive archive(file);
+		HintsCerealData cd { ids };
+	try
+	{
+		archive(cd);
+	}
+	catch (const std::exception& ex)
+	{
+		BOOST_LOG_TRIVIAL(error) << "Failed to write to hints.cereal. " << ex.what();
+	}
+}
+void read_used_binary(std::vector<std::string>& ids)
+{
+	boost::filesystem::ifstream file((boost::filesystem::path(data_dir()) / "cache" / "hints.cereal"));
+	cereal::BinaryInputArchive archive(file);
+	HintsCerealData cd;
+	try
+	{
+		archive(cd);
+	}
+	catch (const std::exception& ex)
+	{
+		BOOST_LOG_TRIVIAL(error) << "Failed to load to hints.cereal. " << ex.what();
+		return;
+	}
+	ids = cd.my_data;
 }
 enum TagCheckResult
 {
@@ -175,20 +236,19 @@ bool tags_check(const std::string& disabled_tags, const std::string& enabled_tag
 }
 void launch_browser_if_allowed(const std::string& url)
 {
-	if (wxGetApp().app_config->get("suppress_hyperlinks") != "1")
-		wxLaunchDefaultBrowser(url);
+	wxGetApp().open_browser_with_warning_dialog(url);
 }
 } //namespace
-
+HintDatabase::~HintDatabase()
+{
+	if (m_initialized) {
+		write_used_binary(m_used_ids);
+	}
+}
 void HintDatabase::init()
 {
-		
 	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));
-		
-	const AppConfig* app_config = wxGetApp().app_config;
-	m_hint_id = std::atoi(app_config->get("last_hint").c_str());
     m_initialized = true;
-
 }
 void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 {
@@ -209,15 +269,22 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 			for (const auto& data : section.second) {
 				dict.emplace(data.first, data.second.data());
 			}
-			
-			//unescaping and translating all texts and saving all data common for all hint types 
+			// unique id string [hint:id] (trim "hint:")
+			std::string id_string = section.first.substr(5);
+			id_string = std::to_string(std::hash<std::string>{}(id_string));
+			// unescaping and translating all texts and saving all data common for all hint types 
 			std::string fulltext;
 			std::string text1;
 			std::string hypertext_text;
 			std::string follow_text;
+			// tags
 			std::string disabled_tags;
 			std::string enabled_tags;
+			// optional link to documentation (accessed from button)
 			std::string documentation_link;
+			// randomized weighted order variables
+			size_t      weight = 1;
+			bool		was_displayed = is_used(id_string);
 			//unescape text1
 			unescape_string_cstyle(_utf8(dict["text"]), fulltext);
 			// replace <b> and </b> for imgui markers
@@ -275,52 +342,59 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 				documentation_link = dict["documentation_link"];
 			}
 
+			if (dict.find("weight") != dict.end()) {
+				weight = (size_t)std::max(1, std::atoi(dict["weight"].c_str()));
+			}
+
 			// create HintData
 			if (dict.find("hypertext_type") != dict.end()) {
 				//link to internet
 				if(dict["hypertext_type"] == "link") {
 					std::string	hypertext_link = dict["hypertext_link"];
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [hypertext_link]() { launch_browser_if_allowed(hypertext_link); }  };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [hypertext_link]() { launch_browser_if_allowed(hypertext_link); }  };
 					m_loaded_hints.emplace_back(hint_data);
 				// highlight settings
 				} else if (dict["hypertext_type"] == "settings") {
 					std::string		opt = dict["hypertext_settings_opt"];
 					Preset::Type	type = static_cast<Preset::Type>(std::atoi(dict["hypertext_settings_type"].c_str()));
 					std::wstring	category = boost::nowide::widen(dict["hypertext_settings_category"]);
-					HintData		hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [opt, type, category]() { GUI::wxGetApp().sidebar().jump_to_option(opt, type, category); } };
+					HintData		hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [opt, type, category]() { GUI::wxGetApp().sidebar().jump_to_option(opt, type, category); } };
 					m_loaded_hints.emplace_back(hint_data);
 				// open preferences
 				} else if(dict["hypertext_type"] == "preferences") {
 					int			page = static_cast<Preset::Type>(std::atoi(dict["hypertext_preferences_page"].c_str()));
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [page]() { wxGetApp().open_preferences(page); } };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [page]() { wxGetApp().open_preferences(page); } };
 					m_loaded_hints.emplace_back(hint_data);
 
 				} else if (dict["hypertext_type"] == "plater") {
 					std::string	item = dict["hypertext_plater_item"];
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				} else if (dict["hypertext_type"] == "gizmo") {
 					std::string	item = dict["hypertext_gizmo_item"];
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gallery") {
-					HintData	hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, []() {  wxGetApp().obj_list()->load_shape_object_from_gallery(); } };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, []() {
+						// Deselect all objects, otherwise gallery wont show.
+						wxGetApp().plater()->canvas3D()->deselect_all();
+						wxGetApp().obj_list()->load_shape_object_from_gallery(); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 			} else {
 				// plain text without hypertext
-				HintData hint_data{ text1, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link };
+				HintData hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link };
 				m_loaded_hints.emplace_back(hint_data);
 			}
 		}
 	}
 }
-HintData* HintDatabase::get_hint(bool up)
+HintData* HintDatabase::get_hint(bool new_hint/* = true*/)
 {
     if (! m_initialized) {
         init();
-        //return false;
+		new_hint = true;
     }
 	if (m_loaded_hints.empty())
 	{
@@ -328,21 +402,95 @@ HintData* HintDatabase::get_hint(bool up)
 		return nullptr;
 	}
 
-    // shift id
-    m_hint_id = (up ? m_hint_id + 1 : m_hint_id );
-    m_hint_id %= m_loaded_hints.size();
+	try
+	{
+		if (new_hint)
+			m_hint_id = get_next();
+	}
+	catch (const std::exception&)
+	{
+		return nullptr;
+	}
+	
 
-	AppConfig* app_config = wxGetApp().app_config;
-	app_config->set("last_hint", std::to_string(m_hint_id));
 
-	//data = &m_loaded_hints[m_hint_id];
-	/*
-    data.text = m_loaded_hints[m_hint_id].text;
-    data.hypertext = m_loaded_hints[m_hint_id].hypertext;
-	data.follow_text = m_loaded_hints[m_hint_id].follow_text;
-    data.callback = m_loaded_hints[m_hint_id].callback;
-	*/
     return &m_loaded_hints[m_hint_id];
+}
+
+size_t HintDatabase::get_next()
+{
+	if (!m_sorted_hints)
+	{
+		auto compare_wieght = [](const HintData& a, const HintData& b){ return a.weight < b.weight; };
+		std::sort(m_loaded_hints.begin(), m_loaded_hints.end(), compare_wieght);
+		m_sorted_hints = true;
+		srand(time(NULL));
+	}
+	std::vector<size_t> candidates; // index in m_loaded_hints
+	// total weight
+	size_t total_weight = 0;
+	for (size_t i = 0; i < m_loaded_hints.size(); i++) {
+		if (!m_loaded_hints[i].was_displayed && tags_check(m_loaded_hints[i].disabled_tags, m_loaded_hints[i].enabled_tags)) {
+			candidates.emplace_back(i);
+			total_weight += m_loaded_hints[i].weight;
+		}
+	}
+	// all were shown
+	if (total_weight == 0) {
+		clear_used();
+	 	for (size_t i = 0; i < m_loaded_hints.size(); i++) {
+			m_loaded_hints[i].was_displayed = false;
+			if (tags_check(m_loaded_hints[i].disabled_tags, m_loaded_hints[i].enabled_tags)) {
+				candidates.emplace_back(i);
+				total_weight += m_loaded_hints[i].weight;
+			}
+		}
+	}
+	if (total_weight == 0) {
+		BOOST_LOG_TRIVIAL(error) << "Hint notification random number generator failed. No suitable hint was found.";
+		throw std::exception();
+	}
+	size_t random_number = rand() % total_weight + 1;
+	size_t current_weight = 0;
+	for (size_t i = 0; i < candidates.size(); i++) {
+		current_weight += m_loaded_hints[candidates[i]].weight;
+		if (random_number <= current_weight) {
+			set_used(m_loaded_hints[candidates[i]].id_string);
+			m_loaded_hints[candidates[i]].was_displayed = true;
+			return candidates[i];
+		}
+	}
+	BOOST_LOG_TRIVIAL(error) << "Hint notification random number generator failed.";
+	throw std::exception();
+}
+
+bool HintDatabase::is_used(const std::string& id)
+{
+	// load used ids from file
+	if (!m_used_ids_loaded) {
+		read_used_binary(m_used_ids);
+		m_used_ids_loaded = true;
+	}
+	// check if id is in used
+	for (const std::string& used_id : m_used_ids) {
+		if (used_id == id)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+void HintDatabase::set_used(const std::string& id)
+{
+	// check needed?
+	if (!is_used(id))
+	{
+		m_used_ids.emplace_back(id);
+	}
+}
+void HintDatabase::clear_used()
+{
+	m_used_ids.clear();
 }
 
 void NotificationManager::HintNotification::count_spaces()
@@ -840,23 +988,12 @@ void NotificationManager::HintNotification::open_documentation()
 		launch_browser_if_allowed(m_documentation_link);
 	}
 }
-void NotificationManager::HintNotification::retrieve_data(int recursion_counter)
+void NotificationManager::HintNotification::retrieve_data(bool new_hint/* = true*/)
 {
-    HintData* hint_data = HintDatabase::get_instance().get_hint(recursion_counter >= 0 ? true : false);
+    HintData* hint_data = HintDatabase::get_instance().get_hint(new_hint);
 	if (hint_data == nullptr)
 		 close();
 
-	if (hint_data != nullptr && !tags_check(hint_data->disabled_tags, hint_data->enabled_tags))
-	{
-		// Content for different user - retrieve another
-		size_t count = HintDatabase::get_instance().get_count();
-		if ((int)count < recursion_counter) {
-			BOOST_LOG_TRIVIAL(error) << "Hint notification failed to load data due to recursion counter.";
-		} else {
-			retrieve_data(recursion_counter + 1);
-		}
-		return;
-	}
 	if(hint_data != nullptr)
     {
         NotificationData nd { NotificationType::DidYouKnowHint,

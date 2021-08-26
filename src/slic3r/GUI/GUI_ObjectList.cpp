@@ -1049,7 +1049,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         || event.GetKeyCode() == WXK_BACK
 #endif //__WXOSX__
         ) {
-        remove();
+        wxGetApp().plater()->remove_selected();
     }
     else if (event.GetKeyCode() == WXK_F5)
         wxGetApp().plater()->reload_all_from_disk();
@@ -1920,16 +1920,15 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             if (vol->is_model_part())
                 ++solid_cnt;
         if (volume->is_model_part() && solid_cnt == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last solid part from object.")));
+            Slic3r::GUI::show_error(nullptr, _L("From Object List You can't delete the last solid part from object."));
             return false;
         }
 
-        take_snapshot(_(L("Delete Subobject")));
+        take_snapshot(_L("Delete Subobject"));
 
         object->delete_volume(idx);
 
-        if (object->volumes.size() == 1)
-        {
+        if (object->volumes.size() == 1) {
             const auto last_volume = object->volumes[0];
             if (!last_volume->config.empty()) {
                 object->config.apply(last_volume->config);
@@ -1948,11 +1947,11 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
     }
     else if (type == itInstance) {
         if (object->instances.size() == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("Last instance of an object cannot be deleted.")));
+            Slic3r::GUI::show_error(nullptr, _L("Last instance of an object cannot be deleted."));
             return false;
         }
 
-        take_snapshot(_(L("Delete Instance")));
+        take_snapshot(_L("Delete Instance"));
         object->delete_instance(idx);
     }
     else
@@ -2731,8 +2730,9 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
         return;
 
     m_prevent_list_events = true;
-    for (std::vector<ItemForDelete>::const_reverse_iterator item = items_for_delete.rbegin(); item != items_for_delete.rend(); ++item)
-    {
+
+    std::set<size_t> modified_objects_ids;
+    for (std::vector<ItemForDelete>::const_reverse_iterator item = items_for_delete.rbegin(); item != items_for_delete.rend(); ++item) {
         if (!(item->type&(itObject | itVolume | itInstance)))
             continue;
         if (item->type&itObject) {
@@ -2742,8 +2742,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
         else {
             if (!del_subobject_from_object(item->obj_idx, item->sub_obj_idx, item->type))
                 continue;
-            if (item->type&itVolume)
-            {
+            if (item->type&itVolume) {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
                 ModelObject* obj = object(item->obj_idx);
                 if (obj->volumes.size() == 1) {
@@ -2761,7 +2760,14 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             else
                 m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item->obj_idx, item->sub_obj_idx));
         }
+
+        modified_objects_ids.insert(static_cast<size_t>(item->obj_idx));
     }
+
+    for (size_t id : modified_objects_ids) {
+        update_info_items(id);
+    }
+
     m_prevent_list_events = true;
     part_selection_changed();
 }
@@ -4017,7 +4023,23 @@ void ObjectList::fix_through_netfabb()
 
 void ObjectList::simplify()
 {
-    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
+    auto plater = wxGetApp().plater();
+    GLGizmosManager& gizmos_mgr = plater->canvas3D()->get_gizmos_manager();
+
+    // Do not simplify when a gizmo is open. There might be issues with updates
+    // and what is worse, the snapshot time would refer to the internal stack.
+    auto current_type = gizmos_mgr.get_current_type();
+    if (current_type == GLGizmosManager::Simplify) {
+        // close first
+        gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
+    }else if (current_type != GLGizmosManager::Undefined) {
+        plater->get_notification_manager()->push_notification(
+            NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+            NotificationManager::NotificationLevel::RegularNotification,
+            _u8L("ERROR: Please close all manipulators available from "
+                 "the left toolbar before start simplify the mesh."));
+        return;
+    }
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 

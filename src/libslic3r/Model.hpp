@@ -347,6 +347,7 @@ public:
 
     size_t materials_count() const;
     size_t facets_count() const;
+    size_t parts_count() const;
     bool needed_repair() const;
     ModelObjectPtrs cut(size_t instance, coordf_t z, ModelObjectCutAttributes attributes);
     void split(ModelObjectPtrs* new_objects);
@@ -358,7 +359,9 @@ public:
     void bake_xy_rotation_into_meshes(size_t instance_idx);
 
     double get_min_z() const;
+    double get_max_z() const;
     double get_instance_min_z(size_t instance_idx) const;
+    double get_instance_max_z(size_t instance_idx) const;
 
     // Called by Print::validate() from the UI thread.
     unsigned int check_instances_print_volume_state(const BoundingBoxf3& print_volume);
@@ -1177,6 +1180,7 @@ void check_model_ids_equal(const Model &model1, const Model &model2);
 #endif /* NDEBUG */
 
 static const float SINKING_Z_THRESHOLD = -0.001f;
+static const double SINKING_MIN_Z_THRESHOLD = 0.05;
 
 } // namespace Slic3r
 

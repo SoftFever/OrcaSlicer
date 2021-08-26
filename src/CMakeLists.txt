@@ -13,6 +13,7 @@ add_subdirectory(qhull)
 add_subdirectory(Shiny)
 add_subdirectory(semver)
 add_subdirectory(libigl)
+add_subdirectory(hints)
 
 # Adding libnest2d project for bin packing...
 add_subdirectory(libnest2d)

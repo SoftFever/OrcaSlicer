@@ -595,7 +595,7 @@ bool GLVolume::is_sinking() const
 
 bool GLVolume::is_below_printbed() const
 {
-    return transformed_convex_hull_bounding_box().max(2) < 0.0;
+    return transformed_convex_hull_bounding_box().max.z() < 0.0;
 }
 
 #if ENABLE_SINKING_CONTOURS

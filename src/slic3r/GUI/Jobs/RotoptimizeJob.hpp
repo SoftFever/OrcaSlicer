@@ -48,14 +48,14 @@ class RotoptimizeJob : public PlaterJob
 protected:
 
     void prepare() override;
+    void process() override;
 
 public:
 
     RotoptimizeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
         : PlaterJob{std::move(pri), plater}
     {}
-    
-    void process() override;
+
     void finalize() override;
 
     static constexpr size_t get_methods_count() { return std::size(Methods); }
