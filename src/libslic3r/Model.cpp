@@ -959,8 +959,12 @@ void ModelObject::ensure_on_bed(bool allow_negative_z)
     double z_offset = 0.0;
 
     if (allow_negative_z) {
-        if (parts_count() == 1)
-            z_offset = -get_min_z();
+        if (parts_count() == 1) {
+            const double min_z = get_min_z();
+            const double max_z = get_max_z();
+            if (min_z >= SINKING_Z_THRESHOLD || max_z < 0.0)
+                z_offset = -min_z;
+        }
         else {
             const double max_z = get_max_z();
             if (max_z < SINKING_MIN_Z_THRESHOLD)
