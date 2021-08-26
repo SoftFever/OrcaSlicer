@@ -47,6 +47,8 @@
 #define ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER (1 && ENABLE_2_4_0_ALPHA0)
 // Enable drawing contours, at cut level, for sinking volumes
 #define ENABLE_SINKING_CONTOURS (1 && ENABLE_2_4_0_ALPHA0)
+// Enable implementation of retract acceleration in gcode processor
+#define ENABLE_RETRACT_ACCELERATION (1 && ENABLE_2_4_0_ALPHA0)
 
 
 #endif // _prusaslicer_technologies_h_

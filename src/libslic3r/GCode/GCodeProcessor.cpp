@@ -24,6 +24,9 @@
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
+#if ENABLE_RETRACT_ACCELERATION
+static const float DEFAULT_RETRACT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
+#endif // ENABLE_RETRACT_ACCELERATION
 static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
 
 static const size_t MIN_EXTRUDERS_COUNT = 5;
@@ -178,6 +181,10 @@ void GCodeProcessor::TimeMachine::reset()
     enabled = false;
     acceleration = 0.0f;
     max_acceleration = 0.0f;
+#if ENABLE_RETRACT_ACCELERATION
+    retract_acceleration = 0.0f;
+    max_retract_acceleration = 0.0f;
+#endif // ENABLE_RETRACT_ACCELERATION
     travel_acceleration = 0.0f;
     max_travel_acceleration = 0.0f;
     extrude_factor_override_percentage = 1.0f;
@@ -834,6 +841,11 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].max_acceleration = max_acceleration;
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+#if ENABLE_RETRACT_ACCELERATION
+        float max_retract_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i);
+        m_time_processor.machines[i].max_retract_acceleration = max_retract_acceleration;
+        m_time_processor.machines[i].retract_acceleration = (max_retract_acceleration > 0.0f) ? max_retract_acceleration : DEFAULT_RETRACT_ACCELERATION;
+#endif // ENABLE_RETRACT_ACCELERATION
         float max_travel_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_travel, i);
         m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
         m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
@@ -1052,6 +1064,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].max_acceleration = max_acceleration;
         m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+#if ENABLE_RETRACT_ACCELERATION
+        float max_retract_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i);
+        m_time_processor.machines[i].max_retract_acceleration = max_retract_acceleration;
+        m_time_processor.machines[i].retract_acceleration = (max_retract_acceleration > 0.0f) ? max_retract_acceleration : DEFAULT_RETRACT_ACCELERATION;
+#endif // ENABLE_RETRACT_ACCELERATION
         float max_travel_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_travel, i);
         m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
         m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
@@ -2713,14 +2730,22 @@ void GCodeProcessor::process_M204(const GCodeReader::GCodeLine& line)
                 set_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), value);
                 set_travel_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), value);
                 if (line.has_value('T', value))
+#if ENABLE_RETRACT_ACCELERATION
+                    set_retract_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), value);
+#else
                     set_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i, value);
+#endif // ENABLE_RETRACT_ACCELERATION
             }
             else {
                 // New acceleration format, compatible with the upstream Marlin.
                 if (line.has_value('P', value))
                     set_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), value);
                 if (line.has_value('R', value))
+#if ENABLE_RETRACT_ACCELERATION
+                    set_retract_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), value);
+#else
                     set_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i, value);
+#endif // ENABLE_RETRACT_ACCELERATION
                 if (line.has_value('T', value))
                     // Interpret the T value as the travel acceleration in the new Marlin format.
                     set_travel_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), value);
@@ -2979,10 +3004,30 @@ float GCodeProcessor::get_axis_max_jerk(PrintEstimatedStatistics::ETimeMode mode
     }
 }
 
+#if ENABLE_RETRACT_ACCELERATION
+float GCodeProcessor::get_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode) const
+{
+    size_t id = static_cast<size_t>(mode);
+    return (id < m_time_processor.machines.size()) ? m_time_processor.machines[id].retract_acceleration : DEFAULT_RETRACT_ACCELERATION;
+}
+#else
 float GCodeProcessor::get_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode) const
 {
     return get_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, static_cast<size_t>(mode));
 }
+#endif // ENABLE_RETRACT_ACCELERATION
+
+#if ENABLE_RETRACT_ACCELERATION
+void GCodeProcessor::set_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value)
+{
+    size_t id = static_cast<size_t>(mode);
+    if (id < m_time_processor.machines.size()) {
+        m_time_processor.machines[id].retract_acceleration = (m_time_processor.machines[id].max_retract_acceleration == 0.0f) ? value :
+            // Clamp the acceleration with the maximum.
+            std::min(value, m_time_processor.machines[id].max_retract_acceleration);
+    }
+}
+#endif // ENABLE_RETRACT_ACCELERATION
 
 float GCodeProcessor::get_acceleration(PrintEstimatedStatistics::ETimeMode mode) const
 {
