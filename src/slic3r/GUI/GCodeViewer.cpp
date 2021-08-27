@@ -96,14 +96,22 @@ void GCodeViewer::VBuffer::reset()
 }
 
 #if ENABLE_SEAMS_USING_INSTANCED_MODELS
+void GCodeViewer::InstanceVBuffer::Ranges::reset()
+{
+    for (Range& range : ranges) {
+        // release gpu memory
+        if (range.vbo > 0)
+            glsafe(::glDeleteBuffers(1, &range.vbo));
+    }
+
+    ranges.clear();
+}
+
 void GCodeViewer::InstanceVBuffer::reset()
 {
-    // release gpu memory
-    if (vbo > 0)
-        glsafe(::glDeleteBuffers(1, &vbo));
     s_ids.clear();
     buffer.clear();
-    render_ranges.clear();
+    render_ranges.reset();
 }
 #endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 
@@ -862,6 +870,9 @@ void GCodeViewer::render()
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_opengl();
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+    m_statistics.total_instances_gpu_size = 0;
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // OpenGL data must be initialized after the glContext has been created.
@@ -1760,7 +1771,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
     }
 
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+    // send vertices data to gpu, where needed
+#else
     // send vertices data to gpu
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
     for (size_t i = 0; i < m_buffers.size(); ++i) {
         TBuffer& t_buffer = m_buffers[i];
 #if ENABLE_SEAMS_USING_MODELS
@@ -1768,19 +1783,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Model) {
             const InstanceBuffer& inst_buffer = instances[i];
             if (!inst_buffer.empty()) {
-                const size_t size_bytes = inst_buffer.size() * sizeof(float);
-
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                m_statistics.total_instances_gpu_size += static_cast<int64_t>(size_bytes);
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-
-                GLuint id = 0;
-                glsafe(::glGenBuffers(1, &id));
-                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, id));
-                glsafe(::glBufferData(GL_ARRAY_BUFFER, size_bytes, inst_buffer.data(), GL_STATIC_DRAW));
-                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-
-                t_buffer.model.instances.vbo = id;
                 t_buffer.model.instances.buffer = inst_buffer;
                 t_buffer.model.instances.s_ids = instances_ids[i];
             }
@@ -2293,7 +2295,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     sequential_view->current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(sequential_view->current.first, global_endpoints.first, global_endpoints.last) : global_endpoints.first;
     sequential_view->current.last = keep_sequential_current_last ? std::clamp(sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
 
+#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+    // get the world position from the vertex buffer
+#else
     // get the world position from gpu
+#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
     bool found = false;
     for (const TBuffer& buffer : m_buffers) {
 #if ENABLE_SEAMS_USING_MODELS
@@ -2301,11 +2307,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #if ENABLE_SEAMS_USING_INSTANCED_MODELS
             for (size_t i = 0; i < buffer.model.instances.s_ids.size(); ++i) {
                 if (buffer.model.instances.s_ids[i] == m_sequential_view.current.last) {
-
-                    // gets the position from the vertices buffer on gpu
-                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, buffer.model.instances.vbo));
-                    glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(i * buffer.model.instances.instance_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(sequential_view->current_position.data())));
-                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+                    size_t offset = i * buffer.model.instances.instance_size_floats();
+                    sequential_view->current_position.x() = buffer.model.instances.buffer[offset + 0];
+                    sequential_view->current_position.y() = buffer.model.instances.buffer[offset + 1];
+                    sequential_view->current_position.z() = buffer.model.instances.buffer[offset + 2];
 
                     found = true;
                     break;
@@ -2475,33 +2480,33 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Model)
             continue;
 
-        buffer.model.instances.render_ranges.clear();
+        buffer.model.instances.render_ranges.reset();
 
         if (!buffer.visible)
             continue;
 
-        buffer.model.instances.render_ranges.push_back({ 0, 0, buffer.model.color });
+        buffer.model.instances.render_ranges.ranges.push_back({ 0, 0, 0, buffer.model.color });
         bool has_second_range = top_layer_only && m_sequential_view.current.last != m_sequential_view.global.last;
         if (has_second_range)
-            buffer.model.instances.render_ranges.push_back({ 0, 0, Neutral_Color });
+            buffer.model.instances.render_ranges.ranges.push_back({ 0, 0, 0, Neutral_Color });
 
         if (m_sequential_view.current.first <= buffer.model.instances.s_ids.back() && buffer.model.instances.s_ids.front() <= m_sequential_view.current.last) {
             for (size_t id : buffer.model.instances.s_ids) {
                 if (has_second_range) {
                     if (id <= m_sequential_view.endpoints.first) {
-                        buffer.model.instances.render_ranges.front().offset += buffer.model.instances.instance_size_bytes();
-                        ++buffer.model.instances.render_ranges.back().count;
+                        ++buffer.model.instances.render_ranges.ranges.front().offset;
+                        ++buffer.model.instances.render_ranges.ranges.back().count;
                     }
                     else if (id <= m_sequential_view.current.last)
-                        ++buffer.model.instances.render_ranges.front().count;
+                        ++buffer.model.instances.render_ranges.ranges.front().count;
                     else
                         break;
                 }
                 else {
                     if (id <= m_sequential_view.current.first)
-                        buffer.model.instances.render_ranges.front().offset += buffer.model.instances.instance_size_bytes();
+                        ++buffer.model.instances.render_ranges.ranges.front().offset;
                     else if (id <= m_sequential_view.current.last)
-                        ++buffer.model.instances.render_ranges.front().count;
+                        ++buffer.model.instances.render_ranges.ranges.front().count;
                     else
                         break;
                 }
@@ -2641,7 +2646,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #if ENABLE_SEAMS_USING_INSTANCED_MODELS
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.buffer, float);
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.s_ids, size_t);
-        statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.render_ranges, InstanceVBuffer::RenderRange);
+        statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.render_ranges.ranges, InstanceVBuffer::Ranges::Range);
 #else
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances, TBuffer::Model::Instance);
 #endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
@@ -2738,12 +2743,22 @@ void GCodeViewer::render_toolpaths()
     auto render_as_instanced_model = [this]
         (TBuffer& buffer, GLShaderProgram & shader) {
 #if ENABLE_SEAMS_USING_INSTANCED_MODELS
-        if (buffer.model.instances.vbo > 0) {
-            for (const InstanceVBuffer::RenderRange& range : buffer.model.instances.render_ranges) {
+        for (auto& range : buffer.model.instances.render_ranges.ranges) {
+            if (range.vbo == 0 && range.count > 0) {
+                std::cout << range.offset * buffer.model.instances.instance_size_bytes() << " + " << range.count * buffer.model.instances.instance_size_bytes() << " = " << buffer.model.instances.buffer.size() * sizeof(float) << "\n";
+
+                glsafe(::glGenBuffers(1, &range.vbo));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, range.vbo));
+                glsafe(::glBufferData(GL_ARRAY_BUFFER, range.count * buffer.model.instances.instance_size_bytes(), (const void*)&buffer.model.instances.buffer[range.offset * buffer.model.instances.instance_size_floats()], GL_STATIC_DRAW));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            }
+
+            if (range.vbo > 0) {
                 buffer.model.model.set_color(-1, range.color);
-                buffer.model.model.render_instanced(buffer.model.instances.vbo, range.count);
+                buffer.model.model.render_instanced(range.vbo, range.count);
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_instanced_models_calls_count;
+                m_statistics.total_instances_gpu_size += static_cast<int64_t>(range.count * buffer.model.instances.instance_size_bytes());
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
             }
         }

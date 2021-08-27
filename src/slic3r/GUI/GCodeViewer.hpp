@@ -110,24 +110,31 @@ class GCodeViewer
     // which is sent to the shader as -> vec3 (offset) + vec2 (scales) in GLModel::render_instanced()
     struct InstanceVBuffer
     {
-        struct RenderRange
+        // ranges used to render only subparts of the intances
+        struct Ranges
         {
-            // offset in bytes of the 1st instance to render
-            unsigned int offset;
-            // count of instances to render
-            unsigned int count;
-            // Color to apply to the instances
-            Color color;
+            struct Range
+            {
+                // offset in bytes of the 1st instance to render
+                unsigned int offset;
+                // count of instances to render
+                unsigned int count;
+                // vbo id
+                unsigned int vbo{ 0 };
+                // Color to apply to the instances
+                Color color;
+            };
+
+            std::vector<Range> ranges;
+
+            void reset();
         };
 
-        // vbo id
-        unsigned int vbo{ 0 };
         // cpu-side buffer containing all instances data
         InstanceBuffer buffer;
         // indices of the moves for all instances
         std::vector<size_t> s_ids;
-        // ranges used to render only subparts of the intances
-        std::vector<RenderRange> render_ranges;
+        Ranges render_ranges;
 
         size_t data_size_bytes() const { return s_ids.size() * instance_size_bytes(); }
 
