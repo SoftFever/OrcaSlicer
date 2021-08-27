@@ -1275,6 +1275,21 @@ float its_volume(const indexed_triangle_set &its)
     return volume;
 }
 
+float its_average_edge_length(const indexed_triangle_set &its)
+{
+    if (its.indices.empty())
+        return 0.f;
+
+    double edge_length = 0.f;
+    for (size_t i = 0; i < its.indices.size(); ++ i) {
+        const its_triangle v = its_triangle_vertices(its, i);
+        edge_length += (v[1] - v[0]).cast<double>().norm() + 
+                       (v[2] - v[0]).cast<double>().norm() +
+                       (v[1] - v[2]).cast<double>().norm();
+    }
+    return float(edge_length / (3 * its.indices.size()));
+}
+
 std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its)
 {
     return its_split<>(its);

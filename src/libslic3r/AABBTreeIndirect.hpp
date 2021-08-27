@@ -15,11 +15,6 @@
 
 #include "Utils.hpp" // for next_highest_power_of_2()
 
-extern "C"
-{
-// Ray-Triangle Intersection Test Routines by Tomas Moller, May 2000
-#include <igl/raytri.c>
-}
 // Definition of the ray intersection hit structure.
 #include <igl/Hit.h>
 
@@ -231,6 +226,9 @@ namespace detail {
 		const VectorType					 origin;
 		const VectorType 					 dir;
 		const VectorType					 invdir;
+
+		// epsilon for ray-triangle intersection, see intersect_triangle1()
+		const double  						 eps;
 	};
 
     template<typename VertexType, typename IndexedFaceType, typename TreeType, typename VectorType>
@@ -283,44 +281,91 @@ namespace detail {
         return tmin < t1 && tmax > t0;
 	}
 
+	// The following intersect_triangle() is derived from raytri.c routine intersect_triangle1()
+	// Ray-Triangle Intersection Test Routines
+	// Different optimizations of my and Ben Trumbore's
+	// code from journals of graphics tools (JGT)
+	// http://www.acm.org/jgt/
+	// by Tomas Moller, May 2000
 	template<typename V, typename W>
-    std::enable_if_t<std::is_same<typename V::Scalar, double>::value && std::is_same<typename W::Scalar, double>::value, bool>
-	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v) {
-        return intersect_triangle1(const_cast<double*>(origin.data()), const_cast<double*>(dir.data()),
-                                   const_cast<double*>(v0.data()), const_cast<double*>(v1.data()), const_cast<double*>(v2.data()),
-                                   &t, &u, &v);
+	std::enable_if_t<std::is_same<typename V::Scalar, double>::value&& std::is_same<typename W::Scalar, double>::value, bool>
+	intersect_triangle(const V &orig, const V &dir, const W &vert0, const W &vert1, const W &vert2, double &t, double &u, double &v, double eps)
+	{
+	   // find vectors for two edges sharing vert0
+	   const V      edge1 = vert1 - vert0;
+	   const V      edge2 = vert2 - vert0;
+	   // begin calculating determinant - also used to calculate U parameter
+	   const V      pvec  = dir.cross(edge2);
+	   // if determinant is near zero, ray lies in plane of triangle
+	   const double det   = edge1.dot(pvec);
+	   V      	 	qvec;
+
+	   if (det > eps) {
+	      	// calculate distance from vert0 to ray origin
+	      	V tvec = orig - vert0;
+	      	// calculate U parameter and test bounds
+	      	u = tvec.dot(pvec);
+			if (u < 0.0 || u > det)
+				return false;
+	      	// prepare to test V parameter
+	      	qvec = tvec.cross(edge1);
+	      	// calculate V parameter and test bounds
+	      	v = dir.dot(qvec);
+	      	if (v < 0.0 || u + v > det)
+		 		return false;
+	   } else if (det < -eps) {
+	      	// calculate distance from vert0 to ray origin
+	      	V tvec = orig - vert0;
+	      	// calculate U parameter and test bounds
+	      	u = tvec.dot(pvec);
+	      	if (u > 0.0 || u < det)
+		 		return false;
+	      	// prepare to test V parameter
+	      	qvec = tvec.cross(edge1);
+	      	// calculate V parameter and test bounds
+	      	v = dir.dot(qvec);
+	      	if (v > 0.0 || u + v < det)
+		 		return false;
+	   } else 
+	     	// ray is parallel to the plane of the triangle
+		   	return false;
+
+	   double inv_det = 1.0 / det;
+	   // calculate t, ray intersects triangle
+	   t = edge2.dot(qvec) * inv_det;
+	   u *= inv_det;
+	   v *= inv_det;
+	   return true;
 	}
 
 	template<typename V, typename W>
     std::enable_if_t<std::is_same<typename V::Scalar, double>::value && !std::is_same<typename W::Scalar, double>::value, bool>
-	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v) {
-        using Vector = Eigen::Matrix<double, 3, 1>;
-        Vector w0 = v0.template cast<double>();
-        Vector w1 = v1.template cast<double>();
-        Vector w2 = v2.template cast<double>();
-        return intersect_triangle1(const_cast<double*>(origin.data()), const_cast<double*>(dir.data()),
-                                   w0.data(), w1.data(), w2.data(), &t, &u, &v);
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v, double eps) {
+        return intersect_triangle(origin, dir, v0.template cast<double>(), v1.template cast<double>(), v2.template cast<double>(), t, u, v, eps);
 	}
 
 	template<typename V, typename W>
     std::enable_if_t<! std::is_same<typename V::Scalar, double>::value && std::is_same<typename W::Scalar, double>::value, bool>
-	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v) {
-        using Vector = Eigen::Matrix<double, 3, 1>;
-        Vector o  = origin.template cast<double>();
-        Vector d  = dir.template cast<double>();
-        return intersect_triangle1(o.data(), d.data(), const_cast<double*>(v0.data()), const_cast<double*>(v1.data()), const_cast<double*>(v2.data()), &t, &u, &v);
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v, double eps) {
+        return intersect_triangle(origin.template cast<double>(), dir.template cast<double>(), v0, v1, v2, t, u, v, eps);
 	}
 
 	template<typename V, typename W>
     std::enable_if_t<! std::is_same<typename V::Scalar, double>::value && ! std::is_same<typename W::Scalar, double>::value, bool>
-	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v) {
-        using Vector = Eigen::Matrix<double, 3, 1>;
-        Vector o  = origin.template cast<double>();
-        Vector d  = dir.template cast<double>();
-        Vector w0 = v0.template cast<double>();
-        Vector w1 = v1.template cast<double>();
-        Vector w2 = v2.template cast<double>();
-	    return intersect_triangle1(o.data(), d.data(), w0.data(), w1.data(), w2.data(), &t, &u, &v);
+	intersect_triangle(const V &origin, const V &dir, const W &v0, const W &v1, const W &v2, double &t, double &u, double &v, double eps) {
+	    return intersect_triangle(origin.template cast<double>(), dir.template cast<double>(), v0.template cast<double>(), v1.template cast<double>(), v2.template cast<double>(), t, u, v, eps);
+	}
+
+	template<typename Tree>
+	double intersect_triangle_epsilon(const Tree &tree) {
+		double eps = 0.000001;
+		if (! tree.empty()) {
+			const typename Tree::BoundingBox &bbox = tree.nodes().front().bbox;
+			double l = (bbox.max() - bbox.min()).cwiseMax();
+			if (l > 0)
+				eps /= (l * l);
+		}
+		return eps;
 	}
 
     template<typename RayIntersectorType, typename Scalar>
@@ -343,7 +388,7 @@ namespace detail {
 		    if (intersect_triangle(
 		    		ray_intersector.origin, ray_intersector.dir, 
 		    		ray_intersector.vertices[face(0)], ray_intersector.vertices[face(1)], ray_intersector.vertices[face(2)], 
-                    t, u, v)
+                    t, u, v, ray_intersector.eps)
 		    	&& t > 0.) {
                 hit = igl::Hit { int(node.idx), -1, float(u), float(v), float(t) };
 				return true;
@@ -388,7 +433,7 @@ namespace detail {
 		    if (intersect_triangle(
 		    		ray_intersector.origin, ray_intersector.dir, 
 		    		ray_intersector.vertices[face(0)], ray_intersector.vertices[face(1)], ray_intersector.vertices[face(2)], 
-                    t, u, v)
+                    t, u, v, ray_intersector.eps)
 		    	&& t > 0.) {
                 ray_intersector.hits.emplace_back(igl::Hit{ int(node.idx), -1, float(u), float(v), float(t) });
 			}
@@ -623,12 +668,15 @@ inline bool intersect_ray_first_hit(
 	// Direction of the ray.
 	const VectorType 					&dir,
 	// First intersection of the ray with the indexed triangle set.
-	igl::Hit 							&hit)
+	igl::Hit 							&hit,
+	// Epsilon for the ray-triangle intersection, it should be proportional to an average triangle edge length.
+	const double 						 eps = 0.000001)
 {
     using Scalar = typename VectorType::Scalar;
-    auto ray_intersector = detail::RayIntersector<VertexType, IndexedFaceType, TreeType, VectorType> {
+	auto ray_intersector = detail::RayIntersector<VertexType, IndexedFaceType, TreeType, VectorType> {
 		vertices, faces, tree,
-        origin, dir, VectorType(dir.cwiseInverse())
+        origin, dir, VectorType(dir.cwiseInverse()),
+        eps
 	};
 	return ! tree.empty() && detail::intersect_ray_recursive_first_hit(
         ray_intersector, size_t(0), std::numeric_limits<Scalar>::infinity(), hit);
@@ -652,11 +700,14 @@ inline bool intersect_ray_all_hits(
 	// Direction of the ray.
 	const VectorType 					&dir,
 	// All intersections of the ray with the indexed triangle set, sorted by parameter t.
-	std::vector<igl::Hit> 				&hits)
+	std::vector<igl::Hit> 				&hits,
+	// Epsilon for the ray-triangle intersection, it should be proportional to an average triangle edge length.
+	const double 						 eps = 0.000001)
 {
     auto ray_intersector = detail::RayIntersectorHits<VertexType, IndexedFaceType, TreeType, VectorType> {
         { vertices, faces, {tree},
-        origin, dir, VectorType(dir.cwiseInverse()) }
+        origin, dir, VectorType(dir.cwiseInverse()),
+        eps }
 	};
 	if (! tree.empty()) {
         ray_intersector.hits.reserve(8);

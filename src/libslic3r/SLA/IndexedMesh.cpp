@@ -17,10 +17,18 @@ namespace sla {
 class IndexedMesh::AABBImpl {
 private:
     AABBTreeIndirect::Tree3f m_tree;
+    double                   m_triangle_ray_epsilon;
 
 public:
-    void init(const indexed_triangle_set &its)
+    void init(const indexed_triangle_set &its, bool calculate_epsilon)
     {
+        m_triangle_ray_epsilon = 0.000001;
+        if (calculate_epsilon) {
+            // Calculate epsilon from average triangle edge length.
+            double l = its_average_edge_length(its);
+            if (l > 0)
+                m_triangle_ray_epsilon = 0.000001 * l * l;
+        }
         m_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
             its.vertices, its.indices);
     }
@@ -31,7 +39,7 @@ public:
                        igl::Hit &                  hit)
     {
         AABBTreeIndirect::intersect_ray_first_hit(its.vertices, its.indices,
-                                                  m_tree, s, dir, hit);
+                                                  m_tree, s, dir, hit, m_triangle_ray_epsilon);
     }
 
     void intersect_ray(const indexed_triangle_set &its,
@@ -40,7 +48,7 @@ public:
                        std::vector<igl::Hit> &     hits)
     {
         AABBTreeIndirect::intersect_ray_all_hits(its.vertices, its.indices,
-                                                 m_tree, s, dir, hits);
+                                                 m_tree, s, dir, hits, m_triangle_ray_epsilon);
     }
 
     double squared_distance(const indexed_triangle_set & its,
@@ -60,25 +68,25 @@ public:
     }
 };
 
-template<class M> void IndexedMesh::init(const M &mesh)
+template<class M> void IndexedMesh::init(const M &mesh, bool calculate_epsilon)
 {
     BoundingBoxf3 bb = bounding_box(mesh);
     m_ground_level += bb.min(Z);
 
     // Build the AABB accelaration tree
-    m_aabb->init(*m_tm);
+    m_aabb->init(*m_tm, calculate_epsilon);
 }
 
-IndexedMesh::IndexedMesh(const indexed_triangle_set& tmesh)
+IndexedMesh::IndexedMesh(const indexed_triangle_set& tmesh, bool calculate_epsilon)
     : m_aabb(new AABBImpl()), m_tm(&tmesh)
 {
-    init(tmesh);
+    init(tmesh, calculate_epsilon);
 }
 
-IndexedMesh::IndexedMesh(const TriangleMesh &mesh)
+IndexedMesh::IndexedMesh(const TriangleMesh &mesh, bool calculate_epsilon)
     : m_aabb(new AABBImpl()), m_tm(&mesh.its)
 {
-    init(mesh);
+    init(mesh, calculate_epsilon);
 }
 
 IndexedMesh::~IndexedMesh() {}
