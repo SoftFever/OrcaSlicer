@@ -106,7 +106,6 @@ void MeshClipper::recalculate_triangles()
     Transform3d tr = Transform3d::Identity();
     tr.rotate(q);
     tr = m_trafo.get_matrix() * tr;
-    height_mesh += 0.001f; // to avoid z-fighting
 
     if (m_limiting_plane != ClippingPlane::ClipsNothing())
     {
@@ -164,6 +163,8 @@ void MeshClipper::recalculate_triangles()
     }
 
     m_triangles2d = triangulate_expolygons_2f(expolys, m_trafo.get_matrix().matrix().determinant() < 0.);
+
+    tr.pretranslate(0.001 * m_plane.get_normal().normalized()); // to avoid z-fighting
 
     m_vertex_array.release_geometry();
     for (auto it=m_triangles2d.cbegin(); it != m_triangles2d.cend(); it=it+3) {
