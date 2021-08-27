@@ -199,7 +199,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         if (m_imgui->button(_L("Preview"))) {
             m_state = State::preview;
-            // simplify but not aply on mesh
+            // simplify but not apply on mesh
             process();
         }
         ImGui::SameLine();
@@ -207,15 +207,12 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             if (!m_is_valid_result) {
                 m_state = State::close_on_end;
                 process();
-            } else {
+            } else if (m_exist_preview) {
                 // use preview and close
-                if (m_exist_preview) {
-                    // fix hollowing, sla support points, modifiers, ...
-                    auto plater = wxGetApp().plater();
-                    plater->changed_mesh(m_obj_index);
-                }
+                after_apply();
+            } else { // no changes made
                 close();
-            }
+            }            
         }
     } else {        
         m_imgui->disabled_begin(m_state == State::canceling);
@@ -237,16 +234,20 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_parent.reload_scene(true);
         // set m_state must be before close() !!!
         m_state = State::settings;
-        if (close_on_end) {
-            // fix hollowing, sla support points, modifiers, ...
-            auto plater = wxGetApp().plater();
-            plater->changed_mesh(m_obj_index);
-            close(); 
-        }
+        if (close_on_end) after_apply();
         
         // Fix warning icon in object list
         wxGetApp().obj_list()->update_item_error_icon(m_obj_index, -1);
     }
+}
+
+void GLGizmoSimplify::after_apply() {
+    // set flag to NOT revert changes when switch GLGizmoBase::m_state
+    m_exist_preview = false;
+    // fix hollowing, sla support points, modifiers, ...
+    auto plater = wxGetApp().plater();
+    plater->changed_mesh(m_obj_index);
+    close();
 }
 
 void GLGizmoSimplify::close() {
