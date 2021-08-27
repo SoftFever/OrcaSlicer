@@ -52,7 +52,7 @@ bool GLGizmoMove3D::on_init()
 
 std::string GLGizmoMove3D::on_get_name() const
 {
-    return (_L("Move") + " [M]").ToUTF8().data();
+    return _u8L("Move");
 }
 
 bool GLGizmoMove3D::on_is_activable() const

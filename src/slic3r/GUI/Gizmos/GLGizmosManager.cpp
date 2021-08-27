@@ -1210,13 +1210,13 @@ void GLGizmosManager::activate_gizmo(EType type)
         if (! m_parent.get_gizmos_manager().is_serializing()
          && old_gizmo->wants_enter_leave_snapshots())
             Plater::TakeSnapshot snapshot(wxGetApp().plater(),
-                Slic3r::format(_utf8("Leaving %1%"), old_gizmo->get_name()));
+                Slic3r::format(_utf8("Leaving %1%"), old_gizmo->get_name(false)));
     }
 
     if (new_gizmo && ! m_parent.get_gizmos_manager().is_serializing()
      && new_gizmo->wants_enter_leave_snapshots())
         Plater::TakeSnapshot snapshot(wxGetApp().plater(),
-            Slic3r::format(_utf8("Entering %1%"), new_gizmo->get_name()));
+            Slic3r::format(_utf8("Entering %1%"), new_gizmo->get_name(false)));
 
     m_current = type;
 

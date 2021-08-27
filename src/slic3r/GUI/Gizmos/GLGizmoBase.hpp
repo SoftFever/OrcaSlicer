@@ -120,7 +120,7 @@ public:
     void load(cereal::BinaryInputArchive& ar) { m_state = On; on_load(ar); }
     void save(cereal::BinaryOutputArchive& ar) const { on_save(ar); }
 
-    std::string get_name() const { return on_get_name(); }
+    std::string get_name(bool include_shortcut = true) const;
 
     int get_group_id() const { return m_group_id; }
     void set_group_id(int id) { m_group_id = id; }

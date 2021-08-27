@@ -625,7 +625,7 @@ RENDER_AGAIN:
     //ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
     //ImGui::SetNextWindowSize(ImVec2(window_size));
 
-    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // adjust window position to avoid overlap the view toolbar
     float win_h = ImGui::GetWindowHeight();
@@ -863,7 +863,7 @@ bool GLGizmoSlaSupports::on_is_selectable() const
 
 std::string GLGizmoSlaSupports::on_get_name() const
 {
-    return (_L("SLA Support Points") + " [L]").ToUTF8().data();
+    return _u8L("SLA Support Points");
 }
 
 CommonGizmosDataID GLGizmoSlaSupports::on_get_requirements() const

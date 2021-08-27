@@ -49,7 +49,7 @@ bool GLGizmoCut::on_init()
 
 std::string GLGizmoCut::on_get_name() const
 {
-    return (_L("Cut") + " [C]").ToUTF8().data();
+    return _u8L("Cut");
 }
 
 void GLGizmoCut::on_set_state()

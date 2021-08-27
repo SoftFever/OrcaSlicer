@@ -44,7 +44,7 @@ bool GLGizmoSimplify::on_init()
 
 std::string GLGizmoSimplify::on_get_name() const
 {
-    return (_L("Simplify")).ToUTF8().data();
+    return _u8L("Simplify");
 }
 
 void GLGizmoSimplify::on_render() {}
@@ -97,7 +97,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                ImGuiWindowFlags_NoCollapse;
-    m_imgui->begin(on_get_name(), flag);
+    m_imgui->begin(get_name(), flag);
 
     size_t triangle_count = m_volume->mesh().its.indices.size();
     // already reduced mesh
