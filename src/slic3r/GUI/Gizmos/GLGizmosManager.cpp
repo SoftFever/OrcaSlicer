@@ -22,6 +22,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 
+#include "libslic3r/format.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
@@ -1198,26 +1199,29 @@ void GLGizmosManager::activate_gizmo(EType type)
     if (m_gizmos.empty() || m_current == type)
         return;
 
-    if (m_current != Undefined) {
-        m_gizmos[m_current]->set_state(GLGizmoBase::Off);
-        if (m_gizmos[m_current]->get_state() != GLGizmoBase::Off)
+    GLGizmoBase* old_gizmo = m_current == Undefined ? nullptr : m_gizmos[m_current].get();
+    GLGizmoBase* new_gizmo = type == Undefined ? nullptr : m_gizmos[type].get();
+
+    if (old_gizmo) {
+        old_gizmo->set_state(GLGizmoBase::Off);
+        if (old_gizmo->get_state() != GLGizmoBase::Off)
             return; // gizmo refused to be turned off, do nothing.
+
+        if (! m_parent.get_gizmos_manager().is_serializing()
+         && old_gizmo->wants_enter_leave_snapshots())
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(),
+                Slic3r::format(_utf8("Leaving %1%"), old_gizmo->get_name()));
     }
+
+    if (new_gizmo && ! m_parent.get_gizmos_manager().is_serializing()
+     && new_gizmo->wants_enter_leave_snapshots())
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(),
+            Slic3r::format(_utf8("Entering %1%"), new_gizmo->get_name()));
 
     m_current = type;
 
-    // Updating common data should be left to the update_data function, which
-    // is always called after this one. activate_gizmo can be called by undo/redo,
-    // when selection is not yet deserialized, so the common data would update
-    // incorrectly (or crash if relying on unempty selection). Undo/redo stack
-    // will also call update_data, after selection is restored.
-
-    //m_common_gizmos_data->update(get_current()
-    //                       ? get_current()->get_requirements()
-    //                       : CommonGizmosDataID(0));
-
-    if (type != Undefined)
-        m_gizmos[type]->set_state(GLGizmoBase::On);
+    if (new_gizmo)
+        new_gizmo->set_state(GLGizmoBase::On);
 }
 
 

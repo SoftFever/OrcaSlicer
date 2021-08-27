@@ -901,15 +901,6 @@ void GLGizmoSlaSupports::on_set_state()
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        if (! m_parent.get_gizmos_manager().is_serializing()) {
-            // Only take the snapshot when the USER opens the gizmo. Common gizmos
-            // data are not yet available, the CallAfter will postpone taking the
-            // snapshot until they are. No, it does not feel right.
-            wxGetApp().CallAfter([]() {
-                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Entering SLA gizmo"));
-            });
-        }
-
         // Set default head diameter from config.
         const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
         m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
@@ -925,8 +916,6 @@ void GLGizmoSlaSupports::on_set_state()
         else {
             // we are actually shutting down
             disable_editing_mode(); // so it is not active next time the gizmo opens
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Leaving SLA gizmo"));
-            m_normal_cache.clear();
             m_old_mo_id = -1;
         }
     }
