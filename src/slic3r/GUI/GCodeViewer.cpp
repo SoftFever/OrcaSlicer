@@ -95,7 +95,7 @@ void GCodeViewer::VBuffer::reset()
     count = 0;
 }
 
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
 void GCodeViewer::InstanceVBuffer::Ranges::reset()
 {
     for (Range& range : ranges) {
@@ -113,7 +113,7 @@ void GCodeViewer::InstanceVBuffer::reset()
     buffer.clear();
     render_ranges.reset();
 }
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 
 void GCodeViewer::IBuffer::reset()
 {
@@ -159,11 +159,7 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
 #if ENABLE_SEAMS_USING_MODELS
 void GCodeViewer::TBuffer::Model::reset()
 {
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
     instances.reset();
-#else
-    instances.clear();
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 }
 #endif // ENABLE_SEAMS_USING_MODELS
 
@@ -813,11 +809,7 @@ void GCodeViewer::render()
 #if ENABLE_SEAMS_USING_MODELS
                 if (wxGetApp().is_gl_version_greater_or_equal_to(3, 1)) {
                     buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
                     buffer.shader = "gouraud_light_instanced";
-#else
-                    buffer.shader = "gouraud_light";
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
                     buffer.model.model.init_from(diamond(16));
                     buffer.model.color = option_color(type);
                 }
@@ -870,9 +862,9 @@ void GCodeViewer::render()
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_opengl();
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
     m_statistics.total_instances_gpu_size = 0;
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // OpenGL data must be initialized after the glContext has been created.
@@ -1444,7 +1436,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     };
 
 #if ENABLE_SEAMS_USING_MODELS
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
     // format data into the buffers to be rendered as model
     auto add_model_instance = [](const GCodeProcessor::MoveVertex& curr, InstanceBuffer& instances, InstanceIdBuffer& instances_ids, size_t move_id) {
         // append position
@@ -1459,16 +1450,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         // append id
         instances_ids.push_back(move_id);
     };
-#else
-    auto add_model_instance = [](const GCodeProcessor::MoveVertex& curr, TBuffer::Model::Instances& instances, size_t move_id) {
-        TBuffer::Model::Instance instance;
-        instance.position = curr.position;
-        instance.width = 1.2f * curr.width;
-        instance.height = 1.2f * curr.height;
-        instance.s_id = move_id;
-        instances.emplace_back(instance);
-    };
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1513,10 +1494,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     std::vector<MultiVertexBuffer> vertices(m_buffers.size());
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
     std::vector<InstanceBuffer> instances(m_buffers.size());
     std::vector<InstanceIdBuffer> instances_ids(m_buffers.size());
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
     std::vector<float> options_zs;
 
     // toolpaths data -> extract vertices from result
@@ -1541,10 +1522,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         const unsigned char id = buffer_id(curr.type);
         TBuffer& t_buffer = m_buffers[id];
         MultiVertexBuffer& v_multibuffer = vertices[id];
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
         InstanceBuffer& inst_buffer = instances[id];
         InstanceIdBuffer& inst_id_buffer = instances_ids[id];
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 
         // ensure there is at least one vertex buffer
         if (v_multibuffer.empty())
@@ -1571,11 +1552,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_SEAMS_USING_MODELS
         case TBuffer::ERenderPrimitiveType::Model:
         {
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
             add_model_instance(curr, inst_buffer, inst_id_buffer, i);
-#else
-            add_model_instance(curr, t_buffer.model.instances, i);
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.instances_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -1752,17 +1729,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
     }
 
-#if ENABLE_SEAMS_USING_MODELS
-#if !ENABLE_SEAMS_USING_INSTANCED_MODELS
-    for (size_t i = 0; i < m_buffers.size(); ++i) {
-        TBuffer& t_buffer = m_buffers[i];
-        if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Model) {
-            t_buffer.model.instances.shrink_to_fit();
-        }
-    }
-#endif // !ENABLE_SEAMS_USING_INSTANCED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
-
     // move the wipe toolpaths half height up to render them on proper position
     MultiVertexBuffer& wipe_vertices = vertices[buffer_id(EMoveType::Wipe)];
     for (VertexBuffer& v_buffer : wipe_vertices) {
@@ -1771,15 +1737,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         }
     }
 
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
     // send vertices data to gpu, where needed
-#else
-    // send vertices data to gpu
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
     for (size_t i = 0; i < m_buffers.size(); ++i) {
         TBuffer& t_buffer = m_buffers[i];
 #if ENABLE_SEAMS_USING_MODELS
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
         if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Model) {
             const InstanceBuffer& inst_buffer = instances[i];
             if (!inst_buffer.empty()) {
@@ -1788,9 +1749,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             }
         }
         else {
-#else
-        if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Model) {
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
             const MultiVertexBuffer& v_multibuffer = vertices[i];
             for (const VertexBuffer& v_buffer : v_multibuffer) {
@@ -1827,10 +1785,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     // dismiss vertices data, no more needed
     std::vector<MultiVertexBuffer>().swap(vertices);
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
     std::vector<InstanceBuffer>().swap(instances);
     std::vector<InstanceIdBuffer>().swap(instances_ids);
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 
     // toolpaths data -> extract indices from result
     // paths may have been filled while extracting vertices,
@@ -2217,7 +2175,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
 #if ENABLE_SEAMS_USING_MODELS
         if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Model) {
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
             for (size_t id : buffer.model.instances.s_ids) {
                 if (id < m_layers.get_endpoints_at(m_layers_z_range[0]).first || m_layers.get_endpoints_at(m_layers_z_range[1]).last < id)
                     continue;
@@ -2233,23 +2190,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                     top_layer_endpoints.last = std::max(top_layer_endpoints.last, id);
                 }
             }
-#else
-            for (const TBuffer::Model::Instance& inst : buffer.model.instances) {
-                if (inst.s_id < m_layers.get_endpoints_at(m_layers_z_range[0]).first || m_layers.get_endpoints_at(m_layers_z_range[1]).last < inst.s_id)
-                    continue;
-
-                global_endpoints.first = std::min(global_endpoints.first, inst.s_id);
-                global_endpoints.last = std::max(global_endpoints.last, inst.s_id);
-
-                if (top_layer_only) {
-                    if (inst.s_id < m_layers.get_endpoints_at(m_layers_z_range[1]).first || m_layers.get_endpoints_at(m_layers_z_range[1]).last < inst.s_id)
-                        continue;
-
-                    top_layer_endpoints.first = std::min(top_layer_endpoints.first, inst.s_id);
-                    top_layer_endpoints.last = std::max(top_layer_endpoints.last, inst.s_id);
-                }
-            }
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
         }
         else {
 #endif // ENABLE_SEAMS_USING_MODELS
@@ -2295,16 +2235,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     sequential_view->current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(sequential_view->current.first, global_endpoints.first, global_endpoints.last) : global_endpoints.first;
     sequential_view->current.last = keep_sequential_current_last ? std::clamp(sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
 
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
     // get the world position from the vertex buffer
-#else
-    // get the world position from gpu
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
     bool found = false;
     for (const TBuffer& buffer : m_buffers) {
 #if ENABLE_SEAMS_USING_MODELS
         if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Model) {
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
             for (size_t i = 0; i < buffer.model.instances.s_ids.size(); ++i) {
                 if (buffer.model.instances.s_ids[i] == m_sequential_view.current.last) {
                     size_t offset = i * buffer.model.instances.instance_size_floats();
@@ -2316,15 +2251,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                     break;
                 }
             }
-#else
-            for (const TBuffer::Model::Instance& inst : buffer.model.instances) {
-                if (inst.s_id == m_sequential_view.current.last) {
-                    sequential_view->current_position = inst.position;
-                    found = true;
-                    break;
-                }
-            }
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
         }
         else {
 #endif // ENABLE_SEAMS_USING_MODELS
@@ -2473,7 +2399,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #endif 
     }
 
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
     // second pass: for buffers using instanced models, update the instances render ranges
     for (size_t b = 0; b < m_buffers.size(); ++b) {
         TBuffer& buffer = const_cast<TBuffer&>(m_buffers[b]);
@@ -2513,7 +2439,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             }
         }
     }
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 
     // set sequential data to their final value
     sequential_view->endpoints = top_layer_only ? top_layer_endpoints : global_endpoints;
@@ -2643,13 +2569,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             statistics->render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
         }
 #if ENABLE_SEAMS_USING_MODELS
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.buffer, float);
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.s_ids, size_t);
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.render_ranges.ranges, InstanceVBuffer::Ranges::Range);
-#else
-        statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances, TBuffer::Model::Instance);
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
     }
     statistics->refresh_paths_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
@@ -2742,11 +2664,8 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_SEAMS_USING_MODELS
     auto render_as_instanced_model = [this]
         (TBuffer& buffer, GLShaderProgram & shader) {
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
         for (auto& range : buffer.model.instances.render_ranges.ranges) {
             if (range.vbo == 0 && range.count > 0) {
-                std::cout << range.offset * buffer.model.instances.instance_size_bytes() << " + " << range.count * buffer.model.instances.instance_size_bytes() << " = " << buffer.model.instances.buffer.size() * sizeof(float) << "\n";
-
                 glsafe(::glGenBuffers(1, &range.vbo));
                 glsafe(::glBindBuffer(GL_ARRAY_BUFFER, range.vbo));
                 glsafe(::glBufferData(GL_ARRAY_BUFFER, range.count * buffer.model.instances.instance_size_bytes(), (const void*)&buffer.model.instances.buffer[range.offset * buffer.model.instances.instance_size_floats()], GL_STATIC_DRAW));
@@ -2762,28 +2681,6 @@ void GCodeViewer::render_toolpaths()
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
             }
         }
-#else
-        for (const TBuffer::Model::Instance& inst : buffer.model.instances) {
-            bool top_layer_only = get_app_config()->get("seq_top_layer_only") == "1";
-            bool visible = top_layer_only ?
-                m_sequential_view.global.first <= inst.s_id && inst.s_id <= m_sequential_view.global.last :
-                m_sequential_view.current.first <= inst.s_id && inst.s_id <= m_sequential_view.current.last;
-
-            if (visible) {
-                glsafe(::glPushMatrix());
-                glsafe(::glTranslatef(inst.position.x(), inst.position.y(), inst.position.z() - 0.5f * inst.height));
-                glsafe(::glScalef(inst.width, inst.width, inst.height));
-                Color color = (top_layer_only && m_sequential_view.current.last != m_sequential_view.global.last && inst.s_id < m_sequential_view.endpoints.first) ?
-                    Neutral_Color : buffer.model.color;
-                buffer.model.model.set_color(-1, color);
-                buffer.model.model.render();
-                glsafe(::glPopMatrix());
-#if ENABLE_GCODE_VIEWER_STATISTICS
-                ++m_statistics.gl_models_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-            }
-        }
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
     };
 #endif // ENABLE_SEAMS_USING_MODELS
 
@@ -3852,11 +3749,7 @@ void GCodeViewer::render_statistics()
         add_counter(std::string("Multi GL_TRIANGLES:"), m_statistics.gl_multi_triangles_calls_count);
         add_counter(std::string("GL_TRIANGLES:"), m_statistics.gl_triangles_calls_count);
 #if ENABLE_SEAMS_USING_MODELS
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
         add_counter(std::string("Instanced models:"), m_statistics.gl_instanced_models_calls_count);
-#else
-        add_counter(std::string("Models:"), m_statistics.gl_models_calls_count);
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
     }
 
@@ -3874,9 +3767,9 @@ void GCodeViewer::render_statistics()
     if (ImGui::CollapsingHeader("GPU memory")) {
         add_memory(std::string("Vertices:"), m_statistics.total_vertices_gpu_size);
         add_memory(std::string("Indices:"), m_statistics.total_indices_gpu_size);
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
         add_memory(std::string("Instances:"), m_statistics.total_instances_gpu_size);
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
         ImGui::Separator();
         add_memory(std::string("Max VBuffer:"), m_statistics.max_vbuffer_gpu_size);
         add_memory(std::string("Max IBuffer:"), m_statistics.max_ibuffer_gpu_size);

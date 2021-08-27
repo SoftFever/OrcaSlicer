@@ -208,7 +208,7 @@ void GLModel::render() const
     }
 }
 
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
 void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instances_count) const
 {
     if (instances_vbo == 0)
@@ -285,7 +285,7 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 
 void GLModel::send_to_gpu(RenderData& data, const std::vector<float>& vertices, const std::vector<unsigned int>& indices)
 {

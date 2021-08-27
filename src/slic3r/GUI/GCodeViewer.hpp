@@ -27,10 +27,10 @@ class GCodeViewer
     using MultiVertexBuffer = std::vector<VertexBuffer>;
     using IndexBuffer = std::vector<IBufferType>;
     using MultiIndexBuffer = std::vector<IndexBuffer>;
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
     using InstanceBuffer = std::vector<float>;
     using InstanceIdBuffer = std::vector<size_t>;
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 
     static const std::vector<Color> Extrusion_Role_Colors;
     static const std::vector<Color> Options_Colors;
@@ -104,7 +104,7 @@ class GCodeViewer
         void reset();
     };
 
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
     // buffer containing instances data used to render a toolpaths using instanced models
     // instance record format: 5 floats -> position.x|position.y|position.z|width|height
     // which is sent to the shader as -> vec3 (offset) + vec2 (scales) in GLModel::render_instanced()
@@ -143,7 +143,7 @@ class GCodeViewer
 
         void reset();
     };
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 
     // ibo buffer containing indices data (for lines/triangles) used to render a specific toolpath type
     struct IBuffer
@@ -295,24 +295,9 @@ class GCodeViewer
 #if ENABLE_SEAMS_USING_MODELS
         struct Model
         {
-#if !ENABLE_SEAMS_USING_INSTANCED_MODELS
-            struct Instance
-            {
-                Vec3f position;
-                float width;
-                float height;
-                size_t s_id;
-            };
-            using Instances = std::vector<Instance>;
-#endif // !ENABLE_SEAMS_USING_INSTANCED_MODELS
-
             GLModel model;
             Color color;
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
             InstanceVBuffer instances;
-#else
-            Instances instances;
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 
             void reset();
         };
@@ -377,11 +362,7 @@ class GCodeViewer
             case ERenderPrimitiveType::Triangle: {
                 return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
             }
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
             case ERenderPrimitiveType::Model: { return model.model.is_initialized() && !model.instances.buffer.empty(); }
-#else
-            case ERenderPrimitiveType::Model: { return model.model.is_initialized() && !model.instances.empty(); }
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
             default: { return false; }
             }
         }
@@ -538,19 +519,15 @@ class GCodeViewer
         int64_t gl_multi_triangles_calls_count{ 0 };
         int64_t gl_triangles_calls_count{ 0 };
 #if ENABLE_SEAMS_USING_MODELS
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
         int64_t gl_instanced_models_calls_count{ 0 };
-#else
-        int64_t gl_models_calls_count{ 0 };
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
         // memory
         int64_t results_size{ 0 };
         int64_t total_vertices_gpu_size{ 0 };
         int64_t total_indices_gpu_size{ 0 };
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
         int64_t total_instances_gpu_size{ 0 };
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
         int64_t max_vbuffer_gpu_size{ 0 };
         int64_t max_ibuffer_gpu_size{ 0 };
         int64_t paths_size{ 0 };
@@ -591,11 +568,7 @@ class GCodeViewer
             gl_multi_triangles_calls_count = 0;
             gl_triangles_calls_count = 0;
 #if ENABLE_SEAMS_USING_MODELS
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
             gl_instanced_models_calls_count = 0;
-#else
-            gl_models_calls_count = 0;
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
 #endif // ENABLE_SEAMS_USING_MODELS
         }
 
@@ -603,9 +576,9 @@ class GCodeViewer
             results_size = 0;
             total_vertices_gpu_size = 0;
             total_indices_gpu_size = 0;
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
             total_instances_gpu_size = 0;
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
             max_vbuffer_gpu_size = 0;
             max_ibuffer_gpu_size = 0;
             paths_size = 0;

@@ -51,8 +51,6 @@
 #define ENABLE_RETRACT_ACCELERATION (1 && ENABLE_2_4_0_ALPHA0)
 // Enable rendering seams (and other options) in preview using models
 #define ENABLE_SEAMS_USING_MODELS (1 && ENABLE_2_4_0_ALPHA0)
-// Enable rendering seams (and other options) in preview using instanced models
-#define ENABLE_SEAMS_USING_INSTANCED_MODELS (1 && ENABLE_SEAMS_USING_MODELS)
 
 
 #endif // _prusaslicer_technologies_h_

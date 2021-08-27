@@ -72,9 +72,9 @@ namespace GUI {
 
         void reset();
         void render() const;
-#if ENABLE_SEAMS_USING_INSTANCED_MODELS
+#if ENABLE_SEAMS_USING_MODELS
         void render_instanced(unsigned int instances_vbo, unsigned int instances_count) const;
-#endif // ENABLE_SEAMS_USING_INSTANCED_MODELS
+#endif // ENABLE_SEAMS_USING_MODELS
 
         bool is_initialized() const { return !m_render_data.empty(); }
 
