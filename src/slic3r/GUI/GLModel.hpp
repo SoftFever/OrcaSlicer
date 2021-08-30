@@ -72,6 +72,9 @@ namespace GUI {
 
         void reset();
         void render() const;
+#if ENABLE_SEAMS_USING_MODELS
+        void render_instanced(unsigned int instances_vbo, unsigned int instances_count) const;
+#endif // ENABLE_SEAMS_USING_MODELS
 
         bool is_initialized() const { return !m_render_data.empty(); }
 
@@ -99,6 +102,11 @@ namespace GUI {
     // the arrow is contained in XY plane and has its main axis along the Y axis
     // used to render sidebar hints for position and scale
     GLModel::InitializationData straight_arrow(float tip_width, float tip_height, float stem_width, float stem_height, float thickness);
+
+    // create a diamond with the given resolution
+    // the origin of the diamond is in its center
+    // the diamond is contained into a box with size [1, 1, 1]
+    GLModel::InitializationData diamond(int resolution);
 
 } // namespace GUI
 } // namespace Slic3r

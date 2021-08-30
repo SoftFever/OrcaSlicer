@@ -236,7 +236,7 @@ void GLGizmoScale3D::on_render()
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-            shader->set_uniform("emission_factor", 0.1);
+            shader->set_uniform("emission_factor", 0.1f);
             // draw grabbers
             m_grabbers[0].render(true, grabber_mean_size);
             m_grabbers[1].render(true, grabber_mean_size);
@@ -251,7 +251,7 @@ void GLGizmoScale3D::on_render()
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-            shader->set_uniform("emission_factor", 0.1);
+            shader->set_uniform("emission_factor", 0.1f);
             // draw grabbers
             m_grabbers[2].render(true, grabber_mean_size);
             m_grabbers[3].render(true, grabber_mean_size);
@@ -266,7 +266,7 @@ void GLGizmoScale3D::on_render()
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-            shader->set_uniform("emission_factor", 0.1);
+            shader->set_uniform("emission_factor", 0.1f);
             // draw grabbers
             m_grabbers[4].render(true, grabber_mean_size);
             m_grabbers[5].render(true, grabber_mean_size);
@@ -284,7 +284,7 @@ void GLGizmoScale3D::on_render()
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-            shader->set_uniform("emission_factor", 0.1);
+            shader->set_uniform("emission_factor", 0.1f);
             // draw grabbers
             for (int i = 6; i < 10; ++i) {
                 m_grabbers[i].render(true, grabber_mean_size);

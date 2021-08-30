@@ -904,7 +904,7 @@ private:
 #else
     void _render_objects();
 #endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
-    void _render_gcode() const;
+    void _render_gcode();
     void _render_selection() const;
     void _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
