@@ -262,6 +262,8 @@ private:
 		EState                 get_state()  const { return m_state; }
 		bool				   is_hovered() const { return m_state == EState::Hovered; } 
 		void				   set_hovered() { if (m_state != EState::Finished && m_state != EState::ClosePending && m_state != EState::Hidden && m_state != EState::Unknown) m_state = EState::Hovered; }
+		// set start of notification to now. Used by delayed notifications
+		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
 	protected:
 		// Call after every size change
 		virtual void init();
@@ -515,10 +517,25 @@ private:
 	// in HintNotification.hpp
 	class HintNotification;
 
+	// Data of waiting notifications
+	struct DelayedNotification
+	{
+		std::unique_ptr<PopNotification>	notification;
+		int64_t								remaining_time;
+		int64_t                             delay_interval;
+		DelayedNotification(std::unique_ptr<PopNotification> n, int64_t r, int64_t d)
+		: notification(std::move(n))
+		, remaining_time(r)
+		, delay_interval(d)
+		{}
+	};
+
 	//pushes notification into the queue of notifications that are rendered
 	//can be used to create custom notification
 	bool push_notification_data(const NotificationData& notification_data, int timestamp);
 	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, int timestamp);
+	// Delayed notifications goes first to the m_waiting_notifications vector and only after remaining time is <= 0 and m_pop_notifications are empty, notification is regular pushed. Otherwise another delay interval waiting. Timestamp is 0. 
+	void push_delayed_notification(std::unique_ptr<NotificationManager::PopNotification> notification, int64_t initial_delay, int64_t delay_interval);
 	//finds older notification of same type and moves it to the end of queue. returns true if found
 	bool activate_existing(const NotificationManager::PopNotification* notification);
 	// Put the more important notifications to the bottom of the list.
@@ -531,6 +548,8 @@ private:
 	// Cache of IDs to identify and reuse ImGUI windows.
 	NotificationIDProvider 		 m_id_provider;
 	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
+	// delayed waiting notifications, first is remaining time
+	std::deque<DelayedNotification> m_waiting_notifications;
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
 	// True if G-code preview is active. False if the Plater is active.

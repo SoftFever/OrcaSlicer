@@ -1369,7 +1369,21 @@ void NotificationManager::push_hint_notification(bool open_next)
 	}
 	
 	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::RegularNotification, 300, "" };
-	push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 0);
+	// from user
+	if (!open_next) {
+		push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 0);
+		// delete from delayed list
+		for (auto it = m_waiting_notifications.begin(); it != m_waiting_notifications.end();) {
+			if ((*it).notification->get_type() == NotificationType::DidYouKnowHint) {
+				it = m_waiting_notifications.erase(it);
+			} else {
+				++it;
+			}
+		}
+	// at startup
+	} else { 
+		push_delayed_notification(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 500, 30000);
+	}
 }
 
 bool NotificationManager::is_hint_notification_open()
@@ -1425,6 +1439,16 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 	}
 }
 
+void NotificationManager::push_delayed_notification(std::unique_ptr<NotificationManager::PopNotification> notification, int64_t initial_delay, int64_t delay_interval)
+{
+	if (initial_delay == 0 && m_pop_notifications.empty()) {
+		push_notification_data(std::move(notification), 0);
+	} else {
+		m_waiting_notifications.emplace_back(std::move(notification), initial_delay, delay_interval);
+		wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(initial_delay);
+	}
+}
+
 void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width)
 {
 	sort_notifications();
@@ -1475,6 +1499,25 @@ bool NotificationManager::update_notifications(GLCanvas3D& canvas)
 			it = m_pop_notifications.erase(it);
 		else 
 			++it;
+	}
+
+	// delayed notifications
+	for (auto it = m_waiting_notifications.begin(); it != m_waiting_notifications.end();) {
+		// substract time
+		if ((*it).remaining_time > 0)
+			(*it).remaining_time -= time_since_render;
+		if ((*it).remaining_time <= 0) {
+			if (m_pop_notifications.empty()) { // push notification, erase it from waiting list (frame is scheduled by push)
+				(*it).notification->reset_timer();
+				push_notification_data(std::move((*it).notification), 0);
+				it = m_waiting_notifications.erase(it);
+				continue;
+			} else { // not possible to push, delay for delay_interval
+				(*it).remaining_time = (*it).delay_interval;
+			}
+		}
+		next_render = std::min<int64_t>(next_render, (*it).remaining_time);
+		++it;
 	}
 
 	// request next frame in future
