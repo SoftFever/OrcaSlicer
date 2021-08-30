@@ -32,6 +32,7 @@ protected:
     virtual void on_set_state() override;
 
 private:
+    void after_apply();
     void close();
     void process();
     void set_its(indexed_triangle_set &its);

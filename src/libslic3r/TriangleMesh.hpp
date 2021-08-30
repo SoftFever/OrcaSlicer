@@ -199,6 +199,7 @@ inline stl_normal its_unnormalized_normal(const indexed_triangle_set &its,
 }
 
 float its_volume(const indexed_triangle_set &its);
+float its_average_edge_length(const indexed_triangle_set &its);
 
 void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B);
 void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles);

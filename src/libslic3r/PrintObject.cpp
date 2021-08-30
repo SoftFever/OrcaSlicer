@@ -2294,9 +2294,13 @@ void PrintObject::project_and_append_custom_facets(
                     ? mv->seam_facets.get_facets_strict(*mv, type)
                     : mv->supported_facets.get_facets_strict(*mv, type);
             if (! custom_facets.indices.empty())
+#if 0
                 project_triangles_to_slabs(this->layers(), custom_facets, 
                     (this->trafo_centered() * mv->get_matrix()).cast<float>(),
                     seam, out);
+#else
+                slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &out, [](){});
+#endif
         }
 }
 

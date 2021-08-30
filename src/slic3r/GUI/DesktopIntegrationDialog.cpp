@@ -22,6 +22,95 @@ namespace Slic3r {
 namespace GUI {
 
 namespace {
+
+// escaping of path string according to 
+// https://cgit.freedesktop.org/xdg/xdg-specs/tree/desktop-entry/desktop-entry-spec.xml
+std::string escape_string(const std::string& str)
+{
+    // The buffer needs to be bigger if escaping <,>,&
+    std::vector<char> out(str.size() * 4, 0);
+    char *outptr = out.data();
+    for (size_t i = 0; i < str.size(); ++ i) {
+        char c = str[i];
+        // must be escaped
+        if (c == '\"') { //double quote 
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\"';
+        } else if (c == '`') {  // backtick character
+            (*outptr ++) = '\\';
+            (*outptr ++) = '`';
+        } else if (c == '$') { // dollar sign
+            (*outptr ++) = '\\';
+            (*outptr ++) = '$';
+        } else if (c == '\\') { // backslash character
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
+        //  Reserved characters   
+        // At Ubuntu, all these characters must NOT be escaped for desktop integration to work
+        /*
+        } else if (c == ' ') { // space
+            (*outptr ++) = '\\';
+            (*outptr ++) = ' ';
+        } else if (c == '\t') { // tab
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\t';
+        } else if (c == '\n') { // newline
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\n';
+        } else if (c == '\'') { // single quote
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\'';
+        } else if (c == '>') { // greater-than sign
+            (*outptr ++) = '\\';
+            (*outptr ++) = '&';
+            (*outptr ++) = 'g';
+            (*outptr ++) = 't';
+            (*outptr ++) = ';';
+        } else if (c == '<') { //less-than sign
+            (*outptr ++) = '\\';
+            (*outptr ++) = '&';
+            (*outptr ++) = 'l';
+            (*outptr ++) = 't';
+            (*outptr ++) = ';'; 
+        }  else if (c == '~') { // tilde
+            (*outptr ++) = '\\';
+            (*outptr ++) = '~';
+        } else if (c == '|') { // vertical bar 
+            (*outptr ++) = '\\';
+            (*outptr ++) = '|';
+        } else if (c == '&') { // ampersand
+            (*outptr ++) = '\\';
+            (*outptr ++) = '&';
+            (*outptr ++) = 'a';
+            (*outptr ++) = 'm';
+            (*outptr ++) = 'p';
+            (*outptr ++) = ';';
+        } else if (c == ';') { // semicolon
+            (*outptr ++) = '\\';
+            (*outptr ++) = ';';
+        } else if (c == '*') { //asterisk
+            (*outptr ++) = '\\';
+            (*outptr ++) = '*';
+        } else if (c == '?') { // question mark
+            (*outptr ++) = '\\';
+            (*outptr ++) = '?';
+        } else if (c == '#') { // hash mark
+            (*outptr ++) = '\\';
+            (*outptr ++) = '#';
+        } else if (c == '(') { // parenthesis
+            (*outptr ++) = '\\';
+            (*outptr ++) = '(';
+        } else if (c == ')') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = ')';
+        */
+        } else
+            (*outptr ++) = c;
+    }
+    return std::string(out.data(), outptr - out.data());
+}
 // Disects path strings stored in system variable divided by ':' and adds into vector
 void resolve_path_from_var(const std::string& var, std::vector<std::string>& paths)
 {
@@ -157,7 +246,8 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     }
 
     // Escape ' characters in appimage, other special symbols will be esacaped in desktop file by 'excutable_path'
-    boost::replace_all(excutable_path, "'", "'\\''");
+    //boost::replace_all(excutable_path, "'", "'\\''");
+    excutable_path = escape_string(excutable_path);
 
     // Find directories icons and applications
     // $XDG_DATA_HOME defines the base directory relative to which user specific data files should be stored. 
@@ -243,14 +333,14 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 "Name=PrusaSlicer%1%\n"
                 "GenericName=3D Printing Software\n"
                 "Icon=PrusaSlicer%2%\n"
-                "Exec=\'%3%\' %%F\n"
+                "Exec=\"%3%\" %%F\n"
                 "Terminal=false\n"
                 "Type=Application\n"
                 "MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;\n"
                 "Categories=Graphics;3DGraphics;Engineering;\n"
                 "Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA\n"
                 "StartupNotify=false\n"
-                "StartupWMClass=prusa-slicer", name_suffix, version_suffix, excutable_path);
+                "StartupWMClass=prusa-slicer\n", name_suffix, version_suffix, excutable_path);
 
             std::string path = GUI::format("%1%/applications/PrusaSlicer%2%.desktop", target_dir_desktop, version_suffix);
             if (create_desktop_file(path, desktop_file)){
@@ -310,13 +400,13 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         "Name=Prusa Gcode Viewer%1%\n"
         "GenericName=3D Printing Software\n"
         "Icon=PrusaSlicer-gcodeviewer%2%\n"
-        "Exec=\'%3%\' --gcodeviwer %%F\n"
+        "Exec=\"%3%\" --gcodeviewer %%F\n"
         "Terminal=false\n"
         "Type=Application\n"
         "MimeType=text/x.gcode;\n"
         "Categories=Graphics;3DGraphics;\n"
         "Keywords=3D;Printing;Slicer;\n"
-        "StartupNotify=false", name_suffix, version_suffix, excutable_path);
+        "StartupNotify=false\n", name_suffix, version_suffix, excutable_path);
 
     std::string desktop_path = GUI::format("%1%/applications/PrusaSlicerGcodeViewer%2%.desktop", target_dir_desktop, version_suffix);
     if (create_desktop_file(desktop_path, desktop_file))
