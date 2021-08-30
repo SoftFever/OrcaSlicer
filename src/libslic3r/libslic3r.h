@@ -65,18 +65,6 @@ static constexpr double EXTERNAL_INFILL_MARGIN = 3.;
 
 #define SCALED_EPSILON scale_(EPSILON)
 
-#define SLIC3R_DEBUG_OUT_PATH_PREFIX "out/"
-
-inline std::string debug_out_path(const char *name, ...)
-{
-	char buffer[2048];
-	va_list args;
-	va_start(args, name);
-	std::vsprintf(buffer, name, args);
-	va_end(args);
-	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
-}
-
 #ifndef UNUSED
 #define UNUSED(x) (void)(x)
 #endif /* UNUSED */

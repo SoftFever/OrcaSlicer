@@ -42,12 +42,14 @@ class IndexedMesh {
     std::vector<DrainHole> m_holes;
 #endif
 
-    template<class M> void init(const M &mesh);
+    template<class M> void init(const M &mesh, bool calculate_epsilon);
 
 public:
     
-    explicit IndexedMesh(const indexed_triangle_set&);
-    explicit IndexedMesh(const TriangleMesh &mesh);
+    // calculate_epsilon ... calculate epsilon for triangle-ray intersection from an average triangle edge length.
+    // If set to false, a default epsilon is used, which works for "reasonable" meshes.
+    explicit IndexedMesh(const indexed_triangle_set &tmesh, bool calculate_epsilon = false);
+    explicit IndexedMesh(const TriangleMesh &mesh, bool calculate_epsilon = false);
     
     IndexedMesh(const IndexedMesh& other);
     IndexedMesh& operator=(const IndexedMesh&);

@@ -112,7 +112,7 @@ public:
     // The class references extern TriangleMesh, which must stay alive
     // during MeshRaycaster existence.
     MeshRaycaster(const TriangleMesh& mesh)
-        : m_emesh(mesh)
+        : m_emesh(mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
     {
         m_normals.reserve(mesh.stl.facet_start.size());
         for (const stl_facet& facet : mesh.stl.facet_start)

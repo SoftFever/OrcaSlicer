@@ -283,11 +283,11 @@ void GLGizmoSimplify::process()
             }
         };
 
-        std::function<void(int)> statusfn = [this](int percent) {
+        int64_t last = 0;
+        std::function<void(int)> statusfn = [this, &last](int percent) {
             m_progress = percent;
 
             // check max 4fps
-            static int64_t last = 0;
             int64_t now = m_parent.timestamp_now();
             if ((now - last) < 250) return;
             last = now;
