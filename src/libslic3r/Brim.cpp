@@ -137,7 +137,7 @@ static Polygons top_level_outer_brim_islands(const ConstPrintObjectPtrs &top_lev
         auto     brim_separation = float(scale_(object->config().brim_separation.value));
         Polygons islands_object;
         for (const ExPolygon &ex_poly : get_print_object_bottom_layer_expolygons(*object)) {
-            Polygons contour_offset = offset(ex_poly.contour, brim_separation);
+            Polygons contour_offset = offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare);
             for (Polygon &poly : contour_offset)
                 poly.douglas_peucker(SCALED_RESOLUTION);
 
@@ -174,16 +174,16 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
         ExPolygons no_brim_area_object;
         for (const ExPolygon &ex_poly : bottom_layers_expolygons[print_object_idx]) {
             if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) && is_top_outer_brim)
-                append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation), offset(ex_poly.contour, brim_separation)));
+                append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, ClipperLib::jtSquare), offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare)));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset));
+                append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset, ClipperLib::jtSquare));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
+                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly.holes));
 
             if (brim_type != BrimType::btNoBrim)
-                append(no_brim_area_object, offset_ex(ExPolygon(ex_poly.contour), brim_separation));
+                append(no_brim_area_object, offset_ex(ExPolygon(ex_poly.contour), brim_separation, ClipperLib::jtSquare));
 
             no_brim_area_object.emplace_back(ex_poly.contour);
         }
@@ -226,21 +226,21 @@ static ExPolygons inner_brim_area(const Print                   &print,
                 if (top_outer_brim)
                     no_brim_area_object.emplace_back(ex_poly);
                 else
-                    append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation), offset(ex_poly.contour, brim_separation)));
+                    append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, ClipperLib::jtSquare), offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare)));
             }
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
-                append(brim_area_object, diff_ex(offset_ex(ex_poly.holes, -brim_separation), offset_ex(ex_poly.holes, -brim_width - brim_separation)));
+                append(brim_area_object, diff_ex(offset_ex(ex_poly.holes, -brim_separation, ClipperLib::jtSquare), offset_ex(ex_poly.holes, -brim_width - brim_separation, ClipperLib::jtSquare)));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
+                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly.holes));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset));
+                append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset, ClipperLib::jtSquare));
 
             append(holes_object, ex_poly.holes);
         }
-        append(no_brim_area_object, offset_ex(bottom_layers_expolygons[print_object_idx], brim_separation));
+        append(no_brim_area_object, offset_ex(bottom_layers_expolygons[print_object_idx], brim_separation, ClipperLib::jtSquare));
 
         for (const PrintInstance &instance : object->instances()) {
             append_and_translate(brim_area, brim_area_object, instance);
@@ -356,12 +356,12 @@ static void make_inner_brim(const Print                   &print,
     Flow       flow = print.brim_flow();
     ExPolygons islands_ex = inner_brim_area(print, top_level_objects_with_brim, bottom_layers_expolygons, float(flow.scaled_spacing()));
     Polygons   loops;
-    islands_ex      = offset_ex(islands_ex, -0.5f * float(flow.scaled_spacing()), jtSquare);
+    islands_ex      = offset_ex(islands_ex, -0.5f * float(flow.scaled_spacing()), ClipperLib::jtSquare);
     for (size_t i = 0; !islands_ex.empty(); ++i) {
         for (ExPolygon &poly_ex : islands_ex)
             poly_ex.douglas_peucker(SCALED_RESOLUTION);
         polygons_append(loops, to_polygons(islands_ex));
-        islands_ex = offset_ex(islands_ex, -float(flow.scaled_spacing()), jtSquare);
+        islands_ex = offset_ex(islands_ex, -float(flow.scaled_spacing()), ClipperLib::jtSquare);
     }
 
     loops = union_pt_chained_outside_in(loops);
@@ -385,7 +385,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     size_t          num_loops = size_t(floor(max_brim_width(print.objects()) / flow.spacing()));
     for (size_t i = 0; i < num_loops; ++i) {
         try_cancel();
-        islands = offset(islands, float(flow.scaled_spacing()), jtSquare);
+        islands = offset(islands, float(flow.scaled_spacing()), ClipperLib::jtSquare);
         for (Polygon &poly : islands) 
             poly.douglas_peucker(SCALED_RESOLUTION);
         polygons_append(loops, offset(islands, -0.5f * float(flow.scaled_spacing())));
