@@ -47,20 +47,14 @@ void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
     plater->undo_redo_topmost_string_getter(plater->can_undo(), last_snapshot_name);
 
     if (activate && !m_internal_stack_active) {
-        std::string str = get_painter_type() == PainterGizmoType::FDM_SUPPORTS
-            ? _u8L("Entering Paint-on supports")
-            : _u8L("Entering Seam painting");
-        if (last_snapshot_name != str)
+        if (std::string str = this->get_gizmo_entering_text(); last_snapshot_name != str)
             Plater::TakeSnapshot(plater, str);
         plater->enter_gizmos_stack();
         m_internal_stack_active = true;
     }
     if (!activate && m_internal_stack_active) {
         plater->leave_gizmos_stack();
-        std::string str = get_painter_type() == PainterGizmoType::SEAM
-            ? _u8L("Leaving Seam painting")
-            : _u8L("Leaving Paint-on supports");
-        if (last_snapshot_name != str)
+        if (std::string str = this->get_gizmo_leaving_text(); last_snapshot_name != str)
             Plater::TakeSnapshot(plater, str);
         m_internal_stack_active = false;
     }
