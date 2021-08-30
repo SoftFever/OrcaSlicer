@@ -38,10 +38,11 @@ Note: We say _mostly independent_ because it's still expected the system will pr
 
 To do this, go to the `deps` directory, create a `build` subdirectory (or the like) and use:
 
-    cmake .. -DDESTDIR=<target destdir>
+    cmake .. -DDESTDIR=<target destdir> -DDEP_DOWNLOAD_DIR=<download cache dir>
 
 where the target destdir is a directory of your choosing where the dependencies will be installed.
-You can also omit the `DESTDIR` option to use the default, in that case the `destdir` will be created inside the `build` directory where `cmake` is run.
+You can also omit the `DESTDIR` option to use the default, in that case the `destdir` will be created inside the `build` directory where `cmake` is run. The optional `DEP_DOWNLOAD_DIR` argument specifies a directory to cache the downloaded 
+source packages for each dependent library. Can be useful for repeated builds, to avoid unnecessary network traffic.
 
 Once the dependencies have been built, in order to pass the destdir path to the **top-level** PrusaSlicer `CMakeLists.txt` script, use the `CMAKE_PREFIX_PATH` option along with turning on `SLIC3R_STATIC`:
 
