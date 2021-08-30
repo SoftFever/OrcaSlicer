@@ -1443,9 +1443,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         instances.push_back(curr.position.y());
         instances.push_back(curr.position.z());
         // append width
-        instances.push_back(1.2f * curr.width);
+        instances.push_back(1.5f * curr.width);
         // append height
-        instances.push_back(1.2f * curr.height);
+        instances.push_back(1.5f * curr.height);
 
         // append id
         instances_ids.push_back(move_id);
