@@ -541,7 +541,10 @@ public:
     indexed_triangle_set get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool has_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool empty() const { return m_data.first.empty(); }
-    void clear();
+
+    // Following method clears the config and increases its timestamp, so the deleted
+    // state is considered changed from perspective of the undo/redo stack.
+    void reset();
 
     // Serialize triangle into string, for serialization into 3MF/AMF.
     std::string get_triangle_as_string(int i) const;

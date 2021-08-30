@@ -1064,7 +1064,9 @@ Points get_bed_shape(const SLAPrinterConfig &cfg);
 class ModelConfig
 {
 public:
-    void         clear() { m_data.clear(); m_timestamp = 1; }
+    // Following method clears the config and increases its timestamp, so the deleted
+    // state is considered changed from perspective of the undo/redo stack.
+    void         reset() { m_data.clear(); touch(); }
 
     void         assign_config(const ModelConfig &rhs) {
         if (m_timestamp != rhs.m_timestamp) {
@@ -1076,7 +1078,7 @@ public:
         if (m_timestamp != rhs.m_timestamp) {
             m_data      = std::move(rhs.m_data);
             m_timestamp = rhs.m_timestamp;
-            rhs.clear();
+            rhs.reset();
         }
     }
 

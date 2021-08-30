@@ -1198,9 +1198,9 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
     for (ModelVolume *volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
 
-        volume->supported_facets.clear();
-        volume->seam_facets.clear();
-        volume->mmu_segmentation_facets.clear();
+        volume->supported_facets.reset();
+        volume->seam_facets.reset();
+        volume->mmu_segmentation_facets.reset();
 
         if (! volume->is_model_part()) {
             // Modifiers are not cut, but we still need to add the instance transformation
@@ -2019,11 +2019,11 @@ bool FacetsAnnotation::set(const TriangleSelector& selector)
     return false;
 }
 
-void FacetsAnnotation::clear()
+void FacetsAnnotation::reset()
 {
     m_data.first.clear();
     m_data.second.clear();
-    this->reset_timestamp();
+    this->touch();
 }
 
 // Following function takes data from a triangle and encodes it as string

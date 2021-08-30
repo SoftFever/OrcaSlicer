@@ -1803,21 +1803,21 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         cnv->get_gizmos_manager().reset_all_states();
         Plater::TakeSnapshot(plater, _L("Remove paint-on supports"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
-            mv->supported_facets.clear();
+            mv->supported_facets.reset();
         break;
 
     case InfoItemType::CustomSeam:
         cnv->get_gizmos_manager().reset_all_states();
         Plater::TakeSnapshot(plater, _L("Remove paint-on seam"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
-            mv->seam_facets.clear();
+            mv->seam_facets.reset();
         break;
 
     case InfoItemType::MmuSegmentation:
         cnv->get_gizmos_manager().reset_all_states();
         Plater::TakeSnapshot(plater, _L("Remove Multi Material painting"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
-            mv->mmu_segmentation_facets.clear();
+            mv->mmu_segmentation_facets.reset();
         break;
 
     case InfoItemType::Sinking:
@@ -1856,7 +1856,7 @@ void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
     if (is_layer_settings)
         layer_height = m_config->opt_float("layer_height");
 
-    m_config->clear();
+    m_config->reset();
 
     if (extruder >= 0)
         m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
@@ -1932,7 +1932,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             const auto last_volume = object->volumes[0];
             if (!last_volume->config.empty()) {
                 object->config.apply(last_volume->config);
-                last_volume->config.clear();
+                last_volume->config.reset();
 
                 // update extruder color in ObjectList
                 wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
@@ -3769,7 +3769,7 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
     auto volume = (*m_objects)[obj_idx]->volumes.front();
 
     // clear volume's config values
-    volume->config.clear();
+    volume->config.reset();
 
     // set a default extruder value, since user can't add it manually
     volume->config.set_key_value("extruder", new ConfigOptionInt(0));
