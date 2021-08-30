@@ -87,3 +87,13 @@ If you instead want PrusaSlicer installed in a structure according to the File S
 This will make PrusaSlicer look for a fixed-location `share/slic3r-prusa3d` directory instead (note that the location becomes hardcoded).
 
 You can then use the `make install` target to install PrusaSlicer.
+
+### Desktop Integration (PrusaSlicer 2.4 and newer)
+
+If PrusaSlicer is to be distributed as an AppImage or a binary blob (.tar.gz and similar), then a desktop integration support is compiled in by default: PrusaSlicer will offer to integrate with desktop by manually copying the desktop file and application icon into user's desktop configuration. The built-in desktop integration is also handy on Crosstini (Linux on Chrome OS).
+
+If PrusaSlicer is compiled with `SLIC3R_FHS` enabled, then a desktop integration support will not be integrated. One may want to disable desktop integration by running
+    
+    cmake .. -DSLIC3R_DESKTOP_INTEGRATION=0
+    
+when building PrusaSlicer for flatpack or snap, where the desktop integration is performed by the installer.
