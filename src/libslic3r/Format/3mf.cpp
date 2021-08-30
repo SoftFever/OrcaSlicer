@@ -1837,6 +1837,7 @@ namespace Slic3r {
         }
 
         unsigned int geo_tri_count = (unsigned int)geometry.triangles.size() / 3;
+        unsigned int renamed_volumes_count = 0;
 
         for (const ObjectMetadata::VolumeMetadata& volume_data : volumes) {
             if (geo_tri_count <= volume_data.first_triangle_id || geo_tri_count <= volume_data.last_triangle_id || volume_data.last_triangle_id < volume_data.first_triangle_id) {
@@ -1957,6 +1958,14 @@ namespace Slic3r {
                     volume->source.is_converted_from_meters = metadata.value == "1";
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value, config_substitutions);
+            }
+
+            // this may happen for 3mf saved by 3rd part softwares
+            if (volume->name.empty()) {
+                volume->name = object.name;
+                if (renamed_volumes_count > 0)
+                    volume->name += "_" + std::to_string(renamed_volumes_count + 1);
+                ++renamed_volumes_count;
             }
         }
 
