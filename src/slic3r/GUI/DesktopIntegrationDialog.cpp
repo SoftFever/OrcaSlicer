@@ -28,7 +28,7 @@ namespace {
 std::string escape_string(const std::string& str)
 {
     // The buffer needs to be bigger if escaping <,>,&
-    std::vector<char> out(str.size() * 2, 0);
+    std::vector<char> out(str.size() * 4, 0);
     char *outptr = out.data();
     for (size_t i = 0; i < str.size(); ++ i) {
         char c = str[i];
@@ -43,6 +43,8 @@ std::string escape_string(const std::string& str)
             (*outptr ++) = '\\';
             (*outptr ++) = '$';
         } else if (c == '\\') { // backslash character
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
             (*outptr ++) = '\\';
             (*outptr ++) = '\\';
         //  Reserved characters   

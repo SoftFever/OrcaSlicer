@@ -620,7 +620,10 @@ void MainFrame::update_title()
         wxString dirty_marker = (!m_plater->model().objects.empty() && m_plater->is_project_dirty()) ? "*" : "";
         if (!dirty_marker.empty() || !project.empty()) {
             if (!dirty_marker.empty() && project.empty())
-                project = _("Untitled");
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                project = _L("Untitled");
+//                project = _("Untitled");
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             title = dirty_marker + project + " - ";
         }
     }
@@ -819,7 +822,7 @@ bool MainFrame::is_active_and_shown_tab(Tab* tab)
 
 bool MainFrame::can_start_new_project() const
 {
-    return (m_plater != nullptr) && (!m_plater->get_project_filename(".3mf").IsEmpty() || !m_plater->model().objects.empty());
+    return (m_plater != nullptr) && (!m_plater->get_project_filename(".3mf").IsEmpty() || GetTitle().StartsWith('*') || !m_plater->model().objects.empty());
 }
 
 bool MainFrame::can_save() const

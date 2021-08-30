@@ -128,6 +128,9 @@ protected:
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
+    std::string get_gizmo_entering_text() const override { return _u8L("Entering Multimaterial painting"); }
+    std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Multimaterial painting"); }
+
     size_t                            m_first_selected_extruder_idx  = 0;
     size_t                            m_second_selected_extruder_idx = 1;
     std::vector<std::string>          m_original_extruders_names;
