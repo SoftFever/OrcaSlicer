@@ -1,9 +1,9 @@
 
 # Building PrusaSlicer on UNIX/Linux
 
-Please understand that PrusaSlicer team cannot support compilation issues on all possible Linux distros. Namely, we cannot help trouble shooting OpenGL driver issues or dependency issues if compiled against distro provided libraries. We can only support PrusaSlicer compiled the same way we do compile PrusaSlicer for our [binary builds](https://github.com/prusa3d/PrusaSlicer/releases), that is linked statically agains the dependencies compiled with the `deps` scripts.
+Please understand that PrusaSlicer team cannot support compilation on all possible Linux distros. Namely, we cannot help trouble shooting OpenGL driver issues or dependency issues if compiled against distro provided libraries. We can only support PrusaSlicer compiled the same way we do compile PrusaSlicer for our [binary builds](https://github.com/prusa3d/PrusaSlicer/releases), that means linked statically agains the dependencies compiled with the `deps` scripts.
 
-Instead of compiling PrusaSlicer from source code, you may consider to install PrusaSlicer [pre-compiled by contributors](https://github.com/prusa3d/PrusaSlicer/wiki/PrusaSlicer-on-Linux---binary-distributions).
+Instead of compiling PrusaSlicer from source code, one may consider to install PrusaSlicer [pre-compiled by contributors](https://github.com/prusa3d/PrusaSlicer/wiki/PrusaSlicer-on-Linux---binary-distributions).
 
 ### How to build
 
