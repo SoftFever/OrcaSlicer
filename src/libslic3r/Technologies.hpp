@@ -53,6 +53,8 @@
 #define ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT (1 && ENABLE_2_4_0_ALPHA0)
 // Enable rendering seams (and other options) in preview using models
 #define ENABLE_SEAMS_USING_MODELS (1 && ENABLE_2_4_0_ALPHA0)
+// Enable replacing a missing file during reload from disk command
+#define ENABLE_RELOAD_FROM_DISK_REPLACE_FILE (1 && ENABLE_2_4_0_ALPHA0)
 
 
 #endif // _prusaslicer_technologies_h_
