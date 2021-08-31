@@ -786,8 +786,7 @@ RENDER_AGAIN:
 
     // Following is rendered in both editing and non-editing mode:
     ImGui::Separator();
-    if (m_c->object_clipper()->get_position() == 0.f)
-    {
+    if (m_c->object_clipper()->get_position() == 0.f) {
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("clipping_of_view"));
     }

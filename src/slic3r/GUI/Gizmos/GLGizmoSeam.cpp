@@ -138,6 +138,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(cursor_size_slider_left);
     ImGui::PushItemWidth(window_width - cursor_size_slider_left);
@@ -188,8 +189,10 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
 
     ImGui::Separator();
-    if (m_c->object_clipper()->get_position() == 0.f)
+    if (m_c->object_clipper()->get_position() == 0.f) {
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("clipping_of_view"));
+    }
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
             wxGetApp().CallAfter([this](){

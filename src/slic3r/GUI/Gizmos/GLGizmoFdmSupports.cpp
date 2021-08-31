@@ -131,6 +131,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     m_imgui->text("");
     ImGui::Separator();
 
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc["highlight_by_angle"] + ":");
     ImGui::AlignTextToFramePadding();
     std::string format_str = std::string("%.f") + I18N::translate_utf8("°",
