@@ -6581,6 +6581,11 @@ bool Plater::is_render_statistic_dialog_visible() const
     return p->show_render_statistic_dialog;
 }
 
+
+Plater::TakeSnapshot::TakeSnapshot(Plater *plater, const std::string &snapshot_name)
+: TakeSnapshot(plater, from_u8(snapshot_name)) {}
+
+
 // Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
 {
