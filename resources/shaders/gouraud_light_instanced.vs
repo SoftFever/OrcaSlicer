@@ -15,11 +15,11 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 #define INTENSITY_AMBIENT    0.3
 
 // vertex attributes
-in vec3 v_position;
-in vec3 v_normal;
+attribute vec3 v_position;
+attribute vec3 v_normal;
 // instance attributes
-in vec3 i_offset;
-in vec2 i_scales;
+attribute vec3 i_offset;
+attribute vec2 i_scales;
 
 // x = tainted, y = specular;
 varying vec2 intensity;
