@@ -3207,7 +3207,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
     }
 
     if (!snapshot.empty())
-        Plater::TakeSnapshot snapshot(q, snapshot);
+        q->take_snapshot(snapshot);
 
     ModelObject* old_model_object = model.objects[object_idx];
     ModelVolume* old_volume = old_model_object->volumes[volume_idx];
