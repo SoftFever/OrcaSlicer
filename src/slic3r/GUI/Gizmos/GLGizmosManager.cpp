@@ -164,10 +164,8 @@ void GLGizmosManager::refresh_on_off_state()
         return;
 
     if (m_current != Undefined
-    && ! m_gizmos[m_current]->is_activable()) {
-        activate_gizmo(Undefined);
+    && ! m_gizmos[m_current]->is_activable() && activate_gizmo(Undefined))
         update_data();
-    }
 }
 
 void GLGizmosManager::reset_all_states()
@@ -182,12 +180,26 @@ void GLGizmosManager::reset_all_states()
 bool GLGizmosManager::open_gizmo(EType type)
 {
     int idx = int(type);
-    if (m_gizmos[idx]->is_activable()) {
-        activate_gizmo(m_current == idx ? Undefined : (EType)idx);
+    if (m_gizmos[idx]->is_activable()
+     && activate_gizmo(m_current == idx ? Undefined : (EType)idx)) {
         update_data();
         return true;
     }
     return false;
+}
+
+
+bool GLGizmosManager::check_gizmos_closed_except(EType type) const
+{
+    if (get_current_type() != type && get_current_type() != Undefined) {
+        wxGetApp().plater()->get_notification_manager()->push_notification(
+                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                    NotificationManager::NotificationLevel::RegularNotification,
+                    _u8L("ERROR: Please close all manipulators available from "
+                         "the left toolbar first"));
+        return false;
+    }
+    return true;
 }
 
 void GLGizmosManager::set_hover_id(int id)
@@ -1194,10 +1206,10 @@ std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
     return name;
 }
 
-void GLGizmosManager::activate_gizmo(EType type)
+bool GLGizmosManager::activate_gizmo(EType type)
 {
     if (m_gizmos.empty() || m_current == type)
-        return;
+        return true;
 
     GLGizmoBase* old_gizmo = m_current == Undefined ? nullptr : m_gizmos[m_current].get();
     GLGizmoBase* new_gizmo = type == Undefined ? nullptr : m_gizmos[type].get();
@@ -1205,7 +1217,7 @@ void GLGizmosManager::activate_gizmo(EType type)
     if (old_gizmo) {
         old_gizmo->set_state(GLGizmoBase::Off);
         if (old_gizmo->get_state() != GLGizmoBase::Off)
-            return; // gizmo refused to be turned off, do nothing.
+            return false; // gizmo refused to be turned off, do nothing.
 
         if (! m_parent.get_gizmos_manager().is_serializing()
          && old_gizmo->wants_enter_leave_snapshots())
@@ -1222,6 +1234,7 @@ void GLGizmosManager::activate_gizmo(EType type)
 
     if (new_gizmo)
         new_gizmo->set_state(GLGizmoBase::On);
+    return true;
 }
 
 

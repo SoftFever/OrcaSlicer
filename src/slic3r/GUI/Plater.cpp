@@ -3186,6 +3186,9 @@ void Plater::priv::update_sla_scene()
 
 void Plater::priv::replace_with_stl()
 {
+    if (! q->canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::EType::Undefined))
+        return;
+
     const Selection& selection = get_selection();
 
     if (selection.is_wipe_tower() || get_selection().get_volume_idxs().size() != 1)
@@ -3530,14 +3533,8 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
 
     // Do not fix anything when a gizmo is open. There might be issues with updates
     // and what is worse, the snapshot time would refer to the internal stack.
-    if (q->canvas3D()->get_gizmos_manager().get_current_type() != GLGizmosManager::Undefined) {
-        notification_manager->push_notification(
-                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::RegularNotification,
-                    _u8L("ERROR: Please close all manipulators available from "
-                         "the left toolbar before fixing the mesh."));
+    if (! q->canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
-    }
 
     // size_t snapshot_time = undo_redo_stack().active_snapshot_time();
     Plater::TakeSnapshot snapshot(q, _L("Fix through NetFabb"));
