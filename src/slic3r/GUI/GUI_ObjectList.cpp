@@ -2637,7 +2637,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
                       model_object->config.has("extruder") ? model_object->config.extruder() : 0,
                       get_mesh_errors_count(obj_idx) > 0);
 
-    update_info_items(obj_idx, nullptr, true);
+    update_info_items(obj_idx, nullptr, call_selection_changed);
 
     // add volumes to the object
     if (model_object->volumes.size() > 1) {
