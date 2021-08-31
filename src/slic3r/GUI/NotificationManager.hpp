@@ -190,6 +190,8 @@ public:
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
 	// perform update_state on each notification and ask for more frames if needed, return true for render needed
 	bool update_notifications(GLCanvas3D& canvas);
+	// returns number of all notifications shown
+	size_t get_notification_count() const;
 private:
 	// duration 0 means not disapearing
 	struct NotificationData {
@@ -521,10 +523,13 @@ private:
 	struct DelayedNotification
 	{
 		std::unique_ptr<PopNotification>	notification;
+		std::function<bool(void)>           condition_callback;
 		int64_t								remaining_time;
 		int64_t                             delay_interval;
-		DelayedNotification(std::unique_ptr<PopNotification> n, int64_t r, int64_t d)
+		
+		DelayedNotification(std::unique_ptr<PopNotification> n, std::function<bool(void)> cb, int64_t r, int64_t d)
 		: notification(std::move(n))
+	    , condition_callback(cb)
 		, remaining_time(r)
 		, delay_interval(d)
 		{}
@@ -534,8 +539,14 @@ private:
 	//can be used to create custom notification
 	bool push_notification_data(const NotificationData& notification_data, int timestamp);
 	bool push_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, int timestamp);
-	// Delayed notifications goes first to the m_waiting_notifications vector and only after remaining time is <= 0 and m_pop_notifications are empty, notification is regular pushed. Otherwise another delay interval waiting. Timestamp is 0. 
-	void push_delayed_notification(std::unique_ptr<NotificationManager::PopNotification> notification, int64_t initial_delay, int64_t delay_interval);
+	// Delayed notifications goes first to the m_waiting_notifications vector and only after remaining time is <= 0
+	// and condition callback is success, notification is regular pushed from update function.
+	// Otherwise another delay interval waiting. Timestamp is 0. 
+	// Note that notification object is constructed when being added to the waiting list, but there are no updates called on it and its timer is reset at regular push.
+	// Also note that no control of same notification is done during push_delayed_notification but if waiting notif fails to push, it continues waiting.
+	void push_delayed_notification(std::unique_ptr<NotificationManager::PopNotification> notification, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval);
+	// Removes all notifications of type from m_waiting_notifications
+	void stop_delayed_notifications_of_type(const NotificationType type);
 	//finds older notification of same type and moves it to the end of queue. returns true if found
 	bool activate_existing(const NotificationManager::PopNotification* notification);
 	// Put the more important notifications to the bottom of the list.
