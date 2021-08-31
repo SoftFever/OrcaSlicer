@@ -420,6 +420,7 @@ namespace Slic3r {
         ~_3MF_Importer();
 
         bool load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version);
+        unsigned int version() const { return m_version; }
 
     private:
         void _destroy_xml_parser();
@@ -2990,6 +2991,19 @@ bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archiv
     return true;
 }
 
+// Perform conversions based on the config values available.
+//FIXME provide a version of PrusaSlicer that stored the project file (3MF).
+static void handle_legacy_project_loaded(unsigned int version_project_file, DynamicPrintConfig& config)
+{
+    if (! config.has("brim_separation")) {
+        if (auto *opt_elephant_foot   = config.option<ConfigOptionFloat>("elefant_foot_compensation", false); opt_elephant_foot) {
+            // Conversion from older PrusaSlicer which applied brim separation equal to elephant foot compensation.
+            auto *opt_brim_separation = config.option<ConfigOptionFloat>("brim_separation", true);
+            opt_brim_separation->value = opt_elephant_foot->value;
+        }
+    }
+}
+
 bool load_3mf(const char* path, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Model* model, bool check_version)
 {
     if (path == nullptr || model == nullptr)
@@ -3000,6 +3014,7 @@ bool load_3mf(const char* path, DynamicPrintConfig& config, ConfigSubstitutionCo
     _3MF_Importer         importer;
     bool res = importer.load_model_from_file(path, *model, config, config_substitutions, check_version);
     importer.log_errors();
+    handle_legacy_project_loaded(importer.version(), config);
     return res;
 }
 

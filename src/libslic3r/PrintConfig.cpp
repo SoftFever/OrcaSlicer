@@ -505,10 +505,10 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<BrimType>(btOuterOnly));
 
-    def = this->add("brim_offset", coFloat);
-    def->label = L("Brim offset");
+    def = this->add("brim_separation", coFloat);
+    def->label = L("Brim separation gap");
     def->category = L("Skirt and brim");
-    def->tooltip = L("The offset of the brim from the printed object. The offset is applied after the elephant foot compensation.");
+    def->tooltip = L("Offset of brim from the printed object. The offset is applied after the elephant foot compensation.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
