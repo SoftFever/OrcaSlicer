@@ -2665,7 +2665,7 @@ void GCodeViewer::render_toolpaths()
     };
 
 #if ENABLE_SEAMS_USING_MODELS
-    auto render_as_instanced_model = [this]
+    auto render_as_instanced_model = []
         (TBuffer& buffer, GLShaderProgram & shader) {
         for (auto& range : buffer.model.instances.render_ranges.ranges) {
             if (range.vbo == 0 && range.count > 0) {
