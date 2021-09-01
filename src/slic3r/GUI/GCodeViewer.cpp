@@ -1100,7 +1100,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     // save vertices to file
     fprintf(fp, "\n# vertices\n");
     for (const Vec3f& v : out_vertices) {
-        fprintf(fp, "v %g %g %g\n", v.x(), v.y(), v.x());
+        fprintf(fp, "v %g %g %g\n", v.x(), v.y(), v.z());
     }
 
     // save normals to file
