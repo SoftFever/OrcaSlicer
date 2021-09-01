@@ -696,10 +696,8 @@ ConfigSubstitutions ConfigBase::load_from_ini_string_commented(std::string &&dat
     for (size_t i = 0; i < data.size();)
         if (i == 0 || data[i] == '\n') {
             // Start of a line.
-            if (i != 0) {
-                // Consume LF.
-                assert(data[i] == '\n');
-                // Don't keep empty lines.
+            if (data[i] == '\n') {
+                // Consume LF, don't keep empty lines.
                 if (j > 0 && data[j - 1] != '\n')
                     data[j ++] = data[i];
                 ++ i;

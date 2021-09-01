@@ -19,6 +19,9 @@ protected:
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
+    std::string get_gizmo_entering_text() const override { return _u8L("Entering Paint-on supports"); }
+    std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Paint-on supports"); }
+
 private:
     bool on_init() override;
 

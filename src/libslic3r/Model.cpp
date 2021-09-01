@@ -559,6 +559,21 @@ std::string Model::propose_export_file_name_and_path(const std::string &new_exte
     return boost::filesystem::path(this->propose_export_file_name_and_path()).replace_extension(new_extension).string();
 }
 
+bool Model::is_fdm_support_painted() const
+{
+    return std::any_of(this->objects.cbegin(), this->objects.cend(), [](const ModelObject *mo) { return mo->is_fdm_support_painted(); });
+}
+
+bool Model::is_seam_painted() const
+{
+    return std::any_of(this->objects.cbegin(), this->objects.cend(), [](const ModelObject *mo) { return mo->is_seam_painted(); });
+}
+
+bool Model::is_mm_painted() const
+{
+    return std::any_of(this->objects.cbegin(), this->objects.cend(), [](const ModelObject *mo) { return mo->is_mm_painted(); });
+}
+
 ModelObject::~ModelObject()
 {
     this->clear_volumes();
@@ -733,6 +748,16 @@ void ModelObject::clear_volumes()
         delete v;
     this->volumes.clear();
     this->invalidate_bounding_box();
+}
+
+bool ModelObject::is_fdm_support_painted() const
+{
+    return std::any_of(this->volumes.cbegin(), this->volumes.cend(), [](const ModelVolume *mv) { return mv->is_fdm_support_painted(); });
+}
+
+bool ModelObject::is_seam_painted() const
+{
+    return std::any_of(this->volumes.cbegin(), this->volumes.cend(), [](const ModelVolume *mv) { return mv->is_seam_painted(); });
 }
 
 bool ModelObject::is_mm_painted() const
@@ -1200,9 +1225,9 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
     for (ModelVolume *volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
 
-        volume->supported_facets.clear();
-        volume->seam_facets.clear();
-        volume->mmu_segmentation_facets.clear();
+        volume->supported_facets.reset();
+        volume->seam_facets.reset();
+        volume->mmu_segmentation_facets.reset();
 
         if (! volume->is_model_part()) {
             // Modifiers are not cut, but we still need to add the instance transformation
@@ -2021,11 +2046,11 @@ bool FacetsAnnotation::set(const TriangleSelector& selector)
     return false;
 }
 
-void FacetsAnnotation::clear()
+void FacetsAnnotation::reset()
 {
     m_data.first.clear();
     m_data.second.clear();
-    this->reset_timestamp();
+    this->touch();
 }
 
 // Following function takes data from a triangle and encodes it as string

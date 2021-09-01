@@ -542,6 +542,7 @@ RENDER_AGAIN:
 
     m_imgui->disabled_begin(! m_enable_hollowing);
     float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("offset"));
     ImGui::SameLine(settings_sliders_left);
     ImGui::PushItemWidth(window_width - settings_sliders_left);
@@ -558,6 +559,7 @@ RENDER_AGAIN:
     bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
 
     if (current_mode >= quality_mode) {
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("quality"));
         ImGui::SameLine(settings_sliders_left);
         m_imgui->slider_float("    ", &quality, quality_min, quality_max, "%.1f");
@@ -574,6 +576,7 @@ RENDER_AGAIN:
     }
 
     if (current_mode >= closing_d_mode) {
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("closing_distance"));
         ImGui::SameLine(settings_sliders_left);
         m_imgui->slider_float("      ", &closing_d, closing_d_min, closing_d_max, "%.1f mm");
@@ -621,6 +624,7 @@ RENDER_AGAIN:
     float diameter_upper_cap = 60.;
     if (m_new_hole_radius * 2.f > diameter_upper_cap)
         m_new_hole_radius = diameter_upper_cap / 2.f;
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("hole_diameter"));
     ImGui::SameLine(diameter_slider_left);
     ImGui::PushItemWidth(window_width - diameter_slider_left);
@@ -636,6 +640,7 @@ RENDER_AGAIN:
     bool edited = ImGui::IsItemEdited();
     bool deactivated = ImGui::IsItemDeactivatedAfterEdit();
 
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc["hole_depth"]);
     ImGui::SameLine(diameter_slider_left);
     m_imgui->slider_float("  ", &m_new_hole_height, 0.f, 10.f, "%.1f mm", 1.f, false);
@@ -692,8 +697,10 @@ RENDER_AGAIN:
     // Following is rendered in both editing and non-editing mode:
    // m_imgui->text("");
     ImGui::Separator();
-    if (m_c->object_clipper()->get_position() == 0.f)
+    if (m_c->object_clipper()->get_position() == 0.f) {
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("clipping_of_view"));
+    }
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
             wxGetApp().CallAfter([this](){

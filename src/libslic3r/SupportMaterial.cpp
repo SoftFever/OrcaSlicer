@@ -37,6 +37,7 @@
     #define DEBUG
     #define _DEBUG
     #undef NDEBUG
+    #include "utils.hpp"
     #include "SVG.hpp"
 #endif
 
@@ -429,7 +430,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     for (const MyLayer *layer : top_contacts)
         Slic3r::SVG::export_expolygons(
             debug_out_path("support-top-contacts-%d-%lf.svg", iRun, layer->print_z), 
-            union_ex(layer->polygons, false));
+            union_ex(layer->polygons));
 #endif /* SLIC3R_DEBUG */
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating bottom contacts";
@@ -447,7 +448,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     for (size_t layer_id = 0; layer_id < object.layers().size(); ++ layer_id)
         Slic3r::SVG::export_expolygons(
             debug_out_path("support-areas-%d-%lf.svg", iRun, object.layers()[layer_id]->print_z), 
-            union_ex(layer_support_areas[layer_id], false));
+            union_ex(layer_support_areas[layer_id]));
 #endif /* SLIC3R_DEBUG */
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating intermediate layers - indices";
@@ -466,7 +467,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     for (const MyLayer *layer : top_contacts)
         Slic3r::SVG::export_expolygons(
             debug_out_path("support-top-contacts-trimmed-by-object-%d-%lf.svg", iRun, layer->print_z), 
-            union_ex(layer->polygons, false));
+            union_ex(layer->polygons));
 #endif
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating base layers";
@@ -478,7 +479,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     for (MyLayersPtr::const_iterator it = intermediate_layers.begin(); it != intermediate_layers.end(); ++ it)
         Slic3r::SVG::export_expolygons(
             debug_out_path("support-base-layers-%d-%lf.svg", iRun, (*it)->print_z), 
-            union_ex((*it)->polygons, false));
+            union_ex((*it)->polygons));
 #endif /* SLIC3R_DEBUG */
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Trimming top contacts by bottom contacts";
@@ -507,11 +508,11 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     for (const MyLayer *l : interface_layers)
         Slic3r::SVG::export_expolygons(
             debug_out_path("support-interface-layers-%d-%lf.svg", iRun, l->print_z), 
-            union_ex(l->polygons, false));
+            union_ex(l->polygons));
     for (const MyLayer *l : base_interface_layers)
         Slic3r::SVG::export_expolygons(
             debug_out_path("support-base-interface-layers-%d-%lf.svg", iRun, l->print_z), 
-            union_ex(l->polygons, false));
+            union_ex(l->polygons));
 #endif // SLIC3R_DEBUG
 
 /*
@@ -1308,9 +1309,9 @@ namespace SupportMaterialInternal {
         #ifdef SLIC3R_DEBUG
             static int iRun = 0;
             SVG::export_expolygons(debug_out_path("support-top-contacts-remove-bridges-run%d.svg", iRun ++),
-                { { { union_ex(offset(layerm->unsupported_bridge_edges, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS), false) }, { "unsupported_bridge_edges", "orange", 0.5f } },
-                  { { union_ex(contact_polygons, false) },            { "contact_polygons",           "blue",   0.5f } },
-                  { { union_ex(bridges, false) },                     { "bridges",                    "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+                { { { union_ex(offset(layerm->unsupported_bridge_edges, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS)) }, { "unsupported_bridge_edges", "orange", 0.5f } },
+                  { { union_ex(contact_polygons) },            { "contact_polygons",           "blue",   0.5f } },
+                  { { union_ex(bridges) },                     { "bridges",                    "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
         #endif /* SLIC3R_DEBUG */
     }
 }
@@ -1416,13 +1417,35 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
         // Generate overhang / contact_polygons for non-raft layers.
         const Layer &lower_layer  = *layer.lower_layer;
         const bool   has_enforcer = ! annotations.enforcers_layers.empty() && ! annotations.enforcers_layers[layer_id].empty();
-        float        fw           = 0;
+
+        // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
+        auto slices_margin_update = 
+            [&slices_margin, &lower_layer, &lower_layer_polygons, buildplate_only, has_enforcer, &annotations, layer_id]
+            (float slices_margin_offset, float no_interface_offset) {
+            if (slices_margin.offset != slices_margin_offset) {
+                slices_margin.offset = slices_margin_offset;
+                slices_margin.polygons = (slices_margin_offset == 0.f) ?
+                    lower_layer_polygons :
+                    offset2(lower_layer.lslices, -no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                if (buildplate_only && !annotations.buildplate_covered[layer_id].empty()) {
+                    if (has_enforcer)
+                        // Make a backup of trimming polygons before enforcing "on build plate only".
+                        slices_margin.all_polygons = slices_margin.polygons;
+                    // Trim the inflated contact surfaces by the top surfaces as well.
+                    slices_margin.polygons = union_(slices_margin.polygons, annotations.buildplate_covered[layer_id]);
+                }
+            }
+        };
+
+        float fw                  = 0;
+        float lower_layer_offset  = 0;
+        float no_interface_offset = 0;
         for (LayerRegion *layerm : layer.regions()) {
             // Extrusion width accounts for the roundings of the extrudates.
             // It is the maximum widh of the extrudate.
             fw = float(layerm->flow(frExternalPerimeter).scaled_width());
             no_interface_offset = (no_interface_offset == 0.f) ? fw : std::min(no_interface_offset, fw);
-            float lower_layer_offset = 
+            lower_layer_offset  = 
                 (layer_id < (size_t)object_config.support_material_enforce_layers.value) ? 
                     // Enforce a full possible support, ignore the overhang angle.
                     0.f :
@@ -1494,7 +1517,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     iRun, layer_id, 
                     std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin()),
                     get_extents(diff_polygons));
-                Slic3r::ExPolygons expolys = union_ex(diff_polygons, false);
+                Slic3r::ExPolygons expolys = union_ex(diff_polygons);
                 svg.draw(expolys);
             }
             #endif /* SLIC3R_DEBUG */
@@ -1512,7 +1535,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     iRun, layer_id, 
                     std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin(),
                     layer.print_z),
-                union_ex(diff_polygons, false));
+                union_ex(diff_polygons));
             #endif /* SLIC3R_DEBUG */
 
             //FIXME the overhang_polygons are used to construct the support towers as well.
@@ -1529,20 +1552,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                 //FIXME one should trim with the layer span colliding with the support layer, this layer
                 // may be lower than lower_layer, so the support area needed may need to be actually bigger!
                 // For the same reason, the non-bridging support area may be smaller than the bridging support area!
-                float slices_margin_offset = std::min(lower_layer_offset, float(scale_(gap_xy))); 
-                if (slices_margin.offset != slices_margin_offset) {
-                    slices_margin.offset = slices_margin_offset;
-                    slices_margin.polygons = (slices_margin_offset == 0.f) ?
-                        lower_layer_polygons :
-                        offset2(lower_layer.lslices, - no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-                    if (buildplate_only && ! annotations.buildplate_covered[layer_id].empty()) {
-                        if (has_enforcer)
-                            // Make a backup of trimming polygons before enforcing "on build plate only".
-                            slices_margin.all_polygons = slices_margin.polygons;
-                        // Trim the inflated contact surfaces by the top surfaces as well.
-                        slices_margin.polygons = union_(slices_margin.polygons, annotations.buildplate_covered[layer_id]);
-                    }
-                }
+                slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
                 // Offset the contact polygons outside.
 #if 0
                 for (size_t i = 0; i < NUM_MARGIN_STEPS; ++ i) {
@@ -1572,12 +1582,13 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                 offset(lower_layer_polygons, 0.05f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS));
 #ifdef SLIC3R_DEBUG
             SVG::export_expolygons(debug_out_path("support-top-contacts-enforcers-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
-                { { layer.lslices,                                       { "layer.lslices",              "gray",   0.2f } },
-                  { { union_ex(lower_layer_polygons, false) },           { "lower_layer_polygons",       "green",  0.5f } },
-                  { enforcers_united,                                    { "enforcers",                  "blue",   0.5f } },
-                  { { union_ex(enforcer_polygons, true) },               { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+                { { layer.lslices,                                 { "layer.lslices",              "gray",   0.2f } },
+                  { { union_ex(lower_layer_polygons) },            { "lower_layer_polygons",       "green",  0.5f } },
+                  { enforcers_united,                              { "enforcers",                  "blue",   0.5f } },
+                  { { union_safety_offset_ex(enforcer_polygons) }, { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
             polygons_append(overhang_polygons, enforcer_polygons);
+            slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
             polygons_append(contact_polygons, diff(enforcer_polygons, slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons));
         }
     }
@@ -1738,19 +1749,19 @@ static inline void fill_contact_layer(
 #endif // SLIC3R_DEBUG
                 );
     #ifdef SLIC3R_DEBUG
-            SVG::export_expolygons(debug_out_path("support-top-contacts-final0-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
-                { { { union_ex(lower_layer_polygons, false) },          { "lower_layer_polygons",       "gray",   0.2f } },
-                    { { union_ex(*new_layer.contact_polygons, false) }, { "new_layer.contact_polygons", "yellow", 0.5f } },
-                    { { union_ex(slices_margin.polygons, false) },      { "slices_margin_cached",       "blue",   0.5f } },
-                    { { union_ex(dense_interface_polygons, false) },    { "dense_interface_polygons",   "green",  0.5f } },
-                    { { union_ex(new_layer.polygons, true) },           { "new_layer.polygons",         "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+            SVG::export_expolygons(debug_out_path("support-top-contacts-final1-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
+                { { { union_ex(lower_layer_polygons) },               { "lower_layer_polygons",       "gray",   0.2f } },
+                    { { union_ex(*new_layer.contact_polygons) },      { "new_layer.contact_polygons", "yellow", 0.5f } },
+                    { { union_ex(slices_margin.polygons) },           { "slices_margin_cached",       "blue",   0.5f } },
+                    { { union_ex(dense_interface_polygons) },         { "dense_interface_polygons",   "green",  0.5f } },
+                    { { union_safety_offset_ex(new_layer.polygons) }, { "new_layer.polygons",         "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
             //support_grid_pattern.serialize(debug_out_path("support-top-contacts-final-run%d-layer%d-z%f.bin", iRun, layer_id, layer.print_z));
-            SVG::export_expolygons(debug_out_path("support-top-contacts-final0-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
-                { { { union_ex(lower_layer_polygons, false) },        { "lower_layer_polygons",       "gray",   0.2f } },
-                    { { union_ex(*new_layer.contact_polygons, false) }, { "new_layer.contact_polygons", "yellow", 0.5f } },
-                    { { union_ex(contact_polygons, false) },            { "contact_polygons",           "blue",   0.5f } },
-                    { { union_ex(dense_interface_polygons, false) },    { "dense_interface_polygons",   "green",  0.5f } },
-                    { { union_ex(new_layer.polygons, true) },           { "new_layer.polygons",         "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+            SVG::export_expolygons(debug_out_path("support-top-contacts-final2-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
+                { { { union_ex(lower_layer_polygons) },               { "lower_layer_polygons",       "gray",   0.2f } },
+                    { { union_ex(*new_layer.contact_polygons) },      { "new_layer.contact_polygons", "yellow", 0.5f } },
+                    { { union_ex(contact_polygons) },                 { "contact_polygons",           "blue",   0.5f } },
+                    { { union_ex(dense_interface_polygons) },         { "dense_interface_polygons",   "green",  0.5f } },
+                    { { union_safety_offset_ex(new_layer.polygons) }, { "new_layer.polygons",         "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
     #endif /* SLIC3R_DEBUG */
         }
     }
@@ -1796,11 +1807,11 @@ static inline void fill_contact_layer(
 
 #ifdef SLIC3R_DEBUG
     SVG::export_expolygons(debug_out_path("support-top-contacts-final0-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
-        { { { union_ex(lower_layer_polygons, false) },        { "lower_layer_polygons",       "gray",   0.2f } },
-            { { union_ex(*new_layer.contact_polygons, false) }, { "new_layer.contact_polygons", "yellow", 0.5f } },
-            { { union_ex(contact_polygons, false) },            { "contact_polygons",           "blue",   0.5f } },
-            { { union_ex(overhang_polygons, false) },           { "overhang_polygons",          "green",  0.5f } },
-            { { union_ex(new_layer.polygons, true) },           { "new_layer.polygons",         "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+        { { { union_ex(lower_layer_polygons) },               { "lower_layer_polygons",       "gray",   0.2f } },
+            { { union_ex(*new_layer.contact_polygons) },      { "new_layer.contact_polygons", "yellow", 0.5f } },
+            { { union_ex(contact_polygons) },                 { "contact_polygons",           "blue",   0.5f } },
+            { { union_ex(overhang_polygons) },                { "overhang_polygons",          "green",  0.5f } },
+            { { union_safety_offset_ex(new_layer.polygons) }, { "new_layer.polygons",         "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
 
     // Even after the contact layer was expanded into a grid, some of the contact islands may be too tiny to be extruded.
@@ -1964,10 +1975,10 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
     Polygons top = collect_region_slices_by_type(layer, stTop);
 #ifdef SLIC3R_DEBUG
     SVG::export_expolygons(debug_out_path("support-bottom-layers-raw-%d-%lf.svg", iRun, layer.print_z),
-        { { { union_ex(top, false) },                  { "top",            "blue",    0.5f } },
-            { { union_ex(supports_projected, true) },  { "overhangs",      "magenta", 0.5f } },
-            { layer.lslices,                           { "layer.lslices",  "green",   0.5f } },
-            { { union_ex(polygons_new, true) },        { "polygons_new",   "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+        { { { union_ex(top) },                                { "top",            "blue",    0.5f } },
+            { { union_safety_offset_ex(supports_projected) }, { "overhangs",      "magenta", 0.5f } },
+            { layer.lslices,                                  { "layer.lslices",  "green",   0.5f } },
+            { { union_safety_offset_ex(polygons_new) },       { "polygons_new",   "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
 
     // Now find whether any projection of the contact surfaces above layer.print_z not yet supported by any 
@@ -2037,7 +2048,7 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
 #ifdef SLIC3R_DEBUG
     Slic3r::SVG::export_expolygons(
         debug_out_path("support-bottom-contacts-%d-%lf.svg", iRun, layer_new.print_z),
-        union_ex(layer_new.polygons, false));
+        union_ex(layer_new.polygons));
 #endif /* SLIC3R_DEBUG */
 
     // Trim the already created base layers above the current layer intersecting with the new bottom contacts layer.
@@ -2050,14 +2061,14 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
         if (! layer_support_areas[layer_id_above].empty()) {
 #ifdef SLIC3R_DEBUG
             SVG::export_expolygons(debug_out_path("support-support-areas-raw-before-trimming-%d-with-%f-%lf.svg", iRun, layer.print_z, layer_above.print_z),
-                { { { union_ex(touching, false) },                            { "touching", "blue", 0.5f } },
-                    { { union_ex(layer_support_areas[layer_id_above], true) },  { "above",    "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+                { { { union_ex(touching) },                                            { "touching", "blue", 0.5f } },
+                    { { union_safety_offset_ex(layer_support_areas[layer_id_above]) }, { "above",    "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
             layer_support_areas[layer_id_above] = diff(layer_support_areas[layer_id_above], touching);
 #ifdef SLIC3R_DEBUG
             Slic3r::SVG::export_expolygons(
                 debug_out_path("support-support-areas-raw-after-trimming-%d-with-%f-%lf.svg", iRun, layer.print_z, layer_above.print_z),
-                union_ex(layer_support_areas[layer_id_above], false));
+                union_ex(layer_support_areas[layer_id_above]));
 #endif /* SLIC3R_DEBUG */
         }
     }
@@ -2080,8 +2091,8 @@ static inline std::pair<Polygons, Polygons> project_support_to_grid(const Layer 
 
 #ifdef SLIC3R_DEBUG
     SVG::export_expolygons(debug_out_path("support-support-areas-%s-raw-%d-%lf.svg", debug_name, iRun, layer.print_z),
-        { { { union_ex(trimming, false) },              { "trimming",               "blue", 0.5f } },
-          { { union_ex(overhangs_projection, true) },   { "overhangs_projection",   "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+        { { { union_ex(trimming) },                           { "trimming",               "blue", 0.5f } },
+          { { union_safety_offset_ex(overhangs_projection) }, { "overhangs_projection",   "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
 
     remove_sticks(overhangs_projection);
@@ -2089,8 +2100,8 @@ static inline std::pair<Polygons, Polygons> project_support_to_grid(const Layer 
 
 #ifdef SLIC3R_DEBUG
     SVG::export_expolygons(debug_out_path("support-support-areas-%s-raw-cleaned-%d-%lf.svg", debug_name, iRun, layer.print_z),
-        { { { union_ex(trimming, false) },              { "trimming",             "blue", 0.5f } },
-          { { union_ex(overhangs_projection, false) },  { "overhangs_projection", "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+        { { { union_ex(trimming) },              { "trimming",             "blue", 0.5f } },
+          { { union_ex(overhangs_projection) },  { "overhangs_projection", "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
 
     SupportGridPattern support_grid_pattern(&overhangs_projection, &trimming, grid_params);
@@ -2113,7 +2124,7 @@ static inline std::pair<Polygons, Polygons> project_support_to_grid(const Layer 
 #ifdef SLIC3R_DEBUG
             Slic3r::SVG::export_expolygons(
                 debug_out_path("support-layer_support_area-gridded-%s-%d-%lf.svg", debug_name, iRun, layer.print_z),
-                union_ex(out.first, false));
+                union_ex(out.first));
 #endif /* SLIC3R_DEBUG */
         });
 
@@ -2131,13 +2142,13 @@ static inline std::pair<Polygons, Polygons> project_support_to_grid(const Layer 
 #ifdef SLIC3R_DEBUG
             Slic3r::SVG::export_expolygons(
                 debug_out_path("support-projection_new-gridded-%d-%lf.svg", iRun, layer.print_z),
-                union_ex(out.second, false));
+                union_ex(out.second));
 #endif /* SLIC3R_DEBUG */
 #ifdef SLIC3R_DEBUG
             SVG::export_expolygons(debug_out_path("support-projection_new-gridded-%d-%lf.svg", iRun, layer.print_z),
-                { { { union_ex(trimming, false) },                { "trimming",               "gray", 0.5f } },
-                    { { union_ex(overhangs_projection, true) },   { "overhangs_projection",   "blue", 0.5f } },
-                    { { union_ex(out.second, true) },             { "projection_new", "red",  "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+                { { { union_ex(trimming) },                             { "trimming",               "gray", 0.5f } },
+                    { { union_safety_offset_ex(overhangs_projection) }, { "overhangs_projection",   "blue", 0.5f } },
+                    { { union_safety_offset_ex(out.second) },           { "projection_new", "red",  "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
         });
 
@@ -2667,10 +2678,10 @@ void PrintObjectSupportMaterial::generate_base_layers(
                     BoundingBox bbox = get_extents(polygons_new);
                     bbox.merge(get_extents(polygons_trimming));
                     ::Slic3r::SVG svg(debug_out_path("support-intermediate-layers-raw-%d-%lf.svg", iRun, layer_intermediate.print_z), bbox);
-                    svg.draw(union_ex(polygons_new, false), "blue", 0.5f);
-                    svg.draw(to_polylines(polygons_new), "blue");
-                    svg.draw(union_ex(polygons_trimming, true), "red", 0.5f);
-                    svg.draw(to_polylines(polygons_trimming), "red");
+                    svg.draw(union_ex(polygons_new),                    "blue", 0.5f);
+                    svg.draw(to_polylines(polygons_new),                "blue");
+                    svg.draw(union_safety_offset_ex(polygons_trimming), "red", 0.5f);
+                    svg.draw(to_polylines(polygons_trimming),           "red");
                 }
         #endif /* SLIC3R_DEBUG */
 
@@ -2706,7 +2717,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
     for (MyLayersPtr::const_iterator it = intermediate_layers.begin(); it != intermediate_layers.end(); ++it)
         ::Slic3r::SVG::export_expolygons(
             debug_out_path("support-intermediate-layers-untrimmed-%d-%lf.svg", iRun, (*it)->print_z),
-            union_ex((*it)->polygons, false));
+            union_ex((*it)->polygons));
     ++ iRun;
 #endif /* SLIC3R_DEBUG */
 
@@ -2799,22 +2810,22 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
     Polygons brim;
     if (object.has_brim()) {
         // Calculate the area covered by the brim.
-        const BrimType brim_type   = object.config().brim_type;
-        const bool     brim_outer  = brim_type == btOuterOnly || brim_type == btOuterAndInner;
-        const bool     brim_inner  = brim_type == btInnerOnly || brim_type == btOuterAndInner;
-        const auto     brim_offset = scaled<float>(object.config().brim_offset.value + object.config().brim_width.value);
+        const BrimType brim_type       = object.config().brim_type;
+        const bool     brim_outer      = brim_type == btOuterOnly || brim_type == btOuterAndInner;
+        const bool     brim_inner      = brim_type == btInnerOnly || brim_type == btOuterAndInner;
+        const auto     brim_separation = scaled<float>(object.config().brim_separation.value + object.config().brim_width.value);
         for (const ExPolygon &ex : object.layers().front()->lslices) {
             if (brim_outer && brim_inner)
-                polygons_append(brim, offset(ex, brim_offset));
+                polygons_append(brim, offset(ex, brim_separation));
             else {
                 if (brim_outer)
-                    polygons_append(brim, offset(ex.contour, brim_offset, ClipperLib::jtRound, float(scale_(0.1))));
+                    polygons_append(brim, offset(ex.contour, brim_separation, ClipperLib::jtRound, float(scale_(0.1))));
                 else
                     brim.emplace_back(ex.contour);
                 if (brim_inner) {
                     Polygons holes = ex.holes;
                     polygons_reverse(holes);
-                    holes = offset(holes, - brim_offset, ClipperLib::jtRound, float(scale_(0.1)));
+                    holes = offset(holes, - brim_separation, ClipperLib::jtRound, float(scale_(0.1)));
                     polygons_reverse(holes);
                     polygons_append(brim, std::move(holes));
                 } else

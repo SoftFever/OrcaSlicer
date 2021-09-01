@@ -11,6 +11,9 @@
 * openssl
 * nlopt
 * openvdb: This library depends on other libs, namely boost, zlib, openexr, blosc (not strictly), etc... 
+* CGAL: Needs additional dependencies
+    * MPFR 
+    * GMP
 
 ## External libraries in source tree
 * ad-mesh: Lots of customization, have to be bundled in the source tree.

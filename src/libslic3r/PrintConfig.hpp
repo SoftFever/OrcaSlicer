@@ -449,13 +449,15 @@ protected: \
 PRINT_CONFIG_CLASS_DEFINE(
     PrintObjectConfig,
 
-    ((ConfigOptionFloat,               brim_offset))
+    ((ConfigOptionFloat,               brim_separation))
     ((ConfigOptionEnum<BrimType>,      brim_type))
     ((ConfigOptionFloat,               brim_width))
     ((ConfigOptionBool,                clip_multipart_objects))
     ((ConfigOptionBool,                dont_support_bridges))
     ((ConfigOptionFloat,               elefant_foot_compensation))
     ((ConfigOptionFloatOrPercent,      extrusion_width))
+    ((ConfigOptionFloat,               first_layer_acceleration_over_raft))
+    ((ConfigOptionFloatOrPercent,      first_layer_speed_over_raft))
     ((ConfigOptionBool,                infill_only_where_needed))
     // Force the generation of solid shells between adjacent materials/volumes.
     ((ConfigOptionBool,                interface_shells))
@@ -1064,7 +1066,9 @@ Points get_bed_shape(const SLAPrinterConfig &cfg);
 class ModelConfig
 {
 public:
-    void         clear() { m_data.clear(); m_timestamp = 1; }
+    // Following method clears the config and increases its timestamp, so the deleted
+    // state is considered changed from perspective of the undo/redo stack.
+    void         reset() { m_data.clear(); touch(); }
 
     void         assign_config(const ModelConfig &rhs) {
         if (m_timestamp != rhs.m_timestamp) {
@@ -1076,7 +1080,7 @@ public:
         if (m_timestamp != rhs.m_timestamp) {
             m_data      = std::move(rhs.m_data);
             m_timestamp = rhs.m_timestamp;
-            rhs.clear();
+            rhs.reset();
         }
     }
 

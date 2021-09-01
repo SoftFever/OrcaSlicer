@@ -125,7 +125,8 @@ public:
         m_last_processor_extrusion_role(erNone),
         m_layer_count(0),
         m_layer_index(-1), 
-        m_layer(nullptr), 
+        m_layer(nullptr),
+        m_object_layer_over_raft(false),
         m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
@@ -138,7 +139,7 @@ public:
         m_silent_time_estimator_enabled(false),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
         {}
-    ~GCode() {}
+    ~GCode() = default;
 
     // throws std::runtime_exception on error,
     // throws CanceledException through print->throw_if_canceled().
@@ -316,9 +317,11 @@ private:
     unsigned int                        m_layer_count;
     // Progress bar indicator. Increments from -1 up to layer_count.
     int                                 m_layer_index;
-    // Current layer processed. Insequential printing mode, only a single copy will be printed.
+    // Current layer processed. In sequential printing mode, only a single copy will be printed.
     // In non-sequential mode, all its copies will be printed.
     const Layer*                        m_layer;
+    // m_layer is an object layer and it is being printed over raft surface.
+    bool                                m_object_layer_over_raft;
     double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
@@ -373,6 +376,8 @@ private:
     void _print_first_layer_extruder_temperatures(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     // On the first printing layer. This flag triggers first layer speeds.
     bool                                on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0; }
+    // To control print speed of 1st object layer over raft interface.
+    bool                                object_layer_over_raft() const { return m_object_layer_over_raft; }
 
     friend ObjectByExtruder& object_by_extruder(
         std::map<unsigned int, std::vector<ObjectByExtruder>> &by_extruder, 

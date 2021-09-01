@@ -22,6 +22,95 @@ namespace Slic3r {
 namespace GUI {
 
 namespace {
+
+// escaping of path string according to 
+// https://cgit.freedesktop.org/xdg/xdg-specs/tree/desktop-entry/desktop-entry-spec.xml
+std::string escape_string(const std::string& str)
+{
+    // The buffer needs to be bigger if escaping <,>,&
+    std::vector<char> out(str.size() * 4, 0);
+    char *outptr = out.data();
+    for (size_t i = 0; i < str.size(); ++ i) {
+        char c = str[i];
+        // must be escaped
+        if (c == '\"') { //double quote 
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\"';
+        } else if (c == '`') {  // backtick character
+            (*outptr ++) = '\\';
+            (*outptr ++) = '`';
+        } else if (c == '$') { // dollar sign
+            (*outptr ++) = '\\';
+            (*outptr ++) = '$';
+        } else if (c == '\\') { // backslash character
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
+        //  Reserved characters   
+        // At Ubuntu, all these characters must NOT be escaped for desktop integration to work
+        /*
+        } else if (c == ' ') { // space
+            (*outptr ++) = '\\';
+            (*outptr ++) = ' ';
+        } else if (c == '\t') { // tab
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\t';
+        } else if (c == '\n') { // newline
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\n';
+        } else if (c == '\'') { // single quote
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\'';
+        } else if (c == '>') { // greater-than sign
+            (*outptr ++) = '\\';
+            (*outptr ++) = '&';
+            (*outptr ++) = 'g';
+            (*outptr ++) = 't';
+            (*outptr ++) = ';';
+        } else if (c == '<') { //less-than sign
+            (*outptr ++) = '\\';
+            (*outptr ++) = '&';
+            (*outptr ++) = 'l';
+            (*outptr ++) = 't';
+            (*outptr ++) = ';'; 
+        }  else if (c == '~') { // tilde
+            (*outptr ++) = '\\';
+            (*outptr ++) = '~';
+        } else if (c == '|') { // vertical bar 
+            (*outptr ++) = '\\';
+            (*outptr ++) = '|';
+        } else if (c == '&') { // ampersand
+            (*outptr ++) = '\\';
+            (*outptr ++) = '&';
+            (*outptr ++) = 'a';
+            (*outptr ++) = 'm';
+            (*outptr ++) = 'p';
+            (*outptr ++) = ';';
+        } else if (c == ';') { // semicolon
+            (*outptr ++) = '\\';
+            (*outptr ++) = ';';
+        } else if (c == '*') { //asterisk
+            (*outptr ++) = '\\';
+            (*outptr ++) = '*';
+        } else if (c == '?') { // question mark
+            (*outptr ++) = '\\';
+            (*outptr ++) = '?';
+        } else if (c == '#') { // hash mark
+            (*outptr ++) = '\\';
+            (*outptr ++) = '#';
+        } else if (c == '(') { // parenthesis
+            (*outptr ++) = '\\';
+            (*outptr ++) = '(';
+        } else if (c == ')') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = ')';
+        */
+        } else
+            (*outptr ++) = c;
+    }
+    return std::string(out.data(), outptr - out.data());
+}
 // Disects path strings stored in system variable divided by ':' and adds into vector
 void resolve_path_from_var(const std::string& var, std::vector<std::string>& paths)
 {
@@ -157,7 +246,8 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     }
 
     // Escape ' characters in appimage, other special symbols will be esacaped in desktop file by 'excutable_path'
-    boost::replace_all(excutable_path, "'", "'\\''");
+    //boost::replace_all(excutable_path, "'", "'\\''");
+    excutable_path = escape_string(excutable_path);
 
     // Find directories icons and applications
     // $XDG_DATA_HOME defines the base directory relative to which user specific data files should be stored. 
@@ -243,14 +333,14 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 "Name=PrusaSlicer%1%\n"
                 "GenericName=3D Printing Software\n"
                 "Icon=PrusaSlicer%2%\n"
-                "Exec=\'%3%\' %%F\n"
+                "Exec=\"%3%\" %%F\n"
                 "Terminal=false\n"
                 "Type=Application\n"
                 "MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;\n"
                 "Categories=Graphics;3DGraphics;Engineering;\n"
                 "Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA\n"
                 "StartupNotify=false\n"
-                "StartupWMClass=prusa-slicer", name_suffix, version_suffix, excutable_path);
+                "StartupWMClass=prusa-slicer\n", name_suffix, version_suffix, excutable_path);
 
             std::string path = GUI::format("%1%/applications/PrusaSlicer%2%.desktop", target_dir_desktop, version_suffix);
             if (create_desktop_file(path, desktop_file)){
@@ -292,40 +382,44 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     app_config->set("desktop_integration_app_path", GUI::format("%1%/applications/PrusaSlicer%2%.desktop", target_dir_desktop, version_suffix));
 
     // Repeat for Gcode viewer - use same paths as for slicer files
-    // Icon
-    if (!target_dir_icons.empty())
-    {
-    	std::string icon_path = GUI::format("%1%/icons/PrusaSlicer-gcodeviewer_192px.png",resources_dir());
-	    std::string dest_path = GUI::format("%1%/icons/%2%PrusaSlicer-gcodeviewer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
-	    if (copy_icon(icon_path, dest_path))
-	    	// save path to icon
-	        app_config->set("desktop_integration_icon_viewer_path", dest_path);
-	    else
-	        BOOST_LOG_TRIVIAL(error) << "Copying Gcode Viewer icon to icons directory failed.";
-    }
+    // Do NOT add gcode viewer desktop file on ChromeOS
+    if (platform_flavor() != PlatformFlavor::LinuxOnChromium) {
+        // Icon
+        if (!target_dir_icons.empty())
+        {
+            std::string icon_path = GUI::format("%1%/icons/PrusaSlicer-gcodeviewer_192px.png",resources_dir());
+            std::string dest_path = GUI::format("%1%/icons/%2%PrusaSlicer-gcodeviewer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
+            if (copy_icon(icon_path, dest_path))
+                // save path to icon
+                app_config->set("desktop_integration_icon_viewer_path", dest_path);
+            else
+                BOOST_LOG_TRIVIAL(error) << "Copying Gcode Viewer icon to icons directory failed.";
+        }
 
-    // Desktop file
-    std::string desktop_file = GUI::format(
-        "[Desktop Entry]\n"
-        "Name=Prusa Gcode Viewer%1%\n"
-        "GenericName=3D Printing Software\n"
-        "Icon=PrusaSlicer-gcodeviewer%2%\n"
-        "Exec=\'%3%\' --gcodeviwer %%F\n"
-        "Terminal=false\n"
-        "Type=Application\n"
-        "MimeType=text/x.gcode;\n"
-        "Categories=Graphics;3DGraphics;\n"
-        "Keywords=3D;Printing;Slicer;\n"
-        "StartupNotify=false", name_suffix, version_suffix, excutable_path);
+        // Desktop file
+        std::string desktop_file = GUI::format(
+            "[Desktop Entry]\n"
+            "Name=Prusa Gcode Viewer%1%\n"
+            "GenericName=3D Printing Software\n"
+            "Icon=PrusaSlicer-gcodeviewer%2%\n"
+            "Exec=\"%3%\" --gcodeviewer %%F\n"
+            "Terminal=false\n"
+            "Type=Application\n"
+            "MimeType=text/x.gcode;\n"
+            "Categories=Graphics;3DGraphics;\n"
+            "Keywords=3D;Printing;Slicer;\n"
+            "StartupNotify=false\n", name_suffix, version_suffix, excutable_path);
 
-    std::string desktop_path = GUI::format("%1%/applications/PrusaSlicerGcodeViewer%2%.desktop", target_dir_desktop, version_suffix);
-    if (create_desktop_file(desktop_path, desktop_file))
-    	// save path to desktop file
-        app_config->set("desktop_integration_app_viewer_path", desktop_path);
-    else {
-        BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not create Gcodeviewer desktop file";
-        show_error(nullptr, _L("Performing desktop integration failed - could not create Gcodeviewer desktop file. PrusaSlicer desktop file was probably created successfully."));
+        std::string desktop_path = GUI::format("%1%/applications/PrusaSlicerGcodeViewer%2%.desktop", target_dir_desktop, version_suffix);
+        if (create_desktop_file(desktop_path, desktop_file))
+            // save path to desktop file
+            app_config->set("desktop_integration_app_viewer_path", desktop_path);
+        else {
+            BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not create Gcodeviewer desktop file";
+            show_error(nullptr, _L("Performing desktop integration failed - could not create Gcodeviewer desktop file. PrusaSlicer desktop file was probably created successfully."));
+        }
     }
+    
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::DesktopIntegrationSuccess);
 }
 void DesktopIntegrationDialog::undo_desktop_intgration()
@@ -343,17 +437,20 @@ void DesktopIntegrationDialog::undo_desktop_intgration()
     	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
         std::remove(path.c_str());
     }
-    // gcode viwer .desktop
-    path = std::string(app_config->get("desktop_integration_app_viewer_path"));
-    if (!path.empty()) {
-    	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
-        std::remove(path.c_str());
-    }
-     // gcode viewer icon
-    path = std::string(app_config->get("desktop_integration_icon_viewer_path"));
-    if (!path.empty()) {
-    	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
-        std::remove(path.c_str());
+    // No gcode viewer at ChromeOS
+    if (platform_flavor() != PlatformFlavor::LinuxOnChromium) {
+        // gcode viewer .desktop
+        path = std::string(app_config->get("desktop_integration_app_viewer_path"));
+        if (!path.empty()) {
+        	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
+            std::remove(path.c_str());
+        }
+         // gcode viewer icon
+        path = std::string(app_config->get("desktop_integration_icon_viewer_path"));
+        if (!path.empty()) {
+        	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
+            std::remove(path.c_str());
+        }
     }
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::UndoDesktopIntegrationSuccess);
 }

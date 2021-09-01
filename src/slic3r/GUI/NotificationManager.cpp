@@ -1369,7 +1369,18 @@ void NotificationManager::push_hint_notification(bool open_next)
 	}
 	
 	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::RegularNotification, 300, "" };
-	push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 0);
+	// from user - open now
+	if (!open_next) {
+		push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 0);
+		stop_delayed_notifications_of_type(NotificationType::DidYouKnowHint);
+	// at startup - delay for half a second to let other notification pop up, than try every 30 seconds
+	// show only if no notifications are shown
+	} else { 
+		auto condition = [this]() {
+			return this->get_notification_count() == 0;
+		};
+		push_delayed_notification(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), condition, 500, 30000);
+	}
 }
 
 bool NotificationManager::is_hint_notification_open()
@@ -1425,6 +1436,28 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 	}
 }
 
+void NotificationManager::push_delayed_notification(std::unique_ptr<NotificationManager::PopNotification> notification, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval)
+{
+	if (initial_delay == 0 && condition_callback()) {
+		if( push_notification_data(std::move(notification), 0))
+			return;
+	} 
+	m_waiting_notifications.emplace_back(std::move(notification), condition_callback, initial_delay == 0 ? delay_interval : initial_delay, delay_interval);
+	wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(initial_delay == 0 ? delay_interval : initial_delay);
+}
+
+void NotificationManager::stop_delayed_notifications_of_type(const NotificationType type)
+{
+	for (auto it = m_waiting_notifications.begin(); it != m_waiting_notifications.end();) {
+		if ((*it).notification->get_type() == type) {
+			it = m_waiting_notifications.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+}
+
 void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width)
 {
 	sort_notifications();
@@ -1475,6 +1508,26 @@ bool NotificationManager::update_notifications(GLCanvas3D& canvas)
 			it = m_pop_notifications.erase(it);
 		else 
 			++it;
+	}
+
+	// delayed notifications
+	for (auto it = m_waiting_notifications.begin(); it != m_waiting_notifications.end();) {
+		// substract time
+		if ((*it).remaining_time > 0)
+			(*it).remaining_time -= time_since_render;
+		if ((*it).remaining_time <= 0) {
+			if ((*it).condition_callback()) { // push notification, erase it from waiting list (frame is scheduled by push)
+				(*it).notification->reset_timer();
+				if (push_notification_data(std::move((*it).notification), 0)) {
+					it = m_waiting_notifications.erase(it);
+					continue;
+				}
+			}
+			// not possible to push, delay for delay_interval
+			(*it).remaining_time = (*it).delay_interval;
+		}
+		next_render = std::min<int64_t>(next_render, (*it).remaining_time);
+		++it;
 	}
 
 	// request next frame in future
@@ -1568,6 +1621,15 @@ void NotificationManager::device_ejected()
 		if (notification->get_type() == NotificationType::ExportFinished && dynamic_cast<ExportFinishedNotification*>(notification.get())->m_to_removable)
 			notification->close();
 	}
+}
+size_t NotificationManager::get_notification_count() const
+{
+	size_t ret = 0;
+	for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_state() != PopNotification::EState::Hidden)
+			ret++;
+	}
+	return ret;
 }
 
 }//namespace GUI

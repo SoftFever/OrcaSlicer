@@ -49,6 +49,17 @@ const unsigned int VERSION_3MF = 1;
 const unsigned int VERSION_3MF_COMPATIBLE = 2;
 const char* SLIC3RPE_3MF_VERSION = "slic3rpe:Version3mf"; // definition of the metadata name saved into .model file
 
+// Painting gizmos data version numbers
+// 0 : 3MF files saved by older PrusaSlicer or the painting gizmo wasn't used. No version definition in them.
+// 1 : Introduction of painting gizmos data versioning. No other changes in painting gizmos data.
+const unsigned int FDM_SUPPORTS_PAINTING_VERSION = 1;
+const unsigned int SEAM_PAINTING_VERSION         = 1;
+const unsigned int MM_PAINTING_VERSION           = 1;
+
+const std::string SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION = "slic3rpe:FdmSupportsPaintingVersion";
+const std::string SLIC3RPE_SEAM_PAINTING_VERSION         = "slic3rpe:SeamPaintingVersion";
+const std::string SLIC3RPE_MM_PAINTING_VERSION           = "slic3rpe:MmPaintingVersion";
+
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
@@ -393,6 +404,10 @@ namespace Slic3r {
         unsigned int m_version;
         bool m_check_version;
 
+        unsigned int m_fdm_supports_painting_version = 0;
+        unsigned int m_seam_painting_version         = 0;
+        unsigned int m_mm_painting_version           = 0;
+
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
         // after returning from XML_Parse() function, thus we keep the error state here.
@@ -420,6 +435,7 @@ namespace Slic3r {
         ~_3MF_Importer();
 
         bool load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version);
+        unsigned int version() const { return m_version; }
 
     private:
         void _destroy_xml_parser();
@@ -542,6 +558,9 @@ namespace Slic3r {
     bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version)
     {
         m_version = 0;
+        m_fdm_supports_painting_version = 0;
+        m_seam_painting_version = 0;
+        m_mm_painting_version = 0;
         m_check_version = check_version;
         m_model = &model;
         m_unit_factor = 1.0f;
@@ -1668,6 +1687,12 @@ namespace Slic3r {
         return true;
     }
 
+    inline static void check_painting_version(unsigned int loaded_version, unsigned int highest_supported_version, const std::string &error_msg)
+    {
+        if (loaded_version > highest_supported_version)
+            throw version_error(error_msg);
+    }
+
     bool _3MF_Importer::_handle_end_metadata()
     {
         if (m_curr_metadata_name == SLIC3RPE_3MF_VERSION) {
@@ -1678,6 +1703,24 @@ namespace Slic3r {
                 const std::string msg = (boost::format(_(L("The selected 3mf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
                 throw version_error(msg);
             }
+        }
+
+        if (m_curr_metadata_name == SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION) {
+            m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_fdm_supports_painting_version, FDM_SUPPORTS_PAINTING_VERSION,
+                _(L("The selected 3MF contains FDM supports painted object using a newer version of PrusaSlicer and is not compatible.")));
+        }
+
+        if (m_curr_metadata_name == SLIC3RPE_SEAM_PAINTING_VERSION) {
+            m_seam_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_seam_painting_version, SEAM_PAINTING_VERSION,
+                _(L("The selected 3MF contains seam painted object using a newer version of PrusaSlicer and is not compatible.")));
+        }
+
+        if (m_curr_metadata_name == SLIC3RPE_MM_PAINTING_VERSION) {
+            m_mm_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
+                _(L("The selected 3MF contains multi-material painted object using a newer version of PrusaSlicer and is not compatible.")));
         }
 
         return true;
@@ -1837,6 +1880,7 @@ namespace Slic3r {
         }
 
         unsigned int geo_tri_count = (unsigned int)geometry.triangles.size() / 3;
+        unsigned int renamed_volumes_count = 0;
 
         for (const ObjectMetadata::VolumeMetadata& volume_data : volumes) {
             if (geo_tri_count <= volume_data.first_triangle_id || geo_tri_count <= volume_data.last_triangle_id || volume_data.last_triangle_id < volume_data.first_triangle_id) {
@@ -1846,11 +1890,17 @@ namespace Slic3r {
 
             Transform3d volume_matrix_to_object = Transform3d::Identity();
             bool        has_transform 		    = false;
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+            bool        is_left_handed          = false;
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
             // extract the volume transformation from the volume's metadata, if present
             for (const Metadata& metadata : volume_data.metadata) {
                 if (metadata.key == MATRIX_KEY) {
                     volume_matrix_to_object = Slic3r::Geometry::transform3d_from_string(metadata.value);
                     has_transform 			= ! volume_matrix_to_object.isApprox(Transform3d::Identity(), 1e-10);
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+                    is_left_handed          = Slic3r::Geometry::Transformation(volume_matrix_to_object).is_left_handed();
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
                     break;
                 }
             }
@@ -1881,6 +1931,13 @@ namespace Slic3r {
 
 			stl_get_size(&stl);
 			triangle_mesh.repair();
+
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+            // PrusaSlicer older than 2.4.0 saved mirrored volumes with reversed winding of the triangles
+            // This caused the call to TriangleMesh::repair() to reverse all the facets because the calculated volume was negative
+            if (is_left_handed && stl.stats.facets_reversed > 0 && stl.stats.facets_reversed == stl.stats.original_num_facets)
+                stl.stats.facets_reversed = 0;
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
 
             if (m_version == 0) {
                 // if the 3mf was not produced by PrusaSlicer and there is only one instance,
@@ -1944,6 +2001,14 @@ namespace Slic3r {
                     volume->source.is_converted_from_meters = metadata.value == "1";
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value, config_substitutions);
+            }
+
+            // this may happen for 3mf saved by 3rd part softwares
+            if (volume->name.empty()) {
+                volume->name = object.name;
+                if (renamed_volumes_count > 0)
+                    volume->name += "_" + std::to_string(renamed_volumes_count + 1);
+                ++renamed_volumes_count;
             }
         }
 
@@ -2271,6 +2336,16 @@ namespace Slic3r {
             stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
             stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
             stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_fdm_support_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION << "\">" << FDM_SUPPORTS_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_seam_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_SEAM_PAINTING_VERSION << "\">" << SEAM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_mm_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_MM_PAINTING_VERSION << "\">" << MM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
             std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
             stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
@@ -2506,6 +2581,10 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+            bool is_left_handed = volume->is_left_handed();
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+
             VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
             assert(volume_it != volumes_offsets.end());
 
@@ -2520,6 +2599,15 @@ namespace Slic3r {
                 {
                     const Vec3i &idx = its.indices[i];
                     char *ptr = buf;
+#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+                    boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
+                        " v1=\"" << boost::spirit::int_ <<
+                        "\" v2=\"" << boost::spirit::int_ <<
+                        "\" v3=\"" << boost::spirit::int_ << "\"",
+                        idx[is_left_handed ? 2 : 0] + volume_it->second.first_vertex_id,
+                        idx[1] + volume_it->second.first_vertex_id,
+                        idx[is_left_handed ? 0 : 2] + volume_it->second.first_vertex_id);
+#else
                     boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
                         " v1=\"" << boost::spirit::int_ <<
                         "\" v2=\"" << boost::spirit::int_ <<
@@ -2527,6 +2615,7 @@ namespace Slic3r {
                         idx[0] + volume_it->second.first_vertex_id,
                         idx[1] + volume_it->second.first_vertex_id,
                         idx[2] + volume_it->second.first_vertex_id);
+#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
                     *ptr = '\0';
                     output_buffer += buf;
                 }
@@ -2961,6 +3050,19 @@ bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archiv
     return true;
 }
 
+// Perform conversions based on the config values available.
+//FIXME provide a version of PrusaSlicer that stored the project file (3MF).
+static void handle_legacy_project_loaded(unsigned int version_project_file, DynamicPrintConfig& config)
+{
+    if (! config.has("brim_separation")) {
+        if (auto *opt_elephant_foot   = config.option<ConfigOptionFloat>("elefant_foot_compensation", false); opt_elephant_foot) {
+            // Conversion from older PrusaSlicer which applied brim separation equal to elephant foot compensation.
+            auto *opt_brim_separation = config.option<ConfigOptionFloat>("brim_separation", true);
+            opt_brim_separation->value = opt_elephant_foot->value;
+        }
+    }
+}
+
 bool load_3mf(const char* path, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Model* model, bool check_version)
 {
     if (path == nullptr || model == nullptr)
@@ -2971,6 +3073,7 @@ bool load_3mf(const char* path, DynamicPrintConfig& config, ConfigSubstitutionCo
     _3MF_Importer         importer;
     bool res = importer.load_model_from_file(path, *model, config, config_substitutions, check_version);
     importer.log_errors();
+    handle_legacy_project_loaded(importer.version(), config);
     return res;
 }
 

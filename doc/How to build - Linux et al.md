@@ -1,6 +1,12 @@
 
 # Building PrusaSlicer on UNIX/Linux
 
+Please understand that PrusaSlicer team cannot support compilation on all possible Linux distros. Namely, we cannot help trouble shooting OpenGL driver issues or dependency issues if compiled against distro provided libraries. We can only support PrusaSlicer compiled the same way we do compile PrusaSlicer for our [binary builds](https://github.com/prusa3d/PrusaSlicer/releases), that means linked statically agains the dependencies compiled with the `deps` scripts.
+
+Instead of compiling PrusaSlicer from source code, one may consider to install PrusaSlicer [pre-compiled by contributors](https://github.com/prusa3d/PrusaSlicer/wiki/PrusaSlicer-on-Linux---binary-distributions).
+
+### How to build
+
 PrusaSlicer uses the CMake build system and requires several dependencies.
 The dependencies can be listed in the `deps` directory in individual subdirectories, although they don't necessarily need to be as recent
 as the versions listed - generally versions available on conservative Linux distros such as Debian stable, Ubuntu LTS releases or Fedora are likely sufficient.
@@ -32,10 +38,11 @@ Note: We say _mostly independent_ because it's still expected the system will pr
 
 To do this, go to the `deps` directory, create a `build` subdirectory (or the like) and use:
 
-    cmake .. -DDESTDIR=<target destdir>
+    cmake .. -DDESTDIR=<target destdir> -DDEP_DOWNLOAD_DIR=<download cache dir>
 
 where the target destdir is a directory of your choosing where the dependencies will be installed.
-You can also omit the `DESTDIR` option to use the default, in that case the `destdir` will be created inside the `build` directory where `cmake` is run.
+You can also omit the `DESTDIR` option to use the default, in that case the `destdir` will be created inside the `build` directory where `cmake` is run. The optional `DEP_DOWNLOAD_DIR` argument specifies a directory to cache the downloaded 
+source packages for each dependent library. Can be useful for repeated builds, to avoid unnecessary network traffic.
 
 Once the dependencies have been built, in order to pass the destdir path to the **top-level** PrusaSlicer `CMakeLists.txt` script, use the `CMAKE_PREFIX_PATH` option along with turning on `SLIC3R_STATIC`:
 
@@ -87,3 +94,13 @@ If you instead want PrusaSlicer installed in a structure according to the File S
 This will make PrusaSlicer look for a fixed-location `share/slic3r-prusa3d` directory instead (note that the location becomes hardcoded).
 
 You can then use the `make install` target to install PrusaSlicer.
+
+### Desktop Integration (PrusaSlicer 2.4 and newer)
+
+If PrusaSlicer is to be distributed as an AppImage or a binary blob (.tar.gz and similar), then a desktop integration support is compiled in by default: PrusaSlicer will offer to integrate with desktop by manually copying the desktop file and application icon into user's desktop configuration. The built-in desktop integration is also handy on Crosstini (Linux on Chrome OS).
+
+If PrusaSlicer is compiled with `SLIC3R_FHS` enabled, then a desktop integration support will not be integrated. One may want to disable desktop integration by running
+    
+    cmake .. -DSLIC3R_DESKTOP_INTEGRATION=0
+    
+when building PrusaSlicer for flatpack or snap, where the desktop integration is performed by the installer.

@@ -1874,7 +1874,7 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
         const_cast<GLModel*>(&m_arrow)->set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
-            shader->set_uniform("emission_factor", 0.0);
+            shader->set_uniform("emission_factor", 0.0f);
 
         glsafe(::glTranslated(0.0, 5.0, 0.0));
         m_arrow.render();

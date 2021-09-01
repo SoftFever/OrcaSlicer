@@ -383,10 +383,11 @@ public:
 		Plater *m_plater;
 	};
 
-	// ROII wrapper for taking an Undo / Redo snapshot while disabling the snapshot taking by the methods called from inside this snapshot.
+    // RAII wrapper for taking an Undo / Redo snapshot while disabling the snapshot taking by the methods called from inside this snapshot.
 	class TakeSnapshot
 	{
 	public:
+        TakeSnapshot(Plater *plater, const std::string &snapshot_name);
 		TakeSnapshot(Plater *plater, const wxString &snapshot_name) : m_plater(plater)
 		{
 			m_plater->take_snapshot(snapshot_name);

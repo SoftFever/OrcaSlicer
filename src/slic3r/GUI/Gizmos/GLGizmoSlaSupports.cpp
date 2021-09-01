@@ -169,7 +169,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         const_cast<GLModel*>(&m_cone)->set_color(-1, render_color);
         const_cast<GLModel*>(&m_sphere)->set_color(-1, render_color);
         if (shader && !picking)
-            shader->set_uniform("emission_factor", 0.5);
+            shader->set_uniform("emission_factor", 0.5f);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());
@@ -224,7 +224,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         render_color[3] = 0.7f;
         const_cast<GLModel*>(&m_cylinder)->set_color(-1, render_color);
         if (shader)
-            shader->set_uniform("emission_factor", 0.5);
+            shader->set_uniform("emission_factor", 0.5f);
         for (const sla::DrainHole& drain_hole : m_c->selection_info()->model_object()->sla_drain_holes) {
             if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
                 continue;
@@ -786,8 +786,7 @@ RENDER_AGAIN:
 
     // Following is rendered in both editing and non-editing mode:
     ImGui::Separator();
-    if (m_c->object_clipper()->get_position() == 0.f)
-    {
+    if (m_c->object_clipper()->get_position() == 0.f) {
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("clipping_of_view"));
     }

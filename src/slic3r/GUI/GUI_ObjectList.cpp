@@ -1049,7 +1049,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         || event.GetKeyCode() == WXK_BACK
 #endif //__WXOSX__
         ) {
-        wxGetApp().plater()->remove_selected();
+        remove();
     }
     else if (event.GetKeyCode() == WXK_F5)
         wxGetApp().plater()->reload_all_from_disk();
@@ -1702,8 +1702,7 @@ void ObjectList::load_shape_object_from_gallery(const wxArrayString& input_files
         snapshot_label += ", " + wxString::FromUTF8(paths[i].filename().string().c_str());
 
     take_snapshot(snapshot_label);
-    std::vector<size_t> res = wxGetApp().plater()->load_files(paths, true, false);
-    if (!res.empty())
+    if (! wxGetApp().plater()->load_files(paths, true, false).empty())
         wxGetApp().mainframe->update_title();
 }
 
@@ -1803,21 +1802,21 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         cnv->get_gizmos_manager().reset_all_states();
         Plater::TakeSnapshot(plater, _L("Remove paint-on supports"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
-            mv->supported_facets.clear();
+            mv->supported_facets.reset();
         break;
 
     case InfoItemType::CustomSeam:
         cnv->get_gizmos_manager().reset_all_states();
         Plater::TakeSnapshot(plater, _L("Remove paint-on seam"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
-            mv->seam_facets.clear();
+            mv->seam_facets.reset();
         break;
 
     case InfoItemType::MmuSegmentation:
         cnv->get_gizmos_manager().reset_all_states();
         Plater::TakeSnapshot(plater, _L("Remove Multi Material painting"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
-            mv->mmu_segmentation_facets.clear();
+            mv->mmu_segmentation_facets.reset();
         break;
 
     case InfoItemType::Sinking:
@@ -1856,7 +1855,7 @@ void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
     if (is_layer_settings)
         layer_height = m_config->opt_float("layer_height");
 
-    m_config->clear();
+    m_config->reset();
 
     if (extruder >= 0)
         m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
@@ -1932,7 +1931,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             const auto last_volume = object->volumes[0];
             if (!last_volume->config.empty()) {
                 object->config.apply(last_volume->config);
-                last_volume->config.clear();
+                last_volume->config.reset();
 
                 // update extruder color in ObjectList
                 wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
@@ -2637,7 +2636,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
                       model_object->config.has("extruder") ? model_object->config.extruder() : 0,
                       get_mesh_errors_count(obj_idx) > 0);
 
-    update_info_items(obj_idx, nullptr, true);
+    update_info_items(obj_idx, nullptr, call_selection_changed);
 
     // add volumes to the object
     if (model_object->volumes.size() > 1) {
@@ -3769,7 +3768,7 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
     auto volume = (*m_objects)[obj_idx]->volumes.front();
 
     // clear volume's config values
-    volume->config.clear();
+    volume->config.reset();
 
     // set a default extruder value, since user can't add it manually
     volume->config.set_key_value("extruder", new ConfigOptionInt(0));
