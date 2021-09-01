@@ -65,6 +65,7 @@ SET PS_DESTDIR=
 CALL :RESOLVE_DESTDIR_CACHE
 
 REM Set up parameters used by help menu
+SET EXIT_STATUS=0
 SET PS_CONFIG_DEFAULT=%PS_CONFIG%
 SET PS_ARCH_HOST=%PS_ARCH%
 (echo " -help /help -h /h -? /? ")| findstr /I /C:" %~1 ">nul && GOTO :HELP
