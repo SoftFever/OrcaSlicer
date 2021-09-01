@@ -109,16 +109,16 @@ protected:
     enum class ToolType {
         BRUSH,
         BUCKET_FILL,
-        SEED_FILL
+        SMART_FILL
     };
 
     bool     m_triangle_splitting_enabled = true;
     ToolType m_tool_type                  = ToolType::BRUSH;
-    float    m_seed_fill_angle            = 30.f;
+    float    m_smart_fill_angle           = 30.f;
 
-    static constexpr float SeedFillAngleMin  = 0.0f;
-    static constexpr float SeedFillAngleMax  = 90.f;
-    static constexpr float SeedFillAngleStep = 1.f;
+    static constexpr float SmartFillAngleMin  = 0.0f;
+    static constexpr float SmartFillAngleMax  = 90.f;
+    static constexpr float SmartFillAngleStep = 1.f;
 
     // It stores the value of the previous mesh_id to which the seed fill was applied.
     // It is used to detect when the mouse has moved from one volume to another one.
