@@ -1480,7 +1480,7 @@ void MainFrame::init_menubar_as_editor()
     if (plater()->printer_technology() == ptSLA)
         update_menubar();
 }
-
+/*
 void MainFrame::open_menubar_item(int menu_index, int item_index)
 {
     if (m_menubar == nullptr)
@@ -1502,6 +1502,7 @@ void MainFrame::open_menubar_item(int menu_index, int item_index)
     }
     wxPostEvent((wxEvtHandler*)menu, wxCommandEvent(wxEVT_MENU, item->GetId()));
 }
+*/
 void MainFrame::init_menubar_as_gcodeviewer()
 {
     wxMenu* fileMenu = new wxMenu;
