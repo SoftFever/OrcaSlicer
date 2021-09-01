@@ -158,6 +158,8 @@ public:
     void        init_menubar_as_editor();
     void        init_menubar_as_gcodeviewer();
     void        update_menubar();
+    // Open item in menu by menu and item index (visible order of items including separators)
+    void        open_menubar_item(int menu_index, int item_index);
 #ifdef _WIN32
     void        show_tabs_menu(bool show);
 #endif
