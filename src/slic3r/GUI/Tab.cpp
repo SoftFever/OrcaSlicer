@@ -492,17 +492,15 @@ void Tab::OnActivate()
     activate_selected_page([](){});
     m_hsizer->Layout();
 
-    // Workaroud for Menu instead of NoteBook
 #ifdef _MSW_DARK_MODE
-//    if (wxGetApp().tabs_as_menu()) 
-    {
-        wxSize sz = m_presets_choice->GetSize(); 
-        wxSize ok_sz = wxSize(35 * m_em_unit, m_presets_choice->GetBestSize().y+1);
-        if (sz != ok_sz) {
-            m_presets_choice->SetMinSize(ok_sz);
-            m_presets_choice->SetSize(ok_sz);
-            GetSizer()->GetItem(size_t(0))->GetSizer()->Layout();
-        }
+    // Because of DarkMode we use our own Notebook (inherited from wxSiplebook) instead of wxNotebook
+    // And it looks like first Layout of the page doesn't update a size of the m_presets_choice
+    // So we have to set correct size explicitely
+    if (wxSize ok_sz = wxSize(35 * m_em_unit, m_presets_choice->GetBestSize().y);
+        ok_sz != m_presets_choice->GetSize()) {
+        m_presets_choice->SetMinSize(ok_sz);
+        m_presets_choice->SetSize(ok_sz);
+        GetSizer()->GetItem(size_t(0))->GetSizer()->Layout();
     }
 #endif // _MSW_DARK_MODE
     Refresh();
