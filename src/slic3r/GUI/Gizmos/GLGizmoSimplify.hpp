@@ -38,6 +38,7 @@ private:
     void set_its(indexed_triangle_set &its);
     void create_gui_cfg();
     void request_rerender();
+    bool is_selected_object(int *object_idx = nullptr);
 
     std::atomic_bool m_is_valid_result; // differ what to do in apply
     std::atomic_bool m_exist_preview;   // set when process end

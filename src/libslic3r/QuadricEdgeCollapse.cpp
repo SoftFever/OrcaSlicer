@@ -7,7 +7,10 @@
 
 using namespace Slic3r;
 
+// Faster debug, comment when you want deep check 
+#ifndef NDEBUG
 #define NDEBUG
+#endif // !NDEBUG
 
 // only private namespace not neccessary be in .hpp
 namespace QuadricEdgeCollapse {
@@ -105,10 +108,17 @@ namespace QuadricEdgeCollapse {
 #endif /* NDEBUG */
 
     // constants --> may be move to config
-    const int status_init_size = 10; // in percents
     const uint32_t check_cancel_period = 16; // how many edge to reduce before call throw_on_cancel
     const size_t max_triangle_count_for_one_vertex = 50;
-} // namespace QuadricEdgeCollapse
+    // change speed of progress bargraph
+    const int status_init_size = 10; // in percents
+    // parts of init size
+    const int status_normal_size = 25;
+    const int status_sum_quadric = 25;
+    const int status_set_offsets = 10;
+    const int status_calc_errors = 30;
+    const int status_create_refs = 10;
+    } // namespace QuadricEdgeCollapse
 
 using namespace QuadricEdgeCollapse;
 
@@ -395,13 +405,6 @@ SymMat QuadricEdgeCollapse::create_quadric(const Triangle &t,
 std::tuple<TriangleInfos, VertexInfos, EdgeInfos, Errors> 
 QuadricEdgeCollapse::init(const indexed_triangle_set &its, ThrowOnCancel& throw_on_cancel, StatusFn& status_fn)
 {
-    // change speed of progress bargraph
-    const int status_normal_size = 25;
-    const int status_sum_quadric = 25;
-    const int status_set_offsets = 10;
-    const int status_calc_errors = 30;
-    const int status_create_refs = 10;
-
     int status_offset = 0;
     TriangleInfos t_infos(its.indices.size());
     VertexInfos   v_infos(its.vertices.size());

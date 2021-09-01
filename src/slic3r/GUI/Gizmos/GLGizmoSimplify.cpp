@@ -55,6 +55,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     create_gui_cfg();
     const Selection &selection = m_parent.get_selection();
     int object_idx = selection.get_object_idx();
+    if (!is_selected_object(&object_idx)) return;
     ModelObject *obj = wxGetApp().plater()->model().objects[object_idx];
     ModelVolume *act_volume = obj->volumes.front();
 
@@ -329,9 +330,9 @@ void GLGizmoSimplify::on_set_state()
 {
     // Closing gizmo. e.g. selecting another one
     if (GLGizmoBase::m_state == GLGizmoBase::Off) {
-
         // refuse outgoing during simlification
-        if (m_state != State::settings) {
+        // object is not selected when it is deleted(cancel and close gizmo)
+        if (m_state != State::settings && is_selected_object()) {
             GLGizmoBase::m_state = GLGizmoBase::On;
             auto notification_manager = wxGetApp().plater()->get_notification_manager();
             notification_manager->push_notification(
@@ -381,6 +382,22 @@ void GLGizmoSimplify::request_rerender() {
         set_dirty();
         m_parent.schedule_extra_frame(0);
     });
+}
+
+bool GLGizmoSimplify::is_selected_object(int *object_idx)
+{
+    int index = (object_idx != nullptr) ? *object_idx :
+        m_parent.get_selection().get_object_idx();
+    // no selected object --> can appear after delete model
+    if (index < 0) {
+        switch (m_state) {
+        case State::settings: close(); break;
+        case State::canceling: break;
+        default: m_state = State::canceling;
+        }
+        return false;
+    }
+    return true;
 }
 
 } // namespace Slic3r::GUI
