@@ -242,6 +242,13 @@ HintDatabase::~HintDatabase()
 		write_used_binary(m_used_ids);
 	}
 }
+void HintDatabase::uninit()
+{
+	if (m_initialized) {
+		write_used_binary(m_used_ids);
+	}
+	m_initialized = false;
+}
 void HintDatabase::init()
 {
 	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));

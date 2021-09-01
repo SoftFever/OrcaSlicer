@@ -121,6 +121,7 @@ public:
 	};
 
 	NotificationManager(wxEvtHandler* evt_handler);
+	~NotificationManager();
 	
 	// Push a prefabricated notification from basic_notifications (see the table at the end of this file).
 	void push_notification(const NotificationType type, int timestamp = 0);
