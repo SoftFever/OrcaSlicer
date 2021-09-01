@@ -807,7 +807,7 @@ void GCodeViewer::render()
             case EMoveType::Unretract:
             case EMoveType::Seam: {
 #if ENABLE_SEAMS_USING_MODELS
-                if (wxGetApp().is_gl_version_greater_or_equal_to(3, 1)) {
+                if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
                     buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
                     buffer.shader = "gouraud_light_instanced";
                     buffer.model.model.init_from(diamond(16));
