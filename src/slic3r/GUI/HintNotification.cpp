@@ -4,6 +4,7 @@
 #include "I18N.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GLCanvas3D.hpp"
+#include "MainFrame.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
@@ -56,10 +57,6 @@ inline void push_style_color(ImGuiCol idx, const ImVec4& col, bool fading_out, f
 	else
 		ImGui::PushStyleColor(idx, col);
 }
-
-
-
-
 
 void write_used_binary(const std::vector<std::string>& ids)
 {
@@ -379,7 +376,13 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, []() {
 						// Deselect all objects, otherwise gallery wont show.
 						wxGetApp().plater()->canvas3D()->deselect_all();
-						wxGetApp().obj_list()->load_shape_object_from_gallery(); } };
+						wxGetApp().obj_list()->load_shape_object_from_gallery(); } 
+					};
+					m_loaded_hints.emplace_back(hint_data);
+				} else if (dict["hypertext_type"] == "menubar") {
+					int			menu = std::atoi(dict["hypertext_menubar_menu_id"].c_str()); 
+					int			item = std::atoi(dict["hypertext_menubar_item_id"].c_str());
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [menu, item]() { wxGetApp().mainframe->open_menubar_item(menu, item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 			} else {

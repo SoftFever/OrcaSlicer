@@ -1479,6 +1479,27 @@ void MainFrame::init_menubar_as_editor()
         update_menubar();
 }
 
+void MainFrame::open_menubar_item(int menu_index, int item_index)
+{
+    if (m_menubar == nullptr)
+        return;
+    wxMenu* menu = m_menubar->GetMenu(menu_index);
+    if (menu == nullptr) {
+        BOOST_LOG_TRIVIAL(error) << "Mainframe open_menubar_item function couldn't find menu: " << menu_index;
+        return;
+    }
+    wxMenuItemList items = menu->GetMenuItems();
+    if (items.size() <= item_index) {
+        BOOST_LOG_TRIVIAL(error) << "Mainframe open_menubar_item function couldn't find item: " << item_index;
+        return;
+    } 
+    wxMenuItem* item = items[item_index];
+    if (item == nullptr) {
+        BOOST_LOG_TRIVIAL(error) << "Mainframe open_menubar_item function couldn't find item: " << item_index;
+        return;
+    }
+    wxPostEvent((wxEvtHandler*)menu, wxCommandEvent(wxEVT_MENU, item->GetId()));
+}
 void MainFrame::init_menubar_as_gcodeviewer()
 {
     wxMenu* fileMenu = new wxMenu;
