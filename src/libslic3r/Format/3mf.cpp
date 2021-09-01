@@ -49,6 +49,17 @@ const unsigned int VERSION_3MF = 1;
 const unsigned int VERSION_3MF_COMPATIBLE = 2;
 const char* SLIC3RPE_3MF_VERSION = "slic3rpe:Version3mf"; // definition of the metadata name saved into .model file
 
+// Painting gizmos data version numbers
+// 0 : 3MF files saved by older PrusaSlicer or the painting gizmo wasn't used. No version definition in them.
+// 1 : Introduction of painting gizmos data versioning. No other changes in painting gizmos data.
+const unsigned int FDM_SUPPORTS_PAINTING_VERSION = 1;
+const unsigned int SEAM_PAINTING_VERSION         = 1;
+const unsigned int MM_PAINTING_VERSION           = 1;
+
+const std::string SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION = "slic3rpe:FdmSupportsPaintingVersion";
+const std::string SLIC3RPE_SEAM_PAINTING_VERSION         = "slic3rpe:SeamPaintingVersion";
+const std::string SLIC3RPE_MM_PAINTING_VERSION           = "slic3rpe:MmPaintingVersion";
+
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
@@ -393,6 +404,10 @@ namespace Slic3r {
         unsigned int m_version;
         bool m_check_version;
 
+        unsigned int m_fdm_supports_painting_version = 0;
+        unsigned int m_seam_painting_version         = 0;
+        unsigned int m_mm_painting_version           = 0;
+
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
         // after returning from XML_Parse() function, thus we keep the error state here.
@@ -543,6 +558,9 @@ namespace Slic3r {
     bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version)
     {
         m_version = 0;
+        m_fdm_supports_painting_version = 0;
+        m_seam_painting_version = 0;
+        m_mm_painting_version = 0;
         m_check_version = check_version;
         m_model = &model;
         m_unit_factor = 1.0f;
@@ -1669,6 +1687,12 @@ namespace Slic3r {
         return true;
     }
 
+    inline static void check_painting_version(unsigned int loaded_version, unsigned int highest_supported_version, const std::string &error_msg)
+    {
+        if (loaded_version > highest_supported_version)
+            throw version_error(error_msg);
+    }
+
     bool _3MF_Importer::_handle_end_metadata()
     {
         if (m_curr_metadata_name == SLIC3RPE_3MF_VERSION) {
@@ -1679,6 +1703,24 @@ namespace Slic3r {
                 const std::string msg = (boost::format(_(L("The selected 3mf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
                 throw version_error(msg);
             }
+        }
+
+        if (m_curr_metadata_name == SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION) {
+            m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_fdm_supports_painting_version, FDM_SUPPORTS_PAINTING_VERSION,
+                _(L("The selected 3MF contains FDM supports painted object using a newer version of PrusaSlicer and is not compatible.")));
+        }
+
+        if (m_curr_metadata_name == SLIC3RPE_SEAM_PAINTING_VERSION) {
+            m_seam_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_seam_painting_version, SEAM_PAINTING_VERSION,
+                _(L("The selected 3MF contains seam painted object using a newer version of PrusaSlicer and is not compatible.")));
+        }
+
+        if (m_curr_metadata_name == SLIC3RPE_MM_PAINTING_VERSION) {
+            m_mm_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
+                _(L("The selected 3MF contains multi-material painted object using a newer version of PrusaSlicer and is not compatible.")));
         }
 
         return true;
@@ -2294,6 +2336,16 @@ namespace Slic3r {
             stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
             stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
             stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_fdm_support_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION << "\">" << FDM_SUPPORTS_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_seam_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_SEAM_PAINTING_VERSION << "\">" << SEAM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_mm_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_MM_PAINTING_VERSION << "\">" << MM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
             std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
             stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";

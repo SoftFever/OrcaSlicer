@@ -285,6 +285,10 @@ public:
     void                    clear_volumes();
     void                    sort_volumes(bool full_sort);
     bool                    is_multiparts() const { return volumes.size() > 1; }
+    // Checks if any of object volume is painted using the fdm support painting gizmo.
+    bool                    is_fdm_support_painted() const;
+    // Checks if any of object volume is painted using the seam painting gizmo.
+    bool                    is_seam_painted() const;
     // Checks if any of object volume is painted using the multi-material painting gizmo.
     bool                    is_mm_painted() const;
 
@@ -723,6 +727,8 @@ public:
         this->mmu_segmentation_facets.set_new_unique_id();
     }
 
+    bool is_fdm_support_painted() const { return !this->supported_facets.empty(); }
+    bool is_seam_painted() const { return !this->seam_facets.empty(); }
     bool is_mm_painted() const { return !this->mmu_segmentation_facets.empty(); }
 
 protected:
@@ -1126,6 +1132,13 @@ public:
     std::string   propose_export_file_name_and_path() const;
     // Propose an output path, replace extension. The new_extension shall contain the initial dot.
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
+
+    // Checks if any of objects is painted using the fdm support painting gizmo.
+    bool          is_fdm_support_painted() const;
+    // Checks if any of objects is painted using the seam painting gizmo.
+    bool          is_seam_painted() const;
+    // Checks if any of objects is painted using the multi-material painting gizmo.
+    bool          is_mm_painted() const;
 
 private:
     explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); }
