@@ -382,40 +382,44 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     app_config->set("desktop_integration_app_path", GUI::format("%1%/applications/PrusaSlicer%2%.desktop", target_dir_desktop, version_suffix));
 
     // Repeat for Gcode viewer - use same paths as for slicer files
-    // Icon
-    if (!target_dir_icons.empty())
-    {
-    	std::string icon_path = GUI::format("%1%/icons/PrusaSlicer-gcodeviewer_192px.png",resources_dir());
-	    std::string dest_path = GUI::format("%1%/icons/%2%PrusaSlicer-gcodeviewer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
-	    if (copy_icon(icon_path, dest_path))
-	    	// save path to icon
-	        app_config->set("desktop_integration_icon_viewer_path", dest_path);
-	    else
-	        BOOST_LOG_TRIVIAL(error) << "Copying Gcode Viewer icon to icons directory failed.";
-    }
+    // Do NOT add gcode viewer desktop file on ChromeOS
+    if (platform_flavor() != PlatformFlavor::LinuxOnChromium) {
+        // Icon
+        if (!target_dir_icons.empty())
+        {
+            std::string icon_path = GUI::format("%1%/icons/PrusaSlicer-gcodeviewer_192px.png",resources_dir());
+            std::string dest_path = GUI::format("%1%/icons/%2%PrusaSlicer-gcodeviewer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
+            if (copy_icon(icon_path, dest_path))
+                // save path to icon
+                app_config->set("desktop_integration_icon_viewer_path", dest_path);
+            else
+                BOOST_LOG_TRIVIAL(error) << "Copying Gcode Viewer icon to icons directory failed.";
+        }
 
-    // Desktop file
-    std::string desktop_file = GUI::format(
-        "[Desktop Entry]\n"
-        "Name=Prusa Gcode Viewer%1%\n"
-        "GenericName=3D Printing Software\n"
-        "Icon=PrusaSlicer-gcodeviewer%2%\n"
-        "Exec=\"%3%\" --gcodeviewer %%F\n"
-        "Terminal=false\n"
-        "Type=Application\n"
-        "MimeType=text/x.gcode;\n"
-        "Categories=Graphics;3DGraphics;\n"
-        "Keywords=3D;Printing;Slicer;\n"
-        "StartupNotify=false\n", name_suffix, version_suffix, excutable_path);
+        // Desktop file
+        std::string desktop_file = GUI::format(
+            "[Desktop Entry]\n"
+            "Name=Prusa Gcode Viewer%1%\n"
+            "GenericName=3D Printing Software\n"
+            "Icon=PrusaSlicer-gcodeviewer%2%\n"
+            "Exec=\"%3%\" --gcodeviewer %%F\n"
+            "Terminal=false\n"
+            "Type=Application\n"
+            "MimeType=text/x.gcode;\n"
+            "Categories=Graphics;3DGraphics;\n"
+            "Keywords=3D;Printing;Slicer;\n"
+            "StartupNotify=false\n", name_suffix, version_suffix, excutable_path);
 
-    std::string desktop_path = GUI::format("%1%/applications/PrusaSlicerGcodeViewer%2%.desktop", target_dir_desktop, version_suffix);
-    if (create_desktop_file(desktop_path, desktop_file))
-    	// save path to desktop file
-        app_config->set("desktop_integration_app_viewer_path", desktop_path);
-    else {
-        BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not create Gcodeviewer desktop file";
-        show_error(nullptr, _L("Performing desktop integration failed - could not create Gcodeviewer desktop file. PrusaSlicer desktop file was probably created successfully."));
+        std::string desktop_path = GUI::format("%1%/applications/PrusaSlicerGcodeViewer%2%.desktop", target_dir_desktop, version_suffix);
+        if (create_desktop_file(desktop_path, desktop_file))
+            // save path to desktop file
+            app_config->set("desktop_integration_app_viewer_path", desktop_path);
+        else {
+            BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not create Gcodeviewer desktop file";
+            show_error(nullptr, _L("Performing desktop integration failed - could not create Gcodeviewer desktop file. PrusaSlicer desktop file was probably created successfully."));
+        }
     }
+    
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::DesktopIntegrationSuccess);
 }
 void DesktopIntegrationDialog::undo_desktop_intgration()
@@ -433,17 +437,20 @@ void DesktopIntegrationDialog::undo_desktop_intgration()
     	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
         std::remove(path.c_str());
     }
-    // gcode viwer .desktop
-    path = std::string(app_config->get("desktop_integration_app_viewer_path"));
-    if (!path.empty()) {
-    	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
-        std::remove(path.c_str());
-    }
-     // gcode viewer icon
-    path = std::string(app_config->get("desktop_integration_icon_viewer_path"));
-    if (!path.empty()) {
-    	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
-        std::remove(path.c_str());
+    // No gcode viewer at ChromeOS
+    if (platform_flavor() != PlatformFlavor::LinuxOnChromium) {
+        // gcode viewer .desktop
+        path = std::string(app_config->get("desktop_integration_app_viewer_path"));
+        if (!path.empty()) {
+        	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
+            std::remove(path.c_str());
+        }
+         // gcode viewer icon
+        path = std::string(app_config->get("desktop_integration_icon_viewer_path"));
+        if (!path.empty()) {
+        	BOOST_LOG_TRIVIAL(debug) << "removing " << path;
+            std::remove(path.c_str());
+        }
     }
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::UndoDesktopIntegrationSuccess);
 }
