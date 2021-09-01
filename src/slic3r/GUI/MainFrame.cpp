@@ -1239,9 +1239,10 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(export_menu, wxID_ANY, _L("Export plate as STL &including supports") + dots, _L("Export current plate as STL including supports"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(true); }, "export_plater", nullptr,
             [this](){return can_export_supports(); }, this);
-        append_menu_item(export_menu, wxID_ANY, _L("Export plate as &AMF") + dots, _L("Export current plate as AMF"),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, "export_plater", nullptr,
-            [this](){return can_export_model(); }, this);
+// Deprecating AMF export. Let's wait for user feedback.
+//        append_menu_item(export_menu, wxID_ANY, _L("Export plate as &AMF") + dots, _L("Export current plate as AMF"),
+//            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, "export_plater", nullptr,
+//            [this](){return can_export_model(); }, this);
         export_menu->AppendSeparator();
         append_menu_item(export_menu, wxID_ANY, _L("Export &toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
