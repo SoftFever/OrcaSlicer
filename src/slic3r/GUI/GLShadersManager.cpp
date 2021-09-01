@@ -39,7 +39,7 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
     // used to render options in gcode preview
 #if ENABLE_SEAMS_USING_MODELS
-    if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 1))
+    if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3))
         valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
     else {
 #endif // ENABLE_SEAMS_USING_MODELS

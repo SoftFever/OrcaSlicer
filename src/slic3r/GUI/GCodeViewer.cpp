@@ -807,7 +807,7 @@ void GCodeViewer::render()
             case EMoveType::Unretract:
             case EMoveType::Seam: {
 #if ENABLE_SEAMS_USING_MODELS
-                if (wxGetApp().is_gl_version_greater_or_equal_to(3, 1)) {
+                if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
                     buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
                     buffer.shader = "gouraud_light_instanced";
                     buffer.model.model.init_from(diamond(16));
@@ -1100,7 +1100,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     // save vertices to file
     fprintf(fp, "\n# vertices\n");
     for (const Vec3f& v : out_vertices) {
-        fprintf(fp, "v %g %g %g\n", v.x(), v.y(), v.x());
+        fprintf(fp, "v %g %g %g\n", v.x(), v.y(), v.z());
     }
 
     // save normals to file
