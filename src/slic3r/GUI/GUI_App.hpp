@@ -247,7 +247,7 @@ public:
     bool            has_current_preset_changes() const;
     void            update_saved_preset_from_current_preset();
     std::vector<std::pair<unsigned int, std::string>> get_selected_presets() const;
-    bool            check_and_save_current_preset_changes(const wxString& header = wxString());
+    bool            check_and_save_current_preset_changes(const wxString& header = wxString(), const wxString& caption = wxString());
     bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
     void            load_current_presets(bool check_printer_presets = true);

@@ -752,8 +752,8 @@ std::vector<std::string> DiffViewCtrl::selected_options()
 //          UnsavedChangesDialog
 //------------------------------------------
 
-UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
-    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("PrusaSlicer is closing: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header, const wxString& caption/* = wxString()*/)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, (caption.IsEmpty() ? _L("PrusaSlicer is closing") : caption) + ": " + _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_close_application";
 

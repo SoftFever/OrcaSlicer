@@ -263,7 +263,7 @@ class UnsavedChangesDialog : public DPIDialog
     std::vector<std::pair<std::string, Preset::Type>>  names_and_types;
 
 public:
-    UnsavedChangesDialog(const wxString& header);
+    UnsavedChangesDialog(const wxString& header, const wxString& caption = wxString());
     UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
     ~UnsavedChangesDialog() {}
 

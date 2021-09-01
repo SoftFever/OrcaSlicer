@@ -240,7 +240,6 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 
-    // ysToDo : set prefered filament or sla_material (relates to print technology) and force o use of preffered printer model if it was added
     this->load_selections(config, preferred_selection);
 
     return substitutions;
