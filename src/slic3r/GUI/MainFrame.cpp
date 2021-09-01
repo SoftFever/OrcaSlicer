@@ -14,6 +14,7 @@
 #include <wx/debug.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
