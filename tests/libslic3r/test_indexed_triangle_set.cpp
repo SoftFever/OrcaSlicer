@@ -288,3 +288,12 @@ TEST_CASE("Simplify trouble case", "[its]")
     its_quadric_edge_collapse(tm.its, wanted_count, &max_error);
     CHECK(tm.its.indices.size() <= 8);
 }
+
+TEST_CASE("Simplified cube should not be empty.", "[its]")
+{
+    auto its = its_make_cube(1, 2, 3);
+    float    max_error    = std::numeric_limits<float>::max();
+    uint32_t wanted_count = 0;
+    its_quadric_edge_collapse(its, wanted_count, &max_error);
+    CHECK(!its.indices.empty());
+}
