@@ -5585,8 +5585,16 @@ void Plater::export_amf()
 
 bool Plater::export_3mf(const boost::filesystem::path& output_path)
 {
+#if ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
+    if (p->model.objects.empty()) {
+        MessageDialog dialog(nullptr, _L("The plater is empty.\nConfirm you want to save the project ?"), _L("Save project"), wxYES_NO);
+        if (dialog.ShowModal() != wxID_YES)
+            return false;
+    }
+#else
     if (p->model.objects.empty())
         return false;
+#endif // ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
 
     wxString path;
     bool export_config = true;

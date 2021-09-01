@@ -53,6 +53,8 @@
 #define ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT (1 && ENABLE_2_4_0_ALPHA0)
 // Enable rendering seams (and other options) in preview using models
 #define ENABLE_SEAMS_USING_MODELS (1 && ENABLE_2_4_0_ALPHA0)
+// Enable save and save as commands to be enabled also when the plater is empty and allow to load empty projects
+#define ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED (1 && ENABLE_2_4_0_ALPHA0)
 
 
 #endif // _prusaslicer_technologies_h_

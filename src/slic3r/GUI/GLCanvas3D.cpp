@@ -4108,13 +4108,24 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
         }
     }
 
+#if !ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
     if (visible_volumes.empty())
         return;
+#endif // !ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
 
     BoundingBoxf3 volumes_box;
-    for (const GLVolume* vol : visible_volumes) {
-        volumes_box.merge(vol->transformed_bounding_box());
+#if ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
+    if (!visible_volumes.empty()) {
+#endif // ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
+        for (const GLVolume* vol : visible_volumes) {
+            volumes_box.merge(vol->transformed_bounding_box());
+        }
+#if ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
     }
+    else
+        // This happens for empty projects
+        volumes_box = wxGetApp().plater()->get_bed().get_bounding_box(true);
+#endif // ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
 
     Camera camera;
     camera.set_type(camera_type);
