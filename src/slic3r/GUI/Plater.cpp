@@ -4759,7 +4759,7 @@ SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
 void Plater::new_project()
 {
-    if (!p->save_project_if_dirty())
+    if (p->save_project_if_dirty() == wxID_CANCEL)
         return;
 
     p->select_view_3D("3D");
