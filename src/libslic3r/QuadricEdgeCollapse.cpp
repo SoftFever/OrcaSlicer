@@ -7,10 +7,9 @@
 
 using namespace Slic3r;
 
-// Faster debug, comment when you want deep check 
 #ifndef NDEBUG
-#define NDEBUG
-#endif // !NDEBUG
+//    #define EXPENSIVE_DEBUG_CHECKS
+#endif // NDEBUG
 
 // only private namespace not neccessary be in .hpp
 namespace QuadricEdgeCollapse {
@@ -100,12 +99,12 @@ namespace QuadricEdgeCollapse {
                           const Triangle &t1, CopyEdgeInfos& infos, EdgeInfos &e_infos1);
     void compact(const VertexInfos &v_infos, const TriangleInfos &t_infos, const EdgeInfos &e_infos, indexed_triangle_set &its);
 
-#ifndef NDEBUG
+#ifdef EXPENSIVE_DEBUG_CHECKS
     void store_surround(const char *obj_filename, size_t triangle_index, int depth, const indexed_triangle_set &its,
                         const VertexInfos &v_infos, const EdgeInfos &e_infos);
     bool check_neighbors(const indexed_triangle_set &its, const TriangleInfos &t_infos,
                          const VertexInfos &v_infos, const EdgeInfos &e_infos);
-#endif /* NDEBUG */
+#endif /* EXPENSIVE_DEBUG_CHECKS */
 
     // constants --> may be move to config
     const uint32_t check_cancel_period = 16; // how many edge to reduce before call throw_on_cancel
@@ -301,9 +300,9 @@ void Slic3r::its_quadric_edge_collapse(
         t_info1.set_deleted();
         // triangle counter decrementation
         actual_triangle_count-=2;
-#ifndef NDEBUG
+#ifdef EXPENSIVE_DEBUG_CHECKS
         assert(check_neighbors(its, t_infos, v_infos, e_infos));
-#endif // NDEBUG
+#endif // EXPENSIVE_DEBUG_CHECKS
     }
 
     // compact triangle
@@ -815,7 +814,8 @@ void QuadricEdgeCollapse::compact(const VertexInfos &   v_infos,
     its.indices.erase(its.indices.begin() + ti_new, its.indices.end());
 }
 
-#ifndef NDEBUG
+#ifdef EXPENSIVE_DEBUG_CHECKS
+
 // store triangle surrounding to file
 void QuadricEdgeCollapse::store_surround(const char *obj_filename,
                                          size_t      triangle_index,
@@ -925,4 +925,4 @@ bool QuadricEdgeCollapse::check_neighbors(const indexed_triangle_set &its,
     }
     return true;
 }
-#endif /* NDEBUG */
+#endif /* EXPENSIVE_DEBUG_CHECKS */
