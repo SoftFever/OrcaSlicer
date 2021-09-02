@@ -391,7 +391,7 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 					wxString item(_L(dict["hypertext_menubar_item_name"]));
 					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [menu, item]() { wxGetApp().mainframe->open_menubar_item(menu, item); } };
 					m_loaded_hints.emplace_back(hint_data);
-				}*/
+				}
 			} else {
 				// plain text without hypertext
 				HintData hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link };
