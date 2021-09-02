@@ -47,6 +47,9 @@ public:
 			return 0;
 		return m_loaded_hints.size(); 
 	}
+	// resets m_initiailized to false and writes used if was initialized
+	// used when reloading in runtime - like change language
+	void    uninit();
 private:
 	void	init();
 	void	load_hints_from_file(const boost::filesystem::path& path);
