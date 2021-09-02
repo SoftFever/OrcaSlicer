@@ -68,10 +68,12 @@ Although most of the dependencies are handled by the build script, we still rely
 
 - `-DDEP_DOWNLOAD_DIR=<download cache dir>` specifies a directory to cache the downloaded source packages for each library. Can be useful for repeated builds, to avoid unnecessary network traffic.
 
+- `-DDEP_WX_GTK3=ON` builds wxWidgets (one of the dependencies) against GTK3 (defaults to OFF)
+
 
 ## Useful CMake flags when building PrusaSlicer
 - `-DSLIC3R_ASAN=ON` enables gcc/clang address sanitizer (defaults to `OFF`, requires gcc>4.8 or clang>3.1)
-- `-DSLIC3R_GTK=3` to use GTK3 (defaults to `2`)
+- `-DSLIC3R_GTK=3` to use GTK3 (defaults to `2`). Note that wxWidgets must be built against the same GTK version.
 - `-DSLIC3R_STATIC=ON` for static build (defaults to `OFF`)
 - `-DSLIC3R_WX_STABLE=ON` to look for wxWidgets 3.0 (defaults to `OFF`)
 - `-DCMAKE_BUILD_TYPE=Debug` to build in debug mode (defaults to `Release`)
