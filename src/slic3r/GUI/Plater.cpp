@@ -2073,6 +2073,8 @@ Plater::priv::~priv()
 {
     if (config != nullptr)
         delete config;
+    if (notification_manager != nullptr)
+        delete notification_manager;
 }
 
 void Plater::priv::update(unsigned int flags)

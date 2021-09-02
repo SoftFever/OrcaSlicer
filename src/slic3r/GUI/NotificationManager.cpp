@@ -1107,6 +1107,10 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 	m_evt_handler(evt_handler)
 {
 }
+NotificationManager::~NotificationManager()
+{
+	HintDatabase::get_instance().uninit();
+}
 void NotificationManager::push_notification(const NotificationType type, int timestamp)
 {
 	auto it = std::find_if(std::begin(basic_notifications), std::end(basic_notifications),
