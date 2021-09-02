@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=PrusaSlicer
+Name[de]=PrusaSlicer
 GenericName=3D Printing Software
 Icon=com.prusa3d.PrusaSlicer
 Exec=prusa-slicer %F
@@ -10,3 +11,10 @@ Categories=Graphics;3DGraphics;Engineering;
 Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA
 StartupNotify=false
 StartupWMClass=prusa-slicer
+Actions=GCodeViewer;
+
+[Desktop Action GCodeViewer]
+Exec=prusa-slicer --gcodeviewer %F
+Name=G-Code Viewer
+Name[de]=G-Code Vorschau
+Icon=com.prusa3d.PrusaSlicer.GCodeViewer

@@ -50,6 +50,50 @@
     </screenshots>
     <content_rating type="oars-1.1" />
     <releases>
+        <release version="2.4.0-alpha1" date="2021-09-02">
+            <description>
+                <p>This is the first alpha release of PrusaSlicer 2.4.0, introducing Multi-material painting tool, improved FDM supports and raft, 
+                Windows dark mode, Fuzzy Skin, per object Brim configuration, Negative volumes, automatic Color Print for signs, Shape Gallery, 
+                "Tip of the day" notifications, Model simplification, support for Marlin 2 acceleration control, support of 3DLabPrint airplane models, 
+                new 3rd party printer profiles and many more new features, improvements and bugfixes.</p>
+            </description>
+        </release>
+        <release version="2.3.3" date="2021-07-16">
+            <description>
+                <p>PrusaSlicer 2.3.3 is a patch release following PrusaSlicer 2.3.2 release, fixing an unfortunate bug in handling FDM multi-material 
+                project and configuration files #6711.</p>
+            </description>
+        </release>
+        <release version="2.3.2" date="2021-07-08">
+            <description>
+                <p>This is a final release of PrusaSlicer 2.3.2, following 2.3.2-beta and 2.3.2-rc. 
+                For the new features in the 2.3.2 series, please read the change logs of the beta and release candidate. 
+                The final release is functionally equal to the release candidate, with a single additional improvement:
+                Before installing profile updates, a configuration snapshot is taken. In rare circumstances when the current configuration is not consistent, 
+                taking a configuration snapshot fails. PrusaSlicer 2.3.2 newly informs about the issue and offers either to install the configuration updates 
+                even if taking the configuration snapshot failed or to abort update of the profiles.</p>
+            </description>
+        </release>
+        <release version="2.3.1" date="2021-04-19">
+            <description>
+                <p>This a final release of PrusaSlicer 2.3.1, introducing native builds for the new Apple Silicon MacBooks, Chrome OS support, performance improvements 
+                in G-code rendering, security fixes and new 3rd party printer profiles. For full changelog on PrusaSlicer 2.3.1 series, please check the PrusaSlicer 
+                2.3.1-rc change log.</p>
+            </description>
+        </release>
+        <release version="2.3.0" date="2021-01-11">
+            <description>
+                <p>This a final release of PrusaSlicer 2.3.0, introducing paint-on supports, ironing, monotonic infill, seam painting, adaptive and support cubic infill,
+                print time per feature analysis, standalone G-code viewer application, better auto-arrange with a customizable gap and rotation,
+                search function for the settings, reworked "Avoid crossing perimeters" function, physical printers (network settings),
+                many new 3rd party printer profiles and much, much more.</p>
+            </description>
+        </release>
+        <release version="2.2.0-1" date="2020-04-27">
+            <description>
+                <p>Development/Unstable Snapshot</p>
+            </description>
+        </release>
         <release version="2.2.0" date="2020-03-21">
             <description>
                 <p>This is final release of PrusaSlicer 2.2.0 introducing SLA hollowing and hole drilling, support for 3rd party printer vendors, 3Dconnexion support, 
