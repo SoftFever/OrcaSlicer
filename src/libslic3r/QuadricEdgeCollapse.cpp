@@ -7,10 +7,9 @@
 
 using namespace Slic3r;
 
-// Faster debug, comment when you want deep check 
 #ifndef NDEBUG
-#define NDEBUG
-#endif // !NDEBUG
+//    #define EXPENSIVE_DEBUG_CHECKS
+#endif // NDEBUG
 
 // only private namespace not neccessary be in .hpp
 namespace QuadricEdgeCollapse {
@@ -100,12 +99,12 @@ namespace QuadricEdgeCollapse {
                           const Triangle &t1, CopyEdgeInfos& infos, EdgeInfos &e_infos1);
     void compact(const VertexInfos &v_infos, const TriangleInfos &t_infos, const EdgeInfos &e_infos, indexed_triangle_set &its);
 
-#ifndef NDEBUG
+#ifdef EXPENSIVE_DEBUG_CHECKS
     void store_surround(const char *obj_filename, size_t triangle_index, int depth, const indexed_triangle_set &its,
                         const VertexInfos &v_infos, const EdgeInfos &e_infos);
     bool check_neighbors(const indexed_triangle_set &its, const TriangleInfos &t_infos,
                          const VertexInfos &v_infos, const EdgeInfos &e_infos);
-#endif /* NDEBUG */
+#endif /* EXPENSIVE_DEBUG_CHECKS */
 
     // constants --> may be move to config
     const uint32_t check_cancel_period = 16; // how many edge to reduce before call throw_on_cancel
@@ -301,9 +300,9 @@ void Slic3r::its_quadric_edge_collapse(
         t_info1.set_deleted();
         // triangle counter decrementation
         actual_triangle_count-=2;
-#ifndef NDEBUG
+#ifdef EXPENSIVE_DEBUG_CHECKS
         assert(check_neighbors(its, t_infos, v_infos, e_infos));
-#endif // NDEBUG
+#endif // EXPENSIVE_DEBUG_CHECKS
     }
 
     // compact triangle
@@ -625,26 +624,31 @@ bool QuadricEdgeCollapse::create_no_volume(
         const Triangle &t0 = indices[e_info0.t_index];
         // edge CCW vertex indices are t0vi0, t0vi1
         size_t t0i = 0;
-        if (t0[t0i] == vi0) ++t0i;
-        uint32_t t0vi0 = t0[t0i];
+        uint32_t t0vi0 = static_cast<uint32_t>(t0[t0i]);
+        if (t0vi0 == vi0) { 
+            ++t0i; 
+            t0vi0 = static_cast<uint32_t>(t0[t0i]);
+        }
         ++t0i;
-        if (t0[t0i] == vi0) ++t0i;
-        uint32_t t0vi1 = t0[t0i];
-
+        uint32_t t0vi1 = static_cast<uint32_t>(t0[t0i]);
+        if (t0vi1 == vi0) { 
+            ++t0i;
+            t0vi1 = static_cast<uint32_t>(t0[t0i]);
+        }
         for (size_t ei1 = v_info1.start; ei1 < v_info1_end; ++ei1) {
             const EdgeInfo &e_info1 = e_infos[ei1];
             const Triangle &t1 = indices[e_info1.t_index];
             size_t t1i = 0;
-            for (; t1i < 3; ++t1i) if (t1[t1i] == t0vi1) break;            
+            for (; t1i < 3; ++t1i) if (static_cast<uint32_t>(t1[t1i]) == t0vi1) break;            
             if (t1i >= 3) continue; // without vertex index from triangle 0
             // check if second index is same too
             ++t1i;
             if (t1i == 3) t1i = 0; // triangle loop(modulo 3)
-            if (t1[t1i] == vi1) { 
+            if (static_cast<uint32_t>(t1[t1i]) == vi1) { 
                 ++t1i; 
                 if (t1i == 3) t1i = 0; // triangle loop(modulo 3)
             }
-            if (t1[t1i] == t0vi0) return true;
+            if (static_cast<uint32_t>(t1[t1i]) == t0vi0) return true;
         }
     }
     return false;
@@ -815,7 +819,8 @@ void QuadricEdgeCollapse::compact(const VertexInfos &   v_infos,
     its.indices.erase(its.indices.begin() + ti_new, its.indices.end());
 }
 
-#ifndef NDEBUG
+#ifdef EXPENSIVE_DEBUG_CHECKS
+
 // store triangle surrounding to file
 void QuadricEdgeCollapse::store_surround(const char *obj_filename,
                                          size_t      triangle_index,
@@ -925,4 +930,4 @@ bool QuadricEdgeCollapse::check_neighbors(const indexed_triangle_set &its,
     }
     return true;
 }
-#endif /* NDEBUG */
+#endif /* EXPENSIVE_DEBUG_CHECKS */
