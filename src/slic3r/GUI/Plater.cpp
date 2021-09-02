@@ -4772,7 +4772,7 @@ void Plater::new_project()
 
 void Plater::load_project()
 {
-    if (!p->save_project_if_dirty())
+    if (p->save_project_if_dirty() == wxID_CANCEL)
         return;
 
     // Ask user for a project file name.
