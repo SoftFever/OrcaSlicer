@@ -2298,8 +2298,11 @@ void PrintObject::project_and_append_custom_facets(
                     project_triangles_to_slabs(this->layers(), custom_facets,
                         (this->trafo_centered() * mv->get_matrix()).cast<float>(),
                         seam, out);
-                else
-                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &out, [](){});
+                else {
+                    std::vector<Polygons> projected;
+                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){});
+                    append(out, std::move(projected));
+                }
         }
 }
 
