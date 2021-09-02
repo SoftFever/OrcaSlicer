@@ -624,26 +624,31 @@ bool QuadricEdgeCollapse::create_no_volume(
         const Triangle &t0 = indices[e_info0.t_index];
         // edge CCW vertex indices are t0vi0, t0vi1
         size_t t0i = 0;
-        if (t0[t0i] == vi0) ++t0i;
-        uint32_t t0vi0 = t0[t0i];
+        uint32_t t0vi0 = static_cast<uint32_t>(t0[t0i]);
+        if (t0vi0 == vi0) { 
+            ++t0i; 
+            t0vi0 = static_cast<uint32_t>(t0[t0i]);
+        }
         ++t0i;
-        if (t0[t0i] == vi0) ++t0i;
-        uint32_t t0vi1 = t0[t0i];
-
+        uint32_t t0vi1 = static_cast<uint32_t>(t0[t0i]);
+        if (t0vi1 == vi0) { 
+            ++t0i;
+            t0vi1 = static_cast<uint32_t>(t0[t0i]);
+        }
         for (size_t ei1 = v_info1.start; ei1 < v_info1_end; ++ei1) {
             const EdgeInfo &e_info1 = e_infos[ei1];
             const Triangle &t1 = indices[e_info1.t_index];
             size_t t1i = 0;
-            for (; t1i < 3; ++t1i) if (t1[t1i] == t0vi1) break;            
+            for (; t1i < 3; ++t1i) if (static_cast<uint32_t>(t1[t1i]) == t0vi1) break;            
             if (t1i >= 3) continue; // without vertex index from triangle 0
             // check if second index is same too
             ++t1i;
             if (t1i == 3) t1i = 0; // triangle loop(modulo 3)
-            if (t1[t1i] == vi1) { 
+            if (static_cast<uint32_t>(t1[t1i]) == vi1) { 
                 ++t1i; 
                 if (t1i == 3) t1i = 0; // triangle loop(modulo 3)
             }
-            if (t1[t1i] == t0vi0) return true;
+            if (static_cast<uint32_t>(t1[t1i]) == t0vi0) return true;
         }
     }
     return false;
