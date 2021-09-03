@@ -120,7 +120,8 @@ void Polyline::simplify(double tolerance)
     this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
 }
 
-/* This method simplifies all *lines* contained in the supplied area */
+#if 0
+// This method simplifies all *lines* contained in the supplied area
 template <class T>
 void Polyline::simplify_by_visibility(const T &area)
 {
@@ -141,6 +142,7 @@ void Polyline::simplify_by_visibility(const T &area)
 }
 template void Polyline::simplify_by_visibility<ExPolygon>(const ExPolygon &area);
 template void Polyline::simplify_by_visibility<ExPolygonCollection>(const ExPolygonCollection &area);
+#endif
 
 void Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
 {
