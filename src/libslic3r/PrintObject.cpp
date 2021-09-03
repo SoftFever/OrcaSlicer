@@ -2293,7 +2293,7 @@ void PrintObject::project_and_append_custom_facets(
             const indexed_triangle_set custom_facets = seam
                     ? mv->seam_facets.get_facets_strict(*mv, type)
                     : mv->supported_facets.get_facets_strict(*mv, type);
-            if (! custom_facets.indices.empty())
+            if (! custom_facets.indices.empty()) {
                 if (seam)
                     project_triangles_to_slabs(this->layers(), custom_facets,
                         (this->trafo_centered() * mv->get_matrix()).cast<float>(),
@@ -2310,6 +2310,7 @@ void PrintObject::project_and_append_custom_facets(
                         for (size_t i = 0; i < out.size(); ++ i)
                             append(out[i], std::move(projected[i]));
                 }
+            }
         }
 }
 

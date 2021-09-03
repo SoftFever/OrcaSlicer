@@ -163,12 +163,16 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     }
 
     std::string texture_filename = custom_texture.empty() ? texture : custom_texture;
-    if (!check_texture(texture_filename))
+    if (! texture_filename.empty() && ! check_texture(texture_filename)) {
+        BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
         texture_filename.clear();
+    }
 
     std::string model_filename = custom_model.empty() ? model : custom_model;
-    if (!check_model(model_filename))
+    if (! model_filename.empty() && ! check_model(model_filename)) {
+        BOOST_LOG_TRIVIAL(error) << "Unable to load bed model: " << model_filename;
         model_filename.clear();
+    }
 
     if (m_shape == shape && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
         // No change, no need to update the UI.
