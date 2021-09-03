@@ -48,7 +48,7 @@ bool GLGizmoSeam::on_init()
 
 std::string GLGizmoSeam::on_get_name() const
 {
-    return (_L("Seam painting") + " [P]").ToUTF8().data();
+    return _u8L("Seam painting");
 }
 
 
@@ -79,7 +79,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     const float approx_height = m_imgui->scaled(14.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
