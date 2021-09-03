@@ -83,11 +83,12 @@ public:
     void parse_buffer(const std::string &buffer, Callback callback)
     {
         const char *ptr = buffer.c_str();
+        const char *end = ptr + buffer.size();
         GCodeLine gline;
         m_parsing = true;
         while (m_parsing && *ptr != 0) {
             gline.reset();
-            ptr = this->parse_line(ptr, gline, callback);
+            ptr = this->parse_line(ptr, end, gline, callback);
         }
     }
 
@@ -95,18 +96,18 @@ public:
         { this->parse_buffer(buffer, [](GCodeReader&, const GCodeReader::GCodeLine&){}); }
 
     template<typename Callback>
-    const char* parse_line(const char *ptr, GCodeLine &gline, Callback &callback)
+    const char* parse_line(const char *ptr, const char *end, GCodeLine &gline, Callback &callback)
     {
         std::pair<const char*, const char*> cmd;
-        const char *end = parse_line_internal(ptr, gline, cmd);
+        const char *line_end = parse_line_internal(ptr, end, gline, cmd);
         callback(*this, gline);
         update_coordinates(gline, cmd);
-        return end;
+        return line_end;
     }
 
     template<typename Callback>
     void parse_line(const std::string &line, Callback callback)
-        { GCodeLine gline; this->parse_line(line.c_str(), gline, callback); }
+        { GCodeLine gline; this->parse_line(line.c_str(), line.c_str() + line.size(), gline, callback); }
 
     void parse_file(const std::string &file, callback_t callback);
     void quit_parsing() { m_parsing = false; }
@@ -127,7 +128,7 @@ public:
 //  void   set_extrusion_axis(char axis) { m_extrusion_axis = axis; }
 
 private:
-    const char* parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command);
+    const char* parse_line_internal(const char *ptr, const char *end, GCodeLine &gline, std::pair<const char*, const char*> &command);
     void        update_coordinates(GCodeLine &gline, std::pair<const char*, const char*> &command);
 
     static bool         is_whitespace(char c)           { return c == ' ' || c == '\t'; }
