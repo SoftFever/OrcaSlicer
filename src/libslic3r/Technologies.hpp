@@ -37,24 +37,33 @@
 
 
 //====================
-// 2.4.0.alpha0 techs
+// 2.4.0.alpha1 techs
 //====================
-#define ENABLE_2_4_0_ALPHA0 1
+#define ENABLE_2_4_0_ALPHA1 1
 
 // Enable delayed rendering of transparent volumes
-#define ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_2_4_0_ALPHA0)
+#define ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_2_4_0_ALPHA1)
 // Enable the fix of importing color print view from gcode files into GCodeViewer
-#define ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER (1 && ENABLE_2_4_0_ALPHA0)
+#define ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER (1 && ENABLE_2_4_0_ALPHA1)
 // Enable drawing contours, at cut level, for sinking volumes
-#define ENABLE_SINKING_CONTOURS (1 && ENABLE_2_4_0_ALPHA0)
+#define ENABLE_SINKING_CONTOURS (1 && ENABLE_2_4_0_ALPHA1)
 // Enable implementation of retract acceleration in gcode processor
-#define ENABLE_RETRACT_ACCELERATION (1 && ENABLE_2_4_0_ALPHA0)
+#define ENABLE_RETRACT_ACCELERATION (1 && ENABLE_2_4_0_ALPHA1)
 // Enable the fix for exporting and importing to/from 3mf file of mirrored volumes
-#define ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT (1 && ENABLE_2_4_0_ALPHA0)
+#define ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT (1 && ENABLE_2_4_0_ALPHA1)
 // Enable rendering seams (and other options) in preview using models
-#define ENABLE_SEAMS_USING_MODELS (1 && ENABLE_2_4_0_ALPHA0)
+#define ENABLE_SEAMS_USING_MODELS (1 && ENABLE_2_4_0_ALPHA1)
 // Enable save and save as commands to be enabled also when the plater is empty and allow to load empty projects
-#define ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED (1 && ENABLE_2_4_0_ALPHA0)
+#define ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED (1 && ENABLE_2_4_0_ALPHA1)
+
+
+//====================
+// 2.4.0.alpha2 techs
+//====================
+#define ENABLE_2_4_0_ALPHA2 1
+
+// Enable rendering seams (and other options) in preview using batched models on systems not supporting OpenGL 3.3
+#define ENABLE_SEAMS_USING_BATCHED_MODELS (1 && ENABLE_SEAMS_USING_MODELS && ENABLE_2_4_0_ALPHA2)
 
 
 #endif // _prusaslicer_technologies_h_
