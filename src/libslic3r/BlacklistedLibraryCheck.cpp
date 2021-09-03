@@ -12,7 +12,7 @@ namespace Slic3r {
 #ifdef  WIN32
 
 //only dll name with .dll suffix - currently case sensitive
-const std::vector<std::wstring> BlacklistedLibraryCheck::blacklist({ L"NahimicOSD.dll" });
+const std::vector<std::wstring> BlacklistedLibraryCheck::blacklist({ L"NahimicOSD.dll", L"SS2OSD.dll" });
 
 bool BlacklistedLibraryCheck::get_blacklisted(std::vector<std::wstring>& names)
 {
