@@ -2916,7 +2916,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
         m_line_id + 1 :
         ((type == EMoveType::Seam) ? m_last_line_id : m_line_id);
 
-    MoveVertex vertex = {
+    m_result.moves.push_back({
         m_last_line_id,
         type,
         m_extrusion_role,
@@ -2931,8 +2931,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
         m_fan_speed,
         m_extruder_temps[m_extruder_id],
         static_cast<float>(m_result.moves.size())
-    };
-    m_result.moves.emplace_back(vertex);
+    });
 
     // stores stop time placeholders for later use
     if (type == EMoveType::Color_change || type == EMoveType::Pause_Print) {
