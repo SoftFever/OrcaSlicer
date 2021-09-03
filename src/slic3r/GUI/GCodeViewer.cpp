@@ -70,18 +70,9 @@ static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::st
     return output;
 }
 
-static float round_to_nearest(float value, unsigned int decimals)
+static float round_to_nearest_percent(float value)
 {
-    float res = 0.0f;
-    if (decimals == 0)
-        res = std::round(value);
-    else {
-        char buf[64];
-        // locales should not matter, both sprintf and stof are sensitive, so...
-        sprintf(buf, "%.*g", decimals, value);
-        res = std::stof(buf);
-    }
-    return res;
+    return std::round(value * 100.f) * 0.01f;
 }
 
 void GCodeViewer::VBuffer::reset()
@@ -146,7 +137,7 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
         // use rounding to reduce the number of generated paths
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
             move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
-            height == round_to_nearest(move.height, 2) && width == round_to_nearest(move.width, 2) &&
+            height == round_to_nearest_percent(move.height) && width == round_to_nearest_percent(move.width) &&
             matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f);
     }
     case EMoveType::Travel: {
@@ -183,7 +174,7 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsi
     Path::Endpoint endpoint = { b_id, i_id, s_id, move.position };
     // use rounding to reduce the number of generated paths
     paths.push_back({ move.type, move.extrusion_role, move.delta_extruder,
-        round_to_nearest(move.height, 2), round_to_nearest(move.width, 2),
+        round_to_nearest_percent(move.height), round_to_nearest_percent(move.width),
         move.feedrate, move.fan_speed, move.temperature,
         move.volumetric_rate(), move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
 }
@@ -721,11 +712,11 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         {
         case EMoveType::Extrude:
         {
-            m_extrusions.ranges.height.update_from(round_to_nearest(curr.height, 2));
-            m_extrusions.ranges.width.update_from(round_to_nearest(curr.width, 2));
+            m_extrusions.ranges.height.update_from(round_to_nearest_percent(curr.height));
+            m_extrusions.ranges.width.update_from(round_to_nearest_percent(curr.width));
             m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
             m_extrusions.ranges.temperature.update_from(curr.temperature);
-            m_extrusions.ranges.volumetric_rate.update_from(round_to_nearest(curr.volumetric_rate(), 2));
+            m_extrusions.ranges.volumetric_rate.update_from(round_to_nearest_percent(curr.volumetric_rate()));
             [[fallthrough]];
         }
         case EMoveType::Travel:
