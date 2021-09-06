@@ -476,11 +476,19 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         g1_times_cache_it.emplace_back(machine.g1_times_cache.begin());
 
     // add lines M73 to exported gcode
-    auto process_line_G1 = [&]() {
+    auto process_line_G1 = [
+        // Lambdas, mostly for string formatting, all with an empty capture block.
+        time_in_minutes, format_time_float, format_line_M73_main, format_line_M73_stop_int, format_line_M73_stop_float, time_in_last_minute,
+        &self = std::as_const(*this),
+        // Caches, to be modified
+        &g1_times_cache_it, &last_exported_main, &last_exported_stop,
+        // String output
+        &export_line]
+        (const size_t g1_lines_counter) {
         unsigned int exported_lines_count = 0;
-        if (export_remaining_time_enabled) {
+        if (self.export_remaining_time_enabled) {
             for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                const TimeMachine& machine = machines[i];
+                const TimeMachine& machine = self.machines[i];
                 if (machine.enabled) {
                     // export pair <percent, remaining time>
                     // Skip all machine.g1_times_cache below g1_lines_counter.
@@ -581,8 +589,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             parser.parse_line(gcode_line,
                 [&](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
                     if (line.cmd_is("G1")) {
-                        unsigned int extra_lines_count = process_line_G1();
-                        ++g1_lines_counter;
+                        unsigned int extra_lines_count = process_line_G1(g1_lines_counter ++);
                         if (extra_lines_count > 0)
                             offsets.push_back({ line_id, extra_lines_count });
                     }
