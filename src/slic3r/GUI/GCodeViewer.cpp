@@ -3764,7 +3764,11 @@ void GCodeViewer::render_legend(float& legend_height)
     auto add_option = [this, append_item](EMoveType move_type, EOptionsColors color, const std::string& text) {
         const TBuffer& buffer = m_buffers[buffer_id(move_type)];
         if (buffer.visible && buffer.has_data())
+#if ENABLE_SEAMS_USING_BATCHED_MODELS
+            append_item(EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
+#else
             append_item((buffer.shader == "options_110") ? EItemType::Rect : EItemType::Circle, Options_Colors[static_cast<unsigned int>(color)], text);
+#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
     };
 
     // options section
