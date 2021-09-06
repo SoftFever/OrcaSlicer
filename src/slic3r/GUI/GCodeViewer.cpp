@@ -2399,7 +2399,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         buffer.model.instances.render_ranges.reset();
 
-        if (!buffer.visible)
+        if (!buffer.visible || buffer.model.instances.s_ids.empty())
             continue;
 
         buffer.model.instances.render_ranges.ranges.push_back({ 0, 0, 0, buffer.model.color });
