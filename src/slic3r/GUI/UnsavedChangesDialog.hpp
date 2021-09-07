@@ -299,7 +299,8 @@ protected:
 class FullCompareDialog : public wxDialog
 {
 public:
-    FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value);
+    FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value,
+                      const wxString& old_value_header, const wxString& new_value_header);
     ~FullCompareDialog() {}
 };
 
