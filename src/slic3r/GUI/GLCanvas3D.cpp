@@ -1845,7 +1845,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     volume->extruder_id = extruder_id;
 
                 volume->is_modifier = !mvs->model_volume->is_model_part();
-                volume->set_color_from_model_volume(*mvs->model_volume);
+                volume->set_color(color_from_model_volume(*mvs->model_volume));
 
                 // updates volumes transformations
                 volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_transformation());
