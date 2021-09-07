@@ -961,10 +961,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     }
 
     // replace missing values with default
-    std::string default_color = "#FF8000";
     for (size_t i = 0; i < m_result.extruder_colors.size(); ++i) {
         if (m_result.extruder_colors[i].empty())
-            m_result.extruder_colors[i] = default_color;
+            m_result.extruder_colors[i] = "#FF8000";
     }
 
     m_extruder_colors.resize(m_result.extruder_colors.size());
@@ -1350,7 +1349,7 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
                 if (pos != cmt.npos) {
                     std::string data_str = cmt.substr(pos + 1);
                     std::vector<std::string> values_str;
-                    boost::split(values_str, data_str, boost::is_any_of("|"), boost::token_compress_on);
+                    boost::split(values_str, data_str, boost::is_any_of("|,"), boost::token_compress_on);
                     for (const std::string& s : values_str) {
                         out.emplace_back(static_cast<float>(string_to_double_decimal_point(s)));
                     }
@@ -1374,10 +1373,16 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
                 m_result.filament_densities.clear();
                 extract_floats(comment, "filamentDensities", m_result.filament_densities);
             }
+            else if (comment.find("extruderDiameter") != comment.npos) {
+                std::vector<float> extruder_diameters;
+                extract_floats(comment, "extruderDiameter", extruder_diameters);
+                m_result.extruders_count = extruder_diameters.size();
+            }
         }
         });
 
-    m_result.extruders_count = std::max<size_t>(1, std::min(m_result.filament_diameters.size(), m_result.filament_densities.size()));
+    if (m_result.extruders_count == 0)
+        m_result.extruders_count = std::max<size_t>(1, std::min(m_result.filament_diameters.size(), m_result.filament_densities.size()));
 
     if (bed_size.is_defined()) {
         m_result.bed_shape = {
