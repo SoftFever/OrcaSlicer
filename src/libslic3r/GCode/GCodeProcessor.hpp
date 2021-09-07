@@ -306,7 +306,7 @@ namespace Slic3r {
 
             // post process the file with the given filename to add remaining time lines M73
             // and updates moves' gcode ids accordingly
-            void post_process(const std::string& filename, std::vector<MoveVertex>& moves);
+            void post_process(const std::string& filename, std::vector<MoveVertex>& moves, std::vector<size_t>& lines_ends);
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -350,6 +350,8 @@ namespace Slic3r {
             std::string filename;
             unsigned int id;
             std::vector<MoveVertex> moves;
+            // Positions of ends of lines of the final G-code this->filename after TimeProcessor::post_process() finalizes the G-code.
+            std::vector<size_t> lines_ends;
             Pointfs bed_shape;
             SettingsIds settings_ids;
             size_t extruders_count;

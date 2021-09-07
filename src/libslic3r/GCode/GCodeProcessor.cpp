@@ -354,7 +354,7 @@ struct FilePtr {
     FILE* f = nullptr;
 };
 
-void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<MoveVertex>& moves)
+void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<MoveVertex>& moves, std::vector<size_t>& lines_ends)
 {
     FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
     if (in.f == nullptr)
@@ -567,13 +567,19 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     };
 
     // helper function to write to disk
-    auto write_string = [&export_line, &out, &out_path](const std::string& str) {
+    size_t out_file_pos = 0;
+    lines_ends.clear();
+    auto write_string = [&export_line, &out, &out_path, &out_file_pos, &lines_ends](const std::string& str) {
         fwrite((const void*)export_line.c_str(), 1, export_line.length(), out.f);
         if (ferror(out.f)) {
             out.close();
             boost::nowide::remove(out_path.c_str());
             throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
         }
+        for (size_t i = 0; i < export_line.size(); ++ i)
+            if (export_line[i] == '\n')
+                lines_ends.emplace_back(out_file_pos + i + 1);
+        out_file_pos += export_line.size();
         export_line.clear();
     };
 
@@ -736,7 +742,9 @@ void GCodeProcessor::Result::reset() {
 }
 #else
 void GCodeProcessor::Result::reset() {
-    moves = std::vector<GCodeProcessor::MoveVertex>();
+
+    moves.clear();
+    lines_ends.clear();
     bed_shape = Pointfs();
     settings_ids.reset();
     extruders_count = 0;
@@ -1270,7 +1278,7 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
 
     // post-process to add M73 lines into the gcode
     if (apply_postprocess)
-        m_time_processor.post_process(filename, m_result.moves);
+        m_time_processor.post_process(filename, m_result.moves, m_result.lines_ends);
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     std::cout << "\n";
