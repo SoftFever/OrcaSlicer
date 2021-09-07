@@ -21,6 +21,9 @@
 
 #include <chrono>
 
+static const float DEFAULT_TOOLPATH_WIDTH = 0.4f;
+static const float DEFAULT_TOOLPATH_HEIGHT = 0.2f;
+
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
@@ -2217,9 +2220,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         return;
 
     EMoveType type = move_type(delta_pos);
-    if (type == EMoveType::Extrude && m_end_position[Z] == 0.0f)
-        type = EMoveType::Travel;
-
     if (type == EMoveType::Extrude) {
         float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
@@ -2243,6 +2243,12 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             }
         }
 
+        if (m_height == 0.0f)
+            m_height = DEFAULT_TOOLPATH_HEIGHT;
+
+        if (m_end_position[Z] == 0.0f)
+            m_end_position[Z] = m_height;
+
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_height_compare.update(m_height, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -2259,22 +2265,16 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             // cross section: rectangle + 2 semicircles
             m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (delta_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height;
 
-#if ENABLE_CLAMP_TOOLPATHS_WIDTH
-        if (m_producers_enabled && m_producer != EProducer::PrusaSlicer)
-            // clamp width to avoid artifacts which may arise from wrong values of m_height
-            m_width = std::min(m_width, std::max(1.0f, 4.0f * m_height));
-#else
+        if (m_width == 0.0f)
+            m_width = DEFAULT_TOOLPATH_WIDTH;
+
         // clamp width to avoid artifacts which may arise from wrong values of m_height
-        m_width = std::min(m_width, std::max(1.0f, 4.0f * m_height));
-#endif // ENABLE_CLAMP_TOOLPATHS_WIDTH
+        m_width = std::min(m_width, std::max(2.0f, 4.0f * m_height));
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_width_compare.update(m_width, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     }
-
-    if (type == EMoveType::Extrude && (m_width == 0.0f || m_height == 0.0f))
-        type = EMoveType::Travel;
 
     // time estimate section
     auto move_length = [](const AxisCoords& delta_pos) {
