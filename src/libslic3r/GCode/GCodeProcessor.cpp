@@ -350,7 +350,12 @@ void GCodeProcessor::TimeProcessor::reset()
 struct FilePtr {
     FilePtr(FILE *f) : f(f) {}
     ~FilePtr() { this->close(); }
-    void close() { if (f) ::fclose(f); }
+    void close() { 
+        if (this->f) {
+            ::fclose(this->f);
+            this->f = nullptr;
+        }
+    }
     FILE* f = nullptr;
 };
 

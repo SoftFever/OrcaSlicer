@@ -2642,9 +2642,23 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
     return gcode;
 }
 
-bool GCode::GCodeOutputStream::is_error() const { return ::ferror(f); }
-void GCode::GCodeOutputStream::flush() { ::fflush(f); }
-void GCode::GCodeOutputStream::close() { if (f) ::fclose(f); }
+bool GCode::GCodeOutputStream::is_error() const 
+{
+    return ::ferror(this->f);
+}
+
+void GCode::GCodeOutputStream::flush()
+{ 
+    ::fflush(this->f);
+}
+
+void GCode::GCodeOutputStream::close()
+{ 
+    if (this->f) {
+        ::fclose(this->f);
+        this->f = nullptr;
+    }
+}
 
 void GCode::GCodeOutputStream::write(const char *what)
 {
