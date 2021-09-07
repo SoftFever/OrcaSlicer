@@ -133,7 +133,7 @@ void GCodeReader::update_coordinates(GCodeLine &gline, std::pair<const char*, co
     }
 }
 
-void GCodeReader::parse_file(const std::string &file, callback_t callback)
+bool GCodeReader::parse_file(const std::string &file, callback_t callback)
 {
     boost::nowide::ifstream f(file);
     f.sync_with_stdio(false);
@@ -141,17 +141,18 @@ void GCodeReader::parse_file(const std::string &file, callback_t callback)
     std::string line;
     m_parsing = true;
     GCodeLine gline;
-    bool eof = false;
-    while (m_parsing && ! eof) {
+    while (m_parsing && ! f.eof()) {
         f.read(buffer.data(), buffer.size());
+        if (! f.eof() && ! f.good())
+            // Reading the input file failed.
+            return false;
         auto it        = buffer.begin();
         auto it_bufend = buffer.begin() + f.gcount();
-        eof = ! f.good();
         while (it != it_bufend) {
             bool eol = false;
             auto it_end = it;
             for (; it_end != it_bufend && ! (eol = *it_end == '\r' || *it_end == '\n'); ++ it_end) ;
-            eol |= eof && it_end == it_bufend;
+            eol |= f.eof() && it_end == it_bufend;
             if (eol) {
                 gline.reset();
                 if (line.empty())
@@ -167,6 +168,7 @@ void GCodeReader::parse_file(const std::string &file, callback_t callback)
             for (it = it_end; it != it_bufend && (*it == '\r' || *it == '\n'); ++ it) ;
         }
     }
+    return true;
 }
 
 bool GCodeReader::GCodeLine::has(char axis) const
