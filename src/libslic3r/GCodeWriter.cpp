@@ -309,7 +309,16 @@ public:
 
     void emit_axis(const char axis, const double v, size_t digits) {
         *ptr_err.ptr ++ = ' '; *ptr_err.ptr ++ = axis;
+#ifdef WIN32
         this->ptr_err = std::to_chars(this->ptr_err.ptr, this->buf_end, v, std::chars_format::fixed, digits);
+#else
+        int buf_capacity = int(this->buf_end - this->ptr_err.ptr);
+        int ret          = snprintf(this->ptr_err.ptr, buf_capacity, "%.*lf", int(digits), v);
+        if (ret <= 0 || ret > buf_capacity)
+            ptr_err.ec = std::errc::value_too_large;
+        else
+            this->ptr_err.ptr = this->ptr_err.ptr + ret;
+#endif
     }
 
     void emit_xy(const Vec2d &point) {

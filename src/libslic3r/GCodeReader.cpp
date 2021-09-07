@@ -71,9 +71,16 @@ const char* GCodeReader::parse_line_internal(const char *ptr, const char *end, G
             }
             if (axis != NUM_AXES_WITH_UNKNOWN) {
                 // Try to parse the numeric value.
+#ifdef WIN32
                 double v;
                 auto [pend, ec] = std::from_chars(++ c, end, v);
                 if (pend != c && is_end_of_word(*pend)) {
+#else
+                // The older version of GCC and Clang support std::from_chars just for integers, so strtod we used it instead.
+                char   *pend = nullptr;
+                double  v = strtod(++ c, &pend);
+                if (pend != nullptr && is_end_of_word(*pend)) {
+#endif
                     // The axis value has been parsed correctly.
                     if (axis != UNKNOWN_AXIS)
 	                    gline.m_axis[int(axis)] = float(v);
