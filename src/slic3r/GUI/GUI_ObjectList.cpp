@@ -1044,13 +1044,8 @@ void ObjectList::key_event(wxKeyEvent& event)
 {
     if (event.GetKeyCode() == WXK_TAB)
         Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
-    else if (event.GetKeyCode() == WXK_DELETE
-#ifdef __WXOSX__
-        || event.GetKeyCode() == WXK_BACK
-#endif //__WXOSX__
-        ) {
+    else if (event.GetKeyCode() == WXK_DELETE || event.GetKeyCode() == WXK_BACK )
         remove();
-    }
     else if (event.GetKeyCode() == WXK_F5)
         wxGetApp().plater()->reload_all_from_disk();
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL/*WXK_SHIFT*/))
