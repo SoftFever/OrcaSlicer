@@ -347,17 +347,25 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
+struct FilePtr {
+    FilePtr(FILE *f) : f(f) {}
+    ~FilePtr() { this->close(); }
+    void close() { if (f) ::fclose(f); }
+    FILE* f = nullptr;
+};
+
 void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<MoveVertex>& moves)
 {
-    boost::nowide::ifstream in(filename);
-    if (!in.good())
+    FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
+    if (in.f == nullptr)
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
     // temporary file to contain modified gcode
     std::string out_path = filename + ".postprocess";
-    FILE* out = boost::nowide::fopen(out_path.c_str(), "wb");
-    if (out == nullptr)
+    FilePtr out{ boost::nowide::fopen(out_path.c_str(), "wb") };
+    if (out.f == nullptr) {
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
+    }
 
     auto time_in_minutes = [](float time_in_seconds) {
         assert(time_in_seconds >= 0.f);
@@ -559,11 +567,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     };
 
     // helper function to write to disk
-    auto write_string = [&](const std::string& str) {
-        fwrite((const void*)export_line.c_str(), 1, export_line.length(), out);
-        if (ferror(out)) {
-            in.close();
-            fclose(out);
+    auto write_string = [&export_line, &out, &out_path](const std::string& str) {
+        fwrite((const void*)export_line.c_str(), 1, export_line.length(), out.f);
+        if (ferror(out.f)) {
+            out.close();
             boost::nowide::remove(out_path.c_str());
             throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nIs the disk full?\n"));
         }
@@ -575,25 +582,23 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
     {
         // Read the input stream 64kB at a time, extract lines and process them.
-        in.sync_with_stdio(false);
         std::vector<char> buffer(65536 * 10, 0);
         // Line buffer.
         assert(gcode_line.empty());
-        while (! in.eof()) {
-            in.read(buffer.data(), buffer.size());
-            if (! in.eof() && ! in.good()) {
-                fclose(out);
+        for (;;) {
+            size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
+            if (::ferror(in.f))
                 throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
-            }
+            bool eof       = cnt_read == 0;
             auto it        = buffer.begin();
-            auto it_bufend = buffer.begin() + in.gcount();
-            while (it != it_bufend) {
+            auto it_bufend = buffer.begin() + cnt_read;
+            while (it != it_bufend || (eof && ! gcode_line.empty())) {
                 // Find end of line.
                 bool eol    = false;
                 auto it_end = it;
                 for (; it_end != it_bufend && ! (eol = *it_end == '\r' || *it_end == '\n'); ++ it_end) ;
                 // End of line is indicated also if end of file was reached.
-                eol |= in.eof() && it_end == it_bufend;
+                eol |= eof && it_end == it_bufend;
                 gcode_line.insert(gcode_line.end(), it, it_end);
                 if (eol) {
                     ++line_id;
@@ -622,13 +627,15 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 if (it != it_bufend && *it == '\n')
                     ++ it;
             }
+            if (eof)
+                break;
         }
     }
 
     if (!export_line.empty())
         write_string(export_line);
 
-    fclose(out);
+    out.close();
     in.close();
 
     // updates moves' gcode ids which have been modified by the insertion of the M73 lines
@@ -1234,7 +1241,8 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
         if (-- parse_line_callback_cntr == 0) {
             // Don't call the cancel_callback() too often, do it every at every 10000'th line.
             parse_line_callback_cntr = 10000;
-            cancel_callback();
+            if (cancel_callback)
+                cancel_callback();
         }
         this->process_gcode_line(line);
     });
