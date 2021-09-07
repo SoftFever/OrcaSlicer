@@ -2642,6 +2642,10 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
     return gcode;
 }
 
+bool GCode::GCodeOutputStream::is_error() const { return ::ferror(f); }
+void GCode::GCodeOutputStream::flush() { ::fflush(f); }
+void GCode::GCodeOutputStream::close() { if (f) ::fclose(f); }
+
 void GCode::GCodeOutputStream::write(const char *what)
 {
     if (what != nullptr) {

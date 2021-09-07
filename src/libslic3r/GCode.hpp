@@ -190,10 +190,10 @@ private:
         ~GCodeOutputStream() { this->close(); }
 
         bool is_open() const { return f; }
-        bool is_error() const { return ::ferror(f); }
+        bool is_error() const;
         
-        void flush() { ::fflush(f); }
-        void close() { if (f) ::fclose(f); }
+        void flush();
+        void close();
 
         // Write a string into a file.
         void write(const std::string& what) { this->write(what.c_str()); }
