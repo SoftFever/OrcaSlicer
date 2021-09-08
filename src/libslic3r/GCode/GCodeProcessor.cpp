@@ -828,6 +828,9 @@ bool GCodeProcessor::contains_reserved_tags(const std::string& gcode, unsigned i
 }
 
 GCodeProcessor::GCodeProcessor()
+#if ENABLE_FIX_PREVIEW_OPTIONS_Z
+: m_options_z_corrector(m_result)
+#endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
 {
     reset();
     m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].line_m73_main_mask = "M73 P%s R%s\n";
@@ -1201,6 +1204,10 @@ void GCodeProcessor::reset()
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
     m_last_default_color_id = 0;
 #endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+
+#if ENABLE_FIX_PREVIEW_OPTIONS_Z
+    m_options_z_corrector.reset();
+#endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_mm3_per_mm_compare.reset();
@@ -1781,6 +1788,9 @@ void GCodeProcessor::process_tags(const std::string_view comment)
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
             CustomGCode::Item item = { static_cast<double>(m_end_position[2]), CustomGCode::ColorChange, extruder_id + 1, color, "" };
             m_result.custom_gcode_per_print_z.emplace_back(item);
+#if ENABLE_FIX_PREVIEW_OPTIONS_Z
+            m_options_z_corrector.set();
+#endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
             process_custom_gcode_time(CustomGCode::ColorChange);
             process_filaments(CustomGCode::ColorChange);
 #endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
@@ -1800,6 +1810,9 @@ void GCodeProcessor::process_tags(const std::string_view comment)
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         CustomGCode::Item item = { static_cast<double>(m_end_position[2]), CustomGCode::PausePrint, m_extruder_id + 1, "", "" };
         m_result.custom_gcode_per_print_z.emplace_back(item);
+#if ENABLE_FIX_PREVIEW_OPTIONS_Z
+        m_options_z_corrector.set();
+#endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
 #endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         process_custom_gcode_time(CustomGCode::PausePrint);
         return;
@@ -1811,6 +1824,9 @@ void GCodeProcessor::process_tags(const std::string_view comment)
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         CustomGCode::Item item = { static_cast<double>(m_end_position[2]), CustomGCode::Custom, m_extruder_id + 1, "", "" };
         m_result.custom_gcode_per_print_z.emplace_back(item);
+#if ENABLE_FIX_PREVIEW_OPTIONS_Z
+        m_options_z_corrector.set();
+#endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
 #endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         return;
     }
@@ -2391,7 +2407,9 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         else {
             if (m_end_position[Z] > m_extruded_last_z + EPSILON) {
                 m_height = m_end_position[Z] - m_extruded_last_z;
+#if !ENABLE_FIX_PREVIEW_OPTIONS_Z
                 m_extruded_last_z = m_end_position[Z];
+#endif // !ENABLE_FIX_PREVIEW_OPTIONS_Z
             }
         }
 
@@ -2400,6 +2418,11 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         if (m_end_position[Z] == 0.0f)
             m_end_position[Z] = m_height;
+
+#if ENABLE_FIX_PREVIEW_OPTIONS_Z
+        m_extruded_last_z = m_end_position[Z];
+        m_options_z_corrector.update(m_height);
+#endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_height_compare.update(m_height, m_extrusion_role);
