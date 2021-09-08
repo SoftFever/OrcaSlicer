@@ -33,11 +33,19 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     bool valid = true;
 
+#if ENABLE_SEAMS_USING_BATCHED_MODELS
+    // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
+#else
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells
+#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
     valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
     // used to render printbed
     valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
     // used to render options in gcode preview
+#if ENABLE_SEAMS_USING_BATCHED_MODELS
+    if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3))
+        valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
+#else
 #if ENABLE_SEAMS_USING_MODELS
     if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3))
         valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
@@ -49,6 +57,7 @@ std::pair<bool, std::string> GLShadersManager::init()
 #if ENABLE_SEAMS_USING_MODELS
     }
 #endif // ENABLE_SEAMS_USING_MODELS
+#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
     // used to render objects in 3d editor
