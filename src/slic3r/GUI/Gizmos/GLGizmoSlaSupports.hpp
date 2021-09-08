@@ -67,6 +67,8 @@ public:
     bool has_backend_supports() const;
     void reslice_SLA_supports(bool postpone_error_messages = false) const;
 
+    bool wants_enter_leave_snapshots() const override { return true; }
+
 private:
     bool on_init() override;
     void on_update(const UpdateData& data) override;

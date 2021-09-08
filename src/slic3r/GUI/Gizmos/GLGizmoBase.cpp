@@ -232,6 +232,20 @@ void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
     }
 }
 
+
+
+std::string GLGizmoBase::get_name(bool include_shortcut) const
+{
+    int key = get_shortcut_key();
+    assert( key >= WXK_CONTROL_A && key <= WXK_CONTROL_Z);
+    std::string out = on_get_name();
+    if (include_shortcut)
+        out += std::string(" [") + char(int('A') + key - int(WXK_CONTROL_A)) + "]";
+    return out;
+}
+
+
+
 // Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components
 // were not interpolated by alpha blending or multi sampling.
 unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char green, unsigned char blue)

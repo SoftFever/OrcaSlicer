@@ -70,18 +70,9 @@ static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::st
     return output;
 }
 
-static float round_to_nearest(float value, unsigned int decimals)
+static float round_to_nearest_percent(float value)
 {
-    float res = 0.0f;
-    if (decimals == 0)
-        res = std::round(value);
-    else {
-        char buf[64];
-        // locales should not matter, both sprintf and stof are sensitive, so...
-        sprintf(buf, "%.*g", decimals, value);
-        res = std::stof(buf);
-    }
-    return res;
+    return std::round(value * 100.f) * 0.01f;
 }
 
 void GCodeViewer::VBuffer::reset()
@@ -146,7 +137,7 @@ bool GCodeViewer::Path::matches(const GCodeProcessor::MoveVertex& move) const
         // use rounding to reduce the number of generated paths
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
             move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
-            height == round_to_nearest(move.height, 2) && width == round_to_nearest(move.width, 2) &&
+            height == round_to_nearest_percent(move.height) && width == round_to_nearest_percent(move.width) &&
             matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f);
     }
     case EMoveType::Travel: {
@@ -183,7 +174,7 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessor::MoveVertex& move, unsi
     Path::Endpoint endpoint = { b_id, i_id, s_id, move.position };
     // use rounding to reduce the number of generated paths
     paths.push_back({ move.type, move.extrusion_role, move.delta_extruder,
-        round_to_nearest(move.height, 2), round_to_nearest(move.width, 2),
+        round_to_nearest_percent(move.height), round_to_nearest_percent(move.width),
         move.feedrate, move.fan_speed, move.temperature,
         move.volumetric_rate(), move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
 }
@@ -293,45 +284,14 @@ void GCodeViewer::SequentialView::Marker::render() const
     ImGui::PopStyleVar();
 }
 
-void GCodeViewer::SequentialView::GCodeWindow::load_gcode()
+void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends)
 {
-    if (m_filename.empty())
-        return;
-
+    assert(! m_file.is_open());
     if (m_file.is_open())
         return;
 
-    try
-    {
-        // generate mapping for accessing data in file by line number
-        boost::nowide::ifstream f(m_filename);
-
-        f.seekg(0, f.end);
-        uint64_t file_length = static_cast<uint64_t>(f.tellg());
-        f.seekg(0, f.beg);
-
-        std::string line;
-        uint64_t offset = 0;
-        while (std::getline(f, line)) {
-            uint64_t line_length = static_cast<uint64_t>(line.length());
-            m_lines_map.push_back({ offset, line_length });
-            offset += static_cast<uint64_t>(line_length) + 1;
-        }
-
-        if (offset != file_length) {
-            // if the final offset does not match with file length, lines are terminated with CR+LF
-            // so update all offsets accordingly
-            for (size_t i = 0; i < m_lines_map.size(); ++i) {
-                m_lines_map[i].first += static_cast<uint64_t>(i);
-            }
-        }
-    }
-    catch (...)
-    {
-        BOOST_LOG_TRIVIAL(error) << "Unable to load data from " << m_filename << ". Cannot show G-code window.";
-        reset();
-        return;
-    }
+    m_filename   = filename;
+    m_lines_ends = std::move(lines_ends);
 
     m_selected_line_id = 0;
     m_last_lines_size = 0;
@@ -354,7 +314,9 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
         ret.reserve(end_id - start_id + 1);
         for (uint64_t id = start_id; id <= end_id; ++id) {
             // read line from file
-            std::string gline(m_file.data() + m_lines_map[id - 1].first, m_lines_map[id - 1].second);
+            const size_t start = id == 1 ? 0 : m_lines_ends[id - 2];
+            const size_t len   = m_lines_ends[id - 1] - start;
+            std::string gline(m_file.data() + start, len);
 
             std::string command;
             std::string parameters;
@@ -388,7 +350,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     static const ImVec4 PARAMETERS_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
     static const ImVec4 COMMENT_COLOR = { 0.7f, 0.7f, 0.7f, 1.0f };
 
-    if (!m_visible || m_filename.empty() || m_lines_map.empty() || curr_line_id == 0)
+    if (!m_visible || m_filename.empty() || m_lines_ends.empty() || curr_line_id == 0)
         return;
 
     // window height
@@ -406,8 +368,8 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
     const uint64_t half_lines_count = lines_count / 2;
     uint64_t start_id = (curr_line_id >= half_lines_count) ? curr_line_id - half_lines_count : 0;
     uint64_t end_id = start_id + lines_count - 1;
-    if (end_id >= static_cast<uint64_t>(m_lines_map.size())) {
-        end_id = static_cast<uint64_t>(m_lines_map.size()) - 1;
+    if (end_id >= static_cast<uint64_t>(m_lines_ends.size())) {
+        end_id = static_cast<uint64_t>(m_lines_ends.size()) - 1;
         start_id = end_id - lines_count + 1;
     }
 
@@ -512,7 +474,7 @@ void GCodeViewer::SequentialView::render(float legend_height) const
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
-    { 0.75f, 0.75f, 0.75f, 1.0f },   // erNone
+    { 0.90f, 0.70f, 0.70f, 1.0f },   // erNone
     { 1.00f, 0.90f, 0.30f, 1.0f },   // erPerimeter
     { 1.00f, 0.49f, 0.22f, 1.0f },   // erExternalPerimeter
     { 0.12f, 0.12f, 1.00f, 1.0f },   // erOverhangPerimeter
@@ -615,8 +577,7 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     // release gpu memory, if used
     reset(); 
 
-    m_sequential_view.gcode_window.set_filename(gcode_result.filename);
-    m_sequential_view.gcode_window.load_gcode();
+    m_sequential_view.gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
 
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
     if (wxGetApp().is_gcode_viewer())
@@ -704,8 +665,8 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         // update tool colors
         m_tool_colors = decode_colors(str_tool_colors);
 
-    // ensure at least one (default) color is defined
-    if (m_tool_colors.empty())
+    // ensure there are enough colors defined
+    while (m_tool_colors.size() < std::max(size_t(1), gcode_result.extruders_count))
         m_tool_colors.push_back(decode_color("#FF8000"));
 
     // update ranges for coloring / legend
@@ -721,11 +682,11 @@ void GCodeViewer::refresh(const GCodeProcessor::Result& gcode_result, const std:
         {
         case EMoveType::Extrude:
         {
-            m_extrusions.ranges.height.update_from(round_to_nearest(curr.height, 2));
-            m_extrusions.ranges.width.update_from(round_to_nearest(curr.width, 2));
+            m_extrusions.ranges.height.update_from(round_to_nearest_percent(curr.height));
+            m_extrusions.ranges.width.update_from(round_to_nearest_percent(curr.width));
             m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
             m_extrusions.ranges.temperature.update_from(curr.temperature);
-            m_extrusions.ranges.volumetric_rate.update_from(round_to_nearest(curr.volumetric_rate(), 2));
+            m_extrusions.ranges.volumetric_rate.update_from(round_to_nearest_percent(curr.volumetric_rate()));
             [[fallthrough]];
         }
         case EMoveType::Travel:
@@ -1173,16 +1134,6 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     fclose(fp);
-}
-
-void GCodeViewer::start_mapping_gcode_window()
-{
-    m_sequential_view.gcode_window.load_gcode();
-}
-
-void GCodeViewer::stop_mapping_gcode_window()
-{
-    m_sequential_view.gcode_window.stop_mapping_file();
 }
 
 void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
@@ -2563,7 +2514,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         buffer.model.instances.render_ranges.reset();
 
-        if (!buffer.visible)
+        if (!buffer.visible || buffer.model.instances.s_ids.empty())
             continue;
 
         buffer.model.instances.render_ranges.ranges.push_back({ 0, 0, 0, buffer.model.color });

@@ -89,40 +89,40 @@ is_deeply $polyline->pp, [ @$points, @$points ], 'append_polyline';
 }
 
 # disabled because we now use a more efficient but incomplete algorithm
-if (0) {
-    my $polyline = Slic3r::Polyline->new(
-        map [$_,10], (0,10,20,30,40,50,60)
-    );
-    {
-        my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new(
-            [25,0], [55,0], [55,30], [25,30],
-        ));
-        my $p = $polyline->clone;
-        $p->simplify_by_visibility($expolygon);
-        is_deeply $p->pp, [
-            map [$_,10], (0,10,20,30,50,60)
-        ], 'simplify_by_visibility()';
-    }
-    {
-        my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new(
-            [-15,0], [75,0], [75,30], [-15,30],
-        ));
-        my $p = $polyline->clone;
-        $p->simplify_by_visibility($expolygon);
-        is_deeply $p->pp, [
-            map [$_,10], (0,60)
-        ], 'simplify_by_visibility()';
-    }
-    {
-        my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new(
-            [-15,0], [25,0], [25,30], [-15,30],
-        ));
-        my $p = $polyline->clone;
-        $p->simplify_by_visibility($expolygon);
-        is_deeply $p->pp, [
-            map [$_,10], (0,20,30,40,50,60)
-        ], 'simplify_by_visibility()';
-    }
-}
+#if (0) {
+#    my $polyline = Slic3r::Polyline->new(
+#        map [$_,10], (0,10,20,30,40,50,60)
+#    );
+#    {
+#        my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new(
+#            [25,0], [55,0], [55,30], [25,30],
+#        ));
+#        my $p = $polyline->clone;
+#        $p->simplify_by_visibility($expolygon);
+#        is_deeply $p->pp, [
+#            map [$_,10], (0,10,20,30,50,60)
+#        ], 'simplify_by_visibility()';
+#    }
+#    {
+#        my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new(
+#            [-15,0], [75,0], [75,30], [-15,30],
+#        ));
+#        my $p = $polyline->clone;
+#        $p->simplify_by_visibility($expolygon);
+#        is_deeply $p->pp, [
+#            map [$_,10], (0,60)
+#        ], 'simplify_by_visibility()';
+#    }
+#    {
+#        my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new(
+#            [-15,0], [25,0], [25,30], [-15,30],
+#        ));
+#        my $p = $polyline->clone;
+#        $p->simplify_by_visibility($expolygon);
+#        is_deeply $p->pp, [
+#            map [$_,10], (0,20,30,40,50,60)
+#        ], 'simplify_by_visibility()';
+#    }
+#}
 
 __END__

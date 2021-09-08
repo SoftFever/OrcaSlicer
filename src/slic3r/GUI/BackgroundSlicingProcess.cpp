@@ -574,11 +574,8 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 		// Some FFF status was invalidated, and the G-code was not exported yet.
 		// Let the G-code preview UI know that the final G-code preview is not valid.
 		// In addition, this early memory deallocation reduces memory footprint.
-		if (m_gcode_result != nullptr) {
-			//FIXME calling platter from here is not a staple of a good architecture.
-			GUI::wxGetApp().plater()->stop_mapping_gcode_window();
+		if (m_gcode_result != nullptr)
 			m_gcode_result->reset();
-		}
 	}
 	return invalidated;
 }

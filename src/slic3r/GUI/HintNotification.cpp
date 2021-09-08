@@ -74,7 +74,12 @@ void write_used_binary(const std::vector<std::string>& ids)
 }
 void read_used_binary(std::vector<std::string>& ids)
 {
-	boost::filesystem::ifstream file((boost::filesystem::path(data_dir()) / "cache" / "hints.cereal"));
+	boost::filesystem::path path(boost::filesystem::path(data_dir()) / "cache" / "hints.cereal");
+	if (!boost::filesystem::exists(path)) {
+		BOOST_LOG_TRIVIAL(warning) << "Failed to load to hints.cereal. File does not exists. " << path.string();
+		return;
+	}
+	boost::filesystem::ifstream file(path);
 	cereal::BinaryInputArchive archive(file);
 	HintsCerealData cd;
 	try

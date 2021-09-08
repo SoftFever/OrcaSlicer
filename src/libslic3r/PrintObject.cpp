@@ -2293,7 +2293,7 @@ void PrintObject::project_and_append_custom_facets(
             const indexed_triangle_set custom_facets = seam
                     ? mv->seam_facets.get_facets_strict(*mv, type)
                     : mv->supported_facets.get_facets_strict(*mv, type);
-            if (! custom_facets.indices.empty())
+            if (! custom_facets.indices.empty()) {
                 if (seam)
                     project_triangles_to_slabs(this->layers(), custom_facets,
                         (this->trafo_centered() * mv->get_matrix()).cast<float>(),
@@ -2301,8 +2301,16 @@ void PrintObject::project_and_append_custom_facets(
                 else {
                     std::vector<Polygons> projected;
                     slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){});
-                    append(out, std::move(projected));
+                    // Merge these projections with the output, layer by layer.
+                    assert(! projected.empty());
+                    assert(out.empty() || out.size() == projected.size());
+                    if (out.empty())
+                        out = std::move(projected);
+                    else
+                        for (size_t i = 0; i < out.size(); ++ i)
+                            append(out[i], std::move(projected[i]));
                 }
+            }
         }
 }
 

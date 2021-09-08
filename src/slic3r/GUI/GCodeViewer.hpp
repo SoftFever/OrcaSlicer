@@ -695,18 +695,17 @@ public:
             std::string m_filename;
             boost::iostreams::mapped_file_source m_file;
             // map for accessing data in file by line number
-            std::vector<std::pair<uint64_t, uint64_t>> m_lines_map;
+            std::vector<size_t> m_lines_ends;
             // current visible lines
             std::vector<Line> m_lines;
 
         public:
             GCodeWindow() = default;
             ~GCodeWindow() { stop_mapping_file(); }
-            void set_filename(const std::string& filename) { m_filename = filename; }
-            void load_gcode();
+            void load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends);
             void reset() {
                 stop_mapping_file();
-                m_lines_map.clear();
+                m_lines_ends.clear();
                 m_lines.clear();
                 m_filename.clear();
             }
@@ -833,8 +832,6 @@ public:
 
     void export_toolpaths_to_obj(const char* filename) const;
 
-    void start_mapping_gcode_window();
-    void stop_mapping_gcode_window();
     void toggle_gcode_window_visibility() { m_sequential_view.gcode_window.toggle_visibility(); }
 
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER

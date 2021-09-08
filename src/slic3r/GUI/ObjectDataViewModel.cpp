@@ -1361,7 +1361,8 @@ wxDataViewItem ObjectDataViewModel::ReorganizeChildren( const int current_volume
     if (!node_parent)      // happens if item.IsOk()==false
         return ret_item;
 
-    const size_t shift = node_parent->GetChildren().Item(0)->m_type == itSettings ? 1 : 0;
+    size_t shift;
+    for (shift = 0; shift < node_parent->GetChildCount() && node_parent->GetNthChild(shift)->GetType() != itVolume; shift ++);
 
     ObjectDataViewModelNode *deleted_node = node_parent->GetNthChild(current_volume_id+shift);
     node_parent->GetChildren().Remove(deleted_node);

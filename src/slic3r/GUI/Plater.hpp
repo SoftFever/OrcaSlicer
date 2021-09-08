@@ -282,9 +282,6 @@ public:
     GLCanvas3D* get_current_canvas3D();
     BoundingBoxf bed_shape_bb() const;
     
-    void start_mapping_gcode_window();
-    void stop_mapping_gcode_window();
-
     void arrange();
     void find_new_position(const ModelInstancePtrs  &instances);
 
