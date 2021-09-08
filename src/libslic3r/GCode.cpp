@@ -744,7 +744,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
     std::string path_tmp(path);
     path_tmp += ".tmp";
 
-    GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"));
+    m_processor.initialize(path_tmp);
+    GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open())
         throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
 
@@ -782,7 +783,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
-    m_processor.process_file(path_tmp, true, [print]() { print->throw_if_canceled(); });
+    m_processor.finalize();
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
     if (result != nullptr) {
@@ -2666,6 +2667,8 @@ void GCode::GCodeOutputStream::write(const char *what)
         const char* gcode = what;
         // writes string to file
         fwrite(gcode, 1, ::strlen(gcode), this->f);
+        //FIXME don't allocate a string, maybe process a batch of lines?
+        m_processor.process_buffer(std::string(gcode));
     }
 }
 
