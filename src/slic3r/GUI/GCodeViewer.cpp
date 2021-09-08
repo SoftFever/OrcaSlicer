@@ -1414,9 +1414,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         instances.push_back(curr.position.y());
         instances.push_back(curr.position.z());
         // append width
-        instances.push_back(1.5f * curr.width);
+        instances.push_back(curr.width);
         // append height
-        instances.push_back(1.5f * curr.height);
+        instances.push_back(curr.height);
 
         // append id
         instances_ids.push_back(move_id);
@@ -1428,7 +1428,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         const double width = static_cast<double>(1.5f * curr.width);
         const double height = static_cast<double>(1.5f * curr.height);
 
-        const Transform3d trafo = Geometry::assemble_transform(curr.position.cast<double>(), Vec3d::Zero(), { width, width, height });
+        const Transform3d trafo = Geometry::assemble_transform((curr.position - 0.5f * curr.height * Vec3f::UnitZ()).cast<double>(), Vec3d::Zero(), { width, width, height });
         const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> normal_matrix = trafo.matrix().template block<3, 3>(0, 0).inverse().transpose();
 
         for (const auto& entity : data.entities) {
