@@ -34,7 +34,9 @@ void main()
     float NdotL = max(dot(eye_normal, LIGHT_TOP_DIR), 0.0);
 
     intensity.x = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
-    vec4 world_position = vec4(v_position * vec3(vec2(i_scales.x), i_scales.y) + i_offset, 1.0);
+	float width = 1.5 * i_scales.x;
+	float height = 1.5 * i_scales.y;
+    vec4 world_position = vec4(v_position * vec3(vec2(width), height) + i_offset - vec3(0.0, 0.0, 0.5 * i_scales.y), 1.0);
     vec3 eye_position = (gl_ModelViewMatrix * world_position).xyz;
     intensity.y = LIGHT_TOP_SPECULAR * pow(max(dot(-normalize(eye_position), reflect(-LIGHT_TOP_DIR, eye_normal)), 0.0), LIGHT_TOP_SHININESS);
 
