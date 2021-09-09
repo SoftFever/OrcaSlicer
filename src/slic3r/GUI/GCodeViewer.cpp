@@ -2525,7 +2525,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (m_sequential_view.current.first <= buffer.model.instances.s_ids.back() && buffer.model.instances.s_ids.front() <= m_sequential_view.current.last) {
             for (size_t id : buffer.model.instances.s_ids) {
                 if (has_second_range) {
+#if ENABLE_FIX_PREVIEW_OPTIONS_Z
+                    if (id < m_sequential_view.endpoints.first) {
+#else
                     if (id <= m_sequential_view.endpoints.first) {
+#endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
                         ++buffer.model.instances.render_ranges.ranges.front().offset;
                         if (id <= m_sequential_view.current.first)
                             ++buffer.model.instances.render_ranges.ranges.back().offset;
@@ -3041,7 +3045,7 @@ void GCodeViewer::render_legend(float& legend_height)
 
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
 
-    auto append_item = [this, icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color& color, const std::string& label,
+    auto append_item = [icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color& color, const std::string& label,
         bool visible = true, const std::string& time = "", float percent = 0.0f, float max_percent = 0.0f, const std::array<float, 4>& offsets = { 0.0f, 0.0f, 0.0f, 0.0f },
         double used_filament_m = 0.0, double used_filament_g = 0.0,
         std::function<void()> callback = nullptr) {
