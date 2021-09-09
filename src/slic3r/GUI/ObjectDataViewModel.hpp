@@ -279,6 +279,7 @@ public:
                                     const t_layer_height_range& layer_range,
                                     const int extruder = 0,
                                     const int index = -1);
+    size_t         GetItemIndexForFirstVolume(ObjectDataViewModelNode* node_parent);
     wxDataViewItem Delete(const wxDataViewItem &item);
     wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
     void DeleteAll();
