@@ -4871,10 +4871,9 @@ void Plater::load_gcode(const wxString& filename)
 
     // process gcode
     GCodeProcessor processor;
-    processor.enable_producers(true);
     try
     {
-        processor.process_file(filename.ToUTF8().data(), false);
+        processor.process_file(filename.ToUTF8().data());
     }
     catch (const std::exception& ex)
     {

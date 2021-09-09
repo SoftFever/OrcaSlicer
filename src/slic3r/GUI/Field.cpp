@@ -230,18 +230,21 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 		}
         double val;
 
+        bool is_na_value = m_opt.nullable && str == na_value();
+
         const char dec_sep = is_decimal_separator_point() ? '.' : ',';
         const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
-        // Replace the first incorrect separator in decimal number.
-        if (str.Replace(dec_sep_alt, dec_sep, false) != 0)
+        // Replace the first incorrect separator in decimal number, 
+        // if this value doesn't "N/A" value in some language
+        // see https://github.com/prusa3d/PrusaSlicer/issues/6921
+        if (!is_na_value && str.Replace(dec_sep_alt, dec_sep, false) != 0)
             set_value(str, false);
-
 
         if (str == dec_sep)
             val = 0.0;
         else
         {
-            if (m_opt.nullable && str == na_value())
+            if (is_na_value)
                 val = ConfigOptionFloatsNullable::nil_value();
             else if (!str.ToDouble(&val))
             {

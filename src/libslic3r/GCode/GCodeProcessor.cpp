@@ -1192,7 +1192,6 @@ void GCodeProcessor::reset()
     m_cp_color.reset();
 
     m_producer = EProducer::Unknown;
-    m_producers_enabled = false;
 
     m_time_processor.reset();
     m_used_filaments.reset();
@@ -1216,17 +1215,17 @@ void GCodeProcessor::reset()
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 }
 
-void GCodeProcessor::process_file(const std::string& filename, bool apply_postprocess, std::function<void()> cancel_callback)
+void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback)
 {
     CNumericLocalesSetter locales_setter;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto start_time = std::chrono::high_resolution_clock::now();
+    m_start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // pre-processing
     // parse the gcode file to detect its producer
-    if (m_producers_enabled) {
+    {
         m_parser.parse_file(filename, [this](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
             const std::string_view cmd = line.cmd();
             if (cmd.empty()) {
@@ -1235,6 +1234,7 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
                     m_parser.quit_parsing();
             }
             });
+        m_parser.reset();
 
         // if the gcode was produced by PrusaSlicer,
         // extract the config from it
@@ -1264,9 +1264,37 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
             if (cancel_callback)
                 cancel_callback();
         }
-        this->process_gcode_line(line);
+        this->process_gcode_line(line, true);
     });
 
+    this->finalize();
+}
+
+void GCodeProcessor::initialize(const std::string& filename)
+{
+    assert(is_decimal_separator_point());
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    // process gcode
+    m_result.filename = filename;
+    m_result.id = ++s_result_id;
+    // 1st move must be a dummy move
+    m_result.moves.emplace_back(MoveVertex());
+}
+
+void GCodeProcessor::process_buffer(const std::string &buffer)
+{
+    //FIXME maybe cache GCodeLine gline to be over multiple parse_buffer() invocations.
+    m_parser.parse_buffer(buffer, [this](GCodeReader&, const GCodeReader::GCodeLine& line) { 
+        this->process_gcode_line(line, false);
+    });
+}
+
+void GCodeProcessor::finalize()
+{
     // update width/height of wipe moves
     for (MoveVertex& move : m_result.moves) {
         if (move.type == EMoveType::Wipe) {
@@ -1288,10 +1316,6 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
 
     update_estimated_times_stats();
 
-    // post-process to add M73 lines into the gcode
-    if (apply_postprocess)
-        m_time_processor.post_process(filename, m_result.moves, m_result.lines_ends);
-
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     std::cout << "\n";
     m_mm3_per_mm_compare.output();
@@ -1299,8 +1323,9 @@ void GCodeProcessor::process_file(const std::string& filename, bool apply_postpr
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+    m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends);
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
+    m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
@@ -1439,7 +1464,7 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
     }
 }
 
-void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
+void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool producers_enabled)
 {
 /* std::cout << line.raw() << std::endl; */
 
@@ -1622,7 +1647,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line)
         if (comment.length() > 2 && comment.front() == ';')
             // Process tags embedded into comments. Tag comments always start at the start of a line
             // with a comment and continue with a tag without any whitespace separator.
-            process_tags(comment.substr(1));
+            process_tags(comment.substr(1), producers_enabled);
     }
 }
 
@@ -1671,10 +1696,10 @@ template<typename T>
     }
 }
 
-void GCodeProcessor::process_tags(const std::string_view comment)
+void GCodeProcessor::process_tags(const std::string_view comment, bool producers_enabled)
 {
     // producers tags
-    if (m_producers_enabled && process_producers_tags(comment))
+    if (producers_enabled && process_producers_tags(comment))
         return;
 
     // extrusion role tag
@@ -1698,7 +1723,7 @@ void GCodeProcessor::process_tags(const std::string_view comment)
         return;
     }
 
-    if (!m_producers_enabled || m_producer == EProducer::PrusaSlicer) {
+    if (!producers_enabled || m_producer == EProducer::PrusaSlicer) {
         // height tag
         if (boost::starts_with(comment, reserved_tag(ETags::Height))) {
             if (!parse_number(comment.substr(reserved_tag(ETags::Height).size()), m_forced_height))

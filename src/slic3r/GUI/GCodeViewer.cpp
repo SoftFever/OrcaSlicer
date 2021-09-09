@@ -1190,7 +1190,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     };
     auto add_indices_as_line = [](const GCodeProcessor::MoveVertex& prev, const GCodeProcessor::MoveVertex& curr, TBuffer& buffer,
         unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
-            if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+            if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr)) {
                 // add starting index
                 indices.push_back(static_cast<IBufferType>(indices.size()));
                 buffer.add_path(curr, ibuffer_id, indices.size() - 1, move_id - 1);

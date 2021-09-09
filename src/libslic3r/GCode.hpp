@@ -186,7 +186,7 @@ public:
 private:
     class GCodeOutputStream {
     public:
-        GCodeOutputStream(FILE *f) : f(f) {}
+        GCodeOutputStream(FILE *f, GCodeProcessor &processor) : f(f), m_processor(processor) {}
         ~GCodeOutputStream() { this->close(); }
 
         bool is_open() const { return f; }
@@ -209,6 +209,7 @@ private:
 
     private:
         FILE *f = nullptr;
+        GCodeProcessor &m_processor;
     };
     void            _do_export(Print &print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb);
 

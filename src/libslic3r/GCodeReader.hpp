@@ -77,7 +77,8 @@ public:
 
     typedef std::function<void(GCodeReader&, const GCodeLine&)> callback_t;
     
-    GCodeReader() : m_verbose(false), m_extrusion_axis('E') { memset(m_position, 0, sizeof(m_position)); }
+    GCodeReader() : m_verbose(false), m_extrusion_axis('E') { this->reset(); }
+    void reset() { memset(m_position, 0, sizeof(m_position)); }
     void apply_config(const GCodeConfig &config);
     void apply_config(const DynamicPrintConfig &config);
 
