@@ -636,8 +636,7 @@ PlaterPresetComboBox::~PlaterPresetComboBox()
 
 static void run_wizard(ConfigWizard::StartPage sp)
 {
-    if (wxGetApp().check_and_save_current_preset_changes())
-        wxGetApp().run_wizard(ConfigWizard::RR_USER, sp);
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, sp);
 }
 
 void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)

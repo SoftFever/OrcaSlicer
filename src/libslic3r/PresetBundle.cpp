@@ -240,7 +240,6 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 
-    // ysToDo : set prefered filament or sla_material (relates to print technology) and force o use of preffered printer model if it was added
     this->load_selections(config, preferred_selection);
 
     return substitutions;
@@ -466,20 +465,9 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     // will be selected by the following call of this->update_compatible(PresetSelectCompatibleType::Always).
 
     const Preset *initial_printer = printers.find_preset(initial_printer_profile_name);
+    // If executed due to a Config Wizard update, preferred_printer contains the first newly installed printer, otherwise nullptr.
     const Preset *preferred_printer = printers.find_system_preset_by_model_and_variant(preferred_selection.printer_model_id, preferred_selection.printer_variant);
-    printers.select_preset_by_name(
-        (preferred_printer != nullptr /*&& (initial_printer == nullptr || !initial_printer->is_visible)*/) ? 
-            preferred_printer->name : 
-            initial_printer_profile_name,
-        true);
-
-    // select preferred filament/sla_material profile if any exists and is visible
-    if (!preferred_selection.filament.empty())
-        if (auto it = filaments.find_preset_internal(preferred_selection.filament); it != filaments.end() && it->is_visible)
-            initial_filament_profile_name = it->name;
-    if (!preferred_selection.sla_material.empty())
-        if (auto it = sla_materials.find_preset_internal(preferred_selection.sla_material); it != sla_materials.end() && it->is_visible)
-            initial_sla_material_profile_name = it->name;
+    printers.select_preset_by_name(preferred_printer ? preferred_printer->name : initial_printer_profile_name, true);
 
     // Selects the profile, leaves it to -1 if the initial profile name is empty or if it was not found.
     prints.select_preset_by_name_strict(initial_print_profile_name);
@@ -506,6 +494,21 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     // exist.
     this->update_compatible(PresetSelectCompatibleType::Always);
     this->update_multi_material_filament_presets();
+
+    if (initial_printer != nullptr && (preferred_printer == nullptr || initial_printer == preferred_printer)) {
+        // Don't run the following code, as we want to activate default filament / SLA material profiles when installing and selecting a new printer.
+        // Only run this code if just a filament / SLA material was installed by Config Wizard for an active Printer.
+        auto printer_technology = printers.get_selected_preset().printer_technology();
+        if (printer_technology == ptFFF && ! preferred_selection.filament.empty()) {
+            if (auto it = filaments.find_preset_internal(preferred_selection.filament); it != filaments.end() && it->is_visible) {
+                filaments.select_preset_by_name_strict(preferred_selection.filament);
+                this->filament_presets.front() = filaments.get_selected_preset_name();
+            }
+        } else if (printer_technology == ptSLA && ! preferred_selection.sla_material.empty()) {
+            if (auto it = sla_materials.find_preset_internal(preferred_selection.sla_material); it != sla_materials.end() && it->is_visible)
+                sla_materials.select_preset_by_name_strict(preferred_selection.sla_material);
+        }
+    }
 
     // Parse the initial physical printer name.
     std::string initial_physical_printer_name = remove_ini_suffix(config.get("presets", "physical_printer"));

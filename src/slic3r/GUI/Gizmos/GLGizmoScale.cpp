@@ -76,7 +76,7 @@ bool GLGizmoScale3D::on_init()
 
 std::string GLGizmoScale3D::on_get_name() const
 {
-    return (_L("Scale") + " [S]").ToUTF8().data();
+    return _u8L("Scale");
 }
 
 bool GLGizmoScale3D::on_is_activable() const

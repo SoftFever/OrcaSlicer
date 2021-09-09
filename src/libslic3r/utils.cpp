@@ -984,16 +984,11 @@ std::string log_memory_info(bool ignore_loglevel)
         } PROCESS_MEMORY_COUNTERS_EX, *PPROCESS_MEMORY_COUNTERS_EX;
     #endif /* PROCESS_MEMORY_COUNTERS_EX */
 
-
-        HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ::GetCurrentProcessId());
-        if (hProcess != nullptr) {
-            PROCESS_MEMORY_COUNTERS_EX pmc;
-            if (GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
-                out = " WorkingSet: " + format_memsize_MB(pmc.WorkingSetSize) + "; PrivateBytes: " + format_memsize_MB(pmc.PrivateUsage) + "; Pagefile(peak): " + format_memsize_MB(pmc.PagefileUsage) + "(" + format_memsize_MB(pmc.PeakPagefileUsage) + ")";
-            else
-                out += " Used memory: N/A";
-            CloseHandle(hProcess);
-        }
+        PROCESS_MEMORY_COUNTERS_EX pmc;
+        if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+            out = " WorkingSet: " + format_memsize_MB(pmc.WorkingSetSize) + "; PrivateBytes: " + format_memsize_MB(pmc.PrivateUsage) + "; Pagefile(peak): " + format_memsize_MB(pmc.PagefileUsage) + "(" + format_memsize_MB(pmc.PeakPagefileUsage) + ")";
+        else
+            out += " Used memory: N/A";
 #elif defined(__linux__) or defined(__APPLE__)
         // Get current memory usage.
     #ifdef __APPLE__

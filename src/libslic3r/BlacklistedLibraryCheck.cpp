@@ -12,7 +12,7 @@ namespace Slic3r {
 #ifdef  WIN32
 
 //only dll name with .dll suffix - currently case sensitive
-const std::vector<std::wstring> BlacklistedLibraryCheck::blacklist({ L"NahimicOSD.dll" });
+const std::vector<std::wstring> BlacklistedLibraryCheck::blacklist({ L"NahimicOSD.dll", L"SS2OSD.dll" });
 
 bool BlacklistedLibraryCheck::get_blacklisted(std::vector<std::wstring>& names)
 {
@@ -33,22 +33,20 @@ std::wstring BlacklistedLibraryCheck::get_blacklisted_string()
 
 bool BlacklistedLibraryCheck::perform_check()
 {   
-    // Get a handle to the process.
-    HANDLE  hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId());
-    if (NULL == hProcess)
-        return false;
+    // Get the pseudo-handle for the current process.
+    HANDLE  hCurrentProcess = GetCurrentProcess();
 
     // Get a list of all the modules in this process.
     HMODULE hMods[1024];
     DWORD   cbNeeded;
-    if (EnumProcessModulesEx(hProcess, hMods, sizeof(hMods), &cbNeeded, LIST_MODULES_ALL))
+    if (EnumProcessModulesEx(hCurrentProcess, hMods, sizeof(hMods), &cbNeeded, LIST_MODULES_ALL))
     {
         //printf("Total Dlls: %d\n", cbNeeded / sizeof(HMODULE));
         for (unsigned int i = 0; i < cbNeeded / sizeof(HMODULE); ++ i)
         {
             wchar_t szModName[MAX_PATH];
             // Get the full path to the module's file.
-            if (GetModuleFileNameExW(hProcess, hMods[i], szModName, MAX_PATH))
+            if (GetModuleFileNameExW(hCurrentProcess, hMods[i], szModName, MAX_PATH))
             {
                 // Add to list if blacklisted
                 if (BlacklistedLibraryCheck::is_blacklisted(szModName)) {
@@ -61,7 +59,6 @@ bool BlacklistedLibraryCheck::perform_check()
         }
     }
 
-    CloseHandle(hProcess);
     //printf("\n");
     return !m_found.empty();
 }

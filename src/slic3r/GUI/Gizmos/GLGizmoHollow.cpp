@@ -505,7 +505,7 @@ RENDER_AGAIN:
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
 
-    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float settings_sliders_left =
@@ -773,7 +773,7 @@ bool GLGizmoHollow::on_is_selectable() const
 
 std::string GLGizmoHollow::on_get_name() const
 {
-    return (_(L("Hollow and drill")) + " [H]").ToUTF8().data();
+    return _u8L("Hollow and drill");
 }
 
 

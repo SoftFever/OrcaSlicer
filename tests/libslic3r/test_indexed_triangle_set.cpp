@@ -279,12 +279,30 @@ TEST_CASE("Simplify mesh by Quadric edge collapse to 5%", "[its]")
     CHECK(is_similar(its, mesh.its, cfg));
 }
 
+bool exist_triangle_with_twice_vertices(const std::vector<stl_triangle_vertex_indices>& indices)
+{
+    for (const auto &face : indices)
+        if (face[0] == face[1] || 
+            face[0] == face[2] || 
+            face[1] == face[2]) return true;
+    return false;
+}
+
 TEST_CASE("Simplify trouble case", "[its]")
 {
     TriangleMesh tm = load_model("simplification.obj");
     REQUIRE_FALSE(tm.empty());
     float max_error = std::numeric_limits<float>::max();
-    uint32_t wanted_count = 8;
+    uint32_t wanted_count = 0;
     its_quadric_edge_collapse(tm.its, wanted_count, &max_error);
-    CHECK(tm.its.indices.size() <= 8);
+    CHECK(!exist_triangle_with_twice_vertices(tm.its.indices));
+}
+
+TEST_CASE("Simplified cube should not be empty.", "[its]")
+{
+    auto its = its_make_cube(1, 2, 3);
+    float    max_error    = std::numeric_limits<float>::max();
+    uint32_t wanted_count = 0;
+    its_quadric_edge_collapse(its, wanted_count, &max_error);
+    CHECK(!its.indices.empty());
 }

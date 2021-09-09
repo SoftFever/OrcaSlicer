@@ -1,17 +1,21 @@
 #include "GCodeWriter.hpp"
 #include "CustomGCode.hpp"
 #include <algorithm>
+#include <charconv>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <assert.h>
 
+#define XYZF_EXPORT_DIGITS 3
+#define E_EXPORT_DIGITS 5
+
 #define FLAVOR_IS(val) this->config.gcode_flavor == val
 #define FLAVOR_IS_NOT(val) this->config.gcode_flavor != val
 #define COMMENT(comment) if (this->config.gcode_comments && !comment.empty()) gcode << " ; " << comment;
 #define PRECISION(val, precision) std::fixed << std::setprecision(precision) << (val)
-#define XYZF_NUM(val) PRECISION(val, 3)
-#define E_NUM(val) PRECISION(val, 5)
+#define XYZF_NUM(val) PRECISION(val, XYZF_EXPORT_DIGITS)
+#define E_NUM(val) PRECISION(val, E_EXPORT_DIGITS)
 
 namespace Slic3r {
 
@@ -288,16 +292,89 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     return gcode.str();
 }
 
+class G1Writer {
+private:
+    static constexpr const size_t   buflen = 256;
+    char                            buf[buflen];
+    char                           *buf_end;
+    std::to_chars_result            ptr_err;
+
+public:
+    G1Writer() {
+        this->buf[0] = 'G';
+        this->buf[1] = '1';
+        this->buf_end = this->buf + buflen;
+        this->ptr_err.ptr = this->buf + 2;
+    }
+
+    void emit_axis(const char axis, const double v, size_t digits) {
+        *ptr_err.ptr ++ = ' '; *ptr_err.ptr ++ = axis;
+#ifdef WIN32
+        this->ptr_err = std::to_chars(this->ptr_err.ptr, this->buf_end, v, std::chars_format::fixed, digits);
+#else
+        int buf_capacity = int(this->buf_end - this->ptr_err.ptr);
+        int ret          = snprintf(this->ptr_err.ptr, buf_capacity, "%.*lf", int(digits), v);
+        if (ret <= 0 || ret > buf_capacity)
+            ptr_err.ec = std::errc::value_too_large;
+        else
+            this->ptr_err.ptr = this->ptr_err.ptr + ret;
+#endif
+    }
+
+    void emit_xy(const Vec2d &point) {
+        this->emit_axis('X', point.x(), XYZF_EXPORT_DIGITS);
+        this->emit_axis('Y', point.y(), XYZF_EXPORT_DIGITS);
+    }
+
+    void emit_xyz(const Vec3d &point) {
+        this->emit_axis('X', point.x(), XYZF_EXPORT_DIGITS);
+        this->emit_axis('Y', point.y(), XYZF_EXPORT_DIGITS);
+        this->emit_z(point.z());
+    }
+
+    void emit_z(const double z) {
+        this->emit_axis('Z', z, XYZF_EXPORT_DIGITS);
+    }
+
+    void emit_e(const std::string &axis, double v) {
+        if (! axis.empty()) {
+            // not gcfNoExtrusion
+            this->emit_axis(axis[0], v, E_EXPORT_DIGITS);
+        }
+    }
+
+    void emit_f(double speed) {
+        this->emit_axis('F', speed, XYZF_EXPORT_DIGITS);
+    }
+
+    void emit_string(const std::string &s) {
+        strncpy(ptr_err.ptr, s.c_str(), s.size());
+        ptr_err.ptr += s.size();
+    }
+
+    void emit_comment(bool allow_comments, const std::string &comment) {
+        if (allow_comments && ! comment.empty()) {
+            *ptr_err.ptr ++ = ' '; *ptr_err.ptr ++ = ';'; *ptr_err.ptr ++ = ' ';
+            this->emit_string(comment);
+        }
+    }
+
+    std::string string() {
+        *ptr_err.ptr ++ = '\n';
+        return std::string(this->buf, ptr_err.ptr - buf);
+    }
+};
+
 std::string GCodeWriter::set_speed(double F, const std::string &comment, const std::string &cooling_marker) const
 {
     assert(F > 0.);
     assert(F < 100000.);
-    std::ostringstream gcode;
-    gcode << "G1 F" << XYZF_NUM(F);
-    COMMENT(comment);
-    gcode << cooling_marker;
-    gcode << "\n";
-    return gcode.str();
+
+    G1Writer w;
+    w.emit_f(F);
+    w.emit_comment(this->config.gcode_comments, comment);
+    w.emit_string(cooling_marker);
+    return w.string();
 }
 
 std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment)
@@ -305,13 +382,11 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     m_pos(0) = point(0);
     m_pos(1) = point(1);
     
-    std::ostringstream gcode;
-    gcode << "G1 X" << XYZF_NUM(point(0))
-          <<   " Y" << XYZF_NUM(point(1))
-          <<   " F" << XYZF_NUM(this->config.travel_speed.value * 60.0);
-    COMMENT(comment);
-    gcode << "\n";
-    return gcode.str();
+    G1Writer w;
+    w.emit_xy(point);
+    w.emit_f(this->config.travel_speed.value * 60.0);
+    w.emit_comment(this->config.gcode_comments, comment);
+    return w.string();
 }
 
 std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment)
@@ -340,14 +415,11 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     m_lifted = 0;
     m_pos = point;
     
-    std::ostringstream gcode;
-    gcode << "G1 X" << XYZF_NUM(point(0))
-          <<   " Y" << XYZF_NUM(point(1))
-          <<   " Z" << XYZF_NUM(point(2))
-          <<   " F" << XYZF_NUM(this->config.travel_speed.value * 60.0);
-    COMMENT(comment);
-    gcode << "\n";
-    return gcode.str();
+    G1Writer w;
+    w.emit_xyz(point);
+    w.emit_f(this->config.travel_speed.value * 60.0);
+    w.emit_comment(this->config.gcode_comments, comment);
+    return w.string();
 }
 
 std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
@@ -377,12 +449,11 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     if (speed == 0.)
         speed = this->config.travel_speed.value;
     
-    std::ostringstream gcode;
-    gcode << "G1 Z" << XYZF_NUM(z)
-          <<   " F" << XYZF_NUM(speed * 60.0);
-    COMMENT(comment);
-    gcode << "\n";
-    return gcode.str();
+    G1Writer w;
+    w.emit_z(z);
+    w.emit_f(speed * 60.0);
+    w.emit_comment(this->config.gcode_comments, comment);
+    return w.string();
 }
 
 bool GCodeWriter::will_move_z(double z) const
@@ -402,16 +473,12 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
     m_pos(0) = point(0);
     m_pos(1) = point(1);
     m_extruder->extrude(dE);
-    
-    std::ostringstream gcode;
-    gcode << "G1 X" << XYZF_NUM(point(0))
-          <<   " Y" << XYZF_NUM(point(1));
-    if (! m_extrusion_axis.empty())
-        // not gcfNoExtrusion
-        gcode << " " << m_extrusion_axis << E_NUM(m_extruder->E());
-    COMMENT(comment);
-    gcode << "\n";
-    return gcode.str();
+
+    G1Writer w;
+    w.emit_xy(point);
+    w.emit_e(m_extrusion_axis, m_extruder->E());
+    w.emit_comment(this->config.gcode_comments, comment);
+    return w.string();
 }
 
 std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment)
@@ -420,16 +487,11 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     m_lifted = 0;
     m_extruder->extrude(dE);
     
-    std::ostringstream gcode;
-    gcode << "G1 X" << XYZF_NUM(point(0))
-          <<   " Y" << XYZF_NUM(point(1))
-          <<   " Z" << XYZF_NUM(point(2));
-    if (! m_extrusion_axis.empty())
-        // not gcfNoExtrusion
-        gcode << " " << m_extrusion_axis << E_NUM(m_extruder->E());
-    COMMENT(comment);
-    gcode << "\n";
-    return gcode.str();
+    G1Writer w;
+    w.emit_xyz(point);
+    w.emit_e(m_extrusion_axis, m_extruder->E());
+    w.emit_comment(this->config.gcode_comments, comment);
+    return w.string();
 }
 
 std::string GCodeWriter::retract(bool before_wipe)

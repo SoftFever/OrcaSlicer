@@ -22,6 +22,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 
+#include "libslic3r/format.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
@@ -163,10 +164,8 @@ void GLGizmosManager::refresh_on_off_state()
         return;
 
     if (m_current != Undefined
-    && ! m_gizmos[m_current]->is_activable()) {
-        activate_gizmo(Undefined);
+    && ! m_gizmos[m_current]->is_activable() && activate_gizmo(Undefined))
         update_data();
-    }
 }
 
 void GLGizmosManager::reset_all_states()
@@ -181,12 +180,26 @@ void GLGizmosManager::reset_all_states()
 bool GLGizmosManager::open_gizmo(EType type)
 {
     int idx = int(type);
-    if (m_gizmos[idx]->is_activable()) {
-        activate_gizmo(m_current == idx ? Undefined : (EType)idx);
+    if (m_gizmos[idx]->is_activable()
+     && activate_gizmo(m_current == idx ? Undefined : (EType)idx)) {
         update_data();
         return true;
     }
     return false;
+}
+
+
+bool GLGizmosManager::check_gizmos_closed_except(EType type) const
+{
+    if (get_current_type() != type && get_current_type() != Undefined) {
+        wxGetApp().plater()->get_notification_manager()->push_notification(
+                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                    NotificationManager::NotificationLevel::RegularNotification,
+                    _u8L("ERROR: Please close all manipulators available from "
+                         "the left toolbar first"));
+        return false;
+    }
+    return true;
 }
 
 void GLGizmosManager::set_hover_id(int id)
@@ -1193,31 +1206,35 @@ std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
     return name;
 }
 
-void GLGizmosManager::activate_gizmo(EType type)
+bool GLGizmosManager::activate_gizmo(EType type)
 {
     if (m_gizmos.empty() || m_current == type)
-        return;
+        return true;
 
-    if (m_current != Undefined) {
-        m_gizmos[m_current]->set_state(GLGizmoBase::Off);
-        if (m_gizmos[m_current]->get_state() != GLGizmoBase::Off)
-            return; // gizmo refused to be turned off, do nothing.
+    GLGizmoBase* old_gizmo = m_current == Undefined ? nullptr : m_gizmos[m_current].get();
+    GLGizmoBase* new_gizmo = type == Undefined ? nullptr : m_gizmos[type].get();
+
+    if (old_gizmo) {
+        old_gizmo->set_state(GLGizmoBase::Off);
+        if (old_gizmo->get_state() != GLGizmoBase::Off)
+            return false; // gizmo refused to be turned off, do nothing.
+
+        if (! m_parent.get_gizmos_manager().is_serializing()
+         && old_gizmo->wants_enter_leave_snapshots())
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(),
+                Slic3r::format(_utf8("Leaving %1%"), old_gizmo->get_name(false)));
     }
+
+    if (new_gizmo && ! m_parent.get_gizmos_manager().is_serializing()
+     && new_gizmo->wants_enter_leave_snapshots())
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(),
+            Slic3r::format(_utf8("Entering %1%"), new_gizmo->get_name(false)));
 
     m_current = type;
 
-    // Updating common data should be left to the update_data function, which
-    // is always called after this one. activate_gizmo can be called by undo/redo,
-    // when selection is not yet deserialized, so the common data would update
-    // incorrectly (or crash if relying on unempty selection). Undo/redo stack
-    // will also call update_data, after selection is restored.
-
-    //m_common_gizmos_data->update(get_current()
-    //                       ? get_current()->get_requirements()
-    //                       : CommonGizmosDataID(0));
-
-    if (type != Undefined)
-        m_gizmos[type]->set_state(GLGizmoBase::On);
+    if (new_gizmo)
+        new_gizmo->set_state(GLGizmoBase::On);
+    return true;
 }
 
 

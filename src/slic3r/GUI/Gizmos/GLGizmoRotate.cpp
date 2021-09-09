@@ -463,7 +463,7 @@ bool GLGizmoRotate3D::on_init()
 
 std::string GLGizmoRotate3D::on_get_name() const
 {
-    return (_L("Rotate") + " [R]").ToUTF8().data();
+    return _u8L("Rotate");
 }
 
 bool GLGizmoRotate3D::on_is_activable() const

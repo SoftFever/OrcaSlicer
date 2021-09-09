@@ -1,87 +1,103 @@
 
 # Building PrusaSlicer on UNIX/Linux
 
-Please understand that PrusaSlicer team cannot support compilation on all possible Linux distros. Namely, we cannot help trouble shooting OpenGL driver issues or dependency issues if compiled against distro provided libraries. We can only support PrusaSlicer compiled the same way we do compile PrusaSlicer for our [binary builds](https://github.com/prusa3d/PrusaSlicer/releases), that means linked statically agains the dependencies compiled with the `deps` scripts.
+Please understand that PrusaSlicer team cannot support compilation on all possible Linux distros. Namely, we cannot help troubleshoot OpenGL driver issues or dependency issues if compiled against distro provided libraries. **We can only support PrusaSlicer statically linked against the dependencies compiled with the `deps` scripts**, the same way we compile PrusaSlicer for our [binary builds](https://github.com/prusa3d/PrusaSlicer/releases).
 
-Instead of compiling PrusaSlicer from source code, one may consider to install PrusaSlicer [pre-compiled by contributors](https://github.com/prusa3d/PrusaSlicer/wiki/PrusaSlicer-on-Linux---binary-distributions).
+If you have some reason to link dynamically to your system libraries, you are free to do so, but we can not and will not troubleshoot any issues you possibly run into.
 
-### How to build
+Instead of compiling PrusaSlicer from source code, one may also consider to install PrusaSlicer [pre-compiled by contributors](https://github.com/prusa3d/PrusaSlicer/wiki/PrusaSlicer-on-Linux---binary-distributions).
 
-PrusaSlicer uses the CMake build system and requires several dependencies.
-The dependencies can be listed in the `deps` directory in individual subdirectories, although they don't necessarily need to be as recent
-as the versions listed - generally versions available on conservative Linux distros such as Debian stable, Ubuntu LTS releases or Fedora are likely sufficient.
+## Step by step guide
 
-Perl is not required anymore.
+This guide describes building PrusaSlicer statically against dependencies pulled by our `deps` script. Running all the listed commands in order should result in successful build.
 
-In a typical situation, one would open a command line, go to the PrusaSlicer sources (**the root directory of the repository**), create a directory called `build` or similar,
-`cd` into it and call:
+#### 0. Prerequisities
 
+You must have CMake, GNU build tools and git. If you don't already have them, install them as usual from your distribution packages (e.g. on Ubuntu, you would run `sudo apt-get install cmake build-essential git`, etc.)
+
+#### 1. Cloning the repository
+
+
+Cloning the repository is simple thanks to git and Github. Simply `cd` into wherever you want to clone PrusaSlicer code base and run
+```
+git clone https://www.github.com/prusa3d/PrusaSlicer
+cd PrusaSlicer
+```
+This will download the source code into a new directory and `cd` into it. You can now optionally select a tag/branch/commit to build using `git checkout`. Otherwise, `master` branch will be built.
+
+
+#### 2. Building dependencies
+
+PrusaSlicer uses CMake and the build is quite simple, the only tricky part is resolution of dependencies. The supported and recommended way is to build the dependencies first and link to them statically. The source base contains a CMake script that automatically downloads and builds the required dependencies. All that is needed is to run the following (from the top of the cloned repository):
+
+    cd deps
+    mkdir build
+    cd build
     cmake ..
-    make -jN
+    make
+    cd ../..
 
-where `N` is the number of CPU cores available.
 
-Additional CMake flags may be applicable as explained below.
+**Warning**: Once the dependency bundle is installed in a destdir, the destdir cannot be moved elsewhere. This is because wxWidgets hardcode the installation path.
 
-### Dependency resolution
 
-By default PrusaSlicer looks for dependencies the default way CMake looks for them, i.e. in default system locations.
-On Linux this will typically make PrusaSlicer depend on dynamically loaded libraries from the system, however, PrusaSlicer can be told
-to specifically look for static libraries with the `SLIC3R_STATIC` flag passed to cmake:
+#### 3. Building PrusaSlicer
 
-    cmake .. -DSLIC3R_STATIC=1
+Now when you have the dependencies compiled, all that is needed is to tell CMake that we are interested in static build and point it to the dependencies. From the top of the repository, run
 
-Additionally, PrusaSlicer can be built in a static manner mostly independent of the system libraries with a dependencies bundle
-created using CMake script in the `deps` directory (these are not interconnected with the rest of the CMake scripts).
+    mkdir build
+    cd build
+    cmake .. -DSLIC3R_STATIC=1 -DSLIC3R_PCH=OFF -DCMAKE_PREFIX_PATH=$(pwd)/../deps/build/destdir/usr/local
+    make -j4
 
-Note: We say _mostly independent_ because it's still expected the system will provide some transitive dependencies, such as GTK for wxWidgets.
+And that's it. You can now run the freshly built PrusaSlicer binary:
 
-To do this, go to the `deps` directory, create a `build` subdirectory (or the like) and use:
+    cd src
+    ./prusa-slicer
 
-    cmake .. -DDESTDIR=<target destdir> -DDEP_DOWNLOAD_DIR=<download cache dir>
 
-where the target destdir is a directory of your choosing where the dependencies will be installed.
-You can also omit the `DESTDIR` option to use the default, in that case the `destdir` will be created inside the `build` directory where `cmake` is run. The optional `DEP_DOWNLOAD_DIR` argument specifies a directory to cache the downloaded 
-source packages for each dependent library. Can be useful for repeated builds, to avoid unnecessary network traffic.
 
-Once the dependencies have been built, in order to pass the destdir path to the **top-level** PrusaSlicer `CMakeLists.txt` script, use the `CMAKE_PREFIX_PATH` option along with turning on `SLIC3R_STATIC`:
+#### Troubleshooting
 
-    cmake .. -DSLIC3R_STATIC=1 -DCMAKE_PREFIX_PATH=<path to destdir>/usr/local
+Although most of the dependencies are handled by the build script, we still rely on some system libraries (such as GTK, GL, etc). It is quite likely that you have them already installed, but in case that CMake reports any library missing, install the respective package from your distribution and run CMake again.
 
-Note that `/usr/local` needs to be appended to the destdir path and also the prefix path should be absolute.
 
-**Warning**: Once the dependency bundle is installed in a destdir, the destdir cannot be moved elsewhere.
-This is because wxWidgets hardcode the installation path.
+## Useful CMake flags when building dependencies
 
-### wxWidgets version
+- `-DDESTDIR=<target destdir>` allows to specify a directory where the dependencies will be installed. When not provided, the script creates and uses `destdir` directory where cmake is run.
 
-By default, PrusaSlicer looks for wxWidgets 3.1, this is because the 3.1 version has
-a number of bugfixes and improvements not found in 3.0. However, it can also be built with wxWidgets 3.0.
-This is done by passing this option to CMake:
+- `-DDEP_DOWNLOAD_DIR=<download cache dir>` specifies a directory to cache the downloaded source packages for each library. Can be useful for repeated builds, to avoid unnecessary network traffic.
 
-    -DSLIC3R_WX_STABLE=1
+- `-DDEP_WX_GTK3=ON` builds wxWidgets (one of the dependencies) against GTK3 (defaults to OFF)
 
-Note that PrusaSlicer is tested with wxWidgets 3.0 somewhat sporadically and so there may be bugs in bleeding edge releases.
+
+## Useful CMake flags when building PrusaSlicer
+- `-DSLIC3R_ASAN=ON` enables gcc/clang address sanitizer (defaults to `OFF`, requires gcc>4.8 or clang>3.1)
+- `-DSLIC3R_GTK=3` to use GTK3 (defaults to `2`). Note that wxWidgets must be built against the same GTK version.
+- `-DSLIC3R_STATIC=ON` for static build (defaults to `OFF`)
+- `-DSLIC3R_WX_STABLE=ON` to look for wxWidgets 3.0 (defaults to `OFF`)
+- `-DCMAKE_BUILD_TYPE=Debug` to build in debug mode (defaults to `Release`)
+
+See the CMake files to get the complete list.
+
+
+
+## Building dynamically
+
+As already mentioned above, dynamic linking of dependencies is possible, but PrusaSlicer team is unable to troubleshoot (Linux world is way too complex). Feel free to do so, but you are on your own. Several remarks though:
+
+The list of dependencies can be easily obtained by inspecting the CMake scripts in the `deps/` directory. Many don't necessarily need to be as recent
+as the versions listed - generally versions available on conservative Linux distros such as Debian stable, Ubuntu LTS releases or Fedora are likely sufficient. If you decide to build this way, it is your responsibility to make sure that CMake finds all required dependencies. It is possible to look at your distribution PrusaSlicer package to see how the package maintainers solved the dependency issues.
+
+#### wxWidgets
+By default, PrusaSlicer looks for wxWidgets 3.1. Our build script in fact downloads specific patched version of wxWidgets. If you want to link against wxWidgets 3.0 (which are still provided by most distributions because wxWidgets 3.1 have not yet been declared stable), you must set `-DSLIC3R_WX_STABLE=ON` when running CMake. Note that while PrusaSlicer can be linked against wWidgets 3.0, the combination is not well tested and there might be bugs in the resulting application. 
 
 When building on ubuntu 20.04 focal fossa, the package libwxgtk3.0-gtk3-dev needs to be installed instead of libwxgtk3.0-dev and you should use:
+```
+-DSLIC3R_WX_STABLE=1 -DSLIC3R_GTK=3
+``` 
 
-    -DSLIC3R_WX_STABLE=1 -DSLIC3R_GTK=3
-
-### Build variant
-
-By default PrusaSlicer builds the release variant.
-To create a debug build, use the following CMake flag:
-
-    -DCMAKE_BUILD_TYPE=Debug
-
-### Enabling address sanitizer
-
-If you're using GCC/Clang compiler, it is possible to build PrusaSlicer with the built-in address sanitizer enabled to help detect memory-corruption issues.
-To enable it, simply use the following CMake flag:
-
-    -DSLIC3R_ASAN=1
-
-This requires GCC>4.8 or Clang>3.1.
+## Miscellaneous
 
 ### Installation
 

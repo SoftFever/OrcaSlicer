@@ -141,11 +141,13 @@ void Bed3D::Axes::render() const
 bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
     auto check_texture = [](const std::string& texture) {
-        return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture);
+        boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
+        return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture, ec);
     };
 
     auto check_model = [](const std::string& model) {
-        return !model.empty() && boost::algorithm::iends_with(model, ".stl") && boost::filesystem::exists(model);
+        boost::system::error_code ec;
+        return !model.empty() && boost::algorithm::iends_with(model, ".stl") && boost::filesystem::exists(model, ec);
     };
 
     EType type;
@@ -161,12 +163,16 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     }
 
     std::string texture_filename = custom_texture.empty() ? texture : custom_texture;
-    if (!check_texture(texture_filename))
+    if (! texture_filename.empty() && ! check_texture(texture_filename)) {
+        BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
         texture_filename.clear();
+    }
 
     std::string model_filename = custom_model.empty() ? model : custom_model;
-    if (!check_model(model_filename))
+    if (! model_filename.empty() && ! check_model(model_filename)) {
+        BOOST_LOG_TRIVIAL(error) << "Unable to load bed model: " << model_filename;
         model_filename.clear();
+    }
 
     if (m_shape == shape && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
         // No change, no need to update the UI.

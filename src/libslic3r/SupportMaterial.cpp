@@ -2810,22 +2810,22 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
     Polygons brim;
     if (object.has_brim()) {
         // Calculate the area covered by the brim.
-        const BrimType brim_type   = object.config().brim_type;
-        const bool     brim_outer  = brim_type == btOuterOnly || brim_type == btOuterAndInner;
-        const bool     brim_inner  = brim_type == btInnerOnly || brim_type == btOuterAndInner;
-        const auto     brim_offset = scaled<float>(object.config().brim_offset.value + object.config().brim_width.value);
+        const BrimType brim_type       = object.config().brim_type;
+        const bool     brim_outer      = brim_type == btOuterOnly || brim_type == btOuterAndInner;
+        const bool     brim_inner      = brim_type == btInnerOnly || brim_type == btOuterAndInner;
+        const auto     brim_separation = scaled<float>(object.config().brim_separation.value + object.config().brim_width.value);
         for (const ExPolygon &ex : object.layers().front()->lslices) {
             if (brim_outer && brim_inner)
-                polygons_append(brim, offset(ex, brim_offset));
+                polygons_append(brim, offset(ex, brim_separation));
             else {
                 if (brim_outer)
-                    polygons_append(brim, offset(ex.contour, brim_offset, ClipperLib::jtRound, float(scale_(0.1))));
+                    polygons_append(brim, offset(ex.contour, brim_separation, ClipperLib::jtRound, float(scale_(0.1))));
                 else
                     brim.emplace_back(ex.contour);
                 if (brim_inner) {
                     Polygons holes = ex.holes;
                     polygons_reverse(holes);
-                    holes = offset(holes, - brim_offset, ClipperLib::jtRound, float(scale_(0.1)));
+                    holes = offset(holes, - brim_separation, ClipperLib::jtRound, float(scale_(0.1)));
                     polygons_reverse(holes);
                     polygons_append(brim, std::move(holes));
                 } else

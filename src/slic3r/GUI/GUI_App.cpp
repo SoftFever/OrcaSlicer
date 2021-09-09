@@ -2082,10 +2082,10 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
-bool GUI_App::check_and_save_current_preset_changes(const wxString& header)
+bool GUI_App::check_and_save_current_preset_changes(const wxString& header, const wxString& caption)
 {
     if (/*this->plater()->model().objects.empty() && */has_current_preset_changes()) {
-        UnsavedChangesDialog dlg(header);
+        UnsavedChangesDialog dlg(header, caption);
         if (wxGetApp().app_config->get("default_action_on_close_application") == "none" && dlg.ShowModal() == wxID_CANCEL)
             return false;
 
@@ -2334,10 +2334,13 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 {
     wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
 
-    if (reason == ConfigWizard::RR_USER)
-        if (PresetUpdater::UpdateResult result = preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD);
-            result == PresetUpdater::R_ALL_CANCELED)
+    if (reason == ConfigWizard::RR_USER) {
+        wxString header = _L("Updates to Configuration Wizard may cause an another preset selection and lost of preset modification as a result.\n"
+                             "So, check unsaved changes and save them if necessary.") + "\n";
+        if (!check_and_save_current_preset_changes(header, _L("ConfigWizard is opening")) ||
+            preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
             return false;
+    }
 
     if (! m_wizard) {
         wxBusyCursor wait;

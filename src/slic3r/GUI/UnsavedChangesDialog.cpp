@@ -696,7 +696,12 @@ void DiffViewCtrl::context_menu(wxDataViewEvent& event)
     auto it = m_items_map.find(item);
     if (it == m_items_map.end() || !it->second.is_long)
         return;
-    FullCompareDialog(it->second.opt_name, it->second.old_val, it->second.new_val).ShowModal();
+
+    size_t column_cnt = this->GetColumnCount();
+    const wxString old_value_header = this->GetColumn(column_cnt - 2)->GetTitle();
+    const wxString new_value_header = this->GetColumn(column_cnt - 1)->GetTitle();
+    FullCompareDialog(it->second.opt_name, it->second.old_val, it->second.new_val,
+                      old_value_header, new_value_header).ShowModal();
 
 #ifdef __WXOSX__
     wxWindow* parent = this->GetParent();
@@ -752,8 +757,8 @@ std::vector<std::string> DiffViewCtrl::selected_options()
 //          UnsavedChangesDialog
 //------------------------------------------
 
-UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header)
-    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("PrusaSlicer is closing: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header, const wxString& caption/* = wxString()*/)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, (caption.IsEmpty() ? _L("PrusaSlicer is closing") : caption) + ": " + _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     m_app_config_key = "default_action_on_close_application";
 
@@ -1281,7 +1286,8 @@ void UnsavedChangesDialog::on_sys_color_changed()
 //          FullCompareDialog
 //------------------------------------------
 
-FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value)
+FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value,
+                                     const wxString& old_value_header, const wxString& new_value_header)
     : wxDialog(nullptr, wxID_ANY, option_name, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     wxGetApp().UpdateDarkUI(this);
@@ -1302,8 +1308,8 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
         grid_sizer->Add(text, 0, wxALL, border);
     };
 
-    add_header(_L("Old value"));
-    add_header(_L("New value"));
+    add_header(old_value_header);
+    add_header(new_value_header);
 
     auto get_set_from_val = [](wxString str) {
         if (str.Find("\n") == wxNOT_FOUND)
@@ -1327,7 +1333,7 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
     std::set_difference(new_set.begin(), new_set.end(), old_set.begin(), old_set.end(), std::inserter(new_old_diff_set, new_old_diff_set.begin()));
 
     auto add_value = [grid_sizer, border, this](wxString label, const std::set<wxString>& diff_set, bool is_colored = false) {
-        wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(400, 400), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_SIMPLE | wxTE_RICH);
+        wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, label, wxDefaultPosition, wxSize(400, 400), wxTE_MULTILINE | wxTE_READONLY | wxBORDER_DEFAULT | wxTE_RICH);
         wxGetApp().UpdateDarkUI(text);
         text->SetStyle(0, label.Len(), wxTextAttr(is_colored ? wxColour(orange) : wxNullColour, wxNullColour, this->GetFont()));
 

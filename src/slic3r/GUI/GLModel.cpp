@@ -19,6 +19,26 @@
 namespace Slic3r {
 namespace GUI {
 
+#if ENABLE_SEAMS_USING_BATCHED_MODELS
+size_t GLModel::InitializationData::vertices_count() const
+{
+    size_t ret = 0;
+    for (const Entity& entity : entities) {
+        ret += entity.positions.size();
+    }
+    return ret;
+}
+
+size_t GLModel::InitializationData::indices_count() const
+{
+    size_t ret = 0;
+    for (const Entity& entity : entities) {
+        ret += entity.indices.size();
+    }
+    return ret;
+}
+#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
+
 void GLModel::init_from(const InitializationData& data)
 {
     if (!m_render_data.empty()) // call reset() if you want to reuse this model

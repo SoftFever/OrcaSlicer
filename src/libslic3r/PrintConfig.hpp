@@ -449,13 +449,15 @@ protected: \
 PRINT_CONFIG_CLASS_DEFINE(
     PrintObjectConfig,
 
-    ((ConfigOptionFloat,               brim_offset))
+    ((ConfigOptionFloat,               brim_separation))
     ((ConfigOptionEnum<BrimType>,      brim_type))
     ((ConfigOptionFloat,               brim_width))
     ((ConfigOptionBool,                clip_multipart_objects))
     ((ConfigOptionBool,                dont_support_bridges))
     ((ConfigOptionFloat,               elefant_foot_compensation))
     ((ConfigOptionFloatOrPercent,      extrusion_width))
+    ((ConfigOptionFloat,               first_layer_acceleration_over_raft))
+    ((ConfigOptionFloatOrPercent,      first_layer_speed_over_raft))
     ((ConfigOptionBool,                infill_only_where_needed))
     // Force the generation of solid shells between adjacent materials/volumes.
     ((ConfigOptionBool,                interface_shells))

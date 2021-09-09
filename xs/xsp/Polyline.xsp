@@ -31,8 +31,6 @@
     void extend_end(double distance);
     void extend_start(double distance);
     void simplify(double tolerance);
-    void simplify_by_visibility(ExPolygon* expolygon)
-        %code{% THIS->simplify_by_visibility(*expolygon); %};
     void split_at(Point* point, Polyline* p1, Polyline* p2)
         %code{% THIS->split_at(*point, p1, p2); %};
     bool is_straight();

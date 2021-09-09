@@ -1837,7 +1837,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , main_frame(main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
-        "brim_width", "brim_offset", "brim_type", "variable_layer_height", "nozzle_diameter", "single_extruder_multi_material",
+        "brim_width", "brim_separation", "brim_type", "variable_layer_height", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width",
         "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
@@ -2076,6 +2076,8 @@ Plater::priv::~priv()
 {
     if (config != nullptr)
         delete config;
+    if (notification_manager != nullptr)
+        delete notification_manager;
 }
 
 void Plater::priv::update(unsigned int flags)
@@ -2224,7 +2226,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     std::vector<size_t> obj_idxs;
 
     for (size_t i = 0; i < input_files.size(); ++i) {
+#ifdef _WIN32
+        auto path = input_files[i];
+        // On Windows, we swap slashes to back slashes, see GH #6803 as read_from_file() does not understand slashes on Windows thus it assignes full path to names of loaded objects.
+        path.make_preferred();
+#else // _WIN32
+        // Don't make a copy on Posix. Slash is a path separator, back slashes are not accepted as a substitute.
         const auto &path = input_files[i];
+#endif // _WIN32
         const auto filename = path.filename();
         dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())), _L("Loading file") + ": " + from_path(filename));
         dlg.Fit();
@@ -2339,9 +2348,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             else {
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion));
                 for (auto obj : model.objects)
-                    if (obj->name.empty() ||
-                        obj->name.find_first_of("/") != std::string::npos) // When file is imported from Fusion360 the path containes "/" instead of "\\" (see https://github.com/prusa3d/PrusaSlicer/issues/6803)
-                                                                           // But read_from_file doesn't support that direction separator and as a result object name containes full path 
+                    if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();
             }
         } catch (const ConfigurationError &e) {
@@ -2460,7 +2467,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     if (load_model) {
-        wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().string());
+        wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().make_preferred().string());
         // XXX: Plater.pm had @loaded_files, but didn't seem to fill them with the filenames...
         statusbar()->set_status_text(_L("Loaded"));
     }
@@ -3252,6 +3259,9 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 
 void Plater::priv::replace_with_stl()
 {
+    if (! q->canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::EType::Undefined))
+        return;
+
     const Selection& selection = get_selection();
 
     if (selection.is_wipe_tower() || get_selection().get_volume_idxs().size() != 1)
@@ -3631,14 +3641,8 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
 
     // Do not fix anything when a gizmo is open. There might be issues with updates
     // and what is worse, the snapshot time would refer to the internal stack.
-    if (q->canvas3D()->get_gizmos_manager().get_current_type() != GLGizmosManager::Undefined) {
-        notification_manager->push_notification(
-                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::RegularNotification,
-                    _u8L("ERROR: Please close all manipulators available from "
-                         "the left toolbar before fixing the mesh."));
+    if (! q->canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
-    }
 
     // size_t snapshot_time = undo_redo_stack().active_snapshot_time();
     Plater::TakeSnapshot snapshot(q, _L("Fix through NetFabb"));
@@ -4862,7 +4866,7 @@ SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
 void Plater::new_project()
 {
-    if (!p->save_project_if_dirty())
+    if (p->save_project_if_dirty() == wxID_CANCEL)
         return;
 
     p->select_view_3D("3D");
@@ -4875,7 +4879,7 @@ void Plater::new_project()
 
 void Plater::load_project()
 {
-    if (!p->save_project_if_dirty())
+    if (p->save_project_if_dirty() == wxID_CANCEL)
         return;
 
     // Ask user for a project file name.
@@ -4895,10 +4899,7 @@ void Plater::load_project(const wxString& filename)
 
     p->reset();
 
-    std::vector<fs::path> input_paths;
-    input_paths.push_back(into_path(filename));
-
-    if (! load_files(input_paths).empty()) {
+    if (! load_files({ into_path(filename) }).empty()) {
         // At least one file was loaded.
         p->set_project_filename(filename);
         reset_project_dirty_initial_presets();
@@ -4915,7 +4916,7 @@ void Plater::add_model(bool imperial_units/* = false*/)
 
     std::vector<fs::path> paths;
     for (const auto &file : input_files)
-        paths.push_back(into_path(file));
+        paths.emplace_back(into_path(file));
 
     wxString snapshot_label;
     assert(! paths.empty());
@@ -4948,12 +4949,8 @@ void Plater::extract_config_from_project()
     wxString input_file;
     wxGetApp().load_project(this, input_file);
 
-    if (input_file.empty())
-        return;
-
-    std::vector<fs::path> input_paths;
-    input_paths.push_back(into_path(input_file));
-    load_files(input_paths, false, true);
+    if (! input_file.empty())
+        load_files({ into_path(input_file) }, false, true);
 }
 
 void Plater::load_gcode()
@@ -4982,10 +4979,9 @@ void Plater::load_gcode(const wxString& filename)
 
     // process gcode
     GCodeProcessor processor;
-    processor.enable_producers(true);
     try
     {
-        processor.process_file(filename.ToUTF8().data(), false);
+        processor.process_file(filename.ToUTF8().data());
     }
     catch (const std::exception& ex)
     {
@@ -5184,15 +5180,11 @@ bool Plater::load_files(const wxArrayString& filenames)
             }
             case LoadType::LoadGeometry: {
                 Plater::TakeSnapshot snapshot(this, _L("Import Object"));
-                std::vector<fs::path> in_paths;
-                in_paths.emplace_back(*it);
-                load_files(in_paths, true, false);
+                load_files({ *it }, true, false);
                 break;
             }
             case LoadType::LoadConfig: {
-                std::vector<fs::path> in_paths;
-                in_paths.emplace_back(*it);
-                load_files(in_paths, false, true);
+                load_files({ *it }, false, true);
                 break;
             }
             case LoadType::Unknown : {
@@ -5699,8 +5691,16 @@ void Plater::export_amf()
 
 bool Plater::export_3mf(const boost::filesystem::path& output_path)
 {
+#if ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
+    if (p->model.objects.empty()) {
+        MessageDialog dialog(nullptr, _L("The plater is empty.\nConfirm you want to save the project ?"), _L("Save project"), wxYES_NO);
+        if (dialog.ShowModal() != wxID_YES)
+            return false;
+    }
+#else
     if (p->model.objects.empty())
         return false;
+#endif // ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
 
     wxString path;
     bool export_config = true;
@@ -6250,16 +6250,6 @@ BoundingBoxf Plater::bed_shape_bb() const
     return p->bed_shape_bb();
 }
 
-void Plater::start_mapping_gcode_window()
-{
-    p->preview->get_canvas3d()->start_mapping_gcode_window();
-}
-
-void Plater::stop_mapping_gcode_window()
-{
-    p->preview->get_canvas3d()->stop_mapping_gcode_window();
-}
-
 void Plater::arrange()
 {
     p->m_ui_jobs.arrange();
@@ -6688,6 +6678,11 @@ bool Plater::is_render_statistic_dialog_visible() const
 {
     return p->show_render_statistic_dialog;
 }
+
+
+Plater::TakeSnapshot::TakeSnapshot(Plater *plater, const std::string &snapshot_name)
+: TakeSnapshot(plater, from_u8(snapshot_name)) {}
+
 
 // Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
