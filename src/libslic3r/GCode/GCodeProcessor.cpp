@@ -1213,7 +1213,7 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     CNumericLocalesSetter locales_setter;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto start_time = std::chrono::high_resolution_clock::now();
+    m_start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     // pre-processing
@@ -1261,16 +1261,16 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     });
 
     this->finalize();
-
-    // post-process to add M73 lines into the gcode
-#if ENABLE_GCODE_VIEWER_STATISTICS
-    m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
 void GCodeProcessor::initialize(const std::string& filename)
 {
     assert(is_decimal_separator_point());
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
     // process gcode
     m_result.filename = filename;
     m_result.id = ++s_result_id;
@@ -1317,6 +1317,9 @@ void GCodeProcessor::finalize()
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends);
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
 float GCodeProcessor::get_time(PrintEstimatedStatistics::ETimeMode mode) const

@@ -497,6 +497,9 @@ namespace Slic3r {
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         size_t m_last_default_color_id;
 #endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
+#if ENABLE_GCODE_VIEWER_STATISTICS
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         enum class EProducer
         {
