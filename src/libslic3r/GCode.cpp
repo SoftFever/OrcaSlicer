@@ -1099,7 +1099,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
     print.throw_if_canceled();
 
-    m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     if (print.config().spiral_vase.value)
         m_spiral_vase = make_unique<SpiralVase>(print.config());
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -1212,6 +1211,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
     print.throw_if_canceled();
 
+    m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 
     // Emit machine envelope limits for the Marlin firmware.
