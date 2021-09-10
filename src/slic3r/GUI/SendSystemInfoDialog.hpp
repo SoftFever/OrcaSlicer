@@ -15,7 +15,7 @@ class SendSystemInfoDialog : public DPIDialog
         DIALOG_MARGIN = 15,
         SPACING = 10,
         MIN_WIDTH = 60,
-        MIN_HEIGHT = 40,
+        MIN_HEIGHT = 60,//40,
         MIN_HEIGHT_EXPANDED = 40,
     };
 

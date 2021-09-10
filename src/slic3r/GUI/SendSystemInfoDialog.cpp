@@ -157,8 +157,8 @@ static std::string generate_system_info_json()
 
 SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     : m_system_info_json{generate_system_info_json()},
-    GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, wxDefaultSize,
-           wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+    GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, /*wxDefaultSize*/wxSize(MIN_WIDTH * GUI::wxGetApp().em_unit(), MIN_HEIGHT * GUI::wxGetApp().em_unit()),
+           wxDEFAULT_DIALOG_STYLE/*|wxRESIZE_BORDER*/)
 {
     int version_major = 0;
     int version_minor = 0;
@@ -173,14 +173,22 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     m_min_width = MIN_WIDTH * em;
     m_min_height = MIN_HEIGHT * em;
 
-
     const wxFont& mono_font = GUI::wxGetApp().code_font();
 
-    auto *panel = new wxPanel(this);
-    auto *vsizer = new wxBoxSizer(wxVERTICAL);
-    panel->SetSizer(vsizer);
+    auto *topSizer = new wxBoxSizer(wxVERTICAL);
 
-    /*auto *topsizer = new wxBoxSizer(wxVERTICAL);
+//    topSizer->SetMinSize(wxSize(-1, m_min_height));
+    //auto *panel = new wxPanel(this);
+    auto *vsizer = new wxBoxSizer(wxVERTICAL);
+//    panel->SetSizer(vsizer);
+
+    wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2, 1, 1, 0);
+    grid_sizer->SetFlexibleDirection(wxBOTH);
+    grid_sizer->AddGrowableCol(0, 1);
+    grid_sizer->AddGrowableRow(0, 1);
+    grid_sizer->AddGrowableRow(1, 1);
+
+/*    auto *topsizer = new wxBoxSizer(wxVERTICAL);
     topsizer->Add(panel, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
     SetMinSize(wxSize(m_min_width, m_min_height));
     SetSizerAndFit(topsizer);
@@ -189,7 +197,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     size_t last_slash_idx = filename.find_last_of("/");
     if (last_slash_idx != std::string::npos)
         filename = filename.substr(last_slash_idx+1);
-    auto* text = new wxStaticText(panel, wxID_ANY, wxEmptyString);
+    auto* text = new wxStaticText(/*panel*/this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(m_min_width, -1)/**/);
     text->SetLabelMarkup(
         GUI::format_wxstr(_L("This is the first time you are running %1%. We would like to "
            "ask you to send some of your system information to us. This will only "
@@ -214,20 +222,21 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
                "inspect the code actually performing the communication, see %1%."),
                std::string("<i>") + filename + "</i>")
       + "\n\n"
-      + "<b>" + _L("Verbatim data that will be sent:") + "</b>");
-    vsizer->Add(text, 1, wxEXPAND);
+      + "<b>" + _L("Verbatim data that will be sent:") + "</b>"
+      + "\n\n");
+    vsizer/*grid_sizer*/->Add(text/*, 0, wxEXPAND*/);
 
 
-    auto* txt_json = new wxTextCtrl(panel, wxID_ANY, m_system_info_json,
+    auto* txt_json = new wxTextCtrl(/*panel*/this, wxID_ANY, m_system_info_json,
                                    wxDefaultPosition, wxDefaultSize,
                                    wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
     txt_json->SetFont(mono_font);
     txt_json->ShowPosition(0);
-    vsizer->Add(txt_json, 0, wxEXPAND, SPACING);
+    vsizer/*grid_sizer*/->Add(txt_json, 1, wxEXPAND, SPACING);
 
-    auto* ask_later_button = new wxButton(panel, wxID_ANY, _L("Ask me next time"));
-    auto* dont_send_button = new wxButton(panel, wxID_ANY, _L("Do not send anything"));
-    auto* send_button = new wxButton(panel, wxID_ANY, _L("Send system info"));
+    auto* ask_later_button = new wxButton(/*panel*/this, wxID_ANY, _L("Ask me next time"));
+    auto* dont_send_button = new wxButton(/*panel*/this, wxID_ANY, _L("Do not send anything"));
+    auto* send_button = new wxButton(/*panel*/this, wxID_ANY, _L("Send system info"));
 
     auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->Add(ask_later_button);
@@ -235,12 +244,27 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     hsizer->Add(dont_send_button);
     hsizer->AddSpacer(em);
     hsizer->Add(send_button);
-    vsizer->Add(hsizer, 0, wxALIGN_CENTER_HORIZONTAL, 10);
+
+//    vsizer->Add(grid_sizer, 1, wxEXPAND);
+    vsizer->Add(hsizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 10);
+
+    //panel->SetSizer(vsizer);
+    //vsizer->SetSizeHints(panel);
+
+    topSizer->Add(vsizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 10);
+
+    SetSizer(topSizer);
+    topSizer->SetSizeHints(this);
+
+
+#ifdef _WIN32
+    wxGetApp().UpdateDlgDarkUI(this);
+#endif
 
     const auto size = GetSize();
     SetSize(std::max(size.GetWidth(), m_min_width),
             std::max(size.GetHeight(), m_min_height));
-    Layout();
+//    Layout();
 
     send_button->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                     {
