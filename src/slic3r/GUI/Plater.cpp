@@ -1736,6 +1736,7 @@ struct Plater::priv
 	void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
     // Update notification manager with the current state of warnings produced by the background process (slicing).
 	void actualize_slicing_warnings(const PrintBase &print);
+    void actualize_object_warnings(const PrintBase& print);
 	// Displays dialog window with list of warnings. 
 	// Returns true if user clicks OK.
 	// Returns true if current_warnings vector is empty without showning the dialog
@@ -3048,6 +3049,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 	//actualizate warnings
 	if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
 		actualize_slicing_warnings(*this->background_process.current_print());
+        actualize_object_warnings(*this->background_process.current_print());
 		show_warning_dialog = false;
 		process_completed_with_error = false;
 	}
@@ -3587,10 +3589,7 @@ void Plater::priv::create_simplify_notification(const std::vector<size_t>& obj_i
             manager.open_gizmo(GLGizmosManager::EType::Simplify);
             return true;
         };
-        notification_manager->push_notification(
-            NotificationType::SimplifySuggestion,
-            NotificationManager::NotificationLevel::WarningNotification,
-            text.str(), hypertext, open_simplify);    
+        notification_manager->push_object_warning_notification(text.str(), model.objects[object_id]->id(), hypertext, open_simplify);
     }
 }
 
@@ -3854,6 +3853,16 @@ void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
     std::sort(ids.begin(), ids.end());
 	notification_manager->remove_slicing_warnings_of_released_objects(ids);
     notification_manager->set_all_slicing_warnings_gray(true);
+}
+void Plater::priv::actualize_object_warnings(const PrintBase& print)
+{
+    std::vector<ObjectID> ids;
+    for (const ModelObject* object : print.model().objects )
+    {
+        ids.push_back(object->id());
+    }
+    std::sort(ids.begin(), ids.end());
+    notification_manager->remove_object_warnings_of_released_objects(ids);
 }
 void Plater::priv::clear_warnings()
 {
