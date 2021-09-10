@@ -34,9 +34,9 @@ sub buffer {
     $gcodegen->apply_print_config($print_config);
     $gcodegen->set_layer_count(10);
 
-    my @extruders = shift;
-    @extruders = [ 0 ] if int(@extruders) == 0;
-    $gcodegen->set_extruders(\@extruders);
+    my $extruders_ref = shift;
+    $extruders_ref = [ 0 ] if !defined $extruders_ref;
+    $gcodegen->set_extruders($extruders_ref);
     return Slic3r::GCode::CoolingBuffer->new($gcodegen);
 }
 
