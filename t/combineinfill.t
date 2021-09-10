@@ -36,7 +36,15 @@ plan tests => 8;
                     $layer_infill{$self->Z} = 1;
                 }
             }
-            $layers{$args->{Z}} = 1 if $cmd eq 'G1' && $info->{dist_Z} > 0;
+            # Previously, all G-code commands had a fixed number of decimal points with means with redundant zeros after decimal points.
+            # We changed this behavior and got rid of these redundant padding zeros, which caused this test to fail
+            # because the position in Z-axis is compared as a string, and previously, G-code contained the following two commands:
+            # "G1 Z5 F5000 ; lift nozzle"
+            # "G1 Z5.000 F7800.000"
+            # That has a different Z-axis position from the view of string comparisons of floating-point numbers.
+            # To correct the computation of the number of printed layers, even in the case of string comparisons of floating-point numbers,
+            # we filtered out the G-code command with the commend 'lift nozzle'.
+            $layers{$args->{Z}} = 1 if $cmd eq 'G1' && $info->{dist_Z} && index($info->{comment}, 'lift nozzle') == -1;
         });
         
         my $layers_with_perimeters = scalar(keys %layer_infill);
