@@ -12,11 +12,8 @@ namespace GUI {
 class SendSystemInfoDialog : public DPIDialog
 {
     enum {
-        DIALOG_MARGIN = 15,
-        SPACING = 10,
         MIN_WIDTH = 60,
-        MIN_HEIGHT = 60,//40,
-        MIN_HEIGHT_EXPANDED = 40,
+        MIN_HEIGHT = 40
     };
 
 public:
@@ -24,11 +21,13 @@ public:
 
 private:
     const std::string m_system_info_json;
-    int m_min_width;
-    int m_min_height;
+    wxButton* m_btn_send;
+    wxButton* m_btn_dont_send;
+    wxButton* m_btn_ask_later;
 
     void on_dpi_changed(const wxRect&) override;
 };
+
 
 void show_send_system_info_dialog_if_needed();
 

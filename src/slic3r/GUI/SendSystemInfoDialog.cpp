@@ -10,6 +10,7 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "MainFrame.hpp"
+#include "MsgDialog.hpp"
 #include "OpenGLManager.hpp"
 
 #include <boost/property_tree/json_parser.hpp>
@@ -17,7 +18,9 @@
 
 #include "GL/glew.h"
 
-#include <wx/stattext.h>
+#include <wx/htmllbox.h>
+#include <wx/log.h>
+#include <wx/msgdlg.h>
 #include <wx/utils.h>
 
 namespace Slic3r {
@@ -25,6 +28,37 @@ namespace GUI {
 
 // Declaration of a free function defined in OpenGLManager.cpp:
 std::string gl_get_string_safe(GLenum param, const std::string& default_value);
+
+
+
+class ShowJsonDialog : public wxDialog
+{
+public:
+    ShowJsonDialog(wxWindow* parent, const wxString& json, const wxSize& size)
+        : wxDialog(parent, wxID_ANY, _L("Data to send"), wxDefaultPosition, size, wxCAPTION)
+    {
+        auto* text = new wxTextCtrl(this, wxID_ANY, json,
+                                    wxDefaultPosition, wxDefaultSize,
+                                    wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+        text->SetFont(wxGetApp().code_font());
+        text->ShowPosition(0);
+
+        auto* btn = new wxButton(this, wxID_CANCEL, _L("Close"));
+        auto* vsizer = new wxBoxSizer(wxVERTICAL);
+        auto *top_sizer = new wxBoxSizer(wxVERTICAL);
+        vsizer->Add(text, 1, wxEXPAND);
+        vsizer->AddSpacer(5);
+        vsizer->Add(btn, 0, wxALIGN_CENTER_HORIZONTAL);
+        top_sizer->Add(vsizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT | wxBOTTOM, 10);
+        SetSizer(top_sizer);
+        #ifdef _WIN32
+            wxGetApp().UpdateDlgDarkUI(this);
+        #endif
+
+    }
+};
+
+
 
 
 // Read a string formatted as SLIC3R_VERSION (e.g. "2.4.0-alpha1") and get major and
@@ -157,9 +191,10 @@ static std::string generate_system_info_json()
 
 SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     : m_system_info_json{generate_system_info_json()},
-    GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, /*wxDefaultSize*/wxSize(MIN_WIDTH * GUI::wxGetApp().em_unit(), MIN_HEIGHT * GUI::wxGetApp().em_unit()),
-           wxDEFAULT_DIALOG_STYLE/*|wxRESIZE_BORDER*/)
+    GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, wxDefaultSize,
+           wxDEFAULT_DIALOG_STYLE)
 {
+    // Get current PrusaSliver version info.
     int version_major = 0;
     int version_minor = 0;
     bool is_alpha = false;
@@ -169,88 +204,76 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
                            + "." + std::to_string(version_minor) + " "
                            + (is_alpha ? "Alpha" : is_beta ? "Beta" : "");
 
-    const int em = GUI::wxGetApp().em_unit();
-    m_min_width = MIN_WIDTH * em;
-    m_min_height = MIN_HEIGHT * em;
-
-    const wxFont& mono_font = GUI::wxGetApp().code_font();
-
-    auto *topSizer = new wxBoxSizer(wxVERTICAL);
-
-//    topSizer->SetMinSize(wxSize(-1, m_min_height));
-    //auto *panel = new wxPanel(this);
-    auto *vsizer = new wxBoxSizer(wxVERTICAL);
-//    panel->SetSizer(vsizer);
-
-    wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2, 1, 1, 0);
-    grid_sizer->SetFlexibleDirection(wxBOTH);
-    grid_sizer->AddGrowableCol(0, 1);
-    grid_sizer->AddGrowableRow(0, 1);
-    grid_sizer->AddGrowableRow(1, 1);
-
-/*    auto *topsizer = new wxBoxSizer(wxVERTICAL);
-    topsizer->Add(panel, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
-    SetMinSize(wxSize(m_min_width, m_min_height));
-    SetSizerAndFit(topsizer);
-*/
+    // Get current source file name.
     std::string filename(__FILE__);
-    size_t last_slash_idx = filename.find_last_of("/");
+    size_t last_slash_idx = filename.find_last_of("/\\");
     if (last_slash_idx != std::string::npos)
         filename = filename.substr(last_slash_idx+1);
-    auto* text = new wxStaticText(/*panel*/this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(m_min_width, -1)/**/);
-    text->SetLabelMarkup(
-        GUI::format_wxstr(_L("This is the first time you are running %1%. We would like to "
+
+    // Set dialog background color, fonts, etc.
+    SetFont(wxGetApp().normal_font());
+    wxColour bgr_clr = wxGetApp().get_window_default_clr();
+    SetBackgroundColour(bgr_clr);
+    const auto text_clr = wxGetApp().get_label_clr_default();
+    auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+    auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+
+
+    auto *topSizer = new wxBoxSizer(wxVERTICAL);
+    auto *vsizer = new wxBoxSizer(wxVERTICAL);    
+
+    wxString text0 = GUI::format_wxstr(_L("This is the first time you are running %1%. We would like to "
            "ask you to send some of your system information to us. This will only "
            "happen once and we will not ask you to do this again (only after you "
-           "upgrade to the next version)."), app_name )
-      + "\n\n"
-      + "<b>" + _L("Why is it needed") + "</b>"
-      + "\n"
-      + _L("If we know your hardware, operating system, etc., it will greatly help us "
-           "in development, prioritization and possible deprecation of features that "
-           "are no more needed (for example legacy OpenGL support). This will help "
-           "us to focus our effort more efficiently and spend time on features that "
-           "are needed the most.")
-      + "\n\n"
-      + "<b>" + _L("Is it safe?") + "</b>\n"
-      + GUI::format_wxstr(
-            _L("We do not send any personal information nor anything that would allow us "
-               "to identify you later. To detect duplicate entries, a number derived "
-               "from your username is sent, but it cannot be used to recover the username. "
-               "Apart from that, only general data about your OS, hardware and OpenGL "
-               "installation are sent. PrusaSlicer is open source, if you want to "
-               "inspect the code actually performing the communication, see %1%."),
-               std::string("<i>") + filename + "</i>")
-      + "\n\n"
-      + "<b>" + _L("Verbatim data that will be sent:") + "</b>"
-      + "\n\n");
-    vsizer/*grid_sizer*/->Add(text/*, 0, wxEXPAND*/);
+           "upgrade to the next version)."), app_name );
+    wxString label1 = _L("Why is it needed");
+    wxString text1 = _L("If we know your hardware, operating system, etc., it will greatly help us "
+        "in development, prioritization and possible deprecation of features that "
+        "are no more needed (for example legacy OpenGL support). This will help "
+        "us to focus our effort more efficiently and spend time on features that "
+        "are needed the most.");
+    wxString label2 = _L("Is it safe?");
+    wxString text2 = GUI::format_wxstr(
+        _L("We do not send any personal information nor anything that would allow us "
+           "to identify you later. To detect duplicate entries, a number derived "
+           "from your username is sent, but it cannot be used to recover the username. "
+           "Apart from that, only general data about your OS, hardware and OpenGL "
+           "installation are sent. PrusaSlicer is open source, if you want to "
+           "inspect the code actually performing the communication, see %1%."),
+           std::string("<i>") + filename + "</i>");
+    wxString label3 = _L("Show verbatim data that will be sent");
 
+    auto* html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
+    wxString html = GUI::format_wxstr(
+            "<html><body bgcolor=%1%><font color=%2%>"
+            + text0 + "<br /><br />"
+            + "<b>" + label1 + "</b><br />"
+            + text1 + "<br /><br />"
+            + "<b>" + label2 + "</b><br />"
+            + text2 + "<br /><br />"
+            + "<b><a href=\"show\">" + label3 + "</a></b><br />"
+            + "</font></body></html>", bgr_clr_str, text_clr_str);
+    html_window->SetPage(html);
+    html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent &evt) {
+                                                   ShowJsonDialog dlg(this, m_system_info_json, GetSize().Scale(0.9, 0.7));
+                                                   dlg.ShowModal();
+    });
 
-    auto* txt_json = new wxTextCtrl(/*panel*/this, wxID_ANY, m_system_info_json,
-                                   wxDefaultPosition, wxDefaultSize,
-                                   wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
-    txt_json->SetFont(mono_font);
-    txt_json->ShowPosition(0);
-    vsizer/*grid_sizer*/->Add(txt_json, 1, wxEXPAND, SPACING);
+    vsizer->Add(html_window, 1, wxEXPAND);
 
-    auto* ask_later_button = new wxButton(/*panel*/this, wxID_ANY, _L("Ask me next time"));
-    auto* dont_send_button = new wxButton(/*panel*/this, wxID_ANY, _L("Do not send anything"));
-    auto* send_button = new wxButton(/*panel*/this, wxID_ANY, _L("Send system info"));
+    m_btn_ask_later = new wxButton(this, wxID_ANY, _L("Ask me next time"));
+    m_btn_dont_send = new wxButton(this, wxID_ANY, _L("Do not send anything"));
+    m_btn_send = new wxButton(this, wxID_ANY, _L("Send system info"));
 
     auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
-    hsizer->Add(ask_later_button);
+    const int em = GUI::wxGetApp().em_unit();
+    hsizer->Add(m_btn_ask_later);
     hsizer->AddSpacer(em);
-    hsizer->Add(dont_send_button);
+    hsizer->Add(m_btn_dont_send);
     hsizer->AddSpacer(em);
-    hsizer->Add(send_button);
+    hsizer->Add(m_btn_send);
 
-//    vsizer->Add(grid_sizer, 1, wxEXPAND);
     vsizer->Add(hsizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 10);
-
-    //panel->SetSizer(vsizer);
-    //vsizer->SetSizeHints(panel);
-
     topSizer->Add(vsizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 10);
 
     SetSizer(topSizer);
@@ -262,45 +285,34 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
 #endif
 
     const auto size = GetSize();
-    SetSize(std::max(size.GetWidth(), m_min_width),
-            std::max(size.GetHeight(), m_min_height));
-//    Layout();
+    SetSize(std::max(size.GetWidth(), MIN_WIDTH * em),
+            std::max(size.GetHeight(), MIN_HEIGHT * em));
 
-    send_button->Bind(wxEVT_BUTTON, [this](const wxEvent&)
+    m_btn_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                     {
                                         send_info(m_system_info_json);
                                         save_version();
                                         EndModal(0);
                                     });
-    dont_send_button->Bind(wxEVT_BUTTON, [this](const wxEvent&)
+    m_btn_dont_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                          {
                                              save_version();
                                              EndModal(0);
                                          });
-    ask_later_button->Bind(wxEVT_BUTTON, [this](const wxEvent&) { EndModal(0); });
+    m_btn_ask_later->Bind(wxEVT_BUTTON, [this](const wxEvent&) { EndModal(0); });
 }
 
 
 
 void SendSystemInfoDialog::on_dpi_changed(const wxRect&)
 {
-    /*const int& em = em_unit();
-
-    msw_buttons_rescale(this, em, { p->btn_close->GetId(),
-                                    p->btn_rescan->GetId(),
-                                    p->btn_flash->GetId(),
-                                    p->hex_picker->GetPickerCtrl()->GetId()
-                                                            });
-
-    p->min_width = MIN_WIDTH * em;
-    p->min_height = MIN_HEIGHT * em;
-    p->min_height_expanded = MIN_HEIGHT_EXPANDED * em;
-
-    const int min_height = p->spoiler->IsExpanded() ? p->min_height_expanded : p->min_height;
-    SetMinSize(wxSize(p->min_width, min_height));
+    const int& em = em_unit();
+    msw_buttons_rescale(this, em, { m_btn_send->GetId(),
+                                    m_btn_dont_send->GetId(),
+                                    m_btn_ask_later->GetId() });
+    SetMinSize(wxSize(MIN_WIDTH * em, MIN_HEIGHT * em));
     Fit();
-
-    Refresh();*/
+    Refresh();
 }
 
 
