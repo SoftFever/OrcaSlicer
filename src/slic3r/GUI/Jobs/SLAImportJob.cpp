@@ -6,6 +6,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -124,8 +125,8 @@ public:
     priv(Plater *plt) : plater{plt} {}
 };
 
-SLAImportJob::SLAImportJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
-    : PlaterJob{std::move(pri), plater}, p{std::make_unique<priv>(plater)}
+SLAImportJob::SLAImportJob(std::shared_ptr<NotificationManager> nm, Plater *plater)
+    : PlaterJob{nm, plater}, p{std::make_unique<priv>(plater)}
 {}
 
 SLAImportJob::~SLAImportJob() = default;

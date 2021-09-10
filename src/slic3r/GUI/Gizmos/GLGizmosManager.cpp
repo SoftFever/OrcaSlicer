@@ -194,7 +194,7 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
     if (get_current_type() != type && get_current_type() != Undefined) {
         wxGetApp().plater()->get_notification_manager()->push_notification(
                     NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::RegularNotification,
+                    NotificationManager::NotificationLevel::RegularNotificationLevel,
                     _u8L("ERROR: Please close all manipulators available from "
                          "the left toolbar first"));
         return false;
@@ -1256,7 +1256,7 @@ bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
     if (error_notification)
         wxGetApp().plater()->get_notification_manager()->push_notification(
                     NotificationType::QuitSLAManualMode,
-                    NotificationManager::NotificationLevel::ErrorNotification,
+                    NotificationManager::NotificationLevel::ErrorNotificationLevel,
                     _u8L("You are currently editing SLA support points. Please, "
                          "apply or discard your changes first."));
 

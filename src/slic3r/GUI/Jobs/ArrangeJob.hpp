@@ -9,6 +9,7 @@ namespace Slic3r {
 class ModelInstance;
 
 namespace GUI {
+class NotificationManager;
 
 class ArrangeJob : public PlaterJob
 {
@@ -39,8 +40,8 @@ protected:
     void process() override;
 
 public:
-    ArrangeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
-        : PlaterJob{std::move(pri), plater}
+    ArrangeJob(std::shared_ptr<NotificationManager> nm, Plater *plater)
+        : PlaterJob{nm, plater}
     {}
     
     int status_range() const override

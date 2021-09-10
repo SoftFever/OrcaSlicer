@@ -204,7 +204,7 @@ public:
     wxWindow*             m_plater_page{ nullptr };
     wxProgressDialog*     m_progress_dialog { nullptr };
     PrintHostQueueDialog* m_printhost_queue_dlg;
-    std::shared_ptr<ProgressStatusBar>  m_statusbar;
+//    std::shared_ptr<ProgressStatusBar>  m_statusbar;
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;
