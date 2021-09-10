@@ -8,14 +8,13 @@
 
 #include <slic3r/GUI/I18N.hpp>
 
-#include "ProgressIndicator.hpp"
-
 #include <wx/event.h>
 
 #include <boost/thread.hpp>
 
 namespace Slic3r { namespace GUI {
 
+class NotificationManager;
 // A class to handle UI jobs like arranging and optimizing rotation.
 // These are not instant jobs, the user has to be informed about their
 // state in the status progress indicator. On the other hand they are
@@ -33,7 +32,7 @@ class Job : public wxEvtHandler
     boost::thread     m_thread;
     std::atomic<bool> m_running{false}, m_canceled{false};
     bool              m_finalized = false, m_finalizing = false;
-    std::shared_ptr<ProgressIndicator> m_progress;
+    std::shared_ptr<NotificationManager>               m_notifications;
     std::exception_ptr                 m_worker_error = nullptr;
     
     void run(std::exception_ptr &);
@@ -65,7 +64,7 @@ protected:
     }
    
 public:
-    Job(std::shared_ptr<ProgressIndicator> pri);
+    Job(std::shared_ptr<NotificationManager> nm);
     
     bool is_finalized() const { return m_finalized; }
     

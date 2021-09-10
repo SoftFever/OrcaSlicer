@@ -194,3 +194,4 @@ void ProgressStatusBar::hide_cancel_button()
 }
 
 }
+

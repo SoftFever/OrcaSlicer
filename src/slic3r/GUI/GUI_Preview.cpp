@@ -734,9 +734,9 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
 
             double top_area = area(object->get_layer(int(object->layers().size()) - 1)->lslices);
             if( bottom_area - top_area > delta_area) {
-                NotificationManager* notif_mngr = wxGetApp().plater()->get_notification_manager();
+                std::shared_ptr<NotificationManager> notif_mngr = wxGetApp().plater()->get_notification_manager();
                 notif_mngr->push_notification(
-                    NotificationType::SignDetected, NotificationManager::NotificationLevel::RegularNotification,
+                    NotificationType::SignDetected, NotificationManager::NotificationLevel::RegularNotificationLevel,
                     _u8L("NOTE:") + "\n" + _u8L("Sliced object looks like the sign") + "\n",
                     _u8L("Apply auto color change to print"),
                     [this](wxEvtHandler*) {

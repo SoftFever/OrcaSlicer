@@ -155,13 +155,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     SetIcon(main_frame_icon(wxGetApp().get_app_mode()));
 
 	// initialize status bar
-    m_statusbar = std::make_shared<ProgressStatusBar>(this);
-    m_statusbar->set_font(GUI::wxGetApp().normal_font());
-    if (wxGetApp().is_editor())
-        m_statusbar->embed(this);
-    m_statusbar->set_status_text(_L("Version") + " " +
-        SLIC3R_VERSION + " - " +
-        _L("Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
+//    m_statusbar = std::make_shared<ProgressStatusBar>(this);
+//    m_statusbar->set_font(GUI::wxGetApp().normal_font());
+//    if (wxGetApp().is_editor())
+//        m_statusbar->embed(this);
+//    m_statusbar->set_status_text(_L("Version") + " " +
+//        SLIC3R_VERSION + " - " +
+//       _L("Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -1033,7 +1033,7 @@ void MainFrame::on_sys_color_changed()
     wxGetApp().init_label_colours();
 #ifdef __WXMSW__
     wxGetApp().UpdateDarkUI(m_tabpanel);
-    m_statusbar->update_dark_ui();
+ //   m_statusbar->update_dark_ui();
 #ifdef _MSW_DARK_MODE
     // update common mode sizer
     if (!wxGetApp().tabs_as_menu())
