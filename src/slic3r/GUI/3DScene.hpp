@@ -614,7 +614,6 @@ public:
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
     bool check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state) const;
-    bool check_outside_state(const DynamicPrintConfig* config, bool& partlyOut, bool& fullyOut) const;
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);

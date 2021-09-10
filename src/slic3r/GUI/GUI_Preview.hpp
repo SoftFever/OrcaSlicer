@@ -59,8 +59,6 @@ public:
     void delete_selected();
     void mirror_selection(Axis axis);
 
-    int check_volumes_outside_state() const;
-
     bool is_layers_editing_enabled() const;
     bool is_layers_editing_allowed() const;
     void enable_layers_editing(bool enable);
