@@ -45,11 +45,12 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
     if (m_selection < 0 || m_selection >= (int)m_pageButtons.size())
         return;
 
-    // highlight selected button
-
     const wxColour& selected_btn_bg  = Slic3r::GUI::wxGetApp().get_color_selected_btn_bg();
     const wxColour& default_btn_bg   = Slic3r::GUI::wxGetApp().get_highlight_default_clr();
     const wxColour& btn_marker_color = Slic3r::GUI::wxGetApp().get_color_hovered_btn_label();
+
+    // highlight selected notebook button
+
     for (int idx = 0; idx < int(m_pageButtons.size()); idx++) {
         wxButton* btn = m_pageButtons[idx];
 
@@ -62,6 +63,25 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
         dc.SetBrush(clr);
         dc.DrawRectangle(pos.x, pos.y + size.y, size.x, sz.y - size.y);
     }
+
+    // highlight selected mode button
+
+    if (m_mode_sizer) {
+        const std::vector<ModeButton*>& mode_btns = m_mode_sizer->get_btns();
+        for (int idx = 0; idx < int(mode_btns.size()); idx++) {
+            ModeButton* btn = mode_btns[idx];
+            btn->SetBackgroundColour(btn->is_selected() ? selected_btn_bg : default_btn_bg);
+
+            //wxPoint pos = btn->GetPosition();
+            //wxSize size = btn->GetSize();
+            //const wxColour& clr = btn->is_selected() ? btn_marker_color : default_btn_bg;
+            //dc.SetPen(clr);
+            //dc.SetBrush(clr);
+            //dc.DrawRectangle(pos.x, pos.y + size.y, size.x, sz.y - size.y);
+        }
+    }
+
+    // Draw orange bottom line
 
     dc.SetPen(btn_marker_color);
     dc.SetBrush(btn_marker_color);

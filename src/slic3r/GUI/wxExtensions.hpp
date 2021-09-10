@@ -283,6 +283,7 @@ public:
     void    OnLeaveBtn(wxMouseEvent& event) { focus_button(m_is_selected); event.Skip(); }
 
     void    SetState(const bool state);
+    bool    is_selected() { return m_is_selected; }
 
 protected:
     void    focus_button(const bool focus);
@@ -312,6 +313,7 @@ public:
     void set_items_border(int border);
 
     void msw_rescale();
+    const std::vector<ModeButton*>& get_btns() { return m_mode_btns; }
 
 private:
     std::vector<ModeButton*> m_mode_btns;

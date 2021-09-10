@@ -3465,7 +3465,11 @@ void ObjectList::update_selections_on_canvas()
     else
     {
         // add
-        volume_idxs = selection.get_unselected_volume_idxs_from(volume_idxs);
+        // to avoid lost of some volumes in selection
+        // check non-selected volumes only if selection mode wasn't changed
+        // OR there is no single selection
+        if (selection.get_mode() == mode || !single_selection) 
+            volume_idxs = selection.get_unselected_volume_idxs_from(volume_idxs);
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Selection-Add from list")));
         selection.add_volumes(mode, volume_idxs, single_selection);
     }

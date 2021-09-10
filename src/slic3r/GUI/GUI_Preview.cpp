@@ -128,11 +128,6 @@ void View3D::mirror_selection(Axis axis)
         m_canvas->mirror_selection(axis);
 }
 
-int View3D::check_volumes_outside_state() const
-{
-    return (m_canvas != nullptr) ? m_canvas->check_volumes_outside_state() : false;
-}
-
 bool View3D::is_layers_editing_enabled() const
 {
     return (m_canvas != nullptr) ? m_canvas->is_layers_editing_enabled() : false;

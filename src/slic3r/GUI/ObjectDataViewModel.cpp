@@ -406,8 +406,10 @@ wxDataViewItem ObjectDataViewModel::AddInfoChild(const wxDataViewItem &parent_it
     // The new item should be added according to its order in InfoItemType.
     // Find last info item with lower index and append after it.
     const auto& children = root->GetChildren();
-    int idx = -1;
-    for (int i=0; i<int(children.size()); ++i) {
+    // If SettingsItem exists, it have to be on the first position always
+    bool is_settings_item = children.size() > 0 && children[0]->GetType() == itSettings;
+    int idx = is_settings_item ? 0 : -1;
+    for (size_t i = is_settings_item ? 1 : 0; i < children.size(); ++i) {
         if (children[i]->GetType() == itInfo && int(children[i]->GetInfoItemType()) < int(info_type) )
             idx = i;
     }
@@ -619,6 +621,15 @@ wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_
     return layer_item;
 }
 
+size_t ObjectDataViewModel::GetItemIndexForFirstVolume(ObjectDataViewModelNode* node_parent)
+{
+    assert(node_parent->m_volumes_cnt > 0);
+    for (size_t vol_idx = 0; vol_idx < node_parent->GetChildCount(); vol_idx++)
+        if (node_parent->GetNthChild(vol_idx)->GetType() == itVolume)
+            return vol_idx;
+    return -1;
+}
+
 wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
 {
 	auto ret_item = wxDataViewItem(0);
@@ -714,44 +725,34 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
         }
 
         // if there is last volume item after deleting, delete this last volume too
-        if (node_parent->GetChildCount() <= 3) // 3??? #ys_FIXME
+        if (node_parent->m_volumes_cnt == 1)
         {
-            int vol_cnt = 0;
-            int vol_idx = 0;
-            for (size_t i = 0; i < node_parent->GetChildCount(); ++i) {
-                if (node_parent->GetNthChild(i)->GetType() == itVolume) {
-                    vol_idx = i;
-                    vol_cnt++;
-                }
-                if (vol_cnt > 1)
-                    break;
-            }
+            // delete selected (penult) volume
+            delete node;
+            ItemDeleted(parent, item);
 
-            if (vol_cnt == 1) {
-                delete node;
-                ItemDeleted(parent, item);
+            // get index of the last VolumeItem in CildrenList
+            size_t vol_idx = GetItemIndexForFirstVolume(node_parent);
 
-                ObjectDataViewModelNode *last_child_node = node_parent->GetNthChild(vol_idx);
-                DeleteSettings(wxDataViewItem(last_child_node));
-                node_parent->GetChildren().Remove(last_child_node);
-                node_parent->m_volumes_cnt = 0;
-                delete last_child_node;
+            // delete this last volume
+            ObjectDataViewModelNode *last_child_node = node_parent->GetNthChild(vol_idx);
+            DeleteSettings(wxDataViewItem(last_child_node));
+            node_parent->GetChildren().Remove(last_child_node);
+            node_parent->m_volumes_cnt = 0;
+            delete last_child_node;
 
 #ifndef __WXGTK__
-                if (node_parent->GetChildCount() == 0)
-                    node_parent->m_container = false;
+            if (node_parent->GetChildCount() == 0)
+                node_parent->m_container = false;
 #endif //__WXGTK__
-                ItemDeleted(parent, wxDataViewItem(last_child_node));
+            ItemDeleted(parent, wxDataViewItem(last_child_node));
 
-                wxCommandEvent event(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED);
-                auto it = find(m_objects.begin(), m_objects.end(), node_parent);
-                event.SetInt(it == m_objects.end() ? -1 : it - m_objects.begin());
-                wxPostEvent(m_ctrl, event);
+            wxCommandEvent event(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED);
+            auto it = find(m_objects.begin(), m_objects.end(), node_parent);
+            event.SetInt(it == m_objects.end() ? -1 : it - m_objects.begin());
+            wxPostEvent(m_ctrl, event);
 
-                ret_item = parent;
-
-                return ret_item;
-            }
+            return parent;
         }
 	}
 	else
@@ -1361,8 +1362,7 @@ wxDataViewItem ObjectDataViewModel::ReorganizeChildren( const int current_volume
     if (!node_parent)      // happens if item.IsOk()==false
         return ret_item;
 
-    size_t shift;
-    for (shift = 0; shift < node_parent->GetChildCount() && node_parent->GetNthChild(shift)->GetType() != itVolume; shift ++);
+    size_t shift = GetItemIndexForFirstVolume(node_parent);
 
     ObjectDataViewModelNode *deleted_node = node_parent->GetNthChild(current_volume_id+shift);
     node_parent->GetChildren().Remove(deleted_node);
