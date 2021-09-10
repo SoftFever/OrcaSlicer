@@ -3417,8 +3417,28 @@ void Plater::priv::reload_from_disk()
         if (!volume->source.input_file.empty()) {
             if (fs::exists(volume->source.input_file))
                 input_paths.push_back(volume->source.input_file);
+#if ENABLE_RELOAD_FROM_DISK_REPLACE_FILE
+            else {
+                // searches the source in the same folder containing the object
+                bool found = false;
+                if (!object->input_file.empty()) {
+                    fs::path object_path = fs::path(object->input_file).remove_filename();
+                    if (!object_path.empty()) {
+                        object_path /= fs::path(volume->source.input_file).filename();
+                        const std::string source_input_file = object_path.string();
+                        if (fs::exists(source_input_file)) {
+                            input_paths.push_back(source_input_file);
+                            found = true;
+                        }
+                    }
+                }
+                if (!found)
+                    missing_input_paths.push_back(volume->source.input_file);
+            }
+#else
             else
                 missing_input_paths.push_back(volume->source.input_file);
+#endif // ENABLE_RELOAD_FROM_DISK_REPLACE_FILE
         }
         else if (!object->input_file.empty() && volume->is_model_part() && !volume->name.empty() && !volume->source.is_from_builtin_objects)
             missing_input_paths.push_back(volume->name);
