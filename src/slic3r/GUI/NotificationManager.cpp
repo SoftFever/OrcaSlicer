@@ -1250,6 +1250,14 @@ void NotificationManager::close_slicing_error_notification(const std::string& te
 		}
 	}
 }
+void  NotificationManager::push_object_warning_notification(const std::string& text, ObjectID object_id, const std::string& hypertext/* = ""*/, std::function<bool(wxEvtHandler*)> callback/* = std::function<bool(wxEvtHandler*)>()*/)
+{
+	NotificationData data{ NotificationType::ObjectWarning, NotificationLevel::WarningNotification, 0,  text, hypertext, callback };
+	auto notification = std::make_unique<NotificationManager::SlicingWarningNotification>(data, m_id_provider, m_evt_handler);
+	notification->object_id = object_id;
+	notification->warning_step = 0;
+	push_notification_data(std::move(notification), 0);
+}
 void NotificationManager::push_slicing_complete_notification(int timestamp, bool large)
 {
 	std::string hypertext;
@@ -1300,6 +1308,15 @@ void NotificationManager::remove_slicing_warnings_of_released_objects(const std:
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications)
 		if (notification->get_type() == NotificationType::SlicingWarning) {
 			if (! std::binary_search(living_oids.begin(), living_oids.end(),
+				static_cast<SlicingWarningNotification*>(notification.get())->object_id))
+				notification->close();
+		}
+}
+void NotificationManager::remove_object_warnings_of_released_objects(const std::vector<ObjectID>& living_oids)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications)
+		if (notification->get_type() == NotificationType::ObjectWarning) {
+			if (!std::binary_search(living_oids.begin(), living_oids.end(),
 				static_cast<SlicingWarningNotification*>(notification.get())->object_id))
 				notification->close();
 		}

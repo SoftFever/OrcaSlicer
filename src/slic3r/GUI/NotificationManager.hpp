@@ -71,6 +71,9 @@ enum class NotificationType
 	PlaterError,
 	// Object fully outside the print volume, or extrusion outside the print volume. Slicing is not disabled.
 	PlaterWarning,
+	// Warning connected to single object id, appears at loading object, disapears at deletition.
+	// Example: advice to simplify object with big amount of triangles.
+	ObjectWarning,
 	// Progress bar instead of text.
 	ProgressBar,
 	// Progress bar with info from Print Host Upload Queue dialog.
@@ -97,8 +100,6 @@ enum class NotificationType
 	// Shows when  ObjectList::update_info_items finds information that should be stressed to the user
 	// Might contain logo taken from gizmos
 	UpdatedItemsInfo,
-	// Give user advice to simplify object with big amount of triangles
-	SimplifySuggestion
 };
 
 class NotificationManager
@@ -155,6 +156,12 @@ public:
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
+	// Object warning with ObjectID, closes when object is deleted. ID used is of object not print like in slicing warning.
+	void push_object_warning_notification(const std::string& text, ObjectID object_id, const std::string& hypertext = "",
+		std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
+	// Close object warnings, whose ObjectID is not in the list.
+	// living_oids is expected to be sorted.
+	void remove_object_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
 	// Creates special notification slicing complete.
 	// If large = true (Plater side bar is closed), then printing time and export button is shown
 	// at the notification and fade-out is disabled. Otherwise the fade out time is set to 10s.
@@ -576,7 +583,7 @@ private:
 		NotificationType::PlaterWarning, 
 		NotificationType::ProgressBar, 
 		NotificationType::PrintHostUpload, 
-        NotificationType::SimplifySuggestion
+        NotificationType::ObjectWarning
 	};
 	//prepared (basic) notifications
 	static const NotificationData basic_notifications[];
