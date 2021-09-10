@@ -156,41 +156,6 @@ std::string GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait
     return gcode.str();
 }
 
-std::string GCodeWriter::set_fan(unsigned int speed, bool dont_save)
-{
-    std::ostringstream gcode;
-    if (m_last_fan_speed != speed || dont_save) {
-        if (!dont_save) m_last_fan_speed = speed;
-        
-        if (speed == 0) {
-            if (FLAVOR_IS(gcfTeacup)) {
-                gcode << "M106 S0";
-            } else if (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) {
-                gcode << "M127";
-            } else {
-                gcode << "M107";
-            }
-            if (this->config.gcode_comments) gcode << " ; disable fan";
-            gcode << "\n";
-        } else {
-            if (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) {
-                gcode << "M126";
-            } else {
-                gcode << "M106 ";
-                if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
-                    gcode << "P";
-                } else {
-                    gcode << "S";
-                }
-                gcode << (255.0 * speed / 100.0);
-            }
-            if (this->config.gcode_comments) gcode << " ; enable fan";
-            gcode << "\n";
-        }
-    }
-    return gcode.str();
-}
-
 std::string GCodeWriter::set_acceleration(unsigned int acceleration)
 {
     // Clamp the acceleration to the allowed maximum.
@@ -609,6 +574,45 @@ std::string GCodeWriter::unlift()
         m_lifted = 0;
     }
     return gcode;
+}
+
+std::string GCodeWriter::set_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed)
+{
+    std::ostringstream gcode;
+    if (speed == 0) {
+        switch (gcode_flavor) {
+        case gcfTeacup:
+            gcode << "M106 S0"; break;
+        case gcfMakerWare:
+        case gcfSailfish:
+            gcode << "M127";    break;
+        default:
+            gcode << "M107";    break;
+        }
+        if (gcode_comments)
+            gcode << " ; disable fan";
+        gcode << "\n";
+    } else {
+        switch (gcode_flavor) {
+        case gcfMakerWare:
+        case gcfSailfish:
+            gcode << "M126";    break;
+        case gcfMach3:
+        case gcfMachinekit:
+            gcode << "M106 P" << 255.0 * speed / 100.0; break;
+        default:
+            gcode << "M106 S" << 255.0 * speed / 100.0; break;
+        }
+        if (gcode_comments) 
+            gcode << " ; enable fan";
+        gcode << "\n";
+    }
+    return gcode.str();
+}
+
+std::string GCodeWriter::set_fan(unsigned int speed) const
+{
+    return GCodeWriter::set_fan(this->config.gcode_flavor, this->config.gcode_comments, speed);
 }
 
 }

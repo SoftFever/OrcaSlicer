@@ -10,7 +10,6 @@
     CoolingBuffer(GCode* gcode)
         %code{% RETVAL = new CoolingBuffer(*gcode); %};
     ~CoolingBuffer();
-    Ref<GCode> gcodegen();
     std::string process_layer(std::string gcode, size_t layer_id)
         %code{% RETVAL = THIS->process_layer(std::move(gcode), layer_id, true); %};
 

@@ -18,7 +18,7 @@ public:
     GCodeWriter() : 
         multiple_extruders(false), m_extrusion_axis("E"), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
-        m_last_acceleration(0), m_max_acceleration(0), m_last_fan_speed(0), 
+        m_last_acceleration(0), m_max_acceleration(0),
         m_last_bed_temperature(0), m_last_bed_temperature_reached(true), 
         m_lifted(0)
         {}
@@ -42,7 +42,6 @@ public:
     std::string postamble() const;
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
     std::string set_bed_temperature(unsigned int temperature, bool wait = false);
-    std::string set_fan(unsigned int speed, bool dont_save = false);
     std::string set_acceleration(unsigned int acceleration);
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
@@ -69,6 +68,12 @@ public:
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
 
+    // To be called by the CoolingBuffer from another thread.
+    static std::string set_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed);
+    // To be called by the main thread. It always emits the G-code, it does not remember the previous state.
+    // Keeping the state is left to the CoolingBuffer, which runs asynchronously on another thread.
+    std::string set_fan(unsigned int speed) const;
+
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
     std::vector<Extruder> m_extruders;
@@ -79,7 +84,6 @@ private:
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
-    unsigned int    m_last_fan_speed;
     unsigned int    m_last_bed_temperature;
     bool            m_last_bed_temperature_reached;
     double          m_lifted;

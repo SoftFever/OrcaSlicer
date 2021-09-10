@@ -1219,7 +1219,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Disable fan.
     if (! print.config().cooling.get_at(initial_extruder_id) || print.config().disable_fan_first_layers.get_at(initial_extruder_id))
-        file.write(m_writer.set_fan(0, true));
+        file.write(m_writer.set_fan(0));
 
     // Let the start-up script prime the 1st printing tool.
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
@@ -1334,7 +1334,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 file.writeln(between_objects_gcode);
             }
             // Reset the cooling buffer internal state (the current position, feed rate, accelerations).
-            m_cooling_buffer->reset();
+            m_cooling_buffer->reset(this->writer().get_position());
             m_cooling_buffer->set_current_extruder(initial_extruder_id);
             // Pair the object layers with the support layers by z, extrude them.
             std::vector<LayerToPrint> layers_to_print = collect_layers_to_print(object);
@@ -1420,7 +1420,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Write end commands to file.
     file.write(this->retract());
-    file.write(m_writer.set_fan(false));
+    file.write(m_writer.set_fan(0));
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
