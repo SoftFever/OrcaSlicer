@@ -62,7 +62,6 @@ public:
   
     const Point& last_point() const override { return this->points.back(); }
     const Point& leftmost_point() const;
-    Line line() const;
     Lines lines() const override;
 
     void clip_end(double distance);

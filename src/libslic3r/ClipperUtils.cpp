@@ -647,7 +647,9 @@ Lines _clipper_ln(ClipperLib::ClipType clipType, const Lines &subject, const Pol
     // convert Polylines to Lines
     Lines retval;
     for (Polylines::const_iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
-        retval.emplace_back(polyline->line());
+        if (polyline->size() >= 2)
+            //FIXME It may happen, that Clipper produced a polyline with more than 2 collinear points by clipping a single line with polygons. It is a very rare issue, but it happens, see GH #6933.
+            retval.push_back({ polyline->front(), polyline->back() });
     return retval;
 }
 
