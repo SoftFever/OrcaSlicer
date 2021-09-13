@@ -18,11 +18,6 @@ using ConstPolygonPtrs  = std::vector<const Polygon*>;
 class Polygon : public MultiPoint
 {
 public:
-    explicit operator Polygons() const { Polygons pp; pp.push_back(*this); return pp; }
-    explicit operator Polyline() const { return this->split_at_first_point(); }
-    Point& operator[](Points::size_type idx) { return this->points[idx]; }
-    const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
-
     Polygon() = default;
     virtual ~Polygon() = default;
     explicit Polygon(const Points &points) : MultiPoint(points) {}
@@ -38,6 +33,9 @@ public:
 	}
     Polygon& operator=(const Polygon &other) { points = other.points; return *this; }
     Polygon& operator=(Polygon &&other) { points = std::move(other.points); return *this; }
+
+    Point& operator[](Points::size_type idx) { return this->points[idx]; }
+    const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
 
     // last point == first point for polygons
     const Point& last_point() const override { return this->points.front(); }

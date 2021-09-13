@@ -397,7 +397,7 @@ bool Print::sequential_print_horizontal_clearance_valid(const Print& print, Poly
 	        convex_hull.translate(instance.shift - print_object->center_offset());
             // if output needed, collect indices (inside convex_hulls_other) of intersecting hulls
             for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
-                if (!intersection((Polygons)convex_hulls_other[i], (Polygons)convex_hull).empty()) {
+                if (! intersection(convex_hulls_other[i], convex_hull).empty()) {
                     if (polygons == nullptr)
                         return false;
                     else {
