@@ -3,6 +3,7 @@
 
 #include "libslic3r.h"
 #include <string>
+#include <charconv>
 #include "Extruder.hpp"
 #include "Point.hpp"
 #include "PrintConfig.hpp"
@@ -91,6 +92,79 @@ private:
 
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);
+};
+
+class GCodeFormatter {
+private:
+    static constexpr const size_t   buflen = 256;
+    char                            buf[buflen];
+    char                           *buf_end;
+    std::to_chars_result            ptr_err;
+
+    GCodeFormatter() { 
+        this->buf_end     = buf + buflen;
+        this->ptr_err.ptr = this->buf;
+    }
+
+public:
+    static constexpr const int XYZF_EXPORT_DIGITS = 3;
+    static constexpr const int E_EXPORT_DIGITS    = 5;
+
+    static GCodeFormatter empty() { 
+        return {};
+    }
+    static GCodeFormatter G1() {
+        GCodeFormatter out;
+        out.buf[0] = 'G';
+        out.buf[1] = '1';
+        out.ptr_err.ptr += 2;
+        return out;
+    }
+
+    void emit_axis(const char axis, const double v, size_t digits);
+
+    void emit_xy(const Vec2d &point) {
+        this->emit_axis('X', point.x(), XYZF_EXPORT_DIGITS);
+        this->emit_axis('Y', point.y(), XYZF_EXPORT_DIGITS);
+    }
+
+    void emit_xyz(const Vec3d &point) {
+        this->emit_axis('X', point.x(), XYZF_EXPORT_DIGITS);
+        this->emit_axis('Y', point.y(), XYZF_EXPORT_DIGITS);
+        this->emit_z(point.z());
+    }
+
+    void emit_z(const double z) {
+        this->emit_axis('Z', z, XYZF_EXPORT_DIGITS);
+    }
+
+    void emit_e(const std::string &axis, double v) {
+        if (! axis.empty()) {
+            // not gcfNoExtrusion
+            this->emit_axis(axis[0], v, E_EXPORT_DIGITS);
+        }
+    }
+
+    void emit_f(double speed) {
+        this->emit_axis('F', speed, XYZF_EXPORT_DIGITS);
+    }
+
+    void emit_string(const std::string &s) {
+        strncpy(ptr_err.ptr, s.c_str(), s.size());
+        ptr_err.ptr += s.size();
+    }
+
+    void emit_comment(bool allow_comments, const std::string &comment) {
+        if (allow_comments && ! comment.empty()) {
+            *ptr_err.ptr ++ = ' '; *ptr_err.ptr ++ = ';'; *ptr_err.ptr ++ = ' ';
+            this->emit_string(comment);
+        }
+    }
+
+    std::string string() {
+        *ptr_err.ptr ++ = '\n';
+        return std::string(this->buf, ptr_err.ptr - buf);
+    }
 };
 
 } /* namespace Slic3r */
