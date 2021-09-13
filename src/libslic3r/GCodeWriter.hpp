@@ -95,31 +95,17 @@ private:
 };
 
 class GCodeFormatter {
-private:
-    static constexpr const size_t   buflen = 256;
-    char                            buf[buflen];
-    char                           *buf_end;
-    std::to_chars_result            ptr_err;
-
-    GCodeFormatter() { 
-        this->buf_end     = buf + buflen;
+public:
+    GCodeFormatter() {
+        this->buf_end = buf + buflen;
         this->ptr_err.ptr = this->buf;
     }
 
-public:
+    GCodeFormatter(const GCodeFormatter&) = delete;
+    GCodeFormatter& operator=(const GCodeFormatter&) = delete;
+
     static constexpr const int XYZF_EXPORT_DIGITS = 3;
     static constexpr const int E_EXPORT_DIGITS    = 5;
-
-    static GCodeFormatter empty() { 
-        return {};
-    }
-    static GCodeFormatter G1() {
-        GCodeFormatter out;
-        out.buf[0] = 'G';
-        out.buf[1] = '1';
-        out.ptr_err.ptr += 2;
-        return out;
-    }
 
     void emit_axis(const char axis, const double v, size_t digits);
 
@@ -165,6 +151,25 @@ public:
         *ptr_err.ptr ++ = '\n';
         return std::string(this->buf, ptr_err.ptr - buf);
     }
+
+protected:
+    static constexpr const size_t   buflen = 256;
+    char                            buf[buflen];
+    char* buf_end;
+    std::to_chars_result            ptr_err;
+};
+
+class GCodeG1Formatter : public GCodeFormatter {
+public:
+    GCodeG1Formatter() {
+        this->buf[0] = 'G';
+        this->buf[1] = '1';
+        this->buf_end = buf + buflen;
+        this->ptr_err.ptr = this->buf + 2;
+    }
+
+    GCodeG1Formatter(const GCodeG1Formatter&) = delete;
+    GCodeG1Formatter& operator=(const GCodeG1Formatter&) = delete;
 };
 
 } /* namespace Slic3r */

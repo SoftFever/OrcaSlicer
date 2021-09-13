@@ -258,7 +258,7 @@ std::string GCodeWriter::set_speed(double F, const std::string &comment, const s
     assert(F > 0.);
     assert(F < 100000.);
 
-    auto w = GCodeFormatter::G1();
+    GCodeG1Formatter w;
     w.emit_f(F);
     w.emit_comment(this->config.gcode_comments, comment);
     w.emit_string(cooling_marker);
@@ -270,7 +270,7 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     m_pos(0) = point(0);
     m_pos(1) = point(1);
     
-    auto w = GCodeFormatter::G1();
+    GCodeG1Formatter w;
     w.emit_xy(point);
     w.emit_f(this->config.travel_speed.value * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
@@ -303,7 +303,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     m_lifted = 0;
     m_pos = point;
     
-    auto w = GCodeFormatter::G1();
+    GCodeG1Formatter w;
     w.emit_xyz(point);
     w.emit_f(this->config.travel_speed.value * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
@@ -337,7 +337,7 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     if (speed == 0.)
         speed = this->config.travel_speed.value;
     
-    auto w = GCodeFormatter::G1();
+    GCodeG1Formatter w;
     w.emit_z(z);
     w.emit_f(speed * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
@@ -362,7 +362,7 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
     m_pos(1) = point(1);
     m_extruder->extrude(dE);
 
-    auto w = GCodeFormatter::G1();
+    GCodeG1Formatter w;
     w.emit_xy(point);
     w.emit_e(m_extrusion_axis, m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
@@ -375,7 +375,7 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     m_lifted = 0;
     m_extruder->extrude(dE);
     
-    auto w = GCodeFormatter::G1();
+    GCodeG1Formatter w;
     w.emit_xyz(point);
     w.emit_e(m_extrusion_axis, m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
@@ -426,7 +426,7 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
         if (this->config.use_firmware_retraction) {
             gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
         } else if (! m_extrusion_axis.empty()) {
-            auto w = GCodeFormatter::G1();
+            GCodeG1Formatter w;
             w.emit_e(m_extrusion_axis, m_extruder->E());
             w.emit_f(m_extruder->retract_speed() * 60.);
             w.emit_comment(this->config.gcode_comments, comment);
@@ -453,7 +453,7 @@ std::string GCodeWriter::unretract()
             gcode += this->reset_e();
         } else if (! m_extrusion_axis.empty()) {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
-            auto w = GCodeFormatter::G1();
+            GCodeG1Formatter w;
             w.emit_e(m_extrusion_axis, m_extruder->E());
             w.emit_f(m_extruder->deretract_speed() * 60.);
             w.emit_comment(this->config.gcode_comments, " ; unretract");
