@@ -215,9 +215,16 @@ private:
 
     static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
-    void            process_layer(
-        // Write into the output file.
-        GCodeOutputStream               &file,
+
+    struct LayerResult {
+        std::string gcode;
+        size_t      layer_id;
+        // Is spiral vase post processing enabled for this layer?
+        bool        spiral_vase_enable { false };
+        // Should the cooling buffer content be flushed at the end of this layer?
+        bool        cooling_buffer_flush { false };
+    };
+    LayerResult process_layer(
         const Print                     &print,
         // Set of object & print layers of the same PrintObject and with the same print_z.
         const std::vector<LayerToPrint> &layers,
@@ -228,6 +235,24 @@ private:
         // If set to size_t(-1), then print all copies of all objects.
         // Otherwise print a single copy of a single object.
         const size_t                     single_object_idx = size_t(-1));
+    // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
+    // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
+    // and export G-code into file.
+    void process_layers(
+        const Print                                                         &print,
+        const ToolOrdering                                                  &tool_ordering,
+        const std::vector<const PrintInstance*>                             &print_object_instances_ordering,
+        const std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>>   &layers_to_print,
+        GCodeOutputStream                                                   &output_stream);
+    // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
+    // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
+    // and export G-code into file.
+    void process_layers(
+        const Print                             &print,
+        const ToolOrdering                      &tool_ordering,
+        std::vector<LayerToPrint>                layers_to_print,
+        const size_t                             single_object_idx,
+        GCodeOutputStream                       &output_stream);
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     bool            last_pos_defined() const { return m_last_pos_defined; }
