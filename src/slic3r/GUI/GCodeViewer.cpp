@@ -284,7 +284,7 @@ void GCodeViewer::SequentialView::Marker::render() const
     ImGui::PopStyleVar();
 }
 
-void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends)
+void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends)
 {
     assert(! m_file.is_open());
     if (m_file.is_open())
@@ -577,7 +577,9 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     // release gpu memory, if used
     reset(); 
 
-    m_sequential_view.gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
+    m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
+        // Stealing out lines_ends should be safe because this gcode_result is processed only once (see the 1st if in this function).
+        std::move(const_cast<std::vector<size_t>&>(gcode_result.lines_ends)));
 
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
     if (wxGetApp().is_gcode_viewer())
