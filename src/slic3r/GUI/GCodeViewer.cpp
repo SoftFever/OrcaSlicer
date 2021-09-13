@@ -563,6 +563,8 @@ GCodeViewer::GCodeViewer()
     set_toolpath_move_type_visible(EMoveType::Extrude, true);
 #endif // !ENABLE_SEAMS_USING_MODELS
 
+    m_extrusions.reset_role_visibility_flags();
+
 //    m_sequential_view.skip_invisible_moves = true;
 }
 
@@ -736,7 +738,6 @@ void GCodeViewer::reset()
     m_extruder_ids = std::vector<unsigned char>();
     m_filament_diameters = std::vector<float>();
     m_filament_densities = std::vector<float>();
-    m_extrusions.reset_role_visibility_flags();
     m_extrusions.reset_ranges();
     m_shells.volumes.clear();
     m_layers.reset();
