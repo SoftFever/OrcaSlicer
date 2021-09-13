@@ -16,6 +16,10 @@
 
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
+#ifdef __APPLE__
+#include "wx/dcclient.h"
+#include "slic3r/Utils/MacDarkMode.hpp"
+#endif
 
 namespace Slic3r
 {
@@ -211,13 +215,45 @@ static int GetSelectedChoices(  wxArrayInt& selections,
                                 const wxString& caption,
                                 const wxArrayString& choices)
 {
-#ifdef _WIN32
     wxMultiChoiceDialog dialog(nullptr, message, caption, choices);
     wxGetApp().UpdateDlgDarkUI(&dialog);
 
     // call this even if selections array is empty and this then (correctly)
     // deselects the first item which is selected by default
     dialog.SetSelections(selections);
+
+#ifdef __APPLE__
+    // Improvements for ChoiceListBox: Height of control will restect to items count
+    for (auto child : dialog.GetChildren())
+        if (dynamic_cast<wxListBox*>(child) && !choices.IsEmpty()) {
+            wxClientDC dc(child);
+
+            int height = dc.GetTextExtent(choices[0]).y;
+            int width = 0;
+            for (const auto& string : choices)
+                width = std::max(width, dc.GetTextExtent(string).x);
+
+            // calculate best size of ListBox
+            height += 3 * mac_max_scaling_factor(); // extend height by margins
+            width += 3 * height;                   // extend width by checkbox width and margins
+
+            // don't make the listbox too tall (limit height to around 10 items)
+            // but don't make it too small neither
+            int list_height = wxMax(height * wxMin(wxMax(choices.Count(), 3), 10), 70);
+            wxSize sz_best = wxSize(width, list_height);
+
+            wxSize sz = child->GetSize();
+            child->SetMinSize(sz_best);
+
+            // extend Dialog size, if calculated best size of ListBox is bigger then its size
+            wxSize dlg_sz = dialog.GetSize();
+            if (int delta_x = sz_best.x - sz.x; delta_x > 0) dlg_sz.x += delta_x;
+            if (int delta_y = sz_best.y - sz.y; delta_y > 0) dlg_sz.y += delta_y;
+            dialog.SetSize(dlg_sz);
+
+            break;
+        }
+#endif
 
     if (dialog.ShowModal() != wxID_OK)
     {
@@ -229,9 +265,6 @@ static int GetSelectedChoices(  wxArrayInt& selections,
 
     selections = dialog.GetSelections();
     return static_cast<int>(selections.GetCount());
-#else
-    return wxGetSelectedChoices(selections, message, caption, choices);
-#endif
 }
 
 static wxMenu* create_settings_popupmenu(wxMenu* parent_menu, const bool is_object_settings, wxDataViewItem item/*, ModelConfig& config*/)
