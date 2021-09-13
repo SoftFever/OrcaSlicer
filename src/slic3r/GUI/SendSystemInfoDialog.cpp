@@ -13,24 +13,76 @@
 #include "MsgDialog.hpp"
 #include "OpenGLManager.hpp"
 
-#include <boost/property_tree/json_parser.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include "GL/glew.h"
 
 #include <wx/htmllbox.h>
-#include <wx/log.h>
-#include <wx/msgdlg.h>
+#include <wx/stattext.h>
+#include <wx/timer.h>
 #include <wx/utils.h>
+
+#include <atomic>
+#include <thread>
 
 namespace Slic3r {
 namespace GUI {
+
+
 
 // Declaration of a free function defined in OpenGLManager.cpp:
 std::string gl_get_string_safe(GLenum param, const std::string& default_value);
 
 
+// A dialog with the information text and buttons send/dont send/ask later.
+class SendSystemInfoDialog : public DPIDialog
+{
+    enum {
+        MIN_WIDTH = 60,
+        MIN_HEIGHT = 40
+    };
 
+public:
+    SendSystemInfoDialog(wxWindow* parent);
+
+private:
+    bool send_info();
+    const std::string m_system_info_json;
+    wxButton* m_btn_send;
+    wxButton* m_btn_dont_send;
+    wxButton* m_btn_ask_later;
+
+    void on_dpi_changed(const wxRect&) override;
+};
+
+
+
+// A dialog to show when the upload is in progress (with a Cancel button).
+class SendSystemInfoProgressDialog : public wxDialog
+{
+public:
+    SendSystemInfoProgressDialog(wxWindow* parent, const wxString& message)
+        : wxDialog(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION)
+    {
+        auto* text = new wxStaticText(this, wxID_ANY, message, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+        auto* btn = new wxButton(this, wxID_CANCEL, _L("Cancel"));
+        auto* vsizer = new wxBoxSizer(wxVERTICAL);
+        auto *top_sizer = new wxBoxSizer(wxVERTICAL);
+        vsizer->Add(text, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL);
+        vsizer->AddSpacer(5);
+        vsizer->Add(btn, 0, wxALIGN_CENTER_HORIZONTAL);
+        top_sizer->Add(vsizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT | wxBOTTOM, 10);
+        SetSizer(top_sizer);
+        #ifdef _WIN32
+            wxGetApp().UpdateDlgDarkUI(this);
+        #endif
+    }
+};
+
+
+
+// A dialog with multiline read-only text control to show the JSON.
 class ShowJsonDialog : public wxDialog
 {
 public:
@@ -54,29 +106,8 @@ public:
         #ifdef _WIN32
             wxGetApp().UpdateDlgDarkUI(this);
         #endif
-
     }
 };
-
-
-
-
-// Read a string formatted as SLIC3R_VERSION (e.g. "2.4.0-alpha1") and get major and
-// minor versions and alpha/beta flags.
-static void extract_major_minor(std::string version,
-                                int& major, int& minor,
-                                bool* is_alpha = nullptr, bool* is_beta = nullptr)
-{
-    if (is_alpha)
-        *is_alpha = version.find("alpha") != std::string::npos;
-    if (is_beta)
-        *is_beta = version.find("beta") != std::string::npos;
-    if (std::count(version.begin(), version.end(), '.') != 2)
-        return;
-    std::replace(version.begin(), version.end(), '.', ' ');
-    std::istringstream ss{version};
-    ss >> major >> minor;
-}
 
 
 
@@ -85,40 +116,27 @@ static void extract_major_minor(std::string version,
 // current version is newer. Only major and minor versions are compared.
 static bool should_dialog_be_shown()
 {
-    std::string last_sent_version = wxGetApp().app_config->get("system_info_sent_version");
+    std::string last_sent_version = wxGetApp().app_config->get("version_system_info_sent");
+    Semver semver_current(SLIC3R_VERSION);
+    Semver semver_last_sent;
+    if (! last_sent_version.empty())
+        semver_last_sent = Semver(last_sent_version);
 
-    int last_sent_major = 0;
-    int last_sent_minor = 0;
-    int current_major = 0;
-    int current_minor = 0;
-    bool alpha = false;
-    bool beta = false;
-    extract_major_minor(SLIC3R_VERSION, current_major, current_minor, &alpha, &beta);
-    extract_major_minor(last_sent_version, last_sent_major, last_sent_minor);
+    if (semver_current.prerelease() && std::string(semver_current.prerelease()) != "rc")
+        return false; // Only show in rcs / finals.
 
-
-    if (current_major == 0 // This should never happen.
-     /*|| alpha
-     || beta*/)
-        return false;
-
-    return ((current_major > last_sent_major)
-        || (current_major == last_sent_major && current_minor > last_sent_minor ));
+    // Show the dialog if current > last, but they differ in more than just patch.
+    return ((semver_current.maj() > semver_last_sent.maj())
+        || (semver_current.maj() == semver_last_sent.maj() && semver_current.min() > semver_last_sent.min() ));
 }
 
-
-
-static void send_info(const std::string& data)
-{
-    std::cout << data << std::endl;
-}
 
 
 // Following function saves current PrusaSlicer version into app config.
 // It will be later used to decide whether to open the dialog or not.
 static void save_version()
 {
-    wxGetApp().app_config->set("system_info_sent_version", SLIC3R_VERSION);
+    wxGetApp().app_config->set("version_system_info_sent", std::string(SLIC3R_VERSION));
 }
 
 
@@ -142,19 +160,19 @@ static std::string generate_system_info_json()
     // Build a property tree with all the information.
     namespace pt = boost::property_tree;
 
-    pt::ptree root;
-    root.put("PrusaSlicerVersion", SLIC3R_VERSION);
-    root.put("BuildID", SLIC3R_BUILD_ID);
-    root.put("UsernameHash", datadir_hash);
-    root.put("Platform", platform_to_string(platform()));
-    root.put("PlatformFlavor", platform_flavor_to_string(platform_flavor()));
-    root.put("SystemLanguage", sys_language);
-    root.put("TranslationLanguage: ", wxGetApp().app_config->get("translation_language"));
+    pt::ptree data_node;
+    data_node.put("PrusaSlicerVersion", SLIC3R_VERSION);
+    data_node.put("BuildID", SLIC3R_BUILD_ID);
+    data_node.put("UsernameHash", datadir_hash);
+    data_node.put("Platform", platform_to_string(platform()));
+    data_node.put("PlatformFlavor", platform_flavor_to_string(platform_flavor()));
+    data_node.put("SystemLanguage", sys_language);
+    data_node.put("TranslationLanguage: ", wxGetApp().app_config->get("translation_language"));
 
     pt::ptree hw_node;
     hw_node.put("ArchName", wxPlatformInfo::Get().GetArchName());
     hw_node.put("RAM_MB", size_t(Slic3r::total_physical_memory()/1000000));
-    root.add_child("Hardware", hw_node);
+    data_node.add_child("Hardware", hw_node);
 
     pt::ptree opengl_node;
     opengl_node.put("Version", OpenGLManager::get_gl_info().get_version());
@@ -174,17 +192,21 @@ static std::string generate_system_info_json()
         extensions_node.push_back(std::make_pair("", ext_node)); // Add this node to the list.
     }
     opengl_node.add_child("Extensions", extensions_node);
-    root.add_child("OpenGL", opengl_node);
+    data_node.add_child("OpenGL", opengl_node);
+
+    pt::ptree root;
+    root.add_child("data", data_node);
 
     // Serialize the tree into JSON and return it.
     std::stringstream ss;
     pt::write_json(ss, root);
     return ss.str();
 
+    // FURTHER THINGS TO CONSIDER:
     //std::cout << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << std::endl;          // Unix
     //std::cout << wxPlatformInfo::Get().GetOperatingSystemDescription() << std::endl;         // Linux 4.15.0-142-generic x86_64
     // ? CPU, GPU, UNKNOWN, wxWidgets ???
-    // tiskárny? budou už nainstalované?
+    // printers? will they be installed already?
 }
 
 
@@ -195,14 +217,15 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
            wxDEFAULT_DIALOG_STYLE)
 {
     // Get current PrusaSliver version info.
-    int version_major = 0;
-    int version_minor = 0;
-    bool is_alpha = false;
-    bool is_beta = false;
-    extract_major_minor(SLIC3R_VERSION, version_major, version_minor, &is_alpha, &is_beta);
-    std::string app_name = std::string(SLIC3R_APP_NAME) + " " + std::to_string(version_major)
-                           + "." + std::to_string(version_minor) + " "
-                           + (is_alpha ? "Alpha" : is_beta ? "Beta" : "");
+    std::string app_name;
+    {
+        Semver semver(SLIC3R_VERSION);
+        bool is_alpha = std::string{semver.prerelease()}.find("alpha") != std::string::npos;
+        bool is_beta = std::string{semver.prerelease()}.find("beta") != std::string::npos;
+        app_name = std::string(SLIC3R_APP_NAME) + " " + std::to_string(semver.maj())
+                               + "." + std::to_string(semver.min()) + " "
+                               + (is_alpha ? "Alpha" : is_beta ? "Beta" : "");
+    }
 
     // Get current source file name.
     std::string filename(__FILE__);
@@ -220,7 +243,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
 
 
     auto *topSizer = new wxBoxSizer(wxVERTICAL);
-    auto *vsizer = new wxBoxSizer(wxVERTICAL);    
+    auto *vsizer = new wxBoxSizer(wxVERTICAL);
 
     wxString text0 = GUI::format_wxstr(_L("This is the first time you are running %1%. We would like to "
            "ask you to send some of your system information to us. This will only "
@@ -290,8 +313,8 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
 
     m_btn_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                     {
-                                        send_info(m_system_info_json);
-                                        save_version();
+                                        if (send_info())
+                                            save_version();
                                         EndModal(0);
                                     });
     m_btn_dont_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
@@ -317,6 +340,57 @@ void SendSystemInfoDialog::on_dpi_changed(const wxRect&)
 
 
 
+// This actually sends the info.
+bool SendSystemInfoDialog::send_info()
+{
+    std::atomic<int> job_done = false; // Flag to communicate between threads.
+    struct Result {
+        enum {
+            Success,
+            Cancelled,
+            Error
+        } value;
+        wxString str;
+    } result; // No synchronization needed, UI thread reads only after worker is joined.
+
+    auto send = [&job_done, &result](const std::string& data) {
+        const std::string url = "https://files.prusa3d.com/wp-json/v1/ps";
+        Http http = Http::post(url);
+        http.set_post_body(data)
+            .on_complete([&result](std::string body, unsigned status) {
+                result = { Result::Success, _L("System info sent successfully. Thank you.") };
+            })
+            .on_error([&result](std::string body, std::string error, unsigned status) {
+                result = { Result::Error, GUI::format_wxstr(_L("Sending system info failed! Status: %1%"), status) };
+            })
+            .on_progress([&job_done, &result](Http::Progress, bool &cancel) {
+                if (job_done) // UI thread wants us to cancel.
+                    cancel = true;
+                if (cancel)
+                    result = { Result::Cancelled, _L("Sending system info was cancelled.") };
+            })
+            .perform_sync();
+        job_done = true; // So that the dialog knows we are done.
+    };
+
+    std::thread sending_thread(send, m_system_info_json);
+    SendSystemInfoProgressDialog dlg(this, _L("Sending system info..."));
+    wxTimer timer(&dlg); // Periodically check the status of the other thread, close dialog when done.
+    dlg.Bind(wxEVT_TIMER, [&dlg, &job_done](wxTimerEvent&){ if (job_done) dlg.EndModal(0); });
+    timer.Start(50);
+    dlg.ShowModal();
+    // The dialog is closed, either by user, or by the now terminated worker thread.
+    job_done = true;       // In case the user closed the dialog, let the other thread know
+    sending_thread.join(); // and wait until it terminates.
+
+    InfoDialog info_dlg(wxGetApp().mainframe, wxEmptyString, result.str);
+    info_dlg.ShowModal();
+    return result.value == Result::Success;
+}
+
+
+
+// The only function callable from outside this unit.
 void show_send_system_info_dialog_if_needed()
 {
     if (wxGetApp().is_gcode_viewer() || ! should_dialog_be_shown())
@@ -329,9 +403,3 @@ void show_send_system_info_dialog_if_needed()
 
 } // namespace GUI
 } // namespace Slic3r
-
-
-
-
-
-
