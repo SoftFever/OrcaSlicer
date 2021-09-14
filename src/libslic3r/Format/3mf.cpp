@@ -21,6 +21,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/spirit/include/karma.hpp>
+#include <boost/spirit/include/qi_int.hpp>
 #include <boost/log/trivial.hpp>
 
 #include <boost/property_tree/ptree.hpp>
@@ -31,6 +32,8 @@ namespace pt = boost::property_tree;
 #include <expat.h>
 #include <Eigen/Dense>
 #include "miniz_extension.hpp"
+
+#include <fast_float/fast_float.h>
 
 // Slightly faster than sprintf("%.9g"), but there is an issue with the karma floating point formatter,
 // https://github.com/boostorg/spirit/pull/586
@@ -172,14 +175,18 @@ std::string get_attribute_value_string(const char** attributes, unsigned int att
 
 float get_attribute_value_float(const char** attributes, unsigned int attributes_size, const char* attribute_key)
 {
-    const char* text = get_attribute_value_charptr(attributes, attributes_size, attribute_key);
-    return (text != nullptr) ? (float)::atof(text) : 0.0f;
+    float value = 0.0f;
+    if (const char *text = get_attribute_value_charptr(attributes, attributes_size, attribute_key); text != nullptr)
+        fast_float::from_chars(text, text + strlen(text), value);
+    return value;
 }
 
 int get_attribute_value_int(const char** attributes, unsigned int attributes_size, const char* attribute_key)
 {
-    const char* text = get_attribute_value_charptr(attributes, attributes_size, attribute_key);
-    return (text != nullptr) ? ::atoi(text) : 0;
+    int value = 0;
+    if (const char *text = get_attribute_value_charptr(attributes, attributes_size, attribute_key); text != nullptr)
+        boost::spirit::qi::parse(text, text + strlen(text), boost::spirit::qi::int_, value);
+    return value;
 }
 
 bool get_attribute_value_bool(const char** attributes, unsigned int attributes_size, const char* attribute_key)
