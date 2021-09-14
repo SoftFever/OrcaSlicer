@@ -896,7 +896,10 @@ bool TriangleSelector::is_pointer_in_triangle(int facet_idx) const
 bool TriangleSelector::faces_camera(int facet) const
 {
     assert(facet < m_orig_size_indices);
-    return (m_cursor.uniform_scaling ? m_face_normals[facet] : m_cursor.trafo_normal * m_face_normals[facet]).dot(m_cursor.dir) < 0.;
+    Vec3f n = m_face_normals[facet];
+    if (! m_cursor.uniform_scaling)
+        n = m_cursor.trafo_normal * n;
+    return n.dot(m_cursor.dir) < 0.;
 }
 
 
