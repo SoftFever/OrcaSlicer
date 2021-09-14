@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 
+struct indexed_triangle_set;
+
 namespace Slic3r {
 
 class TriangleMesh;
