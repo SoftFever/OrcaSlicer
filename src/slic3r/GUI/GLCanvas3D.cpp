@@ -1450,19 +1450,13 @@ void GLCanvas3D::render()
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
 
-#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     _render_objects(GLVolumeCollection::ERenderType::Opaque);
-#else
-    _render_objects();
-#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     if (!m_main_toolbar.is_enabled())
         _render_gcode();
     _render_sla_slices();
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
-#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     _render_objects(GLVolumeCollection::ERenderType::Transparent);
-#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
 
     _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -5071,12 +5065,7 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
     wxGetApp().plater()->get_bed().render_for_picking(*this, bottom, scale_factor);
 }
 
-
-#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
 void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
-#else
-void GLCanvas3D::_render_objects()
-#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
 {
     if (m_volumes.empty())
         return;
@@ -5108,20 +5097,14 @@ void GLCanvas3D::_render_objects()
     if (shader != nullptr) {
         shader->start_using();
 
-#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
         switch (type)
         {
         default:
         case GLVolumeCollection::ERenderType::Opaque:
         {
-#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
             if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
                 int object_id = m_layers_editing.last_object_id;
-#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
                 m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
-#else
-                m_volumes.render(GLVolumeCollection::ERenderType::Opaque, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
-#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
                     // Which volume to paint without the layer height profile shader?
                     return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
                     });
@@ -5130,11 +5113,7 @@ void GLCanvas3D::_render_objects()
             }
             else {
                 // do not cull backfaces to show broken geometry, if any
-#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
                 m_volumes.render(type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
-#else
-                m_volumes.render(GLVolumeCollection::ERenderType::Opaque, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
-#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
                     return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
                     });
             }
@@ -5153,7 +5132,6 @@ void GLCanvas3D::_render_objects()
                     shader->start_using();
                 }
             }
-#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
             break;
         }
         case GLVolumeCollection::ERenderType::Transparent:
@@ -5162,9 +5140,6 @@ void GLCanvas3D::_render_objects()
             break;
         }
         }
-#else
-        m_volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
-#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
         shader->stop_using();
     }
 

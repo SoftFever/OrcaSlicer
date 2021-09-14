@@ -895,11 +895,7 @@ private:
     void _render_background() const;
     void _render_bed(bool bottom, bool show_axes);
     void _render_bed_for_picking(bool bottom);
-#if ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     void _render_objects(GLVolumeCollection::ERenderType type);
-#else
-    void _render_objects();
-#endif // ENABLE_DELAYED_TRANSPARENT_VOLUMES_RENDERING
     void _render_gcode();
     void _render_selection() const;
     void _render_sequential_clearance();
