@@ -359,9 +359,7 @@ namespace Slic3r {
             std::vector<float> filament_diameters;
             std::vector<float> filament_densities;
             PrintEstimatedStatistics print_statistics;
-#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
             std::vector<CustomGCode::Item> custom_gcode_per_print_z;
-#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
             int64_t time{ 0 };
@@ -536,9 +534,7 @@ namespace Slic3r {
 #if ENABLE_FIX_PREVIEW_OPTIONS_Z
         OptionsZCorrector m_options_z_corrector;
 #endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
-#if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
         size_t m_last_default_color_id;
-#endif // ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

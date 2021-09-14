@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA1 1
 
-// Enable the fix of importing color print view from gcode files into GCodeViewer
-#define ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER (1 && ENABLE_2_4_0_ALPHA1)
 // Enable drawing contours, at cut level, for sinking volumes
 #define ENABLE_SINKING_CONTOURS (1 && ENABLE_2_4_0_ALPHA1)
 // Enable implementation of retract acceleration in gcode processor
