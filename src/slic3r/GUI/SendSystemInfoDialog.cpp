@@ -313,9 +313,10 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
 
     m_btn_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                     {
-                                        if (send_info())
+                                        if (send_info()) {
                                             save_version();
-                                        EndModal(0);
+                                            EndModal(0);
+                                        }
                                     });
     m_btn_dont_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                          {
@@ -356,7 +357,8 @@ bool SendSystemInfoDialog::send_info()
     auto send = [&job_done, &result](const std::string& data) {
         const std::string url = "https://files.prusa3d.com/wp-json/v1/ps";
         Http http = Http::post(url);
-        http.set_post_body(data)
+        http.header("Content-Type", "application/json")
+            .set_post_body(data)
             .on_complete([&result](std::string body, unsigned status) {
                 result = { Result::Success, _L("System info sent successfully. Thank you.") };
             })
