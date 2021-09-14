@@ -287,16 +287,14 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
         float dot_limit = limit.dot(down);
 
         // Now calculate dot product of vert_direction and facets' normals.
-        int idx = -1;
+        int idx = 0;
         const indexed_triangle_set &its = mv->mesh().its;
         for (stl_triangle_vertex_indices face : its.indices) {
-            stl_vertex vertex[3] = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
-            stl_vertex n         = (vertex[2] - vertex[1]).cross(vertex[3] - vertex[2]).normalized();
-            ++ idx;
-            if (n.dot(down) > dot_limit) {
+            if (its_face_normal(its, face).dot(down) > dot_limit) {
                 m_triangle_selectors[mesh_id]->set_facet(idx, block ? EnforcerBlockerType::BLOCKER : EnforcerBlockerType::ENFORCER);
                 m_triangle_selectors.back()->request_update_render_data();
             }
+            ++ idx;
         }
     }
 

@@ -244,9 +244,15 @@ inline void stl_transform(stl_file *stl, const Eigen::Matrix<T, 3, 3, Eigen::Don
 	stl_get_size(stl);
 }
 
+template<typename V>
+inline void its_translate(indexed_triangle_set &its, const V v)
+{
+  for (stl_vertex &v_dst : its.vertices)
+    v_dst += v;
+}
 
 template<typename T>
-extern void its_transform(indexed_triangle_set &its, T *trafo3x4)
+inline void its_transform(indexed_triangle_set &its, T *trafo3x4)
 {
 	for (stl_vertex &v_dst : its.vertices) {
 		stl_vertex  v_src = v_dst;

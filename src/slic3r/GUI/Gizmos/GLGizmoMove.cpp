@@ -20,7 +20,7 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filenam
     , m_starting_box_center(Vec3d::Zero())
     , m_starting_box_bottom_center(Vec3d::Zero())
 {
-    m_vbo_cone.init_from(make_cone(1., 1., 2*PI/36));
+    m_vbo_cone.init_from(its_make_cone(1., 1., 2*PI/36));
 }
 
 std::string GLGizmoMove3D::get_tooltip() const

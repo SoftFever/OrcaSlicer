@@ -1133,15 +1133,17 @@ TriangleMesh make_cylinder(double r, double h, double fa)
     return mesh;
 }
 
-
-TriangleMesh make_cone(double r, double h, double fa)
+indexed_triangle_set its_make_cone(double r, double h, double fa)
 {
-    Pointf3s vertices;
-    std::vector<Vec3i>	facets;
-    vertices.reserve(3+size_t(2*PI/fa));
-    vertices.reserve(3+2*size_t(2*PI/fa));
+    indexed_triangle_set mesh;
+    auto& vertices = mesh.vertices;
+    auto& facets = mesh.indices;
+    vertices.reserve(3 + 2 * size_t(2 * PI / fa));
 
-    vertices = { Vec3d::Zero(), Vec3d(0., 0., h) }; // base center and top vertex
+    // base center and top vertex
+    vertices.emplace_back(Vec3f::Zero());
+    vertices.emplace_back(Vec3f(0., 0., h));
+
     size_t i = 0;
     for (double angle=0; angle<2*PI; angle+=fa) {
         vertices.emplace_back(r*std::cos(angle), r*std::sin(angle), 0.);
@@ -1154,11 +1156,15 @@ TriangleMesh make_cone(double r, double h, double fa)
     facets.emplace_back(0, 2, i+1); // close the shape
     facets.emplace_back(1, i+1, 2);
 
-    TriangleMesh mesh(std::move(vertices), std::move(facets));
-    mesh.repair();
     return mesh;
 }
 
+TriangleMesh make_cone(double radius, double fa)
+{
+    TriangleMesh mesh(its_make_cone(radius, fa));
+    mesh.repair();
+    return mesh;
+}
 
 // Generates mesh for a sphere centered about the origin, using the generated angle
 // to determine the granularity. 
@@ -1222,7 +1228,6 @@ TriangleMesh make_sphere(double radius, double fa)
 {
     TriangleMesh mesh(its_make_sphere(radius, fa));
     mesh.repair();
-
     return mesh;
 }
 
@@ -1343,10 +1348,8 @@ std::vector<Vec3f> its_face_normals(const indexed_triangle_set &its)
 {
     std::vector<Vec3f> normals;
     normals.reserve(its.indices.size());
-    for (stl_triangle_vertex_indices face : its.indices) {
-        stl_vertex vertex[3] = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
-        normals.push_back((vertex[2] - vertex[1]).cross(vertex[3] - vertex[2]).normalized());
-    }
+    for (stl_triangle_vertex_indices face : its.indices)
+        normals.push_back(its_face_normal(its, face));
     return normals;
 }
 

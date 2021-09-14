@@ -171,7 +171,7 @@ void GLIndexedVertexArray::load_its_flat_shading(const indexed_triangle_set &its
     for (int i = 0; i < int(its.indices.size()); ++ i) {
         stl_triangle_vertex_indices face        = its.indices[i];
         stl_vertex                  vertex[3]   = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
-        stl_vertex                  n           = (vertex[2] - vertex[1]).cross(vertex[3] - vertex[2]).normalized();
+        stl_vertex                  n           = face_normal_normalized(vertex);
         for (int j = 0; j < 3; ++j)
             this->push_geometry(vertex[j](0), vertex[j](1), vertex[j](2), n(0), n(1), n(2));
         this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);

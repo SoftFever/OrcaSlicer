@@ -84,7 +84,7 @@ void SlicingAdaptive::prepare(const ModelObject &object)
     m_faces.reserve(mesh.facets_count());
 	for (stl_triangle_vertex_indices face : mesh.its.indices) {
 		stl_vertex vertex[3] = { mesh.its.vertices[face[0]], mesh.its.vertices[face[1]], mesh.its.vertices[face[2]] };
-		stl_vertex n         = (vertex[2] - vertex[1]).cross(vertex[3] - vertex[2]).normalized();
+		stl_vertex n         = face_normal_normalized(vertex);
 		std::pair<float, float> face_z_span {
 			std::min(std::min(vertex[0].z(), vertex[1].z()), vertex[2].z()),
 			std::max(std::max(vertex[0].z(), vertex[1].z()), vertex[2].z())

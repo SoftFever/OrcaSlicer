@@ -93,7 +93,7 @@ void GLModel::init_from(const indexed_triangle_set& its, const BoundingBoxf3 &bb
     for (uint32_t i = 0; i < its.indices.size(); ++i) {
         stl_triangle_vertex_indices face      = its.indices[i];
         stl_vertex                  vertex[3] = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
-        stl_vertex                  n         = (vertex[2] - vertex[1]).cross(vertex[3] - vertex[2]).normalized();
+        stl_vertex                  n         = face_normal_normalized(vertex);
         for (size_t j = 0; j < 3; ++ j) {
             size_t offset = i * 18 + j * 6;
             ::memcpy(static_cast<void*>(&vertices[offset]), static_cast<const void*>(vertex[j].data()), 3 * sizeof(float));
@@ -109,6 +109,11 @@ void GLModel::init_from(const indexed_triangle_set& its, const BoundingBoxf3 &bb
 
     send_to_gpu(data, vertices, indices);
     m_render_data.emplace_back(data);
+}
+
+void GLModel::init_from(const indexed_triangle_set& its)
+{
+    this->init_from(its, bounding_box(its));
 }
 
 #if ENABLE_SINKING_CONTOURS
@@ -158,7 +163,9 @@ bool GLModel::init_from_file(const std::string& filename)
         return false;
     }
 
-    init_from(model.mesh());
+    TriangleMesh mesh = model.mesh();
+    mesh.require_shared_vertices();
+    init_from(mesh.its, mesh.bounding_box());
 
     m_filename = filename;
 

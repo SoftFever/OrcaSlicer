@@ -20,7 +20,7 @@ namespace GUI {
 GLGizmoHollow::GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
 {
-    m_vbo_cylinder.init_from(make_cylinder(1., 1.));
+    m_vbo_cylinder.init_from(its_make_cylinder(1., 1.));
 }
 
 

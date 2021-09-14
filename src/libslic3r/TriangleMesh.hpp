@@ -209,17 +209,21 @@ void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles);
 void its_merge(indexed_triangle_set &A, const Pointf3s &triangles);
 
 std::vector<Vec3f> its_face_normals(const indexed_triangle_set &its);
+inline Vec3f face_normal(const stl_vertex vertex[3]) { return  (vertex[1] - vertex[0]).cross(vertex[2] - vertex[1]).normalized(); }
+inline Vec3f face_normal_normalized(const stl_vertex vertex[3]) { return  face_normal(vertex).normalized(); }
+inline Vec3f its_face_normal(const indexed_triangle_set &its, const stl_triangle_vertex_indices face)
+    { const stl_vertex vertices[3] { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] }; return face_normal_normalized(vertices); }
+inline Vec3f its_face_normal(const indexed_triangle_set &its, const int face_idx)
+    { return its_face_normal(its, its.indices[face_idx]); }
 
-indexed_triangle_set its_make_cube(double x, double y, double z);
-TriangleMesh make_cube(double x, double y, double z);
-
-// Generate a TriangleMesh of a cylinder
-indexed_triangle_set its_make_cylinder(double r, double h, double fa=(2*PI/360));
-TriangleMesh make_cylinder(double r, double h, double fa=(2*PI/360));
-
-indexed_triangle_set its_make_sphere(double rho, double fa=(2*PI/360));
-TriangleMesh make_cone(double r, double h, double fa=(2*PI/360));
-TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
+indexed_triangle_set    its_make_cube(double x, double y, double z);
+TriangleMesh            make_cube(double x, double y, double z);
+indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/360));
+TriangleMesh            make_cylinder(double r, double h, double fa=(2*PI/360));
+indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/360));
+TriangleMesh            make_cone(double r, double h, double fa=(2*PI/360));
+indexed_triangle_set    its_make_sphere(double radius, double fa);
+TriangleMesh            make_sphere(double rho, double fa=(2*PI/360));
 
 inline BoundingBoxf3 bounding_box(const TriangleMesh &m) { return m.bounding_box(); }
 inline BoundingBoxf3 bounding_box(const indexed_triangle_set& its)
