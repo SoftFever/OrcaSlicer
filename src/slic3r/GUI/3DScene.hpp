@@ -128,6 +128,8 @@ public:
     void load_mesh(const TriangleMesh& mesh) { this->load_mesh_full_shading(mesh); }
 #endif // ENABLE_SMOOTH_NORMALS
 
+    void load_its_flat_shading(const indexed_triangle_set &its);
+
     inline bool has_VBOs() const { return vertices_and_normals_interleaved_VBO_id != 0; }
 
     inline void reserve(size_t sz) {

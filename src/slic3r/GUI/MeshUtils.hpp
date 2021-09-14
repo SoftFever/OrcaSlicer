@@ -113,10 +113,8 @@ public:
     // during MeshRaycaster existence.
     MeshRaycaster(const TriangleMesh& mesh)
         : m_emesh(mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
+        , m_normals(its_face_normals(mesh.its))
     {
-        m_normals.reserve(mesh.stl.facet_start.size());
-        for (const stl_facet& facet : mesh.stl.facet_start)
-            m_normals.push_back(facet.normal);
     }
 
     void line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,

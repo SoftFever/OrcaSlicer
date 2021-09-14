@@ -161,7 +161,9 @@ protected:
     // Lists of vertices and triangles, both original and new
     std::vector<Vertex> m_vertices;
     std::vector<Triangle> m_triangles;
-    const TriangleMesh* m_mesh;
+    const TriangleMesh &m_mesh;
+    const std::vector<Vec3i> m_neighbors;
+    const std::vector<Vec3f> m_face_normals;
 
     // Number of invalid triangles (to trigger garbage collection).
     int m_invalid_triangles;

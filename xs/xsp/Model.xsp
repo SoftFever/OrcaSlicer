@@ -10,7 +10,6 @@
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/OBJ.hpp"
-#include "libslic3r/Format/PRUS.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/PresetBundle.hpp"
 %}

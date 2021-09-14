@@ -9,16 +9,6 @@
 
 namespace Slic3r {
 
-static inline Vec3i root_neighbors(const TriangleMesh &mesh, int triangle_id)
-{
-    Vec3i neighbors;
-    const stl_neighbors& neighbors_src = mesh.stl.neighbors_start[triangle_id];
-    for (int i = 0; i < 3; ++i)
-        // Refuse a neighbor with a flipped normal.
-        neighbors(i) = neighbors_src.neighbor[i];
-    return neighbors;
-}
-
 #ifndef NDEBUG
 bool TriangleSelector::verify_triangle_midpoints(const Triangle &tr) const
 {
@@ -129,7 +119,7 @@ int TriangleSelector::select_unsplit_triangle(const Vec3f &hit, int facet_idx) c
     if (!m_triangles[facet_idx].valid())
         return -1;
 
-    Vec3i neighbors = root_neighbors(*m_mesh, facet_idx);
+    Vec3i neighbors = m_neighbors[facet_idx];
     assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
     return this->select_unsplit_triangle(hit, facet_idx, neighbors);
 }
@@ -167,7 +157,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
         if (! visited[facet]) {
             if (select_triangle(facet, new_state, triangle_splitting)) {
                 // add neighboring facets to list to be proccessed later
-                for (int neighbor_idx : m_mesh->stl.neighbors_start[facet].neighbor) {
+                for (int neighbor_idx : m_neighbors[facet]) {
                     if (neighbor_idx >=0 && (m_cursor.type == SPHERE || faces_camera(neighbor_idx)))
                         facets_to_check.push_back(neighbor_idx);
                 }
@@ -213,12 +203,12 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_st
 
             if (current_facet < m_orig_size_indices)
                 // Propagate over the original triangles.
-                for (int neighbor_idx : m_mesh->stl.neighbors_start[current_facet].neighbor) {
+                for (int neighbor_idx : m_neighbors[current_facet]) {
                     assert(neighbor_idx >= -1);
                     if (neighbor_idx >= 0 && !visited[neighbor_idx]) {
                         // Check if neighbour_facet_idx is satisfies angle in seed_fill_angle and append it to facet_queue if it do.
-                        const Vec3f &n1 = m_mesh->stl.facet_start[m_triangles[neighbor_idx].source_triangle].normal;
-                        const Vec3f &n2 = m_mesh->stl.facet_start[m_triangles[current_facet].source_triangle].normal;
+                        const Vec3f &n1 = m_face_normals[m_triangles[neighbor_idx].source_triangle];
+                        const Vec3f &n2 = m_face_normals[m_triangles[current_facet].source_triangle];
                         if (std::clamp(n1.dot(n2), 0.f, 1.f) >= facet_angle_limit)
                             facet_queue.push(neighbor_idx);
                     }
@@ -261,7 +251,7 @@ std::pair<std::vector<Vec3i>, std::vector<Vec3i>> TriangleSelector::precompute_a
     std::vector<Vec3i> neighbors(m_triangles.size(), Vec3i(-1, -1, -1));
     std::vector<Vec3i> neighbors_propagated(m_triangles.size(), Vec3i(-1, -1, -1));
     for (int facet_idx = 0; facet_idx < this->m_orig_size_indices; ++facet_idx) {
-        neighbors[facet_idx]            = root_neighbors(*m_mesh, facet_idx);
+        neighbors[facet_idx]            = m_neighbors[facet_idx];
         neighbors_propagated[facet_idx] = neighbors[facet_idx];
         assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors[facet_idx]));
         if (m_triangles[facet_idx].is_split())
@@ -403,7 +393,7 @@ bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, 
     if (! m_triangles[facet_idx].valid())
         return false;
 
-    Vec3i neighbors = root_neighbors(*m_mesh, facet_idx);
+    Vec3i neighbors = m_neighbors[facet_idx];
     assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
 
     if (! select_triangle_recursive(facet_idx, neighbors, type, triangle_splitting))
@@ -906,14 +896,7 @@ bool TriangleSelector::is_pointer_in_triangle(int facet_idx) const
 bool TriangleSelector::faces_camera(int facet) const
 {
     assert(facet < m_orig_size_indices);
-    // The normal is cached in mesh->stl, use it.
-    Vec3f normal = m_mesh->stl.facet_start[facet].normal;
-
-    if (! m_cursor.uniform_scaling) {
-        // Transform the normal into world coords.
-        normal = m_cursor.trafo_normal * normal;
-    }
-    return (normal.dot(m_cursor.dir) < 0.);
+    return (m_cursor.uniform_scaling ? m_face_normals[facet] : m_cursor.trafo_normal * m_face_normals[facet]).dot(m_cursor.dir) < 0.;
 }
 
 
@@ -1094,7 +1077,7 @@ void TriangleSelector::garbage_collect()
 }
 
 TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
-    : m_mesh{&mesh}
+    : m_mesh{mesh}, m_neighbors(its_face_neighbors(mesh.its)), m_face_normals(its_face_normals(mesh.its))
 {
     reset();
 }
@@ -1107,16 +1090,17 @@ void TriangleSelector::reset()
     m_invalid_triangles = 0;
     m_free_triangles_head = -1;
     m_free_vertices_head = -1;
-    m_vertices.reserve(m_mesh->its.vertices.size());
-    for (const stl_vertex& vert : m_mesh->its.vertices)
+    m_vertices.reserve(m_mesh.its.vertices.size());
+    for (const stl_vertex& vert : m_mesh.its.vertices)
         m_vertices.emplace_back(vert);
-    m_triangles.reserve(m_mesh->its.indices.size());
-    for (size_t i = 0; i < m_mesh->its.indices.size(); ++i) {
-        const stl_triangle_vertex_indices &ind = m_mesh->its.indices[i];
+    m_triangles.reserve(m_mesh.its.indices.size());
+    for (size_t i = 0; i < m_mesh.its.indices.size(); ++i) {
+        const stl_triangle_vertex_indices &ind = m_mesh.its.indices[i];
         push_triangle(ind[0], ind[1], ind[2], int(i));
     }
     m_orig_size_vertices = int(m_vertices.size());
     m_orig_size_indices  = int(m_triangles.size());
+
 }
 
 
@@ -1286,7 +1270,7 @@ indexed_triangle_set TriangleSelector::get_facets_strict(EnforcerBlockerType sta
         }
 
     for (int itriangle = 0; itriangle < m_orig_size_indices; ++ itriangle)
-        this->get_facets_strict_recursive(m_triangles[itriangle], root_neighbors(*m_mesh, itriangle), state, out.indices);
+        this->get_facets_strict_recursive(m_triangles[itriangle], m_neighbors[itriangle], state, out.indices);
 
     for (auto &triangle : out.indices)
         for (int i = 0; i < 3; ++ i)
@@ -1398,7 +1382,7 @@ void TriangleSelector::get_facets_split_by_tjoints(const Vec3i &vertices, const 
 std::vector<Vec2i> TriangleSelector::get_seed_fill_contour() const {
     std::vector<Vec2i> edges_out;
     for (int facet_idx = 0; facet_idx < this->m_orig_size_indices; ++facet_idx) {
-        const Vec3i neighbors = root_neighbors(*m_mesh, facet_idx);
+        const Vec3i neighbors = m_neighbors[facet_idx];
         assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
         this->get_seed_fill_contour_recursive(facet_idx, neighbors, neighbors, edges_out);
     }
@@ -1522,10 +1506,10 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
 
     // Reserve number of triangles as if each triangle was saved with 4 bits.
     // With MMU painting this estimate may be somehow low, but better than nothing.
-    m_triangles.reserve(std::max(m_mesh->its.indices.size(), data.second.size() / 4));
+    m_triangles.reserve(std::max(m_mesh.its.indices.size(), data.second.size() / 4));
     // Number of triangles is twice the number of vertices on a large manifold mesh of genus zero.
     // Here the triangles count account for both the nodes and leaves, thus the following line may overestimate.
-    m_vertices.reserve(std::max(m_mesh->its.vertices.size(), m_triangles.size() / 2));
+    m_vertices.reserve(std::max(m_mesh.its.vertices.size(), m_triangles.size() / 2));
 
     // Vector to store all parents that have offsprings.
     struct ProcessingInfo {
@@ -1565,7 +1549,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
                 if (is_split) {
                     // root is split, add it into list of parents and split it.
                     // then go to the next.
-                    Vec3i neighbors = root_neighbors(*m_mesh, triangle_id);
+                    Vec3i neighbors = m_neighbors[triangle_id];
                     parents.push_back({triangle_id, neighbors, 0, num_of_children});
                     m_triangles[triangle_id].set_division(num_of_split_sides, special_side);
                     perform_split(triangle_id, neighbors, EnforcerBlockerType::NONE);

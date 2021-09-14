@@ -774,7 +774,7 @@ private:
         assert(this->id() != this->supported_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
-        if (mesh.stl.stats.number_of_facets > 1)
+        if (mesh.facets_count() > 1)
             calculate_convex_hull();
     }
     ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull, ModelVolumeType type = ModelVolumeType::MODEL_PART) :
@@ -830,7 +830,7 @@ private:
         assert(this->config.id() == other.config.id());
         this->set_material_id(other.material_id());
         this->config.set_new_unique_id();
-        if (mesh.stl.stats.number_of_facets > 1)
+        if (mesh.facets_count() > 1)
             calculate_convex_hull();
 		assert(this->config.id().valid()); 
         assert(this->config.id() != other.config.id()); 

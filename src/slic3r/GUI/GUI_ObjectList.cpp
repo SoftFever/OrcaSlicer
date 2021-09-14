@@ -393,7 +393,7 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
 
     const stl_stats& stats = vol_idx == -1 ?
                             (*m_objects)[obj_idx]->get_object_stl_stats() :
-                            (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stl.stats;
+                            (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stats();
 
     if (stats.degenerate_facets > 0)
         tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d degenerate facet", "%1$d degenerate facets", stats.degenerate_facets), stats.degenerate_facets) + "\n";

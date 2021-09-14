@@ -78,7 +78,7 @@ void GLModel::init_from(const InitializationData& data)
     }
 }
 
-void GLModel::init_from(const TriangleMesh& mesh)
+void GLModel::init_from(const indexed_triangle_set& its, const BoundingBoxf3 &bbox)
 {
     if (!m_render_data.empty()) // call reset() if you want to reuse this model
         return;
@@ -86,25 +86,26 @@ void GLModel::init_from(const TriangleMesh& mesh)
     RenderData data;
     data.type = PrimitiveType::Triangles;
 
-    std::vector<float> vertices = std::vector<float>(18 * mesh.stl.stats.number_of_facets);
-    std::vector<unsigned int> indices = std::vector<unsigned int>(3 * mesh.stl.stats.number_of_facets);
+    std::vector<float> vertices = std::vector<float>(18 * its.indices.size());
+    std::vector<unsigned int> indices = std::vector<unsigned int>(3 * its.indices.size());
 
     unsigned int vertices_count = 0;
-    for (uint32_t i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
-        const stl_facet& facet = mesh.stl.facet_start[i];
-        for (size_t j = 0; j < 3; ++j) {
+    for (uint32_t i = 0; i < its.indices.size(); ++i) {
+        stl_triangle_vertex_indices face      = its.indices[i];
+        stl_vertex                  vertex[3] = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
+        stl_vertex                  n         = (vertex[2] - vertex[1]).cross(vertex[3] - vertex[2]).normalized();
+        for (size_t j = 0; j < 3; ++ j) {
             size_t offset = i * 18 + j * 6;
-            ::memcpy(static_cast<void*>(&vertices[offset]), static_cast<const void*>(facet.vertex[j].data()), 3 * sizeof(float));
-            ::memcpy(static_cast<void*>(&vertices[3 + offset]), static_cast<const void*>(facet.normal.data()), 3 * sizeof(float));
+            ::memcpy(static_cast<void*>(&vertices[offset]), static_cast<const void*>(vertex[j].data()), 3 * sizeof(float));
+            ::memcpy(static_cast<void*>(&vertices[3 + offset]), static_cast<const void*>(n.data()), 3 * sizeof(float));
         }
-        for (size_t j = 0; j < 3; ++j) {
+        for (size_t j = 0; j < 3; ++j)
             indices[i * 3 + j] = vertices_count + j;
-        }
         vertices_count += 3;
     }
 
     data.indices_count = static_cast<unsigned int>(indices.size());
-    m_bounding_box = mesh.bounding_box();
+    m_bounding_box = bbox;
 
     send_to_gpu(data, vertices, indices);
     m_render_data.emplace_back(data);

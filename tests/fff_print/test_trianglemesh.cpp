@@ -342,7 +342,7 @@ SCENARIO( "TriangleMesh: Mesh merge functions") {
             cube.merge(cube2);
             cube.repair();
             THEN( "There are twice as many facets in the merged mesh as the original.") {
-                REQUIRE(cube.stl.stats.number_of_facets == 2 * cube2.stl.stats.number_of_facets);
+                REQUIRE(cube.facets_count() == 2 * cube2.facets_count());
             }
         }
     }

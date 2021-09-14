@@ -187,6 +187,10 @@ void TriangleMesh::repair(bool update_shared_vertices)
 
     this->repaired = true;
 
+    //FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
+    if (auto nr_degenerated = this->stl.stats.degenerate_facets; this->facets_count() > 0 && nr_degenerated > 0)
+        stl_check_facets_exact(&this->stl);
+
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() finished";
 
     // This call should be quite cheap, a lot of code requires the indexed_triangle_set data structure,
@@ -1333,6 +1337,17 @@ std::vector<Vec3i> its_face_neighbors(const indexed_triangle_set &its)
 std::vector<Vec3i> its_face_neighbors_par(const indexed_triangle_set &its)
 {
     return create_face_neighbors_index(ex_tbb, its);
+}
+
+std::vector<Vec3f> its_face_normals(const indexed_triangle_set &its) 
+{
+    std::vector<Vec3f> normals;
+    normals.reserve(its.indices.size());
+    for (stl_triangle_vertex_indices face : its.indices) {
+        stl_vertex vertex[3] = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
+        normals.push_back((vertex[2] - vertex[1]).cross(vertex[3] - vertex[2]).normalized());
+    }
+    return normals;
 }
 
 } // namespace Slic3r

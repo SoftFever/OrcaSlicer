@@ -52,7 +52,6 @@ public:
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
-    const float* first_vertex() const { return this->stl.facet_start.empty() ? nullptr : &this->stl.facet_start.front().vertex[0](0); }
     // 2D convex hull of a 3D mesh projected into the Z=0 plane.
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
@@ -80,9 +79,13 @@ public:
     // Restore optional data possibly released by release_optional().
     void restore_optional();
 
-    stl_file stl;
+    const stl_stats& stats() const { return this->stl.stats; }
+    
     indexed_triangle_set its;
     bool repaired;
+
+//private:
+    stl_file stl;
 
 private:
     std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
@@ -204,6 +207,8 @@ float its_average_edge_length(const indexed_triangle_set &its);
 void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B);
 void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles);
 void its_merge(indexed_triangle_set &A, const Pointf3s &triangles);
+
+std::vector<Vec3f> its_face_normals(const indexed_triangle_set &its);
 
 indexed_triangle_set its_make_cube(double x, double y, double z);
 TriangleMesh make_cube(double x, double y, double z);

@@ -142,11 +142,13 @@ void GLGizmoFlatten::update_planes()
 
     // Now we'll go through all the facets and append Points of facets sharing the same normal.
     // This part is still performed in mesh coordinate system.
-    const int num_of_facets = ch.stl.stats.number_of_facets;
-    std::vector<int>  facet_queue(num_of_facets, 0);
-    std::vector<bool> facet_visited(num_of_facets, false);
-    int               facet_queue_cnt = 0;
-    const stl_normal* normal_ptr = nullptr;
+    const int                num_of_facets  = ch.facets_count();
+    const std::vector<Vec3f> face_normals   = its_face_normals(ch.its);
+    const std::vector<Vec3i> face_neighbors = its_face_neighbors(ch.its);
+    std::vector<int>         facet_queue(num_of_facets, 0);
+    std::vector<bool>        facet_visited(num_of_facets, false);
+    int                      facet_queue_cnt = 0;
+    const stl_normal*        normal_ptr      = nullptr;
     while (1) {
         // Find next unvisited triangle:
         int facet_idx = 0;
@@ -154,7 +156,7 @@ void GLGizmoFlatten::update_planes()
             if (!facet_visited[facet_idx]) {
                 facet_queue[facet_queue_cnt ++] = facet_idx;
                 facet_visited[facet_idx] = true;
-                normal_ptr = &ch.stl.facet_start[facet_idx].normal;
+                normal_ptr = &face_normals[facet_idx];
                 m_planes.emplace_back();
                 break;
             }
@@ -163,18 +165,16 @@ void GLGizmoFlatten::update_planes()
 
         while (facet_queue_cnt > 0) {
             int facet_idx = facet_queue[-- facet_queue_cnt];
-            const stl_normal& this_normal = ch.stl.facet_start[facet_idx].normal;
+            const stl_normal& this_normal = face_normals[facet_idx];
             if (std::abs(this_normal(0) - (*normal_ptr)(0)) < 0.001 && std::abs(this_normal(1) - (*normal_ptr)(1)) < 0.001 && std::abs(this_normal(2) - (*normal_ptr)(2)) < 0.001) {
-                stl_vertex* first_vertex = ch.stl.facet_start[facet_idx].vertex;
+                const Vec3i face = ch.its.indices[facet_idx];
                 for (int j=0; j<3; ++j)
-                    m_planes.back().vertices.emplace_back(first_vertex[j].cast<double>());
+                    m_planes.back().vertices.emplace_back(ch.its.vertices[face[j]].cast<double>());
 
                 facet_visited[facet_idx] = true;
-                for (int j = 0; j < 3; ++ j) {
-                    int neighbor_idx = ch.stl.neighbors_start[facet_idx].neighbor[j];
-                    if (! facet_visited[neighbor_idx])
+                for (int j = 0; j < 3; ++ j)
+                    if (int neighbor_idx = face_neighbors[facet_idx][j]; neighbor_idx >= 0 && ! facet_visited[neighbor_idx])
                         facet_queue[facet_queue_cnt ++] = neighbor_idx;
-                }
             }
         }
         m_planes.back().normal = normal_ptr->cast<double>();

@@ -70,7 +70,8 @@ namespace GUI {
         virtual ~GLModel() { reset(); }
 
         void init_from(const InitializationData& data);
-        void init_from(const TriangleMesh& mesh);
+        void init_from(const TriangleMesh& mesh) { this->init_from(mesh.its, mesh.bounding_box()); }
+        void init_from(const indexed_triangle_set& its, const BoundingBoxf3& bbox);
 #if ENABLE_SINKING_CONTOURS
         void init_from(const Polygons& polygons, float z);
 #endif // ENABLE_SINKING_CONTOURS

@@ -9,7 +9,6 @@
 
 #include "Format/AMF.hpp"
 #include "Format/OBJ.hpp"
-#include "Format/PRUS.hpp"
 #include "Format/STL.hpp"
 #include "Format/3mf.hpp"
 
@@ -118,8 +117,6 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         //FIXME options & LoadAttribute::CheckVersion ? 
         result = load_3mf(input_file.c_str(), *config, *config_substitutions, &model, false);
-    else if (boost::algorithm::iends_with(input_file, ".prusa"))
-        result = load_prus(input_file.c_str(), &model);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
 
@@ -1154,7 +1151,7 @@ size_t ModelObject::facets_count() const
     size_t num = 0;
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part())
-            num += v->mesh().stl.stats.number_of_facets;
+            num += v->mesh().facets_count();
     return num;
 }
 
@@ -1508,9 +1505,9 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
 
         const Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
-		for (const stl_facet &facet : hull.stl.facet_start)
+		for (const stl_triangle_vertex_indices facet : hull.its.indices)
 			for (int i = 0; i < 3; ++ i)
-				min_z = std::min(min_z, (mv * facet.vertex[i].cast<double>()).z());
+				min_z = std::min(min_z, (mv * hull.its.vertices[facet[i]].cast<double>()).z());
     }
 
     return min_z + inst->get_offset(Z);
@@ -1529,9 +1526,9 @@ double ModelObject::get_instance_max_z(size_t instance_idx) const
 
         const Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
-        for (const stl_facet& facet : hull.stl.facet_start)
+        for (const stl_triangle_vertex_indices facet : hull.its.indices)
             for (int i = 0; i < 3; ++i)
-                max_z = std::max(max_z, (mv * facet.vertex[i].cast<double>()).z());
+                max_z = std::max(max_z, (mv * hull.its.vertices[facet[i]].cast<double>()).z());
     }
 
     return max_z + inst->get_offset(Z);
@@ -1584,27 +1581,27 @@ void ModelObject::print_info() const
     cout << "max_x = " << bb.max(0) << endl;
     cout << "max_y = " << bb.max(1) << endl;
     cout << "max_z = " << bb.max(2) << endl;
-    cout << "number_of_facets = " << mesh.stl.stats.number_of_facets  << endl;
+    cout << "number_of_facets = " << mesh.facets_count() << endl;
     cout << "manifold = "   << (mesh.is_manifold() ? "yes" : "no") << endl;
     
     mesh.repair();  // this calculates number_of_parts
     if (mesh.needed_repair()) {
         mesh.repair();
-        if (mesh.stl.stats.degenerate_facets > 0)
-            cout << "degenerate_facets = "  << mesh.stl.stats.degenerate_facets << endl;
-        if (mesh.stl.stats.edges_fixed > 0)
-            cout << "edges_fixed = "        << mesh.stl.stats.edges_fixed       << endl;
-        if (mesh.stl.stats.facets_removed > 0)
-            cout << "facets_removed = "     << mesh.stl.stats.facets_removed    << endl;
-        if (mesh.stl.stats.facets_added > 0)
-            cout << "facets_added = "       << mesh.stl.stats.facets_added      << endl;
-        if (mesh.stl.stats.facets_reversed > 0)
-            cout << "facets_reversed = "    << mesh.stl.stats.facets_reversed   << endl;
-        if (mesh.stl.stats.backwards_edges > 0)
-            cout << "backwards_edges = "    << mesh.stl.stats.backwards_edges   << endl;
+        if (mesh.stats().degenerate_facets > 0)
+            cout << "degenerate_facets = "  << mesh.stats().degenerate_facets << endl;
+        if (mesh.stats().edges_fixed > 0)
+            cout << "edges_fixed = "        << mesh.stats().edges_fixed       << endl;
+        if (mesh.stats().facets_removed > 0)
+            cout << "facets_removed = "     << mesh.stats().facets_removed    << endl;
+        if (mesh.stats().facets_added > 0)
+            cout << "facets_added = "       << mesh.stats().facets_added      << endl;
+        if (mesh.stats().facets_reversed > 0)
+            cout << "facets_reversed = "    << mesh.stats().facets_reversed   << endl;
+        if (mesh.stats().backwards_edges > 0)
+            cout << "backwards_edges = "    << mesh.stats().backwards_edges   << endl;
     }
-    cout << "number_of_parts =  " << mesh.stl.stats.number_of_parts << endl;
-    cout << "volume = "           << mesh.volume()                  << endl;
+    cout << "number_of_parts =  " << mesh.stats().number_of_parts << endl;
+    cout << "volume = "           << mesh.volume()                << endl;
 }
 
 std::string ModelObject::get_export_filename() const
@@ -1630,7 +1627,7 @@ std::string ModelObject::get_export_filename() const
 stl_stats ModelObject::get_object_stl_stats() const
 {
     if (this->volumes.size() == 1)
-        return this->volumes[0]->mesh().stl.stats;
+        return this->volumes[0]->mesh().stats();
 
     stl_stats full_stats;
     full_stats.volume = 0.f;
@@ -1638,7 +1635,7 @@ stl_stats ModelObject::get_object_stl_stats() const
     // fill full_stats from all objet's meshes
     for (ModelVolume* volume : this->volumes)
     {
-        const stl_stats& stats = volume->mesh().stl.stats;
+        const stl_stats& stats = volume->mesh().stats();
 
         // initialize full_stats (for repaired errors)
         full_stats.degenerate_facets    += stats.degenerate_facets;
@@ -1734,7 +1731,7 @@ void ModelVolume::calculate_convex_hull()
 
 int ModelVolume::get_mesh_errors_count() const
 {
-    const stl_stats& stats = this->mesh().stl.stats;
+    const stl_stats &stats = this->mesh().stats();
 
     return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
             stats.facets_added      + stats.facets_reversed + stats.backwards_edges;

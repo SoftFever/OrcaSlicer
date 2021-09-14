@@ -158,20 +158,25 @@ void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh& mesh)
     }
     else {
 #endif // ENABLE_SMOOTH_NORMALS
-        this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
-
-        unsigned int vertices_count = 0;
-        for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
-            const stl_facet& facet = mesh.stl.facet_start[i];
-            for (int j = 0; j < 3; ++j)
-                this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
-
-            this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
-            vertices_count += 3;
-        }
+        this->load_its_flat_shading(mesh.its);
 #if ENABLE_SMOOTH_NORMALS
     }
 #endif // ENABLE_SMOOTH_NORMALS
+}
+
+void GLIndexedVertexArray::load_its_flat_shading(const indexed_triangle_set &its)
+{
+    this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * its.indices.size());
+    unsigned int vertices_count = 0;
+    for (int i = 0; i < int(its.indices.size()); ++ i) {
+        stl_triangle_vertex_indices face        = its.indices[i];
+        stl_vertex                  vertex[3]   = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
+        stl_vertex                  n           = (vertex[2] - vertex[1]).cross(vertex[3] - vertex[2]).normalized();
+        for (int j = 0; j < 3; ++j)
+            this->push_geometry(vertex[j](0), vertex[j](1), vertex[j](2), n(0), n(1), n(2));
+        this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
+        vertices_count += 3;
+    }
 }
 
 void GLIndexedVertexArray::finalize_geometry(bool opengl_initialized)
@@ -531,7 +536,7 @@ const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 
 BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &trafo) const
 {
-	return (m_convex_hull && m_convex_hull->stl.stats.number_of_facets > 0) ? 
+	return (m_convex_hull && m_convex_hull->facets_count() > 0) ?
 		m_convex_hull->transformed_bounding_box(trafo) :
         bounding_box().transformed(trafo);
 }

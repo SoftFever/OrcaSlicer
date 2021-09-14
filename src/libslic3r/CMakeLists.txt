@@ -78,8 +78,6 @@ add_library(libslic3r STATIC
     Format/OBJ.hpp
     Format/objparser.cpp
     Format/objparser.hpp
-    Format/PRUS.cpp
-    Format/PRUS.hpp
     Format/STL.cpp
     Format/STL.hpp
     Format/SL1.hpp
