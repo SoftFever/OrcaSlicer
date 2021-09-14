@@ -284,7 +284,7 @@ void GCodeViewer::SequentialView::Marker::render() const
     ImGui::PopStyleVar();
 }
 
-void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends)
+void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends)
 {
     assert(! m_file.is_open());
     if (m_file.is_open())
@@ -563,6 +563,8 @@ GCodeViewer::GCodeViewer()
     set_toolpath_move_type_visible(EMoveType::Extrude, true);
 #endif // !ENABLE_SEAMS_USING_MODELS
 
+    m_extrusions.reset_role_visibility_flags();
+
 //    m_sequential_view.skip_invisible_moves = true;
 }
 
@@ -577,7 +579,9 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     // release gpu memory, if used
     reset(); 
 
-    m_sequential_view.gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
+    m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
+        // Stealing out lines_ends should be safe because this gcode_result is processed only once (see the 1st if in this function).
+        std::move(const_cast<std::vector<size_t>&>(gcode_result.lines_ends)));
 
 #if ENABLE_FIX_IMPORTING_COLOR_PRINT_VIEW_INTO_GCODEVIEWER
     if (wxGetApp().is_gcode_viewer())
@@ -734,7 +738,6 @@ void GCodeViewer::reset()
     m_extruder_ids = std::vector<unsigned char>();
     m_filament_diameters = std::vector<float>();
     m_filament_densities = std::vector<float>();
-    m_extrusions.reset_role_visibility_flags();
     m_extrusions.reset_ranges();
     m_shells.volumes.clear();
     m_layers.reset();

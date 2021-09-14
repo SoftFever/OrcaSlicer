@@ -1208,6 +1208,8 @@ void Sidebar::update_sliced_info_sizer()
             wxString t_est = std::isnan(ps.estimated_print_time) ? "N/A" : get_time_dhms(float(ps.estimated_print_time));
             p->sliced_info->SetTextAndShow(siEstimatedTime, t_est, _L("Estimated printing time") + ":");
 
+            p->plater->get_notification_manager()->set_slicing_complete_print_time(_utf8("Estimated printing time: ") + boost::nowide::narrow(t_est), p->plater->is_sidebar_collapsed());
+
             // Hide non-SLA sliced info parameters
             p->sliced_info->SetTextAndShow(siFilament_m, "N/A");
             p->sliced_info->SetTextAndShow(siFilament_mm3, "N/A");
@@ -1296,10 +1298,7 @@ void Sidebar::update_sliced_info_sizer()
                     new_label += format_wxstr("\n   - %1%", _L("normal mode"));
                     info_text += format_wxstr("\n%1%", short_time(ps.estimated_normal_print_time));
 
-                    // uncomment next line to not disappear slicing finished notif when colapsing sidebar before time estimate
-                    //if (p->plater->is_sidebar_collapsed())
-                    p->plater->get_notification_manager()->set_slicing_complete_large(p->plater->is_sidebar_collapsed());
-                    p->plater->get_notification_manager()->set_slicing_complete_print_time("Estimated printing time: " + ps.estimated_normal_print_time);
+                    p->plater->get_notification_manager()->set_slicing_complete_print_time(_utf8("Estimated printing time: ") + ps.estimated_normal_print_time, p->plater->is_sidebar_collapsed());
 
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
@@ -1502,7 +1501,7 @@ struct Plater::priv
     GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
-    NotificationManager* notification_manager { nullptr };
+    std::shared_ptr<NotificationManager> notification_manager;
 
     ProjectDirtyStateManager dirty_state;
 
@@ -1523,10 +1522,10 @@ struct Plater::priv
     public:
         Jobs(priv *_m) : m(_m)
         {
-            m_arrange_id = add_job(std::make_unique<ArrangeJob>(m->statusbar(), m->q));
-            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m->statusbar(), m->q));
-            m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m->statusbar(), m->q));
-            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m->statusbar(), m->q));
+            m_arrange_id = add_job(std::make_unique<ArrangeJob>(m->notification_manager, m->q));
+            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m->notification_manager, m->q));
+            m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m->notification_manager, m->q));
+            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m->notification_manager, m->q));
         }
         
         void arrange()
@@ -1637,7 +1636,7 @@ struct Plater::priv
     void apply_free_camera_correction(bool apply = true);
     void update_ui_from_settings();
     void update_main_toolbar_tooltips();
-    std::shared_ptr<ProgressStatusBar> statusbar();
+//   std::shared_ptr<ProgressStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
@@ -1739,6 +1738,7 @@ struct Plater::priv
 	void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
     // Update notification manager with the current state of warnings produced by the background process (slicing).
 	void actualize_slicing_warnings(const PrintBase &print);
+    void actualize_object_warnings(const PrintBase& print);
 	// Displays dialog window with list of warnings. 
 	// Returns true if user clicks OK.
 	// Returns true if current_warnings vector is empty without showning the dialog
@@ -1790,6 +1790,8 @@ struct Plater::priv
     // extension should contain the leading dot, i.e.: ".3mf"
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
     void set_project_filename(const wxString& filename);
+    // Call after plater and Canvas#D is initialized
+    void init_notification_manager();
 
     // Caching last value of show_action_buttons parameter for show_action_buttons(), so that a callback which does not know this state will not override it.
     mutable bool    			ready_to_slice = { false };
@@ -1799,6 +1801,7 @@ struct Plater::priv
     std::string                 last_output_dir_path;
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
 	bool                        process_completed_with_error { false };
+   
 private:
     bool layers_height_allowed() const;
 
@@ -1847,6 +1850,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "support_material_contact_distance", "support_material_bottom_contact_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
+    , notification_manager(std::make_shared<NotificationManager>(q))
     , m_ui_jobs(this)
     , delayed_scene_refresh(false)
     , view_toolbar(GLToolbar::Radio, "View")
@@ -2014,7 +2018,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         });
 #endif /* _WIN32 */
 
-	notification_manager = new NotificationManager(this->q);
+	//notification_manager = new NotificationManager(this->q);
+
     if (wxGetApp().is_editor()) {
         this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
         this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
@@ -2024,12 +2029,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 			    this->show_action_buttons(this->ready_to_slice);
                 notification_manager->close_notification_of_type(NotificationType::ExportFinished);
                 notification_manager->push_notification(NotificationType::CustomNotification,
-                                                        NotificationManager::NotificationLevel::RegularNotification,
+                                                        NotificationManager::NotificationLevel::RegularNotificationLevel,
                                                         format(_L("Successfully unmounted. The device %s(%s) can now be safely removed from the computer."), evt.data.first.name, evt.data.first.path)
                     );
             } else {
                 notification_manager->push_notification(NotificationType::CustomNotification,
-                                                        NotificationManager::NotificationLevel::ErrorNotification,
+                                                        NotificationManager::NotificationLevel::ErrorNotificationLevel,
                                                         format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path)
                     );
             }
@@ -2076,8 +2081,7 @@ Plater::priv::~priv()
 {
     if (config != nullptr)
         delete config;
-    if (notification_manager != nullptr)
-        delete notification_manager;
+    notification_manager->deactivate_loaded_hints();
 }
 
 void Plater::priv::update(unsigned int flags)
@@ -2152,6 +2156,8 @@ void Plater::priv::collapse_sidebar(bool collapse)
     new_tooltip += " [Shift+Tab]";
     int id = collapse_toolbar.get_item_id("collapse_sidebar");
     collapse_toolbar.set_tooltip(id, new_tooltip);
+
+    notification_manager->set_sidebar_collapsed(collapse);
 }
 
 
@@ -2179,10 +2185,11 @@ void Plater::priv::update_main_toolbar_tooltips()
     view3D->get_canvas3d()->update_tooltip_for_settings_item_in_main_toolbar();
 }
 
-std::shared_ptr<ProgressStatusBar> Plater::priv::statusbar()
-{
-    return main_frame->m_statusbar;
-}
+//std::shared_ptr<ProgressStatusBar> Plater::priv::statusbar()
+//{
+//      return nullptr;
+//    return main_frame->m_statusbar;
+//}
 
 std::string Plater::priv::get_config(const std::string &key) const
 {
@@ -2327,7 +2334,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 for (std::string& name : names)
                                     notif_text += "\n - " + name;
                                 notification_manager->push_notification(NotificationType::CustomNotification,
-                                    NotificationManager::NotificationLevel::RegularNotification, notif_text);
+                                    NotificationManager::NotificationLevel::RegularNotificationLevel, notif_text);
                             }
                         }
 
@@ -2469,7 +2476,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     if (load_model) {
         wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().make_preferred().string());
         // XXX: Plater.pm had @loaded_files, but didn't seem to fill them with the filenames...
-        statusbar()->set_status_text(_L("Loaded"));
+//        statusbar()->set_status_text(_L("Loaded"));
     }
 
     // automatic selection of added objects
@@ -2882,7 +2889,7 @@ void Plater::priv::split_object()
         // If we splited object which is contain some parts/modifiers then all non-solid parts (modifiers) were deleted
         if (current_model_object->volumes.size() > 1 && current_model_object->volumes.size() != new_objects.size())
             notification_manager->push_notification(NotificationType::CustomNotification,
-                NotificationManager::NotificationLevel::RegularNotification,
+                NotificationManager::NotificationLevel::RegularNotificationLevel,
                 _u8L("All non-solid parts (modifiers) were deleted"));
 
         Plater::TakeSnapshot snapshot(q, _L("Split to Objects"));
@@ -2958,7 +2965,7 @@ void Plater::priv::process_validation_warning(const std::string& warning) const
 
         notification_manager->push_notification(
             NotificationType::ValidateWarning,
-            NotificationManager::NotificationLevel::WarningNotification,
+            NotificationManager::NotificationLevel::WarningNotificationLevel,
             _u8L("WARNING:") + "\n" + text, hypertext, action_fn
         );
     }
@@ -3004,6 +3011,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         // In SLA mode, we need to reload the 3D scene every time to show the support structures.
         if (printer_technology == ptSLA || (printer_technology == ptFFF && config->opt_bool("wipe_tower")))
             return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
+
+        notification_manager->set_slicing_progress_hidden();
     }
 
     if ((invalidated != Print::APPLY_STATUS_UNCHANGED || force_validation) && ! background_process.empty()) {
@@ -3051,6 +3060,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 	//actualizate warnings
 	if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
 		actualize_slicing_warnings(*this->background_process.current_print());
+        actualize_object_warnings(*this->background_process.current_print());
 		show_warning_dialog = false;
 		process_completed_with_error = false;
 	}
@@ -3075,9 +3085,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     else
     {
         // Background data is valid.
-        if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
-            (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
-            this->statusbar()->set_status_text(_L("Ready to slice"));
+//        if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
+//            (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
+//            this->statusbar()->set_status_text(_L("Ready to slice"));
 
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
         sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
@@ -3114,10 +3124,10 @@ bool Plater::priv::restart_background_process(unsigned int state)
            (state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ) ) {
         // The print is valid and it can be started.
         if (this->background_process.start()) {
-            this->statusbar()->set_cancel_callback([this]() {
-                this->statusbar()->set_status_text(_L("Cancelling"));
-                this->background_process.stop();
-            });
+//            this->statusbar()->set_cancel_callback([this]() {
+//                this->statusbar()->set_status_text(_L("Cancelling"));
+//                this->background_process.stop();
+//            });
 			if (!show_warning_dialog)
 				on_slicing_began();
             return true;
@@ -3715,10 +3725,7 @@ void Plater::priv::create_simplify_notification(const std::vector<size_t>& obj_i
             manager.open_gizmo(GLGizmosManager::EType::Simplify);
             return true;
         };
-        notification_manager->push_notification(
-            NotificationType::SimplifySuggestion,
-            NotificationManager::NotificationLevel::WarningNotification,
-            text.str(), hypertext, open_simplify);    
+        notification_manager->push_object_warning_notification(text.str(), model.objects[object_id]->id(), hypertext, open_simplify);
     }
 }
 
@@ -3882,9 +3889,9 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
             return;
         }
 
-        this->statusbar()->set_progress(evt.status.percent);
-        this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
-        //notification_manager->set_progress_bar_percentage("Slicing progress", (float)evt.status.percent / 100.0f);
+//        this->statusbar()->set_progress(evt.status.percent);
+//        this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
+        notification_manager->set_slicing_progress_percentage(evt.status.text, (float)evt.status.percent / 100.0f);
     }
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE | PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
@@ -3935,7 +3942,6 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
-    notification_manager->push_slicing_complete_notification(evt.GetInt(), is_sidebar_collapsed());
     switch (this->printer_technology) {
     case ptFFF:
         this->update_fff_scene();
@@ -3958,8 +3964,8 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 void Plater::priv::on_slicing_began()
 {
 	clear_warnings();
-	notification_manager->close_notification_of_type(NotificationType::SlicingComplete);
     notification_manager->close_notification_of_type(NotificationType::SignDetected);
+    notification_manager->close_notification_of_type(NotificationType::ExportFinished);
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
@@ -3982,6 +3988,16 @@ void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
     std::sort(ids.begin(), ids.end());
 	notification_manager->remove_slicing_warnings_of_released_objects(ids);
     notification_manager->set_all_slicing_warnings_gray(true);
+}
+void Plater::priv::actualize_object_warnings(const PrintBase& print)
+{
+    std::vector<ObjectID> ids;
+    for (const ModelObject* object : print.model().objects )
+    {
+        ids.push_back(object->id());
+    }
+    std::sort(ids.begin(), ids.end());
+    notification_manager->remove_object_warnings_of_released_objects(ids);
 }
 void Plater::priv::clear_warnings()
 {
@@ -4014,8 +4030,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     // At this point of time the thread should be either finished or canceled,
     // so the following call just confirms, that the produced data were consumed.
     this->background_process.stop();
-    this->statusbar()->reset_cancel_callback();
-    this->statusbar()->stop_busy();
+//    this->statusbar()->reset_cancel_callback();
+//    this->statusbar()->stop_busy();
+    notification_manager->set_slicing_progress_export_possible();
 
     // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
     this->background_process.reset_export();
@@ -4032,7 +4049,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
                 show_error(q, message.first, message.second);
         } else
             notification_manager->push_slicing_error_notification(message.first);
-        this->statusbar()->set_status_text(from_u8(message.first));
+//        this->statusbar()->set_status_text(from_u8(message.first));
         if (evt.invalidate_plater())
         {
             const wxString invalid_str = _L("Invalid data");
@@ -4042,8 +4059,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         }
         has_error = true;
     }
-    if (evt.cancelled())
-        this->statusbar()->set_status_text(_L("Cancelled"));
+    if (evt.cancelled()) {
+//        this->statusbar()->set_status_text(_L("Cancelled"));
+        this->notification_manager->set_slicing_progress_percentage(_utf8("Slicing Cancelled."), -1);
+    }
 
     this->sidebar->show_sliced_info_sizer(evt.success());
 
@@ -4245,6 +4264,20 @@ void Plater::priv::set_project_filename(const wxString& filename)
 
     if (!filename.empty())
         wxGetApp().mainframe->add_to_recent_projects(filename);
+}
+
+void Plater::priv::init_notification_manager()
+{
+    if (!notification_manager)
+        return;
+    notification_manager->init();
+
+    auto cancel_callback = [this]() {
+        this->background_process.stop();
+    };
+    notification_manager->init_slicing_progress_notification(cancel_callback);
+    notification_manager->set_fff(printer_technology == ptFFF);
+    notification_manager->init_progress_indicator();
 }
 
 void Plater::priv::set_current_canvas_as_dirty()
@@ -5685,7 +5718,7 @@ void Plater::export_stl(bool extended, bool selection_only)
     }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
-    p->statusbar()->set_status_text(format_wxstr(_L("STL file exported to %s"), path));
+//    p->statusbar()->set_status_text(format_wxstr(_L("STL file exported to %s"), path));
 }
 
 void Plater::export_amf()
@@ -5702,10 +5735,10 @@ void Plater::export_amf()
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
     if (Slic3r::store_amf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames)) {
         // Success
-        p->statusbar()->set_status_text(format_wxstr(_L("AMF file exported to %s"), path));
+//        p->statusbar()->set_status_text(format_wxstr(_L("AMF file exported to %s"), path));
     } else {
         // Failure
-        p->statusbar()->set_status_text(format_wxstr(_L("Error exporting AMF file %s"), path));
+//        p->statusbar()->set_status_text(format_wxstr(_L("Error exporting AMF file %s"), path));
     }
 }
 
@@ -5744,12 +5777,12 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path)
     bool ret = Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data);
     if (ret) {
         // Success
-        p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
+//        p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
         p->set_project_filename(path);
     }
     else {
         // Failure
-        p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
+//        p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
     }
     return ret;
 }
@@ -6323,6 +6356,8 @@ bool Plater::set_printer_technology(PrinterTechnology printer_technology)
 
     p->sidebar->get_searcher().set_printer_technology(printer_technology);
 
+    p->notification_manager->set_fff(printer_technology == ptFFF);
+
     return ret;
 }
 
@@ -6343,7 +6378,7 @@ void Plater::clear_before_change_mesh(int obj_idx)
         // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
         get_notification_manager()->push_notification(
                     NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::RegularNotification,
+                    NotificationManager::NotificationLevel::RegularNotificationLevel,
                     _u8L("Custom supports, seams and multimaterial painting were "
                          "removed after repairing the mesh."));
 //                    _u8L("Undo the repair"),
@@ -6356,7 +6391,7 @@ void Plater::clear_before_change_mesh(int obj_idx)
 //                        else
 //                            notification_manager->push_notification(
 //                                NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-//                                NotificationManager::NotificationLevel::RegularNotification,
+//                                NotificationManager::NotificationLevel::RegularNotificationLevel,
 //                                _u8L("Cannot undo to before the mesh repair!"));
 //                        return true;
 //                    });
@@ -6622,14 +6657,14 @@ Mouse3DController& Plater::get_mouse3d_controller()
     return p->mouse3d_controller;
 }
 
-const NotificationManager* Plater::get_notification_manager() const
+std::shared_ptr<NotificationManager> Plater::get_notification_manager()
 {
 	return p->notification_manager;
 }
 
-NotificationManager* Plater::get_notification_manager()
+void Plater::init_notification_manager()
 {
-	return p->notification_manager;
+    p->init_notification_manager();
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }

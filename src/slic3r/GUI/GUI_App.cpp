@@ -958,6 +958,8 @@ bool GUI_App::on_init_inner()
 //     update_mode(); // !!! do that later
     SetTopWindow(mainframe);
 
+    plater_->init_notification_manager();
+
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
     if (is_gcode_viewer()) {
@@ -2278,7 +2280,7 @@ wxBookCtrlBase* GUI_App::tab_panel() const
     return mainframe->m_tabpanel;
 }
 
-NotificationManager* GUI_App::notification_manager() 
+std::shared_ptr<NotificationManager> GUI_App::notification_manager() 
 {
     return plater_->get_notification_manager();
 }

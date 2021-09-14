@@ -35,6 +35,7 @@
 #include "SVG.hpp"
 
 #include <tbb/parallel_for.h>
+#include <tbb/pipeline.h>
 
 #include <Shiny/Shiny.h>
 
@@ -1099,7 +1100,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
     print.throw_if_canceled();
 
-    m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     if (print.config().spiral_vase.value)
         m_spiral_vase = make_unique<SpiralVase>(print.config());
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -1212,6 +1212,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
     print.throw_if_canceled();
 
+    m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 
     // Emit machine envelope limits for the Marlin firmware.
@@ -1219,7 +1220,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Disable fan.
     if (! print.config().cooling.get_at(initial_extruder_id) || print.config().disable_fan_first_layers.get_at(initial_extruder_id))
-        file.write(m_writer.set_fan(0, true));
+        file.write(m_writer.set_fan(0));
 
     // Let the start-up script prime the 1st printing tool.
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
@@ -1334,17 +1335,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 file.writeln(between_objects_gcode);
             }
             // Reset the cooling buffer internal state (the current position, feed rate, accelerations).
-            m_cooling_buffer->reset();
+            m_cooling_buffer->reset(this->writer().get_position());
             m_cooling_buffer->set_current_extruder(initial_extruder_id);
-            // Pair the object layers with the support layers by z, extrude them.
-            std::vector<LayerToPrint> layers_to_print = collect_layers_to_print(object);
-            for (const LayerToPrint &ltp : layers_to_print) {
-                std::vector<LayerToPrint> lrs;
-                lrs.emplace_back(std::move(ltp));
-                this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), &ltp == &layers_to_print.back(), 
-                    nullptr, *print_object_instance_sequential_active - object.instances().data());
-                print.throw_if_canceled();
-            }
+            // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
+            // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
+            // and export G-code into file.
+            this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file);
 #ifdef HAS_PRESSURE_EQUALIZER
             if (m_pressure_equalizer)
                 file.write(m_pressure_equalizer->process("", true));
@@ -1401,14 +1397,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }
             print.throw_if_canceled();
         }
-        // Extrude the layers.
-        for (auto &layer : layers_to_print) {
-            const LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.first);
-            if (m_wipe_tower && layer_tools.has_wipe_tower)
-                m_wipe_tower->next_layer();
-            this->process_layer(file, print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
-            print.throw_if_canceled();
-        }
+        // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
+        // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
+        // and export G-code into file.
+        this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
 #ifdef HAS_PRESSURE_EQUALIZER
         if (m_pressure_equalizer)
             file.write(m_pressure_equalizer->process("", true));
@@ -1420,7 +1412,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Write end commands to file.
     file.write(this->retract());
-    file.write(m_writer.set_fan(false));
+    file.write(m_writer.set_fan(0));
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
@@ -1479,6 +1471,88 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write("; prusaslicer_config = end\n");
     }
     print.throw_if_canceled();
+}
+
+// Process all layers of all objects (non-sequential mode) with a parallel pipeline:
+// Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
+// and export G-code into file.
+void GCode::process_layers(
+    const Print                                                         &print,
+    const ToolOrdering                                                  &tool_ordering,
+    const std::vector<const PrintInstance*>                             &print_object_instances_ordering,
+    const std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>>   &layers_to_print,
+    GCodeOutputStream                                                   &output_stream)
+{
+    // The pipeline is variable: The vase mode filter is optional.
+    size_t layer_to_print_idx = 0;
+    const auto generator = tbb::make_filter<void, GCode::LayerResult>(tbb::filter::serial_in_order,
+        [this, &print, &tool_ordering, &print_object_instances_ordering, &layers_to_print, &layer_to_print_idx](tbb::flow_control& fc) -> GCode::LayerResult {
+            if (layer_to_print_idx == layers_to_print.size()) {
+                fc.stop();
+                return {};
+            } else {
+                const std::pair<coordf_t, std::vector<LayerToPrint>>& layer = layers_to_print[layer_to_print_idx++];
+                const LayerTools& layer_tools = tool_ordering.tools_for_layer(layer.first);
+                if (m_wipe_tower && layer_tools.has_wipe_tower)
+                    m_wipe_tower->next_layer();
+                print.throw_if_canceled();
+                return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
+            }
+        });
+    const auto spiral_vase = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(tbb::filter::serial_in_order,
+        [&spiral_vase = *this->m_spiral_vase.get()](GCode::LayerResult in) -> GCode::LayerResult {
+            spiral_vase.enable(in.spiral_vase_enable);
+            return { spiral_vase.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
+        });
+    const auto cooling = tbb::make_filter<GCode::LayerResult, std::string>(tbb::filter::serial_in_order,
+        [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in) -> std::string {
+            return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
+        });
+    const auto output = tbb::make_filter<std::string, void>(tbb::filter::serial_in_order,
+        [&output_stream](std::string s) { output_stream.write(s); }
+    );
+
+    // The pipeline elements are joined using const references, thus no copying is performed.
+    if (m_spiral_vase)
+        tbb::parallel_pipeline(12, generator & spiral_vase & cooling & output);
+    else
+        tbb::parallel_pipeline(12, generator & cooling & output);
+}
+
+// Process all layers of a single object instance (sequential mode) with a parallel pipeline:
+// Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
+// and export G-code into file.
+void GCode::process_layers(
+    const Print                             &print,
+    const ToolOrdering                      &tool_ordering,
+    std::vector<LayerToPrint>                layers_to_print,
+    const size_t                             single_object_idx,
+    GCodeOutputStream                       &output_stream)
+{
+    // The pipeline is fixed: Neither wipe tower nor vase mode are implemented for sequential print.
+    size_t layer_to_print_idx = 0;
+    tbb::parallel_pipeline(12,
+        tbb::make_filter<void, GCode::LayerResult>(
+            tbb::filter::serial_in_order,
+            [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx](tbb::flow_control& fc) -> GCode::LayerResult {
+                if (layer_to_print_idx == layers_to_print.size()) {
+                    fc.stop();
+                    return {};
+                } else {
+                    LayerToPrint &layer = layers_to_print[layer_to_print_idx ++];
+                    print.throw_if_canceled();
+                    return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx);
+                }
+            }) &
+        tbb::make_filter<GCode::LayerResult, std::string>(
+            tbb::filter::serial_in_order,
+            [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in) -> std::string {
+                return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
+            }) &
+        tbb::make_filter<std::string, void>(
+            tbb::filter::serial_in_order,
+            [&output_stream](std::string s) { output_stream.write(s); }
+        ));
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
@@ -1890,9 +1964,7 @@ namespace Skirt {
 // In non-sequential mode, process_layer is called per each print_z height with all object and support layers accumulated.
 // For multi-material prints, this routine minimizes extruder switches by gathering extruder specific extrusion paths
 // and performing the extruder specific extrusions together.
-void GCode::process_layer(
-    // Write into the output file.
-    GCodeOutputStream                       &file,
+GCode::LayerResult GCode::process_layer(
     const Print                    			&print,
     // Set of object & print layers of the same PrintObject and with the same print_z.
     const std::vector<LayerToPrint> 		&layers,
@@ -1908,11 +1980,6 @@ void GCode::process_layer(
     // Either printing all copies of all objects, or just a single copy of a single object.
     assert(single_object_instance_idx == size_t(-1) || layers.size() == 1);
 
-    if (layer_tools.extruders.empty())
-        // Nothing to extrude.
-        return;
-
-    // Extract 1st object_layer and support_layer of this set of layers with an equal print_z.
     const Layer         *object_layer  = nullptr;
     const SupportLayer  *support_layer = nullptr;
     for (const LayerToPrint &l : layers) {
@@ -1922,6 +1989,12 @@ void GCode::process_layer(
             support_layer = l.support_layer;
     }
     const Layer         &layer         = (object_layer != nullptr) ? *object_layer : *support_layer;
+    GCode::LayerResult   result { {}, layer.id(), false, last_layer };
+    if (layer_tools.extruders.empty())
+        // Nothing to extrude.
+        return result;
+
+    // Extract 1st object_layer and support_layer of this set of layers with an equal print_z.
     coordf_t             print_z       = layer.print_z;
     bool                 first_layer   = layer.id() == 0;
     unsigned int         first_extruder_id = layer_tools.extruders.front();
@@ -1943,7 +2016,7 @@ void GCode::process_layer(
                     break;
                 }
         }
-        m_spiral_vase->enable(enable);
+        result.spiral_vase_enable = enable;
         // If we're going to apply spiralvase to this layer, disable loop clipping.
         m_enable_loop_clipping = !enable;
     }
@@ -2285,6 +2358,7 @@ void GCode::process_layer(
         }
     }
 
+#if 0
     // Apply spiral vase post-processing if this layer contains suitable geometry
     // (we must feed all the G-code into the post-processor, including the first
     // bottom non-spiral layers otherwise it will mess with positions)
@@ -2308,8 +2382,14 @@ void GCode::process_layer(
 #endif /* HAS_PRESSURE_EQUALIZER */
 
     file.write(gcode);
+#endif
+
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
+
+    result.gcode = std::move(gcode);
+    result.cooling_buffer_flush = object_layer || last_layer;
+    return result;
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)

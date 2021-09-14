@@ -383,6 +383,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
 
 		// the following line messes up the popup size the first time it is shown on wxWidgets 3.1.3
 //		comboCtrl->EnablePopupAnimation(false);
+		popup->SetFont(comboCtrl->GetFont());
 		comboCtrl->SetPopupControl(popup);
 		wxString title = from_u8(text);
 		max_width = std::max(max_width, 60 + comboCtrl->GetTextExtent(title).x);

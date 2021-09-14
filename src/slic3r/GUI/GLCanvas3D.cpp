@@ -1845,7 +1845,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     volume->extruder_id = extruder_id;
 
                 volume->is_modifier = !mvs->model_volume->is_model_part();
-                volume->set_color_from_model_volume(*mvs->model_volume);
+                volume->set_color(color_from_model_volume(*mvs->model_volume));
 
                 // updates volumes transformations
                 volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_transformation());
@@ -2092,7 +2092,7 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 	vol_old.finalize_geometry(gl_initialized);
 }
 
-void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
+void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
 
@@ -2100,10 +2100,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessor::Result& gcode_result)
         m_gcode_viewer.update_shells_color_by_extruder(m_config);
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
     }
-}
 
-void GLCanvas3D::refresh_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors)
-{
     m_gcode_viewer.refresh(gcode_result, str_tool_colors);
     set_as_dirty();
     request_extra_frame();

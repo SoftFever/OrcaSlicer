@@ -78,13 +78,13 @@ SCENARIO("set_speed emits values with fixed-point output.", "[GCodeWriter]") {
             }
         }
         WHEN("set_speed is called to set speed to 1") {
-            THEN("Output string is G1 F1.000") {
-                REQUIRE_THAT(writer.set_speed(1.0), Catch::Equals("G1 F1.000\n"));
+            THEN("Output string is G1 F1") {
+                REQUIRE_THAT(writer.set_speed(1.0), Catch::Equals("G1 F1\n"));
             }
         }
         WHEN("set_speed is called to set speed to 203.200022") {
-            THEN("Output string is G1 F203.200") {
-                REQUIRE_THAT(writer.set_speed(203.200022), Catch::Equals("G1 F203.200\n"));
+            THEN("Output string is G1 F203.2") {
+                REQUIRE_THAT(writer.set_speed(203.200022), Catch::Equals("G1 F203.2\n"));
             }
         }
         WHEN("set_speed is called to set speed to 203.200522") {

@@ -409,6 +409,11 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     set_render_color(color);
 }
 
+void GLVolume::set_color(const std::array<float, 4>& rgba)
+{
+    color = rgba;
+}
+
 void GLVolume::set_render_color(float r, float g, float b, float a)
 {
     render_color = { r, g, b, a };
@@ -458,8 +463,9 @@ void GLVolume::set_render_color()
         render_color[3] = color[3];
 }
 
-void GLVolume::set_color_from_model_volume(const ModelVolume& model_volume)
+std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume)
 {
+    std::array<float, 4> color;
     if (model_volume.is_negative_volume()) {
         color[0] = 0.2f;
         color[1] = 0.2f;
@@ -481,6 +487,7 @@ void GLVolume::set_color_from_model_volume(const ModelVolume& model_volume)
         color[2] = 1.0f;
     }
     color[3] = model_volume.is_model_part() ? 1.f : 0.5f;
+    return color;
 }
 
 Transform3d GLVolume::world_matrix() const
@@ -635,7 +642,7 @@ int GLVolumeCollection::load_object_volume(
     color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
-    v.set_color_from_model_volume(*model_volume);
+    v.set_color(color_from_model_volume(*model_volume));
 #if ENABLE_SMOOTH_NORMALS
     v.indexed_vertex_array.load_mesh(mesh, true);
 #else

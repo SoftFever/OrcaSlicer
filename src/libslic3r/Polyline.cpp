@@ -10,20 +10,6 @@
 
 namespace Slic3r {
 
-Polyline::operator Polylines() const
-{
-    Polylines polylines;
-    polylines.push_back(*this);
-    return polylines;
-}
-
-Polyline::operator Line() const
-{
-    if (this->points.size() > 2) 
-        throw Slic3r::InvalidArgument("Can't convert polyline with more than two points to a line");
-    return Line(this->points.front(), this->points.back());
-}
-
 const Point& Polyline::leftmost_point() const
 {
     const Point *p = &this->points.front();

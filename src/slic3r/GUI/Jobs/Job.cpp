@@ -2,8 +2,10 @@
 #include <exception>
 
 #include "Job.hpp"
+#include "../NotificationManager.hpp"
 #include <libslic3r/Thread.hpp>
 #include <boost/log/trivial.hpp>
+
 
 namespace Slic3r {
 
@@ -30,8 +32,8 @@ void GUI::Job::update_status(int st, const wxString &msg)
     wxQueueEvent(this, evt);
 }
 
-GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
-    : m_progress(std::move(pri))
+GUI::Job::Job(std::shared_ptr<NotificationManager> nm)
+    : m_notifications(nm)
 {
     m_thread_evt_id = wxNewId();
 
@@ -40,21 +42,21 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
 
         auto msg = evt.GetString();
         if (!msg.empty() && !m_worker_error)
-            m_progress->set_status_text(msg.ToUTF8().data());
+            m_notifications->progress_indicator_set_status_text(msg.ToUTF8().data());
 
         if (m_finalized) return;
 
-        m_progress->set_progress(evt.GetInt());
+        m_notifications->progress_indicator_set_progress(evt.GetInt());
         if (evt.GetInt() == status_range() || m_worker_error) {
             // set back the original range and cancel callback
-            m_progress->set_range(m_range);
-            m_progress->set_cancel_callback();
+            m_notifications->progress_indicator_set_range(m_range);
+            m_notifications->progress_indicator_set_cancel_callback();
             wxEndBusyCursor();
             
             if (m_worker_error) {
                 m_finalized = true;
-                m_progress->set_status_text("");
-                m_progress->set_progress(m_range);
+                m_notifications->progress_indicator_set_status_text("");
+                m_notifications->progress_indicator_set_progress(m_range);
                 on_exception(m_worker_error);
             }
             else {
@@ -86,12 +88,12 @@ void GUI::Job::start()
         prepare();
         
         // Save the current status indicatior range and push the new one
-        m_range = m_progress->get_range();
-        m_progress->set_range(status_range());
+        m_range = m_notifications->progress_indicator_get_range();
+        m_notifications->progress_indicator_set_range(status_range());
         
         // init cancellation flag and set the cancel callback
         m_canceled.store(false);
-        m_progress->set_cancel_callback(
+        m_notifications->progress_indicator_set_cancel_callback(
                     [this]() { m_canceled.store(true); });
         
         m_finalized  = false;

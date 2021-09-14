@@ -397,7 +397,7 @@ bool Print::sequential_print_horizontal_clearance_valid(const Print& print, Poly
 	        convex_hull.translate(instance.shift - print_object->center_offset());
             // if output needed, collect indices (inside convex_hulls_other) of intersecting hulls
             for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
-                if (!intersection((Polygons)convex_hulls_other[i], (Polygons)convex_hull).empty()) {
+                if (! intersection(convex_hulls_other[i], convex_hull).empty()) {
                     if (polygons == nullptr)
                         return false;
                     else {
@@ -812,7 +812,7 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 // Slicing process, running at a background thread.
 void Print::process()
 {
-    name_tbb_thread_pool_threads();
+    name_tbb_thread_pool_threads_set_locale();
 
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)

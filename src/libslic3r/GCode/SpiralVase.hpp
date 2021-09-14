@@ -8,10 +8,10 @@ namespace Slic3r {
 
 class SpiralVase {
 public:
-    SpiralVase(const PrintConfig &config) : m_config(&config)
+    SpiralVase(const PrintConfig &config) : m_config(config)
     {
-        m_reader.z() = (float)m_config->z_offset;
-        m_reader.apply_config(*m_config);
+        m_reader.z() = (float)m_config.z_offset;
+        m_reader.apply_config(m_config);
     };
 
     void 		enable(bool en) {
@@ -22,7 +22,7 @@ public:
     std::string process_layer(const std::string &gcode);
     
 private:
-    const PrintConfig  *m_config;
+    const PrintConfig  &m_config;
     GCodeReader 		m_reader;
 
     bool 				m_enabled = false;
@@ -32,4 +32,4 @@ private:
 
 }
 
-#endif
+#endif // slic3r_SpiralVase_hpp_

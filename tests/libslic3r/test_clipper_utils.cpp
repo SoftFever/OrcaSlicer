@@ -99,7 +99,7 @@ SCENARIO("Various Clipper operations - xs/t/11_clipper.t", "[ClipperUtils]") {
 			{ 74730000, 74730000 }, { 55270000, 74730000 }, { 55270000, 68063296 }, { 44730000, 68063296 }, { 44730000, 74730000 }, { 25270000, 74730000 }, { 25270000, 55270000 }, { 31936670, 55270000 },
 			{ 31936670, 44730000 }, { 25270000, 44730000 }, { 25270000, 25270000 }, { 44730000, 25270000 }, { 44730000, 31936670 } };
 		Slic3r::Polygon clip { {75200000, 45200000}, {54800000, 45200000}, {54800000, 24800000}, {75200000, 24800000} };
-		Slic3r::Polylines result = Slic3r::intersection_pl({ subject }, { clip });
+        Slic3r::Polylines result = Slic3r::intersection_pl(subject, { clip });
 		THEN("intersection_pl - result is not empty") {
 			REQUIRE(result.size() == 1);
 		}
@@ -117,7 +117,7 @@ SCENARIO("Various Clipper operations - xs/t/11_clipper.t", "[ClipperUtils]") {
 	GIVEN("Clipper bug #126") {
 		Slic3r::Polyline subject { { 200000, 19799999 }, { 200000, 200000 }, { 24304692, 200000 }, { 15102879, 17506106 }, { 13883200, 19799999 }, { 200000, 19799999 } };
 		Slic3r::Polygon clip { { 15257205, 18493894 }, { 14350057, 20200000 }, { -200000, 20200000 }, { -200000, -200000 }, { 25196917, -200000 } };
-		Slic3r::Polylines result = Slic3r::intersection_pl({ subject }, { clip });
+		Slic3r::Polylines result = Slic3r::intersection_pl(subject, { clip });
 		THEN("intersection_pl - result is not empty") {
 			REQUIRE(result.size() == 1);
 		}

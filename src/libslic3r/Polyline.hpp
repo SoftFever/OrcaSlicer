@@ -59,13 +59,11 @@ public:
             src.points.clear();
         }
     }
-
-    explicit operator Polylines() const;
-    explicit operator Line() const;
+  
     const Point& last_point() const override { return this->points.back(); }
-
     const Point& leftmost_point() const;
     Lines lines() const override;
+
     void clip_end(double distance);
     void clip_start(double distance);
     void extend_end(double distance);

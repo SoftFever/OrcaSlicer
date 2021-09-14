@@ -197,6 +197,17 @@ wxWindow* BitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRec
         labelRect.SetWidth(labelRect.GetWidth() - bmp_width);
     }
 
+#ifdef __WXMSW__
+    // Case when from some reason we try to create next EditorCtrl till old one was not deleted
+    if (auto children = parent->GetChildren(); children.GetCount() > 0)
+        for (auto child : children)
+            if (dynamic_cast<wxTextCtrl*>(child)) {
+                parent->RemoveChild(child);
+                child->Destroy();
+                break;
+            }
+#endif // __WXMSW__
+
     wxTextCtrl* text_editor = new wxTextCtrl(parent, wxID_ANY, data.GetText(),
                                              position, labelRect.GetSize(), wxTE_PROCESS_ENTER);
     text_editor->SetInsertionPointEnd();

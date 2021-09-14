@@ -92,7 +92,7 @@ bool ExPolygon::contains(const Line &line) const
 
 bool ExPolygon::contains(const Polyline &polyline) const
 {
-    return diff_pl((Polylines)polyline, *this).empty();
+    return diff_pl(polyline, *this).empty();
 }
 
 bool ExPolygon::contains(const Polylines &polylines) const

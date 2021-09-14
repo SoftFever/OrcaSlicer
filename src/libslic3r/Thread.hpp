@@ -33,7 +33,8 @@ std::optional<std::string> get_current_thread_name();
 
 // To be called somewhere before the TBB threads are spinned for the first time, to
 // give them names recognizible in the debugger.
-void name_tbb_thread_pool_threads();
+// Also it sets locale of the worker threads to "C" for the G-code generator to produce "." as a decimal separator.
+void name_tbb_thread_pool_threads_set_locale();
 
 template<class Fn>
 inline boost::thread create_thread(boost::thread::attributes &attrs, Fn &&fn)

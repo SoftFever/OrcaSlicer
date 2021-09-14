@@ -1,21 +1,17 @@
 #include "GCodeWriter.hpp"
 #include "CustomGCode.hpp"
 #include <algorithm>
-#include <charconv>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <assert.h>
 
-#define XYZF_EXPORT_DIGITS 3
-#define E_EXPORT_DIGITS 5
+#ifdef __APPLE__
+    #include <boost/spirit/include/karma.hpp>
+#endif
 
 #define FLAVOR_IS(val) this->config.gcode_flavor == val
 #define FLAVOR_IS_NOT(val) this->config.gcode_flavor != val
-#define COMMENT(comment) if (this->config.gcode_comments && !comment.empty()) gcode << " ; " << comment;
-#define PRECISION(val, precision) std::fixed << std::setprecision(precision) << (val)
-#define XYZF_NUM(val) PRECISION(val, XYZF_EXPORT_DIGITS)
-#define E_NUM(val) PRECISION(val, E_EXPORT_DIGITS)
 
 namespace Slic3r {
 
@@ -156,41 +152,6 @@ std::string GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait
     return gcode.str();
 }
 
-std::string GCodeWriter::set_fan(unsigned int speed, bool dont_save)
-{
-    std::ostringstream gcode;
-    if (m_last_fan_speed != speed || dont_save) {
-        if (!dont_save) m_last_fan_speed = speed;
-        
-        if (speed == 0) {
-            if (FLAVOR_IS(gcfTeacup)) {
-                gcode << "M106 S0";
-            } else if (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) {
-                gcode << "M127";
-            } else {
-                gcode << "M107";
-            }
-            if (this->config.gcode_comments) gcode << " ; disable fan";
-            gcode << "\n";
-        } else {
-            if (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) {
-                gcode << "M126";
-            } else {
-                gcode << "M106 ";
-                if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
-                    gcode << "P";
-                } else {
-                    gcode << "S";
-                }
-                gcode << (255.0 * speed / 100.0);
-            }
-            if (this->config.gcode_comments) gcode << " ; enable fan";
-            gcode << "\n";
-        }
-    }
-    return gcode.str();
-}
-
 std::string GCodeWriter::set_acceleration(unsigned int acceleration)
 {
     // Clamp the acceleration to the allowed maximum.
@@ -292,85 +253,12 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     return gcode.str();
 }
 
-class G1Writer {
-private:
-    static constexpr const size_t   buflen = 256;
-    char                            buf[buflen];
-    char                           *buf_end;
-    std::to_chars_result            ptr_err;
-
-public:
-    G1Writer() {
-        this->buf[0] = 'G';
-        this->buf[1] = '1';
-        this->buf_end = this->buf + buflen;
-        this->ptr_err.ptr = this->buf + 2;
-    }
-
-    void emit_axis(const char axis, const double v, size_t digits) {
-        *ptr_err.ptr ++ = ' '; *ptr_err.ptr ++ = axis;
-#ifdef WIN32
-        this->ptr_err = std::to_chars(this->ptr_err.ptr, this->buf_end, v, std::chars_format::fixed, digits);
-#else
-        int buf_capacity = int(this->buf_end - this->ptr_err.ptr);
-        int ret          = snprintf(this->ptr_err.ptr, buf_capacity, "%.*lf", int(digits), v);
-        if (ret <= 0 || ret > buf_capacity)
-            ptr_err.ec = std::errc::value_too_large;
-        else
-            this->ptr_err.ptr = this->ptr_err.ptr + ret;
-#endif
-    }
-
-    void emit_xy(const Vec2d &point) {
-        this->emit_axis('X', point.x(), XYZF_EXPORT_DIGITS);
-        this->emit_axis('Y', point.y(), XYZF_EXPORT_DIGITS);
-    }
-
-    void emit_xyz(const Vec3d &point) {
-        this->emit_axis('X', point.x(), XYZF_EXPORT_DIGITS);
-        this->emit_axis('Y', point.y(), XYZF_EXPORT_DIGITS);
-        this->emit_z(point.z());
-    }
-
-    void emit_z(const double z) {
-        this->emit_axis('Z', z, XYZF_EXPORT_DIGITS);
-    }
-
-    void emit_e(const std::string &axis, double v) {
-        if (! axis.empty()) {
-            // not gcfNoExtrusion
-            this->emit_axis(axis[0], v, E_EXPORT_DIGITS);
-        }
-    }
-
-    void emit_f(double speed) {
-        this->emit_axis('F', speed, XYZF_EXPORT_DIGITS);
-    }
-
-    void emit_string(const std::string &s) {
-        strncpy(ptr_err.ptr, s.c_str(), s.size());
-        ptr_err.ptr += s.size();
-    }
-
-    void emit_comment(bool allow_comments, const std::string &comment) {
-        if (allow_comments && ! comment.empty()) {
-            *ptr_err.ptr ++ = ' '; *ptr_err.ptr ++ = ';'; *ptr_err.ptr ++ = ' ';
-            this->emit_string(comment);
-        }
-    }
-
-    std::string string() {
-        *ptr_err.ptr ++ = '\n';
-        return std::string(this->buf, ptr_err.ptr - buf);
-    }
-};
-
 std::string GCodeWriter::set_speed(double F, const std::string &comment, const std::string &cooling_marker) const
 {
     assert(F > 0.);
     assert(F < 100000.);
 
-    G1Writer w;
+    GCodeG1Formatter w;
     w.emit_f(F);
     w.emit_comment(this->config.gcode_comments, comment);
     w.emit_string(cooling_marker);
@@ -382,7 +270,7 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     m_pos(0) = point(0);
     m_pos(1) = point(1);
     
-    G1Writer w;
+    GCodeG1Formatter w;
     w.emit_xy(point);
     w.emit_f(this->config.travel_speed.value * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
@@ -415,7 +303,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     m_lifted = 0;
     m_pos = point;
     
-    G1Writer w;
+    GCodeG1Formatter w;
     w.emit_xyz(point);
     w.emit_f(this->config.travel_speed.value * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
@@ -449,7 +337,7 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     if (speed == 0.)
         speed = this->config.travel_speed.value;
     
-    G1Writer w;
+    GCodeG1Formatter w;
     w.emit_z(z);
     w.emit_f(speed * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
@@ -474,7 +362,7 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
     m_pos(1) = point(1);
     m_extruder->extrude(dE);
 
-    G1Writer w;
+    GCodeG1Formatter w;
     w.emit_xy(point);
     w.emit_e(m_extrusion_axis, m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
@@ -487,7 +375,7 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     m_lifted = 0;
     m_extruder->extrude(dE);
     
-    G1Writer w;
+    GCodeG1Formatter w;
     w.emit_xyz(point);
     w.emit_e(m_extrusion_axis, m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
@@ -518,12 +406,11 @@ std::string GCodeWriter::retract_for_toolchange(bool before_wipe)
 
 std::string GCodeWriter::_retract(double length, double restart_extra, const std::string &comment)
 {
-    std::ostringstream gcode;
-    
     /*  If firmware retraction is enabled, we use a fake value of 1
         since we ignore the actual configured retract_length which 
         might be 0, in which case the retraction logic gets skipped. */
-    if (this->config.use_firmware_retraction) length = 1;
+    if (this->config.use_firmware_retraction)
+        length = 1;
     
     // If we use volumetric E values we turn lengths into volumes */
     if (this->config.use_volumetric_e) {
@@ -533,52 +420,48 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
         restart_extra = restart_extra * area;
     }
     
-    double dE = m_extruder->retract(length, restart_extra);
-    if (dE != 0) {
+
+    std::string gcode;
+    if (double dE = m_extruder->retract(length, restart_extra);  dE != 0) {
         if (this->config.use_firmware_retraction) {
-            if (FLAVOR_IS(gcfMachinekit))
-                gcode << "G22 ; retract\n";
-            else
-                gcode << "G10 ; retract\n";
+            gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
         } else if (! m_extrusion_axis.empty()) {
-            gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E())
-                           << " F" << XYZF_NUM(m_extruder->retract_speed() * 60.);
-            COMMENT(comment);
-            gcode << "\n";
+            GCodeG1Formatter w;
+            w.emit_e(m_extrusion_axis, m_extruder->E());
+            w.emit_f(m_extruder->retract_speed() * 60.);
+            w.emit_comment(this->config.gcode_comments, comment);
+            gcode = w.string();
         }
     }
     
     if (FLAVOR_IS(gcfMakerWare))
-        gcode << "M103 ; extruder off\n";
-    
-    return gcode.str();
+        gcode += "M103 ; extruder off\n";
+
+    return gcode;
 }
 
 std::string GCodeWriter::unretract()
 {
-    std::ostringstream gcode;
+    std::string gcode;
     
     if (FLAVOR_IS(gcfMakerWare))
-        gcode << "M101 ; extruder on\n";
+        gcode = "M101 ; extruder on\n";
     
-    double dE = m_extruder->unretract();
-    if (dE != 0) {
+    if (double dE = m_extruder->unretract(); dE != 0) {
         if (this->config.use_firmware_retraction) {
-            if (FLAVOR_IS(gcfMachinekit))
-                 gcode << "G23 ; unretract\n";
-            else
-                 gcode << "G11 ; unretract\n";
-            gcode << this->reset_e();
+            gcode += FLAVOR_IS(gcfMachinekit) ? "G23 ; unretract\n" : "G11 ; unretract\n";
+            gcode += this->reset_e();
         } else if (! m_extrusion_axis.empty()) {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
-            gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E())
-                           << " F" << XYZF_NUM(m_extruder->deretract_speed() * 60.);
-            if (this->config.gcode_comments) gcode << " ; unretract";
-            gcode << "\n";
+            GCodeG1Formatter w;
+            w.emit_e(m_extrusion_axis, m_extruder->E());
+            w.emit_f(m_extruder->deretract_speed() * 60.);
+            w.emit_comment(this->config.gcode_comments, " ; unretract");
+            gcode += w.string();
         }
     }
     
-    return gcode.str();
+    return gcode;
 }
 
 /*  If this method is called more than once before calling unlift(),
@@ -611,4 +494,88 @@ std::string GCodeWriter::unlift()
     return gcode;
 }
 
+std::string GCodeWriter::set_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed)
+{
+    std::ostringstream gcode;
+    if (speed == 0) {
+        switch (gcode_flavor) {
+        case gcfTeacup:
+            gcode << "M106 S0"; break;
+        case gcfMakerWare:
+        case gcfSailfish:
+            gcode << "M127";    break;
+        default:
+            gcode << "M107";    break;
+        }
+        if (gcode_comments)
+            gcode << " ; disable fan";
+        gcode << "\n";
+    } else {
+        switch (gcode_flavor) {
+        case gcfMakerWare:
+        case gcfSailfish:
+            gcode << "M126";    break;
+        case gcfMach3:
+        case gcfMachinekit:
+            gcode << "M106 P" << 255.0 * speed / 100.0; break;
+        default:
+            gcode << "M106 S" << 255.0 * speed / 100.0; break;
+        }
+        if (gcode_comments) 
+            gcode << " ; enable fan";
+        gcode << "\n";
+    }
+    return gcode.str();
 }
+
+std::string GCodeWriter::set_fan(unsigned int speed) const
+{
+    return GCodeWriter::set_fan(this->config.gcode_flavor, this->config.gcode_comments, speed);
+}
+
+
+void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {
+    assert(digits <= 6);
+    static constexpr const std::array<int, 7> pow_10{1, 10, 100, 1000, 10000, 100000, 1000000};
+    *ptr_err.ptr++ = ' '; *ptr_err.ptr++ = axis;
+
+    char *base_ptr = this->ptr_err.ptr;
+    auto  v_int    = int64_t(std::round(v * pow_10[digits]));
+    // Older stdlib on macOS doesn't support std::from_chars at all, so it is used boost::spirit::karma::generate instead of it.
+    // That is a little bit slower than std::to_chars but not much.
+#ifdef __APPLE__
+    boost::spirit::karma::generate(this->ptr_err.ptr, boost::spirit::karma::int_generator<int64_t>(), v_int);
+#else
+    // this->buf_end minus 1 because we need space for adding the extra decimal point.
+    this->ptr_err = std::to_chars(this->ptr_err.ptr, this->buf_end - 1, v_int);
+#endif
+    size_t writen_digits = (this->ptr_err.ptr - base_ptr) - (v_int < 0 ? 1 : 0);
+    if (writen_digits < digits) {
+        // Number is smaller than 10^digits, so that we will pad it with zeros.
+        size_t remaining_digits = digits - writen_digits;
+        // Move all newly inserted chars by remaining_digits to allocate space for padding with zeros.
+        for (char *from_ptr = this->ptr_err.ptr - 1, *to_ptr = from_ptr + remaining_digits; from_ptr >= this->ptr_err.ptr - writen_digits; --to_ptr, --from_ptr)
+            *to_ptr = *from_ptr;
+
+        memset(this->ptr_err.ptr - writen_digits, '0', remaining_digits);
+        this->ptr_err.ptr += remaining_digits;
+    }
+
+    // Move all newly inserted chars by one to allocate space for a decimal point.
+    for (char *to_ptr = this->ptr_err.ptr, *from_ptr = to_ptr - 1; from_ptr >= this->ptr_err.ptr - digits; --to_ptr, --from_ptr)
+        *to_ptr = *from_ptr;
+
+    *(this->ptr_err.ptr - digits) = '.';
+    for (size_t i = 0; i < digits; ++i) {
+        if (*this->ptr_err.ptr != '0')
+            break;
+        this->ptr_err.ptr--;
+    }
+    if (*this->ptr_err.ptr == '.')
+        this->ptr_err.ptr--;
+    if ((this->ptr_err.ptr + 1) == base_ptr || *this->ptr_err.ptr == '-')
+        *(++this->ptr_err.ptr) = '0';
+    this->ptr_err.ptr++;
+}
+
+} // namespace Slic3r

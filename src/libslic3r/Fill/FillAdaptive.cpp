@@ -928,7 +928,9 @@ static Polylines connect_lines_using_hooks(Polylines &&lines, const ExPolygon &b
                             Linef l { { bg::get<0, 0>(seg), bg::get<0, 1>(seg) }, { bg::get<1, 0>(seg), bg::get<1, 1>(seg) } };
                             assert(line_alg::distance_to_squared(l, Vec2d(pt.cast<double>())) > 1000 * 1000);
     #endif // NDEBUG
-                        } else if (((Line)pl).distance_to_squared(pt) <= 1000 * 1000)
+                        } else if (pl.size() >= 2 && 
+                            //FIXME Hoping that pl is really a line, trimmed by a polygon using ClipperUtils. Sometimes Clipper leaves some additional collinear points on the polyline, let's hope it is all right.
+                            Line{ pl.front(), pl.back() }.distance_to_squared(pt) <= 1000 * 1000)
                             out = closest.front().second;
                     }
                     return out;

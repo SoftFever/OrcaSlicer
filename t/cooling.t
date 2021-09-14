@@ -33,7 +33,10 @@ sub buffer {
     $gcodegen = Slic3r::GCode->new;
     $gcodegen->apply_print_config($print_config);
     $gcodegen->set_layer_count(10);
-    $gcodegen->set_extruders([ 0 ]);
+
+    my $extruders_ref = shift;
+    $extruders_ref = [ 0 ] if !defined $extruders_ref;
+    $gcodegen->set_extruders($extruders_ref);
     return Slic3r::GCode::CoolingBuffer->new($gcodegen);
 }
 
@@ -131,8 +134,8 @@ $config->set('disable_fan_first_layers',    [ 0 ]);
             'cooling'                   => [ 1               , 0                ],
             'fan_below_layer_time'      => [ $print_time2 + 1, $print_time2 + 1 ], 
             'slowdown_below_layer_time' => [ $print_time2 + 2, $print_time2 + 2 ]
-        });
-    $buffer->gcodegen->set_extruders([ 0, 1 ]);
+        },
+	[ 0, 1]);
     my $gcode = $buffer->process_layer($gcode1 . "T1\nG1 X0 E1 F3000\n", 0);
     like $gcode, qr/^M106/, 'fan is activated for the 1st tool';
     like $gcode, qr/.*M107/, 'fan is disabled for the 2nd tool';
