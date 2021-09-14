@@ -48,7 +48,7 @@ public:
 
 private:
     bool send_info();
-    const std::string m_system_info_json;
+    /*const */std::string m_system_info_json; // will be const, this is FOR DEBUGGING
     wxButton* m_btn_send;
     wxButton* m_btn_dont_send;
     wxButton* m_btn_ask_later;
@@ -91,7 +91,9 @@ public:
     {
         auto* text = new wxTextCtrl(this, wxID_ANY, json,
                                     wxDefaultPosition, wxDefaultSize,
-                                    wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+                                    wxTE_MULTILINE
+                                    // | wxTE_READONLY // commented out for DEBUGGING ONLY
+                                    | wxTE_DONTWRAP);
         text->SetFont(wxGetApp().code_font());
         text->ShowPosition(0);
 
@@ -106,6 +108,15 @@ public:
         #ifdef _WIN32
             wxGetApp().UpdateDlgDarkUI(this);
         #endif
+
+        m_text = text; // DEBUGGING ONLY
+    }
+
+    // DEBUGGING ONLY:
+    wxTextCtrl* m_text;
+    std::string get_data() const // debugging only
+    {
+        return m_text->GetValue().ToUTF8().data();
     }
 };
 
@@ -116,6 +127,8 @@ public:
 // current version is newer. Only major and minor versions are compared.
 static bool should_dialog_be_shown()
 {
+    return true; // DEBUGGING ONLY
+
     std::string last_sent_version = wxGetApp().app_config->get("version_system_info_sent");
     Semver semver_current(SLIC3R_VERSION);
     Semver semver_last_sent;
@@ -280,6 +293,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent &evt) {
                                                    ShowJsonDialog dlg(this, m_system_info_json, GetSize().Scale(0.9, 0.7));
                                                    dlg.ShowModal();
+                                                   m_system_info_json = dlg.get_data(); // DEBUGGING ONLY
     });
 
     vsizer->Add(html_window, 1, wxEXPAND);
@@ -361,6 +375,9 @@ bool SendSystemInfoDialog::send_info()
             .set_post_body(data)
             .on_complete([&result](std::string body, unsigned status) {
                 result = { Result::Success, _L("System info sent successfully. Thank you.") };
+
+                // DEBUGGING ONLY:
+                std::cout << "Response: " << std::endl << body << std::endl << "-----------------" << std::endl;
             })
             .on_error([&result](std::string body, std::string error, unsigned status) {
                 result = { Result::Error, GUI::format_wxstr(_L("Sending system info failed! Status: %1%"), status) };
