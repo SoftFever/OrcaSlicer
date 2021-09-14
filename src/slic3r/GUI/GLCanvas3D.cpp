@@ -2926,7 +2926,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
-#if ENABLE_SINKING_CONTOURS
     for (GLVolume* volume : m_volumes.volumes) {
         volume->force_sinking_contours = false;
     }
@@ -2938,7 +2937,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         m_dirty = true;
     };
-#endif // ENABLE_SINKING_CONTOURS
 
     if (m_gizmos.on_mouse(evt)) {
         if (wxWindow::FindFocus() != m_canvas)
@@ -2964,7 +2962,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             default: { break; }
             }
         }
-#if ENABLE_SINKING_CONTOURS
         else if (evt.Dragging()) {
             switch (m_gizmos.get_current_type())
             {
@@ -2978,7 +2975,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             default: { break; }
             }
         }
-#endif // ENABLE_SINKING_CONTOURS
 
         return;
     }
@@ -3288,10 +3284,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else
         evt.Skip();
 
-#if ENABLE_SINKING_CONTOURS
     if (m_moving)
         show_sinking_contours();
-#endif // ENABLE_SINKING_CONTOURS
 
 #ifdef __WXMSW__
 	if (on_enter_workaround)
@@ -5648,11 +5642,8 @@ void GLCanvas3D::_update_volumes_hover_state()
                 }
             }
         }
-#if ENABLE_SINKING_CONTOURS
         else if (volume.selected)
             volume.hover = GLVolume::HS_Hover;
-#endif // ENABLE_SINKING_CONTOURS
-
     }
 }
 

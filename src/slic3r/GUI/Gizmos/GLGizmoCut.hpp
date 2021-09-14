@@ -2,11 +2,9 @@
 #define slic3r_GLGizmoCut_hpp_
 
 #include "GLGizmoBase.hpp"
-#if ENABLE_SINKING_CONTOURS
 #include "slic3r/GUI/GLModel.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/ObjectID.hpp"
-#endif // ENABLE_SINKING_CONTOURS
 
 namespace Slic3r {
 namespace GUI {
@@ -26,7 +24,6 @@ class GLGizmoCut : public GLGizmoBase
     bool m_keep_lower{ true };
     bool m_rotate_lower{ false };
 
-#if ENABLE_SINKING_CONTOURS
     struct CutContours
     {
         TriangleMesh mesh;
@@ -39,7 +36,6 @@ class GLGizmoCut : public GLGizmoBase
     };
 
     CutContours m_cut_contours;
-#endif // ENABLE_SINKING_CONTOURS
 
 public:
     GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -66,9 +62,7 @@ private:
     void perform_cut(const Selection& selection);
     double calc_projection(const Linef3& mouse_ray) const;
     BoundingBoxf3 bounding_box() const;
-#if ENABLE_SINKING_CONTOURS
     void update_contours();
-#endif // ENABLE_SINKING_CONTOURS
 };
 
 } // namespace GUI

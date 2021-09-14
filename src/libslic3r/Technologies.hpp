@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA1 1
 
-// Enable drawing contours, at cut level, for sinking volumes
-#define ENABLE_SINKING_CONTOURS (1 && ENABLE_2_4_0_ALPHA1)
 // Enable implementation of retract acceleration in gcode processor
 #define ENABLE_RETRACT_ACCELERATION (1 && ENABLE_2_4_0_ALPHA1)
 // Enable the fix for exporting and importing to/from 3mf file of mirrored volumes

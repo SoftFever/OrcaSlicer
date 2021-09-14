@@ -16,9 +16,7 @@
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
-#if ENABLE_SINKING_CONTOURS
 #include "libslic3r/TriangleMeshSlicer.hpp"
-#endif // ENABLE_SINKING_CONTOURS
 
 namespace Slic3r {
 namespace GUI {
@@ -92,9 +90,7 @@ void GLGizmoCut::on_render()
     m_max_z = box.max.z();
     set_cut_z(m_cut_z);
 
-#if ENABLE_SINKING_CONTOURS
     update_contours();
-#endif // ENABLE_SINKING_CONTOURS
 
     const float min_x = box.min.x() - Margin;
     const float max_x = box.max.x() + Margin;
@@ -143,13 +139,11 @@ void GLGizmoCut::on_render()
 
     shader->stop_using();
 
-#if ENABLE_SINKING_CONTOURS
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
     glsafe(::glLineWidth(2.0f));
     m_cut_contours.contours.render();
     glsafe(::glPopMatrix());
-#endif // ENABLE_SINKING_CONTOURS
 }
 
 void GLGizmoCut::on_render_for_picking()
@@ -275,7 +269,6 @@ BoundingBoxf3 GLGizmoCut::bounding_box() const
     return ret;
 }
 
-#if ENABLE_SINKING_CONTOURS
 void GLGizmoCut::update_contours()
 {
     const Selection& selection = m_parent.get_selection();
@@ -315,7 +308,6 @@ void GLGizmoCut::update_contours()
     else
         m_cut_contours.contours.reset();
 }
-#endif // ENABLE_SINKING_CONTOURS
 
 } // namespace GUI
 } // namespace Slic3r

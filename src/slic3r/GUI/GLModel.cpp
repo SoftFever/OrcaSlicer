@@ -7,9 +7,7 @@
 
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Model.hpp"
-#if ENABLE_SINKING_CONTOURS
 #include "libslic3r/Polygon.hpp"
-#endif // ENABLE_SINKING_CONTOURS
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -116,7 +114,6 @@ void GLModel::init_from(const indexed_triangle_set& its)
     this->init_from(its, bounding_box(its));
 }
 
-#if ENABLE_SINKING_CONTOURS
 void GLModel::init_from(const Polygons& polygons, float z)
 {
     auto append_polygon = [](const Polygon& polygon, float z, GUI::GLModel::InitializationData& data) {
@@ -143,7 +140,6 @@ void GLModel::init_from(const Polygons& polygons, float z)
     }
     init_from(init_data);
 }
-#endif // ENABLE_SINKING_CONTOURS
 
 bool GLModel::init_from_file(const std::string& filename)
 {

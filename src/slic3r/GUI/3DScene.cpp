@@ -9,9 +9,7 @@
 #include "3DScene.hpp"
 #include "GLShader.hpp"
 #include "GUI_App.hpp"
-#if ENABLE_ENVIRONMENT_MAP || ENABLE_SINKING_CONTOURS
 #include "Plater.hpp"
-#endif // ENABLE_ENVIRONMENT_MAP || ENABLE_SINKING_CONTOURS
 
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
@@ -25,9 +23,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ClipperUtils.hpp"
-#if ENABLE_SINKING_CONTOURS
 #include "libslic3r/Tesselate.hpp"
-#endif // ENABLE_SINKING_CONTOURS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -293,7 +289,6 @@ void GLIndexedVertexArray::render(
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-#if ENABLE_SINKING_CONTOURS
 const float GLVolume::SinkingContours::HalfWidth = 0.25f;
 
 void GLVolume::SinkingContours::render()
@@ -362,7 +357,6 @@ void GLVolume::SinkingContours::update()
     else
         m_model.reset();
 }
-#endif // ENABLE_SINKING_CONTOURS
 
 const std::array<float, 4> GLVolume::SELECTED_COLOR = { 0.0f, 1.0f, 0.0f, 1.0f };
 const std::array<float, 4> GLVolume::HOVER_SELECT_COLOR = { 0.4f, 0.9f, 0.1f, 1.0f };
@@ -384,9 +378,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     : m_transformed_bounding_box_dirty(true)
     , m_sla_shift_z(0.0)
     , m_transformed_convex_hull_bounding_box_dirty(true)
-#if ENABLE_SINKING_CONTOURS
     , m_sinking_contours(*this)
-#endif // ENABLE_SINKING_CONTOURS
     // geometry_id == 0 -> invalid
     , geometry_id(std::pair<size_t, size_t>(0, 0))
     , extruder_id(0)
@@ -404,9 +396,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , force_transparent(false)
     , force_native_color(false)
     , force_neutral_color(false)
-#if ENABLE_SINKING_CONTOURS
     , force_sinking_contours(false)
-#endif // ENABLE_SINKING_CONTOURS
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
@@ -610,12 +600,10 @@ bool GLVolume::is_below_printbed() const
     return transformed_convex_hull_bounding_box().max.z() < 0.0;
 }
 
-#if ENABLE_SINKING_CONTOURS
 void GLVolume::render_sinking_contours()
 {
     m_sinking_contours.render();
 }
-#endif // ENABLE_SINKING_CONTOURS
 
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object,
@@ -839,11 +827,9 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
 
 void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
 {
-#if ENABLE_SINKING_CONTOURS
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
         return;
-#endif // ENABLE_SINKING_CONTOURS
 
     GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
     if (shader == nullptr)
@@ -858,7 +844,6 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     if (disable_cullface)
         glsafe(::glDisable(GL_CULL_FACE));
 
-#if ENABLE_SINKING_CONTOURS
     for (GLVolumeWithIdAndZ& volume : to_render) {
         volume.first->set_render_color();
 
@@ -908,7 +893,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     }
 
-    if (m_show_sinking_contours)
+    if (m_show_sinking_contours) {
         for (GLVolumeWithIdAndZ& volume : to_render) {
             // render sinking contours of hovered/displaced volumes
             if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
@@ -920,47 +905,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
                 shader->start_using();
             }
         }
-#else
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
- 
-    shader->set_uniform("print_box.min", m_print_box_min, 3);
-    shader->set_uniform("print_box.max", m_print_box_max, 3);
-    shader->set_uniform("z_range", m_z_range, 2);
-    shader->set_uniform("clipping_plane", m_clipping_plane, 4);
-    shader->set_uniform("slope.normal_z", m_slope.normal_z);
-
-#if ENABLE_ENVIRONMENT_MAP
-    unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();
-    bool use_environment_texture = environment_texture_id > 0 && GUI::wxGetApp().app_config->get("use_environment_map") == "1";
-    shader->set_uniform("use_environment_tex", use_environment_texture);
-    if (use_environment_texture)
-        glsafe(::glBindTexture(GL_TEXTURE_2D, environment_texture_id));
-#endif // ENABLE_ENVIRONMENT_MAP
-    glcheck();
-
-    GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
-    for (GLVolumeWithIdAndZ& volume : to_render) {
-        volume.first->set_render_color();
-        shader->set_uniform("uniform_color", volume.first->render_color);
-        shader->set_uniform("print_box.actived", volume.first->shader_outside_printer_detection_enabled);
-        shader->set_uniform("print_box.volume_world_matrix", volume.first->world_matrix());
-        shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
-        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
-        volume.first->render();
     }
-
-#if ENABLE_ENVIRONMENT_MAP
-    if (use_environment_texture)
-        glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-#endif // ENABLE_ENVIRONMENT_MAP
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-#endif // ENABLE_SINKING_CONTOURS
 
     if (disable_cullface)
         glsafe(::glEnable(GL_CULL_FACE));
