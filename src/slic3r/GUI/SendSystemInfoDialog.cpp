@@ -14,10 +14,12 @@
 #include "OpenGLManager.hpp"
 
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim_all.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
 #include "GL/glew.h"
 
+#include <wx/display.h>
 #include <wx/htmllbox.h>
 #include <wx/stattext.h>
 #include <wx/timer.h>
@@ -87,7 +89,7 @@ class ShowJsonDialog : public wxDialog
 {
 public:
     ShowJsonDialog(wxWindow* parent, const wxString& json, const wxSize& size)
-        : wxDialog(parent, wxID_ANY, _L("Data to send"), wxDefaultPosition, size, wxCAPTION)
+        : wxDialog(parent, wxID_ANY, _L("Data to send"), wxDefaultPosition, size, wxCAPTION|wxRESIZE_BORDER)
     {
         auto* text = new wxTextCtrl(this, wxID_ANY, json,
                                     wxDefaultPosition, wxDefaultSize,
@@ -154,14 +156,42 @@ static void save_version()
 
 
 
+static std::map<std::string, std::string> parse_lscpu_etc(const std::string& name, char delimiter)
+{
+    std::map<std::string, std::string> out;
+    constexpr size_t max_len = 100;
+    char cline[max_len] = "";
+    FILE* fp = popen(name.data(), "r");
+    if (fp != NULL) {
+        while (fgets(cline, max_len, fp) != NULL) {
+            std::string line(cline);
+            line.erase(std::remove_if(line.begin(), line.end(),
+                           [](char c) { return c=='\"' || c=='\r' || c=='\n'; }),
+                       line.end());
+            size_t pos = line.find(delimiter);
+            if (pos < line.size() - 1) {
+                std::string key = line.substr(0, pos);
+                std::string value = line.substr(pos+1);
+                boost::trim_all(key); // remove leading and trailing spaces
+                boost::trim_all(value);
+                out[key] = value;
+            }
+        }
+        pclose(fp);
+    }
+    return out;
+}
+
+
+
 // Following function generates one string that will be shown in the preview
 // and later sent if confirmed by the user.
 static std::string generate_system_info_json()
 {
-    // Calculate hash of datadir path so it is possible to identify duplicates.
+    // Calculate hash of username so it is possible to identify duplicates.
     // The result is mod 10000 so most of the information is lost and it is
-    // not possible to unhash the datadir (which usually contains username).
-    // It is more than enough to help identify duplicate entries.
+    // not possible to unhash the username. It is more than enough to help
+    // identify duplicate entries.
     size_t datadir_hash = std::hash<std::string>{}(std::string(wxGetUserId().ToUTF8().data())) % 10000;
 
     // Get system language.
@@ -179,12 +209,80 @@ static std::string generate_system_info_json()
     data_node.put("UsernameHash", datadir_hash);
     data_node.put("Platform", platform_to_string(platform()));
     data_node.put("PlatformFlavor", platform_flavor_to_string(platform_flavor()));
+    data_node.put("OSDescription", wxPlatformInfo::Get().GetOperatingSystemDescription().ToUTF8().data());
+#ifdef __linux__
+    std::string distro_id = wxGetLinuxDistributionInfo().Id.ToUTF8().data(); // uses lsb-release
+    std::string distro_ver = wxGetLinuxDistributionInfo().Release.ToUTF8().data();
+    if (distro_id.empty()) { // lsb-release probably not available
+        std::map<std::string, std::string> dist_info = parse_lscpu_etc("cat /etc/*release", '=');
+        distro_id = dist_info["ID"];
+        distro_ver = dist_info["VERSION_ID"];
+    }
+    data_node.put("Linux_DistroID", distro_id);
+    data_node.put("Linux_DistroVer", distro_ver);
+    data_node.put("Linux_Wayland", wxGetEnv("WAYLAND_DISPLAY", nullptr));
+#endif
+    data_node.put("wxWidgets", wxVERSION_NUM_DOT_STRING);
+#ifdef __WXGTK__
+    data_node.put("GTK",
+    #if defined(__WXGTK2__)
+        2
+    #elif defined(__WXGTK3__)
+        3
+    #elif defined(__WXGTK4__)
+        4
+    #elif defined(__WXGTK5__)
+        5
+    #else
+        "Unknown"
+    #endif
+    );
+#endif // __WXGTK__
     data_node.put("SystemLanguage", sys_language);
     data_node.put("TranslationLanguage: ", wxGetApp().app_config->get("translation_language"));
 
     pt::ptree hw_node;
     hw_node.put("ArchName", wxPlatformInfo::Get().GetArchName());
     hw_node.put("RAM_MB", size_t(Slic3r::total_physical_memory()/1000000));
+
+    // Now get some CPU info:
+    pt::ptree cpu_node;
+#ifdef _WIN32
+
+#elif __APPLE__
+     std::map<std::string, std::string> sysctl = parse_lscpu_etc("sysctl -a", ':');
+     cpu_node.put("CPU(s)",     sysctl["machdep.cpu.core_count"]);
+     cpu_node.put("CPU_Model",  sysctl["machdep.cpu.brand_string"]);
+     cpu_node.put("CPU_Vendor", sysctl["machdep.cpu.vendor"]);
+#else
+    std::map<std::string, std::string> lscpu = parse_lscpu_etc("lscpu", ':');
+    cpu_node.put("Arch",   lscpu["Architecture"]);
+    cpu_node.put("Cores",  lscpu["CPU(s)"]);
+    cpu_node.put("Model",  lscpu["Model name"]);
+    cpu_node.put("Vendor", lscpu["Vendor ID"]);
+#endif
+    hw_node.add_child("CPU", cpu_node);
+
+    pt::ptree monitors_node;
+    for (int i=0; i<int(wxDisplay::GetCount()); ++i) {
+        wxDisplay display(i);
+        double scaling = -1.;
+        #if wxCHECK_VERSION(3, 1, 2) // we have wxDisplag::GetPPI
+            int std_ppi = 96;
+            #ifdef __WXOSX__ // see impl of wxDisplay::GetStdPPIValue from 3.1.5
+                std_ppi = 72;
+            #endif
+            scaling = double(display.GetPPI().GetWidth()) / std_ppi;
+        #endif
+        pt::ptree monitor_node; // Create an unnamed node containing the value
+        monitor_node.put("width", display.GetGeometry().GetWidth());
+        monitor_node.put("height", display.GetGeometry().GetHeight());
+        std::stringstream ss;
+        ss << std::setprecision(3) << scaling;
+        monitor_node.put("scaling", ss.str() );
+        monitors_node.push_back(std::make_pair("", monitor_node));
+    }
+    hw_node.add_child("Monitors", monitors_node);
     data_node.add_child("Hardware", hw_node);
 
     pt::ptree opengl_node;
@@ -217,8 +315,7 @@ static std::string generate_system_info_json()
 
     // FURTHER THINGS TO CONSIDER:
     //std::cout << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << std::endl;          // Unix
-    //std::cout << wxPlatformInfo::Get().GetOperatingSystemDescription() << std::endl;         // Linux 4.15.0-142-generic x86_64
-    // ? CPU, GPU, UNKNOWN, wxWidgets ???
+    // ? CPU, GPU, UNKNOWN ?
     // printers? will they be installed already?
 }
 
@@ -418,6 +515,9 @@ void show_send_system_info_dialog_if_needed()
     SendSystemInfoDialog dlg(wxGetApp().mainframe);
     dlg.ShowModal();
 }
+
+
+
 
 
 } // namespace GUI
