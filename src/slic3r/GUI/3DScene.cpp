@@ -760,10 +760,11 @@ int GLVolumeCollection::load_wipe_tower_preview(
     TriangleMesh brim_mesh = make_cube(width + 2.f * brim_width, depth + 2.f * brim_width, 0.2f);
     brim_mesh.translate(-brim_width, -brim_width, 0.f);
     mesh.merge(brim_mesh);
+    mesh.repair();
 
     volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *volumes.back();
-    v.indexed_vertex_array.load_mesh(mesh);
+    v.indexed_vertex_array.load_mesh(mesh);    
     v.indexed_vertex_array.finalize_geometry(opengl_initialized);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
