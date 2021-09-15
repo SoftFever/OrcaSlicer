@@ -1,4 +1,5 @@
 min_slic3r_version = 2.4.0-alpha0
+1.4.0-alpha8 Added material profiles for Prusament Resin. Detect bridging perimeters enabled by default. 
 1.4.0-alpha7 Updated brim_separation value. Updated Prusa MINI end g-code. Added Filamentworld filament profiles. 
 1.4.0-alpha6 Added nozzle priming after M600. Added nozzle diameter checks for 0.8 nozzle printer profiles. Updated FW version. Increased number of top solid infill layers (0.2 layer height).
 1.4.0-alpha5 Added multiple add:north and Extrudr filament profiles. Updated support head settings (SL1S).
@@ -11,9 +12,11 @@ min_slic3r_version = 2.4.0-alpha0
 1.3.0-alpha1 Added Prusament PCCF. Increased travel acceleration for Prusa MINI. Updated start g-code for Prusa MINI. Added multiple add:north and Extrudr filament profiles. Updated Z travel speed values.
 1.3.0-alpha0 Disabled thick bridges, updated support settings.
 min_slic3r_version = 2.3.2-alpha0
+1.3.2 Added material profiles for Prusament Resin.
 1.3.1 Added multiple add:north and Extrudr filament profiles. Updated support head settings (SL1S).
 1.3.0 Added SL1S SPEED profiles.
 min_slic3r_version = 2.3.0-rc1
+1.2.9 Added material profiles for Prusament Resin.
 1.2.8 Added multiple add:north and Extrudr filament profiles.
 1.2.7 Updated "Prusament PC Blend Carbon Fiber" profile for Prusa MINI.
 1.2.6 Added filament profile for "Prusament PC Blend Carbon Fiber".
