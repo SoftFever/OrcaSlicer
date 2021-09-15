@@ -3691,7 +3691,7 @@ void Plater::priv::create_simplify_notification(const std::vector<size_t>& obj_i
     std::vector<size_t> big_ids;
     big_ids.reserve(obj_ids.size());
     std::copy_if(obj_ids.begin(), obj_ids.end(), std::back_inserter(big_ids),
-                 [this](size_t object_id) {
+                 [this, triangles_to_suggest_simplify](size_t object_id) {
             if (object_id >= model.objects.size()) return false; // out of object index
             ModelVolumePtrs& volumes = model.objects[object_id]->volumes;
             if (volumes.size() != 1) return false; // not only one volume

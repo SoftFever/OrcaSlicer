@@ -1175,9 +1175,6 @@ void GLToolbar::render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighte
     float right = left + scaled_icons_size;
 
     unsigned int tex_id = m_arrow_texture.texture.get_id();
-    // width and height of icon arrow is pointing to
-    float tex_width = (float)m_icons_texture.get_width();
-    float tex_height = (float)m_icons_texture.get_height();
     // arrow width and height
     float arr_tex_width = (float)m_arrow_texture.texture.get_width();
     float arr_tex_height = (float)m_arrow_texture.texture.get_height();
