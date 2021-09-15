@@ -235,7 +235,6 @@ public:
     void schedule_background_process(bool schedule = true);
     bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
-    void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 	void eject_drive();
 

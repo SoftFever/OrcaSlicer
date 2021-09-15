@@ -689,7 +689,7 @@ wxMenuItem* MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
         return nullptr;
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Fix through the Netfabb"), "",
         [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu,
-        []() {return plater()->can_fix_through_netfabb(); }, plater());
+        []() {return plater()->can_fix_through_netfabb(); }, m_parent);
 
     return menu_item;
 }
@@ -698,7 +698,7 @@ wxMenuItem* MenuFactory::append_menu_item_simplify(wxMenu* menu)
 {
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify model"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
-        []() {return plater()->can_simplify(); }, plater());
+        []() {return plater()->can_simplify(); }, m_parent);
     menu->AppendSeparator();
 
     return menu_item;
@@ -779,7 +779,7 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
     }
 
     append_submenu(menu, extruder_selection_menu, wxID_ANY, name, _L("Use another extruder"),
-        "edit_uni"/* : "change_extruder"*/, []() {return true; }, GUI::wxGetApp().plater());
+        "edit_uni"/* : "change_extruder"*/, []() {return true; }, m_parent);
 
 //    menu->AppendSubMenu(extruder_selection_menu, name);
 }
@@ -1061,6 +1061,7 @@ wxMenu* MenuFactory::multi_selection_menu()
 
     wxMenu* menu = new MenuWithSeparators();
 
+    append_menu_item_fix_through_netfabb(menu);
     append_menu_item_reload_from_disk(menu);
     append_menu_items_convert_unit(menu);
     if (obj_list()->can_merge_to_multipart_object())

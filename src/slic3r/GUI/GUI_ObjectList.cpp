@@ -19,6 +19,7 @@
 #include "Selection.hpp"
 #include "format.hpp"
 #include "NotificationManager.hpp"
+#include "MsgDialog.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
@@ -369,7 +370,7 @@ void ObjectList::get_selection_indexes(std::vector<int>& obj_idxs, std::vector<i
         }
     }
 
-    std::sort(obj_idxs.begin(), obj_idxs.end(), std::greater<int>());
+    std::sort(obj_idxs.begin(), obj_idxs.end(), std::less<int>());
     obj_idxs.erase(std::unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
 }
 
@@ -4013,13 +4014,124 @@ void ObjectList::rename_item()
 
 void ObjectList::fix_through_netfabb() 
 {
-    int obj_idx, vol_idx;
-    get_selected_item_indexes(obj_idx, vol_idx);
+    // Do not fix anything when a gizmo is open. There might be issues with updates
+    // and what is worse, the snapshot time would refer to the internal stack.
+    if (!wxGetApp().plater()->canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
+        return;
 
-    wxGetApp().plater()->fix_through_netfabb(obj_idx, vol_idx);
-    
-    update_item_error_icon(obj_idx, vol_idx);
-    update_info_items(obj_idx);
+    //          model_name
+    std::vector<std::string>                           succes_models;
+    //                   model_name     failing reason
+    std::vector<std::pair<std::string, std::string>>   failed_models;
+
+    std::vector<int> obj_idxs, vol_idxs;
+    get_selection_indexes(obj_idxs, vol_idxs);
+
+    std::vector<std::string> model_names;
+
+    // clear selections from the non-broken models if any exists
+    // and than fill names of models to repairing 
+    if (vol_idxs.empty()) {
+        for (int i = int(obj_idxs.size())-1; i >= 0; --i)
+                if (object(obj_idxs[i])->get_mesh_errors_count() == 0)
+                    obj_idxs.erase(obj_idxs.begin()+i);
+        for (int obj_idx : obj_idxs)
+            model_names.push_back(object(obj_idx)->name);
+    }
+    else {
+        ModelObject* obj = object(obj_idxs.front());
+        for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
+            if (obj->get_mesh_errors_count(vol_idxs[i]) == 0)
+                vol_idxs.erase(vol_idxs.begin() + i);
+        for (int vol_idx : vol_idxs)
+            model_names.push_back(obj->volumes[vol_idx]->name);
+    }
+
+    auto plater = wxGetApp().plater();
+
+    auto fix_and_update_progress = [this, plater, model_names](const int obj_idx, const int vol_idx,
+                                          int model_idx,
+                                          wxProgressDialog& progress_dlg,
+                                          std::vector<std::string>& succes_models,
+                                          std::vector<std::pair<std::string, std::string>>& failed_models)
+    {
+        const std::string& model_name = model_names[model_idx];
+        wxString msg = _L("Repairing model");
+        if (model_names.size() == 1)
+            msg += ": " + from_u8(model_name) + "\n";
+        else {
+            msg += ":\n";
+            for (size_t i = 0; i < model_names.size(); ++i)
+                msg += (i == model_idx ? " > " : "   ") + from_u8(model_names[i]) + "\n";
+            msg += "\n";
+        }
+
+        plater->clear_before_change_mesh(obj_idx);
+        std::string res;
+        if (!fix_model_by_win10_sdk_gui(*(object(obj_idx)), vol_idx, progress_dlg, msg, res))
+            return false;
+        wxGetApp().plater()->changed_mesh(obj_idx);
+
+        plater->changed_mesh(obj_idx);
+
+        if (res.empty())
+            succes_models.push_back(model_name);
+        else
+            failed_models.push_back({ model_name, res });
+
+        update_item_error_icon(obj_idx, vol_idx);
+        update_info_items(obj_idx);
+
+        return true;
+    };
+
+    Plater::TakeSnapshot snapshot(plater, _L("Fix through NetFabb"));
+
+    // Open a progress dialog.
+    wxProgressDialog progress_dlg(_L("Fixing through NetFabb"), "", 100,
+                                    nullptr, // ! parent of the wxProgressDialog should be nullptr to avoid flickering during the model fixing
+                                    wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+    int model_idx{ 0 };
+    if (vol_idxs.empty()) {
+        int vol_idx{ -1 };
+        for (int obj_idx : obj_idxs) {
+            if (object(obj_idx)->get_mesh_errors_count(vol_idx) == 0)
+                continue;
+            if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, progress_dlg, succes_models, failed_models))
+                break;
+            model_idx++;
+        }
+    }
+    else {
+        int obj_idx{ obj_idxs.front() };
+        for (int vol_idx : vol_idxs) {
+            if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, progress_dlg, succes_models, failed_models))
+                break;
+            model_idx++;
+        }
+    }
+    // Close the progress dialog
+    progress_dlg.Update(100, "");
+
+    // Show info message
+    wxString msg;
+    wxString bullet_suf = "\n   - ";
+    if (!succes_models.empty()) {
+        msg = _L_PLURAL("Folowing model is repaired successfully", "Folowing models are repaired successfully", succes_models.size()) + ":";
+        for (auto& model : succes_models)
+            msg += bullet_suf + from_u8(model);
+        msg += "\n\n";
+    }
+    if (!failed_models.empty()) {
+        msg += _L_PLURAL("Folowing model repair failed", "Folowing models repair failed", failed_models.size()) + ":\n";
+        for (auto& model : failed_models)
+            msg += bullet_suf + from_u8(model.first) + ": " + _(model.second);
+    }
+    if (msg.IsEmpty())
+        msg = _L("Repairing was canceled");
+    // !!! Use wxMessageDialog instead of MessageDialog here
+    // It will not be "dark moded" but the Application will not lose a focus after model repairing
+    wxMessageDialog(nullptr, msg, _L("Model Repair by the Netfabb service"), wxICON_INFORMATION | wxOK).ShowModal();
 }
 
 void ObjectList::simplify()
