@@ -30,11 +30,8 @@ public:
 
     ClippingPlane(const Vec3d& direction, double offset)
     {
-        Vec3d norm_dir = direction.normalized();
-        m_data[0] = norm_dir(0);
-        m_data[1] = norm_dir(1);
-        m_data[2] = norm_dir(2);
-        m_data[3] = offset;
+        set_normal(direction);
+        set_offset(offset);
     }
 
     bool operator==(const ClippingPlane& cp) const {
@@ -48,7 +45,13 @@ public:
     }
 
     bool is_point_clipped(const Vec3d& point) const { return distance(point) < 0.; }
-    void set_normal(const Vec3d& normal) { for (size_t i=0; i<3; ++i) m_data[i] = normal(i); }
+    void set_normal(const Vec3d& normal)
+    {
+        const Vec3d norm_dir = normal.normalized();
+        m_data[0] = norm_dir.x();
+        m_data[1] = norm_dir.y();
+        m_data[2] = norm_dir.z();
+    }
     void set_offset(double offset) { m_data[3] = offset; }
     Vec3d get_normal() const { return Vec3d(m_data[0], m_data[1], m_data[2]); }
     bool is_active() const { return m_data[3] != DBL_MAX; }
