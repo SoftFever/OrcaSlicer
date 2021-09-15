@@ -37,7 +37,6 @@ void ObjectDataViewModelNode::init_container()
 static constexpr char LayerRootIcon[]   = "edit_layers_all";
 static constexpr char LayerIcon[]       = "edit_layers_some";
 static constexpr char WarningIcon[]     = "exclamation";
-static constexpr char InfoIcon[]        = "objlist_info";
 
 struct InfoItemAtributes {
     std::string name;

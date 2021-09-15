@@ -1505,7 +1505,7 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
 
         const Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
-		for (const stl_triangle_vertex_indices facet : hull.its.indices)
+        for (const stl_triangle_vertex_indices& facet : hull.its.indices)
 			for (int i = 0; i < 3; ++ i)
 				min_z = std::min(min_z, (mv * hull.its.vertices[facet[i]].cast<double>()).z());
     }
@@ -1526,7 +1526,7 @@ double ModelObject::get_instance_max_z(size_t instance_idx) const
 
         const Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
-        for (const stl_triangle_vertex_indices facet : hull.its.indices)
+        for (const stl_triangle_vertex_indices& facet : hull.its.indices)
             for (int i = 0; i < 3; ++i)
                 max_z = std::max(max_z, (mv * hull.its.vertices[facet[i]].cast<double>()).z());
     }

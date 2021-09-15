@@ -977,7 +977,7 @@ void Choice::BUILD() {
                 propagate_value();
         } );
 
-        temp->Bind(wxEVT_TEXT_ENTER, [this, temp](wxEvent& e) {
+        temp->Bind(wxEVT_TEXT_ENTER, [this](wxEvent& e) {
             EnterPressed enter(this);
             propagate_value();
         } );

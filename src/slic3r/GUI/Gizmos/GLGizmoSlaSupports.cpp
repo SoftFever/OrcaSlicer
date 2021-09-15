@@ -881,7 +881,7 @@ CommonGizmosDataID GLGizmoSlaSupports::on_get_requirements() const
 
 void GLGizmoSlaSupports::ask_about_changes_call_after(std::function<void()> on_yes, std::function<void()> on_no)
 {
-    wxGetApp().CallAfter([this, on_yes, on_no]() {
+    wxGetApp().CallAfter([on_yes, on_no]() {
         // Following is called through CallAfter, because otherwise there was a problem
         // on OSX with the wxMessageDialog being shown several times when clicked into.
         MessageDialog dlg(GUI::wxGetApp().mainframe, _L("Do you want to save your manually "
