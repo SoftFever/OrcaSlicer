@@ -291,6 +291,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     m_imgui->text("");
     ImGui::Separator();
 
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("first_color"));
     ImGui::SameLine(combo_label_width);
     ImGui::PushItemWidth(window_width - combo_label_width - color_button_width);
@@ -302,6 +303,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     if(ImGui::ColorEdit4("First color##color_picker", (float*)&first_color, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
         m_modified_extruders_colors[m_first_selected_extruder_idx] = {first_color.x, first_color.y, first_color.z, first_color.w};
 
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("second_color"));
     ImGui::SameLine(combo_label_width);
     ImGui::PushItemWidth(window_width - combo_label_width - color_button_width);
@@ -317,14 +319,12 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     ImGui::Separator();
 
-    ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
 
     float tool_type_offset = (window_width - tool_type_radio_brush - tool_type_radio_bucket_fill - tool_type_radio_smart_fill + m_imgui->scaled(2.f)) / 2.f;
 
     ImGui::NewLine();
 
-    ImGui::AlignTextToFramePadding();
     ImGui::SameLine(tool_type_offset + m_imgui->scaled(0.f));
     ImGui::PushItemWidth(tool_type_radio_brush);
     if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BRUSH)) {
@@ -382,12 +382,10 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::Separator();
 
     if(m_tool_type == ToolType::BRUSH) {
-        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_type"));
         ImGui::NewLine();
 
         float cursor_type_offset = (window_width - cursor_type_radio_sphere - cursor_type_radio_circle - cursor_type_radio_pointer + m_imgui->scaled(2.f)) / 2.f;
-        ImGui::AlignTextToFramePadding();
         ImGui::SameLine(cursor_type_offset + m_imgui->scaled(0.f));
         ImGui::PushItemWidth(cursor_type_radio_sphere);
         if (m_imgui->radio_button(m_desc["sphere"], m_cursor_type == TriangleSelector::CursorType::SPHERE))
@@ -458,8 +456,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
         ImGui::Separator();
     } else if(m_tool_type == ToolType::SMART_FILL) {
-        m_imgui->text(m_desc["smart_fill_angle"] + ":");
         ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc["smart_fill_angle"] + ":");
         std::string format_str = std::string("%.f") + I18N::translate_utf8("°", "Degree sign to use in the respective slider in MMU gizmo,"
                                                                                 "placed after the number with no whitespace in between.");
         ImGui::SameLine(sliders_width);
