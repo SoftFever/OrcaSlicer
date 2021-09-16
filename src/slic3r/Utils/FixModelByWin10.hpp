@@ -3,6 +3,8 @@
 
 #include <string>
 
+class wxProgressDialog;
+
 namespace Slic3r {
 
 class Model;
