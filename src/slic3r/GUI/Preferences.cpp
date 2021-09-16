@@ -619,8 +619,8 @@ void PreferencesDialog::create_settings_mode_widget()
             m_values["old_settings_layout_mode"] = (id == 0) ? "1" : "0";
 #ifdef _MSW_DARK_MODE
 			if (!disable_new_layout)
-            m_values["new_settings_layout_mode"] = (id == 1) ? "1" : "0";
 #endif
+            m_values["new_settings_layout_mode"] = (id == 1) ? "1" : "0";
             m_values["dlg_settings_layout_mode"] = (id == dlg_id) ? "1" : "0";
 		});
 		id++;
