@@ -279,6 +279,10 @@ private:
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     // Bounding box of this volume, in unscaled coordinates.
     std::optional<BoundingBoxf3> m_transformed_convex_hull_bounding_box;
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+    // Bounding box of the non sinking part of this volume, in unscaled coordinates.
+    std::optional<BoundingBoxf3> m_transformed_non_sinking_bounding_box;
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
 
     class SinkingContours
     {
@@ -469,6 +473,12 @@ public:
     BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;
     // caching variant
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+    // non-caching variant
+    BoundingBoxf3        transformed_non_sinking_bounding_box(const Transform3d& trafo) const;
+    // caching variant
+    const BoundingBoxf3& transformed_non_sinking_bounding_box() const;
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
     // convex hull
     const TriangleMesh*  convex_hull() const { return m_convex_hull.get(); }
 
@@ -481,7 +491,15 @@ public:
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+    void                set_bounding_boxes_as_dirty() {
+        m_transformed_bounding_box.reset();
+        m_transformed_convex_hull_bounding_box.reset();
+        m_transformed_non_sinking_bounding_box.reset();
+    }
+#else
     void                set_bounding_boxes_as_dirty() { m_transformed_bounding_box.reset(); m_transformed_convex_hull_bounding_box.reset(); }
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
 
     bool                is_sla_support() const;
     bool                is_sla_pad() const;

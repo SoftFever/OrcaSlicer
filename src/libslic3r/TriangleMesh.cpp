@@ -574,6 +574,32 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
     return bbox;
 }
 
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafo, double world_min_z) const
+{
+    assert(!its.vertices.empty());
+
+    BoundingBoxf3 bbox;
+    // add vertices above the cut
+    for (const stl_vertex& v : its.vertices) {
+        const Vec3d world_v = trafo * v.cast<double>();
+        if (world_v.z() > world_min_z)
+            bbox.merge(world_v);
+    }
+
+    // add new vertices along the cut
+    MeshSlicingParams slicing_params;
+    slicing_params.trafo = trafo;
+    Polygons polygons = union_(slice_mesh(its, world_min_z, slicing_params));
+    for (const Polygon& polygon : polygons) {
+        for (const Point& p : polygon.points) {
+            bbox.merge(unscale(p.x(), p.y(), world_min_z));
+        }
+    }
+    return bbox;
+}
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+
 TriangleMesh TriangleMesh::convex_hull_3d() const
 {
     // The qhull call:

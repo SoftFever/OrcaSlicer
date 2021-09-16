@@ -524,6 +524,23 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
         bounding_box().transformed(trafo);
 }
 
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+BoundingBoxf3 GLVolume::transformed_non_sinking_bounding_box(const Transform3d& trafo) const
+{
+    return GUI::wxGetApp().plater()->model().objects[object_idx()]->volumes[volume_idx()]->mesh().transformed_bounding_box(trafo, 0.0);
+}
+
+const BoundingBoxf3& GLVolume::transformed_non_sinking_bounding_box() const
+{
+    if (!m_transformed_non_sinking_bounding_box.has_value()) {
+        std::optional<BoundingBoxf3>* trans_box = const_cast<std::optional<BoundingBoxf3>*>(&m_transformed_non_sinking_bounding_box);
+        const Transform3d& trafo = world_matrix();
+        *trans_box = transformed_non_sinking_bounding_box(trafo);
+    }
+    return *m_transformed_non_sinking_bounding_box;
+}
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+
 void GLVolume::set_range(double min_z, double max_z)
 {
     this->qverts_range.first = 0;
@@ -936,7 +953,11 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         if (volume->is_modifier || (!volume->shader_outside_printer_detection_enabled && (volume->is_wipe_tower || volume->composite_id.volume_id < 0)))
             continue;
 
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+        const BoundingBoxf3& bb = volume->transformed_non_sinking_bounding_box();
+#else
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
         bool contained = print_volume.contains(bb);
 
         volume->is_outside = !contained;
