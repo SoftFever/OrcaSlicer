@@ -669,9 +669,6 @@ void GUI_App::post_init()
     if (app_config->get("show_hints") == "1" && ! is_gcode_viewer())
         plater_->get_notification_manager()->push_hint_notification(true);
 
-    // 'Send system info' dialog
-    show_send_system_info_dialog_if_needed();
-
     // The extra CallAfter() is needed because of Mac, where this is the only way
     // to popup a modal dialog on start without screwing combo boxes.
     // This is ugly but I honestly found no better way to do it.
@@ -684,6 +681,10 @@ void GUI_App::post_init()
             this->preset_updater->sync(preset_bundle);
         });
     }
+
+    // 'Send system info' dialog. Again, a CallAfter is needed on mac.
+    // Without it, GL extensions did not show.
+    CallAfter([] { show_send_system_info_dialog_if_needed(); });
 
 #ifdef _WIN32
     // Sets window property to mainframe so other instances can indentify it.

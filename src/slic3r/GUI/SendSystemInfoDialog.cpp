@@ -294,6 +294,7 @@ static std::string generate_system_info_json()
     std::string extensions_str = gl_get_string_safe(GL_EXTENSIONS, "");
     std::vector<std::string> extensions_list;
     boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_off);
+    std::sort(extensions_list.begin(), extensions_list.end());
     pt::ptree extensions_node;
     for (const std::string& s : extensions_list) {
         if (s.empty())
