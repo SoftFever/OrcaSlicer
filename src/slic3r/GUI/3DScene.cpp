@@ -375,9 +375,7 @@ const std::array<std::array<float, 4>, 4> GLVolume::MODEL_COLOR = { {
 } };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
-    : m_transformed_bounding_box_dirty(true)
-    , m_sla_shift_z(0.0)
-    , m_transformed_convex_hull_bounding_box_dirty(true)
+    : m_sla_shift_z(0.0)
     , m_sinking_contours(*this)
     // geometry_id == 0 -> invalid
     , geometry_id(std::pair<size_t, size_t>(0, 0))
@@ -501,27 +499,22 @@ bool GLVolume::is_left_handed() const
 
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {
-    const BoundingBoxf3& box = bounding_box();
-    assert(box.defined || box.min(0) >= box.max(0) || box.min(1) >= box.max(1) || box.min(2) >= box.max(2));
-
-    BoundingBoxf3* transformed_bounding_box = const_cast<BoundingBoxf3*>(&m_transformed_bounding_box);
-    bool* transformed_bounding_box_dirty = const_cast<bool*>(&m_transformed_bounding_box_dirty);
-    if (*transformed_bounding_box_dirty) {
-        *transformed_bounding_box = box.transformed(world_matrix());
-        *transformed_bounding_box_dirty = false;
+    if (!m_transformed_bounding_box.has_value()) {
+        const BoundingBoxf3& box = bounding_box();
+        assert(box.defined || box.min.x() >= box.max.x() || box.min.y() >= box.max.y() || box.min.z() >= box.max.z());
+        std::optional<BoundingBoxf3>* trans_box = const_cast<std::optional<BoundingBoxf3>*>(&m_transformed_bounding_box);
+        *trans_box = box.transformed(world_matrix());
     }
-    return *transformed_bounding_box;
+    return *m_transformed_bounding_box;
 }
 
 const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 {
-    BoundingBoxf3* transformed_convex_hull_bounding_box = const_cast<BoundingBoxf3*>(&m_transformed_convex_hull_bounding_box);
-    bool* transformed_convex_hull_bounding_box_dirty = const_cast<bool*>(&m_transformed_convex_hull_bounding_box_dirty);
-    if (*transformed_convex_hull_bounding_box_dirty) {
-        *transformed_convex_hull_bounding_box = this->transformed_convex_hull_bounding_box(world_matrix());
-        *transformed_convex_hull_bounding_box_dirty = false;
+    if (!m_transformed_convex_hull_bounding_box.has_value()) {
+        std::optional<BoundingBoxf3>* trans_box = const_cast<std::optional<BoundingBoxf3>*>(&m_transformed_convex_hull_bounding_box);
+        *trans_box = transformed_convex_hull_bounding_box(world_matrix());
     }
-    return *transformed_convex_hull_bounding_box;
+    return *m_transformed_convex_hull_bounding_box;
 }
 
 BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &trafo) const

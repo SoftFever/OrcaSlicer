@@ -11,6 +11,7 @@
 #include "GLModel.hpp"
 
 #include <functional>
+#include <optional>
 
 #define HAS_GLSAFE
 #ifdef HAS_GLSAFE
@@ -273,15 +274,11 @@ private:
     // Shift in z required by sla supports+pad
     double        m_sla_shift_z;
     // Bounding box of this volume, in unscaled coordinates.
-    BoundingBoxf3 m_transformed_bounding_box;
-    // Whether or not is needed to recalculate the transformed bounding box.
-    bool          m_transformed_bounding_box_dirty;
+    std::optional<BoundingBoxf3> m_transformed_bounding_box;
     // Convex hull of the volume, if any.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     // Bounding box of this volume, in unscaled coordinates.
-    BoundingBoxf3 m_transformed_convex_hull_bounding_box;
-    // Whether or not is needed to recalculate the transformed convex hull bounding box.
-    bool          m_transformed_convex_hull_bounding_box_dirty;
+    std::optional<BoundingBoxf3> m_transformed_convex_hull_bounding_box;
 
     class SinkingContours
     {
@@ -484,7 +481,7 @@ public:
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
-    void                set_bounding_boxes_as_dirty() { m_transformed_bounding_box_dirty = true; m_transformed_convex_hull_bounding_box_dirty = true; }
+    void                set_bounding_boxes_as_dirty() { m_transformed_bounding_box.reset(); m_transformed_convex_hull_bounding_box.reset(); }
 
     bool                is_sla_support() const;
     bool                is_sla_pad() const;
