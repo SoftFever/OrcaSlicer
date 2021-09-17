@@ -823,10 +823,10 @@ void Selection::flattening_rotate(const Vec3d& normal)
     }
 
 #if !DISABLE_INSTANCES_SYNCH
-    // we want to synchronize z-rotation as well, otherwise the flattening behaves funny
-    // when applied on one of several identical instances
+    // Apply the same transformation also to other instances,
+    // but respect their possibly diffrent z-rotation.
     if (m_mode == Instance)
-        synchronize_unselected_instances(SYNC_ROTATION_FULL);
+        synchronize_unselected_instances(SYNC_ROTATION_GENERAL);
 #endif // !DISABLE_INSTANCES_SYNCH
 
     this->set_bounding_boxes_dirty();
@@ -2055,10 +2055,6 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
                     v->set_instance_offset(Z, volume->get_instance_offset().z());
                 break;
             }
-            case SYNC_ROTATION_FULL:
-                // rotation comes from place on face -> force given z
-                v->set_instance_rotation({ rotation.x(), rotation.y(), rotation.z() });
-                break;
             case SYNC_ROTATION_GENERAL:
                 // generic rotation -> update instance z with the delta of the rotation.
                 const double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation());

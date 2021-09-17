@@ -375,10 +375,8 @@ public:
     enum SyncRotationType {
         // Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
         SYNC_ROTATION_NONE = 0,
-        // Synchronize fully. Used from "place on bed" feature.
-        SYNC_ROTATION_FULL = 1,
         // Synchronize after rotation by an axis not parallel with Z.
-        SYNC_ROTATION_GENERAL = 2,
+        SYNC_ROTATION_GENERAL = 1,
     };
     void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
     void synchronize_unselected_volumes();
