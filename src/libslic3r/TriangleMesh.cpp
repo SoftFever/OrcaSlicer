@@ -588,14 +588,12 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafo, d
     }
 
     // add new vertices along the cut
-    MeshSlicingParams slicing_params;
-    slicing_params.trafo = trafo;
-    Polygons polygons = union_(slice_mesh(its, world_min_z, slicing_params));
-    for (const Polygon& polygon : polygons) {
-        for (const Point& p : polygon.points) {
-            bbox.merge(unscale(p.x(), p.y(), world_min_z));
-        }
+    Points all_pts;
+    its_collect_mesh_projection_points_above(its, trafo.cast<float>(), static_cast<float>(world_min_z), all_pts);
+    for (const Point& p : all_pts) {
+        bbox.merge(unscale(p.x(), p.y(), world_min_z));
     }
+
     return bbox;
 }
 #endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
