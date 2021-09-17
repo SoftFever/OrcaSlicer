@@ -1,10 +1,6 @@
 #ifndef slic3r_SendSystemInfoDialog_hpp_
 #define slic3r_SendSystemInfoDialog_hpp_
 
-#include "GUI_Utils.hpp"
-
-#include <string>
-
 namespace Slic3r {
 
 namespace GUI {

@@ -8,6 +8,7 @@
 #include "slic3r/Utils/Http.hpp"
 
 #include "GUI_App.hpp"
+#include "GUI_Utils.hpp"
 #include "I18N.hpp"
 #include "MainFrame.hpp"
 #include "MsgDialog.hpp"
@@ -27,6 +28,10 @@
 
 #include <atomic>
 #include <thread>
+
+#ifdef _WIN32
+    #include <windows.h>
+#endif
 
 namespace Slic3r {
 namespace GUI {
@@ -156,6 +161,41 @@ static void save_version()
 
 
 
+#ifdef _WIN32
+static std::map<std::string, std::string> get_cpu_info_from_registry()
+{
+    std::map<std::string, std::string> out;
+
+    int idx = -1;
+    constexpr DWORD bufsize_ = 200;
+    DWORD bufsize = bufsize_;
+    char buf[bufsize_] = "";
+    const std::string reg_dir = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\";
+    std::string reg_path = reg_dir;
+
+    // Look into that reg dir and possibly into subdirs called 0, 1, 2, etc.
+    // If the latter, count them.
+
+    while (true) {
+        if (RegGetValueA(HKEY_LOCAL_MACHINE, reg_path.c_str(), "ProcessorNameString",
+            RRF_RT_REG_SZ, NULL, &buf, &bufsize) == ERROR_SUCCESS) {
+            out["Model"] = buf;
+            out["Cores"] = std::to_string(std::max(1, idx + 1));
+            if (RegGetValueA(HKEY_LOCAL_MACHINE, reg_path.c_str(),
+                "VendorIdentifier", RRF_RT_REG_SZ, NULL, &buf, &bufsize) == ERROR_SUCCESS)
+                out["Vendor"] = buf;
+        }
+        else {
+            if (idx >= 0)
+                break;
+        }
+        ++idx;
+        reg_path = reg_dir + std::to_string(idx) + "\\";
+        bufsize = bufsize_;
+    }
+    return out;
+}
+#else // Apple, Linux, BSD
 static std::map<std::string, std::string> parse_lscpu_etc(const std::string& name, char delimiter)
 {
     std::map<std::string, std::string> out;
@@ -166,12 +206,12 @@ static std::map<std::string, std::string> parse_lscpu_etc(const std::string& nam
         while (fgets(cline, max_len, fp) != NULL) {
             std::string line(cline);
             line.erase(std::remove_if(line.begin(), line.end(),
-                           [](char c) { return c=='\"' || c=='\r' || c=='\n'; }),
-                       line.end());
+                [](char c) { return c == '\"' || c == '\r' || c == '\n'; }),
+                line.end());
             size_t pos = line.find(delimiter);
             if (pos < line.size() - 1) {
                 std::string key = line.substr(0, pos);
-                std::string value = line.substr(pos+1);
+                std::string value = line.substr(pos + 1);
                 boost::trim_all(key); // remove leading and trailing spaces
                 boost::trim_all(value);
                 out[key] = value;
@@ -181,6 +221,7 @@ static std::map<std::string, std::string> parse_lscpu_etc(const std::string& nam
     }
     return out;
 }
+#endif
 
 
 
@@ -248,13 +289,16 @@ static std::string generate_system_info_json()
     // Now get some CPU info:
     pt::ptree cpu_node;
 #ifdef _WIN32
-
+    std::map<std::string, std::string> cpu_info = get_cpu_info_from_registry();
+    cpu_node.put("Cores",  cpu_info["Cores"]);
+    cpu_node.put("Model",  cpu_info["Model"]);
+    cpu_node.put("Vendor", cpu_info["Vendor"]);
 #elif __APPLE__
      std::map<std::string, std::string> sysctl = parse_lscpu_etc("sysctl -a", ':');
-     cpu_node.put("CPU(s)",     sysctl["machdep.cpu.core_count"]);
-     cpu_node.put("CPU_Model",  sysctl["machdep.cpu.brand_string"]);
-     cpu_node.put("CPU_Vendor", sysctl["machdep.cpu.vendor"]);
-#else
+     cpu_node.put("Cores",  sysctl["machdep.cpu.core_count"]);
+     cpu_node.put("Model",  sysctl["machdep.cpu.brand_string"]);
+     cpu_node.put("Vendor", sysctl["machdep.cpu.vendor"]);
+#else // linux/BSD
     std::map<std::string, std::string> lscpu = parse_lscpu_etc("lscpu", ':');
     cpu_node.put("Arch",   lscpu["Architecture"]);
     cpu_node.put("Cores",  lscpu["CPU(s)"]);
