@@ -1,9 +1,11 @@
 #ifndef slic3r_GUI_Selection_hpp_
 #define slic3r_GUI_Selection_hpp_
 
-#include <set>
 #include "libslic3r/Geometry.hpp"
 #include "GLModel.hpp"
+
+#include <set>
+#include <optional>
 
 namespace Slic3r {
 
@@ -203,14 +205,11 @@ private:
     IndicesList m_list;
     Cache m_cache;
     Clipboard m_clipboard;
-    BoundingBoxf3 m_bounding_box;
-    bool m_bounding_box_dirty;
+    std::optional<BoundingBoxf3> m_bounding_box;
     // Bounding box of a selection, with no instance scaling applied. This bounding box
     // is useful for absolute scaling of tilted objects in world coordinate space.
-    BoundingBoxf3 m_unscaled_instance_bounding_box;
-    bool m_unscaled_instance_bounding_box_dirty;
-    BoundingBoxf3 m_scaled_instance_bounding_box;
-    bool m_scaled_instance_bounding_box_dirty;
+    std::optional<BoundingBoxf3> m_unscaled_instance_bounding_box;
+    std::optional<BoundingBoxf3> m_scaled_instance_bounding_box;
 
 #if ENABLE_RENDER_SELECTION_CENTER
     GLModel m_vbo_sphere;
@@ -359,10 +358,7 @@ private:
     void do_remove_volume(unsigned int volume_idx);
     void do_remove_instance(unsigned int object_idx, unsigned int instance_idx);
     void do_remove_object(unsigned int object_idx);
-    void calc_bounding_box() const;
-    void calc_unscaled_instance_bounding_box() const;
-    void calc_scaled_instance_bounding_box() const;
-    void set_bounding_boxes_dirty() { m_bounding_box_dirty = true; m_unscaled_instance_bounding_box_dirty = true; m_scaled_instance_bounding_box_dirty = true; }
+    void set_bounding_boxes_dirty() { m_bounding_box.reset(); m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset(); }
     void render_selected_volumes() const;
     void render_synchronized_volumes() const;
     void render_bounding_box(const BoundingBoxf3& box, float* color) const;
@@ -375,10 +371,8 @@ public:
     enum SyncRotationType {
         // Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
         SYNC_ROTATION_NONE = 0,
-        // Synchronize fully. Used from "place on bed" feature.
-        SYNC_ROTATION_FULL = 1,
         // Synchronize after rotation by an axis not parallel with Z.
-        SYNC_ROTATION_GENERAL = 2,
+        SYNC_ROTATION_GENERAL = 1,
     };
     void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
     void synchronize_unselected_volumes();
