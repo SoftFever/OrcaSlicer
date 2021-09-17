@@ -620,24 +620,54 @@ const GLVolume* Selection::get_volume(unsigned int volume_idx) const
 
 const BoundingBoxf3& Selection::get_bounding_box() const
 {
-    if (m_bounding_box_dirty)
-        calc_bounding_box();
-
-    return m_bounding_box;
+    if (!m_bounding_box.has_value()) {
+        std::optional<BoundingBoxf3>* bbox = const_cast<std::optional<BoundingBoxf3>*>(&m_bounding_box);
+        *bbox = BoundingBoxf3();
+        if (m_valid) {
+            for (unsigned int i : m_list) {
+                (*bbox)->merge((*m_volumes)[i]->transformed_convex_hull_bounding_box());
+            }
+        }
+    }
+    return *m_bounding_box;
 }
 
 const BoundingBoxf3& Selection::get_unscaled_instance_bounding_box() const
 {
-    if (m_unscaled_instance_bounding_box_dirty)
-        calc_unscaled_instance_bounding_box();
-    return m_unscaled_instance_bounding_box;
+    if (!m_unscaled_instance_bounding_box.has_value()) {
+        std::optional<BoundingBoxf3>* bbox = const_cast<std::optional<BoundingBoxf3>*>(&m_unscaled_instance_bounding_box);
+        *bbox = BoundingBoxf3();
+        if (m_valid) {
+            for (unsigned int i : m_list) {
+                const GLVolume& volume = *(*m_volumes)[i];
+                if (volume.is_modifier)
+                    continue;
+                Transform3d trafo = volume.get_instance_transformation().get_matrix(false, false, true, false) * volume.get_volume_transformation().get_matrix();
+                trafo.translation().z() += volume.get_sla_shift_z();
+                (*bbox)->merge(volume.transformed_convex_hull_bounding_box(trafo));
+            }
+        }
+    }
+    return *m_unscaled_instance_bounding_box;
 }
 
 const BoundingBoxf3& Selection::get_scaled_instance_bounding_box() const
 {
-    if (m_scaled_instance_bounding_box_dirty)
-        calc_scaled_instance_bounding_box();
-    return m_scaled_instance_bounding_box;
+    if (!m_scaled_instance_bounding_box.has_value()) {
+        std::optional<BoundingBoxf3>* bbox = const_cast<std::optional<BoundingBoxf3>*>(&m_scaled_instance_bounding_box);
+        *bbox = BoundingBoxf3();
+        if (m_valid) {
+            for (unsigned int i : m_list) {
+                const GLVolume& volume = *(*m_volumes)[i];
+                if (volume.is_modifier)
+                    continue;
+                Transform3d trafo = volume.get_instance_transformation().get_matrix(false, false, false, false) * volume.get_volume_transformation().get_matrix();
+                trafo.translation().z() += volume.get_sla_shift_z();
+                (*bbox)->merge(volume.transformed_convex_hull_bounding_box(trafo));
+            }
+        }
+    }
+    return *m_scaled_instance_bounding_box;
 }
 
 void Selection::start_dragging()
@@ -1690,52 +1720,6 @@ void Selection::do_remove_object(unsigned int object_idx)
         if (v->object_idx() == (int)object_idx)
             do_remove_volume(i);
     }
-}
-
-void Selection::calc_bounding_box() const
-{
-    BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
-    *bounding_box = BoundingBoxf3();
-    if (m_valid) {
-        for (unsigned int i : m_list) {
-            bounding_box->merge((*m_volumes)[i]->transformed_convex_hull_bounding_box());
-        }
-    }
-    *const_cast<bool*>(&m_bounding_box_dirty) = false;
-}
-
-void Selection::calc_unscaled_instance_bounding_box() const
-{
-    BoundingBoxf3* unscaled_instance_bounding_box = const_cast<BoundingBoxf3*>(&m_unscaled_instance_bounding_box);
-    *unscaled_instance_bounding_box = BoundingBoxf3();
-    if (m_valid) {
-        for (unsigned int i : m_list) {
-            const GLVolume& volume = *(*m_volumes)[i];
-            if (volume.is_modifier)
-                continue;
-            Transform3d trafo = volume.get_instance_transformation().get_matrix(false, false, true, false) * volume.get_volume_transformation().get_matrix();
-            trafo.translation().z() += volume.get_sla_shift_z();
-            unscaled_instance_bounding_box->merge(volume.transformed_convex_hull_bounding_box(trafo));
-        }
-    }
-    *const_cast<bool*>(&m_unscaled_instance_bounding_box_dirty) = false;
-}
-
-void Selection::calc_scaled_instance_bounding_box() const
-{
-    BoundingBoxf3* scaled_instance_bounding_box = const_cast<BoundingBoxf3*>(&m_scaled_instance_bounding_box);
-    *scaled_instance_bounding_box = BoundingBoxf3();
-    if (m_valid) {
-        for (unsigned int i : m_list) {
-            const GLVolume& volume = *(*m_volumes)[i];
-            if (volume.is_modifier)
-                continue;
-            Transform3d trafo = volume.get_instance_transformation().get_matrix(false, false, false, false) * volume.get_volume_transformation().get_matrix();
-            trafo.translation().z() += volume.get_sla_shift_z();
-            scaled_instance_bounding_box->merge(volume.transformed_convex_hull_bounding_box(trafo));
-        }
-    }
-    *const_cast<bool*>(&m_scaled_instance_bounding_box_dirty) = false;
 }
 
 void Selection::render_selected_volumes() const
