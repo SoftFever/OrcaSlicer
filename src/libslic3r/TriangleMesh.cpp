@@ -577,23 +577,24 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
 #if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
 BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafo, double world_min_z) const
 {
-    assert(!its.vertices.empty());
-
     BoundingBoxf3 bbox;
-    // add vertices above the cut
-    for (const stl_vertex& v : its.vertices) {
-        const Vec3d world_v = trafo * v.cast<double>();
-        if (world_v.z() > world_min_z)
-            bbox.merge(world_v);
+    const Transform3f ftrafo = trafo.cast<float>();
+    for (const stl_triangle_vertex_indices& tri : its.indices) {
+        const Vec3f pts[3] = { ftrafo * its.vertices[tri(0)], ftrafo * its.vertices[tri(1)], ftrafo * its.vertices[tri(2)] };
+        int iprev = 2;
+        for (int iedge = 0; iedge < 3; ++iedge) {
+            const Vec3f& p1 = pts[iprev];
+            const Vec3f& p2 = pts[iedge];
+            if ((p1.z() < world_min_z && p2.z() > world_min_z) || (p2.z() < world_min_z && p1.z() > world_min_z)) {
+                // Edge crosses the z plane. Calculate intersection point with the plane.
+                const float t = (world_min_z - p1.z()) / (p2.z() - p1.z());
+                bbox.merge(Vec3f(p1.x() + (p2.x() - p1.x()) * t, p1.y() + (p2.y() - p1.y()) * t, world_min_z).cast<double>());
+            }
+            if (p2.z() >= world_min_z)
+                bbox.merge(p2.cast<double>());
+            iprev = iedge;
+        }
     }
-
-    // add new vertices along the cut
-    Points all_pts;
-    its_collect_mesh_projection_points_above(its, trafo.cast<float>(), static_cast<float>(world_min_z), all_pts);
-    for (const Point& p : all_pts) {
-        bbox.merge(unscale(p.x(), p.y(), world_min_z));
-    }
-
     return bbox;
 }
 #endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
