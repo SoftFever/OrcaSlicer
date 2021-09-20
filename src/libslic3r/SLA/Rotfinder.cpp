@@ -205,7 +205,6 @@ inline bool is_on_floor(const SLAPrintObjectConfig &cfg)
 std::vector<XYRotation> get_chull_rotations(const TriangleMesh &mesh, size_t max_count)
 {
     TriangleMesh chull = mesh.convex_hull_3d();
-    chull.require_shared_vertices();
     double chull2d_area = chull.convex_hull().area();
     double area_threshold = chull2d_area / (scaled<double>(1e3) * scaled(1.));
 
@@ -299,7 +298,6 @@ struct RotfinderBoilerplate {
     static TriangleMesh get_mesh_to_rotate(const ModelObject &mo)
     {
         TriangleMesh mesh = mo.raw_mesh();
-        mesh.require_shared_vertices();
 
         ModelInstance *mi = mo.instances[0];
         auto rotation = Vec3d::Zero();
@@ -437,7 +435,6 @@ Vec2d find_min_z_height_rotation(const ModelObject &mo,
     RotfinderBoilerplate<1000> bp{mo, params};
 
     TriangleMesh chull = bp.mesh.convex_hull_3d();
-    chull.require_shared_vertices();
     auto inputs = reserve_vector<XYRotation>(chull.its.indices.size());
     auto rotcmp = [](const XYRotation &r1, const XYRotation &r2) {
         double xdiff = r1[X] - r2[X], ydiff = r1[Y] - r2[Y];

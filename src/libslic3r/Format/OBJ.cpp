@@ -19,7 +19,8 @@ namespace Slic3r {
 
 bool load_obj(const char *path, TriangleMesh *meshptr)
 {
-    if(meshptr == nullptr) return false;
+    if (meshptr == nullptr)
+        return false;
     
     // Parse the OBJ file.
     ObjParser::ObjData data;
@@ -31,84 +32,69 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
     // Count the faces and verify, that all faces are triangular.
     size_t num_faces = 0;
     size_t num_quads = 0;
-    for (size_t i = 0; i < data.vertices.size(); ) {
+    for (size_t i = 0; i < data.vertices.size(); ++ i) {
+        // Find the end of face.
         size_t j = i;
         for (; j < data.vertices.size() && data.vertices[j].coordIdx != -1; ++ j) ;
-        if (i == j)
-            continue;
-        size_t face_vertices = j - i;
-        if (face_vertices != 3 && face_vertices != 4) {
-            // Non-triangular and non-quad faces are not supported as of now.
-            return false;
+        if (size_t num_face_vertices = j - i; num_face_vertices > 0) {
+            if (num_face_vertices > 4) {
+                // Non-triangular and non-quad faces are not supported as of now.
+                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains polygons with more than 4 vertices.";
+                return false;
+            } else if (num_face_vertices < 3) {
+                // Non-triangular and non-quad faces are not supported as of now.
+                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains polygons with less than 2 vertices.";
+                return false;
+            }
+            if (num_face_vertices == 4)
+                ++ num_quads;
+            ++ num_faces;
+            i = j;
         }
-        if (face_vertices == 4)
-            ++ num_quads;
-        ++ num_faces;
-        i = j + 1;
     }
     
-    // Convert ObjData into STL.
-    TriangleMesh &mesh = *meshptr;
-    stl_file &stl = mesh.stl;
-    stl.stats.type = inmemory;
-    stl.stats.number_of_facets = uint32_t(num_faces + num_quads);
-    stl.stats.original_num_facets = int(num_faces + num_quads);
-    // stl_allocate clears all the allocated data to zero, all normals are set to zeros as well.
-    stl_allocate(&stl);
-    size_t i_face = 0;
-    for (size_t i = 0; i < data.vertices.size(); ++ i) {
-        if (data.vertices[i].coordIdx == -1)
-            continue;
-        stl_facet &facet = stl.facet_start[i_face ++];
-        size_t     num_normals = 0;
-        stl_normal normal(stl_normal::Zero());
-        for (unsigned int v = 0; v < 3; ++ v) {
-            const ObjParser::ObjVertex &vertex = data.vertices[i++];
-            memcpy(facet.vertex[v].data(), &data.coordinates[vertex.coordIdx*4], 3 * sizeof(float));
-            if (vertex.normalIdx != -1) {
-                normal(0) += data.normals[vertex.normalIdx*3];
-                normal(1) += data.normals[vertex.normalIdx*3+1];
-                normal(2) += data.normals[vertex.normalIdx*3+2];
-                ++ num_normals;
-            }
-        }
-        // Result of obj_parseline() call is not checked, thus not all vertices are necessarily finalized with coord_Idx == -1.
-        if (i < data.vertices.size() && data.vertices[i].coordIdx != -1) {
-            // This is a quad. Produce the other triangle.
-            stl_facet &facet2 = stl.facet_start[i_face++];
-            facet2.vertex[0] = facet.vertex[0];
-            facet2.vertex[1] = facet.vertex[2];
-            const ObjParser::ObjVertex &vertex = data.vertices[i++];
-            memcpy(facet2.vertex[2].data(), &data.coordinates[vertex.coordIdx * 4], 3 * sizeof(float));
-            if (vertex.normalIdx != -1) {
-                normal(0) += data.normals[vertex.normalIdx*3];
-                normal(1) += data.normals[vertex.normalIdx*3+1];
-                normal(2) += data.normals[vertex.normalIdx*3+2];
-                ++ num_normals;
-            }
-            if (num_normals == 4) {
-                // Normalize an average normal of a quad.
-                float len = facet.normal.norm();
-                if (len > EPSILON) {
-                    normal /= len;
-                    facet.normal = normal;
-                    facet2.normal = normal;
-                }
-            }
-        } else if (num_normals == 3) {
-            // Normalize an average normal of a triangle.
-            float len = facet.normal.norm();
-            if (len > EPSILON)
-                facet.normal = normal / len;
-        }
+    // Convert ObjData into indexed triangle set.
+    indexed_triangle_set its;
+    size_t num_vertices = data.coordinates.size() / 4;
+    its.vertices.reserve(num_vertices);
+    its.indices.reserve(num_faces + num_quads);
+    for (size_t i = 0; i < num_vertices; ++ i) {
+        size_t j = i << 2;
+        its.vertices.emplace_back(data.coordinates[j], data.coordinates[j + 1], data.coordinates[j + 2]);
     }
-    stl_get_size(&stl);
-    mesh.repair();
-    if (mesh.facets_count() == 0) {
+    int indices[4];
+    for (size_t i = 0; i < data.vertices.size();)
+        if (data.vertices[i].coordIdx == -1)
+            ++ i;
+        else {
+            int cnt = 0;
+            while (i < data.vertices.size())
+                if (const ObjParser::ObjVertex &vertex = data.vertices[i ++]; vertex.coordIdx == -1) {
+                    break;
+                } else {
+                    assert(cnt < 4);
+                    if (vertex.coordIdx < 0 || vertex.coordIdx >= its.vertices.size()) {
+                        BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains invalid vertex index.";
+                        return false;
+                    }
+                    indices[cnt ++] = vertex.coordIdx;
+                }
+            if (cnt) {
+                assert(cnt == 3 || cnt == 4);
+                // Insert one or two faces (triangulate a quad).
+                its.indices.emplace_back(indices[0], indices[1], indices[2]);
+                if (cnt == 4)
+                    its.indices.emplace_back(indices[0], indices[2], indices[3]);
+            }
+        }
+
+    *meshptr = TriangleMesh(std::move(its));
+    if (meshptr->empty()) {
         BOOST_LOG_TRIVIAL(error) << "load_obj: This OBJ file couldn't be read because it's empty. " << path;
         return false;
     }
-    
+    if (meshptr->volume() < 0)
+        meshptr->flip_triangles();
     return true;
 }
 

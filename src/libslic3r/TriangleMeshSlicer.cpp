@@ -1967,7 +1967,8 @@ static void triangulate_slice(
     int                      num_original_vertices,
     // Z height of the slice.
     float                    z, 
-    bool                     triangulate)
+    bool                     triangulate, 
+    bool                     normals_down)
 {
     sort_remove_duplicates(slice_vertices);
 
@@ -2013,7 +2014,7 @@ static void triangulate_slice(
 
     if (triangulate) {
         size_t idx_vertex_new_first = its.vertices.size();
-        Pointf3s triangles = triangulate_expolygons_3d(make_expolygons_simple(lines), z, true);
+        Pointf3s triangles = triangulate_expolygons_3d(make_expolygons_simple(lines), z, normals_down);
         for (size_t i = 0; i < triangles.size(); ) {
             stl_triangle_vertex_indices facet;
             for (size_t j = 0; j < 3; ++ j) {
@@ -2047,6 +2048,33 @@ static void triangulate_slice(
 
     // Degenerate faces should not be created.
     // its_remove_degenerate_faces(its);
+}
+
+void project_mesh(
+    const indexed_triangle_set       &mesh,
+    const Transform3d                &trafo,
+    Polygons                         *out_top,
+    Polygons                         *out_bottom,
+    std::function<void()>             throw_on_cancel)
+{
+    std::vector<Polygons> top, bottom;
+    std::vector<float>    zs { -1e10, 1e10 };
+    slice_mesh_slabs(mesh, zs, trafo, out_top ? &top : nullptr, out_bottom ? &bottom : nullptr, throw_on_cancel);
+    if (out_top)
+        *out_top = std::move(top.front());
+    if (out_bottom)
+        *out_bottom = std::move(bottom.back());
+}
+
+Polygons project_mesh(
+    const indexed_triangle_set       &mesh,
+    const Transform3d                &trafo,
+    std::function<void()>             throw_on_cancel)
+{
+    std::vector<Polygons> top, bottom;
+    std::vector<float>    zs { -1e10, 1e10 };
+    slice_mesh_slabs(mesh, zs, trafo, &top, &bottom, throw_on_cancel);
+    return union_(top.front(), bottom.back());
 }
 
 void cut_mesh(const indexed_triangle_set &mesh, float z, indexed_triangle_set *upper, indexed_triangle_set *lower, bool triangulate_caps)
@@ -2196,10 +2224,10 @@ void cut_mesh(const indexed_triangle_set &mesh, float z, indexed_triangle_set *u
     }
     
     if (upper != nullptr)
-        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps);
+        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_DOWN);
 
     if (lower != nullptr)
-        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps);
+        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_UP);
 }
 
 }

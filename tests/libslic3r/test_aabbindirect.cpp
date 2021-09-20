@@ -9,7 +9,6 @@ using namespace Slic3r;
 TEST_CASE("Building a tree over a box, ray caster and closest query", "[AABBIndirect]")
 {
     TriangleMesh tmesh = make_cube(1., 1., 1.);
-    tmesh.repair();
 
     auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(tmesh.its.vertices, tmesh.its.indices);
     REQUIRE(! tree.empty());

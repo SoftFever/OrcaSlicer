@@ -91,11 +91,9 @@ void MeshClipper::recalculate_triangles()
     MeshSlicingParams slicing_params;
     slicing_params.trafo.rotate(Eigen::Quaternion<double, Eigen::DontAlign>::FromTwoVectors(up, Vec3d::UnitZ()));
 
-    assert(m_mesh->has_shared_vertices());
     ExPolygons expolys = union_ex(slice_mesh(m_mesh->its, height_mesh, slicing_params));
 
     if (m_negative_mesh && !m_negative_mesh->empty()) {
-        assert(m_negative_mesh->has_shared_vertices());
         ExPolygons neg_expolys = union_ex(slice_mesh(m_negative_mesh->its, height_mesh, slicing_params));
         expolys = diff_ex(expolys, neg_expolys);
     }

@@ -24,7 +24,6 @@ int main(const int argc, const char * argv[])
     TriangleMesh input;
     
     input.ReadSTLFile(argv[1]);
-    input.repair();
     
     Benchmark bench;
     

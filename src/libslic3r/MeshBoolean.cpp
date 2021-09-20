@@ -29,18 +29,17 @@ TriangleMesh eigen_to_triangle_mesh(const EigenMesh &emesh)
 {
     auto &VC = emesh.first; auto &FC = emesh.second;
     
-    Pointf3s points(size_t(VC.rows())); 
-    std::vector<Vec3i> facets(size_t(FC.rows()));
+    indexed_triangle_set its;
+    its.vertices.reserve(size_t(VC.rows()));
+    its.indices.reserve(size_t(FC.rows()));
     
     for (Eigen::Index i = 0; i < VC.rows(); ++i)
-        points[size_t(i)] = VC.row(i);
+        its.vertices.emplace_back(VC.row(i).cast<float>());
     
     for (Eigen::Index i = 0; i < FC.rows(); ++i)
-        facets[size_t(i)] = FC.row(i);
+        its.indices.emplace_back(FC.row(i));
     
-    TriangleMesh out{points, facets};
-    out.require_shared_vertices();
-    return out;
+    return TriangleMesh { std::move(its) };
 }
 
 EigenMesh triangle_mesh_to_eigen(const TriangleMesh &mesh)
@@ -131,28 +130,27 @@ void triangle_mesh_to_cgal(const std::vector<stl_vertex> &                 V,
         out.add_face(VI(f(0)), VI(f(1)), VI(f(2)));
 }
 
-inline Vec3d to_vec3d(const _EpicMesh::Point &v)
+inline Vec3f to_vec3f(const _EpicMesh::Point& v)
 {
-    return {v.x(), v.y(), v.z()};
+    return { float(v.x()), float(v.y()), float(v.z()) };
 }
 
-inline Vec3d to_vec3d(const _EpecMesh::Point &v)
+inline Vec3f to_vec3f(const _EpecMesh::Point& v)
 {
     CGAL::Cartesian_converter<EpecKernel, EpicKernel> cvt;
     auto iv = cvt(v);
-    return {iv.x(), iv.y(), iv.z()};
+    return { float(iv.x()), float(iv.y()), float(iv.z()) };
 }
 
 template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
 {
-    Pointf3s points;
-    std::vector<Vec3i> facets;
-    points.reserve(cgalmesh.num_vertices());
-    facets.reserve(cgalmesh.num_faces());
+    indexed_triangle_set its;
+    its.vertices.reserve(cgalmesh.num_vertices());
+    its.indices.reserve(cgalmesh.num_faces());
     
     for (auto &vi : cgalmesh.vertices()) {
         auto &v = cgalmesh.point(vi); // Don't ask...
-        points.emplace_back(to_vec3d(v));
+        its.vertices.emplace_back(to_vec3f(v));
     }
     
     for (auto &face : cgalmesh.faces()) {
@@ -166,12 +164,10 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
         }
 
         if (i == 3)
-            facets.emplace_back(facet);
+            its.indices.emplace_back(facet);
     }
     
-    TriangleMesh out{points, facets};
-    out.repair();
-    return out;
+    return TriangleMesh(std::move(its));
 }
 
 std::unique_ptr<CGALMesh, CGALMeshDeleter>

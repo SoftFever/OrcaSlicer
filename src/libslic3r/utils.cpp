@@ -906,6 +906,7 @@ unsigned get_current_pid()
 #endif
 }
 
+//FIXME this has potentially O(n^2) time complexity!
 std::string xml_escape(std::string text, bool is_marked/* = false*/)
 {
     std::string::size_type pos = 0;

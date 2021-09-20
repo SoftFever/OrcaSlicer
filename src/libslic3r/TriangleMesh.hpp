@@ -15,25 +15,79 @@ namespace Slic3r {
 
 class TriangleMesh;
 class TriangleMeshSlicer;
-typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
+
+struct TriangleMeshStats {
+    // Mesh metrics.
+    uint32_t      number_of_facets          = 0;
+    stl_vertex    max                       = stl_vertex::Zero();
+    stl_vertex    min                       = stl_vertex::Zero();
+    stl_vertex    size                      = stl_vertex::Zero();
+    float         volume                    = -1.f;
+    int           number_of_parts           = 0;
+
+    // Mesh errors, remaining.
+    int           open_edges                = 0;
+
+    // Mesh errors, fixed.
+    // How many edges were united by merging their end points with some other end points in epsilon neighborhood?
+    int           edges_fixed               = 0;
+    // How many degenerate faces were removed?
+    int           degenerate_facets         = 0;
+    // How many faces were removed during fixing? Includes degenerate_faces and disconnected faces.
+    int           facets_removed            = 0;
+    // New faces could only be created with stl_fill_holes() and we ditched stl_fill_holes(), because mostly it does more harm than good.
+    //int          facets_added             = 0;
+    // How many facets were revesed? Faces are reversed by admesh while it connects patches of triangles togeter and a flipped triangle is encountered.
+    // Also the facets are reversed when a negative volume is corrected by flipping all facets.
+    int           facets_reversed           = 0;
+    // Edges shared by two triangles, oriented incorrectly.
+    int           backwards_edges           = 0;
+
+    void clear() { *this = TriangleMeshStats(); }
+
+    TriangleMeshStats merge(const TriangleMeshStats &rhs) const {
+      if (this->number_of_facets == 0)
+        return rhs;
+      else if (rhs.number_of_facets == 0)
+        return *this;
+      else {
+        TriangleMeshStats out;
+        out.number_of_facets        = this->number_of_facets + rhs.number_of_facets;
+        out.min                     = this->min.cwiseMin(rhs.min);
+        out.max                     = this->max.cwiseMax(rhs.max);
+        out.size                    = out.max - out.min;
+        out.number_of_parts         = this->number_of_parts     + rhs.number_of_parts;
+        out.open_edges              = this->open_edges          + rhs.open_edges;
+        out.volume                  = this->volume              + rhs.volume;
+        out.edges_fixed             = this->edges_fixed         + rhs.edges_fixed;
+        out.degenerate_facets       = this->degenerate_facets   + rhs.degenerate_facets;
+        out.facets_removed          = this->facets_removed      + rhs.facets_removed;
+        out.facets_reversed         = this->facets_reversed     + rhs.facets_reversed;
+        out.backwards_edges         = this->backwards_edges     + rhs.backwards_edges;
+        return out;
+      }
+    }
+
+    bool manifold() const { return open_edges == 0; }
+    bool repaired() const { return degenerate_facets > 0 || edges_fixed > 0 || facets_removed > 0 || facets_reversed > 0 || backwards_edges > 0; }
+};
 
 class TriangleMesh
 {
 public:
-    TriangleMesh() : repaired(false) {}
-    TriangleMesh(const Pointf3s &points, const std::vector<Vec3i> &facets);
+    TriangleMesh() = default;
+    TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces);
+    TriangleMesh(std::vector<Vec3f> &&vertices, const std::vector<Vec3i> &&faces);
     explicit TriangleMesh(const indexed_triangle_set &M);
-    void clear() { this->stl.clear(); this->its.clear(); this->repaired = false; }
-    bool ReadSTLFile(const char* input_file) { return stl_open(&stl, input_file); }
-    bool write_ascii(const char* output_file) { return stl_write_ascii(&this->stl, output_file, ""); }
-    bool write_binary(const char* output_file) { return stl_write_binary(&this->stl, output_file, ""); }
-    void repair(bool update_shared_vertices = true);
+    explicit TriangleMesh(indexed_triangle_set &&M);
+    void clear() { this->its.clear(); this->m_stats.clear(); }
+    bool ReadSTLFile(const char* input_file, bool repair = true);
+    bool write_ascii(const char* output_file);
+    bool write_binary(const char* output_file);
     float volume();
-    void check_topology();
-    bool is_manifold() const { return this->stl.stats.connected_facets_3_edge == (int)this->stl.stats.number_of_facets; }
     void WriteOBJFile(const char* output_file) const;
     void scale(float factor);
-    void scale(const Vec3d &versor);
+    void scale(const Vec3f &versor);
     void translate(float x, float y, float z);
     void translate(const Vec3f &displacement);
     void rotate(float angle, const Axis &axis);
@@ -41,15 +95,17 @@ public:
     void rotate_x(float angle) { this->rotate(angle, X); }
     void rotate_y(float angle) { this->rotate(angle, Y); }
     void rotate_z(float angle) { this->rotate(angle, Z); }
-    void mirror(const Axis &axis);
+    void mirror(const Axis axis);
     void mirror_x() { this->mirror(X); }
     void mirror_y() { this->mirror(Y); }
     void mirror_z() { this->mirror(Z); }
     void transform(const Transform3d& t, bool fix_left_handed = false);
     void transform(const Matrix3d& t, bool fix_left_handed = false);
+    // Flip triangles, negate volume.
+    void flip_triangles();
     void align_to_origin();
     void rotate(double angle, Point* center);
-    TriangleMeshPtrs split() const;
+    std::vector<TriangleMesh> split() const;
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
     // 2D convex hull of a 3D mesh projected into the Z=0 plane.
@@ -58,37 +114,33 @@ public:
     // Returns the bbox of this TriangleMesh transformed by the given transformation
     BoundingBoxf3 transformed_bounding_box(const Transform3d &trafo) const;
     // Return the size of the mesh in coordinates.
-    Vec3d size() const { return stl.stats.size.cast<double>(); }
+    Vec3d size() const { return m_stats.size.cast<double>(); }
     /// Return the center of the related bounding box.
     Vec3d center() const { return this->bounding_box().center(); }
     // Returns the convex hull of this TriangleMesh
     TriangleMesh convex_hull_3d() const;
     // Slice this mesh at the provided Z levels and return the vector
     std::vector<ExPolygons> slice(const std::vector<double>& z) const;
-    void reset_repair_stats();
-    bool needed_repair() const;
-    void require_shared_vertices();
-    bool   has_shared_vertices() const { return ! this->its.vertices.empty(); }
-    size_t facets_count() const { return this->stl.stats.number_of_facets; }
+    size_t facets_count() const { assert(m_stats.number_of_facets == this->its.indices.size()); return m_stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
-    bool is_splittable() const;
+    bool   repaired() const;
+    bool   is_splittable() const;
     // Estimate of the memory occupied by this structure, important for keeping an eye on the Undo / Redo stack allocation.
     size_t memsize() const;
-    // Release optional data from the mesh if the object is on the Undo / Redo stack only. Returns the amount of memory released.
-    size_t release_optional();
-    // Restore optional data possibly released by release_optional().
-    void restore_optional();
 
-    const stl_stats& stats() const { return this->stl.stats; }
+    // Used by the Undo / Redo stack, legacy interface. As of now there is nothing cached at TriangleMesh,
+    // but we may decide to cache some data in the future (for example normals), thus we keep the interface in place.
+    // Release optional data from the mesh if the object is on the Undo / Redo stack only. Returns the amount of memory released.
+    size_t release_optional() { return 0; }
+    // Restore optional data possibly released by release_optional().
+    void   restore_optional() {}
+
+    const TriangleMeshStats& stats() const { return m_stats; }
     
     indexed_triangle_set its;
-    bool repaired;
-
-//private:
-    stl_file stl;
 
 private:
-    std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
+    TriangleMeshStats m_stats;
 };
 
 // Index of face indices incident with a vertex index.
@@ -148,8 +200,18 @@ bool its_store_triangle(const indexed_triangle_set &its, const char *obj_filenam
 bool its_store_triangles(const indexed_triangle_set &its, const char *obj_filename, const std::vector<size_t>& triangles);
 
 std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its);
+std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its, std::vector<Vec3i> &face_neighbors);
 
+// Number of disconnected patches (faces are connected if they share an edge, shared edge defined with 2 shared vertex indices).
+bool its_number_of_patches(const indexed_triangle_set &its);
+bool its_number_of_patches(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors);
+// Same as its_number_of_patches(its) > 1, but faster.
 bool its_is_splittable(const indexed_triangle_set &its);
+bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors);
+
+// Calculate number of unconnected face edges. There should be no unconnected edge in a manifold mesh.
+size_t its_num_open_edges(const indexed_triangle_set &its);
+size_t its_num_open_edges(const std::vector<Vec3i> &face_neighbors);
 
 // Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
 void its_shrink_to_fit(indexed_triangle_set &its);
@@ -217,13 +279,23 @@ inline Vec3f its_face_normal(const indexed_triangle_set &its, const int face_idx
     { return its_face_normal(its, its.indices[face_idx]); }
 
 indexed_triangle_set    its_make_cube(double x, double y, double z);
-TriangleMesh            make_cube(double x, double y, double z);
+indexed_triangle_set    its_make_prism(float width, float length, float height);
 indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/360));
-TriangleMesh            make_cylinder(double r, double h, double fa=(2*PI/360));
 indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/360));
-TriangleMesh            make_cone(double r, double h, double fa=(2*PI/360));
+indexed_triangle_set    its_make_pyramid(float base, float height);
 indexed_triangle_set    its_make_sphere(double radius, double fa);
-TriangleMesh            make_sphere(double rho, double fa=(2*PI/360));
+
+inline TriangleMesh     make_cube(double x, double y, double z)                 { return TriangleMesh(its_make_cube(x, y, z)); }
+inline TriangleMesh     make_prism(float width, float length, float height)     { return TriangleMesh(its_make_prism(width, length, height)); }
+inline TriangleMesh     make_cylinder(double r, double h, double fa=(2*PI/360)) { return TriangleMesh{its_make_cylinder(r, h, fa)}; }
+inline TriangleMesh     make_cone(double r, double h, double fa=(2*PI/360))     { return TriangleMesh(its_make_cone(r, h, fa)); }
+inline TriangleMesh     make_pyramid(float base, float height)                  { return TriangleMesh(its_make_pyramid(base, height)); }
+inline TriangleMesh     make_sphere(double rho, double fa=(2*PI/360))           { return TriangleMesh(its_make_sphere(rho, fa)); }
+
+bool        its_write_stl_ascii(const char *file, const char *label, const std::vector<stl_triangle_vertex_indices> &indices, const std::vector<stl_vertex> &vertices);
+inline bool its_write_stl_ascii(const char *file, const char *label, const indexed_triangle_set &its) { return its_write_stl_ascii(file, label, its.indices, its.vertices); }
+bool        its_write_stl_binary(const char *file, const char *label, const std::vector<stl_triangle_vertex_indices> &indices, const std::vector<stl_vertex> &vertices);
+inline bool its_write_stl_binary(const char *file, const char *label, const indexed_triangle_set &its) { return its_write_stl_binary(file, label, its.indices, its.vertices); }
 
 inline BoundingBoxf3 bounding_box(const TriangleMesh &m) { return m.bounding_box(); }
 inline BoundingBoxf3 bounding_box(const indexed_triangle_set& its)
@@ -248,18 +320,12 @@ inline BoundingBoxf3 bounding_box(const indexed_triangle_set& its)
 namespace cereal {
     template <class Archive> struct specialize<Archive, Slic3r::TriangleMesh, cereal::specialization::non_member_load_save> {};
     template<class Archive> void load(Archive &archive, Slic3r::TriangleMesh &mesh) {
-        stl_file &stl = mesh.stl;
-        stl.stats.type = inmemory;
-        archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
-        stl_allocate(&stl);
-        archive.loadBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
-        stl_get_size(&stl);
-        mesh.repair();
+        archive.loadBinary(reinterpret_cast<char*>(const_cast<Slic3r::TriangleMeshStats*>(&mesh.stats())), sizeof(Slic3r::TriangleMeshStats));
+        archive(mesh.its.indices, mesh.its.vertices);
     }
     template<class Archive> void save(Archive &archive, const Slic3r::TriangleMesh &mesh) {
-        const stl_file& stl = mesh.stl;
-        archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
-        archive.saveBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+        archive.saveBinary(reinterpret_cast<const char*>(&mesh.stats()), sizeof(Slic3r::TriangleMeshStats));
+        archive(mesh.its.indices, mesh.its.vertices);
     }
 }
 

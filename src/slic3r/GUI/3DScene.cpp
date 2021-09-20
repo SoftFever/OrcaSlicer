@@ -313,7 +313,6 @@ void GLVolume::SinkingContours::update()
             m_shift = Vec3d::Zero();
 
             const TriangleMesh& mesh = model.objects[object_idx]->volumes[m_parent.volume_idx()]->mesh();
-            assert(mesh.has_shared_vertices());
 
             m_model.reset();
             GUI::GLModel::InitializationData init_data;
@@ -519,7 +518,7 @@ const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 
 BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &trafo) const
 {
-	return (m_convex_hull && m_convex_hull->facets_count() > 0) ?
+	return (m_convex_hull && ! m_convex_hull->empty()) ?
 		m_convex_hull->transformed_bounding_box(trafo) :
         bounding_box().transformed(trafo);
 }
@@ -719,21 +718,20 @@ int GLVolumeCollection::load_wipe_tower_preview(
         float min_width = 30.f;
         // We'll now create the box with jagged edge. y-coordinates of the pre-generated model
         // are shifted so that the front edge has y=0 and centerline of the back edge has y=depth:
-        Pointf3s points;
-        std::vector<Vec3i> facets;
         float out_points_idx[][3] = { { 0, -depth, 0 }, { 0, 0, 0 }, { 38.453f, 0, 0 }, { 61.547f, 0, 0 }, { 100.0f, 0, 0 }, { 100.0f, -depth, 0 }, { 55.7735f, -10.0f, 0 }, { 44.2265f, 10.0f, 0 },
         { 38.453f, 0, 1 }, { 0, 0, 1 }, { 0, -depth, 1 }, { 100.0f, -depth, 1 }, { 100.0f, 0, 1 }, { 61.547f, 0, 1 }, { 55.7735f, -10.0f, 1 }, { 44.2265f, 10.0f, 1 } };
-        int out_facets_idx[][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 5, 0 }, { 3, 5, 6 }, { 6, 2, 7 }, { 6, 0, 2 }, { 8, 9, 10 }, { 11, 12, 13 }, { 10, 11, 14 }, { 14, 11, 13 }, { 15, 8, 14 },
-                                   {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
-                                   {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11} };
+        static constexpr const int out_facets_idx[][3] = { 
+            { 0, 1, 2 }, { 3, 4, 5 }, { 6, 5, 0 }, { 3, 5, 6 }, { 6, 2, 7 }, { 6, 0, 2 }, { 8, 9, 10 }, { 11, 12, 13 }, { 10, 11, 14 }, { 14, 11, 13 }, { 15, 8, 14 },
+            { 8, 10, 14 }, { 3, 12, 4 }, { 3, 13, 12 }, { 6, 13, 3 }, { 6, 14, 13 }, { 7, 14, 6 }, { 7, 15, 14 }, { 2, 15, 7 }, { 2, 8, 15 }, { 1, 8, 2 }, { 1, 9, 8 },
+            { 0, 9, 1 }, { 0, 10, 9 }, { 5, 10, 0 }, { 5, 11, 10 }, { 4, 11, 5 }, { 4, 12, 11 } };
+        indexed_triangle_set its;
         for (int i = 0; i < 16; ++i)
-            points.emplace_back(out_points_idx[i][0] / (100.f / min_width),
-                                out_points_idx[i][1] + depth, out_points_idx[i][2]);
-        for (int i = 0; i < 28; ++i)
-            facets.emplace_back(out_facets_idx[i][0],
-                                out_facets_idx[i][1],
-                                out_facets_idx[i][2]);
-        TriangleMesh tooth_mesh(points, facets);
+            its.vertices.emplace_back(out_points_idx[i][0] / (100.f / min_width),
+                                      out_points_idx[i][1] + depth, out_points_idx[i][2]);
+        its.indices.reserve(28);
+        for (const int *face : out_facets_idx)
+            its.indices.emplace_back(face);
+        TriangleMesh tooth_mesh(std::move(its));
 
         // We have the mesh ready. It has one tooth and width of min_width. We will now
         // append several of these together until we are close to the required width
@@ -744,7 +742,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
             tooth_mesh.translate(min_width, 0.f, 0.f);
         }
 
-        mesh.scale(Vec3d(width / (n * min_width), 1.f, height)); // Scaling to proper width
+        mesh.scale(Vec3f(width / (n * min_width), 1.f, height)); // Scaling to proper width
     }
     else
         mesh = make_cube(width, depth, height);
@@ -753,7 +751,6 @@ int GLVolumeCollection::load_wipe_tower_preview(
     TriangleMesh brim_mesh = make_cube(width + 2.f * brim_width, depth + 2.f * brim_width, 0.2f);
     brim_mesh.translate(-brim_width, -brim_width, 0.f);
     mesh.merge(brim_mesh);
-    mesh.repair();
 
     volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *volumes.back();

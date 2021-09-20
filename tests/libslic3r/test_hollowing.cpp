@@ -13,7 +13,6 @@ TEST_CASE("Hollow two overlapping spheres") {
     sphere2.translate( 5.f, 0.f, 0.f);
 
     sphere1.merge(sphere2);
-    sphere1.require_shared_vertices();
 
     sla::hollow_mesh(sphere1, sla::HollowingConfig{}, sla::HollowingFlags::hfRemoveInsideTriangles);
 

@@ -212,8 +212,7 @@ int main(const int argc, const char *argv[])
         return -1;
     }
 
-    mesh.repair();
-    if (mesh.facets_count() == 0) {
+    if (mesh.empty()) {
         std::cerr << "Error loading " << argv[1] << " . It is empty." << std::endl;
         return -1;
     }

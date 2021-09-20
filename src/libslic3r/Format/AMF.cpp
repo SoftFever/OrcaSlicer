@@ -244,11 +244,11 @@ struct AMFParserContext
     // Map from obect name to object idx & instances.
     std::map<std::string, Object> m_object_instances_map;
     // Vertices parsed for the current m_object.
-    std::vector<float>       m_object_vertices;
+    std::vector<Vec3f>       m_object_vertices;
     // Current volume allocated for an amf/object/mesh/volume subtree.
     ModelVolume             *m_volume { nullptr };
     // Faces collected for the current m_volume.
-    std::vector<int>         m_volume_facets;
+    std::vector<Vec3i>       m_volume_facets;
     // Transformation matrix of a volume mesh from its coordinate system to Object's coordinate system.
     Transform3d 			 m_volume_transform;
     // Current material allocated for an amf/metadata subtree.
@@ -598,9 +598,7 @@ void AMFParserContext::endElement(const char * /* name */)
     case NODE_TYPE_VERTEX:
         assert(m_object);
         // Parse the vertex data
-        m_object_vertices.emplace_back((float)atof(m_value[0].c_str()));
-        m_object_vertices.emplace_back((float)atof(m_value[1].c_str()));
-        m_object_vertices.emplace_back((float)atof(m_value[2].c_str()));
+        m_object_vertices.emplace_back(float(atof(m_value[0].c_str())), float(atof(m_value[1].c_str())), float(atof(m_value[1].c_str())));
         m_value[0].clear();
         m_value[1].clear();
         m_value[2].clear();
@@ -609,9 +607,7 @@ void AMFParserContext::endElement(const char * /* name */)
     // Faces of the current volume:
     case NODE_TYPE_TRIANGLE:
         assert(m_object && m_volume);
-        m_volume_facets.emplace_back(atoi(m_value[0].c_str()));
-        m_volume_facets.emplace_back(atoi(m_value[1].c_str()));
-        m_volume_facets.emplace_back(atoi(m_value[2].c_str()));
+        m_volume_facets.emplace_back(atoi(m_value[0].c_str()), atoi(m_value[1].c_str()), atoi(m_value[2].c_str()));
         m_value[0].clear();
         m_value[1].clear();
         m_value[2].clear();
@@ -621,44 +617,36 @@ void AMFParserContext::endElement(const char * /* name */)
     case NODE_TYPE_VOLUME:
     {
 		assert(m_object && m_volume);
-		TriangleMesh  mesh;
-        stl_file	 &stl = mesh.stl;
-        stl.stats.type = inmemory;
-        stl.stats.number_of_facets = int(m_volume_facets.size() / 3);
-        stl.stats.original_num_facets = stl.stats.number_of_facets;
-        stl_allocate(&stl);
-
-        bool has_transform = ! m_volume_transform.isApprox(Transform3d::Identity(), 1e-10);
-        for (size_t i = 0; i < m_volume_facets.size();) {
-            stl_facet &facet = stl.facet_start[i/3];
-            for (unsigned int v = 0; v < 3; ++v)
-            {
-                unsigned int tri_id = m_volume_facets[i++] * 3;
-                if (tri_id < 0 || tri_id + 2 >= m_object_vertices.size()) {
+        // Verify validity of face indices.
+        for (Vec3i face : m_volume_facets)
+            for (unsigned int tri_id : face)
+                if (tri_id < 0 || tri_id >= m_object_vertices.size()) {
                     this->stop("Malformed triangle mesh");
                     return;
                 }
-                facet.vertex[v] = Vec3f(m_object_vertices[tri_id + 0], m_object_vertices[tri_id + 1], m_object_vertices[tri_id + 2]);
-            }
-        }        
-        stl_get_size(&stl);
-        mesh.repair();
-		m_volume->set_mesh(std::move(mesh));
-        // stores the volume matrix taken from the metadata, if present
-        if (has_transform)
-            m_volume->source.transform = Slic3r::Geometry::Transformation(m_volume_transform);
-        if (m_volume->source.input_file.empty() && (m_volume->type() == ModelVolumeType::MODEL_PART))
+
         {
+            TriangleMesh triangle_mesh { std::move(m_object_vertices), std::move(m_volume_facets) };
+            if (triangle_mesh.volume() < 0)
+                triangle_mesh.flip_triangles();
+            m_volume->set_mesh(std::move(triangle_mesh));
+        }
+
+        // stores the volume matrix taken from the metadata, if present
+        if (bool has_transform = !m_volume_transform.isApprox(Transform3d::Identity(), 1e-10); has_transform)
+            m_volume->source.transform = Slic3r::Geometry::Transformation(m_volume_transform);
+
+        if (m_volume->source.input_file.empty() && (m_volume->type() == ModelVolumeType::MODEL_PART)) {
             m_volume->source.object_idx = (int)m_model.objects.size() - 1;
             m_volume->source.volume_idx = (int)m_model.objects.back()->volumes.size() - 1;
             m_volume->center_geometry_after_creation();
-        }
-        else
+        } else
             // pass false if the mesh offset has been already taken from the data 
             m_volume->center_geometry_after_creation(m_volume->source.input_file.empty());
 
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
+        m_object_vertices.clear();
         m_volume = nullptr;
         break;
     }
@@ -1187,10 +1175,6 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
         int              num_vertices = 0;
         for (ModelVolume *volume : object->volumes) {
             vertices_offsets.push_back(num_vertices);
-            if (! volume->mesh().repaired)
-                throw Slic3r::FileIOError("store_amf() requires repair()");
-			if (! volume->mesh().has_shared_vertices())
-				throw Slic3r::FileIOError("store_amf() requires shared vertices");
             const indexed_triangle_set &its = volume->mesh().its;
             const Transform3d& matrix = volume->get_matrix();
             for (size_t i = 0; i < its.vertices.size(); ++i) {

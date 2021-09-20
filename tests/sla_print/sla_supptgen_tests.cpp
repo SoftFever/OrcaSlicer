@@ -13,7 +13,6 @@ TEST_CASE("Overhanging point should be supported", "[SupGen]") {
     // Pyramid with 45 deg slope
     TriangleMesh mesh = make_pyramid(10.f, 10.f);
     mesh.rotate_y(float(PI));
-    mesh.require_shared_vertices();
     mesh.WriteOBJFile("Pyramid.obj");
 
     sla::SupportPoints pts = calc_support_pts(mesh);
@@ -56,7 +55,6 @@ TEST_CASE("Overhanging horizontal surface should be supported", "[SupGen]") {
 
     TriangleMesh mesh = make_cube(width, depth, height);
     mesh.translate(0., 0., 5.); // lift up
-    mesh.require_shared_vertices();
     mesh.WriteOBJFile("Cuboid.obj");
 
     sla::SupportPointGenerator::Config cfg;
@@ -83,7 +81,6 @@ TEST_CASE("Overhanging edge should be supported", "[SupGen]") {
     TriangleMesh mesh = make_prism(width, depth, height);
     mesh.rotate_y(float(PI)); // rotate on its back
     mesh.translate(0., 0., height);
-    mesh.require_shared_vertices();
     mesh.WriteOBJFile("Prism.obj");
 
     sla::SupportPointGenerator::Config cfg;
@@ -115,7 +112,6 @@ TEST_CASE("Hollowed cube should be supported from the inside", "[SupGen][Hollowe
     auto h  = float(bb.max.z() - bb.min.z());
     Vec3f mv = bb.center().cast<float>() - Vec3f{0.f, 0.f, 0.5f * h};
     mesh.translate(-mv);
-    mesh.require_shared_vertices();
 
     sla::SupportPointGenerator::Config cfg;
     sla::SupportPoints pts = calc_support_pts(mesh, cfg);
@@ -132,7 +128,6 @@ TEST_CASE("Two parallel plates should be supported", "[SupGen][Hollowed]")
     TriangleMesh mesh_high = center_around_bb(make_cube(width, depth, height));
     mesh_high.translate(0., 0., 10.); // lift up
     mesh.merge(mesh_high);
-    mesh.require_shared_vertices();
 
     mesh.WriteOBJFile("parallel_plates.obj");
 

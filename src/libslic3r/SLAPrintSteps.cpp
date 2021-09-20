@@ -526,7 +526,6 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     }
     auto  thr        = [this]() { m_print->throw_if_canceled(); };
     auto &slice_grid = po.m_model_height_levels;
-    assert(mesh.has_shared_vertices());
     po.m_model_slices = slice_mesh_ex(mesh.its, slice_grid, params, thr);
 
     sla::Interior *interior = po.m_hollowing_data ?

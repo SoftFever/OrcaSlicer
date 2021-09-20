@@ -43,7 +43,6 @@ void ShaderCSGDisplay::on_scene_updated(const Scene &scene)
             interior.transform(po->trafo().inverse());
             
             mshinst.merge(interior);
-            mshinst.require_shared_vertices();
             
             mi->transform_mesh(&mshinst);
             
@@ -51,15 +50,11 @@ void ShaderCSGDisplay::on_scene_updated(const Scene &scene)
             auto center = bb.center().cast<float>();
             mshinst.translate(-center);
             
-            mshinst.require_shared_vertices();
             add_mesh(mshinst);
         }
         
-        for (const sla::DrainHole &holept : holedata) {
-            TriangleMesh holemesh = sla::to_triangle_mesh(holept.to_mesh());
-            holemesh.require_shared_vertices();
-            add_mesh(holemesh);
-        }
+        for (const sla::DrainHole &holept : holedata)
+            add_mesh(sla::to_triangle_mesh(holept.to_mesh()));
     }
     
     repaint();

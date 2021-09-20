@@ -11,14 +11,11 @@
     ~TriangleMesh();
     Clone<TriangleMesh> clone()
         %code{% RETVAL = THIS; %};
-    void ReadSTLFile(char* input_file);
     void write_ascii(char* output_file);
     void write_binary(char* output_file);
-    void repair();
-    void WriteOBJFile(char* output_file);
     void scale(float factor);
     void scale_xyz(Vec3d* versor)
-        %code{% THIS->scale(*versor); %};
+        %code{% THIS->scale(versor->cast<float>()); %};
     void translate(float x, float y, float z);
     void rotate_x(float angle);
     void rotate_y(float angle);
@@ -28,16 +25,13 @@
     void mirror_z();
     void align_to_origin();
     void rotate(double angle, Point* center);
-    TriangleMeshPtrs split();
     void merge(TriangleMesh* mesh)
         %code{% THIS->merge(*mesh); %};
-    ExPolygons horizontal_projection();
     Clone<Polygon> convex_hull();
     Clone<BoundingBoxf3> bounding_box();
     Clone<Vec3d> center()
         %code{% RETVAL = THIS->bounding_box().center(); %};
     int facets_count();
-    void reset_repair_stats();
 
 %{
 
@@ -46,51 +40,40 @@ TriangleMesh::ReadFromPerl(vertices, facets)
     SV* vertices
     SV* facets
     CODE:
-        stl_file &stl = THIS->stl;
-        stl.stats.type = inmemory;
-    
-        // count facets and allocate memory
-        AV* facets_av = (AV*)SvRV(facets);
-        stl.stats.number_of_facets = av_len(facets_av)+1;
-        stl.stats.original_num_facets = stl.stats.number_of_facets;
-        stl_allocate(&stl);
-    
-        // read geometry
-        AV* vertices_av = (AV*)SvRV(vertices);
-        for (int i = 0; i < stl.stats.number_of_facets; i++) {
-            AV* facet_av = (AV*)SvRV(*av_fetch(facets_av, i, 0));
-            stl_facet facet;
-            facet.normal(0) = 0;
-            facet.normal(1) = 0;
-            facet.normal(2) = 0;
-            for (unsigned int v = 0; v <= 2; v++) {
-                AV* vertex_av = (AV*)SvRV(*av_fetch(vertices_av, SvIV(*av_fetch(facet_av, v, 0)), 0));
-                facet.vertex[v](0) = SvNV(*av_fetch(vertex_av, 0, 0));
-                facet.vertex[v](1) = SvNV(*av_fetch(vertex_av, 1, 0));
-                facet.vertex[v](2) = SvNV(*av_fetch(vertex_av, 2, 0));
+        std::vector<Slic3r::Vec3f> out_vertices;
+        {
+            AV* vertices_av = (AV*)SvRV(vertices);
+            int number_of_vertices = av_len(vertices_av) + 1;
+            out_vertices.reserve(number_of_vertices);
+            for (int i = 0; i < number_of_vertices; ++ i) {
+                AV* vertex_av = (AV*)SvRV(*av_fetch(vertices_av, i, 0));
+                out_vertices.push_back(Slic3r::Vec3f(SvNV(*av_fetch(vertex_av, 0, 0)), SvNV(*av_fetch(vertex_av, 1, 0)), SvNV(*av_fetch(vertex_av, 2, 0))));
             }
-            facet.extra[0] = 0;
-            facet.extra[1] = 0;
-        
-            stl.facet_start[i] = facet;
         }
-    
-        stl_get_size(&stl);
+        std::vector<Slic3r::Vec3i> out_indices;
+        {
+            AV* facets_av = (AV*)SvRV(facets);
+            int number_of_facets = av_len(facets_av) + 1;
+            out_indices.reserve(number_of_facets);
+            for (int i = 0; i < number_of_facets; ++ i) {
+                AV* facet_av = (AV*)SvRV(*av_fetch(facets_av, i, 0));
+                out_indices.push_back(Slic3r::Vec3i(SvIV(*av_fetch(facet_av, 0, 0)), SvIV(*av_fetch(facet_av, 1, 0)), SvIV(*av_fetch(facet_av, 2, 0))));
+            }
+        }
+        *THIS = TriangleMesh(std::move(out_vertices), std::move(out_indices));
 
 SV*
 TriangleMesh::stats()
     CODE:
         HV* hv = newHV();
-        (void)hv_stores( hv, "number_of_facets",    newSViv(THIS->stl.stats.number_of_facets) );
-        (void)hv_stores( hv, "number_of_parts",     newSViv(THIS->stl.stats.number_of_parts) );
-        (void)hv_stores( hv, "volume",              newSVnv(THIS->stl.stats.volume) );
-        (void)hv_stores( hv, "degenerate_facets",   newSViv(THIS->stl.stats.degenerate_facets) );
-        (void)hv_stores( hv, "edges_fixed",         newSViv(THIS->stl.stats.edges_fixed) );
-        (void)hv_stores( hv, "facets_removed",      newSViv(THIS->stl.stats.facets_removed) );
-        (void)hv_stores( hv, "facets_added",        newSViv(THIS->stl.stats.facets_added) );
-        (void)hv_stores( hv, "facets_reversed",     newSViv(THIS->stl.stats.facets_reversed) );
-        (void)hv_stores( hv, "backwards_edges",     newSViv(THIS->stl.stats.backwards_edges) );
-        (void)hv_stores( hv, "normals_fixed",       newSViv(THIS->stl.stats.normals_fixed) );
+        (void)hv_stores( hv, "number_of_facets",    newSViv(THIS->facets_count()) );
+        (void)hv_stores( hv, "number_of_parts",     newSViv(THIS->stats().number_of_parts) );
+        (void)hv_stores( hv, "volume",              newSVnv(THIS->stats().volume) );
+        (void)hv_stores( hv, "degenerate_facets",   newSViv(THIS->stats().degenerate_facets) );
+        (void)hv_stores( hv, "edges_fixed",         newSViv(THIS->stats().edges_fixed) );
+        (void)hv_stores( hv, "facets_removed",      newSViv(THIS->stats().facets_removed) );
+        (void)hv_stores( hv, "facets_reversed",     newSViv(THIS->stats().facets_reversed) );
+        (void)hv_stores( hv, "backwards_edges",     newSViv(THIS->stats().backwards_edges) );
         RETVAL = (SV*)newRV_noinc((SV*)hv);
     OUTPUT:
         RETVAL
@@ -98,9 +81,6 @@ TriangleMesh::stats()
 SV*
 TriangleMesh::vertices()
     CODE:
-        if (!THIS->repaired) CONFESS("vertices() requires repair()");
-        THIS->require_shared_vertices();
-        
         // vertices
         AV* vertices = newAV();
         av_extend(vertices, THIS->its.vertices.size());
@@ -120,13 +100,10 @@ TriangleMesh::vertices()
 SV*
 TriangleMesh::facets()
     CODE:
-        if (!THIS->repaired) CONFESS("facets() requires repair()");
-        THIS->require_shared_vertices();
-        
         // facets
         AV* facets = newAV();
-        av_extend(facets, THIS->stl.stats.number_of_facets);
-        for (int i = 0; i < THIS->stl.stats.number_of_facets; i++) {
+        av_extend(facets, THIS->facets_count());
+        for (int i = 0; i < THIS->facets_count(); i++) {
             AV* facet = newAV();
             av_store(facets, i, newRV_noinc((SV*)facet));
             av_extend(facet, 2);
@@ -140,34 +117,13 @@ TriangleMesh::facets()
         RETVAL
 
 SV*
-TriangleMesh::normals()
-    CODE:
-        if (!THIS->repaired) CONFESS("normals() requires repair()");
-        
-        // normals
-        AV* normals = newAV();
-        av_extend(normals, THIS->stl.stats.number_of_facets);
-        for (int i = 0; i < THIS->stl.stats.number_of_facets; i++) {
-            AV* facet = newAV();
-            av_store(normals, i, newRV_noinc((SV*)facet));
-            av_extend(facet, 2);
-            av_store(facet, 0, newSVnv(THIS->stl.facet_start[i].normal(0)));
-            av_store(facet, 1, newSVnv(THIS->stl.facet_start[i].normal(1)));
-            av_store(facet, 2, newSVnv(THIS->stl.facet_start[i].normal(2)));
-        }
-        
-        RETVAL = newRV_noinc((SV*)normals);
-    OUTPUT:
-        RETVAL
-
-SV*
 TriangleMesh::size()
     CODE:
         AV* size = newAV();
         av_extend(size, 2);
-        av_store(size, 0, newSVnv(THIS->stl.stats.size(0)));
-        av_store(size, 1, newSVnv(THIS->stl.stats.size(1)));
-        av_store(size, 2, newSVnv(THIS->stl.stats.size(2)));
+        av_store(size, 0, newSVnv(THIS->stats().size(0)));
+        av_store(size, 1, newSVnv(THIS->stats().size(1)));
+        av_store(size, 2, newSVnv(THIS->stats().size(2)));
         RETVAL = newRV_noinc((SV*)size);
     OUTPUT:
         RETVAL
@@ -176,8 +132,6 @@ SV*
 TriangleMesh::slice(z)
     std::vector<double> z
     CODE:
-        THIS->require_shared_vertices(); // TriangleMeshSlicer needs this
-
         // convert doubles to floats
         std::vector<float> z_f = cast<float>(z);
         
@@ -206,7 +160,6 @@ TriangleMesh::cut(z, upper_mesh, lower_mesh)
     TriangleMesh*   upper_mesh;
     TriangleMesh*   lower_mesh;
     CODE:
-        THIS->require_shared_vertices(); // TriangleMeshSlicer needs this
         indexed_triangle_set upper, lower;
         cut_mesh(THIS->its, z, upper_mesh ? &upper : nullptr, lower_mesh ? &lower : nullptr);
         if (upper_mesh)
@@ -217,12 +170,12 @@ TriangleMesh::cut(z, upper_mesh, lower_mesh)
 std::vector<double>
 TriangleMesh::bb3()
     CODE:
-        RETVAL.push_back(THIS->stl.stats.min(0));
-        RETVAL.push_back(THIS->stl.stats.min(1));
-        RETVAL.push_back(THIS->stl.stats.max(0));
-        RETVAL.push_back(THIS->stl.stats.max(1));
-        RETVAL.push_back(THIS->stl.stats.min(2));
-        RETVAL.push_back(THIS->stl.stats.max(2));
+        RETVAL.push_back(THIS->stats().min(0));
+        RETVAL.push_back(THIS->stats().min(1));
+        RETVAL.push_back(THIS->stats().max(0));
+        RETVAL.push_back(THIS->stats().max(1));
+        RETVAL.push_back(THIS->stats().min(2));
+        RETVAL.push_back(THIS->stats().max(2));
     OUTPUT:
         RETVAL
 
@@ -250,16 +203,3 @@ sphere(double rho)
 
 %}
 };
-
-%package{Slic3r::TriangleMesh};
-
-%{
-PROTOTYPES: DISABLE
-
-std::string
-hello_world()
-  CODE:
-    RETVAL = "Hello world!";
-  OUTPUT:
-    RETVAL
-%}

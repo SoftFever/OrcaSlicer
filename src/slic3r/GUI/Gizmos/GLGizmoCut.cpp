@@ -282,10 +282,8 @@ void GLGizmoCut::update_contours()
         if (m_cut_contours.cut_z != m_cut_z || m_cut_contours.object_id != model_object->id() || m_cut_contours.instance_idx != instance_idx) {
             m_cut_contours.cut_z = m_cut_z;
 
-            if (m_cut_contours.object_id != model_object->id()) {
+            if (m_cut_contours.object_id != model_object->id())
                 m_cut_contours.mesh = model_object->raw_mesh();
-                m_cut_contours.mesh.repair();
-            }
 
             m_cut_contours.position = box.center();
             m_cut_contours.shift = Vec3d::Zero();

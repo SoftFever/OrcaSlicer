@@ -841,26 +841,16 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.extruders_count = extruders_count;
 
     m_extruder_offsets.resize(extruders_count);
-    for (size_t i = 0; i < extruders_count; ++i) {
-        Vec2f offset = config.extruder_offset.get_at(i).cast<float>();
-        m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
-    }
-
     m_extruder_colors.resize(extruders_count);
-    for (size_t i = 0; i < extruders_count; ++i) {
-        m_extruder_colors[i] = static_cast<unsigned char>(i);
-    }
-
+    m_result.filament_diameters.resize(extruders_count);
+    m_result.filament_densities.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
 
-    m_result.filament_diameters.resize(config.filament_diameter.values.size());
-    for (size_t i = 0; i < config.filament_diameter.values.size(); ++i) {
-        m_result.filament_diameters[i] = static_cast<float>(config.filament_diameter.values[i]);
-    }
-
-    m_result.filament_densities.resize(config.filament_density.values.size());
-    for (size_t i = 0; i < config.filament_density.values.size(); ++i) {
-        m_result.filament_densities[i] = static_cast<float>(config.filament_density.values[i]);
+    for (size_t i = 0; i < extruders_count; ++ i) {
+        m_extruder_offsets[i]           = to_3d(config.extruder_offset.get_at(i).cast<float>().eval(), 0.f);
+        m_extruder_colors[i]            = static_cast<unsigned char>(i);
+        m_result.filament_diameters[i]  = static_cast<float>(config.filament_diameter.get_at(i));
+        m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
     }
 
     if ((m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) && config.machine_limits_usage.value != MachineLimitsUsage::Ignore) {

@@ -163,7 +163,6 @@
 %typemap{Surfaces};
 %typemap{Polygons*};
 %typemap{TriangleMesh*};
-%typemap{TriangleMeshPtrs};
 %typemap{Model*};
 %typemap{Ref<Model>}{simple};
 %typemap{Clone<Model>}{simple};

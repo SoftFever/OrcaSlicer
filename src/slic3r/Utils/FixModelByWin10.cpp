@@ -402,6 +402,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, wxPro
 			}
 			for (size_t i = 0; i < volumes.size(); ++ i) {
 				volumes[i]->set_mesh(std::move(meshes_repaired[i]));
+				volumes[i]->calculate_convex_hull();
 				volumes[i]->set_new_unique_id();
 			}
 			model_object.invalidate_bounding_box();
