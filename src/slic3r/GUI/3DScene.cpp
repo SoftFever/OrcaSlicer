@@ -936,14 +936,13 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 
     const BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
     BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min.x()), unscale<double>(bed_box_2D.min.y()), 0.0 }, 
-                               { unscale<double>(bed_box_2D.max.x()), unscale<double>(bed_box_2D.max.y()),
-                               config->opt_float("max_print_height") });
+                               { unscale<double>(bed_box_2D.max.x()), unscale<double>(bed_box_2D.max.y()), config->opt_float("max_print_height") });
     // Allow the objects to protrude below the print bed
-    print_volume.min(2) = -1e10;
-    print_volume.min(0) -= BedEpsilon;
-    print_volume.min(1) -= BedEpsilon;
-    print_volume.max(0) += BedEpsilon;
-    print_volume.max(1) += BedEpsilon;
+    print_volume.min.z() = -1e10;
+    print_volume.min.x() -= BedEpsilon;
+    print_volume.min.y() -= BedEpsilon;
+    print_volume.max.x() += BedEpsilon;
+    print_volume.max.y() += BedEpsilon;
 
     ModelInstanceEPrintVolumeState state = ModelInstancePVS_Inside;
 
