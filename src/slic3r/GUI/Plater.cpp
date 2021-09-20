@@ -4019,12 +4019,14 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     if (evt.error()) {
         std::pair<std::string, bool> message = evt.format_error_message();
         if (evt.critical_error()) {
-            if (q->m_tracking_popup_menu)
+            if (q->m_tracking_popup_menu) {
                 // We don't want to pop-up a message box when tracking a pop-up menu.
                 // We postpone the error message instead.
                 q->m_tracking_popup_menu_error_message = message.first;
-            else
+            } else {
                 show_error(q, message.first, message.second);
+                notification_manager->set_slicing_progress_hidden();
+            }
         } else
             notification_manager->push_slicing_error_notification(message.first);
 //        this->statusbar()->set_status_text(from_u8(message.first));
@@ -4252,7 +4254,10 @@ void Plater::priv::init_notification_manager()
     notification_manager->init();
 
     auto cancel_callback = [this]() {
+        if (this->background_process.idle())
+            return false;
         this->background_process.stop();
+        return true;
     };
     notification_manager->init_slicing_progress_notification(cancel_callback);
     notification_manager->set_fff(printer_technology == ptFFF);

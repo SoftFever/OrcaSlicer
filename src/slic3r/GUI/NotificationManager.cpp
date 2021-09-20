@@ -1176,7 +1176,9 @@ void NotificationManager::SlicingProgressNotification::set_sidebar_collapsed(boo
 void NotificationManager::SlicingProgressNotification::on_cancel_button()
 {
 	if (m_cancel_callback){
-		m_cancel_callback();
+		if (!m_cancel_callback()) {
+			set_progress_state(SlicingProgressState::SP_NO_SLICING);
+		}
 	}
 }
 int NotificationManager::SlicingProgressNotification::get_duration()
@@ -1681,7 +1683,7 @@ void NotificationManager::upload_job_notification_show_error(int id, const std::
 	}
 }
 
-void NotificationManager::init_slicing_progress_notification(std::function<void()> cancel_callback)
+void NotificationManager::init_slicing_progress_notification(std::function<bool()> cancel_callback)
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
 		if (notification->get_type() == NotificationType::SlicingProgress) {

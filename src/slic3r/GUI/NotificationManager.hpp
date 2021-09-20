@@ -188,7 +188,7 @@ public:
 	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
 	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
 	// slicing progress
-	void init_slicing_progress_notification(std::function<void()> cancel_callback);
+	void init_slicing_progress_notification(std::function<bool()> cancel_callback);
 	// percentage negative = canceled, <0-1) = progress, 1 = completed 
 	void set_slicing_progress_percentage(const std::string& text, float percentage);
 	// hides slicing progress notification imidietly
@@ -496,7 +496,7 @@ private:
 			SP_CANCELLED, // fades after 10 seconds, simple message
 			SP_COMPLETED // Has export hyperlink and print info, fades after 20 sec if sidebar is shown, otherwise no fade out
 		};
-		SlicingProgressNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, std::function<void()> callback)
+		SlicingProgressNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, std::function<bool()> callback)
 		: ProgressBarNotification(n, id_provider, evt_handler)
 		, m_cancel_callback(callback)
 		{
@@ -507,7 +507,7 @@ private:
 		// sets text of notification - call after setting progress state
 		void				set_status_text(const std::string& text);
 		// sets cancel button callback
-		void			    set_cancel_callback(std::function<void()> callback) { m_cancel_callback = callback; }
+		void			    set_cancel_callback(std::function<bool()> callback) { m_cancel_callback = callback; }
 		bool                has_cancel_callback() const { return m_cancel_callback != nullptr; }
 		// sets SlicingProgressState, negative percent means canceled
 		void				set_progress_state(float percent);
@@ -545,7 +545,8 @@ private:
 									const float win_pos_x, const float win_pos_y) override;
 		void       on_cancel_button();
 		int		   get_duration() override;
-		std::function<void()>	m_cancel_callback;
+		// if returns false, process was already canceled
+		std::function<bool()>	m_cancel_callback;
 		SlicingProgressState	m_sp_state { SlicingProgressState::SP_PROGRESS };
 		bool				    m_has_print_info { false };
 		std::string             m_print_info;
