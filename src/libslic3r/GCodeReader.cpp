@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include "Utils.hpp"
 
 #include "LocalesUtils.hpp"
 
@@ -126,42 +127,90 @@ void GCodeReader::update_coordinates(GCodeLine &gline, std::pair<const char*, co
     }
 }
 
-bool GCodeReader::parse_file(const std::string &file, callback_t callback)
+template<typename ParseLineCallback, typename LineEndCallback>
+bool GCodeReader::parse_file_raw_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback)
 {
-    boost::nowide::ifstream f(file);
-    f.sync_with_stdio(false);
+    FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
+
+    // Read the input stream 64kB at a time, extract lines and process them.
     std::vector<char> buffer(65536 * 10, 0);
-    std::string line;
+    // Line buffer.
+    std::string gcode_line;
+    size_t file_pos = 0;
     m_parsing = true;
-    GCodeLine gline;
-    while (m_parsing && ! f.eof()) {
-        f.read(buffer.data(), buffer.size());
-        if (! f.eof() && ! f.good())
-            // Reading the input file failed.
+    for (;;) {
+        size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
+        if (::ferror(in.f))
             return false;
+        bool eof       = cnt_read == 0;
         auto it        = buffer.begin();
-        auto it_bufend = buffer.begin() + f.gcount();
-        while (it != it_bufend) {
-            bool eol = false;
+        auto it_bufend = buffer.begin() + cnt_read;
+        while (it != it_bufend || (eof && ! gcode_line.empty())) {
+            // Find end of line.
+            bool eol    = false;
             auto it_end = it;
-            for (; it_end != it_bufend && ! (eol = *it_end == '\r' || *it_end == '\n'); ++ it_end) ;
-            eol |= f.eof() && it_end == it_bufend;
+            for (; it_end != it_bufend && ! (eol = *it_end == '\r' || *it_end == '\n'); ++ it_end)
+                if (*it_end == '\n')
+                    line_end_callback((it_end - buffer.begin()) + 1);
+            // End of line is indicated also if end of file was reached.
+            eol |= eof && it_end == it_bufend;
             if (eol) {
-                gline.reset();
-                if (line.empty())
-                    this->parse_line(&(*it), &(*it_end), gline, callback);
+                if (gcode_line.empty())
+                    parse_line_callback(&(*it), &(*it_end));
                 else {
-                    line.insert(line.end(), it, it_end);
-                    this->parse_line(line.c_str(), line.c_str() + line.size(), gline, callback);
-                    line.clear();
+                    gcode_line.insert(gcode_line.end(), it, it_end);
+                    parse_line_callback(gcode_line.c_str(), gcode_line.c_str() + gcode_line.size());
+                    gcode_line.clear();
                 }
+                if (! m_parsing)
+                    // The callback wishes to exit.
+                    return true;
             } else
-                line.insert(line.end(), it, it_end);
-            // Skip all the empty lines.
-            for (it = it_end; it != it_bufend && (*it == '\r' || *it == '\n'); ++ it) ;
+                gcode_line.insert(gcode_line.end(), it, it_end);
+            // Skip EOL.
+            it = it_end; 
+            if (it != it_bufend && *it == '\r')
+                ++ it;
+            if (it != it_bufend && *it == '\n') {
+                line_end_callback((it - buffer.begin()) + 1);
+                ++ it;
+            }
         }
+        if (eof)
+            break;
+        file_pos += cnt_read;
     }
     return true;
+}
+
+template<typename ParseLineCallback, typename LineEndCallback>
+bool GCodeReader::parse_file_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback)
+{
+    GCodeLine gline;    
+    return this->parse_file_raw_internal(filename, 
+        [this, &gline, parse_line_callback](const char *begin, const char *end) {
+            gline.reset();
+            this->parse_line(begin, end, gline, parse_line_callback);
+        }, 
+        line_end_callback);
+}
+
+bool GCodeReader::parse_file(const std::string &file, callback_t callback)
+{
+    return this->parse_file_internal(file, callback, [](size_t){});
+}
+
+bool GCodeReader::parse_file(const std::string &file, callback_t callback, std::vector<size_t> &lines_ends)
+{
+    lines_ends.clear();
+    return this->parse_file_internal(file, callback, [&lines_ends](size_t file_pos){ lines_ends.emplace_back(file_pos); });
+}
+
+bool GCodeReader::parse_file_raw(const std::string &filename, raw_line_callback_t line_callback)
+{
+    return this->parse_file_raw_internal(filename,
+        [this, line_callback](const char *begin, const char *end) { line_callback(*this, begin, end); }, 
+        [](size_t){});
 }
 
 bool GCodeReader::GCodeLine::has(char axis) const

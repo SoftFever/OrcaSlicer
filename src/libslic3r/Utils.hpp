@@ -255,6 +255,19 @@ template<typename T> struct IsTriviallyCopyable { static constexpr bool value = 
 template<typename T> struct IsTriviallyCopyable : public std::is_trivially_copyable<T> {};
 #endif
 
+// A very lightweight ROII wrapper around C FILE.
+// The old C file API is much faster than C++ streams, thus they are recommended for processing large / huge files.
+struct FilePtr {
+    FilePtr(FILE *f) : f(f) {}
+    ~FilePtr() { this->close(); }
+    void close() { 
+        if (this->f) {
+            ::fclose(this->f);
+            this->f = nullptr;
+        }
+    }
+    FILE* f = nullptr;
+};
 
 class ScopeGuard
 {

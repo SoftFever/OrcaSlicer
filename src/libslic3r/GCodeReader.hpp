@@ -76,6 +76,7 @@ public:
     };
 
     typedef std::function<void(GCodeReader&, const GCodeLine&)> callback_t;
+    typedef std::function<void(GCodeReader&, const char*, const char*)> raw_line_callback_t;
     
     GCodeReader() : m_verbose(false), m_extrusion_axis('E') { this->reset(); }
     void reset() { memset(m_position, 0, sizeof(m_position)); }
@@ -114,6 +115,13 @@ public:
 
     // Returns false if reading the file failed.
     bool parse_file(const std::string &file, callback_t callback);
+    // Collect positions of line ends in the binary G-code to be used by the G-code viewer when memory mapping and displaying section of G-code
+    // as an overlay in the 3D scene.
+    bool parse_file(const std::string &file, callback_t callback, std::vector<size_t> &lines_ends);
+    // Just read the G-code file line by line, calls callback (const char *begin, const char *end). Returns false if reading the file failed.
+    bool parse_file_raw(const std::string &file, raw_line_callback_t callback);
+
+    // To be called by the callback to stop parsing.
     void quit_parsing() { m_parsing = false; }
 
     float& x()       { return m_position[X]; }
@@ -132,6 +140,11 @@ public:
 //  void   set_extrusion_axis(char axis) { m_extrusion_axis = axis; }
 
 private:
+    template<typename ParseLineCallback, typename LineEndCallback>
+    bool        parse_file_raw_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback);
+    template<typename ParseLineCallback, typename LineEndCallback>
+    bool        parse_file_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback);
+
     const char* parse_line_internal(const char *ptr, const char *end, GCodeLine &gline, std::pair<const char*, const char*> &command);
     void        update_coordinates(GCodeLine &gline, std::pair<const char*, const char*> &command);
 
@@ -154,6 +167,7 @@ private:
     char        m_extrusion_axis;
     float       m_position[NUM_AXES];
     bool        m_verbose;
+    // To be set by the callback to stop parsing.
     bool        m_parsing{ false };
 };
 
