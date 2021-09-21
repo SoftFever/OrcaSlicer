@@ -670,7 +670,7 @@ std::string SLAPrint::validate(std::string*) const
     return "";
 }
 
-void SLAPrint::set_printer(SLAPrinter *arch)
+void SLAPrint::set_printer(SLAArchive *arch)
 {
     invalidate_step(slapsRasterize);
     m_printer = arch;

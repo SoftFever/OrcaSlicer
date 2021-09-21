@@ -8,7 +8,7 @@
 
 namespace Slic3r {
 
-class SL1Archive: public SLAPrinter {
+class SL1Archive: public SLAArchive {
     SLAPrinterConfig m_cfg;
     
 protected:
