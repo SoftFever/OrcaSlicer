@@ -1403,9 +1403,8 @@ void GUI_App::force_colors_update()
 void GUI_App::update_ui_from_settings()
 {
     update_label_colours();
-    mainframe->update_ui_from_settings();
-
 #ifdef _WIN32
+    // Upadte UU colors before Update UI from settings
     if (m_force_colors_update) {
         m_force_colors_update = false;
         mainframe->force_color_changed();
@@ -1414,6 +1413,7 @@ void GUI_App::update_ui_from_settings()
             m_wizard->force_color_changed();
     }
 #endif
+    mainframe->update_ui_from_settings();
 }
 
 void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_maximized)

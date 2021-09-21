@@ -210,12 +210,12 @@ public:
     void                get_selection_indexes(std::vector<int>& obj_idxs, std::vector<int>& vol_idxs);
     // Get count of errors in the mesh
     int                 get_mesh_errors_count(const int obj_idx, const int vol_idx = -1) const;
-    /* Get list of errors in the mesh. Return value is a string, used for the tooltip
-     * Function without parameters is for a call from Manipulation panel, 
-     * when we don't know parameters of selected item 
-     */
-    wxString            get_mesh_errors_list(const int obj_idx, const int vol_idx = -1) const;
-    wxString            get_mesh_errors_list();
+    // Get list of errors in the mesh and name of the warning icon 
+    // Return value is a pair <Tooltip, warning_icon_name>, used for the tooltip and related warning icon
+    // Function without parameters is for a call from Manipulation panel, 
+    // when we don't know parameters of selected item 
+    std::pair<wxString, std::string> get_mesh_errors(const int obj_idx, const int vol_idx = -1, bool from_plater = false) const;
+    std::pair<wxString, std::string> get_mesh_errors(bool from_plater = false);
     void                set_tooltip_for_item(const wxPoint& pt);
 
     void                selection_changed();

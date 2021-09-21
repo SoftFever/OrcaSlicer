@@ -194,7 +194,7 @@ public:
 #endif // __APPLE__
 
     void update_item_name(const wxString &item_name);
-    void update_warning_icon_state(const wxString& tooltip);
+    void update_warning_icon_state(const std::pair<wxString, std::string>& warning);
     void msw_rescale();
     void sys_color_changed();
     void on_change(const std::string& opt_key, int axis, double new_value);
