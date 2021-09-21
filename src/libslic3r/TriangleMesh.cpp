@@ -22,6 +22,7 @@
 #include <type_traits>
 
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
