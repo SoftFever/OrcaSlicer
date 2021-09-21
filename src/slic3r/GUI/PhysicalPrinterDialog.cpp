@@ -532,9 +532,9 @@ void PhysicalPrinterDialog::update_host_type(bool printer_change)
                 const std::vector<VendorProfile::PrinterModel>& models = preset->vendor->models;
                 auto it = std::find_if(models.begin(), models.end(),
                     [model_id](const VendorProfile::PrinterModel& model) { return model.id == model_id; });
-                if (it != models.end() && it->family == "MK3")
+                if (it != models.end() && (it->family == "MK3" || it->family == "MINI"))
                     continue;
-            } else if (!preset->vendor && model_id.rfind("MK3", 0) == 0) {
+            } else if (!preset->vendor && (boost::ends_with(model_id, "MK3") || boost::ends_with(model_id, "MINI"))) {
                 continue;
             }
             
