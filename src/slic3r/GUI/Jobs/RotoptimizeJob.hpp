@@ -10,8 +10,6 @@ namespace Slic3r {
 
 namespace GUI {
 
-class NotificationManager;
-
 class RotoptimizeJob : public PlaterJob
 {
     using FindFn = std::function<Vec2d(const ModelObject &           mo,
@@ -54,8 +52,8 @@ protected:
 
 public:
 
-    RotoptimizeJob(std::shared_ptr<NotificationManager> nm, Plater *plater)
-        : PlaterJob{nm, plater}
+    RotoptimizeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
+        : PlaterJob{std::move(pri), plater}
     {}
 
     void finalize() override;

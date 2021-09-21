@@ -9,7 +9,6 @@ namespace Slic3r {
 class ModelInstance;
 
 namespace GUI {
-class NotificationManager;
 
 class ArrangeJob : public PlaterJob
 {
@@ -18,21 +17,21 @@ class ArrangeJob : public PlaterJob
 
     ArrangePolygons m_selected, m_unselected, m_unprintable;
     std::vector<ModelInstance*> m_unarranged;
-    
+
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();
 
     // Prepare all objects on the bed regardless of the selection
     void prepare_all();
-    
+
     // Prepare the selected and unselected items separately. If nothing is
     // selected, behaves as if everything would be selected.
     void prepare_selected();
 
     ArrangePolygon get_arrange_poly_(ModelInstance *mi);
-    
+
 protected:
-    
+
     void prepare() override;
 
     void on_exception(const std::exception_ptr &) override;
@@ -40,15 +39,15 @@ protected:
     void process() override;
 
 public:
-    ArrangeJob(std::shared_ptr<NotificationManager> nm, Plater *plater)
-        : PlaterJob{nm, plater}
+    ArrangeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
+        : PlaterJob{std::move(pri), plater}
     {}
-    
+
     int status_range() const override
     {
         return int(m_selected.size() + m_unprintable.size());
     }
-    
+
     void finalize() override;
 };
 

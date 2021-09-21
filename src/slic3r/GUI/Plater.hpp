@@ -358,7 +358,9 @@ public:
 	void set_bed_shape() const;
     void set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false) const;
 
-	std::shared_ptr<NotificationManager> get_notification_manager();
+    NotificationManager * get_notification_manager();
+    const NotificationManager * get_notification_manager() const;
+
     void init_notification_manager();
 
     void bring_instance_forward();

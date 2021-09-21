@@ -275,7 +275,7 @@ public:
     ObjectLayers*        obj_layers();
     Plater*              plater();
     Model&      		 model();
-    std::shared_ptr<NotificationManager> notification_manager();
+    NotificationManager * notification_manager();
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
     GUI_InitParams* init_params { nullptr };

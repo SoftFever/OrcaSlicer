@@ -67,8 +67,8 @@
 #include "Jobs/FillBedJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
 #include "Jobs/SLAImportJob.hpp"
+#include "Jobs/NotificationProgressIndicator.hpp"
 #include "BackgroundSlicingProcess.hpp"
-#include "ProgressStatusBar.hpp"
 #include "PrintHostDialogs.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
@@ -1499,7 +1499,7 @@ struct Plater::priv
     GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
-    std::shared_ptr<NotificationManager> notification_manager;
+    std::unique_ptr<NotificationManager> notification_manager;
 
     ProjectDirtyStateManager dirty_state;
 
@@ -1514,16 +1514,19 @@ struct Plater::priv
     {
         priv *m;
         size_t m_arrange_id, m_fill_bed_id, m_rotoptimize_id, m_sla_import_id;
+        std::shared_ptr<NotificationProgressIndicator> m_pri;
         
         void before_start() override { m->background_process.stop(); }
         
     public:
-        Jobs(priv *_m) : m(_m)
+        Jobs(priv *_m) :
+            m(_m),
+            m_pri{std::make_shared<NotificationProgressIndicator>(m->notification_manager.get())}
         {
-            m_arrange_id = add_job(std::make_unique<ArrangeJob>(m->notification_manager, m->q));
-            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m->notification_manager, m->q));
-            m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m->notification_manager, m->q));
-            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m->notification_manager, m->q));
+            m_arrange_id = add_job(std::make_unique<ArrangeJob>(m_pri, m->q));
+            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m_pri, m->q));
+            m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m_pri, m->q));
+            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m_pri, m->q));
         }
         
         void arrange()
@@ -1847,7 +1850,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "support_material_contact_distance", "support_material_bottom_contact_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
-    , notification_manager(std::make_shared<NotificationManager>(q))
+    , notification_manager(std::make_unique<NotificationManager>(q))
     , m_ui_jobs(this)
     , delayed_scene_refresh(false)
     , view_toolbar(GLToolbar::Radio, "View")
@@ -6640,9 +6643,14 @@ Mouse3DController& Plater::get_mouse3d_controller()
     return p->mouse3d_controller;
 }
 
-std::shared_ptr<NotificationManager> Plater::get_notification_manager()
+NotificationManager * Plater::get_notification_manager()
 {
-	return p->notification_manager;
+    return p->notification_manager.get();
+}
+
+const NotificationManager * Plater::get_notification_manager() const
+{
+    return p->notification_manager.get();
 }
 
 void Plater::init_notification_manager()
