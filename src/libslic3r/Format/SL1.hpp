@@ -57,6 +57,8 @@ inline ConfigSubstitutions import_sla_archive(
     return import_sla_archive(zipfname, windowsize, out, profile, progr);
 }
 
+class MissingProfileError : public RuntimeError { using RuntimeError::RuntimeError; };
+
 } // namespace Slic3r::sla
 
 #endif // ARCHIVETRAITS_HPP

@@ -203,7 +203,7 @@ RasterParams get_raster_params(const DynamicPrintConfig &cfg)
 
     if (!opt_disp_cols || !opt_disp_rows || !opt_disp_w || !opt_disp_h ||
         !opt_mirror_x || !opt_mirror_y || !opt_orient)
-        throw Slic3r::FileIOError("Invalid SL1 / SL1S file");
+        throw MissingProfileError("Invalid SL1 / SL1S file");
 
     RasterParams rstp;
 
@@ -229,7 +229,7 @@ SliceParams get_slice_params(const DynamicPrintConfig &cfg)
     auto *opt_init_layerh = cfg.option<ConfigOptionFloat>("initial_layer_height");
 
     if (!opt_layerh || !opt_init_layerh)
-        throw Slic3r::FileIOError("Invalid SL1 / SL1S file");
+        throw MissingProfileError("Invalid SL1 / SL1S file");
 
     return SliceParams{opt_layerh->getFloat(), opt_init_layerh->getFloat()};
 }
@@ -293,24 +293,34 @@ ConfigSubstitutions import_sla_archive(const std::string &zipfname, DynamicPrint
     return out.load(arch.profile, ForwardCompatibilitySubstitutionRule::Enable);
 }
 
+// If the profile is missing from the archive (older PS versions did not have
+// it), profile_out's initial value will be used as fallback. profile_out will be empty on
+// function return if the archive did not contain any profile.
 ConfigSubstitutions import_sla_archive(
     const std::string &      zipfname,
     Vec2i                    windowsize,
     indexed_triangle_set &           out,
-    DynamicPrintConfig &     profile,
+    DynamicPrintConfig &     profile_out,
     std::function<bool(int)> progr)
 {
     // Ensure minimum window size for marching squares
     windowsize.x() = std::max(2, windowsize.x());
     windowsize.y() = std::max(2, windowsize.y());
 
-    ArchiveData arch = extract_sla_archive(zipfname, "thumbnail");
-    ConfigSubstitutions config_substitutions = profile.load(arch.profile, ForwardCompatibilitySubstitutionRule::Enable);
+    std::string exclude_entries{"thumbnail"};
+    ArchiveData arch = extract_sla_archive(zipfname, exclude_entries);
+    DynamicPrintConfig profile_in, profile_use;
+    ConfigSubstitutions config_substitutions = profile_in.load(arch.profile, ForwardCompatibilitySubstitutionRule::Enable);
 
-    RasterParams rstp = get_raster_params(profile);
+    // If the archive contains an empty profile, use the one that was passed as output argument
+    // then replace it with the readed profile to report that it was empty.
+    profile_use = profile_in.empty() ? profile_out : profile_in;
+    profile_out = profile_in;
+
+    RasterParams rstp = get_raster_params(profile_use);
     rstp.win          = {windowsize.y(), windowsize.x()};
 
-    SliceParams slicp = get_slice_params(profile);
+    SliceParams slicp = get_slice_params(profile_use);
 
     std::vector<ExPolygons> slices =
         extract_slices_from_sla_archive(arch, rstp, progr);
