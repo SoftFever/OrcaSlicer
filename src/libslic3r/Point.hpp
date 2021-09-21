@@ -418,7 +418,7 @@ template<class Tout = double,
          class = FloatingOnly<Tout>>
 inline constexpr Tout unscaled(const Tin &v) noexcept
 {
-    return Tout(v * Tout(SCALING_FACTOR));
+    return Tout(v) * Tout(SCALING_FACTOR);
 }
 
 // Unscaling for Eigen vectors. Input base type can be arithmetic, output base
@@ -432,7 +432,7 @@ template<class Tout = double,
 inline constexpr Eigen::Matrix<Tout, N, EigenArgs...>
 unscaled(const Eigen::Matrix<Tin, N, EigenArgs...> &v) noexcept
 {
-    return v.template cast<Tout>() * SCALING_FACTOR;
+    return v.template cast<Tout>() * Tout(SCALING_FACTOR);
 }
 
 // Align a coordinate to a grid. The coordinate may be negative,
