@@ -2115,8 +2115,38 @@ void GLCanvas3D::load_sla_preview()
 	    // Release OpenGL data before generating new data.
 	    reset_volumes();
         _load_sla_shells();
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        Bed3D::EShapeType type = wxGetApp().plater()->get_bed().get_shape_type();
+        switch (type)
+        {
+        case Bed3D::EShapeType::Circle: {
+            Vec2d center;
+            double radius;
+            if (Bed3D::is_circle(wxGetApp().plater()->get_bed().get_shape(), &center, &radius)) {
+                m_volumes.set_print_volume({ static_cast<int>(type),
+                    { float(center.x()), float(center.y()), float(radius) + BedEpsilon, 0.0f },
+                    { 0.0f, float(m_config->opt_float("max_print_height")) } });
+            }
+            break;
+        }
+        case Bed3D::EShapeType::Rectangle: {
+            const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
+            m_volumes.set_print_volume({ static_cast<int>(type),
+                { float(bed_bb.min.x()) - BedEpsilon, float(bed_bb.min.y()) - BedEpsilon, float(bed_bb.max.x()) + BedEpsilon, float(bed_bb.max.y()) + BedEpsilon },
+                { 0.0f, float(m_config->opt_float("max_print_height")) } });
+            break;
+        }
+        default:
+        case Bed3D::EShapeType::Custom: {
+            m_volumes.set_print_volume({ static_cast<int>(type),
+                { 0.0f, 0.0f, 0.0f, 0.0f },
+                { 0.0f, 0.0f } });
+        }
+        }
+#else
         const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
         m_volumes.set_print_box(float(bed_bb.min.x()) - BedEpsilon, float(bed_bb.min.y()) - BedEpsilon, 0.0f, float(bed_bb.max.x()) + BedEpsilon, float(bed_bb.max.y()) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         _update_sla_shells_outside_state();
         _set_warning_notification_if_needed(EWarning::SlaSupportsOutside);
     }
@@ -5073,8 +5103,38 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
         m_layers_editing.select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
 
         if (m_config != nullptr) {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            Bed3D::EShapeType type = wxGetApp().plater()->get_bed().get_shape_type();
+            switch (type)
+            {
+            case Bed3D::EShapeType::Circle: {
+                Vec2d center;
+                double radius;
+                if (Bed3D::is_circle(wxGetApp().plater()->get_bed().get_shape(), &center, &radius)) {
+                    m_volumes.set_print_volume({ static_cast<int>(type),
+                        { float(center.x()), float(center.y()), float(radius) + BedEpsilon, 0.0f },
+                        { 0.0f, float(m_config->opt_float("max_print_height")) } });
+                }
+                break;
+            }
+            case Bed3D::EShapeType::Rectangle: {
+                const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
+                m_volumes.set_print_volume({ static_cast<int>(type),
+                    { float(bed_bb.min.x()) - BedEpsilon, float(bed_bb.min.y()) - BedEpsilon, float(bed_bb.max.x()) + BedEpsilon, float(bed_bb.max.y()) + BedEpsilon },
+                    { 0.0f, float(m_config->opt_float("max_print_height")) } });
+                break;
+            }
+            default:
+            case Bed3D::EShapeType::Custom: {
+                m_volumes.set_print_volume({ static_cast<int>(type),
+                    { 0.0f, 0.0f, 0.0f, 0.0f },
+                    { 0.0f, 0.0f } });
+            }
+            }
+#else
             const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
             m_volumes.set_print_box((float)bed_bb.min.x() - BedEpsilon, (float)bed_bb.min.y() - BedEpsilon, 0.0f, (float)bed_bb.max.x() + BedEpsilon, (float)bed_bb.max.y() + BedEpsilon, (float)m_config->opt_float("max_print_height"));
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
             if (m_requires_check_outside_state) {
                 m_volumes.check_outside_state(m_config, nullptr);
@@ -5094,7 +5154,11 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
     m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
     m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_mod");
+#else
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     if (shader != nullptr) {
         shader->start_using();
 

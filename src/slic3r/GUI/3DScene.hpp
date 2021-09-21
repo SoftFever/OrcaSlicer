@@ -532,10 +532,30 @@ public:
         All
     };
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    struct PrintVolume
+    {
+        // see: Bed3D::EShapeType
+        int type{ 0 };
+        // data contains:
+        // Rectangle:
+        //   [0] = min.x, [1] = min.y, [2] = max.x, [3] = max.y
+        // Circle:
+        //   [0] = center.x, [1] = center.y, [3] = radius
+        std::array<float, 4> data;
+        //   [0] = min z, [1] = max z
+        std::array<float, 2> zs;
+    };
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
 private:
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    PrintVolume m_print_volume;
+#else
     // min and max vertex of the print box volume
     float m_print_box_min[3];
     float m_print_box_max[3];
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     // z range for clipping in shaders
     float m_z_range[2];
@@ -607,10 +627,14 @@ public:
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    void set_print_volume(const PrintVolume& print_volume) { m_print_volume = print_volume; }
+#else
     void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z) {
         m_print_box_min[0] = min_x; m_print_box_min[1] = min_y; m_print_box_min[2] = min_z;
         m_print_box_max[0] = max_x; m_print_box_max[1] = max_y; m_print_box_max[2] = max_z;
     }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     void set_z_range(float min_z, float max_z) { m_z_range[0] = min_z; m_z_range[1] = max_z; }
     void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }

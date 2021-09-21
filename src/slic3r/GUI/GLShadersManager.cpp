@@ -64,17 +64,31 @@ std::pair<bool, std::string> GLShadersManager::init()
     // For Apple's on Arm CPU computed triangle normals inside fragment shader using dFdx and dFdy has the opposite direction.
     // Because of this, objects had darker colors inside the multi-material gizmo.
     // Based on https://stackoverflow.com/a/66206648, the similar behavior was also spotted on some other devices with Arm CPU.
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    if (platform_flavor() == PlatformFlavor::OSXOnArm)
+        valid &= append_shader("gouraud_mod", { "gouraud_mod.vs", "gouraud_mod.fs" }, { "FLIP_TRIANGLE_NORMALS"sv
+#if ENABLE_ENVIRONMENT_MAP
+            , "ENABLE_ENVIRONMENT_MAP"sv
+#endif
+            });
+    else
+        valid &= append_shader("gouraud_mod", { "gouraud_mod.vs", "gouraud_mod.fs" }
+#if ENABLE_ENVIRONMENT_MAP
+            , { "ENABLE_ENVIRONMENT_MAP"sv }
+#endif
+#else
     if (platform_flavor() == PlatformFlavor::OSXOnArm)
         valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }, { "FLIP_TRIANGLE_NORMALS"sv
 #if ENABLE_ENVIRONMENT_MAP
             , "ENABLE_ENVIRONMENT_MAP"sv
 #endif
-        });
+            });
     else
         valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
 #if ENABLE_ENVIRONMENT_MAP
             , { "ENABLE_ENVIRONMENT_MAP"sv }
 #endif
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         );
     // used to render variable layers heights in 3d editor
     valid &= append_shader("variable_layer_height", { "variable_layer_height.vs", "variable_layer_height.fs" });

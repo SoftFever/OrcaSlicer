@@ -873,10 +873,17 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         shader->set_uniform("uniform_color", volume.first->render_color);
         shader->set_uniform("z_range", m_z_range, 2);
         shader->set_uniform("clipping_plane", m_clipping_plane, 4);
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
+        shader->set_uniform("print_volume.xy_data", m_print_volume.data);
+        shader->set_uniform("print_volume.z_data", m_print_volume.zs);
+        shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
+#else
         shader->set_uniform("print_box.min", m_print_box_min, 3);
         shader->set_uniform("print_box.max", m_print_box_max, 3);
         shader->set_uniform("print_box.actived", volume.first->shader_outside_printer_detection_enabled);
         shader->set_uniform("print_box.volume_world_matrix", volume.first->world_matrix());
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
         shader->set_uniform("slope.normal_z", m_slope.normal_z);
@@ -925,6 +932,31 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glsafe(::glDisable(GL_BLEND));
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+static bool same(const Polygon& lhs, const Polygon& rhs)
+{
+    if (lhs.points.size() != rhs.points.size())
+        return false;
+
+    size_t rhs_id = 0;
+    while (rhs_id < rhs.points.size()) {
+        if (rhs.points[rhs_id].isApprox(lhs.points.front()))
+            break;
+        ++rhs_id;
+    }
+
+    if (rhs_id == rhs.points.size())
+        return false;
+
+    for (size_t i = 0; i < lhs.points.size(); ++i) {
+        if (!lhs.points[i].isApprox(rhs.points[(i + rhs_id) % lhs.points.size()]))
+            return false;
+    }
+
+    return true;
+}
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
 bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state) const
 {
     if (config == nullptr)
@@ -934,6 +966,10 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     if (opt == nullptr)
         return false;
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+    const float bed_height = config->opt_float("max_print_height");
+#else
     const BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
     BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min.x()), unscale<double>(bed_box_2D.min.y()), 0.0 }, 
                                { unscale<double>(bed_box_2D.max.x()), unscale<double>(bed_box_2D.max.y()), config->opt_float("max_print_height") });
@@ -943,6 +979,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     print_volume.min.y() -= BedEpsilon;
     print_volume.max.x() += BedEpsilon;
     print_volume.max.y() += BedEpsilon;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     ModelInstanceEPrintVolumeState state = ModelInstancePVS_Inside;
 
@@ -957,7 +994,19 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 #else
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
 #endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
+        const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
+        Polygons intersection_polys = intersection(bed_poly, volume_hull_2d);
+        bool contained_xy = !intersection_polys.empty() && same(intersection_polys.front(), volume_hull_2d);
+        bool contained_z = -1e10 < bb.min.z() && bb.max.z() < bed_height;
+        bool contained = contained_xy && contained_z;
+        bool intersects_xy = !contained_xy && !intersection_polys.empty();
+        bool intersects_z = !contained_z && bb.min.z() < bed_height && -1e10 < bb.max.z();
+        bool intersects = intersects_xy || intersects_z;
+#else
         bool contained = print_volume.contains(bb);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
         volume->is_outside = !contained;
         if (!volume->printable)
@@ -968,8 +1017,13 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         if (state == ModelInstancePVS_Inside && volume->is_outside)
             state = ModelInstancePVS_Fully_Outside;
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        if (state == ModelInstancePVS_Fully_Outside && volume->is_outside && intersects)
+            state = ModelInstancePVS_Partly_Outside;
+#else
         if (state == ModelInstancePVS_Fully_Outside && volume->is_outside && print_volume.intersects(bb))
             state = ModelInstancePVS_Partly_Outside;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     }
 
     if (out_state != nullptr)

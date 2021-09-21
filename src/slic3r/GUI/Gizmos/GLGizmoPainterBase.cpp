@@ -97,12 +97,20 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection, const bool
         clp_dataf[3] = float(clp->get_data()[3]);
     }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    auto* shader = wxGetApp().get_shader("gouraud_mod");
+#else
     auto *shader = wxGetApp().get_shader("gouraud");
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     if (! shader)
         return;
     shader->start_using();
     shader->set_uniform("slope.actived", false);
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    shader->set_uniform("print_volume.type", 0);
+#else
     shader->set_uniform("print_box.actived", false);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     shader->set_uniform("clipping_plane", clp_dataf, 4);
     ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
 
@@ -128,7 +136,11 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection, const bool
         // to the shader input variable print_box.volume_world_matrix before
         // rendering the painted triangles. When this matrix is not set, the
         // wrong transformation matrix is used for "Clipping of view".
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        shader->set_uniform("volume_world_matrix", trafo_matrix);
+#else
         shader->set_uniform("print_box.volume_world_matrix", trafo_matrix);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
         m_triangle_selectors[mesh_id]->render(m_imgui);
 
@@ -591,7 +603,11 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     auto* shader = wxGetApp().get_current_shader();
     if (! shader)
         return;
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    assert(shader->get_name() == "gouraud_mod");
+#else
     assert(shader->get_name() == "gouraud");
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),
                      std::make_pair(&m_iva_blockers, blockers_color)}) {

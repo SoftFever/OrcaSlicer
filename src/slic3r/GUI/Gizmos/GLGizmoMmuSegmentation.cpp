@@ -607,7 +607,11 @@ void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
     auto *shader = wxGetApp().get_current_shader();
     if (!shader)
         return;
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    assert(shader->get_name() == "gouraud_mod");
+#else
     assert(shader->get_name() == "gouraud");
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     ScopeGuard guard([shader]() { if (shader) shader->set_uniform("compute_triangle_normals_in_fs", false);});
     shader->set_uniform("compute_triangle_normals_in_fs", true);
 
