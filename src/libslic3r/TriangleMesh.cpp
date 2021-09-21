@@ -191,7 +191,7 @@ bool TriangleMesh::ReadSTLFile(const char* input_file, bool repair)
     auto facets_w_1_bad_edge = stl.stats.connected_facets_2_edge - stl.stats.connected_facets_3_edge;
     auto facets_w_2_bad_edge = stl.stats.connected_facets_1_edge - stl.stats.connected_facets_2_edge;
     auto facets_w_3_bad_edge = stl.stats.number_of_facets - stl.stats.connected_facets_1_edge;
-    m_stats.open_edges              = facets_w_1_bad_edge + facets_w_2_bad_edge * 2 + facets_w_3_bad_edge * 3;
+    m_stats.open_edges              = stl.stats.backwards_edges + facets_w_1_bad_edge + facets_w_2_bad_edge * 2 + facets_w_3_bad_edge * 3;
 
     m_stats.edges_fixed             = stl.stats.edges_fixed;
     m_stats.degenerate_facets       = stl.stats.degenerate_facets;
@@ -507,7 +507,9 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
         }
     }
 
-    return TriangleMesh { std::move(dst_vertices), std::move(dst_facets) };
+    TriangleMesh mesh{ std::move(dst_vertices), std::move(dst_facets) };
+    assert(mesh.stats().manifold());
+    return mesh;
 }
 
 std::vector<ExPolygons> TriangleMesh::slice(const std::vector<double> &z) const
