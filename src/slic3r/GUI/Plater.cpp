@@ -3918,20 +3918,16 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
-    switch (this->printer_technology) {
-    case ptFFF:
-        this->update_fff_scene();
-        break;
-    case ptSLA:
-        if (view3D->is_dragging())
-            delayed_scene_refresh = true;
+    if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
+        delayed_scene_refresh = true;
+    else {
+        if (this->printer_technology == ptFFF)
+            this->update_fff_scene();
         else
             this->update_sla_scene();
-        break;
-    default: break;
     }
-
 }
+
 void Plater::priv::on_export_began(wxCommandEvent& evt)
 {
 	if (show_warning_dialog)
@@ -4050,17 +4046,13 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     this->object_list_changed();
 
     // refresh preview
-    switch (this->printer_technology) {
-    case ptFFF:
-        this->update_fff_scene();
-        break;
-    case ptSLA:
-        if (view3D->is_dragging())
-            delayed_scene_refresh = true;
+    if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
+        delayed_scene_refresh = true;
+    else {
+        if (this->printer_technology == ptFFF)
+            this->update_fff_scene();
         else
             this->update_sla_scene();
-        break;
-    default: break;
     }
 	
     if (evt.cancelled()) {
