@@ -966,7 +966,8 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
     const float bed_height = config->opt_float("max_print_height");
-#else
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
     const BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
     BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min.x()), unscale<double>(bed_box_2D.min.y()), 0.0 }, 
                                { unscale<double>(bed_box_2D.max.x()), unscale<double>(bed_box_2D.max.y()), config->opt_float("max_print_height") });
@@ -976,7 +977,6 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     print_volume.min.y() -= BedEpsilon;
     print_volume.max.x() += BedEpsilon;
     print_volume.max.y() += BedEpsilon;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     ModelInstanceEPrintVolumeState state = ModelInstancePVS_Inside;
 
@@ -987,23 +987,36 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
             continue;
 
 #if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
-        const BoundingBoxf3& bb = volume->transformed_non_sinking_bounding_box();
+        bool contained = false;
+        bool intersects = false;
+        if (GUI::wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA) {
+            const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
+            contained = print_volume.contains(bb);
+            intersects = print_volume.intersects(bb);
+        }
+        else {
+            const BoundingBoxf3& bb = volume->transformed_non_sinking_bounding_box();
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
+            const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
+            Polygons intersection_polys = intersection(bed_poly, volume_hull_2d);
+            bool contained_xy = !intersection_polys.empty() && same(intersection_polys.front(), volume_hull_2d);
+            bool contained_z = -1e10 < bb.min.z() && bb.max.z() < bed_height;
+            contained = contained_xy && contained_z;
+            bool intersects_xy = !contained_xy && !intersection_polys.empty();
+            bool intersects_z = !contained_z && bb.min.z() < bed_height && -1e10 < bb.max.z();
+            intersects = intersects_xy || intersects_z;
+#else
+            contained = print_volume.contains(bb);
+            intersects = print_volume.intersects(bb);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 #else
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
-#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-        const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
-        const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
-        Polygons intersection_polys = intersection(bed_poly, volume_hull_2d);
-        bool contained_xy = !intersection_polys.empty() && same(intersection_polys.front(), volume_hull_2d);
-        bool contained_z = -1e10 < bb.min.z() && bb.max.z() < bed_height;
-        bool contained = contained_xy && contained_z;
-        bool intersects_xy = !contained_xy && !intersection_polys.empty();
-        bool intersects_z = !contained_z && bb.min.z() < bed_height && -1e10 < bb.max.z();
-        bool intersects = intersects_xy || intersects_z;
-#else
         bool contained = print_volume.contains(bb);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+        }
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
 
         volume->is_outside = !contained;
         if (!volume->printable)
@@ -1014,13 +1027,13 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         if (state == ModelInstancePVS_Inside && volume->is_outside)
             state = ModelInstancePVS_Fully_Outside;
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
         if (state == ModelInstancePVS_Fully_Outside && volume->is_outside && intersects)
             state = ModelInstancePVS_Partly_Outside;
 #else
         if (state == ModelInstancePVS_Fully_Outside && volume->is_outside && print_volume.intersects(bb))
             state = ModelInstancePVS_Partly_Outside;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
     }
 
     if (out_state != nullptr)
