@@ -28,65 +28,84 @@ template<> struct ItsWithNeighborsIndex_<indexed_triangle_set> {
     }
 };
 
-// Visit all unvisited neighboring facets that are reachable from the first unvisited facet,
-// and return them.
+// Discover connected patches of facets one by one.
 template<class NeighborIndex>
-std::vector<size_t> its_find_unvisited_neighbors(
-    const indexed_triangle_set &its,
-    const NeighborIndex &       neighbor_index,
-    std::vector<char> &         visited)
-{
-    using stack_el = size_t;
-
-    auto facestack = reserve_vector<stack_el>(its.indices.size());
-    auto push = [&facestack] (const stack_el &s) { facestack.emplace_back(s); };
-    auto pop  = [&facestack] () -> stack_el {
-        stack_el ret = facestack.back();
-        facestack.pop_back();
-        return ret;
-    };
-
-    // find the next unvisited facet and push the index
-    auto facet = std::find(visited.begin(), visited.end(), false);
-    std::vector<size_t> ret;
-
-    if (facet != visited.end()) {
-        ret.reserve(its.indices.size());
-        auto idx = size_t(facet - visited.begin());
-        push(idx);
-        ret.emplace_back(idx);
-        visited[idx] = true;
+struct NeighborVisitor {
+    NeighborVisitor(const indexed_triangle_set &its, const NeighborIndex &neighbor_index) : 
+        its(its), neighbor_index(neighbor_index) {
+        m_visited.assign(its.indices.size(), false);
+        m_facestack.reserve(its.indices.size());
+    }
+    NeighborVisitor(const indexed_triangle_set &its, NeighborIndex &&aneighbor_index) : 
+        its(its), neighbor_index(m_neighbor_index_data), m_neighbor_index_data(std::move(aneighbor_index)) {
+        m_visited.assign(its.indices.size(), false);
+        m_facestack.reserve(its.indices.size());
     }
 
-    while (!facestack.empty()) {
-        size_t facet_idx = pop();
-        const auto &neighbors = neighbor_index[facet_idx];
-        for (auto neighbor_idx : neighbors) {
-            if (size_t(neighbor_idx) < visited.size() && !visited[size_t(neighbor_idx)]) {
-                visited[size_t(neighbor_idx)] = true;
-                push(stack_el(neighbor_idx));
-                ret.emplace_back(size_t(neighbor_idx));
+    template<typename Visitor>
+    void visit(Visitor visitor)
+    {
+        // find the next unvisited facet and push the index
+        auto facet = std::find(m_visited.begin() + m_seed, m_visited.end(), false);
+        m_seed = facet - m_visited.begin();
+
+        if (facet != m_visited.end()) {
+            // Skip this element in the next round.
+            auto idx = m_seed ++;
+            if (! visitor(idx))
+                return;
+            this->push(idx);
+            m_visited[idx] = true;
+            while (! m_facestack.empty()) {
+                size_t facet_idx = this->pop();
+                for (auto neighbor_idx : neighbor_index[facet_idx]) {
+                    assert(neighbor_idx < int(m_visited.size()));
+                    if (neighbor_idx >= 0 && !m_visited[neighbor_idx]) {
+                        if (! visitor(size_t(neighbor_idx)))
+                            return;
+                        m_visited[neighbor_idx] = true;
+                        this->push(stack_el(neighbor_idx));
+                    }
+                }
             }
         }
     }
 
-    return ret;
-}
+    const indexed_triangle_set  &its;
+    const NeighborIndex         &neighbor_index;
+
+private:
+    // If initialized with &&neighbor_index, take the ownership of the data.
+    const NeighborIndex          m_neighbor_index_data;
+
+    std::vector<char>            m_visited;
+
+    using                        stack_el = size_t;
+    std::vector<stack_el>        m_facestack;
+    void                         push(const stack_el &s) { m_facestack.emplace_back(s); }
+    stack_el                     pop() { stack_el ret = m_facestack.back(); m_facestack.pop_back(); return ret; }
+
+    // Last face visited.
+    size_t                       m_seed { 0 };
+};
 
 } // namespace meshsplit_detail
 
+// Funky wrapper for timinig of its_split() using various neighbor index creating methods, see sandboxes/its_neighbor_index/main.cpp
 template<class IndexT> struct ItsNeighborsWrapper
 {
     using Index = IndexT;
-    const indexed_triangle_set *its;
-    IndexT index;
+    const indexed_triangle_set &its;
+    const IndexT               &index_ref;
+    const IndexT                index;
 
-    ItsNeighborsWrapper(const indexed_triangle_set &m, IndexT &&idx)
-        : its{&m}, index{std::move(idx)}
-    {}
+    // Keeping a reference to index, the caller is responsible for keeping the index alive.
+    ItsNeighborsWrapper(const indexed_triangle_set &its, const IndexT &index) : its{its}, index_ref{index} {}
+    // Taking ownership of the index.
+    ItsNeighborsWrapper(const indexed_triangle_set &its, IndexT &&aindex) : its{its}, index_ref{index}, index(std::move(aindex)) {}
 
-    const auto& get_its() const noexcept { return *its; }
-    const auto& get_index() const noexcept { return index; }
+    const auto& get_its() const noexcept { return its; }
+    const auto& get_index() const noexcept { return index_ref; }
 };
 
 // Splits a mesh into multiple meshes when possible.
@@ -97,20 +116,19 @@ void its_split(const Its &m, OutputIt out_it)
 
     const indexed_triangle_set &its = ItsWithNeighborsIndex_<Its>::get_its(m);
 
-    std::vector<char> visited(its.indices.size(), false);
-
     struct VertexConv {
         size_t part_id      = std::numeric_limits<size_t>::max();
         size_t vertex_image;
     };
     std::vector<VertexConv> vidx_conv(its.vertices.size());
 
-    const auto& neighbor_index = ItsWithNeighborsIndex_<Its>::get_index(m);
-
+    meshsplit_detail::NeighborVisitor visitor(its, meshsplit_detail::ItsWithNeighborsIndex_<Its>::get_index(m));
+    
+    std::vector<size_t> facets;
     for (size_t part_id = 0;; ++part_id) {
-        std::vector<size_t> facets =
-            its_find_unvisited_neighbors(its, neighbor_index, visited);
-
+        // Collect all faces of the next patch.
+        facets.clear();
+        visitor.visit([&facets](size_t idx) { facets.emplace_back(idx); return true; });
         if (facets.empty())
             break;
 
@@ -150,17 +168,34 @@ std::vector<indexed_triangle_set> its_split(const Its &its)
     return ret;
 }
 
-template<class Its> bool its_is_splittable(const Its &m)
+template<class Its> 
+bool its_is_splittable(const Its &m)
 {
-    using namespace meshsplit_detail;
-    const indexed_triangle_set &its = ItsWithNeighborsIndex_<Its>::get_its(m);
-    const auto& neighbor_index = ItsWithNeighborsIndex_<Its>::get_index(m);
+    meshsplit_detail::NeighborVisitor visitor(meshsplit_detail::ItsWithNeighborsIndex_<Its>::get_its(m), meshsplit_detail::ItsWithNeighborsIndex_<Its>::get_index(m));
+    bool has_some = false;
+    bool has_some2 = false;
+    // Traverse the 1st patch fully.
+    visitor.visit([&has_some](size_t idx) { has_some = true; return true; });
+    if (has_some)
+        // Just check whether there is any face of the 2nd patch.
+        visitor.visit([&has_some2](size_t idx) { has_some2 = true; return false; });
+    return has_some && has_some2;
+}
 
-    std::vector<char> visited(its.indices.size(), false);
-    its_find_unvisited_neighbors(its, neighbor_index, visited);
-    auto faces = its_find_unvisited_neighbors(its, neighbor_index, visited);
-
-    return !faces.empty();
+template<class Its>
+size_t its_number_of_patches(const Its &m)
+{
+    meshsplit_detail::NeighborVisitor visitor(meshsplit_detail::ItsWithNeighborsIndex_<Its>::get_its(m), meshsplit_detail::ItsWithNeighborsIndex_<Its>::get_index(m));
+    size_t num_patches = 0;
+    for (;;) {
+        bool has_some = false;
+        // Traverse the 1st patch fully.
+        visitor.visit([&has_some](size_t idx) { has_some = true; return true; });
+        if (! has_some)
+            break;
+        ++ num_patches;
+    }
+    return num_patches;
 }
 
 template<class ExPolicy>

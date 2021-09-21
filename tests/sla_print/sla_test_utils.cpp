@@ -74,8 +74,6 @@ void export_failed_case(const std::vector<ExPolygons> &support_slices, const Sup
     byproducts.supporttree.retrieve_full_mesh(its);
     TriangleMesh m{its};
     m.merge(byproducts.input_mesh);
-    m.repair();
-    m.require_shared_vertices();
     m.WriteOBJFile((Catch::getResultCapture().getCurrentTestName() + "_" +
                     byproducts.obj_fname).c_str());
 }
@@ -95,7 +93,6 @@ void test_supports(const std::string          &obj_filename,
         sla::InteriorPtr interior = sla::generate_interior(mesh, hollowingcfg);
         REQUIRE(interior);
         mesh.merge(TriangleMesh{sla::get_mesh(*interior)});
-        mesh.require_shared_vertices();
     }
     
     auto   bb      = mesh.bounding_box();
@@ -105,7 +102,6 @@ void test_supports(const std::string          &obj_filename,
     auto   layer_h = 0.05f;
     
     out.slicegrid = grid(float(gnd), float(zmax), layer_h);
-    assert(mesh.has_shared_vertices());
     out.model_slices = slice_mesh_ex(mesh.its, out.slicegrid, CLOSING_RADIUS);
     sla::cut_drainholes(out.model_slices, out.slicegrid, CLOSING_RADIUS, drainholes, []{});
     
@@ -283,8 +279,10 @@ void test_concave_hull(const ExPolygons &polys) {
     _test_concave_hull(waffl, polys);
 }
 
+//FIXME this functionality is gone after TriangleMesh refactoring to get rid of admesh.
 void check_validity(const TriangleMesh &input_mesh, int flags)
 {
+    /*
     TriangleMesh mesh{input_mesh};
     
     if (flags & ASSUME_NO_EMPTY) {
@@ -292,20 +290,18 @@ void check_validity(const TriangleMesh &input_mesh, int flags)
     } else if (mesh.empty())
         return; // If it can be empty and it is, there is nothing left to do.
     
-    REQUIRE(stl_validate(&mesh.stl));
-    
     bool do_update_shared_vertices = false;
     mesh.repair(do_update_shared_vertices);
     
     if (flags & ASSUME_NO_REPAIR) {
-        REQUIRE_FALSE(mesh.needed_repair());
+        REQUIRE_FALSE(mesh.repaired());
     }
     
     if (flags & ASSUME_MANIFOLD) {
-        mesh.require_shared_vertices();
         if (!mesh.is_manifold()) mesh.WriteOBJFile("non_manifold.obj");
         REQUIRE(mesh.is_manifold());
     }
+    */
 }
 
 void check_raster_transformations(sla::RasterBase::Orientation o, sla::RasterBase::TMirroring mirroring)
@@ -420,53 +416,6 @@ double predict_error(const ExPolygon &p, const sla::RasterBase::PixelDim &pd)
     return error;
 }
 
-
-// Make a 3D pyramid
-TriangleMesh make_pyramid(float base, float height)
-{
-    float a = base / 2.f;
-
-    TriangleMesh mesh(
-        {
-            {-a, -a, 0}, {a, -a, 0}, {a, a, 0},
-            {-a, a, 0}, {0.f, 0.f, height}
-        },
-        {
-            {0, 1, 2},
-            {0, 2, 3},
-            {0, 1, 4},
-            {1, 2, 4},
-            {2, 3, 4},
-            {3, 0, 4}
-        });
-
-    mesh.repair();
-
-    return mesh;
-}
-
-    TriangleMesh make_prism(double width, double length, double height)
-{
-    // We need two upward facing triangles
-
-        double x = width / 2., y = length / 2.;
-
-        TriangleMesh mesh(
-            {
-                {-x, -y, 0.}, {x, -y, 0.}, {0., -y, height},
-                {-x, y, 0.}, {x, y, 0.}, {0., y, height},
-                },
-            {
-                {0, 1, 2}, // side 1
-                {4, 3, 5}, // side 2
-                {1, 4, 2}, {2, 4, 5}, // roof 1
-                {0, 2, 5}, {0, 5, 3}, // roof 2
-                {3, 4, 1}, {3, 1, 0} // bottom
-            });
-
-    return mesh;
-}
-
 sla::SupportPoints calc_support_pts(
     const TriangleMesh &                      mesh,
     const sla::SupportPointGenerator::Config &cfg)
@@ -474,7 +423,6 @@ sla::SupportPoints calc_support_pts(
     // Prepare the slice grid and the slices
     auto                    bb      = cast<float>(mesh.bounding_box());
     std::vector<float>      heights = grid(bb.min.z(), bb.max.z(), 0.1f);
-    assert(mesh.has_shared_vertices());
     std::vector<ExPolygons> slices  = slice_mesh_ex(mesh.its, heights, CLOSING_RADIUS);
 
     // Prepare the support point calculator

@@ -239,6 +239,7 @@ private:
 	    return edge_a.facet_number != edge_b.facet_number && edge_a == edge_b;
 	}
 
+	// Connect edge_a with edge_b, update edge connection statistics.
 	static void record_neighbors(stl_file *stl, const HashEdge &edge_a, const HashEdge &edge_b)
 	{
 		// Facet a's neighbor is facet b
@@ -249,7 +250,7 @@ private:
 		stl->neighbors_start[edge_b.facet_number].neighbor[edge_b.which_edge % 3] = edge_a.facet_number;	/* sets the .neighbor part */
 		stl->neighbors_start[edge_b.facet_number].which_vertex_not[edge_b.which_edge % 3] = (edge_a.which_edge + 2) % 3; /* sets the .which_vertex_not part */
 
-		if (((edge_a.which_edge < 3) && (edge_b.which_edge < 3)) || ((edge_a.which_edge > 2) && (edge_b.which_edge > 2))) {
+		if ((edge_a.which_edge < 3 && edge_b.which_edge < 3) || (edge_a.which_edge > 2 && edge_b.which_edge > 2)) {
 			// These facets are oriented in opposite directions, their normals are probably messed up.
 			stl->neighbors_start[edge_a.facet_number].which_vertex_not[edge_a.which_edge % 3] += 3;
 			stl->neighbors_start[edge_b.facet_number].which_vertex_not[edge_b.which_edge % 3] += 3;
@@ -479,12 +480,13 @@ void stl_check_facets_exact(stl_file *stl)
 
 void stl_check_facets_nearby(stl_file *stl, float tolerance)
 {
-  	if (  (stl->stats.connected_facets_1_edge == stl->stats.number_of_facets)
-       && (stl->stats.connected_facets_2_edge == stl->stats.number_of_facets)
-       && (stl->stats.connected_facets_3_edge == stl->stats.number_of_facets)) {
+	assert(stl->stats.connected_facets_3_edge <= stl->stats.connected_facets_2_edge);
+	assert(stl->stats.connected_facets_2_edge <= stl->stats.connected_facets_1_edge);
+	assert(stl->stats.connected_facets_1_edge <= stl->stats.number_of_facets);
+
+  	if (stl->stats.connected_facets_3_edge == stl->stats.number_of_facets)
     	// No need to check any further.  All facets are connected.
     	return;
-  	}
 
   	HashTableEdges hash_table(stl->stats.number_of_facets);
   	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
@@ -514,22 +516,12 @@ void stl_remove_unconnected_facets(stl_file *stl)
 		/* Update list of connected edges */
 		stl_neighbors &neighbors = stl->neighbors_start[facet_number];
 		// Update statistics on unconnected triangle edges.
-		switch ((neighbors.neighbor[0] == -1) + (neighbors.neighbor[1] == -1) + (neighbors.neighbor[2] == -1)) {
-		case 0: // Facet has 3 neighbors
-			-- stl->stats.connected_facets_3_edge;
-			-- stl->stats.connected_facets_2_edge;
-			-- stl->stats.connected_facets_1_edge;
-			break;
-		case 1: // Facet has 2 neighbors
-			-- stl->stats.connected_facets_2_edge;
-			-- stl->stats.connected_facets_1_edge;
-			break;
-		case 2: // Facet has 1 neighbor
-			-- stl->stats.connected_facets_1_edge;
-		case 3: // Facet has 0 neighbors
-			break;
-		default:
-			assert(false);
+		switch (neighbors.num_neighbors()) {
+		case 3: -- stl->stats.connected_facets_3_edge; // fall through
+		case 2: -- stl->stats.connected_facets_2_edge; // fall through
+		case 1: -- stl->stats.connected_facets_1_edge; // fall through
+		case 0: break;
+		default: assert(false);
 		}
 
 	  	if (facet_number < int(-- stl->stats.number_of_facets)) {
@@ -555,20 +547,14 @@ void stl_remove_unconnected_facets(stl_file *stl)
 
 	auto remove_degenerate = [stl, remove_facet](int facet)
 	{
-		// Update statistics on face connectivity.
-		auto stl_update_connects_remove_1 = [stl](int facet_num) {
-			//FIXME when decreasing 3_edge, should I increase 2_edge etc?
-			switch ((stl->neighbors_start[facet_num].neighbor[0] == -1) + (stl->neighbors_start[facet_num].neighbor[1] == -1) + (stl->neighbors_start[facet_num].neighbor[2] == -1)) {
-			case 0: // Facet has 3 neighbors
-				-- stl->stats.connected_facets_3_edge; break;
-			case 1: // Facet has 2 neighbors
-				-- stl->stats.connected_facets_2_edge; break;
-			case 2: // Facet has 1 neighbor
-				-- stl->stats.connected_facets_1_edge; break;
-			case 3: // Facet has 0 neighbors
-				break;
-			default:
-				assert(false);
+		// Update statistics on face connectivity after one edge was disconnected on the facet "facet_num".
+		auto update_connects_remove_1 = [stl](int facet_num) {
+			switch (stl->neighbors_start[facet_num].num_neighbors()) {
+			case 0: assert(false); break;
+			case 1: -- stl->stats.connected_facets_1_edge; break;
+			case 2: -- stl->stats.connected_facets_2_edge; break;
+			case 3: -- stl->stats.connected_facets_3_edge; break;
+			default: assert(false);
 		  	}
 		};
 
@@ -604,9 +590,9 @@ void stl_remove_unconnected_facets(stl_file *stl)
 
 		// Update statistics on edge connectivity.
 		if ((neighbor[0] == -1) && (neighbor[1] != -1))
-			stl_update_connects_remove_1(neighbor[1]);
+			update_connects_remove_1(neighbor[1]);
 		if ((neighbor[1] == -1) && (neighbor[0] != -1))
-			stl_update_connects_remove_1(neighbor[0]);
+			update_connects_remove_1(neighbor[0]);
 
 	  	if (neighbor[0] >= 0) {
 			if (neighbor[1] >= 0) {
@@ -634,7 +620,7 @@ void stl_remove_unconnected_facets(stl_file *stl)
 	    	stl->neighbors_start[neighbor[1]].which_vertex_not[(vnot[1] + 1) % 3] = vnot[0];
 	  	}
 		if (neighbor[2] >= 0) {
-			stl_update_connects_remove_1(neighbor[2]);
+			update_connects_remove_1(neighbor[2]);
 			stl->neighbors_start[neighbor[2]].neighbor[(vnot[2] + 1) % 3] = -1;
 		}
 
@@ -652,11 +638,9 @@ void stl_remove_unconnected_facets(stl_file *stl)
 			++ i;
 
 	if (stl->stats.connected_facets_1_edge < (int)stl->stats.number_of_facets) {
-		// remove completely unconnected facets
+		// There are some faces with no connected edge at all. Remove completely unconnected facets.
 		for (uint32_t i = 0; i < stl->stats.number_of_facets;)
-			if (stl->neighbors_start[i].neighbor[0] == -1 &&
-				stl->neighbors_start[i].neighbor[1] == -1 &&
-				stl->neighbors_start[i].neighbor[2] == -1) {
+			if (stl->neighbors_start[i].num_neighbors() == 0) {
 				// This facet is completely unconnected.  Remove it.
 				remove_facet(i);
 				assert(stl_validate(stl));

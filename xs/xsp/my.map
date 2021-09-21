@@ -239,7 +239,6 @@ SupportLayerPtrs*   T_PTR_ARRAYREF_PTR
 # we return these types whenever we want the items to be returned
 # by reference and not marked ::Ref because they're newly allocated
 # and not referenced by any Perl object
-TriangleMeshPtrs T_PTR_ARRAYREF
 
 
 INPUT

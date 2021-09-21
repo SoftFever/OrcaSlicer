@@ -1300,8 +1300,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                     num_extruders,
                     painting_extruders,
                     *print_object_regions,
-                    [&print_object, &update_apply_status](const PrintRegionConfig &old_config, const PrintRegionConfig &new_config, const t_config_option_keys &diff_keys) {
-                        update_apply_status(print_object.invalidate_state_by_config_options(old_config, new_config, diff_keys));
+                    [&print_object, it_print_object, it_print_object_end, &update_apply_status](const PrintRegionConfig &old_config, const PrintRegionConfig &new_config, const t_config_option_keys &diff_keys) {
+                        for (auto it = it_print_object; it != it_print_object_end; ++it)
+                            if ((*it)->m_shared_regions != nullptr)
+                                update_apply_status((*it)->invalidate_state_by_config_options(old_config, new_config, diff_keys));
                     })) {
                 // Regions are valid, just keep them.
             } else {

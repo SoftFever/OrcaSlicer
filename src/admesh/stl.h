@@ -79,8 +79,7 @@ struct stl_neighbors {
   		which_vertex_not[1] = -1;
   		which_vertex_not[2] = -1;
   	}
-  	int num_neighbors_missing() const { return (this->neighbor[0] == -1) + (this->neighbor[1] == -1) + (this->neighbor[2] == -1); }
-  	int num_neighbors() const { return 3 - this->num_neighbors_missing(); }
+  	int num_neighbors() const { return 3 - ((this->neighbor[0] == -1) + (this->neighbor[1] == -1) + (this->neighbor[2] == -1)); }
 
   	// Index of a neighbor facet.
   	int   neighbor[3];
@@ -92,28 +91,44 @@ struct stl_stats {
     stl_stats() { memset(&header, 0, 81); }
     char          header[81];
     stl_type      type                      = (stl_type)0;
+    // Should always match the number of facets stored inside stl_file::facet_start.
     uint32_t      number_of_facets          = 0;
+    // Bounding box.
     stl_vertex    max                       = stl_vertex::Zero();
     stl_vertex    min                       = stl_vertex::Zero();
     stl_vertex    size                      = stl_vertex::Zero();
     float         bounding_diameter         = 0.f;
     float         shortest_edge             = 0.f;
+    // After repair, the volume shall always be positive.
     float         volume                    = -1.f;
+    // Number of face edges connected to another face.
+    // Don't use this statistics after repair, use the connected_facets_1/2/3_edge instead!
     int           connected_edges           = 0;
+    // Faces with >=1, >=2 and 3 edges connected to another face.
     int           connected_facets_1_edge   = 0;
     int           connected_facets_2_edge   = 0;
     int           connected_facets_3_edge   = 0;
+    // Faces with 1, 2 and 3 open edges after exact chaining, but before repair.
     int           facets_w_1_bad_edge       = 0;
     int           facets_w_2_bad_edge       = 0;
     int           facets_w_3_bad_edge       = 0;
+    // Number of faces read form an STL file.
     int           original_num_facets       = 0;
+    // Number of edges connected one to another by snapping their end vertices.
     int           edges_fixed               = 0;
+    // Number of faces removed because they were degenerated.
     int           degenerate_facets         = 0;
+    // Total number of facets removed: Degenerate faces and unconnected faces.
     int           facets_removed            = 0;
+    // Number of faces added by hole filling.
     int           facets_added              = 0;
+    // Number of faces reversed because of negative volume or because one patch was connected to another patch with incompatible normals.
     int           facets_reversed           = 0;
+    // Number of incompatible edges remaining after the patches were connected together and possibly their normals flipped.
     int           backwards_edges           = 0;
+    // Number of triangles, which were flipped during the fixing process.
     int           normals_fixed             = 0;
+    // Number of connected triangle patches.
     int           number_of_parts           = 0;
 
     void clear() { *this = stl_stats(); }
@@ -135,13 +150,11 @@ struct stl_file {
 	std::vector<stl_facet>     		facet_start;
 	std::vector<stl_neighbors> 		neighbors_start;
 	// Statistics
-	stl_stats     					      stats;
+	stl_stats     					stats;
 };
 
 struct indexed_triangle_set
 {
-	indexed_triangle_set() {}
-
 	void clear() { indices.clear(); vertices.clear(); }
 
 	size_t memsize() const {
@@ -149,9 +162,7 @@ struct indexed_triangle_set
 	}
 
 	std::vector<stl_triangle_vertex_indices> 	indices;
-    std::vector<stl_vertex>       				    vertices;
-	//FIXME add normals once we get rid of the stl_file from TriangleMesh completely.
-	//std::vector<stl_normal> 					      normals
+    std::vector<stl_vertex>       				vertices;
 
     bool empty() const { return indices.empty() || vertices.empty(); }
 };

@@ -397,7 +397,7 @@ int CLI::run(int argc, char **argv)
                 TriangleMesh mesh = model.mesh();
                 mesh.repair();
 
-                TriangleMeshPtrs meshes = mesh.cut_by_grid(m_config.option<ConfigOptionPoint>("cut_grid")->value);
+                std::vector<TriangleMesh> meshes = mesh.cut_by_grid(m_config.option<ConfigOptionPoint>("cut_grid")->value);
                 size_t i = 0;
                 for (TriangleMesh* m : meshes) {
                     Model out;

@@ -14,10 +14,8 @@ void simplify_mesh(indexed_triangle_set &);
 
 template<class...Args> void simplify_mesh(TriangleMesh &m, Args &&...a)
 {
-    m.require_shared_vertices();
     simplify_mesh(m.its, std::forward<Args>(a)...);
-    m = TriangleMesh{m.its};
-    m.require_shared_vertices();
+    m = TriangleMesh{ std::move(m.its) };
 }
 
 } // namespace Slic3r

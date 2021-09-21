@@ -409,7 +409,6 @@ void CSGDisplay::on_scene_updated(const Scene &scene)
             interior.transform(po->trafo().inverse());
             
             mshinst.merge(interior);
-            mshinst.require_shared_vertices();
             
             mi->transform_mesh(&mshinst);
             
@@ -417,14 +416,12 @@ void CSGDisplay::on_scene_updated(const Scene &scene)
             auto center = bb.center().cast<float>();
             mshinst.translate(-center);
             
-            mshinst.require_shared_vertices();
             m_scene_cache.add_mesh(mshinst, OpenCSG::Intersection,
                                    m_csgsettings.get_convexity());
         }
         
         for (const sla::DrainHole &holept : holedata) {
             TriangleMesh holemesh = sla::to_triangle_mesh(holept.to_mesh());
-            holemesh.require_shared_vertices();
             m_scene_cache.add_mesh(holemesh, OpenCSG::Subtraction, 1);
         }
     }

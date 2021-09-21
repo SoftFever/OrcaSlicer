@@ -160,7 +160,6 @@ bool GLModel::init_from_file(const std::string& filename)
     }
 
     TriangleMesh mesh = model.mesh();
-    mesh.require_shared_vertices();
     init_from(mesh.its, mesh.bounding_box());
 
     m_filename = filename;

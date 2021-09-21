@@ -139,7 +139,6 @@ sub mesh {
     
     my $mesh = Slic3r::TriangleMesh->new;
     $mesh->ReadFromPerl($vertices, $facets);
-    $mesh->repair;
     $mesh->scale_xyz(Slic3r::Pointf3->new(@{$params{scale_xyz}})) if $params{scale_xyz};
     $mesh->translate(@{$params{translate}}) if $params{translate};
     return $mesh;

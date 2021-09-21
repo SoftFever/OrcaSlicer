@@ -67,8 +67,8 @@
 #include "Jobs/FillBedJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
 #include "Jobs/SLAImportJob.hpp"
+#include "Jobs/NotificationProgressIndicator.hpp"
 #include "BackgroundSlicingProcess.hpp"
-#include "ProgressStatusBar.hpp"
 #include "PrintHostDialogs.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
@@ -1135,7 +1135,7 @@ void Sidebar::show_info_sizer()
                                                        static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
-        stats.facets_added + stats.facets_reversed + stats.backwards_edges;
+        stats.facets_reversed + stats.backwards_edges;
     if (errors > 0) {
         wxString tooltip = format_wxstr(_L_PLURAL("Auto-repaired %1$d error", "Auto-repaired %1$d errors", errors), errors);
         p->object_info->info_manifold->SetLabel(tooltip);
@@ -1147,8 +1147,6 @@ void Sidebar::show_info_sizer()
             tooltip += format_wxstr(_L_PLURAL("%1$d edge fixed", "%1$d edges fixed", stats.edges_fixed), stats.edges_fixed) + ", ";
         if (stats.facets_removed > 0)
             tooltip += format_wxstr(_L_PLURAL("%1$d facet removed", "%1$d facets removed", stats.facets_removed), stats.facets_removed) + ", ";
-        if (stats.facets_added > 0)
-            tooltip += format_wxstr(_L_PLURAL("%1$d facet added", "%1$d facets added", stats.facets_added), stats.facets_added) + ", ";
         if (stats.facets_reversed > 0)
             tooltip += format_wxstr(_L_PLURAL("%1$d facet reversed", "%1$d facets reversed", stats.facets_reversed), stats.facets_reversed) + ", ";
         if (stats.backwards_edges > 0)
@@ -1501,7 +1499,7 @@ struct Plater::priv
     GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
-    std::shared_ptr<NotificationManager> notification_manager;
+    std::unique_ptr<NotificationManager> notification_manager;
 
     ProjectDirtyStateManager dirty_state;
 
@@ -1516,16 +1514,19 @@ struct Plater::priv
     {
         priv *m;
         size_t m_arrange_id, m_fill_bed_id, m_rotoptimize_id, m_sla_import_id;
+        std::shared_ptr<NotificationProgressIndicator> m_pri;
         
         void before_start() override { m->background_process.stop(); }
         
     public:
-        Jobs(priv *_m) : m(_m)
+        Jobs(priv *_m) :
+            m(_m),
+            m_pri{std::make_shared<NotificationProgressIndicator>(m->notification_manager.get())}
         {
-            m_arrange_id = add_job(std::make_unique<ArrangeJob>(m->notification_manager, m->q));
-            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m->notification_manager, m->q));
-            m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m->notification_manager, m->q));
-            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m->notification_manager, m->q));
+            m_arrange_id = add_job(std::make_unique<ArrangeJob>(m_pri, m->q));
+            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m_pri, m->q));
+            m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m_pri, m->q));
+            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m_pri, m->q));
         }
         
         void arrange()
@@ -1849,7 +1850,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "support_material_contact_distance", "support_material_bottom_contact_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
-    , notification_manager(std::make_shared<NotificationManager>(q))
+    , notification_manager(std::make_unique<NotificationManager>(q))
     , m_ui_jobs(this)
     , delayed_scene_refresh(false)
     , view_toolbar(GLToolbar::Radio, "View")
@@ -2544,16 +2545,14 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             if (max_ratio > 10000) {
                 // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
                 // so scale down the mesh
-                double inv = 1. / max_ratio;
-                object->scale_mesh_after_creation(inv * Vec3d::Ones());
+                object->scale_mesh_after_creation(1. / max_ratio);
                 object->origin_translation = Vec3d::Zero();
                 object->center_around_origin();
                 scaled_down = true;
                 break;
             }
             else if (max_ratio > 5) {
-                const Vec3d inverse = 1.0 / max_ratio * Vec3d::Ones();
-                instance->set_scaling_factor(inverse.cwiseProduct(instance->get_scaling_factor()));
+                instance->set_scaling_factor(instance->get_scaling_factor() / max_ratio);
                 scaled_down = true;
             }
         }
@@ -5587,11 +5586,9 @@ void Plater::export_stl(bool extended, bool selection_only)
         for (const ModelVolume *v : mo->volumes)
             if (v->is_model_part()) {
                 TriangleMesh vol_mesh(v->mesh());
-                vol_mesh.repair();
                 vol_mesh.transform(v->get_matrix(), true);
                 mesh.merge(vol_mesh);
             }
-        mesh.repair();
         if (instances) {
             TriangleMesh vols_mesh(mesh);
             mesh = TriangleMesh();
@@ -5601,7 +5598,6 @@ void Plater::export_stl(bool extended, bool selection_only)
                 mesh.merge(m);
             }
         }
-        mesh.repair();
         return mesh;
     };
 
@@ -6647,9 +6643,14 @@ Mouse3DController& Plater::get_mouse3d_controller()
     return p->mouse3d_controller;
 }
 
-std::shared_ptr<NotificationManager> Plater::get_notification_manager()
+NotificationManager * Plater::get_notification_manager()
 {
-	return p->notification_manager;
+    return p->notification_manager.get();
+}
+
+const NotificationManager * Plater::get_notification_manager() const
+{
+    return p->notification_manager.get();
 }
 
 void Plater::init_notification_manager()

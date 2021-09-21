@@ -65,10 +65,7 @@ SCENARIO("Export+Import geometry to/from 3mf file cycle", "[3mf]") {
 
             // compare meshes
             TriangleMesh src_mesh = src_model.mesh();
-            src_mesh.repair();
-
             TriangleMesh dst_mesh = dst_model.mesh();
-            dst_mesh.repair();
 
             bool res = src_mesh.its.vertices.size() == dst_mesh.its.vertices.size();
             if (res) {

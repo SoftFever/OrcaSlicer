@@ -63,7 +63,6 @@ TEST_CASE("Raycaster with loaded drillholes", "[sla_raycast]")
     sla::DrainHoles holes = { sla::DrainHole{p, normal, radius, hole_length} };
     
     cube.merge(*cube_inside);
-    cube.require_shared_vertices();
     
     sla::IndexedMesh emesh{cube};
     emesh.load_holes(holes);

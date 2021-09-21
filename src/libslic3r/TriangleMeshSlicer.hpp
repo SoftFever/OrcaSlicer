@@ -98,7 +98,21 @@ void slice_mesh_slabs(
     std::vector<Polygons>            *out_bottom,
     std::function<void()>             throw_on_cancel);
 
-void                            cut_mesh(
+// Project mesh upwards pointing surfaces / downwards pointing surfaces into 2D polygons.
+void project_mesh(
+    const indexed_triangle_set       &mesh,
+    const Transform3d                &trafo,
+    Polygons                         *out_top,
+    Polygons                         *out_bottom,
+    std::function<void()>             throw_on_cancel);
+
+// Project mesh into 2D polygons.
+Polygons project_mesh(
+    const indexed_triangle_set       &mesh,
+    const Transform3d                &trafo,
+    std::function<void()>             throw_on_cancel);
+
+void cut_mesh(
     const indexed_triangle_set      &mesh,
     float                            z,
     indexed_triangle_set            *upper,

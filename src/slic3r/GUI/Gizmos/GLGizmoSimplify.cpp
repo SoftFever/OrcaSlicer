@@ -313,9 +313,8 @@ void GLGizmoSimplify::process()
 }
 
 void GLGizmoSimplify::set_its(indexed_triangle_set &its) {
-    auto tm = std::make_unique<TriangleMesh>(its);
-    tm->repair();
-    m_volume->set_mesh(std::move(tm));
+    m_volume->set_mesh(its);
+    m_volume->calculate_convex_hull();
     m_volume->set_new_unique_id();
     m_volume->get_object()->invalidate_bounding_box();
     m_need_reload = true;

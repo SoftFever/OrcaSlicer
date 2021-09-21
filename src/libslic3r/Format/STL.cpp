@@ -21,8 +21,7 @@ bool load_stl(const char *path, Model *model, const char *object_name_in)
 //    die "Failed to open $file\n" if !-e $path;
         return false;
     }
-    mesh.repair();
-    if (mesh.facets_count() == 0) {
+    if (mesh.empty()) {
         // die "This STL file couldn't be read because it's empty.\n"
         return false;
     }

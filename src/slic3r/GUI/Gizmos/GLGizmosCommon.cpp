@@ -270,11 +270,10 @@ void HollowedMesh::on_update()
                     m_drainholes = print_object->model_object()->sla_drain_holes;
                     m_old_hollowing_timestamp = timestamp;
 
-                    const indexed_triangle_set &interior = print_object->hollowed_interior_mesh();
+                    indexed_triangle_set interior = print_object->hollowed_interior_mesh();
                     if (!interior.empty()) {
-                        m_hollowed_interior_transformed = std::make_unique<TriangleMesh>(interior);
-                        m_hollowed_interior_transformed->repaired = false;
-                        m_hollowed_interior_transformed->repair(true);
+                        its_flip_triangles(interior);
+                        m_hollowed_interior_transformed = std::make_unique<TriangleMesh>(std::move(interior));
                         m_hollowed_interior_transformed->transform(trafo_inv);
                     }
                 }

@@ -88,8 +88,6 @@
     bool looks_like_multipart_object() const;
     void convert_multipart_object(unsigned int max_extruders);
 
-    void print_info() const;
-
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
 
@@ -212,7 +210,6 @@ ModelMaterial::attributes()
         %code%{ THIS->origin_translation = *point; %};
     
     void ensure_on_bed();
-    bool needed_repair() const;
     int materials_count() const;
     int facets_count();
     void center_around_origin();
@@ -223,13 +220,6 @@ ModelMaterial::attributes()
         %code{% THIS->rotate(angle, *axis); %};
     void mirror(Axis axis);
 
-    ModelObjectPtrs* split_object()
-        %code%{
-            RETVAL = new ModelObjectPtrs();  // leak?
-            THIS->split(RETVAL);
-        %};
-
-    void print_info() const;
 };
 
 

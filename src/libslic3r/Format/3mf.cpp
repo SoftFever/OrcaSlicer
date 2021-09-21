@@ -305,8 +305,8 @@ namespace Slic3r {
 
         struct Geometry
         {
-            std::vector<float> vertices;
-            std::vector<unsigned int> triangles;
+            std::vector<Vec3f> vertices;
+            std::vector<Vec3i> triangles;
             std::vector<std::string> custom_supports;
             std::vector<std::string> custom_seam;
             std::vector<std::string> mmu_segmentation;
@@ -720,7 +720,7 @@ namespace Slic3r {
                     }
 
                     // use the geometry to create the volumes in the new model objects
-                    ObjectMetadata::VolumeMetadataList volumes(1, { 0, (unsigned int)geometry->triangles.size() / 3 - 1 });
+                    ObjectMetadata::VolumeMetadataList volumes(1, { 0, (unsigned int)geometry->triangles.size() - 1 });
 
                     // for each instance after the 1st, create a new model object containing only that instance
                     // and copy into it the geometry
@@ -793,7 +793,7 @@ namespace Slic3r {
                 // config data not found, this model was not saved using slic3r pe
 
                 // add the entire geometry as the single volume to generate
-                volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() / 3 - 1);
+                volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() - 1);
 
                 // select as volumes
                 volumes_ptr = &volumes;
@@ -1559,9 +1559,10 @@ namespace Slic3r {
     {
         // appends the vertex coordinates
         // missing values are set equal to ZERO
-        m_curr_object.geometry.vertices.push_back(m_unit_factor * get_attribute_value_float(attributes, num_attributes, X_ATTR));
-        m_curr_object.geometry.vertices.push_back(m_unit_factor * get_attribute_value_float(attributes, num_attributes, Y_ATTR));
-        m_curr_object.geometry.vertices.push_back(m_unit_factor * get_attribute_value_float(attributes, num_attributes, Z_ATTR));
+        m_curr_object.geometry.vertices.emplace_back(
+            m_unit_factor * get_attribute_value_float(attributes, num_attributes, X_ATTR),
+            m_unit_factor * get_attribute_value_float(attributes, num_attributes, Y_ATTR),
+            m_unit_factor * get_attribute_value_float(attributes, num_attributes, Z_ATTR));
         return true;
     }
 
@@ -1595,9 +1596,10 @@ namespace Slic3r {
 
         // appends the triangle's vertices indices
         // missing values are set equal to ZERO
-        m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V1_ATTR));
-        m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V2_ATTR));
-        m_curr_object.geometry.triangles.push_back((unsigned int)get_attribute_value_int(attributes, num_attributes, V3_ATTR));
+        m_curr_object.geometry.triangles.emplace_back(
+            get_attribute_value_int(attributes, num_attributes, V1_ATTR),
+            get_attribute_value_int(attributes, num_attributes, V2_ATTR),
+            get_attribute_value_int(attributes, num_attributes, V3_ATTR));
 
         m_curr_object.geometry.custom_supports.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
         m_curr_object.geometry.custom_seam.push_back(get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
@@ -1886,7 +1888,7 @@ namespace Slic3r {
             return false;
         }
 
-        unsigned int geo_tri_count = (unsigned int)geometry.triangles.size() / 3;
+        unsigned int geo_tri_count = (unsigned int)geometry.triangles.size();
         unsigned int renamed_volumes_count = 0;
 
         for (const ObjectMetadata::VolumeMetadata& volume_data : volumes) {
@@ -1897,77 +1899,50 @@ namespace Slic3r {
 
             Transform3d volume_matrix_to_object = Transform3d::Identity();
             bool        has_transform 		    = false;
-#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
-            bool        is_left_handed          = false;
-#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
             // extract the volume transformation from the volume's metadata, if present
             for (const Metadata& metadata : volume_data.metadata) {
                 if (metadata.key == MATRIX_KEY) {
                     volume_matrix_to_object = Slic3r::Geometry::transform3d_from_string(metadata.value);
                     has_transform 			= ! volume_matrix_to_object.isApprox(Transform3d::Identity(), 1e-10);
-#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
-                    is_left_handed          = Slic3r::Geometry::Transformation(volume_matrix_to_object).is_left_handed();
-#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
                     break;
                 }
             }
 
             // splits volume out of imported geometry
-			TriangleMesh triangle_mesh;
-            stl_file    &stl             = triangle_mesh.stl;
-			unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
-			stl.stats.type = inmemory;
-            stl.stats.number_of_facets = (uint32_t)triangles_count;
-            stl.stats.original_num_facets = (int)stl.stats.number_of_facets;
-            stl_allocate(&stl);
-
-            unsigned int src_start_id = volume_data.first_triangle_id * 3;
-
-            for (unsigned int i = 0; i < triangles_count; ++i) {
-                unsigned int ii = i * 3;
-                stl_facet& facet = stl.facet_start[i];
-                for (unsigned int v = 0; v < 3; ++v) {
-                    unsigned int tri_id = geometry.triangles[src_start_id + ii + v] * 3;
-                    if (tri_id + 2 >= geometry.vertices.size()) {
-                        add_error("Malformed triangle mesh");
+            std::vector<Vec3i> faces(geometry.triangles.begin() + volume_data.first_triangle_id, geometry.triangles.begin() + volume_data.last_triangle_id + 1);
+            const size_t       triangles_count = faces.size();
+            for (Vec3i face : faces)
+                for (unsigned int tri_id : face)
+                    if (tri_id < 0 || tri_id >= geometry.vertices.size()) {
+                        add_error("Found invalid vertex id");
                         return false;
                     }
-                    facet.vertex[v] = Vec3f(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
-                }
-            }
-
-			stl_get_size(&stl);
-			triangle_mesh.repair();
-
-#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
-            // PrusaSlicer older than 2.4.0 saved mirrored volumes with reversed winding of the triangles
-            // This caused the call to TriangleMesh::repair() to reverse all the facets because the calculated volume was negative
-            if (is_left_handed && stl.stats.facets_reversed > 0 && stl.stats.facets_reversed == stl.stats.original_num_facets)
-                stl.stats.facets_reversed = 0;
-#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
+            TriangleMesh triangle_mesh(std::move(geometry.vertices), std::move(faces));
 
             if (m_version == 0) {
                 // if the 3mf was not produced by PrusaSlicer and there is only one instance,
                 // bake the transformation into the geometry to allow the reload from disk command
                 // to work properly
                 if (object.instances.size() == 1) {
-                    triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix());
+                    triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix(), false);
                     object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
+                    //FIXME do the mesh fixing?
                 }
             }
+            if (triangle_mesh.volume() < 0)
+                triangle_mesh.flip_triangles();
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
             // stores the volume matrix taken from the metadata, if present
             if (has_transform)
                 volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
-            volume->calculate_convex_hull();
 
             // recreate custom supports, seam and mmu segmentation from previously loaded attribute
             volume->supported_facets.reserve(triangles_count);
             volume->seam_facets.reserve(triangles_count);
             volume->mmu_segmentation_facets.reserve(triangles_count);
-            for (unsigned i=0; i<triangles_count; ++i) {
-                size_t index = src_start_id/3 + i;
+            for (size_t i=0; i<triangles_count; ++i) {
+                size_t index = volume_data.first_triangle_id + i;
                 assert(index < geometry.custom_supports.size());
                 assert(index < geometry.custom_seam.size());
                 assert(index < geometry.mmu_segmentation.size());
@@ -2543,11 +2518,6 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
-			if (!volume->mesh().repaired)
-				throw Slic3r::FileIOError("store_3mf() requires repair()");
-			if (!volume->mesh().has_shared_vertices())
-				throw Slic3r::FileIOError("store_3mf() requires shared vertices");
-
             volumes_offsets.insert({ volume, Offsets(vertices_count) });
 
             const indexed_triangle_set &its = volume->mesh().its;
@@ -2588,10 +2558,7 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
-#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
             bool is_left_handed = volume->is_left_handed();
-#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
-
             VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
             assert(volume_it != volumes_offsets.end());
 
@@ -2606,7 +2573,6 @@ namespace Slic3r {
                 {
                     const Vec3i &idx = its.indices[i];
                     char *ptr = buf;
-#if ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
                     boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
                         " v1=\"" << boost::spirit::int_ <<
                         "\" v2=\"" << boost::spirit::int_ <<
@@ -2614,15 +2580,6 @@ namespace Slic3r {
                         idx[is_left_handed ? 2 : 0] + volume_it->second.first_vertex_id,
                         idx[1] + volume_it->second.first_vertex_id,
                         idx[is_left_handed ? 0 : 2] + volume_it->second.first_vertex_id);
-#else
-                    boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
-                        " v1=\"" << boost::spirit::int_ <<
-                        "\" v2=\"" << boost::spirit::int_ <<
-                        "\" v3=\"" << boost::spirit::int_ << "\"",
-                        idx[0] + volume_it->second.first_vertex_id,
-                        idx[1] + volume_it->second.first_vertex_id,
-                        idx[2] + volume_it->second.first_vertex_id);
-#endif // ENABLE_FIX_MIRRORED_VOLUMES_3MF_IMPORT_EXPORT
                     *ptr = '\0';
                     output_buffer += buf;
                 }

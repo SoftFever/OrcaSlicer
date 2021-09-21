@@ -33,7 +33,6 @@ inline void reproject_points_and_holes(ModelObject *object)
     if (!object || (!has_holes && !has_sppoints)) return;
 
     TriangleMesh rmsh = object->raw_mesh();
-    rmsh.require_shared_vertices();
     IndexedMesh emesh{rmsh};
 
     if (has_sppoints)

@@ -392,9 +392,9 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
     // Create tooltip string, if there are errors 
     wxString tooltip = format_wxstr(_L_PLURAL("Auto-repaired %1$d error", "Auto-repaired %1$d errors", errors), errors) + ":\n";
 
-    const stl_stats& stats = vol_idx == -1 ?
-                            (*m_objects)[obj_idx]->get_object_stl_stats() :
-                            (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stats();
+    const TriangleMeshStats& stats = vol_idx == -1 ?
+        (*m_objects)[obj_idx]->get_object_stl_stats() :
+        (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stats();
 
     if (stats.degenerate_facets > 0)
         tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d degenerate facet", "%1$d degenerate facets", stats.degenerate_facets), stats.degenerate_facets) + "\n";
@@ -402,8 +402,6 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
         tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d edge fixed", "%1$d edges fixed", stats.edges_fixed), stats.edges_fixed) + "\n";
     if (stats.facets_removed > 0)
         tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet removed", "%1$d facets removed", stats.facets_removed), stats.facets_removed) + "\n";
-    if (stats.facets_added > 0)
-        tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet added", "%1$d facets added", stats.facets_added), stats.facets_added) + "\n";
     if (stats.facets_reversed > 0)
         tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet reversed", "%1$d facets reversed", stats.facets_reversed), stats.facets_reversed) + "\n";
     if (stats.backwards_edges > 0)
@@ -1535,7 +1533,6 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
         }
 
         TriangleMesh mesh = model.mesh();
-        mesh.repair();
         // Mesh will be centered when loading.
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
@@ -1558,27 +1555,24 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
 
 static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf3& bb)
 {
-    TriangleMesh mesh;
-
     const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
+    indexed_triangle_set mesh;
     if (type_name == "Box")
         // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = make_cube(side, side, side);
+        mesh = its_make_cube(side, side, side);
     else if (type_name == "Cylinder")
         // Centered around 0, sitting on the print bed.
         // The cylinder has the same volume as the box above.
-        mesh = make_cylinder(0.564 * side, side);
+        mesh = its_make_cylinder(0.564 * side, side);
     else if (type_name == "Sphere")
         // Centered around 0, half the sphere below the print bed, half above.
         // The sphere has the same volume as the box above.
-        mesh = make_sphere(0.62 * side, PI / 18);
+        mesh = its_make_sphere(0.62 * side, PI / 18);
     else if (type_name == "Slab")
         // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5);
-    mesh.repair();
-
-    return mesh;
+        mesh = its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5);
+    return TriangleMesh(mesh);
 }
 
 void ObjectList::load_generic_subobject(const std::string& type_name, const ModelVolumeType type)

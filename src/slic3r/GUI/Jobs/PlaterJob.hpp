@@ -6,7 +6,6 @@
 namespace Slic3r { namespace GUI {
 
 class Plater;
-class NotificationManager;
 
 class PlaterJob : public Job {
 protected:
@@ -16,8 +15,8 @@ protected:
 
 public:
 
-    PlaterJob(std::shared_ptr<NotificationManager> nm, Plater *plater):
-        Job{nm}, m_plater{plater} {}
+    PlaterJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater):
+        Job{std::move(pri)}, m_plater{plater} {}
 };
 
 }} // namespace Slic3r::GUI

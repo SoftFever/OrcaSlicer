@@ -896,7 +896,6 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object)
         obj = m_model_object->raw_mesh();
         if (!obj.empty()) {
             obj.transform(m_trafo);
-            obj.require_shared_vertices();
         }
     })
 {}

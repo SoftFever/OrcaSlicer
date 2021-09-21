@@ -205,11 +205,12 @@ bool stl_write_quad_object(stl_file *stl, char *file)
 
   	fprintf(fp, "CQUAD\n");
   	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
-  		switch (stl->neighbors_start[i].num_neighbors_missing()) {
-  		case 0: color = connect_color; break;
-    	case 1: color = uncon_1_color; break;
-    	case 2: color = uncon_2_color; break;
-    	default: color = uncon_3_color;
+  		switch (stl->neighbors_start[i].num_neighbors()) {
+    		case 0:
+    		default: color = uncon_3_color; break;
+    		case 1:  color = uncon_2_color; break;
+    		case 2:  color = uncon_1_color; break;
+  		case 3:  color = connect_color; break;
 	    }
 	    fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n", stl->facet_start[i].vertex[0](0), stl->facet_start[i].vertex[0](1), stl->facet_start[i].vertex[0](2), color(0), color(1), color(2));
     	fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n", stl->facet_start[i].vertex[1](0), stl->facet_start[i].vertex[1](1), stl->facet_start[i].vertex[1](2), color(0), color(1), color(2));
