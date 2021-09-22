@@ -3750,10 +3750,10 @@ void Plater::priv::set_current_panel(wxPanel* panel)
 
         if (view3D->is_reload_delayed()) {
             // Delayed loading of the 3D scene.
-            if (this->printer_technology == ptSLA) {
+            if (printer_technology == ptSLA) {
                 // Update the SLAPrint from the current Model, so that the reload_scene()
                 // pulls the correct data.
-                this->update_restart_background_process(true, false);
+                update_restart_background_process(true, false);
             } else
                 view3D->reload_scene(true);
         }
@@ -3776,8 +3776,14 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         // FIXME: it may be better to have a single function making this check and let it be called wherever needed
         bool export_in_progress = this->background_process.is_export_scheduled();
         bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
-        if (!model.objects.empty() && !export_in_progress && model_fits)
-            this->q->reslice();
+        if (!model.objects.empty() && !export_in_progress && model_fits) {
+#if ENABLE_SEAMS_USING_MODELS
+            // the following call is needed to ensure that GCodeViewer buffers are initialized
+            // before calling reslice() when background processing is active
+            preview->SetFocusFromKbd();
+#endif // ENABLE_SEAMS_USING_MODELS
+            q->reslice();
+        }
         // keeps current gcode preview, if any
         preview->reload_print(true);
 
