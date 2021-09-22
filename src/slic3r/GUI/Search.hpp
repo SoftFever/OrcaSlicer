@@ -134,6 +134,8 @@ public:
             return o1.key < o2.key; });
     }
     void sort_options_by_label() { sort_options(); }
+
+    void show_dialog();
 };
 
 

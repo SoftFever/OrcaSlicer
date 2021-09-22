@@ -6536,12 +6536,7 @@ void Plater::search(bool plater_is_active)
         canvas3D()->on_char(evt);
     }
     else
-    {
-        wxPoint pos = this->ClientToScreen(wxPoint(0, 0));
-        pos.x += em_unit(this) * 40;
-        pos.y += em_unit(this) * 4;
-        p->sidebar->get_searcher().search_dialog->Popup(pos);
-    }
+        p->sidebar->get_searcher().show_dialog();
 }
 
 void Plater::msw_rescale()
