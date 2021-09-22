@@ -201,9 +201,7 @@ namespace search_for_drives_internal
 				struct stat buf;
 				stat(path.c_str(), &buf);
 				uid_t uid = buf.st_uid;
-				std::string username(std::getenv("USER"));
-				struct passwd *pw = getpwuid(uid);
-				if (pw != 0 && pw->pw_name == username)
+				if (getuid() == uid)
 					out.emplace_back(DriveData{ boost::filesystem::basename(boost::filesystem::path(path)), path });
 			}
 		}
@@ -245,7 +243,7 @@ std::vector<DriveData> RemovableDriveManager::search_for_removable_drives() cons
 		search_for_drives_internal::search_path("/media/*", "/media", current_drives);
 
 		//search_path("/Volumes/*", "/Volumes");
-	    std::string path(std::getenv("USER"));
+		std::string path = wxGetUserId().ToUTF8().data();
 		std::string pp(path);
 
 		//search /media/USERNAME/* folder
