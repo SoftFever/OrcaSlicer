@@ -165,8 +165,8 @@ public:
 
         GetBtnsListCtrl()->InsertPage(n, text, bSelect, bmp_name);
 
-        if (!DoSetSelectionAfterInsertion(n, bSelect))
-            page->Hide();
+        if (bSelect)
+            SetSelection(n);
 
         return true;
     }
@@ -174,7 +174,14 @@ public:
     virtual int SetSelection(size_t n) override
     {
         GetBtnsListCtrl()->SetSelection(n);
-        return DoSetSelection(n, SetSelection_SendEvent);
+        int ret = DoSetSelection(n, SetSelection_SendEvent);
+
+        // check that only the selected page is visible and others are hidden:
+        for (size_t page = 0; page < m_pages.size(); page++)
+            if (page != n)
+                m_pages[page]->Hide();
+
+        return ret;
     }
 
     virtual int ChangeSelection(size_t n) override
