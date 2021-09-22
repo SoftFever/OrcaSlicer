@@ -469,7 +469,7 @@ public:
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
-	void		apply_extruder_cnt_from_cache();
+	bool		apply_extruder_cnt_from_cache();
 };
 
 class TabSLAMaterial : public Tab

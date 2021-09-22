@@ -611,7 +611,7 @@ struct ConfigWizard::priv
 
     bool on_bnt_finish();
     bool check_and_install_missing_materials(Technology technology, const std::string &only_for_model_id = std::string());
-    bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
+    bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
     // #ys_FIXME_alise
     void update_presets_in_config(const std::string& section, const std::string& alias_key, bool add);
 #ifdef __linux__

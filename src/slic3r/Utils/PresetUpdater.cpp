@@ -720,8 +720,13 @@ void PresetUpdater::slic3r_update_notify()
 	}
 }
 
-static void reload_configs_update_gui()
+static bool reload_configs_update_gui()
 {
+	wxString header = _L("Configuration Updates causes a lost of preset modification.\n"
+						 "So, check unsaved changes and save them if necessary.");
+	if (!GUI::wxGetApp().check_and_save_current_preset_changes(_L("Updater is processing"), header, false ))
+		return false;
+
 	// Reload global configuration
 	auto* app_config = GUI::wxGetApp().app_config;
 	// System profiles should not trigger any substitutions, user profiles may trigger substitutions, but these substitutions
@@ -730,7 +735,8 @@ static void reload_configs_update_gui()
 	GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
 	GUI::wxGetApp().load_current_presets();
 	GUI::wxGetApp().plater()->set_bed_shape();
-	GUI::wxGetApp().update_wizard_from_config();
+
+	return true;
 }
 
 PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, UpdateParams params) const
@@ -803,9 +809,9 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			const auto res = dlg.ShowModal();
 			if (res == wxID_OK) {
 				BOOST_LOG_TRIVIAL(info) << "User wants to update...";
-				if (! p->perform_updates(std::move(updates)))
+				if (! p->perform_updates(std::move(updates)) ||
+					! reload_configs_update_gui())
 					return R_INCOMPAT_EXIT;
-				reload_configs_update_gui();
 				return R_UPDATE_INSTALLED;
 			}
 			else {
@@ -833,9 +839,9 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 			const auto res = dlg.ShowModal();
 			if (res == wxID_OK) {
 				BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
-				if (! p->perform_updates(std::move(updates)))
+				if (! p->perform_updates(std::move(updates)) ||
+					! reload_configs_update_gui())
 					return R_ALL_CANCELED;
-				reload_configs_update_gui();
 				return R_UPDATE_INSTALLED;
 			}
 			else {
@@ -886,8 +892,8 @@ void PresetUpdater::on_update_notification_confirm()
 	const auto res = dlg.ShowModal();
 	if (res == wxID_OK) {
 		BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
-		if (p->perform_updates(std::move(p->waiting_updates))) {
-			reload_configs_update_gui();
+		if (p->perform_updates(std::move(p->waiting_updates)) &&
+			reload_configs_update_gui()) {
 			p->has_waiting_updates = false;
 		}
 	}

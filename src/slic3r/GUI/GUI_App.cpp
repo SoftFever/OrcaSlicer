@@ -694,7 +694,6 @@ GUI_App::GUI_App(EAppMode mode)
     , m_app_mode(mode)
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
-    , m_wizard(nullptr)
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
@@ -1333,8 +1332,6 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     dlg.Update(30, _L("Recreating") + dots);
     old_main_frame->Destroy();
-    // For this moment ConfigWizard is deleted, invalidate it.
-    m_wizard = nullptr;
 
     dlg.Update(80, _L("Loading of current presets") + dots);
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
@@ -1409,8 +1406,6 @@ void GUI_App::update_ui_from_settings()
         m_force_colors_update = false;
         mainframe->force_color_changed();
         mainframe->diff_dialog.force_color_changed();
-        if (m_wizard)
-            m_wizard->force_color_changed();
     }
 #endif
     mainframe->update_ui_from_settings();
@@ -1871,8 +1866,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 #endif
         case ConfigMenuTakeSnapshot:
             // Take a configuration snapshot.
-            if (check_and_save_current_preset_changes()) {
-                wxTextEntryDialog dlg(nullptr, _L("Taking configuration snapshot"), _L("Snapshot name"));
+            if (wxString action_name = _L("Taking a configuration snapshot");
+                check_and_save_current_preset_changes(action_name, _L("Some presets are modified and the unsaved changes will not be captured by the configuration snapshot."), false, true)) {
+                wxTextEntryDialog dlg(nullptr, action_name, _L("Snapshot name"));
                 UpdateDlgDarkUI(&dlg);
                 
                 // set current normal font for dialog children, 
@@ -1888,7 +1884,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             }
             break;
         case ConfigMenuSnapshots:
-            if (check_and_save_current_preset_changes()) {
+            if (check_and_save_current_preset_changes(_L("Loading a configuration snapshot"), "", false)) {
                 std::string on_snapshot;
                 if (Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
                     on_snapshot = app_config->get("on_snapshot");
@@ -1910,9 +1906,6 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 
                         // Load the currently selected preset into the GUI, update the preset selection box.
                         load_current_presets();
-
-                        // update config wizard in respect to the new config
-                        update_wizard_from_config();
                     } catch (std::exception &ex) {
                         GUI::show_error(nullptr, _L("Failed to activate configuration snapshot.") + "\n" + into_u8(ex.what()));
                     }
@@ -2081,13 +2074,28 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
     return ret;
 }
 
-// This is called when closing the application, when loading a config file or when starting the config wizard
-// to notify the user whether he is aware that some preset changes will be lost.
-bool GUI_App::check_and_save_current_preset_changes(const wxString& header, const wxString& caption)
+// To notify the user whether he is aware that some preset changes will be lost,
+// UnsavedChangesDialog: "Discard / Save / Cancel"
+// This is called when:
+// - Close Application & Current project isn't saved
+// - Load Project      & Current project isn't saved
+// - Undo / Redo with change of print technologie
+// - Loading snapshot
+// - Loading config_file/bundle
+// UnsavedChangesDialog: "Don't save / Save / Cancel"
+// This is called when:
+// - Exporting config_bundle
+// - Taking snapshot
+bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice/* = true*/, bool dont_save_insted_of_discard/* = false*/)
 {
-    if (/*this->plater()->model().objects.empty() && */has_current_preset_changes()) {
-        UnsavedChangesDialog dlg(header, caption);
-        if (wxGetApp().app_config->get("default_action_on_close_application") == "none" && dlg.ShowModal() == wxID_CANCEL)
+    if (has_current_preset_changes()) {
+        const std::string app_config_key = remember_choice ? "default_action_on_close_application" : "";
+        int act_buttons = UnsavedChangesDialog::ActionButtons::SAVE;
+        if (dont_save_insted_of_discard)
+            act_buttons |= UnsavedChangesDialog::ActionButtons::DONT_SAVE;
+        UnsavedChangesDialog dlg(caption, header, app_config_key, act_buttons);
+        std::string act = app_config_key.empty() ? "none" : wxGetApp().app_config->get(app_config_key);
+        if (act == "none" && dlg.ShowModal() == wxID_CANCEL)
             return false;
 
         if (dlg.save_preset())  // save selected changes
@@ -2095,15 +2103,119 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& header, cons
             for (const std::pair<std::string, Preset::Type>& nt : dlg.get_names_and_types())
                 preset_bundle->save_changes_for_preset(nt.first, nt.second, dlg.get_unselected_options(nt.second));
 
+            load_current_presets(false);
+
             // if we saved changes to the new presets, we should to 
             // synchronize config.ini with the current selections.
             preset_bundle->export_selections(*app_config);
 
-            wxMessageBox(_L_PLURAL("The preset modifications are successfully saved", 
-                                   "The presets modifications are successfully saved", dlg.get_names_and_types().size()));
+            MessageDialog(nullptr, _L_PLURAL("The preset modifications are successfully saved", 
+                                             "The presets modifications are successfully saved", dlg.get_names_and_types().size())).ShowModal();
         }
     }
 
+    return true;
+}
+
+void GUI_App::apply_keeped_preset_modifications()
+{
+    PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
+    for (Tab* tab : tabs_list) {
+        if (tab->supports_printer_technology(printer_technology))
+            tab->apply_config_from_cache();
+    }
+    load_current_presets(false);
+}
+
+// This is called when creating new project or load another project
+// OR close ConfigWizard
+// to ask the user what should we do with unsaved changes for presets.
+// New Project          => Current project is saved    => UnsavedChangesDialog: "Keep / Discard / Cancel"
+//                      => Current project isn't saved => UnsavedChangesDialog: "Keep / Discard / Save / Cancel"
+// Close ConfigWizard   => Current project is saved    => UnsavedChangesDialog: "Keep / Discard / Save / Cancel"
+// Note: no_nullptr postponed_apply_of_keeped_changes indicates that thie function is called after ConfigWizard is closed
+bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, const wxString& header, int action_buttons, bool* postponed_apply_of_keeped_changes/* = nullptr*/)
+{
+    if (has_current_preset_changes()) {
+        bool is_called_from_configwizard = postponed_apply_of_keeped_changes != nullptr;
+
+        const std::string app_config_key = is_called_from_configwizard ? "" : "default_action_on_new_project";
+        UnsavedChangesDialog dlg(caption, header, app_config_key, action_buttons);
+        std::string act = app_config_key.empty() ? "none" : wxGetApp().app_config->get(app_config_key);
+        if (act == "none" && dlg.ShowModal() == wxID_CANCEL)
+            return false;
+
+        auto reset_modifications = [this, is_called_from_configwizard]() {
+            if (is_called_from_configwizard)
+                return; // no need to discared changes. It will be done fromConfigWizard closing
+
+            PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
+            for (const Tab* const tab : tabs_list) {
+                if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
+                    tab->m_presets->discard_current_changes();
+            }
+            load_current_presets(false);
+        };
+
+        if (dlg.discard())
+            reset_modifications();
+        else  // save selected changes
+        {
+            const auto& preset_names_and_types = dlg.get_names_and_types();
+            if (dlg.save_preset()) {
+                for (const std::pair<std::string, Preset::Type>& nt : preset_names_and_types)
+                    preset_bundle->save_changes_for_preset(nt.first, nt.second, dlg.get_unselected_options(nt.second));
+
+                // if we saved changes to the new presets, we should to 
+                // synchronize config.ini with the current selections.
+                preset_bundle->export_selections(*app_config);
+
+                wxString text = _L_PLURAL("The preset modifications are successfully saved",
+                    "The presets modifications are successfully saved", preset_names_and_types.size());
+                if (!is_called_from_configwizard)
+                    text += "\n\n" + _L("For new project all modifications will be reseted");
+
+                MessageDialog(nullptr, text).ShowModal();
+                reset_modifications();
+            }
+            else if (dlg.transfer_changes() && (dlg.has_unselected_options() || is_called_from_configwizard)) {
+                // execute this part of code only if not all modifications are keeping to the new project 
+                // OR this function is called when ConfigWizard is closed and "Keep modifications" is selected
+                for (const std::pair<std::string, Preset::Type>& nt : preset_names_and_types) {
+                    Preset::Type type = nt.second;
+                    Tab* tab = get_tab(type);
+                    std::vector<std::string> selected_options = dlg.get_selected_options(type);
+                    if (type == Preset::TYPE_PRINTER) {
+                        auto it = std::find(selected_options.begin(), selected_options.end(), "extruders_count");
+                        if (it != selected_options.end()) {
+                            // erase "extruders_count" option from the list
+                            selected_options.erase(it);
+                            // cache the extruders count
+                            static_cast<TabPrinter*>(tab)->cache_extruder_cnt();
+                        }
+                    }
+                    tab->cache_config_diff(selected_options);
+                    if (!is_called_from_configwizard)
+                        tab->m_presets->discard_current_changes();
+                }
+                if (is_called_from_configwizard)
+                    *postponed_apply_of_keeped_changes = true;
+                else
+                    apply_keeped_preset_modifications();
+            }
+        }
+    }
+
+    return true;
+}
+
+bool GUI_App::can_load_project()
+{
+    int saved_project = plater()->save_project_if_dirty(_L("Loading a new project while the current project is modified."));
+    if (saved_project == wxID_CANCEL ||
+        (plater()->is_project_dirty() && saved_project == wxID_NO && 
+         !check_and_save_current_preset_changes(_L("Project is loading"), _L("Loading a new project while some presets are modified."))))
+        return false;
     return true;
 }
 
@@ -2162,17 +2274,6 @@ void GUI_App::load_current_presets(bool check_printer_presets_ /*= true*/)
 			}
 			tab->load_current_preset();
 		}
-}
-
-void GUI_App::update_wizard_from_config()
-{
-    if (!m_wizard)
-        return;
-    // If ConfigWizard was created before changing of the configuration,
-    // we have to destroy it to have possibility to create it again in respect to the new config's parameters
-    m_wizard->Reparent(nullptr);
-    m_wizard->Destroy();
-    m_wizard = nullptr;
 }
 
 bool GUI_App::OnExceptionInMainLoop()
@@ -2336,19 +2437,12 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
     wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
 
     if (reason == ConfigWizard::RR_USER) {
-        wxString header = _L("Updates to Configuration Wizard may cause an another preset selection and lost of preset modification as a result.\n"
-                             "So, check unsaved changes and save them if necessary.") + "\n";
-        if (!check_and_save_current_preset_changes(header, _L("ConfigWizard is opening")) ||
-            preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
+        if (preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
             return false;
     }
 
-    if (! m_wizard) {
-        wxBusyCursor wait;
-        m_wizard = new ConfigWizard(mainframe);
-    }
-
-    const bool res = m_wizard->run(reason, start_page);
+    auto wizard = new ConfigWizard(mainframe);
+    const bool res = wizard->run(reason, start_page);
 
     if (res) {
         load_current_presets();

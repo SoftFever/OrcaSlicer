@@ -4071,7 +4071,7 @@ void ObjectList::fix_through_netfabb()
             msg += ": " + from_u8(model_name) + "\n";
         else {
             msg += ":\n";
-            for (size_t i = 0; i < model_names.size(); ++i)
+            for (int i = 0; i < int(model_names.size()); ++i)
                 msg += (i == model_idx ? " > " : "   ") + from_u8(model_names[i]) + "\n";
             msg += "\n";
         }
