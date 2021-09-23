@@ -267,7 +267,12 @@ void GCodeViewer::SequentialView::Marker::render() const
     imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Tool position") + ":");
     ImGui::SameLine();
     char buf[1024];
-    sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", m_world_position(0), m_world_position(1), m_world_position(2));
+#if ENABLE_FIX_SEAMS_SYNCH
+    const Vec3f position = m_world_position + m_world_offset;
+    sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", position.x(), position.y(), position.z());
+#else
+    sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", m_world_position.x(), m_world_position.y(), m_world_position.z());
+#endif // ENABLE_FIX_SEAMS_SYNCH
     imgui.text(std::string(buf));
 
     // force extra frame to automatically update window size
@@ -862,6 +867,9 @@ void GCodeViewer::render()
     render_legend(legend_height);
     if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
+#if ENABLE_FIX_SEAMS_SYNCH
+        m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
+#endif // ENABLE_FIX_SEAMS_SYNCH
         m_sequential_view.render(legend_height);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1519,6 +1527,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
     std::vector<InstanceBuffer> instances(m_buffers.size());
     std::vector<InstanceIdBuffer> instances_ids(m_buffers.size());
 #endif // ENABLE_SEAMS_USING_MODELS
+#if ENABLE_FIX_SEAMS_SYNCH
+    std::vector<InstancesOffsets> instances_offsets(m_buffers.size());
+#endif // ENABLE_FIX_SEAMS_SYNCH
     std::vector<float> options_zs;
 
 #if ENABLE_FIX_SEAMS_SYNCH
@@ -1559,6 +1570,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 #if ENABLE_SEAMS_USING_MODELS
         InstanceBuffer& inst_buffer = instances[id];
         InstanceIdBuffer& inst_id_buffer = instances_ids[id];
+#if ENABLE_FIX_SEAMS_SYNCH
+        InstancesOffsets& inst_offsets = instances_offsets[id];
+#endif // ENABLE_FIX_SEAMS_SYNCH
 #endif // ENABLE_SEAMS_USING_MODELS
 
         // ensure there is at least one vertex buffer
@@ -1602,6 +1616,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         {
 #if ENABLE_FIX_SEAMS_SYNCH
             add_model_instance(curr, inst_buffer, inst_id_buffer, move_id);
+            inst_offsets.push_back(prev.position - curr.position);
 #else
             add_model_instance(curr, inst_buffer, inst_id_buffer, i);
 #endif // ENABLE_FIX_SEAMS_SYNCH
@@ -1614,6 +1629,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
         {
 #if ENABLE_FIX_SEAMS_SYNCH
             add_vertices_as_model_batch(curr, t_buffer.model.data, v_buffer, inst_buffer, inst_id_buffer, move_id);
+            inst_offsets.push_back(prev.position - curr.position);
 #else
             add_vertices_as_model_batch(curr, t_buffer.model.data, v_buffer, inst_buffer, inst_id_buffer, i);
 #endif // ENABLE_FIX_SEAMS_SYNCH
@@ -1851,6 +1867,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             if (!inst_buffer.empty()) {
                 t_buffer.model.instances.buffer = inst_buffer;
                 t_buffer.model.instances.s_ids = instances_ids[i];
+#if ENABLE_FIX_SEAMS_SYNCH
+                t_buffer.model.instances.offsets = instances_offsets[i];
+#endif // ENABLE_FIX_SEAMS_SYNCH
             }
         }
         else {
@@ -1859,6 +1878,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
                 if (!inst_buffer.empty()) {
                     t_buffer.model.instances.buffer = inst_buffer;
                     t_buffer.model.instances.s_ids = instances_ids[i];
+#if ENABLE_FIX_SEAMS_SYNCH
+                    t_buffer.model.instances.offsets = instances_offsets[i];
+#endif // ENABLE_FIX_SEAMS_SYNCH
                 }
             }
 #else
@@ -1867,6 +1889,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
             if (!inst_buffer.empty()) {
                 t_buffer.model.instances.buffer = inst_buffer;
                 t_buffer.model.instances.s_ids = instances_ids[i];
+#if ENABLE_FIX_SEAMS_SYNCH
+                t_buffer.model.instances.offsets = instances_offsets[i];
+#endif // ENABLE_FIX_SEAMS_SYNCH
             }
         }
         else {
@@ -2464,6 +2489,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                     sequential_view->current_position.x() = buffer.model.instances.buffer[offset + 0];
                     sequential_view->current_position.y() = buffer.model.instances.buffer[offset + 1];
                     sequential_view->current_position.z() = buffer.model.instances.buffer[offset + 2];
+#if ENABLE_FIX_SEAMS_SYNCH
+                    sequential_view->current_offset = buffer.model.instances.offsets[i];
+#endif // ENABLE_FIX_SEAMS_SYNCH
 
                     found = true;
                     break;
@@ -2502,6 +2530,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
                         glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index * buffer.vertices.vertex_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(sequential_view->current_position.data())));
                         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+#if ENABLE_FIX_SEAMS_SYNCH
+                        sequential_view->current_offset = Vec3f::Zero();
+#endif // ENABLE_FIX_SEAMS_SYNCH
 
                         found = true;
                         break;
