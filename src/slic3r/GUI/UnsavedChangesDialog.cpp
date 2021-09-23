@@ -1214,9 +1214,9 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
         for (Tab* tab : wxGetApp().tabs_list)
             if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
                 presets_cnt++;
-        m_action_line->SetLabel((header.IsEmpty() ? "" : header + "\n\n") + //_L("The following presets were modified:"));
-                                + _L_PLURAL("The following preset was modified",
-                                            "The following presets were modified", presets_cnt));
+        m_action_line->SetLabel((header.IsEmpty() ? "" : header + "\n\n") + 
+                                _L_PLURAL("The following preset was modified",
+                                          "The following presets were modified", presets_cnt));
     }
     else {
         wxString action_msg;
