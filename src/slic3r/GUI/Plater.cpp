@@ -3104,6 +3104,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 //        if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
 //            (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
 //            this->statusbar()->set_status_text(_L("Ready to slice"));
+        if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
+            (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
+            notification_manager->set_slicing_progress_hidden();
 
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
         sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
@@ -3963,6 +3966,7 @@ void Plater::priv::on_slicing_began()
 	clear_warnings();
     notification_manager->close_notification_of_type(NotificationType::SignDetected);
     notification_manager->close_notification_of_type(NotificationType::ExportFinished);
+    notification_manager->set_slicing_progress_began();
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
@@ -4060,7 +4064,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     }
     if (evt.cancelled()) {
 //        this->statusbar()->set_status_text(_L("Cancelled"));
-        this->notification_manager->set_slicing_progress_percentage(_utf8("Slicing Cancelled."), -1);
+        this->notification_manager->set_slicing_progress_canceled(_utf8("Slicing Cancelled."));
     }
 
     this->sidebar->show_sliced_info_sizer(evt.success());
@@ -6375,6 +6379,7 @@ bool Plater::set_printer_technology(PrinterTechnology printer_technology)
     p->sidebar->get_searcher().set_printer_technology(printer_technology);
 
     p->notification_manager->set_fff(printer_technology == ptFFF);
+    p->notification_manager->set_slicing_progress_hidden();
 
     return ret;
 }

@@ -189,8 +189,10 @@ public:
 	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
 	// slicing progress
 	void init_slicing_progress_notification(std::function<bool()> cancel_callback);
+	void set_slicing_progress_began();
 	// percentage negative = canceled, <0-1) = progress, 1 = completed 
 	void set_slicing_progress_percentage(const std::string& text, float percentage);
+	void set_slicing_progress_canceled(const std::string& text);
 	// hides slicing progress notification imidietly
 	void set_slicing_progress_hidden();
 	// Add a print time estimate to an existing SlicingProgress notification. Set said notification to SP_COMPLETED state.
@@ -492,6 +494,7 @@ private:
 		enum class SlicingProgressState
 		{
 			SP_NO_SLICING, // hidden
+			SP_BEGAN, // still hidden but allows to go to SP_PROGRESS state. This prevents showing progress after slicing was canceled.
 			SP_PROGRESS, // never fades outs, no close button, has cancel button
 			SP_CANCELLED, // fades after 10 seconds, simple message
 			SP_COMPLETED // Has export hyperlink and print info, fades after 20 sec if sidebar is shown, otherwise no fade out
@@ -509,10 +512,10 @@ private:
 		// sets cancel button callback
 		void			    set_cancel_callback(std::function<bool()> callback) { m_cancel_callback = callback; }
 		bool                has_cancel_callback() const { return m_cancel_callback != nullptr; }
-		// sets SlicingProgressState, negative percent means canceled
-		void				set_progress_state(float percent);
-		// sets SlicingProgressState, percent is used only at progress state.
-		void				set_progress_state(SlicingProgressState state,float percent = 0.f);
+		// sets SlicingProgressState, negative percent means canceled, returns true if state was set succesfully.
+		bool				set_progress_state(float percent);
+		// sets SlicingProgressState, percent is used only at progress state. Returns true if state was set succesfully.
+		bool				set_progress_state(SlicingProgressState state,float percent = 0.f);
 		// sets additional string of print info and puts notification into Completed state.
 		void			    set_print_info(const std::string& info);
 		// sets fading if in Completed state.
@@ -541,8 +544,12 @@ private:
 											const float win_size_x, const float win_size_y,
 											const float win_pos_x, const float win_pos_y) override;
 		void		render_close_button(ImGuiWrapper& imgui,
-									const float win_size_x, const float win_size_y,
-									const float win_pos_x, const float win_pos_y) override;
+										const float win_size_x, const float win_size_y,
+										const float win_pos_x, const float win_pos_y) override;
+		void		render_hypertext(ImGuiWrapper& imgui,
+										const float text_x, const float text_y,
+										const std::string text,
+										bool more = false) override ;
 		void       on_cancel_button();
 		int		   get_duration() override;
 		// if returns false, process was already canceled
@@ -626,8 +633,10 @@ private:
 		void render_minimize_button(ImGuiWrapper& imgui, const float win_pos_x, const float win_pos_y) override
 			{ m_minimize_b_visible = false; }
 		bool on_text_click() override;
+		void on_eject_click();
 		// local time of last hover for showing tooltip
 		long      m_hover_time { 0 };
+		bool	  m_eject_pending { false };
 	};
 
 	class UpdatedItemsInfoNotification : public PopNotification
