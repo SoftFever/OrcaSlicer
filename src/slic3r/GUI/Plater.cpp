@@ -1920,6 +1920,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
         sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
         sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
+        // jump to found option from SearchDialog
+        q->Bind(wxCUSTOMEVT_JUMP_TO_OPTION, [this](wxCommandEvent& evt) { sidebar->jump_to_option(evt.GetInt()); });
     }
 
     wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
