@@ -1388,6 +1388,7 @@ bool NotificationManager::ProgressIndicatorNotification::update_state(bool pause
 		// percentage was changed (and it called schedule_extra_frame), now update must know this needs render
 		m_next_render = 0;
 		m_progress_state = ProgressIndicatorState::PIS_PROGRESS_UPDATED;
+		m_current_fade_opacity = 1.0f;
 		return true;
 	}
 	bool ret = ProgressBarNotification::update_state(paused, delta);
