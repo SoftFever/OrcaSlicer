@@ -1599,7 +1599,8 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
 static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupportMaterial::MyLayer*> new_contact_layer(
     const PrintConfig                                   &print_config, 
     const PrintObjectConfig                             &object_config,
-    const SlicingParameters                             &slicing_params, 
+    const SlicingParameters                             &slicing_params,
+    const coordf_t                                       support_layer_height_min,
     const Layer                                         &layer, 
     std::deque<PrintObjectSupportMaterial::MyLayer>     &layer_storage,
     tbb::spin_mutex                                     &layer_storage_mutex)
@@ -1629,7 +1630,8 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         // Don't want to print a layer below the first layer height as it may not stick well.
         //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
         // and it may actually make sense to do it with a thinner layer than the first layer height.
-        if (print_z < slicing_params.first_print_layer_height - EPSILON) {
+        const coordf_t min_print_z = slicing_params.has_raft() ? slicing_params.raft_interface_top_z + support_layer_height_min + EPSILON : slicing_params.first_print_layer_height - EPSILON;
+        if (print_z < min_print_z) {
             // This contact layer is below the first layer height, therefore not printable. Don't support this surface.
             return std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupportMaterial::MyLayer*>(nullptr, nullptr);
         } else if (print_z < slicing_params.first_print_layer_height + EPSILON) {
@@ -1650,7 +1652,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                 bridging_height += region->region().bridging_height_avg(print_config);
             bridging_height /= coordf_t(layer.regions().size());
             coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
-            if (bridging_print_z >= slicing_params.first_print_layer_height - EPSILON) {
+            if (bridging_print_z >= min_print_z) {
                 // Not below the first layer height means this layer is printable.
                 if (print_z < slicing_params.first_print_layer_height + EPSILON) {
                     // Align the layer with the 1st layer height.
@@ -1664,8 +1666,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                     if (bridging_print_z == slicing_params.first_print_layer_height) {
                         bridging_layer->bottom_z = 0;
                         bridging_layer->height = slicing_params.first_print_layer_height;
-                    }
-                    else {
+                    } else {
                         // Don't know the height yet.
                         bridging_layer->bottom_z = bridging_print_z;
                         bridging_layer->height = 0;
@@ -1917,7 +1918,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
                 // Now apply the contact areas to the layer where they need to be made.
                 if (! contact_polygons.empty()) {
-                    auto [new_layer, bridging_layer] = new_contact_layer(*m_print_config, *m_object_config, m_slicing_params, layer, layer_storage, layer_storage_mutex);
+                    auto [new_layer, bridging_layer] = new_contact_layer(*m_print_config, *m_object_config, m_slicing_params, m_support_params.support_layer_height_min, layer, layer_storage, layer_storage_mutex);
                     if (new_layer) {
                         fill_contact_layer(*new_layer, layer_id, m_slicing_params,
                             *m_object_config, slices_margin, overhang_polygons, contact_polygons, enforcer_polygons, lower_layer_polygons,
