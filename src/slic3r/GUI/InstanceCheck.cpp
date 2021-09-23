@@ -352,10 +352,16 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	if (instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/") && *cla.should_send) {
 #endif
 		instance_check_internal::send_message(cla.cl_string, lock_name);
-		BOOST_LOG_TRIVIAL(info) << "instance check: Another instance found. This instance will terminate.";
+		BOOST_LOG_TRIVIAL(error) << "Instance check: Another instance found. This instance will terminate. Lock file of current running instance is located at " << data_dir() << 
+#ifdef _WIN32
+			"\\cache\\"
+#else // mac & linx
+			"/cache/"
+#endif
+			<< lock_name << ".lock";
 		return true;
 	}
-	BOOST_LOG_TRIVIAL(info) << "instance check: Another instance not found or single-instance not set.";
+	BOOST_LOG_TRIVIAL(info) << "Instance check: Another instance not found or single-instance not set.";
 	
 	return false;
 }

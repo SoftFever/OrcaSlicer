@@ -253,11 +253,10 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
     std::vector<unsigned> out;
 
     const Transform3d& instance_matrix_no_translation_no_scaling = trafo.get_matrix(true,false,true);
-    Vec3f direction_to_camera = -camera.get_dir_forward().cast<float>();
-    Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
-    Vec3f scaling = trafo.get_scaling_factor().cast<float>();
-    direction_to_camera_mesh = Vec3f(direction_to_camera_mesh(0)*scaling(0), direction_to_camera_mesh(1)*scaling(1), direction_to_camera_mesh(2)*scaling(2));
-    const Transform3f inverse_trafo = trafo.get_matrix().inverse().cast<float>();
+    Vec3d direction_to_camera = -camera.get_dir_forward();
+    Vec3d direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse() * direction_to_camera).normalized().eval();
+    direction_to_camera_mesh = direction_to_camera_mesh.cwiseProduct(trafo.get_scaling_factor());
+    const Transform3d inverse_trafo = trafo.get_matrix().inverse();
 
     for (size_t i=0; i<points.size(); ++i) {
         const Vec3f& pt = points[i];
@@ -268,9 +267,8 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
         // Cast a ray in the direction of the camera and look for intersection with the mesh:
         std::vector<sla::IndexedMesh::hit_result> hits;
         // Offset the start of the ray by EPSILON to account for numerical inaccuracies.
-        hits = m_emesh.query_ray_hits((inverse_trafo * pt + direction_to_camera_mesh * EPSILON).cast<double>(),
-                                      direction_to_camera.cast<double>());
-
+        hits = m_emesh.query_ray_hits((inverse_trafo * pt.cast<double>() + direction_to_camera_mesh * EPSILON),
+                                      direction_to_camera_mesh);
 
         if (! hits.empty()) {
             // If the closest hit facet normal points in the same direction as the ray,

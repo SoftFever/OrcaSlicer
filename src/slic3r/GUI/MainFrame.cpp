@@ -435,8 +435,9 @@ void MainFrame::update_layout()
     {
         m_plater->Reparent(m_tabpanel);
 #ifdef _MSW_DARK_MODE
+        m_plater->Layout();
         if (!wxGetApp().tabs_as_menu())
-            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater, _L("Plater"), std::string("plater"));
+            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater, _L("Plater"), std::string("plater"), true);
         else
 #endif
         m_tabpanel->InsertPage(0, m_plater, _L("Plater"));
@@ -461,7 +462,7 @@ void MainFrame::update_layout()
         m_plater_page = new wxPanel(m_tabpanel);
 #ifdef _MSW_DARK_MODE
         if (!wxGetApp().tabs_as_menu())
-            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater_page, _L("Plater"), std::string("plater"));
+            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater_page, _L("Plater"), std::string("plater"), true);
         else
 #endif
         m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
