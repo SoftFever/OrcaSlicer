@@ -24,6 +24,8 @@ using boost::optional;
 
 namespace Slic3r {
 
+wxDEFINE_EVENT(wxCUSTOMEVT_JUMP_TO_OPTION, wxCommandEvent);
+
 using GUI::from_u8;
 using GUI::into_u8;
 
@@ -293,8 +295,6 @@ OptionsSearcher::OptionsSearcher()
 
 OptionsSearcher::~OptionsSearcher()
 {
-    if (search_dialog)
-        search_dialog->Destroy();
 }
 
 void OptionsSearcher::init(std::vector<InputInfo> input_values)
@@ -530,9 +530,16 @@ void SearchDialog::ProcessSelection(wxDataViewItem selection)
 {
     if (!selection.IsOk())
         return;
-
-    GUI::wxGetApp().sidebar().jump_to_option(search_list_model->GetRow(selection));
     this->EndModal(wxID_CLOSE);
+
+    // If call GUI::wxGetApp().sidebar.jump_to_option() directly from here,
+    // then mainframe will not have focus and found option will not be "active" (have cursor) as a result
+    // SearchDialog have to be closed and have to lose a focus
+    // and only after that jump_to_option() function can be called
+    // So, post event to plater: 
+    wxCommandEvent event(wxCUSTOMEVT_JUMP_TO_OPTION);
+    event.SetInt(search_list_model->GetRow(selection));
+    wxPostEvent(GUI::wxGetApp().plater(), event);
 }
 
 void SearchDialog::OnInputText(wxCommandEvent&)

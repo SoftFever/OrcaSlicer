@@ -22,6 +22,8 @@
 
 namespace Slic3r {
 
+wxDECLARE_EVENT(wxCUSTOMEVT_JUMP_TO_OPTION, wxCommandEvent);
+
 namespace Search{
 
 class SearchDialog;

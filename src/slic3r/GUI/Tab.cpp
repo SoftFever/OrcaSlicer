@@ -501,6 +501,8 @@ void Tab::OnActivate()
         m_presets_choice->SetMinSize(ok_sz);
         m_presets_choice->SetSize(ok_sz);
         GetSizer()->GetItem(size_t(0))->GetSizer()->Layout();
+        if (wxGetApp().tabs_as_menu())
+            m_presets_choice->update();
     }
 #endif // _MSW_DARK_MODE
     Refresh();
