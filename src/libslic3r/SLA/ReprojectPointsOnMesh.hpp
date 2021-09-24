@@ -35,11 +35,24 @@ inline void reproject_points_and_holes(ModelObject *object)
     TriangleMesh rmsh = object->raw_mesh();
     IndexedMesh emesh{rmsh};
 
-    if (has_sppoints)
-        reproject_support_points(emesh, object->sla_support_points);
+    const Transform3f& tr = object->volumes.front()->get_matrix().cast<float>();
 
-    if (has_holes)
-        reproject_support_points(emesh, object->sla_drain_holes);
+    if (has_sppoints) {
+        SupportPoints transformed_points = object->sla_support_points;
+        for (SupportPoint& pt : transformed_points)
+            pt.pos = tr * pt.pos;
+        reproject_support_points(emesh, transformed_points);
+    }
+
+    if (has_holes) {
+        DrainHoles transformed_holes = object->sla_drain_holes;
+        for (DrainHole& hole : transformed_holes) {
+            // Hole normals are not transformed here, but the reprojection
+            // does not use them.
+            hole.pos = tr * hole.pos;
+        }
+        reproject_support_points(emesh, transformed_holes);
+    }
 }
 
 }}
