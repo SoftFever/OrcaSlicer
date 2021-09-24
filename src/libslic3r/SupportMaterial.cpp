@@ -1630,7 +1630,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         // Don't want to print a layer below the first layer height as it may not stick well.
         //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
         // and it may actually make sense to do it with a thinner layer than the first layer height.
-        const coordf_t min_print_z = slicing_params.has_raft() ? slicing_params.raft_interface_top_z + support_layer_height_min + EPSILON : slicing_params.first_print_layer_height - EPSILON;
+        const coordf_t min_print_z = slicing_params.raft_layers() > 1 ? slicing_params.raft_interface_top_z + support_layer_height_min + EPSILON : slicing_params.first_print_layer_height - EPSILON;
         if (print_z < min_print_z) {
             // This contact layer is below the first layer height, therefore not printable. Don't support this surface.
             return std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupportMaterial::MyLayer*>(nullptr, nullptr);
