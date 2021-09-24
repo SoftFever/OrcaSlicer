@@ -127,13 +127,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             shader->stop_using();
     });
 
-    const ModelObject* mo = m_c->selection_info()->model_object();
-    const ModelInstance* mi = mo->instances[m_c->selection_info()->get_active_instance()];
-    const ModelVolume* mv = mo->volumes.front();
-    Geometry::Transformation transformation(mi->get_transformation() * mv->get_transformation());
-
-    const Transform3d& instance_scaling_matrix_inverse = transformation.get_matrix(true, true, false, true).inverse();
-    const Transform3d& instance_matrix = transformation.get_matrix();
+    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
+    const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
+    const Transform3d& instance_matrix = vol->get_instance_transformation().get_matrix();
     float z_shift = m_c->selection_info()->get_sla_shift();
 
     glsafe(::glPushMatrix());
@@ -141,7 +137,6 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
     std::array<float, 4> render_color;
-    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
     for (size_t i = 0; i < cache_size; ++i) {
         const sla::SupportPoint& support_point = m_editing_mode ? m_editing_cache[i].support_point : m_normal_cache[i];
         const bool& point_selected = m_editing_mode ? m_editing_cache[i].selected : false;
@@ -270,13 +265,13 @@ bool GLGizmoSlaSupports::is_mesh_point_clipped(const Vec3d& point) const
     if (m_c->object_clipper()->get_position() == 0.)
         return false;
 
+    auto sel_info = m_c->selection_info();
     int active_inst = m_c->selection_info()->get_active_instance();
-    const ModelObject* mo = m_c->selection_info()->model_object();
-    const ModelInstance* mi = mo->instances[active_inst];
-    const Transform3d trafo = (mi->get_transformation() * mo->volumes.front()->get_transformation()).get_matrix();
+    const ModelInstance* mi = sel_info->model_object()->instances[active_inst];
+    const Transform3d& trafo = mi->get_transformation().get_matrix();
 
     Vec3d transformed_point =  trafo * point;
-    transformed_point(2) += m_c->selection_info()->get_sla_shift();
+    transformed_point(2) += sel_info->get_sla_shift();
     return m_c->object_clipper()->get_clipping_plane()->is_point_clipped(transformed_point);
 }
 
@@ -291,12 +286,9 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
 
     const Camera& camera = wxGetApp().plater()->get_camera();
     const Selection& selection = m_parent.get_selection();
-    const ModelObject* mo = m_c->selection_info()->model_object();
-    const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
-    const ModelVolume* mv = mo->volumes.front();
-
-    Transform3d trafo = mi->get_transformation().get_matrix() * mv->get_matrix();
-    trafo.pretranslate(Vec3d(0., 0., m_c->selection_info()->get_sla_shift()));
+    const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+    Geometry::Transformation trafo = volume->get_instance_transformation();
+    trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_c->selection_info()->get_sla_shift()));
 
     double clp_dist = m_c->object_clipper()->get_position();
     const ClippingPlane* clp = m_c->object_clipper()->get_clipping_plane();
@@ -306,7 +298,7 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     Vec3f normal;
     if (m_c->raycaster()->raycaster()->unproject_on_mesh(
             mouse_pos,
-            trafo,
+            trafo.get_matrix(),
             camera,
             hit,
             normal,
@@ -396,11 +388,8 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             GLSelectionRectangle::EState rectangle_status = m_selection_rectangle.get_state();
 
             // First collect positions of all the points in world coordinates.
-            const ModelInstance* mi = mo->instances[active_inst];
-            const ModelVolume* mv = mo->volumes.front();
-            Geometry::Transformation trafo(mi->get_transformation() * mv->get_transformation());
+            Geometry::Transformation trafo = mo->instances[active_inst]->get_transformation();
             trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_c->selection_info()->get_sla_shift()));
-
             std::vector<Vec3d> points;
             for (unsigned int i=0; i<m_editing_cache.size(); ++i)
                 points.push_back(trafo.get_matrix() * m_editing_cache[i].support_point.pos.cast<double>());
