@@ -1188,11 +1188,21 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         break;
     }
 
+    auto set_focus = [](wxWindow* win) {
+        win->SetFocus();
+#ifdef WIN32
+        if (wxTextCtrl* text = dynamic_cast<wxTextCtrl*>(win))
+            text->SetSelection(-1, -1);
+        else if (wxSpinCtrl* spin = dynamic_cast<wxSpinCtrl*>(win))
+            spin->SetSelection(-1, -1);
+#endif // WIN32
+    };
+
     Field* field = get_field(opt_key);
 
     // focused selected field
     if (field)
-        field->getWindow()->SetFocus();
+        set_focus(field->getWindow());
     else if (category == "Single extruder MM setup") {
         // When we show and hide "Single extruder MM setup" page, 
         // related options are still in the search list
@@ -1200,7 +1210,7 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         // as a "way" to show hidden page again
         field = get_field("single_extruder_multi_material");
         if (field)
-            field->getWindow()->SetFocus();
+            set_focus(field->getWindow());
     }
 
     m_highlighter.init(get_custom_ctrl_with_blinking_ptr(opt_key));
