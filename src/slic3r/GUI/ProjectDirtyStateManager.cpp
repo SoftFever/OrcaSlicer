@@ -195,8 +195,10 @@ void ProjectDirtyStateManager::update_from_undo_redo_stack(UpdateType type)
 void ProjectDirtyStateManager::update_from_presets()
 {
     m_state.presets = false;
-    for (const auto& [type, name] : wxGetApp().get_selected_presets()) {
-        m_state.presets |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
+    // check switching of the presets only for exist/loaded project, but not for new
+    if (!wxGetApp().plater()->get_project_filename().IsEmpty()) {
+        for (const auto& [type, name] : wxGetApp().get_selected_presets())
+            m_state.presets |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
     }
     m_state.presets |= wxGetApp().has_unsaved_preset_changes();
     wxGetApp().mainframe->update_title();
