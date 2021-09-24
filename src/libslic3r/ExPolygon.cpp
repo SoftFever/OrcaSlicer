@@ -114,10 +114,11 @@ bool ExPolygon::contains(const Polylines &polylines) const
 
 bool ExPolygon::contains(const Point &point) const
 {
-    if (!this->contour.contains(point)) return false;
-    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
-        if (it->contains(point)) return false;
-    }
+    if (! this->contour.contains(point))
+        return false;
+    for (const Polygon &hole : this->holes)
+        if (hole.contains(point))
+            return false;
     return true;
 }
 
@@ -365,6 +366,57 @@ extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons)
     for (ExPolygons::const_iterator it = polygons.begin(); it != polygons.end(); ++ it)
         out.push_back(get_extents(*it));
     return out;
+}
+
+bool has_duplicate_points(const ExPolygon &expoly)
+{
+#if 1
+    // Check globally.
+    size_t cnt = expoly.contour.points.size();
+    for (const Polygon &hole : expoly.holes)
+        cnt += hole.points.size();
+    std::vector<Point> allpts;
+    allpts.reserve(cnt);
+    allpts.insert(allpts.begin(), expoly.contour.points.begin(), expoly.contour.points.end());
+    for (const Polygon &hole : expoly.holes)
+        allpts.insert(allpts.end(), hole.points.begin(), hole.points.end());
+    return has_duplicate_points(std::move(allpts));
+#else
+    // Check per contour.
+    if (has_duplicate_points(expoly.contour))
+        return true;
+    for (const Polygon &hole : expoly.holes)
+        if (has_duplicate_points(hole))
+            return true;
+    return false;
+#endif
+}
+
+bool has_duplicate_points(const ExPolygons &expolys)
+{
+#if 1
+    // Check globally.
+    size_t cnt = 0;
+    for (const ExPolygon &expoly : expolys) {
+        cnt += expoly.contour.points.size();
+        for (const Polygon &hole : expoly.holes)
+            cnt += hole.points.size();
+    }
+    std::vector<Point> allpts;
+    allpts.reserve(cnt);
+    for (const ExPolygon &expoly : expolys) {
+        allpts.insert(allpts.begin(), expoly.contour.points.begin(), expoly.contour.points.end());
+        for (const Polygon &hole : expoly.holes)
+            allpts.insert(allpts.end(), hole.points.begin(), hole.points.end());
+    }
+    return has_duplicate_points(std::move(allpts));
+#else
+    // Check per contour.
+    for (const ExPolygon &expoly : expolys)
+        if (has_duplicate_points(expoly))
+            return true;
+    return false;
+#endif
 }
 
 bool remove_sticks(ExPolygon &poly)

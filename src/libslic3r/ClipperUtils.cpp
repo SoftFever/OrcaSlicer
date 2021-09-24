@@ -126,6 +126,45 @@ ExPolygons ClipperPaths_to_Slic3rExPolygons(const ClipperLib::Paths &input)
     return PolyTreeToExPolygons(std::move(polytree));
 }
 
+#if 0
+// Global test.
+bool has_duplicate_points(const ClipperLib::PolyTree &polytree)
+{
+    struct Helper {
+        static void collect_points_recursive(const ClipperLib::PolyNode &polynode, ClipperLib::Path &out) {
+            // For each hole of the current expolygon:
+            out.insert(out.end(), polynode.Contour.begin(), polynode.Contour.end());
+            for (int i = 0; i < polynode.ChildCount(); ++ i)
+                collect_points_recursive(*polynode.Childs[i], out);
+        }
+    };
+    ClipperLib::Path pts;
+    for (int i = 0; i < polytree.ChildCount(); ++ i)
+        Helper::collect_points_recursive(*polytree.Childs[i], pts);
+    return has_duplicate_points(std::move(pts));
+}
+#else
+// Local test inside each of the contours.
+bool has_duplicate_points(const ClipperLib::PolyTree &polytree)
+{
+    struct Helper {
+        static bool has_duplicate_points_recursive(const ClipperLib::PolyNode &polynode) {
+            if (has_duplicate_points(polynode.Contour))
+                return true;
+            for (int i = 0; i < polynode.ChildCount(); ++ i)
+                if (has_duplicate_points_recursive(*polynode.Childs[i]))
+                    return true;
+            return false;
+        }
+    };
+    ClipperLib::Path pts;
+    for (int i = 0; i < polytree.ChildCount(); ++ i)
+        if (Helper::has_duplicate_points_recursive(*polytree.Childs[i]))
+            return true;
+    return false;
+}
+#endif
+
 // Offset outside by 10um, one by one.
 template<typename PathsProvider>
 static ClipperLib::Paths safety_offset(PathsProvider &&paths)

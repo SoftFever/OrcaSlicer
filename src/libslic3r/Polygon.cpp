@@ -334,6 +334,27 @@ extern std::vector<BoundingBox> get_extents_vector(const Polygons &polygons)
     return out;
 }
 
+bool has_duplicate_points(const Polygons &polys)
+{
+#if 1
+    // Check globally.
+    size_t cnt = 0;
+    for (const Polygon &poly : polys)
+        cnt += poly.points.size();
+    std::vector<Point> allpts;
+    allpts.reserve(cnt);
+    for (const Polygon &poly : polys)
+        allpts.insert(allpts.end(), poly.points.begin(), poly.points.end());
+    return has_duplicate_points(std::move(allpts));
+#else
+    // Check per contour.
+    for (const Polygon &poly : polys)
+        if (has_duplicate_points(poly))
+            return true;
+    return false;
+#endif
+}
+
 static inline bool is_stick(const Point &p1, const Point &p2, const Point &p3)
 {
     Point v1 = p2 - p1;
