@@ -23,6 +23,7 @@
 
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include <boost/predef/other/endian.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
