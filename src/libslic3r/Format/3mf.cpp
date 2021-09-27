@@ -1890,6 +1890,7 @@ namespace Slic3r {
 
         unsigned int geo_tri_count = (unsigned int)geometry.triangles.size();
         unsigned int renamed_volumes_count = 0;
+        int processed_vertices_max_id = 0;
 
         for (const ObjectMetadata::VolumeMetadata& volume_data : volumes) {
             if (geo_tri_count <= volume_data.first_triangle_id || geo_tri_count <= volume_data.last_triangle_id || volume_data.last_triangle_id < volume_data.first_triangle_id) {
@@ -1911,13 +1912,26 @@ namespace Slic3r {
             // splits volume out of imported geometry
             std::vector<Vec3i> faces(geometry.triangles.begin() + volume_data.first_triangle_id, geometry.triangles.begin() + volume_data.last_triangle_id + 1);
             const size_t       triangles_count = faces.size();
-            for (Vec3i face : faces)
-                for (unsigned int tri_id : face)
+
+            int min_id = faces.front()[0];
+            int max_id = faces.front()[0];
+            for (Vec3i& face : faces) {
+                for (int& tri_id : face) {
                     if (tri_id < 0 || tri_id >= geometry.vertices.size()) {
                         add_error("Found invalid vertex id");
                         return false;
                     }
-            TriangleMesh triangle_mesh(std::move(geometry.vertices), std::move(faces));
+                    min_id = std::min(min_id, tri_id);
+                    max_id = std::max(max_id, tri_id);
+                    // rebase index to the current vertices list
+                    tri_id -= processed_vertices_max_id;
+                }
+            }
+
+            processed_vertices_max_id = 1 + std::max(processed_vertices_max_id, max_id);
+
+            std::vector<Vec3f> vertices(geometry.vertices.begin() + min_id, geometry.vertices.begin() + max_id + 1);
+            TriangleMesh triangle_mesh(std::move(vertices), std::move(faces));
 
             if (m_version == 0) {
                 // if the 3mf was not produced by PrusaSlicer and there is only one instance,
