@@ -1097,14 +1097,6 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
     return m_idx_selected;
 }
 
-// Save the preset under a new name. If the name is different from the old one,
-// a new preset is stored into the list of presets.
-// All presets are marked as not modified and the new preset is activated.
-//void PresetCollection::save_current_preset(const std::string &new_name);
-
-// Delete the current preset, activate the first visible preset.
-//void PresetCollection::delete_current_preset();
-
 // Update a dirty flag of the current preset
 // Return true if the dirty flag changed.
 bool PresetCollection::update_dirty()

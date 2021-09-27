@@ -24,6 +24,23 @@ namespace GUI {
 
 namespace UndoRedo {
 
+enum class SnapshotType : unsigned char {
+	// Some action modifying project state.
+	Action,
+	// Selection change at the Plater.
+	Selection,
+	// New project, Reset project, Load project ...
+	ProjectSeparator,
+	// Entering a Gizmo, which opens a secondary Undo / Redo stack.
+	EnteringGizmo,
+	// Leaving a Gizmo, which closes a secondary Undo / Redo stack. 
+	// No action modifying a project state was done between EnteringGizmo / LeavingGizmo.
+	LeavingGizmoNoAction,
+	// Leaving a Gizmo, which closes a secondary Undo / Redo stack.
+	// Some action modifying a project state was done between EnteringGizmo / LeavingGizmo.
+	LeavingGizmoWithAction,
+};
+
 // Data structure to be stored with each snapshot.
 // Storing short data (bit masks, ints) with each snapshot instead of being serialized into the Undo / Redo stack
 // is likely cheaper in term of both the runtime and memory allocation.
@@ -34,6 +51,7 @@ struct SnapshotData
 	// Constructor is defined in .cpp due to the forward declaration of enum PrinterTechnology.
 	SnapshotData();
 
+	SnapshotType        snapshot_type;
 	PrinterTechnology 	printer_technology;
 	// Bitmap of Flags (see the Flags enum).
 	unsigned int        flags;
@@ -122,10 +140,13 @@ public:
 	// There is one additional snapshot taken at the very end, which indicates the current unnamed state.
 
 	const std::vector<Snapshot>& snapshots() const;
+	const Snapshot& 		     snapshot(size_t time) const;
+
 	// Timestamp of the active snapshot. One of the snapshots of this->snapshots() shall have Snapshot::timestamp equal to this->active_snapshot_time().
-	// The snapshot time indicates start of an operation, which is finished at the time of the following snapshot, therefore
-	// the active snapshot is the successive snapshot. The same logic applies to the time_to_load parameter of undo() and redo() operations.
+	// The active snapshot may be a special placeholder "@@@ Topmost @@@" indicating an uncaptured current state,
+	// or the active snapshot may be an active state to which the application state was undoed or redoed.
 	size_t active_snapshot_time() const;
+	const Snapshot& active_snapshot() const { return this->snapshot(this->active_snapshot_time()); }
 	// Temporary snapshot is active if the topmost snapshot is active and it has not been captured yet.
 	// In that case the Undo action will capture the last snapshot.
 	bool   temp_snapshot_active() const;
