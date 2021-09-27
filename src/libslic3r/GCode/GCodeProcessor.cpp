@@ -2723,15 +2723,15 @@ void GCodeProcessor::process_G28(const GCodeReader::GCodeLine& line)
     std::string_view cmd = line.cmd();
     std::string new_line_raw = { cmd.data(), cmd.size() };
     bool found = false;
-    if (line.has_x()) {
+    if (line.has('X')) {
         new_line_raw += " X0";
         found = true;
     }
-    if (line.has_y()) {
+    if (line.has('Y')) {
         new_line_raw += " Y0";
         found = true;
     }
-    if (line.has_z()) {
+    if (line.has('Z')) {
         new_line_raw += " Z0";
         found = true;
     }
@@ -3037,7 +3037,7 @@ void GCodeProcessor::process_M402(const GCodeReader::GCodeLine& line)
     // https://github.com/repetier/Repetier-Firmware/blob/master/src/ArduinoAVR/Repetier/Printer.cpp
     // void Printer::GoToMemoryPosition(bool x, bool y, bool z, bool e, float feed)
 
-    bool has_xyz = !(line.has_x() || line.has_y() || line.has_z());
+    bool has_xyz = !(line.has('X') || line.has('Y') || line.has('Z'));
 
     float p = FLT_MAX;
     for (unsigned char a = X; a <= Z; ++a) {
