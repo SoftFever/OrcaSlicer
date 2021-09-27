@@ -2867,16 +2867,16 @@ void GCodeProcessor::process_M132(const GCodeReader::GCodeLine& line)
     // see: https://github.com/makerbot/s3g/blob/master/doc/GCodeProtocol.md
     // Using this command to reset the axis origin to zero helps in fixing: https://github.com/prusa3d/PrusaSlicer/issues/3082
 
-    if (line.has_x())
+    if (line.has('X'))
         m_origin[X] = 0.0f;
 
-    if (line.has_y())
+    if (line.has('Y'))
         m_origin[Y] = 0.0f;
 
-    if (line.has_z())
+    if (line.has('Z'))
         m_origin[Z] = 0.0f;
 
-    if (line.has_e())
+    if (line.has('E'))
         m_origin[E] = 0.0f;
 }
 
