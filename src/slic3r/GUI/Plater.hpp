@@ -37,6 +37,7 @@ using ModelInstancePtrs = std::vector<ModelInstance*>;
 
 namespace UndoRedo {
     class Stack;
+    enum class SnapshotType : unsigned char;
     struct Snapshot;
 }
 
@@ -241,6 +242,9 @@ public:
 
     void take_snapshot(const std::string &snapshot_name);
     void take_snapshot(const wxString &snapshot_name);
+    void take_snapshot(const std::string &snapshot_name, UndoRedo::SnapshotType snapshot_type);
+    void take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type);
+
     void undo();
     void redo();
     void undo_to(int selection);
@@ -392,6 +396,12 @@ public:
 			m_plater->take_snapshot(snapshot_name);
 			m_plater->suppress_snapshots();
 		}
+        TakeSnapshot(Plater *plater, const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) : m_plater(plater)
+        {
+            m_plater->take_snapshot(snapshot_name, snapshot_type);
+            m_plater->suppress_snapshots();
+        }
+
 		~TakeSnapshot()
 		{
 			m_plater->allow_snapshots();

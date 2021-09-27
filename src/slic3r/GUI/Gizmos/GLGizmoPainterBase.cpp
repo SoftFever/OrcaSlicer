@@ -8,6 +8,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 
@@ -51,17 +52,18 @@ void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
             ? _u8L("Entering Paint-on supports")
             : _u8L("Entering Seam painting");
         if (last_snapshot_name != str)
-            Plater::TakeSnapshot(plater, str);
+            Plater::TakeSnapshot(plater, str, UndoRedo::SnapshotType::EnteringGizmo);
         plater->enter_gizmos_stack();
         m_internal_stack_active = true;
     }
     if (!activate && m_internal_stack_active) {
-        plater->leave_gizmos_stack();
+        bool project_modified = plater->leave_gizmos_stack();
         std::string str = get_painter_type() == PainterGizmoType::SEAM
             ? _u8L("Leaving Seam painting")
             : _u8L("Leaving Paint-on supports");
         if (last_snapshot_name != str)
-            Plater::TakeSnapshot(plater, str);
+            Plater::TakeSnapshot(plater, str, 
+                project_modified ? UndoRedo::SnapshotType::LeavingGizmoWithAction : UndoRedo::SnapshotType::LeavingGizmoNoAction);
         m_internal_stack_active = false;
     }
 }

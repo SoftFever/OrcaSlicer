@@ -4,6 +4,7 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 #include <GL/glew.h>
 
@@ -907,7 +908,7 @@ void GLGizmoSlaSupports::on_set_state()
             // data are not yet available, the CallAfter will postpone taking the
             // snapshot until they are. No, it does not feel right.
             wxGetApp().CallAfter([]() {
-                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Entering SLA gizmo"));
+                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Entering SLA gizmo"), UndoRedo::SnapshotType::EnteringGizmo);
             });
         }
 
@@ -925,8 +926,9 @@ void GLGizmoSlaSupports::on_set_state()
         }
         else {
             // we are actually shutting down
-            disable_editing_mode(); // so it is not active next time the gizmo opens
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Leaving SLA gizmo"));
+            bool project_modified = disable_editing_mode(); // so it is not active next time the gizmo opens
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Leaving SLA gizmo"), 
+                project_modified ? UndoRedo::SnapshotType::LeavingGizmoWithAction : UndoRedo::SnapshotType::LeavingGizmoNo);
             m_normal_cache.clear();
             m_old_mo_id = -1;
         }
