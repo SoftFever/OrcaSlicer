@@ -10,6 +10,7 @@
 #include "Gizmos/GLGizmoBase.hpp"
 #include "Camera.hpp"
 #include "Plater.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Model.hpp"
@@ -162,7 +163,7 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
     needs_reset |= is_any_modifier() && !volume->is_modifier;
 
     if (!already_contained || needs_reset) {
-        wxGetApp().plater()->take_snapshot(_L("Selection-Add"));
+        wxGetApp().plater()->take_snapshot(_L("Selection-Add"), UndoRedo::SnapshotType::Selection);
 
         if (needs_reset)
             clear();
@@ -203,7 +204,7 @@ void Selection::remove(unsigned int volume_idx)
     if (!contains_volume(volume_idx))
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Remove"));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Remove"), UndoRedo::SnapshotType::Selection);
 
     GLVolume* volume = (*m_volumes)[volume_idx];
 
@@ -235,7 +236,7 @@ void Selection::add_object(unsigned int object_idx, bool as_single_selection)
         (as_single_selection && matches(volume_idxs)))
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Add Object"));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Add Object"), UndoRedo::SnapshotType::Selection);
 
     // resets the current list if needed
     if (as_single_selection)
@@ -254,7 +255,7 @@ void Selection::remove_object(unsigned int object_idx)
     if (!m_valid)
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Remove Object"));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Remove Object"), UndoRedo::SnapshotType::Selection);
 
     do_remove_object(object_idx);
 
@@ -272,7 +273,7 @@ void Selection::add_instance(unsigned int object_idx, unsigned int instance_idx,
         (as_single_selection && matches(volume_idxs)))
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Add Instance"));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Add Instance"), UndoRedo::SnapshotType::Selection);
 
     // resets the current list if needed
     if (as_single_selection)
@@ -291,7 +292,7 @@ void Selection::remove_instance(unsigned int object_idx, unsigned int instance_i
     if (!m_valid)
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Remove Instance"));
+    wxGetApp().plater()->take_snapshot(_L("Selection-Remove Instance"), UndoRedo::SnapshotType::Selection);
 
     do_remove_instance(object_idx, instance_idx);
 
@@ -388,7 +389,7 @@ void Selection::add_all()
     if ((unsigned int)m_list.size() == count)
         return;
     
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Add All")));
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Add All")), UndoRedo::SnapshotType::Selection);
 
     m_mode = Instance;
     clear();
@@ -413,7 +414,7 @@ void Selection::remove_all()
 // Not taking the snapshot with non-empty Redo stack will likely be more confusing than losing the Redo stack.
 // Let's wait for user feedback.
 //    if (!wxGetApp().plater()->can_redo())
-        wxGetApp().plater()->take_snapshot(_L("Selection-Remove All"));
+        wxGetApp().plater()->take_snapshot(_L("Selection-Remove All"), UndoRedo::SnapshotType::Selection);
 
     m_mode = Instance;
     clear();

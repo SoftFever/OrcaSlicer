@@ -556,6 +556,12 @@ public:
 
 	// Snapshot history (names with timestamps).
 	const std::vector<Snapshot>& 	snapshots() const { return m_snapshots; }
+	const Snapshot&				    snapshot(size_t time) const {
+		const auto it = std::lower_bound(m_snapshots.cbegin(), m_snapshots.cend(), UndoRedo::Snapshot(time));
+		assert(it != m_snapshots.end() && it->timestamp == time);
+		return *it;
+	}
+
 	// Timestamp of the active snapshot.
 	size_t 							active_snapshot_time() const { return m_active_snapshot_time; }
 	bool 							temp_snapshot_active() const { return m_snapshots.back().timestamp == m_active_snapshot_time && ! m_snapshots.back().is_topmost_captured(); }
@@ -1097,6 +1103,7 @@ bool Stack::redo(Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos, siz
 const Selection& Stack::selection_deserialized() const { return pimpl->selection_deserialized(); }
 
 const std::vector<Snapshot>& Stack::snapshots() const { return pimpl->snapshots(); }
+const Snapshot& Stack::snapshot(size_t time) const { return pimpl->snapshot(time); }
 size_t Stack::active_snapshot_time() const { return pimpl->active_snapshot_time(); }
 bool Stack::temp_snapshot_active() const { return pimpl->temp_snapshot_active(); }
 
