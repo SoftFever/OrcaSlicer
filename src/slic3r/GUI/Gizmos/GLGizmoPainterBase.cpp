@@ -57,7 +57,8 @@ void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
         m_internal_stack_active = true;
     }
     if (!activate && m_internal_stack_active) {
-        bool project_modified = plater->leave_gizmos_stack();
+        //FIXME report the true state!
+        bool project_modified = true; // plater->leave_gizmos_stack();
         std::string str = get_painter_type() == PainterGizmoType::SEAM
             ? _u8L("Leaving Seam painting")
             : _u8L("Leaving Paint-on supports");

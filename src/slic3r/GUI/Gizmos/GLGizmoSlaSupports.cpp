@@ -926,9 +926,10 @@ void GLGizmoSlaSupports::on_set_state()
         }
         else {
             // we are actually shutting down
-            bool project_modified = disable_editing_mode(); // so it is not active next time the gizmo opens
+            //FIXME report the true state!
+            bool project_modified = true; // disable_editing_mode(); // so it is not active next time the gizmo opens
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Leaving SLA gizmo"), 
-                project_modified ? UndoRedo::SnapshotType::LeavingGizmoWithAction : UndoRedo::SnapshotType::LeavingGizmoNo);
+                project_modified ? UndoRedo::SnapshotType::LeavingGizmoWithAction : UndoRedo::SnapshotType::LeavingGizmoNoAction);
             m_normal_cache.clear();
             m_old_mo_id = -1;
         }
