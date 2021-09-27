@@ -64,4 +64,13 @@
 #define ENABLE_FIX_SEAMS_SYNCH (1 && ENABLE_2_4_0_ALPHA2)
 
 
+//====================
+// 2.4.0.alpha3 techs
+//====================
+#define ENABLE_2_4_0_ALPHA3 1
+
+// Enable fixing loading of gcode files generated with SuperSlicer in GCodeViewer
+#define ENABLE_FIX_SUPERSLICER_GCODE_IMPORT (1 && ENABLE_2_4_0_ALPHA3)
+
+
 #endif // _prusaslicer_technologies_h_

@@ -2015,6 +2015,10 @@ public:
 	// Set all the nullable values to nils.
     void null_nullables();
 
+#if ENABLE_FIX_SUPERSLICER_GCODE_IMPORT
+    static size_t load_from_gcode_string_legacy(ConfigBase& config, const char* str, ConfigSubstitutionContext& substitutions);
+#endif // ENABLE_FIX_SUPERSLICER_GCODE_IMPORT
+
 private:
     // Set a configuration value from a string.
     bool set_deserialize_raw(const t_config_option_key& opt_key_src, const std::string& value, ConfigSubstitutionContext& substitutions, bool append);
