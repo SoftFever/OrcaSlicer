@@ -6,6 +6,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -144,16 +145,16 @@ void SLAImportJob::process()
     try {
         switch (p->sel) {
         case Sel::modelAndProfile:
-            p->config_substitutions = import_sla_archive(path, p->win, p->mesh, p->profile, progr);
-            break;
         case Sel::modelOnly:
-            p->config_substitutions = import_sla_archive(path, p->win, p->mesh, progr);
+            p->config_substitutions = import_sla_archive(path, p->win, p->mesh, p->profile, progr);
             break;
         case Sel::profileOnly:
             p->config_substitutions = import_sla_archive(path, p->profile);
             break;
         }
-
+    } catch (MissingProfileError &) {
+        p->err = _L("The archive doesn't contain any profile data. Try to import after switching "
+                    "to an SLA profile that can be used as fallback.").ToStdString();
     } catch (std::exception &ex) {
         p->err = ex.what();
     }
@@ -166,7 +167,7 @@ void SLAImportJob::reset()
 {
     p->sel     = Sel::modelAndProfile;
     p->mesh    = {};
-    p->profile = {};
+    p->profile = m_plater->sla_print().full_print_config();
     p->win     = {2, 2};
     p->path.Clear();
 }
@@ -202,7 +203,18 @@ void SLAImportJob::finalize()
 
     std::string name = wxFileName(p->path).GetName().ToUTF8().data();
 
-    if (!p->profile.empty()) {
+    if (p->profile.empty()) {
+        m_plater->get_notification_manager()->push_notification(
+        NotificationType::CustomNotification,
+        NotificationManager::NotificationLevel::WarningNotificationLevel,
+            _L("Loaded archive did not contain any profile data. "
+               "The current SLA profile was used as fallback.").ToStdString());
+    }
+
+    if (p->sel != Sel::modelOnly) {
+        if (p->profile.empty())
+            p->profile = m_plater->sla_print().full_print_config();
+
         const ModelObjectPtrs& objects = p->plater->model().objects;
         for (auto object : objects)
             if (object->volumes.size() > 1)
