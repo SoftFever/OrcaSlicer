@@ -1915,16 +1915,21 @@ namespace Slic3r {
 
             int min_id = faces.front()[0];
             int max_id = faces.front()[0];
-            for (Vec3i& face : faces) {
-                for (int& tri_id : face) {
+            for (const Vec3i& face : faces) {
+                for (const int tri_id : face) {
                     if (tri_id < 0 || tri_id >= geometry.vertices.size()) {
                         add_error("Found invalid vertex id");
                         return false;
                     }
                     min_id = std::min(min_id, tri_id);
                     max_id = std::max(max_id, tri_id);
-                    // rebase index to the current vertices list
-                    tri_id -= processed_vertices_max_id;
+                }
+            }
+
+            // rebase indices to the current vertices list
+            for (Vec3i& face : faces) {
+                for (int& tri_id : face) {
+                    tri_id -= min_id;
                 }
             }
 
