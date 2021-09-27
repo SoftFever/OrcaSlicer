@@ -1189,6 +1189,8 @@ static inline const char* remove_eols(const char *begin, const char *end) {
     return end;
 }
 
+// Load a G-code into a stand-alone G-code viewer.
+// throws CanceledException through print->throw_if_canceled() (sent by the caller as callback).
 void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback)
 {
     CNumericLocalesSetter locales_setter;
@@ -1243,7 +1245,8 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
         this->process_gcode_line(line, true);
     });
 
-    this->finalize();
+    // Don't post-process the G-code to update time stamps.
+    this->finalize(false);
 }
 
 void GCodeProcessor::initialize(const std::string& filename)
@@ -1269,7 +1272,7 @@ void GCodeProcessor::process_buffer(const std::string &buffer)
     });
 }
 
-void GCodeProcessor::finalize()
+void GCodeProcessor::finalize(bool post_process)
 {
     // update width/height of wipe moves
     for (MoveVertex& move : m_result.moves) {
@@ -1299,7 +1302,8 @@ void GCodeProcessor::finalize()
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
-    m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends);
+    if (post_process)
+        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends);
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
