@@ -573,6 +573,89 @@ GCodeViewer::GCodeViewer()
 //    m_sequential_view.skip_invisible_moves = true;
 }
 
+#if ENABLE_SEAMS_USING_MODELS
+void GCodeViewer::init()
+{
+    if (m_gl_data_initialized)
+        return;
+
+    // initializes opengl data of TBuffers
+    for (size_t i = 0; i < m_buffers.size(); ++i) {
+        TBuffer& buffer = m_buffers[i];
+        EMoveType type = buffer_type(i);
+        switch (type)
+        {
+        default: { break; }
+        case EMoveType::Tool_change:
+        case EMoveType::Color_change:
+        case EMoveType::Pause_Print:
+        case EMoveType::Custom_GCode:
+        case EMoveType::Retract:
+        case EMoveType::Unretract:
+        case EMoveType::Seam: {
+#if ENABLE_SEAMS_USING_BATCHED_MODELS
+            if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
+                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::InstancedModel;
+                buffer.shader = "gouraud_light_instanced";
+                buffer.model.model.init_from(diamond(16));
+                buffer.model.color = option_color(type);
+                buffer.model.instances.format = InstanceVBuffer::EFormat::InstancedModel;
+            }
+            else {
+                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::BatchedModel;
+                buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
+                buffer.shader = "gouraud_light";
+
+                buffer.model.data = diamond(16);
+                buffer.model.color = option_color(type);
+                buffer.model.instances.format = InstanceVBuffer::EFormat::BatchedModel;
+            }
+            break;
+#else
+            if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
+                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
+                buffer.shader = "gouraud_light_instanced";
+                buffer.model.model.init_from(diamond(16));
+                buffer.model.color = option_color(type);
+            }
+            else {
+                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
+                buffer.vertices.format = VBuffer::EFormat::Position;
+                buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
+            }
+            break;
+#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
+        }
+        case EMoveType::Wipe:
+        case EMoveType::Extrude: {
+            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
+            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
+            buffer.shader = "gouraud_light";
+            break;
+        }
+        case EMoveType::Travel: {
+            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
+            buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
+            buffer.shader = "toolpaths_lines";
+            break;
+        }
+        }
+
+        set_toolpath_move_type_visible(EMoveType::Extrude, true);
+    }
+
+    // initializes tool marker
+    m_sequential_view.marker.init();
+
+    // initializes point sizes
+    std::array<int, 2> point_sizes;
+    ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
+    m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
+
+    m_gl_data_initialized = true;
+}
+#endif // ENABLE_SEAMS_USING_MODELS
+
 void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized)
 {
     // avoid processing if called with the same gcode_result
@@ -756,6 +839,7 @@ void GCodeViewer::reset()
 
 void GCodeViewer::render()
 {
+#if !ENABLE_SEAMS_USING_MODELS
     auto init_gl_data = [this]() {
         // initializes opengl data of TBuffers
         for (size_t i = 0; i < m_buffers.size(); ++i) {
@@ -771,26 +855,6 @@ void GCodeViewer::render()
             case EMoveType::Retract:
             case EMoveType::Unretract:
             case EMoveType::Seam: {
-#if ENABLE_SEAMS_USING_MODELS
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
-                if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
-                    buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::InstancedModel;
-                    buffer.shader = "gouraud_light_instanced";
-                    buffer.model.model.init_from(diamond(16));
-                    buffer.model.color = option_color(type);
-                    buffer.model.instances.format = InstanceVBuffer::EFormat::InstancedModel;
-                }
-                else {
-                    buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::BatchedModel;
-                    buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-                    buffer.shader = "gouraud_light";
-
-                    buffer.model.data = diamond(16);
-                    buffer.model.color = option_color(type);
-                    buffer.model.instances.format = InstanceVBuffer::EFormat::BatchedModel;
-                }
-                break;
-#else
                 if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
                     buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
                     buffer.shader = "gouraud_light_instanced";
@@ -803,36 +867,17 @@ void GCodeViewer::render()
                     buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
                 }
                 break;
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#else
-                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
-                buffer.vertices.format = VBuffer::EFormat::Position;
-                buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
-                break;
-#endif // ENABLE_SEAMS_USING_MODELS
             }
             case EMoveType::Wipe:
             case EMoveType::Extrude: {
-#if ENABLE_SEAMS_USING_MODELS
-                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
-                buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-#endif // ENABLE_SEAMS_USING_MODELS
                 buffer.shader = "gouraud_light";
                 break;
             }
             case EMoveType::Travel: {
-#if ENABLE_SEAMS_USING_MODELS
-                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
-                buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
-#endif // ENABLE_SEAMS_USING_MODELS
                 buffer.shader = "toolpaths_lines";
                 break;
             }
             }
-
-#if ENABLE_SEAMS_USING_MODELS
-            set_toolpath_move_type_visible(EMoveType::Extrude, true);
-#endif // ENABLE_SEAMS_USING_MODELS
         }
 
         // initializes tool marker
@@ -844,6 +889,7 @@ void GCodeViewer::render()
         m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
         m_gl_data_initialized = true;
     };
+#endif // !ENABLE_SEAMS_USING_MODELS
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_opengl();
@@ -852,10 +898,12 @@ void GCodeViewer::render()
 #endif // ENABLE_SEAMS_USING_MODELS
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+#if !ENABLE_SEAMS_USING_MODELS
     // OpenGL data must be initialized after the glContext has been created.
     // This is ensured when this method is called by GLCanvas3D::_render_gcode().
     if (!m_gl_data_initialized)
         init_gl_data();
+#endif // !ENABLE_SEAMS_USING_MODELS
 
     if (m_roles.empty())
         return;

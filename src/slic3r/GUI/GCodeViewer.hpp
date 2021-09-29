@@ -808,6 +808,10 @@ public:
     GCodeViewer();
     ~GCodeViewer() { reset(); }
 
+#if ENABLE_SEAMS_USING_MODELS
+    void init();
+#endif // ENABLE_SEAMS_USING_MODELS
+
     // extract rendering data from the given parameters
     void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
     // recalculate ranges in dependence of what is visible and sets tool/print colors

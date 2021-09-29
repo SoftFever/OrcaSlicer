@@ -3801,9 +3801,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
         if (!model.objects.empty() && !export_in_progress && model_fits) {
 #if ENABLE_SEAMS_USING_MODELS
-            // the following call is needed to ensure that GCodeViewer buffers are initialized
-            // before calling reslice() when background processing is active
-            preview->SetFocusFromKbd();
+            preview->get_canvas3d()->init_gcode_viewer();
 #endif // ENABLE_SEAMS_USING_MODELS
             q->reslice();
         }

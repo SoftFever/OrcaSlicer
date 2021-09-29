@@ -1400,6 +1400,11 @@ void GLCanvas3D::render()
     if (!is_initialized() && !init())
         return;
 
+#if ENABLE_SEAMS_USING_MODELS
+    if (!m_main_toolbar.is_enabled())
+        m_gcode_viewer.init();
+#endif // ENABLE_SEAMS_USING_MODELS
+
     if (wxGetApp().plater()->get_bed().get_shape().empty()) {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
