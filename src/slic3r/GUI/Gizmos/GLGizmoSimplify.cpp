@@ -53,11 +53,12 @@ void GLGizmoSimplify::on_render_for_picking() {}
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
     create_gui_cfg();
-    const Selection &selection = m_parent.get_selection();
-    int object_idx = selection.get_object_idx();
-    if (!is_selected_object(&object_idx)) return;
-    ModelObject *obj = wxGetApp().plater()->model().objects[object_idx];
-    ModelVolume *act_volume = obj->volumes.front();
+    int obj_index;
+    ModelVolume *act_volume = get_selected_volume(&obj_index);
+    if (act_volume == nullptr) { 
+        close(); 
+        return;
+    }
 
     // Check selection of new volume
     // Do not reselect object when processing 
@@ -68,7 +69,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             set_its(*m_original_its);
         }
 
-        m_obj_index = object_idx; // to remember correct object
+        m_obj_index = obj_index; // to remember correct object
         m_volume = act_volume;
         m_original_its = {};
         m_configuration.decimate_ratio = 50.; // default value
@@ -329,9 +330,10 @@ void GLGizmoSimplify::on_set_state()
 {
     // Closing gizmo. e.g. selecting another one
     if (GLGizmoBase::m_state == GLGizmoBase::Off) {
+        bool exist_selected_object = is_selected_object();
         // refuse outgoing during simlification
         // object is not selected when it is deleted(cancel and close gizmo)
-        if (m_state != State::settings && is_selected_object()) {
+        if (m_state != State::settings && exist_selected_object) {
             GLGizmoBase::m_state = GLGizmoBase::On;
             auto notification_manager = wxGetApp().plater()->get_notification_manager();
             notification_manager->push_notification(
@@ -342,7 +344,7 @@ void GLGizmoSimplify::on_set_state()
         }
 
         // revert preview
-        if (m_exist_preview) {
+        if (m_exist_preview && exist_selected_object) {
             set_its(*m_original_its);
             m_parent.reload_scene(true);
             m_need_reload = false;
@@ -397,6 +399,19 @@ bool GLGizmoSimplify::is_selected_object(int *object_idx)
         return false;
     }
     return true;
+}
+
+ModelVolume *GLGizmoSimplify::get_selected_volume(int *object_idx_ptr)
+{
+    const Selection &selection  = m_parent.get_selection();
+    int object_idx = selection.get_object_idx();
+    if (object_idx_ptr != nullptr) *object_idx_ptr = object_idx;
+    if (!is_selected_object(&object_idx)) return nullptr;
+    ModelObjectPtrs &objs = wxGetApp().plater()->model().objects;
+    if (objs.size() <= object_idx) return nullptr;
+    ModelObject *obj = objs[object_idx];
+    if (obj->volumes.empty()) return nullptr;
+    return obj->volumes.front();    
 }
 
 } // namespace Slic3r::GUI
