@@ -1172,7 +1172,7 @@ void NotificationManager::SlicingProgressNotification::set_status_text(const std
 	{
 		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0,  _u8L("Slicing finished."), m_is_fff ? _u8L("Export G-Code.") : _u8L("Export.") };
 		update(data);
-		m_state = EState::NotFading;
+		m_state = EState::Shown;
 	}
 		break;
 	default:
@@ -1191,7 +1191,7 @@ void NotificationManager::SlicingProgressNotification::set_print_info(const std:
 void NotificationManager::SlicingProgressNotification::set_sidebar_collapsed(bool collapsed) 
 {
 	m_sidebar_collapsed = collapsed;
-	if (m_sp_state == SlicingProgressState::SP_COMPLETED)
+	if (m_sp_state == SlicingProgressState::SP_COMPLETED && collapsed)
 		m_state = EState::NotFading;
 }
 
@@ -1208,7 +1208,7 @@ int NotificationManager::SlicingProgressNotification::get_duration()
 	if (m_sp_state == SlicingProgressState::SP_CANCELLED)
 		return 2;
 	else if (m_sp_state == SlicingProgressState::SP_COMPLETED && !m_sidebar_collapsed)
-		return 0;
+		return 2;
 	else
 		return 0;
 }
