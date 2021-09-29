@@ -620,7 +620,8 @@ void MainFrame::update_title()
         // m_plater->get_project_filename() produces file name including path, but excluding extension.
         // Don't try to remove the extension, it would remove part of the file name after the last dot!
         wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
-        wxString dirty_marker = (!m_plater->model().objects.empty() && m_plater->is_project_dirty()) ? "*" : "";
+//        wxString dirty_marker = (!m_plater->model().objects.empty() && m_plater->is_project_dirty()) ? "*" : "";
+        wxString dirty_marker = m_plater->is_project_dirty() ? "*" : "";
         if (!dirty_marker.empty() || !project.empty()) {
             if (!dirty_marker.empty() && project.empty())
                 project = _L("Untitled");
