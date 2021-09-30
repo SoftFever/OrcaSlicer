@@ -90,7 +90,6 @@ protected:
     void render_cursor_sphere(const Transform3d& trafo) const;
     virtual void update_model_object() const = 0;
     virtual void update_from_model_object() = 0;
-    void activate_internal_undo_redo_stack(bool activate);
 
     virtual std::array<float, 4> get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
     virtual std::array<float, 4> get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }
@@ -172,6 +171,7 @@ protected:
     void on_load(cereal::BinaryInputArchive& ar) override;
     void on_save(cereal::BinaryOutputArchive& ar) const override {}
     CommonGizmosDataID on_get_requirements() const override;
+    bool wants_enter_leave_snapshots() const override { return true; }
 
     virtual wxString handle_snapshot_action_name(bool shift_down, Button button_down) const = 0;
 

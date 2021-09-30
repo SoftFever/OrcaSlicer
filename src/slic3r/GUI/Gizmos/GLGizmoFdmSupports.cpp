@@ -298,8 +298,6 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
         }
     }
 
-    activate_internal_undo_redo_stack(true);
-
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), block ? _L("Block supports by angle")
                                                     : _L("Add supports by angle"));
     update_model_object();
