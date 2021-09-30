@@ -10,6 +10,8 @@
 #include <optional>
 #include <atomic>
 
+#include <GL/glew.h> // GLUint
+
 namespace Slic3r {
 
 class ModelVolume;
@@ -32,8 +34,8 @@ protected:
     virtual bool on_is_selectable() const override { return false; }
     virtual void on_set_state() override;
 
-    // render wire frame
-    virtual void render_painter_gizmo() const override;
+    // GLGizmoPainterBase
+    virtual void render_painter_gizmo() const override{ const_cast<GLGizmoSimplify*>(this)->render_wireframe(); }
 private:
     void after_apply();
     void close();
@@ -104,6 +106,13 @@ private:
     const std::string tr_preview;
     const std::string tr_detail_level;
     const std::string tr_decimate_ratio;
+
+    // rendering wireframe
+    void render_wireframe();
+    void init_wireframe(const indexed_triangle_set &its);
+    void free_gpu();
+    GLuint m_wireframe_VBO_id, m_wireframe_IBO_id;
+    size_t m_wireframe_IBO_size;
 };
 
 } // namespace GUI

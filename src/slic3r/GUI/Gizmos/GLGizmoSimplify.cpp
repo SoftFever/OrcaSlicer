@@ -1,4 +1,5 @@
 #include "GLGizmoSimplify.hpp"
+#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
@@ -14,7 +15,7 @@ namespace Slic3r::GUI {
 GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
                                  const std::string &icon_filename,
                                  unsigned int       sprite_id)
-    : GLGizmoBase(parent, icon_filename, -1)
+    : GLGizmoPainterBase(parent, icon_filename, -1)
     , m_state(State::settings)
     , m_is_valid_result(false)
     , m_exist_preview(false)
@@ -33,6 +34,7 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
 GLGizmoSimplify::~GLGizmoSimplify() { 
     m_state = State::canceling;
     if (m_worker.joinable()) m_worker.join();
+    free_gpu();
 }
 
 bool GLGizmoSimplify::on_init()
@@ -47,8 +49,9 @@ std::string GLGizmoSimplify::on_get_name() const
     return _u8L("Simplify");
 }
 
-void GLGizmoSimplify::on_render() {}
-void GLGizmoSimplify::on_render_for_picking() {}
+void GLGizmoSimplify::on_render() { }
+
+void GLGizmoSimplify::on_render_for_picking() { }
 
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
@@ -98,7 +101,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                ImGuiWindowFlags_NoCollapse;
-    m_imgui->begin(get_name(), flag);
+    m_imgui->begin(on_get_name(), flag);
 
     size_t triangle_count = m_volume->mesh().its.indices.size();
     // already reduced mesh
@@ -314,6 +317,7 @@ void GLGizmoSimplify::process()
 }
 
 void GLGizmoSimplify::set_its(indexed_triangle_set &its) {
+    //init_contours(its);
     m_volume->set_mesh(its);
     m_volume->calculate_convex_hull();
     m_volume->set_new_unique_id();
@@ -358,10 +362,6 @@ void GLGizmoSimplify::on_set_state()
     }
 }
 
-void GLGizmoSimplify::render_painter_gizmo() const {
-
-}
-
 void GLGizmoSimplify::create_gui_cfg() { 
     if (m_gui_cfg.has_value()) return;
     int space_size = m_imgui->calc_text_size(":MM").x;
@@ -403,6 +403,98 @@ bool GLGizmoSimplify::is_selected_object(int *object_idx)
         return false;
     }
     return true;
+}
+
+void GLGizmoSimplify::init_wireframe(const indexed_triangle_set &its)
+{
+    free_gpu();
+    if (its.indices.empty()) return;
+
+    // vertices
+    glsafe(::glGenBuffers(1, &m_wireframe_VBO_id));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_wireframe_VBO_id));
+    glsafe(::glBufferData(GL_ARRAY_BUFFER,
+                            its.vertices.size() * 3 * sizeof(float),
+                            its.vertices.data(), GL_STATIC_DRAW));
+    
+    // indices
+    std::vector<Vec2i> contour_indices;
+    contour_indices.reserve((its.indices.size() * 3) / 2);
+    for (const auto &triangle : its.indices) { 
+        for (size_t ti1 = 0; ti1 < 3; ++ti1) { 
+            size_t ti2 = (ti1 == 2) ? 0 : (ti1 + 1);
+            if (triangle[ti1] > triangle[ti2]) continue;
+            contour_indices.emplace_back(triangle[ti1], triangle[ti2]);
+        }
+    }
+    glsafe(::glGenBuffers(1, &m_wireframe_IBO_id));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_wireframe_IBO_id));
+    glsafe(::glBufferData(GL_ARRAY_BUFFER,
+                          2*contour_indices.size() * sizeof(coord_t),
+                          contour_indices.data(), GL_STATIC_DRAW));
+    m_wireframe_IBO_size = contour_indices.size() * 2;
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void GLGizmoSimplify::render_wireframe()
+{
+    const Selection &selection  = m_parent.get_selection();
+    int              object_idx = selection.get_object_idx();
+    if (!is_selected_object(&object_idx)) return;
+
+    const GLVolume* vol = selection.get_volume(*selection.get_instance_idxs().begin());
+    GLuint vbo_id = vol->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id;
+    ModelObject *obj = wxGetApp().plater()->model().objects[object_idx];
+    ModelVolume *act_volume = obj->volumes.front();
+
+    init_wireframe(act_volume->mesh().its);
+
+    const Transform3d trafo_matrix = 
+        obj->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
+        act_volume->get_matrix();
+
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixd(trafo_matrix.data()));
+
+    auto *contour_shader = wxGetApp().get_shader("mm_contour");
+    contour_shader->start_using();
+    glsafe(::glDepthFunc(GL_LEQUAL));
+    glsafe(::glLineWidth(1.0f));
+
+    /*
+    // bad indices
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
+    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
+    /*/
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_wireframe_VBO_id));
+    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
+    //*/
+    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_wireframe_IBO_id));
+    glsafe(::glDrawElements(GL_LINES, m_wireframe_IBO_size, GL_UNSIGNED_INT, nullptr));
+    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    glsafe(::glDepthFunc(GL_LESS));
+
+    glsafe(::glPopMatrix()); // pop trafo
+    contour_shader->stop_using(); 
+}
+
+void GLGizmoSimplify::free_gpu()
+{
+    if (m_wireframe_VBO_id != 0) {
+        glsafe(::glDeleteBuffers(1, &m_wireframe_VBO_id));
+        m_wireframe_VBO_id = 0;
+    }
+
+    if (m_wireframe_IBO_id != 0) {
+        glsafe(::glDeleteBuffers(1, &m_wireframe_IBO_id));
+        m_wireframe_IBO_id = 0;
+    }
 }
 
 ModelVolume *GLGizmoSimplify::get_selected_volume(int *object_idx_ptr)
