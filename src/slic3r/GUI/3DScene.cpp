@@ -10,6 +10,7 @@
 #include "GLShader.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include "BitmapCache.hpp"
 
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
@@ -17,7 +18,6 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Slicing.hpp"
-#include "slic3r/GUI/BitmapCache.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
@@ -66,6 +66,26 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 #endif // HAS_GLSAFE
 
 namespace Slic3r {
+
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const Polygon& obj_hull_2d, double obj_min_z, double obj_max_z)
+{
+    static const double Z_TOLERANCE = -1e10;
+
+    const Polygons intersection_polys = intersection(printbed_shape, obj_hull_2d);
+    const bool contained_xy = !intersection_polys.empty() && Geometry::are_approx(intersection_polys.front(), obj_hull_2d);
+    const bool contained_z = Z_TOLERANCE < obj_min_z && obj_max_z < print_volume_height;
+    if (contained_xy && contained_z)
+        return ModelInstancePVS_Inside;
+
+    const bool intersects_xy = !contained_xy && !intersection_polys.empty();
+    const bool intersects_z = !contained_z && obj_min_z < print_volume_height && Z_TOLERANCE < obj_max_z;
+    if (intersects_xy || intersects_z)
+        return ModelInstancePVS_Partly_Outside;
+
+    return ModelInstancePVS_Fully_Outside;
+}
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 #if ENABLE_SMOOTH_NORMALS
 static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& normals)
@@ -929,31 +949,6 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glsafe(::glDisable(GL_BLEND));
 }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-static bool same(const Polygon& lhs, const Polygon& rhs)
-{
-    if (lhs.points.size() != rhs.points.size())
-        return false;
-
-    size_t rhs_id = 0;
-    while (rhs_id < rhs.points.size()) {
-        if (rhs.points[rhs_id].isApprox(lhs.points.front()))
-            break;
-        ++rhs_id;
-    }
-
-    if (rhs_id == rhs.points.size())
-        return false;
-
-    for (size_t i = 0; i < lhs.points.size(); ++i) {
-        if (!lhs.points[i].isApprox(rhs.points[(i + rhs_id) % lhs.points.size()]))
-            return false;
-    }
-
-    return true;
-}
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
 bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state) const
 {
     if (config == nullptr)
@@ -978,7 +973,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     print_volume.max.y() += BedEpsilon;
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
-    ModelInstanceEPrintVolumeState state = ModelInstancePVS_Inside;
+    ModelInstanceEPrintVolumeState overall_state = ModelInstancePVS_Inside;
 
     bool contained_min_one = false;
 
@@ -993,13 +988,9 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
         const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
-        Polygons intersection_polys = intersection(bed_poly, volume_hull_2d);
-        bool contained_xy = !intersection_polys.empty() && same(intersection_polys.front(), volume_hull_2d);
-        bool contained_z = -1e10 < bb.min.z() && bb.max.z() < bed_height;
-        contained = contained_xy && contained_z;
-        bool intersects_xy = !contained_xy && !intersection_polys.empty();
-        bool intersects_z = !contained_z && bb.min.z() < bed_height && -1e10 < bb.max.z();
-        intersects = intersects_xy || intersects_z;
+        const ModelInstanceEPrintVolumeState volume_state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb.min.z(), bb.max.z());
+        contained = (volume_state == ModelInstancePVS_Inside);
+        intersects = (volume_state == ModelInstancePVS_Partly_Outside);
 #else
         contained = print_volume.contains(bb);
         intersects = print_volume.intersects(bb);
@@ -1015,20 +1006,20 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 
         contained_min_one |= contained;
 
-        if (state == ModelInstancePVS_Inside && volume->is_outside)
-            state = ModelInstancePVS_Fully_Outside;
+        if (overall_state == ModelInstancePVS_Inside && volume->is_outside)
+            overall_state = ModelInstancePVS_Fully_Outside;
 
 #if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
-        if (state == ModelInstancePVS_Fully_Outside && volume->is_outside && intersects)
-            state = ModelInstancePVS_Partly_Outside;
+        if (overall_state == ModelInstancePVS_Fully_Outside && volume->is_outside && intersects)
+            overall_state = ModelInstancePVS_Partly_Outside;
 #else
-        if (state == ModelInstancePVS_Fully_Outside && volume->is_outside && print_volume.intersects(bb))
-            state = ModelInstancePVS_Partly_Outside;
+        if (overall_state == ModelInstancePVS_Fully_Outside && volume->is_outside && print_volume.intersects(bb))
+            overall_state = ModelInstancePVS_Partly_Outside;
 #endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
     }
 
     if (out_state != nullptr)
-        *out_state = state;
+        *out_state = overall_state;
 
     return contained_min_one;
 }
