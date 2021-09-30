@@ -85,6 +85,17 @@ ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_
 
     return ModelInstancePVS_Fully_Outside;
 }
+
+ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box)
+{
+    const Polygon box_hull_2d({
+        { scale_(box.min.x()), scale_(box.min.y()) },
+        { scale_(box.max.x()), scale_(box.min.y()) },
+        { scale_(box.max.x()), scale_(box.max.y()) },
+        { scale_(box.min.x()), scale_(box.max.y()) }
+        });
+    return printbed_collision_state(printbed_shape, print_volume_height, box_hull_2d, box.min.z(), box.max.z());
+}
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 #if ENABLE_SMOOTH_NORMALS
@@ -984,11 +995,17 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 #if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
         bool contained = false;
         bool intersects = false;
-        const BoundingBoxf3& bb = volume->transformed_non_sinking_bounding_box();
+        bool is_sla = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
+        const BoundingBoxf3 bb = is_sla ? volume->transformed_convex_hull_bounding_box() : volume->transformed_non_sinking_bounding_box();
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-        const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
-        const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
-        const ModelInstanceEPrintVolumeState volume_state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb.min.z(), bb.max.z());
+        ModelInstanceEPrintVolumeState volume_state;
+        if (is_sla)
+            volume_state = printbed_collision_state(bed_poly, bed_height, bb);
+        else {
+            const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
+            const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
+            volume_state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb.min.z(), bb.max.z());
+        }
         contained = (volume_state == ModelInstancePVS_Inside);
         intersects = (volume_state == ModelInstancePVS_Partly_Outside);
 #else

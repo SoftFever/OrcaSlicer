@@ -4984,6 +4984,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
     _update_volumes_hover_state();
 }
 
+#if !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 static BoundingBoxf3 print_volume(const DynamicPrintConfig& config)
 {
     // tolerance to avoid false detection at bed edges
@@ -5000,6 +5001,7 @@ static BoundingBoxf3 print_volume(const DynamicPrintConfig& config)
     }
     return ret;
 }
+#endif // !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 void GLCanvas3D::_render_background() const
 {
@@ -5013,18 +5015,17 @@ void GLCanvas3D::_render_background() const
         else {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
             const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
-            if (opt != nullptr) {
-                const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
-                const float bed_height = m_config->opt_float("max_print_height");
-                const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
-                Polygon paths_hull_2d;
-                paths_hull_2d.append({ scale_(paths_volume.min.x()), scale_(paths_volume.min.y()) });
-                paths_hull_2d.append({ scale_(paths_volume.max.x()), scale_(paths_volume.min.y()) });
-                paths_hull_2d.append({ scale_(paths_volume.max.x()), scale_(paths_volume.max.y()) });
-                paths_hull_2d.append({ scale_(paths_volume.min.x()), scale_(paths_volume.max.y()) });
-                const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, paths_hull_2d, paths_volume.min.z(), paths_volume.max.z());
-                use_error_color &= state != ModelInstancePVS_Inside;
-            }
+            const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+            const float bed_height = m_config->opt_float("max_print_height");
+            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
+//            const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
+//            Polygon paths_hull_2d;
+//            paths_hull_2d.append({ scale_(paths_volume.min.x()), scale_(paths_volume.min.y()) });
+//            paths_hull_2d.append({ scale_(paths_volume.max.x()), scale_(paths_volume.min.y()) });
+//            paths_hull_2d.append({ scale_(paths_volume.max.x()), scale_(paths_volume.max.y()) });
+//            paths_hull_2d.append({ scale_(paths_volume.min.x()), scale_(paths_volume.max.y()) });
+//            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, paths_hull_2d, paths_volume.min.z(), paths_volume.max.z());
+            use_error_color &= state != ModelInstancePVS_Inside;
 #else
             const BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
@@ -6355,18 +6356,46 @@ void GLCanvas3D::_load_sla_shells()
 
 void GLCanvas3D::_update_toolpath_volumes_outside_state()
 {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
+    const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+    const float bed_height = m_config->opt_float("max_print_height");
+    for (GLVolume* volume : m_volumes.volumes) {
+        if (volume->is_extrusion_path) {
+            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, volume->bounding_box());
+            volume->is_outside = (state != ModelInstancePVS_Inside);
+        }
+        else
+            volume->is_outside = false;
+    }
+#else
     BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
     for (GLVolume* volume : m_volumes.volumes) {
         volume->is_outside = (test_volume.radius() > 0.0 && volume->is_extrusion_path) ? !test_volume.contains(volume->bounding_box()) : false;
     }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void GLCanvas3D::_update_sla_shells_outside_state()
 {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
+    const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+    const float bed_height = m_config->opt_float("max_print_height");
+    for (GLVolume* volume : m_volumes.volumes) {
+        if (volume->shader_outside_printer_detection_enabled) {
+            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, volume->transformed_convex_hull_bounding_box());
+            volume->is_outside = (state != ModelInstancePVS_Inside);
+        }
+        else
+            volume->is_outside = false;
+    }
+#else
     BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
     for (GLVolume* volume : m_volumes.volumes) {
         volume->is_outside = (test_volume.radius() > 0.0 && volume->shader_outside_printer_detection_enabled) ? !test_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
     }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
@@ -6377,10 +6406,18 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
         show = _is_any_volume_outside();
     else {
         if (wxGetApp().is_editor()) {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
+            const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+            const float bed_height = m_config->opt_float("max_print_height");
+            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
+            show = state != ModelInstancePVS_Inside;
+#else
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
             if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)
                 show = !test_volume.contains(paths_volume);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         }
     }
     _set_warning_notification(warning, show);

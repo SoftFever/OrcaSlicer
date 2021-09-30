@@ -45,6 +45,9 @@ std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume);
 // return the state of given object volume (extrusion along z of obj_hull_2d by obj_height)
 // with respect to the given print volume (extrusion along z of printbed_shape by print_volume_height)
 ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const Polygon& obj_hull_2d, double obj_min_z, double obj_max_z);
+// return the state of given box
+// with respect to the given print volume (extrusion along z of printbed_shape by print_volume_height)
+ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box);
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 // A container for interleaved arrays of 3D vertices and normals,
