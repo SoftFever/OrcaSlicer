@@ -373,7 +373,7 @@ void NotificationManager::PopNotification::init()
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
 { 
 	m_window_height = m_multiline ?
-		m_lines_count * m_line_height :
+		std::max(m_lines_count, (size_t)2) * m_line_height :
 		2 * m_line_height;
 	m_window_height += 1 * m_line_height; // top and bottom
 }
@@ -1055,6 +1055,8 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 
 	std::string text;
 	for (it = m_types_and_counts.begin(); it != m_types_and_counts.end(); ++it) {
+		if ((*it).second == 0)
+			continue;
 		text += std::to_string((*it).second);
 		text += _L_PLURAL(" Object was loaded with "," Objects were loaded with ", (*it).second).ToUTF8().data();
 		switch ((*it).first) {
@@ -1066,6 +1068,7 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
 		}
 	}
+	m_state = EState::Unknown;
 	NotificationData data { get_data().type, get_data().level , get_data().duration, text };
 	update(data);
 }

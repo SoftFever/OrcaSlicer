@@ -214,6 +214,7 @@ public:
 	bool is_hint_notification_open();
 	// Forces Hints to reload its content when next hint should be showed
 	void deactivate_loaded_hints();
+	// Adds counter to existing UpdatedItemsInfo notification or opens new one
 	void push_updated_item_info_notification(InfoItemType type);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
@@ -653,6 +654,11 @@ private:
 		}
 		void count_spaces() override;
 		void add_type(InfoItemType type);
+		void close() override{ 
+			for (auto& tac : m_types_and_counts)
+				tac.second = 0;
+			PopNotification::close(); 
+		}
 	protected:
 		void render_left_sign(ImGuiWrapper& imgui) override;
 		std::vector<std::pair<InfoItemType, size_t>> m_types_and_counts;
