@@ -4695,6 +4695,8 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
         model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
         model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
     }
+    if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator && wxGetApp().app_config->get("clear_undo_redo_stack_on_new_project") == "1")
+        this->undo_redo_stack().clear();
     this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), snapshot_data);
     if (snapshot_type == UndoRedo::SnapshotType::LeavingGizmoWithAction)
         // Filter all but the last UndoRedo::SnapshotType::GizmoAction in a row between the last UndoRedo::SnapshotType::EnteringGizmo and UndoRedo::SnapshotType::LeavingGizmoWithAction.
