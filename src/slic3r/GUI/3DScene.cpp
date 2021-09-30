@@ -989,28 +989,21 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 #if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
         bool contained = false;
         bool intersects = false;
-        if (GUI::wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA) {
-            const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
-            contained = print_volume.contains(bb);
-            intersects = print_volume.intersects(bb);
-        }
-        else {
-            const BoundingBoxf3& bb = volume->transformed_non_sinking_bounding_box();
+        const BoundingBoxf3& bb = volume->transformed_non_sinking_bounding_box();
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-            const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
-            const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
-            Polygons intersection_polys = intersection(bed_poly, volume_hull_2d);
-            bool contained_xy = !intersection_polys.empty() && same(intersection_polys.front(), volume_hull_2d);
-            bool contained_z = -1e10 < bb.min.z() && bb.max.z() < bed_height;
-            contained = contained_xy && contained_z;
-            bool intersects_xy = !contained_xy && !intersection_polys.empty();
-            bool intersects_z = !contained_z && bb.min.z() < bed_height && -1e10 < bb.max.z();
-            intersects = intersects_xy || intersects_z;
+        const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
+        const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
+        Polygons intersection_polys = intersection(bed_poly, volume_hull_2d);
+        bool contained_xy = !intersection_polys.empty() && same(intersection_polys.front(), volume_hull_2d);
+        bool contained_z = -1e10 < bb.min.z() && bb.max.z() < bed_height;
+        contained = contained_xy && contained_z;
+        bool intersects_xy = !contained_xy && !intersection_polys.empty();
+        bool intersects_z = !contained_z && bb.min.z() < bed_height && -1e10 < bb.max.z();
+        intersects = intersects_xy || intersects_z;
 #else
-            contained = print_volume.contains(bb);
-            intersects = print_volume.intersects(bb);
+        contained = print_volume.contains(bb);
+        intersects = print_volume.intersects(bb);
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-        }
 #else
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
         bool contained = print_volume.contains(bb);
