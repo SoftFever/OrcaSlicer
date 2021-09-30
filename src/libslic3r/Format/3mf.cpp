@@ -6,6 +6,7 @@
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
 #include "../GCode/ThumbnailData.hpp"
+#include "../Semver.hpp"
 #include "../Time.hpp"
 
 #include "../I18N.hpp"
@@ -411,6 +412,8 @@ namespace Slic3r {
         unsigned int m_version;
         bool m_check_version;
 
+        // Semantic version of PrusaSlicer, that generated this 3MF.
+        boost::optional<Semver> m_prusaslicer_generator_version;
         unsigned int m_fdm_supports_painting_version = 0;
         unsigned int m_seam_painting_version         = 0;
         unsigned int m_mm_painting_version           = 0;
@@ -1712,21 +1715,20 @@ namespace Slic3r {
                 const std::string msg = (boost::format(_(L("The selected 3mf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
                 throw version_error(msg);
             }
-        }
-
-        if (m_curr_metadata_name == SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION) {
+        } else if (m_curr_metadata_name == "Application") {
+            // Generator application of the 3MF.
+            // SLIC3R_APP_KEY - SLIC3R_VERSION
+            if (boost::starts_with(m_curr_characters, "PrusaSlicer-"))
+                m_prusaslicer_generator_version = Semver::parse(m_curr_characters.substr(12));
+        } else if (m_curr_metadata_name == SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION) {
             m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_fdm_supports_painting_version, FDM_SUPPORTS_PAINTING_VERSION,
                 _(L("The selected 3MF contains FDM supports painted object using a newer version of PrusaSlicer and is not compatible.")));
-        }
-
-        if (m_curr_metadata_name == SLIC3RPE_SEAM_PAINTING_VERSION) {
+        } else if (m_curr_metadata_name == SLIC3RPE_SEAM_PAINTING_VERSION) {
             m_seam_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_seam_painting_version, SEAM_PAINTING_VERSION,
                 _(L("The selected 3MF contains seam painted object using a newer version of PrusaSlicer and is not compatible.")));
-        }
-
-        if (m_curr_metadata_name == SLIC3RPE_MM_PAINTING_VERSION) {
+        } else if (m_curr_metadata_name == SLIC3RPE_MM_PAINTING_VERSION) {
             m_mm_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
                 _(L("The selected 3MF contains multi-material painted object using a newer version of PrusaSlicer and is not compatible.")));
@@ -1890,7 +1892,6 @@ namespace Slic3r {
 
         unsigned int geo_tri_count = (unsigned int)geometry.triangles.size();
         unsigned int renamed_volumes_count = 0;
-        int processed_vertices_max_id = 0;
 
         for (const ObjectMetadata::VolumeMetadata& volume_data : volumes) {
             if (geo_tri_count <= volume_data.first_triangle_id || geo_tri_count <= volume_data.last_triangle_id || volume_data.last_triangle_id < volume_data.first_triangle_id) {
@@ -1910,33 +1911,43 @@ namespace Slic3r {
             }
 
             // splits volume out of imported geometry
-            std::vector<Vec3i> faces(geometry.triangles.begin() + volume_data.first_triangle_id, geometry.triangles.begin() + volume_data.last_triangle_id + 1);
-            const size_t       triangles_count = faces.size();
+            indexed_triangle_set its;
+            its.indices.assign(geometry.triangles.begin() + volume_data.first_triangle_id, geometry.triangles.begin() + volume_data.last_triangle_id + 1);
+            const size_t triangles_count = its.indices.size();
+            if (triangles_count == 0) {
+                add_error("An empty triangle mesh found");
+                return false;
+            }
 
-            int min_id = faces.front()[0];
-            int max_id = faces.front()[0];
-            for (const Vec3i& face : faces) {
-                for (const int tri_id : face) {
-                    if (tri_id < 0 || tri_id >= int(geometry.vertices.size())) {
-                        add_error("Found invalid vertex id");
-                        return false;
+            {
+                int min_id = its.indices.front()[0];
+                int max_id = min_id;
+                for (const Vec3i& face : its.indices) {
+                    for (const int tri_id : face) {
+                        if (tri_id < 0 || tri_id >= int(geometry.vertices.size())) {
+                            add_error("Found invalid vertex id");
+                            return false;
+                        }
+                        min_id = std::min(min_id, tri_id);
+                        max_id = std::max(max_id, tri_id);
                     }
-                    min_id = std::min(min_id, tri_id);
-                    max_id = std::max(max_id, tri_id);
                 }
+                its.vertices.assign(geometry.vertices.begin() + min_id, geometry.vertices.begin() + max_id + 1);
+
+                // rebase indices to the current vertices list
+                for (Vec3i& face : its.indices)
+                    for (int& tri_id : face)
+                        tri_id -= min_id;
             }
 
-            // rebase indices to the current vertices list
-            for (Vec3i& face : faces) {
-                for (int& tri_id : face) {
-                    tri_id -= min_id;
-                }
-            }
+            if (m_prusaslicer_generator_version && 
+                *m_prusaslicer_generator_version >= *Semver::parse("2.4.0-alpha1") &&
+                *m_prusaslicer_generator_version < *Semver::parse("2.4.0-alpha3"))
+                // PrusaSlicer 2.4.0-alpha2 contained a bug, where all vertices of a single object were saved for each volume the object contained.
+                // Remove the vertices, that are not referenced by any face.
+                its_compactify_vertices(its, true);
 
-            processed_vertices_max_id = 1 + std::max(processed_vertices_max_id, max_id);
-
-            std::vector<Vec3f> vertices(geometry.vertices.begin() + min_id, geometry.vertices.begin() + max_id + 1);
-            TriangleMesh triangle_mesh(std::move(vertices), std::move(faces));
+            TriangleMesh triangle_mesh(std::move(its));
 
             if (m_version == 0) {
                 // if the 3mf was not produced by PrusaSlicer and there is only one instance,
