@@ -1917,7 +1917,7 @@ namespace Slic3r {
             int max_id = faces.front()[0];
             for (const Vec3i& face : faces) {
                 for (const int tri_id : face) {
-                    if (tri_id < 0 || tri_id >= geometry.vertices.size()) {
+                    if (tri_id < 0 || tri_id >= int(geometry.vertices.size())) {
                         add_error("Found invalid vertex id");
                         return false;
                     }

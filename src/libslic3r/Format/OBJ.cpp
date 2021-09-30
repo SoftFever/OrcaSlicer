@@ -73,7 +73,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
                     break;
                 } else {
                     assert(cnt < 4);
-                    if (vertex.coordIdx < 0 || vertex.coordIdx >= its.vertices.size()) {
+                    if (vertex.coordIdx < 0 || vertex.coordIdx >= int(its.vertices.size())) {
                         BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains invalid vertex index.";
                         return false;
                     }
