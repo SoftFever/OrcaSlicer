@@ -424,7 +424,7 @@ ModelVolume *GLGizmoSimplify::get_selected_volume(int *object_idx_ptr) const
     if (object_idx_ptr != nullptr) *object_idx_ptr = object_idx;
     if (object_idx < 0) return nullptr;
     ModelObjectPtrs &objs = wxGetApp().plater()->model().objects;
-    if (objs.size() <= object_idx) return nullptr;
+    if (static_cast<int>(objs.size()) <= object_idx) return nullptr;
     ModelObject *obj = objs[object_idx];
     if (obj->volumes.empty()) return nullptr;
     return obj->volumes.front();
