@@ -421,7 +421,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
       && m_button_down != Button::None) {
         // Take snapshot and update ModelVolume data.
         wxString action_name = this->handle_snapshot_action_name(shift_down, m_button_down);
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), action_name);
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), action_name, UndoRedo::SnapshotType::GizmoAction);
         update_model_object();
 
         m_button_down = Button::None;

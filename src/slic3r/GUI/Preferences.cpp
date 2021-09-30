@@ -238,6 +238,14 @@ void PreferencesDialog::build(size_t selected_tab)
 	option = Option(def, "show_splash_screen");
 	m_optgroup_general->append_single_option_line(option);
 
+    // Clear Undo / Redo stack on new project
+	def.label = L("Clear Undo / Redo stack on new project");
+	def.type = coBool;
+	def.tooltip = L("Clear Undo / Redo stack on new project or when an existing project is loaded.");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("clear_undo_redo_stack_on_new_project") == "1" });
+	option = Option(def, "clear_undo_redo_stack_on_new_project");
+	m_optgroup_general->append_single_option_line(option);
+
 #if defined(_WIN32) || defined(__APPLE__)
 	def.label = L("Enable support for legacy 3DConnexion devices");
 	def.type = coBool;

@@ -11,6 +11,7 @@
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 
 #include <GL/glew.h>
@@ -503,7 +504,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     ImGui::Separator();
     if (m_imgui->button(m_desc.at("remove_all"))) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), wxString(_L("Reset selection")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset selection"),
+                                      UndoRedo::SnapshotType::GizmoAction);
         ModelObject *        mo  = m_c->selection_info()->model_object();
         int                  idx = -1;
         for (ModelVolume *mv : mo->volumes)

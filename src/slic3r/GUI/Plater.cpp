@@ -1595,7 +1595,7 @@ struct Plater::priv
         }
         return res;
     }
-    void reset_project_dirty_after_save() { dirty_state.reset_after_save(); }
+    void reset_project_dirty_after_save() { m_undo_redo_stack_main.mark_current_as_saved(); dirty_state.reset_after_save(); }
     void reset_project_dirty_initial_presets() { dirty_state.reset_initial_presets(); }
 
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
@@ -2064,6 +2064,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_L("New Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    // Reset the "dirty project" flag.
+    m_undo_redo_stack_main.mark_current_as_saved();
+    dirty_state.update_from_undo_redo_stack(false);
 
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
         BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
@@ -4692,10 +4695,25 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
         model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
         model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
     }
-    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), snapshot_data);
+    const GLGizmosManager& gizmos = view3D->get_canvas3d()->get_gizmos_manager();
+
+    if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator && wxGetApp().app_config->get("clear_undo_redo_stack_on_new_project") == "1")
+        this->undo_redo_stack().clear();
+    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), gizmos, snapshot_data);
+    if (snapshot_type == UndoRedo::SnapshotType::LeavingGizmoWithAction) {
+        // Filter all but the last UndoRedo::SnapshotType::GizmoAction in a row between the last UndoRedo::SnapshotType::EnteringGizmo and UndoRedo::SnapshotType::LeavingGizmoWithAction.
+        // The remaining snapshot will be renamed to a more generic name,
+        // depending on what gizmo is being left.
+        assert(gizmos.get_current() != nullptr);
+        std::string new_name = gizmos.get_current()->get_action_snapshot_name();
+        this->undo_redo_stack().reduce_noisy_snapshots(new_name);
+    } else if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator) {
+        // Reset the "dirty project" flag.
+        m_undo_redo_stack_main.mark_current_as_saved();
+    }
     this->undo_redo_stack().release_least_recently_used();
 
-    dirty_state.update_from_undo_redo_stack(ProjectDirtyStateManager::UpdateType::TakeSnapshot);
+    dirty_state.update_from_undo_redo_stack(m_undo_redo_stack_main.project_modified());
 
     // Save the last active preset name of a particular printer technology.
     ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
@@ -4832,7 +4850,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     }
 
-    dirty_state.update_from_undo_redo_stack(ProjectDirtyStateManager::UpdateType::UndoRedoTo);
+    dirty_state.update_from_undo_redo_stack(m_undo_redo_stack_main.project_modified());
 }
 
 void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
@@ -6743,7 +6761,6 @@ bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
-const UndoRedo::Stack& Plater::undo_redo_stack_active() const { return p->undo_redo_stack(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }
