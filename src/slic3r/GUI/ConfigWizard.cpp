@@ -41,6 +41,7 @@
 #include "format.hpp"
 #include "MsgDialog.hpp"
 #include "libslic3r/libslic3r.h"
+#include "UnsavedChangesDialog.hpp"
 
 #if defined(__linux__) && defined(__WXGTK3__)
 #define wxLinux_gtk3 true
@@ -741,10 +742,10 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
     const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
     const auto text_clr = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
-    wxString first_line = _L("Filaments marked with <b>*</b> are <b>not</b> compatible with some installed printers.");
+    wxString first_line = format_wxstr(_L("%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."), materials->technology == T_FFF ? _L("Filaments") : _L("SLA materials"));
     wxString text;
     if (all_printers) {
-        wxString second_line = _L("All installed printers are compatible with the selected filament.");
+        wxString second_line = format_wxstr(_L("All installed printers are compatible with the selected %1%."), materials->technology == T_FFF ? _L("filament") : _L("SLA material"));
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -764,7 +765,7 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
             , second_line
             );
     } else {
-        wxString second_line = _L("Only the following installed printers are compatible with the selected filament:");
+        wxString second_line = printer_names.empty() ? "" : format_wxstr(_L("Only the following installed printers are compatible with the selected %1%:"), materials->technology == T_FFF ? _L("filament") : _L("SLA material"));
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -2473,8 +2474,16 @@ static std::string get_first_added_preset(const std::map<std::string, std::strin
     return *diff.begin();
 }
 
-bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater)
+bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes)
 {
+    wxString header, caption = _L("Configuration is editing from ConfigWizard");
+    bool check_unsaved_preset_changes = page_welcome->reset_user_profile();
+    if (check_unsaved_preset_changes)
+        header = _L("All user presets will be deleted.");
+    int act_btns = UnsavedChangesDialog::ActionButtons::KEEP;
+    if (!check_unsaved_preset_changes)
+        act_btns |= UnsavedChangesDialog::ActionButtons::SAVE;
+
     const auto enabled_vendors = appconfig_new.vendors();
 
     // Install bundles from resources if needed:
@@ -2500,6 +2509,9 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
             install_bundles.emplace_back(pair.first);
         }
     }
+    if (!check_unsaved_preset_changes)
+        if ((check_unsaved_preset_changes = install_bundles.size() > 0))
+            header = _L_PLURAL("New vendor was installed and one of its printer will be activated", "New vendors were installed and one of theirs printer will be activated", install_bundles.size());
 
 #ifdef __linux__
     // Desktop integration on Linux
@@ -2529,6 +2541,10 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     }
 
     if (snapshot && ! take_config_snapshot_cancel_on_error(*app_config, snapshot_reason, "", _u8L("Continue with applying configuration changes?")))
+        return false;
+
+    if (check_unsaved_preset_changes &&
+        !wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
         return false;
 
     if (install_bundles.size() > 0) {
@@ -2586,17 +2602,52 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         }
     }
 
+    // if unsaved changes was not cheched till this moment
+    if (!check_unsaved_preset_changes) {
+        if ((check_unsaved_preset_changes = !preferred_model.empty())) {
+            header = _L("A new Printer was installed and it will be activated.");
+            if (!wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
+                return false;
+        }
+        else if ((check_unsaved_preset_changes = enabled_vendors_old != enabled_vendors)) {
+            header = _L("Some Printers were uninstalled.");
+            if (!wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
+                return false;
+        }
+    }
+
     std::string first_added_filament, first_added_sla_material;
-    auto apply_section = [this, app_config](const std::string& section_name, std::string& first_added_preset) {
+    auto get_first_added_material_preset = [this, app_config](const std::string& section_name, std::string& first_added_preset) {
         if (appconfig_new.has_section(section_name)) {
             // get first of new added preset names
             const std::map<std::string, std::string>& old_presets = app_config->has_section(section_name) ? app_config->get_section(section_name) : std::map<std::string, std::string>();
             first_added_preset = get_first_added_preset(old_presets, appconfig_new.get_section(section_name));
-            app_config->set_section(section_name, appconfig_new.get_section(section_name));
         }
     };
-    apply_section(AppConfig::SECTION_FILAMENTS, first_added_filament);
-    apply_section(AppConfig::SECTION_MATERIALS, first_added_sla_material);
+    get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
+    get_first_added_material_preset(AppConfig::SECTION_MATERIALS, first_added_sla_material);
+
+    // if unsaved changes was not cheched till this moment
+    if (!check_unsaved_preset_changes) {
+        if ((check_unsaved_preset_changes = !first_added_filament.empty() || !first_added_sla_material.empty())) {
+            header = format_wxstr(_L("A new %1% was installed and it will be activated."), !first_added_filament.empty() ? _L("Filament") : _L("SLA material"));
+            if (!wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
+                return false;
+        }
+        else {
+            bool is_filaments_changed = app_config->get_section(AppConfig::SECTION_FILAMENTS) != appconfig_new.get_section(AppConfig::SECTION_FILAMENTS);
+            bool is_sla_materials_changed = app_config->get_section(AppConfig::SECTION_MATERIALS) != appconfig_new.get_section(AppConfig::SECTION_MATERIALS);
+            if ((check_unsaved_preset_changes = is_filaments_changed || is_sla_materials_changed)) {
+                header = format_wxstr(_L("Some %1% were uninstalled."), is_filaments_changed ? _L("Filaments") : _L("SLA materials"));
+                if (!wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
+                    return false;
+            }
+        }
+    }
+
+    // apply materials in app_config
+    for (const std::string& section_name : {AppConfig::SECTION_FILAMENTS, AppConfig::SECTION_MATERIALS})
+        app_config->set_section(section_name, appconfig_new.get_section(section_name));
 
     app_config->set_vendors(appconfig_new);
 
@@ -2624,10 +2675,16 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     page_mode->serialize_mode(app_config);
 
-    preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem, 
-                                {preferred_model, preferred_variant, first_added_filament, first_added_sla_material});
+    if (check_unsaved_preset_changes)
+        preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem, 
+                                    {preferred_model, preferred_variant, first_added_filament, first_added_sla_material});
 
     if (page_custom->custom_wanted()) {
+        // if unsaved changes was not cheched till this moment
+        if (!check_unsaved_preset_changes && 
+            !wxGetApp().check_and_keep_current_preset_changes(caption, _L("Custom printer was installed and it will be activated."), act_btns, &apply_keeped_changes))
+            return false;
+
         page_firmware->apply_custom_config(*custom_config);
         page_bed->apply_custom_config(*custom_config);
         page_diams->apply_custom_config(*custom_config);
@@ -2851,8 +2908,13 @@ bool ConfigWizard::run(RunReason reason, StartPage start_page)
     p->set_start_page(start_page);
 
     if (ShowModal() == wxID_OK) {
-        if (! p->apply_config(app.app_config, app.preset_bundle, app.preset_updater))
+        bool apply_keeped_changes = false;
+        if (! p->apply_config(app.app_config, app.preset_bundle, app.preset_updater, apply_keeped_changes))
             return false;
+
+        if (apply_keeped_changes)
+            app.apply_keeped_preset_modifications();
+
         app.app_config->set_legacy_datadir(false);
         app.update_mode();
         app.obj_manipul()->update_ui_from_settings();

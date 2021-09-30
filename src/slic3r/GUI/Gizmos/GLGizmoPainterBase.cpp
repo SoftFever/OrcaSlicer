@@ -8,6 +8,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -42,14 +43,14 @@ void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
 
     if (activate && !m_internal_stack_active) {
         if (std::string str = this->get_gizmo_entering_text(); last_snapshot_name != str)
-            Plater::TakeSnapshot(plater, str);
+            Plater::TakeSnapshot(plater, str, UndoRedo::SnapshotType::EnteringGizmo);
         plater->enter_gizmos_stack();
         m_internal_stack_active = true;
     }
     if (!activate && m_internal_stack_active) {
         plater->leave_gizmos_stack();
         if (std::string str = this->get_gizmo_leaving_text(); last_snapshot_name != str)
-            Plater::TakeSnapshot(plater, str);
+            Plater::TakeSnapshot(plater, str, UndoRedo::SnapshotType::LeavingGizmoWithAction);
         m_internal_stack_active = false;
     }
 }

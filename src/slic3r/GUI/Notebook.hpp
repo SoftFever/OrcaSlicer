@@ -84,6 +84,9 @@ public:
             if (int page_idx = evt.GetId(); page_idx >= 0)
                 SetSelection(page_idx);
         });
+
+        this->Bind(wxEVT_NAVIGATION_KEY, &Notebook::OnNavigationKey, this);
+
         return true;
     }
 
@@ -165,8 +168,8 @@ public:
 
         GetBtnsListCtrl()->InsertPage(n, text, bSelect, bmp_name);
 
-        if (!DoSetSelectionAfterInsertion(n, bSelect))
-            page->Hide();
+        if (bSelect)
+            SetSelection(n);
 
         return true;
     }
@@ -174,7 +177,14 @@ public:
     virtual int SetSelection(size_t n) override
     {
         GetBtnsListCtrl()->SetSelection(n);
-        return DoSetSelection(n, SetSelection_SendEvent);
+        int ret = DoSetSelection(n, SetSelection_SendEvent);
+
+        // check that only the selected page is visible and others are hidden:
+        for (size_t page = 0; page < m_pages.size(); page++)
+            if (page != n)
+                m_pages[page]->Hide();
+
+        return ret;
     }
 
     virtual int ChangeSelection(size_t n) override
@@ -233,6 +243,89 @@ public:
     void Rescale()
     {
         GetBtnsListCtrl()->Rescale();
+    }
+
+    void Notebook::OnNavigationKey(wxNavigationKeyEvent& event)
+    {
+        if (event.IsWindowChange()) {
+            // change pages
+            AdvanceSelection(event.GetDirection());
+        }
+        else {
+            // we get this event in 3 cases
+            //
+            // a) one of our pages might have generated it because the user TABbed
+            // out from it in which case we should propagate the event upwards and
+            // our parent will take care of setting the focus to prev/next sibling
+            //
+            // or
+            //
+            // b) the parent panel wants to give the focus to us so that we
+            // forward it to our selected page. We can't deal with this in
+            // OnSetFocus() because we don't know which direction the focus came
+            // from in this case and so can't choose between setting the focus to
+            // first or last panel child
+            //
+            // or
+            //
+            // c) we ourselves (see MSWTranslateMessage) generated the event
+            //
+            wxWindow* const parent = GetParent();
+
+            // the wxObject* casts are required to avoid MinGW GCC 2.95.3 ICE
+            const bool isFromParent = event.GetEventObject() == (wxObject*)parent;
+            const bool isFromSelf = event.GetEventObject() == (wxObject*)this;
+            const bool isForward = event.GetDirection();
+
+            if (isFromSelf && !isForward)
+            {
+                // focus is currently on notebook tab and should leave
+                // it backwards (Shift-TAB)
+                event.SetCurrentFocus(this);
+                parent->HandleWindowEvent(event);
+            }
+            else if (isFromParent || isFromSelf)
+            {
+                // no, it doesn't come from child, case (b) or (c): forward to a
+                // page but only if entering notebook page (i.e. direction is
+                // backwards (Shift-TAB) comething from out-of-notebook, or
+                // direction is forward (TAB) from ourselves),
+                if (m_selection != wxNOT_FOUND &&
+                    (!event.GetDirection() || isFromSelf))
+                {
+                    // so that the page knows that the event comes from it's parent
+                    // and is being propagated downwards
+                    event.SetEventObject(this);
+
+                    wxWindow* page = m_pages[m_selection];
+                    if (!page->HandleWindowEvent(event))
+                    {
+                        page->SetFocus();
+                    }
+                    //else: page manages focus inside it itself
+                }
+                else // otherwise set the focus to the notebook itself
+                {
+                    SetFocus();
+                }
+            }
+            else
+            {
+                // it comes from our child, case (a), pass to the parent, but only
+                // if the direction is forwards. Otherwise set the focus to the
+                // notebook itself. The notebook is always the 'first' control of a
+                // page.
+                if (!isForward)
+                {
+                    SetFocus();
+                }
+                else if (parent)
+                {
+                    event.SetCurrentFocus(this);
+                    parent->HandleWindowEvent(event);
+                }
+            }
+        }
     }
 
 protected:

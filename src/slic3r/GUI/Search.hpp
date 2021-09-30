@@ -22,6 +22,8 @@
 
 namespace Slic3r {
 
+wxDECLARE_EVENT(wxCUSTOMEVT_JUMP_TO_OPTION, wxCommandEvent);
+
 namespace Search{
 
 class SearchDialog;
@@ -134,6 +136,8 @@ public:
             return o1.key < o2.key; });
     }
     void sort_options_by_label() { sort_options(); }
+
+    void show_dialog();
 };
 
 

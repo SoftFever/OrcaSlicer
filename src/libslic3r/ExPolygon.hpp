@@ -351,20 +351,24 @@ inline ExPolygons expolygons_simplify(const ExPolygons &expolys, double toleranc
 	return out;
 }
 
-extern BoundingBox get_extents(const ExPolygon &expolygon);
-extern BoundingBox get_extents(const ExPolygons &expolygons);
-extern BoundingBox get_extents_rotated(const ExPolygon &poly, double angle);
-extern BoundingBox get_extents_rotated(const ExPolygons &polygons, double angle);
-extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons);
+BoundingBox get_extents(const ExPolygon &expolygon);
+BoundingBox get_extents(const ExPolygons &expolygons);
+BoundingBox get_extents_rotated(const ExPolygon &poly, double angle);
+BoundingBox get_extents_rotated(const ExPolygons &polygons, double angle);
+std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons);
 
-extern bool        remove_sticks(ExPolygon &poly);
-extern void 	   keep_largest_contour_only(ExPolygons &polygons);
+// Test for duplicate points. The points are copied, sorted and checked for duplicates globally.
+bool has_duplicate_points(const ExPolygon &expoly);
+bool has_duplicate_points(const ExPolygons &expolys);
+
+bool remove_sticks(ExPolygon &poly);
+void keep_largest_contour_only(ExPolygons &polygons);
 
 inline double      area(const ExPolygon &poly) { return poly.area(); }
 inline double      area(const ExPolygons &polys) { double s = 0.; for (auto &p : polys) s += p.area(); return s; }
 
 // Removes all expolygons smaller than min_area and also removes all holes smaller than min_area
-extern bool        remove_small_and_small_holes(ExPolygons &expolygons, double min_area);
+bool        remove_small_and_small_holes(ExPolygons &expolygons, double min_area);
 
 } // namespace Slic3r
 

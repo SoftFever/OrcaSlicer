@@ -4,6 +4,7 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 #include <GL/glew.h>
 

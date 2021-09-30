@@ -190,7 +190,7 @@ public:
     bool can_save() const;
     bool can_save_as() const;
     void save_project();
-    void save_project_as(const wxString& filename = wxString());
+    bool save_project_as(const wxString& filename = wxString());
 
     void        add_to_recent_projects(const wxString& filename);
     void        technology_changed();

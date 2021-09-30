@@ -1447,7 +1447,7 @@ void PrintObject::bridge_over_infill()
                 Polygons to_bridge_pp = internal_solid;
                 
                 // iterate through lower layers spanned by bridge_flow
-                double bottom_z = layer->print_z - bridge_flow.height();
+                double bottom_z = layer->print_z - bridge_flow.height() - EPSILON;
                 for (int i = int(layer_it - m_layers.begin()) - 1; i >= 0; --i) {
                     const Layer* lower_layer = m_layers[i];
                     

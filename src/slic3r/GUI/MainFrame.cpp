@@ -222,13 +222,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         }
 
         if (m_plater != nullptr) {
-            int saved_project = m_plater->save_project_if_dirty();
+            int saved_project = m_plater->save_project_if_dirty(_L("Closing PrusaSlicer. Current project is modified."));
             if (saved_project == wxID_CANCEL) {
                 event.Veto();
                 return;
             }
             // check unsaved changes only if project wasn't saved
-            else if (saved_project == wxID_NO && event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes()) {
+            else if (saved_project == wxID_NO && event.CanVeto() && 
+                     !wxGetApp().check_and_save_current_preset_changes(_L("PrusaSlicer is closing"), _L("Closing PrusaSlicer while some presets are modified."))) {
                 event.Veto();
                 return;
             }
@@ -434,8 +435,9 @@ void MainFrame::update_layout()
     {
         m_plater->Reparent(m_tabpanel);
 #ifdef _MSW_DARK_MODE
+        m_plater->Layout();
         if (!wxGetApp().tabs_as_menu())
-            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater, _L("Plater"), std::string("plater"));
+            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater, _L("Plater"), std::string("plater"), true);
         else
 #endif
         m_tabpanel->InsertPage(0, m_plater, _L("Plater"));
@@ -460,7 +462,7 @@ void MainFrame::update_layout()
         m_plater_page = new wxPanel(m_tabpanel);
 #ifdef _MSW_DARK_MODE
         if (!wxGetApp().tabs_as_menu())
-            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater_page, _L("Plater"), std::string("plater"));
+            dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater_page, _L("Plater"), std::string("plater"), true);
         else
 #endif
         m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
@@ -820,7 +822,10 @@ bool MainFrame::is_active_and_shown_tab(Tab* tab)
 
 bool MainFrame::can_start_new_project() const
 {
-    return (m_plater != nullptr) && (!m_plater->get_project_filename(".3mf").IsEmpty() || GetTitle().StartsWith('*') || !m_plater->model().objects.empty());
+    return m_plater && (!m_plater->get_project_filename(".3mf").IsEmpty() || 
+                        GetTitle().StartsWith('*')||
+                        wxGetApp().has_current_preset_changes() || 
+                        !m_plater->model().objects.empty() );
 }
 
 bool MainFrame::can_save() const
@@ -852,13 +857,14 @@ void MainFrame::save_project()
     save_project_as(m_plater->get_project_filename(".3mf"));
 }
 
-void MainFrame::save_project_as(const wxString& filename)
+bool MainFrame::save_project_as(const wxString& filename)
 {
     bool ret = (m_plater != nullptr) ? m_plater->export_3mf(into_path(filename)) : false;
     if (ret) {
 //        wxGetApp().update_saved_preset_from_current_preset();
         m_plater->reset_project_dirty_after_save();
     }
+    return ret;
 }
 
 bool MainFrame::can_export_model() const
@@ -1151,8 +1157,10 @@ void MainFrame::init_menubar_as_editor()
         Bind(wxEVT_MENU, [this](wxCommandEvent& evt) {
             size_t file_id = evt.GetId() - wxID_FILE1;
             wxString filename = m_recent_projects.GetHistoryFile(file_id);
-            if (wxFileExists(filename))
-                m_plater->load_project(filename);
+            if (wxFileExists(filename)) {
+                if (wxGetApp().can_load_project())
+                    m_plater->load_project(filename);
+            }
             else
             {
                 //wxMessageDialog msg(this, _L("The selected project is no longer available.\nDo you want to remove it from the recent projects list?"), _L("Error"), wxYES_NO | wxYES_DEFAULT);
@@ -1772,7 +1780,7 @@ void MainFrame::export_config()
 // Load a config file containing a Print, Filament & Printer preset.
 void MainFrame::load_config_file()
 {
-    if (!wxGetApp().check_and_save_current_preset_changes())
+    if (!wxGetApp().check_and_save_current_preset_changes(_L("Loading of a configuration file"), "", false))
         return;
     wxFileDialog dlg(this, _L("Select configuration to load:"),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
@@ -1803,7 +1811,8 @@ bool MainFrame::load_config_file(const std::string &path)
 
 void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 {
-    if (!wxGetApp().check_and_save_current_preset_changes())
+    if (!wxGetApp().check_and_save_current_preset_changes(_L("Exporting configuration bundle"),
+                                                          _L("Some presets are modified and the unsaved changes will not be exported into configuration bundle."), false, true))
         return;
     // validate current configuration in case it's dirty
     auto err = wxGetApp().preset_bundle->full_config().validate();
@@ -1835,7 +1844,7 @@ void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 // but that behavior was not documented and likely buggy.
 void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool reset_user_profile*/)
 {
-    if (!wxGetApp().check_and_save_current_preset_changes())
+    if (!wxGetApp().check_and_save_current_preset_changes(_L("Loading of a configuration bundle"), "", false))
         return;
     if (file.IsEmpty()) {
         wxFileDialog dlg(this, _L("Select configuration to load:"),

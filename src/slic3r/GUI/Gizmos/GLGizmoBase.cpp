@@ -237,9 +237,8 @@ void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
 std::string GLGizmoBase::get_name(bool include_shortcut) const
 {
     int key = get_shortcut_key();
-    assert( key >= WXK_CONTROL_A && key <= WXK_CONTROL_Z);
     std::string out = on_get_name();
-    if (include_shortcut)
+    if (include_shortcut && key >= WXK_CONTROL_A && key <= WXK_CONTROL_Z)
         out += std::string(" [") + char(int('A') + key - int(WXK_CONTROL_A)) + "]";
     return out;
 }

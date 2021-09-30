@@ -211,8 +211,34 @@ inline Point lerp(const Point &a, const Point &b, double t)
     return ((1. - t) * a.cast<double>() + t * b.cast<double>()).cast<coord_t>();
 }
 
-extern BoundingBox get_extents(const Points &pts);
-extern BoundingBox get_extents(const std::vector<Points> &pts);
+BoundingBox get_extents(const Points &pts);
+BoundingBox get_extents(const std::vector<Points> &pts);
+
+// Test for duplicate points in a vector of points.
+// The points are copied, sorted and checked for duplicates globally.
+bool        has_duplicate_points(std::vector<Point> &&pts);
+inline bool has_duplicate_points(const std::vector<Point> &pts)
+{
+    std::vector<Point> cpy = pts;
+    return has_duplicate_points(std::move(cpy));
+}
+
+// Test for duplicate points in a vector of points.
+// Only successive points are checked for equality.
+inline bool has_duplicate_successive_points(const std::vector<Point> &pts)
+{
+    for (size_t i = 1; i < pts.size(); ++ i)
+        if (pts[i - 1] == pts[i])
+            return true;
+    return false;
+}
+
+// Test for duplicate points in a vector of points.
+// Only successive points are checked for equality. Additionally, first and last points are compared for equality.
+inline bool has_duplicate_successive_points_closed(const std::vector<Point> &pts)
+{
+    return has_duplicate_successive_points(pts) || (pts.size() >= 2 && pts.front() == pts.back());
+}
 
 namespace int128 {
     // Exact orientation predicate,

@@ -1619,6 +1619,7 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
         const TriangleMeshStats& stats = volume->mesh().stats();
 
         // initialize full_stats (for repaired errors)
+        full_stats.open_edges           += stats.open_edges;
         full_stats.degenerate_facets    += stats.degenerate_facets;
         full_stats.edges_fixed          += stats.edges_fixed;
         full_stats.facets_removed       += stats.facets_removed;

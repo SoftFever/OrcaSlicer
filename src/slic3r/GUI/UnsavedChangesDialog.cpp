@@ -727,14 +727,21 @@ void DiffViewCtrl::item_value_changed(wxDataViewEvent& event)
     m_empty_selection = selected_options().empty();
 }
 
-std::vector<std::string> DiffViewCtrl::unselected_options(Preset::Type type)
+bool DiffViewCtrl::has_unselected_options()
+{
+    for (auto item : m_items_map)
+        if (!model->IsEnabledItem(item.first))
+            return true;
+
+    return false;
+}
+
+std::vector<std::string> DiffViewCtrl::options(Preset::Type type, bool selected)
 {
     std::vector<std::string> ret;
 
     for (auto item : m_items_map) {
-        if (item.second.opt_key == "extruders_count")
-            continue;
-        if (item.second.type == type && !model->IsEnabledItem(item.first))
+        if (item.second.type == type && model->IsEnabledItem(item.first) == selected)
             ret.emplace_back(get_pure_opt_key(item.second.opt_key));
     }
 
@@ -757,20 +764,24 @@ std::vector<std::string> DiffViewCtrl::selected_options()
 //          UnsavedChangesDialog
 //------------------------------------------
 
-UnsavedChangesDialog::UnsavedChangesDialog(const wxString& header, const wxString& caption/* = wxString()*/)
-    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, (caption.IsEmpty() ? _L("PrusaSlicer is closing") : caption) + ": " + _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-{
-    m_app_config_key = "default_action_on_close_application";
+static std::string none{"none"};
 
+UnsavedChangesDialog::UnsavedChangesDialog(const wxString& caption, const wxString& header, 
+                                           const std::string& app_config_key, int act_buttons)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, caption + ": " + _L("Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+    m_app_config_key(app_config_key),
+    m_buttons(act_buttons)
+{
     build(Preset::TYPE_INVALID, nullptr, "", header);
 
-    const std::string& def_action = wxGetApp().app_config->get(m_app_config_key);
-    if (def_action == "none")
+    const std::string& def_action = m_app_config_key.empty() ? none : wxGetApp().app_config->get(m_app_config_key);
+    if (def_action == none)
         this->CenterOnScreen();
     else {
-        m_exit_action = def_action == ActSave ? Action::Save : Action::Discard;
-        if (m_exit_action == Action::Save)
-            save(nullptr);
+        m_exit_action = def_action == ActTransfer   ? Action::Transfer  :
+                        def_action == ActSave       ? Action::Save      : Action::Discard;
+        if (m_exit_action != Action::Discard)
+            save(nullptr, m_exit_action == Action::Save);
     }
 }
 
@@ -782,7 +793,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* 
     build(type, dependent_presets, new_selected_preset);
 
     const std::string& def_action = wxGetApp().app_config->get(m_app_config_key);
-    if (def_action == "none") {
+    if (def_action == none) {
         if (wxGetApp().mainframe->is_dlg_layout() && wxGetApp().mainframe->m_settings_dialog.HasFocus())
             this->SetPosition(wxGetApp().mainframe->m_settings_dialog.GetPosition());
         this->CenterOnScreen();
@@ -833,7 +844,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent&) {
             update_config(close_act);
-            if (close_act == Action::Save && !save(dependent_presets))
+            bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
+            if (save_names_and_types && !save(dependent_presets, close_act == Action::Save))
                 return;
             close(close_act);
         });
@@ -842,13 +854,26 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
         (*btn)->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { show_info_line(Action::Undef); e.Skip(); });
     };
 
-    const PresetCollection* switched_presets = type == Preset::TYPE_INVALID ? nullptr : wxGetApp().get_tab(type)->get_presets();
-    if (dependent_presets && switched_presets && (type == dependent_presets->type() ?
-        dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
-        switched_presets->get_edited_preset().printer_technology() == switched_presets->find_preset(new_selected_preset)->printer_technology()))
-        add_btn(&m_transfer_btn, m_move_btn_id, "paste_menu", Action::Transfer, _L("Transfer"));
-    add_btn(&m_discard_btn, m_continue_btn_id, dependent_presets ? "switch_presets" : "exit", Action::Discard, _L("Discard"), false);
-    add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"));
+    // "Transfer" / "Keep" button
+    if (ActionButtons::TRANSFER & m_buttons) {
+        const PresetCollection* switched_presets = type == Preset::TYPE_INVALID ? nullptr : wxGetApp().get_tab(type)->get_presets();
+        if (dependent_presets && switched_presets && (type == dependent_presets->type() ?
+            dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
+            switched_presets->get_edited_preset().printer_technology() == switched_presets->find_preset(new_selected_preset)->printer_technology()))
+            add_btn(&m_transfer_btn, m_move_btn_id, "paste_menu", Action::Transfer, switched_presets->get_edited_preset().name == new_selected_preset ? _L("Keep") : _L("Transfer"));
+    }
+    if (!m_transfer_btn && (ActionButtons::KEEP & m_buttons))
+        add_btn(&m_transfer_btn, m_move_btn_id, "paste_menu", Action::Transfer, _L("Keep"));
+
+    { // "Don't save" / "Discard" button
+        std::string btn_icon    = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "switch_presets" : "exit";
+        wxString    btn_label   = (ActionButtons::DONT_SAVE & m_buttons) ? _L("Don't save") : _L("Discard");
+        add_btn(&m_discard_btn, m_continue_btn_id, btn_icon, Action::Discard, btn_label, false);
+    }
+
+    // "Save" button
+    if (ActionButtons::SAVE & m_buttons) 
+        add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"));
 
     ScalableButton* cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
     buttons->Add(cancel_btn, 1, wxLEFT|wxRIGHT, 5);
@@ -859,34 +884,42 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     m_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
     m_info_line->Hide();
 
-    m_remember_choice = new wxCheckBox(this, wxID_ANY, _L("Remember my choice"));
-    m_remember_choice->SetValue(wxGetApp().app_config->get(m_app_config_key) != "none");
-    m_remember_choice->Bind(wxEVT_CHECKBOX, [type, this](wxCommandEvent& evt)
-    {
-        if (!evt.IsChecked())
-            return;
-        wxString preferences_item = type == Preset::TYPE_INVALID ? _L("Ask for unsaved changes when closing application") : 
-                                                                   _L("Ask for unsaved changes when selecting new preset");
-        wxString msg =
-            _L("PrusaSlicer will remember your action.") + "\n\n" +
-            (type == Preset::TYPE_INVALID ?
-                _L("You will not be asked about the unsaved changes the next time you close PrusaSlicer.") :
-                _L("You will not be asked about the unsaved changes the next time you switch a preset.")) + "\n\n" +
-                format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto be asked about unsaved changes again."), preferences_item);
+    if (!m_app_config_key.empty()) {
+        m_remember_choice = new wxCheckBox(this, wxID_ANY, _L("Remember my choice"));
+        m_remember_choice->SetValue(wxGetApp().app_config->get(m_app_config_key) != none);
+        m_remember_choice->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& evt)
+        {
+            if (!evt.IsChecked())
+                return;
+            wxString preferences_item = m_app_config_key == "default_action_on_new_project"     ? _L("Ask for unsaved changes when creating new project") : 
+                                        m_app_config_key == "default_action_on_select_preset"   ? _L("Ask for unsaved changes when selecting new preset") :
+                                                                                                  _L("Ask for unsaved changes when ??closing application??") ;
+            wxString action = m_app_config_key == "default_action_on_new_project"   ? _L("You will not be asked about the unsaved changes the next time you create new project") : 
+                              m_app_config_key == "default_action_on_select_preset" ? _L("You will not be asked about the unsaved changes the next time you switch a preset") :
+                                                                                      _L("You will not be asked about the unsaved changes the next time you: \n"
+                                                                                            "- close the application,\n"
+                                                                                            "- load project,\n"
+                                                                                            "- process Undo / Redo with change of print technologie,\n"
+                                                                                            "- take/load snapshot,\n"
+                                                                                            "- load config file/bundle,\n"
+                                                                                            "- export config_bundle") ;
+            wxString msg = _L("PrusaSlicer will remember your action.") + "\n\n" + action + "\n\n" +
+                           format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto be asked about unsaved changes again."), preferences_item);
     
-        //wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
-        MessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
-        if (dialog.ShowModal() == wxID_CANCEL)
-            m_remember_choice->SetValue(false);
-    });
+            MessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            if (dialog.ShowModal() == wxID_CANCEL)
+                m_remember_choice->SetValue(false);
+        });
+    }
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     topSizer->Add(m_action_line,0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_tree,       1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_info_line,  0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2*border);
-    topSizer->Add(buttons,      0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(m_remember_choice, 0, wxEXPAND | wxALL, border);
+    topSizer->Add(buttons,      0, wxEXPAND | wxALL, border);
+    if (m_remember_choice)
+        topSizer->Add(m_remember_choice, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxRIGHT, border);
 
     update(type, dependent_presets, new_selected_preset, header);
 
@@ -905,10 +938,12 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
         if (action == Action::Undef)
             text = _L("Some fields are too long to fit. Right mouse click reveals the full text.");
         else if (action == Action::Discard)
-            text = _L("All settings changes will be discarded.");
+            text = ActionButtons::DONT_SAVE & m_buttons ? _L("All settings changes will not be saved") :_L("All settings changes will be discarded.");
         else {
             if (preset_name.empty())
-                text = action == Action::Save ? _L("Save the selected options.") : _L("Transfer the selected settings to the newly selected preset.");
+                text = action == Action::Save           ? _L("Save the selected options.") : 
+                       ActionButtons::KEEP & m_buttons  ? _L("Keep the selected settings.") :
+                                                          _L("Transfer the selected settings to the newly selected preset.");
             else
                 text = format_wxstr(
                     action == Action::Save ?
@@ -927,7 +962,7 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
 
 void UnsavedChangesDialog::update_config(Action action)
 {
-    if (!m_remember_choice->GetValue())
+    if (!m_remember_choice || !m_remember_choice->GetValue())
         return;
 
     std::string act = action == Action::Transfer ? ActTransfer :
@@ -941,7 +976,7 @@ void UnsavedChangesDialog::close(Action action)
     this->EndModal(wxID_CLOSE);
 }
 
-bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
+bool UnsavedChangesDialog::save(PresetCollection* dependent_presets, bool show_save_preset_dialog/* = true*/)
 {
     names_and_types.clear();
 
@@ -979,7 +1014,7 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets)
             }
 
 
-        if (!types_for_save.empty()) {
+        if (show_save_preset_dialog && !types_for_save.empty()) {
             SavePresetDialog save_dlg(this, types_for_save);
             if (save_dlg.ShowModal() != wxID_OK) {
                 m_exit_action = Action::Discard;
@@ -1164,16 +1199,24 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     PresetCollection* presets = dependent_presets;
 
     // activate buttons and labels
-    m_save_btn      ->Bind(wxEVT_ENTER_WINDOW, [this, presets]              (wxMouseEvent& e) { show_info_line(Action::Save, presets ? presets->get_selected_preset().name : ""); e.Skip(); });
+    if (m_save_btn)
+        m_save_btn    ->Bind(wxEVT_ENTER_WINDOW, [this, presets]                           (wxMouseEvent& e) { show_info_line(Action::Save, presets ? presets->get_selected_preset().name : ""); e.Skip(); });
     if (m_transfer_btn) {
-        bool is_empty_name = type != dependent_presets->type();
-        m_transfer_btn  ->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset, is_empty_name]  (wxMouseEvent& e) { show_info_line(Action::Transfer, is_empty_name ? "" : new_selected_preset); e.Skip(); });
+        bool is_empty_name = dependent_presets && type != dependent_presets->type();
+        m_transfer_btn->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset, is_empty_name](wxMouseEvent& e) { show_info_line(Action::Transfer, is_empty_name ? "" : new_selected_preset); e.Skip(); });
     }
-    m_discard_btn  ->Bind(wxEVT_ENTER_WINDOW, [this]                       (wxMouseEvent& e) { show_info_line(Action::Discard); e.Skip(); });
-
+    if (m_discard_btn)
+        m_discard_btn ->Bind(wxEVT_ENTER_WINDOW, [this]                                    (wxMouseEvent& e) { show_info_line(Action::Discard); e.Skip(); });
 
     if (type == Preset::TYPE_INVALID) {
-        m_action_line->SetLabel(header + "\n" + _L("The following presets were modified:"));
+        PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+        int presets_cnt = 0;
+        for (Tab* tab : wxGetApp().tabs_list)
+            if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
+                presets_cnt++;
+        m_action_line->SetLabel((header.IsEmpty() ? "" : header + "\n\n") + 
+                                _L_PLURAL("The following preset was modified",
+                                          "The following presets were modified", presets_cnt));
     }
     else {
         wxString action_msg;

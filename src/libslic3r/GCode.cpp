@@ -784,7 +784,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
-    m_processor.finalize();
+    // Post-process the G-code to update time stamps.
+    m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
     if (result != nullptr) {

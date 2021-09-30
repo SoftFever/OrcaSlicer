@@ -501,6 +501,8 @@ void Tab::OnActivate()
         m_presets_choice->SetMinSize(ok_sz);
         m_presets_choice->SetSize(ok_sz);
         GetSizer()->GetItem(size_t(0))->GetSizer()->Layout();
+        if (wxGetApp().tabs_as_menu())
+            m_presets_choice->update();
     }
 #endif // _MSW_DARK_MODE
     Refresh();
@@ -1186,11 +1188,21 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         break;
     }
 
+    auto set_focus = [](wxWindow* win) {
+        win->SetFocus();
+#ifdef WIN32
+        if (wxTextCtrl* text = dynamic_cast<wxTextCtrl*>(win))
+            text->SetSelection(-1, -1);
+        else if (wxSpinCtrl* spin = dynamic_cast<wxSpinCtrl*>(win))
+            spin->SetSelection(-1, -1);
+#endif // WIN32
+    };
+
     Field* field = get_field(opt_key);
 
     // focused selected field
     if (field)
-        field->getWindow()->SetFocus();
+        set_focus(field->getWindow());
     else if (category == "Single extruder MM setup") {
         // When we show and hide "Single extruder MM setup" page, 
         // related options are still in the search list
@@ -1198,7 +1210,7 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
         // as a "way" to show hidden page again
         field = get_field("single_extruder_multi_material");
         if (field)
-            field->getWindow()->SetFocus();
+            set_focus(field->getWindow());
     }
 
     m_highlighter.init(get_custom_ctrl_with_blinking_ptr(opt_key));
@@ -1216,12 +1228,20 @@ void Tab::cache_config_diff(const std::vector<std::string>& selected_options)
 
 void Tab::apply_config_from_cache()
 {
+    bool was_applied = false;
+    // check and apply extruders count for printer preset
+    if (m_type == Preset::TYPE_PRINTER)
+        was_applied = static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
+
     if (!m_cache_config.empty()) {
         m_presets->get_edited_preset().config.apply(m_cache_config);
         m_cache_config.clear();
 
-        update_dirty();
+        was_applied = true;
     }
+
+    if (was_applied)
+        update_dirty();
 }
 
 
@@ -3322,10 +3342,6 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };
         }
 
-        // check and apply extruders count for printer preset
-        if (m_type == Preset::TYPE_PRINTER)
-            static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
-
         // check if there is something in the cache to move to the new selected preset
         apply_config_from_cache();
 
@@ -3862,15 +3878,17 @@ void TabPrinter::cache_extruder_cnt()
     m_cache_extruder_count = m_extruders_count;
 }
 
-void TabPrinter::apply_extruder_cnt_from_cache()
+bool TabPrinter::apply_extruder_cnt_from_cache()
 {
     if (m_presets->get_edited_preset().printer_technology() == ptSLA)
-        return;
+        return false;
 
     if (m_cache_extruder_count > 0) {
         m_presets->get_edited_preset().set_num_extruders(m_cache_extruder_count);
         m_cache_extruder_count = 0;
+        return true;
     }
+    return false;
 }
 
 bool Tab::validate_custom_gcodes()

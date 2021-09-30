@@ -721,9 +721,9 @@ public:
     #ifdef SUPPORT_USE_AGG_RASTERIZER
             m_bbox       = bbox;
             // Oversample the grid to avoid leaking of supports through or around the object walls.
-            int oversampling = std::min(8, int(scale_(m_support_spacing) / (scale_(params.extrusion_width) + 100)));
-            m_pixel_size = scale_(m_support_spacing / oversampling);
-            assert(scale_(params.extrusion_width) + 20 < m_pixel_size);
+            int extrusion_width_scaled = scale_(params.extrusion_width);
+            int oversampling = std::clamp(int(scale_(m_support_spacing) / (extrusion_width_scaled + 100)), 1, 8);
+            m_pixel_size = std::max<double>(extrusion_width_scaled + 21, scale_(m_support_spacing / oversampling));
             // Add one empty column / row boundaries.
             m_bbox.offset(m_pixel_size);
             // Grid size fitting the support polygons plus one pixel boundary around the polygons.
@@ -1599,7 +1599,8 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
 static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupportMaterial::MyLayer*> new_contact_layer(
     const PrintConfig                                   &print_config, 
     const PrintObjectConfig                             &object_config,
-    const SlicingParameters                             &slicing_params, 
+    const SlicingParameters                             &slicing_params,
+    const coordf_t                                       support_layer_height_min,
     const Layer                                         &layer, 
     std::deque<PrintObjectSupportMaterial::MyLayer>     &layer_storage,
     tbb::spin_mutex                                     &layer_storage_mutex)
@@ -1629,7 +1630,8 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         // Don't want to print a layer below the first layer height as it may not stick well.
         //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
         // and it may actually make sense to do it with a thinner layer than the first layer height.
-        if (print_z < slicing_params.first_print_layer_height - EPSILON) {
+        const coordf_t min_print_z = slicing_params.raft_layers() > 1 ? slicing_params.raft_interface_top_z + support_layer_height_min + EPSILON : slicing_params.first_print_layer_height - EPSILON;
+        if (print_z < min_print_z) {
             // This contact layer is below the first layer height, therefore not printable. Don't support this surface.
             return std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupportMaterial::MyLayer*>(nullptr, nullptr);
         } else if (print_z < slicing_params.first_print_layer_height + EPSILON) {
@@ -1650,7 +1652,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                 bridging_height += region->region().bridging_height_avg(print_config);
             bridging_height /= coordf_t(layer.regions().size());
             coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
-            if (bridging_print_z >= slicing_params.first_print_layer_height - EPSILON) {
+            if (bridging_print_z >= min_print_z) {
                 // Not below the first layer height means this layer is printable.
                 if (print_z < slicing_params.first_print_layer_height + EPSILON) {
                     // Align the layer with the 1st layer height.
@@ -1664,8 +1666,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                     if (bridging_print_z == slicing_params.first_print_layer_height) {
                         bridging_layer->bottom_z = 0;
                         bridging_layer->height = slicing_params.first_print_layer_height;
-                    }
-                    else {
+                    } else {
                         // Don't know the height yet.
                         bridging_layer->bottom_z = bridging_print_z;
                         bridging_layer->height = 0;
@@ -1917,7 +1918,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
                 // Now apply the contact areas to the layer where they need to be made.
                 if (! contact_polygons.empty()) {
-                    auto [new_layer, bridging_layer] = new_contact_layer(*m_print_config, *m_object_config, m_slicing_params, layer, layer_storage, layer_storage_mutex);
+                    auto [new_layer, bridging_layer] = new_contact_layer(*m_print_config, *m_object_config, m_slicing_params, m_support_params.support_layer_height_min, layer, layer_storage, layer_storage_mutex);
                     if (new_layer) {
                         fill_contact_layer(*new_layer, layer_id, m_slicing_params,
                             *m_object_config, slices_margin, overhang_polygons, contact_polygons, enforcer_polygons, lower_layer_polygons,
@@ -2600,8 +2601,6 @@ void PrintObjectSupportMaterial::generate_base_layers(
         // No top contacts -> no intermediate layers will be produced.
         return;
 
-    // coordf_t fillet_radius_scaled = scale_(m_object_config->support_material_spacing);
-
     BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_base_layers() in parallel - start";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, intermediate_layers.size()),
@@ -2696,6 +2695,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
                 layer_intermediate.layer_type = sltBase;
 
         #if 0
+                    // coordf_t fillet_radius_scaled = scale_(m_object_config->support_material_spacing);
                     // Fillet the base polygons and trim them again with the top, interface and contact layers.
                     $base->{$i} = diff(
                         offset2(
@@ -3784,7 +3784,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     // Prepare fillers.
     SupportMaterialPattern  support_pattern = m_object_config->support_material_pattern;
     bool                    with_sheath     = m_object_config->support_material_with_sheath;
-    InfillPattern           infill_pattern = (support_pattern == smpHoneycomb ? ipHoneycomb : ipSupportBase);
+    InfillPattern           infill_pattern = support_pattern == smpHoneycomb ? ipHoneycomb : (support_density < 1.05 ? ipRectilinear : ipSupportBase);
     std::vector<float>      angles;
     angles.push_back(base_angle);
 

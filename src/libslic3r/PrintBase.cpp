@@ -60,6 +60,7 @@ std::string PrintBase::output_filename(const std::string &format, const std::str
     DynamicConfig cfg;
     if (config_override != nullptr)
     	cfg = *config_override;
+    cfg.set_key_value("version", new ConfigOptionString(std::string(SLIC3R_VERSION)));
     PlaceholderParser::update_timestamp(cfg);
     this->update_object_placeholders(cfg, default_ext);
     if (! filename_base.empty()) {

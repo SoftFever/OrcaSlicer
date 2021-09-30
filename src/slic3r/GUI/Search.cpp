@@ -24,6 +24,8 @@ using boost::optional;
 
 namespace Slic3r {
 
+wxDEFINE_EVENT(wxCUSTOMEVT_JUMP_TO_OPTION, wxCommandEvent);
+
 using GUI::from_u8;
 using GUI::into_u8;
 
@@ -289,13 +291,10 @@ bool OptionsSearcher::search(const std::string& search, bool force/* = false*/)
 
 OptionsSearcher::OptionsSearcher()
 {
-    search_dialog = new SearchDialog(this);
 }
 
 OptionsSearcher::~OptionsSearcher()
 {
-    if (search_dialog)
-        search_dialog->Destroy();
 }
 
 void OptionsSearcher::init(std::vector<InputInfo> input_values)
@@ -386,6 +385,22 @@ Option OptionsSearcher::get_option(const std::string& opt_key, const wxString& l
     return create_option(opt_key, label, type, gc);
 }
 
+void OptionsSearcher::show_dialog()
+{
+    if (!search_dialog) {
+        search_dialog = new SearchDialog(this);
+
+        auto parent = search_dialog->GetParent();
+        wxPoint pos = parent->ClientToScreen(wxPoint(0, 0));
+        pos.x += em_unit(parent) * 40;
+        pos.y += em_unit(parent) * 4;
+
+        search_dialog->SetPosition(pos);
+    }
+
+    search_dialog->Popup();
+}
+
 void OptionsSearcher::add_key(const std::string& opt_key, Preset::Type type, const wxString& group, const wxString& category)
 {
     groups_and_categories[get_key(opt_key, type)] = GroupAndCategory{group, category};
@@ -405,7 +420,7 @@ static const std::map<const char, int> icon_idxs = {
 };
 
 SearchDialog::SearchDialog(OptionsSearcher* searcher)
-    : GUI::DPIDialog(NULL, wxID_ANY, _L("Search"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+    : GUI::DPIDialog(GUI::wxGetApp().tab_panel(), wxID_ANY, _L("Search"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     searcher(searcher)
 {
     SetFont(GUI::wxGetApp().normal_font());
@@ -506,7 +521,8 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
     if (check_english)
         check_english->SetValue(params.english);
 
-    this->SetPosition(position);
+    if (position != wxDefaultPosition)
+        this->SetPosition(position);
     this->ShowModal();
 }
 
@@ -514,9 +530,16 @@ void SearchDialog::ProcessSelection(wxDataViewItem selection)
 {
     if (!selection.IsOk())
         return;
-
-    GUI::wxGetApp().sidebar().jump_to_option(search_list_model->GetRow(selection));
     this->EndModal(wxID_CLOSE);
+
+    // If call GUI::wxGetApp().sidebar.jump_to_option() directly from here,
+    // then mainframe will not have focus and found option will not be "active" (have cursor) as a result
+    // SearchDialog have to be closed and have to lose a focus
+    // and only after that jump_to_option() function can be called
+    // So, post event to plater: 
+    wxCommandEvent event(wxCUSTOMEVT_JUMP_TO_OPTION);
+    event.SetInt(search_list_model->GetRow(selection));
+    wxPostEvent(GUI::wxGetApp().plater(), event);
 }
 
 void SearchDialog::OnInputText(wxCommandEvent&)

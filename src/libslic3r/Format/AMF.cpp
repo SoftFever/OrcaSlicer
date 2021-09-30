@@ -598,7 +598,7 @@ void AMFParserContext::endElement(const char * /* name */)
     case NODE_TYPE_VERTEX:
         assert(m_object);
         // Parse the vertex data
-        m_object_vertices.emplace_back(float(atof(m_value[0].c_str())), float(atof(m_value[1].c_str())), float(atof(m_value[1].c_str())));
+        m_object_vertices.emplace_back(float(atof(m_value[0].c_str())), float(atof(m_value[1].c_str())), float(atof(m_value[2].c_str())));
         m_value[0].clear();
         m_value[1].clear();
         m_value[2].clear();

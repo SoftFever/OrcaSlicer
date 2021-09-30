@@ -1819,7 +1819,8 @@ void Control::OnChar(wxKeyEvent& event)
 
 void Control::OnRightDown(wxMouseEvent& event)
 {
-    if (HasCapture()) return;
+    if (HasCapture() || m_is_left_down)
+        return;
     this->CaptureMouse();
 
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
@@ -2097,7 +2098,7 @@ void Control::auto_color_change()
 
 void Control::OnRightUp(wxMouseEvent& event)
 {
-    if (!HasCapture())
+    if (!HasCapture() || m_is_left_down)
         return;
     this->ReleaseMouse();
     m_is_right_down = m_is_one_layer = false;

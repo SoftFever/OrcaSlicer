@@ -672,10 +672,9 @@ void ModeButton::focus_button(const bool focus)
                              Slic3r::GUI::wxGetApp().normal_font();
 
     SetFont(new_font);
-//#ifdef _WIN32
-//    GetParent()->Refresh();
-//#else
-#ifndef _WIN32
+#ifdef _WIN32
+    GetParent()->Refresh(); // force redraw a background of the selected mode button
+#else
     SetForegroundColour(wxSystemSettings::GetColour(focus ? wxSYS_COLOUR_BTNTEXT : 
 #if defined (__linux__) && defined (__WXGTK3__)
         wxSYS_COLOUR_GRAYTEXT

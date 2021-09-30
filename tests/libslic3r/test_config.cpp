@@ -3,6 +3,11 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/types/string.hpp> 
+#include <cereal/types/vector.hpp> 
+#include <cereal/archives/binary.hpp>
+
 using namespace Slic3r;
 
 SCENARIO("Generic config validation performs as expected.", "[Config]") {
@@ -199,6 +204,36 @@ SCENARIO("Config ini load/save interface", "[Config]") {
         THEN("Config object contains ini file options.") {
 			REQUIRE(config.option_throw<ConfigOptionStrings>("filament_colour", false)->values.size() == 1);
 			REQUIRE(config.option_throw<ConfigOptionStrings>("filament_colour", false)->values.front() == "#ABCD");
+        }
+    }
+}
+
+SCENARIO("DynamicPrintConfig serialization", "[Config]") {
+    WHEN("DynamicPrintConfig is serialized and deserialized") {
+        FullPrintConfig full_print_config;
+        DynamicPrintConfig cfg;
+        cfg.apply(full_print_config, false);
+
+        std::string serialized;
+        try {
+            std::ostringstream ss;
+            cereal::BinaryOutputArchive oarchive(ss);
+            oarchive(cfg);
+            serialized = ss.str();
+        } catch (std::runtime_error e) {
+            e.what();
+        }
+
+        THEN("Config object contains ini file options.") {
+            DynamicPrintConfig cfg2;
+            try {
+                std::stringstream ss(serialized);
+                cereal::BinaryInputArchive iarchive(ss);
+                iarchive(cfg2);
+            } catch (std::runtime_error e) {
+                e.what();
+            }
+            REQUIRE(cfg == cfg2);
         }
     }
 }

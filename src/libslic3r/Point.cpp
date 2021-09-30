@@ -179,6 +179,15 @@ Point Point::projection_onto(const Line &line) const
     return ((line.a - *this).cast<double>().squaredNorm() < (line.b - *this).cast<double>().squaredNorm()) ? line.a : line.b;
 }
 
+bool has_duplicate_points(std::vector<Point> &&pts)
+{
+    std::sort(pts.begin(), pts.end());
+    for (size_t i = 1; i < pts.size(); ++ i)
+        if (pts[i - 1] == pts[i])
+            return true;
+    return false;
+}
+
 BoundingBox get_extents(const Points &pts)
 { 
     return BoundingBox(pts);

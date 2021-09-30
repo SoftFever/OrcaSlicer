@@ -23,6 +23,7 @@
 #include "slic3r/GUI/3DBed.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -1398,6 +1399,11 @@ void GLCanvas3D::render()
 
     if (!is_initialized() && !init())
         return;
+
+#if ENABLE_SEAMS_USING_MODELS
+    if (!m_main_toolbar.is_enabled())
+        m_gcode_viewer.init();
+#endif // ENABLE_SEAMS_USING_MODELS
 
     if (wxGetApp().plater()->get_bed().get_shape().empty()) {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
@@ -4429,12 +4435,11 @@ bool GLCanvas3D::_init_main_toolbar()
     arrow_data.top = 0;
     arrow_data.right = 0;
     arrow_data.bottom = 0;
-
     if (!m_main_toolbar.init_arrow(arrow_data))
     {
         BOOST_LOG_TRIVIAL(error) << "Main toolbar failed to load arrow texture.";
     }
-
+    // m_gizmos is created at constructor, thus we can init arrow here.
     if (!m_gizmos.init_arrow(arrow_data))
     {
         BOOST_LOG_TRIVIAL(error) << "Gizmos manager failed to load arrow texture.";
@@ -4643,6 +4648,18 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         // unable to init the toolbar texture, disable it
         m_undoredo_toolbar.set_enabled(false);
         return true;
+    }
+
+    // init arrow
+    BackgroundTexture::Metadata arrow_data;
+    arrow_data.filename = "toolbar_arrow.svg";
+    arrow_data.left = 0;
+    arrow_data.top = 0;
+    arrow_data.right = 0;
+    arrow_data.bottom = 0;
+    if (!m_undoredo_toolbar.init_arrow(arrow_data))
+    {
+        BOOST_LOG_TRIVIAL(error) << "Undo/Redo toolbar failed to load arrow texture.";
     }
 
 //    m_undoredo_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
@@ -5424,6 +5441,10 @@ void GLCanvas3D::_render_undoredo_toolbar()
 
     m_undoredo_toolbar.set_position(top, left);
     m_undoredo_toolbar.render(*this);
+    if (m_toolbar_highlighter.m_render_arrow)
+    {
+        m_undoredo_toolbar.render_arrow(*this, m_toolbar_highlighter.m_toolbar_item);
+    }
 }
 
 void GLCanvas3D::_render_collapse_toolbar() const
@@ -6460,7 +6481,7 @@ void GLCanvas3D::_update_selection_from_hover()
 
         // the selection is going to be modified (Add)
         if (!contains_all) {
-            wxGetApp().plater()->take_snapshot(_(L("Selection-Add from rectangle")));
+            wxGetApp().plater()->take_snapshot(_(L("Selection-Add from rectangle")), UndoRedo::SnapshotType::Selection);
             selection_changed = true;
         }
     }
@@ -6475,7 +6496,7 @@ void GLCanvas3D::_update_selection_from_hover()
 
         // the selection is going to be modified (Remove)
         if (contains_any) {
-            wxGetApp().plater()->take_snapshot(_(L("Selection-Remove from rectangle")));
+            wxGetApp().plater()->take_snapshot(_(L("Selection-Remove from rectangle")), UndoRedo::SnapshotType::Selection);
             selection_changed = true;
         }
     }

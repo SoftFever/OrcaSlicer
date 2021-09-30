@@ -139,6 +139,9 @@ void AppConfig::set_defaults()
         if (get("default_action_on_select_preset").empty())
             set("default_action_on_select_preset", "none");     // , "transfer", "discard" or "save" 
 
+        if (get("default_action_on_new_project").empty())
+            set("default_action_on_new_project", "none");       // , "keep(transfer)", "discard" or "save" 
+
         if (get("color_mapinulation_panel").empty())
             set("color_mapinulation_panel", "0");
 

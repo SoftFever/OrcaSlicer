@@ -220,8 +220,9 @@ public:
     void        context_menu(wxDataViewEvent& event);
     void        item_value_changed(wxDataViewEvent& event);
     void        set_em_unit(int em) { m_em_unit = em; }
+    bool        has_unselected_options();
 
-    std::vector<std::string> unselected_options(Preset::Type type);
+    std::vector<std::string> options(Preset::Type type, bool selected);
     std::vector<std::string> selected_options();
 };
 
@@ -261,10 +262,22 @@ class UnsavedChangesDialog : public DPIDialog
     Action m_exit_action {Action::Undef};
     // preset names which are modified in SavePresetDialog and related types
     std::vector<std::pair<std::string, Preset::Type>>  names_and_types;
+    // additional action buttons used in dialog
+    int m_buttons { ActionButtons::TRANSFER | ActionButtons::SAVE };
 
 public:
-    UnsavedChangesDialog(const wxString& header, const wxString& caption = wxString());
+    // Discard and Cancel buttons are always but next buttons are optional
+    enum ActionButtons {
+        TRANSFER  = 1,
+        KEEP      = 2,
+        SAVE      = 4,
+        DONT_SAVE = 8,
+    };
+
+    // show unsaved changes when preset is switching
     UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
+    // show unsaved changes for all another cases
+    UnsavedChangesDialog(const wxString& caption, const wxString& header, const std::string& app_config_key, int act_buttons);
     ~UnsavedChangesDialog() {}
 
     void build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header = "");
@@ -273,7 +286,8 @@ public:
     void show_info_line(Action action, std::string preset_name = "");
     void update_config(Action action);
     void close(Action action);
-    bool save(PresetCollection* dependent_presets);
+    // save information about saved presets and their types to names_and_types and show SavePresetDialog to set the names for new presets
+    bool save(PresetCollection* dependent_presets, bool show_save_preset_dialog = true);
 
     bool save_preset() const        { return m_exit_action == Action::Save;     }
     bool transfer_changes() const   { return m_exit_action == Action::Transfer; }
@@ -284,8 +298,10 @@ public:
     // short version of the previous function, for the case, when just one preset is modified
     std::string get_preset_name() { return names_and_types[0].first; }
 
-    std::vector<std::string> get_unselected_options(Preset::Type type)  { return m_tree->unselected_options(type); }
+    std::vector<std::string> get_unselected_options(Preset::Type type)  { return m_tree->options(type, false); }
+    std::vector<std::string> get_selected_options  (Preset::Type type)  { return m_tree->options(type, true); }
     std::vector<std::string> get_selected_options()                     { return m_tree->selected_options(); }
+    bool                     has_unselected_options()                   { return m_tree->has_unselected_options(); }
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
