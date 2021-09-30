@@ -43,10 +43,10 @@ const NotificationManager::NotificationData NotificationManager::basic_notificat
 	},
 	{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
 		wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
-	{NotificationType::EmptyColorChangeCode, NotificationLevel::RegularNotificationLevel, 10,
+	{NotificationType::EmptyColorChangeCode, NotificationLevel::ObjectInfoNotificationLevel, 10,
 		_u8L("You have just added a G-code for color change, but its value is empty.\n"
 			 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
-	{NotificationType::EmptyAutoColorChange, NotificationLevel::RegularNotificationLevel, 10,
+	{NotificationType::EmptyAutoColorChange, NotificationLevel::ObjectInfoNotificationLevel, 10,
 		_u8L("No color change event was added to the print. The print does not look like a sign.") },
 	{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
 		_u8L("Desktop integration was successful.") },
@@ -1489,17 +1489,7 @@ void NotificationManager::push_notification(NotificationType type,
                                             std::function<bool(wxEvtHandler*)> callback,
                                             int timestamp)
 {
-	int duration = 0;
-	switch (level) {
-	case NotificationLevel::RegularNotificationLevel: 	 duration = 10; break;
-	case NotificationLevel::ErrorNotificationLevel: 		 break;
-	case NotificationLevel::WarningNotificationLevel:		 break;
-	case NotificationLevel::ImportantNotificationLevel: 	 break;
-	case NotificationLevel::ProgressBarNotificationLevel:    break;
-	default:
-		assert(false);
-		return;
-	}
+	int duration = get_standart_duration(level);
     push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
 }
 void NotificationManager::push_validate_error_notification(const std::string& text)
@@ -1611,7 +1601,7 @@ void NotificationManager::close_slicing_error_notification(const std::string& te
 }
 void  NotificationManager::push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext/* = ""*/, std::function<bool(wxEvtHandler*)> callback/* = std::function<bool(wxEvtHandler*)>()*/)
 {
-	NotificationData data{ NotificationType::SimplifySuggestion, NotificationLevel::RegularNotificationLevel, 10,  text, hypertext, callback };
+	NotificationData data{ NotificationType::SimplifySuggestion, NotificationLevel::ObjectInfoNotificationLevel, 10,  text, hypertext, callback };
 	auto notification = std::make_unique<NotificationManager::ObjectIDNotification>(data, m_id_provider, m_evt_handler);
 	notification->object_id = object_id;
 	push_notification_data(std::move(notification), 0);
@@ -1921,7 +1911,7 @@ void NotificationManager::push_updated_item_info_notification(InfoItemType type)
 		}
 	}
 
-	NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::RegularNotificationLevel, 5, "" };
+	NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::ObjectInfoNotificationLevel, 10, "" };
 	auto notification = std::make_unique<NotificationManager::UpdatedItemsInfoNotification>(data, m_id_provider, m_evt_handler, type);
 	if (push_notification_data(std::move(notification), 0)) {
 		(dynamic_cast<UpdatedItemsInfoNotification*>(m_pop_notifications.back().get()))->add_type(type);

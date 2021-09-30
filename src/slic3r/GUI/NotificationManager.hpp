@@ -121,6 +121,8 @@ public:
 		HintNotificationLevel,
 		// "Good to know" notification, usually but not always with a quick fade-out.		
 		RegularNotificationLevel,
+		// Regular level notifiaction containing info about objects or print. Has Icon.
+		ObjectInfoNotificationLevel,
 		// Information notification without a fade-out or with a longer fade-out.
 		ImportantNotificationLevel,
 		// Warning, no fade-out.
@@ -693,6 +695,19 @@ private:
 	void sort_notifications();
 	// If there is some error notification active, then the "Export G-code" notification after the slicing is finished is suppressed.
     bool has_slicing_error_notification();
+	size_t get_standart_duration(NotificationLevel level)
+	{
+		switch (level) {
+		case NotificationLevel::RegularNotificationLevel: 	    return 20;
+		case NotificationLevel::ErrorNotificationLevel: 	    return 0;
+		case NotificationLevel::WarningNotificationLevel:	    return 0;
+		case NotificationLevel::ImportantNotificationLevel:     return 0;
+		case NotificationLevel::ProgressBarNotificationLevel:	return 2;
+		case NotificationLevel::HintNotificationLevel:			return 300;
+		case NotificationLevel::ObjectInfoNotificationLevel:    return 20;
+		default: return 10;
+		}
+	}
 
 	// set by init(), until false notifications are only added not updated and frame is not requested after push
 	bool m_initialized{ false };
