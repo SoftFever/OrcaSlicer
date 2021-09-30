@@ -8,6 +8,7 @@
 #include <cassert>
 
 #include <libslic3r/ObjectID.hpp>
+#include <libslic3r/Config.hpp>
 
 typedef double                          coordf_t;
 typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
@@ -15,7 +16,6 @@ typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
 namespace Slic3r {
 
 class Model;
-enum PrinterTechnology : unsigned char;
 
 namespace GUI {
 	class Selection;
@@ -122,7 +122,7 @@ public:
     void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, const SnapshotData &snapshot_data);
     // To be called just after take_snapshot() when leaving a gizmo, inside which small edits like support point add / remove events or paiting actions were allowed.
     // Remove all but the last edit between the gizmo enter / leave snapshots.
-    void reduce_noisy_snapshots();
+    void reduce_noisy_snapshots(const std::string& new_name);
 
 	// To be queried to enable / disable the Undo / Redo buttons at the UI.
 	bool has_undo_snapshot() const;

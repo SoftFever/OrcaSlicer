@@ -8,6 +8,7 @@
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 #include <GL/glew.h>
 
@@ -121,7 +122,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text("");
 
     if (m_imgui->button(m_desc.at("remove_all"))) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), wxString(_L("Reset selection")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset selection"),
+                                      UndoRedo::SnapshotType::GizmoAction);
         ModelObject* mo = m_c->selection_info()->model_object();
         int idx = -1;
         for (ModelVolume* mv : mo->volumes) {

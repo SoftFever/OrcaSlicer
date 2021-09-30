@@ -576,7 +576,7 @@ public:
 
     // Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
     void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, const SnapshotData &snapshot_data);
-    void reduce_noisy_snapshots();
+    void reduce_noisy_snapshots(const std::string& new_name);
     void load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos);
 
 	bool has_undo_snapshot() const;
@@ -934,7 +934,7 @@ void StackImpl::take_snapshot(const std::string& snapshot_name, const Slic3r::Mo
 #endif /* SLIC3R_UNDOREDO_DEBUG */
 }
 
-void StackImpl::reduce_noisy_snapshots()
+void StackImpl::reduce_noisy_snapshots(const std::string& new_name)
 {
 	// Preceding snapshot must be a "leave gizmo" snapshot.
 	assert(! m_snapshots.empty() && m_snapshots.back().is_topmost() && m_snapshots.back().timestamp == m_active_snapshot_time);
@@ -944,7 +944,8 @@ void StackImpl::reduce_noisy_snapshots()
 	if (it_last->snapshot_data.snapshot_type == SnapshotType::LeavingGizmoWithAction) {
 		for (-- it_last; it_last->snapshot_data.snapshot_type != SnapshotType::EnteringGizmo; -- it_last) {
 			if (it_last->snapshot_data.snapshot_type == SnapshotType::GizmoAction) {
-				auto it = it_last;
+                it_last->name = new_name;
+                auto it = it_last;
 				for (-- it; it->snapshot_data.snapshot_type == SnapshotType::GizmoAction; -- it) ;
 				if (++ it < it_last) {
 					// Drop (it, it_last>
@@ -1248,7 +1249,7 @@ size_t Stack::memsize() const { return pimpl->memsize(); }
 void Stack::release_least_recently_used() { pimpl->release_least_recently_used(); }
 void Stack::take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, const SnapshotData &snapshot_data)
 	{ pimpl->take_snapshot(snapshot_name, model, selection, gizmos, snapshot_data); }
-void Stack::reduce_noisy_snapshots() { pimpl->reduce_noisy_snapshots(); }
+void Stack::reduce_noisy_snapshots(const std::string& new_name) { pimpl->reduce_noisy_snapshots(new_name); }
 bool Stack::has_undo_snapshot() const { return pimpl->has_undo_snapshot(); }
 bool Stack::has_undo_snapshot(size_t time_to_load) const { return pimpl->has_undo_snapshot(time_to_load); }
 bool Stack::has_redo_snapshot() const { return pimpl->has_redo_snapshot(); }

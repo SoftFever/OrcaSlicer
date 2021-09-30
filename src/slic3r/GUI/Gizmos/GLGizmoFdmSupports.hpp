@@ -21,6 +21,8 @@ protected:
 
     std::string get_gizmo_entering_text() const override { return _u8L("Entering Paint-on supports"); }
     std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Paint-on supports"); }
+    std::string get_action_snapshot_name() override { return _u8L("Paint-on supports editing"); }
+
 
 private:
     bool on_init() override;

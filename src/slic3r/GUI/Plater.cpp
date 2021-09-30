@@ -4695,12 +4695,22 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
         model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
         model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
     }
+    const GLGizmosManager& gizmos = view3D->get_canvas3d()->get_gizmos_manager();
+
     if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator && wxGetApp().app_config->get("clear_undo_redo_stack_on_new_project") == "1")
         this->undo_redo_stack().clear();
-    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), snapshot_data);
-    if (snapshot_type == UndoRedo::SnapshotType::LeavingGizmoWithAction)
+    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), gizmos, snapshot_data);
+    if (snapshot_type == UndoRedo::SnapshotType::LeavingGizmoWithAction) {
         // Filter all but the last UndoRedo::SnapshotType::GizmoAction in a row between the last UndoRedo::SnapshotType::EnteringGizmo and UndoRedo::SnapshotType::LeavingGizmoWithAction.
-        this->undo_redo_stack().reduce_noisy_snapshots();
+        // The remaining snapshot will be renamed to a more generic name,
+        // depending on what gizmo is being left.
+        assert(gizmos.get_current() != nullptr);
+        std::string new_name = gizmos.get_current()->get_action_snapshot_name();
+        this->undo_redo_stack().reduce_noisy_snapshots(new_name);
+    } else if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator) {
+        // Reset the "dirty project" flag.
+        m_undo_redo_stack_main.mark_current_as_saved();
+    }
     this->undo_redo_stack().release_least_recently_used();
 
     dirty_state.update_from_undo_redo_stack(m_undo_redo_stack_main.project_modified());
