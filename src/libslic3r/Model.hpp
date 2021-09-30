@@ -367,7 +367,11 @@ public:
     double get_instance_max_z(size_t instance_idx) const;
 
     // Called by Print::validate() from the UI thread.
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    unsigned int check_instances_print_volume_state(const Polygon& printbed_shape, double print_volume_height);
+#else
     unsigned int check_instances_print_volume_state(const BoundingBoxf3& print_volume);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     // Print object statistics to console.
     void print_info() const;
@@ -904,6 +908,14 @@ enum ModelInstanceEPrintVolumeState : unsigned char
     ModelInstanceNum_BedStates
 };
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+// return the state of the given object's volume (extrusion along z of obj_hull_2d from obj_min_z to obj_max_z)
+// with respect to the given print volume (extrusion along z of printbed_shape from zero to print_volume_height)
+ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const Polygon& obj_hull_2d, double obj_min_z, double obj_max_z);
+// return the state of the given box
+// with respect to the given print volume (extrusion along z of printbed_shape from zero to print_volume_height)
+ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
@@ -1109,8 +1121,12 @@ public:
     BoundingBoxf3 bounding_box() const;
     // Set the print_volume_state of PrintObject::instances, 
     // return total number of printable objects.
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    unsigned int  update_print_volume_state(const Polygon& printbed_shape, double print_volume_height);
+#else
     unsigned int  update_print_volume_state(const BoundingBoxf3 &print_volume);
-	// Returns true if any ModelObject was modified.
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    // Returns true if any ModelObject was modified.
     bool 		  center_instances_around_point(const Vec2d &point);
     void 		  translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh  mesh() const;

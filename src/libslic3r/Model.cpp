@@ -26,6 +26,37 @@
 
 namespace Slic3r {
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const Polygon& obj_hull_2d, double obj_min_z, double obj_max_z)
+{
+    static const double Z_TOLERANCE = -1e10;
+
+    const Polygons intersection_polys = intersection(printbed_shape, obj_hull_2d);
+    const bool contained_xy = !intersection_polys.empty() && Geometry::are_approx(intersection_polys.front(), obj_hull_2d);
+    const bool contained_z = Z_TOLERANCE < obj_min_z && obj_max_z < print_volume_height;
+    if (contained_xy && contained_z)
+        return ModelInstancePVS_Inside;
+
+    const bool intersects_xy = !contained_xy && !intersection_polys.empty();
+    const bool intersects_z = !contained_z && obj_min_z < print_volume_height&& Z_TOLERANCE < obj_max_z;
+    if (intersects_xy || intersects_z)
+        return ModelInstancePVS_Partly_Outside;
+
+    return ModelInstancePVS_Fully_Outside;
+}
+
+ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box)
+{
+    const Polygon box_hull_2d({
+        { scale_(box.min.x()), scale_(box.min.y()) },
+        { scale_(box.max.x()), scale_(box.min.y()) },
+        { scale_(box.max.x()), scale_(box.max.y()) },
+        { scale_(box.min.x()), scale_(box.max.y()) }
+        });
+    return printbed_collision_state(printbed_shape, print_volume_height, box_hull_2d, box.min.z(), box.max.z());
+}
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
 Model& Model::assign_copy(const Model &rhs)
 {
     this->copy_id(rhs);
@@ -330,13 +361,23 @@ BoundingBoxf3 Model::bounding_box() const
     return bb;
 }
 
-unsigned int Model::update_print_volume_state(const BoundingBoxf3 &print_volume) 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+unsigned int Model::update_print_volume_state(const Polygon& printbed_shape, double print_volume_height)
+{
+    unsigned int num_printable = 0;
+    for (ModelObject* model_object : this->objects)
+        num_printable += model_object->check_instances_print_volume_state(printbed_shape, print_volume_height);
+    return num_printable;
+}
+#else
+unsigned int Model::update_print_volume_state(const BoundingBoxf3 &print_volume)
 {
     unsigned int num_printable = 0;
     for (ModelObject *model_object : this->objects)
         num_printable += model_object->check_instances_print_volume_state(print_volume);
     return num_printable;
 }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 bool Model::center_instances_around_point(const Vec2d &point)
 {
@@ -1513,6 +1554,40 @@ double ModelObject::get_instance_max_z(size_t instance_idx) const
     return max_z + inst->get_offset(Z);
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+unsigned int ModelObject::check_instances_print_volume_state(const Polygon& printbed_shape, double print_volume_height)
+{
+    unsigned int num_printable = 0;
+    enum {
+        INSIDE = 1,
+        OUTSIDE = 2
+    };
+    for (ModelInstance* model_instance : this->instances) {
+        unsigned int inside_outside = 0;
+        for (const ModelVolume* vol : this->volumes)
+            if (vol->is_model_part()) {
+#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+                const BoundingBoxf3 bb = vol->mesh().transformed_bounding_box(model_instance->get_matrix() * vol->get_matrix(), 0.0);
+#else
+                const BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->get_matrix() * vol->get_matrix());
+#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+                ModelInstanceEPrintVolumeState state = printbed_collision_state(printbed_shape, print_volume_height, bb);
+                if (state == ModelInstancePVS_Inside)
+                    inside_outside |= INSIDE;
+                else if (state == ModelInstancePVS_Fully_Outside)
+                    inside_outside |= OUTSIDE;
+                else
+                    inside_outside |= INSIDE | OUTSIDE;
+            }
+        model_instance->print_volume_state =
+            (inside_outside == (INSIDE | OUTSIDE)) ? ModelInstancePVS_Partly_Outside :
+            (inside_outside == INSIDE) ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
+        if (inside_outside == INSIDE)
+            ++num_printable;
+    }
+    return num_printable;
+}
+#else
 unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
 {
     unsigned int num_printable = 0;
@@ -1544,6 +1619,7 @@ unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3
     }
     return num_printable;
 }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 void ModelObject::print_info() const
 {

@@ -5014,17 +5014,16 @@ void GLCanvas3D::_render_background() const
             use_error_color &= _is_any_volume_outside();
         else {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-            const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
-            const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
-            const float bed_height = m_config->opt_float("max_print_height");
-            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
-//            const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
-//            Polygon paths_hull_2d;
-//            paths_hull_2d.append({ scale_(paths_volume.min.x()), scale_(paths_volume.min.y()) });
-//            paths_hull_2d.append({ scale_(paths_volume.max.x()), scale_(paths_volume.min.y()) });
-//            paths_hull_2d.append({ scale_(paths_volume.max.x()), scale_(paths_volume.max.y()) });
-//            paths_hull_2d.append({ scale_(paths_volume.min.x()), scale_(paths_volume.max.y()) });
-//            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, paths_hull_2d, paths_volume.min.z(), paths_volume.max.z());
+            ModelInstanceEPrintVolumeState state;
+            if (m_gcode_viewer.has_data()) {
+                const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
+                const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+                const float bed_height = m_config->opt_float("max_print_height");
+                state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
+            }
+            else
+                state = ModelInstancePVS_Inside;
+
             use_error_color &= state != ModelInstancePVS_Inside;
 #else
             const BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();

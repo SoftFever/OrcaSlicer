@@ -67,37 +67,6 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 
 namespace Slic3r {
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const Polygon& obj_hull_2d, double obj_min_z, double obj_max_z)
-{
-    static const double Z_TOLERANCE = -1e10;
-
-    const Polygons intersection_polys = intersection(printbed_shape, obj_hull_2d);
-    const bool contained_xy = !intersection_polys.empty() && Geometry::are_approx(intersection_polys.front(), obj_hull_2d);
-    const bool contained_z = Z_TOLERANCE < obj_min_z && obj_max_z < print_volume_height;
-    if (contained_xy && contained_z)
-        return ModelInstancePVS_Inside;
-
-    const bool intersects_xy = !contained_xy && !intersection_polys.empty();
-    const bool intersects_z = !contained_z && obj_min_z < print_volume_height && Z_TOLERANCE < obj_max_z;
-    if (intersects_xy || intersects_z)
-        return ModelInstancePVS_Partly_Outside;
-
-    return ModelInstancePVS_Fully_Outside;
-}
-
-ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box)
-{
-    const Polygon box_hull_2d({
-        { scale_(box.min.x()), scale_(box.min.y()) },
-        { scale_(box.max.x()), scale_(box.min.y()) },
-        { scale_(box.max.x()), scale_(box.max.y()) },
-        { scale_(box.min.x()), scale_(box.max.y()) }
-        });
-    return printbed_collision_state(printbed_shape, print_volume_height, box_hull_2d, box.min.z(), box.max.z());
-}
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
 #if ENABLE_SMOOTH_NORMALS
 static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& normals)
 {
