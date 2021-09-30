@@ -1010,12 +1010,10 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
             contained = print_volume.contains(bb);
             intersects = print_volume.intersects(bb);
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        }
 #else
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
         bool contained = print_volume.contains(bb);
-#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
-#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
-        }
 #endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
 
         volume->is_outside = !contained;
