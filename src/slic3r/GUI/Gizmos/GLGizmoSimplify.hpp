@@ -4,10 +4,13 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code,
 // which overrides our localization "L" macro.
 #include "GLGizmoBase.hpp"
+#include "GLGizmoPainterBase.hpp" // for render wireframe
 #include "admesh/stl.h" // indexed_triangle_set
 #include <thread>
 #include <optional>
 #include <atomic>
+
+#include <GL/glew.h> // GLUint
 
 namespace Slic3r {
 
@@ -16,7 +19,7 @@ class ModelVolume;
 namespace GUI {
 
 
-class GLGizmoSimplify : public GLGizmoBase
+class GLGizmoSimplify: public GLGizmoBase, public GLGizmoTransparentRender // GLGizmoBase
 {    
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -31,6 +34,8 @@ protected:
     virtual bool on_is_selectable() const override { return false; }
     virtual void on_set_state() override;
 
+    // GLGizmoPainterBase
+    virtual void render_painter_gizmo() const override{ render_wireframe(); }
 private:
     void after_apply();
     void close();
@@ -38,8 +43,10 @@ private:
     void set_its(indexed_triangle_set &its);
     void create_gui_cfg();
     void request_rerender();
-    bool is_selected_object(int *object_idx_ptr = nullptr);
-    ModelVolume *get_selected_volume(int *object_idx = nullptr);
+    ModelVolume *get_selected_volume(int *object_idx = nullptr) const;
+
+    // return false when volume was deleted
+    static bool exist_volume(ModelVolume *volume);
 
     std::atomic_bool m_is_valid_result; // differ what to do in apply
     std::atomic_bool m_exist_preview;   // set when process end
@@ -49,6 +56,7 @@ private:
     size_t m_obj_index;
 
     std::optional<indexed_triangle_set> m_original_its;
+    bool m_show_wireframe;
 
     volatile bool m_need_reload; // after simplify, glReload must be on main thread
     std::thread m_worker;
@@ -101,6 +109,13 @@ private:
     const std::string tr_preview;
     const std::string tr_detail_level;
     const std::string tr_decimate_ratio;
+
+    // rendering wireframe
+    void render_wireframe() const;
+    void init_wireframe();
+    void free_gpu();
+    GLuint m_wireframe_VBO_id, m_wireframe_IBO_id;
+    size_t m_wireframe_IBO_size;
 };
 
 } // namespace GUI

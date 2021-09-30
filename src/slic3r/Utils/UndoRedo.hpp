@@ -8,6 +8,7 @@
 #include <cassert>
 
 #include <libslic3r/ObjectID.hpp>
+#include <libslic3r/Config.hpp>
 
 typedef double                          coordf_t;
 typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
@@ -15,7 +16,6 @@ typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
 namespace Slic3r {
 
 class Model;
-enum PrinterTechnology : unsigned char;
 
 namespace GUI {
 	class Selection;
@@ -25,8 +25,10 @@ namespace GUI {
 namespace UndoRedo {
 
 enum class SnapshotType : unsigned char {
-	// Some action modifying project state.
+	// Some action modifying project state, outside any EnteringGizmo / LeavingGizmo interval.
 	Action,
+	// Some action modifying project state, inside some EnteringGizmo / LeavingGizmo interval.
+	GizmoAction,
 	// Selection change at the Plater.
 	Selection,
 	// New project, Reset project, Load project ...
@@ -48,14 +50,11 @@ enum class SnapshotType : unsigned char {
 // which may be handy sometimes.
 struct SnapshotData
 {
-	// Constructor is defined in .cpp due to the forward declaration of enum PrinterTechnology.
-	SnapshotData();
-
 	SnapshotType        snapshot_type;
-	PrinterTechnology 	printer_technology;
+	PrinterTechnology 	printer_technology { ptUnknown };
 	// Bitmap of Flags (see the Flags enum).
-	unsigned int        flags;
-    int                 layer_range_idx;
+	unsigned int        flags { 0 };
+    int                 layer_range_idx { -1 };
 
 	// Bitmask of various binary flags to be stored with the snapshot.
 	enum Flags {
@@ -121,6 +120,9 @@ public:
 
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
     void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, const SnapshotData &snapshot_data);
+    // To be called just after take_snapshot() when leaving a gizmo, inside which small edits like support point add / remove events or paiting actions were allowed.
+    // Remove all but the last edit between the gizmo enter / leave snapshots.
+    void reduce_noisy_snapshots(const std::string& new_name);
 
 	// To be queried to enable / disable the Undo / Redo buttons at the UI.
 	bool has_undo_snapshot() const;
@@ -150,6 +152,11 @@ public:
 	// Temporary snapshot is active if the topmost snapshot is active and it has not been captured yet.
 	// In that case the Undo action will capture the last snapshot.
 	bool   temp_snapshot_active() const;
+
+	// Resets the "dirty project" status.
+    void   mark_current_as_saved();
+    // Is the project modified with regard to the last "saved" state marked with mark_current_as_saved()?
+    bool   project_modified() const;
 
 	// After load_snapshot() / undo() / redo() the selection is deserialized into a list of ObjectIDs, which needs to be converted
 	// into the list of GLVolume pointers once the 3D scene is updated.

@@ -5201,7 +5201,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
                 GLGizmosManager::EType type = gm.get_current_type();
                 if (type == GLGizmosManager::FdmSupports
                     || type == GLGizmosManager::Seam
-                    || type == GLGizmosManager::MmuSegmentation) {
+                    || type == GLGizmosManager::MmuSegmentation 
+                    || type == GLGizmosManager::Simplify ) {
                     shader->stop_using();
                     gm.render_painter_gizmo();
                     shader->start_using();

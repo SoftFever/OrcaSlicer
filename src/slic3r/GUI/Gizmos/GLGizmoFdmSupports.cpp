@@ -8,6 +8,7 @@
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 
 #include <GL/glew.h>
@@ -165,7 +166,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::Separator();
 
     if (m_imgui->button(m_desc.at("remove_all"))) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), wxString(_L("Reset selection")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset selection"),
+                                      UndoRedo::SnapshotType::GizmoAction);
         ModelObject* mo = m_c->selection_info()->model_object();
         int idx = -1;
         for (ModelVolume* mv : mo->volumes) {
@@ -297,8 +299,6 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
             ++ idx;
         }
     }
-
-    activate_internal_undo_redo_stack(true);
 
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), block ? _L("Block supports by angle")
                                                     : _L("Add supports by angle"));
