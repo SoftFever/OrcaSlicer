@@ -56,6 +56,7 @@ private:
     size_t m_obj_index;
 
     std::optional<indexed_triangle_set> m_original_its;
+    bool m_show_wireframe;
 
     volatile bool m_need_reload; // after simplify, glReload must be on main thread
     std::thread m_worker;
@@ -111,7 +112,7 @@ private:
 
     // rendering wireframe
     void render_wireframe() const;
-    void init_wireframe(const indexed_triangle_set &its);
+    void init_wireframe();
     void free_gpu();
     GLuint m_wireframe_VBO_id, m_wireframe_IBO_id;
     size_t m_wireframe_IBO_size;

@@ -22,7 +22,8 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     , m_progress(0)
     , m_volume(nullptr)
     , m_obj_index(0)
-    , m_need_reload(false)
+    , m_need_reload(false) 
+    , m_show_wireframe(false)
 
     , tr_mesh_name(_u8L("Mesh name"))
     , tr_triangles(_u8L("Triangles"))
@@ -86,7 +87,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
         m_is_valid_result = false;
         m_exist_preview   = false;
-        init_wireframe(m_volume->mesh().its);
+        init_wireframe();
 
         if (change_window_position) {
             ImVec2 pos = ImGui::GetMousePos();
@@ -200,6 +201,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::Text(_L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
+    if (ImGui::Checkbox(_L("Show wireframe").c_str(), &m_show_wireframe)) {
+        if (m_show_wireframe) init_wireframe();
+        else free_gpu();
+    }
+
     if (m_state == State::settings) {
         if (m_imgui->button(_L("Cancel"))) {
             if (m_original_its.has_value()) { 
@@ -248,7 +254,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         // set m_state must be before close() !!!
         m_state = State::settings;
         if (close_on_end) after_apply();
-        else init_wireframe(m_volume->mesh().its);
+        else init_wireframe();
         // Fix warning icon in object list
         wxGetApp().obj_list()->update_item_error_icon(m_obj_index, -1);
     }
@@ -430,8 +436,10 @@ ModelVolume *GLGizmoSimplify::get_selected_volume(int *object_idx_ptr) const
     return obj->volumes.front();
 }
 
-void GLGizmoSimplify::init_wireframe(const indexed_triangle_set &its)
+void GLGizmoSimplify::init_wireframe()
 {
+    if (!m_show_wireframe) return;
+    const indexed_triangle_set &its = m_volume->mesh().its;
     free_gpu();
     if (its.indices.empty()) return;
 
@@ -465,7 +473,7 @@ void GLGizmoSimplify::render_wireframe() const
 {
     // is initialized?
     if (m_wireframe_VBO_id == 0 || m_wireframe_IBO_id == 0) return;
-
+    if (!m_show_wireframe) return;
     ModelVolume *act_volume = get_selected_volume();
     if (act_volume == nullptr) return;    
     const Transform3d trafo_matrix = 
