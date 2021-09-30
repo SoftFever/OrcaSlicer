@@ -4,6 +4,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code,
 // which overrides our localization "L" macro.
 #include "GLGizmoBase.hpp"
+#include "GLGizmoPainterBase.hpp" // for render wireframe
 #include "admesh/stl.h" // indexed_triangle_set
 #include <thread>
 #include <optional>
@@ -16,7 +17,7 @@ class ModelVolume;
 namespace GUI {
 
 
-class GLGizmoSimplify : public GLGizmoBase
+class GLGizmoSimplify : public GLGizmoPainterBase // GLGizmoBase
 {    
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -31,6 +32,8 @@ protected:
     virtual bool on_is_selectable() const override { return false; }
     virtual void on_set_state() override;
 
+    // render wire frame
+    virtual void render_painter_gizmo() const override;
 private:
     void after_apply();
     void close();

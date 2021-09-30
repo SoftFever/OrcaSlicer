@@ -358,6 +358,10 @@ void GLGizmoSimplify::on_set_state()
     }
 }
 
+void GLGizmoSimplify::render_painter_gizmo() const {
+
+}
+
 void GLGizmoSimplify::create_gui_cfg() { 
     if (m_gui_cfg.has_value()) return;
     int space_size = m_imgui->calc_text_size(":MM").x;
