@@ -966,8 +966,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
     const float bed_height = config->opt_float("max_print_height");
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
+#else
     const BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
     BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min.x()), unscale<double>(bed_box_2D.min.y()), 0.0 }, 
                                { unscale<double>(bed_box_2D.max.x()), unscale<double>(bed_box_2D.max.y()), config->opt_float("max_print_height") });
@@ -977,6 +976,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     print_volume.min.y() -= BedEpsilon;
     print_volume.max.x() += BedEpsilon;
     print_volume.max.y() += BedEpsilon;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     ModelInstanceEPrintVolumeState state = ModelInstancePVS_Inside;
 
