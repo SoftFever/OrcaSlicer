@@ -52,8 +52,6 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
     return out;
 }
 
-
-
 size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
 {
     if (! m_enabled)
@@ -485,7 +483,7 @@ void GLGizmosManager::render_painter_gizmo() const
     if (!m_enabled || m_current == Undefined)
         return;
 
-    auto* gizmo = dynamic_cast<GLGizmoPainterBase*>(get_current());
+    auto *gizmo = dynamic_cast<GLGizmoTransparentRender*>(get_current());
     assert(gizmo); // check the precondition
     gizmo->render_painter_gizmo();
 }

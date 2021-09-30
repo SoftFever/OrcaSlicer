@@ -19,7 +19,7 @@ class ModelVolume;
 namespace GUI {
 
 
-class GLGizmoSimplify : public GLGizmoPainterBase // GLGizmoBase
+class GLGizmoSimplify: public GLGizmoBase, public GLGizmoTransparentRender // GLGizmoBase
 {    
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -35,7 +35,7 @@ protected:
     virtual void on_set_state() override;
 
     // GLGizmoPainterBase
-    virtual void render_painter_gizmo() const override{ const_cast<GLGizmoSimplify*>(this)->render_wireframe(); }
+    virtual void render_painter_gizmo() const override{ render_wireframe(); }
 private:
     void after_apply();
     void close();
@@ -43,8 +43,10 @@ private:
     void set_its(indexed_triangle_set &its);
     void create_gui_cfg();
     void request_rerender();
-    bool is_selected_object(int *object_idx_ptr = nullptr);
-    ModelVolume *get_selected_volume(int *object_idx = nullptr);
+    ModelVolume *get_selected_volume(int *object_idx = nullptr) const;
+
+    // return false when volume was deleted
+    static bool exist_volume(ModelVolume *volume);
 
     std::atomic_bool m_is_valid_result; // differ what to do in apply
     std::atomic_bool m_exist_preview;   // set when process end
@@ -108,7 +110,7 @@ private:
     const std::string tr_decimate_ratio;
 
     // rendering wireframe
-    void render_wireframe();
+    void render_wireframe() const;
     void init_wireframe(const indexed_triangle_set &its);
     void free_gpu();
     GLuint m_wireframe_VBO_id, m_wireframe_IBO_id;

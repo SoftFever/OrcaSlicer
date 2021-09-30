@@ -15,7 +15,7 @@ namespace Slic3r::GUI {
 GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
                                  const std::string &icon_filename,
                                  unsigned int       sprite_id)
-    : GLGizmoPainterBase(parent, icon_filename, -1)
+    : GLGizmoBase(parent, icon_filename, -1)
     , m_state(State::settings)
     , m_is_valid_result(false)
     , m_exist_preview(false)
@@ -29,6 +29,9 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     , tr_preview(_u8L("Preview"))
     , tr_detail_level(_u8L("Detail level"))
     , tr_decimate_ratio(_u8L("Decimate ratio"))
+
+    , m_wireframe_VBO_id(0)
+    , m_wireframe_IBO_id(0)
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify() { 
@@ -51,15 +54,19 @@ std::string GLGizmoSimplify::on_get_name() const
 
 void GLGizmoSimplify::on_render() { }
 
-void GLGizmoSimplify::on_render_for_picking() { }
+void GLGizmoSimplify::on_render_for_picking() {}
 
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
     create_gui_cfg();
     int obj_index;
     ModelVolume *act_volume = get_selected_volume(&obj_index);
-    if (act_volume == nullptr) { 
-        close(); 
+    if (act_volume == nullptr) {
+        switch (m_state) {
+        case State::settings: close(); break;
+        case State::canceling: break;
+        default: m_state = State::canceling;
+        }
         return;
     }
 
@@ -79,6 +86,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
         m_is_valid_result = false;
         m_exist_preview   = false;
+        init_wireframe(m_volume->mesh().its);
 
         if (change_window_position) {
             ImVec2 pos = ImGui::GetMousePos();
@@ -240,7 +248,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         // set m_state must be before close() !!!
         m_state = State::settings;
         if (close_on_end) after_apply();
-        
+        else init_wireframe(m_volume->mesh().its);
         // Fix warning icon in object list
         wxGetApp().obj_list()->update_item_error_icon(m_obj_index, -1);
     }
@@ -317,7 +325,6 @@ void GLGizmoSimplify::process()
 }
 
 void GLGizmoSimplify::set_its(indexed_triangle_set &its) {
-    //init_contours(its);
     m_volume->set_mesh(its);
     m_volume->calculate_convex_hull();
     m_volume->set_new_unique_id();
@@ -334,10 +341,18 @@ void GLGizmoSimplify::on_set_state()
 {
     // Closing gizmo. e.g. selecting another one
     if (GLGizmoBase::m_state == GLGizmoBase::Off) {
-        bool exist_selected_object = is_selected_object();
+        // can appear when delete objects
+        bool empty_selection = m_parent.get_selection().is_empty();
+
+        // cancel processing
+        if (empty_selection && 
+            m_state != State::settings &&
+            m_state != State::canceling)  
+            m_state = State::canceling;
+
         // refuse outgoing during simlification
         // object is not selected when it is deleted(cancel and close gizmo)
-        if (m_state != State::settings && exist_selected_object) {
+        if (m_state != State::settings && !empty_selection) {
             GLGizmoBase::m_state = GLGizmoBase::On;
             auto notification_manager = wxGetApp().plater()->get_notification_manager();
             notification_manager->push_notification(
@@ -348,10 +363,13 @@ void GLGizmoSimplify::on_set_state()
         }
 
         // revert preview
-        if (m_exist_preview && exist_selected_object) {
-            set_its(*m_original_its);
-            m_parent.reload_scene(true);
-            m_need_reload = false;
+        if (m_exist_preview) {
+            m_exist_preview = false;
+            if (exist_volume(m_volume)) {
+                set_its(*m_original_its);
+                m_parent.reload_scene(false);
+                m_need_reload = false;
+            }
         }
 
         // invalidate selected model
@@ -389,20 +407,27 @@ void GLGizmoSimplify::request_rerender() {
     });
 }
 
-bool GLGizmoSimplify::is_selected_object(int *object_idx)
-{
-    int index = (object_idx != nullptr) ? *object_idx :
-        m_parent.get_selection().get_object_idx();
-    // no selected object --> can appear after delete model
-    if (index < 0) {
-        switch (m_state) {
-        case State::settings: close(); break;
-        case State::canceling: break;
-        default: m_state = State::canceling;
-        }
-        return false;
+bool GLGizmoSimplify::exist_volume(ModelVolume *volume) {
+    auto objs = wxGetApp().plater()->model().objects;
+    for (const auto &obj : objs) {
+        const auto &vlms = obj->volumes;
+        auto        item = std::find(vlms.begin(), vlms.end(), volume);
+        if (item != vlms.end()) return true;
     }
-    return true;
+    return false;
+}
+
+ModelVolume *GLGizmoSimplify::get_selected_volume(int *object_idx_ptr) const
+{
+    const Selection &selection  = m_parent.get_selection();
+    int object_idx = selection.get_object_idx();
+    if (object_idx_ptr != nullptr) *object_idx_ptr = object_idx;
+    if (object_idx < 0) return nullptr;
+    ModelObjectPtrs &objs = wxGetApp().plater()->model().objects;
+    if (objs.size() <= object_idx) return nullptr;
+    ModelObject *obj = objs[object_idx];
+    if (obj->volumes.empty()) return nullptr;
+    return obj->volumes.front();
 }
 
 void GLGizmoSimplify::init_wireframe(const indexed_triangle_set &its)
@@ -436,21 +461,16 @@ void GLGizmoSimplify::init_wireframe(const indexed_triangle_set &its)
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-void GLGizmoSimplify::render_wireframe()
+void GLGizmoSimplify::render_wireframe() const
 {
-    const Selection &selection  = m_parent.get_selection();
-    int              object_idx = selection.get_object_idx();
-    if (!is_selected_object(&object_idx)) return;
+    // is initialized?
+    if (m_wireframe_VBO_id == 0 || m_wireframe_IBO_id == 0) return;
 
-    const GLVolume* vol = selection.get_volume(*selection.get_instance_idxs().begin());
-    GLuint vbo_id = vol->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id;
-    ModelObject *obj = wxGetApp().plater()->model().objects[object_idx];
-    ModelVolume *act_volume = obj->volumes.front();
-
-    init_wireframe(act_volume->mesh().its);
-
+    ModelVolume *act_volume = get_selected_volume();
+    if (act_volume == nullptr) return;    
     const Transform3d trafo_matrix = 
-        obj->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
+        act_volume->get_object()->instances[m_parent.get_selection().get_instance_idx()]
+        ->get_transformation().get_matrix() *
         act_volume->get_matrix();
 
     glsafe(::glPushMatrix());
@@ -461,14 +481,8 @@ void GLGizmoSimplify::render_wireframe()
     glsafe(::glDepthFunc(GL_LEQUAL));
     glsafe(::glLineWidth(1.0f));
 
-    /*
-    // bad indices
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
-    /*/
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_wireframe_VBO_id));
     glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
-    //*/
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
 
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_wireframe_IBO_id));
@@ -495,19 +509,6 @@ void GLGizmoSimplify::free_gpu()
         glsafe(::glDeleteBuffers(1, &m_wireframe_IBO_id));
         m_wireframe_IBO_id = 0;
     }
-}
-
-ModelVolume *GLGizmoSimplify::get_selected_volume(int *object_idx_ptr)
-{
-    const Selection &selection  = m_parent.get_selection();
-    int object_idx = selection.get_object_idx();
-    if (object_idx_ptr != nullptr) *object_idx_ptr = object_idx;
-    if (!is_selected_object(&object_idx)) return nullptr;
-    ModelObjectPtrs &objs = wxGetApp().plater()->model().objects;
-    if (objs.size() <= object_idx) return nullptr;
-    ModelObject *obj = objs[object_idx];
-    if (obj->volumes.empty()) return nullptr;
-    return obj->volumes.front();    
 }
 
 } // namespace Slic3r::GUI
