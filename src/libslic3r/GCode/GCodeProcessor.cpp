@@ -1456,7 +1456,7 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
         
         begin = skip_whitespaces(begin, end);
         end   = remove_eols(begin, end);
-        if (begin != end)
+        if (begin != end) {
             if (*begin == ';') {
                 // Comment.
                 begin = skip_whitespaces(++ begin, end);
@@ -1485,6 +1485,7 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
                 // Some non-empty G-code line detected, stop parsing config comments.
                 reader.quit_parsing();
             }
+        }
     });
 
     if (m_result.extruders_count == 0)

@@ -626,7 +626,7 @@ void AMFParserContext::endElement(const char * /* name */)
             // Verify validity of face indices, find the vertex span.
             int min_id = m_volume_facets.front()[0];
             int max_id = min_id;
-            for (const Vec3i face : m_volume_facets) {
+            for (const Vec3i& face : m_volume_facets) {
                 for (const int tri_id : face) {
                     if (tri_id < 0 || tri_id >= int(m_object_vertices.size())) {
                         this->stop("Malformed triangle mesh");

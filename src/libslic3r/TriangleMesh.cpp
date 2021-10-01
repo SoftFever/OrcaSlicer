@@ -465,7 +465,7 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
     std::vector<int>    map_dst_vertices;
 #ifndef NDEBUG
     Vec3f               centroid = Vec3f::Zero();
-    for (auto pt : this->its.vertices)
+    for (const stl_vertex& pt : this->its.vertices)
         centroid += pt;
     centroid /= float(this->its.vertices.size());
 #endif // NDEBUG
@@ -1261,7 +1261,7 @@ bool its_write_stl_ascii(const char *file, const char *label, const std::vector<
 
     fprintf(fp, "solid  %s\n", label);
 
-    for (const stl_triangle_vertex_indices face : indices) {
+    for (const stl_triangle_vertex_indices& face : indices) {
         Vec3f vertex[3] = { vertices[face(0)], vertices[face(1)], vertices[face(2)] };
         Vec3f normal    = (vertex[1] - vertex[0]).cross(vertex[2] - vertex[1]).normalized();
         fprintf(fp, "  facet normal % .8E % .8E % .8E\n", normal(0), normal(1), normal(2));
@@ -1301,7 +1301,7 @@ bool its_write_stl_binary(const char *file, const char *label, const std::vector
     stl_facet f;
     f.extra[0] = 0;
     f.extra[1] = 0;
-    for (const stl_triangle_vertex_indices face : indices) {
+    for (const stl_triangle_vertex_indices& face : indices) {
         f.vertex[0] = vertices[face(0)];
         f.vertex[1] = vertices[face(1)];
         f.vertex[2] = vertices[face(2)];
