@@ -86,7 +86,7 @@ static inline bool is_ccw(const Polygon &poly)
 
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 // returns true if the given polygons are identical
-static bool are_approx(const Polygon& lhs, const Polygon& rhs)
+static inline bool are_approx(const Polygon& lhs, const Polygon& rhs)
 {
     if (lhs.points.size() != rhs.points.size())
         return false;

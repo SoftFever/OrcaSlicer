@@ -1566,12 +1566,14 @@ unsigned int ModelObject::check_instances_print_volume_state(const Polygon& prin
         unsigned int inside_outside = 0;
         for (const ModelVolume* vol : this->volumes)
             if (vol->is_model_part()) {
+                const Transform3d matrix = model_instance->get_matrix() * vol->get_matrix();
 #if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
-                const BoundingBoxf3 bb = vol->mesh().transformed_bounding_box(model_instance->get_matrix() * vol->get_matrix(), 0.0);
+                const BoundingBoxf3 bb = vol->mesh().transformed_bounding_box(matrix, 0.0);
 #else
-                const BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->get_matrix() * vol->get_matrix());
+                const BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(matrix);
 #endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
-                ModelInstanceEPrintVolumeState state = printbed_collision_state(printbed_shape, print_volume_height, bb);
+                const Polygon volume_hull_2d = its_convex_hull_2d_above(vol->mesh().its, matrix.cast<float>(), 0.0f);
+                ModelInstanceEPrintVolumeState state = printbed_collision_state(printbed_shape, print_volume_height, volume_hull_2d, bb.min.z(), bb.max.z());
                 if (state == ModelInstancePVS_Inside)
                     inside_outside |= INSIDE;
                 else if (state == ModelInstancePVS_Fully_Outside)
