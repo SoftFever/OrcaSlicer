@@ -80,6 +80,10 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             set_its(*m_original_its);
         }
 
+        // close suggestion notification
+        auto notification_manager = wxGetApp().plater()->get_notification_manager();
+        notification_manager->remove_simplify_suggestion_with_id(act_volume->get_object()->id());
+
         m_obj_index = obj_index; // to remember correct object
         m_volume = act_volume;
         m_original_its = {};
