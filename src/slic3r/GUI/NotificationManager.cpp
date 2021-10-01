@@ -43,10 +43,10 @@ const NotificationManager::NotificationData NotificationManager::basic_notificat
 	},
 	{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
 		wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
-	{NotificationType::EmptyColorChangeCode, NotificationLevel::RegularNotificationLevel, 10,
+	{NotificationType::EmptyColorChangeCode, NotificationLevel::ObjectInfoNotificationLevel, 10,
 		_u8L("You have just added a G-code for color change, but its value is empty.\n"
 			 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
-	{NotificationType::EmptyAutoColorChange, NotificationLevel::RegularNotificationLevel, 10,
+	{NotificationType::EmptyAutoColorChange, NotificationLevel::ObjectInfoNotificationLevel, 10,
 		_u8L("No color change event was added to the print. The print does not look like a sign.") },
 	{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
 		_u8L("Desktop integration was successful.") },
@@ -373,7 +373,7 @@ void NotificationManager::PopNotification::init()
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
 { 
 	m_window_height = m_multiline ?
-		m_lines_count * m_line_height :
+		std::max(m_lines_count, (size_t)2) * m_line_height :
 		2 * m_line_height;
 	m_window_height += 1 * m_line_height; // top and bottom
 }
@@ -1055,6 +1055,8 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 
 	std::string text;
 	for (it = m_types_and_counts.begin(); it != m_types_and_counts.end(); ++it) {
+		if ((*it).second == 0)
+			continue;
 		text += std::to_string((*it).second);
 		text += _L_PLURAL(" Object was loaded with "," Objects were loaded with ", (*it).second).ToUTF8().data();
 		switch ((*it).first) {
@@ -1066,6 +1068,7 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
 		}
 	}
+	m_state = EState::Unknown;
 	NotificationData data { get_data().type, get_data().level , get_data().duration, text };
 	update(data);
 }
@@ -1489,17 +1492,7 @@ void NotificationManager::push_notification(NotificationType type,
                                             std::function<bool(wxEvtHandler*)> callback,
                                             int timestamp)
 {
-	int duration = 0;
-	switch (level) {
-	case NotificationLevel::RegularNotificationLevel: 	 duration = 10; break;
-	case NotificationLevel::ErrorNotificationLevel: 		 break;
-	case NotificationLevel::WarningNotificationLevel:		 break;
-	case NotificationLevel::ImportantNotificationLevel: 	 break;
-	case NotificationLevel::ProgressBarNotificationLevel:    break;
-	default:
-		assert(false);
-		return;
-	}
+	int duration = get_standart_duration(level);
     push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
 }
 void NotificationManager::push_validate_error_notification(const std::string& text)
@@ -1518,7 +1511,7 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 {
 	NotificationData data { NotificationType::SlicingWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("WARNING:") + "\n" + text };
 
-	auto notification = std::make_unique<NotificationManager::SlicingWarningNotification>(data, m_id_provider, m_evt_handler);
+	auto notification = std::make_unique<NotificationManager::ObjectIDNotification>(data, m_id_provider, m_evt_handler);
 	notification->object_id = oid;
 	notification->warning_step = warning_step;
 	if (push_notification_data(std::move(notification), 0)) {
@@ -1609,12 +1602,11 @@ void NotificationManager::close_slicing_error_notification(const std::string& te
 		}
 	}
 }
-void  NotificationManager::push_object_warning_notification(const std::string& text, ObjectID object_id, const std::string& hypertext/* = ""*/, std::function<bool(wxEvtHandler*)> callback/* = std::function<bool(wxEvtHandler*)>()*/)
+void  NotificationManager::push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext/* = ""*/, std::function<bool(wxEvtHandler*)> callback/* = std::function<bool(wxEvtHandler*)>()*/)
 {
-	NotificationData data{ NotificationType::ObjectWarning, NotificationLevel::WarningNotificationLevel, 0,  text, hypertext, callback };
-	auto notification = std::make_unique<NotificationManager::SlicingWarningNotification>(data, m_id_provider, m_evt_handler);
+	NotificationData data{ NotificationType::SimplifySuggestion, NotificationLevel::ObjectInfoNotificationLevel, 10,  text, hypertext, callback };
+	auto notification = std::make_unique<NotificationManager::ObjectIDNotification>(data, m_id_provider, m_evt_handler);
 	notification->object_id = object_id;
-	notification->warning_step = 0;
 	push_notification_data(std::move(notification), 0);
 }
 void NotificationManager::close_notification_of_type(const NotificationType type)
@@ -1630,19 +1622,20 @@ void NotificationManager::remove_slicing_warnings_of_released_objects(const std:
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications)
 		if (notification->get_type() == NotificationType::SlicingWarning) {
 			if (! std::binary_search(living_oids.begin(), living_oids.end(),
-				static_cast<SlicingWarningNotification*>(notification.get())->object_id))
+				static_cast<ObjectIDNotification*>(notification.get())->object_id))
 				notification->close();
 		}
 }
-void NotificationManager::remove_object_warnings_of_released_objects(const std::vector<ObjectID>& living_oids)
+void NotificationManager::remove_simplify_suggestion_of_released_objects(const std::vector<ObjectID>& living_oids)
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications)
-		if (notification->get_type() == NotificationType::ObjectWarning) {
+		if (notification->get_type() == NotificationType::SimplifySuggestion) {
 			if (!std::binary_search(living_oids.begin(), living_oids.end(),
-				static_cast<SlicingWarningNotification*>(notification.get())->object_id))
+				static_cast<ObjectIDNotification*>(notification.get())->object_id))
 				notification->close();
 		}
 }
+
 void NotificationManager::push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
 	close_notification_of_type(NotificationType::ExportFinished);
@@ -1921,7 +1914,7 @@ void NotificationManager::push_updated_item_info_notification(InfoItemType type)
 		}
 	}
 
-	NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::RegularNotificationLevel, 5, "" };
+	NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::ObjectInfoNotificationLevel, 10, "" };
 	auto notification = std::make_unique<NotificationManager::UpdatedItemsInfoNotification>(data, m_id_provider, m_evt_handler, type);
 	if (push_notification_data(std::move(notification), 0)) {
 		(dynamic_cast<UpdatedItemsInfoNotification*>(m_pop_notifications.back().get()))->add_type(type);
@@ -2084,8 +2077,8 @@ bool NotificationManager::activate_existing(const NotificationManager::PopNotifi
 					continue;
 				}
 			} else if (new_type == NotificationType::SlicingWarning) {
-				auto w1 = dynamic_cast<const SlicingWarningNotification*>(notification);
-				auto w2 = dynamic_cast<const SlicingWarningNotification*>(it->get());
+				auto w1 = dynamic_cast<const ObjectIDNotification*>(notification);
+				auto w2 = dynamic_cast<const ObjectIDNotification*>(it->get());
 				if (w1 != nullptr && w2 != nullptr) {
 					if (!(*it)->compare_text(new_text) || w1->object_id != w2->object_id) {
 						continue;

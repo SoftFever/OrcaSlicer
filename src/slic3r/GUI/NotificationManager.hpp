@@ -71,9 +71,6 @@ enum class NotificationType
 	PlaterError,
 	// Object fully outside the print volume, or extrusion outside the print volume. Slicing is not disabled.
 	PlaterWarning,
-	// Warning connected to single object id, appears at loading object, disapears at deletition.
-	// Example: advice to simplify object with big amount of triangles.
-	ObjectWarning,
 	// Progress bar instead of text.
 	ProgressBar,
 	// Progress bar with info from Print Host Upload Queue dialog.
@@ -105,7 +102,10 @@ enum class NotificationType
 	// Might contain logo taken from gizmos
 	UpdatedItemsInfo,
 	// Progress bar notification with methods to replace ProgressIndicator class.
-	ProgressIndicator
+	ProgressIndicator,
+	// Give user advice to simplify object with big amount of triangles
+	// Contains ObjectID for closing when object is deleted
+	SimplifySuggestion
 };
 
 class NotificationManager
@@ -121,6 +121,8 @@ public:
 		HintNotificationLevel,
 		// "Good to know" notification, usually but not always with a quick fade-out.		
 		RegularNotificationLevel,
+		// Regular level notifiaction containing info about objects or print. Has Icon.
+		ObjectInfoNotificationLevel,
 		// Information notification without a fade-out or with a longer fade-out.
 		ImportantNotificationLevel,
 		// Warning, no fade-out.
@@ -167,11 +169,11 @@ public:
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
 	// Object warning with ObjectID, closes when object is deleted. ID used is of object not print like in slicing warning.
-	void push_object_warning_notification(const std::string& text, ObjectID object_id, const std::string& hypertext = "",
+	void push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext = "",
 		std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
 	// Close object warnings, whose ObjectID is not in the list.
 	// living_oids is expected to be sorted.
-	void remove_object_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
+	void remove_simplify_suggestion_of_released_objects(const std::vector<ObjectID>& living_oids);
 	// Called when the side bar changes its visibility, as the "slicing complete" notification supplements
 	// the "slicing info" normally shown at the side bar.
 	void set_sidebar_collapsed(bool collapsed);
@@ -212,6 +214,7 @@ public:
 	bool is_hint_notification_open();
 	// Forces Hints to reload its content when next hint should be showed
 	void deactivate_loaded_hints();
+	// Adds counter to existing UpdatedItemsInfo notification or opens new one
 	void push_updated_item_info_notification(InfoItemType type);
 	// Close old notification ExportFinished.
 	void new_export_began(bool on_removable);
@@ -394,12 +397,14 @@ private:
 
 	
 
-	class SlicingWarningNotification : public PopNotification
+	class ObjectIDNotification : public PopNotification
 	{
 	public:
-		SlicingWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
+		ObjectIDNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) 
+			: PopNotification(n, id_provider, evt_handler) 
+		{}
 		ObjectID 	object_id;
-		int    		warning_step;
+		int    		warning_step { 0 };
 	};
 
 	class PlaterWarningNotification : public PopNotification
@@ -649,6 +654,11 @@ private:
 		}
 		void count_spaces() override;
 		void add_type(InfoItemType type);
+		void close() override{ 
+			for (auto& tac : m_types_and_counts)
+				tac.second = 0;
+			PopNotification::close(); 
+		}
 	protected:
 		void render_left_sign(ImGuiWrapper& imgui) override;
 		std::vector<std::pair<InfoItemType, size_t>> m_types_and_counts;
@@ -691,7 +701,20 @@ private:
 	void sort_notifications();
 	// If there is some error notification active, then the "Export G-code" notification after the slicing is finished is suppressed.
     bool has_slicing_error_notification();
-    
+	size_t get_standart_duration(NotificationLevel level)
+	{
+		switch (level) {
+		case NotificationLevel::RegularNotificationLevel: 	    return 20;
+		case NotificationLevel::ErrorNotificationLevel: 	    return 0;
+		case NotificationLevel::WarningNotificationLevel:	    return 0;
+		case NotificationLevel::ImportantNotificationLevel:     return 0;
+		case NotificationLevel::ProgressBarNotificationLevel:	return 2;
+		case NotificationLevel::HintNotificationLevel:			return 300;
+		case NotificationLevel::ObjectInfoNotificationLevel:    return 20;
+		default: return 10;
+		}
+	}
+
 	// set by init(), until false notifications are only added not updated and frame is not requested after push
 	bool m_initialized{ false };
 	// Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.
@@ -715,7 +738,7 @@ private:
 		NotificationType::PlaterWarning, 
 		NotificationType::ProgressBar, 
 		NotificationType::PrintHostUpload, 
-        NotificationType::ObjectWarning
+        NotificationType::SimplifySuggestion
 	};
 	//prepared (basic) notifications
 	static const NotificationData basic_notifications[];
