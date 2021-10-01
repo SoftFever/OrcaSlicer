@@ -79,9 +79,8 @@
 #define ENABLE_2_4_0_ALPHA4 1
 
 // Enable the fix for the detection of the out of bed state for sinking objects
-#define ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION (1 && ENABLE_2_4_0_ALPHA4)
-// Enable detection of out of bed using the bed perimeter and other improvements
-#define ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS (1 && ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION)
+// and detection of out of bed using the bed perimeter
+#define ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS (1 && ENABLE_2_4_0_ALPHA4)
 
 
 #endif // _prusaslicer_technologies_h_

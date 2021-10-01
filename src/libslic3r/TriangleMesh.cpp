@@ -429,7 +429,7 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
     return bbox;
 }
 
-#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafo, double world_min_z) const
 {
     BoundingBoxf3 bbox;
@@ -452,7 +452,7 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafo, d
     }
     return bbox;
 }
-#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 TriangleMesh TriangleMesh::convex_hull_3d() const
 {

@@ -529,7 +529,7 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
         bounding_box().transformed(trafo);
 }
 
-#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 BoundingBoxf3 GLVolume::transformed_non_sinking_bounding_box(const Transform3d& trafo) const
 {
     return GUI::wxGetApp().plater()->model().objects[object_idx()]->volumes[volume_idx()]->mesh().transformed_bounding_box(trafo, 0.0);
@@ -544,7 +544,7 @@ const BoundingBoxf3& GLVolume::transformed_non_sinking_bounding_box() const
     }
     return *m_transformed_non_sinking_bounding_box;
 }
-#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 void GLVolume::set_range(double min_z, double max_z)
 {
@@ -1070,12 +1070,11 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         if (volume->is_modifier || (!volume->shader_outside_printer_detection_enabled && (volume->is_wipe_tower || volume->composite_id.volume_id < 0)))
             continue;
 
-#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         bool contained = false;
         bool intersects = false;
         bool is_aux_volume = volume->is_sla_support() || volume->is_sla_pad() || volume->is_wipe_tower;
         const BoundingBoxf3 bb = is_aux_volume ? volume->transformed_convex_hull_bounding_box() : volume->transformed_non_sinking_bounding_box();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         ModelInstanceEPrintVolumeState volume_state;
         if (is_aux_volume) {
             if (volume->is_sla_support() || volume->is_wipe_tower) {
@@ -1091,13 +1090,9 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         contained = (volume_state == ModelInstancePVS_Inside);
         intersects = (volume_state == ModelInstancePVS_Partly_Outside);
 #else
-        contained = print_volume.contains(bb);
-        intersects = print_volume.intersects(bb);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-#else
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
         bool contained = print_volume.contains(bb);
-#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
         volume->is_outside = !contained;
         if (!volume->printable)
@@ -1108,13 +1103,13 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         if (overall_state == ModelInstancePVS_Inside && volume->is_outside)
             overall_state = ModelInstancePVS_Fully_Outside;
 
-#if ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         if (overall_state == ModelInstancePVS_Fully_Outside && volume->is_outside && intersects)
             overall_state = ModelInstancePVS_Partly_Outside;
 #else
         if (overall_state == ModelInstancePVS_Fully_Outside && volume->is_outside && print_volume.intersects(bb))
             overall_state = ModelInstancePVS_Partly_Outside;
-#endif // ENABLE_FIX_SINKING_OBJECT_OUT_OF_BED_DETECTION
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     }
 
     if (out_state != nullptr)
