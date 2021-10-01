@@ -122,7 +122,7 @@ public:
 		// "Good to know" notification, usually but not always with a quick fade-out.		
 		RegularNotificationLevel,
 		// Regular level notifiaction containing info about objects or print. Has Icon.
-		ObjectInfoNotificationLevel,
+		PrintInfoNotificationLevel,
 		// Information notification without a fade-out or with a longer fade-out.
 		ImportantNotificationLevel,
 		// Warning, no fade-out.
@@ -704,13 +704,14 @@ private:
 	size_t get_standart_duration(NotificationLevel level)
 	{
 		switch (level) {
-		case NotificationLevel::RegularNotificationLevel: 	    return 20;
+		
 		case NotificationLevel::ErrorNotificationLevel: 	    return 0;
 		case NotificationLevel::WarningNotificationLevel:	    return 0;
 		case NotificationLevel::ImportantNotificationLevel:     return 0;
 		case NotificationLevel::ProgressBarNotificationLevel:	return 2;
+		case NotificationLevel::RegularNotificationLevel: 	    return 10;
+		case NotificationLevel::PrintInfoNotificationLevel:     return 10;
 		case NotificationLevel::HintNotificationLevel:			return 300;
-		case NotificationLevel::ObjectInfoNotificationLevel:    return 20;
 		default: return 10;
 		}
 	}

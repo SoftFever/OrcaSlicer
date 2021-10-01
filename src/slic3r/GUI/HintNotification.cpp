@@ -1012,7 +1012,7 @@ void NotificationManager::HintNotification::retrieve_data(bool new_hint/* = true
 	if(hint_data != nullptr)
     {
         NotificationData nd { NotificationType::DidYouKnowHint,
-						      NotificationLevel::RegularNotificationLevel,
+						      NotificationLevel::HintNotificationLevel,
 							  0,
 						      hint_data->text,
 							  hint_data->hypertext, nullptr,

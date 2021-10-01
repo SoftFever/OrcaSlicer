@@ -363,7 +363,7 @@ void GLGizmoSimplify::on_set_state()
             auto notification_manager = wxGetApp().plater()->get_notification_manager();
             notification_manager->push_notification(
                 NotificationType::CustomNotification,
-                NotificationManager::NotificationLevel::RegularNotificationLevel,
+                NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
                 _u8L("ERROR: Wait until Simplification ends or Cancel process."));
             return;
         }

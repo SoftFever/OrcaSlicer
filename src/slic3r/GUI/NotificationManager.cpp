@@ -43,10 +43,10 @@ const NotificationManager::NotificationData NotificationManager::basic_notificat
 	},
 	{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
 		wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
-	{NotificationType::EmptyColorChangeCode, NotificationLevel::ObjectInfoNotificationLevel, 10,
+	{NotificationType::EmptyColorChangeCode, NotificationLevel::PrintInfoNotificationLevel, 10,
 		_u8L("You have just added a G-code for color change, but its value is empty.\n"
 			 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
-	{NotificationType::EmptyAutoColorChange, NotificationLevel::ObjectInfoNotificationLevel, 10,
+	{NotificationType::EmptyAutoColorChange, NotificationLevel::PrintInfoNotificationLevel, 10,
 		_u8L("No color change event was added to the print. The print does not look like a sign.") },
 	{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
 		_u8L("Desktop integration was successful.") },
@@ -276,7 +276,9 @@ void NotificationManager::PopNotification::count_spaces()
 	m_line_height = ImGui::CalcTextSize("A").y;
 
 	m_left_indentation = m_line_height;
-	if (m_data.level == NotificationLevel::ErrorNotificationLevel || m_data.level == NotificationLevel::WarningNotificationLevel) {
+	if (m_data.level == NotificationLevel::ErrorNotificationLevel 
+		|| m_data.level == NotificationLevel::WarningNotificationLevel
+		|| m_data.level == NotificationLevel::PrintInfoNotificationLevel) {
 		std::string text;
 		text = (m_data.level == NotificationLevel::ErrorNotificationLevel ? ImGui::ErrorMarker : ImGui::WarningMarker);
 		float picture_width = ImGui::CalcTextSize(text.c_str()).x;
@@ -511,7 +513,13 @@ void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)
 		ImGui::SetCursorPosX(m_line_height / 3);
 		ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
 		imgui.text(text.c_str());
-	} 
+	} else if (m_data.level == NotificationLevel::PrintInfoNotificationLevel) {
+		std::wstring text;
+		text = ImGui::InfoMarker;
+		ImGui::SetCursorPosX(m_line_height / 3);
+		ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
+		imgui.text(text.c_str());
+	}
 }
 void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& imgui, const float win_pos_x, const float win_pos_y)
 {
@@ -1604,7 +1612,7 @@ void NotificationManager::close_slicing_error_notification(const std::string& te
 }
 void  NotificationManager::push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext/* = ""*/, std::function<bool(wxEvtHandler*)> callback/* = std::function<bool(wxEvtHandler*)>()*/)
 {
-	NotificationData data{ NotificationType::SimplifySuggestion, NotificationLevel::ObjectInfoNotificationLevel, 10,  text, hypertext, callback };
+	NotificationData data{ NotificationType::SimplifySuggestion, NotificationLevel::PrintInfoNotificationLevel, 10,  text, hypertext, callback };
 	auto notification = std::make_unique<NotificationManager::ObjectIDNotification>(data, m_id_provider, m_evt_handler);
 	notification->object_id = object_id;
 	push_notification_data(std::move(notification), 0);
@@ -1914,7 +1922,7 @@ void NotificationManager::push_updated_item_info_notification(InfoItemType type)
 		}
 	}
 
-	NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::ObjectInfoNotificationLevel, 10, "" };
+	NotificationData data{ NotificationType::UpdatedItemsInfo, NotificationLevel::PrintInfoNotificationLevel, 10, "" };
 	auto notification = std::make_unique<NotificationManager::UpdatedItemsInfoNotification>(data, m_id_provider, m_evt_handler, type);
 	if (push_notification_data(std::move(notification), 0)) {
 		(dynamic_cast<UpdatedItemsInfoNotification*>(m_pop_notifications.back().get()))->add_type(type);

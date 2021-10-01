@@ -192,7 +192,7 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
     if (get_current_type() != type && get_current_type() != Undefined) {
         wxGetApp().plater()->get_notification_manager()->push_notification(
                     NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::RegularNotificationLevel,
+                    NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
                     _u8L("ERROR: Please close all manipulators available from "
                          "the left toolbar first"));
         return false;

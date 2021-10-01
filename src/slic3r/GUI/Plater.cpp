@@ -2346,7 +2346,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 for (std::string& name : names)
                                     notif_text += "\n - " + name;
                                 notification_manager->push_notification(NotificationType::CustomNotification,
-                                    NotificationManager::NotificationLevel::RegularNotificationLevel, notif_text);
+                                    NotificationManager::NotificationLevel::PrintInfoNotificationLevel, notif_text);
                             }
                         }
 
@@ -2910,7 +2910,7 @@ void Plater::priv::split_object()
         // If we splited object which is contain some parts/modifiers then all non-solid parts (modifiers) were deleted
         if (current_model_object->volumes.size() > 1 && current_model_object->volumes.size() != new_objects.size())
             notification_manager->push_notification(NotificationType::CustomNotification,
-                NotificationManager::NotificationLevel::RegularNotificationLevel,
+                NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
                 _u8L("All non-solid parts (modifiers) were deleted"));
 
         Plater::TakeSnapshot snapshot(q, _L("Split to Objects"));
@@ -6425,7 +6425,7 @@ void Plater::clear_before_change_mesh(int obj_idx)
         // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
         get_notification_manager()->push_notification(
                     NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::RegularNotificationLevel,
+                    NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
                     _u8L("Custom supports, seams and multimaterial painting were "
                          "removed after repairing the mesh."));
 //                    _u8L("Undo the repair"),
