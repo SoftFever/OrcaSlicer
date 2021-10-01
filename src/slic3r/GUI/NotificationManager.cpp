@@ -1644,6 +1644,15 @@ void NotificationManager::remove_simplify_suggestion_of_released_objects(const s
 		}
 }
 
+void NotificationManager::remove_simplify_suggestion_with_id(const ObjectID oid)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications)
+		if (notification->get_type() == NotificationType::SimplifySuggestion) {
+			if (static_cast<ObjectIDNotification*>(notification.get())->object_id == oid)
+				notification->close();
+		}
+}
+
 void NotificationManager::push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
 	close_notification_of_type(NotificationType::ExportFinished);

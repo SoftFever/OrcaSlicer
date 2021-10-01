@@ -174,6 +174,7 @@ public:
 	// Close object warnings, whose ObjectID is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_simplify_suggestion_of_released_objects(const std::vector<ObjectID>& living_oids);
+	void remove_simplify_suggestion_with_id(const ObjectID oid);
 	// Called when the side bar changes its visibility, as the "slicing complete" notification supplements
 	// the "slicing info" normally shown at the side bar.
 	void set_sidebar_collapsed(bool collapsed);
