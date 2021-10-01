@@ -515,6 +515,12 @@ public:
     // Return an estimate of the memory held by GPU vertex buffers.
     size_t 				gpu_memory_used() const { return this->indexed_vertex_array.gpu_memory_used(); }
     size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
+
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    // calculates the 3D convex hull from indexed_vertex_array.vertices_and_normals_interleaved
+    // must be called before calling indexed_vertex_array.finalize_geometry();
+    void calc_convex_hull_3d();
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;

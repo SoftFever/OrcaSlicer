@@ -1826,8 +1826,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 assert(volume_idx_wipe_tower_old == -1);
                 volume_idx_wipe_tower_old = (int)volume_id;
             }
-            if (!m_reload_delayed)
-            {
+            if (!m_reload_delayed) {
                 deleted_volumes.emplace_back(volume, volume_id);
                 delete volume;
             }
@@ -5016,8 +5015,7 @@ void GLCanvas3D::_render_background() const
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
             ModelInstanceEPrintVolumeState state;
             if (m_gcode_viewer.has_data()) {
-                const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
-                const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+                const Polygon bed_poly = offset(Polygon::new_scale(wxGetApp().plater()->get_bed().get_shape()), static_cast<float>(scale_(BedEpsilon))).front();
                 const float bed_height = m_config->opt_float("max_print_height");
                 state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
             }
@@ -5813,7 +5811,7 @@ void GLCanvas3D::_load_print_toolpaths()
         total_layer_count = std::max(total_layer_count, print_object->total_layer_count());
     }
     size_t skirt_height = print->has_infinite_skirt() ? total_layer_count : std::min<size_t>(print->config().skirt_height.value, total_layer_count);
-    if ((skirt_height == 0) && print->has_brim())
+    if (skirt_height == 0 && print->has_brim())
         skirt_height = 1;
 
     // Get first skirt_height layers.
@@ -5846,6 +5844,9 @@ void GLCanvas3D::_load_print_toolpaths()
             reserve_new_volume_finalize_old_volume(*volume, vol, m_initialized);
         }
     }
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    volume->calc_convex_hull_3d();
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     volume->indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
@@ -6136,8 +6137,16 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
+        GLVolume* v = m_volumes.volumes[i];
+        v->calc_convex_hull_3d();
+        v->indexed_vertex_array.finalize_geometry(m_initialized);
+    }
+#else
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
         m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_initialized);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
@@ -6145,7 +6154,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors)
 {
     const Print *print = this->fff_print();
-    if ((print == nullptr) || print->wipe_tower_data().tool_changes.empty())
+    if (print == nullptr || print->wipe_tower_data().tool_changes.empty())
         return;
 
     if (!print->is_step_done(psWipeTower))
@@ -6293,8 +6302,16 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
+        GLVolume* v = m_volumes.volumes[i];
+        v->calc_convex_hull_3d();
+        v->indexed_vertex_array.finalize_geometry(m_initialized);
+    }
+#else
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
         m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_initialized);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
@@ -6357,12 +6374,13 @@ void GLCanvas3D::_load_sla_shells()
 void GLCanvas3D::_update_toolpath_volumes_outside_state()
 {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
-    const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+    const Polygon bed_poly = offset(Polygon::new_scale(wxGetApp().plater()->get_bed().get_shape()), static_cast<float>(scale_(BedEpsilon))).front();
     const float bed_height = m_config->opt_float("max_print_height");
     for (GLVolume* volume : m_volumes.volumes) {
         if (volume->is_extrusion_path) {
-            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, volume->bounding_box());
+            const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
+            const Polygon volume_hull_2d = its_convex_hull_2d_above(volume->convex_hull()->its, volume->world_matrix().cast<float>(), 0.0f);
+            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb.min.z(), bb.max.z());
             volume->is_outside = (state != ModelInstancePVS_Inside);
         }
         else
@@ -6379,12 +6397,13 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 void GLCanvas3D::_update_sla_shells_outside_state()
 {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
-    const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
+    const Polygon bed_poly = offset(Polygon::new_scale(wxGetApp().plater()->get_bed().get_shape()), static_cast<float>(scale_(BedEpsilon))).front();
     const float bed_height = m_config->opt_float("max_print_height");
     for (GLVolume* volume : m_volumes.volumes) {
         if (volume->shader_outside_printer_detection_enabled) {
-            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, volume->transformed_convex_hull_bounding_box());
+            const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
+            const Polygon volume_hull_2d = its_convex_hull_2d_above(volume->convex_hull()->its, volume->world_matrix().cast<float>(), 0.0f);
+            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb.min.z(), bb.max.z());
             volume->is_outside = (state != ModelInstancePVS_Inside);
         }
         else
@@ -6407,11 +6426,12 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
     else {
         if (wxGetApp().is_editor()) {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-            const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
-            const Polygon bed_poly = offset(Polygon::new_scale(opt->values), static_cast<float>(scale_(BedEpsilon))).front();
-            const float bed_height = m_config->opt_float("max_print_height");
-            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
-            show = state != ModelInstancePVS_Inside;
+            if (current_printer_technology() != ptSLA) {
+                const Polygon bed_poly = offset(Polygon::new_scale(wxGetApp().plater()->get_bed().get_shape()), static_cast<float>(scale_(BedEpsilon))).front();
+                const float bed_height = m_config->opt_float("max_print_height");
+                const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
+                show = state != ModelInstancePVS_Inside;
+            }
 #else
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
@@ -6464,7 +6484,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             "Resolve the current problem to continue slicing.");
         error = ErrorType::PLATER_ERROR;
         break;
-}
+    }
     auto& notification_manager = *wxGetApp().plater()->get_notification_manager();
     switch (error)
     {
@@ -6494,7 +6514,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 bool GLCanvas3D::_is_any_volume_outside() const
 {
     for (const GLVolume* volume : m_volumes.volumes) {
-        if ((volume != nullptr) && volume->is_outside)
+        if (volume != nullptr && volume->is_outside)
             return true;
     }
 
