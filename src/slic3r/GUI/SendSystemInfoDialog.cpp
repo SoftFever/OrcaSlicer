@@ -14,9 +14,11 @@
 #include "MsgDialog.hpp"
 #include "OpenGLManager.hpp"
 
+#include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/uuid/detail/md5.hpp>
 
 #include "GL/glew.h"
 
@@ -31,6 +33,8 @@
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <Iphlpapi.h>
+    #pragma comment(lib, "iphlpapi.lib")
 #endif
 
 namespace Slic3r {
@@ -225,15 +229,75 @@ static std::map<std::string, std::string> parse_lscpu_etc(const std::string& nam
 
 
 
+static std::string get_unique_id()
+{
+    std::vector<unsigned char> unique;
+
+#ifdef _WIN32
+    // On Windows, get the MAC address of a network adaptor (preferably Ethernet
+    // or IEEE 802.11 wireless
+
+    DWORD dwBufLen = sizeof(IP_ADAPTER_INFO);
+    PIP_ADAPTER_INFO AdapterInfo = (PIP_ADAPTER_INFO)malloc(dwBufLen);
+
+    if (GetAdaptersInfo(AdapterInfo, &dwBufLen) == ERROR_BUFFER_OVERFLOW) {
+        free(AdapterInfo);
+        AdapterInfo = (IP_ADAPTER_INFO*)malloc(dwBufLen);
+    }    
+    if (GetAdaptersInfo(AdapterInfo, &dwBufLen) == NO_ERROR) {
+        const IP_ADAPTER_INFO* pAdapterInfo = AdapterInfo;
+        std::vector<std::vector<unsigned char>> macs;
+        bool ethernet_seen = false;
+        while (pAdapterInfo) {
+            macs.emplace_back();
+            for (unsigned char i = 0; i < pAdapterInfo->AddressLength; ++i)
+                macs.back().emplace_back(pAdapterInfo->Address[i]);
+            // Prefer Ethernet and IEEE 802.11 wireless
+            if (! ethernet_seen) {
+                if ((pAdapterInfo->Type == MIB_IF_TYPE_ETHERNET && (ethernet_seen = true))
+                 ||  pAdapterInfo->Type == IF_TYPE_IEEE80211)
+                    std::swap(macs.front(), macs.back());
+            }
+            pAdapterInfo = pAdapterInfo->Next;
+        }
+        if (! macs.empty())
+            unique = macs.front();
+    }
+    free(AdapterInfo);
+#elif __APPLE__
+#else // Linux/BSD
+#endif
+
+    // We should have a unique vector<unsigned char>. Append a long prime to be
+    // absolutely safe against unhashing.
+    uint64_t prime = 1171432692373;
+    size_t beg = unique.size();
+    unique.resize(beg + 8);
+    memcpy(&unique[beg], &prime, 8);
+
+    // Compute an MD5 hash and convert to std::string.
+    using boost::uuids::detail::md5;
+    md5 hash;
+    md5::digest_type digest;
+    hash.process_bytes(unique.data(), unique.size());
+    hash.get_digest(digest);
+    const unsigned char* charDigest = reinterpret_cast<const unsigned char*>(&digest);
+    std::string result;
+    boost::algorithm::hex(charDigest, charDigest + sizeof(md5::digest_type), std::back_inserter(result));
+    return result;
+}
+
+
 // Following function generates one string that will be shown in the preview
 // and later sent if confirmed by the user.
 static std::string generate_system_info_json()
 {
+    get_unique_id();
     // Calculate hash of username so it is possible to identify duplicates.
     // The result is mod 10000 so most of the information is lost and it is
     // not possible to unhash the username. It is more than enough to help
     // identify duplicate entries.
-    size_t datadir_hash = std::hash<std::string>{}(std::string(wxGetUserId().ToUTF8().data())) % 10000;
+    std::string unique_id = get_unique_id();
 
     // Get system language.
     std::string sys_language = "Unknown";
@@ -247,7 +311,7 @@ static std::string generate_system_info_json()
     pt::ptree data_node;
     data_node.put("PrusaSlicerVersion", SLIC3R_VERSION);
     data_node.put("BuildID", SLIC3R_BUILD_ID);
-    data_node.put("UsernameHash", datadir_hash);
+    data_node.put("UniqueID", unique_id);
     data_node.put("Platform", platform_to_string(platform()));
     data_node.put("PlatformFlavor", platform_flavor_to_string(platform_flavor()));
     data_node.put("OSDescription", wxPlatformInfo::Get().GetOperatingSystemDescription().ToUTF8().data());
@@ -413,8 +477,8 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     wxString label2 = _L("Is it safe?");
     wxString text2 = GUI::format_wxstr(
         _L("We do not send any personal information nor anything that would allow us "
-           "to identify you later. To detect duplicate entries, a number derived "
-           "from your username is sent, but it cannot be used to recover the username. "
+           "to identify you later. To detect duplicate entries, a unique number derived "
+           "from your system is sent, but the source information cannot be reconstructed. "
            "Apart from that, only general data about your OS, hardware and OpenGL "
            "installation are sent. PrusaSlicer is open source, if you want to "
            "inspect the code actually performing the communication, see %1%."),
