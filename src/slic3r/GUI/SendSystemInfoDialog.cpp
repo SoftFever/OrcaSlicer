@@ -266,6 +266,13 @@ static std::string get_unique_id()
             unique = macs.front();
     }
     free(AdapterInfo);
+
+    // DEBUGGING ONLY:
+    printf("SENDSYSTEMINFODIALOG DEBUGGING: Windows MAC: ");
+    for (unsigned char c : unique)
+        printf("%02X ", c);
+    printf("\n");
+
 #elif __APPLE__
     constexpr int buf_size = 100;
     char buf[buf_size] = "";
@@ -278,6 +285,9 @@ static std::string get_unique_id()
     // Now convert the string to std::vector<unsigned char>.
     for (char* c = buf; *c != 0; ++c)
         unique.emplace_back((unsigned char)(*c));
+
+    // DEBUGGING ONLY:
+    std::cout << "SENDSYSTEMINFODIALOG DEBUGGING: Apple hardware UUID: " << buf << std::endl;
 #else // Linux/BSD
     constexpr size_t max_len = 100;
     char cline[max_len] = "";
@@ -291,6 +301,9 @@ static std::string get_unique_id()
     // Now convert the string to std::vector<unsigned char>.
     for (char* c = cline; *c != 0; ++c)
         unique.emplace_back((unsigned char)(*c));
+
+    // DEBUGGING ONLY:
+    std::cout << "SENDSYSTEMINFODIALOG DEBUGGING: Linux machine-id: " << cline << std::endl;
 #endif
 
     // In case that we did not manage to get the unique info, just return an empty
