@@ -2442,7 +2442,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             for (ModelObject* model_object : model.objects) {
                 if (!type_3mf && !type_zip_amf)
                     model_object->center_around_origin(false);
-                model_object->ensure_on_bed(is_project_file || type_3mf || type_zip_amf);
+                model_object->ensure_on_bed(is_project_file);
             }
 
             // check multi-part object adding for the SLA-printing
@@ -2459,7 +2459,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (one_by_one) {
                 if (type_3mf && !is_project_file)
                     model.center_instances_around_point(bed_shape_bb().center());
-                auto loaded_idxs = load_model_objects(model.objects, is_project_file || type_3mf || type_zip_amf);
+                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
