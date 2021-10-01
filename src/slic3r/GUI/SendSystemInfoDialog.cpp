@@ -279,8 +279,24 @@ static std::string get_unique_id()
     for (char* c = buf; *c != 0; ++c)
         unique.emplace_back((unsigned char)(*c));
 #else // Linux/BSD
-
+    constexpr size_t max_len = 100;
+    char cline[max_len] = "";
+    FILE* fp = popen("cat /etc/machine-id", "r");
+    if (fp != NULL) {
+        // Maybe the only way to silence -Wunused-result on gcc...
+        // cline is simply not modified on failure, who cares.
+        [[maybe_unused]]auto dummy = fgets(cline, max_len, fp);
+        pclose(fp);
+    }
+    // Now convert the string to std::vector<unsigned char>.
+    for (char* c = cline; *c != 0; ++c)
+        unique.emplace_back((unsigned char)(*c));
 #endif
+
+    // In case that we did not manage to get the unique info, just return an empty
+    // string, so it is easily detectable and not masked by the hashing.
+    if (unique.empty())
+        return "";
 
     // We should have a unique vector<unsigned char>. Append a long prime to be
     // absolutely safe against unhashing.
@@ -306,7 +322,6 @@ static std::string get_unique_id()
 // and later sent if confirmed by the user.
 static std::string generate_system_info_json()
 {
-    get_unique_id();
     // Calculate hash of username so it is possible to identify duplicates.
     // The result is mod 10000 so most of the information is lost and it is
     // not possible to unhash the username. It is more than enough to help
