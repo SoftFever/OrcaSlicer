@@ -1922,7 +1922,7 @@ namespace Slic3r {
             {
                 int min_id = its.indices.front()[0];
                 int max_id = min_id;
-                for (const Vec3i& face : its.indices) {
+                for (const Vec3i face : its.indices) {
                     for (const int tri_id : face) {
                         if (tri_id < 0 || tri_id >= int(geometry.vertices.size())) {
                             add_error("Found invalid vertex id");

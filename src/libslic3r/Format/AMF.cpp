@@ -617,19 +617,35 @@ void AMFParserContext::endElement(const char * /* name */)
     case NODE_TYPE_VOLUME:
     {
 		assert(m_object && m_volume);
-        // Verify validity of face indices.
-        for (Vec3i face : m_volume_facets)
-            for (unsigned int tri_id : face)
-                if (tri_id < 0 || tri_id >= m_object_vertices.size()) {
-                    this->stop("Malformed triangle mesh");
-                    return;
-                }
+        if (m_volume_facets.empty()) {
+            this->stop("An empty triangle mesh found");
+            return;
+        }
 
         {
-            TriangleMesh triangle_mesh { std::move(m_object_vertices), std::move(m_volume_facets) };
-            if (triangle_mesh.volume() < 0)
-                triangle_mesh.flip_triangles();
-            m_volume->set_mesh(std::move(triangle_mesh));
+            // Verify validity of face indices, find the vertex span.
+            int min_id = m_volume_facets.front()[0];
+            int max_id = min_id;
+            for (const Vec3i face : m_volume_facets) {
+                for (const int tri_id : face) {
+                    if (tri_id < 0 || tri_id >= int(m_object_vertices.size())) {
+                        this->stop("Malformed triangle mesh");
+                        return;
+                    }
+                    min_id = std::min(min_id, tri_id);
+                    max_id = std::max(max_id, tri_id);
+                }
+            }
+
+            // rebase indices to the current vertices list
+            for (Vec3i &face : m_volume_facets)
+                face -= Vec3i(min_id, min_id, min_id);
+
+            indexed_triangle_set its { std::move(m_volume_facets), { m_object_vertices.begin() + min_id, m_object_vertices.begin() + max_id + 1 } };
+            its_compactify_vertices(its);
+            if (its_volume(its) < 0)
+                its_flip_triangles(its);
+            m_volume->set_mesh(std::move(its));
         }
 
         // stores the volume matrix taken from the metadata, if present
@@ -646,7 +662,6 @@ void AMFParserContext::endElement(const char * /* name */)
 
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
-        m_object_vertices.clear();
         m_volume = nullptr;
         break;
     }
