@@ -325,20 +325,24 @@ void TriangleMesh::mirror(const Axis axis)
 void TriangleMesh::transform(const Transform3d& t, bool fix_left_handed)
 {
     its_transform(its, t);
-    if (fix_left_handed && t.matrix().block(0, 0, 3, 3).determinant() < 0.)
+    double det = t.matrix().block(0, 0, 3, 3).determinant();
+    if (fix_left_handed && det < 0.) {
         its_flip_triangles(its);
-    else
-        m_stats.volume = - m_stats.volume;
+        det = -det;
+    }
+    m_stats.volume *= det;
     update_bounding_box(this->its, this->m_stats);
 }
 
 void TriangleMesh::transform(const Matrix3d& m, bool fix_left_handed)
 {
     its_transform(its, m);
-    if (fix_left_handed && m.determinant() < 0.)
+    double det = m.block(0, 0, 3, 3).determinant();
+    if (fix_left_handed && det < 0.) {
         its_flip_triangles(its);
-    else
-        m_stats.volume = - m_stats.volume;
+        det = -det;
+    }
+    m_stats.volume *= det;
     update_bounding_box(this->its, this->m_stats);
 }
 
