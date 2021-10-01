@@ -397,22 +397,6 @@ void PrintObject::generate_support_material()
                 if (layer->empty())
                     throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
 #endif
-
-            // Do we have custom support data that would not be used?
-            // Notify the user in that case.
-            if (! this->has_support()) {
-                for (const ModelVolume* mv : this->model_object()->volumes) {
-                    bool has_enforcers = mv->is_support_enforcer() || 
-                        (mv->is_model_part() && mv->supported_facets.has_facets(*mv, EnforcerBlockerType::ENFORCER));
-                    if (has_enforcers) {
-                        this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-                            L("An object has custom support enforcers which will not be used "
-                              "because supports are off. Consider turning them on.") + "\n" +
-                            (L("Object name")) + ": " + this->model_object()->name);
-                        break;
-                    }
-                }
-            }
         }
         this->set_done(posSupportMaterial);
     }

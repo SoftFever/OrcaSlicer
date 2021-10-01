@@ -2600,6 +2600,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     // so 3D-scene should be updated before object additing to the ObjectList
     this->view3D->reload_scene(false, (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
 
+    notification_manager->close_notification_of_type(NotificationType::UpdatedItemsInfo);
     for (const size_t idx : obj_idxs) {
         wxGetApp().obj_list()->add_object_to_list(idx);
     }
@@ -3711,8 +3712,8 @@ void Plater::priv::create_simplify_notification(const std::vector<size_t>& obj_i
             "amount of triangles.");
         t.replace(t.find("@object_name"), sizeof("@object_name") - 1,
                   model.objects[object_id]->name);
-        std::stringstream text;
-        text << _u8L("WARNING:") << "\n" << t << "\n";
+        //std::stringstream text;
+        //text << t << "\n";
         std::string hypertext = _u8L("Simplify model");
 
         std::function<bool(wxEvtHandler *)> open_simplify = [object_id](wxEvtHandler *) {
@@ -3727,7 +3728,10 @@ void Plater::priv::create_simplify_notification(const std::vector<size_t>& obj_i
             manager.open_gizmo(GLGizmosManager::EType::Simplify);
             return true;
         };
-        notification_manager->push_object_warning_notification(text.str(), model.objects[object_id]->id(), hypertext, open_simplify);
+        notification_manager->push_simplify_suggestion_notification(t, 
+                                                                    model.objects[object_id]->id(), 
+                                                                    hypertext, 
+                                                                    open_simplify);
     }
 }
 
@@ -4000,7 +4004,7 @@ void Plater::priv::actualize_object_warnings(const PrintBase& print)
         ids.push_back(object->id());
     }
     std::sort(ids.begin(), ids.end());
-    notification_manager->remove_object_warnings_of_released_objects(ids);
+    notification_manager->remove_simplify_suggestion_of_released_objects(ids);
 }
 void Plater::priv::clear_warnings()
 {
