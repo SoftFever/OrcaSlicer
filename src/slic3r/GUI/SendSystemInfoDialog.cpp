@@ -35,6 +35,8 @@
     #include <windows.h>
     #include <Iphlpapi.h>
     #pragma comment(lib, "iphlpapi.lib")
+#elif __APPLE__
+#import <IOKit/IOKitLib.h>
 #endif
 
 namespace Slic3r {
@@ -265,7 +267,19 @@ static std::string get_unique_id()
     }
     free(AdapterInfo);
 #elif __APPLE__
+    constexpr int buf_size = 100;
+    char buf[buf_size] = "";
+    memset(&buf, 0, sizeof(buf));
+    io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
+    CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
+    IOObjectRelease(ioRegistryRoot);
+    CFStringGetCString(uuidCf, buf, buf_size, kCFStringEncodingMacRoman);
+    CFRelease(uuidCf);
+    // Now convert the string to std::vector<unsigned char>.
+    for (char* c = buf; *c != 0; ++c)
+        unique.emplace_back((unsigned char)(*c));
 #else // Linux/BSD
+
 #endif
 
     // We should have a unique vector<unsigned char>. Append a long prime to be
