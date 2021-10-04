@@ -112,6 +112,9 @@ Selection::Selection()
     , m_type(Empty)
     , m_valid(false)
     , m_scale_factor(1.0f)
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    , m_dragging(false)
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 {
     this->set_bounding_boxes_dirty();
 }
@@ -675,6 +678,10 @@ void Selection::start_dragging()
 {
     if (!m_valid)
         return;
+
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_dragging = true;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     set_caches();
 }

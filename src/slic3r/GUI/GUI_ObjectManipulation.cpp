@@ -631,7 +631,6 @@ void ObjectManipulation::update_if_dirty()
         update(m_cache.rotation, m_cache.rotation_rounded, meRotation, m_new_rotation);
     }
 
-
     if (selection.requires_uniform_scale()) {
         m_lock_bnt->SetLock(true);
         m_lock_bnt->SetToolTip(_L("You cannot use non-uniform scaling mode for multiple objects/parts selection"));
@@ -654,8 +653,14 @@ void ObjectManipulation::update_if_dirty()
     else
         m_og->disable();
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    if (!selection.is_dragging()) {
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     update_reset_buttons_visibility();
     update_mirror_buttons_visibility();
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     m_dirty = false;
 }

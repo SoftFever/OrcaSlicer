@@ -3215,6 +3215,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        if (evt.LeftUp())
+            m_selection.stop_dragging();
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
         if (m_layers_editing.state != LayersEditing::Unknown) {
             m_layers_editing.state = LayersEditing::Unknown;
             _stop_timer();
