@@ -3087,10 +3087,13 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
 	//actualizate warnings
 	if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
+        if (background_process.empty())
+            process_validation_warning(std::string());
 		actualize_slicing_warnings(*this->background_process.current_print());
         actualize_object_warnings(*this->background_process.current_print());
 		show_warning_dialog = false;
 		process_completed_with_error = false;
+        
 	}
 
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
@@ -4540,6 +4543,11 @@ bool Plater::priv::can_fix_through_netfabb() const
     std::vector<int> obj_idxs, vol_idxs;
     sidebar->obj_list()->get_selection_indexes(obj_idxs, vol_idxs);
 
+#if FIX_THROUGH_NETFABB_ALWAYS
+    // Fixing always.
+    return ! obj_idxs.empty() || ! vol_idxs.empty();
+#else // FIX_THROUGH_NETFABB_ALWAYS
+    // Fixing only if the model is not manifold.
     if (vol_idxs.empty()) {
         for (auto obj_idx : obj_idxs)
             if (model.objects[obj_idx]->get_mesh_errors_count() > 0)
@@ -4551,10 +4559,9 @@ bool Plater::priv::can_fix_through_netfabb() const
     for (auto vol_idx : vol_idxs)
         if (model.objects[obj_idx]->get_mesh_errors_count(vol_idx) > 0)
             return true;
-
     return false;
+#endif // FIX_THROUGH_NETFABB_ALWAYS
 }
-
 
 bool Plater::priv::can_simplify() const
 {

@@ -182,7 +182,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
     double cut_z = m_cut_z;
     if (imperial_units)
         cut_z *= ObjectManipulation::mm_to_in;
-    ImGui::InputDouble("", &cut_z, 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble("", &cut_z, 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal);
 
     ImGui::SameLine();
     m_imgui->text(imperial_units ? _L("in") : _L("mm"));

@@ -359,7 +359,7 @@ bool ImGuiWrapper::image_button()
 
 bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)
 {
-    return ImGui::InputDouble(label.c_str(), const_cast<double*>(&value), 0.0f, 0.0f, format.c_str());
+    return ImGui::InputDouble(label.c_str(), const_cast<double*>(&value), 0.0f, 0.0f, format.c_str(), ImGuiInputTextFlags_CharsDecimal);
 }
 
 bool ImGuiWrapper::input_double(const wxString &label, const double &value, const std::string &format)

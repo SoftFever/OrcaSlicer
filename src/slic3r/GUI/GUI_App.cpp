@@ -2432,6 +2432,20 @@ void GUI_App::open_web_page_localized(const std::string &http_address)
     open_browser_with_warning_dialog(http_address + "&lng=" + this->current_language_code_safe());
 }
 
+// If we are switching from the FFF-preset to the SLA, we should to control the printed objects if they have a part(s).
+// Because of we can't to print the multi-part objects with SLA technology.
+bool GUI_App::may_switch_to_SLA_preset(const wxString& caption)
+{
+    if (model_has_multi_part_objects(model())) {
+        show_info(nullptr,
+            _L("It's impossible to print multi-part object(s) with SLA technology.") + "\n\n" +
+            _L("Please check your object list before preset changing."),
+            caption);
+        return false;
+    }
+    return true;
+}
+
 bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage start_page)
 {
     wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
@@ -2447,13 +2461,9 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
     if (res) {
         load_current_presets();
 
-        if (preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA
-            && Slic3r::model_has_multi_part_objects(wxGetApp().model())) {
-            GUI::show_info(nullptr,
-                _L("It's impossible to print multi-part object(s) with SLA technology.") + "\n\n" +
-                _L("Please check and fix your object list."),
-                _L("Attention!"));
-        }
+        // #ysFIXME - delete after testing: This part of code looks redundant. All checks are inside ConfigWizard::priv::apply_config() 
+        if (preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
+            may_switch_to_SLA_preset(_L("Configuration is editing from ConfigWizard"));
     }
 
     return res;

@@ -561,6 +561,8 @@ inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
     return is_rotation_ninety_degrees(rotation.x()) && is_rotation_ninety_degrees(rotation.y()) && is_rotation_ninety_degrees(rotation.z());
 }
 
+bool intersects(const Polygon &convex_poly1, const Polygon &convex_poly2);
+
 } } // namespace Slicer::Geometry
 
 #endif
