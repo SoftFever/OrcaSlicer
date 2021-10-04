@@ -4536,6 +4536,11 @@ bool Plater::priv::can_fix_through_netfabb() const
     std::vector<int> obj_idxs, vol_idxs;
     sidebar->obj_list()->get_selection_indexes(obj_idxs, vol_idxs);
 
+#if FIX_THROUGH_NETFABB_ALWAYS
+    // Fixing always.
+    return ! obj_idxs.empty() || ! vol_idxs.empty();
+#else // FIX_THROUGH_NETFABB_ALWAYS
+    // Fixing only if the model is not manifold.
     if (vol_idxs.empty()) {
         for (auto obj_idx : obj_idxs)
             if (model.objects[obj_idx]->get_mesh_errors_count() > 0)
@@ -4547,10 +4552,9 @@ bool Plater::priv::can_fix_through_netfabb() const
     for (auto vol_idx : vol_idxs)
         if (model.objects[obj_idx]->get_mesh_errors_count(vol_idx) > 0)
             return true;
-
     return false;
+#endif // FIX_THROUGH_NETFABB_ALWAYS
 }
-
 
 bool Plater::priv::can_simplify() const
 {

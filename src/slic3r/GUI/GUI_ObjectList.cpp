@@ -377,10 +377,7 @@ void ObjectList::get_selection_indexes(std::vector<int>& obj_idxs, std::vector<i
 
 int ObjectList::get_mesh_errors_count(const int obj_idx, const int vol_idx /*= -1*/) const
 {
-    if (obj_idx < 0)
-        return 0;
-
-    return (*m_objects)[obj_idx]->get_mesh_errors_count(vol_idx);
+    return obj_idx >= 0 ? (*m_objects)[obj_idx]->get_mesh_errors_count(vol_idx) : 0;
 }
 
 static std::string get_warning_icon_name(const TriangleMeshStats& stats)
@@ -393,7 +390,7 @@ std::pair<wxString, std::string> ObjectList::get_mesh_errors(const int obj_idx, 
     const int errors = get_mesh_errors_count(obj_idx, vol_idx);
 
     if (errors == 0)
-        return { "", "" }; // hide tooltip
+        return { {}, {} }; // hide tooltip
 
     // Create tooltip string, if there are errors 
     wxString tooltip = format_wxstr(_L_PLURAL("Auto-repaired %1$d error", "Auto-repaired %1$d errors", errors), errors) + ":\n";
@@ -4043,17 +4040,21 @@ void ObjectList::fix_through_netfabb()
     // clear selections from the non-broken models if any exists
     // and than fill names of models to repairing 
     if (vol_idxs.empty()) {
+#if !FIX_THROUGH_NETFABB_ALWAYS
         for (int i = int(obj_idxs.size())-1; i >= 0; --i)
                 if (object(obj_idxs[i])->get_mesh_errors_count() == 0)
                     obj_idxs.erase(obj_idxs.begin()+i);
+#endif // FIX_THROUGH_NETFABB_ALWAYS
         for (int obj_idx : obj_idxs)
             model_names.push_back(object(obj_idx)->name);
     }
     else {
         ModelObject* obj = object(obj_idxs.front());
+#if !FIX_THROUGH_NETFABB_ALWAYS
         for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
             if (obj->get_mesh_errors_count(vol_idxs[i]) == 0)
                 vol_idxs.erase(vol_idxs.begin() + i);
+#endif // FIX_THROUGH_NETFABB_ALWAYS
         for (int vol_idx : vol_idxs)
             model_names.push_back(obj->volumes[vol_idx]->name);
     }
@@ -4106,8 +4107,10 @@ void ObjectList::fix_through_netfabb()
     if (vol_idxs.empty()) {
         int vol_idx{ -1 };
         for (int obj_idx : obj_idxs) {
+#if !FIX_THROUGH_NETFABB_ALWAYS
             if (object(obj_idx)->get_mesh_errors_count(vol_idx) == 0)
                 continue;
+#endif // FIX_THROUGH_NETFABB_ALWAYS
             if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, progress_dlg, succes_models, failed_models))
                 break;
             model_idx++;

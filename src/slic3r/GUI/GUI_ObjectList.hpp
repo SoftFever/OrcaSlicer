@@ -36,6 +36,9 @@ typedef double                                      coordf_t;
 typedef std::pair<coordf_t, coordf_t>               t_layer_height_range;
 typedef std::map<t_layer_height_range, ModelConfig> t_layer_config_ranges;
 
+// Manifold mesh may contain self-intersections, so we want to always allow fixing the mesh.
+#define FIX_THROUGH_NETFABB_ALWAYS 1
+
 namespace GUI {
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
