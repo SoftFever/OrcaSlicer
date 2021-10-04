@@ -2861,6 +2861,8 @@ void GCodeProcessor::process_M109(const GCodeReader::GCodeLine& line)
         else
             m_extruder_temps[m_extruder_id] = new_temp;
     }
+    else if (line.has_value('S', new_temp))
+        m_extruder_temps[m_extruder_id] = new_temp;
 }
 
 void GCodeProcessor::process_M132(const GCodeReader::GCodeLine& line)

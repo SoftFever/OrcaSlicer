@@ -834,7 +834,7 @@ bool MainFrame::can_save() const
 #if ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
     return (m_plater != nullptr) &&
         !m_plater->canvas3D()->get_gizmos_manager().is_in_editing_mode(false) &&
-        !m_plater->get_project_filename().empty() && m_plater->is_project_dirty();
+        m_plater->is_project_dirty();
 #else
     return (m_plater != nullptr) && !m_plater->model().objects.empty() &&
         !m_plater->canvas3D()->get_gizmos_manager().is_in_editing_mode(false) &&
