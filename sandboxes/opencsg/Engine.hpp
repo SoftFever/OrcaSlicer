@@ -17,11 +17,6 @@ class SLAPrint;
 
 namespace GL {
 
-// Simple shorthands for smart pointers
-template<class T> using shptr = std::shared_ptr<T>;
-template<class T> using uqptr = std::unique_ptr<T>;
-template<class T> using wkptr = std::weak_ptr<T>;
-
 template<class T, class A = std::allocator<T>> using vector = std::vector<T, A>;
 
 // remove empty weak pointers from a vector
@@ -61,7 +56,7 @@ public:
     };
     
 private:
-    vector<wkptr<Listener>> m_listeners;
+    vector<std::weak_ptr<Listener>> m_listeners;
         
 public:
     virtual ~MouseInput() = default;
@@ -95,7 +90,7 @@ public:
         call(&Listener::on_moved_to, m_listeners, x, y);
     }
     
-    void add_listener(shptr<Listener> listener)
+    void add_listener(std::shared_ptr<Listener> listener)
     {
         m_listeners.emplace_back(listener);
         cleanup(m_listeners);
@@ -322,7 +317,7 @@ public:
 // The scene is a wrapper around SLAPrint which holds the data to be visualized.
 class Scene
 {
-    uqptr<SLAPrint> m_print;
+    std::unique_ptr<SLAPrint> m_print;
 public:
     
     // Subscribers will be notified if the model is changed. This might be a
@@ -340,19 +335,19 @@ public:
     Scene();
     ~Scene();
     
-    void set_print(uqptr<SLAPrint> &&print);
+    void set_print(std::unique_ptr<SLAPrint> &&print);
     const SLAPrint * get_print() const { return m_print.get(); }
     
     BoundingBoxf3 get_bounding_box() const;
     
-    void add_listener(shptr<Listener> listener)
+    void add_listener(std::shared_ptr<Listener> listener)
     {
         m_listeners.emplace_back(listener);
         cleanup(m_listeners);
     }
     
 private:
-    vector<wkptr<Listener>> m_listeners;
+    vector<std::weak_ptr<Listener>> m_listeners;
 };
 
 // The basic Display. This is almost just an interface but will do all the
@@ -366,20 +361,20 @@ protected:
     Vec2i m_size;
     bool m_initialized = false;
     
-    shptr<Camera>  m_camera;
+    std::shared_ptr<Camera>  m_camera;
     FpsCounter m_fps_counter;
     
 public:
     
-    explicit Display(shptr<Camera> camera = nullptr)
+    explicit Display(std::shared_ptr<Camera> camera = nullptr)
         : m_camera(camera ? camera : std::make_shared<PerspectiveCamera>())
     {}
     
     ~Display() override;
     
-    shptr<const Camera> get_camera() const { return m_camera; }
-    shptr<Camera> get_camera() { return m_camera; }
-    void set_camera(shptr<Camera> cam) { m_camera = cam; }
+    std::shared_ptr<const Camera> get_camera() const { return m_camera; }
+    std::shared_ptr<Camera> get_camera() { return m_camera; }
+    void set_camera(std::shared_ptr<Camera> cam) { m_camera = cam; }
     
     virtual void swap_buffers() = 0;
     virtual void set_active(long width, long height);
@@ -410,14 +405,14 @@ protected:
     // Cache the renderable primitives. These will be fetched when the scene
     // is modified.
     struct SceneCache {
-        vector<shptr<Primitive>> primitives;
+        vector<std::shared_ptr<Primitive>> primitives;
         vector<Primitive *> primitives_free;
         vector<OpenCSG::Primitive *> primitives_csg;
         
         void clear();
         
-        shptr<Primitive> add_mesh(const TriangleMesh &mesh);
-        shptr<Primitive> add_mesh(const TriangleMesh &mesh,
+        std::shared_ptr<Primitive> add_mesh(const TriangleMesh &mesh);
+        std::shared_ptr<Primitive> add_mesh(const TriangleMesh &mesh,
                                   OpenCSG::Operation  op,
                                   unsigned            covexity);
     } m_scene_cache;
@@ -446,13 +441,13 @@ class Controller : public std::enable_shared_from_this<Controller>,
     Vec2i m_mouse_pos, m_mouse_pos_rprev, m_mouse_pos_lprev;
     bool m_left_btn = false, m_right_btn = false;
 
-    shptr<Scene>           m_scene;
-    vector<wkptr<Display>> m_displays;
+    std::shared_ptr<Scene>           m_scene;
+    vector<std::weak_ptr<Display>> m_displays;
     
     // Call a method of Camera on all the cameras of the attached displays
     template<class F, class...Args>
     void call_cameras(F &&f, Args&&... args) {
-        for (wkptr<Display> &l : m_displays)
+        for (std::weak_ptr<Display> &l : m_displays)
             if (auto disp = l.lock()) if (auto cam = disp->get_camera())
                 (cam.get()->*f)(std::forward<Args>(args)...);
     }
@@ -460,7 +455,7 @@ class Controller : public std::enable_shared_from_this<Controller>,
 public:
     
     // Set the scene that will be controlled.
-    void set_scene(shptr<Scene> scene)
+    void set_scene(std::shared_ptr<Scene> scene)
     {
         m_scene = scene;
         m_scene->add_listener(shared_from_this());
@@ -468,7 +463,7 @@ public:
     
     const Scene * get_scene() const { return m_scene.get(); }
 
-    void add_display(shptr<Display> disp)
+    void add_display(std::shared_ptr<Display> disp)
     {
         m_displays.emplace_back(disp);
         cleanup(m_displays);

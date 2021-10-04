@@ -65,7 +65,7 @@ void CSGDisplay::render_scene()
     glFlush();
 }
 
-void Scene::set_print(uqptr<SLAPrint> &&print)
+void Scene::set_print(std::unique_ptr<SLAPrint> &&print)
 {   
     m_print = std::move(print);
         
@@ -85,7 +85,7 @@ void CSGDisplay::SceneCache::clear()
     primitives.clear();
 }
 
-shptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh)
+std::shared_ptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh)
 {
     auto p = std::make_shared<Primitive>();
     p->load_mesh(mesh);
@@ -94,7 +94,7 @@ shptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh)
     return p;
 }
 
-shptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh,
+std::shared_ptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh,
                                                    OpenCSG::Operation  o,
                                                    unsigned            c)
 {
