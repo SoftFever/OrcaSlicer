@@ -4172,12 +4172,14 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (printer_technology == ptSLA)
             menu = menus.sla_object_menu();
         else {
+            const Selection& selection = get_selection();
             // show "Object menu" for each one or several FullInstance instead of FullObject
-            const bool is_some_full_instances = get_selection().is_single_full_instance() || 
-                                                get_selection().is_single_full_object() || 
-                                                get_selection().is_multiple_full_instance();
-            menu = is_some_full_instances               ? menus.object_menu() : 
-                   get_selection().is_single_volume()   ? menus.part_menu()   : menus.multi_selection_menu();
+            const bool is_some_full_instances = selection.is_single_full_instance() || 
+                                                selection.is_single_full_object() || 
+                                                selection.is_multiple_full_instance();
+            const bool is_part = selection.is_single_volume() || selection.is_single_modifier();
+            menu = is_some_full_instances   ? menus.object_menu() : 
+                   is_part                  ? menus.part_menu()   : menus.multi_selection_menu();
         }
     }
 
