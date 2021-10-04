@@ -1554,14 +1554,16 @@ namespace rotcalip {
 using int256_t = boost::multiprecision::int256_t;
 using int128_t = boost::multiprecision::int128_t;
 
-inline int128_t magnsq(const Point &p)
+template<class Scalar = int64_t>
+inline Scalar magnsq(const Point &p)
 {
-    return int128_t(p.x()) * p.x() + int64_t(p.y()) * p.y();
+    return Scalar(p.x()) * p.x() + Scalar(p.y()) * p.y();
 }
 
-inline int128_t dot(const Point &a, const Point &b)
+template<class Scalar = int64_t>
+inline Scalar dot(const Point &a, const Point &b)
 {
-    return int128_t(a.x()) * b.x() + int64_t(a.y()) * b.y();
+    return Scalar(a.x()) * b.x() + Scalar(a.y()) * b.y();
 }
 
 template<class Scalar = int64_t>
@@ -1667,7 +1669,6 @@ bool intersects(const Polygon &A, const Polygon &B)
     // Establish starting antipodals as extremes in XY plane. Use the
     // easily obtainable bounding boxes to check if A and B is disjoint
     // and return false if the are.
-
     struct BB
     {
         size_t         xmin = 0, xmax = 0, ymin = 0, ymax = 0;
@@ -1724,24 +1725,18 @@ bool intersects(const Polygon &A, const Polygon &B)
             bool is_left_a = dotperp( dir, ref_a - A[ia]) > 0;
             bool is_left_b = dotperp(-dir, ref_b - B[ib]) > 0;
 
-            // If both reference points are on the left (or right) of the
-            // support line and the opposite support line is to the righ (or
-            // left), the divisor line is found. We only test the reference
-            // point, as by definition, if that is on one side, all the other
-            // points must be on the same side of a support line.
+            // If both reference points are on the left (or right) of their
+            // respective support lines and the opposite support line is to
+            // the right (or left), the divisor line is found. We only test
+            // the reference point, as by definition, if that is on one side,
+            // all the other points must be on the same side of a support
+            // line. If the support lines are collinear, the polygons must be
+            // on the same side of their respective support lines.
 
             auto d = dotperp(dir, B[ib] - A[ia]);
-            if (d == 0 && ((is_left_a && is_left_b) || (!is_left_a && !is_left_b))) {
+            if (d == 0) {
                 // The caliper lines are collinear, not just parallel
-
-                // Check if the lines are overlapping and if they do ignore the divisor
-                Point a = A[ia], b = A[(ia + 1) % A.size()];
-                if (b < a) std::swap(a, b);
-                Point c = B[ib], d = B[(ib + 1) % B.size()];
-                if (d < c) std::swap(c, d);
-
-                found_divisor = b < c;
-
+                found_divisor = (is_left_a && is_left_b) || (!is_left_a && !is_left_b);
             } else if (d > 0) { // B is to the left of (A, A+1)
                 found_divisor = !is_left_a && !is_left_b;
             } else { // B is to the right of (A, A+1)

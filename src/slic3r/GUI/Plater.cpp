@@ -2109,13 +2109,14 @@ void Plater::priv::update(unsigned int flags)
     }
 
     unsigned int update_status = 0;
-    if (this->printer_technology == ptSLA || (flags & (unsigned int)UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE))
+    const bool force_background_processing_restart = this->printer_technology == ptSLA || (flags & (unsigned int)UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE);
+    if (force_background_processing_restart)
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data.
         update_status = this->update_background_process(false, flags & (unsigned int)UpdateParams::POSTPONE_VALIDATION_ERROR_MESSAGE);
     this->view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
     this->preview->reload_print();
-    if (this->printer_technology == ptSLA)
+    if (force_background_processing_restart)
         this->restart_background_process(update_status);
     else
         this->schedule_background_process();
@@ -4172,12 +4173,14 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (printer_technology == ptSLA)
             menu = menus.sla_object_menu();
         else {
+            const Selection& selection = get_selection();
             // show "Object menu" for each one or several FullInstance instead of FullObject
-            const bool is_some_full_instances = get_selection().is_single_full_instance() || 
-                                                get_selection().is_single_full_object() || 
-                                                get_selection().is_multiple_full_instance();
-            menu = is_some_full_instances               ? menus.object_menu() : 
-                   get_selection().is_single_volume()   ? menus.part_menu()   : menus.multi_selection_menu();
+            const bool is_some_full_instances = selection.is_single_full_instance() || 
+                                                selection.is_single_full_object() || 
+                                                selection.is_multiple_full_instance();
+            const bool is_part = selection.is_single_volume() || selection.is_single_modifier();
+            menu = is_some_full_instances   ? menus.object_menu() : 
+                   is_part                  ? menus.part_menu()   : menus.multi_selection_menu();
         }
     }
 
