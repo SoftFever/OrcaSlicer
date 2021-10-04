@@ -481,9 +481,9 @@ void GLGizmoSimplify::render_wireframe() const
 
     const GLVolume *selected_volume = m_parent.get_selection().get_volume(0);
 
-    // check selected_volume == act_volume
+    // check selected_volume == m_volume
     const auto& cid = selected_volume->composite_id;
-    assert(wxGetApp().plater()->model().objects[cid.object_id]->volumes[cid.volume_id] == act_volume);
+    assert(wxGetApp().plater()->model().objects[cid.object_id]->volumes[cid.volume_id] == m_volume);
 
     const Transform3d trafo_matrix = m_parent.get_selection().get_volume(0)->world_matrix();
 
