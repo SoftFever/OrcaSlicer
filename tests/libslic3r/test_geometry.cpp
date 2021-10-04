@@ -470,7 +470,7 @@ TEST_CASE("Convex polygon intersection on two disjoint squares", "[Geometry][Rot
 
     bool is_inters = Geometry::intersects(A, B);
 
-    REQUIRE(is_inters != true);
+    REQUIRE(is_inters == false);
 }
 
 TEST_CASE("Convex polygon intersection on two intersecting squares", "[Geometry][Rotcalip]") {
@@ -494,7 +494,7 @@ TEST_CASE("Convex polygon intersection on two squares touching one edge", "[Geom
 
     bool is_inters = Geometry::intersects(A, B);
 
-    REQUIRE(is_inters == true);
+    REQUIRE(is_inters == false);
 }
 
 TEST_CASE("Convex polygon intersection on two squares touching one vertex", "[Geometry][Rotcalip]") {
@@ -502,11 +502,16 @@ TEST_CASE("Convex polygon intersection on two squares touching one vertex", "[Ge
     A.scale(1. / SCALING_FACTOR);
 
     Polygon B = A;
-    B.translate(10 / SCALING_FACTOR, 10);
+    B.translate(10 / SCALING_FACTOR, 10 / SCALING_FACTOR);
+
+    SVG svg{std::string("one_vertex_touch") + ".svg"};
+    svg.draw(A, "blue");
+    svg.draw(B, "green");
+    svg.Close();
 
     bool is_inters = Geometry::intersects(A, B);
 
-    REQUIRE(is_inters == true);
+    REQUIRE(is_inters == false);
 }
 
 TEST_CASE("Convex polygon intersection on two overlapping squares", "[Geometry][Rotcalip]") {
@@ -520,7 +525,7 @@ TEST_CASE("Convex polygon intersection on two overlapping squares", "[Geometry][
     REQUIRE(is_inters == true);
 }
 
-// Only for benchmarking
+//// Only for benchmarking
 //static Polygon gen_convex_poly(std::mt19937_64 &rg, size_t point_cnt)
 //{
 //    std::uniform_int_distribution<coord_t> dist(0, 100);
@@ -540,7 +545,9 @@ TEST_CASE("Convex polygon intersection on two overlapping squares", "[Geometry][
 //    constexpr size_t TEST_CNT = 1000;
 //    constexpr size_t POINT_CNT = 1000;
 
-//    std::mt19937_64 rg{std::random_device{}()};
+//    auto seed = std::random_device{}();
+////    unsigned long seed = 2525634386;
+//    std::mt19937_64 rg{seed};
 //    Benchmark bench;
 
 //    auto tests = reserve_vector<std::pair<Polygon, Polygon>>(TEST_CNT);
@@ -567,11 +574,12 @@ TEST_CASE("Convex polygon intersection on two overlapping squares", "[Geometry][
 
 //    REQUIRE(results.size() == expects.size());
 
+//    auto seedstr = std::to_string(seed);
 //    for (size_t i = 0; i < results.size(); ++i) {
 //        // std::cout << expects[i] << " ";
 
 //        if (results[i] != expects[i]) {
-//            SVG svg{std::string("fail") + std::to_string(i) + ".svg"};
+//            SVG svg{std::string("fail_seed") + seedstr + "_" + std::to_string(i) + ".svg"};
 //            svg.draw(tests[i].first, "blue");
 //            svg.draw(tests[i].second, "green");
 //            svg.Close();
