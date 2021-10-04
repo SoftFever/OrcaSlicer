@@ -30,6 +30,8 @@
 #include "libslic3r/Platform.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Model.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
@@ -40,7 +42,6 @@
 #include "slic3r/Utils/PresetUpdater.hpp"
 #include "format.hpp"
 #include "MsgDialog.hpp"
-#include "libslic3r/libslic3r.h"
 #include "UnsavedChangesDialog.hpp"
 
 #if defined(__linux__) && defined(__WXGTK3__)
@@ -2477,14 +2478,52 @@ static std::string get_first_added_preset(const std::map<std::string, std::strin
 bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes)
 {
     wxString header, caption = _L("Configuration is editing from ConfigWizard");
+    const auto enabled_vendors = appconfig_new.vendors();
+
+    bool suppress_sla_printer = model_has_multi_part_objects(wxGetApp().model());
+    PrinterTechnology preferred_pt = ptAny;
+    auto get_preferred_printer_technology = [enabled_vendors, suppress_sla_printer](const std::string& bundle_name, const Bundle& bundle) {
+        const auto config = enabled_vendors.find(bundle_name);
+        PrinterTechnology pt = ptAny;
+        if (config != enabled_vendors.end()) {
+            for (const auto& model : bundle.vendor_profile->models) {
+                if (const auto model_it = config->second.find(model.id);
+                    model_it != config->second.end() && model_it->second.size() > 0) {
+                    if (pt == ptAny)
+                        pt = model.technology;
+                    // if preferred printer model has SLA printer technology it's important to check the model for multypart state
+                    if (pt == ptSLA && suppress_sla_printer)
+                        continue;
+                    else
+                        return pt;
+                }
+            }
+        }
+        return pt;
+    };
+    // Prusa printers are considered first, then 3rd party.
+    if (preferred_pt = get_preferred_printer_technology("PrusaResearch", bundles.prusa_bundle());
+        preferred_pt == ptAny || (preferred_pt == ptSLA && suppress_sla_printer)) {
+        for (const auto& bundle : bundles) {
+            if (bundle.second.is_prusa_bundle) { continue; }
+            if (PrinterTechnology pt = get_preferred_printer_technology(bundle.first, bundle.second); pt == ptAny)
+                continue;
+            else if (preferred_pt == ptAny)
+                preferred_pt = pt;
+            if(!(preferred_pt == ptAny || (preferred_pt == ptSLA && suppress_sla_printer)))
+                break;
+        }
+    }
+
+    if (preferred_pt == ptSLA && !wxGetApp().may_switch_to_SLA_preset(caption))
+        return false;
+
     bool check_unsaved_preset_changes = page_welcome->reset_user_profile();
     if (check_unsaved_preset_changes)
         header = _L("All user presets will be deleted.");
     int act_btns = UnsavedChangesDialog::ActionButtons::KEEP;
     if (!check_unsaved_preset_changes)
         act_btns |= UnsavedChangesDialog::ActionButtons::SAVE;
-
-    const auto enabled_vendors = appconfig_new.vendors();
 
     // Install bundles from resources if needed:
     std::vector<std::string> install_bundles;
@@ -2564,13 +2603,14 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     std::string preferred_model;
     std::string preferred_variant;
     const auto enabled_vendors_old = app_config->vendors();
-    auto get_preferred_printer_model = [enabled_vendors, enabled_vendors_old](const std::string& bundle_name, const Bundle& bundle, std::string& variant) {
+    auto get_preferred_printer_model = [enabled_vendors, enabled_vendors_old, preferred_pt](const std::string& bundle_name, const Bundle& bundle, std::string& variant) {
         const auto config = enabled_vendors.find(bundle_name);
         if (config == enabled_vendors.end())
             return std::string();
         for (const auto& model : bundle.vendor_profile->models) {
             if (const auto model_it = config->second.find(model.id);
-                model_it != config->second.end() && model_it->second.size() > 0) {
+                model_it != config->second.end() && model_it->second.size() > 0 &&
+                preferred_pt == model.technology) {
                 variant = *model_it->second.begin();
                 const auto config_old = enabled_vendors_old.find(bundle_name);
                 if (config_old == enabled_vendors_old.end())
