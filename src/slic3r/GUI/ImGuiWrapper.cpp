@@ -48,6 +48,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::RightArrowHoverButton , "notification_right_hover"      },
     {ImGui::PreferencesButton      , "notification_preferences"      },
     {ImGui::PreferencesHoverButton , "notification_preferences_hover"},
+   
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -65,6 +66,8 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::VarLayerHeightMarker    , "layers"                          },
     {ImGui::DocumentationButton     , "notification_documentation"      },
     {ImGui::DocumentationHoverButton, "notification_documentation_hover"},
+    {ImGui::InfoMarker              , "notification_info"               },
+    
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {

@@ -153,8 +153,8 @@ void SLAImportJob::process()
             break;
         }
     } catch (MissingProfileError &) {
-        p->err = _L("The archive doesn't contain any profile data. Try to import after switching "
-                    "to an SLA profile that can be used as fallback.").ToStdString();
+        p->err = _L("The SLA archive doesn't contain any presets. "
+                    "Please activate some SLA printer preset first before importing that SLA archive.").ToStdString();
     } catch (std::exception &ex) {
         p->err = ex.what();
     }
@@ -207,8 +207,8 @@ void SLAImportJob::finalize()
         m_plater->get_notification_manager()->push_notification(
         NotificationType::CustomNotification,
         NotificationManager::NotificationLevel::WarningNotificationLevel,
-            _L("Loaded archive did not contain any profile data. "
-               "The current SLA profile was used as fallback.").ToStdString());
+            _L("The imported SLA archive did not contain any presets. "
+               "The current SLA presets were used as fallback.").ToStdString());
     }
 
     if (p->sel != Sel::modelOnly) {

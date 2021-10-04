@@ -122,7 +122,7 @@ public:
 		// "Good to know" notification, usually but not always with a quick fade-out.		
 		RegularNotificationLevel,
 		// Regular level notifiaction containing info about objects or print. Has Icon.
-		ObjectInfoNotificationLevel,
+		PrintInfoNotificationLevel,
 		// Information notification without a fade-out or with a longer fade-out.
 		ImportantNotificationLevel,
 		// Warning, no fade-out.
@@ -174,6 +174,7 @@ public:
 	// Close object warnings, whose ObjectID is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_simplify_suggestion_of_released_objects(const std::vector<ObjectID>& living_oids);
+	void remove_simplify_suggestion_with_id(const ObjectID oid);
 	// Called when the side bar changes its visibility, as the "slicing complete" notification supplements
 	// the "slicing info" normally shown at the side bar.
 	void set_sidebar_collapsed(bool collapsed);
@@ -704,13 +705,14 @@ private:
 	size_t get_standart_duration(NotificationLevel level)
 	{
 		switch (level) {
-		case NotificationLevel::RegularNotificationLevel: 	    return 20;
+		
 		case NotificationLevel::ErrorNotificationLevel: 	    return 0;
 		case NotificationLevel::WarningNotificationLevel:	    return 0;
 		case NotificationLevel::ImportantNotificationLevel:     return 0;
 		case NotificationLevel::ProgressBarNotificationLevel:	return 2;
+		case NotificationLevel::RegularNotificationLevel: 	    return 10;
+		case NotificationLevel::PrintInfoNotificationLevel:     return 10;
 		case NotificationLevel::HintNotificationLevel:			return 300;
-		case NotificationLevel::ObjectInfoNotificationLevel:    return 20;
 		default: return 10;
 		}
 	}

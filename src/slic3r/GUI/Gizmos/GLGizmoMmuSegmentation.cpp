@@ -23,7 +23,7 @@ static inline void show_notification_extruders_limit_exceeded()
     wxGetApp()
         .plater()
         ->get_notification_manager()
-        ->push_notification(NotificationType::MmSegmentationExceededExtrudersLimit, NotificationManager::NotificationLevel::RegularNotificationLevel,
+        ->push_notification(NotificationType::MmSegmentationExceededExtrudersLimit, NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
                             GUI::format(_L("Your printer has more extruders than the multi-material painting gizmo supports. For this reason, only the "
                                            "first %1% extruders will be able to be used for painting."), GLGizmoMmuSegmentation::EXTRUDERS_LIMIT));
 }

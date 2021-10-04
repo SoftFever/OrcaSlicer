@@ -917,29 +917,14 @@ void NotificationManager::HintNotification::render_right_arrow_button(ImGuiWrapp
 }
 void NotificationManager::HintNotification::render_logo(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-	ImVec2 win_size(win_size_x, win_size_y);
-	ImVec2 win_pos(win_pos_x, win_pos_y);
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
-	push_style_color(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
-	push_style_color(ImGuiCol_TextSelectedBg, ImVec4(0, .75f, .75f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
-
-	std::wstring button_text;
-	button_text = ImGui::ClippyMarker;//LeftArrowButton;
 	std::string placeholder_text;
 	placeholder_text = ImGui::EjectButton;
-
 	ImVec2 button_pic_size = ImGui::CalcTextSize(placeholder_text.c_str());
-	ImVec2 button_size(button_pic_size.x * 1.25f * 2.f, button_pic_size.y * 1.25f * 2.f);
-	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y * 1.1f);
-	ImGui::SetCursorPosX(0);
-	// shouldnt it render as text?
-	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
-	{
-	}
-	
-	ImGui::PopStyleColor(5);
+	std::wstring text;
+	text = ImGui::ClippyMarker;
+	ImGui::SetCursorPosX(button_pic_size.x / 3);
+	ImGui::SetCursorPosY(win_size_y / 2 - button_pic_size.y * 2.f);
+	imgui.text(text.c_str());
 }
 void NotificationManager::HintNotification::render_documentation_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
@@ -1012,7 +997,7 @@ void NotificationManager::HintNotification::retrieve_data(bool new_hint/* = true
 	if(hint_data != nullptr)
     {
         NotificationData nd { NotificationType::DidYouKnowHint,
-						      NotificationLevel::RegularNotificationLevel,
+						      NotificationLevel::HintNotificationLevel,
 							  0,
 						      hint_data->text,
 							  hint_data->hypertext, nullptr,
