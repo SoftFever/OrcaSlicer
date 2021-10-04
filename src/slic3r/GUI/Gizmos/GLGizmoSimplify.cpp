@@ -478,12 +478,14 @@ void GLGizmoSimplify::render_wireframe() const
     // is initialized?
     if (m_wireframe_VBO_id == 0 || m_wireframe_IBO_id == 0) return;
     if (!m_show_wireframe) return;
-    ModelVolume *act_volume = get_selected_volume();
-    if (act_volume == nullptr) return;    
-    const Transform3d trafo_matrix = 
-        act_volume->get_object()->instances[m_parent.get_selection().get_instance_idx()]
-        ->get_transformation().get_matrix() *
-        act_volume->get_matrix();
+
+    const GLVolume *selected_volume = m_parent.get_selection().get_volume(0);
+
+    // check selected_volume == act_volume
+    const auto& cid = selected_volume->composite_id;
+    assert(wxGetApp().plater()->model().objects[cid.object_id]->volumes[cid.volume_id] == act_volume);
+
+    const Transform3d trafo_matrix = m_parent.get_selection().get_volume(0)->world_matrix();
 
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixd(trafo_matrix.data()));
