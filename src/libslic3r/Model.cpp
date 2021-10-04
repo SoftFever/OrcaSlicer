@@ -29,20 +29,18 @@ namespace Slic3r {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const Polygon& obj_hull_2d, double obj_min_z, double obj_max_z)
 {
-    static const double Z_TOLERANCE = -1e10;
+    if (!Geometry::intersects(printbed_shape, obj_hull_2d))
+        return ModelInstancePVS_Fully_Outside;
 
-    const Polygons intersection_polys = intersection(printbed_shape, obj_hull_2d);
-    const bool contained_xy = !intersection_polys.empty() && Geometry::are_approx(intersection_polys.front(), obj_hull_2d);
-    const bool contained_z = Z_TOLERANCE < obj_min_z && obj_max_z < print_volume_height;
-    if (contained_xy && contained_z)
-        return ModelInstancePVS_Inside;
-
-    const bool intersects_xy = !contained_xy && !intersection_polys.empty();
-    const bool intersects_z = !contained_z && obj_min_z < print_volume_height&& Z_TOLERANCE < obj_max_z;
-    if (intersects_xy || intersects_z)
-        return ModelInstancePVS_Partly_Outside;
-
-    return ModelInstancePVS_Fully_Outside;
+    bool contained_xy = true;
+    for (const Point& p : obj_hull_2d) {
+        if (!printbed_shape.contains(p)) {
+            contained_xy = false;
+            break;
+        }
+    }
+    const bool contained_z = -1e10 < obj_min_z && obj_max_z < print_volume_height;
+    return (contained_xy && contained_z) ? ModelInstancePVS_Inside : ModelInstancePVS_Partly_Outside;
 }
 
 ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box)

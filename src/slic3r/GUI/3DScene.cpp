@@ -1083,8 +1083,8 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
             }
         }
         else {
-            const indexed_triangle_set& its = GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh().its;
-            const Polygon volume_hull_2d = its_convex_hull_2d_above(its, volume->world_matrix().cast<float>(), 0.0f);
+            const TriangleMesh* mesh = volume->is_sinking() ? &GUI::wxGetApp().plater()->model().objects[volume->object_idx()]->volumes[volume->volume_idx()]->mesh() : volume->convex_hull();
+            const Polygon volume_hull_2d = its_convex_hull_2d_above(mesh->its, volume->world_matrix().cast<float>(), 0.0f);
             volume_state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb.min.z(), bb.max.z());
         }
         contained = (volume_state == ModelInstancePVS_Inside);
