@@ -43,7 +43,9 @@ private:
     void set_its(indexed_triangle_set &its);
     void create_gui_cfg();
     void request_rerender();
-    ModelVolume *get_selected_volume(int *object_idx = nullptr) const;
+    // move to global functions
+    static ModelVolume *get_volume(const Selection &selection, Model &model);
+    static const ModelVolume *get_volume(const GLVolume::CompositeID &cid, const Model &model);
 
     // return false when volume was deleted
     static bool exist_volume(ModelVolume *volume);
