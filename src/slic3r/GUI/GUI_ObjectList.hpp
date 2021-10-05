@@ -217,8 +217,8 @@ public:
     // Return value is a pair <Tooltip, warning_icon_name>, used for the tooltip and related warning icon
     // Function without parameters is for a call from Manipulation panel, 
     // when we don't know parameters of selected item 
-    std::pair<wxString, std::string> get_mesh_errors(const int obj_idx, const int vol_idx = -1, bool from_plater = false) const;
-    std::pair<wxString, std::string> get_mesh_errors(bool from_plater = false);
+    std::pair<wxString, std::string> get_mesh_errors(const int obj_idx, const int vol_idx = -1, wxString* sidebar_info = nullptr) const;
+    std::pair<wxString, std::string> get_mesh_errors(wxString* sidebar_info = nullptr);
     void                set_tooltip_for_item(const wxPoint& pt);
 
     void                selection_changed();

@@ -3203,6 +3203,14 @@ void GCodeViewer::render_shells()
     if (shader == nullptr)
         return;
 
+    // when the background processing is enabled, it may happen that the shells data have been loaded
+    // before opengl has been initialized for the preview canvas.
+    // when this happens, the volumes' data have not been sent to gpu yet.
+    for (GLVolume* v : m_shells.volumes.volumes) {
+        if (!v->indexed_vertex_array.has_VBOs())
+            v->finalize_geometry(true);
+    }
+
 //    glsafe(::glDepthMask(GL_FALSE));
 
     shader->start_using();
