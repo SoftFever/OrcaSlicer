@@ -61,7 +61,7 @@ public:
 
 private:
     bool send_info();
-    /*const */std::string m_system_info_json; // will be const, this is FOR DEBUGGING
+    const std::string m_system_info_json;
     wxButton* m_btn_send;
     wxButton* m_btn_dont_send;
     wxButton* m_btn_ask_later;
@@ -104,9 +104,7 @@ public:
     {
         auto* text = new wxTextCtrl(this, wxID_ANY, json,
                                     wxDefaultPosition, wxDefaultSize,
-                                    wxTE_MULTILINE
-                                    // | wxTE_READONLY // commented out for DEBUGGING ONLY
-                                    | wxTE_DONTWRAP);
+                                    wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
         text->SetFont(wxGetApp().code_font());
         text->ShowPosition(0);
 
@@ -121,15 +119,6 @@ public:
         #ifdef _WIN32
             wxGetApp().UpdateDlgDarkUI(this);
         #endif
-
-        m_text = text; // DEBUGGING ONLY
-    }
-
-    // DEBUGGING ONLY:
-    wxTextCtrl* m_text;
-    std::string get_data() const // debugging only
-    {
-        return m_text->GetValue().ToUTF8().data();
     }
 };
 
@@ -140,8 +129,6 @@ public:
 // current version is newer. Only major and minor versions are compared.
 static bool should_dialog_be_shown()
 {
-    return true; // DEBUGGING ONLY
-
     std::string last_sent_version = wxGetApp().app_config->get("version_system_info_sent");
     Semver semver_current(SLIC3R_VERSION);
     Semver semver_last_sent;
@@ -266,13 +253,6 @@ static std::string get_unique_id()
             unique = macs.front();
     }
     free(AdapterInfo);
-
-    // DEBUGGING ONLY:
-    printf("SENDSYSTEMINFODIALOG DEBUGGING: Windows MAC: ");
-    for (unsigned char c : unique)
-        printf("%02X ", c);
-    printf("\n");
-
 #elif __APPLE__
     constexpr int buf_size = 100;
     char buf[buf_size] = "";
@@ -285,9 +265,6 @@ static std::string get_unique_id()
     // Now convert the string to std::vector<unsigned char>.
     for (char* c = buf; *c != 0; ++c)
         unique.emplace_back((unsigned char)(*c));
-
-    // DEBUGGING ONLY:
-    std::cout << "SENDSYSTEMINFODIALOG DEBUGGING: Apple hardware UUID: " << buf << std::endl;
 #else // Linux/BSD
     constexpr size_t max_len = 100;
     char cline[max_len] = "";
@@ -301,9 +278,6 @@ static std::string get_unique_id()
     // Now convert the string to std::vector<unsigned char>.
     for (char* c = cline; *c != 0; ++c)
         unique.emplace_back((unsigned char)(*c));
-
-    // DEBUGGING ONLY:
-    std::cout << "SENDSYSTEMINFODIALOG DEBUGGING: Linux machine-id: " << cline << std::endl;
 #endif
 
     // In case that we did not manage to get the unique info, just return an empty
@@ -541,7 +515,6 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent &evt) {
                                                    ShowJsonDialog dlg(this, m_system_info_json, GetSize().Scale(0.9, 0.7));
                                                    dlg.ShowModal();
-                                                   m_system_info_json = dlg.get_data(); // DEBUGGING ONLY
     });
 
     vsizer->Add(html_window, 1, wxEXPAND);
@@ -623,9 +596,6 @@ bool SendSystemInfoDialog::send_info()
             .set_post_body(data)
             .on_complete([&result](std::string body, unsigned status) {
                 result = { Result::Success, _L("System info sent successfully. Thank you.") };
-
-                // DEBUGGING ONLY:
-                std::cout << "Response: " << std::endl << body << std::endl << "-----------------" << std::endl;
             })
             .on_error([&result](std::string body, std::string error, unsigned status) {
                 result = { Result::Error, GUI::format_wxstr(_L("Sending system info failed! Status: %1%"), status) };
