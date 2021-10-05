@@ -52,8 +52,8 @@ std::string gl_get_string_safe(GLenum param, const std::string& default_value);
 class SendSystemInfoDialog : public DPIDialog
 {
     enum {
-        MIN_WIDTH = 60,
-        MIN_HEIGHT = 40
+        MIN_WIDTH = 80,
+        MIN_HEIGHT = 50
     };
 
 public:
@@ -486,12 +486,9 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
            "ask you to send some of your system information to us. This will only "
            "happen once and we will not ask you to do this again (only after you "
            "upgrade to the next version)."), app_name );
-    wxString label1 = _L("Why is it needed");
     wxString text1 = _L("If we know your hardware, operating system, etc., it will greatly help us "
-        "in development, prioritization and possible deprecation of features that "
-        "are no more needed (for example legacy OpenGL support). This will help "
-        "us to focus our effort more efficiently and spend time on features that "
-        "are needed the most.");
+        "in development and prioritization, because we will be able to focus our effort more efficiently "
+        "and spend time on features that are needed the most.");
     wxString label2 = _L("Is it safe?");
     wxString text2 = GUI::format_wxstr(
         _L("We do not send any personal information nor anything that would allow us "
@@ -506,9 +503,12 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     auto* html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
     wxString html = GUI::format_wxstr(
             "<html><body bgcolor=%1%><font color=%2%>"
-            + text0 + "<br /><br />"
-            + "<b>" + label1 + "</b><br />"
+            "<table><tr><td>"
+            "<img src = \"" + resources_dir() + "/icons/PrusaSlicer_192px.png\" />"
+            "</td><td align=\"left\">"
+            + text0 + "<br / ><br / >"
             + text1 + "<br /><br />"
+            "</td></tr></table>"
             + "<b>" + label2 + "</b><br />"
             + text2 + "<br /><br />"
             + "<b><a href=\"show\">" + label3 + "</a></b><br />"
