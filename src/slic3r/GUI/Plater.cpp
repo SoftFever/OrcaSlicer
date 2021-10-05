@@ -656,6 +656,7 @@ void Sidebar::priv::show_rich_tip(const wxString& tooltip, wxButton* btn)
         return;
     wxRichToolTip tip(tooltip, "");
     tip.SetIcon(wxICON_NONE);
+    tip.SetTipKind(wxTipKind_BottomRight);
     tip.SetTitleFont(wxGetApp().normal_font());
     tip.SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     tip.SetTimeout(1200);
