@@ -27,7 +27,7 @@ namespace Slic3r {
 namespace GUI {
 
 // A safe wrapper around glGetString to report a "N/A" string in case glGetString returns nullptr.
-inline std::string gl_get_string_safe(GLenum param, const std::string& default_value)
+std::string gl_get_string_safe(GLenum param, const std::string& default_value)
 {
     const char* value = (const char*)::glGetString(param);
     return std::string((value != nullptr) ? value : default_value);

@@ -141,6 +141,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/RammingChart.hpp
     GUI/RemovableDriveManager.cpp
     GUI/RemovableDriveManager.hpp
+    GUI/SendSystemInfoDialog.cpp
+    GUI/SendSystemInfoDialog.hpp
     GUI/BonjourDialog.cpp
     GUI/BonjourDialog.hpp
     GUI/ButtonsDescription.cpp
