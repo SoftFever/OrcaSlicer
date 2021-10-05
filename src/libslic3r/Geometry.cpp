@@ -1630,12 +1630,13 @@ void visit_antipodals (Idx& ia, Idx &ib, Fn &&fn)
     // Set current caliper direction to be the lower edge angle from X axis
     int cmp = cmp_angles(ia.prev_dir(), ia.dir(), ib.dir());
     Idx *current = cmp <= 0 ? &ia : &ib, *other = cmp <= 0 ? &ib : &ia;
+    Idx *initial = current;
     bool visitor_continue = true;
 
-    size_t a_start = ia.idx(), b_start = ib.idx();
-    bool a_finished = false, b_finished = false;
+    size_t start = initial->idx();
+    bool finished = false;
 
-    while (visitor_continue && !(a_finished && b_finished)) {
+    while (visitor_continue && !finished) {
         Point current_dir_a = current == &ia ? current->dir() : -current->dir();
         visitor_continue = fn(ia.idx(), ib.idx(), current_dir_a);
 
@@ -1655,8 +1656,7 @@ void visit_antipodals (Idx& ia, Idx &ib, Fn &&fn)
             std::swap(current, other);
         }
 
-        if (ia.idx() == a_start) a_finished = true;
-        if (ib.idx() == b_start) b_finished = true;
+        if (initial->idx() == start) finished = true;
     }
 }
 
@@ -1693,8 +1693,8 @@ bool intersects(const Polygon &A, const Polygon &B)
     BoundingBox bbA{{A[bA.xmin].x(), A[bA.ymin].y()}, {A[bA.xmax].x(), A[bA.ymax].y()}};
     BoundingBox bbB{{B[bB.xmin].x(), B[bB.ymin].y()}, {B[bB.xmax].x(), B[bB.ymax].y()}};
 
-    if (!bbA.overlap(bbB))
-        return false;
+//    if (!bbA.overlap(bbB))
+//        return false;
 
     // Establish starting antipodals as extreme vertex pairs in X or Y direction
     // which reside on different polygons. If no such pair is found, the two
