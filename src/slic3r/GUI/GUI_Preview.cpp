@@ -962,10 +962,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
                 if (0 <= type && type < static_cast<int>(GCodeViewer::EViewType::Count)) {
                     m_choice_view_type->SetSelection(type);
                     m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
-                    if (wxGetApp().is_gcode_viewer()) {
+                    if (wxGetApp().is_gcode_viewer())
                         m_keep_current_preview_type = true;
-                        refresh_print();
-                    }
+                    refresh_print();
                 }
             }
         }
