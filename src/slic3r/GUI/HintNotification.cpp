@@ -5,10 +5,14 @@
 #include "GUI_ObjectList.hpp"
 #include "GLCanvas3D.hpp"
 #include "MainFrame.hpp"
+#include "Tab.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -159,6 +163,33 @@ TagCheckResult tag_check_system(const std::string& tag)
 	return TagCheckNotCompatible;
 }
 
+TagCheckResult tag_check_material(const std::string& tag)
+{
+	if (const GUI::Tab* tab = wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT)) {
+		// search PrintConfig filament_type to find if allowed tag
+		if (wxGetApp().app_config->get("filament_type").find(tag)) {
+			const Preset& preset = tab->m_presets->get_edited_preset();
+			const auto* opt = preset.config.opt<ConfigOptionStrings>("filament_type");
+			if (opt->values[0] == tag)
+				return TagCheckAffirmative;
+			return TagCheckNegative;
+		}
+		return TagCheckNotCompatible;
+	}
+	/* TODO: SLA materials
+	else if (const GUI::Tab* tab = wxGetApp().get_tab(Preset::Type::TYPE_SLA_MATERIAL)) {
+		//if (wxGetApp().app_config->get("material_type").find(tag)) {
+			const Preset& preset = tab->m_presets->get_edited_preset();
+			const auto* opt = preset.config.opt<ConfigOptionStrings>("material_type");
+			if (opt->values[0] == tag)
+				return TagCheckAffirmative;
+			return TagCheckNegative;
+		//}
+		return TagCheckNotCompatible;
+	}*/
+	return TagCheckNotCompatible;
+}
+
 // return true if NOT in disabled mode.
 bool tags_check(const std::string& disabled_tags, const std::string& enabled_tags)
 {
@@ -189,6 +220,11 @@ bool tags_check(const std::string& disabled_tags, const std::string& enabled_tag
 					if (result == TagCheckResult::TagCheckAffirmative)
 						continue;
 					result = tag_check_system(tag);
+					if (result == TagCheckResult::TagCheckNegative)
+						return false;
+					if (result == TagCheckResult::TagCheckAffirmative)
+						continue;
+					result = tag_check_material(tag);
 					if (result == TagCheckResult::TagCheckNegative)
 						return false;
 					if (result == TagCheckResult::TagCheckAffirmative)
@@ -225,6 +261,11 @@ bool tags_check(const std::string& disabled_tags, const std::string& enabled_tag
 					if (result == TagCheckResult::TagCheckAffirmative)
 						return false;
 					result = tag_check_system(tag);
+					if (result == TagCheckResult::TagCheckAffirmative)
+						return false;
+					if (result == TagCheckResult::TagCheckNegative)
+						continue;
+					result = tag_check_material(tag);
 					if (result == TagCheckResult::TagCheckAffirmative)
 						return false;
 					if (result == TagCheckResult::TagCheckNegative)
