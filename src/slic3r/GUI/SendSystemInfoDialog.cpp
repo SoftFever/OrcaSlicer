@@ -401,7 +401,7 @@ static std::string generate_system_info_json()
     cpu_node.put("Vendor", cpu_info["Vendor"]);
 #elif __APPLE__
      std::map<std::string, std::string> sysctl = parse_lscpu_etc("sysctl -a", ':');
-     cpu_node.put("Cores",  sysctl["machdep.cpu.core_count"]);
+     cpu_node.put("Cores",  sysctl["hw.ncpu"]);
      cpu_node.put("Model",  sysctl["machdep.cpu.brand_string"]);
      cpu_node.put("Vendor", sysctl["machdep.cpu.vendor"]);
 #else // linux/BSD
