@@ -423,7 +423,7 @@ void fill_slicerconf(ConfMap &m, const SLAPrint &print)
 
 } // namespace
 
-uqptr<sla::RasterBase> SL1Archive::create_raster() const
+std::unique_ptr<sla::RasterBase> SL1Archive::create_raster() const
 {
     sla::RasterBase::Resolution res;
     sla::RasterBase::PixelDim   pxdim;

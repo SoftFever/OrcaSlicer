@@ -2055,21 +2055,21 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
     // Trim the already created base layers above the current layer intersecting with the new bottom contacts layer.
     //FIXME Maybe this is no more needed, as the overlapping base layers are trimmed by the bottom layers at the final stage?
     touching = offset(touching, float(SCALED_EPSILON));
-    for (int layer_id_above = layer_id + 1; layer_id_above < int(object.total_layer_count()); ++layer_id_above) {
+    for (int layer_id_above = layer_id + 1; layer_id_above < int(object.total_layer_count()); ++ layer_id_above) {
         const Layer &layer_above = *object.layers()[layer_id_above];
         if (layer_above.print_z > layer_new.print_z - EPSILON)
             break;
-        if (! layer_support_areas[layer_id_above].empty()) {
+        if (Polygons &above = layer_support_areas[layer_id_above]; ! above.empty()) {
 #ifdef SLIC3R_DEBUG
             SVG::export_expolygons(debug_out_path("support-support-areas-raw-before-trimming-%d-with-%f-%lf.svg", iRun, layer.print_z, layer_above.print_z),
-                { { { union_ex(touching) },                                            { "touching", "blue", 0.5f } },
-                    { { union_safety_offset_ex(layer_support_areas[layer_id_above]) }, { "above",    "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+                { { { union_ex(touching) },              { "touching", "blue", 0.5f } },
+                    { { union_safety_offset_ex(above) }, { "above",    "red", "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
-            layer_support_areas[layer_id_above] = diff(layer_support_areas[layer_id_above], touching);
+            above = diff(above, touching);
 #ifdef SLIC3R_DEBUG
             Slic3r::SVG::export_expolygons(
                 debug_out_path("support-support-areas-raw-after-trimming-%d-with-%f-%lf.svg", iRun, layer.print_z, layer_above.print_z),
-                union_ex(layer_support_areas[layer_id_above]));
+                union_ex(above));
 #endif /* SLIC3R_DEBUG */
         }
     }
@@ -2622,10 +2622,9 @@ void PrintObjectSupportMaterial::generate_base_layers(
                 // New polygons for layer_intermediate.
                 Polygons polygons_new;
 
-                // Use the precomputed layer_support_areas.
-                idx_object_layer_above = std::max(0, idx_lower_or_equal(object.layers().begin(), object.layers().end(), idx_object_layer_above, 
-                    [&layer_intermediate](const Layer *layer){ return layer->print_z <= layer_intermediate.print_z + EPSILON; }));
-                polygons_new = layer_support_areas[idx_object_layer_above];
+                // Use the precomputed layer_support_areas. "idx_object_layer_above": above means above since the last iteration, not above after this call.
+                idx_object_layer_above = idx_lower_or_equal(object.layers().begin(), object.layers().end(), idx_object_layer_above,
+                    [&layer_intermediate](const Layer* layer) { return layer->print_z <= layer_intermediate.print_z + EPSILON; });
 
                 // Polygons to trim polygons_new.
                 Polygons polygons_trimming; 
@@ -2640,7 +2639,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
                 idx_top_contact_above = idx_lower_or_equal(top_contacts, idx_top_contact_above, 
                     [&layer_intermediate](const MyLayer *layer){ return layer->bottom_z <= layer_intermediate.print_z - EPSILON; });
                 // Collect all the top_contact layer intersecting with this layer.
-                for ( int idx_top_contact_overlapping = idx_top_contact_above; idx_top_contact_overlapping >= 0; -- idx_top_contact_overlapping) {
+                for (int idx_top_contact_overlapping = idx_top_contact_above; idx_top_contact_overlapping >= 0; -- idx_top_contact_overlapping) {
                     MyLayer &layer_top_overlapping = *top_contacts[idx_top_contact_overlapping];
                     if (layer_top_overlapping.print_z < layer_intermediate.bottom_z + EPSILON)
                         break;
@@ -2650,6 +2649,22 @@ void PrintObjectSupportMaterial::generate_base_layers(
                         // Base is fully inside top. Trim base by top.
                         polygons_append(polygons_trimming, layer_top_overlapping.polygons);
                 }
+
+                if (idx_object_layer_above < 0) {
+                    // layer_support_areas are synchronized with object layers and they contain projections of the contact layers above them.
+                    // This intermediate layer is not above any object layer, thus there is no information in layer_support_areas about
+                    // towers supporting contact layers intersecting the first object layer. Project these contact layers now.
+                    polygons_new = layer_support_areas.front();
+                    double first_layer_z = object.layers().front()->print_z;
+                    for (int i = idx_top_contact_above + 1; i < int(top_contacts.size()); ++ i) {
+                        MyLayer &contacts = *top_contacts[i];
+                        if (contacts.print_z > first_layer_z + EPSILON)
+                            break;
+                        assert(contacts.bottom_z > layer_intermediate.print_z - EPSILON);
+                        polygons_append(polygons_new, contacts.polygons);
+                    }
+                } else
+                    polygons_new = layer_support_areas[idx_object_layer_above];
 
                 // Trimming the base layer with any overlapping bottom layer.
                 // Following cases are recognized:

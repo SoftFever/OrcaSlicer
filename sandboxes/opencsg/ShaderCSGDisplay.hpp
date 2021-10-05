@@ -12,7 +12,7 @@ class CSGVolume: public Volume
 
 class ShaderCSGDisplay: public Display {
 protected:
-    vector<shptr<CSGVolume>> m_volumes;
+    vector<std::shared_ptr<CSGVolume>> m_volumes;
     
     void add_mesh(const TriangleMesh &mesh);
 public:

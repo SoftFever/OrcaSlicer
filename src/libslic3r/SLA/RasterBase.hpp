@@ -13,10 +13,6 @@
 
 namespace Slic3r {
 
-template<class T> using uqptr = std::unique_ptr<T>;
-template<class T> using shptr = std::shared_ptr<T>;
-template<class T> using wkptr = std::weak_ptr<T>;
-
 namespace sla {
 
 // Raw byte buffer paired with its size. Suitable for compressed image data.
@@ -112,7 +108,7 @@ struct PPMRasterEncoder {
 std::ostream& operator<<(std::ostream &stream, const EncodedRaster &bytes);
 
 // If gamma is zero, thresholding will be performed which disables AA.
-uqptr<RasterBase> create_raster_grayscale_aa(
+std::unique_ptr<RasterBase> create_raster_grayscale_aa(
     const RasterBase::Resolution &res,
     const RasterBase::PixelDim &  pxdim,
     double                        gamma = 1.0,

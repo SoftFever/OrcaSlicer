@@ -34,7 +34,7 @@ using namespace Slic3r::GL;
 class Renderer {
 protected:
     wxGLCanvas *m_canvas;
-    shptr<wxGLContext> m_context;
+    std::shared_ptr<wxGLContext> m_context;
 public:
     
     Renderer(wxGLCanvas *c): m_canvas{c} {
@@ -86,16 +86,16 @@ public:
 class Canvas: public wxGLCanvas
 {    
     // One display is active at a time, the OCSGRenderer by default.
-    shptr<Slic3r::GL::Display> m_display;
+    std::shared_ptr<Slic3r::GL::Display> m_display;
     
 public:
     
     template<class...Args>
     Canvas(Args &&...args): wxGLCanvas(std::forward<Args>(args)...) {}
     
-    shptr<Slic3r::GL::Display> get_display() const { return m_display; }
+    std::shared_ptr<Slic3r::GL::Display> get_display() const { return m_display; }
 
-    void set_display(shptr<Slic3r::GL::Display> d) { m_display = d; }
+    void set_display(std::shared_ptr<Slic3r::GL::Display> d) { m_display = d; }
 };
 
 // Enumerate possible mouse events, we will record them.
@@ -197,14 +197,14 @@ public:
 class MyFrame: public wxFrame
 {
     // Instantiate the 3D engine.
-    shptr<Scene>             m_scene;             // Model
-    shptr<Canvas>            m_canvas;            // Views store
-    shptr<OCSGRenderer>      m_ocsgdisplay;       // View
-    shptr<ShaderCSGRenderer> m_shadercsg_display; // Another view
-    shptr<Controller>        m_ctl;               // Controller
+    std::shared_ptr<Scene>             m_scene;             // Model
+    std::shared_ptr<Canvas>            m_canvas;            // Views store
+    std::shared_ptr<OCSGRenderer>      m_ocsgdisplay;       // View
+    std::shared_ptr<ShaderCSGRenderer> m_shadercsg_display; // Another view
+    std::shared_ptr<Controller>        m_ctl;               // Controller
 
     // Add a status bar with progress indication.
-    shptr<Slic3r::GUI::ProgressStatusBar> m_stbar;
+    std::shared_ptr<Slic3r::GUI::ProgressStatusBar> m_stbar;
     
     RecorderMouseInput m_mouse;
     
@@ -237,7 +237,7 @@ class MyFrame: public wxFrame
         }
     };
     
-    uqptr<SLAJob> m_ui_job;
+    std::unique_ptr<SLAJob> m_ui_job;
     
     // To keep track of the running average of measured fps values.
     double m_fps_avg = 0.;

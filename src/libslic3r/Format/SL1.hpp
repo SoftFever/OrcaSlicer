@@ -12,7 +12,7 @@ class SL1Archive: public SLAArchive {
     SLAPrinterConfig m_cfg;
     
 protected:
-    uqptr<sla::RasterBase> create_raster() const override;
+    std::unique_ptr<sla::RasterBase> create_raster() const override;
     sla::RasterEncoder get_encoder() const override;
 
 public:
