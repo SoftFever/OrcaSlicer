@@ -382,46 +382,57 @@ int ObjectList::get_mesh_errors_count(const int obj_idx, const int vol_idx /*= -
 
 static std::string get_warning_icon_name(const TriangleMeshStats& stats)
 {
-    return stats.repaired() ? (stats.manifold() ? "exclamation_manifold" : "exclamation") : "";
+    return stats.manifold() ? (stats.repaired() ? "exclamation_manifold" : "") : "exclamation";
 }
 
-std::pair<wxString, std::string> ObjectList::get_mesh_errors(const int obj_idx, const int vol_idx /*= -1*/, bool from_plater /*= false*/) const
+std::pair<wxString, std::string> ObjectList::get_mesh_errors(const int obj_idx, const int vol_idx /*= -1*/, wxString* sidebar_info /*= nullptr*/) const
 {    
-    const int errors = get_mesh_errors_count(obj_idx, vol_idx);
-
-    if (errors == 0)
-        return { {}, {} }; // hide tooltip
-
-    // Create tooltip string, if there are errors 
-    wxString tooltip = format_wxstr(_L_PLURAL("Auto-repaired %1$d error", "Auto-repaired %1$d errors", errors), errors) + ":\n";
-
     const TriangleMeshStats& stats = vol_idx == -1 ?
         (*m_objects)[obj_idx]->get_object_stl_stats() :
         (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stats();
 
-    if (stats.degenerate_facets > 0)
-        tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d degenerate facet", "%1$d degenerate facets", stats.degenerate_facets), stats.degenerate_facets) + "\n";
-    if (stats.edges_fixed > 0)
-        tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d edge fixed", "%1$d edges fixed", stats.edges_fixed), stats.edges_fixed) + "\n";
-    if (stats.facets_removed > 0)
-        tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet removed", "%1$d facets removed", stats.facets_removed), stats.facets_removed) + "\n";
-    if (stats.facets_reversed > 0)
-        tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet reversed", "%1$d facets reversed", stats.facets_reversed), stats.facets_reversed) + "\n";
-    if (stats.backwards_edges > 0)
-        tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d backwards edge", "%1$d backwards edges", stats.backwards_edges), stats.backwards_edges) + "\n";
+    if (!stats.repaired() && stats.manifold()) {
+        if (sidebar_info)
+            *sidebar_info = _L("No errors detected");
+        return { {}, {} }; // hide tooltip
+    }
 
+    wxString tooltip, auto_repaired_info, remaining_info;
+
+    // Create tooltip string, if there are errors 
+    if (stats.repaired()) {
+        const int errors = get_mesh_errors_count(obj_idx, vol_idx);
+        auto_repaired_info = format_wxstr(_L_PLURAL("Auto-repaired %1$d error", "Auto-repaired %1$d errors", errors), errors);
+        tooltip += auto_repaired_info +":\n";
+
+        if (stats.degenerate_facets > 0)
+            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d degenerate facet", "%1$d degenerate facets", stats.degenerate_facets), stats.degenerate_facets) + "\n";
+        if (stats.edges_fixed > 0)
+            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d edge fixed", "%1$d edges fixed", stats.edges_fixed), stats.edges_fixed) + "\n";
+        if (stats.facets_removed > 0)
+            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet removed", "%1$d facets removed", stats.facets_removed), stats.facets_removed) + "\n";
+        if (stats.facets_reversed > 0)
+            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet reversed", "%1$d facets reversed", stats.facets_reversed), stats.facets_reversed) + "\n";
+        if (stats.backwards_edges > 0)
+            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d backwards edge", "%1$d backwards edges", stats.backwards_edges), stats.backwards_edges) + "\n";
+    }
     if (!stats.manifold()) {
+        remaining_info = format_wxstr(_L_PLURAL("Remaining %1$d open edge", "Remaining %1$d open edges", stats.open_edges), stats.open_edges);
+
         tooltip += _L("Remaning errors") + ":\n";
         tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d open edge", "%1$d open edges", stats.open_edges), stats.open_edges) + "\n";
     }
 
-    if (is_windows10() && !from_plater)
+    if (sidebar_info)
+        *sidebar_info = stats.manifold() ? auto_repaired_info : (remaining_info + (stats.repaired() ? ("\n" + auto_repaired_info) : ""));
+
+    if (is_windows10() && !sidebar_info)
         tooltip += "\n" + _L("Right button click the icon to fix STL through Netfabb");
 
     return { tooltip, get_warning_icon_name(stats) };
 }
 
-std::pair<wxString, std::string> ObjectList::get_mesh_errors(bool from_plater /*= false*/)
+std::pair<wxString, std::string> ObjectList::get_mesh_errors(wxString* sidebar_info /*= nullptr*/)
 {
     if (!GetSelection())
         return { "", "" };
@@ -429,7 +440,7 @@ std::pair<wxString, std::string> ObjectList::get_mesh_errors(bool from_plater /*
     int obj_idx, vol_idx;
     get_selected_item_indexes(obj_idx, vol_idx);
 
-    return get_mesh_errors(obj_idx, vol_idx, from_plater);
+    return get_mesh_errors(obj_idx, vol_idx, sidebar_info);
 }
 
 void ObjectList::set_tooltip_for_item(const wxPoint& pt)
