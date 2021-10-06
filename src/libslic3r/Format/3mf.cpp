@@ -134,6 +134,13 @@ static constexpr const char* SOURCE_OFFSET_Z_KEY = "source_offset_z";
 static constexpr const char* SOURCE_IN_INCHES    = "source_in_inches";
 static constexpr const char* SOURCE_IN_METERS    = "source_in_meters";
 
+static constexpr const char* MESH_STAT_EDGES_FIXED          = "edges_fixed";
+static constexpr const char* MESH_STAT_DEGENERATED_FACETS   = "degenerate_facets";
+static constexpr const char* MESH_STAT_FACETS_REMOVED       = "facets_removed";
+static constexpr const char* MESH_STAT_FACETS_RESERVED      = "facets_reversed";
+static constexpr const char* MESH_STAT_BACKWARDS_EDGES      = "backwards_edges";
+
+
 const unsigned int VALID_OBJECT_TYPES_COUNT = 1;
 const char* VALID_OBJECT_TYPES[] =
 {
@@ -383,6 +390,7 @@ namespace Slic3r {
                 unsigned int first_triangle_id;
                 unsigned int last_triangle_id;
                 MetadataList metadata;
+                RepairedMeshErrors mesh_stats;
 
                 VolumeMetadata(unsigned int first_triangle_id, unsigned int last_triangle_id)
                     : first_triangle_id(first_triangle_id)
@@ -531,7 +539,9 @@ namespace Slic3r {
         bool _handle_end_config_object();
 
         bool _handle_start_config_volume(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_config_volume_mesh(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_volume();
+        bool _handle_end_config_volume_mesh();
 
         bool _handle_start_config_metadata(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_metadata();
@@ -1391,6 +1401,8 @@ namespace Slic3r {
             res = _handle_start_config_object(attributes, num_attributes);
         else if (::strcmp(VOLUME_TAG, name) == 0)
             res = _handle_start_config_volume(attributes, num_attributes);
+        else if (::strcmp(MESH_TAG, name) == 0)
+            res = _handle_start_config_volume_mesh(attributes, num_attributes);
         else if (::strcmp(METADATA_TAG, name) == 0)
             res = _handle_start_config_metadata(attributes, num_attributes);
 
@@ -1411,6 +1423,8 @@ namespace Slic3r {
             res = _handle_end_config_object();
         else if (::strcmp(VOLUME_TAG, name) == 0)
             res = _handle_end_config_volume();
+        else if (::strcmp(MESH_TAG, name) == 0)
+            res = _handle_end_config_volume_mesh();
         else if (::strcmp(METADATA_TAG, name) == 0)
             res = _handle_end_config_metadata();
 
@@ -1845,7 +1859,38 @@ namespace Slic3r {
         return true;
     }
 
+    bool _3MF_Importer::_handle_start_config_volume_mesh(const char** attributes, unsigned int num_attributes)
+    {
+        IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
+        if (object == m_objects_metadata.end()) {
+            add_error("Cannot assign volume mesh to a valid object");
+            return false;
+        }
+        if (object->second.volumes.empty()) {
+            add_error("Cannot assign mesh to a valid olume");
+            return false;
+        }
+
+        ObjectMetadata::VolumeMetadata& volume = object->second.volumes.back();
+
+        int edges_fixed         = get_attribute_value_int(attributes, num_attributes, MESH_STAT_EDGES_FIXED       );
+        int degenerate_facets   = get_attribute_value_int(attributes, num_attributes, MESH_STAT_DEGENERATED_FACETS);
+        int facets_removed      = get_attribute_value_int(attributes, num_attributes, MESH_STAT_FACETS_REMOVED    );
+        int facets_reversed     = get_attribute_value_int(attributes, num_attributes, MESH_STAT_FACETS_RESERVED   );
+        int backwards_edges     = get_attribute_value_int(attributes, num_attributes, MESH_STAT_BACKWARDS_EDGES   );
+
+        volume.mesh_stats = { edges_fixed, degenerate_facets, facets_removed, facets_reversed, backwards_edges };
+
+        return true;
+    }
+
     bool _3MF_Importer::_handle_end_config_volume()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_end_config_volume_mesh()
     {
         // do nothing
         return true;
@@ -1947,7 +1992,7 @@ namespace Slic3r {
                 // Remove the vertices, that are not referenced by any face.
                 its_compactify_vertices(its, true);
 
-            TriangleMesh triangle_mesh(std::move(its));
+            TriangleMesh triangle_mesh(std::move(its), volume_data.mesh_stats);
 
             if (m_version == 0) {
                 // if the 3mf was not produced by PrusaSlicer and there is only one instance,
@@ -2970,6 +3015,15 @@ namespace Slic3r {
                             for (const std::string& key : volume->config.keys()) {
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
+                            
+                            // stores mesh's statistics
+                            const RepairedMeshErrors& stats = volume->mesh().stats().repaired_errors;
+                            stream << "   <" << MESH_TAG << " ";
+                            stream << MESH_STAT_EDGES_FIXED        << "=\"" << stats.edges_fixed        << "\" ";
+                            stream << MESH_STAT_DEGENERATED_FACETS << "=\"" << stats.degenerate_facets  << "\" ";
+                            stream << MESH_STAT_FACETS_REMOVED     << "=\"" << stats.facets_removed     << "\" ";
+                            stream << MESH_STAT_FACETS_RESERVED    << "=\"" << stats.facets_reversed    << "\" ";
+                            stream << MESH_STAT_BACKWARDS_EDGES    << "=\"" << stats.backwards_edges    << "\"/>\n";
 
                             stream << "  </" << VOLUME_TAG << ">\n";
                         }

@@ -66,8 +66,10 @@ TriangleMesh::TriangleMesh(const indexed_triangle_set &its) : its(its)
     fill_initial_stats(this->its, m_stats);
 }
 
-TriangleMesh::TriangleMesh(indexed_triangle_set &&its) : its(std::move(its))
+TriangleMesh::TriangleMesh(indexed_triangle_set &&its, const RepairedMeshErrors& errors/* = RepairedMeshErrors()*/) : its(std::move(its))
 {
+    if (errors.repaired())
+        m_stats.repaired_errors = errors;
     fill_initial_stats(this->its, m_stats);
 }
 
@@ -194,11 +196,12 @@ bool TriangleMesh::ReadSTLFile(const char* input_file, bool repair)
     auto facets_w_3_bad_edge = stl.stats.number_of_facets - stl.stats.connected_facets_1_edge;
     m_stats.open_edges              = stl.stats.backwards_edges + facets_w_1_bad_edge + facets_w_2_bad_edge * 2 + facets_w_3_bad_edge * 3;
 
-    m_stats.edges_fixed             = stl.stats.edges_fixed;
-    m_stats.degenerate_facets       = stl.stats.degenerate_facets;
-    m_stats.facets_removed          = stl.stats.facets_removed;
-    m_stats.facets_reversed         = stl.stats.facets_reversed;
-    m_stats.backwards_edges         = stl.stats.backwards_edges;
+    m_stats.repaired_errors = { stl.stats.edges_fixed,
+                                stl.stats.degenerate_facets,
+                                stl.stats.facets_removed,
+                                stl.stats.facets_reversed,
+                                stl.stats.backwards_edges };
+
     m_stats.number_of_parts         = stl.stats.number_of_parts;
 
     stl_generate_shared_vertices(&stl, this->its);
