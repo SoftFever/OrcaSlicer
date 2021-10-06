@@ -398,20 +398,17 @@ static std::string generate_system_info_json()
     pt::ptree monitors_node;
     for (int i=0; i<int(wxDisplay::GetCount()); ++i) {
         wxDisplay display(i);
-        double scaling = -1.;
-        #if wxCHECK_VERSION(3, 1, 2) // we have wxDisplag::GetPPI
-            int std_ppi = 96;
-            #ifdef __WXOSX__ // see impl of wxDisplay::GetStdPPIValue from 3.1.5
-                std_ppi = 72;
-            #endif
-            scaling = double(display.GetPPI().GetWidth()) / std_ppi;
-        #endif
         pt::ptree monitor_node; // Create an unnamed node containing the value
         monitor_node.put("width", display.GetGeometry().GetWidth());
         monitor_node.put("height", display.GetGeometry().GetHeight());
-        std::stringstream ss;
-        ss << std::setprecision(3) << scaling;
-        monitor_node.put("scaling", ss.str() );
+
+        // Only get the scaling on Win, it is not reliable on other platforms.
+        #if defined(_WIN32) && wxCHECK_VERSION(3, 1, 2)
+            double scaling = display.GetPPI().GetWidth() / 96.;
+            std::stringstream ss;
+            ss << std::setprecision(3) << scaling;
+            monitor_node.put("scaling", ss.str() );
+        #endif
         monitors_node.push_back(std::make_pair("", monitor_node));
     }
     hw_node.add_child("Monitors", monitors_node);
