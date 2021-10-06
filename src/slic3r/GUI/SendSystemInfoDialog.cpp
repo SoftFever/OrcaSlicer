@@ -36,7 +36,9 @@
     #include <Iphlpapi.h>
     #pragma comment(lib, "iphlpapi.lib")
 #elif __APPLE__
-#import <IOKit/IOKitLib.h>
+    #import <IOKit/IOKitLib.h>
+#else // Linux/BSD
+    #include <charconv>
 #endif
 
 namespace Slic3r {
@@ -381,11 +383,15 @@ static std::string generate_system_info_json()
      cpu_node.put("Model",  sysctl["machdep.cpu.brand_string"]);
      cpu_node.put("Vendor", sysctl["machdep.cpu.vendor"]);
 #else // linux/BSD
-    std::map<std::string, std::string> lscpu = parse_lscpu_etc("lscpu", ':');
-    cpu_node.put("Arch",   lscpu["Architecture"]);
-    cpu_node.put("Cores",  lscpu["CPU(s)"]);
-    cpu_node.put("Model",  lscpu["Model name"]);
-    cpu_node.put("Vendor", lscpu["Vendor ID"]);
+    std::map<std::string, std::string> lscpu = parse_lscpu_etc("cat /proc/cpuinfo", ':');
+    if (auto ncpu_it = lscpu.find("processor"); ncpu_it != lscpu.end()) {
+        std::string& ncpu = ncpu_it->second;
+        if (int num=0; std::from_chars(ncpu.data(), ncpu.data() + ncpu.size(), num).ec != std::errc::invalid_argument)
+            ncpu = std::to_string(num + 1);
+    }
+    cpu_node.put("Cores",  lscpu["processor"]);
+    cpu_node.put("Model",  lscpu["model name"]);
+    cpu_node.put("Vendor", lscpu["vendor_id"]);
 #endif
     hw_node.add_child("CPU", cpu_node);
 
@@ -547,6 +553,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     const auto size = GetSize();
     SetSize(std::max(size.GetWidth(), MIN_WIDTH * em),
             std::max(size.GetHeight(), MIN_HEIGHT * em));
+    CenterOnParent();
 
     m_btn_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                     {
