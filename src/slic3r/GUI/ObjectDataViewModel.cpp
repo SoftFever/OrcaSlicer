@@ -1777,6 +1777,15 @@ void ObjectDataViewModel::DeleteWarningIcon(const wxDataViewItem& item, const bo
     }
 }
 
+bool ObjectDataViewModel::HasWarningIcon(const wxDataViewItem& item) const
+{
+    if (!item.IsOk())
+        return false;
+
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    return node->has_warning_icon();
+}
+
 } // namespace GUI
 } // namespace Slic3r
 

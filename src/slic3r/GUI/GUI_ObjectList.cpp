@@ -904,7 +904,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 	            int obj_idx, vol_idx;
 	            get_selected_item_indexes(obj_idx, vol_idx, item);
 
-	            if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
+	            if (m_objects_model->HasWarningIcon(item) &&
 	                mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
 	                fix_through_netfabb();
 	        }

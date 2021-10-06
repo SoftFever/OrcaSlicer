@@ -240,6 +240,7 @@ public:
     bool 		valid();
 #endif /* NDEBUG */
     bool        invalid() const { return m_idx < -1; }
+    bool        has_warning_icon() const { return !m_warning_icon_name.empty(); }
 
 private:
     friend class ObjectDataViewModel;
@@ -388,6 +389,7 @@ public:
                               const std::string& warning_icon_name = std::string());
     void        AddWarningIcon(const wxDataViewItem& item, const std::string& warning_name);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
+    bool        HasWarningIcon(const wxDataViewItem& item) const;
     t_layer_height_range    GetLayerRangeByItem(const wxDataViewItem& item) const;
 
     bool        UpdateColumValues(unsigned col);
