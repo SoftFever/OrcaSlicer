@@ -98,13 +98,14 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     float caption_max    = 0.f;
     float total_text_max = 0.f;
     for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"}) {
-        caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc.at(t + "_caption")).x);
-        total_text_max = std::max(total_text_max, caption_max + m_imgui->calc_text_size(m_desc.at(t)).x);
+        caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
+        total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
-    caption_max += m_imgui->scaled(1.f);
-    total_text_max += m_imgui->scaled(1.f);
+    total_text_max += caption_max + m_imgui->scaled(1.f);
+    caption_max    += m_imgui->scaled(1.f);
 
-    float window_width = minimal_slider_width + std::max(cursor_size_slider_left, clipping_slider_left);
+    float sliders_width = std::max(cursor_size_slider_left, clipping_slider_left);
+    float window_width  = minimal_slider_width + sliders_width;
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, button_width);
     window_width = std::max(window_width, cursor_type_radio_left + cursor_type_radio_width1 + cursor_type_radio_width2);

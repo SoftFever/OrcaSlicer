@@ -262,13 +262,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     const float tool_type_radio_smart_fill  = m_imgui->calc_text_size(m_desc["tool_smart_fill"]).x + m_imgui->scaled(2.5f);
 
     float caption_max    = 0.f;
-    float total_text_max = 0.;
+    float total_text_max = 0.f;
     for (const auto &t : std::array<std::string, 3>{"first_color", "second_color", "remove"}) {
-        caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc.at(t + "_caption")).x);
-        total_text_max = std::max(total_text_max, caption_max + m_imgui->calc_text_size(m_desc.at(t)).x);
+        caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
+        total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
-    caption_max += m_imgui->scaled(1.f);
-    total_text_max += m_imgui->scaled(1.f);
+    total_text_max += caption_max + m_imgui->scaled(1.f);
+    caption_max    += m_imgui->scaled(1.f);
 
     float sliders_width = std::max(smart_fill_slider_left, std::max(cursor_slider_left, clipping_slider_left));
     float window_width = minimal_slider_width + sliders_width;
