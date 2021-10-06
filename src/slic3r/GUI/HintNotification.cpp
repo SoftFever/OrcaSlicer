@@ -433,8 +433,8 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 					};
 					m_loaded_hints.emplace_back(hint_data);
 				} else if (dict["hypertext_type"] == "menubar") {
-					wxString menu(_L("&" + dict["hypertext_menubar_menu_name"]));
-					wxString item(_L(dict["hypertext_menubar_item_name"]));
+					wxString menu(_("&" + dict["hypertext_menubar_menu_name"]));
+					wxString item(_(dict["hypertext_menubar_item_name"]));
 					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [menu, item]() { wxGetApp().mainframe->open_menubar_item(menu, item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}

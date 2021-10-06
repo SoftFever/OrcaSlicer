@@ -70,6 +70,7 @@
 #include "SavePresetDialog.hpp"
 #include "PrintHostDialogs.hpp"
 #include "DesktopIntegrationDialog.hpp"
+#include "SendSystemInfoDialog.hpp"
 
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
@@ -680,6 +681,10 @@ void GUI_App::post_init()
             this->preset_updater->sync(preset_bundle);
         });
     }
+
+    // 'Send system info' dialog. Again, a CallAfter is needed on mac.
+    // Without it, GL extensions did not show.
+    CallAfter([] { show_send_system_info_dialog_if_needed(); });
 
 #ifdef _WIN32
     // Sets window property to mainframe so other instances can indentify it.

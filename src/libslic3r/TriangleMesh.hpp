@@ -16,19 +16,7 @@ namespace Slic3r {
 class TriangleMesh;
 class TriangleMeshSlicer;
 
-struct TriangleMeshStats {
-    // Mesh metrics.
-    uint32_t      number_of_facets          = 0;
-    stl_vertex    max                       = stl_vertex::Zero();
-    stl_vertex    min                       = stl_vertex::Zero();
-    stl_vertex    size                      = stl_vertex::Zero();
-    float         volume                    = -1.f;
-    int           number_of_parts           = 0;
-
-    // Mesh errors, remaining.
-    int           open_edges                = 0;
-
-    // Mesh errors, fixed.
+struct RepairedMeshErrors {
     // How many edges were united by merging their end points with some other end points in epsilon neighborhood?
     int           edges_fixed               = 0;
     // How many degenerate faces were removed?
@@ -42,6 +30,36 @@ struct TriangleMeshStats {
     int           facets_reversed           = 0;
     // Edges shared by two triangles, oriented incorrectly.
     int           backwards_edges           = 0;
+
+    void clear() { *this = RepairedMeshErrors(); }
+
+    RepairedMeshErrors merge(const RepairedMeshErrors& rhs) const {
+        RepairedMeshErrors out;
+        out.edges_fixed         = this->edges_fixed         + rhs.edges_fixed;
+        out.degenerate_facets   = this->degenerate_facets   + rhs.degenerate_facets;
+        out.facets_removed      = this->facets_removed      + rhs.facets_removed;
+        out.facets_reversed     = this->facets_reversed     + rhs.facets_reversed;
+        out.backwards_edges     = this->backwards_edges     + rhs.backwards_edges;
+        return out;
+    }
+
+    bool repaired() const { return degenerate_facets > 0 || edges_fixed > 0 || facets_removed > 0 || facets_reversed > 0 || backwards_edges > 0; }
+};
+
+struct TriangleMeshStats {
+    // Mesh metrics.
+    uint32_t      number_of_facets          = 0;
+    stl_vertex    max                       = stl_vertex::Zero();
+    stl_vertex    min                       = stl_vertex::Zero();
+    stl_vertex    size                      = stl_vertex::Zero();
+    float         volume                    = -1.f;
+    int           number_of_parts           = 0;
+
+    // Mesh errors, remaining.
+    int           open_edges                = 0;
+
+    // Mesh errors, fixed.
+    RepairedMeshErrors repaired_errors;
 
     void clear() { *this = TriangleMeshStats(); }
 
@@ -59,17 +77,13 @@ struct TriangleMeshStats {
         out.number_of_parts         = this->number_of_parts     + rhs.number_of_parts;
         out.open_edges              = this->open_edges          + rhs.open_edges;
         out.volume                  = this->volume              + rhs.volume;
-        out.edges_fixed             = this->edges_fixed         + rhs.edges_fixed;
-        out.degenerate_facets       = this->degenerate_facets   + rhs.degenerate_facets;
-        out.facets_removed          = this->facets_removed      + rhs.facets_removed;
-        out.facets_reversed         = this->facets_reversed     + rhs.facets_reversed;
-        out.backwards_edges         = this->backwards_edges     + rhs.backwards_edges;
+        out.repaired_errors.merge(rhs.repaired_errors);
         return out;
       }
     }
 
     bool manifold() const { return open_edges == 0; }
-    bool repaired() const { return degenerate_facets > 0 || edges_fixed > 0 || facets_removed > 0 || facets_reversed > 0 || backwards_edges > 0; }
+    bool repaired() const { return repaired_errors.repaired(); }
 };
 
 class TriangleMesh
@@ -79,7 +93,7 @@ public:
     TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces);
     TriangleMesh(std::vector<Vec3f> &&vertices, const std::vector<Vec3i> &&faces);
     explicit TriangleMesh(const indexed_triangle_set &M);
-    explicit TriangleMesh(indexed_triangle_set &&M);
+    explicit TriangleMesh(indexed_triangle_set &&M, const RepairedMeshErrors& repaired_errors = RepairedMeshErrors());
     void clear() { this->its.clear(); this->m_stats.clear(); }
     bool ReadSTLFile(const char* input_file, bool repair = true);
     bool write_ascii(const char* output_file);

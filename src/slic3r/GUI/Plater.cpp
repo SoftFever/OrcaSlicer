@@ -27,7 +27,11 @@
 #include <wx/numdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
+#ifdef _WIN32
 #include <wx/richtooltip.h>
+#include <wx/custombgwin.h>
+#include <wx/popupwin.h>
+#endif
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -609,7 +613,6 @@ struct Sidebar::priv
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
-    wxString btn_reslice_tip;
     ScalableButton *btn_send_gcode;
     //ScalableButton *btn_eject_device;
 	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
@@ -621,7 +624,12 @@ struct Sidebar::priv
     ~priv();
 
     void show_preset_comboboxes();
+
+#ifdef _WIN32
+    wxString btn_reslice_tip;
     void show_rich_tip(const wxString& tooltip, wxButton* btn);
+    void hide_rich_tip(wxButton* btn);
+#endif
 };
 
 Sidebar::priv::~priv()
@@ -650,6 +658,7 @@ void Sidebar::priv::show_preset_comboboxes()
     scrolled->Refresh();
 }
 
+#ifdef _WIN32
 void Sidebar::priv::show_rich_tip(const wxString& tooltip, wxButton* btn)
 {   
     if (tooltip.IsEmpty())
@@ -659,9 +668,19 @@ void Sidebar::priv::show_rich_tip(const wxString& tooltip, wxButton* btn)
     tip.SetTipKind(wxTipKind_BottomRight);
     tip.SetTitleFont(wxGetApp().normal_font());
     tip.SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-    tip.SetTimeout(1200);
     tip.ShowFor(btn);
 }
+
+void Sidebar::priv::hide_rich_tip(wxButton* btn)
+{
+    auto children = btn->GetChildren();
+    using wxRichToolTipPopup = wxCustomBackgroundWindow<wxPopupTransientWindow>;
+    for (auto child : children) {
+        if (wxRichToolTipPopup* popup = dynamic_cast<wxRichToolTipPopup*>(child))
+            popup->Dismiss();
+    }
+}
+#endif
 
 // Sidebar / public
 
@@ -797,10 +816,18 @@ Sidebar::Sidebar(Plater *parent)
         ScalableBitmap bmp = ScalableBitmap(this, icon_name, bmp_px_cnt);
         *btn = new ScalableButton(this, wxID_ANY, bmp, "", wxBU_EXACTFIT);
 
+#ifdef _WIN32
         (*btn)->Bind(wxEVT_ENTER_WINDOW, [tooltip, btn, this](wxMouseEvent& event) {
             p->show_rich_tip(tooltip, *btn);
             event.Skip();
         });
+        (*btn)->Bind(wxEVT_LEAVE_WINDOW, [btn, this](wxMouseEvent& event) {
+            p->hide_rich_tip(*btn);
+            event.Skip();
+        });
+#else
+        (*btn)->SetToolTip(tooltip);
+#endif // _WIN32
         (*btn)->Hide();
     };
 
@@ -860,10 +887,17 @@ Sidebar::Sidebar(Plater *parent)
         p->plater->select_view_3D("Preview");
     });
 
+#ifdef _WIN32
     p->btn_reslice->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& event) {
         p->show_rich_tip(p->btn_reslice_tip, p->btn_reslice);
         event.Skip();
     });
+    p->btn_reslice->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& event) {
+        p->hide_rich_tip(p->btn_reslice);
+        event.Skip();
+    });
+#endif // _WIN32
+
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
 //    p->btn_eject_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
 	p->btn_export_gcode_removable->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(true); });
@@ -991,7 +1025,11 @@ void Sidebar::update_reslice_btn_tooltip() const
     wxString tooltip = wxString("Slice") + " [" + GUI::shortkey_ctrl_prefix() + "R]";
     if (m_mode != comSimple)
         tooltip += wxString("\n") + _L("Hold Shift to Slice & Export G-code");
+#ifdef _WIN32
     p->btn_reslice_tip = tooltip;
+#else
+    p->btn_reslice->SetToolTip(tooltip);
+#endif
 }
 
 void Sidebar::msw_rescale()
@@ -3097,15 +3135,14 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     }
 
 	//actualizate warnings
-	if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
+	if (invalidated != Print::APPLY_STATUS_UNCHANGED || background_process.empty()) {
         if (background_process.empty())
             process_validation_warning(std::string());
 		actualize_slicing_warnings(*this->background_process.current_print());
         actualize_object_warnings(*this->background_process.current_print());
 		show_warning_dialog = false;
-		process_completed_with_error = false;
-        
-	}
+		process_completed_with_error = false;  
+	} 
 
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
         (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {

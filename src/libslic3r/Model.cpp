@@ -1638,16 +1638,17 @@ void ModelObject::print_info() const
         cout << "open_edges = " << mesh.stats().open_edges << endl;
     
     if (mesh.stats().repaired()) {
-        if (mesh.stats().degenerate_facets > 0)
-            cout << "degenerate_facets = "  << mesh.stats().degenerate_facets << endl;
-        if (mesh.stats().edges_fixed > 0)
-            cout << "edges_fixed = "        << mesh.stats().edges_fixed       << endl;
-        if (mesh.stats().facets_removed > 0)
-            cout << "facets_removed = "     << mesh.stats().facets_removed    << endl;
-        if (mesh.stats().facets_reversed > 0)
-            cout << "facets_reversed = "    << mesh.stats().facets_reversed   << endl;
-        if (mesh.stats().backwards_edges > 0)
-            cout << "backwards_edges = "    << mesh.stats().backwards_edges   << endl;
+        const RepairedMeshErrors& stats = mesh.stats().repaired_errors;
+        if (stats.degenerate_facets > 0)
+            cout << "degenerate_facets = "  << stats.degenerate_facets << endl;
+        if (stats.edges_fixed > 0)
+            cout << "edges_fixed = "        << stats.edges_fixed       << endl;
+        if (stats.facets_removed > 0)
+            cout << "facets_removed = "     << stats.facets_removed    << endl;
+        if (stats.facets_reversed > 0)
+            cout << "facets_reversed = "    << stats.facets_reversed   << endl;
+        if (stats.backwards_edges > 0)
+            cout << "backwards_edges = "    << stats.backwards_edges   << endl;
     }
     cout << "number_of_parts =  " << mesh.stats().number_of_parts << endl;
     cout << "volume = "           << mesh.volume()                << endl;
@@ -1688,11 +1689,7 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
 
         // initialize full_stats (for repaired errors)
         full_stats.open_edges           += stats.open_edges;
-        full_stats.degenerate_facets    += stats.degenerate_facets;
-        full_stats.edges_fixed          += stats.edges_fixed;
-        full_stats.facets_removed       += stats.facets_removed;
-        full_stats.facets_reversed      += stats.facets_reversed;
-        full_stats.backwards_edges      += stats.backwards_edges;
+        full_stats.repaired_errors.merge(stats.repaired_errors);
 
         // another used satistics value
         if (volume->is_model_part()) {
@@ -1709,7 +1706,7 @@ int ModelObject::get_mesh_errors_count(const int vol_idx /*= -1*/) const
     if (vol_idx >= 0)
         return this->volumes[vol_idx]->get_mesh_errors_count();
 
-    const TriangleMeshStats& stats = get_object_stl_stats();
+    const RepairedMeshErrors& stats = get_object_stl_stats().repaired_errors;
 
     return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
             stats.facets_reversed + stats.backwards_edges;
@@ -1781,7 +1778,7 @@ void ModelVolume::calculate_convex_hull()
 
 int ModelVolume::get_mesh_errors_count() const
 {
-    const TriangleMeshStats &stats = this->mesh().stats();
+    const RepairedMeshErrors &stats = this->mesh().stats().repaired_errors;
 
     return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
             stats.facets_reversed + stats.backwards_edges;

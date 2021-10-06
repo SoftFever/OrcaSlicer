@@ -105,7 +105,9 @@ enum class NotificationType
 	ProgressIndicator,
 	// Give user advice to simplify object with big amount of triangles
 	// Contains ObjectID for closing when object is deleted
-	SimplifySuggestion
+	SimplifySuggestion,
+	//  information about netfabb is finished repairing model (blocking proccess)
+	NetfabbFinished
 };
 
 class NotificationManager
@@ -123,6 +125,8 @@ public:
 		RegularNotificationLevel,
 		// Regular level notifiaction containing info about objects or print. Has Icon.
 		PrintInfoNotificationLevel,
+		// PrintInfoNotificationLevel with shorter time
+		PrintInfoShortNotificationLevel,
 		// Information notification without a fade-out or with a longer fade-out.
 		ImportantNotificationLevel,
 		// Warning, no fade-out.
@@ -706,13 +710,14 @@ private:
 	{
 		switch (level) {
 		
-		case NotificationLevel::ErrorNotificationLevel: 	    return 0;
-		case NotificationLevel::WarningNotificationLevel:	    return 0;
-		case NotificationLevel::ImportantNotificationLevel:     return 0;
-		case NotificationLevel::ProgressBarNotificationLevel:	return 2;
-		case NotificationLevel::RegularNotificationLevel: 	    return 10;
-		case NotificationLevel::PrintInfoNotificationLevel:     return 10;
-		case NotificationLevel::HintNotificationLevel:			return 300;
+		case NotificationLevel::ErrorNotificationLevel: 			return 0;
+		case NotificationLevel::WarningNotificationLevel:			return 0;
+		case NotificationLevel::ImportantNotificationLevel:			return 0;
+		case NotificationLevel::ProgressBarNotificationLevel:		return 2;
+		case NotificationLevel::PrintInfoShortNotificationLevel:	return 5;
+		case NotificationLevel::RegularNotificationLevel: 			return 10;
+		case NotificationLevel::PrintInfoNotificationLevel:			return 10;
+		case NotificationLevel::HintNotificationLevel:				return 300;
 		default: return 10;
 		}
 	}
