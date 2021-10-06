@@ -4140,7 +4140,7 @@ void ObjectList::fix_through_netfabb()
     // Close the progress dialog
     progress_dlg.Update(100, "");
 
-    // Show info message
+    // Show info notification
     wxString msg;
     wxString bullet_suf = "\n   - ";
     if (!succes_models.empty()) {
@@ -4156,9 +4156,7 @@ void ObjectList::fix_through_netfabb()
     }
     if (msg.IsEmpty())
         msg = _L("Repairing was canceled");
-    // !!! Use wxMessageDialog instead of MessageDialog here
-    // It will not be "dark moded" but the Application will not lose a focus after model repairing
-    wxMessageDialog(nullptr, msg, _L("Model Repair by the Netfabb service"), wxICON_INFORMATION | wxOK).ShowModal();
+    plater->get_notification_manager()->push_notification(NotificationType::NetfabbFinished, NotificationManager::NotificationLevel::PrintInfoShortNotificationLevel, boost::nowide::narrow(msg));
 }
 
 void ObjectList::simplify()
