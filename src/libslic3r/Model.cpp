@@ -1629,10 +1629,10 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
     return full_stats;
 }
 
-int ModelObject::get_mesh_errors_count(const int vol_idx /*= -1*/) const
+int ModelObject::get_repaired_errors_count(const int vol_idx /*= -1*/) const
 {
     if (vol_idx >= 0)
-        return this->volumes[vol_idx]->get_mesh_errors_count();
+        return this->volumes[vol_idx]->get_repaired_errors_count();
 
     const RepairedMeshErrors& stats = get_object_stl_stats().repaired_errors;
 
@@ -1704,7 +1704,7 @@ void ModelVolume::calculate_convex_hull()
     assert(m_convex_hull.get());
 }
 
-int ModelVolume::get_mesh_errors_count() const
+int ModelVolume::get_repaired_errors_count() const
 {
     const RepairedMeshErrors &stats = this->mesh().stats().repaired_errors;
 

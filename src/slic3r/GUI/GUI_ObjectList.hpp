@@ -67,6 +67,12 @@ struct ItemForDelete
     }
 };
 
+struct MeshErrorsInfo 
+{
+    wxString    tooltip;
+    std::string warning_icon_name;
+};
+
 class ObjectList : public wxDataViewCtrl
 {
 public:
@@ -212,13 +218,13 @@ public:
     void                get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& item = wxDataViewItem(0));
     void                get_selection_indexes(std::vector<int>& obj_idxs, std::vector<int>& vol_idxs);
     // Get count of errors in the mesh
-    int                 get_mesh_errors_count(const int obj_idx, const int vol_idx = -1) const;
+    int                 get_repaired_errors_count(const int obj_idx, const int vol_idx = -1) const;
     // Get list of errors in the mesh and name of the warning icon 
     // Return value is a pair <Tooltip, warning_icon_name>, used for the tooltip and related warning icon
     // Function without parameters is for a call from Manipulation panel, 
     // when we don't know parameters of selected item 
-    std::pair<wxString, std::string> get_mesh_errors(const int obj_idx, const int vol_idx = -1, wxString* sidebar_info = nullptr) const;
-    std::pair<wxString, std::string> get_mesh_errors(wxString* sidebar_info = nullptr);
+    MeshErrorsInfo      get_mesh_errors_info(const int obj_idx, const int vol_idx = -1, wxString* sidebar_info = nullptr) const;
+    MeshErrorsInfo      get_mesh_errors_info(wxString* sidebar_info = nullptr);
     void                set_tooltip_for_item(const wxPoint& pt);
 
     void                selection_changed();

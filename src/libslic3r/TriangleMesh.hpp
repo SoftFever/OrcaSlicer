@@ -33,14 +33,12 @@ struct RepairedMeshErrors {
 
     void clear() { *this = RepairedMeshErrors(); }
 
-    RepairedMeshErrors merge(const RepairedMeshErrors& rhs) const {
-        RepairedMeshErrors out;
-        out.edges_fixed         = this->edges_fixed         + rhs.edges_fixed;
-        out.degenerate_facets   = this->degenerate_facets   + rhs.degenerate_facets;
-        out.facets_removed      = this->facets_removed      + rhs.facets_removed;
-        out.facets_reversed     = this->facets_reversed     + rhs.facets_reversed;
-        out.backwards_edges     = this->backwards_edges     + rhs.backwards_edges;
-        return out;
+    void merge(const RepairedMeshErrors& rhs) {
+        this->edges_fixed         += rhs.edges_fixed;
+        this->degenerate_facets   += rhs.degenerate_facets;
+        this->facets_removed      += rhs.facets_removed;
+        this->facets_reversed     += rhs.facets_reversed;
+        this->backwards_edges     += rhs.backwards_edges;
     }
 
     bool repaired() const { return degenerate_facets > 0 || edges_fixed > 0 || facets_removed > 0 || facets_reversed > 0 || backwards_edges > 0; }

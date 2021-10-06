@@ -377,7 +377,7 @@ public:
     // Get full stl statistics for all object's meshes
     TriangleMeshStats get_object_stl_stats() const;
     // Get count of errors in the mesh( or all object's meshes, if volume index isn't defined)
-    int         get_mesh_errors_count(const int vol_idx = -1) const;
+    int         get_repaired_errors_count(const int vol_idx = -1) const;
 
 private:
     friend class Model;
@@ -682,7 +682,7 @@ public:
     const TriangleMesh& get_convex_hull() const;
     std::shared_ptr<const TriangleMesh> get_convex_hull_shared_ptr() const { return m_convex_hull; }
     // Get count of errors in the mesh
-    int                 get_mesh_errors_count() const;
+    int                 get_repaired_errors_count() const;
 
     // Helpers for loading / storing into AMF / 3MF files.
     static ModelVolumeType type_from_string(const std::string &s);

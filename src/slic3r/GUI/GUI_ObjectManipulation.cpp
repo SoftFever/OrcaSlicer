@@ -1,5 +1,4 @@
 #include "GUI_ObjectManipulation.hpp"
-#include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 #include "BitmapComboBox.hpp"
 
@@ -132,7 +131,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     return;
 
                 wxGetApp().obj_list()->fix_through_netfabb();
-                update_warning_icon_state(wxGetApp().obj_list()->get_mesh_errors());
+                update_warning_icon_state(wxGetApp().obj_list()->get_mesh_errors_info());
             });
 
     sizer->Add(m_fix_throught_netfab_bitmap);
@@ -781,12 +780,12 @@ void ObjectManipulation::update_item_name(const wxString& item_name)
     m_item_name->SetLabel(item_name);
 }
 
-void ObjectManipulation::update_warning_icon_state(const std::pair<wxString, std::string>& warning)
+void ObjectManipulation::update_warning_icon_state(const MeshErrorsInfo& warning)
 {   
-    if (const std::string& warning_icon_name = warning.second;
+    if (const std::string& warning_icon_name = warning.warning_icon_name;
         !warning_icon_name.empty())
         m_manifold_warning_bmp = ScalableBitmap(m_parent, warning_icon_name);
-    const wxString& tooltip = warning.first;
+    const wxString& tooltip = warning.tooltip;
     m_fix_throught_netfab_bitmap->SetBitmap(tooltip.IsEmpty() ? wxNullBitmap : m_manifold_warning_bmp.bmp());
     m_fix_throught_netfab_bitmap->SetMinSize(tooltip.IsEmpty() ? wxSize(0,0) : m_manifold_warning_bmp.bmp().GetSize());
     m_fix_throught_netfab_bitmap->SetToolTip(tooltip);
