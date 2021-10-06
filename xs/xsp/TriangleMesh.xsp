@@ -69,11 +69,11 @@ TriangleMesh::stats()
         (void)hv_stores( hv, "number_of_facets",    newSViv(THIS->facets_count()) );
         (void)hv_stores( hv, "number_of_parts",     newSViv(THIS->stats().number_of_parts) );
         (void)hv_stores( hv, "volume",              newSVnv(THIS->stats().volume) );
-        (void)hv_stores( hv, "degenerate_facets",   newSViv(THIS->stats().degenerate_facets) );
-        (void)hv_stores( hv, "edges_fixed",         newSViv(THIS->stats().edges_fixed) );
-        (void)hv_stores( hv, "facets_removed",      newSViv(THIS->stats().facets_removed) );
-        (void)hv_stores( hv, "facets_reversed",     newSViv(THIS->stats().facets_reversed) );
-        (void)hv_stores( hv, "backwards_edges",     newSViv(THIS->stats().backwards_edges) );
+        (void)hv_stores( hv, "degenerate_facets",   newSViv(THIS->stats().repaired_errors.degenerate_facets) );
+        (void)hv_stores( hv, "edges_fixed",         newSViv(THIS->stats().repaired_errors.edges_fixed) );
+        (void)hv_stores( hv, "facets_removed",      newSViv(THIS->stats().repaired_errors.facets_removed) );
+        (void)hv_stores( hv, "facets_reversed",     newSViv(THIS->stats().repaired_errors.facets_reversed) );
+        (void)hv_stores( hv, "backwards_edges",     newSViv(THIS->stats().repaired_errors.backwards_edges) );
         RETVAL = (SV*)newRV_noinc((SV*)hv);
     OUTPUT:
         RETVAL
