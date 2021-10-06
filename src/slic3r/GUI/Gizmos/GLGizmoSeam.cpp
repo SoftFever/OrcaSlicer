@@ -144,7 +144,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(cursor_size_slider_left);
     ImGui::PushItemWidth(window_width - cursor_size_slider_left);
-    m_imgui->slider_float(" ", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
+    m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(max_tooltip_width);
@@ -206,7 +206,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
     auto clp_dist = float(m_c->object_clipper()->get_position());
-    if (m_imgui->slider_float("  ", &clp_dist, 0.f, 1.f, "%.2f"))
+    if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
     if (ImGui::IsItemHovered()) {

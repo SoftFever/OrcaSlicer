@@ -139,7 +139,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         "placed after the number with no whitespace in between.");
     ImGui::SameLine(autoset_slider_left);
     ImGui::PushItemWidth(window_width - autoset_slider_left);
-    if (m_imgui->slider_float("", &m_angle_threshold_deg, 0.f, 90.f, format_str.data())) {
+    if (m_imgui->slider_float("##angle_threshold_deg", &m_angle_threshold_deg, 0.f, 90.f, format_str.data())) {
         m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
         if (! m_parent.is_using_slope()) {
             m_parent.use_slope(true);
@@ -188,7 +188,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(cursor_slider_left);
     ImGui::PushItemWidth(window_width - cursor_slider_left);
-    m_imgui->slider_float(" ", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
+    m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(max_tooltip_width);
@@ -252,7 +252,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
     auto clp_dist = float(m_c->object_clipper()->get_position());
-    if (m_imgui->slider_float("  ", &clp_dist, 0.f, 1.f, "%.2f"))
+    if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
     if (ImGui::IsItemHovered()) {
