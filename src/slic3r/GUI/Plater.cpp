@@ -27,7 +27,11 @@
 #include <wx/numdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
+#ifdef _WIN32
 #include <wx/richtooltip.h>
+#include <wx/custombgwin.h>
+#include <wx/popupwin.h>
+#endif
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -624,6 +628,7 @@ struct Sidebar::priv
 #ifdef _WIN32
     wxString btn_reslice_tip;
     void show_rich_tip(const wxString& tooltip, wxButton* btn);
+    void hide_rich_tip(wxButton* btn);
 #endif
 };
 
@@ -663,8 +668,17 @@ void Sidebar::priv::show_rich_tip(const wxString& tooltip, wxButton* btn)
     tip.SetTipKind(wxTipKind_BottomRight);
     tip.SetTitleFont(wxGetApp().normal_font());
     tip.SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-    tip.SetTimeout(1200);
     tip.ShowFor(btn);
+}
+
+void Sidebar::priv::hide_rich_tip(wxButton* btn)
+{
+    auto children = btn->GetChildren();
+    using wxRichToolTipPopup = wxCustomBackgroundWindow<wxPopupTransientWindow>;
+    for (auto child : children) {
+        if (wxRichToolTipPopup* popup = dynamic_cast<wxRichToolTipPopup*>(child))
+            popup->Dismiss();
+    }
 }
 #endif
 
@@ -807,6 +821,10 @@ Sidebar::Sidebar(Plater *parent)
             p->show_rich_tip(tooltip, *btn);
             event.Skip();
         });
+        (*btn)->Bind(wxEVT_LEAVE_WINDOW, [btn, this](wxMouseEvent& event) {
+            p->hide_rich_tip(*btn);
+            event.Skip();
+        });
 #else
         (*btn)->SetToolTip(tooltip);
 #endif // _WIN32
@@ -872,6 +890,10 @@ Sidebar::Sidebar(Plater *parent)
 #ifdef _WIN32
     p->btn_reslice->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& event) {
         p->show_rich_tip(p->btn_reslice_tip, p->btn_reslice);
+        event.Skip();
+    });
+    p->btn_reslice->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& event) {
+        p->hide_rich_tip(p->btn_reslice);
         event.Skip();
     });
 #endif // _WIN32
