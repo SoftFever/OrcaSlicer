@@ -278,7 +278,8 @@ void NotificationManager::PopNotification::count_spaces()
 	m_left_indentation = m_line_height;
 	if (m_data.level == NotificationLevel::ErrorNotificationLevel 
 		|| m_data.level == NotificationLevel::WarningNotificationLevel
-		|| m_data.level == NotificationLevel::PrintInfoNotificationLevel) {
+		|| m_data.level == NotificationLevel::PrintInfoNotificationLevel
+		|| m_data.level == NotificationLevel::PrintInfoShortNotificationLevel) {
 		std::string text;
 		text = (m_data.level == NotificationLevel::ErrorNotificationLevel ? ImGui::ErrorMarker : ImGui::WarningMarker);
 		float picture_width = ImGui::CalcTextSize(text.c_str()).x;
@@ -513,7 +514,7 @@ void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)
 		ImGui::SetCursorPosX(m_line_height / 3);
 		ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
 		imgui.text(text.c_str());
-	} else if (m_data.level == NotificationLevel::PrintInfoNotificationLevel) {
+	} else if (m_data.level == NotificationLevel::PrintInfoNotificationLevel || m_data.level == NotificationLevel::PrintInfoShortNotificationLevel) {
 		std::wstring text;
 		text = ImGui::InfoMarker;
 		ImGui::SetCursorPosX(m_line_height / 3);
