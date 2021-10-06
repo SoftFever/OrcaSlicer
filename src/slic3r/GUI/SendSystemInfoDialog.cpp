@@ -131,16 +131,14 @@ public:
 // current version is newer. Only major and minor versions are compared.
 static bool should_dialog_be_shown()
 {
-    return false;
-
     std::string last_sent_version = wxGetApp().app_config->get("version_system_info_sent");
     Semver semver_current(SLIC3R_VERSION);
     Semver semver_last_sent;
     if (! last_sent_version.empty())
         semver_last_sent = Semver(last_sent_version);
 
-    if (semver_current.prerelease() && std::string(semver_current.prerelease()) == "alpha")
-        return false; // Don't show in alphas.
+    // if (semver_current.prerelease() && std::string(semver_current.prerelease()) == "alpha")
+    //     return false; // Don't show in alphas.
 
     // Show the dialog if current > last, but they differ in more than just patch.
     return ((semver_current.maj() > semver_last_sent.maj())
