@@ -1108,10 +1108,18 @@ void GLCanvas3D::reset_volumes()
     _set_warning_notification(EWarning::ObjectOutside, false);
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(bool as_toolpaths) const
+#else
 ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 {
     ModelInstanceEPrintVolumeState state;
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_volumes.check_outside_state(m_config, &state, as_toolpaths);
+#else
     m_volumes.check_outside_state(m_config, &state);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     return state;
 }
 
@@ -5016,24 +5024,16 @@ void GLCanvas3D::_render_background() const
 
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
-        else {
+        else
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-            ModelInstanceEPrintVolumeState state;
-            if (m_gcode_viewer.has_data()) {
-                const Polygon bed_poly = offset(Polygon::new_scale(wxGetApp().plater()->get_bed().get_shape()), static_cast<float>(scale_(BedEpsilon))).front();
-                const float bed_height = m_config->opt_float("max_print_height");
-                state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
-            }
-            else
-                state = ModelInstancePVS_Inside;
-
-            use_error_color &= state != ModelInstancePVS_Inside;
+            use_error_color &= m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
 #else
+        {
             const BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
             use_error_color &= (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0) ? !test_volume.contains(paths_volume) : false;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     }
 
     glsafe(::glPushMatrix());
@@ -6379,18 +6379,7 @@ void GLCanvas3D::_load_sla_shells()
 void GLCanvas3D::_update_toolpath_volumes_outside_state()
 {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    const Polygon bed_poly = offset(Polygon::new_scale(wxGetApp().plater()->get_bed().get_shape()), static_cast<float>(scale_(BedEpsilon))).front();
-    const float bed_height = m_config->opt_float("max_print_height");
-    for (GLVolume* volume : m_volumes.volumes) {
-        if (volume->is_extrusion_path) {
-            const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
-            const Polygon volume_hull_2d = its_convex_hull_2d_above(volume->convex_hull()->its, volume->world_matrix().cast<float>(), 0.0f);
-            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb.min.z(), bb.max.z());
-            volume->is_outside = (state != ModelInstancePVS_Inside);
-        }
-        else
-            volume->is_outside = false;
-    }
+    check_volumes_outside_state(true);
 #else
     BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
     for (GLVolume* volume : m_volumes.volumes) {
@@ -6402,18 +6391,7 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 void GLCanvas3D::_update_sla_shells_outside_state()
 {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    const Polygon bed_poly = offset(Polygon::new_scale(wxGetApp().plater()->get_bed().get_shape()), static_cast<float>(scale_(BedEpsilon))).front();
-    const float bed_height = m_config->opt_float("max_print_height");
-    for (GLVolume* volume : m_volumes.volumes) {
-        if (volume->shader_outside_printer_detection_enabled) {
-            const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
-            const Polygon volume_hull_2d = its_convex_hull_2d_above(volume->convex_hull()->its, volume->world_matrix().cast<float>(), 0.0f);
-            const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb.min.z(), bb.max.z());
-            volume->is_outside = (state != ModelInstancePVS_Inside);
-        }
-        else
-            volume->is_outside = false;
-    }
+    check_volumes_outside_state();
 #else
     BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
     for (GLVolume* volume : m_volumes.volumes) {
@@ -6431,12 +6409,8 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
     else {
         if (wxGetApp().is_editor()) {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-            if (current_printer_technology() != ptSLA) {
-                const Polygon bed_poly = offset(Polygon::new_scale(wxGetApp().plater()->get_bed().get_shape()), static_cast<float>(scale_(BedEpsilon))).front();
-                const float bed_height = m_config->opt_float("max_print_height");
-                const ModelInstanceEPrintVolumeState state = printbed_collision_state(bed_poly, bed_height, m_gcode_viewer.get_paths_bounding_box());
-                show = state != ModelInstancePVS_Inside;
-            }
+            if (current_printer_technology() != ptSLA)
+                show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
 #else
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
@@ -6445,6 +6419,7 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         }
     }
+
     _set_warning_notification(warning, show);
 }
 

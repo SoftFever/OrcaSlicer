@@ -139,6 +139,7 @@ public:
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     static bool is_rectangle(const Pointfs& shape, Vec2d* min = nullptr, Vec2d* max = nullptr);
     static bool is_circle(const Pointfs& shape, Vec2d* center = nullptr, double* radius = nullptr);
+    static bool is_convex(const Pointfs& shape);
     static EShapeType detect_shape_type(const Pointfs& shape);
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 

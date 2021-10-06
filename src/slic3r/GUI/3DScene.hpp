@@ -654,7 +654,11 @@ public:
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    bool check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state, bool as_toolpaths = false) const;
+#else
     bool check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state) const;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);

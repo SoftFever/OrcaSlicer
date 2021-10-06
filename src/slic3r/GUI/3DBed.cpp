@@ -282,9 +282,11 @@ bool Bed3D::is_circle(const Pointfs& shape, Vec2d* center, double* radius)
 
     avg_dist /= vertex_distances.size();
 
+    double tolerance = avg_dist * 0.01;
+
     bool defined_value = true;
     for (double el : vertex_distances) {
-        if (fabs(el - avg_dist) > 10.0 * SCALED_EPSILON)
+        if (fabs(el - avg_dist) > tolerance)
             defined_value = false;
         break;
     }
@@ -296,6 +298,11 @@ bool Bed3D::is_circle(const Pointfs& shape, Vec2d* center, double* radius)
         *radius = avg_dist;
 
     return defined_value;
+}
+
+bool Bed3D::is_convex(const Pointfs& shape)
+{
+    return Polygon::new_scale(shape).convex_points().size() == shape.size();
 }
 
 Bed3D::EShapeType Bed3D::detect_shape_type(const Pointfs& shape)

@@ -621,7 +621,11 @@ public:
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    ModelInstanceEPrintVolumeState check_volumes_outside_state(bool as_toolpaths = false) const;
+#else
     ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 #if ENABLE_SEAMS_USING_MODELS
     void init_gcode_viewer() { m_gcode_viewer.init(); }
