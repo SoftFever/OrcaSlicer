@@ -506,6 +506,8 @@ void Preview::on_combochecklist_options(wxCommandEvent& evt)
         const unsigned int diff_flags = curr_flags ^ new_flags;
         if ((diff_flags & (1 << static_cast<unsigned int>(Preview::OptionType::Travel))) != 0)
             refresh_print();
+        else
+            m_canvas->refresh_gcode_preview_render_paths();
     }
     else
         m_canvas->refresh_gcode_preview_render_paths();
