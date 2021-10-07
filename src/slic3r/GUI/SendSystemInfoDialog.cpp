@@ -436,15 +436,23 @@ static std::string generate_system_info_json()
     pt::ptree root;
     root.add_child("data", data_node);
 
+    // Now go through all the values and trim leading/trailing whitespace.
+    // Some CPU names etc apparently have trailing spaces...
+    std::function<void(pt::ptree&)> remove_whitespace;
+    remove_whitespace = [&remove_whitespace](pt::ptree& t) -> void
+    {
+        if (t.empty()) // Trim whitespace
+            boost::algorithm::trim(t.data());
+        else
+            for (auto it = t.begin(); it != t.end(); ++it)
+                remove_whitespace(it->second);
+    };
+    remove_whitespace(root);
+
     // Serialize the tree into JSON and return it.
     std::stringstream ss;
     pt::write_json(ss, root);
     return ss.str();
-
-    // FURTHER THINGS TO CONSIDER:
-    //std::cout << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << std::endl;          // Unix
-    // ? CPU, GPU, UNKNOWN ?
-    // printers? will they be installed already?
 }
 
 
