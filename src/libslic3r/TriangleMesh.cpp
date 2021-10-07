@@ -68,8 +68,7 @@ TriangleMesh::TriangleMesh(const indexed_triangle_set &its) : its(its)
 
 TriangleMesh::TriangleMesh(indexed_triangle_set &&its, const RepairedMeshErrors& errors/* = RepairedMeshErrors()*/) : its(std::move(its))
 {
-    if (errors.repaired())
-        m_stats.repaired_errors = errors;
+    m_stats.repaired_errors = errors;
     fill_initial_stats(this->its, m_stats);
 }
 

@@ -343,6 +343,7 @@ void PreferencesDialog::build(size_t selected_tab)
 		m_optgroup_gui->append_single_option_line(option);
 
 #ifdef _MSW_DARK_MODE
+	}
 		def.label = L("Use Dark color mode (experimental)");
 		def.type = coBool;
 		def.tooltip = L("If enabled, UI will use Dark mode colors. "
@@ -351,6 +352,7 @@ void PreferencesDialog::build(size_t selected_tab)
 		option = Option(def, "dark_color_mode");
 		m_optgroup_gui->append_single_option_line(option);
 
+	if (is_editor) {
 		def.label = L("Set settings tabs as menu items (experimental)");
 		def.type = coBool;
 		def.tooltip = L("If enabled, Settings Tabs will be placed as menu items. "

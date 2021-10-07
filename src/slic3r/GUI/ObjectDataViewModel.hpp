@@ -389,6 +389,7 @@ public:
                               const std::string& warning_icon_name = std::string());
     void        AddWarningIcon(const wxDataViewItem& item, const std::string& warning_name);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
+    void        UpdateWarningIcon(const wxDataViewItem& item, const std::string& warning_name);
     bool        HasWarningIcon(const wxDataViewItem& item) const;
     t_layer_height_range    GetLayerRangeByItem(const wxDataViewItem& item) const;
 

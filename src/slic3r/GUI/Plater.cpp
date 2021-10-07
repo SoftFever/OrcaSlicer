@@ -1204,9 +1204,9 @@ void Sidebar::show_info_sizer()
                                                        static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
     wxString info_manifold_label;
-    auto mesh_errors = obj_list()->get_mesh_errors(&info_manifold_label);
-    wxString tooltip = mesh_errors.first;
-    p->object_info->update_warning_icon(mesh_errors.second);
+    auto mesh_errors = obj_list()->get_mesh_errors_info(&info_manifold_label);
+    wxString tooltip = mesh_errors.tooltip;
+    p->object_info->update_warning_icon(mesh_errors.warning_icon_name);
     p->object_info->info_manifold->SetLabel(info_manifold_label);
     p->object_info->info_manifold->SetToolTip(tooltip);
     p->object_info->manifold_warning_icon->SetToolTip(tooltip);
@@ -2438,6 +2438,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             };
 
             if (!is_project_file) {
+                if (int deleted_objects = model.removed_objects_with_zero_volume(); deleted_objects > 0) {
+                    MessageDialog(q, format_wxstr(_L_PLURAL(
+                        "Object size from file %s appears to be zero.\n"
+                        "This object has been removed from the model",
+                        "Objects size from file %s appear to be zero.\n"
+                        "These objects have been removed from the model", deleted_objects), from_path(filename)) + "\n",
+                        _L("Object size is zero"), wxICON_INFORMATION | wxOK).ShowModal();
+                }
                 if (imperial_units)
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
@@ -4600,14 +4608,14 @@ bool Plater::priv::can_fix_through_netfabb() const
     // Fixing only if the model is not manifold.
     if (vol_idxs.empty()) {
         for (auto obj_idx : obj_idxs)
-            if (model.objects[obj_idx]->get_mesh_errors_count() > 0)
+            if (model.objects[obj_idx]->get_repaired_errors_count() > 0)
                 return true;
         return false;
     }
 
     int obj_idx = obj_idxs.front();
     for (auto vol_idx : vol_idxs)
-        if (model.objects[obj_idx]->get_mesh_errors_count(vol_idx) > 0)
+        if (model.objects[obj_idx]->get_repaired_errors_count(vol_idx) > 0)
             return true;
     return false;
 #endif // FIX_THROUGH_NETFABB_ALWAYS

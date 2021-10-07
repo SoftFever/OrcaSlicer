@@ -496,13 +496,22 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
 
 void Preview::on_combochecklist_options(wxCommandEvent& evt)
 {
-    unsigned int curr_flags = m_canvas->get_gcode_options_visibility_flags();
-    unsigned int new_flags = Slic3r::GUI::combochecklist_get_flags(m_combochecklist_options);
+    const unsigned int curr_flags = m_canvas->get_gcode_options_visibility_flags();
+    const unsigned int new_flags = Slic3r::GUI::combochecklist_get_flags(m_combochecklist_options);
     if (curr_flags == new_flags)
         return;
 
     m_canvas->set_gcode_options_visibility_from_flags(new_flags);
-    m_canvas->refresh_gcode_preview_render_paths();
+    if (m_canvas->get_gcode_view_type() == GCodeViewer::EViewType::Feedrate) {
+        const unsigned int diff_flags = curr_flags ^ new_flags;
+        if ((diff_flags & (1 << static_cast<unsigned int>(Preview::OptionType::Travel))) != 0)
+            refresh_print();
+        else
+            m_canvas->refresh_gcode_preview_render_paths();
+    }
+    else
+        m_canvas->refresh_gcode_preview_render_paths();
+
     update_moves_slider();
 }
 

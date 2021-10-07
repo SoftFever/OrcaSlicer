@@ -552,6 +552,22 @@ void Model::convert_from_meters(bool only_small_volumes)
         }
 }
 
+static constexpr const double zero_volume = 0.0000000001;
+
+int Model::removed_objects_with_zero_volume()
+{
+    if (objects.size() == 0)
+        return 0;
+
+    int removed = 0;
+    for (int i = int(objects.size()) - 1; i >= 0; i--)
+        if (objects[i]->get_object_stl_stats().volume < zero_volume) {
+            delete_object(size_t(i));
+            removed++;
+        }
+    return removed;
+}
+
 void Model::adjust_min_z()
 {
     if (objects.empty())
@@ -1701,10 +1717,10 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
     return full_stats;
 }
 
-int ModelObject::get_mesh_errors_count(const int vol_idx /*= -1*/) const
+int ModelObject::get_repaired_errors_count(const int vol_idx /*= -1*/) const
 {
     if (vol_idx >= 0)
-        return this->volumes[vol_idx]->get_mesh_errors_count();
+        return this->volumes[vol_idx]->get_repaired_errors_count();
 
     const RepairedMeshErrors& stats = get_object_stl_stats().repaired_errors;
 
@@ -1776,7 +1792,7 @@ void ModelVolume::calculate_convex_hull()
     assert(m_convex_hull.get());
 }
 
-int ModelVolume::get_mesh_errors_count() const
+int ModelVolume::get_repaired_errors_count() const
 {
     const RepairedMeshErrors &stats = this->mesh().stats().repaired_errors;
 

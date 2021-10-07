@@ -553,7 +553,10 @@ void GLGizmoPainterBase::on_load(cereal::BinaryInputArchive&)
     m_schedule_update = true;
 }
 
-
+std::array<float, 4> TriangleSelectorGUI::get_seed_fill_color(const std::array<float, 4> &base_color)
+{
+    return {base_color[0] * 0.75f, base_color[1] * 0.75f, base_color[2] * 0.75f, 1.f};
+}
 
 void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
 {
@@ -582,6 +585,29 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
         }
     }
 
+    for (auto &iva : m_iva_seed_fills)
+        if (iva.has_VBOs()) {
+            size_t                      color_idx = &iva - &m_iva_seed_fills.front();
+            const std::array<float, 4> &color     = TriangleSelectorGUI::get_seed_fill_color(color_idx == 1 ? enforcers_color :
+                                                                                             color_idx == 2 ? blockers_color :
+                                                                                                              GLVolume::NEUTRAL_COLOR);
+            shader->set_uniform("uniform_color", color);
+            iva.render();
+        }
+
+    if (m_paint_contour.has_VBO()) {
+        ScopeGuard guard_gouraud([shader]() { shader->start_using(); });
+        shader->stop_using();
+
+        auto *contour_shader = wxGetApp().get_shader("mm_contour");
+        contour_shader->start_using();
+
+        glsafe(::glDepthFunc(GL_GEQUAL));
+        m_paint_contour.render();
+        glsafe(::glDepthFunc(GL_LESS));
+
+        contour_shader->stop_using();
+    }
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     if (imgui)
@@ -591,26 +617,33 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
 #endif
 }
 
-
-
 void TriangleSelectorGUI::update_render_data()
 {
-    int enf_cnt = 0;
-    int blc_cnt = 0;
+    int              enf_cnt = 0;
+    int              blc_cnt = 0;
+    std::vector<int> seed_fill_cnt(m_iva_seed_fills.size(), 0);
 
     for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
         iva->release_geometry();
 
+    for (auto &iva : m_iva_seed_fills)
+        iva.release_geometry();
+
     for (const Triangle &tr : m_triangles) {
-        if (!tr.valid() || tr.is_split() || tr.get_state() == EnforcerBlockerType::NONE)
+        if (!tr.valid() || tr.is_split() || (tr.get_state() == EnforcerBlockerType::NONE && !tr.is_selected_by_seed_fill()))
             continue;
 
-        GLIndexedVertexArray &iva = tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers : m_iva_blockers;
-        int &                 cnt = tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt : blc_cnt;
+        int tr_state = int(tr.get_state());
+        GLIndexedVertexArray &iva = tr.is_selected_by_seed_fill()                   ? m_iva_seed_fills[tr_state] :
+                                    tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers :
+                                                                                      m_iva_blockers;
+        int                  &cnt = tr.is_selected_by_seed_fill()                   ? seed_fill_cnt[tr_state] :
+                                    tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt :
+                                                                                      blc_cnt;
         const Vec3f          &v0  = m_vertices[tr.verts_idxs[0]].v;
         const Vec3f          &v1  = m_vertices[tr.verts_idxs[1]].v;
         const Vec3f          &v2  = m_vertices[tr.verts_idxs[2]].v;
-        //FIXME the normal may likely be pulled from m_triangle_selectors, but it may not be worth the effort 
+        //FIXME the normal may likely be pulled from m_triangle_selectors, but it may not be worth the effort
         // or the current implementation may be more cache friendly.
         const Vec3f           n   = (v1 - v0).cross(v2 - v1).normalized();
         iva.push_geometry(v0, n);
@@ -622,9 +655,87 @@ void TriangleSelectorGUI::update_render_data()
 
     for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
         iva->finalize_geometry(true);
+
+    for (auto &iva : m_iva_seed_fills)
+        iva.finalize_geometry(true);
+
+    m_paint_contour.release_geometry();
+    std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
+    m_paint_contour.contour_vertices.reserve(contour_edges.size() * 6);
+    for (const Vec2i &edge : contour_edges) {
+        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.x());
+        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.y());
+        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.z());
+
+        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.x());
+        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.y());
+        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.z());
+    }
+
+    m_paint_contour.contour_indices.assign(m_paint_contour.contour_vertices.size() / 3, 0);
+    std::iota(m_paint_contour.contour_indices.begin(), m_paint_contour.contour_indices.end(), 0);
+    m_paint_contour.contour_indices_size = m_paint_contour.contour_indices.size();
+
+    m_paint_contour.finalize_geometry();
 }
 
+void GLPaintContour::render() const
+{
+    assert(this->m_contour_VBO_id != 0);
+    assert(this->m_contour_EBO_id != 0);
 
+    glsafe(::glLineWidth(4.0f));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_VBO_id));
+    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
+
+    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+
+    if (this->contour_indices_size > 0) {
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_contour_EBO_id));
+        glsafe(::glDrawElements(GL_LINES, GLsizei(this->contour_indices_size), GL_UNSIGNED_INT, nullptr));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
+
+    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void GLPaintContour::finalize_geometry()
+{
+    assert(this->m_contour_VBO_id == 0);
+    assert(this->m_contour_EBO_id == 0);
+
+    if (!this->contour_vertices.empty()) {
+        glsafe(::glGenBuffers(1, &this->m_contour_VBO_id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_VBO_id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->contour_vertices.size() * sizeof(float), this->contour_vertices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        this->contour_vertices.clear();
+    }
+
+    if (!this->contour_indices.empty()) {
+        glsafe(::glGenBuffers(1, &this->m_contour_EBO_id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_EBO_id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->contour_indices.size() * sizeof(unsigned int), this->contour_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        this->contour_indices.clear();
+    }
+}
+
+void GLPaintContour::release_geometry()
+{
+    if (this->m_contour_VBO_id) {
+        glsafe(::glDeleteBuffers(1, &this->m_contour_VBO_id));
+        this->m_contour_VBO_id = 0;
+    }
+    if (this->m_contour_EBO_id) {
+        glsafe(::glDeleteBuffers(1, &this->m_contour_EBO_id));
+        this->m_contour_EBO_id = 0;
+    }
+    this->clear();
+}
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
