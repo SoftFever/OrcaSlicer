@@ -25,8 +25,6 @@ public:
         return this->triangle_indices_VBO_ids[triangle_indices_idx] != 0;
     }
 
-    [[nodiscard]] inline bool has_contour_VBO() const { return this->contour_indices_VBO_id != 0; }
-
     // Release the geometry data, release OpenGL VBOs.
     void release_geometry();
     // Finalize the initialization of the geometry, upload the geometry to OpenGL VBO objects
@@ -35,9 +33,6 @@ public:
     // Finalize the initialization of the indices, upload the indices to OpenGL VBO objects
     // and possibly releasing it if it has been loaded into the VBOs.
     void finalize_triangle_indices();
-    // Finalize the initialization of the contour geometry and the indices, upload both to OpenGL VBO objects
-    // and possibly releasing it if it has been loaded into the VBOs.
-    void finalize_contour();
 
     void clear()
     {
@@ -47,34 +42,21 @@ public:
 
         for (size_t &triangle_indices_size : this->triangle_indices_sizes)
             triangle_indices_size = 0;
-
-        this->contour_vertices.clear();
-        this->contour_indices.clear();
-        this->contour_indices_size = 0;
     }
 
     void render(size_t triangle_indices_idx) const;
 
-    void render_contour() const;
-
     std::vector<float>            vertices;
     std::vector<std::vector<int>> triangle_indices;
-
-    std::vector<float>            contour_vertices;
-    std::vector<int>              contour_indices;
 
     // When the triangle indices are loaded into the graphics card as Vertex Buffer Objects,
     // the above mentioned std::vectors are cleared and the following variables keep their original length.
     std::vector<size_t> triangle_indices_sizes;
-    size_t              contour_indices_size{0};
 
     // IDs of the Vertex Array Objects, into which the geometry has been loaded.
     // Zero if the VBOs are not sent to GPU yet.
     unsigned int              vertices_VBO_id{0};
     std::vector<unsigned int> triangle_indices_VBO_ids;
-
-    unsigned int              contour_vertices_VBO_id{0};
-    unsigned int              contour_indices_VBO_id{0};
 };
 
 class TriangleSelectorMmGui : public TriangleSelectorGUI {
