@@ -129,7 +129,6 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"})
         draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
 
-    m_imgui->text("");
     ImGui::Separator();
 
     ImGui::AlignTextToFramePadding();

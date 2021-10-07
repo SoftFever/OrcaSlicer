@@ -119,7 +119,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"})
         draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
 
-    m_imgui->text("");
+    ImGui::Separator();
 
     if (m_imgui->button(m_desc.at("remove_all"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset selection"),

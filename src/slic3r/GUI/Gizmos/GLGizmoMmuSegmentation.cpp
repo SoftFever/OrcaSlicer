@@ -42,7 +42,6 @@ void GLGizmoMmuSegmentation::on_shutdown()
 
 std::string GLGizmoMmuSegmentation::on_get_name() const
 {
-    // FIXME Lukas H.: Discuss and change shortcut
     return _u8L("Multimaterial painting");
 }
 
@@ -107,7 +106,6 @@ void GLGizmoMmuSegmentation::init_extruders_data()
 
 bool GLGizmoMmuSegmentation::on_init()
 {
-    // FIXME Lukas H.: Discuss and change shortcut
     m_shortcut_key = WXK_CONTROL_N;
 
     m_desc["reset_direction"]      = _L("Reset direction");
@@ -289,7 +287,6 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     for (const auto &t : std::array<std::string, 3>{"first_color", "second_color", "remove"})
         draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
 
-    m_imgui->text("");
     ImGui::Separator();
 
     ImGui::AlignTextToFramePadding();
@@ -400,7 +397,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::EndTooltip();
         }
 
-        ImGui::SameLine(cursor_type_offset +cursor_type_radio_sphere + m_imgui->scaled(0.f));
+        ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere + m_imgui->scaled(0.f));
         ImGui::PushItemWidth(cursor_type_radio_circle);
 
         if (m_imgui->radio_button(m_desc["circle"], m_cursor_type == TriangleSelector::CursorType::CIRCLE))
