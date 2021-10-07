@@ -121,7 +121,7 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["remove_all"]           = _L("Remove all painted areas");
     m_desc["circle"]               = _L("Circle");
     m_desc["sphere"]               = _L("Sphere");
-    m_desc["pointer"]              = _L("Pointer");
+    m_desc["pointer"]              = _L("Triangles");
 
     m_desc["tool_type"]            = _L("Tool type");
     m_desc["tool_brush"]           = _L("Brush");

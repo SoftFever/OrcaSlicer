@@ -51,7 +51,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["remove_all"]       = _L("Remove all selection");
     m_desc["circle"]           = _L("Circle");
     m_desc["sphere"]           = _L("Sphere");
-    m_desc["pointer"]          = _L("Pointer");
+    m_desc["pointer"]          = _L("Triangles");
     m_desc["highlight_by_angle"] = _L("Highlight by angle");
     m_desc["enforce_button"]   = _L("Enforce");
     m_desc["cancel"]           = _L("Cancel");
