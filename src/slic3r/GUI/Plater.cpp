@@ -2438,6 +2438,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             };
 
             if (!is_project_file) {
+                if (int deleted_objects = model.removed_objects_with_zero_volume(); deleted_objects > 0) {
+                    MessageDialog(q, format_wxstr(_L_PLURAL(
+                        "Object size from file %s appears to be zero.\n"
+                        "This object has been removed from the model",
+                        "Objects size from file %s appear to be zero.\n"
+                        "These objects have been removed from the model", deleted_objects), from_path(filename)) + "\n",
+                        _L("Object size is zero"), wxICON_INFORMATION | wxOK).ShowModal();
+                }
                 if (imperial_units)
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);

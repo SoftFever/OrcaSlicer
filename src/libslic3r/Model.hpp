@@ -1124,6 +1124,7 @@ public:
     void          convert_from_imperial_units(bool only_small_volumes);
     bool          looks_like_saved_in_meters() const;
     void          convert_from_meters(bool only_small_volumes);
+    int           removed_objects_with_zero_volume();
 
     // Ensures that the min z of the model is not negative
     void 		  adjust_min_z();
