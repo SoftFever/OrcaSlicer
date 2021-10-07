@@ -85,9 +85,6 @@ void AppConfig::set_defaults()
         if (get("associate_stl").empty())
             set("associate_stl", "0");
 
-        if (get("dark_color_mode").empty())
-            set("dark_color_mode", "0");
-
         if (get("tabs_as_menu").empty())
             set("tabs_as_menu", "0");
 #endif // _WIN32
@@ -179,6 +176,9 @@ void AppConfig::set_defaults()
 #ifdef _WIN32
     if (get("use_legacy_3DConnexion").empty())
         set("use_legacy_3DConnexion", "0");
+
+    if (get("dark_color_mode").empty())
+        set("dark_color_mode", "0");
 #endif // _WIN32
 
     // Remove legacy window positions/sizes
