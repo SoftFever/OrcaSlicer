@@ -318,15 +318,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::Separator();
 
     m_imgui->text(m_desc.at("tool_type"));
-
-    float tool_type_offset = (window_width - tool_type_radio_brush - tool_type_radio_bucket_fill - tool_type_radio_smart_fill + m_imgui->scaled(2.f)) / 2.f;
-
     ImGui::NewLine();
 
-    ImGui::SameLine(tool_type_offset + m_imgui->scaled(0.f));
+    float tool_type_offset = (window_width - tool_type_radio_brush - tool_type_radio_bucket_fill - tool_type_radio_smart_fill + m_imgui->scaled(1.5f)) / 2.f;
+    ImGui::SameLine(tool_type_offset);
     ImGui::PushItemWidth(tool_type_radio_brush);
-    if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BRUSH)) {
-        m_tool_type = GLGizmoMmuSegmentation::ToolType::BRUSH;
+    if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == ToolType::BRUSH)) {
+        m_tool_type = ToolType::BRUSH;
         for (auto &triangle_selector : m_triangle_selectors) {
             triangle_selector->seed_fill_unselect_all_triangles();
             triangle_selector->request_update_render_data();
@@ -341,10 +339,10 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::EndTooltip();
     }
 
-    ImGui::SameLine(tool_type_offset + tool_type_radio_brush + m_imgui->scaled(0.f));
+    ImGui::SameLine(tool_type_offset + tool_type_radio_brush);
     ImGui::PushItemWidth(tool_type_radio_smart_fill);
-    if (m_imgui->radio_button(m_desc["tool_smart_fill"], m_tool_type == GLGizmoMmuSegmentation::ToolType::SMART_FILL)) {
-        m_tool_type = GLGizmoMmuSegmentation::ToolType::SMART_FILL;
+    if (m_imgui->radio_button(m_desc["tool_smart_fill"], m_tool_type == ToolType::SMART_FILL)) {
+        m_tool_type = ToolType::SMART_FILL;
         for (auto &triangle_selector : m_triangle_selectors) {
             triangle_selector->seed_fill_unselect_all_triangles();
             triangle_selector->request_update_render_data();
@@ -359,10 +357,10 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::EndTooltip();
     }
 
-    ImGui::SameLine(tool_type_offset + tool_type_radio_brush + tool_type_radio_smart_fill + m_imgui->scaled(0.f));
+    ImGui::SameLine(tool_type_offset + tool_type_radio_brush + tool_type_radio_smart_fill);
     ImGui::PushItemWidth(tool_type_radio_bucket_fill);
-    if (m_imgui->radio_button(m_desc["tool_bucket_fill"], m_tool_type == GLGizmoMmuSegmentation::ToolType::BUCKET_FILL)) {
-        m_tool_type = GLGizmoMmuSegmentation::ToolType::BUCKET_FILL;
+    if (m_imgui->radio_button(m_desc["tool_bucket_fill"], m_tool_type == ToolType::BUCKET_FILL)) {
+        m_tool_type = ToolType::BUCKET_FILL;
         for (auto &triangle_selector : m_triangle_selectors) {
             triangle_selector->seed_fill_unselect_all_triangles();
             triangle_selector->request_update_render_data();
@@ -383,8 +381,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         m_imgui->text(m_desc.at("cursor_type"));
         ImGui::NewLine();
 
-        float cursor_type_offset = (window_width - cursor_type_radio_sphere - cursor_type_radio_circle - cursor_type_radio_pointer + m_imgui->scaled(2.f)) / 2.f;
-        ImGui::SameLine(cursor_type_offset + m_imgui->scaled(0.f));
+        float cursor_type_offset = (window_width - cursor_type_radio_sphere - cursor_type_radio_circle - cursor_type_radio_pointer + m_imgui->scaled(1.5f)) / 2.f;
+        ImGui::SameLine(cursor_type_offset);
         ImGui::PushItemWidth(cursor_type_radio_sphere);
         if (m_imgui->radio_button(m_desc["sphere"], m_cursor_type == TriangleSelector::CursorType::SPHERE))
             m_cursor_type = TriangleSelector::CursorType::SPHERE;
@@ -397,7 +395,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::EndTooltip();
         }
 
-        ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere + m_imgui->scaled(0.f));
+        ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere);
         ImGui::PushItemWidth(cursor_type_radio_circle);
 
         if (m_imgui->radio_button(m_desc["circle"], m_cursor_type == TriangleSelector::CursorType::CIRCLE))
@@ -411,7 +409,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::EndTooltip();
         }
 
-        ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere + cursor_type_radio_circle + m_imgui->scaled(0.f));
+        ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere + cursor_type_radio_circle);
         ImGui::PushItemWidth(cursor_type_radio_pointer);
 
         if (m_imgui->radio_button(m_desc["pointer"], m_cursor_type == TriangleSelector::CursorType::POINTER))
@@ -491,6 +489,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     auto clp_dist = float(m_c->object_clipper()->get_position());
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
+
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(max_tooltip_width);
