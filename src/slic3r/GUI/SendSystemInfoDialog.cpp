@@ -54,8 +54,8 @@ std::string gl_get_string_safe(GLenum param, const std::string& default_value);
 class SendSystemInfoDialog : public DPIDialog
 {
     enum {
-        MIN_WIDTH = 80,
-        MIN_HEIGHT = 50
+        MIN_WIDTH = 70,
+        MIN_HEIGHT = 34
     };
 
 public:
@@ -454,6 +454,8 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, wxDefaultSize,
            wxDEFAULT_DIALOG_STYLE)
 {
+    const int em = GUI::wxGetApp().em_unit();
+
     // Get current PrusaSliver version info.
     std::string app_name;
     {
@@ -501,7 +503,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
            std::string("<i>") + filename + "</i>");
     wxString label3 = _L("Show verbatim data that will be sent");
 
-    auto* html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
+    auto* html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxSize(70*em, 34*em), wxHW_SCROLLBAR_NEVER);
     wxString html = GUI::format_wxstr(
             "<html><body bgcolor=%1%><font color=%2%>"
             "<table><tr><td>"
@@ -515,7 +517,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
             + "<b><a href=\"show\">" + label3 + "</a></b><br />"
             + "</font></body></html>", bgr_clr_str, text_clr_str);
     html_window->SetPage(html);
-    html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent &evt) {
+    html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent&) {
                                                    ShowJsonDialog dlg(this, m_system_info_json, GetSize().Scale(0.9, 0.7));
                                                    dlg.ShowModal();
     });
@@ -527,7 +529,6 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     m_btn_send = new wxButton(this, wxID_ANY, _L("Send system info"));
 
     auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
-    const int em = GUI::wxGetApp().em_unit();
     hsizer->Add(m_btn_ask_later);
     hsizer->AddSpacer(em);
     hsizer->Add(m_btn_dont_send);
@@ -548,6 +549,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     const auto size = GetSize();
     SetSize(std::max(size.GetWidth(), MIN_WIDTH * em),
             std::max(size.GetHeight(), MIN_HEIGHT * em));
+
     CenterOnParent();
 
     m_btn_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
