@@ -4123,8 +4123,7 @@ void ObjectList::fix_through_netfabb()
     Plater::TakeSnapshot snapshot(plater, _L("Fix through NetFabb"));
 
     // Open a progress dialog.
-    wxProgressDialog progress_dlg(_L("Fixing through NetFabb"), "", 100,
-                                    nullptr, // ! parent of the wxProgressDialog should be nullptr to avoid flickering during the model fixing
+    wxProgressDialog progress_dlg(_L("Fixing through NetFabb"), "", 100, plater,
                                     wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
     int model_idx{ 0 };
     if (vol_idxs.empty()) {
