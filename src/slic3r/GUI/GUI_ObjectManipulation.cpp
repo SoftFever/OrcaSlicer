@@ -547,8 +547,8 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 		} 
         else {
 			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
-			m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(wxGetApp().model().objects[volume->object_idx()]->raw_mesh_bounding_box().size());
-			m_new_scale    = volume->get_instance_scaling_factor() * 100.;
+            m_new_size = volume->get_instance_scaling_factor().cwiseProduct(wxGetApp().model().objects[volume->object_idx()]->raw_mesh_bounding_box().size());
+            m_new_scale    = volume->get_instance_scaling_factor() * 100.;
 		}
 
         m_new_enabled  = true;
@@ -569,7 +569,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation() * (180. / M_PI);
         m_new_scale    = volume->get_volume_scaling_factor() * 100.;
-        m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box().size()));
+        m_new_size = volume->get_instance_scaling_factor().cwiseProduct(volume->get_volume_scaling_factor().cwiseProduct(volume->bounding_box().size()));
         m_new_enabled = true;
     }
     else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot)) {
@@ -861,7 +861,7 @@ void ObjectManipulation::change_scale_value(int axis, double value)
     Vec3d scale = m_cache.scale;
 	scale(axis) = value;
 
-    this->do_scale(axis, scale);
+    this->do_scale(axis, 0.01 * scale);
 
     m_cache.scale = scale;
 	m_cache.scale_rounded(axis) = DBL_MAX;
@@ -880,14 +880,21 @@ void ObjectManipulation::change_size_value(int axis, double value)
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
     Vec3d ref_size = m_cache.size;
-	if (selection.is_single_volume() || selection.is_single_modifier())
-        ref_size = selection.get_volume(*selection.get_volume_idxs().begin())->bounding_box().size();
+    if (selection.is_single_volume() || selection.is_single_modifier()) {
+        const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+        const Vec3d local_size = size.cwiseQuotient(v->get_instance_scaling_factor());
+        const Vec3d local_ref_size = v->bounding_box().size().cwiseProduct(v->get_volume_scaling_factor());
+        const Vec3d local_change = local_size.cwiseQuotient(local_ref_size);
+
+        size = local_change.cwiseProduct(v->get_volume_scaling_factor());
+        ref_size = Vec3d::Ones();
+    }
     else if (selection.is_single_full_instance())
 		ref_size = m_world_coordinates ? 
             selection.get_unscaled_instance_bounding_box().size() :
             wxGetApp().model().objects[selection.get_volume(*selection.get_volume_idxs().begin())->object_idx()]->raw_mesh_bounding_box().size();
 
-    this->do_scale(axis, 100. * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
+    this->do_scale(axis, size.cwiseQuotient(ref_size));
 
     m_cache.size = size;
 	m_cache.size_rounded(axis) = DBL_MAX;
@@ -910,7 +917,7 @@ void ObjectManipulation::do_scale(int axis, const Vec3d &scale) const
         scaling_factor = scale(axis) * Vec3d::Ones();
 
     selection.start_dragging();
-    selection.scale(scaling_factor * 0.01, transformation_type);
+    selection.scale(scaling_factor, transformation_type);
     wxGetApp().plater()->canvas3D()->do_scale(L("Set Scale"));
 }
 
