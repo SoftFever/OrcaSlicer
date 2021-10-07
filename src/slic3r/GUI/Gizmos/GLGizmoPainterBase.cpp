@@ -541,7 +541,10 @@ void GLGizmoPainterBase::on_load(cereal::BinaryInputArchive&)
     m_schedule_update = true;
 }
 
-
+std::array<float, 4> TriangleSelectorGUI::get_seed_fill_color(const std::array<float, 4> &base_color)
+{
+    return {base_color[0] * 0.75f, base_color[1] * 0.75f, base_color[2] * 0.75f, 1.f};
+}
 
 void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
 {
@@ -575,8 +578,6 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
 #endif
 }
 
-
-
 void TriangleSelectorGUI::update_render_data()
 {
     int enf_cnt = 0;
@@ -608,7 +609,63 @@ void TriangleSelectorGUI::update_render_data()
         iva->finalize_geometry(true);
 }
 
+void GLPaintContour::render() const
+{
+    assert(this->m_contour_VBO_id != 0);
+    assert(this->m_contour_EBO_id != 0);
 
+    glsafe(::glLineWidth(4.0f));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_VBO_id));
+    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
+
+    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+
+    if (this->contour_indices_size > 0) {
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_contour_EBO_id));
+        glsafe(::glDrawElements(GL_LINES, GLsizei(this->contour_indices_size), GL_UNSIGNED_INT, nullptr));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
+
+    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void GLPaintContour::finalize_geometry()
+{
+    assert(this->m_contour_VBO_id == 0);
+    assert(this->m_contour_EBO_id == 0);
+
+    if (!this->contour_vertices.empty()) {
+        glsafe(::glGenBuffers(1, &this->m_contour_VBO_id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_VBO_id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->contour_vertices.size() * sizeof(float), this->contour_vertices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        this->contour_vertices.clear();
+    }
+
+    if (!this->contour_indices.empty()) {
+        glsafe(::glGenBuffers(1, &this->m_contour_EBO_id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_EBO_id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->contour_indices.size() * sizeof(unsigned int), this->contour_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        this->contour_indices.clear();
+    }
+}
+
+void GLPaintContour::release_geometry()
+{
+    if (this->m_contour_VBO_id) {
+        glsafe(::glDeleteBuffers(1, &this->m_contour_VBO_id));
+        this->m_contour_VBO_id = 0;
+    }
+    if (this->m_contour_EBO_id) {
+        glsafe(::glDeleteBuffers(1, &this->m_contour_EBO_id));
+        this->m_contour_EBO_id = 0;
+    }
+    this->clear();
+}
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
