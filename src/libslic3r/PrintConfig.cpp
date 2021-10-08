@@ -1244,8 +1244,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("external");
     def->enum_values.push_back("all");
     def->enum_labels.push_back(L("None"));
-    def->enum_labels.push_back(L("External perimeters"));
-    def->enum_labels.push_back(L("All perimeters"));
+    def->enum_labels.push_back(L("Outside walls"));
+    def->enum_labels.push_back(L("All walls"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));
 
