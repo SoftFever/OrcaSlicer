@@ -38,6 +38,7 @@
     #pragma comment(lib, "iphlpapi.lib")
 #elif __APPLE__
     #import <IOKit/IOKitLib.h>
+    #include <CoreFoundation/CoreFoundation.h>
 #else // Linux/BSD
     #include <charconv>
 #endif
@@ -155,7 +156,9 @@ static bool should_dialog_be_shown()
     bool is_internet =
     #ifdef _WIN32
         std::system((std::string("ping /n 1 /w 1 ") + SEND_SYSTEM_INFO_DOMAIN).data()) == 0; // 1 packet, 1 sec timeout
-    #else
+    #elif __APPLE__
+        std::system((std::string("ping -c 1 -q -t 1 ") + SEND_SYSTEM_INFO_DOMAIN).data()) == 0; // 1 packet, quiet output, 1 sec timeout
+    #else // Linux/BSD
         std::system((std::string("ping -c 1 -q -w 1 ") + SEND_SYSTEM_INFO_DOMAIN).data()) == 0; // 1 packet, quiet output, 1 sec timeout
     #endif
     std::cout << "Pinging prusa3d.com was " << (is_internet ? "" : "NOT ") << "successful." << std::endl;
@@ -336,11 +339,20 @@ static std::string generate_system_info_json()
     std::string unique_id = get_unique_id();
 
     // Get system language.
-    std::string sys_language = "Unknown";
-    const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
-    if (lang_system != wxLANGUAGE_UNKNOWN)
-        sys_language = wxLocale::GetLanguageInfo(lang_system)->CanonicalName.ToUTF8().data();
-
+    std::string sys_language = "Unknown"; // important to init, see the __APPLE__ block.
+    #ifndef __APPLE__
+        // Following apparently does not work on macOS.
+        const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+        if (lang_system != wxLANGUAGE_UNKNOWN)
+            sys_language = wxLocale::GetLanguageInfo(lang_system)->CanonicalName.ToUTF8().data();
+    #else // __APPLE__
+        CFLocaleRef cflocale = CFLocaleCopyCurrent();
+        CFStringRef value = (CFStringRef)CFLocaleGetValue(cflocale, kCFLocaleLanguageCode);
+        char temp[10] = "";
+        CFStringGetCString(value, temp, 10, kCFStringEncodingUTF8);
+        sys_language = temp;
+        CFRelease(cflocale);
+    #endif
     // Build a property tree with all the information.
     namespace pt = boost::property_tree;
 
