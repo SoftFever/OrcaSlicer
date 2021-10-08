@@ -1405,9 +1405,11 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
         item = m_objects_model->GetItemById(obj_idx);
 
     std::vector<ModelVolume*> volumes;
+    // ! ysFIXME - delete commented code after testing and rename "load_modifier" to something common
+    /*
     if (type == ModelVolumeType::MODEL_PART)
         load_part(*(*m_objects)[obj_idx], volumes, type, from_galery);
-    else
+    else*/
         load_modifier(*(*m_objects)[obj_idx], volumes, type, from_galery);
 
     if (volumes.empty())
@@ -1430,8 +1432,8 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
 
     selection_changed();
 }
-
-void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery/* = false*/)
+/*
+void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery/* = false* /)
 {
     if (type != ModelVolumeType::MODEL_PART)
         return;
@@ -1489,11 +1491,12 @@ void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>&
         }
     }
 }
-
+*/
 void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery)
 {
-    if (type == ModelVolumeType::MODEL_PART)
-        return;
+    // ! ysFIXME - delete commented code after testing and rename "load_modifier" to something common
+    //if (type == ModelVolumeType::MODEL_PART)
+    //    return;
 
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
