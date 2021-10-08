@@ -444,11 +444,25 @@ void Selection::clear()
     if (m_list.empty())
         return;
 
+#if ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
+    // ensure that the volumes get the proper color before next call to render (expecially needed for transparent volumes)
+    for (unsigned int i : m_list) {
+        GLVolume& volume = *(*m_volumes)[i];
+        volume.selected = false;
+        bool transparent = volume.color[3] < 1.0f;
+        if (transparent)
+            volume.force_transparent = true;
+        volume.set_render_color();
+        if (transparent)
+            volume.force_transparent = false;
+    }
+#else
     for (unsigned int i : m_list) {
         (*m_volumes)[i]->selected = false;
         // ensure the volume gets the proper color before next call to render (expecially needed for transparent volumes)
         (*m_volumes)[i]->set_render_color();
     }
+#endif // ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
 
     m_list.clear();
 
