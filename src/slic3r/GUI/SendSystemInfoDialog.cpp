@@ -17,6 +17,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/uuid/detail/md5.hpp>
 
@@ -44,6 +45,8 @@
 namespace Slic3r {
 namespace GUI {
 
+static const std::string SEND_SYSTEM_INFO_DOMAIN = "prusa3d.com";
+static const std::string SEND_SYSTEM_INFO_URL = "https://files." + SEND_SYSTEM_INFO_DOMAIN + "/wp-json/v1/ps";
 
 
 // Declaration of a free function defined in OpenGLManager.cpp:
@@ -140,9 +143,24 @@ static bool should_dialog_be_shown()
     // if (semver_current.prerelease() && std::string(semver_current.prerelease()) == "alpha")
     //     return false; // Don't show in alphas.
 
-    // Show the dialog if current > last, but they differ in more than just patch.
-    return ((semver_current.maj() > semver_last_sent.maj())
+    // New version means current > last, but they must differ in more than just patch.
+    bool new_version = ((semver_current.maj() > semver_last_sent.maj())
         || (semver_current.maj() == semver_last_sent.maj() && semver_current.min() > semver_last_sent.min() ));
+
+    if (! new_version)
+        return false;
+
+    std::cout << "Sending system info was not confirmed/declined in this version yet.\n"
+                 "Pinging prusa3d.com to see if it can be offered now." << std::endl;
+    bool is_internet =
+    #ifdef _WIN32
+        std::system((std::string("ping /n 1 /w 1 ") + SEND_SYSTEM_INFO_DOMAIN).data()) == 0; // 1 packet, 1 sec timeout
+    #else
+        std::system((std::string("ping -c 1 -q -w 1 ") + SEND_SYSTEM_INFO_DOMAIN).data()) == 0; // 1 packet, quiet output, 1 sec timeout
+    #endif
+    std::cout << "Pinging prusa3d.com was " << (is_internet ? "" : "NOT ") << "successful." << std::endl;
+
+    return is_internet;
 }
 
 
@@ -364,9 +382,13 @@ static std::string generate_system_info_json()
     data_node.put("SystemLanguage", sys_language);
     data_node.put("TranslationLanguage: ", wxGetApp().app_config->get("translation_language"));
 
+
     pt::ptree hw_node;
-    hw_node.put("ArchName", wxPlatformInfo::Get().GetArchName());
-    hw_node.put("RAM_MB", size_t(Slic3r::total_physical_memory()/1000000));
+    {
+        hw_node.put("ArchName", wxPlatformInfo::Get().GetArchName());
+        // Round MiB to hundreds,then present in GiB
+        hw_node.put("RAM_GiB", std::round(Slic3r::total_physical_memory()/104857600.)/10.);
+    }
 
     // Now get some CPU info:
     pt::ptree cpu_node;
@@ -604,15 +626,16 @@ bool SendSystemInfoDialog::send_info()
     } result; // No synchronization needed, UI thread reads only after worker is joined.
 
     auto send = [&job_done, &result](const std::string& data) {
-        const std::string url = "https://files.prusa3d.com/wp-json/v1/ps";
-        Http http = Http::post(url);
+        Http http = Http::post(SEND_SYSTEM_INFO_URL);
         http.header("Content-Type", "application/json")
+            .timeout_max(6) // seconds
             .set_post_body(data)
             .on_complete([&result](std::string body, unsigned status) {
                 result = { Result::Success, _L("System info sent successfully. Thank you.") };
             })
             .on_error([&result](std::string body, std::string error, unsigned status) {
-                result = { Result::Error, GUI::format_wxstr(_L("Sending system info failed! Status: %1%"), status) };
+                result = { Result::Error, _L("Sending system info failed!") };
+                BOOST_LOG_TRIVIAL(error) << "Sending system info failed! STATUS: " << status;
             })
             .on_progress([&job_done, &result](Http::Progress, bool &cancel) {
                 if (job_done) // UI thread wants us to cancel.
@@ -634,8 +657,10 @@ bool SendSystemInfoDialog::send_info()
     job_done = true;       // In case the user closed the dialog, let the other thread know
     sending_thread.join(); // and wait until it terminates.
 
-    InfoDialog info_dlg(wxGetApp().mainframe, wxEmptyString, result.str);
-    info_dlg.ShowModal();
+    if (result.value != Result::Cancelled) { // user knows he cancelled, no need to tell him.
+        InfoDialog info_dlg(wxGetApp().mainframe, wxEmptyString, result.str);
+        info_dlg.ShowModal();
+    }
     return result.value == Result::Success;
 }
 
