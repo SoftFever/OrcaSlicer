@@ -386,8 +386,8 @@ static std::string generate_system_info_json()
     pt::ptree hw_node;
     {
         hw_node.put("ArchName", wxPlatformInfo::Get().GetArchName());
-        // Round MiB to hundreds,then present in GiB
-        hw_node.put("RAM_GiB", std::round(Slic3r::total_physical_memory()/104857600.)/10.);
+        size_t num = std::round(Slic3r::total_physical_memory()/107374100.);
+        hw_node.put("RAM_GiB", std::to_string(num / 10) + "." + std::to_string(num % 10));
     }
 
     // Now get some CPU info:
