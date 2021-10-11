@@ -66,7 +66,7 @@ bool GalleryDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& f
 
 
 GalleryDialog::GalleryDialog(wxWindow* parent, bool modify_gallery/* = false*/) :
-    DPIDialog(parent, wxID_ANY, _L("Shape Gallery"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    DPIDialog(parent, wxID_ANY, _L("Shape Gallery"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 #ifndef _WIN32
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -75,7 +75,7 @@ GalleryDialog::GalleryDialog(wxWindow* parent, bool modify_gallery/* = false*/) 
 
     wxStaticText* label_top = new wxStaticText(this, wxID_ANY, _L("Select shape from the gallery") + ":");
 
-    m_list_ctrl = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(55 * wxGetApp().em_unit(), 35 * wxGetApp().em_unit()),
+    m_list_ctrl = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(50 * wxGetApp().em_unit(), 35 * wxGetApp().em_unit()),
                                 wxLC_ICON | wxSIMPLE_BORDER);
     m_list_ctrl->Bind(wxEVT_LIST_ITEM_SELECTED, &GalleryDialog::select, this);
     m_list_ctrl->Bind(wxEVT_LIST_ITEM_DESELECTED, &GalleryDialog::deselect, this);
@@ -152,7 +152,7 @@ void GalleryDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     msw_buttons_rescale(this, em, { ID_BTN_ADD_CUSTOM_SHAPE, ID_BTN_DEL_CUSTOM_SHAPE, ID_BTN_REPLACE_CUSTOM_PNG, wxID_OK, wxID_CLOSE });
 
-    wxSize size = wxSize(55 * em, 35 * em);
+    wxSize size = wxSize(50 * em, 35 * em);
     m_list_ctrl->SetMinSize(size);
     m_list_ctrl->SetSize(size);
 
@@ -461,8 +461,11 @@ void GalleryDialog::replace_custom_png(wxEvent& event)
     }
 
     try {
+        fs::path png_path = fs::path(get_dir(false) / m_selected_items[0].name);
+        png_path.replace_extension("png");
+
         fs::path current = fs::path(into_u8(input_files.Item(0)));
-        fs::copy_file(current, get_dir(false) / (m_selected_items[0].name + ".png"), fs::copy_option::overwrite_if_exists);
+        fs::copy_file(current, png_path, fs::copy_option::overwrite_if_exists);
     }
     catch (fs::filesystem_error const& e) {
         std::cerr << e.what() << '\n';
@@ -535,12 +538,12 @@ bool GalleryDialog::load_files(const wxArrayString& input_files)
             if (!fs::exists(dest_dir / current.filename()))
                 fs::copy_file(current, dest_dir / current.filename());
             else {
-                std::string filename = current.filename().string();
+                std::string filename = current.stem().string();
 
                 int file_idx = 0;
                 for (auto& dir_entry : fs::directory_iterator(dest_dir))
                     if (is_gallery_file(dir_entry, ".stl") || is_gallery_file(dir_entry, ".obj")) {
-                        std::string name = dir_entry.path().filename().string();
+                        std::string name = dir_entry.path().stem().string();
                         if (filename == name) {
                             if (file_idx == 0)
                                 file_idx++;
