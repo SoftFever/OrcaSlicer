@@ -375,6 +375,13 @@ void PreferencesDialog::build(size_t selected_tab)
 		def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
 		option = Option(def, "use_custom_toolbar_size");
 		m_optgroup_gui->append_single_option_line(option);	
+
+		def.label = L("Notify about testing releases");
+		def.type = coBool;
+		def.tooltip = L("If enabled, you will be notified about alpha / beta releases available for download.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("notify_testing_release") == "1" });
+		option = Option(def, "notify_testing_release");
+		m_optgroup_gui->append_single_option_line(option);
 	}
 
 	activate_options_tab(m_optgroup_gui);

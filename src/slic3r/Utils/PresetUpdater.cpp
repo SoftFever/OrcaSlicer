@@ -141,7 +141,8 @@ struct Updates
 
 
 wxDEFINE_EVENT(EVT_SLIC3R_VERSION_ONLINE, wxCommandEvent);
-
+wxDEFINE_EVENT(EVT_SLIC3R_ALPHA_VERSION_ONLINE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SLIC3R_BETA_VERSION_ONLINE, wxCommandEvent);
 
 struct PresetUpdater::priv
 {
@@ -262,21 +263,58 @@ void PresetUpdater::priv::sync_version() const
 		})
 		.on_complete([&](std::string body, unsigned /* http_status */) {
 			boost::trim(body);
-			const auto nl_pos = body.find_first_of("\n\r");
-			if (nl_pos != std::string::npos) {
-				body.resize(nl_pos);
-			}
-
-			if (! Semver::parse(body)) {
-				BOOST_LOG_TRIVIAL(warning) << format("Received invalid contents from `%1%`: Not a correct semver: `%2%`", SLIC3R_APP_NAME, body);
+			// release version
+			std::string version;
+			const auto first_nl_pos = body.find_first_of("\n\r");
+			if (first_nl_pos != std::string::npos)
+				version = body.substr(0,first_nl_pos);
+			else
+				version = body;
+			if (! Semver::parse(version)) {
+				BOOST_LOG_TRIVIAL(warning) << format("Received invalid contents from `%1%`: Not a correct semver: `%2%`", SLIC3R_APP_NAME, version);
 				return;
 			}
-
-			BOOST_LOG_TRIVIAL(info) << format("Got %1% online version: `%2%`. Sending to GUI thread...", SLIC3R_APP_NAME, body);
-
+			BOOST_LOG_TRIVIAL(info) << format("Got %1% online version: `%2%`. Sending to GUI thread...", SLIC3R_APP_NAME, version);
 			wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
-			evt->SetString(GUI::from_u8(body));
+			evt->SetString(GUI::from_u8(version));
 			GUI::wxGetApp().QueueEvent(evt);
+
+			// alpha / beta version
+			size_t nexn_nl_pos = first_nl_pos;
+ 			while (nexn_nl_pos != std::string::npos && body.size() > nexn_nl_pos + 1) {
+				const auto last_nl_pos = nexn_nl_pos;
+				nexn_nl_pos = body.find_first_of("\n\r", last_nl_pos + 1);
+				std::string line;
+				if (nexn_nl_pos == std::string::npos)
+					line = body.substr(last_nl_pos + 1);
+				else
+					line = body.substr(last_nl_pos + 1, nexn_nl_pos - last_nl_pos - 1);
+
+				// alpha
+				if (line.substr(0, 6) == "alpha=") {
+					version = line.substr(6);
+					if (!Semver::parse(version)) {
+						BOOST_LOG_TRIVIAL(warning) << format("Received invalid contents for alpha release from `%1%`: Not a correct semver: `%2%`", SLIC3R_APP_NAME, version);
+						return;
+					}
+					BOOST_LOG_TRIVIAL(info) << format("Got %1% online version of alpha release: `%2%`. Sending to GUI thread...", SLIC3R_APP_NAME, version);
+					wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_ALPHA_VERSION_ONLINE);
+					evt->SetString(GUI::from_u8(version));
+					GUI::wxGetApp().QueueEvent(evt);
+
+				// beta
+				} else if (line.substr(0, 5) == "beta=") {
+					version = line.substr(5);
+					if (!Semver::parse(version)) {
+						BOOST_LOG_TRIVIAL(warning) << format("Received invalid contents for beta release from `%1%`: Not a correct semver: `%2%`", SLIC3R_APP_NAME, version);
+						return;
+					}
+					BOOST_LOG_TRIVIAL(info) << format("Got %1% online version of beta release: `%2%`. Sending to GUI thread...", SLIC3R_APP_NAME, version);
+					wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_BETA_VERSION_ONLINE);
+					evt->SetString(GUI::from_u8(version));
+					GUI::wxGetApp().QueueEvent(evt);
+				}
+			}
 		})
 		.perform_sync();
 }

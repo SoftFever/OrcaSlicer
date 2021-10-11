@@ -43,6 +43,10 @@ const NotificationManager::NotificationData NotificationManager::basic_notificat
 	},
 	{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
 		wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
+	{NotificationType::NewAlphaAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New alpha release is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
+		wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
+	{NotificationType::NewBetaAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New beta release is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
+		wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
 	{NotificationType::EmptyColorChangeCode, NotificationLevel::PrintInfoNotificationLevel, 10,
 		_u8L("You have just added a G-code for color change, but its value is empty.\n"
 			 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },

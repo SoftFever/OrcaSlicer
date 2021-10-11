@@ -918,6 +918,25 @@ bool GUI_App::on_init_inner()
                 }
             }
             });
+        Bind(EVT_SLIC3R_ALPHA_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+            //app_config->set("version_alpha_online", into_u8(evt.GetString()));
+            app_config->save();
+            if (this->plater_ != nullptr && app_config->get("notify_testing_release") == "1") {
+                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAlphaAvailable);
+                }
+            }
+            });
+        Bind(EVT_SLIC3R_BETA_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+            //app_config->set("version_beta_online", into_u8(evt.GetString()));
+            app_config->save();
+            if (this->plater_ != nullptr && app_config->get("notify_testing_release") == "1") {
+                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
+                    this->plater_->get_notification_manager()->close_notification_of_type(NotificationType::NewAlphaAvailable);
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewBetaAvailable);
+                }
+            }
+            });
     }
     else {
 #ifdef __WXMSW__ 
