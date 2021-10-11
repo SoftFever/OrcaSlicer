@@ -865,8 +865,11 @@ bool GUI_App::on_init_inner()
     wxInitAllImageHandlers();
 
 #ifdef _MSW_DARK_MODE
-    if (app_config->get("dark_color_mode") == "1")
+    if (bool dark_mode = app_config->get("dark_color_mode") == "1") {
         NppDarkMode::InitDarkMode();
+        if (dark_mode != NppDarkMode::IsDarkMode())
+            NppDarkMode::SetDarkMode(dark_mode);
+    }
 #endif
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1") {
