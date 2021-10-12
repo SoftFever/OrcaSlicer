@@ -38,23 +38,12 @@ using GUI::format_wxstr;
 
 namespace DoubleSlider {
 
-bool possible_threshold(const double& bottom_area, const double& top_area)
-{
-            // Check percent of the area decrease. 
-            // This value have to be more than 25 mm2
-    return  (bottom_area - top_area > min_delta_area()) &&
-            // and more 10%
-            (top_area / bottom_area < 0.9);
-}
+constexpr double min_delta_area = scale_(scale_(25));  // equal to 25 mm2
+constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 
 bool equivalent_areas(const double& bottom_area, const double& top_area)
 {
-    return fabs(bottom_area - top_area <= min_threshold());
-}
-
-bool overhang(const double& bottom_area, const double& top_area)
-{
-    return top_area > bottom_area && !equivalent_areas(bottom_area, top_area);
+    return fabs(bottom_area - top_area <= miscalculation);
 }
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
@@ -2053,6 +2042,32 @@ void Control::show_cog_icon_context_menu()
     GUI::wxGetApp().plater()->PopupMenu(&menu);
 }
 
+bool check_color_change(PrintObject* object, size_t frst_layer_id, size_t layers_cnt, std::function<bool(Layer*)> break_condition)
+{
+    double prev_area = area(object->get_layer(frst_layer_id)->lslices);
+
+    bool detected = false;
+    for (size_t i = frst_layer_id+1; i < layers_cnt; i++) {
+        Layer* layer = object->get_layer(i);
+        double cur_area = area(layer->lslices);
+
+        // check for overhangs
+        if (cur_area > prev_area && !equivalent_areas(prev_area, cur_area))
+            break;
+
+        // Check percent of the area decrease.
+        // This value have to be more than min_delta_area and more then 10%
+        if ((prev_area - cur_area > min_delta_area) && (cur_area / prev_area < 0.9)) {
+            detected = true;
+            if (break_condition(layer))
+                break;
+        }
+
+        prev_area = cur_area;
+    }
+    return detected;
+}
+
 void Control::auto_color_change()
 {
     if (!m_ticks.empty()) {
@@ -2071,36 +2086,30 @@ void Control::auto_color_change()
     for (auto object : print.objects()) {
         if (object->layer_count() == 0)
             continue;
-        double prev_area = area(object->get_layer(0)->lslices);
 
-        for (size_t i = 1; i < object->layers().size(); i++) {
-            Layer* layer = object->get_layer(i);
-            double cur_area = area(layer->lslices);
-
-            if (overhang(prev_area, cur_area))
-                break;
-
-            if (possible_threshold(prev_area, cur_area)) {
-                int tick = get_tick_from_value(layer->print_z);
-                if (tick >= 0 && !m_ticks.has_tick(tick)) {
-                    if (m_mode == SingleExtruder) {
-                        m_ticks.set_default_colors(true);
-                        m_ticks.add_tick(tick, ColorChange, 1, layer->print_z);
-                    }
-                    else {
-                        m_ticks.add_tick(tick, ToolChange, extruder, layer->print_z);
-                        if (++extruder > extruders_cnt)
+        check_color_change(object, 1, object->layers().size(), [this, extruders_cnt](Layer* layer)
+        {
+            int tick = get_tick_from_value(layer->print_z);
+            if (tick >= 0 && !m_ticks.has_tick(tick)) {
+                if (m_mode == SingleExtruder) {
+                    m_ticks.set_default_colors(true);
+                    m_ticks.add_tick(tick, ColorChange, 1, layer->print_z);
+                }
+                else {
+                    int extruder = 2;
+                    if (!m_ticks.empty()) {
+                        auto it = m_ticks.ticks.end();
+                        it--;
+                        extruder = it->extruder + 1;
+                        if (extruder > extruders_cnt)
                             extruder = 1;
                     }
+                    m_ticks.add_tick(tick, ToolChange, extruder, layer->print_z);
                 }
-
-                // allow max 3 auto color changes
-                if (m_ticks.ticks.size() == 3)
-                    break;
             }
-
-            prev_area = cur_area;
-        }
+            // allow max 3 auto color changes
+            return m_ticks.ticks.size() > 2;
+        });
     }
 
     if (m_ticks.empty())

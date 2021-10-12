@@ -17,6 +17,8 @@ class wxMenu;
 namespace Slic3r {
 
 using namespace CustomGCode;
+class PrintObject;
+class Layer;
 
 namespace DoubleSlider {
 
@@ -25,12 +27,14 @@ namespace DoubleSlider {
  */
 constexpr double epsilon() { return 0.0011; }
 
-constexpr double min_delta_area() { return scale_(scale_(25)); } // equal to 25 mm2
-constexpr double min_threshold()  { return scale_(scale_(1)); }  // equal to 1 mm2
-
-bool possible_threshold(const double& bottom_area, const double& top_area);
+// return true when areas are mostly equivalent
 bool equivalent_areas(const double& bottom_area, const double& top_area);
-bool overhang(const double& bottom_area, const double& top_area);
+
+// return true if color change was detected
+bool check_color_change(PrintObject* object, size_t frst_layer_id, size_t layers_cnt,
+                        // what to do with detected color change
+                        // and return true when detection have to be desturbed
+                        std::function<bool(Layer*)> break_condition);
 
 // custom message the slider sends to its parent to notify a tick-change:
 wxDECLARE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);

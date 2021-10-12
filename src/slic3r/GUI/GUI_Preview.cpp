@@ -720,33 +720,23 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
             if (i < min_solid_height)
                 continue;
 
-            // bottom layer have to be a biggest, so control relation between bottom layer and object size
-            double prev_area = area(object->get_layer(i)->lslices);
-            for ( i++; i < num_layers; i++) {
-                double cur_area = area(object->get_layer(i)->lslices);
-                if (DoubleSlider::overhang(prev_area, cur_area))
-                    break;
-                prev_area = cur_area;
-            }
-            if (i < num_layers)
-                continue;
-
-            double top_area = area(object->get_layer(int(object->layers().size()) - 1)->lslices);
-            if (DoubleSlider::possible_threshold(bottom_area, top_area)) {
-                NotificationManager *notif_mngr = wxGetApp().plater()->get_notification_manager();
+            if (DoubleSlider::check_color_change(object, i, num_layers, [this, object](Layer*) {
+                NotificationManager* notif_mngr = wxGetApp().plater()->get_notification_manager();
                 notif_mngr->push_notification(
                     NotificationType::SignDetected, NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
-                    _u8L("NOTE:") + "\n" + _u8L("Sliced object looks like the sign") + "\n",
-                    _u8L("Apply auto color change to print"),
+                    _u8L("NOTE:") + "\n" +
+                    format(_u8L("Sliced object \"%1%\" looks like a logo or a sign"), object->model_object()->name) + "\n",
+                    _u8L("Apply automatic color change"),
                     [this](wxEvtHandler*) {
                         m_layers_slider->auto_color_change();
                         return true;
                     });
 
                 notif_mngr->apply_in_preview();
-
+                return true;
+            }) )
+                // first object with color chnages is found
                 break;
-            }
         }
     }
 
