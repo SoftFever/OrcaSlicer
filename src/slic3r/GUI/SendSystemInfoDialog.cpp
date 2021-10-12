@@ -142,8 +142,12 @@ static bool should_dialog_be_shown()
     if (! last_sent_version.empty())
         semver_last_sent = Semver(last_sent_version);
 
-    // if (semver_current.prerelease() && std::string(semver_current.prerelease()) == "alpha")
-    //     return false; // Don't show in alphas.
+    // set whether to show in alpha builds, or only betas/rcs/finals:
+    const bool show_in_alphas = true;
+
+    if (! show_in_alphas && semver_current.prerelease()
+       && std::string(semver_current.prerelease()).find("alpha") != std::string::npos)
+            return false;
 
     // New version means current > last, but they must differ in more than just patch.
     bool new_version = ((semver_current.maj() > semver_last_sent.maj())
