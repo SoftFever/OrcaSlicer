@@ -2671,12 +2671,12 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             const Vec3f curr_pos(m_end_position[X], m_end_position[Y], m_end_position[Z]);
             const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id];
             const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
-            // the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
-            if ((new_pos - *first_vertex).squaredNorm() < 0.0625f) {
+//            // the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
+//            if ((new_pos - *first_vertex).squaredNorm() < 0.0625f) {
                 set_end_position(0.5f * (new_pos + *first_vertex));
                 store_move_vertex(EMoveType::Seam);
                 set_end_position(curr_pos);
-            }
+//            }
 
             m_seams_detector.activate(false);
         }
