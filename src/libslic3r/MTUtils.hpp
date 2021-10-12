@@ -47,7 +47,7 @@ private:
 public:
     // Forwarded constructor
     template<class... Args>
-    inline CachedObject(Setter fn, Args &&... args)
+    inline CachedObject(Setter &&fn, Args &&... args)
         : m_obj(std::forward<Args>(args)...), m_valid(false), m_setter(fn)
     {}
 
@@ -55,7 +55,7 @@ public:
     // the next retrieval (Setter will be called). The data that is used in
     // the setter function should be guarded as well during modification so
     // the modification has to take place in fn.
-    inline void invalidate(std::function<void()> fn)
+    template<class Fn> void invalidate(Fn &&fn)
     {
         std::lock_guard<SpinMutex> lck(m_lck);
         fn();
