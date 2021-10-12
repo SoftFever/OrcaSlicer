@@ -46,10 +46,6 @@ using Slic3r::GUI::Config::SnapshotDB;
 namespace Slic3r {
 
 
-enum {
-	SLIC3R_VERSION_BODY_MAX = 256,
-};
-
 static const char *INDEX_FILENAME = "index.idx";
 static const char *TMP_EXTENSION = ".download";
 

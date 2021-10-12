@@ -6,6 +6,7 @@
 
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/Utils/Http.hpp"
+#include "slic3r/Utils/PresetUpdater.hpp"
 
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
@@ -151,18 +152,15 @@ static bool should_dialog_be_shown()
     if (! new_version)
         return false;
 
-    std::cout << "Sending system info was not confirmed/declined in this version yet.\n"
-                 "Pinging prusa3d.com to see if it can be offered now." << std::endl;
-    bool is_internet =
-    #ifdef _WIN32
-        std::system((std::string("ping /n 1 /w 1 ") + SEND_SYSTEM_INFO_DOMAIN).data()) == 0; // 1 packet, 1 sec timeout
-    #elif __APPLE__
-        std::system((std::string("ping -c 1 -q -t 1 ") + SEND_SYSTEM_INFO_DOMAIN).data()) == 0; // 1 packet, quiet output, 1 sec timeout
-    #else // Linux/BSD
-        std::system((std::string("ping -c 1 -q -w 1 ") + SEND_SYSTEM_INFO_DOMAIN).data()) == 0; // 1 packet, quiet output, 1 sec timeout
-    #endif
-    std::cout << "Pinging prusa3d.com was " << (is_internet ? "" : "NOT ") << "successful." << std::endl;
-
+    // We'll misuse the version check to check internet connection here.
+    bool is_internet = false;
+    Http::get(wxGetApp().app_config->version_check_url())
+        .size_limit(SLIC3R_VERSION_BODY_MAX)
+        .timeout_max(2)
+        .on_complete([&](std::string, unsigned) {
+            is_internet = true;
+        })
+        .perform_sync();
     return is_internet;
 }
 
