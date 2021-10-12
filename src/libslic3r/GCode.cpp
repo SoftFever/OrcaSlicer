@@ -2508,28 +2508,14 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // extrude all loops ccw
     bool was_clockwise = loop.make_counter_clockwise();
 
-    SeamPosition seam_position = m_config.seam_position;
-    if (loop.loop_role() == elrSkirt)
-        seam_position = spNearest;
-
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
     if (m_config.spiral_vase) {
         loop.split_at(last_pos, false);
-    } else {
-        const EdgeGrid::Grid* edge_grid_ptr = (lower_layer_edge_grid && *lower_layer_edge_grid)
-                                                ? lower_layer_edge_grid->get()
-                                                : nullptr;
-        Point seam = m_seam_placer.get_seam(*m_layer, seam_position, loop,
-                         last_pos, EXTRUDER_CONFIG(nozzle_diameter),
-                         (m_layer == NULL ? nullptr : m_layer->object()),
-                         was_clockwise, edge_grid_ptr);
-        // Split the loop at the point with a minium penalty.
-        if (!loop.split_at_vertex(seam))
-            // The point is not in the original loop. Insert it.
-            loop.split_at(seam, true);
     }
+    else
+        m_seam_placer.place_seam(loop, this->last_pos(), m_config.external_perimeters_first, EXTRUDER_CONFIG(nozzle_diameter));
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
@@ -2652,7 +2638,14 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.perimeters.empty()) {
             m_config.apply(print.get_print_region(&region - &by_region.front()).config());
-            for (const ExtrusionEntity *ee : region.perimeters)
+
+            m_seam_placer.plan_perimeters(std::vector<const ExtrusionEntity*>(region.perimeters.begin(), region.perimeters.end()),
+                *m_layer, m_config.seam_position,
+                m_config.external_perimeters_first, this->last_pos(), EXTRUDER_CONFIG(nozzle_diameter),
+                (m_layer == NULL ? nullptr : m_layer->object()),
+                (lower_layer_edge_grid ? lower_layer_edge_grid.get() : nullptr));
+
+            for (const ExtrusionEntity* ee : region.perimeters)
                 gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
         }
     return gcode;

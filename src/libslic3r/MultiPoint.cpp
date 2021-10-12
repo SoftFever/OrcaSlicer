@@ -47,9 +47,9 @@ void MultiPoint::rotate(double angle, const Point &center)
 
 double MultiPoint::length() const
 {
-    Lines lines = this->lines();
+    const Lines& lines = this->lines();
     double len = 0;
-    for (Lines::iterator it = lines.begin(); it != lines.end(); ++it) {
+    for (auto it = lines.cbegin(); it != lines.cend(); ++it) {
         len += it->length();
     }
     return len;
