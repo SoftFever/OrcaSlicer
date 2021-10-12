@@ -38,6 +38,25 @@ using GUI::format_wxstr;
 
 namespace DoubleSlider {
 
+bool possible_threshold(const double& bottom_area, const double& top_area)
+{
+            // Check percent of the area decrease. 
+            // This value have to be more than 25 mm2
+    return  (bottom_area - top_area > min_delta_area()) &&
+            // and more 10%
+            (top_area / bottom_area < 0.9);
+}
+
+bool equivalent_areas(const double& bottom_area, const double& top_area)
+{
+    return fabs(bottom_area - top_area <= min_threshold());
+}
+
+bool overhang(const double& bottom_area, const double& top_area)
+{
+    return top_area > bottom_area && !equivalent_areas(bottom_area, top_area);
+}
+
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 
 static std::string gcode(Type type)
@@ -2049,8 +2068,6 @@ void Control::auto_color_change()
     int extruder = 2;
 
     const Print& print = GUI::wxGetApp().plater()->fff_print();  
-    double delta_area = scale_(scale_(25)); // equal to 25 mm2
-
     for (auto object : print.objects()) {
         if (object->layer_count() == 0)
             continue;
@@ -2060,14 +2077,10 @@ void Control::auto_color_change()
             Layer* layer = object->get_layer(i);
             double cur_area = area(layer->lslices);
 
-            if (cur_area > prev_area && prev_area - cur_area > scale_(scale_(1)))
+            if (overhang(prev_area, cur_area))
                 break;
 
-            if (prev_area - cur_area > delta_area) {
-                // Check percent of the area decrease. 
-                // Ignore it, if this value is less than 10% 
-                if (cur_area / prev_area > 0.9)
-                    continue;
+            if (possible_threshold(prev_area, cur_area)) {
                 int tick = get_tick_from_value(layer->print_z);
                 if (tick >= 0 && !m_ticks.has_tick(tick)) {
                     if (m_mode == SingleExtruder) {

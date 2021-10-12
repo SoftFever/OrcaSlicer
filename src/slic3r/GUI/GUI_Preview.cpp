@@ -687,7 +687,6 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     if (m_layers_slider->IsNewPrint())
     {
         const Print& print = wxGetApp().plater()->fff_print();
-        double delta_area = scale_(scale_(25)); // equal to 25 mm2
 
         //bool is_possible_auto_color_change = false;
         for (auto object : print.objects()) {
@@ -708,7 +707,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
             int  i, min_solid_height = int(0.25 * num_layers);
             for (i = 1; i <= min_solid_height; ++ i) {
                 double cur_area = area(object->get_layer(i)->lslices);
-                if (cur_area != bottom_area && fabs(cur_area - bottom_area) > scale_(scale_(1))) {
+                if (!DoubleSlider::equivalent_areas(bottom_area, cur_area)) {
                     // but due to the elephant foot compensation, the first layer may be slightly smaller than the others
                     if (i == 1 && fabs(cur_area - bottom_area) / bottom_area < 0.1) {
                         // So, let process this case and use second layer as a bottom 
@@ -725,7 +724,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
             double prev_area = area(object->get_layer(i)->lslices);
             for ( i++; i < num_layers; i++) {
                 double cur_area = area(object->get_layer(i)->lslices);
-                if (cur_area > prev_area && prev_area - cur_area > scale_(scale_(1)))
+                if (DoubleSlider::overhang(prev_area, cur_area))
                     break;
                 prev_area = cur_area;
             }
@@ -733,7 +732,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
                 continue;
 
             double top_area = area(object->get_layer(int(object->layers().size()) - 1)->lslices);
-            if( bottom_area - top_area > delta_area) {
+            if (DoubleSlider::possible_threshold(bottom_area, top_area)) {
                 NotificationManager *notif_mngr = wxGetApp().plater()->get_notification_manager();
                 notif_mngr->push_notification(
                     NotificationType::SignDetected, NotificationManager::NotificationLevel::PrintInfoNotificationLevel,

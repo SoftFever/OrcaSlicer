@@ -25,6 +25,13 @@ namespace DoubleSlider {
  */
 constexpr double epsilon() { return 0.0011; }
 
+constexpr double min_delta_area() { return scale_(scale_(25)); } // equal to 25 mm2
+constexpr double min_threshold()  { return scale_(scale_(1)); }  // equal to 1 mm2
+
+bool possible_threshold(const double& bottom_area, const double& top_area);
+bool equivalent_areas(const double& bottom_area, const double& top_area);
+bool overhang(const double& bottom_area, const double& top_area);
+
 // custom message the slider sends to its parent to notify a tick-change:
 wxDECLARE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 
