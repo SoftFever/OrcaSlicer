@@ -43,7 +43,7 @@ constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 
 bool equivalent_areas(const double& bottom_area, const double& top_area)
 {
-    return fabs(bottom_area - top_area <= miscalculation);
+    return fabs(bottom_area - top_area) <= miscalculation;
 }
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
@@ -2042,7 +2042,7 @@ void Control::show_cog_icon_context_menu()
     GUI::wxGetApp().plater()->PopupMenu(&menu);
 }
 
-bool check_color_change(PrintObject* object, size_t frst_layer_id, size_t layers_cnt, std::function<bool(Layer*)> break_condition)
+bool check_color_change(PrintObject* object, size_t frst_layer_id, size_t layers_cnt, bool check_overhangs, std::function<bool(Layer*)> break_condition)
 {
     double prev_area = area(object->get_layer(frst_layer_id)->lslices);
 
@@ -2052,7 +2052,7 @@ bool check_color_change(PrintObject* object, size_t frst_layer_id, size_t layers
         double cur_area = area(layer->lslices);
 
         // check for overhangs
-        if (cur_area > prev_area && !equivalent_areas(prev_area, cur_area))
+        if (check_overhangs && cur_area > prev_area && !equivalent_areas(prev_area, cur_area))
             break;
 
         // Check percent of the area decrease.
@@ -2087,7 +2087,7 @@ void Control::auto_color_change()
         if (object->layer_count() == 0)
             continue;
 
-        check_color_change(object, 1, object->layers().size(), [this, extruders_cnt](Layer* layer)
+        check_color_change(object, 1, object->layers().size(), false, [this, extruders_cnt](Layer* layer)
         {
             int tick = get_tick_from_value(layer->print_z);
             if (tick >= 0 && !m_ticks.has_tick(tick)) {
