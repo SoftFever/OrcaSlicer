@@ -253,7 +253,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                                                                                 : std::min(m_smart_fill_angle + SmartFillAngleStep, SmartFillAngleMax);
                 m_parent.set_as_dirty();
                 if (m_rr.mesh_id != -1) {
-                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_smart_fill_angle, true);
+                    const Selection     &selection                 = m_parent.get_selection();
+                    const ModelObject   *mo                        = m_c->selection_info()->model_object();
+                    const ModelInstance *mi                        = mo->instances[selection.get_instance_idx()];
+                    const Transform3d   trafo_matrix_not_translate = mi->get_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_matrix(true);
+                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), trafo_matrix_not_translate, m_smart_fill_angle,
+                                                                                   m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f, true);
                     m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
                     m_seed_fill_last_mesh_id = m_rr.mesh_id;
                 }
@@ -284,11 +289,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 new_state = action == SLAGizmoEventType::LeftDown ? this->get_left_button_state_type() : this->get_right_button_state_type();
         }
 
-        const Camera        &camera         = wxGetApp().plater()->get_camera();
-        const Selection     &selection      = m_parent.get_selection();
-        const ModelObject   *mo             = m_c->selection_info()->model_object();
-        const ModelInstance *mi             = mo->instances[selection.get_instance_idx()];
-        const Transform3d   &instance_trafo = mi->get_transformation().get_matrix();
+        const Camera        &camera                      = wxGetApp().plater()->get_camera();
+        const Selection     &selection                   = m_parent.get_selection();
+        const ModelObject   *mo                          = m_c->selection_info()->model_object();
+        const ModelInstance *mi                          = mo->instances[selection.get_instance_idx()];
+        const Transform3d   instance_trafo               = mi->get_transformation().get_matrix();
+        const Transform3d   instance_trafo_not_translate = mi->get_transformation().get_matrix(true);
 
         // List of mouse positions that will be used as seeds for painting.
         std::vector<Vec2d> mouse_positions{mouse_position};
@@ -314,10 +320,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
-        for (const ModelVolume* mv : mo->volumes) {
-            if (mv->is_model_part())
+        std::vector<Transform3d> trafo_matrices_not_translate;
+        for (const ModelVolume *mv : mo->volumes)
+            if (mv->is_model_part()) {
                 trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
-        }
+                trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
+            }
 
         // Now "click" into all the prepared points and spill paint around them.
         for (const Vec2d& mp : mouse_positions) {
@@ -339,7 +347,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 return dragging_while_painting;
             }
 
-            const Transform3d& trafo_matrix = trafo_matrices[m_rr.mesh_id];
+            const Transform3d &trafo_matrix               = trafo_matrices[m_rr.mesh_id];
+            const Transform3d &trafo_matrix_not_translate = trafo_matrices_not_translate[m_rr.mesh_id];
 
             // Calculate direction from camera to the hit (in mesh coords):
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
@@ -348,7 +357,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             if (m_tool_type == ToolType::SMART_FILL || m_tool_type == ToolType::BUCKET_FILL || (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)) {
                 m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
                 if (m_tool_type == ToolType::SMART_FILL)
-                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_smart_fill_angle, true);
+                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), trafo_matrix_not_translate, m_smart_fill_angle,
+                                                                                   m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f, true);
                 else if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)
                     m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), false, true);
                 else if (m_tool_type == ToolType::BUCKET_FILL)
@@ -357,7 +367,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 m_seed_fill_last_mesh_id = -1;
             } else if (m_tool_type == ToolType::BRUSH)
                 m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
-                                                                 new_state, trafo_matrix, m_triangle_splitting_enabled);
+                                                                 new_state, trafo_matrix, trafo_matrix_not_translate, m_triangle_splitting_enabled,
+                                                                 m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
 
             m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
             m_last_mouse_click = mouse_position;
@@ -370,17 +381,21 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         if (m_triangle_selectors.empty())
             return false;
 
-        const Camera &       camera         = wxGetApp().plater()->get_camera();
-        const Selection &    selection      = m_parent.get_selection();
-        const ModelObject *  mo             = m_c->selection_info()->model_object();
-        const ModelInstance *mi             = mo->instances[selection.get_instance_idx()];
-        const Transform3d &  instance_trafo = mi->get_transformation().get_matrix();
+        const Camera        &camera                       = wxGetApp().plater()->get_camera();
+        const Selection     &selection                    = m_parent.get_selection();
+        const ModelObject   *mo                           = m_c->selection_info()->model_object();
+        const ModelInstance *mi                           = mo->instances[selection.get_instance_idx()];
+        const Transform3d    instance_trafo               = mi->get_transformation().get_matrix();
+        const Transform3d    instance_trafo_not_translate = mi->get_transformation().get_matrix(true);
 
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
+        std::vector<Transform3d> trafo_matrices_not_translate;
         for (const ModelVolume *mv : mo->volumes)
-            if (mv->is_model_part())
+            if (mv->is_model_part()) {
                 trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
+                trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
+            }
 
         // Now "click" into all the prepared points and spill paint around them.
         update_raycast_cache(mouse_position, camera, trafo_matrices);
@@ -405,9 +420,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         if(m_rr.mesh_id != m_seed_fill_last_mesh_id)
             seed_fill_unselect_all();
 
+        const Transform3d &trafo_matrix_not_translate = trafo_matrices_not_translate[m_rr.mesh_id];
+
         assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
         if (m_tool_type == ToolType::SMART_FILL)
-            m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), m_smart_fill_angle);
+            m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), trafo_matrix_not_translate, m_smart_fill_angle,
+                                                                           m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
         else if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)
             m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), false);
         else if (m_tool_type == ToolType::BUCKET_FILL)

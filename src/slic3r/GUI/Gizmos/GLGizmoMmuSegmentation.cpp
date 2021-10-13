@@ -129,6 +129,7 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["tool_bucket_fill"]     = _L("Bucket fill");
 
     m_desc["smart_fill_angle"]     = _L("Smart fill angle");
+    m_desc["split_triangles"]      = _L("Split triangles");
 
     init_extruders_data();
 
@@ -261,6 +262,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     const float tool_type_radio_bucket_fill = m_imgui->calc_text_size(m_desc["tool_bucket_fill"]).x + m_imgui->scaled(2.5f);
     const float tool_type_radio_smart_fill  = m_imgui->calc_text_size(m_desc["tool_smart_fill"]).x + m_imgui->scaled(2.5f);
 
+    const float split_triangles_checkbox_width = m_imgui->calc_text_size(m_desc["split_triangles"]).x + m_imgui->scaled(2.5f);
+
     float caption_max    = 0.f;
     float total_text_max = 0.f;
     for (const auto &t : std::array<std::string, 3>{"first_color", "second_color", "remove"}) {
@@ -274,6 +277,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     float window_width = minimal_slider_width + sliders_width;
     window_width       = std::max(window_width, total_text_max);
     window_width       = std::max(window_width, button_width);
+    window_width       = std::max(window_width, split_triangles_checkbox_width);
     window_width       = std::max(window_width, cursor_type_radio_circle + cursor_type_radio_sphere + cursor_type_radio_pointer);
     window_width       = std::max(window_width, tool_type_radio_brush + tool_type_radio_bucket_fill + tool_type_radio_smart_fill);
     window_width       = std::max(window_width, 2.f * buttons_width + m_imgui->scaled(1.f));
@@ -438,7 +442,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::EndTooltip();
         }
 
-        m_imgui->checkbox(_L("Split triangles"), m_triangle_splitting_enabled);
+        m_imgui->checkbox(m_desc["split_triangles"], m_triangle_splitting_enabled);
 
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();

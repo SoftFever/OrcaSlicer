@@ -20,7 +20,7 @@ namespace Slic3r::GUI {
 
 void GLGizmoFdmSupports::on_shutdown()
 {
-    m_angle_threshold_deg = 0.f;
+    m_highlight_by_angle_threshold_deg = 0.f;
     m_parent.use_slope(false);
     m_parent.toggle_model_objects_visibility(true);
 }
@@ -61,6 +61,9 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["tool_smart_fill"]  = _L("Smart fill");
 
     m_desc["smart_fill_angle"] = _L("Smart fill angle");
+
+    m_desc["split_triangles"]   = _L("Split triangles");
+    m_desc["on_overhangs_only"] = _L("On overhangs only");
 
     return true;
 }
@@ -116,6 +119,9 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float tool_type_radio_brush      = m_imgui->calc_text_size(m_desc["tool_brush"]).x + m_imgui->scaled(2.5f);
     const float tool_type_radio_smart_fill = m_imgui->calc_text_size(m_desc["tool_smart_fill"]).x + m_imgui->scaled(2.5f);
 
+    const float split_triangles_checkbox_width   = m_imgui->calc_text_size(m_desc["split_triangles"]).x + m_imgui->scaled(2.5f);
+    const float on_overhangs_only_checkbox_width = m_imgui->calc_text_size(m_desc["on_overhangs_only"]).x + m_imgui->scaled(2.5f);
+
     float caption_max    = 0.f;
     float total_text_max = 0.f;
     for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"}) {
@@ -129,6 +135,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     float window_width  = minimal_slider_width + sliders_width;
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, button_width);
+    window_width = std::max(window_width, split_triangles_checkbox_width);
+    window_width = std::max(window_width, on_overhangs_only_checkbox_width);
     window_width = std::max(window_width, cursor_type_radio_circle + cursor_type_radio_sphere + cursor_type_radio_pointer);
     window_width = std::max(window_width, tool_type_radio_left + tool_type_radio_brush + tool_type_radio_smart_fill);
     window_width = std::max(window_width, 2.f * buttons_width + m_imgui->scaled(1.f));
@@ -152,25 +160,25 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         "placed after the number with no whitespace in between.");
     ImGui::SameLine(sliders_width);
     ImGui::PushItemWidth(window_width - sliders_width);
-    if (m_imgui->slider_float("##angle_threshold_deg", &m_angle_threshold_deg, 0.f, 90.f, format_str.data())) {
-        m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
+    if (m_imgui->slider_float("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data())) {
+        m_parent.set_slope_normal_angle(90.f - m_highlight_by_angle_threshold_deg);
         if (! m_parent.is_using_slope()) {
             m_parent.use_slope(true);
             m_parent.set_as_dirty();
         }
     }
 
-    m_imgui->disabled_begin(m_angle_threshold_deg == 0.f);
+    m_imgui->disabled_begin(m_highlight_by_angle_threshold_deg == 0.f);
     ImGui::NewLine();
     ImGui::SameLine(window_width - 2.f*buttons_width - m_imgui->scaled(0.5f));
     if (m_imgui->button(m_desc["enforce_button"], buttons_width, 0.f)) {
-        select_facets_by_angle(m_angle_threshold_deg, false);
-        m_angle_threshold_deg = 0.f;
+        select_facets_by_angle(m_highlight_by_angle_threshold_deg, false);
+        m_highlight_by_angle_threshold_deg = 0.f;
         m_parent.use_slope(false);
     }
     ImGui::SameLine(window_width - buttons_width);
     if (m_imgui->button(m_desc["cancel"], buttons_width, 0.f)) {
-        m_angle_threshold_deg = 0.f;
+        m_highlight_by_angle_threshold_deg = 0.f;
         m_parent.use_slope(false);
     }
     m_imgui->disabled_end();
@@ -208,6 +216,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+
+    m_imgui->checkbox(m_desc["on_overhangs_only"], m_paint_on_overhangs_only);
 
     ImGui::Separator();
 
@@ -272,7 +282,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             ImGui::EndTooltip();
         }
 
-        m_imgui->checkbox(_L("Split triangles"), m_triangle_splitting_enabled);
+        m_imgui->checkbox(m_desc["split_triangles"], m_triangle_splitting_enabled);
 
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
@@ -287,8 +297,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         assert(m_tool_type == ToolType::SMART_FILL);
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc["smart_fill_angle"] + ":");
-        std::string format_str = std::string("%.f") + I18N::translate_utf8("°", "Degree sign to use in the respective slider in MMU gizmo,"
-                                                                                "placed after the number with no whitespace in between.");
+
         ImGui::SameLine(sliders_width);
         ImGui::PushItemWidth(window_width - sliders_width);
         if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data()))
