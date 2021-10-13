@@ -126,6 +126,12 @@ bool OptionsGroup::is_legend_line()
 	return false;
 }
 
+void OptionsGroup::set_max_win_width(int max_win_width)
+{
+    if (custom_ctrl)
+        custom_ctrl->set_max_win_width(max_win_width);
+}
+
 void OptionsGroup::show_field(const t_config_option_key& opt_key, bool show/* = true*/)
 {
     Field* field = get_field(opt_key);
@@ -185,8 +191,16 @@ void OptionsGroup::append_line(const Line& line)
         m_options_mode.push_back(option_set[0].opt.mode);
 }
 
+void OptionsGroup::append_separator()
+{
+    m_lines.emplace_back(Line());
+}
+
 void OptionsGroup::activate_line(Line& line)
 {
+    if (line.is_separator())
+        return;
+
 	m_use_custom_ctrl_as_parent = false;
 
 	if (line.full_width && (
@@ -396,7 +410,7 @@ void OptionsGroup::activate_line(Line& line)
 }
 
 // create all controls for the option group from the m_lines
-bool OptionsGroup::activate(std::function<void()> throw_if_canceled)
+bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/, int horiz_alignment/* = wxALIGN_LEFT*/)
 {
 	if (sizer)//(!sizer->IsEmpty())
 		return false;
@@ -436,6 +450,10 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled)
 			throw_if_canceled();
 			activate_line(line);
 		}
+
+        ctrl_horiz_alignment = horiz_alignment;
+        if (custom_ctrl)
+            custom_ctrl->init_max_win_width();
 	} catch (UIBuildCanceled&) {
 		auto p = sizer;
 		this->clear();

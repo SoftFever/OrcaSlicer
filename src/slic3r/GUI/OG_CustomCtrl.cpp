@@ -72,6 +72,11 @@ void OG_CustomCtrl::init_ctrl_lines()
     const std::vector<Line>& og_lines = opt_group->get_lines();
     for (const Line& line : og_lines)
     {
+        if (line.is_separator()) {
+            ctrl_lines.emplace_back(CtrlLine(0, this, line));
+            continue;
+        }
+
         if (line.full_width && (
             // description line
             line.widget != nullptr ||
@@ -124,6 +129,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             line_height = win_height;
     };
 
+    auto correct_horiz_pos = [this](int& h_pos, Field* field) {
+        if (m_max_win_width > 0 && field->getWindow()) {
+            int win_width = field->getWindow()->GetSize().GetWidth();
+            if (dynamic_cast<CheckBox*>(field))
+                win_width *= 0.5;
+            h_pos += m_max_win_width - win_width;
+        }
+    };
+
     for (CtrlLine& ctrl_line : ctrl_lines) {
         if (&ctrl_line.og_line == &line)
         {
@@ -160,6 +174,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 h_pos += 3 * blinking_button_width;
                 Field* field = opt_group->get_field(option_set.front().opt_id);
                 correct_line_height(ctrl_line.height, field->getWindow());
+                correct_horiz_pos(h_pos, field);
                 break;
             }
 
@@ -189,8 +204,10 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 }                
                 h_pos += (opt.opt.gui_type == ConfigOptionDef::GUIType::legend ? 1 : 3) * blinking_button_width;
                 
-                if (field == field_in)
+                if (field == field_in) {
+                    correct_horiz_pos(h_pos, field);
                     break;
+                }
                 if (opt.opt.gui_type == ConfigOptionDef::GUIType::legend)
                     h_pos += 2 * blinking_button_width;
 
@@ -361,6 +378,28 @@ void OG_CustomCtrl::correct_widgets_position(wxSizer* widget, const Line& line, 
         }
 };
 
+void OG_CustomCtrl::init_max_win_width()
+{
+    if (opt_group->ctrl_horiz_alignment == wxALIGN_RIGHT && m_max_win_width == 0)
+        for (CtrlLine& line : ctrl_lines) {
+            if (int max_win_width = line.get_max_win_width();
+                m_max_win_width < max_win_width)
+                m_max_win_width = max_win_width;
+        }
+}
+
+void OG_CustomCtrl::set_max_win_width(int max_win_width)
+{
+    if (m_max_win_width == max_win_width)
+        return;
+    m_max_win_width = max_win_width;
+    for (CtrlLine& line : ctrl_lines)
+        line.correct_items_positions();
+
+    GetParent()->Layout();
+}
+
+
 void OG_CustomCtrl::msw_rescale()
 {
 #ifdef __WXOSX__
@@ -373,6 +412,8 @@ void OG_CustomCtrl::msw_rescale()
 
     m_bmp_mode_sz = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
     m_bmp_blinking_sz = create_scaled_bitmap("search_blink", this).GetSize();
+
+    m_max_win_width = 0;
 
     wxCoord    v_pos = 0;
     for (CtrlLine& line : ctrl_lines) {
@@ -405,6 +446,21 @@ OG_CustomCtrl::CtrlLine::CtrlLine(  wxCoord         height,
         rects_undo_icon.emplace_back(wxRect());
         rects_undo_to_sys_icon.emplace_back(wxRect());
     }
+}
+
+int OG_CustomCtrl::CtrlLine::get_max_win_width()
+{
+    int max_win_width = 0;
+    if (!draw_just_act_buttons) {
+        const std::vector<Option>& option_set = og_line.get_options();
+        for (auto opt : option_set) {
+            Field* field = ctrl->opt_group->get_field(opt.opt_id);
+            if (field && field->getWindow())
+                max_win_width = field->getWindow()->GetSize().GetWidth();
+        }
+    }
+
+    return max_win_width;
 }
 
 void OG_CustomCtrl::CtrlLine::correct_items_positions()
@@ -447,6 +503,8 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
 
 void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
 {
+    if (og_line.is_separator())
+        return;
     const std::vector<Option>& option_set = og_line.get_options();
 
     const ConfigOptionMode& line_mode = option_set.front().opt.mode;
@@ -480,8 +538,25 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
     correct_items_positions();
 }
 
+void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord v_pos)
+{
+    wxPoint begin(ctrl->m_h_gap, v_pos);
+    wxPoint end(ctrl->GetSize().GetWidth() - ctrl->m_h_gap, v_pos);
+
+    wxPen pen, old_pen = pen = dc.GetPen();
+    pen.SetColour(*wxLIGHT_GREY);
+    dc.SetPen(pen);
+    dc.DrawLine(begin, end);
+    dc.SetPen(old_pen);
+}
+
 void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 {
+    if (is_separator()) {
+        render_separator(dc, v_pos);
+        return;
+    }
+
     Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
 
     bool suppress_hyperlinks = get_app_config()->get("suppress_hyperlinks") == "1";

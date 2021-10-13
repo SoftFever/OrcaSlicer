@@ -49,6 +49,7 @@ using t_option = std::unique_ptr<Option>;	//!
 
 /// Represents option lines
 class Line {
+	bool		m_is_separator{ false };
 public:
     wxString	label;
     wxString	label_tooltip;
@@ -71,6 +72,9 @@ public:
     }
 	Line(wxString label, wxString tooltip) :
 		label(_(label)), label_tooltip(_(tooltip)) {}
+	Line() : m_is_separator(true) {}
+
+	bool is_separator() const { return m_is_separator; }
 
     const std::vector<widget_t>&	get_extra_widgets() const {return m_extra_widgets;}
     const std::vector<Option>&		get_options() const { return m_options; }
@@ -95,6 +99,7 @@ public:
     size_t			label_width = 20 ;// {200};
     wxSizer*		sizer {nullptr};
 	OG_CustomCtrl*  custom_ctrl{ nullptr };
+	int				ctrl_horiz_alignment{ wxALIGN_LEFT};
     column_t		extra_column {nullptr};
     t_change		m_on_change { nullptr };
 	// To be called when the field loses focus, to assign a new initial value to the field.
@@ -124,12 +129,13 @@ public:
 	void		activate_line(Line& line);
 
 	// create all controls for the option group from the m_lines
-	bool		activate(std::function<void()> throw_if_canceled = [](){});
+	bool		activate(std::function<void()> throw_if_canceled = [](){}, int horiz_alignment = wxALIGN_LEFT);
 	// delete all controls from the option group
 	void		clear(bool destroy_custom_ctrl = false);
 
     Line		create_single_option_line(const Option& option, const wxString& path = wxEmptyString) const;
     void		append_single_option_line(const Option& option, const wxString& path = wxEmptyString) { append_line(create_single_option_line(option, path)); }
+	void		append_separator();
 
     // return a non-owning pointer reference 
     inline Field*	get_field(const t_config_option_key& id) const{
@@ -171,6 +177,9 @@ public:
     wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }
 	const std::vector<Line>& get_lines() { return m_lines; }
 	bool				is_legend_line();
+	// if we have to set the same control alignment for different option groups, 
+    // we have to set same max contrtol width to all of them
+	void				set_max_win_width(int max_win_width);
 
 protected:
 	std::map<t_config_option_key, Option>	m_options;
