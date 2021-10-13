@@ -121,10 +121,10 @@ void AppConfig::set_defaults()
 
         if (get("auto_toolbar_size").empty())
             set("auto_toolbar_size", "100");
+ 
+       if (get("notify_release").empty())
+           set("notify_release", "all"); // or "none" or "release"
 
-       
-       if (get("notify_testing_release").empty())
-           set("notify_testing_release", "1");
 #if ENABLE_ENVIRONMENT_MAP
         if (get("use_environment_map").empty())
             set("use_environment_map", "0");

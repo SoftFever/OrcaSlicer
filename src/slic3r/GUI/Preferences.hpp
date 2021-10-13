@@ -10,6 +10,13 @@
 class wxColourPickerCtrl;
 
 namespace Slic3r {
+
+	enum  NotifyReleaseMode {
+		NotifyReleaseAll,
+		NotifyReleaseOnly,
+		NotifyReleaseNone
+	};
+
 namespace GUI {
 
 class ConfigOptionsGroup;
@@ -39,6 +46,7 @@ public:
 	bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }
 	bool recreate_GUI() const { return m_recreate_GUI; }
 	void	build(size_t selected_tab = 0);
+	void	update_ctrls_alignment();
 	void	accept(wxEvent&);
 
 protected:
