@@ -52,6 +52,9 @@ enum class NotificationType
 	// Notification on the start of PrusaSlicer, when a new PrusaSlicer version is published.
 	// Contains a hyperlink to open a web browser pointing to the PrusaSlicer download location.
 	NewAppAvailable,
+	// Like NewAppAvailable but with text and link for alpha / bet release
+	NewAlphaAvailable,
+	NewBetaAvailable,
 	// Notification on the start of PrusaSlicer, when updates of system profiles are detected.
 	// Contains a hyperlink to execute installation of the new system profiles.
 	PresetUpdateAvailable,

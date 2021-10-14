@@ -2679,7 +2679,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex())
             m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
         // check for seam ending vertex and store the resulting move
-        else if ((type != EMoveType::Extrude || m_extrusion_role != erExternalPerimeter) && m_seams_detector.has_first_vertex()) {
+        else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
             auto set_end_position = [this](const Vec3f& pos) {
                 m_end_position[X] = pos.x(); m_end_position[Y] = pos.y(); m_end_position[Z] = pos.z();
             };
@@ -2688,6 +2688,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id];
             const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
             // the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
+
             if ((new_pos - *first_vertex).squaredNorm() < 0.0625f) {
                 set_end_position(0.5f * (new_pos + *first_vertex));
                 store_move_vertex(EMoveType::Seam);
@@ -2696,6 +2697,10 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
             m_seams_detector.activate(false);
         }
+    }
+    else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
+        m_seams_detector.activate(true);
+        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
     }
 
     // store move

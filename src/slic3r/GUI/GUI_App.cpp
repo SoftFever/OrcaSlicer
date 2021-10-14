@@ -865,8 +865,11 @@ bool GUI_App::on_init_inner()
     wxInitAllImageHandlers();
 
 #ifdef _MSW_DARK_MODE
-    if (app_config->get("dark_color_mode") == "1")
+    if (bool dark_mode = app_config->get("dark_color_mode") == "1") {
         NppDarkMode::InitDarkMode();
+        if (dark_mode != NppDarkMode::IsDarkMode())
+            NppDarkMode::SetDarkMode(dark_mode);
+    }
 #endif
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1") {
@@ -912,6 +915,23 @@ bool GUI_App::on_init_inner()
             if (this->plater_ != nullptr) {
                 if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
                     this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
+                }
+            }
+            });
+        Bind(EVT_SLIC3R_ALPHA_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+            app_config->save();
+            if (this->plater_ != nullptr && app_config->get("notify_testing_release") == "1") {
+                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAlphaAvailable);
+                }
+            }
+            });
+        Bind(EVT_SLIC3R_BETA_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+            app_config->save();
+            if (this->plater_ != nullptr && app_config->get("notify_testing_release") == "1") {
+                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
+                    this->plater_->get_notification_manager()->close_notification_of_type(NotificationType::NewAlphaAvailable);
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewBetaAvailable);
                 }
             }
             });
