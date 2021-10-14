@@ -261,9 +261,9 @@ static TResult expand_paths(PathsProvider &&paths, float offset, ClipperLib::Joi
 
 // used by shrink_paths()
 template<class Container> static void remove_outermost_polygon(Container & solution);
-template<> static void remove_outermost_polygon<ClipperLib::Paths>(ClipperLib::Paths &solution)
+template<> void remove_outermost_polygon<ClipperLib::Paths>(ClipperLib::Paths &solution)
     { if (! solution.empty()) solution.erase(solution.begin()); }
-template<> static void remove_outermost_polygon<ClipperLib::PolyTree>(ClipperLib::PolyTree &solution)
+template<> void remove_outermost_polygon<ClipperLib::PolyTree>(ClipperLib::PolyTree &solution)
     { solution.RemoveOutermostPolygon(); }
 
 template<class TResult, typename PathsProvider>
