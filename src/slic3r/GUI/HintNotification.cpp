@@ -919,7 +919,7 @@ void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapp
 	}
 	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
 	{
-		wxGetApp().open_preferences(2);
+		wxGetApp().open_preferences(2, "show_hints");
 	}
 
 	ImGui::PopStyleColor(5);

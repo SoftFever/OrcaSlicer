@@ -597,6 +597,8 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     {
         if (field && field->undo_to_sys_bitmap())
             h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink()) + ctrl->m_h_gap;
+        else if (field && !field->undo_to_sys_bitmap() && field->blink()) 
+            draw_blinking_bmp(dc, wxPoint(h_pos, v_pos), field->blink());
         // update width for full_width fields
         if (option_set.front().opt.full_width && field->getWindow())
             field->getWindow()->SetSize(ctrl->GetSize().x - h_pos, -1);
