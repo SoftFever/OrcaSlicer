@@ -190,8 +190,7 @@ static inline std::vector<ColoredLine> to_lines(const std::vector<std::vector<Co
     return lines;
 }
 
-// Double vertex equal to a coord_t point after conversion to double.
-static bool vertex_equal_to_point(const Voronoi::VD::vertex_type &vertex, const Point &ipt)
+static bool vertex_equal_to_point(const Voronoi::VD::vertex_type &vertex, const Vec2d &ipt)
 {
     // Convert ipt to doubles, force the 80bit FPU temporary to 64bit and then compare.
     // This should work with any settings of math compiler switches and the C++ compiler
@@ -199,11 +198,11 @@ static bool vertex_equal_to_point(const Voronoi::VD::vertex_type &vertex, const 
     using ulp_cmp_type = boost::polygon::detail::ulp_comparison<double>;
     ulp_cmp_type ulp_cmp;
     static constexpr int ULPS = boost::polygon::voronoi_diagram_traits<double>::vertex_equality_predicate_type::ULPS;
-    return ulp_cmp(vertex.x(), double(ipt.x()), ULPS) == ulp_cmp_type::EQUAL &&
-           ulp_cmp(vertex.y(), double(ipt.y()), ULPS) == ulp_cmp_type::EQUAL;
+    return ulp_cmp(vertex.x(), ipt.x(), ULPS) == ulp_cmp_type::EQUAL &&
+           ulp_cmp(vertex.y(), ipt.y(), ULPS) == ulp_cmp_type::EQUAL;
 }
 
-static inline bool vertex_equal_to_point(const Voronoi::VD::vertex_type *vertex, const Point &ipt)
+static inline bool vertex_equal_to_point(const Voronoi::VD::vertex_type *vertex, const Vec2d &ipt)
 {
     return vertex_equal_to_point(*vertex, ipt);
 }
@@ -509,6 +508,8 @@ static inline Point mk_point(const Voronoi::Internal::point_type &point) { retur
 
 static inline Point mk_point(const voronoi_diagram<double>::vertex_type &point) { return {coord_t(point.x()), coord_t(point.y())}; }
 
+static inline Point mk_point(const Vec2d &point) { return {coord_t(std::round(point.x())), coord_t(std::round(point.y()))}; }
+
 static inline Vec2d mk_vec2(const voronoi_diagram<double>::vertex_type *point) { return {point->x(), point->y()}; }
 
 struct MMU_Graph
@@ -528,7 +529,7 @@ struct MMU_Graph
 
     struct Node
     {
-        Point             point;
+        Vec2d             point;
         std::list<size_t> arc_idxs;
 
         void remove_edge(const size_t to_idx, MMU_Graph &graph)
@@ -665,48 +666,67 @@ struct MMU_Graph
         struct CPoint
         {
             CPoint() = delete;
-            CPoint(const Point &point, size_t contour_idx, size_t point_idx) : m_point(point), m_point_idx(point_idx), m_contour_idx(contour_idx) {}
-            CPoint(const Point &point, size_t point_idx) : m_point(point), m_point_idx(point_idx), m_contour_idx(0) {}
+            CPoint(const Vec2d &point, size_t contour_idx, size_t point_idx) : m_point_double(point), m_point(mk_point(point)), m_point_idx(point_idx), m_contour_idx(contour_idx) {}
+            CPoint(const Vec2d &point, size_t point_idx) : m_point_double(point), m_point(mk_point(point)), m_point_idx(point_idx), m_contour_idx(0) {}
+            const Vec2d m_point_double;
             const Point m_point;
             size_t      m_point_idx;
             size_t      m_contour_idx;
 
+            [[nodiscard]] const Vec2d &point_double() const { return m_point_double; }
             [[nodiscard]] const Point &point() const { return m_point; }
-            bool operator==(const CPoint &rhs) const { return this->m_point == rhs.m_point && this->m_contour_idx == rhs.m_contour_idx && this->m_point_idx == rhs.m_point_idx; }
+            bool operator==(const CPoint &rhs) const { return this->m_point_double == rhs.m_point_double && this->m_contour_idx == rhs.m_contour_idx && this->m_point_idx == rhs.m_point_idx; }
         };
         struct CPointAccessor { const Point* operator()(const CPoint &pt) const { return &pt.point(); }};
         typedef ClosestPointInRadiusLookup<CPoint, CPointAccessor> CPointLookupType;
 
-        CPointLookupType closest_voronoi_point(3 * coord_t(SCALED_EPSILON));
+        CPointLookupType closest_voronoi_point(coord_t(SCALED_EPSILON));
         CPointLookupType closest_contour_point(3 * coord_t(SCALED_EPSILON));
         for (const Polygon &polygon : color_poly_tmp)
             for (const Point &pt : polygon.points)
-                closest_contour_point.insert(CPoint(pt, &polygon - &color_poly_tmp.front(), &pt - &polygon.points.front()));
+                closest_contour_point.insert(CPoint(Vec2d(pt.x(), pt.y()), &polygon - &color_poly_tmp.front(), &pt - &polygon.points.front()));
 
         for (const voronoi_diagram<double>::vertex_type &vertex : vd.vertices()) {
             vertex.color(-1);
-            Point vertex_point = mk_point(vertex);
+            Vec2d vertex_point_double = Vec2d(vertex.x(), vertex.y());
+            Point vertex_point        = mk_point(vertex);
 
-            const Point &first_point  = this->nodes[this->get_border_arc(vertex.incident_edge()->cell()->source_index()).from_idx].point;
-            const Point &second_point = this->nodes[this->get_border_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx].point;
+            const Vec2d &first_point_double  = this->nodes[this->get_border_arc(vertex.incident_edge()->cell()->source_index()).from_idx].point;
+            const Vec2d &second_point_double = this->nodes[this->get_border_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx].point;
 
-            if (vertex_equal_to_point(&vertex, first_point)) {
+            if (vertex_equal_to_point(&vertex, first_point_double)) {
                 assert(vertex.color() != vertex.incident_edge()->cell()->source_index());
                 assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
                 vertex.color(this->get_border_arc(vertex.incident_edge()->cell()->source_index()).from_idx);
-            } else if (vertex_equal_to_point(&vertex, second_point)) {
+            } else if (vertex_equal_to_point(&vertex, second_point_double)) {
                 assert(vertex.color() != vertex.incident_edge()->cell()->source_index());
                 assert(vertex.color() != vertex.incident_edge()->twin()->cell()->source_index());
                 vertex.color(this->get_border_arc(vertex.incident_edge()->twin()->cell()->source_index()).from_idx);
             } else if (bbox.contains(vertex_point)) {
                 if (auto [contour_pt, c_dist_sqr] = closest_contour_point.find(vertex_point); contour_pt != nullptr && c_dist_sqr < Slic3r::sqr(3 * SCALED_EPSILON)) {
                     vertex.color(this->get_global_index(contour_pt->m_contour_idx, contour_pt->m_point_idx));
-                } else if (auto [voronoi_pt, v_dist_sqr] = closest_voronoi_point.find(vertex_point); voronoi_pt == nullptr || v_dist_sqr >= Slic3r::sqr(3 * SCALED_EPSILON)) {
-                    closest_voronoi_point.insert(CPoint(vertex_point, this->nodes_count()));
+                } else if (auto [voronoi_pt, v_dist_sqr] = closest_voronoi_point.find(vertex_point); voronoi_pt == nullptr || v_dist_sqr >= Slic3r::sqr(SCALED_EPSILON / 10.0)) {
+                    closest_voronoi_point.insert(CPoint(vertex_point_double, this->nodes_count()));
                     vertex.color(this->nodes_count());
-                    this->nodes.push_back({vertex_point});
+                    this->nodes.push_back({vertex_point_double});
                 } else {
-                    vertex.color(voronoi_pt->m_point_idx);
+                    // Boost Voronoi diagram generator sometimes creates two very closed points instead of one point.
+                    // For the example points (146872.99999999997, -146872.99999999997) and (146873, -146873), this example also included in Voronoi generator test cases.
+                    std::vector<std::pair<const CPoint *, double>> all_closes_c_points = closest_voronoi_point.find_all(vertex_point);
+                    int                                            merge_to_point      = -1;
+                    for (const std::pair<const CPoint *, double> &c_point : all_closes_c_points)
+                        if ((vertex_point_double - c_point.first->point_double()).squaredNorm() <= Slic3r::sqr(EPSILON)) {
+                            merge_to_point = int(c_point.first->m_point_idx);
+                            break;
+                        }
+
+                    if (merge_to_point != -1) {
+                        vertex.color(merge_to_point);
+                    } else {
+                        closest_voronoi_point.insert(CPoint(vertex_point_double, this->nodes_count()));
+                        vertex.color(this->nodes_count());
+                        this->nodes.push_back({vertex_point_double});
+                    }
                 }
             }
         }
@@ -850,7 +870,7 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
     MMU_Graph graph;
     graph.nodes.reserve(points.size() + vd.vertices().size());
     for (const Point &point : points)
-        graph.nodes.push_back({point});
+        graph.nodes.push_back({Vec2d(double(point.x()), double(point.y()))});
 
     graph.add_contours(color_poly);
     init_polygon_indices(graph, color_poly, lines_colored);
@@ -984,8 +1004,10 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
                 }
             } else if (Point intersection; line_intersection_with_epsilon(contour_line, edge_line, &intersection)) {
                 mark_processed(edge_it);
-                Point real_v0 = graph.nodes[edge_it->vertex0()->color()].point;
-                Point real_v1 = graph.nodes[edge_it->vertex1()->color()].point;
+                Vec2d real_v0_double = graph.nodes[edge_it->vertex0()->color()].point;
+                Vec2d real_v1_double = graph.nodes[edge_it->vertex1()->color()].point;
+                Point real_v0        = Point(coord_t(real_v0_double.x()), coord_t(real_v0_double.y()));
+                Point real_v1        = Point(coord_t(real_v1_double.x()), coord_t(real_v1_double.y()));
 
                 if (is_point_closer_to_beginning_of_line(contour_line, intersection)) {
                     Line first_part(intersection, real_v0);
@@ -999,8 +1021,9 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
                             graph.append_edge(edge_it->vertex1()->color(), graph.get_border_arc(edge_it->cell()->source_index()).from_idx);
                     }
                 } else {
-                    const size_t int_point_idx = graph.get_border_arc(edge_it->cell()->source_index()).to_idx;
-                    const Point  int_point     = graph.nodes[int_point_idx].point;
+                    const size_t int_point_idx    = graph.get_border_arc(edge_it->cell()->source_index()).to_idx;
+                    const Vec2d  int_point_double = graph.nodes[int_point_idx].point;
+                    const Point  int_point        = Point(coord_t(int_point_double.x()), coord_t(int_point_double.y()));
 
                     const Line first_part(int_point, real_v0);
                     const Line second_part(int_point, real_v1);
@@ -1039,12 +1062,12 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
     return graph;
 }
 
-static inline Polygon to_polygon(const Lines &lines)
+static inline Polygon to_polygon(const std::vector<Linef> &lines)
 {
     Polygon poly_out;
     poly_out.points.reserve(lines.size());
-    for (const Line &line : lines)
-        poly_out.points.emplace_back(line.a);
+    for (const Linef &line : lines)
+        poly_out.points.emplace_back(mk_point(line.a));
     return poly_out;
 }
 
@@ -1056,7 +1079,7 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(const MM
 {
     std::vector<bool> used_arcs(graph.arcs.size(), false);
     // When there is no next arc, then is returned original_arc or edge with is marked as used
-    auto get_next = [&graph, &used_arcs](const Line &process_line, const MMU_Graph::Arc &original_arc) -> const MMU_Graph::Arc & {
+    auto get_next = [&graph, &used_arcs](const Linef &process_line, const MMU_Graph::Arc &original_arc) -> const MMU_Graph::Arc & {
         std::vector<std::pair<const MMU_Graph::Arc *, double>> sorted_arcs;
         for (const size_t &arc_idx : graph.nodes[original_arc.to_idx].arc_idxs) {
             const MMU_Graph::Arc &arc = graph.arcs[arc_idx];
@@ -1064,8 +1087,8 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(const MM
                 continue;
 
             assert(original_arc.to_idx == arc.from_idx);
-            Vec2d process_line_vec_n   = (process_line.a - process_line.b).cast<double>().normalized();
-            Vec2d neighbour_line_vec_n = (graph.nodes[arc.to_idx].point - graph.nodes[arc.from_idx].point).cast<double>().normalized();
+            Vec2d process_line_vec_n   = (process_line.a - process_line.b).normalized();
+            Vec2d neighbour_line_vec_n = (graph.nodes[arc.to_idx].point - graph.nodes[arc.from_idx].point).normalized();
 
             double angle = ::acos(std::clamp(neighbour_line_vec_n.dot(process_line_vec_n), -1.0, 1.0));
             if (Slic3r::cross2(neighbour_line_vec_n, process_line_vec_n) < 0.0)
@@ -1098,17 +1121,17 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(const MM
 
         for (const size_t &arc_idx : node.arc_idxs) {
             const MMU_Graph::Arc &arc = graph.arcs[arc_idx];
-            if (arc.type == MMU_Graph::ARC_TYPE::NON_BORDER || used_arcs[arc_idx])continue;
+            if (arc.type == MMU_Graph::ARC_TYPE::NON_BORDER || used_arcs[arc_idx])
+                continue;
 
-
-            Line process_line(node.point, graph.nodes[arc.to_idx].point);
+            Linef process_line(node.point, graph.nodes[arc.to_idx].point);
             used_arcs[arc_idx] = true;
 
-            Lines face_lines;
+            std::vector<Linef> face_lines;
             face_lines.emplace_back(process_line);
-            Point start_p = process_line.a;
+            Vec2d start_p = process_line.a;
 
-            Line                  p_vec = process_line;
+            Linef                 p_vec = process_line;
             const MMU_Graph::Arc *p_arc = &arc;
             do {
                 const MMU_Graph::Arc &next         = get_next(p_vec, *p_arc);
@@ -1118,7 +1141,7 @@ static std::vector<std::pair<Polygon, size_t>> extract_colored_segments(const MM
                     break;
 
                 used_arcs[next_arc_idx] = true;
-                p_vec                   = Line(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point);
+                p_vec                   = Linef(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point);
                 p_arc                   = &next;
             } while (graph.nodes[p_arc->to_idx].point != start_p || !all_arc_used(graph.nodes[p_arc->to_idx]));
 
@@ -1141,16 +1164,16 @@ static inline double compute_edge_length(const MMU_Graph &graph, const size_t st
     used_arcs[start_arc_idx]                = true;
     const MMU_Graph::Arc *arc               = &graph.arcs[start_arc_idx];
     size_t                idx               = start_idx;
-    double                line_total_length = (graph.nodes[arc->to_idx].point - graph.nodes[idx].point).cast<double>().norm();;
+    double                line_total_length = (graph.nodes[arc->to_idx].point - graph.nodes[idx].point).norm();;
     while (graph.nodes[arc->to_idx].arc_idxs.size() == 2) {
         bool found = false;
         for (const size_t &arc_idx : graph.nodes[arc->to_idx].arc_idxs) {
             if (const MMU_Graph::Arc &arc_n = graph.arcs[arc_idx]; arc_n.type == MMU_Graph::ARC_TYPE::NON_BORDER && !used_arcs[arc_idx] && arc_n.to_idx != idx) {
-                Line first_line(graph.nodes[idx].point, graph.nodes[arc->to_idx].point);
-                Line second_line(graph.nodes[arc->to_idx].point, graph.nodes[arc_n.to_idx].point);
+                Linef first_line(graph.nodes[idx].point, graph.nodes[arc->to_idx].point);
+                Linef second_line(graph.nodes[arc->to_idx].point, graph.nodes[arc_n.to_idx].point);
 
-                Vec2d  first_line_vec    = (first_line.a - first_line.b).cast<double>();
-                Vec2d  second_line_vec   = (second_line.b - second_line.a).cast<double>();
+                Vec2d  first_line_vec    = (first_line.a - first_line.b);
+                Vec2d  second_line_vec   = (second_line.b - second_line.a);
                 Vec2d  first_line_vec_n  = first_line_vec.normalized();
                 Vec2d  second_line_vec_n = second_line_vec.normalized();
                 double angle             = ::acos(std::clamp(first_line_vec_n.dot(second_line_vec_n), -1.0, 1.0));
@@ -1163,7 +1186,7 @@ static inline double compute_edge_length(const MMU_Graph &graph, const size_t st
                 idx = arc->to_idx;
                 arc = &arc_n;
 
-                line_total_length += (graph.nodes[arc->to_idx].point - graph.nodes[idx].point).cast<double>().norm();
+                line_total_length += (graph.nodes[arc->to_idx].point - graph.nodes[idx].point).norm();
                 used_arcs[arc_idx] = true;
                 found      = true;
                 break;
@@ -1185,7 +1208,7 @@ static void remove_multiple_edges_in_vertices(MMU_Graph &graph, const std::vecto
         for (const std::pair<size_t, size_t> &colored_segment : colored_segment_p) {
             size_t first_idx  = graph.get_global_index(poly_idx, colored_segment.first);
             size_t second_idx = graph.get_global_index(poly_idx, (colored_segment.second + 1) % graph.polygon_sizes[poly_idx]);
-            Line   seg_line(graph.nodes[first_idx].point, graph.nodes[second_idx].point);
+            Linef  seg_line(graph.nodes[first_idx].point, graph.nodes[second_idx].point);
 
             if (graph.nodes[first_idx].arc_idxs.size() >= 3) {
                 std::vector<std::pair<MMU_Graph::Arc *, double>> arc_to_check;
@@ -1502,7 +1525,7 @@ static void export_graph_to_svg(const std::string &path, const MMU_Graph &graph,
     for (const MMU_Graph::Node &node : graph.nodes)
         for (const size_t &arc_idx : node.arc_idxs) {
             const MMU_Graph::Arc &arc = graph.arcs[arc_idx];
-            Line arc_line(node.point, graph.nodes[arc.to_idx].point);
+            Line arc_line(mk_point(node.point), mk_point(graph.nodes[arc.to_idx].point));
             if (arc.type == MMU_Graph::ARC_TYPE::BORDER && arc.color >= 0 && arc.color < int(colors.size()))
                 svg.draw(arc_line, colors[arc.color], stroke_width);
             else
