@@ -77,8 +77,10 @@ GalleryDialog::GalleryDialog(wxWindow* parent, bool modify_gallery/* = false*/) 
 
     m_list_ctrl = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(50 * wxGetApp().em_unit(), 35 * wxGetApp().em_unit()),
                                 wxLC_ICON | wxSIMPLE_BORDER);
-    m_list_ctrl->Bind(wxEVT_LIST_ITEM_SELECTED, &GalleryDialog::select, this);
-    m_list_ctrl->Bind(wxEVT_LIST_ITEM_DESELECTED, &GalleryDialog::deselect, this);
+    m_list_ctrl->Bind(wxEVT_LIST_ITEM_SELECTED,     &GalleryDialog::select, this);
+    m_list_ctrl->Bind(wxEVT_LIST_ITEM_DESELECTED,   &GalleryDialog::deselect, this);
+    m_list_ctrl->Bind(wxEVT_LIST_KEY_DOWN,          &GalleryDialog::key_down, this);
+    m_list_ctrl->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK,  &GalleryDialog::show_context_menu, this);
     m_list_ctrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, [this](wxListEvent& event) {
         m_selected_items.clear();
         select(event);
@@ -111,19 +113,11 @@ GalleryDialog::GalleryDialog(wxWindow* parent, bool modify_gallery/* = false*/) 
         this->Bind(wxEVT_BUTTON, method, this, ID);
     };
 
-    auto enable_del_fn = [this]() {
-        if (m_selected_items.empty())
-            return false;
-        for (const Item& item : m_selected_items)
-            if (item.is_system)
-                return false;
-        return true;
-    };
-
-    add_btn(0, ID_BTN_ADD_CUSTOM_SHAPE,   _L("Add"),         _L("Add one or more custom shapes"),                                       &GalleryDialog::add_custom_shapes);
-    add_btn(1, ID_BTN_DEL_CUSTOM_SHAPE,   _L("Delete"),      _L("Delete one or more custom shape. You can't delete system shapes"),     &GalleryDialog::del_custom_shapes,  enable_del_fn);
-    add_btn(2, ID_BTN_REPLACE_CUSTOM_PNG, _L("Replace PNG"), _L("Replace PNG for custom shape. You can't raplace PNG for system shape"),&GalleryDialog::replace_custom_png, [this]() { return (m_selected_items.size() == 1 && !m_selected_items[0].is_system); });
-    buttons->InsertStretchSpacer(3, 2* BORDER_W);
+    size_t btn_pos = 0;
+    add_btn(btn_pos++, ID_BTN_ADD_CUSTOM_SHAPE,   _L("Add"),                _L("Add one or more custom shapes"),                                                &GalleryDialog::add_custom_shapes);
+    add_btn(btn_pos++, ID_BTN_DEL_CUSTOM_SHAPE,   _L("Delete"),             _L("Delete one or more custom shape. You can't delete system shapes"),              &GalleryDialog::del_custom_shapes,  [this](){ return can_delete();           });
+    //add_btn(btn_pos++, ID_BTN_REPLACE_CUSTOM_PNG, _L("Change thumbnail"),   _L("Replace PNG for custom shape. You can't raplace thimbnail for system shape"),   &GalleryDialog::change_thumbnail, [this](){ return can_change_thumbnail(); });
+    buttons->InsertStretchSpacer(btn_pos, 2* BORDER_W);
 
     load_label_icon_list();
 
@@ -144,6 +138,21 @@ GalleryDialog::GalleryDialog(wxWindow* parent, bool modify_gallery/* = false*/) 
 
 GalleryDialog::~GalleryDialog()
 {   
+}
+
+bool GalleryDialog::can_delete() 
+{
+    if (m_selected_items.empty())
+        return false;
+    for (const Item& item : m_selected_items)
+        if (item.is_system)
+            return false;
+    return true;
+}
+
+bool GalleryDialog::can_change_thumbnail() 
+{
+    return (m_selected_items.size() == 1 && !m_selected_items[0].is_system);
 }
 
 void GalleryDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -405,7 +414,7 @@ void GalleryDialog::add_custom_shapes(wxEvent& event)
     load_files(input_files);
 }
 
-void GalleryDialog::del_custom_shapes(wxEvent& event)
+void GalleryDialog::del_custom_shapes()
 {
     auto custom_dir = get_dir(false);
 
@@ -438,7 +447,7 @@ static void show_warning(const wxString& title, const std::string& error_file_ty
     dialog.ShowModal();
 }
 
-void GalleryDialog::replace_custom_png(wxEvent& event)
+void GalleryDialog::change_thumbnail()
 {
     if (m_selected_items.size() != 1 || m_selected_items[0].is_system)
         return;
@@ -492,6 +501,23 @@ void GalleryDialog::deselect(wxListEvent& event)
 
     std::string name = into_u8(m_list_ctrl->GetItemText(event.GetIndex()));
     m_selected_items.erase(std::remove_if(m_selected_items.begin(), m_selected_items.end(), [name](Item item) { return item.name == name; }));
+}
+
+void GalleryDialog::show_context_menu(wxListEvent& event)
+{
+    wxMenu* menu = new wxMenu();
+    if (can_delete())
+        append_menu_item(menu, wxID_ANY, _L("Delete"), "", [this](wxCommandEvent&) { del_custom_shapes(); });
+    if (can_change_thumbnail())
+        append_menu_item(menu, wxID_ANY, _L("Change thumbnail"), "", [this](wxCommandEvent&) { change_thumbnail(); });
+
+    this->PopupMenu(menu);
+}
+
+void GalleryDialog::key_down(wxListEvent& event)
+{
+    if (can_delete() && (event.GetKeyCode() == WXK_DELETE || event.GetKeyCode() == WXK_BACK))
+        del_custom_shapes();
 }
 
 void GalleryDialog::update()
