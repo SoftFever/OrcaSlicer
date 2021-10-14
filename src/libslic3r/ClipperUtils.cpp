@@ -156,6 +156,45 @@ bool has_duplicate_points(const ClipperLib::PolyTree &polytree)
 }
 #endif
 
+// Offset CCW contours outside, CW contours (holes) inside.
+// Don't calculate union of the output paths.
+template<typename PathsProvider, ClipperLib::EndType endType = ClipperLib::etClosedPolygon>
+static ClipperLib::Paths raw_offset(PathsProvider &&paths, float offset, ClipperLib::JoinType joinType, double miterLimit)
+{
+    ClipperLib::ClipperOffset co;
+    ClipperLib::Paths out;
+    out.reserve(paths.size());
+    ClipperLib::Paths out_this;
+    if (joinType == jtRound)
+        co.ArcTolerance = miterLimit;
+    else
+        co.MiterLimit = miterLimit;
+    co.ShortestEdgeLength = double(std::abs(offset * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
+    for (const ClipperLib::Path &path : paths) {
+        co.Clear();
+        // Execute reorients the contours so that the outer most contour has a positive area. Thus the output
+        // contours will be CCW oriented even though the input paths are CW oriented.
+        // Offset is applied after contour reorientation, thus the signum of the offset value is reversed.
+        co.AddPath(path, joinType, endType);
+        bool ccw = endType == ClipperLib::etClosedPolygon ? ClipperLib::Orientation(path) : true;
+        co.Execute(out_this, ccw ? offset : - offset);
+        if (! ccw) {
+            // Reverse the resulting contours.
+            for (ClipperLib::Path &path : out_this)
+                std::reverse(path.begin(), path.end());
+        }
+        append(out, std::move(out_this));
+    }
+    return out;
+}
+
+// Offset outside by 10um, one by one.
+template<typename PathsProvider>
+static ClipperLib::Paths safety_offset(PathsProvider &&paths)
+{
+    return raw_offset(std::forward<PathsProvider>(paths), ClipperSafetyOffset, DefaultJoinType, DefaultMiterLimit);
+}
+
 template<class TResult, class TSubj, class TClip>
 TResult clipper_do(
     const ClipperLib::ClipType     clipType,
@@ -206,50 +245,11 @@ ExPolygons ClipperPaths_to_Slic3rExPolygons(const ClipperLib::Paths &input, bool
     return PolyTreeToExPolygons(clipper_union<ClipperLib::PolyTree>(input, do_union ? ClipperLib::pftNonZero : ClipperLib::pftEvenOdd));
 }
 
-// Offset CCW contours outside, CW contours (holes) inside.
-// Don't calculate union of the output paths.
-template<typename PathsProvider, ClipperLib::EndType endType = ClipperLib::etClosedPolygon>
-static ClipperLib::Paths raw_offset(PathsProvider &&paths, float offset, ClipperLib::JoinType joinType, double miterLimit)
-{
-    ClipperLib::ClipperOffset co;
-    ClipperLib::Paths out;
-    out.reserve(paths.size());
-    ClipperLib::Paths out_this;
-    if (joinType == jtRound)
-        co.ArcTolerance = miterLimit;
-    else
-        co.MiterLimit = miterLimit;
-    co.ShortestEdgeLength = double(std::abs(offset * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
-    for (const ClipperLib::Path &path : paths) {
-        co.Clear();
-        // Execute reorients the contours so that the outer most contour has a positive area. Thus the output
-        // contours will be CCW oriented even though the input paths are CW oriented.
-        // Offset is applied after contour reorientation, thus the signum of the offset value is reversed.
-        co.AddPath(path, joinType, endType);
-        bool ccw = endType == ClipperLib::etClosedPolygon ? ClipperLib::Orientation(path) : true;
-        co.Execute(out_this, ccw ? offset : - offset);
-        if (! ccw) {
-            // Reverse the resulting contours.
-            for (ClipperLib::Path &path : out_this)
-                std::reverse(path.begin(), path.end());
-        }
-        append(out, std::move(out_this));
-    }
-    return out;
-}
-
 template<typename PathsProvider, ClipperLib::EndType endType = ClipperLib::etClosedPolygon>
 static ClipperLib::Paths raw_offset_polyline(PathsProvider &&paths, float offset, ClipperLib::JoinType joinType, double miterLimit)
 {
     assert(offset > 0);
     return raw_offset<PathsProvider, ClipperLib::etOpenButt>(std::forward<PathsProvider>(paths), offset, joinType, miterLimit);
-}
-
-// Offset outside by 10um, one by one.
-template<typename PathsProvider>
-static ClipperLib::Paths safety_offset(PathsProvider &&paths)
-{
-    return raw_offset(std::forward<PathsProvider>(paths), ClipperSafetyOffset, DefaultJoinType, DefaultMiterLimit);
 }
 
 template<class TResult, typename PathsProvider>
@@ -259,6 +259,7 @@ static TResult expand_paths(PathsProvider &&paths, float offset, ClipperLib::Joi
     return clipper_union<TResult>(raw_offset(std::forward<PathsProvider>(paths), offset, joinType, miterLimit));
 }
 
+// used by shrink_paths()
 template<class Container> static void remove_outermost_polygon(Container & solution);
 template<> static void remove_outermost_polygon<ClipperLib::Paths>(ClipperLib::Paths &solution)
     { if (! solution.empty()) solution.erase(solution.begin()); }
