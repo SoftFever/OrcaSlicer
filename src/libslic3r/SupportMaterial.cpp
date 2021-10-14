@@ -420,6 +420,11 @@ inline void layers_append(PrintObjectSupportMaterial::MyLayersPtr &dst, const Pr
     dst.insert(dst.end(), src.begin(), src.end());
 }
 
+// Support layer that is covered by some form of dense interface.
+static constexpr const std::initializer_list<PrintObjectSupportMaterial::SupporLayerType> support_types_interface { 
+    PrintObjectSupportMaterial::sltRaftInterface, PrintObjectSupportMaterial::sltBottomContact, PrintObjectSupportMaterial::sltBottomInterface, PrintObjectSupportMaterial::sltTopContact, PrintObjectSupportMaterial::sltTopInterface
+};
+
 void PrintObjectSupportMaterial::generate(PrintObject &object)
 {
     BOOST_LOG_TRIVIAL(info) << "Support generator - Start";
@@ -569,6 +574,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // Sort the layers lexicographically by a raising print_z and a decreasing height.
     std::sort(layers_sorted.begin(), layers_sorted.end(), [](auto *l1, auto *l2) { return *l1 < *l2; });
     int layer_id = 0;
+    int layer_id_interface = 0;
     assert(object.support_layers().empty());
     for (size_t i = 0; i < layers_sorted.size();) {
         // Find the last layer with roughly the same print_z, find the minimum layer height of all.
@@ -580,17 +586,43 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
         coordf_t zavg = 0.5 * (layers_sorted[i]->print_z + layers_sorted[j - 1]->print_z);
         coordf_t height_min = layers_sorted[i]->height;
         bool     empty = true;
+        // For snug supports, layers where the direction of the support interface shall change are accounted for.
+        size_t   num_interfaces = 0;
+        size_t   num_top_contacts = 0;
+        double   top_contact_bottom_z = 0;
         for (size_t u = i; u < j; ++u) {
             MyLayer &layer = *layers_sorted[u];
-            if (! layer.polygons.empty())
-                empty = false;
+            if (! layer.polygons.empty()) {
+                empty             = false;
+                num_interfaces   += one_of(layer.layer_type, support_types_interface);
+                if (layer.layer_type == sltTopContact) {
+                    ++ num_top_contacts;
+                    assert(num_top_contacts <= 1);
+                    // All top contact layers sharing this print_z shall also share bottom_z.
+                    //assert(num_top_contacts == 1 || (top_contact_bottom_z - layer.bottom_z) < EPSILON);
+                    top_contact_bottom_z = layer.bottom_z;
+                }
+            }
             layer.print_z = zavg;
             height_min = std::min(height_min, layer.height);
         }
         if (! empty) {
             // Here the upper_layer and lower_layer pointers are left to null at the support layers, 
             // as they are never used. These pointers are candidates for removal.
-            object.add_support_layer(layer_id ++, height_min, zavg);
+            bool   this_layer_contacts_only = num_top_contacts > 0 && num_top_contacts == num_interfaces;
+            size_t this_layer_id_interface  = layer_id_interface;
+            if (this_layer_contacts_only) {
+                // Find a supporting layer for its interface ID.
+                for (auto it = object.support_layers().rbegin(); it != object.support_layers().rend(); ++ it)
+                    if (const SupportLayer &other_layer = **it; std::abs(other_layer.print_z - top_contact_bottom_z) < EPSILON) {
+                        // other_layer supports this top contact layer. Assign a different support interface direction to this layer
+                        // from the layer that supports it.
+                        this_layer_id_interface = other_layer.interface_id() + 1;
+                    }
+            }
+            object.add_support_layer(layer_id ++, this_layer_id_interface, height_min, zavg);
+            if (num_interfaces && ! this_layer_contacts_only)
+                ++ layer_id_interface;
         }
         i = j;
     }
@@ -2507,14 +2539,16 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
     // or the bottom of the first intermediate layer is aligned with the bottom of the raft contact layer.
     // Intermediate layers are always printed with a normal etrusion flow (non-bridging).
     size_t idx_layer_object = 0;
-    for (size_t idx_extreme = 0; idx_extreme < extremes.size(); ++ idx_extreme) {
+    size_t idx_extreme_first = 0;
+    if (! extremes.empty() && std::abs(extremes.front()->extreme_z() - m_slicing_params.raft_interface_top_z) < EPSILON) {
+        // This is a raft contact layer, its height has been decided in this->top_contact_layers().
+        // Ignore this layer when calculating the intermediate support layers.
+        assert(extremes.front()->layer_type == sltTopContact);
+        ++ idx_extreme_first;
+    }
+    for (size_t idx_extreme = idx_extreme_first; idx_extreme < extremes.size(); ++ idx_extreme) {
         MyLayer      *extr2  = extremes[idx_extreme];
         coordf_t      extr2z = extr2->extreme_z();
-        if (std::abs(extr2z - m_slicing_params.raft_interface_top_z) < EPSILON) {
-            // This is a raft contact layer, its height has been decided in this->top_contact_layers().
-            assert(extr2->layer_type == sltTopContact);
-            continue;
-        }
         if (std::abs(extr2z - m_slicing_params.first_print_layer_height) < EPSILON) {
             // This is a bottom of a synchronized (or soluble) top contact layer, its height has been decided in this->top_contact_layers().
             assert(extr2->layer_type == sltTopContact);
@@ -2531,7 +2565,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         }
         assert(extr2z >= m_slicing_params.raft_interface_top_z + EPSILON);
         assert(extr2z >= m_slicing_params.first_print_layer_height + EPSILON);
-        MyLayer      *extr1  = (idx_extreme == 0) ? nullptr : extremes[idx_extreme - 1];
+        MyLayer      *extr1  = (idx_extreme == idx_extreme_first) ? nullptr : extremes[idx_extreme - 1];
         // Fuse a support layer firmly to the raft top interface (not to the raft contacts).
         coordf_t      extr1z = (extr1 == nullptr) ? m_slicing_params.raft_interface_top_z : extr1->extreme_z();
         assert(extr2z >= extr1z);
@@ -3056,7 +3090,6 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
         interface_layers.assign(intermediate_layers.size(), nullptr);
         if (num_base_interface_layers_top || num_base_interface_layers_bottom)
             base_interface_layers.assign(intermediate_layers.size(), nullptr);
-        bool snug_supports                   = m_object_config->support_material_style.value == smsSnug;
         auto smoothing_distance              = m_support_params.support_material_interface_flow.scaled_spacing() * 1.5;
         auto minimum_island_radius           = m_support_params.support_material_interface_flow.scaled_spacing() / m_support_params.interface_density;
         auto closing_distance                = smoothing_distance; // scaled<float>(m_object_config->support_material_closing_radius.value);
@@ -4027,6 +4060,9 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         {
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
+            float         interface_angle_delta = m_object_config->support_material_style.value == smsSnug ? 
+                (support_layer.interface_id() & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.) :
+                0;
 
             // Find polygons with the same print_z.
             MyLayerExtruded &bottom_contact_layer = layer_cache.bottom_contact_layer;
@@ -4106,7 +4142,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                         // If zero interface layers are configured, use the same angle as for the base layers.
                         angles[support_layer_id % angles.size()] :
                         // Use interface angle for the interface layers.
-                        m_support_params.interface_angle;
+                        m_support_params.interface_angle + interface_angle_delta;
                 double density = interface_as_base ? m_support_params.support_density : m_support_params.interface_density;
                 filler_interface->spacing = interface_as_base ? m_support_params.support_material_flow.spacing() : m_support_params.support_material_interface_flow.spacing();
                 filler_interface->link_max_length = coord_t(scale_(filler_interface->spacing * link_max_length_factor / density));
@@ -4128,7 +4164,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
                 assert(! base_interface_layer.layer->bridging);
                 Flow interface_flow = m_support_params.support_material_flow.with_height(float(base_interface_layer.layer->height));
-                filler->angle   = m_support_params.interface_angle;
+                filler->angle   = m_support_params.interface_angle + interface_angle_delta;
                 filler->spacing = m_support_params.support_material_interface_flow.spacing();
                 filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / m_support_params.interface_density));
                 fill_expolygons_generate_paths(
