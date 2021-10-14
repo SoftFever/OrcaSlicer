@@ -868,7 +868,7 @@ static Polygons get_boundary_external(const Layer &layer)
     }
 
     // Used offset_ex for cases when another object will be in the hole of another polygon
-    boundary = to_polygons(offset_ex(boundary, perimeter_offset));
+    boundary = expand(boundary, perimeter_offset);
     // Reverse all polygons for making normals point from the polygon out.
     for (Polygon &poly : boundary)
         poly.reverse();

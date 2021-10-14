@@ -180,6 +180,7 @@ public:
     PolyNode* GetFirst() const { return Childs.empty() ? nullptr : Childs.front(); }
     void Clear() {  AllNodes.clear(); Childs.clear(); }
     int Total() const;
+    void RemoveOutermostPolygon();
 private:
     PolyTree(const PolyTree &src) = delete;
     PolyTree& operator=(const PolyTree &src) = delete;
@@ -521,6 +522,7 @@ public:
   double MiterLimit;
   double ArcTolerance;
   double ShortestEdgeLength;
+
 private:
   Paths m_destPolys;
   Path m_srcPoly;
@@ -528,6 +530,8 @@ private:
   std::vector<DoublePoint> m_normals;
   double m_delta, m_sinA, m_sin, m_cos;
   double m_miterLim, m_StepsPerRad;
+  // x: index of the lowest contour in m_polyNodes
+  // y: index of the lowest point in the lowest contour
   IntPoint m_lowest;
   PolyNode m_polyNodes;
 

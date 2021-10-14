@@ -252,11 +252,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        // Corners of infill regions, which would not be filled with an extrusion path with a radius of distance_between_surfaces/2
 	        Polygons collapsed = diff(
 	            surfaces_polygons,
-	            offset2(surfaces_polygons, (float)-distance_between_surfaces/2, (float)+distance_between_surfaces/2 + ClipperSafetyOffset));
+				opening(surfaces_polygons, float(distance_between_surfaces /2), float(distance_between_surfaces / 2 + ClipperSafetyOffset)));
 	        //FIXME why the voids are added to collapsed here? First it is expensive, second the result may lead to some unwanted regions being
 	        // added if two offsetted void regions merge.
 	        // polygons_append(voids, collapsed);
-	        ExPolygons extensions = intersection_ex(offset(collapsed, (float)distance_between_surfaces), voids, ApplySafetyOffset::Yes);
+	        ExPolygons extensions = intersection_ex(expand(collapsed, float(distance_between_surfaces)), voids, ApplySafetyOffset::Yes);
 	        // Now find an internal infill SurfaceFill to add these extrusions to.
 	        SurfaceFill *internal_solid_fill = nullptr;
 			unsigned int region_id = 0;

@@ -177,7 +177,7 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
                 append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, ClipperLib::jtSquare), offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare)));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset, ClipperLib::jtSquare));
+                append(no_brim_area_object, shrink_ex(ex_poly.holes, no_brim_offset, ClipperLib::jtSquare));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
                 append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly.holes));
@@ -230,13 +230,13 @@ static ExPolygons inner_brim_area(const Print                   &print,
             }
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
-                append(brim_area_object, diff_ex(offset_ex(ex_poly.holes, -brim_separation, ClipperLib::jtSquare), offset_ex(ex_poly.holes, -brim_width - brim_separation, ClipperLib::jtSquare)));
+                append(brim_area_object, diff_ex(shrink_ex(ex_poly.holes, brim_separation, ClipperLib::jtSquare), shrink_ex(ex_poly.holes, brim_width + brim_separation, ClipperLib::jtSquare)));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
                 append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly.holes));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset, ClipperLib::jtSquare));
+                append(no_brim_area_object, shrink_ex(ex_poly.holes, no_brim_offset, ClipperLib::jtSquare));
 
             append(holes_object, ex_poly.holes);
         }
@@ -385,10 +385,10 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     size_t          num_loops = size_t(floor(max_brim_width(print.objects()) / flow.spacing()));
     for (size_t i = 0; i < num_loops; ++i) {
         try_cancel();
-        islands = offset(islands, float(flow.scaled_spacing()), ClipperLib::jtSquare);
+        islands = expand(islands, float(flow.scaled_spacing()), ClipperLib::jtSquare);
         for (Polygon &poly : islands) 
             poly.douglas_peucker(SCALED_RESOLUTION);
-        polygons_append(loops, offset(islands, -0.5f * float(flow.scaled_spacing())));
+        polygons_append(loops, shrink(islands, 0.5f * float(flow.scaled_spacing())));
     }
     loops = union_pt_chained_outside_in(loops);
 

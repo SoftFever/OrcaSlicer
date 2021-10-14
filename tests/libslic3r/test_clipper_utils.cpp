@@ -34,7 +34,7 @@ SCENARIO("Various Clipper operations - xs/t/11_clipper.t", "[ClipperUtils]") {
             }
         }
         WHEN("offset2_ex") {
-            ExPolygons result = Slic3r::offset2_ex(square_with_hole, 5.f, -2.f);
+            ExPolygons result = Slic3r::offset2_ex({ square_with_hole }, 5.f, -2.f);
             THEN("offset matches") {
                 REQUIRE(result == ExPolygons { {
                     { { 203, 203 }, { 97, 203 }, { 97, 97 }, { 203, 97 } },

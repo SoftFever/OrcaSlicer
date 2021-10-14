@@ -1617,7 +1617,7 @@ static void make_expolygons(const Polygons &loops, const float closing_radius, c
 
     /* The following line is commented out because it can generate wrong polygons,
        see for example issue #661 */
-    //ExPolygons ex_slices = offset2_ex(p_slices, +safety_offset, -safety_offset);
+    //ExPolygons ex_slices = closing(p_slices, safety_offset);
     
     #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     size_t holes_count = 0;
