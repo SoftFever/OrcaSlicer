@@ -5,6 +5,7 @@
 #include "GUI_Utils.hpp"
 
 #include <wx/dialog.h>
+#include <wx/timer.h>
 #include <map>
 
 class wxColourPickerCtrl;
