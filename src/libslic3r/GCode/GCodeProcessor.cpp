@@ -1251,7 +1251,7 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
                 cancel_callback();
         }
         this->process_gcode_line(line, true);
-    });
+    }, m_result.lines_ends);
 
     // Don't post-process the G-code to update time stamps.
     this->finalize(false);
