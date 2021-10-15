@@ -89,6 +89,8 @@ public:
 
     void set_painter_gizmo_data(const Selection& selection) override;
 
+    void render_triangles(const Selection& selection, bool use_polygon_offset_fill) const override;
+
     // TriangleSelector::serialization/deserialization has a limit to store 19 different states.
     // EXTRUDER_LIMIT + 1 states are used to storing the painting because also uncolored triangles are stored.
     // When increasing EXTRUDER_LIMIT, it needs to ensure that TriangleSelector::serialization/deserialization

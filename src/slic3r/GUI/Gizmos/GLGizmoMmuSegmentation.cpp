@@ -174,6 +174,43 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
     }
 }
 
+void GLGizmoMmuSegmentation::render_triangles(const Selection &selection, const bool use_polygon_offset_fill) const
+{
+    ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
+    auto                    *shader   = wxGetApp().get_shader("mm_gouraud");
+    if (!shader)
+        return;
+    shader->start_using();
+    shader->set_uniform("clipping_plane", clp_data.clp_dataf);
+    shader->set_uniform("z_range", clp_data.z_range);
+    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+
+    const ModelObject *mo      = m_c->selection_info()->model_object();
+    int                mesh_id = -1;
+    for (const ModelVolume *mv : mo->volumes) {
+        if (!mv->is_model_part())
+            continue;
+
+        ++mesh_id;
+
+        const Transform3d trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
+
+        bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CW));
+
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixd(trafo_matrix.data()));
+
+        shader->set_uniform("volume_world_matrix", trafo_matrix);
+        m_triangle_selectors[mesh_id]->render(m_imgui);
+
+        glsafe(::glPopMatrix());
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CCW));
+    }
+}
+
 static void render_extruders_combo(const std::string                       &label,
                                    const std::vector<std::string>          &extruders,
                                    const std::vector<std::array<float, 4>> &extruders_colors,
@@ -554,9 +591,7 @@ void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
     auto *shader = wxGetApp().get_current_shader();
     if (!shader)
         return;
-    assert(shader->get_name() == "gouraud");
-    ScopeGuard guard([shader]() { if (shader) shader->set_uniform("compute_triangle_normals_in_fs", false);});
-    shader->set_uniform("compute_triangle_normals_in_fs", true);
+    assert(shader->get_name() == "mm_gouraud");
 
     for (size_t color_idx = 0; color_idx < m_gizmo_scene.triangle_indices.size(); ++color_idx)
         if (m_gizmo_scene.has_VBOs(color_idx)) {
@@ -569,7 +604,7 @@ void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
         }
 
     if (m_paint_contour.has_VBO()) {
-        ScopeGuard guard_gouraud([shader]() { shader->start_using(); });
+        ScopeGuard guard_mm_gouraud([shader]() { shader->start_using(); });
         shader->stop_using();
 
         auto *contour_shader = wxGetApp().get_shader("mm_contour");

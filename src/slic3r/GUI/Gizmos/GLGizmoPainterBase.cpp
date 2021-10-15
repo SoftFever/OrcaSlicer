@@ -43,12 +43,29 @@ void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
     }
 }
 
+GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_plane_data() const
+{
+    ClippingPlaneDataWrapper clp_data_out{{0.f, 0.f, 1.f, FLT_MAX}, {-FLT_MAX, FLT_MAX}};
+    // Take care of the clipping plane. The normal of the clipping plane is
+    // saved with opposite sign than we need to pass to OpenGL (FIXME)
+    if (bool clipping_plane_active = m_c->object_clipper()->get_position() != 0.; clipping_plane_active) {
+        const ClippingPlane *clp = m_c->object_clipper()->get_clipping_plane();
+        for (size_t i = 0; i < 3; ++i)
+            clp_data_out.clp_dataf[i] = -1.f * float(clp->get_data()[i]);
+        clp_data_out.clp_dataf[3] = float(clp->get_data()[3]);
+    }
 
+    // z_range is calculated in the same way as in GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
+    if (m_c->get_canvas()->get_use_clipping_planes()) {
+        const std::array<ClippingPlane, 2> &clps = m_c->get_canvas()->get_clipping_planes();
+        clp_data_out.z_range                     = {float(-clps[0].get_data()[3]), float(clps[1].get_data()[3])};
+    }
+
+    return clp_data_out;
+}
 
 void GLGizmoPainterBase::render_triangles(const Selection& selection, const bool use_polygon_offset_fill) const
 {
-    const ModelObject* mo = m_c->selection_info()->model_object();
-
     ScopeGuard offset_fill_guard([&use_polygon_offset_fill]() {
         if (use_polygon_offset_fill)
             glsafe(::glDisable(GL_POLYGON_OFFSET_FILL));
@@ -58,27 +75,17 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection, const bool
         glsafe(::glPolygonOffset(-5.0, -5.0));
     }
 
-    // Take care of the clipping plane. The normal of the clipping plane is
-    // saved with opposite sign than we need to pass to OpenGL (FIXME)
-    bool clipping_plane_active = m_c->object_clipper()->get_position() != 0.;
-    float clp_dataf[4] = {0.f, 0.f, 1.f, FLT_MAX};
-    if (clipping_plane_active) {
-        const ClippingPlane* clp = m_c->object_clipper()->get_clipping_plane();
-        for (size_t i=0; i<3; ++i)
-            clp_dataf[i] = -1.f * float(clp->get_data()[i]);
-        clp_dataf[3] = float(clp->get_data()[3]);
-    }
-
     auto *shader = wxGetApp().get_shader("gouraud");
     if (! shader)
         return;
     shader->start_using();
     shader->set_uniform("slope.actived", false);
     shader->set_uniform("print_box.actived", false);
-    shader->set_uniform("clipping_plane", clp_dataf, 4);
+    shader->set_uniform("clipping_plane", this->get_clipping_plane_data().clp_dataf);
     ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
 
-    int mesh_id = -1;
+    const ModelObject *mo      = m_c->selection_info()->model_object();
+    int                mesh_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
             continue;
