@@ -126,7 +126,7 @@ public:
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
 protected:
-    virtual void render_triangles(const Selection& selection, bool use_polygon_offset_fill = true) const;
+    virtual void render_triangles(const Selection& selection) const;
     void render_cursor() const;
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;

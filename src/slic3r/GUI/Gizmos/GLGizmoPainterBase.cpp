@@ -64,17 +64,8 @@ GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_pl
     return clp_data_out;
 }
 
-void GLGizmoPainterBase::render_triangles(const Selection& selection, const bool use_polygon_offset_fill) const
+void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 {
-    ScopeGuard offset_fill_guard([&use_polygon_offset_fill]() {
-        if (use_polygon_offset_fill)
-            glsafe(::glDisable(GL_POLYGON_OFFSET_FILL));
-    });
-    if (use_polygon_offset_fill) {
-        glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
-        glsafe(::glPolygonOffset(-5.0, -5.0));
-    }
-
     auto *shader = wxGetApp().get_shader("gouraud");
     if (! shader)
         return;
@@ -585,7 +576,8 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     if (! shader)
         return;
     assert(shader->get_name() == "gouraud");
-
+    ScopeGuard guard([shader]() { if (shader) shader->set_uniform("offset_depth_buffer", false);});
+    shader->set_uniform("offset_depth_buffer", true);
     for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),
                      std::make_pair(&m_iva_blockers, blockers_color)}) {
         if (iva.first->has_VBOs()) {
@@ -611,7 +603,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
         auto *contour_shader = wxGetApp().get_shader("mm_contour");
         contour_shader->start_using();
 
-        glsafe(::glDepthFunc(GL_GEQUAL));
+        glsafe(::glDepthFunc(GL_LEQUAL));
         m_paint_contour.render();
         glsafe(::glDepthFunc(GL_LESS));
 

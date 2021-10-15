@@ -143,7 +143,7 @@ void GLGizmoMmuSegmentation::render_painter_gizmo() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    render_triangles(selection, false);
+    render_triangles(selection);
 
     m_c->object_clipper()->render_cut();
     m_c->instances_hider()->render_cut();
@@ -174,7 +174,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
     }
 }
 
-void GLGizmoMmuSegmentation::render_triangles(const Selection &selection, const bool use_polygon_offset_fill) const
+void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
     auto                    *shader   = wxGetApp().get_shader("mm_gouraud");
