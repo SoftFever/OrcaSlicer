@@ -185,9 +185,10 @@ static std::map<std::string, std::string> get_cpu_info_from_registry()
     std::map<std::string, std::string> out;
 
     int idx = -1;
-    constexpr DWORD bufsize_ = 200;
-    DWORD bufsize = bufsize_;
+    constexpr DWORD bufsize_ = 500;
+    DWORD bufsize = bufsize_-1; // Ensure a terminating zero.
     char buf[bufsize_] = "";
+    memset(buf, 0, bufsize_);
     const std::string reg_dir = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\";
     std::string reg_path = reg_dir;
 
@@ -209,7 +210,7 @@ static std::map<std::string, std::string> get_cpu_info_from_registry()
         }
         ++idx;
         reg_path = reg_dir + std::to_string(idx) + "\\";
-        bufsize = bufsize_;
+        bufsize = bufsize_-1;
     }
     return out;
 }
@@ -217,7 +218,7 @@ static std::map<std::string, std::string> get_cpu_info_from_registry()
 static std::map<std::string, std::string> parse_lscpu_etc(const std::string& name, char delimiter)
 {
     std::map<std::string, std::string> out;
-    constexpr size_t max_len = 100;
+    constexpr size_t max_len = 1000;
     char cline[max_len] = "";
     FILE* fp = popen(name.data(), "r");
     if (fp != NULL) {
@@ -283,10 +284,12 @@ static std::string get_unique_id()
     char buf[buf_size] = "";
     memset(&buf, 0, sizeof(buf));
     io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
-    CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
-    IOObjectRelease(ioRegistryRoot);
-    CFStringGetCString(uuidCf, buf, buf_size, kCFStringEncodingMacRoman);
-    CFRelease(uuidCf);
+    if (ioRegistryRoot != MACH_PORT_NULL) {
+        CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
+        IOObjectRelease(ioRegistryRoot);
+        CFStringGetCString(uuidCf, buf, buf_size, kCFStringEncodingMacRoman);
+        CFRelease(uuidCf);
+    }
     // Now convert the string to std::vector<unsigned char>.
     for (char* c = buf; *c != 0; ++c)
         unique.emplace_back((unsigned char)(*c));
