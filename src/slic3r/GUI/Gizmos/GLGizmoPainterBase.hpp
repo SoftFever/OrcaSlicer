@@ -126,7 +126,7 @@ public:
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
 protected:
-    void render_triangles(const Selection& selection, const bool use_polygon_offset_fill = true) const;
+    virtual void render_triangles(const Selection& selection) const;
     void render_cursor() const;
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;
@@ -175,6 +175,14 @@ protected:
         Left,
         Right
     };
+
+    struct ClippingPlaneDataWrapper
+    {
+        std::array<float, 4> clp_dataf;
+        std::array<float, 2> z_range;
+    };
+
+    ClippingPlaneDataWrapper get_clipping_plane_data() const;
 
 private:
     bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;

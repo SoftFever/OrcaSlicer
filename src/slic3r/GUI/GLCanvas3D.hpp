@@ -456,7 +456,7 @@ private:
     GLGizmosManager m_gizmos;
     GLToolbar m_main_toolbar;
     GLToolbar m_undoredo_toolbar;
-    ClippingPlane m_clipping_planes[2];
+    std::array<ClippingPlane, 2> m_clipping_planes;
     ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
     SlaCap m_sla_caps[2];
@@ -650,6 +650,9 @@ public:
     }
     void reset_clipping_planes_cache() { m_sla_caps[0].triangles.clear(); m_sla_caps[1].triangles.clear(); }
     void set_use_clipping_planes(bool use) { m_use_clipping_planes = use; }
+
+    bool                                get_use_clipping_planes() const { return m_use_clipping_planes; }
+    const std::array<ClippingPlane, 2> &get_clipping_planes() const { return m_clipping_planes; };
 
     void set_color_by(const std::string& value);
 
