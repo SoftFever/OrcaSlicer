@@ -452,8 +452,10 @@ void PreferencesDialog::build(size_t selected_tab)
 
 	activate_options_tab(m_optgroup_gui);
 	// set Field for notify_release to its value to activate the object
-	boost::any val = s_keys_map_NotifyReleaseMode.at(app_config->get("notify_release"));
-	m_optgroup_gui->get_field("notify_release")->set_value(val, false);
+	if (is_editor) {
+		boost::any val = s_keys_map_NotifyReleaseMode.at(app_config->get("notify_release"));
+		m_optgroup_gui->get_field("notify_release")->set_value(val, false);
+	}
 
 	if (is_editor) {
 		create_icon_size_slider();

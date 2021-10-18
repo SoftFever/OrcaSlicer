@@ -215,7 +215,8 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	}
 	
 	if (mouse_pos.x < win_pos.x && mouse_pos.x > win_pos.x - m_window_width && mouse_pos.y > win_pos.y && mouse_pos.y < win_pos.y + m_window_height) {
-		ImGui::SetNextWindowFocus();
+		// Uncomment if imgui window focus is needed on hover. I cant find any case.
+		//ImGui::SetNextWindowFocus();
 		set_hovered();
 	}
 	

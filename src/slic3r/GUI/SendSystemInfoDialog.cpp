@@ -6,6 +6,7 @@
 
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/Utils/Http.hpp"
+#include "slic3r/Utils/PresetUpdater.hpp"
 
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
@@ -17,6 +18,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/uuid/detail/md5.hpp>
 
@@ -36,12 +38,17 @@
     #include <Iphlpapi.h>
     #pragma comment(lib, "iphlpapi.lib")
 #elif __APPLE__
-#import <IOKit/IOKitLib.h>
+    #import <IOKit/IOKitLib.h>
+    #include <CoreFoundation/CoreFoundation.h>
+#else // Linux/BSD
+    #include <charconv>
 #endif
 
 namespace Slic3r {
 namespace GUI {
 
+static const std::string SEND_SYSTEM_INFO_DOMAIN = "prusa3d.com";
+static const std::string SEND_SYSTEM_INFO_URL = "https://files." + SEND_SYSTEM_INFO_DOMAIN + "/wp-json/v1/ps";
 
 
 // Declaration of a free function defined in OpenGLManager.cpp:
@@ -52,8 +59,8 @@ std::string gl_get_string_safe(GLenum param, const std::string& default_value);
 class SendSystemInfoDialog : public DPIDialog
 {
     enum {
-        MIN_WIDTH = 80,
-        MIN_HEIGHT = 50
+        MIN_WIDTH = 70,
+        MIN_HEIGHT = 34
     };
 
 public:
@@ -129,20 +136,36 @@ public:
 // current version is newer. Only major and minor versions are compared.
 static bool should_dialog_be_shown()
 {
-    return false;
-
     std::string last_sent_version = wxGetApp().app_config->get("version_system_info_sent");
     Semver semver_current(SLIC3R_VERSION);
     Semver semver_last_sent;
     if (! last_sent_version.empty())
         semver_last_sent = Semver(last_sent_version);
 
-    if (semver_current.prerelease() && std::string(semver_current.prerelease()) == "alpha")
-        return false; // Don't show in alphas.
+    // set whether to show in alpha builds, or only betas/rcs/finals:
+    const bool show_in_alphas = true;
 
-    // Show the dialog if current > last, but they differ in more than just patch.
-    return ((semver_current.maj() > semver_last_sent.maj())
+    if (! show_in_alphas && semver_current.prerelease()
+       && std::string(semver_current.prerelease()).find("alpha") != std::string::npos)
+            return false;
+
+    // New version means current > last, but they must differ in more than just patch.
+    bool new_version = ((semver_current.maj() > semver_last_sent.maj())
         || (semver_current.maj() == semver_last_sent.maj() && semver_current.min() > semver_last_sent.min() ));
+
+    if (! new_version)
+        return false;
+
+    // We'll misuse the version check to check internet connection here.
+    bool is_internet = false;
+    Http::get(wxGetApp().app_config->version_check_url())
+        .size_limit(SLIC3R_VERSION_BODY_MAX)
+        .timeout_max(2)
+        .on_complete([&](std::string, unsigned) {
+            is_internet = true;
+        })
+        .perform_sync();
+    return is_internet;
 }
 
 
@@ -162,9 +185,10 @@ static std::map<std::string, std::string> get_cpu_info_from_registry()
     std::map<std::string, std::string> out;
 
     int idx = -1;
-    constexpr DWORD bufsize_ = 200;
-    DWORD bufsize = bufsize_;
+    constexpr DWORD bufsize_ = 500;
+    DWORD bufsize = bufsize_-1; // Ensure a terminating zero.
     char buf[bufsize_] = "";
+    memset(buf, 0, bufsize_);
     const std::string reg_dir = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\";
     std::string reg_path = reg_dir;
 
@@ -186,7 +210,7 @@ static std::map<std::string, std::string> get_cpu_info_from_registry()
         }
         ++idx;
         reg_path = reg_dir + std::to_string(idx) + "\\";
-        bufsize = bufsize_;
+        bufsize = bufsize_-1;
     }
     return out;
 }
@@ -194,7 +218,7 @@ static std::map<std::string, std::string> get_cpu_info_from_registry()
 static std::map<std::string, std::string> parse_lscpu_etc(const std::string& name, char delimiter)
 {
     std::map<std::string, std::string> out;
-    constexpr size_t max_len = 100;
+    constexpr size_t max_len = 1000;
     char cline[max_len] = "";
     FILE* fp = popen(name.data(), "r");
     if (fp != NULL) {
@@ -260,10 +284,12 @@ static std::string get_unique_id()
     char buf[buf_size] = "";
     memset(&buf, 0, sizeof(buf));
     io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
-    CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
-    IOObjectRelease(ioRegistryRoot);
-    CFStringGetCString(uuidCf, buf, buf_size, kCFStringEncodingMacRoman);
-    CFRelease(uuidCf);
+    if (ioRegistryRoot != MACH_PORT_NULL) {
+        CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
+        IOObjectRelease(ioRegistryRoot);
+        CFStringGetCString(uuidCf, buf, buf_size, kCFStringEncodingMacRoman);
+        CFRelease(uuidCf);
+    }
     // Now convert the string to std::vector<unsigned char>.
     for (char* c = buf; *c != 0; ++c)
         unique.emplace_back((unsigned char)(*c));
@@ -318,11 +344,20 @@ static std::string generate_system_info_json()
     std::string unique_id = get_unique_id();
 
     // Get system language.
-    std::string sys_language = "Unknown";
-    const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
-    if (lang_system != wxLANGUAGE_UNKNOWN)
-        sys_language = wxLocale::GetLanguageInfo(lang_system)->CanonicalName.ToUTF8().data();
-
+    std::string sys_language = "Unknown"; // important to init, see the __APPLE__ block.
+    #ifndef __APPLE__
+        // Following apparently does not work on macOS.
+        const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+        if (lang_system != wxLANGUAGE_UNKNOWN)
+            sys_language = wxLocale::GetLanguageInfo(lang_system)->CanonicalName.ToUTF8().data();
+    #else // __APPLE__
+        CFLocaleRef cflocale = CFLocaleCopyCurrent();
+        CFStringRef value = (CFStringRef)CFLocaleGetValue(cflocale, kCFLocaleLanguageCode);
+        char temp[10] = "";
+        CFStringGetCString(value, temp, 10, kCFStringEncodingUTF8);
+        sys_language = temp;
+        CFRelease(cflocale);
+    #endif
     // Build a property tree with all the information.
     namespace pt = boost::property_tree;
 
@@ -364,9 +399,13 @@ static std::string generate_system_info_json()
     data_node.put("SystemLanguage", sys_language);
     data_node.put("TranslationLanguage: ", wxGetApp().app_config->get("translation_language"));
 
+
     pt::ptree hw_node;
-    hw_node.put("ArchName", wxPlatformInfo::Get().GetArchName());
-    hw_node.put("RAM_MB", size_t(Slic3r::total_physical_memory()/1000000));
+    {
+        hw_node.put("ArchName", wxPlatformInfo::Get().GetArchName());
+        size_t num = std::round(Slic3r::total_physical_memory()/107374100.);
+        hw_node.put("RAM_GiB", std::to_string(num / 10) + "." + std::to_string(num % 10));
+    }
 
     // Now get some CPU info:
     pt::ptree cpu_node;
@@ -381,31 +420,32 @@ static std::string generate_system_info_json()
      cpu_node.put("Model",  sysctl["machdep.cpu.brand_string"]);
      cpu_node.put("Vendor", sysctl["machdep.cpu.vendor"]);
 #else // linux/BSD
-    std::map<std::string, std::string> lscpu = parse_lscpu_etc("lscpu", ':');
-    cpu_node.put("Arch",   lscpu["Architecture"]);
-    cpu_node.put("Cores",  lscpu["CPU(s)"]);
-    cpu_node.put("Model",  lscpu["Model name"]);
-    cpu_node.put("Vendor", lscpu["Vendor ID"]);
+    std::map<std::string, std::string> lscpu = parse_lscpu_etc("cat /proc/cpuinfo", ':');
+    if (auto ncpu_it = lscpu.find("processor"); ncpu_it != lscpu.end()) {
+        std::string& ncpu = ncpu_it->second;
+        if (int num=0; std::from_chars(ncpu.data(), ncpu.data() + ncpu.size(), num).ec != std::errc::invalid_argument)
+            ncpu = std::to_string(num + 1);
+    }
+    cpu_node.put("Cores",  lscpu["processor"]);
+    cpu_node.put("Model",  lscpu["model name"]);
+    cpu_node.put("Vendor", lscpu["vendor_id"]);
 #endif
     hw_node.add_child("CPU", cpu_node);
 
     pt::ptree monitors_node;
     for (int i=0; i<int(wxDisplay::GetCount()); ++i) {
         wxDisplay display(i);
-        double scaling = -1.;
-        #if wxCHECK_VERSION(3, 1, 2) // we have wxDisplag::GetPPI
-            int std_ppi = 96;
-            #ifdef __WXOSX__ // see impl of wxDisplay::GetStdPPIValue from 3.1.5
-                std_ppi = 72;
-            #endif
-            scaling = double(display.GetPPI().GetWidth()) / std_ppi;
-        #endif
         pt::ptree monitor_node; // Create an unnamed node containing the value
         monitor_node.put("width", display.GetGeometry().GetWidth());
         monitor_node.put("height", display.GetGeometry().GetHeight());
-        std::stringstream ss;
-        ss << std::setprecision(3) << scaling;
-        monitor_node.put("scaling", ss.str() );
+
+        // Only get the scaling on Win, it is not reliable on other platforms.
+        #if defined(_WIN32) && wxCHECK_VERSION(3, 1, 2)
+            double scaling = display.GetPPI().GetWidth() / 96.;
+            std::stringstream ss;
+            ss << std::setprecision(3) << scaling;
+            monitor_node.put("scaling", ss.str() );
+        #endif
         monitors_node.push_back(std::make_pair("", monitor_node));
     }
     hw_node.add_child("Monitors", monitors_node);
@@ -435,15 +475,23 @@ static std::string generate_system_info_json()
     pt::ptree root;
     root.add_child("data", data_node);
 
+    // Now go through all the values and trim leading/trailing whitespace.
+    // Some CPU names etc apparently have trailing spaces...
+    std::function<void(pt::ptree&)> remove_whitespace;
+    remove_whitespace = [&remove_whitespace](pt::ptree& t) -> void
+    {
+        if (t.empty()) // Trim whitespace
+            boost::algorithm::trim(t.data());
+        else
+            for (auto it = t.begin(); it != t.end(); ++it)
+                remove_whitespace(it->second);
+    };
+    remove_whitespace(root);
+
     // Serialize the tree into JSON and return it.
     std::stringstream ss;
     pt::write_json(ss, root);
     return ss.str();
-
-    // FURTHER THINGS TO CONSIDER:
-    //std::cout << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << std::endl;          // Unix
-    // ? CPU, GPU, UNKNOWN ?
-    // printers? will they be installed already?
 }
 
 
@@ -453,6 +501,8 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, wxDefaultSize,
            wxDEFAULT_DIALOG_STYLE)
 {
+    const int em = GUI::wxGetApp().em_unit();
+
     // Get current PrusaSliver version info.
     std::string app_name;
     {
@@ -500,7 +550,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
            std::string("<i>") + filename + "</i>");
     wxString label3 = _L("Show verbatim data that will be sent");
 
-    auto* html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
+    auto* html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxSize(70*em, 34*em), wxHW_SCROLLBAR_NEVER);
     wxString html = GUI::format_wxstr(
             "<html><body bgcolor=%1%><font color=%2%>"
             "<table><tr><td>"
@@ -514,7 +564,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
             + "<b><a href=\"show\">" + label3 + "</a></b><br />"
             + "</font></body></html>", bgr_clr_str, text_clr_str);
     html_window->SetPage(html);
-    html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent &evt) {
+    html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent&) {
                                                    ShowJsonDialog dlg(this, m_system_info_json, GetSize().Scale(0.9, 0.7));
                                                    dlg.ShowModal();
     });
@@ -526,7 +576,6 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     m_btn_send = new wxButton(this, wxID_ANY, _L("Send system info"));
 
     auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
-    const int em = GUI::wxGetApp().em_unit();
     hsizer->Add(m_btn_ask_later);
     hsizer->AddSpacer(em);
     hsizer->Add(m_btn_dont_send);
@@ -547,6 +596,8 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     const auto size = GetSize();
     SetSize(std::max(size.GetWidth(), MIN_WIDTH * em),
             std::max(size.GetHeight(), MIN_HEIGHT * em));
+
+    CenterOnParent();
 
     m_btn_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                     {
@@ -592,15 +643,16 @@ bool SendSystemInfoDialog::send_info()
     } result; // No synchronization needed, UI thread reads only after worker is joined.
 
     auto send = [&job_done, &result](const std::string& data) {
-        const std::string url = "https://files.prusa3d.com/wp-json/v1/ps";
-        Http http = Http::post(url);
+        Http http = Http::post(SEND_SYSTEM_INFO_URL);
         http.header("Content-Type", "application/json")
+            .timeout_max(6) // seconds
             .set_post_body(data)
             .on_complete([&result](std::string body, unsigned status) {
                 result = { Result::Success, _L("System info sent successfully. Thank you.") };
             })
             .on_error([&result](std::string body, std::string error, unsigned status) {
-                result = { Result::Error, GUI::format_wxstr(_L("Sending system info failed! Status: %1%"), status) };
+                result = { Result::Error, _L("Sending system info failed!") };
+                BOOST_LOG_TRIVIAL(error) << "Sending system info failed! STATUS: " << status;
             })
             .on_progress([&job_done, &result](Http::Progress, bool &cancel) {
                 if (job_done) // UI thread wants us to cancel.
@@ -622,8 +674,10 @@ bool SendSystemInfoDialog::send_info()
     job_done = true;       // In case the user closed the dialog, let the other thread know
     sending_thread.join(); // and wait until it terminates.
 
-    InfoDialog info_dlg(wxGetApp().mainframe, wxEmptyString, result.str);
-    info_dlg.ShowModal();
+    if (result.value != Result::Cancelled) { // user knows he cancelled, no need to tell him.
+        InfoDialog info_dlg(wxGetApp().mainframe, wxEmptyString, result.str);
+        info_dlg.ShowModal();
+    }
     return result.value == Result::Success;
 }
 
