@@ -39,6 +39,7 @@ protected:
 private:
     void after_apply();
     void close();
+    void live_preview();
     void process();
     void set_its(indexed_triangle_set &its);
     void create_gui_cfg();
@@ -73,6 +74,8 @@ private:
 
     struct Configuration
     {
+        bool live_preview = false;
+
         bool use_count = false;
         // minimal triangle count
         float    decimate_ratio = 50.f; // in percent

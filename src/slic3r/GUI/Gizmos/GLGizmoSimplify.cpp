@@ -143,8 +143,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::Separator();
 
     if(ImGui::RadioButton("##use_error", !m_configuration.use_count)) {
-        m_is_valid_result         = false;
         m_configuration.use_count = !m_configuration.use_count;
+        live_preview();
     }
     ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
@@ -160,7 +160,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
     static int reduction = 2;
     if(ImGui::SliderInt("##ReductionLevel", &reduction, 0, 4, reduce_captions[reduction].c_str())) {
-        m_is_valid_result = false;
         if (reduction < 0) reduction = 0;
         if (reduction > 4) reduction = 4;
         switch (reduction) {
@@ -170,12 +169,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         case 3: m_configuration.max_error = 0.5f; break;
         case 4: m_configuration.max_error = 1.f; break;
         }
+        live_preview();
     }
     m_imgui->disabled_end(); // !use_count
 
     if (ImGui::RadioButton("##use_count", m_configuration.use_count)) {
-        m_is_valid_result         = false;
         m_configuration.use_count = !m_configuration.use_count;
+        live_preview();
     }
     ImGui::SameLine();
 
@@ -192,13 +192,14 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
     const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%": 
         ((m_configuration.decimate_ratio > 1)? "%.1f %%":"%.2f %%");
+
     if (ImGui::SliderFloat("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
-        m_is_valid_result = false;
         if (m_configuration.decimate_ratio < 0.f)
             m_configuration.decimate_ratio = 0.01f;
         if (m_configuration.decimate_ratio > 100.f)
             m_configuration.decimate_ratio = 100.f;
         m_configuration.fix_count_by_ratio(triangle_count);
+        live_preview();
     }
 
     ImGui::NewLine();
@@ -221,12 +222,16 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             }
         }
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
+
+        m_imgui->disabled_begin(m_configuration.live_preview || m_is_valid_result);
         if (m_imgui->button(_L("Preview"))) {
             m_state = State::preview;
             // simplify but not apply on mesh
             process();
         }
+        m_imgui->disabled_end(); 
         ImGui::SameLine();
+
         if (m_imgui->button(_L("Apply"))) {
             if (!m_is_valid_result) {
                 m_state = State::close_on_end;
@@ -237,6 +242,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             } else { // no changes made
                 close();
             }            
+        }
+        ImGui::SameLine();
+        if(ImGui::Checkbox(_L("Live").c_str(), &m_configuration.live_preview)) {
+            if (m_configuration.live_preview && !m_is_valid_result)
+                live_preview();
         }
     } else {        
         m_imgui->disabled_begin(m_state == State::canceling);
@@ -280,6 +290,23 @@ void GLGizmoSimplify::close() {
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 
+void GLGizmoSimplify::live_preview() {
+    m_is_valid_result = false;
+    if (!m_configuration.live_preview) return;
+
+    if (m_state != State::settings) {
+        if (m_state == State::canceling) return;
+
+        // wait until cancel
+        if (m_worker.joinable()) {
+            m_state = State::canceling;
+            m_worker.join();
+        }
+    }
+
+    m_state = State::preview;
+    process();
+}
 
 void GLGizmoSimplify::process()
 {
