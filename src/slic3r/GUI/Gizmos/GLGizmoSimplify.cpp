@@ -224,7 +224,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             m_state = State::canceling;
         }
     } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_canceling)
-        ImGui::SetTooltip(_L("Operation already canceling. Please wait few seconds.").c_str());
+        ImGui::SetTooltip("%s", _u8L("Operation already canceling. Please wait few seconds.").c_str());
     m_imgui->disabled_end(); // state canceling
 
     ImGui::SameLine();
@@ -242,7 +242,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             close();
         }            
     } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_processing)
-        ImGui::SetTooltip(_L("Can't apply when proccess preview.").c_str());
+        ImGui::SetTooltip("%s", _u8L("Can't apply when proccess preview.").c_str());
     m_imgui->disabled_end(); // state !settings
 
     // draw progress bar
@@ -429,8 +429,6 @@ void GLGizmoSimplify::create_gui_cfg() {
     cfg.input_width   = cfg.bottom_left_width * 1.5;
     cfg.window_offset_x = (cfg.bottom_left_width + cfg.input_width)/2;
     cfg.window_offset_y = ImGui::GetTextLineHeightWithSpacing() * 5;
-
-    float checkbox_width = ImGui::GetFrameHeight();    
     
     m_gui_cfg = cfg;
 }
