@@ -431,9 +431,8 @@ void LayerRegion::elephant_foot_compensation_step(const float elephant_foot_comp
     for (const Surface &surface : this->slices.surfaces)
         assert(surface.surface_type == stInternal);
 #endif /* NDEBUG */
-    ExPolygons surfaces = to_expolygons(std::move(this->slices.surfaces));
-    Polygons tmp = intersection(surfaces, trimming_polygons);
-    append(tmp, diff(surfaces, offset(offset_ex(surfaces, -elephant_foot_compensation_perimeter_step), elephant_foot_compensation_perimeter_step)));
+    Polygons tmp = intersection(this->slices.surfaces, trimming_polygons);
+    append(tmp, diff(this->slices.surfaces, opening(this->slices.surfaces, elephant_foot_compensation_perimeter_step)));
     this->slices.set(union_ex(tmp), stInternal);
 }
 

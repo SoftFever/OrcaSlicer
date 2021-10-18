@@ -50,7 +50,7 @@ static ExPolygons get_print_object_bottom_layer_expolygons(const PrintObject &pr
 {
     ExPolygons ex_polygons;
     for (LayerRegion *region : print_object.layers().front()->regions())
-        Slic3r::append(ex_polygons, offset_ex(offset_ex(region->slices.surfaces, float(SCALED_EPSILON)), -float(SCALED_EPSILON)));
+        Slic3r::append(ex_polygons, closing_ex(region->slices.surfaces, float(SCALED_EPSILON)));
     return ex_polygons;
 }
 

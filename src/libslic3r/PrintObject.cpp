@@ -1088,7 +1088,7 @@ void PrintObject::discover_vertical_shells()
                     // For a multi-material print, simulate perimeter / infill split as if only a single extruder has been used for the whole print.
                     if (perimeter_offset > 0.) {
                         // The layer.lslices are forced to merge by expanding them first.
-                        polygons_append(cache.holes, offset(offset_ex(layer.lslices, 0.3f * perimeter_min_spacing), - perimeter_offset - 0.3f * perimeter_min_spacing));
+                        polygons_append(cache.holes, offset2(layer.lslices, 0.3f * perimeter_min_spacing, - perimeter_offset - 0.3f * perimeter_min_spacing));
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                         {
                             Slic3r::SVG svg(debug_out_path("discover_vertical_shells-extra-holes-%d.svg", debug_idx), get_extents(layer.lslices));
@@ -1325,7 +1325,7 @@ void PrintObject::discover_vertical_shells()
 #if 1
                     // Intentionally inflate a bit more than how much the region has been shrunk, 
                     // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
-                    shell = offset(offset_ex(union_ex(shell), - 0.5f * min_perimeter_infill_spacing), 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
+                    shell = opening(union_(shell), 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
                     if (shell.empty())
                         continue;
 #else
