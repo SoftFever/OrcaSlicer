@@ -24,15 +24,16 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     , m_obj_index(0)
     , m_need_reload(false) 
     , m_show_wireframe(false)
-
+    // translation for GUI size
     , tr_mesh_name(_u8L("Mesh name"))
     , tr_triangles(_u8L("Triangles"))
     , tr_preview(_u8L("Preview"))
     , tr_detail_level(_u8L("Detail level"))
     , tr_decimate_ratio(_u8L("Decimate ratio"))
-
+    // for wireframe
     , m_wireframe_VBO_id(0)
     , m_wireframe_IBO_id(0)
+    , m_wireframe_IBO_size(0)
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify() { 
@@ -49,21 +50,10 @@ bool GLGizmoSimplify::on_esc_key_down() {
     return true;
 }
 
-bool GLGizmoSimplify::on_init()
-{
-    //m_grabbers.emplace_back();
-    //m_shortcut_key = WXK_CONTROL_C;
-    return true;
-}
-
 std::string GLGizmoSimplify::on_get_name() const
 {
     return _u8L("Simplify");
 }
-
-void GLGizmoSimplify::on_render() { }
-
-void GLGizmoSimplify::on_render_for_picking() {}
 
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
@@ -220,32 +210,43 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         else free_gpu();
     }
 
-    if (m_state == State::settings) {
-        if (m_imgui->button(_L("Cancel"))) {
-            if (m_original_its.has_value()) { 
+    bool is_canceling = m_state == State::canceling;
+    m_imgui->disabled_begin(is_canceling);
+    if (m_imgui->button(_L("Cancel"))) {
+        if (m_state == State::settings) {
+            if (m_original_its.has_value()) {
                 set_its(*m_original_its);
                 m_state = State::close_on_end;
             } else {
                 close();
             }
+        } else {
+            m_state = State::canceling;
         }
-        ImGui::SameLine();
-        if (m_imgui->button(_L("Apply"))) {
-            if (!m_is_valid_result) {
-                m_state = State::close_on_end;
-                process();
-            } else if (m_exist_preview) {
-                // use preview and close
-                after_apply();
-            } else { // no changes made
-                close();
-            }            
-        }
-    } else {        
-        m_imgui->disabled_begin(m_state == State::canceling);
-        if (m_imgui->button(_L("Cancel"))) m_state = State::canceling;
-        m_imgui->disabled_end(); 
+    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_canceling)
+        ImGui::SetTooltip(_L("Operation already canceling. Please wait few seconds.").c_str());
+    m_imgui->disabled_end(); // state canceling
 
+    ImGui::SameLine();
+
+    bool is_processing = m_state != State::settings;
+    m_imgui->disabled_begin(is_processing);
+    if (m_imgui->button(_L("Apply"))) {
+        if (!m_is_valid_result) {
+            m_state = State::close_on_end;
+            process();
+        } else if (m_exist_preview) {
+            // use preview and close
+            after_apply();
+        } else { // no changes made
+            close();
+        }            
+    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_processing)
+        ImGui::SetTooltip(_L("Can't apply when proccess preview.").c_str());
+    m_imgui->disabled_end(); // state !settings
+
+    // draw progress bar
+    if (is_processing) { // apply or preview
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         // draw progress bar
         char buf[32];
@@ -254,6 +255,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     m_imgui->end();
 
+    // refresh view when needed
     if (m_need_reload) { 
         m_need_reload = false;
         bool close_on_end = (m_state == State::close_on_end);
