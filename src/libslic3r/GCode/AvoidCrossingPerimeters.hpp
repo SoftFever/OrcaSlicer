@@ -35,13 +35,13 @@ public:
 
     struct Boundary {
         // Collection of boundaries used for detection of crossing perimeters for travels
-        Polygons boundaries;
+        Polygons                        boundaries;
         // Bounding box of boundaries
-        BoundingBoxf bbox;
+        BoundingBoxf                    bbox;
         // Precomputed distances of all points in boundaries
         std::vector<std::vector<float>> boundaries_params;
         // Used for detection of intersection between line and any polygon from boundaries
-        EdgeGrid::Grid grid;
+        EdgeGrid::Grid                  grid;
 
         void clear()
         {
