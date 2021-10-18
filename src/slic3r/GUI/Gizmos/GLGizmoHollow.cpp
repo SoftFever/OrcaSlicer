@@ -547,13 +547,9 @@ RENDER_AGAIN:
     ImGui::SameLine(settings_sliders_left);
     ImGui::PushItemWidth(window_width - settings_sliders_left);
     m_imgui->slider_float("   ", &offset, offset_min, offset_max, "%.1f mm");
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted((_utf8(opts[0].second->tooltip)).c_str());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip((_utf8(opts[0].second->tooltip)).c_str(), max_tooltip_width);
+
     bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
     bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
     bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
@@ -563,13 +559,9 @@ RENDER_AGAIN:
         m_imgui->text(m_desc.at("quality"));
         ImGui::SameLine(settings_sliders_left);
         m_imgui->slider_float("    ", &quality, quality_min, quality_max, "%.1f");
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted((_utf8(opts[1].second->tooltip)).c_str());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip((_utf8(opts[1].second->tooltip)).c_str(), max_tooltip_width);
+
         slider_clicked |= ImGui::IsItemClicked();
         slider_edited |= ImGui::IsItemEdited();
         slider_released |= ImGui::IsItemDeactivatedAfterEdit();
@@ -580,13 +572,9 @@ RENDER_AGAIN:
         m_imgui->text(m_desc.at("closing_distance"));
         ImGui::SameLine(settings_sliders_left);
         m_imgui->slider_float("      ", &closing_d, closing_d_min, closing_d_max, "%.1f mm");
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted((_utf8(opts[2].second->tooltip)).c_str());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip((_utf8(opts[2].second->tooltip)).c_str(), max_tooltip_width);
+
         slider_clicked |= ImGui::IsItemClicked();
         slider_edited |= ImGui::IsItemEdited();
         slider_released |= ImGui::IsItemDeactivatedAfterEdit();

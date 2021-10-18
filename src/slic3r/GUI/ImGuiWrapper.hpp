@@ -79,6 +79,8 @@ public:
     void text_colored(const ImVec4& color, const char* label);
     void text_colored(const ImVec4& color, const std::string& label);
     void text_colored(const ImVec4& color, const wxString& label);
+    void tooltip(const char *label, float wrap_width);
+    void tooltip(const wxString &label, float wrap_width);
 
     // Float sliders: Manually inserted values aren't clamped by ImGui.Using this wrapper function does (when clamp==true).
     bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f, bool clamp = true);

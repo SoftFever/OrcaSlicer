@@ -425,6 +425,24 @@ void ImGuiWrapper::text_colored(const ImVec4& color, const wxString& label)
     this->text_colored(color, label_utf8.c_str());
 }
 
+void ImGuiWrapper::tooltip(const char *label, float wrap_width)
+{
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(wrap_width);
+    ImGui::TextUnformatted(label);
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+}
+
+void ImGuiWrapper::tooltip(const wxString &label, float wrap_width)
+{
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(wrap_width);
+    ImGui::TextUnformatted(label.ToUTF8().data());
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+}
+
 bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)
 {
     bool ret = ImGui::SliderFloat(label, v, v_min, v_max, format, power);
