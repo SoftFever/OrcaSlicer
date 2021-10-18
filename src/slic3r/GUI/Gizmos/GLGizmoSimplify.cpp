@@ -41,6 +41,14 @@ GLGizmoSimplify::~GLGizmoSimplify() {
     free_gpu();
 }
 
+bool GLGizmoSimplify::on_esc_key_down() {
+    if (m_state == State::settings || m_state == State::canceling)
+        return false;
+
+    m_state = State::canceling;
+    return true;
+}
+
 bool GLGizmoSimplify::on_init()
 {
     //m_grabbers.emplace_back();
@@ -207,7 +215,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::Text(_L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
-    if (ImGui::Checkbox(_L("Show wireframe").c_str(), &m_show_wireframe)) {
+    if (ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe)) {
         if (m_show_wireframe) init_wireframe();
         else free_gpu();
     }
@@ -221,17 +229,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
                 close();
             }
         }
-        ImGui::SameLine(m_gui_cfg->bottom_left_width);
-
-        m_imgui->disabled_begin(m_configuration.live_preview || m_is_valid_result);
-        if (m_imgui->button(_L("Preview"))) {
-            m_state = State::preview;
-            // simplify but not apply on mesh
-            process();
-        }
-        m_imgui->disabled_end(); 
         ImGui::SameLine();
-
         if (m_imgui->button(_L("Apply"))) {
             if (!m_is_valid_result) {
                 m_state = State::close_on_end;
@@ -242,11 +240,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             } else { // no changes made
                 close();
             }            
-        }
-        ImGui::SameLine();
-        if(ImGui::Checkbox(_L("Live").c_str(), &m_configuration.live_preview)) {
-            if (m_configuration.live_preview && !m_is_valid_result)
-                live_preview();
         }
     } else {        
         m_imgui->disabled_begin(m_state == State::canceling);
@@ -292,9 +285,8 @@ void GLGizmoSimplify::close() {
 
 void GLGizmoSimplify::live_preview() {
     m_is_valid_result = false;
-    if (!m_configuration.live_preview) return;
-
     if (m_state != State::settings) {
+        // already canceling process
         if (m_state == State::canceling) return;
 
         // wait until cancel
@@ -435,6 +427,9 @@ void GLGizmoSimplify::create_gui_cfg() {
     cfg.input_width   = cfg.bottom_left_width * 1.5;
     cfg.window_offset_x = (cfg.bottom_left_width + cfg.input_width)/2;
     cfg.window_offset_y = ImGui::GetTextLineHeightWithSpacing() * 5;
+
+    float checkbox_width = ImGui::GetFrameHeight();    
+    
     m_gui_cfg = cfg;
 }
 

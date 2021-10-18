@@ -24,6 +24,7 @@ class GLGizmoSimplify: public GLGizmoBase, public GLGizmoTransparentRender // GL
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     virtual ~GLGizmoSimplify();
+    bool on_esc_key_down();
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
@@ -74,8 +75,6 @@ private:
 
     struct Configuration
     {
-        bool live_preview = false;
-
         bool use_count = false;
         // minimal triangle count
         float    decimate_ratio = 50.f; // in percent
