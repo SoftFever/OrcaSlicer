@@ -53,7 +53,9 @@ public:
 
     float scaled(float x) const { return x * m_font_size; }
     ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size, y * m_font_size); }
-    ImVec2 calc_text_size(const wxString &text);
+    ImVec2 calc_text_size(const wxString &text, float wrap_width = -1.0f);
+
+    float get_slider_float_height() const;
 
     void set_next_window_pos(float x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
     void set_next_window_bg_alpha(float alpha);
@@ -79,6 +81,11 @@ public:
     void text_colored(const ImVec4& color, const char* label);
     void text_colored(const ImVec4& color, const std::string& label);
     void text_colored(const ImVec4& color, const wxString& label);
+    void text_wrapped(const char *label, float wrap_width);
+    void text_wrapped(const std::string &label, float wrap_width);
+    void text_wrapped(const wxString &label, float wrap_width);
+    void tooltip(const char *label, float wrap_width);
+    void tooltip(const wxString &label, float wrap_width);
 
     // Float sliders: Manually inserted values aren't clamped by ImGui.Using this wrapper function does (when clamp==true).
     bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f, bool clamp = true);

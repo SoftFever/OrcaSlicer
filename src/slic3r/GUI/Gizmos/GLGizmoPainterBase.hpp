@@ -159,6 +159,9 @@ protected:
     ToolType m_tool_type                  = ToolType::BRUSH;
     float    m_smart_fill_angle           = 30.f;
 
+    bool     m_paint_on_overhangs_only          = false;
+    float    m_highlight_by_angle_threshold_deg = 0.f;
+
     static constexpr float SmartFillAngleMin  = 0.0f;
     static constexpr float SmartFillAngleMax  = 90.f;
     static constexpr float SmartFillAngleStep = 1.f;

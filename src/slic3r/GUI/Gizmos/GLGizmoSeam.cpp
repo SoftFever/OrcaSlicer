@@ -129,13 +129,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(sliders_width);
     ImGui::PushItemWidth(window_width - sliders_width);
     m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Alt + Mouse wheel").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("cursor_type"));
@@ -146,26 +141,16 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     if (m_imgui->radio_button(m_desc["sphere"], m_cursor_type == TriangleSelector::CursorType::SPHERE))
         m_cursor_type = TriangleSelector::CursorType::SPHERE;
 
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Paints all facets inside, regardless of their orientation.").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Paints all facets inside, regardless of their orientation."), max_tooltip_width);
 
     ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere);
     ImGui::PushItemWidth(cursor_type_radio_circle);
     if (m_imgui->radio_button(m_desc["circle"], m_cursor_type == TriangleSelector::CursorType::CIRCLE))
         m_cursor_type = TriangleSelector::CursorType::CIRCLE;
 
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Ignores facets facing away from the camera.").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Ignores facets facing away from the camera."), max_tooltip_width);
 
     ImGui::Separator();
     if (m_c->object_clipper()->get_position() == 0.f) {
@@ -186,13 +171,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Ctrl + Mouse wheel").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Ctrl + Mouse wheel"), max_tooltip_width);
 
     ImGui::Separator();
     if (m_imgui->button(m_desc.at("remove_all"))) {

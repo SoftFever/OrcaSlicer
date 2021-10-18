@@ -45,12 +45,16 @@ public:
                       CursorType          type,        // current type of cursor
                       EnforcerBlockerType new_state,   // enforcer or blocker?
                       const Transform3d  &trafo,       // matrix to get from mesh to world
-                      bool                triangle_splitting); // If triangles will be split base on the cursor or not
+                      const Transform3d  &trafo_no_translate,            // matrix to get from mesh to world without translation
+                      bool                triangle_splitting,            // If triangles will be split base on the cursor or not
+                      float               highlight_by_angle_deg = 0.f); // The maximal angle of overhang. If it is set to a non-zero value, it is possible to paint only the triangles of overhang defined by this angle in degrees.
 
-    void seed_fill_select_triangles(const Vec3f &hit,               // point where to start
-                                    int          facet_start,       // facet of the original mesh (unsplit) that the hit point belongs to
-                                    float        seed_fill_angle,   // the maximal angle between two facets to be painted by the same color
-                                    bool         force_reselection = false); // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
+    void seed_fill_select_triangles(const Vec3f       &hit,                          // point where to start
+                                    int                facet_start,                  // facet of the original mesh (unsplit) that the hit point belongs to
+                                    const Transform3d &trafo_no_translate,           // matrix to get from mesh to world without translation
+                                    float              seed_fill_angle,              // the maximal angle between two facets to be painted by the same color
+                                    float              highlight_by_angle_deg = 0.f, // The maximal angle of overhang. If it is set to a non-zero value, it is possible to paint only the triangles of overhang defined by this angle in degrees.
+                                    bool               force_reselection = false);   // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
 
     void bucket_fill_select_triangles(const Vec3f &hit,             // point where to start
                                       int          facet_start,     // facet of the original mesh (unsplit) that the hit point belongs to
