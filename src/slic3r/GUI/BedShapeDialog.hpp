@@ -5,6 +5,9 @@
 
 #include "GUI_Utils.hpp"
 #include "2DBed.hpp"
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+#include "3DBed.hpp"
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 #include "I18N.hpp"
 
 #include <wx/dialog.h>
@@ -19,12 +22,14 @@ using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
 
 struct BedShape
 {
+#if !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     enum class Type {
         Rectangular = 0,
         Circular,
         Custom,
         Invalid
     };
+#endif // !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     enum class Parameter {
         RectSize,
@@ -34,10 +39,18 @@ struct BedShape
 
     BedShape(const ConfigOptionPoints& points);
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    bool            is_custom() { return m_type == Bed3D::EShapeType::Custom; }
+#else
     bool            is_custom() { return m_type == Type::Custom; }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     static void     append_option_line(ConfigOptionsGroupShp optgroup, Parameter param);
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    static wxString get_name(Bed3D::EShapeType type);
+#else
     static wxString get_name(Type type);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     // convert Type to size_t
     size_t          get_type();
@@ -46,7 +59,11 @@ struct BedShape
     void            apply_optgroup_values(ConfigOptionsGroupShp optgroup);
 
 private:
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    Bed3D::EShapeType m_type{ Bed3D::EShapeType::Invalid };
+#else
     Type    m_type          {Type::Invalid};
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     Vec2d   m_rectSize      {200, 200};
     Vec2d   m_rectOrigin    {0, 0};
     double  m_diameter      {0};

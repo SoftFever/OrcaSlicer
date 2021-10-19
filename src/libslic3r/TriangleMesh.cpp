@@ -435,6 +435,31 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
     return bbox;
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafo, double world_min_z) const
+{
+    BoundingBoxf3 bbox;
+    const Transform3f ftrafo = trafo.cast<float>();
+    for (const stl_triangle_vertex_indices& tri : its.indices) {
+        const Vec3f pts[3] = { ftrafo * its.vertices[tri(0)], ftrafo * its.vertices[tri(1)], ftrafo * its.vertices[tri(2)] };
+        int iprev = 2;
+        for (int iedge = 0; iedge < 3; ++iedge) {
+            const Vec3f& p1 = pts[iprev];
+            const Vec3f& p2 = pts[iedge];
+            if ((p1.z() < world_min_z && p2.z() > world_min_z) || (p2.z() < world_min_z && p1.z() > world_min_z)) {
+                // Edge crosses the z plane. Calculate intersection point with the plane.
+                const float t = (world_min_z - p1.z()) / (p2.z() - p1.z());
+                bbox.merge(Vec3f(p1.x() + (p2.x() - p1.x()) * t, p1.y() + (p2.y() - p1.y()) * t, world_min_z).cast<double>());
+            }
+            if (p2.z() >= world_min_z)
+                bbox.merge(p2.cast<double>());
+            iprev = iedge;
+        }
+    }
+    return bbox;
+}
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
 TriangleMesh TriangleMesh::convex_hull_3d() const
 {
     // The qhull call:

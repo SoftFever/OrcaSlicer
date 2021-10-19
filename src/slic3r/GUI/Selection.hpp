@@ -220,6 +220,10 @@ private:
 
     float m_scale_factor;
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    bool m_dragging;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
 public:
     Selection();
 
@@ -312,6 +316,10 @@ public:
     const BoundingBoxf3& get_scaled_instance_bounding_box() const;
 
     void start_dragging();
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    void stop_dragging() { m_dragging = false; }
+    bool is_dragging() const { return m_dragging; }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     void translate(const Vec3d& displacement, bool local = false);
     void rotate(const Vec3d& rotation, TransformationType transformation_type);
