@@ -48,6 +48,7 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
