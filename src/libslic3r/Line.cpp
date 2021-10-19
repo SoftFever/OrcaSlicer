@@ -63,6 +63,13 @@ bool Line::parallel_to(double angle) const
     return Slic3r::Geometry::directions_parallel(this->direction(), angle);
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+bool Line::perpendicular_to(double angle) const
+{
+    return Slic3r::Geometry::directions_perpendicular(this->direction(), angle);
+}
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
 bool Line::intersection(const Line &l2, Point *intersection) const
 {
     const Line  &l1  = *this;

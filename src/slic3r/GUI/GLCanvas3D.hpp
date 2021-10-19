@@ -475,6 +475,9 @@ private:
     const DynamicPrintConfig* m_config;
     Model* m_model;
     BackgroundSlicingProcess *m_process;
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    bool m_requires_check_outside_state{ false };
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     std::array<unsigned int, 2> m_old_size{ 0, 0 };
 
@@ -611,11 +614,18 @@ public:
     void post_event(wxEvent &&event);
 
     void set_as_dirty();
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    void requires_check_outside_state() { m_requires_check_outside_state = true; }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    ModelInstanceEPrintVolumeState check_volumes_outside_state(bool as_toolpaths = false) const;
+#else
     ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 #if ENABLE_SEAMS_USING_MODELS
     void init_gcode_viewer() { m_gcode_viewer.init(); }

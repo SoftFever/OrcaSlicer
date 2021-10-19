@@ -1703,15 +1703,18 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         // Don't want to print a layer below the first layer height as it may not stick well.
         //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
         // and it may actually make sense to do it with a thinner layer than the first layer height.
-        const coordf_t min_print_z = slicing_params.raft_layers() > 1 ? slicing_params.raft_interface_top_z + support_layer_height_min + EPSILON : slicing_params.first_print_layer_height - EPSILON;
-        if (print_z < min_print_z) {
+        if (print_z < slicing_params.first_print_layer_height - EPSILON) {
             // This contact layer is below the first layer height, therefore not printable. Don't support this surface.
             return std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupportMaterial::MyLayer*>(nullptr, nullptr);
-        } else if (print_z < slicing_params.first_print_layer_height + EPSILON) {
-            // Align the layer with the 1st layer height.
-            print_z  = slicing_params.first_print_layer_height;
-            bottom_z = 0;
-            height   = slicing_params.first_print_layer_height;
+        }
+        const bool     has_raft    = slicing_params.raft_layers() > 1;
+        const coordf_t min_print_z = has_raft ? slicing_params.raft_contact_top_z : slicing_params.first_print_layer_height;
+        if (print_z < min_print_z + support_layer_height_min) {
+            // Align the layer with the 1st layer height or the raft contact layer.
+            // With raft active, any contact layer below the raft_contact_top_z will be brought to raft_contact_top_z to extend the raft area.
+            print_z  = min_print_z;
+            bottom_z = has_raft ? slicing_params.raft_interface_top_z : 0;
+            height   = has_raft ? slicing_params.contact_raft_layer_height : min_print_z;
         } else {
             // Don't know the height of the top contact layer yet. The top contact layer is printed with a normal flow and 
             // its height will be set adaptively later on.
@@ -1727,9 +1730,9 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
             coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
             if (bridging_print_z >= min_print_z) {
                 // Not below the first layer height means this layer is printable.
-                if (print_z < slicing_params.first_print_layer_height + EPSILON) {
-                    // Align the layer with the 1st layer height.
-                    bridging_print_z = slicing_params.first_print_layer_height;
+                if (print_z < min_print_z + support_layer_height_min) {
+                    // Align the layer with the 1st layer height or the raft contact layer.
+                    bridging_print_z = min_print_z;
                 }
                 if (bridging_print_z < print_z - EPSILON) {
                     // Allocate the new layer.
@@ -3108,7 +3111,7 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
                 intermediate_layer.polygons);
             if (! bottom.empty()) {
                 //FIXME Remove non-printable tiny islands, let them be printed using the base support.
-                //bottom = offset(offset_ex(std::move(bottom), - minimum_island_radius), minimum_island_radius);
+                //bottom = opening(std::move(bottom), minimum_island_radius);
                 if (! bottom.empty()) {
                     MyLayer &layer_new = layer_allocate(layer_storage, layer_storage_mutex, type);
                     layer_new.polygons   = std::move(bottom);

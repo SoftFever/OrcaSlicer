@@ -62,15 +62,36 @@ class Bed3D
     };
 
 public:
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    enum class EType : unsigned char
+    {
+        System,
+        Custom
+    };
+
+    enum class EShapeType : unsigned char
+    {
+        Rectangle,
+        Circle,
+        Custom,
+        Invalid
+    };
+#else
     enum EType : unsigned char
     {
         System,
         Custom,
         Num_Types
     };
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 private:
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    EType m_type{ EType::Custom };
+    EShapeType m_shape_type{ EShapeType::Invalid };
+#else
     EType m_type{ Custom };
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     Pointfs m_shape;
     std::string m_texture_filename;
     std::string m_model_filename;
@@ -94,16 +115,18 @@ public:
     ~Bed3D() { reset(); }
 
     EType get_type() const { return m_type; }
-
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    EShapeType get_shape_type() const { return m_shape_type; }
+    bool is_custom() const { return m_type == EType::Custom; }
+#else
     bool is_custom() const { return m_type == Custom; }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     const Pointfs& get_shape() const { return m_shape; }
     // Return true if the bed shape changed, so the calee will update the UI.
     bool set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
 
-    const BoundingBoxf3& get_bounding_box(bool extended) const {
-        return extended ? m_extended_bounding_box : m_bounding_box;
-    }
+    const BoundingBoxf3& get_bounding_box(bool extended) const { return extended ? m_extended_bounding_box : m_bounding_box; }
 
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
@@ -112,6 +135,13 @@ public:
         bool show_axes, bool show_texture);
 
     void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
+
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    static bool is_rectangle(const Pointfs& shape, Vec2d* min = nullptr, Vec2d* max = nullptr);
+    static bool is_circle(const Pointfs& shape, Vec2d* center = nullptr, double* radius = nullptr);
+    static bool is_convex(const Pointfs& shape);
+    static EShapeType detect_shape_type(const Pointfs& shape);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 private:
     void calc_bounding_boxes() const;

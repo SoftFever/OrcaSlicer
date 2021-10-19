@@ -7,11 +7,10 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Tesselate.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "GUI_App.hpp"
-#include "libslic3r/PresetBundle.hpp"
 #include "GLCanvas3D.hpp"
-#include "3DScene.hpp"
 
 #include <GL/glew.h>
 
@@ -154,7 +153,11 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     std::string model;
     std::string texture;
     if (force_as_custom)
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        type = EType::Custom;
+#else
         type = Custom;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     else {
         auto [new_type, system_model, system_texture] = detect_type(shape);
         type = new_type;
@@ -174,7 +177,12 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
         model_filename.clear();
     }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    EShapeType shape_type = detect_shape_type(shape);
+    if (m_shape == shape && m_type == type && m_shape_type == shape_type && m_texture_filename == texture_filename && m_model_filename == model_filename)
+#else
     if (m_shape == shape && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         // No change, no need to update the UI.
         return false;
 
@@ -182,6 +190,9 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
     m_type = type;
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_shape_type = shape_type;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     calc_bounding_boxes();
 
@@ -229,6 +240,84 @@ void Bed3D::render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_fact
     render_internal(canvas, bottom, scale_factor, false, false, true);
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+bool Bed3D::is_rectangle(const Pointfs& shape, Vec2d* min, Vec2d* max)
+{
+    const Lines lines = Polygon::new_scale(shape).lines();
+    bool ret = lines.size() == 4 && lines[0].parallel_to(lines[2]) && lines[1].parallel_to(lines[3]) && lines[0].perpendicular_to(lines[1]);
+    if (ret) {
+        if (min != nullptr) {
+            *min = shape.front();
+            for (const Vec2d& pt : shape) {
+                min->x() = std::min(min->x(), pt.x());
+                min->y() = std::min(min->y(), pt.y());
+            }
+        }
+        if (max != nullptr) {
+            *max = shape.front();
+            for (const Vec2d& pt : shape) {
+                max->x() = std::max(max->x(), pt.x());
+                max->y() = std::max(max->y(), pt.y());
+            }
+        }
+    }
+    return ret;
+}
+
+bool Bed3D::is_circle(const Pointfs& shape, Vec2d* center, double* radius)
+{
+    if (shape.size() < 3)
+        return false;
+
+    // Analyze the array of points.
+    // Do they reside on a circle ?
+    const Vec2d box_center = BoundingBoxf(shape).center();
+    std::vector<double> vertex_distances;
+    double avg_dist = 0.0;
+    for (const Vec2d& pt : shape) {
+        double distance = (pt - box_center).norm();
+        vertex_distances.push_back(distance);
+        avg_dist += distance;
+    }
+
+    avg_dist /= vertex_distances.size();
+
+    double tolerance = avg_dist * 0.01;
+
+    bool defined_value = true;
+    for (double el : vertex_distances) {
+        if (fabs(el - avg_dist) > tolerance)
+            defined_value = false;
+        break;
+    }
+
+    if (center != nullptr)
+        *center = box_center;
+
+    if (radius != nullptr)
+        *radius = avg_dist;
+
+    return defined_value;
+}
+
+bool Bed3D::is_convex(const Pointfs& shape)
+{
+    return Polygon::new_scale(shape).convex_points().size() == shape.size();
+}
+
+Bed3D::EShapeType Bed3D::detect_shape_type(const Pointfs& shape)
+{
+    if (shape.size() < 3)
+        return EShapeType::Invalid;
+    else if (is_rectangle(shape))
+        return EShapeType::Rectangle;
+    else if (is_circle(shape))
+        return EShapeType::Circle;
+    else
+        return EShapeType::Custom;
+}
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
 void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
     bool show_axes, bool show_texture, bool picking)
 {
@@ -244,9 +333,15 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     switch (m_type)
     {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    case EType::System: { render_system(canvas, bottom, show_texture); break; }
+    default:
+    case EType::Custom: { render_custom(canvas, bottom, show_texture, picking); break; }
+#else
     case System: { render_system(canvas, bottom, show_texture); break; }
     default:
     case Custom: { render_custom(canvas, bottom, show_texture, picking); break; }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -320,7 +415,11 @@ std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Poin
                     std::string model_filename = PresetUtils::system_printer_bed_model(*curr);
                     std::string texture_filename = PresetUtils::system_printer_bed_texture(*curr);
                     if (!model_filename.empty() && !texture_filename.empty())
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+                        return { EType::System, model_filename, texture_filename };
+#else
                         return { System, model_filename, texture_filename };
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
                 }
             }
 
@@ -328,7 +427,11 @@ std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Poin
         }
     }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    return { EType::Custom, "", "" };
+#else
     return { Custom, "", "" };
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void Bed3D::render_axes() const

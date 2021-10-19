@@ -508,20 +508,23 @@ RENDER_AGAIN:
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
-    const float settings_sliders_left =
-      std::max({m_imgui->calc_text_size(m_desc.at("offset")).x,
-               m_imgui->calc_text_size(m_desc.at("quality")).x,
-               m_imgui->calc_text_size(m_desc.at("closing_distance")).x,
-               m_imgui->calc_text_size(m_desc.at("hole_diameter")).x,
-               m_imgui->calc_text_size(m_desc.at("hole_depth")).x})
-           + m_imgui->scaled(1.f);
+    const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
+                                                m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(0.5f);
 
-    const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x, m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
+    const float settings_sliders_left =
+        std::max(std::max({m_imgui->calc_text_size(m_desc.at("offset")).x,
+                           m_imgui->calc_text_size(m_desc.at("quality")).x,
+                           m_imgui->calc_text_size(m_desc.at("closing_distance")).x,
+                           m_imgui->calc_text_size(m_desc.at("hole_diameter")).x,
+                           m_imgui->calc_text_size(m_desc.at("hole_depth")).x}) + m_imgui->scaled(0.5f), clipping_slider_left);
+
     const float diameter_slider_left = settings_sliders_left; //m_imgui->calc_text_size(m_desc.at("hole_diameter")).x + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
 
+    const float button_preview_width = m_imgui->calc_button_size(m_desc.at("preview")).x;
+
     float window_width = minimal_slider_width + std::max({settings_sliders_left, clipping_slider_left, diameter_slider_left});
-    window_width = std::max(window_width, m_imgui->calc_text_size(m_desc.at("preview")).x);
+    window_width = std::max(window_width, button_preview_width);
 
     if (m_imgui->button(m_desc["preview"]))
         hollow_mesh();
@@ -544,9 +547,9 @@ RENDER_AGAIN:
     float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("offset"));
-    ImGui::SameLine(settings_sliders_left);
+    ImGui::SameLine(settings_sliders_left, m_imgui->get_item_spacing().x);
     ImGui::PushItemWidth(window_width - settings_sliders_left);
-    m_imgui->slider_float("   ", &offset, offset_min, offset_max, "%.1f mm");
+    m_imgui->slider_float("##offset", &offset, offset_min, offset_max, "%.1f mm");
     if (ImGui::IsItemHovered())
         m_imgui->tooltip((_utf8(opts[0].second->tooltip)).c_str(), max_tooltip_width);
 
@@ -557,8 +560,8 @@ RENDER_AGAIN:
     if (current_mode >= quality_mode) {
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("quality"));
-        ImGui::SameLine(settings_sliders_left);
-        m_imgui->slider_float("    ", &quality, quality_min, quality_max, "%.1f");
+        ImGui::SameLine(settings_sliders_left, m_imgui->get_item_spacing().x);
+        m_imgui->slider_float("##quality", &quality, quality_min, quality_max, "%.1f");
         if (ImGui::IsItemHovered())
             m_imgui->tooltip((_utf8(opts[1].second->tooltip)).c_str(), max_tooltip_width);
 
@@ -570,8 +573,8 @@ RENDER_AGAIN:
     if (current_mode >= closing_d_mode) {
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("closing_distance"));
-        ImGui::SameLine(settings_sliders_left);
-        m_imgui->slider_float("      ", &closing_d, closing_d_min, closing_d_max, "%.1f mm");
+        ImGui::SameLine(settings_sliders_left, m_imgui->get_item_spacing().x);
+        m_imgui->slider_float("##closing_distance", &closing_d, closing_d_min, closing_d_max, "%.1f mm");
         if (ImGui::IsItemHovered())
             m_imgui->tooltip((_utf8(opts[2].second->tooltip)).c_str(), max_tooltip_width);
 
@@ -614,11 +617,11 @@ RENDER_AGAIN:
         m_new_hole_radius = diameter_upper_cap / 2.f;
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("hole_diameter"));
-    ImGui::SameLine(diameter_slider_left);
+    ImGui::SameLine(diameter_slider_left, m_imgui->get_item_spacing().x);
     ImGui::PushItemWidth(window_width - diameter_slider_left);
 
     float diam = 2.f * m_new_hole_radius;
-    m_imgui->slider_float("", &diam, 1.f, 15.f, "%.1f mm", 1.f, false);
+    m_imgui->slider_float("##hole_diameter", &diam, 1.f, 15.f, "%.1f mm", 1.f, false);
     // Let's clamp the value (which could have been entered by keyboard) to a larger range
     // than the slider. This allows entering off-scale values and still protects against
     //complete non-sense.
@@ -630,8 +633,8 @@ RENDER_AGAIN:
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc["hole_depth"]);
-    ImGui::SameLine(diameter_slider_left);
-    m_imgui->slider_float("  ", &m_new_hole_height, 0.f, 10.f, "%.1f mm", 1.f, false);
+    ImGui::SameLine(diameter_slider_left, m_imgui->get_item_spacing().x);
+    m_imgui->slider_float("##hole_depth", &m_new_hole_height, 0.f, 10.f, "%.1f mm", 1.f, false);
     // Same as above:
     m_new_hole_height = std::clamp(m_new_hole_height, 0.f, 100.f);
 
@@ -697,10 +700,10 @@ RENDER_AGAIN:
         }
     }
 
-    ImGui::SameLine(clipping_slider_left);
-    ImGui::PushItemWidth(window_width - clipping_slider_left);
+    ImGui::SameLine(settings_sliders_left, m_imgui->get_item_spacing().x);
+    ImGui::PushItemWidth(window_width - settings_sliders_left);
     float clp_dist = m_c->object_clipper()->get_position();
-    if (m_imgui->slider_float("     ", &clp_dist, 0.f, 1.f, "%.2f"))
+    if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
     // make sure supports are shown/hidden as appropriate
@@ -732,7 +735,7 @@ RENDER_AGAIN:
 
     if (force_refresh)
         m_parent.set_as_dirty();
-    
+
     if (config_changed)
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
 }

@@ -81,5 +81,9 @@
 // Enable rendering modifiers and similar objects always as transparent
 #define ENABLE_MODIFIERS_ALWAYS_TRANSPARENT (1 && ENABLE_2_4_0_ALPHA4)
 
+// Enable the fix for the detection of the out of bed state for sinking objects
+// and detection of out of bed using the bed perimeter
+#define ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS (1 && ENABLE_2_4_0_ALPHA4)
+
 
 #endif // _prusaslicer_technologies_h_

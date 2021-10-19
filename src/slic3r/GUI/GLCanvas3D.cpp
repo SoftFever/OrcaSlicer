@@ -1108,10 +1108,18 @@ void GLCanvas3D::reset_volumes()
     _set_warning_notification(EWarning::ObjectOutside, false);
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(bool as_toolpaths) const
+#else
 ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 {
     ModelInstanceEPrintVolumeState state;
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_volumes.check_outside_state(m_config, &state, as_toolpaths);
+#else
     m_volumes.check_outside_state(m_config, &state);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     return state;
 }
 
@@ -1828,8 +1836,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 assert(volume_idx_wipe_tower_old == -1);
                 volume_idx_wipe_tower_old = (int)volume_id;
             }
-            if (!m_reload_delayed)
-            {
+            if (!m_reload_delayed) {
                 deleted_volumes.emplace_back(volume, volume_id);
                 delete volume;
             }
@@ -2123,8 +2130,10 @@ void GLCanvas3D::load_sla_preview()
 	    // Release OpenGL data before generating new data.
 	    reset_volumes();
         _load_sla_shells();
+#if !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
         m_volumes.set_print_box(float(bed_bb.min.x()) - BedEpsilon, float(bed_bb.min.y()) - BedEpsilon, 0.0f, float(bed_bb.max.x()) + BedEpsilon, float(bed_bb.max.y()) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
+#endif // !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         _update_sla_shells_outside_state();
         _set_warning_notification_if_needed(EWarning::SlaSupportsOutside);
     }
@@ -3216,6 +3225,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        if (evt.LeftUp())
+            m_selection.stop_dragging();
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
         if (m_layers_editing.state != LayersEditing::Unknown) {
             m_layers_editing.state = LayersEditing::Unknown;
             _stop_timer();
@@ -4984,6 +4998,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
     _update_volumes_hover_state();
 }
 
+#if !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 static BoundingBoxf3 print_volume(const DynamicPrintConfig& config)
 {
     // tolerance to avoid false detection at bed edges
@@ -5000,6 +5015,7 @@ static BoundingBoxf3 print_volume(const DynamicPrintConfig& config)
     }
     return ret;
 }
+#endif // !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 void GLCanvas3D::_render_background() const
 {
@@ -5010,11 +5026,16 @@ void GLCanvas3D::_render_background() const
 
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
-        else {
+        else
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            use_error_color &= m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
+#else
+        {
             const BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
             use_error_color &= (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0) ? !test_volume.contains(paths_volume) : false;
         }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     }
 
     glsafe(::glPushMatrix());
@@ -5090,13 +5111,55 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
     if (m_picking_enabled) {
         // Update the layer editing selection to the first object selected, update the current object maximum Z.
         m_layers_editing.select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
         if (m_config != nullptr) {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            Bed3D::EShapeType type = wxGetApp().plater()->get_bed().get_shape_type();
+            switch (type)
+            {
+            case Bed3D::EShapeType::Circle: {
+                Vec2d center;
+                double radius;
+                if (Bed3D::is_circle(wxGetApp().plater()->get_bed().get_shape(), &center, &radius)) {
+                    m_volumes.set_print_volume({ static_cast<int>(type),
+                        { float(center.x()), float(center.y()), float(radius) + BedEpsilon, 0.0f },
+                        { 0.0f, float(m_config->opt_float("max_print_height")) } });
+                }
+                break;
+            }
+            case Bed3D::EShapeType::Rectangle: {
+                const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
+                m_volumes.set_print_volume({ static_cast<int>(type),
+                    { float(bed_bb.min.x()) - BedEpsilon, float(bed_bb.min.y()) - BedEpsilon, float(bed_bb.max.x()) + BedEpsilon, float(bed_bb.max.y()) + BedEpsilon },
+                    { 0.0f, float(m_config->opt_float("max_print_height")) } });
+                break;
+            }
+            default:
+            case Bed3D::EShapeType::Custom: {
+                m_volumes.set_print_volume({ static_cast<int>(type),
+                    { 0.0f, 0.0f, 0.0f, 0.0f },
+                    { 0.0f, 0.0f } });
+            }
+            }
+#else
             const BoundingBoxf3& bed_bb = wxGetApp().plater()->get_bed().get_bounding_box(false);
-            m_volumes.set_print_box((float)bed_bb.min(0) - BedEpsilon, (float)bed_bb.min(1) - BedEpsilon, 0.0f, (float)bed_bb.max(0) + BedEpsilon, (float)bed_bb.max(1) + BedEpsilon, (float)m_config->opt_float("max_print_height"));
+            m_volumes.set_print_box((float)bed_bb.min.x() - BedEpsilon, (float)bed_bb.min.y() - BedEpsilon, 0.0f, (float)bed_bb.max.x() + BedEpsilon, (float)bed_bb.max.y() + BedEpsilon, (float)m_config->opt_float("max_print_height"));
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            if (m_requires_check_outside_state) {
+                m_volumes.check_outside_state(m_config, nullptr);
+                m_requires_check_outside_state = false;
+            }
+#else
             m_volumes.check_outside_state(m_config, nullptr);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         }
+#if !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     }
+#endif // !ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     if (m_use_clipping_planes)
         m_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
@@ -5106,7 +5169,11 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
     m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
     m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_mod");
+#else
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     if (shader != nullptr) {
         shader->start_using();
 
@@ -5751,7 +5818,7 @@ void GLCanvas3D::_load_print_toolpaths()
         total_layer_count = std::max(total_layer_count, print_object->total_layer_count());
     }
     size_t skirt_height = print->has_infinite_skirt() ? total_layer_count : std::min<size_t>(print->config().skirt_height.value, total_layer_count);
-    if ((skirt_height == 0) && print->has_brim())
+    if (skirt_height == 0 && print->has_brim())
         skirt_height = 1;
 
     // Get first skirt_height layers.
@@ -5784,6 +5851,9 @@ void GLCanvas3D::_load_print_toolpaths()
             reserve_new_volume_finalize_old_volume(*volume, vol, m_initialized);
         }
     }
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    volume->calc_convex_hull_3d();
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     volume->indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
@@ -6074,8 +6144,16 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
+        GLVolume* v = m_volumes.volumes[i];
+        v->calc_convex_hull_3d();
+        v->indexed_vertex_array.finalize_geometry(m_initialized);
+    }
+#else
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
         m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_initialized);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
@@ -6083,7 +6161,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors)
 {
     const Print *print = this->fff_print();
-    if ((print == nullptr) || print->wipe_tower_data().tool_changes.empty())
+    if (print == nullptr || print->wipe_tower_data().tool_changes.empty())
         return;
 
     if (!print->is_step_done(psWipeTower))
@@ -6231,8 +6309,16 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
+        GLVolume* v = m_volumes.volumes[i];
+        v->calc_convex_hull_3d();
+        v->indexed_vertex_array.finalize_geometry(m_initialized);
+    }
+#else
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
         m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_initialized);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
@@ -6294,18 +6380,26 @@ void GLCanvas3D::_load_sla_shells()
 
 void GLCanvas3D::_update_toolpath_volumes_outside_state()
 {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    check_volumes_outside_state(true);
+#else
     BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
     for (GLVolume* volume : m_volumes.volumes) {
         volume->is_outside = (test_volume.radius() > 0.0 && volume->is_extrusion_path) ? !test_volume.contains(volume->bounding_box()) : false;
     }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void GLCanvas3D::_update_sla_shells_outside_state()
 {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    check_volumes_outside_state();
+#else
     BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
     for (GLVolume* volume : m_volumes.volumes) {
         volume->is_outside = (test_volume.radius() > 0.0 && volume->shader_outside_printer_detection_enabled) ? !test_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
     }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
@@ -6316,12 +6410,18 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
         show = _is_any_volume_outside();
     else {
         if (wxGetApp().is_editor()) {
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            if (current_printer_technology() != ptSLA)
+                show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
+#else
             BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
             const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
             if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)
                 show = !test_volume.contains(paths_volume);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         }
     }
+
     _set_warning_notification(warning, show);
 }
 
@@ -6366,7 +6466,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             "Resolve the current problem to continue slicing.");
         error = ErrorType::PLATER_ERROR;
         break;
-}
+    }
     auto& notification_manager = *wxGetApp().plater()->get_notification_manager();
     switch (error)
     {
@@ -6396,7 +6496,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 bool GLCanvas3D::_is_any_volume_outside() const
 {
     for (const GLVolume* volume : m_volumes.volumes) {
-        if ((volume != nullptr) && volume->is_outside)
+        if (volume != nullptr && volume->is_outside)
             return true;
     }
 

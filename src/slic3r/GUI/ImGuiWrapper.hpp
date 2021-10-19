@@ -53,9 +53,11 @@ public:
 
     float scaled(float x) const { return x * m_font_size; }
     ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size, y * m_font_size); }
-    ImVec2 calc_text_size(const wxString &text, float wrap_width = -1.0f);
+    ImVec2 calc_text_size(const wxString &text, float wrap_width = -1.0f) const;
+    ImVec2 calc_button_size(const wxString &text, const ImVec2 &button_size = ImVec2(0, 0)) const;
 
-    float get_slider_float_height() const;
+    ImVec2 get_item_spacing() const;
+    float  get_slider_float_height() const;
 
     void set_next_window_pos(float x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
     void set_next_window_bg_alpha(float alpha);

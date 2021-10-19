@@ -6,10 +6,11 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/LocalesUtils.hpp"
+#include "libslic3r/PresetBundle.hpp"
+
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "Plater.hpp"
-#include "libslic3r/PresetBundle.hpp"
 #include "Camera.hpp"
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
@@ -19,6 +20,10 @@
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+#include "3DBed.hpp"
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
 #include <imgui/imgui_internal.h>
 
 #include <GL/glew.h>
@@ -674,6 +679,10 @@ void GCodeViewer::load(const GCodeProcessor::Result& gcode_result, const Print& 
     if (wxGetApp().is_gcode_viewer())
         m_custom_gcode_per_print_z = gcode_result.custom_gcode_per_print_z;
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_max_print_height = gcode_result.max_print_height;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+
     load_toolpaths(gcode_result);
 
     if (m_layers.empty())
@@ -819,6 +828,9 @@ void GCodeViewer::reset()
 
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_max_print_height = 0.0f;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     m_tool_colors = std::vector<Color>();
     m_extruders_count = 0;
     m_extruder_ids = std::vector<unsigned char>();
@@ -835,6 +847,9 @@ void GCodeViewer::reset()
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_contained_in_bed = true;
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void GCodeViewer::render()
@@ -1554,7 +1569,49 @@ void GCodeViewer::load_toolpaths(const GCodeProcessor::Result& gcode_result)
 
     // set approximate max bounding box (take in account also the tool marker)
     m_max_bounding_box = m_paths_bounding_box;
-    m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size()[2] * Vec3d::UnitZ());
+    m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size().z() * Vec3d::UnitZ());
+
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    if (wxGetApp().is_editor()) {
+        const Bed3D::EShapeType bed_type = wxGetApp().plater()->get_bed().get_shape_type();
+        if (bed_type == Bed3D::EShapeType::Rectangle) {
+            BoundingBoxf3 print_volume = wxGetApp().plater()->get_bed().get_bounding_box(false);
+            print_volume.min.z() = -1e10;
+            print_volume.max.z() = m_max_print_height;
+            print_volume.min -= Vec3f(BedEpsilon, BedEpsilon, 0.0f).cast<double>();
+            print_volume.max += Vec3f(BedEpsilon, BedEpsilon, 0.0f).cast<double>();
+            m_contained_in_bed = print_volume.contains(m_paths_bounding_box);
+        }
+        else if (bed_type == Bed3D::EShapeType::Circle) {
+            Vec2d center;
+            double radius;
+            Bed3D::is_circle(wxGetApp().plater()->get_bed().get_shape(), &center, &radius);
+            const double sq_radius = sqr(radius);
+            for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
+                if (move.type == EMoveType::Extrude && move.extrusion_role != erCustom && move.width != 0.0f && move.height != 0.0f) {
+                    if (sq_radius < (Vec2d(move.position.x(), move.position.y()) - center).squaredNorm()) {
+                        m_contained_in_bed = false;
+                        break;
+                    }
+                }
+            }
+        }
+        else if (bed_type == Bed3D::EShapeType::Custom) {
+            const Pointfs& shape = wxGetApp().plater()->get_bed().get_shape();
+            if (Bed3D::is_convex(shape)) {
+                const Polygon poly = Polygon::new_scale(shape);
+                for (const GCodeProcessor::MoveVertex& move : gcode_result.moves) {
+                    if (move.type == EMoveType::Extrude && move.extrusion_role != erCustom && move.width != 0.0f && move.height != 0.0f) {
+                        if (!poly.contains(Point::new_scale(Vec2d(move.position.x(), move.position.y())))) {
+                            m_contained_in_bed = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 #if ENABLE_FIX_SEAMS_SYNCH
     m_sequential_view.gcode_ids.clear();
