@@ -294,6 +294,7 @@ void GLGizmoSimplify::live_preview() {
         // wait until cancel
         if (m_worker.joinable()) {
             m_state = State::canceling;
+            m_dealy_process_cv.notify_one();
             m_worker.join();
         }
     }
@@ -304,20 +305,38 @@ void GLGizmoSimplify::live_preview() {
 
 void GLGizmoSimplify::process()
 {
-    class SimplifyCanceledException : public std::exception {
-    public:
-       const char* what() const throw() { return L("Model simplification has been canceled"); }
-    };
+    if (m_volume == nullptr) return;
+    if (m_volume->mesh().its.indices.empty()) return;
+    size_t count_triangles = m_volume->mesh().its.indices.size();
+    if (m_configuration.use_count &&
+        m_configuration.wanted_count >= count_triangles)
+        return;
 
-    if (!m_original_its.has_value())
+    // when not store original volume store it for cancelation
+    if (!m_original_its.has_value()) {
         m_original_its = m_volume->mesh().its; // copy
 
-    auto plater = wxGetApp().plater();
-    plater->take_snapshot(_L("Simplify ") + m_volume->name);
-    plater->clear_before_change_mesh(m_obj_index);
+        // store previous state
+        auto plater = wxGetApp().plater();
+        plater->take_snapshot(_L("Simplify ") + m_volume->name);
+        plater->clear_before_change_mesh(m_obj_index);
+    }
+    
     m_progress = 0;
     if (m_worker.joinable()) m_worker.join();
-    m_worker = std::thread([this]() {
+
+    m_worker = std::thread([this]() {        
+        {// delay before process
+            std::unique_lock<std::mutex> lk(m_state_mutex);
+            auto is_modify = [this]() { return m_state == State::canceling; };
+            if (m_dealy_process_cv.wait_for(lk, m_gui_cfg->prcess_delay, is_modify)) {
+                // exist modification
+                m_state = State::settings;
+                request_rerender();
+                return;
+            }
+        }
+
         // store original triangles        
         uint32_t triangle_count = (m_configuration.use_count) ? m_configuration.wanted_count : 0;
         float    max_error      = (!m_configuration.use_count) ? m_configuration.max_error : std::numeric_limits<float>::max();
@@ -357,6 +376,7 @@ void GLGizmoSimplify::process()
 }
 
 void GLGizmoSimplify::set_its(indexed_triangle_set &its) {
+    if (m_volume == nullptr) return; // could appear after process
     m_volume->set_mesh(its);
     m_volume->calculate_convex_hull();
     m_volume->set_new_unique_id();
