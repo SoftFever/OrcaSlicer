@@ -33,10 +33,17 @@ class GalleryDialog : public DPIDialog
 
     void load_label_icon_list();
     void add_custom_shapes(wxEvent& event);
-    void del_custom_shapes(wxEvent& event);
-    void replace_custom_png(wxEvent& event);
+    void del_custom_shapes();
+    void del_custom_shapes(wxEvent& event) { del_custom_shapes(); }
+    void change_thumbnail();
+    void change_thumbnail(wxEvent& event) { change_thumbnail(); }
     void select(wxListEvent& event);
     void deselect(wxListEvent& event);
+    void show_context_menu(wxListEvent& event);
+    void key_down(wxListEvent& event);
+
+    bool can_delete();
+    bool can_change_thumbnail();
 
     void update();
 

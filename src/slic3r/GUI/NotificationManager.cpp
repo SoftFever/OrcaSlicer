@@ -60,6 +60,7 @@ const NotificationManager::NotificationData NotificationManager::basic_notificat
 		_u8L("Undo desktop integration was successful.") },
 	{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
 		_u8L("Undo desktop integration failed.") },
+	{NotificationType::ExportOngoing, NotificationLevel::RegularNotificationLevel, 0, _u8L("Exporting.") },
 	//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
 	//{NotificationType::LoadingFailed, NotificationLevel::RegularNotificationLevel, 20,  _u8L("Loading of model has Failed") },
 	//{NotificationType::DeviceEjected, NotificationLevel::RegularNotificationLevel, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
@@ -214,7 +215,8 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	}
 	
 	if (mouse_pos.x < win_pos.x && mouse_pos.x > win_pos.x - m_window_width && mouse_pos.y > win_pos.y && mouse_pos.y < win_pos.y + m_window_height) {
-		ImGui::SetNextWindowFocus();
+		// Uncomment if imgui window focus is needed on hover. I cant find any case.
+		//ImGui::SetNextWindowFocus();
 		set_hovered();
 	}
 	
@@ -1151,6 +1153,8 @@ bool NotificationManager::SlicingProgressNotification::set_progress_state(Notifi
 		m_sp_state = state;
 		return true;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_COMPLETED:
+		if (m_sp_state != SlicingProgressState::SP_BEGAN && m_sp_state != SlicingProgressState::SP_PROGRESS)
+			return false;
 		set_percentage(1);
 		m_has_cancel_button = false;
 		m_has_print_info = false;
@@ -1508,6 +1512,16 @@ void NotificationManager::push_notification(NotificationType type,
 	int duration = get_standart_duration(level);
     push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
 }
+
+void NotificationManager::push_delayed_notification(const NotificationType type, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval)
+{
+	auto it = std::find_if(std::begin(basic_notifications), std::end(basic_notifications),
+		boost::bind(&NotificationData::type, boost::placeholders::_1) == type);
+	assert(it != std::end(basic_notifications));
+	if (it != std::end(basic_notifications))
+		push_delayed_notification_data(std::make_unique<PopNotification>(*it, m_id_provider, m_evt_handler), condition_callback, initial_delay, delay_interval);
+}
+
 void NotificationManager::push_validate_error_notification(const std::string& text)
 {
 	push_notification_data({ NotificationType::ValidateError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("ERROR:") + "\n" + text }, 0);
@@ -1911,7 +1925,7 @@ void NotificationManager::push_hint_notification(bool open_next)
 		auto condition = [&self = std::as_const(*this)]() {
 			return self.get_notification_count() == 0;
 		};
-		push_delayed_notification(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), condition, 500, 30000);
+		push_delayed_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), condition, 500, 30000);
 	}
 }
 
@@ -1974,7 +1988,7 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 	return retval;
 }
 
-void NotificationManager::push_delayed_notification(std::unique_ptr<NotificationManager::PopNotification> notification, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval)
+void NotificationManager::push_delayed_notification_data(std::unique_ptr<NotificationManager::PopNotification> notification, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval)
 {
 	if (initial_delay == 0 && condition_callback()) {
 		if( push_notification_data(std::move(notification), 0))

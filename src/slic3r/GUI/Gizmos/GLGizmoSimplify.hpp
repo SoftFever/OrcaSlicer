@@ -24,21 +24,25 @@ class GLGizmoSimplify: public GLGizmoBase, public GLGizmoTransparentRender // GL
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     virtual ~GLGizmoSimplify();
+    bool on_esc_key_down();
 protected:
-    virtual bool on_init() override;
     virtual std::string on_get_name() const override;
-    virtual void on_render() override;
-    virtual void on_render_for_picking() override;    
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
     virtual bool on_is_activable() const override;
     virtual bool on_is_selectable() const override { return false; }
     virtual void on_set_state() override;
+
+    // must implement
+    virtual bool on_init() override { return true;};
+    virtual void on_render() override{};
+    virtual void on_render_for_picking() override{};    
 
     // GLGizmoPainterBase
     virtual void render_painter_gizmo() const override{ render_wireframe(); }
 private:
     void after_apply();
     void close();
+    void live_preview();
     void process();
     void set_its(indexed_triangle_set &its);
     void create_gui_cfg();

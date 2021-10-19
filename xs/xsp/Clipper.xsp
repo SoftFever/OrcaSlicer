@@ -49,7 +49,7 @@ offset2_ex(polygons, delta1, delta2, joinType = Slic3r::ClipperLib::jtMiter, mit
     Slic3r::ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        RETVAL = offset2_ex(polygons, delta1, delta2, joinType, miterLimit);
+        RETVAL = offset2_ex(union_ex(polygons), delta1, delta2, joinType, miterLimit);
     OUTPUT:
         RETVAL
 

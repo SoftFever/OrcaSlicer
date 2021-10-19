@@ -35,6 +35,7 @@ void CoolingBuffer::reset(const Vec3d &position)
     m_current_pos[1] = float(position.y());
     m_current_pos[2] = float(position.z());
     m_current_pos[4] = float(m_config.travel_speed.value);
+    m_fan_speed = -1;
 }
 
 struct CoolingLine
@@ -689,10 +690,9 @@ std::string CoolingBuffer::apply_layer_cooldown(
     // Second generate the adjusted G-code.
     std::string new_gcode;
     new_gcode.reserve(gcode.size() * 2);
-    int  fan_speed          = -1;
     bool bridge_fan_control = false;
     int  bridge_fan_speed   = 0;
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &fan_speed, &bridge_fan_control, &bridge_fan_speed ]() {
+    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &bridge_fan_control, &bridge_fan_speed ]() {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int min_fan_speed = EXTRUDER_CONFIG(min_fan_speed);
         int fan_speed_new = EXTRUDER_CONFIG(fan_always_on) ? min_fan_speed : 0;
@@ -733,9 +733,9 @@ std::string CoolingBuffer::apply_layer_cooldown(
             bridge_fan_speed   = 0;
             fan_speed_new      = 0;
         }
-        if (fan_speed_new != fan_speed) {
-            fan_speed = fan_speed_new;
-            new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, fan_speed);
+        if (fan_speed_new != m_fan_speed) {
+            m_fan_speed = fan_speed_new;
+            new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, m_fan_speed);
         }
     };
 
@@ -759,7 +759,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, bridge_fan_speed);
         } else if (line->type & CoolingLine::TYPE_BRIDGE_FAN_END) {
             if (bridge_fan_control)
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, fan_speed);
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, m_fan_speed);
         } else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
             // Just remove this comment.
         } else if (line->type & (CoolingLine::TYPE_ADJUSTABLE | CoolingLine::TYPE_EXTERNAL_PERIMETER | CoolingLine::TYPE_WIPE | CoolingLine::TYPE_HAS_F)) {

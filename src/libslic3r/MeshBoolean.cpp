@@ -159,8 +159,9 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
         int i = 0;
         Vec3i facet;
         for (auto v : vtc) {
-            if (i > 2) { i = 0; break; }
-            facet(i++) = v;
+            int iv = v;
+            if (i > 2 || iv < 0 || iv >= int(cgalmesh.vertices().size())) { i = 0; break; }
+            facet(i++) = iv;
         }
 
         if (i == 3)

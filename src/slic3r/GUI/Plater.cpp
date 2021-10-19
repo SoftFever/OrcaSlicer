@@ -4032,6 +4032,7 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 {
 	if (show_warning_dialog)
 		warnings_dialog();  
+    notification_manager->push_delayed_notification(NotificationType::ExportOngoing, [](){return true;}, 1000, 1000);
 }
 void Plater::priv::on_slicing_began()
 {
@@ -4163,6 +4164,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     } else {
         if(wxGetApp().get_mode() == comSimple) {
             show_action_buttons(false);
+        }
+        if (exporting_status != ExportingStatus::NOT_EXPORTING && !has_error) {
+            notification_manager->stop_delayed_notifications_of_type(NotificationType::ExportOngoing);
+            notification_manager->close_notification_of_type(NotificationType::ExportOngoing);
         }
         // If writing to removable drive was scheduled, show notification with eject button
         if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !has_error) {

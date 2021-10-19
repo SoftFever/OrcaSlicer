@@ -300,8 +300,8 @@ public:
     size_t          support_layer_count() const { return m_support_layers.size(); }
     void            clear_support_layers();
     SupportLayer*   get_support_layer(int idx) { return m_support_layers[idx]; }
-    SupportLayer*   add_support_layer(int id, coordf_t height, coordf_t print_z);
-    SupportLayerPtrs::iterator insert_support_layer(SupportLayerPtrs::iterator pos, size_t id, coordf_t height, coordf_t print_z, coordf_t slice_z);
+    SupportLayer*   add_support_layer(int id, int interface_id, coordf_t height, coordf_t print_z);
+    SupportLayerPtrs::iterator insert_support_layer(SupportLayerPtrs::iterator pos, size_t id, size_t interface_id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void            delete_support_layer(int idx);
     
     // Initialize the layer_height_profile from the model_object's layer_height_profile, from model_object's layer height table, or from slicing parameters.

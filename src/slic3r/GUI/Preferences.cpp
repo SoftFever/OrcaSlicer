@@ -43,7 +43,7 @@ namespace Slic3r {
 
 namespace GUI {
 
-PreferencesDialog::PreferencesDialog(wxWindow* parent, int selected_tab) :
+PreferencesDialog::PreferencesDialog(wxWindow* parent, int selected_tab, const std::string& highlight_opt_key) :
     DPIDialog(parent, wxID_ANY, _L("Preferences"), wxDefaultPosition, 
               wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
@@ -51,6 +51,8 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent, int selected_tab) :
     isOSX = true;
 #endif
 	build(selected_tab);
+	if (!highlight_opt_key.empty())
+		init_highlighter(highlight_opt_key);
 }
 
 static std::shared_ptr<ConfigOptionsGroup>create_options_tab(const wxString& title, wxBookCtrlBase* tabs)
@@ -450,8 +452,10 @@ void PreferencesDialog::build(size_t selected_tab)
 
 	activate_options_tab(m_optgroup_gui);
 	// set Field for notify_release to its value to activate the object
-	boost::any val = s_keys_map_NotifyReleaseMode.at(app_config->get("notify_release"));
-	m_optgroup_gui->get_field("notify_release")->set_value(val, false);
+	if (is_editor) {
+		boost::any val = s_keys_map_NotifyReleaseMode.at(app_config->get("notify_release"));
+		m_optgroup_gui->get_field("notify_release")->set_value(val, false);
+	}
 
 	if (is_editor) {
 		create_icon_size_slider();
@@ -755,6 +759,71 @@ void PreferencesDialog::create_settings_text_color_widget()
 	m_optgroup_gui->sizer->Add(sizer, 0, wxEXPAND | wxTOP, em_unit());
 }
 
+void PreferencesDialog::init_highlighter(const t_config_option_key& opt_key)
+{
+	m_highlighter.set_timer_owner(this, 0);
+	this->Bind(wxEVT_TIMER, [this](wxTimerEvent&)
+		{
+			m_highlighter.blink();
+		});
+
+	std::pair<OG_CustomCtrl*, bool*> ctrl = { nullptr, nullptr };
+	for (auto opt_group : { m_optgroup_general, m_optgroup_camera, m_optgroup_gui }) {
+		ctrl = opt_group->get_custom_ctrl_with_blinking_ptr(opt_key, -1);
+		if (ctrl.first && ctrl.second) {
+			m_highlighter.init(ctrl);
+			break;
+		}
+	}
+}
+
+void PreferencesDialog::PreferencesHighlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
+{
+	m_timer.SetOwner(owner, timerid);
+}
+
+void PreferencesDialog::PreferencesHighlighter::init(std::pair<OG_CustomCtrl*, bool*> params)
+{
+	if (m_timer.IsRunning())
+		invalidate();
+	if (!params.first || !params.second)
+		return;
+
+	m_timer.Start(300, false);
+
+	m_custom_ctrl = params.first;
+	m_show_blink_ptr = params.second;
+
+	*m_show_blink_ptr = true;
+	m_custom_ctrl->Refresh();
+}
+
+void PreferencesDialog::PreferencesHighlighter::invalidate()
+{
+	m_timer.Stop();
+
+	if (m_custom_ctrl && m_show_blink_ptr) {
+		*m_show_blink_ptr = false;
+		m_custom_ctrl->Refresh();
+		m_show_blink_ptr = nullptr;
+		m_custom_ctrl = nullptr;
+	}
+
+	m_blink_counter = 0;
+}
+
+void PreferencesDialog::PreferencesHighlighter::blink()
+{
+	if (m_custom_ctrl && m_show_blink_ptr) {
+		*m_show_blink_ptr = !*m_show_blink_ptr;
+		m_custom_ctrl->Refresh();
+	}
+	else
+		return;
+
+	if ((++m_blink_counter) == 11)
+		invalidate();
+}
 
 } // GUI
 } // Slic3r

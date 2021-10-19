@@ -280,10 +280,10 @@ void ImGuiWrapper::render()
     m_new_frame_open = false;
 }
 
-ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
+ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width)
 {
     auto text_utf8 = into_u8(text);
-    ImVec2 size = ImGui::CalcTextSize(text_utf8.c_str());
+    ImVec2 size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, wrap_width);
 
 /*#ifdef __linux__
     size.x *= m_style_scaling;
@@ -291,6 +291,13 @@ ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
 #endif*/
 
     return size;
+}
+
+float ImGuiWrapper::get_slider_float_height() const
+{
+    const ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    return g.FontSize + style.FramePadding.y * 2.0f + style.ItemSpacing.y;
 }
 
 void ImGuiWrapper::set_next_window_pos(float x, float y, int flag, float pivot_x, float pivot_y)
@@ -423,6 +430,42 @@ void ImGuiWrapper::text_colored(const ImVec4& color, const wxString& label)
 {
     auto label_utf8 = into_u8(label);
     this->text_colored(color, label_utf8.c_str());
+}
+
+void ImGuiWrapper::text_wrapped(const char *label, float wrap_width)
+{
+    ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + wrap_width);
+    this->text(label);
+    ImGui::PopTextWrapPos();
+}
+
+void ImGuiWrapper::text_wrapped(const std::string &label, float wrap_width)
+{
+    this->text_wrapped(label.c_str(), wrap_width);
+}
+
+void ImGuiWrapper::text_wrapped(const wxString &label, float wrap_width)
+{
+    auto label_utf8 = into_u8(label);
+    this->text_wrapped(label_utf8.c_str(), wrap_width);
+}
+
+void ImGuiWrapper::tooltip(const char *label, float wrap_width)
+{
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(wrap_width);
+    ImGui::TextUnformatted(label);
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+}
+
+void ImGuiWrapper::tooltip(const wxString &label, float wrap_width)
+{
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(wrap_width);
+    ImGui::TextUnformatted(label.ToUTF8().data());
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
 }
 
 bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)

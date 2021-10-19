@@ -393,7 +393,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                 }
                             }
                         if (merged)
-                            expolygons = offset2_ex(expolygons, float(scale_(EPSILON)), -float(scale_(EPSILON)));
+                            expolygons = closing_ex(expolygons, float(scale_(EPSILON)));
                         slices_by_region[temp_slices[i].region_id][z_idx] = std::move(expolygons);
                         i = j;
                     }
@@ -648,7 +648,7 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
                     ByRegion &src = by_region[region_id];
                     if (src.needs_merge)
                         // Multiple regions were merged into one.
-                        src.expolygons = offset2_ex(src.expolygons, float(scale_(10 * EPSILON)), - float(scale_(10 * EPSILON)));
+                        src.expolygons = closing_ex(src.expolygons, float(scale_(10 * EPSILON)));
                     layer->get_region(region_id)->slices.set(std::move(src.expolygons), stInternal);
                 }
             }

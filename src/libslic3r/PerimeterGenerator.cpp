@@ -347,10 +347,10 @@ void PerimeterGenerator::process()
                         // the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         // (actually, something larger than that still may exist due to mitering or other causes)
                         coord_t min_width = coord_t(scale_(this->ext_perimeter_flow.nozzle_diameter() / 3));
-                        ExPolygons expp = offset2_ex(
+                        ExPolygons expp = opening_ex(
                             // medial axis requires non-overlapping geometry
                             diff_ex(last, offset(offsets, float(ext_perimeter_width / 2.) + ClipperSafetyOffset)),
-                            - float(min_width / 2.), float(min_width / 2.));
+                            float(min_width / 2.));
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
                         for (ExPolygon &ex : expp)
                             ex.medial_axis(ext_perimeter_width + ext_perimeter_spacing2, min_width, &thin_walls);
@@ -495,7 +495,7 @@ void PerimeterGenerator::process()
             double max = 2. * perimeter_spacing;
             ExPolygons gaps_ex = diff_ex(
                 //FIXME offset2 would be enough and cheaper.
-                offset2_ex(gaps, - float(min / 2.), float(min / 2.)),
+                opening_ex(gaps, float(min / 2.)),
                 offset2_ex(gaps, - float(max / 2.), float(max / 2. + ClipperSafetyOffset)));
             ThickPolylines polylines;
             for (const ExPolygon &ex : gaps_ex)

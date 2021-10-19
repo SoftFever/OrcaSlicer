@@ -104,6 +104,7 @@ struct Http::priv
 {
 	enum {
 		DEFAULT_TIMEOUT_CONNECT = 10,
+        DEFAULT_TIMEOUT_MAX = 0,
 		DEFAULT_SIZE_LIMIT = 5 * 1024 * 1024,
 	};
 
@@ -137,6 +138,7 @@ struct Http::priv
 	static size_t form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp);
 
 	void set_timeout_connect(long timeout);
+    void set_timeout_max(long timeout);
 	void form_add_file(const char *name, const fs::path &path, const char* filename);
 	void set_post_body(const fs::path &path);
 	void set_post_body(const std::string &body);
@@ -163,6 +165,7 @@ Http::priv::priv(const std::string &url)
 	}
 
 	set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);
+    set_timeout_max(DEFAULT_TIMEOUT_MAX);
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_APP_NAME "/" SLIC3R_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
@@ -251,6 +254,11 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
 void Http::priv::set_timeout_connect(long timeout)
 {
 	::curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+}
+
+void Http::priv::set_timeout_max(long timeout)
+{
+    ::curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 }
 
 void Http::priv::form_add_file(const char *name, const fs::path &path, const char* filename)
@@ -407,6 +415,13 @@ Http& Http::timeout_connect(long timeout)
 	if (timeout < 1) { timeout = priv::DEFAULT_TIMEOUT_CONNECT; }
 	if (p) { p->set_timeout_connect(timeout); }
 	return *this;
+}
+
+Http& Http::timeout_max(long timeout)
+{
+    if (timeout < 1) { timeout = priv::DEFAULT_TIMEOUT_MAX; }
+    if (p) { p->set_timeout_max(timeout); }
+    return *this;
 }
 
 Http& Http::size_limit(size_t sizeLimit)

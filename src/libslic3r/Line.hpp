@@ -40,21 +40,40 @@ template<class L> auto get_b(L &&l) { return Traits<remove_cvref_t<L>>::get_b(l)
 
 // Distance to the closest point of line.
 template<class L>
-double distance_to_squared(const L &line, const Vec<Dim<L>, Scalar<L>> &point)
+double distance_to_squared(const L &line, const Vec<Dim<L>, Scalar<L>> &point, Vec<Dim<L>, Scalar<L>> *nearest_point)
 {
     const Vec<Dim<L>, double>  v  = (get_b(line) - get_a(line)).template cast<double>();
     const Vec<Dim<L>, double>  va = (point  - get_a(line)).template cast<double>();
     const double  l2 = v.squaredNorm();  // avoid a sqrt
-    if (l2 == 0.0)
+    if (l2 == 0.0) {
         // a == b case
+        *nearest_point = get_a(line);
         return va.squaredNorm();
+    }
     // Consider the line extending the segment, parameterized as a + t (b - a).
     // We find projection of this point onto the line.
     // It falls where t = [(this-a) . (b-a)] / |b-a|^2
     const double t = va.dot(v) / l2;
-    if (t < 0.0)      return va.squaredNorm();  // beyond the 'a' end of the segment
-    else if (t > 1.0) return (point - get_b(line)).template cast<double>().squaredNorm();  // beyond the 'b' end of the segment
+    if (t < 0.0) {
+        // beyond the 'a' end of the segment
+        *nearest_point = get_a(line);
+        return va.squaredNorm();
+    } else if (t > 1.0) {
+        // beyond the 'b' end of the segment
+        *nearest_point = get_b(line);
+        return (point - get_b(line)).template cast<double>().squaredNorm();
+    }
+
+    *nearest_point = (get_a(line).template cast<double>() + t * v).template cast<Scalar<L>>();
     return (t * v - va).squaredNorm();
+}
+
+// Distance to the closest point of line.
+template<class L>
+double distance_to_squared(const L &line, const Vec<Dim<L>, Scalar<L>> &point)
+{
+    Vec<Dim<L>, Scalar<L>> nearest_point;
+    return distance_to_squared<L>(line, point, &nearest_point);
 }
 
 template<class L>
@@ -81,6 +100,7 @@ public:
     bool   intersection_infinite(const Line &other, Point* point) const;
     bool   operator==(const Line &rhs) const { return this->a == rhs.a && this->b == rhs.b; }
     double distance_to_squared(const Point &point) const { return distance_to_squared(point, this->a, this->b); }
+    double distance_to_squared(const Point &point, Point *closest_point) const { return line_alg::distance_to_squared(*this, point, closest_point); }
     double distance_to(const Point &point) const { return distance_to(point, this->a, this->b); }
     double perp_distance_to(const Point &point) const;
     bool   parallel_to(double angle) const;

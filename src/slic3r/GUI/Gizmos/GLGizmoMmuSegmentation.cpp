@@ -129,6 +129,7 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["tool_bucket_fill"]     = _L("Bucket fill");
 
     m_desc["smart_fill_angle"]     = _L("Smart fill angle");
+    m_desc["split_triangles"]      = _L("Split triangles");
 
     init_extruders_data();
 
@@ -142,7 +143,7 @@ void GLGizmoMmuSegmentation::render_painter_gizmo() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    render_triangles(selection, false);
+    render_triangles(selection);
 
     m_c->object_clipper()->render_cut();
     m_c->instances_hider()->render_cut();
@@ -170,6 +171,43 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
             this->init_model_triangle_selectors();
     } else if (model_object != nullptr && get_extruder_id_for_volumes(*model_object) != m_original_volumes_extruder_idxs) {
         this->init_model_triangle_selectors();
+    }
+}
+
+void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
+{
+    ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
+    auto                    *shader   = wxGetApp().get_shader("mm_gouraud");
+    if (!shader)
+        return;
+    shader->start_using();
+    shader->set_uniform("clipping_plane", clp_data.clp_dataf);
+    shader->set_uniform("z_range", clp_data.z_range);
+    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+
+    const ModelObject *mo      = m_c->selection_info()->model_object();
+    int                mesh_id = -1;
+    for (const ModelVolume *mv : mo->volumes) {
+        if (!mv->is_model_part())
+            continue;
+
+        ++mesh_id;
+
+        const Transform3d trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
+
+        bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CW));
+
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixd(trafo_matrix.data()));
+
+        shader->set_uniform("volume_world_matrix", trafo_matrix);
+        m_triangle_selectors[mesh_id]->render(m_imgui);
+
+        glsafe(::glPopMatrix());
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CCW));
     }
 }
 
@@ -261,6 +299,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     const float tool_type_radio_bucket_fill = m_imgui->calc_text_size(m_desc["tool_bucket_fill"]).x + m_imgui->scaled(2.5f);
     const float tool_type_radio_smart_fill  = m_imgui->calc_text_size(m_desc["tool_smart_fill"]).x + m_imgui->scaled(2.5f);
 
+    const float split_triangles_checkbox_width = m_imgui->calc_text_size(m_desc["split_triangles"]).x + m_imgui->scaled(2.5f);
+
     float caption_max    = 0.f;
     float total_text_max = 0.f;
     for (const auto &t : std::array<std::string, 3>{"first_color", "second_color", "remove"}) {
@@ -274,6 +314,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     float window_width = minimal_slider_width + sliders_width;
     window_width       = std::max(window_width, total_text_max);
     window_width       = std::max(window_width, button_width);
+    window_width       = std::max(window_width, split_triangles_checkbox_width);
     window_width       = std::max(window_width, cursor_type_radio_circle + cursor_type_radio_sphere + cursor_type_radio_pointer);
     window_width       = std::max(window_width, tool_type_radio_brush + tool_type_radio_bucket_fill + tool_type_radio_smart_fill);
     window_width       = std::max(window_width, 2.f * buttons_width + m_imgui->scaled(1.f));
@@ -331,13 +372,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         }
     }
 
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Paints facets according to the chosen painting brush.").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Paints facets according to the chosen painting brush."), max_tooltip_width);
 
     ImGui::SameLine(tool_type_offset + tool_type_radio_brush);
     ImGui::PushItemWidth(tool_type_radio_smart_fill);
@@ -349,13 +385,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         }
     }
 
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Paints neighboring facets whose relative angle is less or equal to set angle.").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Paints neighboring facets whose relative angle is less or equal to set angle."), max_tooltip_width);
 
     ImGui::SameLine(tool_type_offset + tool_type_radio_brush + tool_type_radio_smart_fill);
     ImGui::PushItemWidth(tool_type_radio_bucket_fill);
@@ -367,13 +398,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         }
     }
 
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Paints neighboring facets that have the same color.").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Paints neighboring facets that have the same color."), max_tooltip_width);
 
     ImGui::Separator();
 
@@ -387,13 +413,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         if (m_imgui->radio_button(m_desc["sphere"], m_cursor_type == TriangleSelector::CursorType::SPHERE))
             m_cursor_type = TriangleSelector::CursorType::SPHERE;
 
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Paints all facets inside, regardless of their orientation.").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Paints all facets inside, regardless of their orientation."), max_tooltip_width);
 
         ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere);
         ImGui::PushItemWidth(cursor_type_radio_circle);
@@ -401,13 +422,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         if (m_imgui->radio_button(m_desc["circle"], m_cursor_type == TriangleSelector::CursorType::CIRCLE))
             m_cursor_type = TriangleSelector::CursorType::CIRCLE;
 
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Ignores facets facing away from the camera.").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Ignores facets facing away from the camera."), max_tooltip_width);
 
         ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere + cursor_type_radio_circle);
         ImGui::PushItemWidth(cursor_type_radio_pointer);
@@ -415,13 +431,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         if (m_imgui->radio_button(m_desc["pointer"], m_cursor_type == TriangleSelector::CursorType::POINTER))
             m_cursor_type = TriangleSelector::CursorType::POINTER;
 
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Paints only one facet.").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Paints only one facet."), max_tooltip_width);
 
         m_imgui->disabled_begin(m_cursor_type != TriangleSelector::CursorType::SPHERE && m_cursor_type != TriangleSelector::CursorType::CIRCLE);
 
@@ -430,23 +441,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::SameLine(sliders_width);
         ImGui::PushItemWidth(window_width - sliders_width);
         m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Alt + Mouse wheel").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
 
-        m_imgui->checkbox(_L("Split triangles"), m_triangle_splitting_enabled);
+        m_imgui->checkbox(m_desc["split_triangles"], m_triangle_splitting_enabled);
 
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Split bigger facets into smaller ones while the object is painted.").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Split bigger facets into smaller ones while the object is painted."), max_tooltip_width);
 
         m_imgui->disabled_end();
 
@@ -464,13 +465,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
                 triangle_selector->request_update_render_data();
             }
 
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(max_tooltip_width);
-            ImGui::TextUnformatted(_L("Alt + Mouse wheel").ToUTF8().data());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
 
         ImGui::Separator();
     }
@@ -490,13 +486,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
-    if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(max_tooltip_width);
-        ImGui::TextUnformatted(_L("Ctrl + Mouse wheel").ToUTF8().data());
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Ctrl + Mouse wheel"), max_tooltip_width);
 
     ImGui::Separator();
     if (m_imgui->button(m_desc.at("remove_all"))) {
@@ -600,13 +591,7 @@ void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
     auto *shader = wxGetApp().get_current_shader();
     if (!shader)
         return;
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    assert(shader->get_name() == "gouraud_mod");
-#else
-    assert(shader->get_name() == "gouraud");
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    ScopeGuard guard([shader]() { if (shader) shader->set_uniform("compute_triangle_normals_in_fs", false);});
-    shader->set_uniform("compute_triangle_normals_in_fs", true);
+    assert(shader->get_name() == "mm_gouraud");
 
     for (size_t color_idx = 0; color_idx < m_gizmo_scene.triangle_indices.size(); ++color_idx)
         if (m_gizmo_scene.has_VBOs(color_idx)) {
@@ -619,7 +604,7 @@ void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
         }
 
     if (m_paint_contour.has_VBO()) {
-        ScopeGuard guard_gouraud([shader]() { shader->start_using(); });
+        ScopeGuard guard_mm_gouraud([shader]() { shader->start_using(); });
         shader->stop_using();
 
         auto *contour_shader = wxGetApp().get_shader("mm_contour");

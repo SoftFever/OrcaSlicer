@@ -61,39 +61,28 @@ std::pair<bool, std::string> GLShadersManager::init()
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
     // used to render objects in 3d editor
-    // For Apple's on Arm CPU computed triangle normals inside fragment shader using dFdx and dFdy has the opposite direction.
-    // Because of this, objects had darker colors inside the multi-material gizmo.
-    // Based on https://stackoverflow.com/a/66206648, the similar behavior was also spotted on some other devices with Arm CPU.
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    if (platform_flavor() == PlatformFlavor::OSXOnArm)
-        valid &= append_shader("gouraud_mod", { "gouraud_mod.vs", "gouraud_mod.fs" }, { "FLIP_TRIANGLE_NORMALS"sv
-#if ENABLE_ENVIRONMENT_MAP
-            , "ENABLE_ENVIRONMENT_MAP"sv
-#endif
-            });
-    else
-        valid &= append_shader("gouraud_mod", { "gouraud_mod.vs", "gouraud_mod.fs" }
-#if ENABLE_ENVIRONMENT_MAP
-            , { "ENABLE_ENVIRONMENT_MAP"sv }
-#endif
+    // When setting this technology to default rename the following from "gouraud_mod" to "gouraud"
+    valid &= append_shader("gouraud_mod", { "gouraud_mod.vs", "gouraud_mod.fs" }
 #else
-    if (platform_flavor() == PlatformFlavor::OSXOnArm)
-        valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }, { "FLIP_TRIANGLE_NORMALS"sv
-#if ENABLE_ENVIRONMENT_MAP
-            , "ENABLE_ENVIRONMENT_MAP"sv
-#endif
-            });
-    else
-        valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
-#if ENABLE_ENVIRONMENT_MAP
-            , { "ENABLE_ENVIRONMENT_MAP"sv }
-#endif
+    valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+#if ENABLE_ENVIRONMENT_MAP
+        , { "ENABLE_ENVIRONMENT_MAP"sv }
+#endif // ENABLE_ENVIRONMENT_MAP
         );
     // used to render variable layers heights in 3d editor
     valid &= append_shader("variable_layer_height", { "variable_layer_height.vs", "variable_layer_height.fs" });
     // used to render highlight contour around selected triangles inside the multi-material gizmo
     valid &= append_shader("mm_contour", { "mm_contour.vs", "mm_contour.fs" });
+    // Used to render painted triangles inside the multi-material gizmo. Triangle normals are computed inside fragment shader.
+    // For Apple's on Arm CPU computed triangle normals inside fragment shader using dFdx and dFdy has the opposite direction.
+    // Because of this, objects had darker colors inside the multi-material gizmo.
+    // Based on https://stackoverflow.com/a/66206648, the similar behavior was also spotted on some other devices with Arm CPU.
+    if (platform_flavor() == PlatformFlavor::OSXOnArm)
+        valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
+    else
+        valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
 
     return { valid, error };
 }

@@ -1853,7 +1853,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Disables retraction when the travel path does not exceed the upper layer's perimeters "
                    "(and thus any ooze will be probably invisible).");
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("ooze_prevention", coBool);
     def->label = L("Enable");

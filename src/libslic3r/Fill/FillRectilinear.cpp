@@ -402,19 +402,19 @@ public:
                 hole.rotate(angle);
         }
 
-        double mitterLimit = 3.;
+        double miterLimit = DefaultMiterLimit;
         // for the infill pattern, don't cut the corners.
         // default miterLimt = 3
-        //double mitterLimit = 10.;
+        //double miterLimit = 10.;
         assert(aoffset1 < 0);
         assert(aoffset2 <= 0);
         assert(aoffset2 == 0 || aoffset2 < aoffset1);
 //        bool sticks_removed = 
         remove_sticks(polygons_src);
 //        if (sticks_removed) BOOST_LOG_TRIVIAL(error) << "Sticks removed!";
-        polygons_outer = offset(polygons_src, float(aoffset1), ClipperLib::jtMiter, mitterLimit);
+        polygons_outer = offset(polygons_src, float(aoffset1), ClipperLib::jtMiter, miterLimit);
         if (aoffset2 < 0)
-            polygons_inner = offset(polygons_outer, float(aoffset2 - aoffset1), ClipperLib::jtMiter, mitterLimit);
+            polygons_inner = shrink(polygons_outer, float(aoffset1 - aoffset2), ClipperLib::jtMiter, miterLimit);
 		// Filter out contours with zero area or small area, contours with 2 points only.
         const double min_area_threshold = 0.01 * aoffset2 * aoffset2;
         remove_small(polygons_outer, min_area_threshold);

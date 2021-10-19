@@ -212,7 +212,7 @@ void SeamPlacer::init(const Print& print)
                 std::vector<float>  deltas(input.points.size(), offset);
                 input.make_counter_clockwise();
                 out.front() = mittered_offset_path_scaled(input.points, deltas, 3.);
-                return ClipperPaths_to_Slic3rExPolygons(out);
+                return ClipperPaths_to_Slic3rExPolygons(out, true); // perform union
             };
 
 

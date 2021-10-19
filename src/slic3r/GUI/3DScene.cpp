@@ -334,19 +334,7 @@ void GLVolume::SinkingContours::update()
             MeshSlicingParams slicing_params;
             slicing_params.trafo = m_parent.world_matrix();
             Polygons polygons = union_(slice_mesh(mesh.its, 0.0f, slicing_params));
-            for (Polygon& polygon : polygons) {
-                if (polygon.is_clockwise())
-                    polygon.reverse();
-                Polygons outer_polys = offset(polygon, float(scale_(HalfWidth)));
-                assert(outer_polys.size() == 1);
-                if (outer_polys.empty())
-                    // no outer contour, skip
-                    continue;
-
-                ExPolygon expoly(std::move(outer_polys.front()));
-                expoly.holes = offset(polygon, -float(scale_(HalfWidth)));
-                polygons_reverse(expoly.holes);
-
+            for (ExPolygon &expoly : diff_ex(expand(polygons, float(scale_(HalfWidth))), shrink(polygons, float(scale_(HalfWidth))))) {
                 GUI::GLModel::InitializationData::Entity entity;
                 entity.type = GUI::GLModel::PrimitiveType::Triangles;
                 const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(expoly);

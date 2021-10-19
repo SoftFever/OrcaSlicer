@@ -11,6 +11,7 @@
 
 #include <numeric>
 #include <unordered_set>
+#include <boost/range/adaptor/reversed.hpp>
 
 namespace Slic3r {
 
@@ -33,6 +34,16 @@ struct Intersection
     float  distance;
 };
 
+struct ClosestLine
+{
+    // Index of the polygon containing this line.
+    size_t border_idx;
+    // Index of this line on the polygon containing it.
+    size_t line_idx;
+    // Closest point on the line.
+    Point  point;
+};
+
 // Finding all intersections of a set of contours with a line segment.
 struct AllIntersectionsVisitor
 {
@@ -53,7 +64,7 @@ struct AllIntersectionsVisitor
 
     bool operator()(coord_t iy, coord_t ix)
     {
-        // Called with a row and colum of the grid cell, which is intersected by a line.
+        // Called with a row and column of the grid cell, which is intersected by a line.
         auto cell_data_range = grid.cell_data_range(iy, ix);
         for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second; ++it_contour_and_segment) {
             Point intersection_point;
@@ -82,7 +93,7 @@ struct FirstIntersectionVisitor
     {
         assert(pt_current != nullptr);
         assert(pt_next != nullptr);
-        // Called with a row and colum of the grid cell, which is intersected by a line.
+        // Called with a row and column of the grid cell, which is intersected by a line.
         auto cell_data_range = grid.cell_data_range(iy, ix);
         this->intersect      = false;
         for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second; ++it_contour_and_segment) {
@@ -102,6 +113,180 @@ struct FirstIntersectionVisitor
     const Slic3r::Point  *pt_next    = nullptr;
     bool                  intersect  = false;
 };
+
+// Visitor to create a list of closet lines to a defined point.
+struct MinDistanceVisitor
+{
+    explicit MinDistanceVisitor(const EdgeGrid::Grid &grid, const Point &center, double max_distance_squared)
+        : grid(grid), center(center), max_distance_squared(max_distance_squared)
+    {}
+
+    void init()
+    {
+        this->closest_lines.clear();
+        this->closest_lines_set.clear();
+    }
+
+    bool operator()(coord_t iy, coord_t ix)
+    {
+        // Called with a row and column of the grid cell, which is inside a bounding box.
+        auto cell_data_range = grid.cell_data_range(iy, ix);
+        for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second; ++it_contour_and_segment) {
+            // End points of the line segment and their vector.
+            auto  segment = grid.segment(*it_contour_and_segment);
+            Point closest_point;
+            if (closest_lines_set.find(*it_contour_and_segment) == closest_lines_set.end() &&
+                line_alg::distance_to_squared(Line(segment.first, segment.second), center, &closest_point) <= this->max_distance_squared) {
+                closest_lines.push_back({it_contour_and_segment->first, it_contour_and_segment->second, closest_point});
+                closest_lines_set.insert(*it_contour_and_segment);
+            }
+        }
+        // Continue traversing the grid along the edge.
+        return true;
+    }
+
+    const EdgeGrid::Grid &                                                                grid;
+    const Slic3r::Point                                                                   center;
+    std::vector<ClosestLine>                                                              closest_lines;
+    std::unordered_set<std::pair<size_t, size_t>, boost::hash<std::pair<size_t, size_t>>> closest_lines_set;
+    double                                                                                max_distance_squared = std::numeric_limits<double>::max();
+};
+
+// Returns sorted list of closest lines to a passed point within a passed radius
+static std::vector<ClosestLine> get_closest_lines_in_radius(const EdgeGrid::Grid &grid, const Point &center, float search_radius)
+{
+    Point              radius_vector(search_radius, search_radius);
+    MinDistanceVisitor visitor(grid, center, search_radius * search_radius);
+    grid.visit_cells_intersecting_box(BoundingBox(center - radius_vector, center + radius_vector), visitor);
+    std::sort(visitor.closest_lines.begin(), visitor.closest_lines.end(), [&center](const auto &l, const auto &r) {
+        return (center - l.point).template cast<double>().squaredNorm() < (center - r.point).template cast<double>().squaredNorm();
+    });
+
+    return visitor.closest_lines;
+}
+
+// When the offset is too big, then original travel doesn't have to cross created boundaries.
+// For these cases, this function adds another intersection with lines around the start and the end point of the original travel.
+static std::vector<Intersection> extend_for_closest_lines(const std::vector<Intersection>         &intersections,
+                                                          const AvoidCrossingPerimeters::Boundary &boundary,
+                                                          const Point                             &start,
+                                                          const Point                             &end,
+                                                          const float                              search_radius)
+{
+    const std::vector<ClosestLine> start_lines = get_closest_lines_in_radius(boundary.grid, start, search_radius);
+    const std::vector<ClosestLine> end_lines   = get_closest_lines_in_radius(boundary.grid, end, search_radius);
+
+    // Compute distance to the closest point in the ClosestLine from begin of contour.
+    auto compute_distance = [&boundary](const ClosestLine &closest_line) -> float {
+        float dist_from_line_begin = (closest_line.point - boundary.boundaries[closest_line.border_idx][closest_line.line_idx]).cast<float>().norm();
+        return boundary.boundaries_params[closest_line.border_idx][closest_line.line_idx] + dist_from_line_begin;
+    };
+
+    // It tries to find closest lines for both start point and end point of the travel which has the same border_idx
+    auto endpoints_close_to_same_boundary = [&start_lines, &end_lines]() -> std::pair<size_t, size_t> {
+        std::unordered_set<size_t> boundaries_from_start;
+        for (const ClosestLine &cl_start : start_lines)
+            boundaries_from_start.insert(cl_start.border_idx);
+        for (const ClosestLine &cl_end : end_lines)
+            if (boundaries_from_start.find(cl_end.border_idx) != boundaries_from_start.end())
+                for (const ClosestLine &cl_start : start_lines)
+                    if (cl_start.border_idx == cl_end.border_idx) {
+                        size_t cl_start_idx = &cl_start - &start_lines.front();
+                        size_t cl_end_idx   = &cl_end - &end_lines.front();
+                        return std::make_pair(cl_start_idx, cl_end_idx);
+                    }
+        return std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max());
+    };
+
+    // If the existing two lines within the search radius start and end point belong to the same boundary,
+    // discard all intersection points because the whole detour could be on one boundary.
+    if (!start_lines.empty() && !end_lines.empty()) {
+        std::pair<size_t, size_t> cl_indices = endpoints_close_to_same_boundary();
+        if (cl_indices.first != std::numeric_limits<size_t>::max()) {
+            assert(cl_indices.second != std::numeric_limits<size_t>::max());
+            const ClosestLine &cl_start = start_lines[cl_indices.first];
+            const ClosestLine &cl_end   = end_lines[cl_indices.second];
+            std::vector<Intersection> new_intersections;
+            new_intersections.push_back({cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start)});
+            new_intersections.push_back({cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end)});
+            return new_intersections;
+        }
+    }
+
+    // Returns ClosestLine which is closer to the point "close_to" then point inside passed Intersection.
+    auto get_closer = [&search_radius](const std::vector<ClosestLine> &closest_lines, const Intersection &intersection,
+                                       const Point &close_to) -> size_t {
+        for (const ClosestLine &cl : closest_lines) {
+            double old_dist = (close_to - intersection.point).cast<float>().squaredNorm();
+            if (cl.border_idx == intersection.border_idx && old_dist <= (search_radius * search_radius) &&
+                (close_to - cl.point).cast<float>().squaredNorm() < old_dist)
+                return &cl - &closest_lines.front();
+        }
+        return std::numeric_limits<size_t>::max();
+    };
+
+    // Try to find ClosestLine with same boundary_idx as any existing Intersection
+    auto find_closest_line_with_same_boundary_idx = [](const std::vector<ClosestLine> & closest_lines,
+                                                       const std::vector<Intersection> &intersections, const bool reverse) -> size_t {
+        std::unordered_set<size_t> boundaries_indices;
+        for (const ClosestLine &closest_line : closest_lines)
+            boundaries_indices.insert(closest_line.border_idx);
+
+        // This function must be called only in the case that exists closest_line with boundary_idx equals to intersection.border_idx
+        auto find_closest_line_index = [&closest_lines](const Intersection &intersection) -> size_t {
+            for (const ClosestLine &closest_line : closest_lines)
+                if (closest_line.border_idx == intersection.border_idx) return &closest_line - &closest_lines.front();
+            // This is an invalid state.
+            assert(false);
+            return std::numeric_limits<size_t>::max();
+        };
+
+        if (reverse) {
+            for (const Intersection &intersection : boost::adaptors::reverse(intersections))
+                if (boundaries_indices.find(intersection.border_idx) != boundaries_indices.end())
+                    return find_closest_line_index(intersection);
+        } else {
+            for (const Intersection &intersection : intersections)
+                if (boundaries_indices.find(intersection.border_idx) != boundaries_indices.end())
+                    return find_closest_line_index(intersection);
+        }
+        return std::numeric_limits<size_t>::max();
+    };
+
+    std::vector<Intersection> new_intersections = intersections;
+    if (!intersections.empty() && !start_lines.empty()) {
+        size_t cl_start_idx = get_closer(start_lines, new_intersections.front(), start);
+        if (cl_start_idx != std::numeric_limits<size_t>::max()) {
+            // If there is any ClosestLine around the start point closer to the Intersection, then replace this Intersection with ClosestLine.
+            const ClosestLine &cl_start = start_lines[cl_start_idx];
+            new_intersections.front()   = {cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start)};
+        } else {
+            // Check if there is any ClosestLine with the same boundary_idx as any Intersection. If this ClosestLine exists, then add it to the
+            // vector of intersections. This allows in some cases when it is more than one around ClosestLine start point chose that one which
+            // minimizes the number of contours (also length of the detour) in result detour. If there doesn't exist any ClosestLine like this, then
+            // use the first one, which is the closest one to the start point.
+            size_t             start_closest_lines_idx = find_closest_line_with_same_boundary_idx(start_lines, intersections, true);
+            const ClosestLine &cl_start                = (start_closest_lines_idx != std::numeric_limits<size_t>::max()) ? start_lines[start_closest_lines_idx] : start_lines.front();
+            new_intersections.insert(new_intersections.begin(),{cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start)});
+        }
+    } else if (!intersections.empty() && !end_lines.empty()) {
+        size_t cl_end_idx = get_closer(end_lines, new_intersections.back(), end);
+        if (cl_end_idx != std::numeric_limits<size_t>::max()) {
+            // If there is any ClosestLine around the end point closer to the Intersection, then replace this Intersection with ClosestLine.
+            const ClosestLine &cl_end = end_lines[cl_end_idx];
+            new_intersections.back()  = {cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end)};
+        } else {
+            // Check if there is any ClosestLine with the same boundary_idx as any Intersection. If this ClosestLine exists, then add it to the
+            // vector of intersections. This allows in some cases when it is more than one around ClosestLine end point chose that one which
+            // minimizes the number of contours (also length of the detour) in result detour. If there doesn't exist any ClosestLine like this, then
+            // use the first one, which is the closest one to the end point.
+            size_t             end_closest_lines_idx = find_closest_line_with_same_boundary_idx(end_lines, intersections, false);
+            const ClosestLine &cl_end                = (end_closest_lines_idx != std::numeric_limits<size_t>::max()) ? end_lines[end_closest_lines_idx] : end_lines.front();
+            new_intersections.push_back({cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end)});
+        }
+    }
+    return new_intersections;
+}
 
 // point_idx is the index from which is different vertex is searched.
 template<bool forward>
@@ -268,10 +453,63 @@ static std::vector<TravelPoint> simplify_travel(const AvoidCrossingPerimeters::B
     return simplified_path;
 }
 
+// called by get_perimeter_spacing() / get_perimeter_spacing_external()
+static inline float get_default_perimeter_spacing(const PrintObject &print_object)
+{
+    std::vector<unsigned int> printing_extruders = print_object.object_extruders();
+    assert(!printing_extruders.empty());
+    float avg_extruder = 0;
+    for(unsigned int extruder_id : printing_extruders)
+        avg_extruder += float(scale_(print_object.print()->config().nozzle_diameter.get_at(extruder_id)));
+    avg_extruder /= printing_extruders.size();
+    return avg_extruder;
+}
+
+// called by get_boundary() / avoid_perimeters_inner()
+static float get_perimeter_spacing(const Layer &layer)
+{
+    size_t regions_count     = 0;
+    float  perimeter_spacing = 0.f;
+    for (const LayerRegion *layer_region : layer.regions())
+        if (layer_region != nullptr && !layer_region->slices.empty()) {
+            perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
+            ++regions_count;
+        }
+
+    assert(perimeter_spacing >= 0.f);
+    if (regions_count != 0)
+        perimeter_spacing /= float(regions_count);
+    else
+        perimeter_spacing = get_default_perimeter_spacing(*layer.object());
+    return perimeter_spacing;
+}
+
+// called by get_boundary_external()
+static float get_perimeter_spacing_external(const Layer &layer)
+{
+    size_t regions_count     = 0;
+    float  perimeter_spacing = 0.f;
+    for (const PrintObject *object : layer.object()->print()->objects())
+        if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
+            for (const LayerRegion *layer_region : l->regions())
+                if (layer_region != nullptr && !layer_region->slices.empty()) {
+                    perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
+                    ++ regions_count;
+                }
+
+    assert(perimeter_spacing >= 0.f);
+    if (regions_count != 0)
+        perimeter_spacing /= float(regions_count);
+    else
+        perimeter_spacing = get_default_perimeter_spacing(*layer.object());
+    return perimeter_spacing;
+}
+
 // Called by avoid_perimeters() and by simplify_travel_heuristics().
 static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &boundary,
                                      const Point                             &start,
                                      const Point                             &end,
+                                     const Layer                             &layer,
                                      std::vector<TravelPoint>                &result_out)
 {
     const Polygons           &boundaries = boundary.boundaries;
@@ -288,23 +526,31 @@ static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &bo
             intersection.distance = boundary.boundaries_params[intersection.border_idx][intersection.line_idx] + dist_from_line_begin;
         }
         std::sort(intersections.begin(), intersections.end(), [dir](const auto &l, const auto &r) { return (r.point - l.point).template cast<double>().dot(dir) > 0.; });
+
+        // Search radius should always be at least equals to the value of offset used for computing boundaries.
+        const float search_radius = 2.f * get_perimeter_spacing(layer);
+        // When the offset is too big, then original travel doesn't have to cross created boundaries.
+        // These cases are fixed by calling extend_for_closest_lines.
+        intersections             = extend_for_closest_lines(intersections, boundary, start, end, search_radius);
     }
 
     std::vector<TravelPoint> result;
     result.push_back({start, -1});
 
+#if 0
     auto crossing_boundary_from_inside = [&boundary](const Point &start, const Intersection &intersection) {
         const Polygon &poly             = boundary.boundaries[intersection.border_idx];
         Vec2d          poly_line        = Line(poly[intersection.line_idx], poly[(intersection.line_idx + 1) % poly.size()]).normal().cast<double>();
         Vec2d          intersection_vec = (intersection.point - start).cast<double>();
         return poly_line.normalized().dot(intersection_vec.normalized()) >= 0;
     };
+#endif
 
     for (auto it_first = intersections.begin(); it_first != intersections.end(); ++it_first) {
         // The entry point to the boundary polygon
         const Intersection &intersection_first = *it_first;
-        if(!crossing_boundary_from_inside(start, intersection_first))
-            continue;
+//        if(!crossing_boundary_from_inside(start, intersection_first))
+//            continue;
         // Skip the it_first from the search for the farthest exit point from the boundary polygon
         auto it_last_item = std::make_reverse_iterator(it_first) - 1;
         // Search for the farthest intersection different from it_first but with the same border_idx
@@ -353,8 +599,7 @@ static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &bo
 #ifdef AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
     {
         static int iRun = 0;
-        export_travel_to_svg(boundaries, Line(start, end), result, intersections,
-                             debug_out_path("AvoidCrossingPerimetersInner-initial-%d.svg", iRun++));
+        export_travel_to_svg(boundaries, Line(start, end), result, intersections, debug_out_path("AvoidCrossingPerimetersInner-initial-%d-%d.svg", layer.id(), iRun++));
     }
 #endif /* AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT */
 
@@ -365,7 +610,7 @@ static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &bo
     {
         static int iRun = 0;
         export_travel_to_svg(boundaries, Line(start, end), result, intersections,
-                             debug_out_path("AvoidCrossingPerimetersInner-final-%d.svg", iRun++));
+                             debug_out_path("AvoidCrossingPerimetersInner-final-%d-%d.svg", layer.id(), iRun++));
     }
 #endif /* AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT */
 
@@ -377,17 +622,18 @@ static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &bo
 static size_t avoid_perimeters(const AvoidCrossingPerimeters::Boundary &boundary,
                                const Point                             &start,
                                const Point                             &end,
+                               const Layer                             &layer,
                                Polyline                                &result_out)
 {
     // Travel line is completely or partially inside the bounding box.
     std::vector<TravelPoint> path;
-    size_t num_intersections = avoid_perimeters_inner(boundary, start, end, path);
+    size_t num_intersections = avoid_perimeters_inner(boundary, start, end, layer, path);
     result_out = to_polyline(path);
 
 #ifdef AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
     {
         static int iRun = 0;
-        export_travel_to_svg(boundary.boundaries, Line(start, end), path, {}, debug_out_path("AvoidCrossingPerimeters-final-%d.svg", iRun ++));
+        export_travel_to_svg(boundary.boundaries, Line(start, end), path, {}, debug_out_path("AvoidCrossingPerimeters-final-%d-%d.svg", layer.id(), iRun ++));
     }
 #endif /* AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT */
 
@@ -480,58 +726,6 @@ static bool need_wipe(const GCode          &gcodegen,
     }
 
     return wipe_needed;
-}
-
-// called by get_perimeter_spacing() / get_perimeter_spacing_external()
-static inline float get_default_perimeter_spacing(const PrintObject &print_object)
-{
-    std::vector<unsigned int> printing_extruders = print_object.object_extruders();
-    assert(!printing_extruders.empty());
-    float avg_extruder = 0;
-    for(unsigned int extruder_id : printing_extruders)
-        avg_extruder += float(scale_(print_object.print()->config().nozzle_diameter.get_at(extruder_id)));
-    avg_extruder /= printing_extruders.size();
-    return avg_extruder;
-}
-
-// called by get_boundary()
-static float get_perimeter_spacing(const Layer &layer)
-{
-    size_t regions_count     = 0;
-    float  perimeter_spacing = 0.f;
-    for (const LayerRegion *layer_region : layer.regions())
-        if (layer_region != nullptr && !layer_region->slices.empty()) {
-            perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
-            ++regions_count;
-        }
-
-    assert(perimeter_spacing >= 0.f);
-    if (regions_count != 0)
-        perimeter_spacing /= float(regions_count);
-    else
-        perimeter_spacing = get_default_perimeter_spacing(*layer.object());
-    return perimeter_spacing;
-}
-
-// called by get_boundary_external()
-static float get_perimeter_spacing_external(const Layer &layer)
-{
-    size_t regions_count     = 0;
-    float  perimeter_spacing = 0.f;
-    for (const PrintObject *object : layer.object()->print()->objects())
-        if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
-            for (const LayerRegion *layer_region : l->regions())
-                if (layer_region != nullptr && !layer_region->slices.empty()) {
-                    perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
-                    ++ regions_count;
-                }
-
-    assert(perimeter_spacing >= 0.f);
-    if (regions_count != 0)
-        perimeter_spacing /= float(regions_count);
-    else
-        perimeter_spacing = get_default_perimeter_spacing(*layer.object());
-    return perimeter_spacing;
 }
 
 // Adds points around all vertices so that the offset affects only small sections around these vertices.
@@ -795,14 +989,14 @@ static ExPolygons get_boundary(const Layer &layer)
     const float perimeter_spacing = get_perimeter_spacing(layer);
     const float perimeter_offset  = perimeter_spacing / 2.f;
     auto const *support_layer     = dynamic_cast<const SupportLayer *>(&layer);
-    ExPolygons  boundary          = union_ex(inner_offset(layer.lslices, perimeter_offset));
+    ExPolygons  boundary          = union_ex(inner_offset(layer.lslices, 1.5 * perimeter_spacing));
     if(support_layer) {
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
-        append(boundary, inner_offset(support_layer->support_islands.expolygons, perimeter_offset));
+        append(boundary, inner_offset(support_layer->support_islands.expolygons, 1.5 * perimeter_spacing));
 #endif
         auto *layer_below = layer.object()->get_first_layer_bellow_printz(layer.print_z, EPSILON);
         if (layer_below)
-            append(boundary, inner_offset(layer_below->lslices, perimeter_offset));
+            append(boundary, inner_offset(layer_below->lslices, 1.5 * perimeter_spacing));
         // After calling inner_offset it is necessary to call union_ex because of the possibility of intersection ExPolygons
         boundary = union_ex(boundary);
     }
@@ -868,7 +1062,7 @@ static Polygons get_boundary_external(const Layer &layer)
     }
 
     // Used offset_ex for cases when another object will be in the hole of another polygon
-    boundary = to_polygons(offset_ex(boundary, perimeter_offset));
+    boundary = expand(boundary, perimeter_offset);
     // Reverse all polygons for making normals point from the polygon out.
     for (Polygon &poly : boundary)
         poly.reverse();
@@ -925,7 +1119,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 
         // Trim the travel line by the bounding box.
         if (!m_internal.boundaries.empty() && Geometry::liang_barsky_line_clipping(startf, endf, m_internal.bbox)) {
-            travel_intersection_count = avoid_perimeters(m_internal, startf.cast<coord_t>(), endf.cast<coord_t>(), result_pl);
+            travel_intersection_count = avoid_perimeters(m_internal, startf.cast<coord_t>(), endf.cast<coord_t>(), *gcodegen.layer(), result_pl);
             result_pl.points.front()  = start;
             result_pl.points.back()   = end;
         }
@@ -936,7 +1130,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 
         // Trim the travel line by the bounding box.
         if (!m_external.boundaries.empty() && Geometry::liang_barsky_line_clipping(startf, endf, m_external.bbox)) {
-            travel_intersection_count = avoid_perimeters(m_external, startf.cast<coord_t>(), endf.cast<coord_t>(), result_pl);
+            travel_intersection_count = avoid_perimeters(m_external, startf.cast<coord_t>(), endf.cast<coord_t>(), *gcodegen.layer(), result_pl);
             result_pl.points.front()  = start;
             result_pl.points.back()   = end;
         }

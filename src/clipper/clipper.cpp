@@ -155,7 +155,20 @@ bool PolyNode::IsHole() const
       node = node->Parent;
   }
   return result;
-}  
+}
+
+void PolyTree::RemoveOutermostPolygon()
+{
+    if (this->ChildCount() == 1 && this->Childs[0]->ChildCount() > 0) {
+        PolyNode *outerNode = this->Childs[0];
+        this->Childs.reserve(outerNode->ChildCount());
+        this->Childs[0] = outerNode->Childs[0];
+        this->Childs[0]->Parent = outerNode->Parent;
+        for (int i = 1; i < outerNode->ChildCount(); ++i)
+            this->AddChild(*outerNode->Childs[i]);
+    } else
+        this->Clear();
+}
 
 //------------------------------------------------------------------------------
 // Miscellaneous global functions
@@ -3444,7 +3457,8 @@ void ClipperOffset::Execute(Paths& solution, double delta)
     clpr.AddPath(outer, ptSubject, true);
     clpr.ReverseSolution(true);
     clpr.Execute(ctUnion, solution, pftNegative, pftNegative);
-    if (solution.size() > 0) solution.erase(solution.begin());
+    if (! solution.empty())
+      solution.erase(solution.begin());
   }
 }
 //------------------------------------------------------------------------------
@@ -3475,17 +3489,7 @@ void ClipperOffset::Execute(PolyTree& solution, double delta)
     clpr.ReverseSolution(true);
     clpr.Execute(ctUnion, solution, pftNegative, pftNegative);
     //remove the outer PolyNode rectangle ...
-    if (solution.ChildCount() == 1 && solution.Childs[0]->ChildCount() > 0)
-    {
-      PolyNode* outerNode = solution.Childs[0];
-      solution.Childs.reserve(outerNode->ChildCount());
-      solution.Childs[0] = outerNode->Childs[0];
-      solution.Childs[0]->Parent = outerNode->Parent;
-      for (int i = 1; i < outerNode->ChildCount(); ++i)
-        solution.AddChild(*outerNode->Childs[i]);
-    }
-    else
-      solution.Clear();
+    solution.RemoveOutermostPolygon();
   }
 }
 //------------------------------------------------------------------------------

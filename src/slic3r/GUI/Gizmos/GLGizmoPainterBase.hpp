@@ -126,7 +126,7 @@ public:
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
 protected:
-    void render_triangles(const Selection& selection, const bool use_polygon_offset_fill = true) const;
+    virtual void render_triangles(const Selection& selection) const;
     void render_cursor() const;
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;
@@ -159,6 +159,9 @@ protected:
     ToolType m_tool_type                  = ToolType::BRUSH;
     float    m_smart_fill_angle           = 30.f;
 
+    bool     m_paint_on_overhangs_only          = false;
+    float    m_highlight_by_angle_threshold_deg = 0.f;
+
     static constexpr float SmartFillAngleMin  = 0.0f;
     static constexpr float SmartFillAngleMax  = 90.f;
     static constexpr float SmartFillAngleStep = 1.f;
@@ -172,6 +175,14 @@ protected:
         Left,
         Right
     };
+
+    struct ClippingPlaneDataWrapper
+    {
+        std::array<float, 4> clp_dataf;
+        std::array<float, 2> z_range;
+    };
+
+    ClippingPlaneDataWrapper get_clipping_plane_data() const;
 
 private:
     bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;

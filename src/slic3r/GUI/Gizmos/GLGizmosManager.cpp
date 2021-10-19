@@ -924,6 +924,10 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             case WXK_NUMPAD_DOWN: case WXK_DOWN: { do_move(-1.0); break; }
             default: { break; }
             }
+        } else if (m_current == Simplify && keyCode == WXK_ESCAPE) {
+            GLGizmoSimplify *simplify = dynamic_cast<GLGizmoSimplify *>(get_current());
+            if (simplify != nullptr) 
+                processed = simplify->on_esc_key_down();
         }
     }
 

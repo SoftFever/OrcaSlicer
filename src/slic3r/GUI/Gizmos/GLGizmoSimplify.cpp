@@ -24,15 +24,16 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     , m_obj_index(0)
     , m_need_reload(false) 
     , m_show_wireframe(false)
-
+    // translation for GUI size
     , tr_mesh_name(_u8L("Mesh name"))
     , tr_triangles(_u8L("Triangles"))
     , tr_preview(_u8L("Preview"))
     , tr_detail_level(_u8L("Detail level"))
     , tr_decimate_ratio(_u8L("Decimate ratio"))
-
+    // for wireframe
     , m_wireframe_VBO_id(0)
     , m_wireframe_IBO_id(0)
+    , m_wireframe_IBO_size(0)
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify() { 
@@ -41,10 +42,11 @@ GLGizmoSimplify::~GLGizmoSimplify() {
     free_gpu();
 }
 
-bool GLGizmoSimplify::on_init()
-{
-    //m_grabbers.emplace_back();
-    //m_shortcut_key = WXK_CONTROL_C;
+bool GLGizmoSimplify::on_esc_key_down() {
+    if (m_state == State::settings || m_state == State::canceling)
+        return false;
+
+    m_state = State::canceling;
     return true;
 }
 
@@ -52,10 +54,6 @@ std::string GLGizmoSimplify::on_get_name() const
 {
     return _u8L("Simplify");
 }
-
-void GLGizmoSimplify::on_render() { }
-
-void GLGizmoSimplify::on_render_for_picking() {}
 
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
@@ -143,8 +141,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::Separator();
 
     if(ImGui::RadioButton("##use_error", !m_configuration.use_count)) {
-        m_is_valid_result         = false;
         m_configuration.use_count = !m_configuration.use_count;
+        live_preview();
     }
     ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
@@ -160,7 +158,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
     static int reduction = 2;
     if(ImGui::SliderInt("##ReductionLevel", &reduction, 0, 4, reduce_captions[reduction].c_str())) {
-        m_is_valid_result = false;
         if (reduction < 0) reduction = 0;
         if (reduction > 4) reduction = 4;
         switch (reduction) {
@@ -170,12 +167,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         case 3: m_configuration.max_error = 0.5f; break;
         case 4: m_configuration.max_error = 1.f; break;
         }
+        live_preview();
     }
     m_imgui->disabled_end(); // !use_count
 
     if (ImGui::RadioButton("##use_count", m_configuration.use_count)) {
-        m_is_valid_result         = false;
         m_configuration.use_count = !m_configuration.use_count;
+        live_preview();
     }
     ImGui::SameLine();
 
@@ -192,13 +190,14 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
     const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%": 
         ((m_configuration.decimate_ratio > 1)? "%.1f %%":"%.2f %%");
+
     if (ImGui::SliderFloat("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
-        m_is_valid_result = false;
         if (m_configuration.decimate_ratio < 0.f)
             m_configuration.decimate_ratio = 0.01f;
         if (m_configuration.decimate_ratio > 100.f)
             m_configuration.decimate_ratio = 100.f;
         m_configuration.fix_count_by_ratio(triangle_count);
+        live_preview();
     }
 
     ImGui::NewLine();
@@ -206,43 +205,48 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::Text(_L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
-    if (ImGui::Checkbox(_L("Show wireframe").c_str(), &m_show_wireframe)) {
+    if (ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe)) {
         if (m_show_wireframe) init_wireframe();
         else free_gpu();
     }
 
-    if (m_state == State::settings) {
-        if (m_imgui->button(_L("Cancel"))) {
-            if (m_original_its.has_value()) { 
+    bool is_canceling = m_state == State::canceling;
+    m_imgui->disabled_begin(is_canceling);
+    if (m_imgui->button(_L("Cancel"))) {
+        if (m_state == State::settings) {
+            if (m_original_its.has_value()) {
                 set_its(*m_original_its);
                 m_state = State::close_on_end;
             } else {
                 close();
             }
+        } else {
+            m_state = State::canceling;
         }
-        ImGui::SameLine(m_gui_cfg->bottom_left_width);
-        if (m_imgui->button(_L("Preview"))) {
-            m_state = State::preview;
-            // simplify but not apply on mesh
-            process();
-        }
-        ImGui::SameLine();
-        if (m_imgui->button(_L("Apply"))) {
-            if (!m_is_valid_result) {
-                m_state = State::close_on_end;
-                process();
-            } else if (m_exist_preview) {
-                // use preview and close
-                after_apply();
-            } else { // no changes made
-                close();
-            }            
-        }
-    } else {        
-        m_imgui->disabled_begin(m_state == State::canceling);
-        if (m_imgui->button(_L("Cancel"))) m_state = State::canceling;
-        m_imgui->disabled_end(); 
+    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_canceling)
+        ImGui::SetTooltip("%s", _u8L("Operation already canceling. Please wait few seconds.").c_str());
+    m_imgui->disabled_end(); // state canceling
 
+    ImGui::SameLine();
+
+    bool is_processing = m_state != State::settings;
+    m_imgui->disabled_begin(is_processing);
+    if (m_imgui->button(_L("Apply"))) {
+        if (!m_is_valid_result) {
+            m_state = State::close_on_end;
+            process();
+        } else if (m_exist_preview) {
+            // use preview and close
+            after_apply();
+        } else { // no changes made
+            close();
+        }            
+    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_processing)
+        ImGui::SetTooltip("%s", _u8L("Can't apply when proccess preview.").c_str());
+    m_imgui->disabled_end(); // state !settings
+
+    // draw progress bar
+    if (is_processing) { // apply or preview
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         // draw progress bar
         char buf[32];
@@ -251,6 +255,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     m_imgui->end();
 
+    // refresh view when needed
     if (m_need_reload) { 
         m_need_reload = false;
         bool close_on_end = (m_state == State::close_on_end);
@@ -280,6 +285,22 @@ void GLGizmoSimplify::close() {
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 
+void GLGizmoSimplify::live_preview() {
+    m_is_valid_result = false;
+    if (m_state != State::settings) {
+        // already canceling process
+        if (m_state == State::canceling) return;
+
+        // wait until cancel
+        if (m_worker.joinable()) {
+            m_state = State::canceling;
+            m_worker.join();
+        }
+    }
+
+    m_state = State::preview;
+    process();
+}
 
 void GLGizmoSimplify::process()
 {
@@ -408,6 +429,7 @@ void GLGizmoSimplify::create_gui_cfg() {
     cfg.input_width   = cfg.bottom_left_width * 1.5;
     cfg.window_offset_x = (cfg.bottom_left_width + cfg.input_width)/2;
     cfg.window_offset_y = ImGui::GetTextLineHeightWithSpacing() * 5;
+    
     m_gui_cfg = cfg;
 }
 
