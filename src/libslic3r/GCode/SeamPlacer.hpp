@@ -49,11 +49,12 @@ public:
 
 
     void plan_perimeters(const std::vector<const ExtrusionEntity*> perimeters,
-        const Layer& layer, SeamPosition seam_position, bool external_first,
+        const Layer& layer, SeamPosition seam_position,
         Point last_pos, coordf_t nozzle_dmr, const PrintObject* po,
         const EdgeGrid::Grid* lower_layer_edge_grid);
 
-    void place_seam(ExtrusionLoop& loop, const Point& last_pos, bool external_first, double nozzle_diameter);
+    void place_seam(ExtrusionLoop& loop, const Point& last_pos, bool external_first, double nozzle_diameter,
+                    const EdgeGrid::Grid* lower_layer_edge_grid);
     
 
     using TreeType = AABBTreeIndirect::Tree<2, coord_t>;
@@ -80,6 +81,9 @@ private:
         Point pt;
         bool precalculated = false;
         bool external = false;
+        const Layer* layer = nullptr;
+        SeamPosition seam_position;
+        const PrintObject* po = nullptr;
     };
     std::vector<SeamPoint> m_plan;
     size_t m_plan_idx;

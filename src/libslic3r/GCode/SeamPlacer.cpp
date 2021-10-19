@@ -293,7 +293,7 @@ void SeamPlacer::init(const Print& print)
 
 
 void SeamPlacer::plan_perimeters(const std::vector<const ExtrusionEntity*> perimeters,
-                            const Layer& layer, SeamPosition seam_position, bool external_first,
+                            const Layer& layer, SeamPosition seam_position,
                             Point last_pos, coordf_t nozzle_dmr, const PrintObject* po,
                             const EdgeGrid::Grid* lower_layer_edge_grid)
 {
@@ -315,20 +315,32 @@ void SeamPlacer::plan_perimeters(const std::vector<const ExtrusionEntity*> perim
                 layer, seam_position, *dynamic_cast<const ExtrusionLoop*>(perimeters[i]), nozzle_dmr,
                 po, lower_layer_edge_grid, last_pos);
             m_plan[i].external = true;
+            m_plan[i].seam_position = seam_position;
+            m_plan[i].layer = &layer;
+            m_plan[i].po = po;
         }
         m_plan[i].pt = last_pos;
     }
 }
 
 
-void SeamPlacer::place_seam(ExtrusionLoop& loop, const Point& last_pos, bool external_first, double nozzle_diameter)
+void SeamPlacer::place_seam(ExtrusionLoop& loop, const Point& last_pos, bool external_first, double nozzle_diameter,
+                            const EdgeGrid::Grid* lower_layer_edge_grid)
 {
     const double seam_offset = nozzle_diameter;
 
     Point seam = last_pos;
     if (! m_plan.empty() && m_plan_idx < m_plan.size()) {
-        if (m_plan[m_plan_idx].external)
+        if (m_plan[m_plan_idx].external) {
             seam = m_plan[m_plan_idx].pt;
+            // One more heuristics: if the seam is too far from current nozzle position,
+            // try to place it again. This can happen in cases where the external perimeter
+            // does not belong to the preceding ones and they are ordered so they end up
+            // far from each other.
+            if ((seam.cast<double>() - last_pos.cast<double>()).squaredNorm() > std::pow(scale_(5.*nozzle_diameter), 2.))
+                seam = this->calculate_seam(*m_plan[m_plan_idx].layer, m_plan[m_plan_idx].seam_position, loop, nozzle_diameter,
+                                            m_plan[m_plan_idx].po, lower_layer_edge_grid, last_pos);
+        }
         else if (! external_first) {
             // Internal perimeter printed before the external.
             // First get list of external seams.
@@ -342,14 +354,13 @@ void SeamPlacer::place_seam(ExtrusionLoop& loop, const Point& last_pos, bool ext
                 // First find the line segment closest to an external seam:
                 int path_idx = 0;
                 int line_idx = 0;
-                size_t ext_seam_idx = -1;
+                size_t ext_seam_idx = size_t(-1);
                 double min_dist_sqr = std::numeric_limits<double>::max();
-                double nozzle_diameter_sqr = std::pow(scale_(nozzle_diameter), 2.);
                 std::vector<Lines> lines_vect;
-                for (int i = 0; i < loop.paths.size(); ++i) {
+                for (int i = 0; i < int(loop.paths.size()); ++i) {
                     lines_vect.emplace_back(loop.paths[i].polyline.lines());
                     const Lines& lines = lines_vect.back();
-                    for (int j = 0; j < lines.size(); ++j) {
+                    for (int j = 0; j < int(lines.size()); ++j) {
                         for (size_t k : ext_seams) {
                             double d_sqr = lines[j].distance_to_squared(m_plan[k].pt);
                             if (d_sqr < min_dist_sqr) {
@@ -364,7 +375,7 @@ void SeamPlacer::place_seam(ExtrusionLoop& loop, const Point& last_pos, bool ext
 
                 // Only accept seam that is reasonably close.
                 double limit_dist_sqr = std::pow(double(scale_((ext_seam_idx - m_plan_idx) * nozzle_diameter * 2.)), 2.);
-                if (ext_seam_idx != -1 && min_dist_sqr < limit_dist_sqr) {
+                if (ext_seam_idx != size_t(-1) && min_dist_sqr < limit_dist_sqr) {
                     // Now find a projection of the external seam
                     const Lines& lines = lines_vect[path_idx];
                     Point closest = m_plan[ext_seam_idx].pt.projection_onto(lines[line_idx]);
@@ -377,7 +388,7 @@ void SeamPlacer::place_seam(ExtrusionLoop& loop, const Point& last_pos, bool ext
                     offset -= dist;
                     const Point* a = &closest;
                     const Point* b = &lines[line_idx].b;
-                    while (++line_idx < lines.size() && offset > 0.) {
+                    while (++line_idx < int(lines.size()) && offset > 0.) {
                         last_offset = offset;
                         offset -= lines[line_idx].length();
                         a = &lines[line_idx].a;

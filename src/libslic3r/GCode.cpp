@@ -2515,7 +2515,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         loop.split_at(last_pos, false);
     }
     else
-        m_seam_placer.place_seam(loop, this->last_pos(), m_config.external_perimeters_first, EXTRUDER_CONFIG(nozzle_diameter));
+        m_seam_placer.place_seam(loop, this->last_pos(), m_config.external_perimeters_first,
+                                 EXTRUDER_CONFIG(nozzle_diameter), lower_layer_edge_grid ? lower_layer_edge_grid->get() : nullptr);
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
@@ -2640,8 +2641,7 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
             m_config.apply(print.get_print_region(&region - &by_region.front()).config());
 
             m_seam_placer.plan_perimeters(std::vector<const ExtrusionEntity*>(region.perimeters.begin(), region.perimeters.end()),
-                *m_layer, m_config.seam_position,
-                m_config.external_perimeters_first, this->last_pos(), EXTRUDER_CONFIG(nozzle_diameter),
+                *m_layer, m_config.seam_position, this->last_pos(), EXTRUDER_CONFIG(nozzle_diameter),
                 (m_layer == NULL ? nullptr : m_layer->object()),
                 (lower_layer_edge_grid ? lower_layer_edge_grid.get() : nullptr));
 
