@@ -280,7 +280,7 @@ void ImGuiWrapper::render()
     m_new_frame_open = false;
 }
 
-ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width)
+ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width) const
 {
     auto text_utf8 = into_u8(text);
     ImVec2 size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, wrap_width);
@@ -291,6 +291,22 @@ ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width)
 #endif*/
 
     return size;
+}
+
+ImVec2 ImGuiWrapper::calc_button_size(const wxString &text, const ImVec2 &button_size) const
+{
+    const ImVec2        text_size = this->calc_text_size(text);
+    const ImGuiContext &g         = *GImGui;
+    const ImGuiStyle   &style     = g.Style;
+
+    return ImGui::CalcItemSize(button_size, text_size.x + style.FramePadding.x * 2.0f, text_size.y + style.FramePadding.y * 2.0f);
+}
+
+ImVec2 ImGuiWrapper::get_item_spacing() const
+{
+    const ImGuiContext &g     = *GImGui;
+    const ImGuiStyle   &style = g.Style;
+    return g.Style.ItemSpacing;
 }
 
 float ImGuiWrapper::get_slider_float_height() const
