@@ -95,14 +95,13 @@ private:
 
         void fix_count_by_ratio(size_t triangle_count)
         {
-            if (decimate_ratio <= 0.f) { 
+            if (decimate_ratio <= 0.f) 
                 wanted_count = static_cast<uint32_t>(triangle_count);
-                return;
-            } else if (decimate_ratio >= 1.f) {
+            else if (decimate_ratio >= 100.f)
                 wanted_count = 0;
-                return;
-            }
-            wanted_count = static_cast<uint32_t>(std::round(triangle_count * (100.f-decimate_ratio) / 100.f));
+            else
+                wanted_count = static_cast<uint32_t>(std::round(
+                    triangle_count * (100.f - decimate_ratio) / 100.f));
         }
     } m_configuration;
 

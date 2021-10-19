@@ -91,7 +91,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_is_valid_result = false;
         m_exist_preview   = false;
         init_wireframe();
-
+        live_preview();
         if (change_window_position) {
             ImVec2 pos = ImGui::GetMousePos();
             pos.x -= m_gui_cfg->window_offset_x;
@@ -308,9 +308,23 @@ void GLGizmoSimplify::process()
     if (m_volume == nullptr) return;
     if (m_volume->mesh().its.indices.empty()) return;
     size_t count_triangles = m_volume->mesh().its.indices.size();
-    if (m_configuration.use_count &&
-        m_configuration.wanted_count >= count_triangles)
+    // Is neccessary simplification
+    if ((m_configuration.use_count && m_configuration.wanted_count >= count_triangles) ||
+        (!m_configuration.use_count && m_configuration.max_error <= 0.f)) {
+        
+        // Exist different original volume?
+        if (m_original_its.has_value() &&
+            m_original_its->indices.size() != count_triangles) {
+            indexed_triangle_set its = *m_original_its; // copy
+            set_its(its);
+        }        
+        m_is_valid_result = true;
+
+        // re-render bargraph
+        set_dirty();
+        m_parent.schedule_extra_frame(0);
         return;
+    }
 
     // when not store original volume store it for cancelation
     if (!m_original_its.has_value()) {
