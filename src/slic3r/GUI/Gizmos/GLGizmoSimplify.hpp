@@ -15,12 +15,14 @@
 
 #include <GL/glew.h> // GLUint
 
-namespace Slic3r {
+// for simplify suggestion
+class ModelObjectPtrs; //  std::vector<ModelObject*>
 
+namespace Slic3r {
 class ModelVolume;
 
 namespace GUI {
-
+class NotificationManager; // for simplify suggestion
 
 class GLGizmoSimplify: public GLGizmoBase, public GLGizmoTransparentRender // GLGizmoBase
 {    
@@ -28,6 +30,10 @@ public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     virtual ~GLGizmoSimplify();
     bool on_esc_key_down();
+    static void add_simplify_suggestion_notification(
+        const std::vector<size_t> &object_ids,
+        const ModelObjectPtrs &    objects,
+        NotificationManager &      manager);
 protected:
     virtual std::string on_get_name() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
@@ -51,6 +57,7 @@ private:
     void create_gui_cfg();
     void request_rerender();
 
+    void set_center_position();
     // move to global functions
     static ModelVolume *get_volume(const Selection &selection, Model &model);
     static const ModelVolume *get_volume(const GLVolume::CompositeID &cid, const Model &model);
@@ -60,6 +67,8 @@ private:
 
     std::atomic_bool m_is_valid_result; // differ what to do in apply
     std::atomic_bool m_exist_preview;   // set when process end
+
+    bool m_move_to_center; // opening gizmo
 
     volatile int m_progress; // percent of done work
     ModelVolume *m_volume; // keep pointer to actual working volume
