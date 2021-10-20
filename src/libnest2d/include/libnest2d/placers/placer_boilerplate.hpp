@@ -33,7 +33,8 @@ public:
         PackResult(Item& item):
             item_ptr_(&item),
             move_(item.translation()),
-            rot_(item.rotation()) {}
+            rot_(item.rotation()),
+            overfit_(1.0) {}
 
         PackResult(double overfit = 1.0):
             item_ptr_(nullptr), overfit_(overfit) {}

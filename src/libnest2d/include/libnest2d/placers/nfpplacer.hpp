@@ -577,7 +577,7 @@ private:
 
 
     template<class Level>
-    Shapes calcnfp(const Item &trsh, Level)
+    Shapes calcnfp(const Item &/*trsh*/, Level)
     { // Function for arbitrary level of nfp implementation
 
         // TODO: implement
