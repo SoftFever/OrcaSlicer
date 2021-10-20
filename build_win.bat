@@ -65,6 +65,7 @@ SET PS_DESTDIR=
 CALL :RESOLVE_DESTDIR_CACHE
 
 REM Set up parameters used by help menu
+SET EXIT_STATUS=0
 SET PS_CONFIG_DEFAULT=%PS_CONFIG%
 SET PS_ARCH_HOST=%PS_ARCH%
 (echo " -help /help -h /h -? /? ")| findstr /I /C:" %~1 ">nul && GOTO :HELP
@@ -159,11 +160,14 @@ REM Build deps
 :BUILD_DEPS
 SET EXIT_STATUS=3
 SET PS_CURRENT_STEP=deps
-IF "%PS_STEPS_DIRTY%" EQU "" CALL :MAKE_OR_CLEAN_DIRECTORY deps\build "%PS_DEPS_PATH_FILE_NAME%"
+IF "%PS_STEPS_DIRTY%" EQU "" CALL :MAKE_OR_CLEAN_DIRECTORY deps\build "%PS_DEPS_PATH_FILE_NAME%" .vs
 cd deps\build || GOTO :END
-cmake.exe .. -DDESTDIR="%PS_DESTDIR%" || GOTO :END
+cmake.exe .. -DDESTDIR="%PS_DESTDIR%"
+IF %ERRORLEVEL% NEQ 0 IF "%PS_STEPS_DIRTY%" NEQ "" (
+    (del CMakeCache.txt && cmake.exe .. -DDESTDIR="%PS_DESTDIR%") || GOTO :END
+) ELSE GOTO :END
 (echo %PS_DESTDIR%)> "%PS_DEPS_PATH_FILE%"
-msbuild /m ALL_BUILD.vcxproj /p:Configuration=%PS_CONFIG% || GOTO :END
+msbuild /m ALL_BUILD.vcxproj /p:Configuration=%PS_CONFIG%  /v:quiet || GOTO :END
 cd ..\..
 IF /I "%PS_STEPS:~0,4%" EQU "deps" GOTO :RUN_APP
 
@@ -171,7 +175,7 @@ REM Build app
 :BUILD_APP
 SET EXIT_STATUS=4
 SET PS_CURRENT_STEP=app
-IF "%PS_STEPS_DIRTY%" EQU "" CALL :MAKE_OR_CLEAN_DIRECTORY build "%PS_CUSTOM_RUN_FILE%"
+IF "%PS_STEPS_DIRTY%" EQU "" CALL :MAKE_OR_CLEAN_DIRECTORY build "%PS_CUSTOM_RUN_FILE%" .vs
 cd build || GOTO :END
 REM Make sure we have a custom batch file skeleton for the run stage
 set PS_CUSTOM_BAT=%PS_CUSTOM_RUN_FILE%
@@ -181,9 +185,12 @@ SET PS_PROJECT_IS_OPEN=
 FOR /F "tokens=2 delims=," %%I in (
     'tasklist /V /FI "IMAGENAME eq devenv.exe " /NH /FO CSV ^| find "%PS_SOLUTION_NAME%"'
 ) do SET PS_PROJECT_IS_OPEN=%%~I
-cmake.exe .. -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST% || GOTO :END
+cmake.exe .. -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST%
+IF %ERRORLEVEL% NEQ 0 IF "%PS_STEPS_DIRTY%" NEQ "" (
+    (del CMakeCache.txt && cmake.exe .. -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST%) || GOTO :END
+) ELSE GOTO :END
 REM Skip the build step if we're using the undocumented app-cmake to regenerate the full config from inside devenv
-IF "%PS_STEPS%" NEQ "app-cmake" msbuild /m ALL_BUILD.vcxproj /p:Configuration=%PS_CONFIG% || GOTO :END
+IF "%PS_STEPS%" NEQ "app-cmake" msbuild /m ALL_BUILD.vcxproj /p:Configuration=%PS_CONFIG% /v:quiet || GOTO :END
 (echo %PS_DESTDIR%)> "%PS_DEPS_PATH_FILE_FOR_CONFIG%"
 
 REM Run app
@@ -262,8 +269,11 @@ REM Functions and stubs start here.
 
 :RESOLVE_DESTDIR_CACHE
 @REM Resolves all DESTDIR cache values and sets PS_STEPS_DEFAULT
-@REM Note: This just sets global variableq, so it doesn't use setlocal.
-SET PS_DEPS_PATH_FILE_FOR_CONFIG=%~dp0build\%PS_ARCH%\%PS_CONFIG%\%PS_DEPS_PATH_FILE_NAME%
+@REM Note: This just sets global variables, so it doesn't use setlocal.
+SET PS_DEPS_PATH_FILE_FOR_CONFIG=%~dp0build\.vs\%PS_ARCH%\%PS_CONFIG%\%PS_DEPS_PATH_FILE_NAME%
+mkdir "%~dp0build\.vs\%PS_ARCH%\%PS_CONFIG%" > nul 2> nul
+REM Copy a legacy file if we don't have one in the proper location.
+echo f|xcopy /D "%~dp0build\%PS_ARCH%\%PS_CONFIG%\%PS_DEPS_PATH_FILE_NAME%" "%PS_DEPS_PATH_FILE_FOR_CONFIG%"
 CALL :CANONICALIZE_PATH PS_DEPS_PATH_FILE_FOR_CONFIG
 IF EXIST "%PS_DEPS_PATH_FILE_FOR_CONFIG%" (
     FOR /F "tokens=* USEBACKQ" %%I IN ("%PS_DEPS_PATH_FILE_FOR_CONFIG%") DO (

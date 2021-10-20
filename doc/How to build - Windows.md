@@ -3,7 +3,7 @@
 ### Install the tools
 
 Install Visual Studio Community 2019 from [visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/). Older versions are not supported as PrusaSlicer requires support for C++17.
-Select all workload options for C++ 
+Select all workload options for C++ and make sure to launch Visual Studio after install (to ensure that the full setup completes).
 
 Install git for Windows from [gitforwindows.org](https://gitforwindows.org/)
 Download and run the exe accepting all defaults
@@ -16,6 +16,42 @@ c:> mkdir src
 c:> cd src
 c:\src> git clone https://github.com/prusa3d/PrusaSlicer.git
 ```
+
+### Run the automatic build script
+
+The script `build_win.bat` will automatically find the default Visual Studio installation, set up the build environment, and then run both CMake and MSBuild to generate the dependencies and application as needed. If you'd rather do these steps manually, you can skip to the [Manual Build Instructions](#manual-build-instructions) in the next section. Otherwise, just run the following command to get everything going with the default configs:
+
+```
+c:\src>cd c:\src\PrusaSlicer
+c:\src\PrusaSlicer>build_win.bat -d=..\PrusaSlicer-deps -r=console
+```
+
+The build script will run for a while (over an hour, depending on your machine) and automatically perform the following steps:
+1. Configure and build [deps](#compile-the-dependencies) as RelWithDebInfo with `c:\src\PrusaSlicer-deps` as the destination directory
+2. Configure and build all [application targets](#compile-prusaslicer) as RelWithDebInfo
+3. Launch the resulting `prusa-slicer-console.exe` binary
+
+You can change the above command line options to do things like:
+* Change the destination for the dependencies by pointing `-d` to a different directory such as: `build_win.bat -d=s:\PrusaSlicerDeps`
+* Open the solution in Visual Studio after the build completes by changing the `-r` switch to `-r=ide`
+* Generate a release build without debug info by adding `-c=Release` or a full debug build with `-c=Debug`
+* Perform an incremental application build (the default) with: `build_win.bat -s=app-dirty`
+* Clean and rebuild the application: `build_win.bat -s=app`
+* Clean and rebuild the dependencies: `build_win.bat -s=deps`
+* Clean and rebuild everything (app and deps): `build_win.bat -s=all`
+* _The full list of build script options can be listed by running:_ `build_win.bat -?`
+
+### Troubleshooting
+
+You're best off initiating builds from within Visual Studio for day-to-day development. However, the `build_win.bat` script can be very helpful if you run into build failures after updating your source tree. Here are some tips to keep in mind:
+* The last several lines of output from `build_win.bat` will usually have the most helpful error messages.
+* If CMake complains about missing binaries or paths (e.g. after updating Visual Studio), building with `build_win.bat` will force CMake to regenerate its cache on an error.
+* After a deps change, you may just need to rebuild everything with the `-s=all` switch.
+* Reading through the instructions in the next section may help diagnose more complex issues.
+
+# Manual Build Instructions
+
+_Follow the steps below if you want to understand how to perform a manual build, or if you're troubleshooting issues with the automatic build script._
 
 ### Compile the dependencies.
 Dependencies are updated seldomly, thus they are compiled out of the PrusaSlicer source tree.
