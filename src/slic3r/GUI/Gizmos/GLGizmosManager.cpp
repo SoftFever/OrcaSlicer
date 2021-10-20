@@ -721,6 +721,12 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
             processed = true;
         }
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        else if (evt.LeftUp()) {
+            selection.stop_dragging();
+            wxGetApp().obj_manipul()->set_dirty();
+        }
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     }
     else {
         // mouse inside toolbar
