@@ -1216,7 +1216,7 @@ DynamicConfig SLAPrintStatistics::config() const
 DynamicConfig SLAPrintStatistics::placeholders()
 {
     DynamicConfig config;
-    for (const std::string &key : {
+    for (const char *key : {
         "print_time", "total_cost", "total_weight",
         "objects_used_material", "support_used_material" })
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
