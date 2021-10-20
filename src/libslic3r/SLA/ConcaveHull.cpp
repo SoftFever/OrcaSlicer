@@ -40,36 +40,6 @@ Point ConcaveHull::centroid(const Points &pp)
     return c;
 }
 
-// As it shows, the current offset_ex in ClipperUtils hangs if used in jtRound
-// mode
-template<typename PolygonsProvider>
-static ClipperLib::Paths fast_offset(PolygonsProvider             &&paths,
-                                     coord_t                        delta,
-                                     ClipperLib::JoinType           jointype)
-{
-    using ClipperLib::ClipperOffset;
-    using ClipperLib::etClosedPolygon;
-    using ClipperLib::Paths;
-    using ClipperLib::Path;
-
-    ClipperOffset offs;
-    offs.ArcTolerance = scaled<double>(0.01);
-
-    for (auto &p : paths)
-        // If the input is not at least a triangle, we can not do this algorithm
-        if(p.size() < 3) {
-            BOOST_LOG_TRIVIAL(error) << "Invalid geometry for offsetting!";
-            return {};
-        }
-
-    offs.AddPaths(std::forward<PolygonsProvider>(paths), jointype, etClosedPolygon);
-
-    Paths result;
-    offs.Execute(result, static_cast<double>(delta));
-
-    return result;
-}
-
 Points ConcaveHull::calculate_centroids() const
 {
     // We get the centroids of all the islands in the 2D slice
@@ -158,15 +128,17 @@ ExPolygons ConcaveHull::to_expolygons() const
 
 ExPolygons offset_waffle_style_ex(const ConcaveHull &hull, coord_t delta)
 {
-    ExPolygons ret = ClipperPaths_to_Slic3rExPolygons(
-        fast_offset(fast_offset(ClipperUtils::PolygonsProvider(hull.polygons()), 2 * delta, ClipperLib::jtRound), -delta, ClipperLib::jtRound));
-    for (ExPolygon &p : ret) p.holes.clear();
-    return ret;
+    return to_expolygons(offset_waffle_style(hull, delta));
 }
 
 Polygons offset_waffle_style(const ConcaveHull &hull, coord_t delta)
 {
-    return to_polygons(offset_waffle_style_ex(hull, delta));
+    Polygons res = closing(hull.polygons(), 2 * delta, delta, ClipperLib::jtRound);
+
+    auto it = std::remove_if(res.begin(), res.end(), [](Polygon &p) { return p.is_clockwise(); });
+    res.erase(it, res.end());
+
+    return res;
 }
 
 }} // namespace Slic3r::sla
