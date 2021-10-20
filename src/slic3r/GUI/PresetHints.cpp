@@ -34,11 +34,17 @@ std::string PresetHints::cooling_description(const Preset &preset)
                               "so that no less than %3%s are spent on that layer "
                               "(however, speed will never be reduced below %4%mm/s)."),
                               slowdown_below_layer_time, max_fan_speed, slowdown_below_layer_time, min_print_speed);
-        if (fan_below_layer_time > slowdown_below_layer_time)
-            out += "\n" + 
-                GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
+        if (fan_below_layer_time > slowdown_below_layer_time) {
+            out += "\n";
+            if (min_fan_speed != max_fan_speed)
+                out += GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
                                "fan will run at a proportionally decreasing speed between %2%%% and %3%%%."),
                                fan_below_layer_time, max_fan_speed, min_fan_speed);
+            else
+                out += GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
+                               "fan will run at %2%%%"),
+                               fan_below_layer_time, min_fan_speed);
+        }
         out += "\n";
     }
 	if (preset.config.opt_bool("fan_always_on", 0)) {
