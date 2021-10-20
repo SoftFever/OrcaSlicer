@@ -100,6 +100,7 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
                 GLGizmoSimplify* simplify = dynamic_cast<GLGizmoSimplify*>(manager.get_current());
                 if (simplify == nullptr) return close_notification;
                 simplify->set_center_position();
+                return close_notification;
             };
         manager.push_simplify_suggestion_notification(
             t, objects[object_id]->id(), hypertext, open_simplify);
