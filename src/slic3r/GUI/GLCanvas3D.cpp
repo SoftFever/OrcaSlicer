@@ -2568,12 +2568,15 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             if (camera_space) {
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> inv_view_3x3 = wxGetApp().plater()->get_camera().get_view_matrix().inverse().matrix().block(0, 0, 3, 3);
                 displacement = multiplier * (inv_view_3x3 * direction);
-                displacement(2) = 0.0;
+                displacement.z() = 0.0;
             }
             else
                 displacement = multiplier * direction;
 
             m_selection.translate(displacement);
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            m_selection.stop_dragging();
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
             m_dirty = true;
         }
     );
@@ -2672,6 +2675,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     auto do_rotate = [this](double angle_z_rad) {
                         m_selection.start_dragging();
                         m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+                        m_selection.stop_dragging();
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
                         m_dirty = true;
 //                        wxGetApp().obj_manipul()->set_dirty();
                     };
