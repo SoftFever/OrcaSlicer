@@ -114,6 +114,7 @@ static ConstPrintObjectPtrs get_top_level_objects_with_brim(const Print &print, 
     clipper.AddPaths(islands_clip, ClipperLib_Z::ptSubject, true);
     // Execute union operation to construct polytree
     ClipperLib_Z::PolyTree islands_polytree;
+    //FIXME likely pftNonZero or ptfPositive would be better. Why are we using ptfEvenOdd for Unions?
     clipper.Execute(ClipperLib_Z::ctUnion, islands_polytree, ClipperLib_Z::pftEvenOdd, ClipperLib_Z::pftEvenOdd);
 
     std::unordered_set<size_t> processed_objects_idx;
@@ -486,7 +487,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 		    clipper.AddPaths(input_subject, ClipperLib_Z::ptSubject, true);
 		    clipper.AddPaths(input_clip,    ClipperLib_Z::ptClip,    true);
 		    // perform operation
-		    clipper.Execute(ClipperLib_Z::ctDifference, trimming, ClipperLib_Z::pftEvenOdd, ClipperLib_Z::pftEvenOdd);
+		    clipper.Execute(ClipperLib_Z::ctDifference, trimming, ClipperLib_Z::pftNonZero, ClipperLib_Z::pftNonZero);
 		}
 
 		// Second, trim the extrusion loops with the trimming regions.
@@ -515,7 +516,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 			clipper.AddPaths(trimming,   ClipperLib_Z::ptClip,    true);
 			// perform operation
 			ClipperLib_Z::PolyTree loops_trimmed_tree;
-			clipper.Execute(ClipperLib_Z::ctDifference, loops_trimmed_tree, ClipperLib_Z::pftEvenOdd, ClipperLib_Z::pftEvenOdd);
+			clipper.Execute(ClipperLib_Z::ctDifference, loops_trimmed_tree, ClipperLib_Z::pftNonZero, ClipperLib_Z::pftNonZero);
 			ClipperLib_Z::PolyTreeToPaths(loops_trimmed_tree, loops_trimmed);
 		}
 
