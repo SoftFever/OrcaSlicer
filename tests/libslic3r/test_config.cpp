@@ -220,7 +220,7 @@ SCENARIO("DynamicPrintConfig serialization", "[Config]") {
             cereal::BinaryOutputArchive oarchive(ss);
             oarchive(cfg);
             serialized = ss.str();
-        } catch (std::runtime_error e) {
+        } catch (std::runtime_error &e) {
             e.what();
         }
 
@@ -230,7 +230,7 @@ SCENARIO("DynamicPrintConfig serialization", "[Config]") {
                 std::stringstream ss(serialized);
                 cereal::BinaryInputArchive iarchive(ss);
                 iarchive(cfg2);
-            } catch (std::runtime_error e) {
+            } catch (std::runtime_error &e) {
                 e.what();
             }
             REQUIRE(cfg == cfg2);

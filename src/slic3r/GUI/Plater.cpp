@@ -205,7 +205,7 @@ void ObjectInfo::msw_rescale()
 
 void ObjectInfo::update_warning_icon(const std::string& warning_icon_name)
 {
-    if (showing_manifold_warning_icon = !warning_icon_name.empty()) {
+    if ((showing_manifold_warning_icon = !warning_icon_name.empty())) {
         m_warning_icon_name = warning_icon_name;
         manifold_warning_icon->SetBitmap(create_scaled_bitmap(m_warning_icon_name));
     }

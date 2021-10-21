@@ -1433,7 +1433,7 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
     selection_changed();
 }
 /*
-void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery/* = false* /)
+void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false)
 {
     if (type != ModelVolumeType::MODEL_PART)
         return;

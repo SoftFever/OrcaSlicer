@@ -306,7 +306,7 @@ ImVec2 ImGuiWrapper::get_item_spacing() const
 {
     const ImGuiContext &g     = *GImGui;
     const ImGuiStyle   &style = g.Style;
-    return g.Style.ItemSpacing;
+    return style.ItemSpacing;
 }
 
 float ImGuiWrapper::get_slider_float_height() const

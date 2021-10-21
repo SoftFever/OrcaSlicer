@@ -201,7 +201,7 @@ void OptionsGroup::activate_line(Line& line)
     if (line.is_separator())
         return;
 
-	m_use_custom_ctrl_as_parent = false;
+    m_use_custom_ctrl_as_parent = false;
 
 	if (line.full_width && (
 		line.widget != nullptr ||

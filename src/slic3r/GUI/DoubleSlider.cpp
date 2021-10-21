@@ -2080,7 +2080,7 @@ void Control::auto_color_change()
     }
 
     int extruders_cnt = GUI::wxGetApp().extruders_edited_cnt();
-    int extruder = 2;
+//    int extruder = 2;
 
     const Print& print = GUI::wxGetApp().plater()->fff_print();  
     for (auto object : print.objects()) {
