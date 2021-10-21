@@ -3970,10 +3970,16 @@ std::string validate(const FullPrintConfig &cfg)
         if (em <= 0)
             return "Invalid value for --extrusion-multiplier";
 
+    // The following test was commented out after 482841b, see also https://github.com/prusa3d/PrusaSlicer/pull/6743.
+    // The backend should now handle this case correctly. I.e., zero default_acceleration behaves as if all others
+    // were zero too. This is now consistent with what the UI said would happen.
+    // The UI already grays the fields out, there is no more reason to reject it here. This function validates the
+    // config before exporting, leaving this check in would mean that config would be rejected before export
+    // (although both the UI and the backend handle it).
     // --default-acceleration
-    if ((cfg.perimeter_acceleration != 0. || cfg.infill_acceleration != 0. || cfg.bridge_acceleration != 0. || cfg.first_layer_acceleration != 0.) &&
-        cfg.default_acceleration == 0.)
-        return "Invalid zero value for --default-acceleration when using other acceleration settings";
+    //if ((cfg.perimeter_acceleration != 0. || cfg.infill_acceleration != 0. || cfg.bridge_acceleration != 0. || cfg.first_layer_acceleration != 0.) &&
+    //    cfg.default_acceleration == 0.)
+    //    return "Invalid zero value for --default-acceleration when using other acceleration settings";
 
     // --spiral-vase
     if (cfg.spiral_vase) {
