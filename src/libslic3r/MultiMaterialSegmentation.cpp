@@ -1324,6 +1324,18 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
             }
     }
 
+    auto filter_out_small_polygons = [&num_extruders, &num_layers](std::vector<std::vector<Polygons>> &raw_surfaces, double min_area) -> void {
+        for (size_t extruder_idx = 0; extruder_idx < num_extruders; ++extruder_idx)
+            if (!raw_surfaces[extruder_idx].empty())
+                for (size_t layer_idx = 0; layer_idx < num_layers; ++layer_idx)
+                    if (!raw_surfaces[extruder_idx][layer_idx].empty())
+                        remove_small(raw_surfaces[extruder_idx][layer_idx], min_area);
+    };
+
+    // Filter out polygons less than 0.1mm^2, because they are unprintable and causing dimples on outer primers (#7104)
+    filter_out_small_polygons(top_raw, Slic3r::sqr(scale_(0.1f)));
+    filter_out_small_polygons(bottom_raw, Slic3r::sqr(scale_(0.1f)));
+
 #ifdef MMU_SEGMENTATION_DEBUG_TOP_BOTTOM
     {
         const char* colors[] = { "aqua", "black", "blue", "fuchsia", "gray", "green", "lime", "maroon", "navy", "olive", "purple", "red", "silver", "teal", "yellow" };
