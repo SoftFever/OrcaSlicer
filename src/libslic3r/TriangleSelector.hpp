@@ -4,6 +4,7 @@
 // #define PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 
 
+#include <cfloat>
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
 
@@ -20,6 +21,18 @@ public:
         CIRCLE,
         SPHERE,
         POINTER
+    };
+
+    struct ClippingPlane
+    {
+        Vec3f normal;
+        float offset;
+        ClippingPlane() : normal{0.f, 0.f, 1.f}, offset{FLT_MAX} {};
+        explicit ClippingPlane(const std::array<float, 4> &clp) : normal{clp[0], clp[1], clp[2]}, offset{clp[3]} {}
+
+        bool is_active() const { return offset != FLT_MAX; }
+
+        bool is_mesh_point_clipped(const Vec3f &point) const { return normal.dot(point) - offset > 0.f; }
     };
 
     std::pair<std::vector<Vec3i>, std::vector<Vec3i>> precompute_all_neighbors() const;
@@ -47,19 +60,22 @@ public:
                       const Transform3d  &trafo,       // matrix to get from mesh to world
                       const Transform3d  &trafo_no_translate,            // matrix to get from mesh to world without translation
                       bool                triangle_splitting,            // If triangles will be split base on the cursor or not
+                      const ClippingPlane &clp,                          // Clipping plane to limit painting to not clipped facets only
                       float               highlight_by_angle_deg = 0.f); // The maximal angle of overhang. If it is set to a non-zero value, it is possible to paint only the triangles of overhang defined by this angle in degrees.
 
-    void seed_fill_select_triangles(const Vec3f       &hit,                          // point where to start
-                                    int                facet_start,                  // facet of the original mesh (unsplit) that the hit point belongs to
-                                    const Transform3d &trafo_no_translate,           // matrix to get from mesh to world without translation
-                                    float              seed_fill_angle,              // the maximal angle between two facets to be painted by the same color
-                                    float              highlight_by_angle_deg = 0.f, // The maximal angle of overhang. If it is set to a non-zero value, it is possible to paint only the triangles of overhang defined by this angle in degrees.
-                                    bool               force_reselection = false);   // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
+    void seed_fill_select_triangles(const Vec3f        &hit,                          // point where to start
+                                    int                 facet_start,                  // facet of the original mesh (unsplit) that the hit point belongs to
+                                    const Transform3d  &trafo_no_translate,           // matrix to get from mesh to world without translation
+                                    const ClippingPlane &clp,                         // Clipping plane to limit painting to not clipped facets only
+                                    float               seed_fill_angle,              // the maximal angle between two facets to be painted by the same color
+                                    float               highlight_by_angle_deg = 0.f, // The maximal angle of overhang. If it is set to a non-zero value, it is possible to paint only the triangles of overhang defined by this angle in degrees.
+                                    bool                force_reselection = false);   // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
 
-    void bucket_fill_select_triangles(const Vec3f &hit,             // point where to start
-                                      int          facet_start,     // facet of the original mesh (unsplit) that the hit point belongs to
-                                      bool         propagate,       // if bucket fill is propagated to neighbor faces or if it fills the only facet of the modified mesh that the hit point belongs to.
-                                      bool         force_reselection = false); // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
+    void bucket_fill_select_triangles(const Vec3f         &hit,                        // point where to start
+                                      int                  facet_start,                // facet of the original mesh (unsplit) that the hit point belongs to
+                                      const ClippingPlane &clp,                        // Clipping plane to limit painting to not clipped facets only
+                                      bool                 propagate,                  // if bucket fill is propagated to neighbor faces or if it fills the only facet of the modified mesh that the hit point belongs to.
+                                      bool                 force_reselection = false); // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
 
     bool                 has_facets(EnforcerBlockerType state) const;
     static bool          has_facets(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, EnforcerBlockerType test_state);
@@ -183,8 +199,8 @@ protected:
     struct Cursor {
         Cursor() = default;
         Cursor(const Vec3f& center_, const Vec3f& source_, float radius_world,
-               CursorType type_, const Transform3d& trafo_);
-        bool is_mesh_point_inside(Vec3f pt) const;
+               CursorType type_, const Transform3d& trafo_, const ClippingPlane &clipping_plane_);
+        bool is_mesh_point_inside(const Vec3f &pt) const;
         bool is_pointer_in_triangle(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3) const;
 
         Vec3f center;
@@ -195,6 +211,7 @@ protected:
         Transform3f trafo;
         Transform3f trafo_normal;
         bool uniform_scaling;
+        ClippingPlane clipping_plane;
     };
 
     Cursor m_cursor;
@@ -211,6 +228,7 @@ private:
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
     bool is_pointer_in_triangle(int facet_idx) const;
     bool is_edge_inside_cursor(int facet_idx) const;
+    bool is_facet_clipped(int facet_idx, const ClippingPlane &clp) const;
     int  push_triangle(int a, int b, int c, int source_triangle, EnforcerBlockerType state = EnforcerBlockerType{0});
     void perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state);
     Vec3i child_neighbors(const Triangle &tr, const Vec3i &neighbors, int child_idx) const;

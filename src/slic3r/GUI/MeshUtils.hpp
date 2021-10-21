@@ -53,6 +53,7 @@ public:
         m_data[2] = norm_dir.z();
     }
     void set_offset(double offset) { m_data[3] = offset; }
+    double get_offset() const { return m_data[3]; }
     Vec3d get_normal() const { return Vec3d(m_data[0], m_data[1], m_data[2]); }
     bool is_active() const { return m_data[3] != DBL_MAX; }
     static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }

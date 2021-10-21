@@ -184,6 +184,8 @@ protected:
 
     ClippingPlaneDataWrapper get_clipping_plane_data() const;
 
+    TriangleSelector::ClippingPlane get_clipping_plane_in_volume_coordinates(const Transform3d &trafo) const;
+
 private:
     bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;
     void update_raycast_cache(const Vec2d& mouse_position,
