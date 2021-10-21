@@ -1509,7 +1509,7 @@ void NotificationManager::push_notification(NotificationType type,
                                             std::function<bool(wxEvtHandler*)> callback,
                                             int timestamp)
 {
-	int duration = get_standart_duration(level);
+	int duration = get_standard_duration(level);
     push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
 }
 

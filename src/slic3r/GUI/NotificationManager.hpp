@@ -713,7 +713,7 @@ private:
 	void sort_notifications();
 	// If there is some error notification active, then the "Export G-code" notification after the slicing is finished is suppressed.
     bool has_slicing_error_notification();
-	size_t get_standart_duration(NotificationLevel level)
+	size_t get_standard_duration(NotificationLevel level)
 	{
 		switch (level) {
 		
