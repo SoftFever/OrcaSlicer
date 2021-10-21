@@ -267,7 +267,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::NewLine();
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    ImGui::Text(_L("%d triangles").c_str(), m_configuration.wanted_count);
+    ImGui::Text(_u8L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
     if (ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe)) {
@@ -277,7 +277,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     bool is_canceling = m_state == State::canceling;
     m_imgui->disabled_begin(is_canceling);
-    if (m_imgui->button(_L("Cancel"))) {
+    if (m_imgui->button(_u8L("Cancel"))) {
         if (m_state == State::settings) {
             if (m_original_its.has_value()) {
                 set_its(*m_original_its);
@@ -296,7 +296,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     bool is_processing = m_state != State::settings;
     m_imgui->disabled_begin(is_processing);
-    if (m_imgui->button(_L("Apply"))) {
+    if (m_imgui->button(_u8L("Apply"))) {
         if (!m_is_valid_result) {
             m_state = State::close_on_end;
             process();
@@ -397,7 +397,7 @@ void GLGizmoSimplify::process()
 
         // store previous state
         auto plater = wxGetApp().plater();
-        plater->take_snapshot(_L("Simplify ") + m_volume->name);
+        plater->take_snapshot(_u8L("Simplify ") + m_volume->name);
         plater->clear_before_change_mesh(m_obj_index);
     }
     
