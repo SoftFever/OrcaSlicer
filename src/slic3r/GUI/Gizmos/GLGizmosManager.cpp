@@ -715,6 +715,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (evt.LeftUp() && m_current == Flatten && m_gizmos[m_current]->get_hover_id() != -1) {
             // to avoid to loose the selection when user clicks an the white faces of a different object while the Flatten gizmo is active
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+            selection.stop_dragging();
+            wxGetApp().obj_manipul()->set_dirty();
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
             processed = true;
         }
         else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation) && !m_parent.is_mouse_dragging()) {
