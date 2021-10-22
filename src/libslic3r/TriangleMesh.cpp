@@ -1041,14 +1041,16 @@ indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
         // The qhull call:
         orgQhull::Qhull qhull;
         qhull.disableOutputStream(); // we want qhull to be quiet
+    #if ! REALfloat
         std::vector<realT> src_vertices;
+    #endif
         try {
     #if REALfloat
             qhull.runQhull("", 3, (int)pts.size(), (const realT*)(pts.front().data()), "Qt");
     #else
-            src_vertices.reserve(this->its.vertices.size() * 3);
+            src_vertices.reserve(pts.size() * 3);
             // We will now fill the vector with input points for computation:
-            for (const stl_vertex &v : this->its.vertices)
+            for (const stl_vertex &v : pts)
                 for (int i = 0; i < 3; ++ i)
                     src_vertices.emplace_back(v(i));
             qhull.runQhull("", 3, (int)src_vertices.size() / 3, src_vertices.data(), "Qt");
