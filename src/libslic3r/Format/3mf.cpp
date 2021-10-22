@@ -916,7 +916,12 @@ namespace Slic3r {
             }
             //FIXME Loading a "will be one day a legacy format" of configuration in a form of a G-code comment.
             // Each config line is prefixed with a semicolon (G-code comment), that is ugly.
-            config_substitutions.substitutions = config.load_from_ini_string_commented(std::move(buffer), config_substitutions.rule);
+
+            // Replacing the legacy function with load_from_ini_string_commented leads to issues when
+            // parsing 3MFs from before PrusaSlicer 2.0.0 (which can have duplicated entries in the INI.
+            // See https://github.com/prusa3d/PrusaSlicer/issues/7155. We'll revert it for now.
+            //config_substitutions.substitutions = config.load_from_ini_string_commented(std::move(buffer), config_substitutions.rule);
+            ConfigBase::load_from_gcode_string_legacy(config, buffer.data(), config_substitutions);
         }
     }
 
