@@ -2,7 +2,9 @@
 #define libslic3r_SeamPlacer_hpp_
 
 #include <optional>
+#include <vector>
 
+#include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/BoundingBox.hpp"
@@ -41,15 +43,29 @@ class SeamPlacer {
 public:
     void init(const Print& print);
 
-    Point get_seam(const Layer& layer, const SeamPosition seam_position,
-                   const ExtrusionLoop& loop, Point last_pos,
-                   coordf_t nozzle_diameter, const PrintObject* po,
-                   bool was_clockwise, const EdgeGrid::Grid* lower_layer_edge_grid);
+    // When perimeters are printed, first call this function with the respective
+    // external perimeter. SeamPlacer will find a location for its seam and remember it.
+    // Subsequent calls to get_seam will return this position.
+
+
+    void plan_perimeters(const std::vector<const ExtrusionEntity*> perimeters,
+        const Layer& layer, SeamPosition seam_position,
+        Point last_pos, coordf_t nozzle_dmr, const PrintObject* po,
+        const EdgeGrid::Grid* lower_layer_edge_grid);
+
+    void place_seam(ExtrusionLoop& loop, const Point& last_pos, bool external_first, double nozzle_diameter,
+                    const EdgeGrid::Grid* lower_layer_edge_grid);
+    
 
     using TreeType = AABBTreeIndirect::Tree<2, coord_t>;
     using AlignedBoxType = Eigen::AlignedBox<TreeType::CoordType, TreeType::NumDimensions>;
 
 private:
+
+    // When given an external perimeter (!), returns the seam.
+    Point calculate_seam(const Layer& layer, const SeamPosition seam_position,
+        const ExtrusionLoop& loop, coordf_t nozzle_dmr, const PrintObject* po,
+        const EdgeGrid::Grid* lower_layer_edge_grid, Point last_pos);
 
     struct CustomTrianglesPerLayer {
         Polygons polys;
@@ -61,7 +77,16 @@ private:
     coordf_t m_last_print_z = -1.;
     const PrintObject* m_last_po = nullptr;
 
-    bool m_last_loop_was_external = true;
+    struct SeamPoint {
+        Point pt;
+        bool precalculated = false;
+        bool external = false;
+        const Layer* layer = nullptr;
+        SeamPosition seam_position;
+        const PrintObject* po = nullptr;
+    };
+    std::vector<SeamPoint> m_plan;
+    size_t m_plan_idx;
 
     std::vector<std::vector<CustomTrianglesPerLayer>> m_enforcers;
     std::vector<std::vector<CustomTrianglesPerLayer>> m_blockers;

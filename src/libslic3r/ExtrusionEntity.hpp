@@ -258,6 +258,7 @@ public:
     double length() const override;
     bool split_at_vertex(const Point &point);
     void split_at(const Point &point, bool prefer_non_overhang);
+    std::pair<size_t, Point> get_closest_path_and_point(const Point& point, bool prefer_non_overhang) const;
     void clip_end(double distance, ExtrusionPaths* paths) const;
     // Test, whether the point is extruded by a bridging flow.
     // This used to be used to avoid placing seams on overhangs, but now the EdgeGrid is used instead.
