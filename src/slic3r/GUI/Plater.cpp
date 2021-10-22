@@ -4178,8 +4178,11 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
     wxMenu* menu = nullptr;
 
     if (obj_idx == -1) { // no one or several object are selected
-        if (evt.data.second) // right button was clicked on empty space
+        if (evt.data.second) { // right button was clicked on empty space
+            if (!get_selection().is_empty()) // several objects are selected in 3DScene
+                return;
             menu = menus.default_menu();
+        }
         else
             menu = menus.multi_selection_menu();
     }
