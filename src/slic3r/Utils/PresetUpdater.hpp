@@ -13,7 +13,7 @@ class AppConfig;
 class PresetBundle;
 class Semver;
 
-const int SLIC3R_VERSION_BODY_MAX = 256;
+static constexpr const int SLIC3R_VERSION_BODY_MAX = 256;
 
 class PresetUpdater
 {
