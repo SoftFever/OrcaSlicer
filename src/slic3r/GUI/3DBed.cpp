@@ -271,7 +271,8 @@ bool Bed3D::is_circle(const Pointfs& shape, Vec2d* center, double* radius)
 
     // Analyze the array of points.
     // Do they reside on a circle ?
-    const Vec2d box_center = BoundingBoxf(shape).center();
+    const Vec2d box_center = Geometry::circle_center_taubin_newton(shape);
+
     std::vector<double> vertex_distances;
     double avg_dist = 0.0;
     for (const Vec2d& pt : shape) {
