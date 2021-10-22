@@ -67,8 +67,9 @@ public:
     SendSystemInfoDialog(wxWindow* parent);
 
 private:
-    bool send_info();
+    wxString send_info();
     const std::string m_system_info_json;
+    wxButton* m_btn_show_data;
     wxButton* m_btn_send;
     wxButton* m_btn_dont_send;
     wxButton* m_btn_ask_later;
@@ -89,7 +90,7 @@ public:
         auto* btn = new wxButton(this, wxID_CANCEL, _L("Cancel"));
         auto* vsizer = new wxBoxSizer(wxVERTICAL);
         auto *top_sizer = new wxBoxSizer(wxVERTICAL);
-        vsizer->Add(text, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL);
+        vsizer->Add(text, 1, wxEXPAND);
         vsizer->AddSpacer(5);
         vsizer->Add(btn, 0, wxALIGN_CENTER_HORIZONTAL);
         top_sizer->Add(vsizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT | wxBOTTOM, 10);
@@ -548,7 +549,6 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
            "installation are sent. PrusaSlicer is open source, if you want to "
            "inspect the code actually performing the communication, see %1%."),
            std::string("<i>") + filename + "</i>");
-    wxString label3 = _L("Show verbatim data that will be sent");
 
     auto* html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxSize(70*em, 34*em), wxHW_SCROLLBAR_NEVER);
     wxString html = GUI::format_wxstr(
@@ -560,16 +560,13 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
             + text1 + "<br /><br />"
             "</td></tr></table>"
             + "<b>" + label2 + "</b><br />"
-            + text2 + "<br /><br />"
-            + "<b><a href=\"show\">" + label3 + "</a></b><br />"
+            + text2
             + "</font></body></html>", bgr_clr_str, text_clr_str);
     html_window->SetPage(html);
-    html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent&) {
-                                                   ShowJsonDialog dlg(this, m_system_info_json, GetSize().Scale(0.9, 0.7));
-                                                   dlg.ShowModal();
-    });
 
     vsizer->Add(html_window, 1, wxEXPAND);
+
+    m_btn_show_data = new wxButton(this, wxID_ANY, _L("Show verbatim data that will be sent"));
 
     m_btn_ask_later = new wxButton(this, wxID_ANY, _L("Ask me next time"));
     m_btn_dont_send = new wxButton(this, wxID_ANY, _L("Do not send anything"));
@@ -582,6 +579,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     hsizer->AddSpacer(em);
     hsizer->Add(m_btn_send);
 
+    vsizer->Add(m_btn_show_data, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 20);
     vsizer->Add(hsizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 10);
     topSizer->Add(vsizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 10);
 
@@ -599,9 +597,15 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
 
     CenterOnParent();
 
+    m_btn_show_data->Bind(wxEVT_BUTTON, [this](wxEvent&) {
+                                            ShowJsonDialog dlg(this, m_system_info_json, GetSize().Scale(0.9, 0.7));
+                                            dlg.ShowModal();
+                                        });
+
     m_btn_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                     {
-                                        if (send_info()) {
+                                        if (wxString out = send_info(); !out.IsEmpty()) {
+                                            InfoDialog(nullptr, wxEmptyString, out).ShowModal();
                                             save_version();
                                             EndModal(0);
                                         }
@@ -630,7 +634,7 @@ void SendSystemInfoDialog::on_dpi_changed(const wxRect&)
 
 
 // This actually sends the info.
-bool SendSystemInfoDialog::send_info()
+wxString SendSystemInfoDialog::send_info()
 {
     std::atomic<int> job_done = false; // Flag to communicate between threads.
     struct Result {
@@ -674,11 +678,9 @@ bool SendSystemInfoDialog::send_info()
     job_done = true;       // In case the user closed the dialog, let the other thread know
     sending_thread.join(); // and wait until it terminates.
 
-    if (result.value != Result::Cancelled) { // user knows he cancelled, no need to tell him.
-        InfoDialog info_dlg(wxGetApp().mainframe, wxEmptyString, result.str);
-        info_dlg.ShowModal();
-    }
-    return result.value == Result::Success;
+    if (result.value == Result::Cancelled)
+        return "";
+    return result.str;
 }
 
 
