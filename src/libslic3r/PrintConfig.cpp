@@ -3146,7 +3146,31 @@ void PrintConfigDef::init_sla_params()
     def->tooltip  = L("Printer scaling correction");
     def->min = 0;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloats( { 1., 1. } ));
+    def->set_default_value(new ConfigOptionFloats( { 1., 1.} ));
+
+    def = this->add("relative_correction_x", coFloat);
+    def->label = L("Printer scaling correction in X axis");
+    def->full_label = L("Printer scaling X axis correction");
+    def->tooltip  = L("Printer scaling correction in X axis");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
+    def = this->add("relative_correction_y", coFloat);
+    def->label = L("Printer scaling correction in Y axis");
+    def->full_label = L("Printer scaling X axis correction");
+    def->tooltip  = L("Printer scaling correction in Y axis");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
+    def = this->add("relative_correction_z", coFloat);
+    def->label = L("Printer scaling correction in Z axis");
+    def->full_label = L("Printer scaling X axis correction");
+    def->tooltip  = L("Printer scaling correction in Z axis");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("absolute_correction", coFloat);
     def->label = L("Printer absolute correction");
@@ -3292,7 +3316,28 @@ void PrintConfigDef::init_sla_params()
     def->tooltip  = L("Correction for expansion");
     def->min = 0;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloats( { 1. , 1. } ));
+    def->set_default_value(new ConfigOptionFloats( { 1., 1., 1. } ));
+
+    def = this->add("material_correction_x", coFloat);
+    def->full_label = L("Correction for expansion in X axis");
+    def->tooltip  = L("Correction for expansion in X axis");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
+    def = this->add("material_correction_y", coFloat);
+    def->full_label = L("Correction for expansion in Y axis");
+    def->tooltip  = L("Correction for expansion in Y axis");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
+    def = this->add("material_correction_z", coFloat);
+    def->full_label = L("Correction for expansion in Z axis");
+    def->tooltip  = L("Correction for expansion in Z axis");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("material_notes", coString);
     def->label = L("SLA print material notes");
@@ -3749,7 +3794,16 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "printhost_apikey";
     } else if (opt_key == "preset_name") {
         opt_key = "preset_names";
-    }
+    } /*else if (opt_key == "material_correction" || opt_key == "relative_correction") {
+        ConfigOptionFloats p;
+        p.deserialize(value);
+
+        if (p.values.size() < 3) {
+            double firstval = p.values.front();
+            p.values.emplace(p.values.begin(), firstval);
+            value = p.serialize();
+        }
+    }*/
 
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {
@@ -3862,6 +3916,28 @@ void DynamicPrintConfig::normalize_fdm()
             this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;
             this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
             this->opt<ConfigOptionPercent>("fill_density", true)->value = 0;
+        }
+    }
+}
+
+void  handle_legacy_sla(DynamicPrintConfig &config)
+{
+    for (std::string corr : {"relative_correction", "material_correction"}) {
+        if (config.has(corr)) {
+            if (std::string corr_x = corr + "_x"; !config.has(corr_x)) {
+                auto* opt = config.opt<ConfigOptionFloat>(corr_x, true);
+                opt->value = config.opt<ConfigOptionFloats>(corr)->values[0];
+            }
+
+            if (std::string corr_y = corr + "_y"; !config.has(corr_y)) {
+                auto* opt = config.opt<ConfigOptionFloat>(corr_y, true);
+                opt->value = config.opt<ConfigOptionFloats>(corr)->values[0];
+            }
+
+            if (std::string corr_z = corr + "_z"; !config.has(corr_z)) {
+                auto* opt = config.opt<ConfigOptionFloat>(corr_z, true);
+                opt->value = config.opt<ConfigOptionFloats>(corr)->values[1];
+            }
         }
     }
 }

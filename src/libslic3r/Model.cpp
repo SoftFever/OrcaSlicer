@@ -182,6 +182,8 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
     CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
 
+    handle_legacy_sla(*config);
+
     return model;
 }
 

@@ -224,6 +224,8 @@ public:
         { PrintConfigDef::handle_legacy(opt_key, value); }
 };
 
+void handle_legacy_sla(DynamicPrintConfig &config);
+
 class StaticPrintConfig : public StaticConfig
 {
 public:
@@ -924,6 +926,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                       exposure_time))
     ((ConfigOptionFloat,                       initial_exposure_time))
     ((ConfigOptionFloats,                      material_correction))
+    ((ConfigOptionFloat,                       material_correction_x))
+    ((ConfigOptionFloat,                       material_correction_y))
+    ((ConfigOptionFloat,                       material_correction_z))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -940,6 +945,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                       display_mirror_x))
     ((ConfigOptionBool,                       display_mirror_y))
     ((ConfigOptionFloats,                     relative_correction))
+    ((ConfigOptionFloat,                      relative_correction_x))
+    ((ConfigOptionFloat,                      relative_correction_y))
+    ((ConfigOptionFloat,                      relative_correction_z))
     ((ConfigOptionFloat,                      absolute_correction))
     ((ConfigOptionFloat,                      elefant_foot_compensation))
     ((ConfigOptionFloat,                      elefant_foot_min_width))
