@@ -301,6 +301,9 @@ indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/360));
 indexed_triangle_set    its_make_pyramid(float base, float height);
 indexed_triangle_set    its_make_sphere(double radius, double fa);
 
+indexed_triangle_set        its_convex_hull(const std::vector<Vec3f> &pts);
+inline indexed_triangle_set its_convex_hull(const indexed_triangle_set &its) { return its_convex_hull(its.vertices); }
+
 inline TriangleMesh     make_cube(double x, double y, double z)                 { return TriangleMesh(its_make_cube(x, y, z)); }
 inline TriangleMesh     make_prism(float width, float length, float height)     { return TriangleMesh(its_make_prism(width, length, height)); }
 inline TriangleMesh     make_cylinder(double r, double h, double fa=(2*PI/360)) { return TriangleMesh{its_make_cylinder(r, h, fa)}; }

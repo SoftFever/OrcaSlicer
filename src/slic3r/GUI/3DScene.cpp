@@ -40,12 +40,6 @@
 
 #include <Eigen/Dense>
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-#include <libqhullcpp/Qhull.h>
-#include <libqhullcpp/QhullFacetList.h>
-#include <libqhullcpp/QhullVertexSet.h>
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
 #ifdef HAS_GLSAFE
 void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char* function_name)
 {
@@ -626,100 +620,16 @@ void GLVolume::render_sinking_contours()
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 void GLVolume::calc_convex_hull_3d()
 {
-    if (this->indexed_vertex_array.vertices_and_normals_interleaved.empty())
-        return;
-
-    TriangleMesh mesh;
-    for (size_t i = 0; i < this->indexed_vertex_array.vertices_and_normals_interleaved.size(); i += 6) {
-        const size_t v_id = 3 + i;
-        mesh.its.vertices.push_back({ this->indexed_vertex_array.vertices_and_normals_interleaved[v_id + 0],
-                                      this->indexed_vertex_array.vertices_and_normals_interleaved[v_id + 1],
-                                      this->indexed_vertex_array.vertices_and_normals_interleaved[v_id + 2]
-            });
+    const std::vector<float> &src = this->indexed_vertex_array.vertices_and_normals_interleaved;
+    std::vector<Vec3f>        pts;
+    pts.reserve(src.size() / 6);
+    for (auto it = src.begin() + 3;;) {
+        pts.push_back({ *it, *(it + 1), *(it + 2) });
+        it += 3;
+        if (it == src.end())
+            break;
     }
-
-    const std::vector<Vec3f>& vertices = mesh.its.vertices;
-
-    // The qhull call:
-    orgQhull::Qhull qhull;
-    qhull.disableOutputStream(); // we want qhull to be quiet
-    std::vector<realT> src_vertices;
-    try
-    {
-#if REALfloat
-        qhull.runQhull("", 3, (int)vertices.size(), (const realT*)(vertices.front().data()), "Qt");
-#else
-        src_vertices.reserve(vertices.size() * 3);
-        // We will now fill the vector with input points for computation:
-        for (const stl_vertex& v : vertices)
-            for (int i = 0; i < 3; ++i)
-                src_vertices.emplace_back(v(i));
-        qhull.runQhull("", 3, (int)src_vertices.size() / 3, src_vertices.data(), "Qt");
-#endif
-    }
-    catch (...)
-    {
-        std::cout << "GLVolume::calc_convex_hull_3d() - Unable to create convex hull" << std::endl;
-        return ;
-    }
-
-    // Let's collect results:
-    std::vector<Vec3f>  dst_vertices;
-    std::vector<Vec3i>  dst_facets;
-    // Map of QHull's vertex ID to our own vertex ID (pointing to dst_vertices).
-    std::vector<int>    map_dst_vertices;
-#ifndef NDEBUG
-    Vec3f               centroid = Vec3f::Zero();
-    for (const auto& pt : vertices)
-        centroid += pt;
-    centroid /= float(vertices.size());
-#endif // NDEBUG
-    for (const orgQhull::QhullFacet& facet : qhull.facetList()) {
-        // Collect face vertices first, allocate unique vertices in dst_vertices based on QHull's vertex ID.
-        Vec3i  indices;
-        int    cnt = 0;
-        for (const orgQhull::QhullVertex vertex : facet.vertices()) {
-            const int id = vertex.id();
-            assert(id >= 0);
-            if (id >= int(map_dst_vertices.size()))
-                map_dst_vertices.resize(next_highest_power_of_2(size_t(id + 1)), -1);
-            if (int i = map_dst_vertices[id]; i == -1) {
-                // Allocate a new vertex.
-                i = int(dst_vertices.size());
-                map_dst_vertices[id] = i;
-                orgQhull::QhullPoint pt(vertex.point());
-                dst_vertices.emplace_back(pt[0], pt[1], pt[2]);
-                indices[cnt] = i;
-            }
-            else
-                // Reuse existing vertex.
-                indices[cnt] = i;
-
-            if (cnt++ == 3)
-                break;
-        }
-        assert(cnt == 3);
-        if (cnt == 3) {
-            // QHull sorts vertices of a face lexicographically by their IDs, not by face normals.
-            // Calculate face normal based on the order of vertices.
-            const Vec3f n = (dst_vertices[indices(1)] - dst_vertices[indices(0)]).cross(dst_vertices[indices(2)] - dst_vertices[indices(1)]);
-            auto* n2 = facet.getBaseT()->normal;
-            const auto  d = n.x() * n2[0] + n.y() * n2[1] + n.z() * n2[2];
-#ifndef NDEBUG
-            const Vec3f n3 = (dst_vertices[indices(0)] - centroid);
-            const auto  d3 = n.dot(n3);
-            assert((d < 0.f) == (d3 < 0.f));
-#endif // NDEBUG
-            // Get the face normal from QHull.
-            if (d < 0.f)
-                // Fix face orientation.
-                std::swap(indices[1], indices[2]);
-            dst_facets.emplace_back(indices);
-        }
-    }
-
-    TriangleMesh out_mesh{ std::move(dst_vertices), std::move(dst_facets) };
-    this->set_convex_hull(out_mesh);
+    this->set_convex_hull(TriangleMesh(its_convex_hull(pts)));
 }
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
