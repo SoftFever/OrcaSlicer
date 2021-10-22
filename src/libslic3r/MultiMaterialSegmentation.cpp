@@ -1252,6 +1252,14 @@ static void cut_segmented_layers(const std::vector<ExPolygons>                  
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - cutting segmented layers in parallel - end";
 }
 
+static bool is_volume_sinking(const indexed_triangle_set &its, const Transform3d &trafo)
+{
+    const Transform3f trafo_f = trafo.cast<float>();
+    for (const stl_vertex &vertex : its.vertices)
+        if ((trafo_f * vertex).z() < SINKING_Z_THRESHOLD) return true;
+    return false;
+}
+
 //#define MMU_SEGMENTATION_DEBUG_TOP_BOTTOM
 
 // Returns MMU segmentation of top and bottom layers based on painting in MMU segmentation gizmo
@@ -1298,7 +1306,21 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
 #endif // MMU_SEGMENTATION_DEBUG_TOP_BOTTOM
                     if (! painted.indices.empty()) {
                         std::vector<Polygons> top, bottom;
-                        slice_mesh_slabs(painted, zs, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
+                        if (!zs.empty() && is_volume_sinking(painted, volume_trafo)) {
+                            std::vector<float> zs_sinking = {0.f};
+                            Slic3r::append(zs_sinking, zs);
+                            slice_mesh_slabs(painted, zs_sinking, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
+
+                            MeshSlicingParams slicing_params;
+                            slicing_params.trafo = volume_trafo;
+                            Polygons bottom_slice = slice_mesh(painted, zs[0], slicing_params);
+
+                            top.erase(top.begin());
+                            bottom.erase(bottom.begin());
+
+                            bottom[0] = union_(bottom[0], bottom_slice);
+                        } else
+                            slice_mesh_slabs(painted, zs, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
                         auto merge = [](std::vector<Polygons> &&src, std::vector<Polygons> &dst) {
                             auto it_src = find_if(src.begin(), src.end(), [](const Polygons &p){ return ! p.empty(); });
                             if (it_src != src.end()) {
