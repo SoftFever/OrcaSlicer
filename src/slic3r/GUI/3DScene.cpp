@@ -622,12 +622,12 @@ void GLVolume::calc_convex_hull_3d()
 {
     const std::vector<float> &src = this->indexed_vertex_array.vertices_and_normals_interleaved;
     std::vector<Vec3f>        pts;
+    assert(src.size() % 6 == 0);
     pts.reserve(src.size() / 6);
-    for (auto it = src.begin() + 3;;) {
+    for (auto it = src.begin(); it != src.end(); ) {
+        it += 3;
         pts.push_back({ *it, *(it + 1), *(it + 2) });
         it += 3;
-        if (it == src.end())
-            break;
     }
     this->set_convex_hull(TriangleMesh(its_convex_hull(pts)));
 }
