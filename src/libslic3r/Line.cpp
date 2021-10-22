@@ -67,7 +67,7 @@ bool Line::parallel_to(const Line& line) const
 {
     const Vec2d v1 = (this->b - this->a).cast<double>();
     const Vec2d v2 = (line.b - line.a).cast<double>();
-    return std::fabs(cross2(v1, v2)) < EPSILON;
+    return sqr(cross2(v1, v2)) < sqr(EPSILON) * v1.squaredNorm() * v2.squaredNorm();
 }
 
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
@@ -80,7 +80,7 @@ bool Line::perpendicular_to(const Line& line) const
 {
     const Vec2d v1 = (this->b - this->a).cast<double>();
     const Vec2d v2 = (line.b - line.a).cast<double>();
-    return std::fabs(v1.dot(v2)) < EPSILON;
+    return sqr(v1.dot(v2)) < sqr(EPSILON) * v1.squaredNorm() * v2.squaredNorm();
 }
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
