@@ -1063,9 +1063,9 @@ indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
         std::vector<int>    map_dst_vertices;
     #ifndef NDEBUG
         Vec3f               centroid = Vec3f::Zero();
-        for (const stl_vertex& pt : this->its.vertices)
+        for (const stl_vertex& pt : pts)
             centroid += pt;
-        centroid /= float(this->its.vertices.size());
+        centroid /= float(pts.size());
     #endif // NDEBUG
         for (const orgQhull::QhullFacet facet : qhull.facetList()) {
             // Collect face vertices first, allocate unique vertices in dst_vertices based on QHull's vertex ID.
