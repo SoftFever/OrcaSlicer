@@ -2479,31 +2479,36 @@ std::string GCode::change_layer(coordf_t print_z)
 
 
 
+static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& layer)
+{
+    auto out = make_unique<EdgeGrid::Grid>();
+
+    // Create the distance field for a layer below.
+    const coord_t distance_field_resolution = coord_t(scale_(1.) + 0.5);
+    out->create(layer.lslices, distance_field_resolution);
+    out->calculate_sdf();
+#if 0
+        {
+            static int iRun = 0;
+            BoundingBox bbox = (*lower_layer_edge_grid)->bbox();
+            bbox.min(0) -= scale_(5.f);
+            bbox.min(1) -= scale_(5.f);
+            bbox.max(0) += scale_(5.f);
+            bbox.max(1) += scale_(5.f);
+            EdgeGrid::save_png(*(*lower_layer_edge_grid), bbox, scale_(0.1f), debug_out_path("GCode_extrude_loop_edge_grid-%d.png", iRun++));
+        }
+#endif
+    return out;
+}
+
+
 std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, std::unique_ptr<EdgeGrid::Grid> *lower_layer_edge_grid)
 {
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
 
-    if (m_layer->lower_layer != nullptr && lower_layer_edge_grid != nullptr) {
-        if (! *lower_layer_edge_grid) {
-            // Create the distance field for a layer below.
-            const coord_t distance_field_resolution = coord_t(scale_(1.) + 0.5);
-            *lower_layer_edge_grid = make_unique<EdgeGrid::Grid>();
-            (*lower_layer_edge_grid)->create(m_layer->lower_layer->lslices, distance_field_resolution);
-            (*lower_layer_edge_grid)->calculate_sdf();
-            #if 0
-            {
-                static int iRun = 0;
-                BoundingBox bbox = (*lower_layer_edge_grid)->bbox();
-                bbox.min(0) -= scale_(5.f);
-                bbox.min(1) -= scale_(5.f);
-                bbox.max(0) += scale_(5.f);
-                bbox.max(1) += scale_(5.f);
-                EdgeGrid::save_png(*(*lower_layer_edge_grid), bbox, scale_(0.1f), debug_out_path("GCode_extrude_loop_edge_grid-%d.png", iRun++));
-            }
-            #endif
-        }
-    }
+    if (m_layer->lower_layer && lower_layer_edge_grid != nullptr && ! *lower_layer_edge_grid)
+        *lower_layer_edge_grid = calculate_layer_edge_grid(*m_layer->lower_layer);
 
     // extrude all loops ccw
     bool was_clockwise = loop.make_counter_clockwise();
@@ -2639,6 +2644,10 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.perimeters.empty()) {
             m_config.apply(print.get_print_region(&region - &by_region.front()).config());
+
+            // plan_perimeters tries to place seams, it needs to have the lower_layer_edge_grid calculated already.
+            if (m_layer->lower_layer && ! lower_layer_edge_grid)
+                lower_layer_edge_grid = calculate_layer_edge_grid(*m_layer->lower_layer);
 
             m_seam_placer.plan_perimeters(std::vector<const ExtrusionEntity*>(region.perimeters.begin(), region.perimeters.end()),
                 *m_layer, m_config.seam_position, this->last_pos(), EXTRUDER_CONFIG(nozzle_diameter),
