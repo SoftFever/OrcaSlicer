@@ -992,6 +992,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 
     auto check_against_circular_bed = [](GLVolume& volume, ModelInstanceEPrintVolumeState& state, const Vec2d& center, double radius) {
         const TriangleMesh* mesh = volume.is_sinking() ? &GUI::wxGetApp().plater()->model().objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : volume.convex_hull();
+        //FIXME 2D convex hull is O(n log n), while testing the 2D points against 2D circle is O(n).
         const Polygon volume_hull_2d = its_convex_hull_2d_above(mesh->its, volume.world_matrix().cast<float>(), 0.0f);
         size_t outside_count = 0;
         const double sq_radius = sqr(radius);
@@ -1013,6 +1014,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         const TriangleMesh* mesh = volume.is_sinking() ? &GUI::wxGetApp().plater()->model().objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : volume.convex_hull();
         const Polygon volume_hull_2d = its_convex_hull_2d_above(mesh->its, volume.world_matrix().cast<float>(), 0.0f);
         const BoundingBoxf3* const bb = volume.is_sinking() ? &volume.transformed_non_sinking_bounding_box() : &volume.transformed_convex_hull_bounding_box();
+        // Using rotating callipers to check for collision of two convex polygons.
         ModelInstanceEPrintVolumeState volume_state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb->min.z(), bb->max.z());
         bool contained = (volume_state == ModelInstancePVS_Inside);
         bool intersects = (volume_state == ModelInstancePVS_Partly_Outside);
@@ -1041,6 +1043,14 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     ModelInstanceEPrintVolumeState overall_state = ModelInstancePVS_Inside;
     bool contained_min_one = false;
 
+    enum class BedShape { Rectangle, Circle, Convex, NonConvex };
+    Vec2d  center;
+    double radius;
+    BedShape bed_shape = 
+        GUI::Bed3D::is_rectangle(opt->values) ? BedShape::Rectangle :
+        GUI::Bed3D::is_circle(opt->values, &center, &radius) ? BedShape::Circle :
+        GUI::Bed3D::is_convex(opt->values) ? BedShape::Convex : BedShape::NonConvex;
+
     for (GLVolume* volume : this->volumes) {
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         if (as_toolpaths && !volume->is_extrusion_path)
@@ -1048,15 +1058,11 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         else if (!as_toolpaths && (volume->is_modifier || (!volume->shader_outside_printer_detection_enabled && (volume->is_wipe_tower || volume->composite_id.volume_id < 0))))
             continue;
 
-        if (GUI::Bed3D::is_rectangle(opt->values))
-            check_against_rectangular_bed(*volume, overall_state);
-        else {
-            Vec2d center;
-            double radius;
-            if (GUI::Bed3D::is_circle(opt->values, &center, &radius))
-                check_against_circular_bed(*volume, overall_state, center, radius);
-            else if (GUI::Bed3D::is_convex(opt->values))
-                check_against_convex_bed(*volume, overall_state);
+        switch (bed_shape) {
+        case BedShape::Rectangle:   check_against_rectangular_bed(*volume, overall_state);              break;
+        case BedShape::Circle:      check_against_circular_bed(*volume, overall_state, center, radius); break;
+        case BedShape::Convex:      check_against_convex_bed(*volume, overall_state);                   break;
+        default: break;
         }
 
         contained_min_one |= !volume->is_outside;
