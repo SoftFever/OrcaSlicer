@@ -914,7 +914,7 @@ enum ModelInstanceEPrintVolumeState : unsigned char
 ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const Polygon& obj_hull_2d, double obj_min_z, double obj_max_z);
 // return the state of the given box
 // with respect to the given print volume (extrusion along z of printbed_shape from zero to print_volume_height)
-ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box);
+//ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box);
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 // A single instance of a ModelObject.
