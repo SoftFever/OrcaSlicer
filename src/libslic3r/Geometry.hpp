@@ -563,7 +563,7 @@ inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
 
 // Returns true if the intersection of the two convex polygons A and B
 // is not an empty set.
-bool intersects(const Polygon &A, const Polygon &B);
+bool convex_polygons_intersect(const Polygon &A, const Polygon &B);
 
 } } // namespace Slicer::Geometry
 

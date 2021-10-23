@@ -468,7 +468,7 @@ TEST_CASE("Convex polygon intersection on two disjoint squares", "[Geometry][Rot
     Polygon B = A;
     B.translate(20 / SCALING_FACTOR, 0);
 
-    bool is_inters = Geometry::intersects(A, B);
+    bool is_inters = Geometry::convex_polygons_intersect(A, B);
 
     REQUIRE(is_inters == false);
 }
@@ -480,7 +480,7 @@ TEST_CASE("Convex polygon intersection on two intersecting squares", "[Geometry]
     Polygon B = A;
     B.translate(5 / SCALING_FACTOR, 5 / SCALING_FACTOR);
 
-    bool is_inters = Geometry::intersects(A, B);
+    bool is_inters = Geometry::convex_polygons_intersect(A, B);
 
     REQUIRE(is_inters == true);
 }
@@ -492,7 +492,7 @@ TEST_CASE("Convex polygon intersection on two squares touching one edge", "[Geom
     Polygon B = A;
     B.translate(10 / SCALING_FACTOR, 0);
 
-    bool is_inters = Geometry::intersects(A, B);
+    bool is_inters = Geometry::convex_polygons_intersect(A, B);
 
     REQUIRE(is_inters == false);
 }
@@ -509,7 +509,7 @@ TEST_CASE("Convex polygon intersection on two squares touching one vertex", "[Ge
     svg.draw(B, "green");
     svg.Close();
 
-    bool is_inters = Geometry::intersects(A, B);
+    bool is_inters = Geometry::convex_polygons_intersect(A, B);
 
     REQUIRE(is_inters == false);
 }
@@ -520,7 +520,7 @@ TEST_CASE("Convex polygon intersection on two overlapping squares", "[Geometry][
 
     Polygon B = A;
 
-    bool is_inters = Geometry::intersects(A, B);
+    bool is_inters = Geometry::convex_polygons_intersect(A, B);
 
     REQUIRE(is_inters == true);
 }
@@ -560,7 +560,7 @@ TEST_CASE("Convex polygon intersection on two overlapping squares", "[Geometry][
 
 //    bench.start();
 //    for (const auto &test : tests)
-//        results.emplace_back(Geometry::intersects(test.first, test.second));
+//        results.emplace_back(Geometry::convex_polygons_intersect(test.first, test.second));
 //    bench.stop();
 
 //    std::cout << "Test time: " << bench.getElapsedSec() << std::endl;
@@ -611,7 +611,7 @@ TEST_CASE("Convex polygon intersection test prusa polygons", "[Geometry][Rotcali
     for (size_t i = 0; i < PRINTER_PART_POLYGONS.size(); ++i) {
         Polygon P = PRINTER_PART_POLYGONS[i];
         P = Geometry::convex_hull(P.points);
-        bool res = Geometry::intersects(P, P);
+        bool res = Geometry::convex_polygons_intersect(P, P);
         if (!res) {
             SVG svg{std::string("fail_self") + std::to_string(i) + ".svg"};
             svg.draw(P, "green");
@@ -644,7 +644,7 @@ TEST_CASE("Convex polygon intersection test prusa polygons", "[Geometry][Rotcali
 
         B.translate(bba.size() + bbb.size());
 
-        bool res = Geometry::intersects(A, B);
+        bool res = Geometry::convex_polygons_intersect(A, B);
         bool ref = !intersection(A, B).empty();
 
         if (res != ref) {
@@ -669,7 +669,7 @@ TEST_CASE("Convex polygon intersection test prusa polygons", "[Geometry][Rotcali
         A.translate(-bba.center());
         B.translate(-bbb.center());
 
-        bool res = Geometry::intersects(A, B);
+        bool res = Geometry::convex_polygons_intersect(A, B);
         bool ref = !intersection(A, B).empty();
 
         if (res != ref) {

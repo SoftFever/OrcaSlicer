@@ -1671,7 +1671,7 @@ void visit_antipodals (Idx& ia, Idx &ib, Fn &&fn)
 
 } // namespace rotcalip
 
-bool intersects(const Polygon &A, const Polygon &B)
+bool convex_polygons_intersect(const Polygon &A, const Polygon &B)
 {
     using namespace rotcalip;
 
