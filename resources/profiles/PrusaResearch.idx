@@ -1,3 +1,5 @@
+min_slic3r_version = 2.4.0-beta0
+1.4.0-beta0 Added multiple Filatech and BASF filament profiles. Added material profiles for SL1S.
 min_slic3r_version = 2.4.0-alpha0
 1.4.0-alpha8 Added material profiles for Prusament Resin. Detect bridging perimeters enabled by default. 
 1.4.0-alpha7 Updated brim_separation value. Updated Prusa MINI end g-code. Added Filamentworld filament profiles. 
