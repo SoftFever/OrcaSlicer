@@ -721,9 +721,11 @@ GUI_App::~GUI_App()
         delete preset_updater;
 }
 
-std::string GUI_App::get_gl_info(bool format_as_html, bool extensions)
+// If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
+// Otherwise HTML formatted for the system info dialog.
+std::string GUI_App::get_gl_info(bool for_github)
 {
-    return OpenGLManager::get_gl_info().to_string(format_as_html, extensions);
+    return OpenGLManager::get_gl_info().to_string(for_github);
 }
 
 wxGLContext* GUI_App::init_glcontext(wxGLCanvas& canvas)

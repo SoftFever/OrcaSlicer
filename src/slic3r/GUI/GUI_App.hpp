@@ -172,7 +172,9 @@ public:
     // Process command line parameters cached in this->init_params,
     // load configs, STLs etc.
     void            post_init();
-    static std::string get_gl_info(bool format_as_html, bool extensions);
+    // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
+    // Otherwise HTML formatted for the system info dialog.
+    static std::string get_gl_info(bool for_github);
     wxGLContext*    init_glcontext(wxGLCanvas& canvas);
     bool            init_opengl();
 

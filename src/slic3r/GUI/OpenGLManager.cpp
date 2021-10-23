@@ -157,13 +157,16 @@ bool OpenGLManager::GLInfo::is_glsl_version_greater_or_equal_to(unsigned int maj
     return version_greater_or_equal_to(m_glsl_version, major, minor);
 }
 
-std::string OpenGLManager::GLInfo::to_string(bool format_as_html, bool extensions) const
+// If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
+// Otherwise HTML formatted for the system info dialog.
+std::string OpenGLManager::GLInfo::to_string(bool for_github) const
 {
     if (!m_detected)
         detect();
 
     std::stringstream out;
 
+    const bool format_as_html = ! for_github;
     std::string h2_start = format_as_html ? "<b>" : "";
     std::string h2_end = format_as_html ? "</b>" : "";
     std::string b_start = format_as_html ? "<b>" : "";
@@ -176,18 +179,24 @@ std::string OpenGLManager::GLInfo::to_string(bool format_as_html, bool extension
     out << b_start << "Renderer:     " << b_end << m_renderer << line_end;
     out << b_start << "GLSL version: " << b_end << m_glsl_version << line_end;
 
-    if (extensions) {
+    {
         std::vector<std::string> extensions_list;
         std::string extensions_str = gl_get_string_safe(GL_EXTENSIONS, "");
-        boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_off);
+        boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_on);
 
         if (!extensions_list.empty()) {
-            out << h2_start << "Installed extensions:" << h2_end << line_end;
+            if (for_github)
+                out << "<details>\n<summary>Installed extensions:</summary>\n";
+            else
+                out << h2_start << "Installed extensions:" << h2_end << line_end;
 
             std::sort(extensions_list.begin(), extensions_list.end());
-            for (const std::string& ext : extensions_list) {
-                out << ext << line_end;
-            }
+            for (const std::string& ext : extensions_list)
+                if (! ext.empty())
+                    out << ext << line_end;
+
+            if (for_github)
+                out << "</details>\n";
         }
     }
 

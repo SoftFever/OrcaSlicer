@@ -46,7 +46,9 @@ public:
         bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
         bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
 
-        std::string to_string(bool format_as_html, bool extensions) const;
+        // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
+        // Otherwise HTML formatted for the system info dialog.
+        std::string to_string(bool for_github) const;
 
     private:
         void detect() const;

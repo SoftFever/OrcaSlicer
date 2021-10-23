@@ -158,7 +158,7 @@ SysInfoDialog::SysInfoDialog()
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
             blacklisted_libraries_message,
-            get_mem_info(true), wxGetApp().get_gl_info(true, true),
+            get_mem_info(true), wxGetApp().get_gl_info(false),
             "<b>" + _L("Eigen vectorization supported:") + "</b> " + Eigen::SimdInstructionSetsInUse());
 
         m_opengl_info_html->SetPage(text);
@@ -215,7 +215,7 @@ void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 void SysInfoDialog::onCopyToClipboard(wxEvent &)
 {
     wxTheClipboard->Open();
-    const auto text = get_main_info(false) + "\n" + wxGetApp().get_gl_info(false, true);
+    const auto text = get_main_info(false) + "\n" + wxGetApp().get_gl_info(true);
     wxTheClipboard->SetData(new wxTextDataObject(text));
     wxTheClipboard->Close();
 }
