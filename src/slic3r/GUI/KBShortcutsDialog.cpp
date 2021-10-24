@@ -193,7 +193,7 @@ void KBShortcutsDialog::fill_shortcuts()
         m_full_shortcuts.push_back({ { _L("Gizmos"), _L("The following shortcuts are applicable when the specified gizmo is active") }, gizmos_shortcuts });
 
         Shortcuts object_list_shortcuts = {
-            { "P", L("Set selected items as Ptrintable/Unprintable") },
+            { "P", L("Set selected items as Printable/Unprintable") },
             { "0", L("Set default extruder for the selected items") },
             { "1-9", L("Set extruder number for the selected items") },
         };
