@@ -1934,6 +1934,8 @@ void ConfigWizard::priv::load_pages()
     index->go_to(former_active);   // Will restore the active item/page if possible
 
     q->Layout();
+// This Refresh() is needed to avoid ugly artifacts after printer selection, when no one vendor was selected from the very beginnig
+    q->Refresh();
 }
 
 void ConfigWizard::priv::init_dialog_size()
