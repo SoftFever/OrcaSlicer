@@ -414,7 +414,7 @@ void Field::sys_color_changed()
 template<class T>
 bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 {
-    if (!win || (static_cast<T*>(win)->GetValue().empty() && type != coString && type != coStrings))
+    if (!win || (static_cast<T*>(win)->GetValue().empty() && type != coString && type != coStrings && type != coPoints))
         return false;
     return true;
 }
