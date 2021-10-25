@@ -743,6 +743,25 @@ bool GUI_App::init_opengl()
 #endif
 }
 
+// gets path to PrusaSlicer.ini, returns semver from first line comment
+static boost::optional<Semver> parse_semver_from_ini(std::string path)
+{
+    std::ifstream stream(path);
+    std::stringstream buffer;
+    buffer << stream.rdbuf();
+    std::string body = buffer.str();
+    size_t end_line = body.find_first_of("\n\r");
+    body.resize(end_line);
+    size_t start = body.find("PrusaSlicer ");
+    if (start == std::string::npos)
+        return boost::none;
+    body = body.substr(start + 12);
+    size_t end = body.find_first_of(" \n\r");
+    if (end < body.size())
+        body.resize(end);
+    return Semver::parse(body);
+}
+
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
@@ -791,7 +810,108 @@ void GUI_App::init_app_config()
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
         }
+        // Save orig_version here, so its empty if no app_config existed before this run.
+        m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
     }
+}
+
+// returns true if found newer version and user agreed to use it
+bool GUI_App::check_older_app_config(Semver current_version, bool backup)
+{
+    // find other version app config (alpha / beta / release)
+    std::string             config_path = app_config->config_path();
+    boost::filesystem::path parent_file_path(config_path);
+    std::string             filename = parent_file_path.filename().string();
+    parent_file_path.remove_filename().remove_filename();
+
+    std::vector<boost::filesystem::path> candidates;
+
+    if (SLIC3R_APP_KEY "-alpha" != GetAppName()) candidates.emplace_back(parent_file_path / SLIC3R_APP_KEY "-alpha" / filename);
+    if (SLIC3R_APP_KEY "-beta" != GetAppName())  candidates.emplace_back(parent_file_path / SLIC3R_APP_KEY "-beta" / filename);
+    if (SLIC3R_APP_KEY != GetAppName())          candidates.emplace_back(parent_file_path / SLIC3R_APP_KEY / filename);
+
+    Semver last_semver = current_version;
+    for (const auto& candidate : candidates) {
+        if (boost::filesystem::exists(candidate)) {
+            // parse
+            boost::optional<Semver>other_semver = parse_semver_from_ini(candidate.string());
+            if (other_semver && *other_semver > last_semver) {
+                last_semver = *other_semver;
+                m_older_data_dir_path = candidate.parent_path().string();
+            }
+        }
+    }
+    if (m_older_data_dir_path.empty())
+        return false;
+    BOOST_LOG_TRIVIAL(info) << "last app config file used: " << m_older_data_dir_path;
+    // ask about using older data folder
+    wxRichMessageDialog msg(nullptr, backup ? 
+        wxString::Format(_L("PrusaSlicer detected another configuration folder at %s."
+            "\nIts version is %s." 
+            "\nLast version you used in current configuration folder is %s."
+            "\nPlease note that PrusaSlicer uses different folders to save configuration of alpha, beta and full release versions."
+            "\nWould you like to copy found configuration to your current configuration folder?"
+            
+            "\n\nIf you select yes, PrusaSlicer will copy all profiles and other files from found folder to the current one. Overwriting any existing file with matching name."
+            "\nIf you select no, you will continue with current configuration.")
+            , m_older_data_dir_path, last_semver.to_string(), current_version.to_string())
+        : wxString::Format(_L("PrusaSlicer detected another configuration folder at %s."
+            "\nIts version is %s."
+            "\nThere is no configuration file in current configuration folder."
+            "\nPlease note that PrusaSlicer uses different folders to save configuration of alpha, beta and full release versions."
+            "\nWould you like to copy found configuration to your current configuration folder?"
+
+            "\n\nIf you select yes, PrusaSlicer will copy all profiles and other files from found folder to the current one."
+            "\nIf you select no, you will start with clean installation with configuration wizard.")
+            , m_older_data_dir_path, last_semver.to_string())
+        , _L("PrusaSlicer"), wxICON_QUESTION | wxYES_NO);
+    if (msg.ShowModal() == wxID_YES) {
+        std::string snapshot_id;
+        if (backup) {
+            // configuration snapshot
+            std::string comment;
+            if (const Config::Snapshot* snapshot = Config::take_config_snapshot_report_error(
+                    *app_config, 
+                    Config::Snapshot::SNAPSHOT_USER, 
+                    comment);
+                    snapshot != nullptr)
+                // Is thos correct? Save snapshot id for later, when new app config is loaded.
+                snapshot_id = snapshot->id;
+            else
+                BOOST_LOG_TRIVIAL(error) << "Failed to take congiguration snapshot: ";
+        }
+
+        // This will tell later (when config folder structure is sure to exists) to copy files from m_older_data_dir_path
+        m_init_app_config_from_older = true;
+        // load app config from older file
+        app_config->set_loading_path((boost::filesystem::path(m_older_data_dir_path) / filename).string());
+        std::string error = app_config->load();
+        if (!error.empty()) {
+            // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
+            if (is_editor()) {
+                throw Slic3r::RuntimeError(
+                    _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                        "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
+                    "\n\n" + app_config->config_path() + "\n\n" + error);
+            }
+            else {
+                throw Slic3r::RuntimeError(
+                    _u8L("Error parsing PrusaGCodeViewer config file, it is probably corrupted. "
+                        "Try to manually delete the file to recover from the error.") +
+                    "\n\n" + app_config->config_path() + "\n\n" + error);
+            }
+        }
+        if (!snapshot_id.empty())
+            app_config->set("on_snapshot", snapshot_id);
+        m_app_conf_exists = true;
+        return true;
+    }
+    return false;
+}
+
+void GUI_App::copy_older_config()
+{
+    preset_bundle->copy_files(m_older_data_dir_path);
 }
 
 void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
@@ -884,6 +1004,13 @@ bool GUI_App::on_init_inner()
         }
     }
 
+    if (m_last_config_version) {
+        if (*m_last_config_version < *Semver::parse(SLIC3R_VERSION))
+            check_older_app_config(*m_last_config_version, true);
+    } else {
+        check_older_app_config(Semver(), false);
+    }
+
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
 
@@ -922,11 +1049,17 @@ bool GUI_App::on_init_inner()
         scrn->SetText(_L("Loading configuration")+ dots);
     }
 
+    
+
     preset_bundle = new PresetBundle();
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
+
+    
+    if (m_init_app_config_from_older)
+        copy_older_config();
 
     if (is_editor()) {
 #ifdef __WXMSW__ 
