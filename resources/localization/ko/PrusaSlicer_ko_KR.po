@@ -5190,11 +5190,11 @@ msgstr "레이어 및 둘레"
 
 #: src/slic3r/GUI/Tab.cpp:1043
 msgid "Vertical shells"
-msgstr "쉘 높이"
+msgstr "수직 쉘"
 
 #: src/slic3r/GUI/Tab.cpp:1054
 msgid "Horizontal shells"
-msgstr "쉘 너비"
+msgstr "수평 쉘"
 
 #: src/slic3r/GUI/Tab.cpp:1055 src/libslic3r/PrintConfig.cpp:1790
 msgid "Solid layers"
