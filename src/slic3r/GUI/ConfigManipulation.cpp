@@ -160,7 +160,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
     }
 
-    static bool support_material_overhangs_queried = set_support_material_overhangs_queried;
+    support_material_overhangs_queried = set_support_material_overhangs_queried;
 
     if (config->opt_bool("support_material")) {
         // Ask only once.
