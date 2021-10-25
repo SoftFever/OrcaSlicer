@@ -1919,6 +1919,7 @@ void slice_mesh_slabs(
 #endif // EXPENSIVE_DEBUG_CHECKS
 
     std::vector<stl_vertex> vertices_transformed = transform_mesh_vertices_for_slicing(mesh, trafo);
+    const bool mirrored = trafo.matrix().determinant() < 0;
 
     std::vector<FaceOrientation> face_orientation(mesh.indices.size(), FaceOrientation::Up);
     for (const stl_triangle_vertex_indices &tri : mesh.indices) {
@@ -1929,7 +1930,7 @@ void slice_mesh_slabs(
         const Point   a = to_2d(fa).cast<coord_t>();
         const Point   b = to_2d(fb).cast<coord_t>();
         const Point   c = to_2d(fc).cast<coord_t>();
-        const int64_t d = cross2((b - a).cast<int64_t>(), (c - b).cast<int64_t>());
+        const int64_t d = cross2((b - a).cast<int64_t>(), (c - b).cast<int64_t>()) * (mirrored ? -1 : 1);
         FaceOrientation fo = FaceOrientation::Vertical;
         if (d > 0)
             fo = FaceOrientation::Up;
