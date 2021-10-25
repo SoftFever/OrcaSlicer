@@ -980,7 +980,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
                                { unscale<double>(bed_box_2D.max.x()), unscale<double>(bed_box_2D.max.y()), bed_height });
 
     auto check_against_rectangular_bed = [&print_volume](GLVolume& volume, ModelInstanceEPrintVolumeState& state) {
-        const BoundingBoxf3* const bb = volume.is_sinking() ? &volume.transformed_non_sinking_bounding_box() : &volume.transformed_convex_hull_bounding_box();
+        const BoundingBoxf3* const bb = (volume.is_sinking() && volume.object_idx() != -1 && volume.volume_idx() != -1) ? &volume.transformed_non_sinking_bounding_box() : &volume.transformed_convex_hull_bounding_box();
         volume.is_outside = !print_volume.contains(*bb);
         if (volume.printable) {
             if (state == ModelInstancePVS_Inside && volume.is_outside)
@@ -991,7 +991,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     };
 
     auto check_against_circular_bed = [](GLVolume& volume, ModelInstanceEPrintVolumeState& state, const Vec2d& center, double radius) {
-        const TriangleMesh* mesh = volume.is_sinking() ? &GUI::wxGetApp().plater()->model().objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : volume.convex_hull();
+        const TriangleMesh* mesh = (volume.is_sinking() && volume.object_idx() != -1 && volume.volume_idx() != -1)? &GUI::wxGetApp().plater()->model().objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : volume.convex_hull();
         //FIXME 2D convex hull is O(n log n), while testing the 2D points against 2D circle is O(n).
         const Polygon volume_hull_2d = its_convex_hull_2d_above(mesh->its, volume.world_matrix().cast<float>(), 0.0f);
         size_t outside_count = 0;
@@ -1011,9 +1011,9 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     };
 
     auto check_against_convex_bed = [&bed_poly, bed_height](GLVolume& volume, ModelInstanceEPrintVolumeState& state) {
-        const TriangleMesh* mesh = volume.is_sinking() ? &GUI::wxGetApp().plater()->model().objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : volume.convex_hull();
+        const TriangleMesh* mesh = (volume.is_sinking() && volume.object_idx() != -1 && volume.volume_idx() != -1) ? &GUI::wxGetApp().plater()->model().objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : volume.convex_hull();
         const Polygon volume_hull_2d = its_convex_hull_2d_above(mesh->its, volume.world_matrix().cast<float>(), 0.0f);
-        const BoundingBoxf3* const bb = volume.is_sinking() ? &volume.transformed_non_sinking_bounding_box() : &volume.transformed_convex_hull_bounding_box();
+        const BoundingBoxf3* const bb = (volume.is_sinking() && volume.object_idx() != -1 && volume.volume_idx() != -1) ? &volume.transformed_non_sinking_bounding_box() : &volume.transformed_convex_hull_bounding_box();
         // Using rotating callipers to check for collision of two convex polygons.
         ModelInstanceEPrintVolumeState volume_state = printbed_collision_state(bed_poly, bed_height, volume_hull_2d, bb->min.z(), bb->max.z());
         bool contained = (volume_state == ModelInstancePVS_Inside);
