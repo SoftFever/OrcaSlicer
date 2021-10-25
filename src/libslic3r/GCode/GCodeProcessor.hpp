@@ -271,7 +271,7 @@ namespace Slic3r {
 
             // Simulates firmware st_synchronize() call
             void simulate_st_synchronize(float additional_time = 0.0f);
-            void calculate_time(size_t keep_last_n_blocks = 0);
+            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f);
         };
 
         struct TimeProcessor

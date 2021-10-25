@@ -205,9 +205,7 @@ void GCodeProcessor::TimeMachine::simulate_st_synchronize(float additional_time)
     if (!enabled)
         return;
 
-    time += additional_time;
-    gcode_time.cache += additional_time;
-    calculate_time();
+    calculate_time(0, additional_time);
 }
 
 static void planner_forward_pass_kernel(GCodeProcessor::TimeBlock& prev, GCodeProcessor::TimeBlock& curr)
@@ -280,7 +278,7 @@ static void recalculate_trapezoids(std::vector<GCodeProcessor::TimeBlock>& block
     }
 }
 
-void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
+void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, float additional_time)
 {
     if (!enabled || blocks.size() < 2)
         return;
@@ -302,20 +300,21 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks)
     for (size_t i = 0; i < n_blocks_process; ++i) {
         const TimeBlock& block = blocks[i];
         float block_time = block.time();
+        if (i == 0)
+            block_time += additional_time;
+
         time += block_time;
         gcode_time.cache += block_time;
         moves_time[static_cast<size_t>(block.move_type)] += block_time;
         roles_time[static_cast<size_t>(block.role)] += block_time;
-        if (block.layer_id > 0) {
-            if (block.layer_id >= layers_time.size()) {
-                size_t curr_size = layers_time.size();
-                layers_time.resize(block.layer_id);
-                for (size_t i = curr_size; i < layers_time.size(); ++i) {
-                    layers_time[i] = 0.0f;
-                }
+        if (block.layer_id >= layers_time.size()) {
+            const size_t curr_size = layers_time.size();
+            layers_time.resize(block.layer_id);
+            for (size_t i = curr_size; i < layers_time.size(); ++i) {
+                layers_time[i] = 0.0f;
             }
-            layers_time[block.layer_id - 1] += block_time;
         }
+        layers_time[block.layer_id - 1] += block_time;
         g1_times_cache.push_back({ block.g1_line_id, time });
         // update times for remaining time to printer stop placeholders
         auto it_stop_time = std::lower_bound(stop_times.begin(), stop_times.end(), block.g1_line_id,
@@ -2542,7 +2541,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         block.role = m_extrusion_role;
         block.distance = distance;
         block.g1_line_id = m_g1_line_id;
-        block.layer_id = m_layer_id;
+        block.layer_id = std::max<unsigned int>(1, m_layer_id);
 
         // calculates block cruise feedrate
         float min_feedrate_factor = 1.0f;
