@@ -203,6 +203,7 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
         glsafe(::glMultMatrixd(trafo_matrix.data()));
 
         shader->set_uniform("volume_world_matrix", trafo_matrix);
+        shader->set_uniform("volume_mirrored", is_left_handed);
         m_triangle_selectors[mesh_id]->render(m_imgui);
 
         glsafe(::glPopMatrix());

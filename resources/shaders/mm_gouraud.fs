@@ -22,6 +22,8 @@ uniform vec4 uniform_color;
 varying vec3 clipping_planes_dots;
 varying vec4 model_pos;
 
+uniform bool volume_mirrored;
+
 void main()
 {
     if (any(lessThan(clipping_planes_dots, ZERO)))
@@ -33,6 +35,9 @@ void main()
 #ifdef FLIP_TRIANGLE_NORMALS
     triangle_normal = -triangle_normal;
 #endif
+
+    if (volume_mirrored)
+        triangle_normal = -triangle_normal;
 
     // First transform the normal into camera space and normalize the result.
     vec3 eye_normal = normalize(gl_NormalMatrix * triangle_normal);
