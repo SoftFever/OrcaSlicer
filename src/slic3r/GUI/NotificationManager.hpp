@@ -112,7 +112,7 @@ enum class NotificationType
 	// information about netfabb is finished repairing model (blocking proccess)
 	NetfabbFinished,
 	// Short meesage to fill space between start and finish of export
-	ExportOngoing
+	ExportOngoing,
 };
 
 class NotificationManager

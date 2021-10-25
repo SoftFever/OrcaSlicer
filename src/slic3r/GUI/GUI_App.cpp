@@ -812,6 +812,29 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
+// win32 build on win64 and viceversa
+#ifdef _WIN64
+    if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "") {
+        wxRichMessageDialog dlg(nullptr,
+                _L("You have started PrusaSlicer for 64-bit architecture on 32-bit system."
+                    "\nPlease download and install correct version at https://www.prusa3d.cz/prusaslicer/."
+                    "\nDo you wish to continue?"),
+                "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+        if (dlg.ShowModal() != wxID_YES)
+            return false;
+    }
+#elif _WIN32
+    if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "64") {
+        wxRichMessageDialog dlg(nullptr,
+            _L("You have started PrusaSlicer for 32-bit architecture on 64-bit system."
+                "\nPlease download and install correct version at https://www.prusa3d.cz/prusaslicer/."
+                "\nDo you wish to continue?"),
+            "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+        if (dlg.ShowModal() != wxID_YES)
+            return false;
+    }
+#endif // _WIN64
+
     // Forcing back menu icons under gtk2 and gtk3. Solution is based on:
     // https://docs.gtk.org/gtk3/class.Settings.html
     // see also https://docs.wxwidgets.org/3.0/classwx_menu_item.html#a2b5d6bcb820b992b1e4709facbf6d4fb
