@@ -19,6 +19,66 @@
 
 using namespace Slic3r;
 
+TEST_CASE("Line::parallel_to", "[Geometry]"){
+    Line l{ { 100000, 0 }, { 0, 0 } };
+    Line l2{ { 200000, 0 }, { 0, 0 } };
+    REQUIRE(l.parallel_to(l));
+    REQUIRE(l.parallel_to(l2));
+
+    Line l3(l2);
+    l3.rotate(0.9 * EPSILON, { 0, 0 });
+    REQUIRE(l.parallel_to(l3));
+
+    Line l4(l2);
+    l4.rotate(1.1 * EPSILON, { 0, 0 });
+    REQUIRE(! l.parallel_to(l4));
+
+    // The angle epsilon is so low that vectors shorter than 100um rotated by epsilon radians are not rotated at all.
+    Line l5{ { 20000, 0 }, { 0, 0 } };
+    l5.rotate(1.1 * EPSILON, { 0, 0 });
+    REQUIRE(l.parallel_to(l5));
+
+    l.rotate(1., { 0, 0 });
+    Point offset{ 342876, 97636249 };
+    l.translate(offset);
+    l3.rotate(1., { 0, 0 });
+    l3.translate(offset);
+    l4.rotate(1., { 0, 0 });
+    l4.translate(offset);
+    REQUIRE(l.parallel_to(l3));
+    REQUIRE(!l.parallel_to(l4));
+}
+
+TEST_CASE("Line::perpendicular_to", "[Geometry]") {
+    Line l{ { 100000, 0 }, { 0, 0 } };
+    Line l2{ { 0, 200000 }, { 0, 0 } };
+    REQUIRE(! l.perpendicular_to(l));
+    REQUIRE(l.perpendicular_to(l2));
+
+    Line l3(l2);
+    l3.rotate(0.9 * EPSILON, { 0, 0 });
+    REQUIRE(l.perpendicular_to(l3));
+
+    Line l4(l2);
+    l4.rotate(1.1 * EPSILON, { 0, 0 });
+    REQUIRE(! l.perpendicular_to(l4));
+
+    // The angle epsilon is so low that vectors shorter than 100um rotated by epsilon radians are not rotated at all.
+    Line l5{ { 0, 20000 }, { 0, 0 } };
+    l5.rotate(1.1 * EPSILON, { 0, 0 });
+    REQUIRE(l.perpendicular_to(l5));
+
+    l.rotate(1., { 0, 0 });
+    Point offset{ 342876, 97636249 };
+    l.translate(offset);
+    l3.rotate(1., { 0, 0 });
+    l3.translate(offset);
+    l4.rotate(1., { 0, 0 });
+    l4.translate(offset);
+    REQUIRE(l.perpendicular_to(l3));
+    REQUIRE(! l.perpendicular_to(l4));
+}
+
 TEST_CASE("Polygon::contains works properly", "[Geometry]"){
    // this test was failing on Windows (GH #1950)
     Slic3r::Polygon polygon(std::vector<Point>({
