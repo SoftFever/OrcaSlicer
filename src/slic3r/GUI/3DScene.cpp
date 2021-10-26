@@ -990,22 +990,24 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         }
     };
 
-    auto check_against_circular_bed = [](GLVolume& volume, ModelInstanceEPrintVolumeState& state, const Vec2d& center, double radius) {
-        const TriangleMesh* mesh = (volume.is_sinking() && volume.object_idx() != -1 && volume.volume_idx() != -1)? &GUI::wxGetApp().plater()->model().objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : volume.convex_hull();
-        //FIXME 2D convex hull is O(n log n), while testing the 2D points against 2D circle is O(n).
-        const Polygon volume_hull_2d = its_convex_hull_2d_above(mesh->its, volume.world_matrix().cast<float>(), 0.0f);
-        size_t outside_count = 0;
+    auto check_against_circular_bed = [bed_height](GLVolume& volume, ModelInstanceEPrintVolumeState& state, const Vec2d& center, double radius) {
+        const TriangleMesh* mesh = (volume.is_sinking() && volume.object_idx() != -1 && volume.volume_idx() != -1) ? &GUI::wxGetApp().plater()->model().objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : volume.convex_hull();
         const double sq_radius = sqr(radius);
-        for (const Point& p : volume_hull_2d.points) {
-            if (sq_radius < (unscale(p) - center).squaredNorm())
-                ++outside_count;
+        size_t outside_count = 0;
+        size_t valid_count = 0;
+        for (const Vec3f& v : mesh->its.vertices) {
+            const Vec3f world_v = volume.world_matrix().cast<float>() * v;
+            if (0.0f <= world_v.z()) {
+                ++valid_count;
+                if (sq_radius < sqr(world_v.x() - center.x()) + sqr(world_v.y() - center.y()) || bed_height < world_v.z())
+                    ++outside_count;
+            }
         }
-
         volume.is_outside = outside_count > 0;
         if (volume.printable) {
             if (state == ModelInstancePVS_Inside && volume.is_outside)
                 state = ModelInstancePVS_Fully_Outside;
-            if (state == ModelInstancePVS_Fully_Outside && volume.is_outside && outside_count < volume_hull_2d.size())
+            if (state == ModelInstancePVS_Fully_Outside && volume.is_outside && outside_count < valid_count)
                 state = ModelInstancePVS_Partly_Outside;
         }
     };

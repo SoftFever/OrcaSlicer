@@ -955,6 +955,18 @@ private:
     void _start_timer();
     void _stop_timer();
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    // Create 3D thick extrusion lines for a skirt and brim.
+    // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
+    void _load_print_toolpaths(bool generate_convex_hulls = false);
+    // Create 3D thick extrusion lines for object forming extrusions.
+    // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
+    // one for perimeters, one for infill and one for supports.
+    void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors,
+        const std::vector<CustomGCode::Item>& color_print_values, bool generate_convex_hulls = false);
+    // Create 3D thick extrusion lines for wipe tower extrusions
+    void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors, bool generate_convex_hulls = false);
+#else
     // Create 3D thick extrusion lines for a skirt and brim.
     // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
     void _load_print_toolpaths();
@@ -962,9 +974,10 @@ private:
     // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
     // one for perimeters, one for infill and one for supports.
     void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors,
-                                      const std::vector<CustomGCode::Item>& color_print_values);
+        const std::vector<CustomGCode::Item>& color_print_values);
     // Create 3D thick extrusion lines for wipe tower extrusions
     void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     // Load SLA objects and support structures for objects, for which the slaposSliceSupports step has been finished.
 	void _load_sla_shells();

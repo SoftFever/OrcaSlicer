@@ -2150,10 +2150,18 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
     // Release OpenGL data before generating new data.
     this->reset_volumes();
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    bool requires_convex_hulls = wxGetApp().plater()->get_bed().get_shape_type() != Bed3D::EShapeType::Rectangle;
+    _load_print_toolpaths(requires_convex_hulls);
+    _load_wipe_tower_toolpaths(str_tool_colors, requires_convex_hulls);
+    for (const PrintObject* object : print->objects())
+        _load_print_object_toolpaths(*object, str_tool_colors, color_print_values, requires_convex_hulls);
+#else
     _load_print_toolpaths();
     _load_wipe_tower_toolpaths(str_tool_colors);
     for (const PrintObject* object : print->objects())
         _load_print_object_toolpaths(*object, str_tool_colors, color_print_values);
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     _update_toolpath_volumes_outside_state();
     _set_warning_notification_if_needed(EWarning::ToolpathOutside);
@@ -5804,7 +5812,11 @@ void GLCanvas3D::_stop_timer()
     m_timer.Stop();
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+void GLCanvas3D::_load_print_toolpaths(bool generate_convex_hulls)
+#else
 void GLCanvas3D::_load_print_toolpaths()
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 {
     const Print *print = this->fff_print();
     if (print == nullptr)
@@ -5858,12 +5870,17 @@ void GLCanvas3D::_load_print_toolpaths()
         }
     }
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    volume->calc_convex_hull_3d();
+    if (generate_convex_hulls)
+        volume->calc_convex_hull_3d();
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     volume->indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values, bool generate_convex_hulls)
+#else
 void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values)
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 {
     std::vector<std::array<float, 4>> tool_colors = _parse_colors(str_tool_colors);
 
@@ -6153,7 +6170,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
         GLVolume* v = m_volumes.volumes[i];
-        v->calc_convex_hull_3d();
+        if (generate_convex_hulls)
+            v->calc_convex_hull_3d();
         v->indexed_vertex_array.finalize_geometry(m_initialized);
     }
 #else
@@ -6164,7 +6182,11 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
 
+#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors, bool generate_convex_hulls)
+#else
 void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors)
+#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 {
     const Print *print = this->fff_print();
     if (print == nullptr || print->wipe_tower_data().tool_changes.empty())
@@ -6318,7 +6340,8 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
         GLVolume* v = m_volumes.volumes[i];
-        v->calc_convex_hull_3d();
+        if (generate_convex_hulls)
+            v->calc_convex_hull_3d();
         v->indexed_vertex_array.finalize_geometry(m_initialized);
     }
 #else
