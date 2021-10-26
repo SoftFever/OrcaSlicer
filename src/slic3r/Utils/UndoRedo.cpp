@@ -1078,7 +1078,7 @@ std::vector<Snapshot>::iterator StackImpl::release_snapshots(std::vector<Snapsho
 {
 	assert(! m_snapshots.empty());
 	assert(begin <= end);
-	if (m_saved_snapshot_time >= begin->timestamp && (end == m_snapshots.end() || m_saved_snapshot_time < end->timestamp)) {
+	if (m_saved_snapshot_time != size_t(-1) && m_saved_snapshot_time >= begin->timestamp && (end == m_snapshots.end() || m_saved_snapshot_time < end->timestamp)) {
 		assert(m_saved_snapshot_time <= m_snapshots.back().timestamp);
 		auto it_saved = std::lower_bound(begin, end, Snapshot(m_saved_snapshot_time));
 		assert(it_saved != m_snapshots.end() && it_saved->timestamp == m_saved_snapshot_time);
