@@ -661,6 +661,16 @@ void Sidebar::priv::show_preset_comboboxes()
 }
 
 #ifdef _WIN32
+using wxRichToolTipPopup = wxCustomBackgroundWindow<wxPopupTransientWindow>;
+static wxRichToolTipPopup* get_rtt_popup(wxButton* btn)
+{
+    auto children = btn->GetChildren();
+    for (auto child : children)
+        if (child->IsShown())
+            return dynamic_cast<wxRichToolTipPopup*>(child);
+    return nullptr;
+}
+
 void Sidebar::priv::show_rich_tip(const wxString& tooltip, wxButton* btn)
 {   
     if (tooltip.IsEmpty())
@@ -669,18 +679,26 @@ void Sidebar::priv::show_rich_tip(const wxString& tooltip, wxButton* btn)
     tip.SetIcon(wxICON_NONE);
     tip.SetTipKind(wxTipKind_BottomRight);
     tip.SetTitleFont(wxGetApp().normal_font());
-    tip.SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    tip.SetBackgroundColour(wxGetApp().get_window_default_clr());
+
     tip.ShowFor(btn);
+    // Every call of the ShowFor() creates new RichToolTip and show it.
+    // Every one else are hidden. 
+    // So, set a text color just for the shown rich tooltip
+    if (wxRichToolTipPopup* popup = get_rtt_popup(btn)) {
+        auto children = popup->GetChildren();
+        for (auto child : children) {
+            child->SetForegroundColour(wxGetApp().get_label_clr_default());
+            // we neen just first text line for out rich tooltip
+            return;
+        }
+    }
 }
 
 void Sidebar::priv::hide_rich_tip(wxButton* btn)
 {
-    auto children = btn->GetChildren();
-    using wxRichToolTipPopup = wxCustomBackgroundWindow<wxPopupTransientWindow>;
-    for (auto child : children) {
-        if (wxRichToolTipPopup* popup = dynamic_cast<wxRichToolTipPopup*>(child))
-            popup->Dismiss();
-    }
+    if (wxRichToolTipPopup* popup = get_rtt_popup(btn))
+        popup->Dismiss();
 }
 #endif
 
