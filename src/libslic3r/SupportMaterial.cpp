@@ -945,6 +945,8 @@ public:
                   { { union_ex(*m_support_polygons) },                                                                                                              { "src",   "green",  0.5f } },
                 });
 #endif /* SLIC3R_DEBUG */
+            //FIXME do we want to trim with the object here? On one side the columns will be thinner, on the other side support interfaces may disappear for snug supports.
+            // return diff(smooth_outward(closing(*m_support_polygons, closing_distance, SUPPORT_SURFACES_OFFSET_PARAMETERS), smoothing_distance), *m_trimming_polygons);
             return smooth_outward(closing(*m_support_polygons, closing_distance, SUPPORT_SURFACES_OFFSET_PARAMETERS), smoothing_distance);
         }
         assert(false);
@@ -2346,7 +2348,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
 
         Polygons &layer_support_area = layer_support_areas[layer_id];
         Polygons *layer_buildplate_covered = buildplate_covered.empty() ? nullptr : &buildplate_covered[layer_id];
-        task_group.run([&grid_params, &overhangs_projection, &overhangs_projection_raw, &layer, &layer_support_area, layer_buildplate_covered
+        // Filtering the propagated support columns to two extrusions, overlapping by maximum 20%.
+        float column_propagation_filtering_radius = scaled<float>(0.8 * 0.5 * (m_support_params.support_material_flow.spacing() + m_support_params.support_material_flow.width()));
+        task_group.run([&grid_params, &overhangs_projection, &overhangs_projection_raw, &layer, &layer_support_area, layer_buildplate_covered, column_propagation_filtering_radius
 #ifdef SLIC3R_DEBUG 
             , iRun, layer_id
 #endif /* SLIC3R_DEBUG */
@@ -2357,6 +2361,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                     , iRun, layer_id, "general"
 #endif /* SLIC3R_DEBUG */
                 );
+                // When propagating support areas downwards, stop propagating the support column if it becomes too thin to be printable.
+                //overhangs_projection = opening(overhangs_projection, column_propagation_filtering_radius);
             });
 
         Polygons layer_support_area_enforcers;
@@ -4115,7 +4121,10 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     base_layer.merge(std::move(bottom_contact_layer));
                 else if (base_layer.empty() && ! bottom_contact_layer.empty() && ! bottom_contact_layer.layer->bridging)
                     base_layer = std::move(bottom_contact_layer);
-            }
+            } else if (bottom_contact_layer.could_merge(top_contact_layer))
+                top_contact_layer.merge(std::move(bottom_contact_layer));
+            else if (bottom_contact_layer.could_merge(interface_layer))
+                bottom_contact_layer.merge(std::move(interface_layer));
 
 #if 0
             if ( ! interface_layer.empty() && ! base_layer.empty()) {
