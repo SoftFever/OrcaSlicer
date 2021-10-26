@@ -401,11 +401,20 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             for (size_t idx : points_idxs)
                 points_inside.push_back(points[idx].cast<float>());
 
-            // Only select/deselect points that are actually visible
+            // Only select/deselect points that are actually visible. We want to check not only
+            // the point itself, but also the center of base of its cone, so the points don't hide
+            // under every miniature irregularity on the model. Remember the actual number and
+            // append the cone bases.
+            size_t orig_pts_num = points_inside.size();
+            for (size_t idx : points_idxs)
+                points_inside.emplace_back((trafo.get_matrix().cast<float>() * (m_editing_cache[idx].support_point.pos + m_editing_cache[idx].normal)).cast<float>());
+
             for (size_t idx : m_c->raycaster()->raycaster()->get_unobscured_idxs(
                      trafo, wxGetApp().plater()->get_camera(), points_inside,
                      m_c->object_clipper()->get_clipping_plane()))
             {
+                if (idx >= orig_pts_num) // this is a cone-base, get index of point it belongs to
+                    idx -= orig_pts_num;
                 if (rectangle_status == GLSelectionRectangle::Deselect)
                     unselect_point(points_idxs[idx]);
                 else
