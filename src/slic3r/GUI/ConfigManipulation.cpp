@@ -33,7 +33,7 @@ void ConfigManipulation::toggle_field(const std::string& opt_key, const bool tog
     cb_toggle_field(opt_key, toggle, opt_index);
 }
 
-void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config, bool set_support_material_overhangs_queried)
+void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config)
 {
     // #ys_FIXME_to_delete
     //! Temporary workaround for the correct updates of the TextCtrl (like "layer_height"):
@@ -160,12 +160,10 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
     }
 
-    support_material_overhangs_queried = set_support_material_overhangs_queried;
-
     if (config->opt_bool("support_material")) {
         // Ask only once.
-        if (!support_material_overhangs_queried) {
-            support_material_overhangs_queried = true;
+        if (!m_support_material_overhangs_queried) {
+            m_support_material_overhangs_queried = true;
             if (!config->opt_bool("overhangs")/* != 1*/) {
                 wxString msg_text = _(L("Supports work better, if the following feature is enabled:\n"
                                         "- Detect bridging perimeters"));
@@ -184,7 +182,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
     }
     else {
-        support_material_overhangs_queried = false;
+        m_support_material_overhangs_queried = false;
     }
 
     if (config->option<ConfigOptionPercent>("fill_density")->value == 100) {
