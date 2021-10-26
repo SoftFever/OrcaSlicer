@@ -43,6 +43,8 @@ protected:
 	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id = wxID_OK, wxBitmap bitmap = wxNullBitmap);
 
 	void add_btn(wxWindowID btn_id, bool set_focus = false);
+	void apply_style(long style);
+	void finalize();
 
 	wxFont boldfont;
 	wxBoxSizer *content_sizer;
@@ -113,6 +115,23 @@ public:
 };
 #endif
 
+class MessageWithCheckDialog : public MsgDialog
+{
+	wxCheckBox* m_check{ nullptr };
+public:
+	MessageWithCheckDialog(wxWindow* parent,
+		const wxString& message,
+		const wxString& checkbox_label,
+		const wxString& caption = wxEmptyString,
+		long style = wxOK);
+	MessageWithCheckDialog(MessageWithCheckDialog&&) = delete;
+	MessageWithCheckDialog(const MessageWithCheckDialog&) = delete;
+	MessageWithCheckDialog& operator=(MessageWithCheckDialog&&) = delete;
+	MessageWithCheckDialog& operator=(const MessageWithCheckDialog&) = delete;
+	virtual ~MessageWithCheckDialog() = default;
+
+	bool GetCheckVal();
+};
 
 // Generic info dialog, used for displaying exceptions
 class InfoDialog : public MsgDialog

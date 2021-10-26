@@ -2312,6 +2312,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
     std::vector<size_t> obj_idxs;
 
+    int answer_convert_from_meters          = wxOK_DEFAULT;
+    int answer_convert_from_imperial_units  = wxOK_DEFAULT;
+
     for (size_t i = 0; i < input_files.size(); ++i) {
 #ifdef _WIN32
         auto path = input_files[i];
@@ -2469,26 +2472,48 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
                 else if (model.looks_like_saved_in_meters()) {
-                    MessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
-                        "The dimensions of the object from file %s seem to be defined in meters.\n"
-                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
-                        "The dimensions of some objects from file %s seem to be defined in meters.\n"
-                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
-                        _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
-                    if (msg_dlg.ShowModal() == wxID_YES)
-                        //FIXME up-scale only the small parts?
-                        model.convert_from_meters(true);
+                    auto convert_model_if = [](Model& model, bool condition) {
+                        if (condition)
+                            //FIXME up-scale only the small parts?
+                            model.convert_from_meters(true);
+                    };
+                    if (answer_convert_from_meters == wxOK_DEFAULT) {
+                        MessageWithCheckDialog dlg(q, format_wxstr(_L_PLURAL(
+                            "The dimensions of the object from file %s seem to be defined in meters.\n"
+                            "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
+                            "The dimensions of some objects from file %s seem to be defined in meters.\n"
+                            "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                            _L("Apply to all the remaining small objects being loaded."),
+                            _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
+                        int answer = dlg.ShowModal();
+                        if (dlg.GetCheckVal())
+                            answer_convert_from_meters = answer;
+                        else 
+                            convert_model_if(model, answer == wxID_YES);
+                    }
+                    convert_model_if(model, answer_convert_from_meters == wxID_YES);
                 }
                 else if (model.looks_like_imperial_units()) {
-                    MessageDialog msg_dlg(q, format_wxstr(_L_PLURAL(
-                        "The dimensions of the object from file %s seem to be defined in inches.\n"
-                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
-                        "The dimensions of some objects from file %s seem to be defined in inches.\n"
-                        "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
-                        _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
-                    if (msg_dlg.ShowModal() == wxID_YES)
-                        //FIXME up-scale only the small parts?
-                        convert_from_imperial_units(model, true);
+                    auto convert_model_if = [convert_from_imperial_units](Model& model, bool condition) {
+                        if (condition)
+                            //FIXME up-scale only the small parts?
+                            convert_from_imperial_units(model, true);
+                    };
+                    if (answer_convert_from_imperial_units == wxOK_DEFAULT) {
+                        MessageWithCheckDialog dlg(q, format_wxstr(_L_PLURAL(
+                            "The dimensions of the object from file %s seem to be defined in inches.\n"
+                            "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
+                            "The dimensions of some objects from file %s seem to be defined in inches.\n"
+                            "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                            _L("Apply to all the remaining small objects being loaded."),
+                            _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
+                        int answer = dlg.ShowModal();
+                        if (dlg.GetCheckVal())
+                            answer_convert_from_imperial_units = answer;
+                        else 
+                            convert_model_if(model, answer == wxID_YES);
+                    }
+                    convert_model_if(model, answer_convert_from_imperial_units == wxID_YES);
                 }
 
                 if (model.looks_like_multipart_object()) {
