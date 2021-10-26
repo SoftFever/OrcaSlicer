@@ -332,7 +332,7 @@ void slice_facet_at_zs(
         if (min_z != max_z && slice_facet(*it, vertices, indices, edge_ids, idx_vertex_lowest, false, il) == FacetSliceType::Slicing) {
             assert(il.edge_type != IntersectionLine::FacetEdgeType::Horizontal);
             size_t slice_id = it - zs.begin();
-            boost::lock_guard<std::mutex> l(lines_mutex[slice_id % 64]);
+            boost::lock_guard<std::mutex> l(lines_mutex[slice_id % lines_mutex.size()]);
             lines[slice_id].emplace_back(il);
         }
     }
@@ -446,7 +446,7 @@ void slice_facet_with_slabs(
     auto emit_slab_edge = [&lines, &lines_mutex](IntersectionLine il, size_t slab_id, bool reverse) {
         if (reverse)
             il.reverse();
-        boost::lock_guard<std::mutex> l(lines_mutex[(slab_id + 32) >> 6]);
+        boost::lock_guard<std::mutex> l(lines_mutex[(slab_id + lines_mutex.size() / 2) % lines_mutex.size()]);
         lines.between_slices[slab_id].emplace_back(il);
     };
 
@@ -472,7 +472,7 @@ void slice_facet_with_slabs(
                     };
                     // Don't flip the FacetEdgeType::Top edge, it will be flipped when chaining.
                     // if (! ProjectionFromTop) il.reverse();
-                    boost::lock_guard<std::mutex> l(lines_mutex[line_id >> 6]);
+                    boost::lock_guard<std::mutex> l(lines_mutex[line_id % lines_mutex.size()]);
                     lines.at_slice[line_id].emplace_back(il);
                 }
         } else {
@@ -582,7 +582,7 @@ void slice_facet_with_slabs(
                     if (! ProjectionFromTop)
                         il.reverse();
                     size_t line_id = it - zs.begin();
-                    boost::lock_guard<std::mutex> l(lines_mutex[line_id >> 6]);
+                    boost::lock_guard<std::mutex> l(lines_mutex[line_id % lines_mutex.size()]);
                     lines.at_slice[line_id].emplace_back(il);
                 }
             }
