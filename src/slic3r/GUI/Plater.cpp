@@ -4030,7 +4030,7 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 {
 	if (show_warning_dialog)
 		warnings_dialog();  
-    notification_manager->push_delayed_notification(NotificationType::ExportOngoing, [](){return true;}, 1000, 1000);
+    notification_manager->push_delayed_notification(NotificationType::ExportOngoing, [](){return true;}, 1000, 0);
 }
 void Plater::priv::on_slicing_began()
 {
