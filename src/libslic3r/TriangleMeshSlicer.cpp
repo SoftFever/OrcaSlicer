@@ -332,7 +332,7 @@ void slice_facet_at_zs(
         if (min_z != max_z && slice_facet(*it, vertices, indices, edge_ids, idx_vertex_lowest, false, il) == FacetSliceType::Slicing) {
             assert(il.edge_type != IntersectionLine::FacetEdgeType::Horizontal);
             size_t slice_id = it - zs.begin();
-            boost::lock_guard<std::mutex> l(lines_mutex[slice_id >> 6]);
+            boost::lock_guard<std::mutex> l(lines_mutex[slice_id % 64]);
             lines[slice_id].emplace_back(il);
         }
     }
