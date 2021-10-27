@@ -6,6 +6,7 @@
 #include "libslic3r/Polyline.hpp"
 #include "libslic3r/Line.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/Geometry/Circle.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ShortestPath.hpp"
 
@@ -318,6 +319,23 @@ SCENARIO("Circle Fit, TaubinFit with Newton's method", "[Geometry]") {
             }
         }
     }
+}
+
+TEST_CASE("smallest_enclosing_circle_welzl", "[Geometry]") {
+    // Some random points in plane.
+    Points pts { 
+        { 89243, 4359 }, { 763465, 59687 }, { 3245, 734987 }, { 2459867, 987634 }, { 759866, 67843982 }, { 9754687, 9834658 }, { 87235089, 743984373 }, 
+        { 65874456, 2987546 }, { 98234524, 657654873 }, { 786243598, 287934765 }, { 824356, 734265 }, { 82576449, 7864534 }, { 7826345, 3984765 }
+    };
+
+    const auto c = Slic3r::Geometry::smallest_enclosing_circle_welzl<Vec2d>(pts);
+    bool all_inside = std::all_of(pts.begin(), pts.end(), [c](const Point &pt){ return c.contains_with_eps(pt.cast<double>()); });
+    auto c2(c);
+    c2.radius -= 1.;
+    auto num_on_boundary = std::count_if(pts.begin(), pts.end(), [c2](const Point& pt) { return ! c2.contains_with_eps(pt.cast<double>()); });
+
+    REQUIRE(all_inside);
+    REQUIRE(num_on_boundary == 3);
 }
 
 SCENARIO("Path chaining", "[Geometry]") {

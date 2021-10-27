@@ -4,6 +4,7 @@
 #include "../ClipperUtils.hpp"
 #include "../EdgeGrid.hpp"
 #include "../Geometry.hpp"
+#include "../Geometry/Circle.hpp"
 #include "../Point.hpp"
 #include "../PrintConfig.hpp"
 #include "../Surface.hpp"

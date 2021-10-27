@@ -325,38 +325,6 @@ bool liang_barsky_line_clipping(
 	return liang_barsky_line_clipping(x0clip, x1clip, bbox);
 }
 
-// Ugly named variant, that accepts the squared line 
-// Don't call me with a nearly zero length vector!
-// sympy: 
-// factor(solve([a * x + b * y + c, x**2 + y**2 - r**2], [x, y])[0])
-// factor(solve([a * x + b * y + c, x**2 + y**2 - r**2], [x, y])[1])
-template<typename T>
-int ray_circle_intersections_r2_lv2_c(T r2, T a, T b, T lv2, T c, std::pair<Eigen::Matrix<T, 2, 1, Eigen::DontAlign>, Eigen::Matrix<T, 2, 1, Eigen::DontAlign>> &out)
-{
-    T x0 = - a * c;
-    T y0 = - b * c;
-    T d2 = r2 * lv2 - c * c;
-    if (d2 < T(0))
-        return 0;
-    T d = sqrt(d2);
-    out.first.x() = (x0 + b * d) / lv2;
-    out.first.y() = (y0 - a * d) / lv2;
-    out.second.x() = (x0 - b * d) / lv2;
-    out.second.y() = (y0 + a * d) / lv2;
-    return d == T(0) ? 1 : 2;
-}
-template<typename T>
-int ray_circle_intersections(T r, T a, T b, T c, std::pair<Eigen::Matrix<T, 2, 1, Eigen::DontAlign>, Eigen::Matrix<T, 2, 1, Eigen::DontAlign>> &out)
-{
-    T lv2 = a * a + b * b;
-    if (lv2 < T(SCALED_EPSILON * SCALED_EPSILON)) {
-        //FIXME what is the correct epsilon?
-        // What if the line touches the circle?
-        return false;
-    }
-    return ray_circle_intersections_r2_lv2_c2(r * r, a, b, a * a + b * b, c, out);
-}
-
 Pointf3s convex_hull(Pointf3s points);
 Polygon convex_hull(Points points);
 Polygon convex_hull(const Polygons &polygons);
@@ -383,14 +351,6 @@ template<typename T> T angle_to_0_2PI(T angle)
 
     return angle;
 }
-
-/// Find the center of the circle corresponding to the vector of Points as an arc.
-Point circle_center_taubin_newton(const Points::const_iterator& input_start, const Points::const_iterator& input_end, size_t cycles = 20);
-inline Point circle_center_taubin_newton(const Points& input, size_t cycles = 20) { return circle_center_taubin_newton(input.cbegin(), input.cend(), cycles); }
-
-/// Find the center of the circle corresponding to the vector of Pointfs as an arc.
-Vec2d circle_center_taubin_newton(const Vec2ds::const_iterator& input_start, const Vec2ds::const_iterator& input_end, size_t cycles = 20);
-inline Vec2d circle_center_taubin_newton(const Vec2ds& input, size_t cycles = 20) { return circle_center_taubin_newton(input.cbegin(), input.cend(), cycles); }
 
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 

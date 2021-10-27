@@ -5,7 +5,7 @@
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/BoundingBox.hpp"
-#include "libslic3r/Geometry.hpp"
+#include "libslic3r/Geometry/Circle.hpp"
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/PresetBundle.hpp"
 

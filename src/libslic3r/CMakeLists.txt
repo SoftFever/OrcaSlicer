@@ -114,6 +114,8 @@ add_library(libslic3r STATIC
     GCodeWriter.hpp
     Geometry.cpp
     Geometry.hpp
+    Geometry/Circle.cpp
+    Geometry/Circle.hpp
     Int128.hpp
     KDTreeIndirect.hpp
     Layer.cpp
