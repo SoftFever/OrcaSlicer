@@ -116,7 +116,7 @@ add_library(libslic3r STATIC
     Geometry.hpp
     Geometry/Circle.cpp
     Geometry/Circle.hpp
-    Geometry/MedialAxis.Cpp
+    Geometry/MedialAxis.cpp
     Geometry/MedialAxis.hpp
     Geometry/Voronoi.hpp
     Geometry/VoronoiOffset.cpp
