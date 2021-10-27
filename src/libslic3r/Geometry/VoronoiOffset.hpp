@@ -3,9 +3,9 @@
 #ifndef slic3r_VoronoiOffset_hpp_
 #define slic3r_VoronoiOffset_hpp_
 
-#include "libslic3r.h"
+#include "../libslic3r.h"
 
-#include "Geometry.hpp"
+#include "Voronoi.hpp"
 
 namespace Slic3r {
 

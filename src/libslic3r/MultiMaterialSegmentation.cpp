@@ -3,7 +3,7 @@
 #include "EdgeGrid.hpp"
 #include "Layer.hpp"
 #include "Print.hpp"
-#include "VoronoiVisualUtils.hpp"
+#include "Geometry/VoronoiVisualUtils.hpp"
 #include "MutablePolygon.hpp"
 #include "format.hpp"
 

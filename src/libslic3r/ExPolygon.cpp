@@ -1,7 +1,7 @@
 #include "BoundingBox.hpp"
 #include "ExPolygon.hpp"
 #include "Exception.hpp"
-#include "Geometry.hpp"
+#include "Geometry/MedialAxis.hpp"
 #include "Polygon.hpp"
 #include "Line.hpp"
 #include "ClipperUtils.hpp"

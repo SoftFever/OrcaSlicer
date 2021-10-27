@@ -10,18 +10,6 @@
 // Serialization through the Cereal library
 #include <cereal/access.hpp>
 
-#define BOOST_VORONOI_USE_GMP 1
-
-#ifdef _MSC_VER
-// Suppress warning C4146 in OpenVDB: unary minus operator applied to unsigned type, result still unsigned 
-#pragma warning(push)
-#pragma warning(disable : 4146)
-#endif // _MSC_VER
-#include "boost/polygon/voronoi.hpp"
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif // _MSC_VER
-
 namespace Slic3r { 
 
     namespace ClipperLib {
@@ -47,7 +35,7 @@ enum Orientation
 // and d is limited to 63 bits + signum and we are good.
 static inline Orientation orient(const Point &a, const Point &b, const Point &c)
 {
-    // BOOST_STATIC_ASSERT(sizeof(coord_t) * 2 == sizeof(int64_t));
+    static_assert(sizeof(coord_t) * 2 == sizeof(int64_t), "orient works with 32 bit coordinates");
     int64_t u = int64_t(b(0)) * int64_t(c(1)) - int64_t(b(1)) * int64_t(c(0));
     int64_t v = int64_t(a(0)) * int64_t(c(1)) - int64_t(a(1)) * int64_t(c(0));
     int64_t w = int64_t(a(0)) * int64_t(b(1)) - int64_t(a(1)) * int64_t(b(0));
@@ -360,36 +348,6 @@ bool arrange(
     size_t num_parts, const Vec2d &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box, 
     // output
     Pointfs &positions);
-
-class VoronoiDiagram : public boost::polygon::voronoi_diagram<double> {
-public:
-    typedef double                                          coord_type;
-    typedef boost::polygon::point_data<coordinate_type>     point_type;
-    typedef boost::polygon::segment_data<coordinate_type>   segment_type;
-    typedef boost::polygon::rectangle_data<coordinate_type> rect_type;
-};
-
-class MedialAxis {
-public:
-    Lines lines;
-    const ExPolygon* expolygon;
-    double max_width;
-    double min_width;
-    MedialAxis(double _max_width, double _min_width, const ExPolygon* _expolygon = NULL)
-        : expolygon(_expolygon), max_width(_max_width), min_width(_min_width) {};
-    void build(ThickPolylines* polylines);
-    void build(Polylines* polylines);
-    
-private:
-    using VD = VoronoiDiagram;
-    VD vd;
-    std::set<const VD::edge_type*> edges, valid_edges;
-    std::map<const VD::edge_type*, std::pair<coordf_t,coordf_t> > thickness;
-    void process_edge_neighbors(const VD::edge_type* edge, ThickPolyline* polyline);
-    bool validate_edge(const VD::edge_type* edge);
-    const Line& retrieve_segment(const VD::cell_type* cell) const;
-    const Point& retrieve_endpoint(const VD::cell_type* cell) const;
-};
 
 // Sets the given transform by assembling the given transformations in the following order:
 // 1) mirror
