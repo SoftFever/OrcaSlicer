@@ -3895,7 +3895,7 @@ void GLCanvas3D::update_sequential_clearance()
 bool GLCanvas3D::is_object_sinking(int object_idx) const
 {
     for (const GLVolume* v : m_volumes.volumes) {
-        if (v->object_idx() == object_idx && v->is_sinking())
+        if (v->object_idx() == object_idx && (v->is_sinking() || (!v->is_modifier && v->is_below_printbed())))
             return true;
     }
     return false;
