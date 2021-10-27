@@ -1712,7 +1712,10 @@ void Selection::set_caches()
 void Selection::do_add_volume(unsigned int volume_idx)
 {
     m_list.insert(volume_idx);
-    (*m_volumes)[volume_idx]->selected = true;
+    GLVolume* v = (*m_volumes)[volume_idx];
+    v->selected = true;
+    if (v->hover == GLVolume::HS_Select || v->hover == GLVolume::HS_Deselect)
+        v->hover = GLVolume::HS_Hover;
 }
 
 void Selection::do_add_volumes(const std::vector<unsigned int>& volume_idxs)
