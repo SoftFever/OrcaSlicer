@@ -170,4 +170,4 @@ int ray_circle_intersections(T r, T a, T b, T c, std::pair<Eigen::Matrix<T, 2, 1
 
 } } // namespace Slic3r::Geometry
 
-#endif slic3r_Geometry_Circle_hpp_
+#endif // slic3r_Geometry_Circle_hpp_
