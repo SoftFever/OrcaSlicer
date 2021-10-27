@@ -559,7 +559,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
 
     if(po.m_config.supports_enable.getBool() || po.m_config.pad_enable.getBool())
     {
-        po.m_supportdata.reset(new SLAPrintObject::SupportData(mesh));
+        po.m_supportdata.reset(new SLAPrintObject::SupportData(po.get_mesh_to_print()));
     }
 }
 
@@ -570,10 +570,8 @@ void SLAPrint::Steps::support_points(SLAPrintObject &po)
     // If supports are disabled, we can skip the model scan.
     if(!po.m_config.supports_enable.getBool()) return;
 
-    const TriangleMesh &mesh = po.get_mesh_to_slice();
-
     if (!po.m_supportdata)
-        po.m_supportdata.reset(new SLAPrintObject::SupportData(mesh));
+        po.m_supportdata.reset(new SLAPrintObject::SupportData(po.get_mesh_to_print()));
 
     const ModelObject& mo = *po.m_model_object;
 
