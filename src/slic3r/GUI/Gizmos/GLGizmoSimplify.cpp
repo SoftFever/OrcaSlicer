@@ -74,14 +74,10 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
     if (big_ids.empty()) return;
 
     for (size_t object_id : big_ids) {
-        std::string t = _u8L(
-            "Processing model '@object_name' with more than 1M triangles "
+        std::string t = GUI::format(_u8L(
+            "Processing model '%1%' with more than 1M triangles "
             "could be slow. It is highly recommend to reduce "
-            "amount of triangles.");
-        t.replace(t.find("@object_name"), sizeof("@object_name") - 1,
-                  objects[object_id]->name);
-        // std::stringstream text;
-        // text << t << "\n";
+            "amount of triangles."), objects[object_id]->name);
         std::string hypertext = _u8L("Simplify model");
 
         std::function<bool(wxEvtHandler *)> open_simplify =
@@ -277,7 +273,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     bool is_canceling = m_state == State::canceling;
     m_imgui->disabled_begin(is_canceling);
-    if (m_imgui->button(_u8L("Cancel"))) {
+    if (m_imgui->button(_L("Cancel"))) {
         if (m_state == State::settings) {
             if (m_original_its.has_value()) {
                 set_its(*m_original_its);
@@ -296,7 +292,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     bool is_processing = m_state != State::settings;
     m_imgui->disabled_begin(is_processing);
-    if (m_imgui->button(_u8L("Apply"))) {
+    if (m_imgui->button(_L("Apply"))) {
         if (!m_is_valid_result) {
             m_state = State::close_on_end;
             process();
@@ -315,8 +311,9 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         // draw progress bar
         char buf[32];
-        sprintf(buf, L("Process %d / 100"), m_progress);
-        ImGui::ProgressBar(m_progress / 100., ImVec2(m_gui_cfg->input_width, 0.f), buf);
+        int progress = m_progress;
+        sprintf(buf, L("Process %d / 100"), progress);
+        ImGui::ProgressBar(progress / 100., ImVec2(m_gui_cfg->input_width, 0.f), buf);
     }
     m_imgui->end();
 
@@ -454,7 +451,7 @@ void GLGizmoSimplify::process()
     });
 }
 
-void GLGizmoSimplify::set_its(indexed_triangle_set &its) {
+void GLGizmoSimplify::set_its(const indexed_triangle_set &its) {
     if (m_volume == nullptr) return; // could appear after process
     m_volume->set_mesh(its);
     m_volume->calculate_convex_hull();
@@ -543,12 +540,12 @@ void GLGizmoSimplify::set_center_position() {
     m_move_to_center = true; 
 }
 
-bool GLGizmoSimplify::exist_volume(ModelVolume *volume) {
-    auto objs = wxGetApp().plater()->model().objects;
-    for (const auto &obj : objs) {
-        const auto &vlms = obj->volumes;
+bool GLGizmoSimplify::exist_volume(const ModelVolume *volume) {
+    for (const ModelObject* obj : wxGetApp().plater()->model().objects) {
+        const auto & vlms = obj->volumes;
         auto        item = std::find(vlms.begin(), vlms.end(), volume);
-        if (item != vlms.end()) return true;
+        if (item != vlms.end())
+            return true;
     }
     return false;
 }
@@ -556,11 +553,12 @@ bool GLGizmoSimplify::exist_volume(ModelVolume *volume) {
 ModelVolume * GLGizmoSimplify::get_volume(const Selection &selection, Model &model)
 {
     const Selection::IndicesList& idxs = selection.get_volume_idxs();
-    if (idxs.empty()) return nullptr;
     // only one selected volume
-    if (idxs.size() != 1) return nullptr;
+    if (idxs.size() != 1)
+        return nullptr;
     const GLVolume *selected_volume = selection.get_volume(*idxs.begin());
-    if (selected_volume == nullptr) return nullptr;
+    if (selected_volume == nullptr)
+        return nullptr;
 
     const GLVolume::CompositeID &cid  = selected_volume->composite_id;
     const ModelObjectPtrs& objs = model.objects;

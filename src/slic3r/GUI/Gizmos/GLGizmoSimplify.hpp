@@ -53,7 +53,7 @@ private:
     void close();
     void live_preview();
     void process();
-    void set_its(indexed_triangle_set &its);
+    void set_its(const indexed_triangle_set &its);
     void create_gui_cfg();
     void request_rerender();
 
@@ -63,21 +63,21 @@ private:
     static const ModelVolume *get_volume(const GLVolume::CompositeID &cid, const Model &model);
 
     // return false when volume was deleted
-    static bool exist_volume(ModelVolume *volume);
+    static bool exist_volume(const ModelVolume *volume);
 
     std::atomic_bool m_is_valid_result; // differ what to do in apply
     std::atomic_bool m_exist_preview;   // set when process end
 
     bool m_move_to_center; // opening gizmo
 
-    volatile int m_progress; // percent of done work
+    std::atomic<int> m_progress; // percent of done work
     ModelVolume *m_volume; // keep pointer to actual working volume
     size_t m_obj_index;
 
     std::optional<indexed_triangle_set> m_original_its;
     bool m_show_wireframe; 
 
-    volatile bool m_need_reload; // after simplify, glReload must be on main thread
+    std::atomic<bool> m_need_reload; // after simplify, glReload must be on main thread
 
     std::thread m_worker;
     // wait before process
@@ -90,7 +90,7 @@ private:
         close_on_end, // simplify with close on end
         canceling // after button click, before canceled
     };
-    volatile State m_state;
+    std::atomic<State> m_state;
 
     struct Configuration
     {
