@@ -104,18 +104,18 @@ CircleSq<Vector> smallest_enclosing_circle2_welzl(const Points &points)
 {
     using Scalar = typename Vector::Scalar;
     
-    const auto &p0     = points[0].cast<Scalar>();
-    auto        circle = CircleSq<Vector>(p0, points[1].cast<Scalar>());
+    const auto &p0     = points[0].template cast<Scalar>();
+    auto        circle = CircleSq<Vector>(p0, points[1].template cast<Scalar>());
     for (size_t i = 2; i < points.size(); ++ i)
-        if (const Vector &p = points[i].cast<Scalar>(); ! circle.contains_with_eps(p)) {
+        if (const Vector &p = points[i].template cast<Scalar>(); ! circle.contains_with_eps(p)) {
             // p is the first point on the smallest circle enclosing points[0..i]
             auto c = CircleSq<Vector>(p0, p);
             for (size_t j = 1; j < i; ++ j)
-                if (const Vector &q = points[j].cast<Scalar>(); ! c.contains_with_eps(q)) {
+                if (const Vector &q = points[j].template cast<Scalar>(); ! c.contains_with_eps(q)) {
                     // q is the second point on the smallest circle enclosing points[0..i]
                     auto c2 = CircleSq<Vector>(p, q);
-                    for (int k = 0; k < j; ++ k)
-                        if (const Vector &r = points[k].cast<Scalar>(); ! c2.contains_with_eps(r)) {
+                    for (size_t k = 0; k < j; ++ k)
+                        if (const Vector &r = points[k].template cast<Scalar>(); ! c2.contains_with_eps(r)) {
                             if (Vector center; circle_center<Vector>(p, q, r, center)) {
                                 c2.center  = center;
                                 c2.radius2 = (center - p).squaredNorm();
