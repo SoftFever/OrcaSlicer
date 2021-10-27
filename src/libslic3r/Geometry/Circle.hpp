@@ -71,7 +71,7 @@ struct CircleSq {
     bool contains_with_eps(const Vector &p, const Scalar relative_epsilon2 = Scalar((1 + 1e-14) * (1 + 1e-14))) const 
         { Scalar r2 = this->radius2 * relative_epsilon2; return (p - this->center).squaredNorm() < r2; }
 
-    static CircleSq make_invalid() { return Circle { { 0, 0 }, -1 }; }
+    static CircleSq make_invalid() { return CircleSq { { 0, 0 }, -1 }; }
 };
 
 // 2D circle defined by its center and radius
