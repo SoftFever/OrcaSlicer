@@ -35,6 +35,8 @@
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <netlistmgr.h>
+    #include <atlbase.h>
     #include <Iphlpapi.h>
     #pragma comment(lib, "iphlpapi.lib")
 #elif __APPLE__
@@ -132,6 +134,28 @@ public:
 
 
 
+#ifdef _WIN32
+static bool check_internet_connection_win()
+{
+    bool internet = true; // return true if COM object creation fails.
+
+    if (CoInitializeEx(NULL, COINIT_APARTMENTTHREADED) == S_OK) {
+        {
+            CComPtr<INetworkListManager> pNLM;
+            if (pNLM.CoCreateInstance(CLSID_NetworkListManager) == S_OK) {
+                NLM_CONNECTIVITY status;
+                pNLM->GetConnectivity(&status);
+                internet = (status & (NLM_CONNECTIVITY_IPV4_INTERNET | NLM_CONNECTIVITY_IPV6_INTERNET));
+            }
+        }
+        CoUninitialize();
+    }
+
+    return internet;
+}
+#endif
+
+
 // Last version where the info was sent / dialog dismissed is saved in appconfig.
 // Only show the dialog when this info is not found (e.g. fresh install) or when
 // current version is newer. Only major and minor versions are compared.
@@ -157,16 +181,19 @@ static bool should_dialog_be_shown()
     if (! new_version)
         return false;
 
-    // We'll misuse the version check to check internet connection here.
-    bool is_internet = false;
-    Http::get(wxGetApp().app_config->version_check_url())
-        .size_limit(SLIC3R_VERSION_BODY_MAX)
-        .timeout_max(2)
-        .on_complete([&](std::string, unsigned) {
-            is_internet = true;
-        })
-        .perform_sync();
-    return is_internet;
+    // We might want to check that the internet connection is ready so we don't open the dialog
+    // if it cannot really send any data. Using a dummy HTTP GET request led to
+    // https://forum.prusaprinters.org/forum/prusaslicer/prusaslicer-2-4-0-beta1-is-out/#post-518488.
+    // It might also trigger security softwares, which would look bad and would lead to questions
+    // about what PS is doing. We better use some less intrusive way of checking the connection.
+
+    // As of now, this is only implemented on Win. The other platforms do not check beforehand.
+
+#ifdef _WIN32
+    return check_internet_connection_win();
+#else
+    return true;
+#endif
 }
 
 
