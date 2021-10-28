@@ -458,23 +458,33 @@ void slice_facet_with_slabs(
             // Slicing a horizontal triangle with a slicing plane. The triangle has to be upwards facing for ProjectionFromTop
             // and downwards facing for ! ProjectionFromTop.
             assert(min_layer != max_layer);
-            size_t line_id = min_layer - zs.begin();
-            for (int iedge = 0; iedge < 3; ++ iedge)
-                if (facet_neighbors(iedge) == -1) {
-                    int i = iedge;
-                    int j = next_idx_modulo(i, 3);
-                    assert(vertices[i].z() == zs[line_id]);
-                    assert(vertices[j].z() == zs[line_id]);
-                    IntersectionLine il {
-                        { to_2d(vertices[i]).cast<coord_t>(), to_2d(vertices[j]).cast<coord_t>() },
-                        indices(i), indices(j), -1, -1, 
-                        ProjectionFromTop ? IntersectionLine::FacetEdgeType::Bottom : IntersectionLine::FacetEdgeType::Top
-                    };
-                    // Don't flip the FacetEdgeType::Top edge, it will be flipped when chaining.
-                    // if (! ProjectionFromTop) il.reverse();
-                    boost::lock_guard<std::mutex> l(lines_mutex[line_id % lines_mutex.size()]);
-                    lines.at_slice[line_id].emplace_back(il);
-                }
+            // Slicing plane with which the triangle is coplanar.
+            size_t slice_id = min_layer - zs.begin();
+#if 0
+            // Project the coplanar bottom facing triangles to their slicing plane for both top and bottom facing surfaces.
+            // This behavior is different from slice_mesh() / slice_mesh_ex(), which do not slice bottom facing faces exactly on slicing plane.
+            size_t line_id = slice_id;
+#else
+            // Project the coplanar bottom facing triangles to the plane above the slicing plane to match the behavior of slice_mesh() / slice_mesh_ex(),
+            // where the slicing plane slices the top facing surfaces, but misses the bottom facing surfaces.
+            if (size_t line_id = ProjectionFromTop ? slice_id : slice_id + 1; ProjectionFromTop || line_id < lines.at_slice.size())
+#endif
+                for (int iedge = 0; iedge < 3; ++ iedge)
+                    if (facet_neighbors(iedge) == -1) {
+                        int i = iedge;
+                        int j = next_idx_modulo(i, 3);
+                        assert(vertices[i].z() == zs[slice_id]);
+                        assert(vertices[j].z() == zs[slice_id]);
+                        IntersectionLine il {
+                            { to_2d(vertices[i]).cast<coord_t>(), to_2d(vertices[j]).cast<coord_t>() },
+                            indices(i), indices(j), -1, -1, 
+                            ProjectionFromTop ? IntersectionLine::FacetEdgeType::Bottom : IntersectionLine::FacetEdgeType::Top
+                        };
+                        // Don't flip the FacetEdgeType::Top edge, it will be flipped when chaining.
+                        // if (! ProjectionFromTop) il.reverse();
+                        boost::lock_guard<std::mutex> l(lines_mutex[line_id % lines_mutex.size()]);
+                        lines.at_slice[line_id].emplace_back(il);
+                    }
         } else {
             // Triangle is completely between two slicing planes, the triangle may or may not be horizontal, which 
             // does not matter for the processing of such a triangle.
@@ -539,6 +549,7 @@ void slice_facet_with_slabs(
                         assert(il.b_id == indices(next_idx_modulo(edge_id, 3)));
                     } else {
                         // The edge is oriented CW along the face perimeter.
+                        assert(type == FacetSliceType::Slicing);
                         assert(il.edge_type == IntersectionLine::FacetEdgeType::Top);
                         edge_id = il.b_id == indices(0) ? 0 : il.b_id == indices(1) ? 1 : 2;
                         assert(il.b_id == indices(edge_id));
@@ -555,8 +566,11 @@ void slice_facet_with_slabs(
                         int num_on_plane = (mesh_vertices[neighbor(0)].z() == z) + (mesh_vertices[neighbor(1)].z() == z) + (mesh_vertices[neighbor(2)].z() == z);
                         assert(num_on_plane == 2 || num_on_plane == 3);
 #endif // NDEBUG
+#if 0
                         if (mesh_vertices[neighbor(0)].z() == z && mesh_vertices[neighbor(1)].z() == z && mesh_vertices[neighbor(2)].z() == z) {
                             // The neighbor triangle is horizontal.
+                            // Assign the horizontal projections to slicing planes differently from the usual triangle mesh slicing:
+                            // Slicing plane slices top surfaces when projecting from top, it slices bottom surfaces when projecting from bottom.
                             // Is the corner convex or concave?
                             if (il.edge_type == (ProjectionFromTop ? IntersectionLine::FacetEdgeType::Top : IntersectionLine::FacetEdgeType::Bottom)) {
                                 // Convex corner. Add this edge to both slabs, the edge is a boundary edge of both the projection patch below and
@@ -567,7 +581,12 @@ void slice_facet_with_slabs(
                                 // Concave corner. Ignore this edge, it is internal to the projection patch.
                                 type = FacetSliceType::Cutting;
                             }
-                        } else if (il.edge_type == IntersectionLine::FacetEdgeType::Top) {
+                        } else 
+#else
+                            // Project the coplanar bottom facing triangles to the plane above the slicing plane to match the behavior of slice_mesh() / slice_mesh_ex(),
+                            // where the slicing plane slices the top facing surfaces, but misses the bottom facing surfaces.
+#endif
+                        if (il.edge_type == IntersectionLine::FacetEdgeType::Top) {
                             // Indicate that the edge belongs to both the slab below and above the plane.
                             assert(type == FacetSliceType::Slicing);
                             il.edge_type = IntersectionLine::FacetEdgeType::TopBottom;

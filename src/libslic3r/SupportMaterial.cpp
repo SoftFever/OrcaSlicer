@@ -1645,26 +1645,29 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
             polygons_append(contact_polygons, diff_polygons);
         } // for each layer.region
 
-        if (has_enforcer) {
-            // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
-#ifdef SLIC3R_DEBUG
-            ExPolygons enforcers_united = union_ex(annotations.enforcers_layers[layer_id]);
-#endif // SLIC3R_DEBUG
-            enforcer_polygons = diff(intersection(layer.lslices, annotations.enforcers_layers[layer_id]),
-                // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
-                expand(lower_layer_polygons, 0.05f * no_interface_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-#ifdef SLIC3R_DEBUG
-            SVG::export_expolygons(debug_out_path("support-top-contacts-enforcers-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
-                { { layer.lslices,                                 { "layer.lslices",              "gray",   0.2f } },
-                  { { union_ex(lower_layer_polygons) },            { "lower_layer_polygons",       "green",  0.5f } },
-                  { enforcers_united,                              { "enforcers",                  "blue",   0.5f } },
-                  { { union_safety_offset_ex(enforcer_polygons) }, { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
-#endif /* SLIC3R_DEBUG */
-            polygons_append(overhang_polygons, enforcer_polygons);
-            slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
-            polygons_append(contact_polygons, diff(enforcer_polygons, slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons));
+        if (has_enforcer)
+            if (const Polygons &enforcer_polygons_src = annotations.enforcers_layers[layer_id]; ! enforcer_polygons_src.empty()) {
+                // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
+    #ifdef SLIC3R_DEBUG
+                ExPolygons enforcers_united = union_ex(enforcer_polygons_src);
+    #endif // SLIC3R_DEBUG
+                enforcer_polygons = diff(intersection(layer.lslices, enforcer_polygons_src),
+                    // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
+                    expand(lower_layer_polygons, 0.05f * no_interface_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+    #ifdef SLIC3R_DEBUG
+                SVG::export_expolygons(debug_out_path("support-top-contacts-enforcers-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
+                    { { layer.lslices,                                 { "layer.lslices",              "gray",   0.2f } },
+                      { { union_ex(lower_layer_polygons) },            { "lower_layer_polygons",       "green",  0.5f } },
+                      { enforcers_united,                              { "enforcers",                  "blue",   0.5f } },
+                      { { union_safety_offset_ex(enforcer_polygons) }, { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+    #endif /* SLIC3R_DEBUG */
+                if (! enforcer_polygons.empty()) {
+                    polygons_append(overhang_polygons, enforcer_polygons);
+                    slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
+                    polygons_append(contact_polygons, diff(enforcer_polygons, slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons));
+                }
+            }
         }
-    }
 
     return std::make_tuple(std::move(overhang_polygons), std::move(contact_polygons), std::move(enforcer_polygons), no_interface_offset);
 }

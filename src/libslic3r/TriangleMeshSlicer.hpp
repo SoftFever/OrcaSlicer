@@ -46,6 +46,17 @@ struct MeshSlicingParamsEx : public MeshSlicingParams
     double        resolution { 0 };
 };
 
+// All the following slicing functions shall produce consistent results with the same mesh, same transformation matrix and slicing parameters.
+// Namely, slice_mesh_slabs() shall produce consistent results with slice_mesh() and slice_mesh_ex() in the sense, that projections made by 
+// slice_mesh_slabs() shall fall onto slicing planes produced by slice_mesh().
+//
+// If a slicing plane slices a horizontal face of a mesh exactly,
+// an upward facing horizontal face is is considered on slicing plane,
+// while a downward facing horizontal face is considered not on slicing plane.
+// 
+// slice_mesh_slabs() thus projects an upward facing horizontal slice to the slicing plane,
+// while slice_mesh_slabs() projects a downward facing horizontal slice to the slicing plane above if it exists.
+
 std::vector<Polygons>           slice_mesh(
     const indexed_triangle_set       &mesh,
     const std::vector<float>         &zs,
