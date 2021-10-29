@@ -4,13 +4,11 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code,
 // which overrides our localization "L" macro.
 #include "GLGizmoBase.hpp"
-#include "slic3r/GUI/GLModel.hpp"
 #include "GLGizmoPainterBase.hpp" // for render wireframe
+#include "slic3r/GUI/GLModel.hpp"
 #include "admesh/stl.h" // indexed_triangle_set
 #include <thread>
 #include <mutex>
-#include <condition_variable>
-#include <chrono>
 #include <optional>
 #include <atomic>
 
@@ -35,6 +33,7 @@ public:
         const std::vector<size_t> &object_ids,
         const ModelObjectPtrs &    objects,
         NotificationManager &      manager);
+
 protected:
     virtual std::string on_get_name() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
@@ -48,6 +47,7 @@ protected:
     virtual void on_render_for_picking() override{};    
 
     virtual CommonGizmosDataID on_get_requirements() const;
+
 private:
     void after_apply();
     void close();
@@ -70,7 +70,7 @@ private:
 
     bool m_move_to_center; // opening gizmo
 
-    std::atomic<int> m_progress; // percent of done work
+    
     ModelVolume *m_volume; // keep pointer to actual working volume
     size_t m_obj_index;
 
@@ -81,17 +81,22 @@ private:
     std::atomic<bool> m_need_reload; // after simplify, glReload must be on main thread
 
     std::thread m_worker;
-    // wait before process
     std::mutex m_state_mutex;
-    std::condition_variable m_dealy_process_cv;
 
-    enum class State {
-        settings,
-        preview,      // simplify to show preview
-        close_on_end, // simplify with close on end
-        canceling // after button click, before canceled
+    struct State {
+        enum Status {
+            settings,
+            preview,      // simplify to show preview
+            close_on_end, // simplify with close on end
+            canceling // after button click, before canceled
+        };
+
+        Status status;
+        int progress; // percent of done work
+        indexed_triangle_set result;
     };
-    std::atomic<State> m_state;
+    
+    State m_state;
 
     struct Configuration
     {

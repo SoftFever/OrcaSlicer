@@ -16,10 +16,9 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
                                  const std::string &icon_filename,
                                  unsigned int       sprite_id)
     : GLGizmoBase(parent, icon_filename, -1)
-    , m_state(State::settings)
+    , m_state({ State::settings, 0 })
     , m_is_valid_result(false)
     , m_exist_preview(false)
-    , m_progress(0)
     , m_volume(nullptr)
     , m_obj_index(0)
     , m_need_reload(false) 
@@ -34,16 +33,16 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify() { 
-    m_state = State::canceling;
+    m_state.status = State::canceling;
     if (m_worker.joinable()) m_worker.join();
     m_glmodel.reset();
 }
 
 bool GLGizmoSimplify::on_esc_key_down() {
-    if (m_state == State::settings || m_state == State::canceling)
+    if (m_state.status == State::settings || m_state.status == State::canceling)
         return false;
 
-    m_state = State::canceling;
+    m_state.status = State::canceling;
     return true;
 }
 
@@ -111,17 +110,17 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     int obj_index = selection.get_object_idx();
     ModelVolume *act_volume = get_volume(selection, wxGetApp().plater()->model());
     if (act_volume == nullptr) {
-        switch (m_state) {
+        switch (m_state.status) {
         case State::settings: close(); break;
         case State::canceling: break;
-        default: m_state = State::canceling;
+        default: m_state.status = State::canceling;
         }
         return;
     }
 
     // Check selection of new volume
     // Do not reselect object when processing 
-    if (act_volume != m_volume && m_state == State::settings) {
+    if (act_volume != m_volume && m_state.status == State::settings) {
         bool change_window_position = (m_volume == nullptr);
         // select different model
         if (m_volume != nullptr && m_original_its.has_value()) {
@@ -264,18 +263,18 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe);
 
-    bool is_canceling = m_state == State::canceling;
+    bool is_canceling = m_state.status == State::canceling;
     m_imgui->disabled_begin(is_canceling);
     if (m_imgui->button(_L("Cancel"))) {
-        if (m_state == State::settings) {
+        if (m_state.status == State::settings) {
             if (m_original_its.has_value()) {
                 set_its(*m_original_its);
-                m_state = State::close_on_end;
+                m_state.status = State::close_on_end;
             } else {
                 close();
             }
         } else {
-            m_state = State::canceling;
+            m_state.status = State::canceling;
         }
     } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_canceling)
         ImGui::SetTooltip("%s", _u8L("Operation already canceling. Please wait few seconds.").c_str());
@@ -283,11 +282,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::SameLine();
 
-    bool is_processing = m_state != State::settings;
+    bool is_processing = m_state.status != State::settings;
     m_imgui->disabled_begin(is_processing);
     if (m_imgui->button(_L("Apply"))) {
         if (!m_is_valid_result) {
-            m_state = State::close_on_end;
+            m_state.status = State::close_on_end;
             process();
         } else if (m_exist_preview) {
             // use preview and close
@@ -304,20 +303,18 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         // draw progress bar
         char buf[32];
-        int progress = m_progress;
-        sprintf(buf, L("Process %d / 100"), progress);
-        ImGui::ProgressBar(progress / 100., ImVec2(m_gui_cfg->input_width, 0.f), buf);
+        sprintf(buf, L("Process %d / 100"), m_state.progress);
+        ImGui::ProgressBar(m_state.progress / 100., ImVec2(m_gui_cfg->input_width, 0.f), buf);
     }
     m_imgui->end();
 
     // refresh view when needed
     if (m_need_reload) { 
         m_need_reload = false;
-        bool close_on_end = (m_state == State::close_on_end);
-        // Reload visualization of mesh - change VBO, FBO on GPU
+        bool close_on_end = (m_state.status == State::close_on_end);
         request_rerender();
-        // set m_state must be before close() !!!
-        m_state = State::settings;
+        // set m_state.status must be before close() !!!
+        m_state.status = State::settings;
         if (close_on_end) after_apply();
         else init_model();
         // Fix warning icon in object list
@@ -330,6 +327,7 @@ void GLGizmoSimplify::after_apply() {
     m_exist_preview = false;
     // fix hollowing, sla support points, modifiers, ...
     auto plater = wxGetApp().plater();
+    plater->take_snapshot(_u8L("Simplify ") + m_volume->name);
     plater->changed_mesh(m_obj_index);
     close();
 }
@@ -342,19 +340,12 @@ void GLGizmoSimplify::close() {
 
 void GLGizmoSimplify::live_preview() {
     m_is_valid_result = false;
-    if (m_state != State::settings) {
+    if (m_state.status != State::settings) {
         // already canceling process
-        if (m_state == State::canceling) return;
-
-        // wait until cancel
-        if (m_worker.joinable()) {
-            m_state = State::canceling;
-            m_dealy_process_cv.notify_one();
-            m_worker.join();
-        }
+        if (m_state.status == State::canceling) return;
     }
 
-    m_state = State::preview;
+    m_state.status = State::preview;
     process();
 }
 
@@ -387,48 +378,29 @@ void GLGizmoSimplify::process()
 
         // store previous state
         auto plater = wxGetApp().plater();
-        plater->take_snapshot(_u8L("Simplify ") + m_volume->name);
+        // LUKAS: ???
         plater->clear_before_change_mesh(m_obj_index);
     }
     
-    m_progress = 0;
+    m_state.progress = 0;
     if (m_worker.joinable()) m_worker.join();
 
-    m_worker = std::thread([this]() {        
-        {// delay before process
-            std::unique_lock<std::mutex> lk(m_state_mutex);
-            auto is_modify = [this]() { return m_state == State::canceling; };
-            if (m_dealy_process_cv.wait_for(lk, m_gui_cfg->prcess_delay, is_modify)) {
-                // exist modification
-                m_state = State::settings;
-                request_rerender();
-                return;
-            }
-        }
+    m_worker = std::thread([this]() {
 
-        // store original triangles        
-        uint32_t triangle_count = (m_configuration.use_count) ? m_configuration.wanted_count : 0;
-        float    max_error      = (!m_configuration.use_count) ? m_configuration.max_error : std::numeric_limits<float>::max();
-
-        std::function<void(void)> throw_on_cancel = [&]() {
-            if (m_state == State::canceling) {
+        // Checks that the UI thread did not request cancellation, throw if so.
+        std::function<void(void)> throw_on_cancel = [this]() {
+            if (m_state.status == State::canceling)
                 throw SimplifyCanceledException();
-            }
         };
 
-        int64_t last = 0;
-        std::function<void(int)> statusfn = [this, &last](int percent) {
-            m_progress = percent;
-
-            // check max 4fps
-            int64_t now = m_parent.timestamp_now();
-            if ((now - last) < 250) return;
-            last = now;
-
-            request_rerender();
+        // Called by worker thread, 
+        std::function<void(int)> statusfn = [this](int percent) {
+            m_state.progress = percent;
         };
 
         indexed_triangle_set collapsed = *m_original_its; // copy
+        uint32_t triangle_count = (m_configuration.use_count) ? m_configuration.wanted_count : 0;
+        float    max_error = (!m_configuration.use_count) ? m_configuration.max_error : std::numeric_limits<float>::max();
 
         try {
             its_quadric_edge_collapse(collapsed, triangle_count, &max_error, throw_on_cancel, statusfn);
@@ -437,7 +409,7 @@ void GLGizmoSimplify::process()
             m_exist_preview   = true;
         } catch (SimplifyCanceledException &) {
             // set state out of main thread
-            m_state = State::settings; 
+            m_state.status = State::settings; 
         }
         // need to render last status fn to change bar graph to buttons        
         request_rerender();
@@ -469,13 +441,13 @@ void GLGizmoSimplify::on_set_state()
 
         // cancel processing
         if (empty_selection && 
-            m_state != State::settings &&
-            m_state != State::canceling)  
-            m_state = State::canceling;
+            m_state.status != State::settings &&
+            m_state.status != State::canceling)  
+            m_state.status = State::canceling;
 
         // refuse outgoing during simlification
         // object is not selected when it is deleted(cancel and close gizmo)
-        if (m_state != State::settings && !empty_selection) {
+        if (m_state.status != State::settings && !empty_selection) {
             GLGizmoBase::m_state = GLGizmoBase::On;
             auto notification_manager = wxGetApp().plater()->get_notification_manager();
             notification_manager->push_notification(
