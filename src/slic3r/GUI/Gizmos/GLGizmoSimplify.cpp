@@ -1,5 +1,4 @@
 #include "GLGizmoSimplify.hpp"
-#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
@@ -9,6 +8,10 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/QuadricEdgeCollapse.hpp"
+
+#include <GL/glew.h>
+
+#include <thread>
 
 namespace Slic3r::GUI {
 
@@ -27,22 +30,22 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify() { 
-    m_state.status = State::cancelling;
-    if (m_worker.joinable()) m_worker.join();
+    stop_worker_thread(true);
     m_glmodel.reset();
 }
 
 bool GLGizmoSimplify::on_esc_key_down() {
-    if (m_state.status != State::running)
+    return false;
+    /*if (!m_is_worker_running)
         return false;
-    m_state.status = State::cancelling;
-    return true;
+    stop_worker_thread(false);
+    return true;*/
 }
 
 // while opening needs GLGizmoSimplify to set window position
 void GLGizmoSimplify::add_simplify_suggestion_notification(
     const std::vector<size_t> &object_ids,
-    const ModelObjectPtrs &    objects,
+    const std::vector<ModelObject*>&    objects,
     NotificationManager &      manager)
 {
     std::vector<size_t> big_ids;
@@ -107,9 +110,18 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         return;
     }
 
+    bool is_cancelling = false;
+    int progress = 0;
+    {
+        std::lock_guard lk(m_state_mutex);
+        is_cancelling = m_state.status == State::cancelling;
+        progress = m_state.progress;
+    }
+    
+
     // Check selection of new volume
     // Do not reselect object when processing 
-    if (act_volume != m_volume && m_state.status != State::Status::running) {
+    if (act_volume != m_volume && ! m_is_worker_running) {
         bool change_window_position = (m_volume == nullptr);
         // select different model
 
@@ -235,9 +247,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe);
 
-    bool is_cancelling = m_state.status == State::cancelling;
     m_imgui->disabled_begin(is_cancelling);
-    if (m_imgui->button(_L("Cancel"))) {
+    if (m_imgui->button(_L("Close"))) {
         close();
     } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
         ImGui::SetTooltip("%s", _u8L("Operation already cancelling. Please wait few seconds.").c_str());
@@ -245,21 +256,20 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::SameLine();
 
-    bool is_processing = m_state.status == State::running;
-    m_imgui->disabled_begin(is_processing);
+    m_imgui->disabled_begin(m_is_worker_running);
     if (m_imgui->button(_L("Apply"))) {
         apply_simplify();
-    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_processing)
+    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && m_is_worker_running)
         ImGui::SetTooltip("%s", _u8L("Can't apply when proccess preview.").c_str());
     m_imgui->disabled_end(); // state !settings
 
     // draw progress bar
-    if (is_processing) { // apply or preview
+    if (m_is_worker_running) { // apply or preview
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         // draw progress bar
         char buf[32];
-        sprintf(buf, L("Process %d / 100"), m_state.progress);
-        ImGui::ProgressBar(m_state.progress / 100., ImVec2(m_gui_cfg->input_width, 0.f), buf);
+        sprintf(buf, L("Process %d / 100"), progress);
+        ImGui::ProgressBar(progress / 100., ImVec2(m_gui_cfg->input_width, 0.f), buf);
     }
     m_imgui->end();
 
@@ -287,15 +297,14 @@ void GLGizmoSimplify::close() {
 
 void GLGizmoSimplify::stop_worker_thread(bool wait)
 {
-    if (! m_is_worker_running)
-        return;
-
-    std::lock_guard lk(m_state_mutex);
-    if (m_state.status == State::Status::running) {
-        assert(m_worker.joinable());
-        m_state.status = State::Status::cancelling;
-        if (wait)
-            m_worker.join();
+    {
+        std::lock_guard lk(m_state_mutex);
+        if (m_state.status == State::running)
+            m_state.status = State::Status::cancelling;
+    }
+    if (wait && m_worker.joinable()) {
+        m_worker.join();
+        m_is_worker_running = false;
     }
 }
 
@@ -304,26 +313,53 @@ void GLGizmoSimplify::stop_worker_thread(bool wait)
 // worker calls it through a CallAfter.
 void GLGizmoSimplify::worker_finished()
 {
-    assert(m_worker.joinable());
-    m_worker.join();
     m_is_worker_running = false;
+    if (! m_worker.joinable()) {
+        // Probably stop_worker_thread waited after cancel.
+        // Nobody cares about the result apparently.
+        assert(! m_state.result);
+        return;
+    }
+    m_worker.join();
+    if (GLGizmoBase::m_state == Off)
+        return;
     if (m_state.result)
         init_model(*m_state.result);
+    if (m_state.config != m_configuration) {
+        // Settings were changed, restart the worker immediately.
+        process();
+    }
     request_rerender();
 }
 
 void GLGizmoSimplify::process()
 {
-    if (m_is_worker_running || m_volume == nullptr || m_volume->mesh().its.indices.empty())
+    if (m_volume == nullptr || m_volume->mesh().its.indices.empty())
         return;
 
-    assert(! m_worker.joinable());
+    bool configs_match = false;
+    bool result_valid  = false;
+    {
+        std::lock_guard lk(m_state_mutex);
+        configs_match = m_state.config == m_configuration;
+        result_valid = bool(m_state.result);
+    }
 
-    // Worker is not running now. No synchronization needed.
-    if (m_state.result && m_state.config == m_configuration)
-        return; // The result is still valid.
-    
-    // We are about to actually start simplification.    
+    if ((result_valid || m_is_worker_running) && configs_match) {
+        // Either finished or waiting for result already. Nothing to do.
+        return;
+    }
+
+    if (m_is_worker_running && m_state.config != m_configuration) {
+        // Worker is running with outdated config. Stop it. It will
+        // restart itself when cancellation is done.
+        stop_worker_thread(false);
+        return;
+    }
+
+    assert(! m_is_worker_running && ! m_worker.joinable());
+
+    // Copy configuration that will be used.    
     m_state.config = m_configuration;
 
     // Create a copy of current mesh to pass to the worker thread.
@@ -333,14 +369,14 @@ void GLGizmoSimplify::process()
 
     m_worker = std::thread([this](std::unique_ptr<indexed_triangle_set> its) {
 
-        // Checks that the UI thread did not request cancellation, throw if so.
+        // Checks that the UI thread did not request cancellation, throws if so.
         std::function<void(void)> throw_on_cancel = [this]() {
             std::lock_guard lk(m_state_mutex);
             if (m_state.status == State::cancelling)
                 throw SimplifyCanceledException();
         };
 
-        // Called by worker thread, 
+        // Called by worker thread, updates progress bar.
         std::function<void(int)> statusfn = [this](int percent) {
             std::lock_guard lk(m_state_mutex);
             m_state.progress = percent;
@@ -351,10 +387,10 @@ void GLGizmoSimplify::process()
         float    max_error = std::numeric_limits<float>::max();
         {
             std::lock_guard lk(m_state_mutex);
-            if (m_configuration.use_count)
-                triangle_count = m_configuration.wanted_count;
-            if (! m_configuration.use_count)
-                max_error = m_configuration.max_error;
+            if (m_state.config.use_count)
+                triangle_count = m_state.config.wanted_count;
+            if (! m_state.config.use_count)
+                max_error = m_state.config.max_error;
             m_state.progress = 0;
             m_state.result.reset();
             m_state.status = State::Status::running;
@@ -392,13 +428,13 @@ void GLGizmoSimplify::apply_simplify() {
     plater->take_snapshot(_u8L("Simplify ") + m_volume->name);
     plater->clear_before_change_mesh(object_idx);
 
-    m_volume->set_mesh(*m_state.result);
+    m_volume->set_mesh(std::move(*m_state.result));
+    m_state.result.reset();
     m_volume->calculate_convex_hull();
     m_volume->set_new_unique_id();
     m_volume->get_object()->invalidate_bounding_box();
 
-    // fix hollowing, sla support points, modifiers, ...
-    
+    // fix hollowing, sla support points, modifiers, ...    
     plater->changed_mesh(object_idx);
     close();
 }
@@ -414,14 +450,10 @@ void GLGizmoSimplify::on_set_state()
     if (GLGizmoBase::m_state == GLGizmoBase::Off) {
         m_parent.toggle_model_objects_visibility(true);
 
-        // Stop worker but do not wait to join it.
-        stop_worker_thread(false);
-
-        // invalidate selected model
-        m_volume = nullptr;
+        stop_worker_thread(false); // Stop worker, don't wait for it.
+        m_volume = nullptr; // invalidate selected model
+        m_glmodel.reset();
     } else if (GLGizmoBase::m_state == GLGizmoBase::On) {
-        // Make sure the worker is not running and join it.
-        stop_worker_thread(true);
         // when open by hyperlink it needs to show up
         request_rerender();
     }
@@ -507,6 +539,7 @@ void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
 
     m_glmodel.reset();
     m_glmodel.init_from(its);
+    m_parent.toggle_model_objects_visibility(true); // selected volume may have changed
     m_parent.toggle_model_objects_visibility(false, m_c->selection_info()->model_object(),
         m_c->selection_info()->get_active_instance(), m_volume);
     

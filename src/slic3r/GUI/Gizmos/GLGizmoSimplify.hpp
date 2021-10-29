@@ -4,21 +4,13 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code,
 // which overrides our localization "L" macro.
 #include "GLGizmoBase.hpp"
-#include "GLGizmoPainterBase.hpp" // for render wireframe
-#include "slic3r/GUI/GLModel.hpp"
+#include "slic3r/GUI/3DScene.hpp"
 #include "admesh/stl.h" // indexed_triangle_set
-#include <thread>
 #include <mutex>
-#include <optional>
-#include <atomic>
-
-#include <GL/glew.h> // GLUint
-
-// for simplify suggestion
-class ModelObjectPtrs; //  std::vector<ModelObject*>
 
 namespace Slic3r {
 class ModelVolume;
+class Model;
 
 namespace GUI {
 class NotificationManager; // for simplify suggestion
@@ -31,7 +23,7 @@ public:
     bool on_esc_key_down();
     static void add_simplify_suggestion_notification(
         const std::vector<size_t> &object_ids,
-        const ModelObjectPtrs &    objects,
+        const std::vector<ModelObject*> &    objects,
         NotificationManager &      manager);
 
 protected:
@@ -80,6 +72,9 @@ private:
         bool operator==(const Configuration& rhs) {
             return (use_count == rhs.use_count && decimate_ratio == rhs.decimate_ratio
                 && wanted_count == rhs.wanted_count && max_error == rhs.max_error);
+        }
+        bool operator!=(const Configuration& rhs) {
+            return ! (*this == rhs);
         }
     };
 
