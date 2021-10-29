@@ -27,7 +27,6 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     // translation for GUI size
     , tr_mesh_name(_u8L("Mesh name"))
     , tr_triangles(_u8L("Triangles"))
-    , tr_preview(_u8L("Preview"))
     , tr_detail_level(_u8L("Detail level"))
     , tr_decimate_ratio(_u8L("Decimate ratio"))
 {}
@@ -139,7 +138,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_is_valid_result = false;
         m_exist_preview   = false;
         init_model();
-        live_preview();
+        process();
         
         // set window position
         if (m_move_to_center && change_window_position) {
@@ -185,20 +184,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_triangles + ":");
     ImGui::SameLine(m_gui_cfg->top_left_width);
     m_imgui->text(std::to_string(triangle_count));
-    /*
-    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_preview + ":");
-    ImGui::SameLine(m_gui_cfg->top_left_width);
-    if (m_exist_preview) {
-        m_imgui->text(std::to_string(m_volume->mesh().its.indices.size()));
-    } else {
-        m_imgui->text("---");
-    }*/
+
 
     ImGui::Separator();
 
     if(ImGui::RadioButton("##use_error", !m_configuration.use_count)) {
         m_configuration.use_count = !m_configuration.use_count;
-        live_preview();
+        process();
     }
     ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
@@ -223,13 +215,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         case 3: m_configuration.max_error = 0.5f; break;
         case 4: m_configuration.max_error = 1.f; break;
         }
-        live_preview();
+        process();
     }
     m_imgui->disabled_end(); // !use_count
 
     if (ImGui::RadioButton("##use_count", m_configuration.use_count)) {
         m_configuration.use_count = !m_configuration.use_count;
-        live_preview();
+        process();
     }
     ImGui::SameLine();
 
@@ -253,7 +245,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         if (m_configuration.decimate_ratio > 100.f)
             m_configuration.decimate_ratio = 100.f;
         m_configuration.fix_count_by_ratio(triangle_count);
-        live_preview();
+        process();
     }
 
     ImGui::NewLine();
@@ -338,16 +330,6 @@ void GLGizmoSimplify::close() {
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 
-void GLGizmoSimplify::live_preview() {
-    m_is_valid_result = false;
-    if (m_state.status != State::settings) {
-        // already canceling process
-        if (m_state.status == State::canceling) return;
-    }
-
-    m_state.status = State::preview;
-    process();
-}
 
 void GLGizmoSimplify::process()
 {
@@ -383,28 +365,35 @@ void GLGizmoSimplify::process()
     }
     
     m_state.progress = 0;
-    if (m_worker.joinable()) m_worker.join();
+    if (m_worker.joinable())
+        m_worker.join();
 
-    m_worker = std::thread([this]() {
+    // Create a copy of current mesh to pass to the worker thread.
+    // Using unique_ptr instead of pass-by-value to avoid an extra
+    // copy (which would happen when passing to std::thread).
+    auto its = std::make_unique<indexed_triangle_set>(*m_original_its);
+
+    m_worker = std::thread([this](std::unique_ptr<indexed_triangle_set> its) {
 
         // Checks that the UI thread did not request cancellation, throw if so.
         std::function<void(void)> throw_on_cancel = [this]() {
+            std::lock_guard lk(m_state_mutex);
             if (m_state.status == State::canceling)
                 throw SimplifyCanceledException();
         };
 
         // Called by worker thread, 
         std::function<void(int)> statusfn = [this](int percent) {
+            std::lock_guard lk(m_state_mutex);
             m_state.progress = percent;
         };
 
-        indexed_triangle_set collapsed = *m_original_its; // copy
         uint32_t triangle_count = (m_configuration.use_count) ? m_configuration.wanted_count : 0;
         float    max_error = (!m_configuration.use_count) ? m_configuration.max_error : std::numeric_limits<float>::max();
 
         try {
-            its_quadric_edge_collapse(collapsed, triangle_count, &max_error, throw_on_cancel, statusfn);
-            set_its(collapsed);
+            its_quadric_edge_collapse(*its, triangle_count, &max_error, throw_on_cancel, statusfn);
+            set_its(*its);
             m_is_valid_result = true;
             m_exist_preview   = true;
         } catch (SimplifyCanceledException &) {
@@ -413,7 +402,7 @@ void GLGizmoSimplify::process()
         }
         // need to render last status fn to change bar graph to buttons        
         request_rerender();
-    });
+    }, std::move(its));
 }
 
 void GLGizmoSimplify::set_its(const indexed_triangle_set &its) {

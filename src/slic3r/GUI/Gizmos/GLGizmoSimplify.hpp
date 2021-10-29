@@ -51,7 +51,6 @@ protected:
 private:
     void after_apply();
     void close();
-    void live_preview();
     void process();
     void set_its(const indexed_triangle_set &its);
     void create_gui_cfg();
@@ -80,9 +79,6 @@ private:
 
     std::atomic<bool> m_need_reload; // after simplify, glReload must be on main thread
 
-    std::thread m_worker;
-    std::mutex m_state_mutex;
-
     struct State {
         enum Status {
             settings,
@@ -96,6 +92,8 @@ private:
         indexed_triangle_set result;
     };
     
+    std::thread m_worker;
+    std::mutex m_state_mutex; // guards m_state
     State m_state;
 
     struct Configuration
@@ -144,7 +142,6 @@ private:
     // translations used for calc window size
     const std::string tr_mesh_name;
     const std::string tr_triangles;
-    const std::string tr_preview;
     const std::string tr_detail_level;
     const std::string tr_decimate_ratio;
 
