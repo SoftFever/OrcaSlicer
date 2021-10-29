@@ -24,6 +24,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp"
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -1143,7 +1144,7 @@ void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObje
     }
 }
 
-void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx)
+void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx, const ModelVolume* mv)
 {
     for (GLVolume* vol : m_volumes.volumes) {
         if (vol->composite_id.object_id == 1000) { // wipe tower
@@ -1151,7 +1152,8 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
         }
         else {
             if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
-            && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)) {
+            && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)
+            && (mv == nullptr || m_model->objects[vol->composite_id.object_id]->volumes[vol->composite_id.volume_id] == mv)) {
                 vol->is_active = visible;
 
                 if (instance_idx == -1) {
@@ -5239,10 +5241,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
             {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 GLGizmosManager::EType type = gm.get_current_type();
-                if (type == GLGizmosManager::FdmSupports
-                    || type == GLGizmosManager::Seam
-                    || type == GLGizmosManager::MmuSegmentation 
-                    || type == GLGizmosManager::Simplify ) {
+                if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current())) {
                     shader->stop_using();
                     gm.render_painter_gizmo();
                     shader->start_using();

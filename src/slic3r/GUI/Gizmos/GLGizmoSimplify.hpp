@@ -4,6 +4,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code,
 // which overrides our localization "L" macro.
 #include "GLGizmoBase.hpp"
+#include "slic3r/GUI/GLModel.hpp"
 #include "GLGizmoPainterBase.hpp" // for render wireframe
 #include "admesh/stl.h" // indexed_triangle_set
 #include <thread>
@@ -24,7 +25,7 @@ class ModelVolume;
 namespace GUI {
 class NotificationManager; // for simplify suggestion
 
-class GLGizmoSimplify: public GLGizmoBase, public GLGizmoTransparentRender // GLGizmoBase
+class GLGizmoSimplify: public GLGizmoBase
 {    
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -43,11 +44,10 @@ protected:
 
     // must implement
     virtual bool on_init() override { return true;};
-    virtual void on_render() override{};
+    virtual void on_render() override;
     virtual void on_render_for_picking() override{};    
 
-    // GLGizmoPainterBase
-    virtual void render_painter_gizmo() const override{ render_wireframe(); }
+    virtual CommonGizmosDataID on_get_requirements() const;
 private:
     void after_apply();
     void close();
@@ -75,7 +75,8 @@ private:
     size_t m_obj_index;
 
     std::optional<indexed_triangle_set> m_original_its;
-    bool m_show_wireframe; 
+    bool m_show_wireframe;
+    GLModel m_glmodel;
 
     std::atomic<bool> m_need_reload; // after simplify, glReload must be on main thread
 
@@ -142,12 +143,7 @@ private:
     const std::string tr_detail_level;
     const std::string tr_decimate_ratio;
 
-    // rendering wireframe
-    void render_wireframe() const;
-    void init_wireframe();
-    void free_gpu();
-    GLuint m_wireframe_VBO_id, m_wireframe_IBO_id;
-    size_t m_wireframe_IBO_size;
+    void init_model();
 
     // cancel exception
     class SimplifyCanceledException: public std::exception

@@ -31,16 +31,12 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     , tr_preview(_u8L("Preview"))
     , tr_detail_level(_u8L("Detail level"))
     , tr_decimate_ratio(_u8L("Decimate ratio"))
-    // for wireframe
-    , m_wireframe_VBO_id(0)
-    , m_wireframe_IBO_id(0)
-    , m_wireframe_IBO_size(0)
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify() { 
     m_state = State::canceling;
     if (m_worker.joinable()) m_worker.join();
-    free_gpu();
+    m_glmodel.reset();
 }
 
 bool GLGizmoSimplify::on_esc_key_down() {
@@ -143,7 +139,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
         m_is_valid_result = false;
         m_exist_preview   = false;
-        init_wireframe();
+        init_model();
         live_preview();
         
         // set window position
@@ -266,10 +262,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::Text(_u8L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
-    if (ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe)) {
-        if (m_show_wireframe) init_wireframe();
-        else free_gpu();
-    }
+    ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe);
 
     bool is_canceling = m_state == State::canceling;
     m_imgui->disabled_begin(is_canceling);
@@ -322,11 +315,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_need_reload = false;
         bool close_on_end = (m_state == State::close_on_end);
         // Reload visualization of mesh - change VBO, FBO on GPU
-        m_parent.reload_scene(true);
+        request_rerender();
         // set m_state must be before close() !!!
         m_state = State::settings;
         if (close_on_end) after_apply();
-        else init_wireframe();
+        else init_model();
         // Fix warning icon in object list
         wxGetApp().obj_list()->update_item_error_icon(m_obj_index, -1);
     }
@@ -469,6 +462,8 @@ void GLGizmoSimplify::on_set_state()
 {
     // Closing gizmo. e.g. selecting another one
     if (GLGizmoBase::m_state == GLGizmoBase::Off) {
+        m_parent.toggle_model_objects_visibility(true);
+
         // can appear when delete objects
         bool empty_selection = m_parent.get_selection().is_empty();
 
@@ -495,7 +490,7 @@ void GLGizmoSimplify::on_set_state()
             m_exist_preview = false;
             if (exist_volume(m_volume)) {
                 set_its(*m_original_its);
-                m_parent.reload_scene(false);
+                request_rerender();
                 m_need_reload = false;
             }
         }
@@ -581,44 +576,25 @@ const ModelVolume *GLGizmoSimplify::get_volume(const GLVolume::CompositeID &cid,
     return obj->volumes[cid.volume_id];
 }
 
-void GLGizmoSimplify::init_wireframe()
+void GLGizmoSimplify::init_model()
 {
-    if (!m_show_wireframe) return;
     const indexed_triangle_set &its = m_volume->mesh().its;
-    free_gpu();
     if (its.indices.empty()) return;
 
-    // vertices
-    glsafe(::glGenBuffers(1, &m_wireframe_VBO_id));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_wireframe_VBO_id));
-    glsafe(::glBufferData(GL_ARRAY_BUFFER,
-                            its.vertices.size() * 3 * sizeof(float),
-                            its.vertices.data(), GL_STATIC_DRAW));
+    m_glmodel.reset();
+    m_glmodel.init_from(its);
+    m_parent.toggle_model_objects_visibility(false, m_c->selection_info()->model_object(),
+        m_c->selection_info()->get_active_instance(), m_volume);
     
-    // indices
-    std::vector<Vec2i> contour_indices;
-    contour_indices.reserve((its.indices.size() * 3) / 2);
-    for (const auto &triangle : its.indices) { 
-        for (size_t ti1 = 0; ti1 < 3; ++ti1) { 
-            size_t ti2 = (ti1 == 2) ? 0 : (ti1 + 1);
-            if (triangle[ti1] > triangle[ti2]) continue;
-            contour_indices.emplace_back(triangle[ti1], triangle[ti2]);
-        }
-    }
-    glsafe(::glGenBuffers(1, &m_wireframe_IBO_id));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_wireframe_IBO_id));
-    glsafe(::glBufferData(GL_ARRAY_BUFFER,
-                          2*contour_indices.size() * sizeof(coord_t),
-                          contour_indices.data(), GL_STATIC_DRAW));
-    m_wireframe_IBO_size = contour_indices.size() * 2;
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    if (const Selection&sel = m_parent.get_selection(); sel.get_volume_idxs().size() == 1)
+        m_glmodel.set_color(-1, sel.get_volume(*sel.get_volume_idxs().begin())->color);
 }
 
-void GLGizmoSimplify::render_wireframe() const
+void GLGizmoSimplify::on_render()
 {
     // is initialized?
-    if (m_wireframe_VBO_id == 0 || m_wireframe_IBO_id == 0) return;
-    if (!m_show_wireframe) return;
+    if (! m_glmodel.is_initialized())
+        return;
 
     const auto& selection   = m_parent.get_selection();
     const auto& volume_idxs = selection.get_volume_idxs();
@@ -633,39 +609,35 @@ void GLGizmoSimplify::render_wireframe() const
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixd(trafo_matrix.data()));
 
-    auto *contour_shader = wxGetApp().get_shader("mm_contour");
-    contour_shader->start_using();
-    glsafe(::glDepthFunc(GL_LEQUAL));
-    glsafe(::glLineWidth(1.0f));
+    auto *gouraud_shader = wxGetApp().get_shader("gouraud_light");
+    glsafe(::glPushAttrib(GL_DEPTH_TEST));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    gouraud_shader->start_using();
+    m_glmodel.render();
+    gouraud_shader->stop_using();
 
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_wireframe_VBO_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+    if (m_show_wireframe) {
+        auto* contour_shader = wxGetApp().get_shader("mm_contour");
+        contour_shader->start_using();
+        glsafe(::glLineWidth(1.0f));
+        glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+        //ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
+        //glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
+        //glsafe(::glPolygonOffset(5.0, 5.0));
+        m_glmodel.render();
+        glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+        contour_shader->stop_using();
+    }
 
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_wireframe_IBO_id));
-    glsafe(::glDrawElements(GL_LINES, m_wireframe_IBO_size, GL_UNSIGNED_INT, nullptr));
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-    glsafe(::glDepthFunc(GL_LESS));
-
-    glsafe(::glPopMatrix()); // pop trafo
-    contour_shader->stop_using(); 
+    glsafe(::glPopAttrib());
+    glsafe(::glPopMatrix());
 }
 
-void GLGizmoSimplify::free_gpu()
-{
-    if (m_wireframe_VBO_id != 0) {
-        glsafe(::glDeleteBuffers(1, &m_wireframe_VBO_id));
-        m_wireframe_VBO_id = 0;
-    }
 
-    if (m_wireframe_IBO_id != 0) {
-        glsafe(::glDeleteBuffers(1, &m_wireframe_IBO_id));
-        m_wireframe_IBO_id = 0;
-    }
+CommonGizmosDataID GLGizmoSimplify::on_get_requirements() const
+{
+    return CommonGizmosDataID(
+        int(CommonGizmosDataID::SelectionInfo));
 }
 
 } // namespace Slic3r::GUI

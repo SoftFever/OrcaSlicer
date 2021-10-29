@@ -99,20 +99,11 @@ protected:
     GLPaintContour                      m_paint_contour;
 };
 
-class GLGizmoTransparentRender 
-{
-public:
-    // Following function renders the triangles and cursor. Having this separated
-    // from usual on_render method allows to render them before transparent
-    // objects, so they can be seen inside them. The usual on_render is called
-    // after all volumes (including transparent ones) are rendered.
-    virtual void render_painter_gizmo() const = 0;
-};
 
 // Following class is a base class for a gizmo with ability to paint on mesh
 // using circular blush (such as FDM supports gizmo and seam painting gizmo).
 // The purpose is not to duplicate code related to mesh painting.
-class GLGizmoPainterBase : public GLGizmoTransparentRender, public GLGizmoBase
+class GLGizmoPainterBase : public GLGizmoBase
 {
 private:
     ObjectID m_old_mo_id;
@@ -124,6 +115,12 @@ public:
     ~GLGizmoPainterBase() override = default;
     virtual void set_painter_gizmo_data(const Selection& selection);
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+
+    // Following function renders the triangles and cursor. Having this separated
+    // from usual on_render method allows to render them before transparent
+    // objects, so they can be seen inside them. The usual on_render is called
+    // after all volumes (including transparent ones) are rendered.
+    virtual void render_painter_gizmo() const = 0;
 
 protected:
     virtual void render_triangles(const Selection& selection) const;

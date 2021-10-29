@@ -483,7 +483,7 @@ void GLGizmosManager::render_painter_gizmo() const
     if (!m_enabled || m_current == Undefined)
         return;
 
-    auto *gizmo = dynamic_cast<GLGizmoTransparentRender*>(get_current());
+    auto *gizmo = dynamic_cast<GLGizmoPainterBase*>(get_current());
     assert(gizmo); // check the precondition
     gizmo->render_painter_gizmo();
 }
