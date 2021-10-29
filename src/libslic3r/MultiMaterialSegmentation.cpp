@@ -44,6 +44,8 @@ struct segment_traits<Slic3r::ColoredLine> {
 //#define MMU_SEGMENTATION_DEBUG_GRAPH
 //#define MMU_SEGMENTATION_DEBUG_REGIONS
 //#define MMU_SEGMENTATION_DEBUG_INPUT
+//#define MMU_SEGMENTATION_DEBUG_PAINTED_LINES
+//#define MMU_SEGMENTATION_DEBUG_COLORIZED_POLYGONS
 
 namespace Slic3r {
 
@@ -1582,6 +1584,38 @@ void export_processed_input_expolygons_to_svg(const std::string &path, const Lay
 }
 #endif // MMU_SEGMENTATION_DEBUG_INPUT
 
+#ifdef MMU_SEGMENTATION_DEBUG_PAINTED_LINES
+static void export_painted_lines_to_svg(const std::string &path, const std::vector<PaintedLine> &painted_lines, const ExPolygons &lslices)
+{
+    const std::vector<std::string> colors       = {"blue", "cyan", "red", "orange", "magenta", "pink", "purple", "yellow"};
+    coordf_t                       stroke_width = scale_(0.05);
+    BoundingBox                    bbox         = get_extents(lslices);
+    bbox.offset(scale_(1.));
+    ::Slic3r::SVG svg(path.c_str(), bbox);
+
+    for (const Line &line : to_lines(lslices))
+        svg.draw(line, "green", stroke_width);
+
+    for (const PaintedLine &painted_line : painted_lines)
+        svg.draw(painted_line.projected_line, painted_line.color < int(colors.size()) ? colors[painted_line.color] : "black", stroke_width);
+}
+#endif // MMU_SEGMENTATION_DEBUG_PAINTED_LINES
+
+#ifdef MMU_SEGMENTATION_DEBUG_COLORIZED_POLYGONS
+static void export_colorized_polygons_to_svg(const std::string &path, const std::vector<std::vector<ColoredLine>> &colorized_polygons, const ExPolygons &lslices)
+{
+    const std::vector<std::string> colors       = {"blue", "cyan", "red", "orange", "magenta", "pink", "purple", "green", "yellow"};
+    coordf_t                       stroke_width = scale_(0.05);
+    BoundingBox                    bbox         = get_extents(lslices);
+    bbox.offset(scale_(1.));
+    ::Slic3r::SVG svg(path.c_str(), bbox);
+
+    for (const std::vector<ColoredLine> &colorized_polygon : colorized_polygons)
+        for (const ColoredLine &colorized_line : colorized_polygon)
+            svg.draw(colorized_line.line, colorized_line.color < int(colors.size())? colors[colorized_line.color] : "black", stroke_width);
+}
+#endif // MMU_SEGMENTATION_DEBUG_COLORIZED_POLYGONS
+
 // Check if all ColoredLine representing a single layer uses the same color.
 static bool has_layer_only_one_color(const std::vector<std::vector<ColoredLine>> &colored_polygons)
 {
@@ -1746,7 +1780,22 @@ std::vector<std::vector<std::pair<ExPolygon, size_t>>> multi_material_segmentati
             std::vector<PaintedLine> &painted_lines_single = painted_lines[layer_idx];
 
             if (!painted_lines_single.empty()) {
+#ifdef MMU_SEGMENTATION_DEBUG_PAINTED_LINES
+                {
+                    static int iRun = 0;
+                    export_painted_lines_to_svg(debug_out_path("mm-painted-lines-%d-%d.svg", layer_idx, iRun++), painted_lines_single, input_expolygons[layer_idx]);
+                }
+#endif // MMU_SEGMENTATION_DEBUG_PAINTED_LINES
+
                 std::vector<std::vector<ColoredLine>> color_poly = colorize_polygons(edge_grids[layer_idx].contours(), painted_lines_single);
+
+#ifdef MMU_SEGMENTATION_DEBUG_COLORIZED_POLYGONS
+                {
+                    static int iRun = 0;
+                    export_colorized_polygons_to_svg(debug_out_path("mm-colorized_polygons-%d-%d.svg", layer_idx, iRun++), color_poly, input_expolygons[layer_idx]);
+                }
+#endif // MMU_SEGMENTATION_DEBUG_COLORIZED_POLYGONS
+
                 assert(!color_poly.empty());
                 assert(!color_poly.front().empty());
                 if (has_layer_only_one_color(color_poly)) {
