@@ -1577,7 +1577,7 @@ static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguage
 }
 #endif
 
-static int GetSingleChoiceIndex(const wxString& message,
+int GUI_App::GetSingleChoiceIndex(const wxString& message,
                                 const wxString& caption,
                                 const wxArrayString& choices,
                                 int initialSelection)

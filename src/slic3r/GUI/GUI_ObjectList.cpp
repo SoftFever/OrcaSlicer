@@ -3783,7 +3783,7 @@ void ObjectList::change_part_type()
     }
 
     const wxString names[] = { _L("Part"), _L("Negative Volume"), _L("Modifier"), _L("Support Blocker"), _L("Support Enforcer") };
-    auto new_type = ModelVolumeType(wxGetSingleChoiceIndex(_L("Type:"), _L("Select type of part"), wxArrayString(5, names), int(type)));
+    auto new_type = ModelVolumeType(wxGetApp().GetSingleChoiceIndex(_L("Type:"), _L("Select type of part"), wxArrayString(5, names), int(type)));
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
         return;
