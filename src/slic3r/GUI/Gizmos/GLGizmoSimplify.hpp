@@ -53,13 +53,6 @@ private:
     void init_model(const indexed_triangle_set& its);
 
     void set_center_position();
-    // move to global functions
-    static ModelVolume *get_volume(const Selection &selection, Model &model);
-    static const ModelVolume *get_volume(const GLVolume::CompositeID &cid, const Model &model);
-
-    // return false when volume was deleted
-    static bool exist_volume(const ModelVolume *volume);
-
 
     struct Configuration
     {
@@ -82,7 +75,7 @@ private:
 
     bool m_move_to_center; // opening gizmo
         
-    ModelVolume *m_volume; // keep pointer to actual working volume
+    const ModelVolume *m_volume; // keep pointer to actual working volume
 
     bool m_show_wireframe;
     GLModel m_glmodel;

@@ -15,6 +15,26 @@
 
 namespace Slic3r::GUI {
 
+static ModelVolume* get_model_volume(const Selection& selection, Model& model)
+{
+    const Selection::IndicesList& idxs = selection.get_volume_idxs();
+    // only one selected volume
+    if (idxs.size() != 1)
+        return nullptr;
+    const GLVolume* selected_volume = selection.get_volume(*idxs.begin());
+    if (selected_volume == nullptr)
+        return nullptr;
+
+    const GLVolume::CompositeID& cid = selected_volume->composite_id;
+    const ModelObjectPtrs& objs = model.objects;
+    if (cid.object_id < 0 || objs.size() <= static_cast<size_t>(cid.object_id))
+        return nullptr;
+    const ModelObject* obj = objs[cid.object_id];
+    if (cid.volume_id < 0 || obj->volumes.size() <= static_cast<size_t>(cid.volume_id))
+        return nullptr;
+    return obj->volumes[cid.volume_id];
+}
+
 GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
                                  const std::string &icon_filename,
                                  unsigned int       sprite_id)
@@ -103,7 +123,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 {
     create_gui_cfg();
     const Selection &selection = m_parent.get_selection();
-    ModelVolume *act_volume = get_volume(selection, wxGetApp().plater()->model());
+    const ModelVolume *act_volume = get_model_volume(selection, wxGetApp().plater()->model());
     if (act_volume == nullptr) {
         stop_worker_thread(false);
         close();
@@ -428,11 +448,14 @@ void GLGizmoSimplify::apply_simplify() {
     plater->take_snapshot(_u8L("Simplify ") + m_volume->name);
     plater->clear_before_change_mesh(object_idx);
 
-    m_volume->set_mesh(std::move(*m_state.result));
+    ModelVolume* mv = get_model_volume(selection, wxGetApp().model());
+    assert(mv == m_volume);
+
+    mv->set_mesh(std::move(*m_state.result));
     m_state.result.reset();
-    m_volume->calculate_convex_hull();
-    m_volume->set_new_unique_id();
-    m_volume->get_object()->invalidate_bounding_box();
+    mv->calculate_convex_hull();
+    mv->set_new_unique_id();
+    mv->get_object()->invalidate_bounding_box();
 
     // fix hollowing, sla support points, modifiers, ...    
     plater->changed_mesh(object_idx);
@@ -481,56 +504,16 @@ void GLGizmoSimplify::create_gui_cfg() {
 }
 
 void GLGizmoSimplify::request_rerender() {
-    wxGetApp().plater()->CallAfter([this]() {
+    //wxGetApp().plater()->CallAfter([this]() {
         set_dirty();
         m_parent.schedule_extra_frame(0);
-    });
+    //});
 }
 
 void GLGizmoSimplify::set_center_position() {
     m_move_to_center = true; 
 }
 
-bool GLGizmoSimplify::exist_volume(const ModelVolume *volume) {
-    for (const ModelObject* obj : wxGetApp().plater()->model().objects) {
-        const auto & vlms = obj->volumes;
-        auto        item = std::find(vlms.begin(), vlms.end(), volume);
-        if (item != vlms.end())
-            return true;
-    }
-    return false;
-}
-
-ModelVolume * GLGizmoSimplify::get_volume(const Selection &selection, Model &model)
-{
-    const Selection::IndicesList& idxs = selection.get_volume_idxs();
-    // only one selected volume
-    if (idxs.size() != 1)
-        return nullptr;
-    const GLVolume *selected_volume = selection.get_volume(*idxs.begin());
-    if (selected_volume == nullptr)
-        return nullptr;
-
-    const GLVolume::CompositeID &cid  = selected_volume->composite_id;
-    const ModelObjectPtrs& objs = model.objects;
-    if (cid.object_id < 0 || objs.size() <= static_cast<size_t>(cid.object_id))
-        return nullptr;
-    const ModelObject* obj = objs[cid.object_id];
-    if (cid.volume_id < 0 || obj->volumes.size() <= static_cast<size_t>(cid.volume_id))
-        return nullptr;    
-    return obj->volumes[cid.volume_id];
-}
-
-const ModelVolume *GLGizmoSimplify::get_volume(const GLVolume::CompositeID &cid, const Model &model)
-{
-    const ModelObjectPtrs &objs = model.objects;
-    if (cid.object_id < 0 || objs.size() <= static_cast<size_t>(cid.object_id))
-        return nullptr;
-    const ModelObject *obj = objs[cid.object_id];
-    if (cid.volume_id < 0 || obj->volumes.size() <= static_cast<size_t>(cid.volume_id))
-        return nullptr;
-    return obj->volumes[cid.volume_id];
-}
 
 void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
 {
@@ -550,7 +533,6 @@ void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
 
 void GLGizmoSimplify::on_render()
 {
-    // is initialized?
     if (! m_glmodel.is_initialized())
         return;
 
@@ -558,10 +540,6 @@ void GLGizmoSimplify::on_render()
     const auto& volume_idxs = selection.get_volume_idxs();
     if (volume_idxs.empty() || volume_idxs.size() != 1) return;
     const GLVolume *selected_volume = selection.get_volume(*volume_idxs.begin());
-    
-    // check that selected model is wireframe initialized
-    if (m_volume != get_volume(selected_volume->composite_id, *m_parent.get_model()))
-        return;
 
     const Transform3d trafo_matrix = selected_volume->world_matrix();
     glsafe(::glPushMatrix());
