@@ -383,7 +383,9 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
 
     SupportMaterialPattern  support_pattern = m_object_config->support_material_pattern;
     m_support_params.with_sheath            = m_object_config->support_material_with_sheath;
-    m_support_params.base_fill_pattern      = support_pattern == smpHoneycomb ? ipHoneycomb : (m_support_params.support_density > 0.95 ? ipRectilinear : ipSupportBase);
+    m_support_params.base_fill_pattern      = 
+        support_pattern == smpHoneycomb ? ipHoneycomb :
+        m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.contact_fill_pattern   =
         (m_object_config->support_material_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
@@ -4060,7 +4062,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         // Pointer to the 1st layer interface filler.
         auto filler_first_layer     = filler_first_layer_ptr ? filler_first_layer_ptr.get() : filler_interface.get();
         // Filler for the base interface (to be used for soluble interface / non soluble base, to produce non soluble interface layer below soluble interface layer).
-        auto filler_base_interface  = std::unique_ptr<Fill>(base_interface_layers.empty() ? nullptr : Fill::new_from_type(m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase));
+        auto filler_base_interface  = std::unique_ptr<Fill>(base_interface_layers.empty() ? nullptr : 
+            Fill::new_from_type(m_support_params.interface_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase));
         auto filler_support         = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
         filler_interface->set_bounding_box(bbox_object);
         if (filler_first_layer_ptr)
