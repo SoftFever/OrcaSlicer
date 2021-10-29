@@ -230,9 +230,6 @@ protected:
 
     virtual wxString handle_snapshot_action_name(bool shift_down, Button button_down) const = 0;
 
-    virtual std::string get_gizmo_entering_text() const = 0;
-    virtual std::string get_gizmo_leaving_text() const  = 0;
-
     friend class ::Slic3r::GUI::GLGizmoMmuSegmentation;
 };
 

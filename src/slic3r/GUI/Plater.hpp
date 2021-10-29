@@ -394,6 +394,7 @@ public:
 			m_plater->take_snapshot(snapshot_name);
 			m_plater->suppress_snapshots();
 		}
+        TakeSnapshot(Plater* plater, const std::string& snapshot_name, UndoRedo::SnapshotType snapshot_type);
         TakeSnapshot(Plater *plater, const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) : m_plater(plater)
         {
             m_plater->take_snapshot(snapshot_name, snapshot_type);
