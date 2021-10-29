@@ -432,44 +432,57 @@ static std::vector<ColoredLine> filter_colorized_polygon(std::vector<ColoredLine
         return total_length;
     };
 
-    for (size_t pair_idx = 1; pair_idx < segments.size(); ++pair_idx) {
-        int color0 = new_lines[segments[pair_idx - 1].first].color;
-        int color1 = new_lines[segments[pair_idx - 0].first].color;
+    if (segments.size() >= 2)
+        for (size_t curr_idx = 0; curr_idx < segments.size(); ++curr_idx) {
+            size_t next_idx = next_idx_modulo(curr_idx, segments.size());
+            assert(curr_idx != next_idx);
 
-        double seg0l = segment_length(segments[pair_idx - 1]);
-        double seg1l = segment_length(segments[pair_idx - 0]);
+            int color0 = new_lines[segments[curr_idx].first].color;
+            int color1 = new_lines[segments[next_idx].first].color;
 
-        if (color0 != color1 && seg0l >= scale_(0.1) && seg1l <= scale_(0.2)) {
-            for (size_t seg_start_idx = segments[pair_idx].first; seg_start_idx != segments[pair_idx].second; seg_start_idx = (seg_start_idx + 1 < new_lines.size()) ? seg_start_idx + 1 : 0)
-                new_lines[seg_start_idx].color = color0;
-            new_lines[segments[pair_idx].second].color = color0;
+            double seg0l = segment_length(segments[curr_idx]);
+            double seg1l = segment_length(segments[next_idx]);
+
+            if (color0 != color1 && seg0l >= scale_(0.1) && seg1l <= scale_(0.2)) {
+                for (size_t seg_start_idx = segments[next_idx].first; seg_start_idx != segments[next_idx].second; seg_start_idx = (seg_start_idx + 1 < new_lines.size()) ? seg_start_idx + 1 : 0)
+                    new_lines[seg_start_idx].color = color0;
+                new_lines[segments[next_idx].second].color = color0;
+            }
         }
-    }
 
     segments = get_segments(new_lines);
-    for (size_t pair_idx = 1; pair_idx < segments.size(); ++pair_idx) {
-        int    color0 = new_lines[segments[pair_idx - 1].first].color;
-        int    color1 = new_lines[segments[pair_idx - 0].first].color;
-        double seg1l  = segment_length(segments[pair_idx - 0]);
+    if (segments.size() >= 2)
+        for (size_t curr_idx = 0; curr_idx < segments.size(); ++curr_idx) {
+            size_t next_idx = next_idx_modulo(curr_idx, segments.size());
+            assert(curr_idx != next_idx);
 
-        if (color0 >= 1 && color0 != color1 && seg1l <= scale_(0.2)) {
-            for (size_t seg_start_idx = segments[pair_idx].first; seg_start_idx != segments[pair_idx].second; seg_start_idx = (seg_start_idx + 1 < new_lines.size()) ? seg_start_idx + 1 : 0)
-                new_lines[seg_start_idx].color = color0;
-            new_lines[segments[pair_idx].second].color = color0;
+            int    color0 = new_lines[segments[curr_idx].first].color;
+            int    color1 = new_lines[segments[next_idx].first].color;
+            double seg1l  = segment_length(segments[next_idx]);
+
+            if (color0 >= 1 && color0 != color1 && seg1l <= scale_(0.2)) {
+                for (size_t seg_start_idx = segments[next_idx].first; seg_start_idx != segments[next_idx].second; seg_start_idx = (seg_start_idx + 1 < new_lines.size()) ? seg_start_idx + 1 : 0)
+                    new_lines[seg_start_idx].color = color0;
+                new_lines[segments[next_idx].second].color = color0;
+            }
         }
-    }
 
-    for (size_t pair_idx = 2; pair_idx < segments.size(); ++pair_idx) {
-        int color0 = new_lines[segments[pair_idx - 2].first].color;
-        int color1 = new_lines[segments[pair_idx - 1].first].color;
-        int color2 = new_lines[segments[pair_idx - 0].first].color;
+    segments = get_segments(new_lines);
+    if (segments.size() >= 3)
+        for (size_t curr_idx = 0; curr_idx < segments.size(); ++curr_idx) {
+            size_t next_idx      = next_idx_modulo(curr_idx, segments.size());
+            size_t next_next_idx = next_idx_modulo(next_idx, segments.size());
 
-        if (color0 > 0 && color0 == color2 && color0 != color1 && segment_length(segments[pair_idx - 1]) <= scale_(0.5)) {
-            for (size_t seg_start_idx = segments[pair_idx].first; seg_start_idx != segments[pair_idx].second; seg_start_idx = (seg_start_idx + 1 < new_lines.size()) ? seg_start_idx + 1 : 0)
-                new_lines[seg_start_idx].color = color0;
-            new_lines[segments[pair_idx].second].color = color0;
+            int color0 = new_lines[segments[curr_idx].first].color;
+            int color1 = new_lines[segments[next_idx].first].color;
+            int color2 = new_lines[segments[next_next_idx].first].color;
+
+            if (color0 > 0 && color0 == color2 && color0 != color1 && segment_length(segments[next_idx]) <= scale_(0.5)) {
+                for (size_t seg_start_idx = segments[next_next_idx].first; seg_start_idx != segments[next_next_idx].second; seg_start_idx = (seg_start_idx + 1 < new_lines.size()) ? seg_start_idx + 1 : 0)
+                    new_lines[seg_start_idx].color = color0;
+                new_lines[segments[next_next_idx].second].color = color0;
+            }
         }
-    }
 
     return std::move(new_lines);
 }
