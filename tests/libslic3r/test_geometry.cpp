@@ -328,11 +328,12 @@ TEST_CASE("smallest_enclosing_circle_welzl", "[Geometry]") {
         { 65874456, 2987546 }, { 98234524, 657654873 }, { 786243598, 287934765 }, { 824356, 734265 }, { 82576449, 7864534 }, { 7826345, 3984765 }
     };
 
-    const auto c = Slic3r::Geometry::smallest_enclosing_circle_welzl<Vec2d>(pts);
-    bool all_inside = std::all_of(pts.begin(), pts.end(), [c](const Point &pt){ return c.contains_with_eps(pt.cast<double>()); });
+    const auto c = Slic3r::Geometry::smallest_enclosing_circle_welzl(pts);
+    // The radius returned is inflated by SCALED_EPSILON, thus all points should be inside.
+    bool all_inside = std::all_of(pts.begin(), pts.end(), [c](const Point &pt){ return c.contains(pt.cast<double>()); });
     auto c2(c);
-    c2.radius -= 1.;
-    auto num_on_boundary = std::count_if(pts.begin(), pts.end(), [c2](const Point& pt) { return ! c2.contains_with_eps(pt.cast<double>()); });
+    c2.radius -= SCALED_EPSILON * 2.1;
+    auto num_on_boundary = std::count_if(pts.begin(), pts.end(), [c2](const Point& pt) { return ! c2.contains(pt.cast<double>(), SCALED_EPSILON); });
 
     REQUIRE(all_inside);
     REQUIRE(num_on_boundary == 3);
