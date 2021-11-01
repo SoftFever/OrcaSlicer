@@ -854,15 +854,14 @@ static PrintObjectRegions* generate_print_object_regions(
                         for (int parent_region_id = int(layer_range.volume_regions.size()) - 1; parent_region_id >= 0; -- parent_region_id)
                             if (const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
                                 parent_region.model_volume->is_model_part() || parent_region.model_volume->is_modifier()) {
-                                    const PrintObjectRegions::BoundingBox *parent_bbox = find_volume_extents(layer_range, *parent_region.model_volume);
-                                    assert(parent_bbox != nullptr);
-                                    if (parent_bbox->intersects(*bbox))
-                                        layer_range.volume_regions.push_back({
-                                            &volume, parent_region_id,
-                                            get_create_region(region_config_from_model_volume(parent_region.region->config(), nullptr, volume, num_extruders)),
-                                            bbox
-                                        });
-                            }
+                                const PrintObjectRegions::BoundingBox *parent_bbox = find_volume_extents(layer_range, *parent_region.model_volume);
+                                assert(parent_bbox != nullptr);
+                                if (parent_bbox->intersects(*bbox))
+                                    // Only create new region for a modifier, which actually modifies config of it's parent.
+                                    if (PrintRegionConfig config = region_config_from_model_volume(parent_region.region->config(), nullptr, volume, num_extruders); 
+                                        config != parent_region.region->config())
+                                        layer_range.volume_regions.push_back({ &volume, parent_region_id, get_create_region(std::move(config)), bbox });
+                        }
                     }
                 }
             }
