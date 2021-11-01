@@ -15,6 +15,19 @@
 
 namespace Slic3r::GUI {
 
+// Following flag and function allow to schedule a function call through CallAfter,
+// but only run it when the gizmo is still alive. Scheduling a CallAfter from the
+// background thread may trigger the code after the gizmo is destroyed. Having
+// both the gizmo and the checking function static should solve it.
+bool s_simplify_gizmo_destructor_run = false;
+void call_after_if_alive(std::function<void()> fn)
+{
+    wxGetApp().CallAfter([fn]() {
+        if (! s_simplify_gizmo_destructor_run)
+            fn();
+    });
+}
+
 static ModelVolume* get_model_volume(const Selection& selection, Model& model)
 {
     const Selection::IndicesList& idxs = selection.get_volume_idxs();
@@ -49,8 +62,12 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     , tr_decimate_ratio(_u8L("Decimate ratio"))
 {}
 
-GLGizmoSimplify::~GLGizmoSimplify() { 
-    stop_worker_thread(true);
+GLGizmoSimplify::~GLGizmoSimplify()
+{
+    s_simplify_gizmo_destructor_run = true;  
+    stop_worker_thread_request();
+    if (m_worker.joinable())
+        m_worker.join();
     m_glmodel.reset();
 }
 
@@ -58,7 +75,7 @@ bool GLGizmoSimplify::on_esc_key_down() {
     return false;
     /*if (!m_is_worker_running)
         return false;
-    stop_worker_thread(false);
+    stop_worker_thread_request();
     return true;*/
 }
 
@@ -125,23 +142,25 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     const Selection &selection = m_parent.get_selection();
     const ModelVolume *act_volume = get_model_volume(selection, wxGetApp().plater()->model());
     if (act_volume == nullptr) {
-        stop_worker_thread(false);
+        stop_worker_thread_request();
         close();
         return;
     }
 
     bool is_cancelling = false;
+    bool is_worker_running = false;
     int progress = 0;
     {
         std::lock_guard lk(m_state_mutex);
         is_cancelling = m_state.status == State::cancelling;
+        is_worker_running = m_state.status == State::running;
         progress = m_state.progress;
     }
     
 
     // Check selection of new volume
     // Do not reselect object when processing 
-    if (act_volume != m_volume && ! m_is_worker_running) {
+    if (act_volume != m_volume && ! is_worker_running) {
         bool change_window_position = (m_volume == nullptr);
         // select different model
 
@@ -276,15 +295,15 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::SameLine();
 
-    m_imgui->disabled_begin(m_is_worker_running);
+    m_imgui->disabled_begin(is_worker_running);
     if (m_imgui->button(_L("Apply"))) {
         apply_simplify();
-    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && m_is_worker_running)
+    } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running)
         ImGui::SetTooltip("%s", _u8L("Can't apply when proccess preview.").c_str());
     m_imgui->disabled_end(); // state !settings
 
     // draw progress bar
-    if (m_is_worker_running) { // apply or preview
+    if (is_worker_running) { // apply or preview
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         // draw progress bar
         char buf[32];
@@ -315,17 +334,12 @@ void GLGizmoSimplify::close() {
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 
-void GLGizmoSimplify::stop_worker_thread(bool wait)
+void GLGizmoSimplify::stop_worker_thread_request()
 {
-    {
-        std::lock_guard lk(m_state_mutex);
-        if (m_state.status == State::running)
-            m_state.status = State::Status::cancelling;
-    }
-    if (wait && m_worker.joinable()) {
-        m_worker.join();
-        m_is_worker_running = false;
-    }
+    
+    std::lock_guard lk(m_state_mutex);
+    if (m_state.status == State::running)
+        m_state.status = State::Status::cancelling;
 }
 
 
@@ -333,9 +347,8 @@ void GLGizmoSimplify::stop_worker_thread(bool wait)
 // worker calls it through a CallAfter.
 void GLGizmoSimplify::worker_finished()
 {
-    m_is_worker_running = false;
     if (! m_worker.joinable()) {
-        // Probably stop_worker_thread waited after cancel.
+        // Somebody already joined.
         // Nobody cares about the result apparently.
         assert(! m_state.result);
         return;
@@ -359,25 +372,27 @@ void GLGizmoSimplify::process()
 
     bool configs_match = false;
     bool result_valid  = false;
+    bool is_worker_running = false;
     {
         std::lock_guard lk(m_state_mutex);
         configs_match = m_state.config == m_configuration;
         result_valid = bool(m_state.result);
+        is_worker_running = m_state.status == State::running;
     }
 
-    if ((result_valid || m_is_worker_running) && configs_match) {
+    if ((result_valid || is_worker_running) && configs_match) {
         // Either finished or waiting for result already. Nothing to do.
         return;
     }
 
-    if (m_is_worker_running && m_state.config != m_configuration) {
+    if (is_worker_running && m_state.config != m_configuration) {
         // Worker is running with outdated config. Stop it. It will
         // restart itself when cancellation is done.
-        stop_worker_thread(false);
+        stop_worker_thread_request();
         return;
     }
 
-    assert(! m_is_worker_running && ! m_worker.joinable());
+    assert(! is_worker_running && ! m_worker.joinable());
 
     // Copy configuration that will be used.    
     m_state.config = m_configuration;
@@ -397,9 +412,11 @@ void GLGizmoSimplify::process()
         };
 
         // Called by worker thread, updates progress bar.
+        // Using CallAfter so the rerequest function is run in UI thread.
         std::function<void(int)> statusfn = [this](int percent) {
             std::lock_guard lk(m_state_mutex);
             m_state.progress = percent;
+            call_after_if_alive([this]() { request_rerender(); });
         };
 
         // Initialize.
@@ -432,14 +449,11 @@ void GLGizmoSimplify::process()
         }
 
         // Update UI. Use CallAfter so the function is run on UI thread.
-        wxGetApp().CallAfter([this]() { worker_finished(); });
+        call_after_if_alive([this]() { worker_finished(); });
     }, std::move(its));
-
-    m_is_worker_running = true;
 }
 
 void GLGizmoSimplify::apply_simplify() {
-    assert(! m_is_worker_running);
 
     const Selection& selection = m_parent.get_selection();
     int object_idx = selection.get_object_idx();
@@ -473,7 +487,7 @@ void GLGizmoSimplify::on_set_state()
     if (GLGizmoBase::m_state == GLGizmoBase::Off) {
         m_parent.toggle_model_objects_visibility(true);
 
-        stop_worker_thread(false); // Stop worker, don't wait for it.
+        stop_worker_thread_request();
         m_volume = nullptr; // invalidate selected model
         m_glmodel.reset();
     } else if (GLGizmoBase::m_state == GLGizmoBase::On) {
@@ -504,10 +518,12 @@ void GLGizmoSimplify::create_gui_cfg() {
 }
 
 void GLGizmoSimplify::request_rerender() {
-    //wxGetApp().plater()->CallAfter([this]() {
+    int64_t now = m_parent.timestamp_now();
+    if (now > m_last_rerender_timestamp + 250) { // 250 ms
         set_dirty();
         m_parent.schedule_extra_frame(0);
-    //});
+        m_last_rerender_timestamp = now;
+    }
 }
 
 void GLGizmoSimplify::set_center_position() {

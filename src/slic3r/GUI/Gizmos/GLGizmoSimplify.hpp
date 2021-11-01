@@ -45,7 +45,7 @@ private:
     void close();
 
     void process();
-    void stop_worker_thread(bool wait);
+    void stop_worker_thread_request();
     void worker_finished();
 
     void create_gui_cfg();
@@ -81,6 +81,9 @@ private:
     GLModel m_glmodel;
     size_t m_triangle_count; // triangle count of the model currently shown
 
+    // Timestamp of the last rerender request. Only accessed from UI thread.
+    int64_t m_last_rerender_timestamp = std::numeric_limits<int64_t>::min();
+
     // Following struct is accessed by both UI and worker thread.
     // Accesses protected by a mutex.
     struct State {
@@ -100,10 +103,6 @@ private:
     std::mutex m_state_mutex; // guards m_state
     State m_state; // accessed by both threads
 
-    // Following variable is accessed by UI only.
-    bool m_is_worker_running = false;
-
-    
 
     // This configs holds GUI layout size given by translated texts.
     // etc. When language changes, GUI is recreated and this class constructed again,
