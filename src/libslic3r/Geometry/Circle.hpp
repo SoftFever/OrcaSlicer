@@ -82,7 +82,7 @@ struct Circle {
     template<typename Vector2>
     explicit Circle(const CircleSq<Vector2> &c) : center(c.center), radius(c.radius2 <= 0 ? c.radius2 : sqrt(c.radius2)) {}
     template<typename Vector2>
-    Circle operator=(const CircleSq<Vector2> &c) { this->center = c.center; this->radius = c.radius2 <= 0 ? c.radius2 : sqrt(c.radius2) }
+    Circle operator=(const CircleSq<Vector2>& c) { this->center = c.center; this->radius = c.radius2 <= 0 ? c.radius2 : sqrt(c.radius2); }
 
     bool invalid() const { return this->radius < 0; }
     bool valid() const { return ! this->invalid(); }
