@@ -673,8 +673,7 @@ void GUI_App::post_init()
     // to popup a modal dialog on start without screwing combo boxes.
     // This is ugly but I honestly found no better way to do it.
     // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
-    assert(this->preset_updater); // FIXME Following condition is probably not neccessary.
-    if (this->preset_updater) {
+    if (this->preset_updater) { // G-Code Viewer does not initialize preset_updater.
         this->check_updates(false);
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
